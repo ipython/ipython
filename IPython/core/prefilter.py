@@ -10,6 +10,7 @@ transforms are used to implement additional syntax such as !ls and %magic.
 # Distributed under the terms of the Modified BSD License.
 
 from keyword import iskeyword
+import warnings
 import re
 
 from IPython.core.autocall import IPyAutocall
@@ -399,6 +400,12 @@ class EmacsChecker(PrefilterChecker):
     priority = Integer(100).tag(config=True)
     enabled = Bool(False).tag(config=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        warnings.warn("`IPython.core.prefilter.EmacsChecker` has been deprecated "
+                      "since IPython 6.0 for being unused and will be removed", 
+                      DeprecationWarning)
+
     def check(self, line_info):
         "Emacs ipython-mode tags certain input lines."
         if line_info.line.endswith('# PYTHON-MODE'):
@@ -662,6 +669,12 @@ class EmacsHandler(PrefilterHandler):
 
     handler_name = Unicode('emacs')
     esc_strings = List([])
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        warnings.warn("`IPython.core.prefilter.EmacsHandler` has been deprecated "
+                      "since IPython 6.0 for being unused and will be removed", 
+                      DeprecationWarning)
 
     def handle(self, line_info):
         """Handle input lines marked by python-mode."""

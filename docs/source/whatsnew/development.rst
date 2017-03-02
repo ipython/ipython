@@ -56,12 +56,12 @@ completer interface:
 
 The appearance of the completer is controlled by the
 ``c.TerminalInteractiveShell.display_completions`` option that will show the
-type differently depending on the value among ``'column'``,``'multicolumn'``
+type differently depending on the value among ``'column'``, ``'multicolumn'``
 and ``'readlinelike'``
 
 The use of Jedi also full fill a number of request and fix a number of bugs
 like case insensitive completion, completion after division operator: See
-:ghpull:`ipython/ipython#10182`.
+:ghpull:`10182`.
 
 Extra patches and updates will be needed to the :any:`ipykernel` package for
 this feature to be available to other clients like jupyter Notebook, Lab,
@@ -149,7 +149,10 @@ Functions Deprecated in 6.x Development cycle
 
 
 - ``IPython.utils.warn`` was deprecated in IPython 4.0, and has now been removed.
-  instead of ``IPython.utils.warn`` inbuilt :any:`warning` module is used.
+  instead of ``IPython.utils.warn`` inbuilt :mod:`warnings` module is used.
+
+- :class:``IPython.core.prefilter:EmacsHandler`` have and ``EmacsChecker`` been
+  deprecated as being noop and will be removed in future versions of IPython.
 
 
 - The function `IPython.core.oinspect.py:call_tip` is unused, was marked as
@@ -169,7 +172,7 @@ development cycle marked for Milestone 6.0.
 - ``IPython/utils/process.py`` - ``pycmd2argv``
 
 - The `--deep-reload` flag and the corresponding options to inject `dreload` or
-`reload` into the interactive namespace have been removed. You have to
-explicitly import `reload` from `IPython.lib.deepreload` to use it.
+  `reload` into the interactive namespace have been removed. You have to
+  explicitly import `reload` from `IPython.lib.deepreload` to use it.
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
