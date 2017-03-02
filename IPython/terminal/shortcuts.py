@@ -21,6 +21,7 @@ from prompt_toolkit.key_binding.bindings.completion import display_completions_l
 
 from IPython.utils.decorators import undoc
 
+@undoc
 @Condition
 def cursor_in_leading_ws(cli):
     before = cli.application.buffer.document.current_line_before_cursor

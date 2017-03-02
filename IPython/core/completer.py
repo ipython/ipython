@@ -406,7 +406,7 @@ def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
 
     :any:`jedi.api.classes.Completion` s returned by Jedi may not have the same start and end, though
     the Jupyter Protocol requires them to behave like so. This will readjust
-    the completion to have the same ``start`` and ``end` by padding both
+    the completion to have the same ``start`` and ``end`` by padding both
     extremities with surrounding text.
 
     During stabilisation should support a ``_debug`` option to log which
@@ -744,8 +744,8 @@ def cursor_to_position(text:int, line:int, column:int)->int:
     Convert the (line,column) position of the cursor in text to an offset in a
     string.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
 
     text : str
         The text in which to calculate the cursor offset
@@ -775,8 +775,8 @@ def position_to_cursor(text:str, offset:int)->(int, int):
 
     Position should be a valid position in ``text``.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
 
     text : str
         The text in which to calculate the cursor offset
