@@ -9,6 +9,60 @@ This module now support a wide variety of completion mechanism both available
 for normal classic Python code, as well as completer for IPython specific
 Syntax like magics.
 
+Latex and Unicode completion
+============================
+
+IPython and compatible frontends not only can complete your code, but can help
+you to input a wide range of characters. In particular we allow you to insert
+a unicode character using the tab completion mechanism.
+
+Forward latex/unicode completion
+--------------------------------
+
+Forward completion allows you to easily type a unicode character using its latex
+name, or unicode long description. To do so type a backslash follow by the
+relevant name and press tab:
+
+
+Using latex completion:
+
+.. code::
+
+    \\alpha<tab>
+    α
+
+or using unicode completion:
+
+
+.. code::
+
+    \\greek small letter alpha<tab>
+    α
+
+
+Only valid Python identifiers will complete. Combining characters (like arrow or
+dots) are also available, unlike latex they need to be put after the their
+counterpart that is to say, `F\\\\vec<tab>` is correct, not `\\\\vec<tab>F`.
+
+Some browsers are known to display combining characters incorrectly.
+
+Backward latex completion
+-------------------------
+
+It is sometime challenging to know how to type a character, if you are using
+IPython, or any compatible frontend you can prepend backslash to the character
+and press `<tab>` to expand it to its latex form.
+
+.. code::
+
+    \\α<tab>
+    \\alpha
+
+
+Both forward and backward completions can be deactivated by setting the
+``Completer.backslash_combining_completions`` option to ``False``.
+
+
 Experimental
 ============
 
