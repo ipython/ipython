@@ -239,7 +239,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # Ignore blank lines and consecutive duplicates
             cell = cell.rstrip()
             if cell and (cell != last_cell):
-                history.append(cast_unicode_py2(cell))
+                history.append(cell)
                 last_cell = cell
 
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
