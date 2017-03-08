@@ -11,7 +11,7 @@ import unicodedata
 from wcwidth import wcwidth
 
 from IPython.core.completer import (
-    IPCompleter, provisionalcompleter, rectify_completions, cursor_to_position,
+    provisionalcompleter, cursor_to_position,
     _deduplicate_completions)
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.layout.lexers import Lexer
@@ -20,6 +20,23 @@ from prompt_toolkit.layout.lexers import PygmentsLexer
 import pygments.lexers as pygments_lexers
 
 _completion_sentinel = object()
+
+def _elide(string, *, min_elide=30):
+    """
+    If a string is long enough, and has at least 2 dots,
+    replace the middle part with ellipses.
+
+    For example:
+    """
+    if len(string) < min_elide:
+        return string
+
+    parts = string.split('.')
+
+    if len(parts) <= 3:
+        return string
+
+    return '{}.{}\N{HORIZONTAL ELLIPSIS}{}.{}'.format(parts[0], parts[1][0], parts[-2][-1], parts[-1])
 
 
 
@@ -90,7 +107,12 @@ class IPythonPTCompleter(Completer):
             # meta_text = ''
             # yield Completion(m, start_position=start_pos,
             #                  display_meta=meta_text)
-            yield Completion(c.text, start_position=c.start - offset, display_meta=c.type)
+            display_text = c.text
+
+            if c.type == 'function':
+                display_text = display_text + '()'
+
+            yield Completion(c.text, start_position=c.start - offset, display=_elide(display_text), display_meta=c.type)
 
 class IPythonPTLexer(Lexer):
     """
