@@ -167,6 +167,8 @@ resulting magic::
     def foo(...)
 
 will create a {1} magic named `bar`.
+
+To register a class magic use ``Interactiveshell.register_magic(class or instance)``.
 """
 
 # These two are decorator factories.  While they are conceptually very similar,
