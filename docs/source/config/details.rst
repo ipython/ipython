@@ -195,7 +195,7 @@ With (X)EMacs >= 24, You can enable IPython in python-mode with:
 .. _TextMate: http://macromates.com/
 .. _vim: http://www.vim.org/
 
-.. _custom_keyboard_shortcuts
+.. _custom_keyboard_shortcuts:
 
 Keyboard Shortcuts
 ==================

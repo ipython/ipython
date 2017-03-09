@@ -52,6 +52,7 @@ completer interface:
 .. image:: ../_images/jedi_type_inference_60.png
     :alt: Jedi showing ability to do type inference
     :align: center
+    :width: 400px
     :target: ../_images/jedi_type_inference_60.png
 
 The appearance of the completer is controlled by the
@@ -63,7 +64,7 @@ The use of Jedi also full fill a number of request and fix a number of bugs
 like case insensitive completion, completion after division operator: See
 :ghpull:`10182`.
 
-Extra patches and updates will be needed to the :any:`ipykernel` package for
+Extra patches and updates will be needed to the :mod:`ipykernel` package for
 this feature to be available to other clients like jupyter Notebook, Lab,
 Nteract, Hydrogen...
 

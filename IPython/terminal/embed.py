@@ -44,15 +44,14 @@ class EmbeddedMagics(Magics):
         the interactive shell interfering again.
 
 
-        Kill Instance Option
-        --------------------
+        Kill Instance Option:
 
-        If for some reasons you need to kill the location where the instance is
-        created and not called, for example if you create a single instance in
-        one place and debug in many locations, you can use the ``--instance``
-        option to kill this specific instance. Like for the ``call location``
-        killing an "instance" should work even if it is recreated within a
-        loop.
+            If for some reasons you need to kill the location where the instance
+            is created and not called, for example if you create a single
+            instance in one place and debug in many locations, you can use the
+            ``--instance`` option to kill this specific instance. Like for the
+            ``call location`` killing an "instance" should work even if it is
+            recreated within a loop.
 
         .. note::
 

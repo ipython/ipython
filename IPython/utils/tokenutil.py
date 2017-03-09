@@ -38,7 +38,7 @@ def line_at_cursor(cell, cursor_pos=0):
     Returns
     -------
     
-    (line, offset): (text, integer)
+    (line, offset): (string, integer)
         The line with the current cursor, and the character offset of the start of the line.
     """
     offset = 0
