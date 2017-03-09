@@ -301,7 +301,8 @@ class HistoryAccessor(HistoryAccessorBase):
         cur = self.db.execute("SELECT session, line, %s FROM %s " %\
                                 (toget, sqlfrom) + sql, params)
         if output:    # Regroup into 3-tuples, and parse JSON
-            return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
+            return ((ses, lin, (py3compat.cast_unicode_py2(inp), py3compat.cast_unicode_py2(out)))
+                    for ses, lin, inp, out in cur)
         return cur
 
     @needs_sqlite
