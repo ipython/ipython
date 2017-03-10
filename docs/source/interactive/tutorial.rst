@@ -32,14 +32,14 @@ tutorial but should usually not impact the computation.
 
 You should be able to type single line expressions and press enter to evaluate
 them. If an expression is incomplete, IPython will automatically detect this and
-add a new line when you press ``Enter`` instead of evaluating.
+add a new line when you press ``Enter`` instead of executing right away.
 
-Feel free to explore multi-line text edition. Unlike many other REPL with
+Feel free to explore multi-line text input. Unlike many other REPLs, with
 IPython you can use the up and down arrow keys when editing multi-line
 code blocks.
 
-Here is an example of a longer interaction with the IPython REPL we often refer
-to as an IPython _session_ ::
+Here is an example of a longer interaction with the IPython REPL,
+which we often refer to as an IPython _session_ ::
 
     In [1]: print('Hello IPython')
     Hello IPython
@@ -51,10 +51,8 @@ to as an IPython _session_ ::
        ...:     print('Hello {name}'.format(name=name))
        ...:
 
-We won't get into details right now, but unlike the standard python REPL you
-will notice a few difference. First your code should be syntax-highlighted as
-you type.
-
+We won't get into details right now, but you may notice a few differences to the standard Python REPL.
+First, your code should be syntax-highlighted as you type.
 Second, you will see that some results will have an ``Out[N]:`` prompt, while
 some other do not. We'll come to this later.
 
