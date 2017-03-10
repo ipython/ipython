@@ -24,7 +24,6 @@ import sys
 import tokenize
 import warnings
 
-from IPython.utils.py3compat import cast_unicode
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
                                            ipy_prompt,
@@ -687,7 +686,6 @@ class IPythonInputSplitter(InputSplitter):
         """
 
         # We must ensure all input is pure unicode
-        lines = cast_unicode(lines, self.encoding)
         # ''.splitlines() --> [], but we need to push the empty line to transformers
         lines_list = lines.splitlines()
         if not lines_list:
