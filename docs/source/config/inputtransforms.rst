@@ -109,7 +109,6 @@ line in a cell::
                 while line is not None:
                     line = (yield line)
 
-    leading_indent.look_in_string = True
 
 Token-based transformers
 ------------------------
