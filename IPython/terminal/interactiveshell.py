@@ -104,9 +104,7 @@ class TerminalInteractiveShell(InteractiveShell):
             IPython own testing machinery, and emacs inferior-shell integration through elpy.
 
             This mode default to `True` if the `IPY_TEST_SIMPLE_PROMPT`
-            environment variable is set, or the current terminal is not a tty.
-
-            """
+            environment variable is set, or the current terminal is not a tty."""
             ).tag(config=True)
 
     @property
