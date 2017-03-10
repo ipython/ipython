@@ -103,6 +103,87 @@ class ProvisionalWarning(DeprecationWarning):
     pass
 
 #-----------------------------------------------------------------------------
+# Await Helpers
+#-----------------------------------------------------------------------------
+
+from textwrap import indent, dedent
+import ast
+
+def _asyncify(code):
+    """wrap code in async def definition.
+
+    And setup a bit of context to run it later.
+
+    The followign names are part of the API:
+
+     - ``user_ns`` is used as the name for the namespace to run code in, both
+     _in_ and _out_.
+     - ``loop_runner`` is use to send the loop_runner _in_
+     - ``last_expression`` to get the last expression _out_
+    """
+    return dedent("""
+        async def phony():
+        {usercode}
+            return locals()
+
+        user_ns, last_expr = loop_runner(phony(**user_ns))
+        """).format(usercode=indent(code,' '*4))
+
+
+def _should_be_async(cell:str) -> bool:
+    """Detect if a block of code need to be wrapped in an `async def`
+
+    Attempt to parse the block of code, it it compile we're fine.
+    Otherwise we  wrap if and try to compile.
+
+    If it works, assume it should be async. Otherwise Return False.
+    """
+    try:
+        ast.parse(cell)
+        return False
+    except SyntaxError:
+        try:
+            ast.parse(_asyncify(cell))
+        except SyntaxError:
+            return False
+        return True
+    return False
+
+
+def _ast_asyncify(cell:str, localnames) -> ast.Module:
+    """
+    Parse a cell with top-level await and modify the AST to be able to run it.
+
+    The given code is wrapped in a async-def function, parsed into an AST, and
+    the resulting function definition AST is modified to return a tuple
+    containing the curent values of ``locals()`` in the function, as well as the
+    last expression of the user code.
+
+    The last expression or await node is moved into the return statement, and
+    replaced by `None` at its original location. If the last node is not Expr or
+    Await, the second item of the return value will be None.
+
+    We will use this fact to outside of the loop update the User Namespace, and
+    return the value of the last expression in order to run it "Interactively"
+    and trigger display.
+    """
+    from ast import Expr, NameConstant, Tuple, Await, Return, Load
+    tree = ast.parse(_asyncify(cell))
+
+    function_df = tree.body[0]
+
+    ret = function_df.body[-1]
+    lastexpr = function_df.body[-2]
+    for name in localnames:
+        function_df.args.args.append(ast.arg(name,None))
+    if isinstance(lastexpr, (Expr, Await)):
+        function_df.body[-1] = Return(Tuple(elts=[ret.value, lastexpr.value], ctx=Load()))
+        function_df.body[-2] = Expr(value=NameConstant(value=None))
+    else:
+        function_df.body[-1] = Return(Tuple(elts=[ret.value, NameConstant(value=None)], ctx=Load()))
+    ast.fix_missing_locations(tree)
+    return tree
+#-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
 
@@ -217,6 +298,12 @@ class InteractiveShell(SingletonConfigurable):
     autoindent = Bool(True, help=
         """
         Autoindent IPython code entered interactively.
+        """
+    ).tag(config=True)
+
+    autoawait = Bool(True, help=
+        """
+        Automatically run await statement in the top level repl.
         """
     ).tag(config=True)
 
@@ -2641,13 +2728,33 @@ class InteractiveShell(SingletonConfigurable):
         # compiler
         compiler = self.compile if shell_futures else CachingCompiler()
 
+        _run_async = False
+
         with self.builtin_trap:
             cell_name = self.compile.cache(cell, self.execution_count)
 
             with self.display_trap:
                 # Compile to bytecode
                 try:
-                    code_ast = compiler.ast_parse(cell, filename=cell_name)
+                    if _should_be_async(cell) and self.autoawait:
+                        # the code AST below will not be user code: we wrap it
+                        # in an `async def`. This will likely make some AST
+                        # transformer below miss some trasnform opportunity and
+                        # introduce a small coupling to run_code (in which we
+                        # bake some assumptions of what _ast_asyncify returns.
+                        # they are ways around (like grafting part of the ast
+                        # later:
+                        #    - Here, return code_ast.body[0].body[1:-1], as well
+                        #    as last expression in  return statement which is
+                        #    the user code part.
+                        #    - Let it go through the AST transformers, and graft
+                        #    - it back after the AST transform
+                        # But that seem unreasonable, at least while we
+                        # do not need it.
+                        code_ast = _ast_asyncify(cell, self.user_ns.keys())
+                        _run_async = True
+                    else:
+                        code_ast = compiler.ast_parse(cell, filename=cell_name)
                 except self.custom_exceptions as e:
                     etype, value, tb = sys.exc_info()
                     self.CustomTB(etype, value, tb)
@@ -2679,6 +2786,8 @@ class InteractiveShell(SingletonConfigurable):
 
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
+                if _run_async:
+                    interactivity = 'async'
                 has_raised = self.run_ast_nodes(code_ast.body, cell_name,
                    interactivity=interactivity, compiler=compiler, result=result)
                 
@@ -2751,6 +2860,11 @@ class InteractiveShell(SingletonConfigurable):
           will run the last node interactively only if it is an expression (i.e.
           expressions in loops or other blocks are not displayed. Other values
           for this parameter will raise a ValueError.
+
+          Experimental value: 'async'
+            Will try to run top level interactive async/await code in default
+            runner
+
         compiler : callable
           A function with the same interface as the built-in compile(), to turn
           the AST nodes into code objects. Default is the built-in compile().
@@ -2764,7 +2878,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not nodelist:
             return
-
+        _async = False
         if interactivity == 'last_expr':
             if isinstance(nodelist[-1], ast.Expr):
                 interactivity = "last"
@@ -2777,21 +2891,31 @@ class InteractiveShell(SingletonConfigurable):
             to_run_exec, to_run_interactive = nodelist[:-1], nodelist[-1:]
         elif interactivity == 'all':
             to_run_exec, to_run_interactive = [], nodelist
+        elif interactivity == 'async':
+            _async = True
         else:
             raise ValueError("Interactivity was %r" % interactivity)
 
         try:
-            for i, node in enumerate(to_run_exec):
-                mod = ast.Module([node])
+            if _async:
+                # If interactivity is async the semantics of run_code are
+                # completely different Skip usual machinery.
+                mod = ast.Module(nodelist)
                 code = compiler(mod, cell_name, "exec")
-                if self.run_code(code, result):
+                if self.run_code(code, result, async=True):
                     return True
+            else:
+                for i, node in enumerate(to_run_exec):
+                    mod = ast.Module([node])
+                    code = compiler(mod, cell_name, "exec")
+                    if self.run_code(code, result):
+                        return True
 
-            for i, node in enumerate(to_run_interactive):
-                mod = ast.Interactive([node])
-                code = compiler(mod, cell_name, "single")
-                if self.run_code(code, result):
-                    return True
+                for i, node in enumerate(to_run_interactive):
+                    mod = ast.Interactive([node])
+                    code = compiler(mod, cell_name, "single")
+                    if self.run_code(code, result):
+                        return True
 
             # Flush softspace
             if softspace(sys.stdout, 0):
@@ -2814,7 +2938,61 @@ class InteractiveShell(SingletonConfigurable):
 
         return False
 
-    def run_code(self, code_obj, result=None):
+    def _async_exec(self, code_obj, user_ns, *, loop_runner=None):
+        """
+        Fake async execution of code_object in a namespace via a proxy namespace.
+
+        WARNING: The semantics of `async_exec` are quite different from `exec`,
+        in particular you can only pass a single namespace. It also return a
+        handle to the value of the last_expression of user_code.
+
+        `async_exec` make the following assumption,
+
+        Code object MUST represent a structure like the following::
+
+            async def function(user_ns):
+                {{user code executing in user_ns}}
+                return (user_ns, last_expression)
+
+            user_ns, last_expr = loop_runner(function(user_ns))
+
+
+        In particular:
+
+          - the ``code_obj``'s ``last_expr`` node MUST be ``None`` or a value
+          that should be returned by the code object, and it MUST be bound to
+          the ``last_expr`` name.
+          - the user namespace MUST be named ``user_ns`` outside of the
+          ``async def`` function.
+          - ``loop_runner`` is a callable injected in the namespace tha may be
+          used to run the asynchronous code.
+
+        We do run the async function in a third namespace for multiple reasons:
+
+          - do not pollute use namespace or get influenced by it.
+          - wrapper can get arbitrary complex without concern for backward
+          compatibility
+          - user_ns.clear() ; user_ns.update(**stuff) does not fails with
+          `user_ns` is not defined.
+
+        """
+        if not loop_runner:
+            import asyncio
+            # make it a attribute on self, to change loop via magics ?
+            # this would allow integration of curio/trio.
+            loop_runner = asyncio.get_event_loop().run_until_complete
+
+        loop_ns = {'user_ns': user_ns, 'loop_runner': loop_runner, 'last_expr':None}
+        exec(code_obj, loop_ns)
+        post_loop_user_ns = loop_ns['user_ns']
+        if post_loop_user_ns == loop_ns:
+            raise ValueError('Async Code may not modify copy of User Namespace and need to return a new one')
+        user_ns.clear()
+        user_ns.update(**loop_ns['user_ns'])
+        return loop_ns['last_expr']
+
+
+    def run_code(self, code_obj, result=None, *, async=False):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -2826,6 +3004,8 @@ class InteractiveShell(SingletonConfigurable):
           A compiled code object, to be executed
         result : ExecutionResult, optional
           An object to store exceptions that occur during execution.
+        async :  Bool (Experimental)
+          Attempt to run top-level asynchronous code in a default loop.
 
         Returns
         -------
@@ -2843,8 +3023,12 @@ class InteractiveShell(SingletonConfigurable):
         try:
             try:
                 self.hooks.pre_run_code_hook()
-                #rprint('Running code', repr(code_obj)) # dbg
-                exec(code_obj, self.user_global_ns, self.user_ns)
+                if async:
+                    last_expr = self._async_exec(code_obj, self.user_ns)
+                    code = compile('last_expr', 'fake', "single")
+                    exec(code, {'last_expr':last_expr})
+                else:
+                    exec(code_obj, self.user_global_ns, self.user_ns)
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
