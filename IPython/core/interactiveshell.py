@@ -110,16 +110,22 @@ from textwrap import indent, dedent
 import ast
 
 
-def _default_loop_runner(function, user_ns):
+def _asyncio_runner(function, user_ns):
     import asyncio
     return asyncio.get_event_loop().run_until_complete(function(**user_ns))
+
+def _trio_runner(function, user_ns):
+    import trio
+    def loc(fun, user_ns):
+        return fun(**user_ns)
+    return trio.run(loc, function, user_ns)
 
 def _asyncify(code):
     """wrap code in async def definition.
 
     And setup a bit of context to run it later.
 
-    The followign names are part of the API:
+    The following names are part of the API:
 
      - ``user_ns`` is used as the name for the namespace to run code in, both
      _in_ and _out_.
@@ -130,8 +136,8 @@ def _asyncify(code):
         async def phony():
         {usercode}
             return locals()
-
-        user_ns, last_expr = loop_runner(phony,user_ns)
+        interm = loop_runner(phony, user_ns)
+        user_ns, last_expr =  interm
         """).format(usercode=indent(code,' '*4))
 
 
@@ -312,7 +318,7 @@ class InteractiveShell(SingletonConfigurable):
         """
     ).tag(config=True)
 
-    looprunner = DottedObjectName(default_value="IPython.core.interactiveshell._default_loop_runner",
+    looprunner = DottedObjectName(default_value="IPython.core.interactiveshell._asyncio_runner",
     allow_none=True, help="""TODO""").tag(config=True)
 
     automagic = Bool(True, help=
@@ -2999,7 +3005,12 @@ class InteractiveShell(SingletonConfigurable):
         if post_loop_user_ns == loop_ns:
             raise ValueError('Async Code may not modify copy of User Namespace and need to return a new one')
         user_ns.clear()
-        user_ns.update(**loop_ns['user_ns'])
+        ###
+        # Weirdly with trio, we get a  `<class
+        # 'trio._core._ki.LOCALS_KEY_KI_PROTECTION_ENABLED'>: False` in user_ns
+        # which Python's dict.update(**kwargs) does not like.
+        uns = {k:v for (k,v) in loop_ns['user_ns'].items() if isinstance(k, str)}
+        user_ns.update(**uns)
         return loop_ns['last_expr']
 
 
