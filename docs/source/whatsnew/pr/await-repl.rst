@@ -15,6 +15,7 @@ context should triggered this mode. For example::
        ...: result = aiohttp.get('https://api.github.com')
 
     In [2]: response = await result
+    <pause for a few 100s ms>
 
     In [3]: await response.json()
     Out[3]:
@@ -37,4 +38,10 @@ You can use the ``c.InteractiveShell.autoawait`` configuration option and set it
 to ``False`` to deactivate this behavior.
 
 If you wish to use a different loop runner,.....
+
+The default loop does not run in the background, so your asynchronous code must
+finish for the REPL to allow you to enter more code. As with usual Python
+semantic, the awaitables are started only when awaited for the first time. That
+is to say, in above example, no network request is done between ``In[1]`` and
+``In[2]``
 

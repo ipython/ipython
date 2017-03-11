@@ -73,7 +73,7 @@ from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
 from IPython.utils.tempdir import TemporaryDirectory
 from traitlets import (
     Integer, Bool, CaselessStrEnum, Enum, List, Dict, Unicode, Instance, Type,
-    observe, default,
+    observe, default, DottedObjectName
 )
 from warnings import warn
 from logging import error
@@ -109,6 +109,11 @@ class ProvisionalWarning(DeprecationWarning):
 from textwrap import indent, dedent
 import ast
 
+
+def _default_loop_runner(function, user_ns):
+    import asyncio
+    return asyncio.get_event_loop().run_until_complete(function(**user_ns))
+
 def _asyncify(code):
     """wrap code in async def definition.
 
@@ -126,7 +131,7 @@ def _asyncify(code):
         {usercode}
             return locals()
 
-        user_ns, last_expr = loop_runner(phony(**user_ns))
+        user_ns, last_expr = loop_runner(phony,user_ns)
         """).format(usercode=indent(code,' '*4))
 
 
@@ -306,6 +311,9 @@ class InteractiveShell(SingletonConfigurable):
         Automatically run await statement in the top level repl.
         """
     ).tag(config=True)
+
+    looprunner = DottedObjectName(default_value="IPython.core.interactiveshell._default_loop_runner",
+    allow_none=True, help="""TODO""").tag(config=True)
 
     automagic = Bool(True, help=
         """
@@ -2954,7 +2962,7 @@ class InteractiveShell(SingletonConfigurable):
                 {{user code executing in user_ns}}
                 return (user_ns, last_expression)
 
-            user_ns, last_expr = loop_runner(function(user_ns))
+            user_ns, last_expr = loop_runner(function, user_ns)
 
 
         In particular:
@@ -2964,7 +2972,7 @@ class InteractiveShell(SingletonConfigurable):
           the ``last_expr`` name.
           - the user namespace MUST be named ``user_ns`` outside of the
           ``async def`` function.
-          - ``loop_runner`` is a callable injected in the namespace tha may be
+          - ``loop_runner`` is a callable injected in the namespace that may be
           used to run the asynchronous code.
 
         We do run the async function in a third namespace for multiple reasons:
@@ -2976,11 +2984,14 @@ class InteractiveShell(SingletonConfigurable):
           `user_ns` is not defined.
 
         """
+
+
+
         if not loop_runner:
-            import asyncio
             # make it a attribute on self, to change loop via magics ?
             # this would allow integration of curio/trio.
-            loop_runner = asyncio.get_event_loop().run_until_complete
+            from traitlets.utils.importstring import import_item
+            loop_runner = import_item(self.looprunner)
 
         loop_ns = {'user_ns': user_ns, 'loop_runner': loop_runner, 'last_expr':None}
         exec(code_obj, loop_ns)
