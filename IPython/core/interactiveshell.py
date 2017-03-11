@@ -120,8 +120,12 @@ def _curio_runner(function, user_ns):
 
 def _trio_runner(function, user_ns):
     import trio
-    def loc(fun, user_ns):
-        return fun(**user_ns)
+    async def loc(fun, user_ns):
+        """
+        We need the dummy no-op async def to protect from
+        trio's internal. See https://github.com/python-trio/trio/issues/89
+        """
+        return await fun(**user_ns)
     return trio.run(loc, function, user_ns)
 
 def _asyncify(code):
@@ -3009,12 +3013,7 @@ class InteractiveShell(SingletonConfigurable):
         if post_loop_user_ns == loop_ns:
             raise ValueError('Async Code may not modify copy of User Namespace and need to return a new one')
         user_ns.clear()
-        ###
-        # Weirdly with trio, we get a  `<class
-        # 'trio._core._ki.LOCALS_KEY_KI_PROTECTION_ENABLED'>: False` in user_ns
-        # which Python's dict.update(**kwargs) does not like.
-        uns = {k:v for (k,v) in loop_ns['user_ns'].items() if isinstance(k, str)}
-        user_ns.update(**uns)
+        user_ns.update(**loop_ns['user_ns'])
         return loop_ns['last_expr']
 
 
