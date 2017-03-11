@@ -114,6 +114,10 @@ def _asyncio_runner(function, user_ns):
     import asyncio
     return asyncio.get_event_loop().run_until_complete(function(**user_ns))
 
+def _curio_runner(function, user_ns):
+    import curio
+    return curio.run(function(**user_ns))
+
 def _trio_runner(function, user_ns):
     import trio
     def loc(fun, user_ns):
