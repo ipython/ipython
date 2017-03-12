@@ -379,6 +379,79 @@ Currently the magic system has the following functions:""",
             xmode_switch_err('user')
 
     @line_magic
+    def autoawait(self, parameter_s):
+        """
+        Allow to change the status of the autoawait option of IPython. 
+
+        This allow you to set a specific asynchronous code runner.
+        
+        If no value is passed, print the currently used asynchronous integration
+        and whether it is activated.
+
+        It can take a number of value evaluated in the following order:
+
+
+        - False/false/off deactivate autoawait integration
+        - True/true/on activate autoawait integration using configured default
+            loop
+        - asyncio/curio/trio activate autoawait integration and use integration
+        with said library.
+
+        If the passed parameter does not match any of the above and is a python
+        identifier, get said object from user namespace and set it as the
+        runner, and activate autoawait.
+
+        If the object is a fully qualified object name, attempt to import it and
+        set it as the runner, and activate autoawait.
+        """
+
+        param = parameter_s.strip()
+        d= {True:"on",False:"Off"}
+
+        if not param:
+            print("IPython autoawait is {}, and set to use {}".format(
+                d[self.shell.autoawait],
+                self.shell.loop_runner
+            ))
+            return self.shell.autoawait
+
+        if param.lower() in ('False', 'off'):
+            self.shell.autoawait = False
+            return False
+        if param.lower() in ('True', 'on'):
+            self.shell.autoawait = True
+            return True
+
+        if param in self.shell.loop_runner_map:
+            self.shell.loop_runner = param
+            self.shell.autoawait = True
+            return True
+
+        if param in self.shell.user_ns :
+            self.shell.loop_runner = self.shell.user_ns[param]
+            self.shell.autoawait = True
+            return True
+
+        from traitlets.utils.importstring import import_item
+        runner = import_item(param)
+        
+        self.shell.loop_runner = runner
+        self.shell.autoawait = True
+        return True
+        
+
+
+            
+
+
+
+
+
+
+
+        
+
+    @line_magic
     def pip(self, args=''):
         """
         Intercept usage of ``pip`` in IPython and direct user to run command outside of IPython.

@@ -73,7 +73,7 @@ from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
 from IPython.utils.tempdir import TemporaryDirectory
 from traitlets import (
     Integer, Bool, CaselessStrEnum, Enum, List, Dict, Unicode, Instance, Type,
-    observe, default, DottedObjectName
+    observe, default, Any
 )
 from warnings import warn
 from logging import error
@@ -127,6 +127,7 @@ def _trio_runner(function, user_ns):
         """
         return await fun(**user_ns)
     return trio.run(loc, function, user_ns)
+
 
 def _asyncify(code):
     """wrap code in async def definition.
@@ -326,7 +327,13 @@ class InteractiveShell(SingletonConfigurable):
         """
     ).tag(config=True)
 
-    looprunner = DottedObjectName(default_value="IPython.core.interactiveshell._asyncio_runner",
+    loop_runner_map ={
+        'asyncio':_asyncio_runner,
+        'curio':_curio_runner,
+        'trio':_trio_runner,
+    }
+
+    loop_runner = Any(default_value="IPython.core.interactiveshell._asyncio_runner",
     allow_none=True, help="""TODO""").tag(config=True)
 
     automagic = Bool(True, help=
@@ -3002,10 +3009,11 @@ class InteractiveShell(SingletonConfigurable):
 
 
         if not loop_runner:
-            # make it a attribute on self, to change loop via magics ?
-            # this would allow integration of curio/trio.
             from traitlets.utils.importstring import import_item
-            loop_runner = import_item(self.looprunner)
+            loop_runner = self.loop_runner
+
+        if isinstance(loop_runner, str):
+            loop_runner = self.loop_runner_map.get(loop_runner, import_item(loop_runner))
 
         loop_ns = {'user_ns': user_ns, 'loop_runner': loop_runner, 'last_expr':None}
         exec(code_obj, loop_ns)
