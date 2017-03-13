@@ -8,9 +8,10 @@ import sys
 import nose.tools as nt
 from textwrap import dedent
 
-iprs = lambda x: get_ipython().run_cell(dedent(x))
+ip = get_ipython()
+iprs = lambda x: ip.run_cell(dedent(x))
 
-if sys.version_info > (3,6):
+if sys.version_info > (3,5):
     from IPython.core.async_helpers import _should_be_async
 
     def test_should_be_async():
