@@ -12,6 +12,7 @@ generated = join(options, 'config-generated.txt')
 
 def write_doc(name, title, app, preamble=None):
     filename = join(options, name+'.rst')
+    print('writin docs for', name, filename)
     with open(filename, 'w') as f:
         f.write(title + '\n')
         f.write(('=' * len(title)) + '\n')

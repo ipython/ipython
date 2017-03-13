@@ -18,7 +18,8 @@ fixes and backwards incompatibilities. Developers should summarize the
 development work they do here in a user friendly format.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :glob:
 
    development
    version5

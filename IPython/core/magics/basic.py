@@ -390,20 +390,18 @@ Currently the magic system has the following functions:""",
 
         It can take a number of value evaluated in the following order:
 
-
         - False/false/off deactivate autoawait integration
         - True/true/on activate autoawait integration using configured default
-            loop
+          loop
         - asyncio/curio/trio activate autoawait integration and use integration
-        with said library.
+          with said library.
 
         If the passed parameter does not match any of the above and is a python
         identifier, get said object from user namespace and set it as the
         runner, and activate autoawait.
 
         If the object is a fully qualified object name, attempt to import it and
-        set it as the runner, and activate autoawait.
-        """
+        set it as the runner, and activate autoawait."""
 
         param = parameter_s.strip()
         d = {True:"on",False:"Off"}
@@ -415,10 +413,10 @@ Currently the magic system has the following functions:""",
             ))
             return None
 
-        if param.lower() in ('False', 'off'):
+        if param.lower() in ('false', 'off'):
             self.shell.autoawait = False
             return None
-        if param.lower() in ('True', 'on'):
+        if param.lower() in ('true', 'on'):
             self.shell.autoawait = True
             return None
 

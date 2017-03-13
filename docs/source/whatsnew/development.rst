@@ -15,6 +15,19 @@ IPython 6.0
 
 Released .... ...., 2017
 
+
+Need to be updated:
+
+.. toctree::
+   :maxdepth: 2
+   :glob: 
+
+   pr/*
+
+    
+
+
+
 IPython 6 feature a major improvement in the completion machinery which is now
 capable of completing non-executed code. It is also the first version of IPython
 to stop compatibility with Python 2, which is still supported on the bugfix only
