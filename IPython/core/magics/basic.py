@@ -435,18 +435,7 @@ Currently the magic system has the following functions:""",
         
         self.shell.loop_runner = runner
         self.shell.autoawait = True
-        
 
-
-            
-
-
-
-
-
-
-
-        
 
     @line_magic
     def pip(self, args=''):
