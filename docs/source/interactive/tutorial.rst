@@ -10,12 +10,54 @@ more than the standard prompt. Some key features are described here. For more
 information, check the :ref:`tips page <tips>`, or look at examples in the
 `IPython cookbook <https://github.com/ipython/ipython/wiki/Cookbook%3A-Index>`_.
 
+If you haven't done that yet see `how to install ipython <install>`_ .
+
 If you've never used Python before, you might want to look at `the official
 tutorial <http://docs.python.org/tutorial/>`_ or an alternative, `Dive into
 Python <http://diveintopython.net/toc/index.html>`_.
 
-The four most helpful commands 
-===============================
+Start IPython by issuing the ``ipython`` command from your shell, you should be
+greeted by the following::
+
+    Python 3.6.0
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 6.0.0.dev -- An enhanced Interactive Python. Type '?' for help.
+
+    In [1]:
+
+
+Unlike the Python REPL, you will see that the input prompt is ``In [N]:``
+instead of ``>>>``. The number ``N`` in the prompt will be used later in this
+tutorial but should usually not impact the computation.
+
+You should be able to type single line expressions and press enter to evaluate
+them. If an expression is incomplete, IPython will automatically detect this and
+add a new line when you press ``Enter`` instead of executing right away.
+
+Feel free to explore multi-line text input. Unlike many other REPLs, with
+IPython you can use the up and down arrow keys when editing multi-line
+code blocks.
+
+Here is an example of a longer interaction with the IPython REPL,
+which we often refer to as an IPython _session_ ::
+
+    In [1]: print('Hello IPython')
+    Hello IPython
+
+    In [2]: 21 * 2
+    Out[2]: 42
+
+    In [3]: def say_hello(name):
+       ...:     print('Hello {name}'.format(name=name))
+       ...:
+
+We won't get into details right now, but you may notice a few differences to the standard Python REPL.
+First, your code should be syntax-highlighted as you type.
+Second, you will see that some results will have an ``Out[N]:`` prompt, while
+some other do not. We'll come to this later.
+
+The four most helpful commands
+==============================
 
 The four most helpful commands, as well as their brief description, is shown
 to you in a banner, every time you start IPython:
@@ -70,8 +112,8 @@ in line and cell mode::
       100000 loops, best of 3: 7.76 us per loop
 
       In [2]: %%timeit x = range(10000)
-	 ...: max(x)
-	 ...: 
+      ...: max(x)
+      ...: 
       1000 loops, best of 3: 223 us per loop
 
 The builtin magics include:
