@@ -404,6 +404,7 @@ def run_iptest():
                         # has been discussed on the distutils list and the
                         # setuptools devs refuse to fix this problem!
                         '--exe',
+                        '--ignore-files=".*async_helpers.*"'
                         ]
     if '-a' not in argv and '-A' not in argv:
         argv = argv + ['-a', '!crash']
