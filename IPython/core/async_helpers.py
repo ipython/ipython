@@ -16,7 +16,7 @@ def _curio_runner(function, user_ns):
 
 if sys.version_info > (3,5):
     # nose refuses to avoid this file.
-    s =dedent('''
+    s = dedent('''
     def _trio_runner(function, user_ns):
         import trio
         async def loc(fun, user_ns):
