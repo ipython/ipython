@@ -8,7 +8,7 @@ import sys
 import nose.tools as nt
 from textwrap import dedent
 
-iprs = lambda x :get_ipython().run_cell(dedent(x))
+iprs = lambda x: get_ipython().run_cell(dedent(x))
 
 if sys.version_info > (3,6):
     from IPython.core.async_helpers import _should_be_async
@@ -27,3 +27,10 @@ if sys.version_info > (3,6):
         import asyncio
         await asyncio.sleep(0.001)
         """)
+
+    def test_autoawait():
+        ip.run_cell('%autoawait False')
+        ip.run_cell('%autoawait True')
+        ip.run_cell('%autoawait curio')
+        ip.run_cell('%autoawait trio')
+        ip.run_cell('autoawait asyncio')
