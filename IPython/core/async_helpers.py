@@ -1,6 +1,14 @@
 """
 Async helper function that are invalid syntax on Python 3.5 and below.
+
+Known limitation and possible improvement. 
+
+Top level code that contain a return statement (instead of, or in addition to
+await) will be detected as requiring being wrapped in async calls. This should
+be prevented as early return will not work.
 """
+
+
 
 import ast
 import sys
