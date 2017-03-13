@@ -231,6 +231,9 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3/', None),
                        'jedi': ('https://jedi.readthedocs.io/en/latest/', None),
                        'traitlets': ('https://traitlets.readthedocs.io/en/latest/', None),
                        'ipykernel': ('https://ipykernel.readthedocs.io/en/latest/', None),
+                       'prompt_toolkit' : ('https://python-prompt-toolkit.readthedocs.io/en/stable/', None),
+                       'ipywidgets': ('https://ipywidgets.readthedocs.io/en/stable/', None),
+                       'ipyparallel': ('https://ipyparallel.readthedocs.io/en/stable/', None)
                       }
 
 # Options for LaTeX output

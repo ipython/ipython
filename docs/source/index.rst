@@ -16,6 +16,12 @@ interactively.  Its main components are:
 
 * A powerful interactive Python shell
 
+
+.. image:: /_images/ipython-6-screenshot.png
+    :alt: Screenshot of IPython 6.0
+    :align: center
+
+
 * A `Jupyter <http://jupyter.org/>`_ kernel to work with Python code in Jupyter
   notebooks and other interactive frontends.
 
@@ -36,7 +42,7 @@ features:
   performing many tasks related to IPython or the operating system.
 
 * A rich configuration system with easy switching between different setups
-  (simpler than changing $PYTHONSTARTUP environment variables every time).
+  (simpler than changing ``$PYTHONSTARTUP`` environment variables every time).
 
 * Session logging and reloading.
 
@@ -51,7 +57,7 @@ features:
 
 The Command line interface inherits the above functionality and adds 
  
-* real multi-line editing.
+* real multi-line editing thanks to `prompt_toolkit <http://python-prompt-toolkit.readthedocs.io/en/stable/>`_.
  
 * syntax highlighting as you type
 
@@ -63,7 +69,7 @@ it allows:
 * the object to create a rich display of Html, Images, Latex, Sound and
   Video.
 
-* interactive widgets with the use of the ``ipywidgets`` package.
+* interactive widgets with the use of the `ipywidgets <http://ipywidgets.readthedocs.io/en/stable/>`_ package.
 
 
 This documentation will walk you through most of the features of the IPython
