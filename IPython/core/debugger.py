@@ -486,6 +486,8 @@ class Pdb(OldPdb):
             pass
 
     def do_list(self, arg):
+        """Print lines of code from the current stack frame
+        """
         self.lastcmd = 'list'
         last = None
         if arg:
@@ -529,6 +531,10 @@ class Pdb(OldPdb):
         return inspect.getblock(lines[lineno:]), lineno+1
 
     def do_longlist(self, arg):
+        """Print lines of code from the current stack frame.
+
+        Shows more lines than 'list' does.
+        """
         self.lastcmd = 'longlist'
         try:
             lines, lineno = self.getsourcelines(self.curframe)
