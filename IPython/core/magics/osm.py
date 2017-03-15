@@ -3,26 +3,15 @@
 Note: this module is named 'osm' instead of 'os' to avoid a collision with the
 builtin.
 """
-#-----------------------------------------------------------------------------
-#  Copyright (c) 2012 The IPython Development Team.
-#
-#  Distributed under the terms of the Modified BSD License.
-#
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# Stdlib
 import io
 import os
 import re
 import sys
 from pprint import pformat
 
-# Our own packages
 from IPython.core import magic_arguments
 from IPython.core import oinspect
 from IPython.core import page
@@ -37,9 +26,7 @@ from IPython.utils.process import abbrev_cwd
 from IPython.utils import py3compat
 from IPython.utils.terminal import set_term_title
 
-#-----------------------------------------------------------------------------
-# Magic implementation classes
-#-----------------------------------------------------------------------------
+
 @magics_class
 class OSMagics(Magics):
     """Magics to interact with the underlying OS (shell-type functionality).
@@ -239,7 +226,10 @@ class OSMagics(Magics):
           In [9]: pwd
           Out[9]: '/home/tsuser/sprint/ipython'
         """
-        return os.getcwd()
+        try:
+            return os.getcwd()
+        except FileNotFoundError:
+            raise UsageError("CWD no longer exists - please use %cd to change directory.")
 
     @skip_doctest
     @line_magic
@@ -283,7 +273,12 @@ class OSMagics(Magics):
           /home/tsuser/parent/child
         """
 
-        oldcwd = os.getcwd()
+        try:
+            oldcwd = os.getcwd()
+        except FileNotFoundError:
+            # Happens if the CWD has been deleted.
+            oldcwd = None
+
         numcd = re.match(r'(-)(\d+)$',parameter_s)
         # jump in directory history by number
         if numcd:
