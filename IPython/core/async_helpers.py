@@ -18,22 +18,22 @@ def _asyncio_runner(coro):
     import asyncio
     return asyncio.get_event_loop().run_until_complete(coro)
 
-def _curio_runner(function, user_ns):
+def _curio_runner(function):
     import curio
-    return curio.run(function(**user_ns))
+    return curio.run(function)
 
 if sys.version_info > (3,5):
     # nose refuses to avoid this file.
     s = dedent('''
-    def _trio_runner(function, user_ns):
+    def _trio_runner(function):
         import trio
-        async def loc(fun, user_ns):
+        async def loc(coro):
             """
             We need the dummy no-op async def to protect from
             trio's internal. See https://github.com/python-trio/trio/issues/89
             """
-            return await fun(**user_ns)
-        return trio.run(loc, function, user_ns)
+            return await coro
+        return trio.run(loc, function)
     ''')
     exec(s, globals(), locals())
 
