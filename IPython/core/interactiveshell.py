@@ -106,6 +106,29 @@ class ProvisionalWarning(DeprecationWarning):
 # Await Helpers
 #-----------------------------------------------------------------------------
 
+def reglobalify(function):
+    from types import CodeType, FunctionType
+    CO_NEWLOCALS = 0x0002
+    code = function.__code__
+    new_code = CodeType(
+        code.co_argcount, 
+        code.co_kwonlyargcount,
+        code.co_nlocals, 
+        code.co_stacksize, 
+        code.co_flags & ~CO_NEWLOCALS,
+        code.co_code, 
+        code.co_consts,
+        code.co_names, 
+        code.co_varnames, 
+        code.co_filename, 
+        code.co_name, 
+        code.co_firstlineno, 
+        code.co_lnotab, 
+        code.co_freevars, 
+        code.co_cellvars
+    )
+    return FunctionType(new_code, globals(), function.__name__, function.__defaults__)
+
 
 if sys.version_info > (3,5):
     from .async_helpers import (_asyncio_runner, _curio_runner, _trio_runner,
@@ -2728,7 +2751,12 @@ class InteractiveShell(SingletonConfigurable):
                         #    - it back after the AST transform
                         # But that seem unreasonable, at least while we
                         # do not need it.
-                        code_ast = _ast_asyncify(cell, self.user_ns.keys())
+                        code_ast = _asyncify(cell)
+                        async_wrapper_code = compile(_asyncify(cell), '<>', 'exec')
+                        _d = {}
+                        exec(async_wrapper_code, self.user_global_ns, self.user_ns)
+                        async_code = reglobalify(self.user_ns['phony']).__code__
+
                         _run_async = True
                     else:
                         code_ast = compiler.ast_parse(cell, filename=cell_name)
@@ -2765,8 +2793,11 @@ class InteractiveShell(SingletonConfigurable):
                 interactivity = "none" if silent else self.ast_node_interactivity
                 if _run_async:
                     interactivity = 'async'
-                has_raised = self.run_ast_nodes(code_ast.body, cell_name,
-                   interactivity=interactivity, compiler=compiler, result=result)
+                    has_raised = self.run_ast_nodes(async_code, cell_name,
+                       interactivity=interactivity, compiler=compiler, result=result)
+                else:
+                    has_raised = self.run_ast_nodes(code_ast.body, cell_name,
+                       interactivity=interactivity, compiler=compiler, result=result)
                 
                 self.last_execution_succeeded = not has_raised
 
@@ -2877,8 +2908,9 @@ class InteractiveShell(SingletonConfigurable):
             if _async:
                 # If interactivity is async the semantics of run_code are
                 # completely different Skip usual machinery.
-                mod = ast.Module(nodelist)
-                code = compiler(mod, cell_name, "exec")
+                #mod = ast.Module(nodelist)
+                #code = compiler(mod, cell_name, "exec")
+                code = nodelist
                 if self.run_code(code, result, async=True):
                     return True
             else:
@@ -2963,14 +2995,16 @@ class InteractiveShell(SingletonConfigurable):
         if isinstance(loop_runner, str):
             loop_runner = self.loop_runner_map.get(loop_runner, import_item(loop_runner))
 
-        loop_ns = {'user_ns': user_ns, 'loop_runner': loop_runner, 'last_expr':None}
-        exec(code_obj, loop_ns)
-        post_loop_user_ns = loop_ns['user_ns']
-        if post_loop_user_ns == loop_ns:
-            raise ValueError('Async Code may not modify copy of User Namespace and need to return a new one')
-        user_ns.clear()
-        user_ns.update(**loop_ns['user_ns'])
-        return loop_ns['last_expr']
+        return loop_runner(eval(code_obj, user_ns))
+
+        #loop_ns = {'user_ns': user_ns, 'loop_runner': loop_runner, 'last_expr':None}
+        #exec(code_obj, loop_ns)
+        #post_loop_user_ns = loop_ns['user_ns']
+        #if post_loop_user_ns == loop_ns:
+        #    raise ValueError('Async Code may not modify copy of User Namespace and need to return a new one')
+        #user_ns.clear()
+        #user_ns.update(**loop_ns['user_ns'])
+        #return loop_ns['last_expr']
 
 
     def run_code(self, code_obj, result=None, *, async=False):

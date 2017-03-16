@@ -14,9 +14,9 @@ import ast
 import sys
 from textwrap import dedent, indent
 
-def _asyncio_runner(function, user_ns):
+def _asyncio_runner(coro):
     import asyncio
-    return asyncio.get_event_loop().run_until_complete(function(**user_ns))
+    return asyncio.get_event_loop().run_until_complete(coro)
 
 def _curio_runner(function, user_ns):
     import curio
@@ -49,13 +49,12 @@ def _asyncify(code):
      - ``loop_runner`` is use to send the loop_runner _in_
      - ``last_expression`` to get the last expression _out_
     """
-    return dedent("""
+    res = dedent("""
         async def phony():
-        {usercode}
-            return locals()
-        interm = loop_runner(phony, user_ns)
-        user_ns, last_expr =  interm
-        """).format(usercode=indent(code,' '*4))
+            {usercode}
+            locals()
+        """).format(usercode=indent(code,' '*4)[4:])
+    return res
 
 def _should_be_async(cell:str) -> bool:
     """Detect if a block of code need to be wrapped in an `async def`
