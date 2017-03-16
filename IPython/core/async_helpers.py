@@ -53,6 +53,7 @@ def _asyncify(code):
         async def phony():
             {usercode}
             locals()
+            return None
         """).format(usercode=indent(code,' '*4)[4:])
     return res
 

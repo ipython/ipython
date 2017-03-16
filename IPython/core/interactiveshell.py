@@ -138,37 +138,36 @@ else :
     _should_be_async = lambda x : False
 
 
-def _ast_asyncify(cell:str, localnames) -> ast.Module:
+def _ast_asyncify(cell:str) -> ast.Module:
     """
-    Parse a cell with top-level await and modify the AST to be able to run it.
+    Parse a cell with top-level await and modify the AST to be able to run it later.
 
     The given code is wrapped in a async-def function, parsed into an AST, and
-    the resulting function definition AST is modified to return a tuple
-    containing the curent values of ``locals()`` in the function, as well as the
-    last expression of the user code.
+    the resulting function definition AST is modified to return the last
+    expresstion.
 
-    The last expression or await node is moved into the return statement, and
-    replaced by `None` at its original location. If the last node is not Expr or
-    Await, the second item of the return value will be None.
+    The last expression or await node is moved into a return statement at the
+    end of the function, and removed from its original location. If the last
+    node is not Expr or Await nothing is done.
 
-    We will use this fact to outside of the loop update the User Namespace, and
-    return the value of the last expression in order to run it "Interactively"
-    and trigger display.
+    The function `__code__` will need to be modified in a subsequent step to not
+    create new `locals()` meaning that the local and global scope are the same,
+    ie as if the body of the function was at module level.
+    
+    Lastly a call to `locals()` is made just before the last expression of the
+    function, or just after the last assignment or statement to make sure the
+    global dict is updated.
     """
-    from ast import Expr, NameConstant, Tuple, Await, Return, Load
+    from ast import Expr, Await, Return
     tree = ast.parse(_asyncify(cell))
 
-    function_df = tree.body[0]
-
-    ret = function_df.body[-1]
-    lastexpr = function_df.body[-2]
-    for name in localnames:
-        function_df.args.args.append(ast.arg(name,None))
+    function_def = tree.body[0]
+    ### we change the name to an invalid identifier not to pollute globals.
+    function_def.name = 'async-def-wrapper'
+    lastexpr = function_def.body[-3]
     if isinstance(lastexpr, (Expr, Await)):
-        function_df.body[-1] = Return(Tuple(elts=[ret.value, lastexpr.value], ctx=Load()))
-        function_df.body[-2] = Expr(value=NameConstant(value=None))
-    else:
-        function_df.body[-1] = Return(Tuple(elts=[ret.value, NameConstant(value=None)], ctx=Load()))
+        del function_def.body[-3]
+        function_def.body[-1] = Return(lastexpr.value)
     ast.fix_missing_locations(tree)
     return tree
 #-----------------------------------------------------------------------------
@@ -2751,12 +2750,7 @@ class InteractiveShell(SingletonConfigurable):
                         #    - it back after the AST transform
                         # But that seem unreasonable, at least while we
                         # do not need it.
-                        code_ast = _asyncify(cell)
-                        async_wrapper_code = compile(_asyncify(cell), '<>', 'exec')
-                        _d = {}
-                        exec(async_wrapper_code, self.user_global_ns, self.user_ns)
-                        async_code = reglobalify(self.user_ns['phony']).__code__
-
+                        code_ast = _ast_asyncify(cell)
                         _run_async = True
                     else:
                         code_ast = compiler.ast_parse(cell, filename=cell_name)
@@ -2793,10 +2787,7 @@ class InteractiveShell(SingletonConfigurable):
                 interactivity = "none" if silent else self.ast_node_interactivity
                 if _run_async:
                     interactivity = 'async'
-                    has_raised = self.run_ast_nodes(async_code, cell_name,
-                       interactivity=interactivity, compiler=compiler, result=result)
-                else:
-                    has_raised = self.run_ast_nodes(code_ast.body, cell_name,
+                has_raised = self.run_ast_nodes(code_ast.body, cell_name,
                        interactivity=interactivity, compiler=compiler, result=result)
                 
                 self.last_execution_succeeded = not has_raised
@@ -2908,10 +2899,11 @@ class InteractiveShell(SingletonConfigurable):
             if _async:
                 # If interactivity is async the semantics of run_code are
                 # completely different Skip usual machinery.
-                #mod = ast.Module(nodelist)
-                #code = compiler(mod, cell_name, "exec")
-                code = nodelist
-                if self.run_code(code, result, async=True):
+                mod = ast.Module(nodelist)
+                async_wrapper_code = compiler(mod, 'cell_name', 'exec')
+                exec(async_wrapper_code, self.user_global_ns, self.user_ns)
+                async_code = reglobalify(self.user_ns.pop('async-def-wrapper')).__code__
+                if self.run_code(async_code, result, async=True):
                     return True
             else:
                 for i, node in enumerate(to_run_exec):
@@ -2996,15 +2988,6 @@ class InteractiveShell(SingletonConfigurable):
             loop_runner = self.loop_runner_map.get(loop_runner, import_item(loop_runner))
 
         return loop_runner(eval(code_obj, user_ns))
-
-        #loop_ns = {'user_ns': user_ns, 'loop_runner': loop_runner, 'last_expr':None}
-        #exec(code_obj, loop_ns)
-        #post_loop_user_ns = loop_ns['user_ns']
-        #if post_loop_user_ns == loop_ns:
-        #    raise ValueError('Async Code may not modify copy of User Namespace and need to return a new one')
-        #user_ns.clear()
-        #user_ns.update(**loop_ns['user_ns'])
-        #return loop_ns['last_expr']
 
 
     def run_code(self, code_obj, result=None, *, async=False):
