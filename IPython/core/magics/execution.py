@@ -85,14 +85,20 @@ class TimeitResult(object):
         return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
 
     def __str__(self):
-        return (u"%s loop%s, average of %d: %s +- %s per loop (using standard deviation)"
-                   % (self.loops,"" if self.loops == 1 else "s", self.repeat,
-                      _format_time(self.average, self._precision),
-                      _format_time(self.stdev, self._precision)))
+        return (
+            u"{mean} ± {std} per loop (mean ± std. dev. of {runs} run{run_plural}, {loops} loop{loop_plural} each)"
+                .format(
+                    runs = self.repeat,
+                    loops = self.loops,
+                    loop_plural = "" if self.loops == 1 else "s",
+                    run_plural = "" if self.repeat == 1 else "s",
+                    mean = _format_time(self.average, self._precision),
+                    std = _format_time(self.stdev, self._precision))
+                )
 
     def _repr_pretty_(self, p , cycle):
-       unic = self.__str__()
-       p.text(u'<TimeitResult : '+unic+u'>')
+        unic = self.__str__()
+        p.text(u'<TimeitResult : '+unic+u'>')
 
 
 
@@ -959,20 +965,18 @@ python-profiler package from non-free.""")
         ::
 
           In [1]: %timeit pass
-          100000000 loops, average of 7: 5.48 ns +- 0.354 ns per loop (using standard deviation)
+          8.26 ns ± 0.12 ns per loop (mean ± std. dev. of 7 runs, 100000000 loops each)
 
           In [2]: u = None
 
           In [3]: %timeit u is None
-          10000000 loops, average of 7: 22.7 ns +- 2.33 ns per loop (using standard deviation)
+          29.9 ns ± 0.643 ns per loop (mean ± std. dev. of 7 runs, 10000000 loops each)
 
           In [4]: %timeit -r 4 u == None
-          10000000 loops, average of 4: 27.5 ns +- 2.91 ns per loop (using standard deviation)
 
           In [5]: import time
 
           In [6]: %timeit -n1 time.sleep(2)
-          1 loop, average of 7: 2 s +- 4.71 µs per loop (using standard deviation)
 
 
         The times reported by %timeit will be slightly higher than those
