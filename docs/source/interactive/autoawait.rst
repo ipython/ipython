@@ -4,10 +4,9 @@
 Asynchronous in REPL: Autoawait
 ===============================
 
-Starting with IPython 6.0, and when user Python 3.6 and above, 
-IPython offer the ability to run asynchronous code from the REPL. 
-Conjuncts which are :exc:`SyntaxError` s in the Python REPL can be used seamlessly
-in IPython.
+Starting with IPython 6.0, and when user Python 3.6 and above, IPython offer the
+ability to run asynchronous code from the REPL. constructs which are
+:exc:`SyntaxError` s in the Python REPL can be used seamlessly in IPython.
 
 When a supported libray is used, IPython will automatically `await` Futures
 and Coroutines in the REPL. This will happen if an :ref:`await <await>` (or `async`) is
@@ -59,8 +58,8 @@ use the :magic:`%autoawait` magic to toggle the behavior at runtime::
 
 
 By default IPython will assume integration with Python's provided
-:mod:`asyncio`, but integration with other library is provided. In particular we
-provide experimental integration with the ``curio`` and ``trio`` library.
+:mod:`asyncio`, but integration with other libraries is provided. In particular
+we provide experimental integration with the ``curio`` and ``trio`` library.
 
 You can switch current integration by using the
 ``c.InteractiveShell.loop_runner`` option or the ``autoawait <name
@@ -121,51 +120,50 @@ It is interesting to understand how this works in order to understand potential
 bugs, or provide a custom runner.
 
 Among the many approaches that are at our disposition, we find only one that
-suited out need. Under the hood we wrap user code in an ``async def`` block, and
-patch the global namespace back. It roughly looks like the following::
+suited out need. Under the hood we :ct the code object from a async-def function
+and run it in global namesapace after modifying the ``__code__`` object.::
 
-    def async_exec(code, global_namespace, loop_runner):
-        async def inner_async(**global_namespace):
-            locals().update(**global_namespace)
-            #
-            # here is user code
-            #
-            return locals(), result
+    async def inner_async():
+        locals().update(**global_namespace)
+        #
+        # here is user code
+        #
+        return last_user_statement
+    codeobj = modify(inner_async.__code__)
+    coroutine = eval(codeobj, user_ns)
+    display(loop_runner(coroutine))
 
-        namespace,result = loop_runner(inner_async)
-        global_namespace.update(namespace)
-        display(result)
+
 
 The first thing you'll notice is that unlike classical ``exec``, there is only
 one name space. Second, user code runs in a function scope, and not a module
-scope. Third, global namespace is updated after all user code has ran, and
-forth, you need to provide a loop runner. 
-
-The above block is ran in a throw-away namespace to avoid name conflicts. 
+scope.
 
 On top of the above there are significant modification to the AST of
-``function``, and ``loop_runner`` can be arbitrary complex. So there can be a
+``function``, and ``loop_runner`` can be arbitrary complex. So there is a
 significant overhead to this kind of code.
 
-By default the wrapped function will be consumed by Asyncio's
+By default the generated coroutine function will be consumed by Asyncio's
 ``loop_runner = asyncio.get_evenloop().run_until_complete()`` method. It is
 though possible to provide your own.
 
-A loop runner is a *synchronous*  function taking 2 arguments:
-  - an _asynchronous_ function ``inner_async`` 
-  - a namespace (dict) to run the code in.
+A loop runner is a *synchronous*  function responsible from running a coroutine
+object.
 
-The runner is responsible from ensuring that ``inner_async`` run to completion,
-and should return the 2-**tuple** returned by ``inner_async``. Let's write a
-runner for ``trio`` that print a message when used::
+The runner is responsible from ensuring that ``coroutine`` run to completion,
+and should return the result of executing the coroutine. Let's write a
+runner for ``trio`` that print a message when used as an exercise, ``trio`` is
+special as it usually prefer to run a function object and make a coroutine by
+itself, we can get around this limitation by wrapping it in an async-def without
+parameters and passing this value to ``trio``::
 
 
-    In [1]: def trio_runner(function, user_ns):
-       ...:     import trio
-       ...:     async def dummy_fun(fun, user_ns):
-       ...:         print('using trio runner')
-       ...:         return await fun(**user_ns)
-       ...:     return trio.run(dummy_fun, function, user_ns)
+    In [1]: import trio
+       ...: def trio_runner(coro):
+       ...:     print('using trio runner')
+       ...:     async def corowrap(coro):
+       ...:         return await coro
+       ...:     return trio.run(corowrap, coro)
 
 We can set it up by passing it to ``%autoawait``::
 
@@ -175,5 +173,9 @@ We can set it up by passing it to ``%autoawait``::
        ...: await trio.sleep(1)
     using trio runner
 
-    In [4]:
+    In [4]: # hooray !
 
+
+Asynchronous programming in python (and in particular in the REPL is still a
+relatively young subject. Feel free to contribute improvements to this codebase
+and give us feedback.

@@ -14,20 +14,21 @@ import ast
 import sys
 import inspect
 from textwrap import dedent, indent
+from types import CodeType, CoroutineType
 
-def _asyncio_runner(coro):
+def _asyncio_runner(coro:CoroutineType):
     """
     Handler for asyncio autoawait
     """
     import asyncio
     return asyncio.get_event_loop().run_until_complete(coro)
 
-def _curio_runner(function):
+def _curio_runner(coroutine:CoroutineType):
     """
     handler for curio autoawait
     """
     import curio
-    return curio.run(function)
+    return curio.run(coroutine)
 
 if sys.version_info > (3,5):
     # nose refuses to avoid this file and async def is invalidsyntax
@@ -44,20 +45,13 @@ if sys.version_info > (3,5):
     ''')
     exec(s, globals(), locals())
 
-def _asyncify(code):
+def _asyncify(code:str) -> str:
     """wrap code in async def definition.
 
     And setup a bit of context to run it later.
-
-    The following names are part of the API:
-
-     - ``user_ns`` is used as the name for the namespace to run code in, both
-     _in_ and _out_.
-     - ``loop_runner`` is use to send the loop_runner _in_
-     - ``last_expression`` to get the last expression _out_
     """
     res = dedent("""
-        async def phony():
+        async def ___wrapper___():
             {usercode}
             locals()
             return None
@@ -71,7 +65,11 @@ def _should_be_async(cell:str) -> bool:
     Otherwise we  wrap if and try to compile.
 
     If it works, assume it should be async. Otherwise Return False.
+
+    Not handled yet: If the block of code has a return statement as  the top
+    level, it will be seen as async. This is a know limitation.
     """
+
     try:
         ast.parse(cell)
         return False

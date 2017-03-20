@@ -30,6 +30,7 @@ from io import open as io_open
 from pickleshare import PickleShareDB
 
 from traitlets.config.configurable import SingletonConfigurable
+from traitlets.utils.importstring import import_item
 from IPython.core import oinspect
 from IPython.core import magic
 from IPython.core import page
@@ -106,7 +107,15 @@ class ProvisionalWarning(DeprecationWarning):
 # Await Helpers
 #-----------------------------------------------------------------------------
 
-def reglobalify(function):
+def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
+    """Return a function that do not create a new local scope. 
+
+    Given a function, create a clone of this function where the co_newlocal flag
+    has been removed, making this function code actually run in the sourounding
+    scope. 
+
+    We need this in order to run asynchronous code in user level namespace.
+    """
     from types import CodeType, FunctionType
     CO_NEWLOCALS = 0x0002
     code = function.__code__
@@ -136,35 +145,54 @@ if sys.version_info > (3,5):
                                 )
 else :
     _asyncio_runner = _curio_runner = _trio_runner = None
-    _should_be_async = lambda x : False
+
+    def _should_be_async(whatever:str)->bool:
+        return False
 
 
-def _ast_asyncify(cell:str) -> ast.Module:
+def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
     """
     Parse a cell with top-level await and modify the AST to be able to run it later.
 
+    Parameter
+    ---------
+
+    cell: str
+        The code cell to asyncronify
+    wrapper_name: str
+        The name of the function to be used to wrap the passed `cell`. It is
+        advised to **not** use a python identifier in order to not pollute the
+        global namespace in which the function will be ran. 
+
+    Return
+    ------
+
+    A module object AST containing **one** function named `wrapper_name`.
+
     The given code is wrapped in a async-def function, parsed into an AST, and
     the resulting function definition AST is modified to return the last
-    expresstion.
+    expression.
 
     The last expression or await node is moved into a return statement at the
     end of the function, and removed from its original location. If the last
     node is not Expr or Await nothing is done.
 
-    The function `__code__` will need to be modified in a subsequent step to not
-    create new `locals()` meaning that the local and global scope are the same,
-    ie as if the body of the function was at module level.
+    The function `__code__` will need to be later modified  (by
+    ``removed_co_newlocals``) in a subsequent step to not create new `locals()`
+    meaning that the local and global scope are the same, ie as if the body of
+    the function was at module level.
     
     Lastly a call to `locals()` is made just before the last expression of the
     function, or just after the last assignment or statement to make sure the
-    global dict is updated.
+    global dict is updated as python function work with a local fast cache which
+    is updated only on `local()` calls.
     """
+
     from ast import Expr, Await, Return
     tree = ast.parse(_asyncify(cell))
 
     function_def = tree.body[0]
-    ### we change the name to an invalid identifier not to pollute globals.
-    function_def.name = 'async-def-wrapper'
+    function_def.name = wrapper_name
     lastexpr = function_def.body[-3]
     if isinstance(lastexpr, (Expr, Await)):
         del function_def.body[-3]
@@ -302,7 +330,9 @@ class InteractiveShell(SingletonConfigurable):
     }
 
     loop_runner = Any(default_value="IPython.core.interactiveshell._asyncio_runner",
-    allow_none=True, help="""TODO""").tag(config=True)
+        allow_none=True,
+        help="""Select the loop runner that will be used to execute top-level asynchronous code"""
+    ).tag(config=True)
 
     automagic = Bool(True, help=
         """
@@ -2739,7 +2769,7 @@ class InteractiveShell(SingletonConfigurable):
                     if _should_be_async(cell) and self.autoawait:
                         # the code AST below will not be user code: we wrap it
                         # in an `async def`. This will likely make some AST
-                        # transformer below miss some trasnform opportunity and
+                        # transformer below miss some transform opportunity and
                         # introduce a small coupling to run_code (in which we
                         # bake some assumptions of what _ast_asyncify returns.
                         # they are ways around (like grafting part of the ast
@@ -2751,7 +2781,7 @@ class InteractiveShell(SingletonConfigurable):
                         #    - it back after the AST transform
                         # But that seem unreasonable, at least while we
                         # do not need it.
-                        code_ast = _ast_asyncify(cell)
+                        code_ast = _ast_asyncify(cell, 'async-def-wrapper')
                         _run_async = True
                     else:
                         code_ast = compiler.ast_parse(cell, filename=cell_name)
@@ -2861,9 +2891,10 @@ class InteractiveShell(SingletonConfigurable):
           expressions in loops or other blocks are not displayed. Other values
           for this parameter will raise a ValueError.
 
-          Experimental value: 'async'
-            Will try to run top level interactive async/await code in default
-            runner
+          Experimental value: 'async' Will try to run top level interactive
+          async/await code in default runner, this will not respect the
+          interactivty setting and will only run the last node if it is an
+          expression. 
 
         compiler : callable
           A function with the same interface as the built-in compile(), to turn
@@ -2903,7 +2934,7 @@ class InteractiveShell(SingletonConfigurable):
                 mod = ast.Module(nodelist)
                 async_wrapper_code = compiler(mod, 'cell_name', 'exec')
                 exec(async_wrapper_code, self.user_global_ns, self.user_ns)
-                async_code = reglobalify(self.user_ns.pop('async-def-wrapper')).__code__
+                async_code = removed_co_newlocals(self.user_ns.pop('async-def-wrapper')).__code__
                 if self.run_code(async_code, result, async=True):
                     return True
             else:
@@ -2940,49 +2971,20 @@ class InteractiveShell(SingletonConfigurable):
 
         return False
 
-    def _async_exec(self, code_obj, user_ns, *, loop_runner=None):
+    def _async_exec(self, code_obj:types.CodeType, user_ns:dict, *, loop_runner=None):
         """
-        Fake async execution of code_object in a namespace via a proxy namespace.
+        Evaluate an asynchronous code object using a code runner, 
+
+
+
+        Fake asynchronous execution of code_object in a namespace via a proxy namespace.
 
         WARNING: The semantics of `async_exec` are quite different from `exec`,
         in particular you can only pass a single namespace. It also return a
-        handle to the value of the last_expression of user_code.
-
-        `async_exec` make the following assumption,
-
-        Code object MUST represent a structure like the following::
-
-            async def function(user_ns):
-                {{user code executing in user_ns}}
-                return (user_ns, last_expression)
-
-            user_ns, last_expr = loop_runner(function, user_ns)
-
-
-        In particular:
-
-          - the ``code_obj``'s ``last_expr`` node MUST be ``None`` or a value
-          that should be returned by the code object, and it MUST be bound to
-          the ``last_expr`` name.
-          - the user namespace MUST be named ``user_ns`` outside of the
-          ``async def`` function.
-          - ``loop_runner`` is a callable injected in the namespace that may be
-          used to run the asynchronous code.
-
-        We do run the async function in a third namespace for multiple reasons:
-
-          - do not pollute use namespace or get influenced by it.
-          - wrapper can get arbitrary complex without concern for backward
-          compatibility
-          - user_ns.clear() ; user_ns.update(**stuff) does not fails with
-          `user_ns` is not defined.
-
+        handle to the value of the last things returned by code_object.
         """
 
-
-
         if not loop_runner:
-            from traitlets.utils.importstring import import_item
             loop_runner = self.loop_runner
 
         if isinstance(loop_runner, str):
