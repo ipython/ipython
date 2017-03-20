@@ -74,6 +74,13 @@ function.
 Transforming a full block
 -------------------------
 
+.. warning::
+
+    Transforming a full block at once will break the automatic detection of
+    wether a block of code is complete in interface relying on this
+    functionality, as for example terminal IPython. You will need to use a
+    shortcut to force-execute your cells.
+
 Transforming a full block of python code is possible by implementing a
 :class:`~IPython.core.inputtransformer.Inputtransformer` and overwriting the
 ``push`` and ``reset`` methods. The reset method should send the full block of
@@ -108,8 +115,10 @@ should give up any code it has accumulated.
 You may use :meth:`CoroutineInputTransformer.wrap` to simplify the creation of
 such a transformer.
 
-Here is a simple :class:`CoroutineInputTransformer` that can be though of be
+Here is a simple :class:`CoroutineInputTransformer` that can be thought of
 being the identity::
+
+    from IPython.core.inputtransformer import CoroutineInputTransformer
 
     @CoroutineInputTransformer.wrap
     def noop():
