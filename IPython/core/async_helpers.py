@@ -14,16 +14,16 @@ import ast
 import sys
 import inspect
 from textwrap import dedent, indent
-from types import CodeType, CoroutineType
+from types import CodeType
 
-def _asyncio_runner(coro:CoroutineType):
+def _asyncio_runner(coro):
     """
     Handler for asyncio autoawait
     """
     import asyncio
     return asyncio.get_event_loop().run_until_complete(coro)
 
-def _curio_runner(coroutine:CoroutineType):
+def _curio_runner(coroutine):
     """
     handler for curio autoawait
     """
