@@ -159,8 +159,10 @@ parameters and passing this value to ``trio``::
 
 
     In [1]: import trio
-       ...: def trio_runner(coro):
-       ...:     print('using trio runner')
+       ...: from types import CoroutineType
+       ...:
+       ...: def trio_runner(coro:CoroutineType):
+       ...:     print('running asynchronous code')
        ...:     async def corowrap(coro):
        ...:         return await coro
        ...:     return trio.run(corowrap, coro)
@@ -169,13 +171,16 @@ We can set it up by passing it to ``%autoawait``::
 
     In [2]: %autoawait trio_runner
 
-    In [3]: import trio
-       ...: await trio.sleep(1)
-    using trio runner
+    In [3]: async def async_hello(name):
+       ...:     await trio.sleep(1)
+       ...:     print(f'Hello {name} world !')
+       ...:     await trio.sleep(1)
 
-    In [4]: # hooray !
+    In [4]: await async_hello('async')
+    running asynchronous code
+    Hello async world !
 
 
-Asynchronous programming in python (and in particular in the REPL is still a
+Asynchronous programming in python (and in particular in the REPL) is still a
 relatively young subject. Feel free to contribute improvements to this codebase
 and give us feedback.
