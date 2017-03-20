@@ -132,7 +132,8 @@ def reglobalify(function):
 
 if sys.version_info > (3,5):
     from .async_helpers import (_asyncio_runner, _curio_runner, _trio_runner,
-                                _should_be_async, _asyncify)
+                                _should_be_async, _asyncify
+                                )
 else :
     _asyncio_runner = _curio_runner = _trio_runner = None
     _should_be_async = lambda x : False
@@ -2986,8 +2987,8 @@ class InteractiveShell(SingletonConfigurable):
 
         if isinstance(loop_runner, str):
             loop_runner = self.loop_runner_map.get(loop_runner, import_item(loop_runner))
-
-        return loop_runner(eval(code_obj, user_ns))
+        coro = eval(code_obj, user_ns)
+        return loop_runner(coro)
 
 
     def run_code(self, code_obj, result=None, *, async=False):

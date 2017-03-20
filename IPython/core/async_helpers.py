@@ -12,18 +12,25 @@ be prevented as early return will not work.
 
 import ast
 import sys
+import inspect
 from textwrap import dedent, indent
 
 def _asyncio_runner(coro):
+    """
+    Handler for asyncio autoawait
+    """
     import asyncio
     return asyncio.get_event_loop().run_until_complete(coro)
 
 def _curio_runner(function):
+    """
+    handler for curio autoawait
+    """
     import curio
     return curio.run(function)
 
 if sys.version_info > (3,5):
-    # nose refuses to avoid this file.
+    # nose refuses to avoid this file and async def is invalidsyntax
     s = dedent('''
     def _trio_runner(function):
         import trio
@@ -75,4 +82,3 @@ def _should_be_async(cell:str) -> bool:
             return False
         return True
     return False
-
