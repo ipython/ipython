@@ -85,9 +85,17 @@ class TimeitResult(object):
         return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
 
     def __str__(self):
+        pm = '+-'
+        if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
+            try:
+                u'\xb1'.encode(sys.stdout.encoding)
+                pm = u'\xb1'
+            except:
+                pass
         return (
-            u"{mean} ± {std} per loop (mean ± std. dev. of {runs} run{run_plural}, {loops} loop{loop_plural} each)"
+            u"{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops} loop{loop_plural} each)"
                 .format(
+                    pm = pm,
                     runs = self.repeat,
                     loops = self.loops,
                     loop_plural = "" if self.loops == 1 else "s",
