@@ -77,8 +77,8 @@ Transforming a full block
 .. warning::
 
     Transforming a full block at once will break the automatic detection of
-    wether a block of code is complete in interface relying on this
-    functionality, as for example terminal IPython. You will need to use a
+    whether a block of code is complete in interfaces relying on this
+    functionality, such as terminal IPython. You will need to use a
     shortcut to force-execute your cells.
 
 Transforming a full block of python code is possible by implementing a
