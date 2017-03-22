@@ -622,7 +622,7 @@ class JSON(DisplayObject):
     """
     # wrap data in a property, which warns about passing already-serialized JSON
     _data = None
-    def __init__(self, data=None, url=None, filename=None, metadata=None, **kwargs):
+    def __init__(self, data=None, url=None, filename=None, expanded=False, metadata=None, **kwargs):
         """Create a JSON display object given raw data.
 
         Parameters
@@ -640,9 +640,11 @@ class JSON(DisplayObject):
         metadata: dict
             Specify extra metadata to attach to the json display object.
         """
-        self.metadata = kwargs
+        self.metadata = {'expanded': expanded}
         if metadata:
             self.metadata.update(metadata)
+        if kwargs:
+            self.metadata.update(kwargs)
         super(JSON, self).__init__(data=data, url=url, filename=filename)
 
     def _check_data(self):
