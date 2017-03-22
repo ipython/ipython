@@ -71,6 +71,39 @@ The decorator returns a factory function which will produce instances of
 :class:`~IPython.core.inputtransformer.StatelessInputTransformer` using your
 function.
 
+Transforming a full block
+-------------------------
+
+.. warning::
+
+    Transforming a full block at once will break the automatic detection of
+    whether a block of code is complete in interfaces relying on this
+    functionality, such as terminal IPython. You will need to use a
+    shortcut to force-execute your cells.
+
+Transforming a full block of python code is possible by implementing a
+:class:`~IPython.core.inputtransformer.Inputtransformer` and overwriting the
+``push`` and ``reset`` methods. The reset method should send the full block of
+transformed text. As an example a transformer the reversed the lines from last
+to first.
+
+    from IPython.core.inputtransformer import InputTransformer
+
+    class ReverseLineTransformer(InputTransformer):
+
+        def __init__(self):
+            self.acc = []
+
+        def push(self, line):
+            self.acc.append(line)
+            return None
+
+        def reset(self):
+            ret = '\n'.join(self.acc[::-1])
+            self.acc = []
+            return ret
+
+
 Coroutine transformers
 ----------------------
 
@@ -79,8 +112,29 @@ sent each line in turn, followed by ``None`` to reset it. It can yield lines, or
 ``None`` if it is accumulating text to yield at a later point. When reset, it
 should give up any code it has accumulated.
 
+You may use :meth:`CoroutineInputTransformer.wrap` to simplify the creation of
+such a transformer.
+
+Here is a simple :class:`CoroutineInputTransformer` that can be thought of
+being the identity::
+
+    from IPython.core.inputtransformer import CoroutineInputTransformer
+
+    @CoroutineInputTransformer.wrap
+    def noop():
+        line = ''
+        while True:
+            line = (yield line)
+
+    ip = get_ipython()
+
+    ip.input_splitter.logical_line_transforms.append(noop())
+    ip.input_transformer_manager.logical_line_transforms.append(noop())
+
 This code in IPython strips a constant amount of leading indentation from each
 line in a cell::
+
+    from IPython.core.inputtransformer import CoroutineInputTransformer
 
     @CoroutineInputTransformer.wrap
     def leading_indent():
