@@ -159,7 +159,7 @@ def test_displayobject_repr():
 def test_json():
     d = {'a': 5}
     lis = [d]
-    md = {'expanded': False}
+    md = {}
     md2 = {'expanded': True}
     j = display.JSON(d)
     j2 = display.JSON(d, expanded=True)
