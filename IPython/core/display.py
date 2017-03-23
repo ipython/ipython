@@ -622,7 +622,7 @@ class JSON(DisplayObject):
     """
     # wrap data in a property, which warns about passing already-serialized JSON
     _data = None
-    def __init__(self, data=None, url=None, filename=None, expanded=False, metadata=None):
+    def __init__(self, data=None, url=None, filename=None, expanded=False, metadata=None, **kwargs):
         """Create a JSON display object given raw data.
 
         Parameters
@@ -640,8 +640,11 @@ class JSON(DisplayObject):
         metadata: dict
             Specify extra metadata to attach to the json display object.
         """
-        self.expanded = expanded
-        self.metadata = metadata
+        self.metadata = {'expanded': expanded}
+        if metadata:
+            self.metadata.update(metadata)
+        if kwargs:
+            self.metadata.update(kwargs)
         super(JSON, self).__init__(data=data, url=url, filename=filename)
 
     def _check_data(self):
@@ -661,10 +664,7 @@ class JSON(DisplayObject):
         self._data = data
 
     def _data_and_metadata(self):
-        md = {'expanded': self.expanded}
-        if self.metadata:
-            md.update(self.metadata)
-        return self.data, md
+        return self.data, self.metadata
 
     def _repr_json_(self):
         return self._data_and_metadata()
@@ -681,17 +681,15 @@ lib_t1 = """$.getScript("%s", function () {
 lib_t2 = """});
 """
 
-class GeoJSON(DisplayObject):
+class GeoJSON(JSON):
     """GeoJSON expects JSON-able dict
 
     not an already-serialized JSON string.
 
     Scalar types (None, number, string) are not allowed, only dict containers.
     """
-    # wrap data in a property, which warns about passing already-serialized JSON
-    _data = None
     
-    def __init__(self, data=None, url_template=None, layer_options=None, url=None, filename=None, metadata=None):
+    def __init__(self, *args, **kwargs):
         """Create a GeoJSON display object given raw data.
 
         Parameters
@@ -724,9 +722,6 @@ class GeoJSON(DisplayObject):
             ...     "geometry": {
             ...         "type": "Point",
             ...         "coordinates": [-81.327, 296.038]
-            ...     },
-            ...     "properties": {
-            ...         "name": "Inca City"
             ...     }
             ... },
             ... url_template="http://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/{basemap_id}/{z}/{x}/{y}.png",
@@ -742,41 +737,17 @@ class GeoJSON(DisplayObject):
         the GeoJSON object.
 
         """
-        self.url_template = url_template
-        self.layer_options = layer_options
-        self.metadata = metadata
-        super(GeoJSON, self).__init__(data=data, url=url, filename=filename)
-
-    def _check_data(self):
-        if self.data is not None and not isinstance(self.data, dict):
-            raise TypeError("%s expects a JSONable dict, not %r" % (self.__class__.__name__, self.data))
         
-    @property
-    def data(self):
-        return self._data
-    
-    @data.setter
-    def data(self, data):
-        if isinstance(data, str):
-            if getattr(self, 'filename', None) is None:
-                warnings.warn("GeoJSON expects JSONable dict or list, not JSON strings")
-            data = json.loads(data)
-        self._data = data
+        super(GeoJSON, self).__init__(*args, **kwargs)
+
 
     def _ipython_display_(self):
-        md = {}
-        if self.url_template:
-            md['tileUrlTemplate'] = self.url_template
-        if self.layer_options:
-            md['tileLayerOptions'] = self.layer_options
-        if self.metadata:
-            md.update(self.metadata)
         bundle = {
             'application/geo+json': self.data,
-            'text/plain': '<jupyterlab_geojson.GeoJSON object>'
+            'text/plain': '<IPython.display.GeoJSON object>'
         }
         metadata = {
-            'application/geo+json': md
+            'application/geo+json': self.metadata
         }
         display(bundle, metadata=metadata, raw=True)
 
