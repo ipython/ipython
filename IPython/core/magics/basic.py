@@ -295,7 +295,7 @@ Currently the magic system has the following functions:""",
                (:meth:`~IPython.core.magics.execution.ExecutionMagics.prun`)
         """
         warn("The `%profile` magic has been deprecated since IPython 2.0. Please use "
-             "the value of `get_ipython().profile` instead to see current profile in use.", DeprecationWarning)
+             "the value of `get_ipython().profile` instead to see current profile in use.")
         from IPython.core.application import BaseIPythonApplication
         if BaseIPythonApplication.initialized():
             print(BaseIPythonApplication.instance().profile)
