@@ -294,13 +294,9 @@ Currently the magic system has the following functions:""",
         prun : run code using the Python profiler
                (:meth:`~IPython.core.magics.execution.ExecutionMagics.prun`)
         """
-        warn("The `%profile` magic has been deprecated since IPython 2.0. Please use "
-             "the value of `get_ipython().profile` instead to see current profile in use.")
-        from IPython.core.application import BaseIPythonApplication
-        if BaseIPythonApplication.initialized():
-            print(BaseIPythonApplication.instance().profile)
-        else:
-            error("profile is an application-level value, but you don't appear to be in an IPython application")
+        raise DeprecationWarning("The `%profile` magic has been deprecated since IPython 2.0. "
+            "and removed in IPython 6.0. Please use the value of `get_ipython().profile` instead "
+            "to see current profile in use. Perhaps you meant to use `%prun` to profile code ?")
 
     @line_magic
     def pprint(self, parameter_s=''):
