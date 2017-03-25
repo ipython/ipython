@@ -245,6 +245,8 @@ class ScriptMagics(Magics):
 
     def kill_bg_processes(self):
         """Kill all BG processes which are still running."""
+        if not self.bg_processes:
+            return
         for p in self.bg_processes:
             if p.poll() is None:
                 try:
@@ -252,6 +254,9 @@ class ScriptMagics(Magics):
                 except:
                     pass
         time.sleep(0.1)
+        self._gc_bg_processes()
+        if not self.bg_processes:
+            return
         for p in self.bg_processes:
             if p.poll() is None:
                 try:
@@ -259,6 +264,9 @@ class ScriptMagics(Magics):
                 except:
                     pass
         time.sleep(0.1)
+        self._gc_bg_processes()
+        if not self.bg_processes:
+            return
         for p in self.bg_processes:
             if p.poll() is None:
                 try:
