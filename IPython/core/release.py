@@ -98,9 +98,9 @@ authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
 
 author = 'The IPython Development Team'
 
-author_email = 'ipython-dev@scipy.org'
+author_email = 'ipython-dev@python.org'
 
-url = 'http://ipython.org'
+url = 'https://ipython.org'
 
 
 platforms = ['Linux','Mac OSX','Windows']
