@@ -296,7 +296,7 @@ Currently the magic system has the following functions:""",
         """
         raise DeprecationWarning("The `%profile` magic has been deprecated since IPython 2.0. "
             "and removed in IPython 6.0. Please use the value of `get_ipython().profile` instead "
-            "to see current profile in use. Perhaps you meant to use `%prun` to profile code ?")
+            "to see current profile in use. Perhaps you meant to use `%prun` to profile code?")
 
     @line_magic
     def pprint(self, parameter_s=''):
