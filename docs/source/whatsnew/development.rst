@@ -173,4 +173,9 @@ development cycle marked for Milestone 6.0.
   `reload` into the interactive namespace have been removed. You have to
   explicitly import `reload` from `IPython.lib.deepreload` to use it.
 
+- the :magic:`profile` used to print current IPython profile in use, and which
+  was deprecated in IPython 2.0 does now raise a `DeprecationWarning` error when
+  used. It is often confused with the :magic:`prun` and the deprecation remove
+  should free up the ``profile`` name in future versions.
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
