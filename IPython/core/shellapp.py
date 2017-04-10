@@ -36,7 +36,7 @@ shell_flags = {}
 
 addflag = lambda *args: shell_flags.update(boolean_flag(*args))
 addflag('autoindent', 'InteractiveShell.autoindent',
-        'Turn on autoindenting.', 'Turn off autoindenting.'
+        'Deprecated since 6.0: Turn on autoindenting.', 'Deprecated since 6.0: Turn off autoindenting.'
 )
 addflag('automagic', 'InteractiveShell.automagic',
         """Turn on the auto calling of magic commands. Type %%magic at the

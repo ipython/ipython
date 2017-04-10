@@ -274,7 +274,6 @@ class EmbeddedSphinxShell(object):
         config = Config()
         config.HistoryManager.hist_file = ':memory:'
         config.InteractiveShell.autocall = False
-        config.InteractiveShell.autoindent = False
         config.InteractiveShell.colors = 'NoColor'
 
         # create a profile so instance history isn't saved

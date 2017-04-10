@@ -51,16 +51,6 @@ from IPython.core.inputtransformer import (ESC_SHELL, ESC_SH_CAP, ESC_HELP,
 # coverage with this code, and this lets us ensure that we keep 100% coverage
 # while developing.
 
-# compiled regexps for autoindent management
-dedent_re = re.compile('|'.join([
-    r'^\s+raise(\s.*)?$', # raise statement (+ space + other stuff, maybe)
-    r'^\s+raise\([^\)]*\).*$', # wacky raise with immediate open paren
-    r'^\s+return(\s.*)?$', # normal return (+ space + other stuff, maybe)
-    r'^\s+return\([^\)]*\).*$', # wacky return with immediate open paren
-    r'^\s+pass\s*$', # pass (optionally followed by trailing spaces)
-    r'^\s+break\s*$', # break (optionally followed by trailing spaces)
-    r'^\s+continue\s*$', # continue (optionally followed by trailing spaces)
-]))
 ini_spaces_re = re.compile(r'^([ \t\r\f\v]+)')
 
 # regexp to match pure comment lines so we don't accidentally insert 'if 1:'
@@ -151,6 +141,7 @@ def find_next_indent(code):
 
     # Find the indents used before
     prev_indents = [0]
+
     def _add_indent(n):
         if n != prev_indents[-1]:
             prev_indents.append(n)
@@ -473,7 +464,7 @@ class InputSplitter(object):
         # If there's just a single line or AST node, and we're flush left, as is
         # the case after a simple statement such as 'a=1', we want to execute it
         # straight away.
-        if self.indent_spaces==0:
+        if self.indent_spaces == 0:
             if len(self.source.splitlines()) <= 1:
                 return False
             
@@ -704,7 +695,6 @@ class IPythonInputSplitter(InputSplitter):
         return out
     
     def push_line(self, line):
-        buf = self._buffer
         
         def _accumulating(dbg):
             #print(dbg)
