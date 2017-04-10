@@ -907,7 +907,7 @@ class Inspector(Colorable):
         if callable_obj is not None:
             try:
                 argspec = getargspec(callable_obj)
-            except (TypeError, AttributeError):
+            except Exception:
                 # For extensions/builtins we can't retrieve the argspec
                 pass
             else:
