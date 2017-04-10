@@ -20,12 +20,20 @@ capable of completing non-executed code. It is also the first version of IPython
 to stop compatibility with Python 2, which is still supported on the bugfix only
 5.x branch. Read below to have a non-exhaustive list of new features.
 
-Make sure you have pip > 9.0 before upgrading. 
+Make sure you have pip > 9.0 before upgrading.
 You should be able to update by using:
 
 .. code::
 
     pip install ipython --upgrade
+
+
+.. note::
+
+    If your pip version is greater of equal to pip 9.0.1 you will automatically get
+    the most recent version of IPython compatible with your system. THat is to day
+    on Python 2 you will get the latest IPython 5.x bugfix, while in Python 3
+    you will get the latest 6.x stable version.
 
 New completion API and Interface
 --------------------------------
@@ -95,7 +103,7 @@ automatically upgrade to the latest version compatible with your system.
 .. warning::
 
   If you are on a system using an older verison of pip on Python 2, pip may
-  still install IPython 6.0 on your system, and IPython will refuse to start. 
+  still install IPython 6.0 on your system, and IPython will refuse to start.
   You can fix this by ugrading pip, and reinstalling ipython, or forcing pip to
   install an earlier version: ``pip install 'ipython<6'``
 
@@ -118,13 +126,17 @@ of these as well to improve user experience with better error messages and
 hints.
 
 
-Configurable TerminalInteractiveShell
--------------------------------------
+Configurable TerminalInteractiveShell, readline interface
+---------------------------------------------------------
 
 IPython gained a new ``c.TerminalIPythonApp.interactive_shell_class`` option
 that allow to customize the class used to start the terminal frontend. This
 should allow user to use custom interfaces, like reviving the former readline
-interface which is now a separate package not maintained by the core team.
+interface which is now a separate package not actively maintained by the core
+team. See the project to bring back the readline interface: `rlipython
+<https://github.com/ipython/rlipython>`_.
+
+This change will be backported to the IPython 5.x series.
 
 
 Miscs improvements
