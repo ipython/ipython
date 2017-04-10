@@ -2,6 +2,20 @@
  5.x Series
 ============
 
+IPython 5.4
+===========
+
+Configurable TerminalInteractiveShell
+-------------------------------------
+
+Backported from the 6.x branch as an exceptional new feature. See
+:ghpull:`10373` and :ghissue:`10364`
+
+IPython gained a new ``c.TerminalIPythonApp.interactive_shell_class`` option
+that allow to customize the class used to start the terminal frontend. This
+should allow user to use custom interfaces, like reviving the former readline
+interface which is now a separate package not maintained by the core team.
+
 IPython 5.3
 ===========
 
