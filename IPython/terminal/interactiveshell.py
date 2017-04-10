@@ -127,8 +127,8 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     highlighting_style = Union([Unicode('legacy'), Type(klass=Style)],
-        help="""The name or class of a Pygments style to use for syntax
-        highlighting: \n %s""" % ', '.join(get_all_styles())
+        help="The name or class of a Pygments style to use for syntax "
+        "highlighting: \n %s" % ', '.join(get_all_styles())
     ).tag(config=True)
 
 

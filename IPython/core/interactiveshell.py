@@ -30,6 +30,7 @@ from io import open as io_open
 from pickleshare import PickleShareDB
 
 from traitlets.config.configurable import SingletonConfigurable
+from traitlets.utils.importstring import import_item
 from IPython.core import oinspect
 from IPython.core import magic
 from IPython.core import page
@@ -73,7 +74,7 @@ from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
 from IPython.utils.tempdir import TemporaryDirectory
 from traitlets import (
     Integer, Bool, CaselessStrEnum, Enum, List, Dict, Unicode, Instance, Type,
-    observe, default,
+    observe, default, Any
 )
 from warnings import warn
 from logging import error
@@ -102,6 +103,102 @@ class ProvisionalWarning(DeprecationWarning):
     """
     pass
 
+#-----------------------------------------------------------------------------
+# Await Helpers
+#-----------------------------------------------------------------------------
+
+def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
+    """Return a function that do not create a new local scope. 
+
+    Given a function, create a clone of this function where the co_newlocal flag
+    has been removed, making this function code actually run in the sourounding
+    scope. 
+
+    We need this in order to run asynchronous code in user level namespace.
+    """
+    from types import CodeType, FunctionType
+    CO_NEWLOCALS = 0x0002
+    code = function.__code__
+    new_code = CodeType(
+        code.co_argcount, 
+        code.co_kwonlyargcount,
+        code.co_nlocals, 
+        code.co_stacksize, 
+        code.co_flags & ~CO_NEWLOCALS,
+        code.co_code, 
+        code.co_consts,
+        code.co_names, 
+        code.co_varnames, 
+        code.co_filename, 
+        code.co_name, 
+        code.co_firstlineno, 
+        code.co_lnotab, 
+        code.co_freevars, 
+        code.co_cellvars
+    )
+    return FunctionType(new_code, globals(), function.__name__, function.__defaults__)
+
+
+if sys.version_info > (3,5):
+    from .async_helpers import (_asyncio_runner, _curio_runner, _trio_runner,
+                                _should_be_async, _asyncify
+                                )
+else :
+    _asyncio_runner = _curio_runner = _trio_runner = None
+
+    def _should_be_async(whatever:str)->bool:
+        return False
+
+
+def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
+    """
+    Parse a cell with top-level await and modify the AST to be able to run it later.
+
+    Parameter
+    ---------
+
+    cell: str
+        The code cell to asyncronify
+    wrapper_name: str
+        The name of the function to be used to wrap the passed `cell`. It is
+        advised to **not** use a python identifier in order to not pollute the
+        global namespace in which the function will be ran. 
+
+    Return
+    ------
+
+    A module object AST containing **one** function named `wrapper_name`.
+
+    The given code is wrapped in a async-def function, parsed into an AST, and
+    the resulting function definition AST is modified to return the last
+    expression.
+
+    The last expression or await node is moved into a return statement at the
+    end of the function, and removed from its original location. If the last
+    node is not Expr or Await nothing is done.
+
+    The function `__code__` will need to be later modified  (by
+    ``removed_co_newlocals``) in a subsequent step to not create new `locals()`
+    meaning that the local and global scope are the same, ie as if the body of
+    the function was at module level.
+    
+    Lastly a call to `locals()` is made just before the last expression of the
+    function, or just after the last assignment or statement to make sure the
+    global dict is updated as python function work with a local fast cache which
+    is updated only on `local()` calls.
+    """
+
+    from ast import Expr, Await, Return
+    tree = ast.parse(_asyncify(cell))
+
+    function_def = tree.body[0]
+    function_def.name = wrapper_name
+    lastexpr = function_def.body[-3]
+    if isinstance(lastexpr, (Expr, Await)):
+        del function_def.body[-3]
+        function_def.body[-1] = Return(lastexpr.value)
+    ast.fix_missing_locations(tree)
+    return tree
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -218,6 +315,23 @@ class InteractiveShell(SingletonConfigurable):
         """
         Autoindent IPython code entered interactively.
         """
+    ).tag(config=True)
+
+    autoawait = Bool(True, help=
+        """
+        Automatically run await statement in the top level repl.
+        """
+    ).tag(config=True)
+
+    loop_runner_map ={
+        'asyncio':_asyncio_runner,
+        'curio':_curio_runner,
+        'trio':_trio_runner,
+    }
+
+    loop_runner = Any(default_value="IPython.core.interactiveshell._asyncio_runner",
+        allow_none=True,
+        help="""Select the loop runner that will be used to execute top-level asynchronous code"""
     ).tag(config=True)
 
     automagic = Bool(True, help=
@@ -1381,8 +1495,12 @@ class InteractiveShell(SingletonConfigurable):
                            ]
 
         # initialize results to 'null'
-        found = False; obj = None;  ospace = None;
-        ismagic = False; isalias = False; parent = None
+        obj = None
+        parent = None
+        ospace = None
+        found = False
+        ismagic = False
+        isalias = False
 
         # Look for the given name by splitting it in parts.  If the head is
         # found, then we look for all the remaining parts as members, and only
@@ -1395,7 +1513,6 @@ class InteractiveShell(SingletonConfigurable):
             except KeyError:
                 continue
             else:
-                #print 'oname_rest:', oname_rest  # dbg
                 for idx, part in enumerate(oname_rest):
                     try:
                         parent = obj
@@ -2641,13 +2758,33 @@ class InteractiveShell(SingletonConfigurable):
         # compiler
         compiler = self.compile if shell_futures else CachingCompiler()
 
+        _run_async = False
+
         with self.builtin_trap:
             cell_name = self.compile.cache(cell, self.execution_count)
 
             with self.display_trap:
                 # Compile to bytecode
                 try:
-                    code_ast = compiler.ast_parse(cell, filename=cell_name)
+                    if _should_be_async(cell) and self.autoawait:
+                        # the code AST below will not be user code: we wrap it
+                        # in an `async def`. This will likely make some AST
+                        # transformer below miss some transform opportunity and
+                        # introduce a small coupling to run_code (in which we
+                        # bake some assumptions of what _ast_asyncify returns.
+                        # they are ways around (like grafting part of the ast
+                        # later:
+                        #    - Here, return code_ast.body[0].body[1:-1], as well
+                        #    as last expression in  return statement which is
+                        #    the user code part.
+                        #    - Let it go through the AST transformers, and graft
+                        #    - it back after the AST transform
+                        # But that seem unreasonable, at least while we
+                        # do not need it.
+                        code_ast = _ast_asyncify(cell, 'async-def-wrapper')
+                        _run_async = True
+                    else:
+                        code_ast = compiler.ast_parse(cell, filename=cell_name)
                 except self.custom_exceptions as e:
                     etype, value, tb = sys.exc_info()
                     self.CustomTB(etype, value, tb)
@@ -2679,8 +2816,10 @@ class InteractiveShell(SingletonConfigurable):
 
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
+                if _run_async:
+                    interactivity = 'async'
                 has_raised = self.run_ast_nodes(code_ast.body, cell_name,
-                   interactivity=interactivity, compiler=compiler, result=result)
+                       interactivity=interactivity, compiler=compiler, result=result)
                 
                 self.last_execution_succeeded = not has_raised
 
@@ -2751,6 +2890,12 @@ class InteractiveShell(SingletonConfigurable):
           will run the last node interactively only if it is an expression (i.e.
           expressions in loops or other blocks are not displayed. Other values
           for this parameter will raise a ValueError.
+
+          Experimental value: 'async' Will try to run top level interactive
+          async/await code in default runner, this will not respect the
+          interactivty setting and will only run the last node if it is an
+          expression. 
+
         compiler : callable
           A function with the same interface as the built-in compile(), to turn
           the AST nodes into code objects. Default is the built-in compile().
@@ -2764,7 +2909,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not nodelist:
             return
-
+        _async = False
         if interactivity == 'last_expr':
             if isinstance(nodelist[-1], ast.Expr):
                 interactivity = "last"
@@ -2777,21 +2922,33 @@ class InteractiveShell(SingletonConfigurable):
             to_run_exec, to_run_interactive = nodelist[:-1], nodelist[-1:]
         elif interactivity == 'all':
             to_run_exec, to_run_interactive = [], nodelist
+        elif interactivity == 'async':
+            _async = True
         else:
             raise ValueError("Interactivity was %r" % interactivity)
 
         try:
-            for i, node in enumerate(to_run_exec):
-                mod = ast.Module([node])
-                code = compiler(mod, cell_name, "exec")
-                if self.run_code(code, result):
+            if _async:
+                # If interactivity is async the semantics of run_code are
+                # completely different Skip usual machinery.
+                mod = ast.Module(nodelist)
+                async_wrapper_code = compiler(mod, 'cell_name', 'exec')
+                exec(async_wrapper_code, self.user_global_ns, self.user_ns)
+                async_code = removed_co_newlocals(self.user_ns.pop('async-def-wrapper')).__code__
+                if self.run_code(async_code, result, async=True):
                     return True
+            else:
+                for i, node in enumerate(to_run_exec):
+                    mod = ast.Module([node])
+                    code = compiler(mod, cell_name, "exec")
+                    if self.run_code(code, result):
+                        return True
 
-            for i, node in enumerate(to_run_interactive):
-                mod = ast.Interactive([node])
-                code = compiler(mod, cell_name, "single")
-                if self.run_code(code, result):
-                    return True
+                for i, node in enumerate(to_run_interactive):
+                    mod = ast.Interactive([node])
+                    code = compiler(mod, cell_name, "single")
+                    if self.run_code(code, result):
+                        return True
 
             # Flush softspace
             if softspace(sys.stdout, 0):
@@ -2814,7 +2971,29 @@ class InteractiveShell(SingletonConfigurable):
 
         return False
 
-    def run_code(self, code_obj, result=None):
+    def _async_exec(self, code_obj:types.CodeType, user_ns:dict, *, loop_runner=None):
+        """
+        Evaluate an asynchronous code object using a code runner, 
+
+
+
+        Fake asynchronous execution of code_object in a namespace via a proxy namespace.
+
+        WARNING: The semantics of `async_exec` are quite different from `exec`,
+        in particular you can only pass a single namespace. It also return a
+        handle to the value of the last things returned by code_object.
+        """
+
+        if not loop_runner:
+            loop_runner = self.loop_runner
+
+        if isinstance(loop_runner, str):
+            loop_runner = self.loop_runner_map.get(loop_runner, import_item(loop_runner))
+        coro = eval(code_obj, user_ns)
+        return loop_runner(coro)
+
+
+    def run_code(self, code_obj, result=None, *, async=False):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -2826,6 +3005,8 @@ class InteractiveShell(SingletonConfigurable):
           A compiled code object, to be executed
         result : ExecutionResult, optional
           An object to store exceptions that occur during execution.
+        async :  Bool (Experimental)
+          Attempt to run top-level asynchronous code in a default loop.
 
         Returns
         -------
@@ -2843,8 +3024,12 @@ class InteractiveShell(SingletonConfigurable):
         try:
             try:
                 self.hooks.pre_run_code_hook()
-                #rprint('Running code', repr(code_obj)) # dbg
-                exec(code_obj, self.user_global_ns, self.user_ns)
+                if async:
+                    last_expr = self._async_exec(code_obj, self.user_ns)
+                    code = compile('last_expr', 'fake', "single")
+                    exec(code, {'last_expr':last_expr})
+                else:
+                    exec(code_obj, self.user_global_ns, self.user_ns)
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
@@ -2908,7 +3093,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.pylab_gui_select = gui
             # Otherwise if they are different
             elif gui != self.pylab_gui_select:
-                print ('Warning: Cannot change to a different GUI toolkit: %s.'
+                print('Warning: Cannot change to a different GUI toolkit: %s.'
                         ' Using %s instead.' % (gui, self.pylab_gui_select))
                 gui, backend = pt.find_gui_and_backend(self.pylab_gui_select)
         
