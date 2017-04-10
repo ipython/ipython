@@ -26,7 +26,7 @@ __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
 'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'GeoJSON', 'Javascript',
 'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
-'publish_display_data', 'update_display', 'DisplayHandle']
+'publish_display_data', 'update_display', 'DisplayHandle', 'Video']
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -669,16 +669,16 @@ class JSON(DisplayObject):
     def _repr_json_(self):
         return self._data_and_metadata()
 
-css_t = """$("head").append($("<link/>").attr({
+_css_t = """$("head").append($("<link/>").attr({
   rel:  "stylesheet",
   type: "text/css",
   href: "%s"
 }));
 """
 
-lib_t1 = """$.getScript("%s", function () {
+_lib_t1 = """$.getScript("%s", function () {
 """
-lib_t2 = """});
+_lib_t2 = """});
 """
 
 class GeoJSON(JSON):
@@ -802,11 +802,11 @@ class Javascript(TextDisplayObject):
     def _repr_javascript_(self):
         r = ''
         for c in self.css:
-            r += css_t % c
+            r += _css_t % c
         for l in self.lib:
-            r += lib_t1 % l
+            r += _lib_t1 % l
         r += self.data
-        r += lib_t2*len(self.lib)
+        r += _lib_t2*len(self.lib)
         return r
 
 # constants for identifying png/jpeg data
