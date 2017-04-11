@@ -80,7 +80,7 @@ check the version of pip with
 
   $ pip --version
 
-You will need to update pip to the version 8.2 or greater. If you are not using
+You will need to update pip to the version 9.0.1 or greater. If you are not using
 pip, please inquiry with the maintainers of the package for your package
 manager.
 
@@ -91,3 +91,20 @@ For more information see one of our blog posts:
 As well as the following Pull-Request for discussion:
 
     https://github.com/ipython/ipython/pull/9900
+
+This error does also occur if you are invoking ``setup.py`` directly – which you
+should not – or are using ``easy_install`` If this is the case, use ``pip
+isntall .`` (instead of ``setup.py install`` , and ``pip install -e .`` instead
+of ``setup.py develop`` If you are depending on IPython as a dependency you may
+also want to have a conditional dependency on IPython depending on the Python
+version::
+
+    install_req = ['ipython']
+    if sys.version_info[0] < 3 and 'bdist_wheel' not in sys.argv:
+        install_req.remove('ipython')
+        install_req.append('ipython<6')
+
+    setup(
+        ...
+        install_requires=install_req
+    )

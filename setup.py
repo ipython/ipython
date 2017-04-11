@@ -27,6 +27,18 @@ import sys
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
 if sys.version_info < (3,3):
+    try:
+        pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1. '
+        import pip
+        pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
+        print(pip_version)
+        if pip_version < (9, 0, 1) :
+            pip_message = 'You pip version is out of date, please install pip >= 9.0.1.'\
+            'pip {} detected.'.format(pip.__version__)
+    except Exception:
+        pass
+
+        
     error = """
 IPython 6.0+ does not support Python 2.6, 2.7, 3.0, 3.1, or 3.2.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
@@ -36,9 +48,9 @@ See IPython `README.rst` file for more information:
 
     https://github.com/ipython/ipython/blob/master/README.rst
 
-Python {} detected.
-
-""".format(sys.version_info)
+Python {py} detected.
+{pip}
+""".format(py=sys.version_info, pip=pip_message )
 
     print(error, file=sys.stderr)
     sys.exit(1)
