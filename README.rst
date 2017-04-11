@@ -94,7 +94,7 @@ As well as the following Pull-Request for discussion:
 
 This error does also occur if you are invoking ``setup.py`` directly – which you
 should not – or are using ``easy_install`` If this is the case, use ``pip
-isntall .`` (instead of ``setup.py install`` , and ``pip install -e .`` instead
+install .`` (instead of ``setup.py install`` , and ``pip install -e .`` instead
 of ``setup.py develop`` If you are depending on IPython as a dependency you may
 also want to have a conditional dependency on IPython depending on the Python
 version::
