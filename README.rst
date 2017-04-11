@@ -1,13 +1,13 @@
 .. image:: https://codecov.io/github/ipython/ipython/coverage.svg?branch=master
     :target: https://codecov.io/github/ipython/ipython?branch=master
 
-.. image:: https://img.shields.io/pypi/dm/IPython.svg           
+.. image:: https://img.shields.io/pypi/dm/IPython.svg
     :target: https://pypi.python.org/pypi/ipython
 
-.. image:: https://img.shields.io/pypi/v/IPython.svg            
+.. image:: https://img.shields.io/pypi/v/IPython.svg
     :target: https://pypi.python.org/pypi/ipython
 
-.. image:: https://img.shields.io/travis/ipython/ipython.svg    
+.. image:: https://img.shields.io/travis/ipython/ipython.svg
     :target: https://travis-ci.org/ipython/ipython
 
 
@@ -22,8 +22,15 @@ Welcome to IPython.  Our full documentation is available on `ipython.readthedocs
 <https://ipython.readthedocs.io/en/stable/>`_ and contains information on how to install, use and
 contribute to the project.
 
-Officially, IPython requires Python version 3.3 and above.
-IPython 5.x is the last IPython version to support Python 2.7.
+.. important::
+   **IPython versions and Python Support**
+
+   **IPython 6** requires Python version 3.3 and above.
+
+   **IPython 5.x LTS** is the compatible release for Python 2.x, 3.0, 3.1, 3.2.
+   If you require Python 2 support, you **must** use IPython 5.x LTS. Please
+   update your project configurations and requirements as necessary.
+
 
 The Notebook, Qt console and a number of other pieces are now parts of *Jupyter*.
 See the `Jupyter installation docs <http://jupyter.readthedocs.io/en/latest/install.html>`__
