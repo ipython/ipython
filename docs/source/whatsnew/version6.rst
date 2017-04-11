@@ -19,8 +19,8 @@ You should be able to update by using:
 .. note::
 
     If your pip version is greater of equal to pip 9.0.1 you will automatically get
-    the most recent version of IPython compatible with your system. THat is to day
-    on Python 2 you will get the latest IPython 5.x bugfix, while in Python 3
+    the most recent version of IPython compatible with your system: on Python 2 you 
+    will get the latest IPython 5.x bugfix, while in Python 3
     you will get the latest 6.x stable version.
 
 New completion API and Interface
@@ -40,7 +40,7 @@ the following are now becoming possible without code evaluation:
 That is to say, IPython is now capable of inferring that `data[0]` is a string,
 and will suggest completions like `.capitalize`. The completion power of IPython
 will increase with new Jedi releases, and a number of bugs and more completions
-are already available on development version of :any:`jedi` if you are curious.
+are already available on the development version of :any:`jedi` if you are curious.
 
 With the help of prompt toolkit, types of completions can be shown in the
 completer interface:
@@ -56,18 +56,18 @@ The appearance of the completer is controlled by the
 type differently depending on the value among ``'column'``, ``'multicolumn'``
 and ``'readlinelike'``
 
-The use of Jedi also full fill a number of request and fix a number of bugs
-like case insensitive completion, completion after division operator: See
+The use of Jedi also fulfills a number of requests and fix a number of bugs
+like case-insensitive completion, completion after division operator: See
 :ghpull:`10182`.
 
 Extra patches and updates will be needed to the :mod:`ipykernel` package for
-this feature to be available to other clients like jupyter Notebook, Lab,
+this feature to be available to other clients like Jupyter Notebook, Lab,
 Nteract, Hydrogen...
 
-The use of Jedi can is barely noticeable on recent enough machines, but can be
-feel on older ones,  in cases were Jedi behavior need to be adjusted, the amount
+The use of Jedi is should be barely noticeable on recent enough machines, but 
+can be slower on older ones.  To tweak the performances, the amount
 of time given to Jedi to compute type inference can be adjusted with
-``c.IPCompleter.jedi_compute_type_timeout``, with object whose type were not
+``c.IPCompleter.jedi_compute_type_timeout``. The objects whose type were not
 inferred will be shown as ``<unknown>``. Jedi can also be completely deactivated
 by using the ``c.Completer.use_jedi=False`` option.
 
@@ -80,7 +80,7 @@ Python 3 only codebase
 ----------------------
 
 One of the large challenges in IPython 6.0 has been the adoption of a pure
-Python 3 code base, which lead us to great length to upstream patches in pip,
+Python 3 codebase, which leads us to great length to upstream patches in pip,
 pypi and warehouse to make sure Python 2 system still upgrade to the latest
 compatible Python version compatible.
 
@@ -90,19 +90,19 @@ automatically upgrade to the latest version compatible with your system.
 
 .. warning::
 
-  If you are on a system using an older verison of pip on Python 2, pip may
+  If you are on a system using an older version of pip on Python 2, pip may
   still install IPython 6.0 on your system, and IPython will refuse to start.
-  You can fix this by ugrading pip, and reinstalling ipython, or forcing pip to
+  You can fix this by upgrading pip, and reinstalling ipython, or forcing pip to
   install an earlier version: ``pip install 'ipython<6'``
 
-The ability to use only Python 3 on the code base of IPython has bring a number
+The ability to use only Python 3 on the code base of IPython  brings a number
 of advantage. Most of the newly written code make use of `optional function type
-anotation <https://www.python.org/dev/peps/pep-0484/>`_ leading to clearer code
+annotation <https://www.python.org/dev/peps/pep-0484/>`_ leading to clearer code
 and better documentation.
 
-The total size of the repository has also for a first time between releases
-(excluding the big split for 4.0) decreased by about 1500 lines, potentially
-quite a bit more codewide as some documents like this one are append only and
+The total size of the repository has also decreased by about 1500 lines (for the 
+first time excluding the big split for 4.0). The decrease is potentially
+a bit more for the sour as some documents like this one are append only and
 are about 300 lines long.
 
 The removal as of Python2/Python3 shim layer has made the code quite clearer and
@@ -118,8 +118,8 @@ Configurable TerminalInteractiveShell, readline interface
 ---------------------------------------------------------
 
 IPython gained a new ``c.TerminalIPythonApp.interactive_shell_class`` option
-that allow to customize the class used to start the terminal frontend. This
-should allow user to use custom interfaces, like reviving the former readline
+that allows customizing the class used to start the terminal frontend. This
+should allow a user to use custom interfaces, like reviving the former readline
 interface which is now a separate package not actively maintained by the core
 team. See the project to bring back the readline interface: `rlipython
 <https://github.com/ipython/rlipython>`_.
@@ -131,8 +131,8 @@ Miscs improvements
 ------------------
 
 
-- The :cellmagic:`capture` magic can now capture the result of a cell (from an
-  expression on the last line), as well as printed and displayed output.
+- The :cellmagic:`capture` magic can now capture the result of a cell (from
+  an expression on the last line), as well as printed and displayed output.
   :ghpull:`9851`.
 
 - Pressing Ctrl-Z in the terminal debugger now suspends IPython, as it already
@@ -166,7 +166,7 @@ Functions Deprecated in 6.x Development cycle
   Deprecated (raising a Deprecation Warning) and marked for later removal
   :ghpull:`10104`
 
-Backwards incompatible changes
+Backward incompatible changes
 ------------------------------
 
 Functions Removed in 6.x Development cycle
