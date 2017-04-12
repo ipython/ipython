@@ -144,32 +144,11 @@ setup_args['data_files'] = data_files
 #---------------------------------------------------------------------------
 # imports here, so they are after setuptools import if there was one
 from distutils.command.sdist import sdist
-from distutils.command.upload import upload
-
-class UploadWindowsInstallers(upload):
-
-    description = "Upload Windows installers to PyPI (only used from tools/release_windows.py)"
-    user_options = upload.user_options + [
-        ('files=', 'f', 'exe file (or glob) to upload')
-    ]
-    def initialize_options(self):
-        upload.initialize_options(self)
-        meta = self.distribution.metadata
-        base = '{name}-{version}'.format(
-            name=meta.get_name(),
-            version=meta.get_version()
-        )
-        self.files = os.path.join('dist', '%s.*.exe' % base)
-
-    def run(self):
-        for dist_file in glob(self.files):
-            self.upload_file('bdist_wininst', 'any', dist_file)
 
 setup_args['cmdclass'] = {
     'build_py': \
             check_package_data_first(git_prebuild('IPython')),
     'sdist' : git_prebuild('IPython', sdist),
-    'upload_wininst' : UploadWindowsInstallers,
     'symlink': install_symlinked,
     'install_lib_symlink': install_lib_symlink,
     'install_scripts_sym': install_scripts_for_symlink,
