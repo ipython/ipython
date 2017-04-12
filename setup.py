@@ -34,6 +34,9 @@ if sys.version_info < (3, 3):
         if pip_version < (9, 0, 1) :
             pip_message = 'Your pip version is out of date, please install pip >= 9.0.1. '\
             'pip {} detected.'.format(pip.__version__)
+        else:
+            # pip is new enough - it must be something else
+            pip_message = ''
     except Exception:
         pass
 
