@@ -19,13 +19,14 @@ requires utilities which are not available under Windows."""
 
 from __future__ import print_function
 
+import os
 import sys
 
 # **Python version check**
 #
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info < (3,3):
+if sys.version_info < (3, 3):
     pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
     try:
         import pip
@@ -54,15 +55,6 @@ Python {py} detected.
     sys.exit(1)
 
 # At least we're on the python version we need, move on.
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
-
-# Stdlib imports
-import os
-
-from glob import glob
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
@@ -162,10 +154,10 @@ setup_args['cmdclass'] = {
 
 # For some commands, use setuptools.  Note that we do NOT list install here!
 # If you want a setuptools-enhanced install, just run 'setupegg.py install'
-needs_setuptools = set(('develop', 'release', 'bdist_egg', 'bdist_rpm',
+needs_setuptools = {'develop', 'release', 'bdist_egg', 'bdist_rpm',
            'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
            'egg_info', 'easy_install', 'upload', 'install_egg_info',
-            ))
+          }
 
 if len(needs_setuptools.intersection(sys.argv)) > 0:
     import setuptools
