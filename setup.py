@@ -17,23 +17,21 @@ requires utilities which are not available under Windows."""
 #  The full license is in the file COPYING.rst, distributed with this software.
 #-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Minimal Python version sanity check
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 import sys
 
+# **Python version check**
+#
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
 if sys.version_info < (3,3):
+    pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
     try:
-        pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1. '
         import pip
         pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
-        print(pip_version)
         if pip_version < (9, 0, 1) :
-            pip_message = 'You pip version is out of date, please install pip >= 9.0.1.'\
+            pip_message = 'Your pip version is out of date, please install pip >= 9.0.1. '\
             'pip {} detected.'.format(pip.__version__)
     except Exception:
         pass
