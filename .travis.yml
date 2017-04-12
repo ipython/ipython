@@ -8,11 +8,10 @@ python:
     - 3.3
 sudo: false
 before_install:
-    - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
 install:
-    - pip install "setuptools>=18.5" pip --upgrade
-    - pip install -f travis-wheels/wheelhouse -e file://$PWD#egg=ipython[test] --upgrade
+    - pip install setuptools pip --upgrade
+    - pip install -e file://$PWD#egg=ipython[test] --upgrade
     - pip install codecov --upgrade
 script:
     - cd /tmp && iptest --coverage xml && cd -
