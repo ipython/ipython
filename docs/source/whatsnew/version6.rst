@@ -138,7 +138,7 @@ Miscs improvements
 - Pressing Ctrl-Z in the terminal debugger now suspends IPython, as it already
   does in the main terminal prompt.
 
-- autoreload can now reload ``Enum``. See :ghissue:`10232` and :ghpull:`10316`
+- Autoreload can now reload ``Enum``. See :ghissue:`10232` and :ghpull:`10316`
 
 - IPython.display has gained a :any:`GeoJSON <IPython.display.GeoJSON>` object.
   :ghpull:`10288` and :ghpull:`10253`
@@ -149,7 +149,7 @@ Miscs improvements
 Functions Deprecated in 6.x Development cycle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Loading extensions from ``ipython_extension_dir`` print a warning that this
+- Loading extensions from ``ipython_extension_dir`` prints a warning that this
   location is pending deprecation. This should only affect users still having
   extensions installed with ``%install_ext`` which has been deprecated since
   IPython 4.0, and removed in 5.0. Extensions still present in
@@ -163,7 +163,7 @@ Functions Deprecated in 6.x Development cycle
 
 
 - The function `IPython.core.oinspect.py:call_tip` is unused, was marked as
-  Deprecated (raising a Deprecation Warning) and marked for later removal
+  deprecated (raising a `DeprecationWarning`) and marked for later removal.
   :ghpull:`10104`
 
 Backward incompatible changes
@@ -182,7 +182,7 @@ development cycle marked for Milestone 6.0.
   `reload` into the interactive namespace have been removed. You have to
   explicitly import `reload` from `IPython.lib.deepreload` to use it.
 
-- the :magic:`profile` used to print current IPython profile in use, and which
+- The :magic:`profile` used to print current IPython profile in use, and which
   was deprecated in IPython 2.0 does now raise a `DeprecationWarning` error when
   used. It is often confused with the :magic:`prun` and the deprecation remove
   should free up the ``profile`` name in future versions.
