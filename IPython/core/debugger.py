@@ -30,27 +30,27 @@ https://docs.python.org/2/license.html
 try:
     import bdb
 except:
-    print "unable to import bdb"
+    print ("unable to import bdb")
 try:
     import functools
 except:
-    print "unable to import functools"
+    print ("unable to import functools")
 try:
     import inspect
 except:
-    print "unable to import inspect"
+    print ("unable to import inspect")
 try:
     import linecache
 except:
-    print "unable to import linecache"
+    print ("unable to import linecache")
 try:
     import sys
 except:
-    print "unable to import sys"
+    print ("unable to import sys")
 try:
     import warnings
 except:
-    print "unable to import warnings"
+    print ("unable to import warnings")
 from IPython import get_ipython
 from IPython.utils import PyColorize
 from IPython.utils import coloransi, py3compat
