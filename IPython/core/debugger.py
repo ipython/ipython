@@ -26,13 +26,31 @@ https://docs.python.org/2/license.html
 #
 #*****************************************************************************
 
-import bdb
-import functools
-import inspect
-import linecache
-import sys
-import warnings
-
+# dependencies
+try:
+    import bdb
+except:
+    print "unable to import bdb"
+try:
+    import functools
+except:
+    print "unable to import functools"
+try:
+    import inspect
+except:
+    print "unable to import inspect"
+try:
+    import linecache
+except:
+    print "unable to import linecache"
+try:
+    import sys
+except:
+    print "unable to import sys"
+try:
+    import warnings
+except:
+    print "unable to import warnings"
 from IPython import get_ipython
 from IPython.utils import PyColorize
 from IPython.utils import coloransi, py3compat
@@ -616,3 +634,4 @@ def set_trace(frame=None):
     If frame is not specified, debugging starts from caller's frame.
     """
     Pdb().set_trace(frame or sys._getframe().f_back)
+    
