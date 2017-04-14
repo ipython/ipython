@@ -1,3 +1,7 @@
+============
+ 6.x Series
+============
+
 IPython 6.0
 ===========
 
@@ -126,7 +130,6 @@ team. See the project to bring back the readline interface: `rlipython
 
 This change will be backported to the IPython 5.x series.
 
-
 Miscs improvements
 ------------------
 
@@ -142,9 +145,6 @@ Miscs improvements
 
 - IPython.display has gained a :any:`GeoJSON <IPython.display.GeoJSON>` object.
   :ghpull:`10288` and :ghpull:`10253`
-
-.. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
-
 
 Functions Deprecated in 6.x Development cycle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -186,5 +186,3 @@ development cycle marked for Milestone 6.0.
   was deprecated in IPython 2.0 does now raise a `DeprecationWarning` error when
   used. It is often confused with the :magic:`prun` and the deprecation remove
   should free up the ``profile`` name in future versions.
-
-.. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
