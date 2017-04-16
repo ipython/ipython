@@ -472,7 +472,7 @@ def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
                  "Use in corresponding context manager.",
                   category=ProvisionalCompleterWarning, stacklevel=2)
 
-    completions = list(completion)
+    completions = list(completions)
     if not completions:
         return
     starts = (c.start for c in completions)
