@@ -74,6 +74,7 @@ During the release process, you might need the extra following dependencies:
 
  - ``keyring`` to access your GitHub authentication tokens
  - ``graphviz`` to generate some graphs in the documentation
+ - ``ghpro`` to generate the stats
 
 Make sure you have all the required dependencies to run the tests as well.
 

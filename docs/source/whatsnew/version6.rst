@@ -5,7 +5,7 @@
 IPython 6.0
 ===========
 
-Released .... ...., 2017
+Released April 19th, 2017
 
 IPython 6 feature a major improvement in the completion machinery which is now
 capable of completing non-executed code. It is also the first version of IPython
