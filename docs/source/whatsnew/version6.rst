@@ -71,7 +71,7 @@ Nteract, Hydrogen...
 The use of Jedi should be barely noticeable on recent machines, but 
 can be slower on older ones.  To tweak the performance, the amount
 of time given to Jedi to compute type inference can be adjusted with
-``c.IPCompleter.jedi_compute_type_timeout``. The objects whose type was not
+``c.IPCompleter.jedi_compute_type_timeout``. The objects whose type were not
 inferred will be shown as ``<unknown>``. Jedi can also be completely deactivated
 by using the ``c.Completer.use_jedi=False`` option.
 
