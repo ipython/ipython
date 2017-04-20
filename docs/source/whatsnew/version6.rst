@@ -84,12 +84,12 @@ Python 3 only codebase
 ----------------------
 
 One of the large challenges in IPython 6.0 has been the adoption of a pure
-Python 3 codebase, which leads us to great length to upstream patches in pip,
-pypi and warehouse to make sure Python 2 system still upgrade to the latest
-compatible Python version compatible.
+Python 3 codebase, which lead us to go to great lengths to upstream patches in pip,
+pypi and warehouse to make sure Python 2 systems are still upgrade to the latest
+compatible IPython version.
 
 We remind our Python 2 users that IPython 5 is still compatible with Python 2.7,
-still maintained and get regular releases. Using pip 9+, upgrading IPython will
+still maintained, and gets regular releases. Using pip 9+, upgrading IPython will
 automatically upgrade to the latest version compatible with your system.
 
 .. warning::
@@ -99,18 +99,18 @@ automatically upgrade to the latest version compatible with your system.
   You can fix this by upgrading pip, and reinstalling ipython, or forcing pip to
   install an earlier version: ``pip install 'ipython<6'``
 
-The ability to use only Python 3 on the code base of IPython  brings a number
-of advantages. Most of the newly written code make use of `optional function type
+The ability to use only Python 3 in the code base of IPython  brings a number
+of advantages. Most of the newly written code makes use of `optional function type
 annotation <https://www.python.org/dev/peps/pep-0484/>`_ leading to clearer code
 and better documentation.
 
 The total size of the repository has also decreased by about 1500 lines (for the 
 first time excluding the big split for 4.0). The decrease is potentially
-a bit more for the sour as some documents like this one are append only and
+a bit more as some documents like this one are append only and
 are about 300 lines long.
 
-The removal as of Python2/Python3 shim layer has made the code quite clearer and
-more idiomatic in a number of location, and much friendlier to work with and
+The removal of the Python2/Python3 shim layer has made the code quite a bit clearer and
+more idiomatic in a number of locations, and much friendlier to work with and
 understand. We hope to further embrace Python 3 capability in the next release
 cycle and introduce more of the Python 3 only idioms (yield from, kwarg only,
 general unpacking) in the code base of IPython, and see if we can take advantage
