@@ -100,7 +100,7 @@ automatically upgrade to the latest version compatible with your system.
   install an earlier version: ``pip install 'ipython<6'``
 
 The ability to use only Python 3 on the code base of IPython  brings a number
-of advantage. Most of the newly written code make use of `optional function type
+of advantages. Most of the newly written code make use of `optional function type
 annotation <https://www.python.org/dev/peps/pep-0484/>`_ leading to clearer code
 and better documentation.
 
