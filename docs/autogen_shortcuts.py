@@ -1,6 +1,7 @@
 from os.path import abspath, dirname, join
 
 from IPython.terminal.interactiveshell import KeyBindingManager
+from IPython.utils.py3compat import string_types
 
 
 def name(c):
@@ -60,7 +61,7 @@ for kb in ipy_bindings:
     if not doc or doc in dummy_docs:
         continue
 
-    shortcut = ' '.join([k if isinstance(k, str) else k.name for k in kb.keys])
+    shortcut = ' '.join([k if isinstance(k, string_types) else k.name for k in kb.keys])
     shortcut += shortcut.endswith('\\') and '\\' or ''
     if hasattr(kb.filter, 'filters'):
         flt = ' '.join(multi_filter_str(kb.filter))
