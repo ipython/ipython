@@ -60,7 +60,7 @@ for kb in ipy_bindings:
     if not doc or doc in dummy_docs:
         continue
 
-    shortcut = ' '.join([k if isinstance(k, str) else k.name for k in kb.keys])
+    shortcut = ' '.join([k if isinstance(k, (str, unicode)) else k.name for k in kb.keys])
     shortcut += shortcut.endswith('\\') and '\\' or ''
     if hasattr(kb.filter, 'filters'):
         flt = ' '.join(multi_filter_str(kb.filter))
