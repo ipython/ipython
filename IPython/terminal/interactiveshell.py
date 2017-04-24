@@ -235,7 +235,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 last_cell = cell
 
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
-        style = DynamicStyle(lambda: self._style)
+        self.style = DynamicStyle(lambda: self._style)
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
@@ -249,7 +249,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             completer=IPythonPTCompleter(shell=self,
                                                     patch_stdout=patch_stdout),
                             enable_history_search=True,
-                            style=style,
+                            style=self.style,
                             mouse_support=self.mouse_support,
                             **self._layout_options()
         )
