@@ -4,15 +4,13 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import errno
 import os
 import shutil
 import sys
 import tempfile
-import warnings
 from contextlib import contextmanager
 from unittest.mock import patch
-from os.path import join, abspath, split
+from os.path import join, abspath
 from imp import reload
 
 from nose import SkipTest, with_setup
@@ -25,7 +23,6 @@ from IPython.testing.decorators import (skip_if_not_win32, skip_win32,
                                         onlyif_unicode_paths,)
 from IPython.testing.tools import make_tempfile, AssertPrints
 from IPython.utils import path
-from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 
 # Platform-dependent imports
@@ -315,7 +312,7 @@ def test_unicode_in_filename():
     """
     try:
         # these calls should not throw unicode encode exceptions
-        path.get_py_filename('fooéè.py',  force_win32=False)
+        path.get_py_filename('fooéè.py', force_win32=False)
     except IOError as ex:
         str(ex)
 
