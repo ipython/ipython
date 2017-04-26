@@ -641,7 +641,7 @@ def test_dict_key_completion_string():
     nt.assert_in("b", matches)
 
     # need to not split at delims that readline won't split at
-    if '-' not in ip.Completer.splitter.delims:
+    if '-' not in ip.Completer.splitters[0].delims:
         ip.user_ns['d'] = {'before-after': None}
         _, matches = complete(line_buffer="d['before-af")
         nt.assert_in('before-after', matches)
@@ -685,8 +685,10 @@ def test_dict_key_completion_contexts():
     # greedy flag
     def assert_completion(**kwargs):
         _, matches = complete(**kwargs)
+        print(kwargs)
+        print(matches)
         nt.assert_in("get()['abc']", matches)
-    
+
     assert_no_completion(line_buffer="get()[")
     with greedy_completion():
         assert_completion(line_buffer="get()[")

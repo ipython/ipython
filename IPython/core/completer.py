@@ -495,10 +495,14 @@ def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
         print('IPython.python matches have extras:', diff)
 
 
+# Keep two lists for delimiters, first one works for filenames containing /, -,
+# and ~ (for expansion)
 if sys.platform == 'win32':
-    DELIMS = ' \t\n`!@#$^&*()=+[{]}|;\'",<>?'
+    DELIMS = [' \t\n`!@#$^&*()=+[{]}|;\'",<>?',
+              ' \t\n`!@#$^&*()=+[{]}|;\'",<>?-~/']
 else:
-    DELIMS = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
+    DELIMS = [' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?',
+              ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?-~/']
 
 GREEDY_DELIMS = ' =\r\n'
 
@@ -520,7 +524,7 @@ class CompletionSplitter(object):
 
     # A string of delimiter characters.  The default value makes sense for
     # IPython's most typical usage patterns.
-    _delims = DELIMS
+    _delims = DELIMS[0]
 
     # The expression (a normal string) to be compiled into a regular expression
     # for actual splitting.  We store it as an attribute mostly for ease of
@@ -929,11 +933,13 @@ class IPCompleter(Completer):
     
     @observe('greedy')
     def _greedy_changed(self, change):
-        """update the splitter and readline delims when greedy is changed"""
+        """update the splitters and readline delims when greedy is changed"""
         if change['new']:
-            self.splitter.delims = GREEDY_DELIMS
+            for s in self.splitters:
+                s.delims = GREEDY_DELIMS
         else:
-            self.splitter.delims = DELIMS
+            for s, delims in zip(self.splitters, DELIMS):
+                s.delims = delims
     
     merge_completions = Bool(True,
         help="""Whether to merge completion results into a single list
@@ -1002,7 +1008,7 @@ class IPCompleter(Completer):
         """
 
         self.magic_escape = ESC_MAGIC
-        self.splitter = CompletionSplitter()
+        self.splitters = [CompletionSplitter(delims) for delims in DELIMS]
 
         if use_readline is not _deprecation_readline_sentinel:
             warnings.warn('The `use_readline` parameter is deprecated and ignored since IPython 6.0.',
@@ -1464,7 +1470,7 @@ class IPCompleter(Completer):
         keys = get_keys(obj)
         if not keys:
             return keys
-        closing_quote, token_offset, matches = match_dict_keys(keys, prefix, self.splitter.delims)
+        closing_quote, token_offset, matches = match_dict_keys(keys, prefix, self.splitters[0].delims)
         if not matches:
             return matches
         
@@ -1797,11 +1803,15 @@ class IPCompleter(Completer):
         if self.use_main_ns:
             self.namespace = __main__.__dict__
 
-        # if text is either None or an empty string, rely on the line buffer
         if (not line_buffer) and full_text:
             line_buffer = full_text.split('\n')[cursor_line]
+        # if text is either None or an empty string, rely on the line buffer
+        # generate options for text by splitting line buffer with multiple delimiters.
+        texts = [text]
         if not text:
-            text = self.splitter.split_line(line_buffer, cursor_pos)
+            texts = [s.split_line(line_buffer, cursor_pos) for s in self.splitters]
+            # don't know how to avoid it, but we can't leave text as None
+            text = texts[0]
 
         if self.backslash_combining_completions:
             # allow deactivation of these on windows.
@@ -1815,7 +1825,7 @@ class IPCompleter(Completer):
                 name_text, name_matches = meth(base_text)
                 if name_text:
                     return name_text, name_matches, [meth.__qualname__]*len(name_matches), {}
-        
+
 
         # If no line buffer is given, assume the input text is all there was
         if line_buffer is None:
@@ -1846,20 +1856,28 @@ class IPCompleter(Completer):
             # namespaces.
             if self.merge_completions:
                 matches = []
-                for matcher in self.matchers:
-                    try:
-                        matches.extend([(m, matcher.__qualname__)
-                                        for m in matcher(text)])
-                    except:
-                        # Show the ugly traceback if the matcher causes an
-                        # exception, but do NOT crash the kernel!
-                        sys.excepthook(*sys.exc_info())
-            else:
-                for matcher in self.matchers:
-                    matches = [(m, matcher.__qualname__)
-                               for m in matcher(text)]
+                # Try the options for matched text in order until one generates matches
+                for matched_text in texts:
+                    for matcher in self.matchers:
+                        try:
+                            matches.extend([(m, matcher.__qualname__)
+                                            for m in matcher(matched_text)])
+                        except:
+                            # Show the ugly traceback if the matcher causes an
+                            # exception, but do NOT crash the kernel!
+                            sys.excepthook(*sys.exc_info())
                     if matches:
+                        # Save which text was matched, because that will be replaced by the completion
+                        text = matched_text
                         break
+            else:
+                for matched_text in texts:
+                    for matcher in self.matchers:
+                        matches = [(m, matcher.__qualname__)
+                                   for m in matcher(matched_text)]
+                        if matches:
+                            text = matched_text
+                            break
         seen = set()
         filtered_matches = set()
         for m in matches:
