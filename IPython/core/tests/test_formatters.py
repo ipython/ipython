@@ -436,4 +436,55 @@ def test_json_as_string_deprecated():
         d = f(JSONString())
     nt.assert_equal(d, {})
     nt.assert_equal(len(w), 1)
+
+
+def test_repr_mime():
+    class HasReprMime(object):
+        def _repr_mimebundle_(self):
+            return {
+                'application/json+test.v2': {
+                    'x': 'y'
+                }
+            }
+        
+        def _repr_html_(self):
+            return '<b>hi!</b>'
+    
+    f = get_ipython().display_formatter
+    html_f = f.formatters['text/html']
+    save_enabled = html_f.enabled
+    html_f.enabled = True
+    obj = HasReprMime()
+    d, md = f.format(obj)
+    html_f.enabled = save_enabled
+    
+    nt.assert_equal(sorted(d), ['application/json+test.v2', 'text/html', 'text/plain'])
+    nt.assert_equal(md, {})
+
+
+def test_repr_mime_meta():
+    class HasReprMimeMeta(object):
+        def _repr_mimebundle_(self):
+            data = {
+                'image/png': 'base64-image-data',
+            }
+            metadata = {
+                'image/png': {
+                    'width': 5,
+                    'height': 10,
+                }
+            }
+            return (data, metadata)
+    
+    f = get_ipython().display_formatter
+    obj = HasReprMimeMeta()
+    d, md = f.format(obj)
+    nt.assert_equal(sorted(d), ['image/png', 'text/plain'])
+    nt.assert_equal(md, {
+        'image/png': {
+            'width': 5,
+            'height': 10,
+        }
+    })
+    
     
