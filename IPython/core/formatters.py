@@ -51,12 +51,17 @@ class DisplayFormatter(Configurable):
                 formatter.enabled = True
             else:
                 formatter.enabled = False
-    
+
     ipython_display_formatter = ForwardDeclaredInstance('FormatterABC')
     @default('ipython_display_formatter')
     def _default_formatter(self):
         return IPythonDisplayFormatter(parent=self)
-    
+
+    mimebundle_formatter = ForwardDeclaredInstance('FormatterABC')
+    @default('mimebundle_formatter')
+    def _default_mime_formatter(self):
+        return MimeBundleFormatter(parent=self)
+
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
     formatters = Dict()
@@ -131,8 +136,13 @@ class DisplayFormatter(Configurable):
         if self.ipython_display_formatter(obj):
             # object handled itself, don't proceed
             return {}, {}
-        
+
+        format_dict, md_dict = self.mimebundle_formatter(obj)
+
         for format_type, formatter in self.formatters.items():
+            if format_type in format_dict:
+                # already got it from mimebundle, don't render again
+                continue
             if include and format_type not in include:
                 continue
             if exclude and format_type in exclude:
@@ -843,7 +853,7 @@ class PDFFormatter(BaseFormatter):
     _return_type = (bytes, str)
 
 class IPythonDisplayFormatter(BaseFormatter):
-    """A Formatter for objects that know how to display themselves.
+    """An escape-hatch Formatter for objects that know how to display themselves.
     
     To define the callables that compute the representation of your
     objects, define a :meth:`_ipython_display_` method or use the :meth:`for_type`
@@ -853,10 +863,16 @@ class IPythonDisplayFormatter(BaseFormatter):
     
     This display formatter has highest priority.
     If it fires, no other display formatter will be called.
+
+    Prior to IPython 6.1, `_ipython_display_` was the only way to display custom mime-types
+    without registering a new Formatter.
+    
+    IPython 6.1 introduces `_repr_mimebundle_` for displaying custom mime-types,
+    so `_ipython_display_` should only be used for objects that require unusual
+    display patterns, such as multiple display calls.
     """
     print_method = ObjectName('_ipython_display_')
     _return_type = (type(None), bool)
-    
 
     @catch_format_error
     def __call__(self, obj):
@@ -877,6 +893,34 @@ class IPythonDisplayFormatter(BaseFormatter):
                 return True
 
 
+class MimeBundleFormatter(BaseFormatter):
+    """A Formatter for arbitrary mime-types.
+
+    Unlike other `_repr_<mimetype>_` methods,
+    `_repr_mimebundle_` should return mime-bundle data,
+    either the mime-keyed `data` dictionary or the tuple `(data, metadata)`.
+    Any mime-type is valid.
+
+    To define the callables that compute the mime-bundle representation of your
+    objects, define a :meth:`_repr_mimebundle_` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
+
+    .. versionadded:: 6.1
+    """
+    print_method = ObjectName('_repr_mimebundle_')
+    _return_type = dict
+    
+    def _check_return(self, r, obj):
+        r = super(MimeBundleFormatter, self)._check_return(r, obj)
+        # always return (data, metadata):
+        if r is None:
+            return {}, {}
+        if not isinstance(r, tuple):
+            return r, {}
+        return r
+
+
 FormatterABC.register(BaseFormatter)
 FormatterABC.register(PlainTextFormatter)
 FormatterABC.register(HTMLFormatter)
@@ -889,6 +933,7 @@ FormatterABC.register(LatexFormatter)
 FormatterABC.register(JSONFormatter)
 FormatterABC.register(JavascriptFormatter)
 FormatterABC.register(IPythonDisplayFormatter)
+FormatterABC.register(MimeBundleFormatter)
 
 
 def format_display_data(obj, include=None, exclude=None):
