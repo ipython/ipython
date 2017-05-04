@@ -10,7 +10,10 @@ from IPython.utils import io
 from IPython.utils.py3compat import cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union
+from traitlets import (
+    Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union,
+    Any,
+)
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -190,6 +193,12 @@ class TerminalInteractiveShell(InteractiveShell):
     extra_open_editor_shortcuts = Bool(False,
         help="Enable vi (v) or Emacs (C-X C-E) shortcuts to open an external editor. "
              "This is in addition to the F2 binding, which is always enabled."
+    ).tag(config=True)
+
+    handle_return = Any(None,
+        help="Provide an alternative handler to be called when the user presses "
+             "Return. This is an advanced option intended for debugging, which "
+             "may be changed or removed in later releases."
     ).tag(config=True)
 
     @observe('term_title')
