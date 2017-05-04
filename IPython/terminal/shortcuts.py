@@ -31,12 +31,17 @@ def register_ipython_shortcuts(registry, shell):
     """Set up the prompt_toolkit keyboard shortcuts for IPython"""
     insert_mode = ViInsertMode() | EmacsInsertMode()
 
+    if getattr(shell, 'handle_return', None):
+        return_handler = shell.handle_return(shell)
+    else:
+        return_handler = newline_or_execute_outer(shell)
+
     # Ctrl+J == Enter, seemingly
     registry.add_binding(Keys.ControlJ,
                          filter=(HasFocus(DEFAULT_BUFFER)
                                  & ~HasSelection()
                                  & insert_mode
-                        ))(newline_or_execute_outer(shell))
+                        ))(return_handler)
 
     registry.add_binding(Keys.ControlBackslash)(force_exit)
 
