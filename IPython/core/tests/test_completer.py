@@ -335,6 +335,18 @@ def test_jedi():
 
     yield _test_not_complete, 'does not mix types', 'a=(1,"foo");a[0].', 'capitalize'
 
+def test_completion_have_signature():
+    """
+    Lets make sure jedi is capable of pulling out the signature of the function we are completing.
+    """
+    ip = get_ipython()
+    with provisionalcompleter():
+        completions = ip.Completer.completions('ope', 3)
+        c = next(completions)  # should be `open`
+    assert 'file' in c.signature, "Signature of function was not found by completer"
+    assert 'encoding' in c.signature, "Signature of function was not found by completer"
+
+
 def test_deduplicate_completions():
     """
     Test that completions are correctly deduplicated (even if ranges are not the same)

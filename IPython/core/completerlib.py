@@ -37,6 +37,8 @@ from IPython.utils._process_common import arg_split
 # FIXME: this should be pulled in with the right call via the component system
 from IPython import get_ipython
 
+from typing import List
+
 #-----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------
@@ -153,7 +155,7 @@ def is_importable(module, attr, only_modules):
         return not(attr[:2] == '__' and attr[-2:] == '__')
 
 
-def try_import(mod: str, only_modules=False):
+def try_import(mod: str, only_modules=False) -> List[str]:
     """
     Try to import given module and return list of potential completions.
     """
@@ -173,9 +175,9 @@ def try_import(mod: str, only_modules=False):
     completions.extend(getattr(m, '__all__', []))
     if m_is_init:
         completions.extend(module_list(os.path.dirname(m.__file__)))
-    completions = {c for c in completions if isinstance(c, str)}
-    completions.discard('__init__')
-    return list(completions)
+    completions_set = {c for c in completions if isinstance(c, str)}
+    completions_set.discard('__init__')
+    return list(completions_set)
 
 
 #-----------------------------------------------------------------------------
