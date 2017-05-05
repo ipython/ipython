@@ -699,7 +699,14 @@ class InteractiveShell(SingletonConfigurable):
             p = os.path.normcase(os.path.join(os.path.dirname(p), os.readlink(p)))
             paths.append(p)
         p_venv = os.path.normcase(os.environ['VIRTUAL_ENV'])
-        if any(p.startswith(p_venv) for p in paths):
+        
+        # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
+        if p_venv.startswith('\\cygdrive'):
+            p_venv = p_venv[11:]
+        elif p_venv[1] == ':':
+            p_venv = p_venv[2:]
+
+        if any(p_venv in p for p in paths):
             # Running properly in the virtualenv, don't need to do anything
             return
         
