@@ -3,9 +3,8 @@
 
 import json
 import os
+import sys
 import warnings
-
-from unittest import mock
 
 import nose.tools as nt
 
@@ -15,6 +14,11 @@ from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython import paths as ipath
 
 import IPython.testing.decorators as dec
+
+if sys.version_info < (3,):
+    import mock
+else:
+    from unittest import mock
 
 def test_image_size():
     """Simple test for display.Image(args, width=x,height=y)"""
@@ -272,7 +276,10 @@ def test_update_display():
 def test_display_handle():
     ip = get_ipython()
     handle = display.DisplayHandle()
-    nt.assert_is_instance(handle.display_id, str)
+    if sys.version_info < (3,):
+        nt.assert_is_instance(handle.display_id, unicode)
+    else:
+        nt.assert_is_instance(handle.display_id, str)
     handle = display.DisplayHandle('my-id')
     nt.assert_equal(handle.display_id, 'my-id')
     with mock.patch.object(ip.display_pub, 'publish') as pub:

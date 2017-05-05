@@ -79,9 +79,8 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
 #-----------------------------------------------------------------------------
 # Main functions
 #-----------------------------------------------------------------------------
-
 # use * to indicate transient is keyword-only
-def publish_display_data(data, metadata=None, source=None, *, transient=None, **kwargs):
+def publish_display_data(data, metadata=None, source=None, **kwargs):
     """Publish data and metadata to all frontends.
 
     See the ``display_data`` message in the messaging documentation for
@@ -126,8 +125,6 @@ def publish_display_data(data, metadata=None, source=None, *, transient=None, **
     # only pass transient if supplied,
     # to avoid errors with older ipykernel.
     # TODO: We could check for ipykernel version and provide a detailed upgrade message.
-    if transient:
-        kwargs['transient'] = transient
 
     display_pub.publish(
         data=data,
@@ -141,7 +138,7 @@ def _new_id():
     return b2a_hex(os.urandom(16)).decode('ascii')
 
 
-def display(*objs, include=None, exclude=None, metadata=None, transient=None, display_id=None, **kwargs):
+def display(*objs, **kwargs):
     """Display a Python object in all frontends.
 
     By default all representations will be computed and sent to the frontends.
@@ -184,6 +181,11 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         Returns None if no display_id is given (default).
     """
     raw = kwargs.pop('raw', False)
+    include = kwargs.pop('include', None)
+    exclude = kwargs.pop('exclude', None)
+    metadata = kwargs.pop('metadata', None)
+    transient = kwargs.pop('transient', None)
+    display_id = kwargs.pop('display_id', None)
     if transient is None:
         transient = {}
     if display_id:
@@ -217,7 +219,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
 
 
 # use * for keyword-only display_id arg
-def update_display(obj, *, display_id, **kwargs):
+def update_display(obj, **kwargs):
     """Update an existing display by id
 
     Parameters
@@ -228,6 +230,10 @@ def update_display(obj, *, display_id, **kwargs):
     display_id: keyword-only
         The id of the display to update
     """
+    sentinel = object()
+    display_id = kwargs.pop('display_id', sentinel)
+    if display_id is sentinel:
+        raise TypeError("update_display() missing 1 required keyword-only argument: 'display_id'")
     kwargs['update'] = True
     display(obj, display_id=display_id, **kwargs)
 
