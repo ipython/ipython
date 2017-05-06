@@ -26,8 +26,12 @@ def _elide(string, *, min_elide=30):
     If a string is long enough, and has at least 2 dots,
     replace the middle part with ellipses.
 
-    For example:
+    If three consecutive dots, or two consecutive dots are encountered these are
+    replaced by the equivalents HORIZONTAL ELLIPSIS or TWO DOT LEADER unicode
+    equivalents
     """
+    string = string.replace('...','\N{HORIZONTAL ELLIPSIS}')
+    string = string.replace('..','\N{TWO DOT LEADER}')
     if len(string) < min_elide:
         return string
 
