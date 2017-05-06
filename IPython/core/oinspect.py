@@ -587,7 +587,21 @@ class Inspector(Colorable):
         return bundle
 
     def _get_info(self, obj, oname='', formatter=None, info=None, detail_level=0):
-        """Retrieve an info dict and format it."""
+        """Retrieve an info dict and format it.
+        
+        Parameters
+        ==========
+
+        obj: any
+            Object to inspect and return info from
+        oname: str (default: ''):
+            Name of the variable pointing to `obj`.
+        formatter: callable
+        info:
+            already computed informations
+        detail_level: integer
+            Granularity of detail level, if set to 1, give more informations.
+        """
 
         info = self._info(obj, oname=oname, info=info, detail_level=detail_level)
 
@@ -696,24 +710,31 @@ class Inspector(Colorable):
                       DeprecationWarning, stacklevel=2)
         return self._info(obj, oname=oname, info=info, detail_level=detail_level)
 
-    def _info(self, obj, oname='', info=None, detail_level=0):
+    def _info(self, obj, oname='', info=None, detail_level=0) -> dict:
         """Compute a dict with detailed information about an object.
 
-        Optional arguments:
+        Parameters
+        ==========
 
-        - oname: name of the variable pointing to the object.
+        obj: any
+            An object to find information about
+        oname: str (default: ''):
+            Name of the variable pointing to `obj`.
+        info: (default: None)
+            A struct (dict like with attr access) with some information fields
+            which may have been precomputed already.
+        detail_level: int (default:0)
+            If set to 1, more information is given.
 
-        - info: a structure with some information fields which may have been
-          precomputed already.
+        Returns
+        =======
 
-        - detail_level: if set to 1, more information is given.
+        An object info dict with known fields from `info_fields`.
         """
 
-        obj_type = type(obj)
-
         if info is None:
-            ismagic = 0
-            isalias = 0
+            ismagic = False
+            isalias = False
             ospace = ''
         else:
             ismagic = info.ismagic
@@ -743,17 +764,17 @@ class Inspector(Colorable):
         shalf = int((string_max - 5) / 2)
 
         if ismagic:
-            obj_type_name = 'Magic function'
+            out['type_name'] = 'Magic function'
         elif isalias:
-            obj_type_name = 'System alias'
+            out['type_name'] = 'System alias'
         else:
-            obj_type_name = obj_type.__name__
-        out['type_name'] = obj_type_name
+            out['type_name'] = type(obj).__name__
 
         try:
             bclass = obj.__class__
             out['base_class'] = str(bclass)
-        except: pass
+        except:
+            pass
 
         # String form, but snip if too long in ? form (full in ??)
         if detail_level >= self.str_detail_level:
@@ -774,7 +795,8 @@ class Inspector(Colorable):
         # Length (for strings and lists)
         try:
             out['length'] = str(len(obj))
-        except: pass
+        except Exception:
+            pass
 
         # Filename where object was defined
         binary_file = False
