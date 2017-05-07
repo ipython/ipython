@@ -1517,7 +1517,7 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                return self.inspector.info(info.obj, oname, info=info,
+                return self.inspector._info(info.obj, oname, info=info,
                             detail_level=detail_level
                 )
             else:
