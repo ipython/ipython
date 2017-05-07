@@ -12,6 +12,7 @@ before_install:
 install:
     - pip install setuptools pip --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
+    - pip install numpy matplotlib
     - pip install codecov --upgrade
 script:
     - cd /tmp && iptest --coverage xml && cd -
