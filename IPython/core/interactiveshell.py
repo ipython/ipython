@@ -1527,20 +1527,12 @@ class InteractiveShell(SingletonConfigurable):
 
     def object_inspect_text(self, oname, detail_level=0):
         """Get object info as formatted text"""
-        return self.object_inspect_mime(oname, detail_level)['text/plain']
-
-    def object_inspect_mime(self, oname, detail_level=0):
-        """Get object info as a mimebundle of formatted representations.
-
-        A mimebundle is a dictionary, keyed by mime-type.
-        It must always have the key `'text/plain'`.
-        """
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
                 return self.inspector._get_info(info.obj, oname, info=info,
                             detail_level=detail_level
-                )
+                )['text/plain']
             else:
                 raise KeyError(oname)
 
