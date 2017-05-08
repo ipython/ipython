@@ -1628,16 +1628,14 @@ class InteractiveShell(SingletonConfigurable):
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
         facility should only be used if you really know what you are doing."""
-
-        assert type(exc_tuple)==type(()) , \
-               "The custom exceptions must be given AS A TUPLE."
+        if not isinstance(exc_tuple, tuple):
+            raise TypeError("The custom exceptions must be given as a tuple.")
 
         def dummy_handler(self, etype, value, tb, tb_offset=None):
             print('*** Simple custom exception handler ***')
-            print('Exception type :',etype)
-            print('Exception value:',value)
-            print('Traceback      :',tb)
-            #print 'Source code    :','\n'.join(self.buffer)
+            print('Exception type :', etype)
+            print('Exception value:', value)
+            print('Traceback      :', tb)
         
         def validate_stb(stb):
             """validate structured traceback return type
