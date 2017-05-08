@@ -1372,10 +1372,9 @@ class InteractiveShell(SingletonConfigurable):
         Has special code to detect magic functions.
         """
         oname = oname.strip()
-        #print '1- oname: <%r>' % oname  # dbg
         if not oname.startswith(ESC_MAGIC) and \
-            not oname.startswith(ESC_MAGIC2) and \
-            not py3compat.isidentifier(oname, dotted=True):
+                not oname.startswith(ESC_MAGIC2) and \
+                not all(a.isidentifier() for a in oname.split(".")):
             return {'found': False}
 
         if namespaces is None:
@@ -1387,9 +1386,12 @@ class InteractiveShell(SingletonConfigurable):
                            ('Python builtin', builtin_mod.__dict__),
                            ]
 
-        # initialize results to 'null'
-        found = False; obj = None;  ospace = None;
-        ismagic = False; isalias = False; parent = None
+        ismagic = False
+        isalias = False
+        found = False
+        ospace = None
+        parent = None
+        obj = None
 
         # Look for the given name by splitting it in parts.  If the head is
         # found, then we look for all the remaining parts as members, and only
@@ -1402,7 +1404,6 @@ class InteractiveShell(SingletonConfigurable):
             except KeyError:
                 continue
             else:
-                #print 'oname_rest:', oname_rest  # dbg
                 for idx, part in enumerate(oname_rest):
                     try:
                         parent = obj
@@ -1443,12 +1444,6 @@ class InteractiveShell(SingletonConfigurable):
                 ospace = 'IPython internal'
                 ismagic = True
                 isalias = isinstance(obj, Alias)
-
-        # Last try: special-case some literals like '', [], {}, etc:
-        if not found and oname_head in ["''",'""','[]','{}','()']:
-            obj = eval(oname_head)
-            found = True
-            ospace = 'Interactive'
 
         return {'found':found, 'obj':obj, 'namespace':ospace,
                 'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
