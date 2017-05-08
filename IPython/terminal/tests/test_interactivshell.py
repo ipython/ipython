@@ -10,6 +10,16 @@ from IPython.core.inputtransformer import InputTransformer
 from IPython.testing import tools as tt
 from IPython.utils.capture import capture_output
 
+from IPython.terminal.ptutils import _elide
+import nose.tools as nt
+
+class TestElide(unittest.TestCase):
+
+    def test_elide(self):
+        _elide('concatenate((a1, a2, ...), axis') # do not raise
+        _elide('concatenate((a1, a2, ..), . axis') # do not raise
+        nt.assert_equal(_elide('aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh'), 'aaaa.b…g.hhhhhh')
+
 # Decorator for interaction loop tests -----------------------------------------
 
 class mock_input_helper(object):
