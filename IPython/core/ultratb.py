@@ -870,7 +870,7 @@ class VerboseTB(TBTools):
                     pass
 
         file = py3compat.cast_unicode(file, util_path.fs_encoding)
-        link = tpl_link % file
+        link = tpl_link % util_path.compress_user(file)
         args, varargs, varkw, locals = inspect.getargvalues(frame)
 
         if func == '?':
