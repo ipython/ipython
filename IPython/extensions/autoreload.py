@@ -185,8 +185,8 @@ class ModuleReloader(object):
         if not hasattr(module, '__file__') or module.__file__ is None:
             return None, None
 
-        if getattr(module, '__name__', None) == '__main__':
-            # we cannot reload(__main__)
+        if getattr(module, '__name__', None) in ['__mp_main__', '__main__']:
+            # we cannot reload(__main__) or reload(__mp_main__)
             return None, None
 
         filename = module.__file__
