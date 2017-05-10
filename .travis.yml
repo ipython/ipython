@@ -31,7 +31,7 @@ install:
           pip install https://bitbucket.org/pypy/numpy/get/master.zip
         fi
     - pip install -f travis-wheels/wheelhouse -e file://$PWD#egg=ipython[test]
-    - pip install codecov
+    - pip install codecov mock
 script:
     - cd /tmp && iptest --coverage xml && cd -
 after_success:
