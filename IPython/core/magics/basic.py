@@ -91,6 +91,10 @@ class BasicMagics(Magics):
         'target',
         help="""Name of the existing line or cell magic."""
     )
+    @magic_arguments.argument(
+        '-p', '--params', default=None,
+        help="""Parameters passed to the magic function."""
+    )
     @line_magic
     def alias_magic(self, line=''):
         """Create an alias for an existing line or cell magic.
@@ -118,7 +122,11 @@ class BasicMagics(Magics):
 
           In [6]: %whereami
           Out[6]: u'/home/testuser'
+          
+          In [7]: %alias_magic h history -p "-l 30" --line
+          Created `%h` as an alias for `%history -l 30`.
         """
+
         args = magic_arguments.parse_argstring(self.alias_magic, line)
         shell = self.shell
         mman = self.shell.magics_manager
@@ -126,6 +134,12 @@ class BasicMagics(Magics):
 
         target = args.target.lstrip(escs)
         name = args.name.lstrip(escs)
+
+        params = args.params
+        if (params and
+                ((params.startswith('"') and params.endswith('"'))
+                or (params.startswith("'") and params.endswith("'")))):
+            params = params[1:-1]
 
         # Find the requested magics.
         m_line = shell.find_magic(target, 'line')
@@ -147,17 +161,19 @@ class BasicMagics(Magics):
             args.line = bool(m_line)
             args.cell = bool(m_cell)
 
+        params_str = "" if params is None else " " + params
+
         if args.line:
-            mman.register_alias(name, target, 'line')
-            print('Created `%s%s` as an alias for `%s%s`.' % (
+            mman.register_alias(name, target, 'line', params)
+            print('Created `%s%s` as an alias for `%s%s%s`.' % (
                 magic_escapes['line'], name,
-                magic_escapes['line'], target))
+                magic_escapes['line'], target, params_str))
 
         if args.cell:
-            mman.register_alias(name, target, 'cell')
-            print('Created `%s%s` as an alias for `%s%s`.' % (
+            mman.register_alias(name, target, 'cell', params)
+            print('Created `%s%s` as an alias for `%s%s%s`.' % (
                 magic_escapes['cell'], name,
-                magic_escapes['cell'], target))
+                magic_escapes['cell'], target, params_str))
 
     @line_magic
     def lsmagic(self, parameter_s=''):

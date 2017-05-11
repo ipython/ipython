@@ -6,6 +6,7 @@ Needs to be run by nose (to make ipython session available).
 
 import io
 import os
+import re
 import sys
 import warnings
 from unittest import TestCase
@@ -13,6 +14,8 @@ from importlib import invalidate_caches
 from io import StringIO
 
 import nose.tools as nt
+
+import shlex
 
 from IPython import get_ipython
 from IPython.core import magic
@@ -866,6 +869,11 @@ def test_alias_magic():
     ip.run_line_magic('alias_magic', '--line env_alias env')
     nt.assert_equal(ip.run_line_magic('env', ''),
                     ip.run_line_magic('env_alias', ''))
+
+    # Test that line alias with parameters passed in is created successfully.
+    ip.run_line_magic('alias_magic', '--line history_alias history --params ' + shlex.quote('3'))
+    nt.assert_in('history_alias', mm.magics['line'])
+
 
 def test_save():
     """Test %save."""
