@@ -858,3 +858,11 @@ def test_from_module_completer():
     _, matches = ip.complete('B', 'from io import B', 16)
     nt.assert_in('BytesIO', matches)
     nt.assert_not_in('BaseException', matches)
+
+def test_snake_case_completion():
+    ip = get_ipython()
+    ip.user_ns['some_three'] = 3
+    ip.user_ns['some_four'] = 4
+    _, matches = ip.complete("s_", "print(s_f")
+    nt.assert_in('some_three', matches)
+    nt.assert_in('some_four', matches)
