@@ -25,7 +25,9 @@ from IPython.core.history import HistoryManager
 from IPython.core.application import (
     ProfileDir, BaseIPythonApplication, base_flags, base_aliases
 )
-from IPython.core.magics import ScriptMagics
+from IPython.core.magics import (
+    ScriptMagics, LoggingMagics
+)
 from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
@@ -202,6 +204,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             PlainTextFormatter,
             IPCompleter,
             ScriptMagics,
+            LoggingMagics,
             StoreMagics,
         ]
 
