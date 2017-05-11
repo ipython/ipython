@@ -110,7 +110,8 @@ class ConfigMagics(Magics):
         # this magic, as their presence is just noise:
         configurables = [ c for c in self.shell.configurables
                           if c.__class__.class_traits(config=True) ]
-        classnames = [ c.__class__.__name__ for c in configurables ]
+        classnames = sorted(set([ c.__class__.__name__
+                                  for c in configurables ]))
 
         line = s.strip()
         if not line:
