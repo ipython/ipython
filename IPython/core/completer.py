@@ -226,13 +226,13 @@ def has_open_quotes(s):
         return False
 
 
-def protect_filename(s):
+def protect_filename(s, protectables=PROTECTABLES):
     """Escape a string to protect certain characters."""
-    if set(s) & set(PROTECTABLES):
+    if set(s) & set(protectables):
         if sys.platform == "win32":
             return '"' + s + '"'
         else:
-            return "".join(("\\" + c if c in PROTECTABLES else c) for c in s)
+            return "".join(("\\" + c if c in protectables else c) for c in s)
     else:
         return s
 
@@ -1133,9 +1133,10 @@ class IPCompleter(Completer):
         else:
             if open_quotes:
                 # if we have a string with an open quote, we don't need to
-                # protect the names at all (and we _shouldn't_, as it
-                # would cause bugs when the filesystem call is made).
-                matches = m0
+                # protect the names beyond the quote (and we _shouldn't_, as
+                # it would cause bugs when the filesystem call is made).
+                matches = m0 if sys.platform == "win32" else\
+                    [protect_filename(f, open_quotes) for f in m0]
             else:
                 matches = [text_prefix +
                            protect_filename(f) for f in m0]
