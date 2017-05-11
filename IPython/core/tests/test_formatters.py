@@ -444,9 +444,13 @@ def test_repr_mime():
             return {
                 'application/json+test.v2': {
                     'x': 'y'
-                }
+                },
+                'plain/text' : '<HasReprMime>',
+                'image/png' : 'i-overwrite'
             }
-        
+
+        def _repr_png_(self):
+            return 'should-be-overwritten'
         def _repr_html_(self):
             return '<b>hi!</b>'
     
@@ -458,8 +462,17 @@ def test_repr_mime():
     d, md = f.format(obj)
     html_f.enabled = save_enabled
     
-    nt.assert_equal(sorted(d), ['application/json+test.v2', 'text/html', 'text/plain'])
+    nt.assert_equal(sorted(d), ['application/json+test.v2',
+                                'image/png',
+                                'plain/text',
+                                'text/html',
+                                'text/plain'])
     nt.assert_equal(md, {})
+
+    d, md = f.format(obj, include={'image/png'})
+    nt.assert_equal(list(d.keys()), ['image/png'],
+                    'Include should filter out even things from repr_mimebundle')
+    nt.assert_equal(d['image/png'], 'i-overwrite', '_repr_mimebundle_ take precedence')
 
 
 def test_repr_mime_meta():

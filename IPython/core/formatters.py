@@ -91,7 +91,7 @@ class DisplayFormatter(Configurable):
 
         By default all format types will be computed.
 
-        The following MIME types are currently implemented:
+        The following MIME types are usually implemented:
 
         * text/plain
         * text/html
@@ -108,14 +108,15 @@ class DisplayFormatter(Configurable):
         ----------
         obj : object
             The Python object whose format data will be computed.
-        include : list or tuple, optional
+        include : list, tuple or set; optional
             A list of format type strings (MIME types) to include in the
             format data dict. If this is set *only* the format types included
             in this list will be computed.
-        exclude : list or tuple, optional
+        exclude : list, tuple or set; optional
             A list of format type string (MIME types) to exclude in the format
             data dict. If this is set all format types will be computed,
             except for those included in this argument.
+            Mimetypes present in exclude will take precedence over the ones in include
 
         Returns
         -------
@@ -129,6 +130,15 @@ class DisplayFormatter(Configurable):
             
             metadata_dict is a dictionary of metadata about each mime-type output.
             Its keys will be a strict subset of the keys in format_dict.
+
+        Notes
+        -----
+
+            If an object implement `_repr_mimebundle_` as well as various
+            `_repr_*_`, the data returned by `_repr_mimebundle_` will take
+            precedence and the corresponding `_repr_*_` for this mimetype will
+            not be called.
+
         """
         format_dict = {}
         md_dict = {}
@@ -138,6 +148,14 @@ class DisplayFormatter(Configurable):
             return {}, {}
 
         format_dict, md_dict = self.mimebundle_formatter(obj)
+
+        if format_dict or md_dict:
+            if include:
+                format_dict = {k:v for k,v in format_dict.items() if k in include}
+                md_dict = {k:v for k,v in md_dict.items() if k in include}
+            if exclude:
+                format_dict = {k:v for k,v in format_dict.items() if k not in exclude}
+                md_dict = {k:v for k,v in md_dict.items() if k not in exclude}
 
         for format_type, formatter in self.formatters.items():
             if format_type in format_dict:
@@ -163,7 +181,6 @@ class DisplayFormatter(Configurable):
                 format_dict[format_type] = data
             if md is not None:
                 md_dict[format_type] = md
-            
         return format_dict, md_dict
 
     @property
@@ -983,4 +1000,3 @@ def format_display_data(obj, include=None, exclude=None):
         include,
         exclude
     )
-
