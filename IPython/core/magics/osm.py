@@ -81,11 +81,21 @@ class OSMagics(Magics):
           In [9]: show $$PATH
           /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
 
-        You can use the alias facility to acess all of $PATH.  See the %rehashx
+        You can use the alias facility to access all of $PATH.  See the %rehashx
         function, which automatically creates aliases for the contents of your
         $PATH.
 
-        If called with no parameters, %alias prints the current alias table."""
+        If called with no parameters, %alias prints the current alias table
+        for your system.  For posix systems, the default aliases are 'cat',
+        'cp', 'mv', 'rm', 'rmdir', and 'mkdir', and other platform-specific
+        aliases are added.  For windows-based systems, the default aliases are
+        'copy', 'ddir', 'echo', 'ls', 'ldir', 'mkdir', 'ren', and 'rmdir'.
+
+        You can see the definition of alias by adding a question mark in the
+        end::
+
+          In [1]: cat?
+          Repr: <alias cat for 'cat'>"""
 
         par = parameter_s.strip()
         if not par:
