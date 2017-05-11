@@ -274,6 +274,37 @@ def test_local_file_completions():
         nt.assert_true(comp.issubset(set(c)))
 
 
+def test_quoted_file_completions():
+    ip = get_ipython()
+    with TemporaryWorkingDirectory():
+        name = "foo'bar"
+        open(name, 'w').close()
+
+        # Don't escape Windows
+        escaped = name if sys.platform == "win32" else "foo\\'bar"
+
+        # Single quote matches embedded single quote
+        text = "open('foo"
+        c = ip.Completer._complete(cursor_line=0,
+                                   cursor_pos=len(text),
+                                   full_text=text)[1]
+        nt.assert_equal(c, [escaped])
+
+        # Double quote requires no escape
+        text = 'open("foo'
+        c = ip.Completer._complete(cursor_line=0,
+                                   cursor_pos=len(text),
+                                   full_text=text)[1]
+        nt.assert_equal(c, [name])
+
+        # No quote requires an escape
+        text = '%ls foo'
+        c = ip.Completer._complete(cursor_line=0,
+                                   cursor_pos=len(text),
+                                   full_text=text)[1]
+        nt.assert_equal(c, [escaped])
+
+
 def test_jedi():
     """
     A couple of issue we had with Jedi
