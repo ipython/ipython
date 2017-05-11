@@ -648,7 +648,7 @@ class Inspector(Colorable):
             
             # Source or docstring, depending on detail level and whether
             # source found.
-            if detail_level > 0:
+            if detail_level > 0 and info['source']:
                 append_field(_mime, 'Source', 'source', code_formatter)
             else:
                 append_field(_mime, 'Docstring', 'docstring', formatter)
