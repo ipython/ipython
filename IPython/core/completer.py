@@ -657,11 +657,11 @@ class Completer(Configurable):
                 if word[:n] == text and word != "__builtins__":
                     match_append(word)
 
-        snake_case_re = re.compile(r"[^_]+(_[^_]+)+?")
+        snake_case_re = re.compile(r"[^_]+(_[^_]+)+?\Z")
         for lst in [self.namespace.keys(),
                     self.global_namespace.keys()]:
             shortened = {"_".join([sub[0] for sub in word.split('_')]) : word
-                         for word in lst if snake_case_re.fullmatch(word)}
+                         for word in lst if snake_case_re.match(word)}
             for word in shortened.keys():
                 if word[:n] == text and word != "__builtins__":
                     match_append(shortened[word])
