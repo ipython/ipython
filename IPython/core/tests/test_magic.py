@@ -6,6 +6,7 @@ Needs to be run by nose (to make ipython session available).
 
 import io
 import os
+import re
 import sys
 import warnings
 from unittest import TestCase
@@ -20,7 +21,7 @@ from IPython.core.error import UsageError
 from IPython.core.magic import (Magics, magics_class, line_magic,
                                 cell_magic,
                                 register_line_magic, register_cell_magic)
-from IPython.core.magics import execution, script, code
+from IPython.core.magics import execution, script, code, logging
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
@@ -977,3 +978,35 @@ def test_strip_initial_indent():
     nt.assert_equal(sii("  a = 1\nb = 2"), "a = 1\nb = 2")
     nt.assert_equal(sii("  a\n    b\nc"), "a\n  b\nc")
     nt.assert_equal(sii("a\n  b"), "a\n  b")
+
+def test_logging_magic_quiet_from_arg():
+    _ip.config.LoggingMagics.quiet = False
+    lm = logging.LoggingMagics(shell=_ip)
+    with TemporaryDirectory() as td:
+        try:
+            with tt.AssertNotPrints(re.compile("Activating.*")):
+                lm.logstart('-q {}'.format(
+                        os.path.join(td, "quiet_from_arg.log")))
+        finally:
+            _ip.logger.logstop()
+
+def test_logging_magic_quiet_from_config():
+    _ip.config.LoggingMagics.quiet = True
+    lm = logging.LoggingMagics(shell=_ip)
+    with TemporaryDirectory() as td:
+        try:
+            with tt.AssertNotPrints(re.compile("Activating.*")):
+                lm.logstart(os.path.join(td, "quiet_from_config.log"))
+        finally:
+            _ip.logger.logstop()
+    
+def test_logging_magic_not_quiet():
+    _ip.config.LoggingMagics.quiet = False
+    lm = logging.LoggingMagics(shell=_ip)
+    with TemporaryDirectory() as td:
+        try:
+            with tt.AssertPrints(re.compile("Activating.*")):
+                lm.logstart(os.path.join(td, "not_quiet.log"))
+        finally:
+            _ip.logger.logstop()
+    
