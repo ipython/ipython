@@ -519,31 +519,33 @@ def test_line_cell_magics():
 
 
 def test_magic_completion_order():
-
     ip = get_ipython()
     c = ip.Completer
 
-    # Test ordering of magics and non-magics with the same name
-    # We want the non-magic first
+    # Test ordering of line and cell magics.
+    text, matches = c.complete("timeit")
+    nt.assert_equal(matches, ["%timeit", "%%timeit"])
 
-    # Before importing matplotlib, there should only be one option:
 
-    text, matches = c.complete('mat')
+def test_magic_completion_shadowing():
+    ip = get_ipython()
+    c = ip.Completer
+
+    # Before importing matplotlib, %matplotlib magic should be the only option.
+    text, matches = c.complete("mat")
     nt.assert_equal(matches, ["%matplotlib"])
 
+    # The newly introduced name should shadow the magic.
+    ip.run_cell("matplotlib = 1")
+    text, matches = c.complete("mat")
+    nt.assert_equal(matches, ["matplotlib"])
 
-    ip.run_cell("matplotlib = 1")  # introduce name into namespace
+    # After removing matplotlib from namespace, the magic should again be
+    # the only option.
+    del ip.user_ns["matplotlib"]
+    text, matches = c.complete("mat")
+    nt.assert_equal(matches, ["%matplotlib"])
 
-    # After the import, there should be two options, ordered like this:
-    text, matches = c.complete('mat')
-    nt.assert_equal(matches, ["matplotlib", "%matplotlib"])
-
-
-    ip.run_cell("timeit = 1")  # define a user variable called 'timeit'
-
-    # Order of user variable and line and cell magics with same name:
-    text, matches = c.complete('timeit')
-    nt.assert_equal(matches, ["timeit", "%timeit", "%%timeit"])
 
 def test_match_dict_keys():
     """
