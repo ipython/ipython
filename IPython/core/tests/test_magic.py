@@ -81,6 +81,24 @@ def test_config():
     ## should not raise.
     _ip.magic('config')
 
+def test_config_available_configs():
+    """ test that config magic prints available configs in unique and
+    sorted order. """
+    with capture_output() as captured:
+        _ip.magic('config')
+
+    stdout = captured.stdout
+    config_classes = stdout.strip().split('\n')[1:]
+    nt.assert_list_equal(config_classes, sorted(set(config_classes)))
+
+def test_config_print_class():
+    """ test that config with a classname prints the class's options. """
+    with capture_output() as captured:
+        _ip.magic('config TerminalInteractiveShell')
+
+    stdout = captured.stdout
+    nt.assert_in("TerminalInteractiveShell options", stdout)
+
 def test_rehashx():
     # clear up everything
     _ip.alias_manager.clear_aliases()
