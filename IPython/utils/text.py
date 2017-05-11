@@ -592,7 +592,7 @@ class DollarFormatter(FullEvalFormatter):
         In [4]: f.format('$a or {b}', a=1, b=2)
         Out[4]: '1 or 2'
     """
-    _dollar_pattern = re.compile("(.*?)\$(\$?[\w\.]+)")
+    _dollar_pattern_ignore_single_quote = re.compile("(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)")
     def parse(self, fmt_string):
         for literal_txt, field_name, format_spec, conversion \
                     in Formatter.parse(self, fmt_string):
@@ -600,7 +600,7 @@ class DollarFormatter(FullEvalFormatter):
             # Find $foo patterns in the literal text.
             continue_from = 0
             txt = ""
-            for m in self._dollar_pattern.finditer(literal_txt):
+            for m in self._dollar_pattern_ignore_single_quote.finditer(literal_txt):
                 new_txt, new_field = m.group(1,2)
                 # $$foo --> $foo
                 if new_field.startswith("$"):
