@@ -352,7 +352,7 @@ class OSMagics(Magics):
             try:
                 os.chdir(os.path.expanduser(ps))
                 if hasattr(self.shell, 'term_title') and self.shell.term_title:
-                    set_term_title('IPython: ' + abbrev_cwd())
+                    set_term_title(self.shell.term_title_format.format(cwd=abbrev_cwd()))
             except OSError:
                 print(sys.exc_info()[1])
             else:
@@ -365,7 +365,7 @@ class OSMagics(Magics):
         else:
             os.chdir(self.shell.home_dir)
             if hasattr(self.shell, 'term_title') and self.shell.term_title:
-                set_term_title('IPython: ' + '~')
+                set_term_title(self.shell.term_title_format.format(cwd="~"))
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
 

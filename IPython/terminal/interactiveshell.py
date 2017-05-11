@@ -179,6 +179,11 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Automatically set the terminal title"
     ).tag(config=True)
 
+    term_title_format = Unicode("IPython: {cwd}",
+        help="Customize the terminal title format.  This is a python format string. " +
+             "Available substitutions are: {cwd}."
+    ).tag(config=True)
+
     display_completions = Enum(('column', 'multicolumn','readlinelike'),
         help= ( "Options for displaying tab completions, 'column', 'multicolumn', and "
                 "'readlinelike'. These options are for `prompt_toolkit`, see "
@@ -206,7 +211,7 @@ class TerminalInteractiveShell(InteractiveShell):
         # Enable or disable the terminal title.
         if self.term_title:
             toggle_set_term_title(True)
-            set_term_title('IPython: ' + abbrev_cwd())
+            set_term_title(self.term_title_format.format(cwd=abbrev_cwd()))
         else:
             toggle_set_term_title(False)
 
