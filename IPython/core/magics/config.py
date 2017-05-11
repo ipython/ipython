@@ -108,8 +108,9 @@ class ConfigMagics(Magics):
         # some IPython objects are Configurable, but do not yet have
         # any configurable traits.  Exclude them from the effects of
         # this magic, as their presence is just noise:
-        configurables = [ c for c in self.shell.configurables
-                          if c.__class__.class_traits(config=True) ]
+        configurables = sorted(set([ c for c in self.shell.configurables
+                                     if c.__class__.class_traits(config=True)
+                                     ]), key=lambda x: x.__class__.__name__)
         classnames = [ c.__class__.__name__ for c in configurables ]
 
         line = s.strip()
