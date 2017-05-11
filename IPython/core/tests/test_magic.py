@@ -80,6 +80,15 @@ def test_config():
     ## should not raise.
     _ip.magic('config')
 
+def test_config_sorted():
+    """ test that config result is unique and sorted. """
+    with capture_output() as captured:
+        _ip.magic('config')
+
+    stdout = captured.stdout
+    config_classes = stdout.strip().split('\n')[1:]
+    nt.assert_list_equal(config_classes, sorted(set(config_classes)))
+
 def test_rehashx():
     # clear up everything
     _ip.alias_manager.clear_aliases()
