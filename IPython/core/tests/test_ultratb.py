@@ -167,6 +167,33 @@ class SyntaxErrorTest(unittest.TestCase):
             with tt.AssertPrints("line unknown"):
                 ip.run_cell("raise SyntaxError()")
 
+    def test_syntaxerror_no_stacktrace_at_compile_time(self):
+        syntax_error_at_compile_time = """
+def foo():
+    ..
+"""
+        with tt.AssertPrints("SyntaxError"):
+            ip.run_cell(syntax_error_at_compile_time)
+
+        with tt.AssertNotPrints("foo()"):
+            ip.run_cell(syntax_error_at_compile_time)
+
+    def test_syntaxerror_stacktrace_when_running_compiled_code(self):
+        syntax_error_at_runtime = """
+def foo():
+    eval("..")
+
+def bar():
+    foo()
+
+bar()
+"""
+        with tt.AssertPrints("SyntaxError"):
+            ip.run_cell(syntax_error_at_runtime)
+        # Assert syntax error during runtime generate stacktrace
+        with tt.AssertPrints(["foo()", "bar()"]):
+            ip.run_cell(syntax_error_at_runtime)
+
     def test_changing_py_file(self):
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
