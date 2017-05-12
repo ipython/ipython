@@ -80,7 +80,6 @@ def extract_code_ranges(ranges_str):
         yield (start, end)
 
 
-@skip_doctest
 def extract_symbols(code, symbols):
     """
     Return a tuple  (blocks, not_found)
@@ -90,14 +89,12 @@ def extract_symbols(code, symbols):
 
     For example::
 
-        >>> code = '''a = 10
+        In [1]: code = '''a = 10
+           ...: def b(): return 42
+           ...: class A: pass'''
 
-        def b(): return 42
-
-        class A: pass'''
-
-        >>> extract_symbols(code, 'A,b,z')
-        (["class A: pass", "def b(): return 42"], ['z'])
+        In [2]: extract_symbols(code, 'A,b,z')
+        Out[2]: (['class A: pass\\n', 'def b(): return 42\\n'], ['z'])
     """
     symbols = symbols.split(',')
 
