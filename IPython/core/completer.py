@@ -1050,6 +1050,7 @@ class IPCompleter(Completer):
         self.matchers = [
                          self.python_matches,
                          self.file_matches,
+                         self.magic_config_matches,
                          self.magic_matches,
                          self.python_func_kw_matches,
                          self.dict_key_matches,
@@ -1180,6 +1181,43 @@ class IPCompleter(Completer):
             comp += [ pre+m for m in line_magics if matches(m)]
 
         return [cast_unicode_py2(c) for c in comp]
+
+    def magic_config_matches(self, text):
+        """ Match class names and attributes for %config magic """
+        # use line buffer instead of text (which is a word)
+        texts = self.line_buffer.strip().split()
+
+        if len(texts) > 0 and \
+            ('config'.startswith(texts[0]) or '%config'.startswith(texts[0])):
+            # get all configuration classes
+            classes = sorted(set([ c for c in self.shell.configurables
+                                   if c.__class__.class_traits(config=True)
+                                   ]), key=lambda x: x.__class__.__name__)
+            classnames = [ c.__class__.__name__ for c in classes ]
+
+            # return all classnames if config or %config is given
+            if len(texts) == 1:
+                return classnames
+
+            # match classname
+            classname_texts = texts[1].split('.')
+            classname = classname_texts[0]
+            classname_matches = [ c for c in classnames
+                                  if c.startswith(classname) ]
+
+            # return matched classes or the matched class with attributes
+            if texts[1].find('.') < 0:
+                return classname_matches
+            elif len(classname_matches) == 1 and \
+                            classname_matches[0] == classname:
+                cls = classes[classnames.index(classname)].__class__
+                help = cls.class_get_help()
+                # strip leading '--' from cl-args:
+                help = re.sub(re.compile(r'^--', re.MULTILINE), '', help)
+                return [ attr.split('=')[0]
+                         for attr in help.strip().splitlines()
+                         if attr.startswith(texts[1]) ]
+        return []
 
     def _jedi_matches(self, cursor_column:int, cursor_line:int, text:str):
         """
@@ -1677,7 +1715,7 @@ class IPCompleter(Completer):
         lazy property) and can require some warm-up, more warm up than just
         computing the ``name`` of a completion. The warm-up can be :
 
-            - Long warm-up the fisrt time a module is encountered after
+            - Long warm-up the first time a module is encountered after
             install/update: actually build parse/inference tree.
 
             - first time the module is encountered in a session: load tree from
