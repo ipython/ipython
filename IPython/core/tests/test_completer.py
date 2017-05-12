@@ -576,6 +576,35 @@ def test_magic_completion_order():
     text, matches = c.complete('timeit')
     nt.assert_equal(matches, ["timeit", "%timeit", "%%timeit"])
 
+
+def test_magic_config():
+    ip = get_ipython()
+    c = ip.Completer
+
+    s, matches = c.complete(None, 'conf')
+    nt.assert_in('%config', matches)
+    s, matches = c.complete(None, 'config ')
+    nt.assert_in('AliasManager', matches)
+    s, matches = c.complete(None, '%config ')
+    nt.assert_in('AliasManager', matches)
+    s, matches = c.complete(None, 'config Ali')
+    nt.assert_in('AliasManager', matches)
+    s, matches = c.complete(None, '%config Ali')
+    nt.assert_in('AliasManager', matches)
+    s, matches = c.complete(None, 'config AliasManager')
+    nt.assert_list_equal(['AliasManager'], matches)
+    s, matches = c.complete(None, '%config AliasManager')
+    nt.assert_list_equal(['AliasManager'], matches)
+    s, matches = c.complete(None, 'config AliasManager.')
+    nt.assert_in('AliasManager.default_aliases', matches)
+    s, matches = c.complete(None, '%config AliasManager.')
+    nt.assert_in('AliasManager.default_aliases', matches)
+    s, matches = c.complete(None, 'config AliasManager.de')
+    nt.assert_in('AliasManager.default_aliases', matches)
+    s, matches = c.complete(None, 'config AliasManager.de')
+    nt.assert_in('AliasManager.default_aliases', matches)
+
+
 def test_match_dict_keys():
     """
     Test that match_dict_keys works on a couple of use case does return what
