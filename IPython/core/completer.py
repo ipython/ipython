@@ -1168,10 +1168,17 @@ class IPCompleter(Completer):
         # - user gives %: do both line and cell magics
         # - no prefix: do both
         # In other words, line magics are skipped if the user gives %% explicitly
+        #
+        # We also exclude magics that match any currently visible names:
+        # https://github.com/ipython/ipython/issues/4877
         bare_text = text.lstrip(pre)
-        comp = [ pre2+m for m in cell_magics if m.startswith(bare_text)]
+        global_matches = self.global_matches(bare_text)
+        matches = lambda magic: magic.startswith(bare_text) \
+                                and magic not in global_matches
+        comp = [ pre2+m for m in cell_magics if matches(m)]
         if not text.startswith(pre2):
-            comp += [ pre+m for m in line_magics if m.startswith(bare_text)]
+            comp += [ pre+m for m in line_magics if matches(m)]
+
         return [cast_unicode_py2(c) for c in comp]
 
     def _jedi_matches(self, cursor_column:int, cursor_line:int, text:str):
