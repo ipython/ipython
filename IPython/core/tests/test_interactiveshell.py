@@ -211,11 +211,13 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(ip.var_expand(u'echo {f}'), u'echo Ca\xf1o')
         self.assertEqual(ip.var_expand(u'echo {f[:-1]}'), u'echo Ca\xf1')
         self.assertEqual(ip.var_expand(u'echo {1*2}'), u'echo 2')
+        
+        self.assertEqual(ip.var_expand(u"grep x | awk '{print $1}'"), u"grep x | awk '{print $1}'")
 
         ip.user_ns['f'] = b'Ca\xc3\xb1o'
         # This should not raise any exception:
         ip.var_expand(u'echo $f')
-    
+   
     def test_var_expand_local(self):
         """Test local variable expansion in !system and %magic calls"""
         # !system
