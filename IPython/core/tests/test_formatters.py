@@ -440,7 +440,7 @@ def test_json_as_string_deprecated():
 
 def test_repr_mime():
     class HasReprMime(object):
-        def _repr_mimebundle_(self):
+        def _repr_mimebundle_(self, include=None, exclude=None):
             return {
                 'application/json+test.v2': {
                     'x': 'y'
@@ -477,7 +477,7 @@ def test_repr_mime():
 
 def test_repr_mime_meta():
     class HasReprMimeMeta(object):
-        def _repr_mimebundle_(self):
+        def _repr_mimebundle_(self, include=None, exclude=None):
             data = {
                 'image/png': 'base64-image-data',
             }
