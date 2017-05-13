@@ -136,6 +136,7 @@ from traitlets.config.configurable import Configurable
 from IPython.core.error import TryNext
 from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
+from IPython.core.oinspect import InspectColors
 from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
@@ -1049,11 +1050,14 @@ class IPCompleter(Completer):
         self.matchers = [
                          self.python_matches,
                          self.file_matches,
-                         self.magic_config_matches,
                          self.magic_matches,
                          self.python_func_kw_matches,
                          self.dict_key_matches,
                          ]
+        self.magic_arg_matchers = [
+            self.magic_config_matches,
+            self.magic_color_matches,
+        ]
 
         # This is set externally by InteractiveShell
         self.custom_completers = None
@@ -1181,13 +1185,11 @@ class IPCompleter(Completer):
 
         return comp
 
-    def magic_config_matches(self, text):
+    def magic_config_matches(self, line_buffer):
         """ Match class names and attributes for %config magic """
-        # use line buffer instead of text (which is a word)
-        texts = self.line_buffer.strip().split()
+        texts = line_buffer.strip().split()
 
-        if len(texts) > 0 and \
-            ('config'.startswith(texts[0]) or '%config'.startswith(texts[0])):
+        if len(texts) > 0 and (texts[0] == 'config' or texts[0] == '%config'):
             # get all configuration classes
             classes = sorted(set([ c for c in self.shell.configurables
                                    if c.__class__.class_traits(config=True)
@@ -1216,6 +1218,16 @@ class IPCompleter(Completer):
                 return [ attr.split('=')[0]
                          for attr in help.strip().splitlines()
                          if attr.startswith(texts[1]) ]
+        return []
+
+    def magic_color_matches(self, line_buffer):
+        """ Match color schemes for %colors magic"""
+        texts = line_buffer.strip().split()
+
+        if len(texts) > 0 and (texts[0] == 'colors' or texts[0] == '%colors'):
+            prefix = texts[1] if len(texts) > 1 else ''
+            return [ color for color in InspectColors.keys()
+                     if color.startswith(prefix) ]
         return []
 
     def _jedi_matches(self, cursor_column:int, cursor_line:int, text:str):
@@ -1877,6 +1889,14 @@ class IPCompleter(Completer):
 
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
+
+        # Do magic arg matches
+        for matcher in self.magic_arg_matchers:
+            matches = [(m, matcher.__qualname__) for m in matcher(line_buffer)]
+            if matches:
+                matches2 = [m[0] for m in matches]
+                origins = [m[1] for m in matches]
+                return text, matches2, origins, {}
 
         # Start with a clean slate of completions
         matches = []
