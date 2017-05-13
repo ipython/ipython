@@ -63,3 +63,8 @@ class DisplayMagics(Magics):
     def html(self, line, cell):
         """Render the cell as a block of HTML"""
         display(HTML(cell))
+        
+    @cell_magic    
+    def markdown(self, line, cell):
+        """Render the cell as Markdown text block"""
+        display(Markdown(cell))
