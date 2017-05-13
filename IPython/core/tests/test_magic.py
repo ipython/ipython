@@ -99,7 +99,10 @@ def test_config_print_class():
         _ip.magic('config TerminalInteractiveShell')
 
     stdout = captured.stdout
-    nt.assert_in("TerminalInteractiveShell options", stdout)
+    if not re.match("TerminalInteractiveShell.* options", stdout.splitlines()[0]):
+        print(stdout)
+        raise AssertionError("1st line of stdout not like "
+                             "'TerminalInteractiveShell.* options'")
 
 def test_rehashx():
     # clear up everything
