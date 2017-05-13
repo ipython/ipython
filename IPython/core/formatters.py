@@ -147,7 +147,7 @@ class DisplayFormatter(Configurable):
             # object handled itself, don't proceed
             return {}, {}
 
-        format_dict, md_dict = self.mimebundle_formatter(obj)
+        format_dict, md_dict = self.mimebundle_formatter(obj, include=include, exclude=exclude)
 
         if format_dict or md_dict:
             if include:
@@ -936,6 +936,35 @@ class MimeBundleFormatter(BaseFormatter):
         if not isinstance(r, tuple):
             return r, {}
         return r
+
+    @catch_format_error
+    def __call__(self, obj, include=None, exclude=None):
+        """Compute the format for an object.
+
+        Identical to parent's method but we pass extra parameters to the method.
+
+        Unlike other _repr_*_ `_repr_mimebundle_` should allow extra kwargs, in
+        particular `include` and `exclude`.
+        """
+        if self.enabled:
+            # lookup registered printer
+            try:
+                printer = self.lookup(obj)
+            except KeyError:
+                pass
+            else:
+                return printer(obj)
+            # Finally look for special method names
+            method = get_real_method(obj, self.print_method)
+
+            if method is not None:
+                d = {}
+                d['include'] = include
+                d['exclude'] = include
+                return method(**d)
+            return None
+        else:
+            return None
 
 
 FormatterABC.register(BaseFormatter)
