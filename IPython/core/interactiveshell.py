@@ -2535,13 +2535,12 @@ class InteractiveShell(SingletonConfigurable):
             """generator for sequence of code blocks to run"""
             if fname.endswith('.ipynb'):
                 from nbformat import read
-                with io_open(fname) as f:
-                    nb = read(f, as_version=4)
-                    if not nb.cells:
-                        return
-                    for cell in nb.cells:
-                        if cell.cell_type == 'code':
-                            yield cell.source
+                nb = read(fname, as_version=4)
+                if not nb.cells:
+                    return
+                for cell in nb.cells:
+                    if cell.cell_type == 'code':
+                        yield cell.source
             else:
                 with open(fname) as f:
                     yield f.read()
