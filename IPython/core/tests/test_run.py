@@ -384,7 +384,14 @@ tclass.py: deleting object: C-third
         _ip.magic("run %s" % self.fname)
         
         nt.assert_equal(_ip.user_ns['answer'], 42)
-        
+
+    def test_file_options(self):
+        src = ('import sys\n'
+               'a = " ".join(sys.argv[1:])\n')
+        self.mktmp(src)
+        test_opts = '-x 3 --verbose'
+        _ip.run_line_magic("run", '{0} {1}'.format(self.fname, test_opts))
+        nt.assert_equal(_ip.user_ns['a'], test_opts)
 
 
 class TestMagicRunWithPackage(unittest.TestCase):
@@ -416,6 +423,10 @@ class TestMagicRunWithPackage(unittest.TestCase):
         """)
         self.writefile(os.path.join(package, 'absolute.py'), """
         from {0}.sub import x
+        """.format(package))
+        self.writefile(os.path.join(package, 'args.py'), """
+        import sys
+        a = " ".join(sys.argv[1:])
         """.format(package))
 
     def tearDown(self):
@@ -457,6 +468,18 @@ class TestMagicRunWithPackage(unittest.TestCase):
     @with_fake_debugger
     def test_debug_run_submodule_with_relative_import(self):
         self.check_run_submodule('relative', '-d')
+
+    def test_module_options(self):
+        _ip.user_ns.pop('a', None)
+        test_opts = '-x abc -m test'
+        _ip.run_line_magic('run', '-m {0}.args {1}'.format(self.package, test_opts))
+        nt.assert_equal(_ip.user_ns['a'], test_opts)
+
+    def test_module_options_with_separator(self):
+        _ip.user_ns.pop('a', None)
+        test_opts = '-x abc -m test'
+        _ip.run_line_magic('run', '-m {0}.args -- {1}'.format(self.package, test_opts))
+        nt.assert_equal(_ip.user_ns['a'], test_opts)
 
 def test_run__name__():
     with TemporaryDirectory() as td:

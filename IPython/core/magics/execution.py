@@ -11,6 +11,7 @@ import builtins as builtin_mod
 import gc
 import itertools
 import os
+import shlex
 import sys
 import time
 import timeit
@@ -616,6 +617,20 @@ python-profiler package from non-free.""")
           disable shell-like glob expansion of arguments.
 
         """
+
+        # Logic to handle issue #3664
+        # Add '--' after '-m <module_name>' to ignore additional args passed to a module.
+        if '-m' in parameter_s and '--' not in parameter_s:
+            argv = shlex.split(parameter_s, posix=(os.name == 'posix'))
+            for idx, arg in enumerate(argv):
+                if arg and arg.startswith('-') and arg != '-':
+                    if arg == '-m':
+                        argv.insert(idx + 2, '--')
+                        break
+                else:
+                    # Positional arg, break
+                    break
+            parameter_s = ' '.join(shlex.quote(arg) for arg in argv)
 
         # get arguments and set sys.argv for program to be run.
         opts, arg_lst = self.parse_options(parameter_s,
