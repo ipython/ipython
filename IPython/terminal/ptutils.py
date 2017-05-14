@@ -43,6 +43,11 @@ def _elide(string, *, min_elide=30):
     return '{}.{}\N{HORIZONTAL ELLIPSIS}{}.{}'.format(parts[0], parts[1][0], parts[-2][-1], parts[-1])
 
 
+def _adjust_completion_text_based_on_context(text, body, offset):
+    if text.endswith('=') and len(body) > offset and body[offset] is '=':
+        return text[:-1]
+    else:
+        return text
 
 
 class IPythonPTCompleter(Completer):
@@ -113,10 +118,11 @@ class IPythonPTCompleter(Completer):
             #                  display_meta=meta_text)
             display_text = c.text
 
+            adjusted_text = _adjust_completion_text_based_on_context(c.text, body, offset)
             if c.type == 'function':
                 display_text = display_text + '()'
 
-            yield Completion(c.text, start_position=c.start - offset, display=_elide(display_text), display_meta=c.type)
+            yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text), display_meta=c.type)
 
 class IPythonPTLexer(Lexer):
     """
