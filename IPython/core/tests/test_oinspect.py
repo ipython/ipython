@@ -384,6 +384,31 @@ def test_pinfo_no_docstring_if_source():
         ip._inspect('pinfo', 'foo', detail_level=1)
 
 
+def test_pinfo_docstring_if_detail_and_no_source():
+    """ Docstring should be displayed if source info not available """
+    obj_def = '''class Foo(object):
+                  """ This is a docstring for Foo """
+                  def bar(self):
+                      """ This is a docstring for Foo.bar """
+                      pass
+              ''' 
+    
+    ip.run_cell(obj_def)
+    ip.run_cell('foo = Foo()')
+    
+    with AssertNotPrints("Source:"):
+        with AssertPrints('Docstring:'):
+            ip._inspect('pinfo', 'foo', detail_level=0)
+        with AssertPrints('Docstring:'):
+            ip._inspect('pinfo', 'foo', detail_level=1)
+        with AssertPrints('Docstring:'):
+            ip._inspect('pinfo', 'foo.bar', detail_level=0)
+
+    with AssertNotPrints('Docstring:'):
+        with AssertPrints('Source:'):
+            ip._inspect('pinfo', 'foo.bar', detail_level=1)
+
+
 def test_pinfo_magic():
     with AssertPrints('Docstring:'):
         ip._inspect('pinfo', 'lsmagic', detail_level=0)
