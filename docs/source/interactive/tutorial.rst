@@ -39,7 +39,7 @@ IPython you can use the up and down arrow keys when editing multi-line
 code blocks.
 
 Here is an example of a longer interaction with the IPython REPL,
-which we often refer to as an IPython _session_ ::
+which we often refer to as an IPython *session* ::
 
     In [1]: print('Hello IPython')
     Hello IPython
@@ -51,10 +51,18 @@ which we often refer to as an IPython _session_ ::
        ...:     print('Hello {name}'.format(name=name))
        ...:
 
-We won't get into details right now, but you may notice a few differences to the standard Python REPL.
-First, your code should be syntax-highlighted as you type.
-Second, you will see that some results will have an ``Out[N]:`` prompt, while
-some other do not. We'll come to this later.
+We won't get into details right now, but you may notice a few differences to
+the standard Python REPL. First, your code should be syntax-highlighted as you
+type. Second, you will see that some results will have an ``Out[N]:`` prompt,
+while some other do not. We'll come to this later.
+
+Depending on the exact command you are typing you might realize that sometime
+the :key:`Enter` will add a new line, and sometime it will execute the current
+statement. IPython tries to guess what you are doing, so most of the time you
+should not have to care. Though if by any chance IPython does not the right
+thing you can force execution of the current code block by pressing in sequence
+:key:`Esc` and :key:`Enter`. You can also force the insertion of a new line at
+the position of the cursor by using `Ctrl-O`.
 
 The four most helpful commands
 ==============================
@@ -78,6 +86,20 @@ Tab completion, especially for attributes, is a convenient way to explore the
 structure of any object you're dealing with. Simply type ``object_name.<TAB>``
 to view the object's attributes. Besides Python objects and keywords, tab
 completion also works on file and directory names.
+
+Starting with IPython 6.0, if ``jedi`` is installed, IPython will try to pull
+completions from Jedi as well. This allow to not only inspect currently
+existing objects, but also to infer completion statically without executing
+code.  There  is nothing particular to do this to work, simply use tab
+completion on more complex expression like the following::
+
+    >>> data = ['Number of users', 123_456]
+    ... data[0].<tab>
+
+IPython and Jedi will be able to infer that ``data[0]`` is actually a string
+and should show relevant completions like ``upper()``, ``lower()`` and other
+string methods. You can use the Tab key to cycle through completions, and while 
+a completion is highlighted, its type will be shown as well. 
 
 Exploring your objects
 ======================
