@@ -28,6 +28,7 @@ from importlib.machinery import all_suffixes
 # Third-party imports
 from time import time
 from zipimport import zipimporter
+from traitlets import Instance
 
 # Our own imports
 from IPython.core.completer import expand_user, compress_user
