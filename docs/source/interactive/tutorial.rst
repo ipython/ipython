@@ -32,7 +32,7 @@ tutorial but should usually not impact the computation.
 
 You should be able to type single line expressions and press enter to evaluate
 them. If an expression is incomplete, IPython will automatically detect this and
-add a new line when you press ``Enter`` instead of executing right away.
+add a new line when you press :kbd:`Enter` instead of executing right away.
 
 Feel free to explore multi-line text input. Unlike many other REPLs, with
 IPython you can use the up and down arrow keys when editing multi-line
@@ -56,13 +56,13 @@ the standard Python REPL. First, your code should be syntax-highlighted as you
 type. Second, you will see that some results will have an ``Out[N]:`` prompt,
 while some other do not. We'll come to this later.
 
-Depending on the exact command you are typing you might realize that sometime
-the :key:`Enter` will add a new line, and sometime it will execute the current
+Depending on the exact command you are typing you might realize that sometimes
+:kbd:`Enter` will add a new line, and sometimes it will execute the current
 statement. IPython tries to guess what you are doing, so most of the time you
 should not have to care. Though if by any chance IPython does not the right
 thing you can force execution of the current code block by pressing in sequence
-:key:`Esc` and :key:`Enter`. You can also force the insertion of a new line at
-the position of the cursor by using `Ctrl-O`.
+:kbd:`Esc` and :kbd:`Enter`. You can also force the insertion of a new line at
+the position of the cursor by using :kbd:`Ctrl-o`.
 
 The four most helpful commands
 ==============================
@@ -88,18 +88,18 @@ to view the object's attributes. Besides Python objects and keywords, tab
 completion also works on file and directory names.
 
 Starting with IPython 6.0, if ``jedi`` is installed, IPython will try to pull
-completions from Jedi as well. This allow to not only inspect currently
+completions from Jedi as well. This allows to not only inspect currently
 existing objects, but also to infer completion statically without executing
-code.  There  is nothing particular to do this to work, simply use tab
-completion on more complex expression like the following::
+code. There is nothing particular need to get this to work, simply use tab
+completion on more complex expressions like the following::
 
     >>> data = ['Number of users', 123_456]
     ... data[0].<tab>
 
 IPython and Jedi will be able to infer that ``data[0]`` is actually a string
 and should show relevant completions like ``upper()``, ``lower()`` and other
-string methods. You can use the Tab key to cycle through completions, and while 
-a completion is highlighted, its type will be shown as well. 
+string methods. You can use the :kbd:`Tab` key to cycle through completions,
+and while a completion is highlighted, its type will be shown as well.
 
 Exploring your objects
 ======================
@@ -127,7 +127,7 @@ separate argument.
 Magics are useful as convenient functions where Python syntax is not the most
 natural one, or when one want to embed invalid python syntax in their work flow. 
 
-The following examples show how to call the builtin :magic:`timeit` magic, both
+The following examples show how to call the built-in :magic:`timeit` magic, both
 in line and cell mode::
 
       In [1]: %timeit range(1000)
@@ -138,7 +138,7 @@ in line and cell mode::
       ...: 
       1000 loops, best of 3: 223 us per loop
 
-The builtin magics include:
+The built-in magics include:
 
 - Functions that work with code: :magic:`run`, :magic:`edit`, :magic:`save`,
   :magic:`macro`, :magic:`recall`, etc.
@@ -184,7 +184,7 @@ imported modules, which have to be specifically reloaded). IPython also includes
 for running them under the control of either Python's pdb debugger (-d) or
 profiler (-p).
 
-The :magic:`edit` command gives a reasonable approximation of multiline editing,
+The :magic:`edit` command gives a reasonable approximation of multi-line editing,
 by invoking your favorite editor on the spot. IPython will execute the
 code you type in there as if it were typed interactively. Note that for
 :magic:`edit` to work, the call to startup your editor has to be a blocking
