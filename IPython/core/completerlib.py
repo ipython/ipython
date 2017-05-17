@@ -34,13 +34,13 @@ from IPython.core.completer import expand_user, compress_user
 from IPython.core.error import TryNext
 from IPython.utils._process_common import arg_split
 
-# FIXME: this should be pulled in with the right call via the component system
-from IPython import get_ipython
 
 #-----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------
 _suffixes = all_suffixes()
+
+shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
 # Time in seconds after which the rootmodules will be stored permanently in the
 # ipython ip.db database (kept in the user's .ipython dir).
@@ -109,7 +109,7 @@ def get_root_modules():
 
     ip.db['rootmodules_cache'] maps sys.path entries to list of modules.
     """
-    ip = get_ipython()
+    ip = shell.get_ipython()
     if ip is None:
         # No global shell instance to store cached list of modules.
         # Don't try to scan for modules every time.
@@ -203,7 +203,7 @@ def quick_completer(cmd, completions):
     def do_complete(self, event):
         return completions
 
-    get_ipython().set_hook('complete_command',do_complete, str_key = cmd)
+    shell.get_ipython().set_hook('complete_command',do_complete, str_key = cmd)
 
 def module_completion(line):
     """
@@ -295,7 +295,7 @@ def magic_run_completer(self, event):
 
 def cd_completer(self, event):
     """Completer function for cd, which only returns directories."""
-    ip = get_ipython()
+    ip = shell.get_ipython()
     relpath = event.symbol
 
     #print(event) # dbg
