@@ -281,6 +281,8 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     raw = kwargs.pop('raw', False)
     if transient is None:
         transient = {}
+    if metadata is None:
+        metadata={}
     if display_id:
         if display_id is True:
             display_id = _new_id()
@@ -296,6 +298,10 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         format = InteractiveShell.instance().display_formatter.format
 
     for obj in objs:
+        if obj.metadata:
+            temp_dict = obj.metadata.copy()
+            temp_dict.update(metadata)
+            metadata.update(temp_dict)
         if raw:
             publish_display_data(data=obj, metadata=metadata, **kwargs)
         else:
@@ -569,7 +575,7 @@ class DisplayObject(object):
     _read_flags = 'r'
     _show_mem_addr = False
 
-    def __init__(self, data=None, url=None, filename=None):
+    def __init__(self, data=None, url=None, filename=None, metadata=None):
         """Create a display object given raw data.
 
         When this object is returned by an expression or passed to the
@@ -601,6 +607,10 @@ class DisplayObject(object):
         self.data = data
         self.url = url
         self.filename = filename
+        if metadata is not None:
+            self.metadata=metadata
+        else:
+            self.metadata={}
 
         self.reload()
         self._check_data()
