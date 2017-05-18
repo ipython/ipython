@@ -231,8 +231,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                 pager = os.popen(pager_cmd, 'w')
                 try:
                     pager_encoding = pager.encoding or sys.stdout.encoding
-                    pager.write(py3compat.cast_bytes_py2(
-                        strng, encoding=pager_encoding))
+                    pager.write(strng)
                 finally:
                     retval = pager.close()
             except IOError as msg:  # broken pipe when user quits

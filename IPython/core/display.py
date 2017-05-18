@@ -18,7 +18,7 @@ import struct
 import sys
 import warnings
 
-from IPython.utils.py3compat import cast_bytes_py2, cast_unicode
+from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
 
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
@@ -596,7 +596,6 @@ class SVG(DisplayObject):
             return
         # parse into dom object
         from xml.dom import minidom
-        svg = cast_bytes_py2(svg)
         x = minidom.parseString(svg)
         # get svg tag (should be 1)
         found_svg = x.getElementsByTagName('svg')
