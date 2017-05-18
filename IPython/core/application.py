@@ -260,14 +260,10 @@ class BaseIPythonApplication(Application):
         old = change['old']
         new = change['new']
         if old is not Undefined:
-            str_old = py3compat.cast_bytes_py2(os.path.abspath(old),
-                sys.getfilesystemencoding()
-            )
+            str_old = os.path.abspath(old)
             if str_old in sys.path:
                 sys.path.remove(str_old)
-        str_path = py3compat.cast_bytes_py2(os.path.abspath(new),
-            sys.getfilesystemencoding()
-        )
+        str_path = os.path.abspath(new)
         sys.path.append(str_path)
         ensure_dir_exists(new)
         readme = os.path.join(new, 'README')

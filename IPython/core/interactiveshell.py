@@ -887,7 +887,7 @@ class InteractiveShell(SingletonConfigurable):
             main_mod = self._main_mod_cache[filename]
         except KeyError:
             main_mod = self._main_mod_cache[filename] = types.ModuleType(
-                        py3compat.cast_bytes_py2(modname),
+                        modname,
                         doc="Module created for script run in IPython")
         else:
             main_mod.__dict__.clear()
@@ -1875,7 +1875,7 @@ class InteractiveShell(SingletonConfigurable):
             In [1]: _ip.set_next_input("Hello Word")
             In [2]: Hello Word_  # cursor is here
         """
-        self.rl_next_input = py3compat.cast_bytes_py2(s)
+        self.rl_next_input = s
 
     def _indent_current_str(self):
         """return the current level of indentation as a string"""
