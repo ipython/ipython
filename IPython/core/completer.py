@@ -139,7 +139,6 @@ from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
-from IPython.utils.py3compat import cast_unicode_py2
 from traitlets import Bool, Enum, observe, Int
 
 try:
@@ -665,7 +664,7 @@ class Completer(Configurable):
             for word in shortened.keys():
                 if word[:n] == text and word != "__builtins__":
                     match_append(shortened[word])
-        return [cast_unicode_py2(m) for m in matches]
+        return matches
 
     def attr_matches(self, text):
         """Compute matches when text contains a dot.
@@ -729,7 +728,7 @@ def get__all__entries(obj):
     except:
         return []
  
-    return [cast_unicode_py2(w) for w in words if isinstance(w, str)]
+    return [w for w in words if isinstance(w, str)]
 
 
 def match_dict_keys(keys: List[str], prefix: str, delims: str):
@@ -1125,7 +1124,7 @@ class IPCompleter(Completer):
             text = os.path.expanduser(text)
 
         if text == "":
-            return [text_prefix + cast_unicode_py2(protect_filename(f)) for f in self.glob("*")]
+            return [text_prefix + protect_filename(f) for f in self.glob("*")]
 
         # Compute the matches from the filesystem
         if sys.platform == 'win32':
@@ -1152,7 +1151,7 @@ class IPCompleter(Completer):
                            protect_filename(f) for f in m0]
 
         # Mark directories in input list by appending '/' to their names.
-        return [cast_unicode_py2(x+'/') if os.path.isdir(x) else x for x in matches]
+        return [x+'/' if os.path.isdir(x) else x for x in matches]
 
     def magic_matches(self, text):
         """Match magics"""
@@ -1180,7 +1179,7 @@ class IPCompleter(Completer):
         if not text.startswith(pre2):
             comp += [ pre+m for m in line_magics if matches(m)]
 
-        return [cast_unicode_py2(c) for c in comp]
+        return comp
 
     def magic_config_matches(self, text):
         """ Match class names and attributes for %config magic """
@@ -1637,12 +1636,12 @@ class IPCompleter(Completer):
                 res = c(event)
                 if res:
                     # first, try case sensitive match
-                    withcase = [cast_unicode_py2(r) for r in res if r.startswith(text)]
+                    withcase = [r for r in res if r.startswith(text)]
                     if withcase:
                         return withcase
                     # if none, then case insensitive ones are ok too
                     text_low = text.lower()
-                    return [cast_unicode_py2(r) for r in res if r.lower().startswith(text_low)]
+                    return [r for r in res if r.lower().startswith(text_low)]
             except TryNext:
                 pass
 

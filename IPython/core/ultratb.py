@@ -328,7 +328,6 @@ def fix_frame_records_filenames(records):
         # Look inside the frame's globals dictionary for __file__,
         # which should be better. However, keep Cython filenames since
         # we prefer the source filenames over the compiled .so file.
-        filename = py3compat.cast_unicode_py2(filename, "utf-8")
         if not filename.endswith(('.pyx', '.pxd', '.pxi')):
             better_fn = frame.f_globals.get('__file__', None)
             if isinstance(better_fn, str):
@@ -382,8 +381,6 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,  _line_forma
     i = lnum - index
 
     for line in lines:
-        line = py3compat.cast_unicode(line)
-
         new_line, err = _line_format(line, 'str')
         if not err: line = new_line
 
@@ -652,9 +649,9 @@ class ListTB(TBTools):
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
             item = '  File %s"%s"%s, line %s%d%s, in %s%s%s\n' % \
-                   (Colors.filename, py3compat.cast_unicode_py2(filename, "utf-8"), Colors.Normal,
+                   (Colors.filename, filename, Colors.Normal,
                     Colors.lineno, lineno, Colors.Normal,
-                    Colors.name, py3compat.cast_unicode_py2(name, "utf-8"), Colors.Normal)
+                    Colors.name, name, Colors.Normal)
             if line:
                 item += '    %s\n' % line.strip()
             list.append(item)
@@ -662,9 +659,9 @@ class ListTB(TBTools):
         filename, lineno, name, line = extracted_list[-1]
         item = '%s  File %s"%s"%s, line %s%d%s, in %s%s%s%s\n' % \
                (Colors.normalEm,
-                Colors.filenameEm, py3compat.cast_unicode_py2(filename, "utf-8"), Colors.normalEm,
+                Colors.filenameEm, filename, Colors.normalEm,
                 Colors.linenoEm, lineno, Colors.normalEm,
-                Colors.nameEm, py3compat.cast_unicode_py2(name, "utf-8"), Colors.normalEm,
+                Colors.nameEm, name, Colors.normalEm,
                 Colors.Normal)
         if line:
             item += '%s    %s%s\n' % (Colors.line, line.strip(),
@@ -688,7 +685,7 @@ class ListTB(TBTools):
         have_filedata = False
         Colors = self.Colors
         list = []
-        stype = py3compat.cast_unicode(Colors.excName + etype.__name__ + Colors.Normal)
+        stype = Colors.excName + etype.__name__ + Colors.Normal
         if value is None:
             # Not sure if this can still happen in Python 2.6 and above
             list.append(stype + '\n')
@@ -704,10 +701,10 @@ class ListTB(TBTools):
                     textline = ''
                 list.append('%s  File %s"%s"%s, line %s%s%s\n' % \
                             (Colors.normalEm,
-                             Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
+                             Colors.filenameEm, value.filename, Colors.normalEm,
                              Colors.linenoEm, lineno, Colors.Normal  ))
                 if textline == '':
-                    textline = py3compat.cast_unicode(value.text, "utf-8")
+                    textline = value.text
 
                 if textline is not None:
                     i = 0
@@ -772,7 +769,7 @@ class ListTB(TBTools):
     def _some_str(self, value):
         # Lifted from traceback.py
         try:
-            return py3compat.cast_unicode(str(value))
+            return str(value)
         except:
             return u'<unprintable %s object>' % type(value).__name__
 
@@ -869,7 +866,6 @@ class VerboseTB(TBTools):
                     # strange entries...
                     pass
 
-        file = py3compat.cast_unicode(file, util_path.fs_encoding)
         link = tpl_link % util_path.compress_user(file)
         args, varargs, varkw, locals = inspect.getargvalues(frame)
 
@@ -1047,8 +1043,7 @@ class VerboseTB(TBTools):
             etype, evalue = str, sys.exc_info()[:2]
             etype_str, evalue_str = map(str, (etype, evalue))
         # ... and format it
-        return ['%s%s%s: %s' % (colors.excName, etype_str,
-                                colorsnormal, py3compat.cast_unicode(evalue_str))]
+        return ['%s%s%s: %s' % (colors.excName, etype_str, colorsnormal, evalue_str)]
 
     def format_exception_as_a_whole(self, etype, evalue, etb, number_of_lines_of_context, tb_offset):
         """Formats the header, traceback and exception message for a single exception.
