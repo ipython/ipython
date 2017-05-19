@@ -574,6 +574,7 @@ class DisplayObject(object):
 
     _read_flags = 'r'
     _show_mem_addr = False
+    metadata = None
 
     def __init__(self, data=None, url=None, filename=None, metadata=None):
         """Create a display object given raw data.
@@ -607,10 +608,11 @@ class DisplayObject(object):
         self.data = data
         self.url = url
         self.filename = filename
+
         if metadata is not None:
-            self.metadata=metadata
-        else:
-            self.metadata={}
+            self.metadata = metadata
+        elif self.metadata is None:
+            self.metadata = {}
 
         self.reload()
         self._check_data()
@@ -725,9 +727,19 @@ class SVG(DisplayObject):
             pass
         svg = cast_unicode(svg)
         self._data = svg
+    
+    def _data_and_metadata(self):
+        """shortcut for returning metadata with shape information, if defined"""
+        md = {}
+        if self.metadata:
+            md.update(self.metadata)
+        if md:
+            return self.data, md
+        else:
+            return self.data
 
     def _repr_svg_(self):
-        return self.data
+        return self._data_and_metadata()
 
 
 class JSON(DisplayObject):
@@ -1071,8 +1083,8 @@ class Image(DisplayObject):
         self.height = height
         self.retina = retina
         self.unconfined = unconfined
-        self.metadata = metadata
-        super(Image, self).__init__(data=data, url=url, filename=filename)
+        super(Image, self).__init__(data=data, url=url, filename=filename, 
+                metadata=metadata)
 
         if retina:
             self._retina_shape()
