@@ -7,7 +7,7 @@ from warnings import warn
 
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
-from IPython.utils.py3compat import cast_unicode_py2, input
+from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
@@ -227,7 +227,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # Fall back to plain non-interactive output for tests.
             # This is very limited, and only accepts a single line.
             def prompt():
-                return cast_unicode_py2(input('In [%d]: ' % self.execution_count))
+                return input('In [%d]: ' % self.execution_count)
             self.prompt_for_code = prompt
             return
 
@@ -432,7 +432,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # We can't set the buffer here, because it will be reset just after
             # this. Adding a callable to pre_run_callables does what we need
             # after the buffer is reset.
-            s = cast_unicode_py2(self.rl_next_input)
+            s = self.rl_next_input
             def set_doc():
                 self.pt_cli.application.buffer.document = Document(s)
             if hasattr(self.pt_cli, 'pre_run_callables'):

@@ -3,13 +3,12 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-
 from collections import namedtuple
 from io import StringIO
 from keyword import iskeyword
 
 from . import tokenize2
-from .py3compat import cast_unicode_py2
+
 
 Token = namedtuple('Token', ['token', 'text', 'start', 'end', 'line'])
 
@@ -68,7 +67,6 @@ def token_at_cursor(cell, cursor_pos=0):
     cursor_pos : int
         The location of the cursor in the block where the token should be found
     """
-    cell = cast_unicode_py2(cell)
     names = []
     tokens = []
     call_names = []
