@@ -960,7 +960,7 @@ class MimeBundleFormatter(BaseFormatter):
             if method is not None:
                 d = {}
                 d['include'] = include
-                d['exclude'] = include
+                d['exclude'] = exclude
                 return method(**d)
             return None
         else:
