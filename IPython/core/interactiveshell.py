@@ -79,6 +79,9 @@ from warnings import warn
 from logging import error
 import IPython.core.hooks
 
+from typing import List as ListType
+from ast import AST
+
 # NoOpContext is deprecated, but ipykernel imports it from here.
 # See https://github.com/ipython/ipykernel/issues/157
 from IPython.utils.contexts import NoOpContext
@@ -101,6 +104,13 @@ class ProvisionalWarning(DeprecationWarning):
     Warning class for unstable features
     """
     pass
+
+if sys.version_info > (3,6):
+    _assign_nodes         = (ast.AugAssign, ast.AnnAssign, ast.Assign)
+    _single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
+else:
+    _assign_nodes         = (ast.AugAssign, ast.Assign )
+    _single_targets_nodes = (ast.AugAssign, )
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -376,11 +386,12 @@ class InteractiveShell(SingletonConfigurable):
         """
     ).tag(config=True)
 
-    ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
+    ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none', 'last_expr_or_assign'],
                                   default_value='last_expr',
                                   help="""
-        'all', 'last', 'last_expr' or 'none', specifying which nodes should be
-        run interactively (displaying output from expressions)."""
+        'all', 'last', 'last_expr' or 'none', 'last_expr_or_assign' specifying
+        which nodes should be run interactively (displaying output from expressions).
+        """
     ).tag(config=True)
 
     # TODO: this part of prompt management should be moved to the frontends.
@@ -2749,7 +2760,7 @@ class InteractiveShell(SingletonConfigurable):
         return node
                 
 
-    def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr',
+    def run_ast_nodes(self, nodelist:ListType[AST], cell_name:str, interactivity='last_expr',
                         compiler=compile, result=None):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
@@ -2762,11 +2773,13 @@ class InteractiveShell(SingletonConfigurable):
           Will be passed to the compiler as the filename of the cell. Typically
           the value returned by ip.compile.cache(cell).
         interactivity : str
-          'all', 'last', 'last_expr' or 'none', specifying which nodes should be
-          run interactively (displaying output from expressions). 'last_expr'
-          will run the last node interactively only if it is an expression (i.e.
-          expressions in loops or other blocks are not displayed. Other values
-          for this parameter will raise a ValueError.
+          'all', 'last', 'last_expr' , 'last_expr_or_assign' or 'none',
+          specifying which nodes should be run interactively (displaying output
+          from expressions). 'last_expr' will run the last node interactively
+          only if it is an expression (i.e. expressions in loops or other blocks
+          are not displayed) 'last_expr_or_assign' will run the last expression
+          or the last assignment. Other values for this parameter will raise a
+          ValueError.
         compiler : callable
           A function with the same interface as the built-in compile(), to turn
           the AST nodes into code objects. Default is the built-in compile().
@@ -2780,6 +2793,21 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not nodelist:
             return
+
+        if interactivity == 'last_expr_or_assign':
+            if isinstance(nodelist[-1], _assign_nodes):
+                asg = nodelist[-1]
+                if isinstance(asg, ast.Assign) and len(asg.targets) == 1:
+                    target = asg.targets[0]
+                elif isinstance(asg, _single_targets_nodes):
+                    target = asg.target
+                else:
+                    target = None
+                if isinstance(target, ast.Name):
+                    nnode = ast.Expr(ast.Name(target.id, ast.Load()))
+                    ast.fix_missing_locations(nnode)
+                    nodelist.append(nnode)
+            interactivity = 'last_expr'
 
         if interactivity == 'last_expr':
             if isinstance(nodelist[-1], ast.Expr):
@@ -2924,7 +2952,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.pylab_gui_select = gui
             # Otherwise if they are different
             elif gui != self.pylab_gui_select:
-                print ('Warning: Cannot change to a different GUI toolkit: %s.'
+                print('Warning: Cannot change to a different GUI toolkit: %s.'
                         ' Using %s instead.' % (gui, self.pylab_gui_select))
                 gui, backend = pt.find_gui_and_backend(self.pylab_gui_select)
         
