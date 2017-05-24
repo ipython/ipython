@@ -129,7 +129,7 @@ import warnings
 
 from contextlib import contextmanager
 from importlib import import_module
-from typing import Iterator, List
+from typing import Iterator, List, Tuple, Iterable, Union
 from types import SimpleNamespace
 
 from traitlets.config.configurable import Configurable
@@ -365,7 +365,7 @@ class Completion:
     ``IPython.python_matches``, ``IPython.magics_matches``...).
     """
 
-    def __init__(self, start: int, end: int, text: str, *, type: str=None, _origin=''):
+    def __init__(self, start: int, end: int, text: str, *, type: str=None, _origin='') -> None:
         warnings.warn("``Completion`` is a provisional API (as of IPython 6.0). "
                       "It may change without warnings. "
                       "Use in corresponding context manager.",
@@ -398,7 +398,7 @@ class Completion:
         return hash((self.start, self.end, self.text))
 
 
-_IC = Iterator[Completion]
+_IC = Iterable[Completion]
 
 
 def _deduplicate_completions(text: str, completions: _IC)-> _IC:
@@ -736,12 +736,12 @@ def match_dict_keys(keys: List[str], prefix: str, delims: str):
 
     Parameters
     ==========
-        keys:
-            list of keys in dictionary currently being completed.
-        prefix:
-            Part of the text already typed by the user. e.g. `mydict[b'fo`
-        delims:
-            String of delimiters to consider when finding the current key.
+    keys:
+        list of keys in dictionary currently being completed.
+    prefix:
+        Part of the text already typed by the user. e.g. `mydict[b'fo`
+    delims:
+        String of delimiters to consider when finding the current key.
 
     Returns
     =======
@@ -800,7 +800,7 @@ def match_dict_keys(keys: List[str], prefix: str, delims: str):
     return quote, token_start, matched
 
 
-def cursor_to_position(text:int, line:int, column:int)->int:
+def cursor_to_position(text:str, line:int, column:int)->int:
     """
 
     Convert the (line,column) position of the cursor in text to an offset in a
@@ -830,7 +830,7 @@ def cursor_to_position(text:int, line:int, column:int)->int:
 
     return sum(len(l) + 1 for l in lines[:line]) + column
 
-def position_to_cursor(text:str, offset:int)->(int, int):
+def position_to_cursor(text:str, offset:int)->Tuple[int, int]:
     """
     Convert the position of the cursor in text (0 indexed) to a line
     number(0-indexed) and a column number (0-indexed) pair
@@ -1828,7 +1828,7 @@ class IPCompleter(Completer):
         return self._complete(line_buffer=line_buffer, cursor_pos=cursor_pos, text=text, cursor_line=0)[:2]
 
     def _complete(self, *, cursor_line, cursor_pos, line_buffer=None, text=None,
-                  full_text=None, return_jedi_results=True) -> (str, List[str], List[object]):
+                  full_text=None, return_jedi_results=True) -> Tuple[str, List[str], List[str], Iterable[_FakeJediCompletion]]:
         """
 
         Like complete but can also returns raw jedi completions as well as the
@@ -1868,7 +1868,7 @@ class IPCompleter(Completer):
             for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
                 name_text, name_matches = meth(base_text)
                 if name_text:
-                    return name_text, name_matches, [meth.__qualname__]*len(name_matches), {}
+                    return name_text, name_matches, [meth.__qualname__]*len(name_matches), ()
         
 
         # If no line buffer is given, assume the input text is all there was
@@ -1922,12 +1922,12 @@ class IPCompleter(Completer):
                 filtered_matches.add(m)
                 seen.add(t)
 
-        filtered_matches = sorted(
+        _filtered_matches = sorted(
             set(filtered_matches), key=lambda x: completions_sorting_key(x[0]))
 
-        matches = [m[0] for m in filtered_matches]
-        origins = [m[1] for m in filtered_matches]
+        _matches = [m[0] for m in _filtered_matches]
+        origins = [m[1] for m in _filtered_matches]
 
-        self.matches = matches
+        self.matches = _matches
 
-        return text, matches, origins, completions
+        return text, _matches, origins, completions
