@@ -28,22 +28,8 @@ from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 
-try:
-    # Python >= 3.3
-    from subprocess import TimeoutExpired
-    def popen_wait(p, timeout):
-        return p.wait(timeout)
-except ImportError:
-    class TimeoutExpired(Exception):
-        pass
-    def popen_wait(p, timeout):
-        """backport of Popen.wait from Python 3"""
-        for i in range(int(10 * timeout)):
-            if p.poll() is not None:
-                return
-            time.sleep(0.1)
-        if p.poll() is None:
-            raise TimeoutExpired
+def popen_wait(p, timeout):
+    return p.wait(timeout)
 
 class TestController(object):
     """Run tests in a subprocess
