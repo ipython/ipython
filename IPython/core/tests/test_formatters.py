@@ -116,8 +116,6 @@ def test_for_type():
 def test_for_type_string():
     f = PlainTextFormatter()
     
-    mod = C.__module__
-    
     type_str = '%s.%s' % (C.__module__, 'C')
     
     # initial return, None
@@ -166,7 +164,6 @@ def test_lookup_by_type():
     f = PlainTextFormatter()
     f.for_type(C, foo_printer)
     nt.assert_is(f.lookup_by_type(C), foo_printer)
-    type_str = '%s.%s' % (C.__module__, 'C')
     with nt.assert_raises(KeyError):
         f.lookup_by_type(A)
 
@@ -475,6 +472,31 @@ def test_repr_mime():
     nt.assert_equal(d['image/png'], 'i-overwrite', '_repr_mimebundle_ take precedence')
 
 
+
+def test_pass_correct_include_exclude():
+    class Tester(object):
+
+        def __init__(self, include=None, exclude=None):
+            self.include = include
+            self.exclude = exclude
+
+        def _repr_mimebundle_(self, include, exclude, **kwargs):
+            if include and (include != self.include):
+                raise ValueError('include got modified: display() may be broken.')
+            if exclude and (exclude != self.exclude):
+                raise ValueError('exclude got modified: display() may be broken.')
+
+            return None
+
+    include = {'a', 'b', 'c'}
+    exclude = {'c', 'e' , 'f'}
+
+    f = get_ipython().display_formatter
+    f.format(Tester(include=include, exclude=exclude), include=include, exclude=exclude)
+    f.format(Tester(exclude=exclude), exclude=exclude)
+    f.format(Tester(include=include), include=include)
+
+
 def test_repr_mime_meta():
     class HasReprMimeMeta(object):
         def _repr_mimebundle_(self, include=None, exclude=None):
@@ -499,5 +521,3 @@ def test_repr_mime_meta():
             'height': 10,
         }
     })
-    
-    
