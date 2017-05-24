@@ -6,8 +6,6 @@
 
 import os
 import os.path
-import warnings
-from shutil import copyfile
 import sys
 from importlib import import_module
 

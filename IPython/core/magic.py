@@ -14,7 +14,6 @@
 import os
 import re
 import sys
-import types
 from getopt import getopt, GetoptError
 
 from traitlets.config.configurable import Configurable
