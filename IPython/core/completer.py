@@ -484,11 +484,13 @@ def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
     seen_python_matches = set()
     for c in completions:
         new_text = text[new_start:c.start] + c.text + text[c.end:new_end]
+        toyield = new_text not in seen_jedi and new_text not in seen_python_matches
         if c._origin == 'jedi':
             seen_jedi.add(new_text)
         elif c._origin == 'IPCompleter.python_matches':
             seen_python_matches.add(new_text)
-        yield Completion(new_start, new_end, new_text, type=c.type, _origin=c._origin)
+        if toyield:
+            yield Completion(new_start, new_end, new_text, type=c.type, _origin=c._origin)
     diff = seen_python_matches.difference(seen_jedi)
     if diff and _debug:
         print('IPython.python matches have extras:', diff)
