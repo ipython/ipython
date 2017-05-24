@@ -9,7 +9,6 @@
 
 import re
 
-from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
 
 coding_declaration = re.compile(r"#\s*coding[:=]\s*([-\w.]+)")
