@@ -1445,8 +1445,20 @@ class InteractiveShell(SingletonConfigurable):
                 ismagic = True
                 isalias = isinstance(obj, Alias)
 
-        return {'found':found, 'obj':obj, 'namespace':ospace,
-                'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
+        # Last try: special-case some literals like '', [], {}, etc:
+        if not found and oname_head in ["''",'""','[]','{}','()']:
+            obj = eval(oname_head)
+            found = True
+            ospace = 'Interactive'
+
+        return {
+                'obj':obj,
+                'found':found,
+                'parent':parent,
+                'ismagic':ismagic,
+                'isalias':isalias,
+                'namespace':ospace
+               }
 
     @staticmethod
     def _getattr_property(obj, attrname):
@@ -2550,7 +2562,7 @@ class InteractiveShell(SingletonConfigurable):
                 where.update(
                     runpy.run_module(str(mod_name), run_name="__main__",
                                      alter_sys=True)
-                    )
+                            )
             except SystemExit as status:
                 if status.code:
                     raise
