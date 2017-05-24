@@ -144,7 +144,6 @@ from sphinx.util.compat import Directive
 from traitlets.config import Config
 from IPython import InteractiveShell
 from IPython.core.profiledir import ProfileDir
-from IPython.utils import io
 
 #-----------------------------------------------------------------------------
 # Globals
