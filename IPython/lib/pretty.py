@@ -484,11 +484,6 @@ class GroupQueue(object):
         except ValueError:
             pass
 
-try:
-    _baseclass_reprs = (object.__repr__, types.InstanceType.__repr__)
-except AttributeError:  # Python 3
-    _baseclass_reprs = (object.__repr__,)
-
 
 def _default_pprint(obj, p, cycle):
     """
@@ -496,7 +491,7 @@ def _default_pprint(obj, p, cycle):
     it's none of the builtin objects.
     """
     klass = _safe_getattr(obj, '__class__', None) or type(obj)
-    if _safe_getattr(klass, '__repr__', None) not in _baseclass_reprs:
+    if _safe_getattr(klass, '__repr__', None) is not object.__repr__:
         # A user-provided repr. Find newlines and replace them with p.break_()
         _repr_pprint(obj, p, cycle)
         return
