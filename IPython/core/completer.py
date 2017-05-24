@@ -1185,9 +1185,9 @@ class IPCompleter(Completer):
 
         return comp
 
-    def magic_config_matches(self, line_buffer):
+    def magic_config_matches(self, text:str) -> List[str]:
         """ Match class names and attributes for %config magic """
-        texts = line_buffer.strip().split()
+        texts = text.strip().split()
 
         if len(texts) > 0 and (texts[0] == 'config' or texts[0] == '%config'):
             # get all configuration classes
@@ -1220,9 +1220,9 @@ class IPCompleter(Completer):
                          if attr.startswith(texts[1]) ]
         return []
 
-    def magic_color_matches(self, line_buffer):
+    def magic_color_matches(self, text:str) -> List[str] :
         """ Match color schemes for %colors magic"""
-        texts = line_buffer.strip().split()
+        texts = text.strip().split()
 
         if len(texts) > 0 and (texts[0] == 'colors' or texts[0] == '%colors'):
             prefix = texts[1] if len(texts) > 1 else ''
@@ -1896,7 +1896,7 @@ class IPCompleter(Completer):
             if matches:
                 matches2 = [m[0] for m in matches]
                 origins = [m[1] for m in matches]
-                return text, matches2, origins, {}
+                return text, matches2, origins, ()
 
         # Start with a clean slate of completions
         matches = []
