@@ -610,6 +610,9 @@ class SVG(DisplayObject):
 
     def _repr_svg_(self):
         return self.data
+        
+    def _repr_html_(self):
+        return self.data
 
 
 class JSON(DisplayObject):
