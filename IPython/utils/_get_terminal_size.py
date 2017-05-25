@@ -1,6 +1,33 @@
 # vendored version of backports.get_terminal_size as nemesapece package are a
-# mess and break, especially on ubuntu. This file is under MIT Licence. 
+# mess and break, especially on ubuntu. This file is under MIT Licence.
 # See https://pypi.python.org/pypi/backports.shutil_get_terminal_size
+#
+# commit: afc5714b1545a5a3aa44cfb5e078d39165bf76ab (Feb 20, 2016)
+# from
+# https://github.com/chrippa/backports.shutil_get_terminal_size
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2014 Christopher Rosell
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
 """This is a backport of shutil.get_terminal_size from Python 3.3.
 
 The original implementation is in C, but here we use the ctypes and
@@ -19,30 +46,30 @@ __all__ = ["get_terminal_size"]
 terminal_size = namedtuple("terminal_size", "columns lines")
 
 try:
-    from ctypes import windll, create_string_buffer
+    from ctypes import windll, create_string_buffer, WinError
 
-    _handles = {
-        0: windll.kernel32.GetStdHandle(-10),
-        1: windll.kernel32.GetStdHandle(-11),
-        2: windll.kernel32.GetStdHandle(-12),
+    _handle_ids = {
+        0: -10,
+        1: -11,
+        2: -12,
     }
 
     def _get_terminal_size(fd):
-        columns = lines = 0
-
-        try:
-            handle = _handles[fd]
-            csbi = create_string_buffer(22)
-            res = windll.kernel32.GetConsoleScreenBufferInfo(handle, csbi)
-            if res:
-                res = struct.unpack("hhhhHhhhhhh", csbi.raw)
-                left, top, right, bottom = res[5:9]
-                columns = right - left + 1
-                lines = bottom - top + 1
-        except Exception:
-            pass
-
-        return terminal_size(columns, lines)
+        handle = windll.kernel32.GetStdHandle(_handle_ids[fd])
+        if handle == 0:
+            raise OSError('handle cannot be retrieved')
+        if handle == -1:
+            raise WinError()
+        csbi = create_string_buffer(22)
+        res = windll.kernel32.GetConsoleScreenBufferInfo(handle, csbi)
+        if res:
+            res = struct.unpack("hhhhHhhhhhh", csbi.raw)
+            left, top, right, bottom = res[5:9]
+            columns = right - left + 1
+            lines = bottom - top + 1
+            return terminal_size(columns, lines)
+        else:
+            raise WinError()
 
 except ImportError:
     import fcntl
@@ -51,9 +78,9 @@ except ImportError:
     def _get_terminal_size(fd):
         try:
             res = fcntl.ioctl(fd, termios.TIOCGWINSZ, b"\x00" * 4)
-            lines, columns = struct.unpack("hh", res)
-        except Exception:
-            columns = lines = 0
+        except IOError as e:
+            raise OSError(e)
+        lines, columns = struct.unpack("hh", res)
 
         return terminal_size(columns, lines)
 
@@ -101,3 +128,4 @@ def get_terminal_size(fallback=(80, 24)):
             lines = size.lines
 
     return terminal_size(columns, lines)
+
