@@ -1018,6 +1018,12 @@ class InteractiveShell(SingletonConfigurable):
         # we can list later only variables defined in actual interactive use.
         self.user_ns_hidden = {}
 
+        # This shadow namespace complement user_ns with undeletable variables 
+        # that will be shadowed by user defined ones up until they are deleted.
+        # unlike globals variable in the shadown namespace can't be deleted, and
+        # act more like the __builtin__ module
+        self.shadow_namespace = {}
+
         # Now that FakeModule produces a real module, we've run into a nasty
         # problem: after script execution (via %run), the module where the user
         # code ran is deleted.  Now that this object is a true module (needed
@@ -1048,7 +1054,8 @@ class InteractiveShell(SingletonConfigurable):
         # introspection facilities can search easily.
         self.ns_table = {'user_global':self.user_module.__dict__,
                          'user_local':self.user_ns,
-                         'builtin':builtin_mod.__dict__
+                         'builtin': builtin_mod.__dict__,
+                         'shadow': self.shadow_namespace
                          }
     
     @property
@@ -1155,12 +1162,11 @@ class InteractiveShell(SingletonConfigurable):
         ns['_oh'] = self.history_manager.output_hist
         ns['_dh'] = self.history_manager.dir_hist
 
-        ns['_sh'] = shadowns
-
         # user aliases to input and output histories.  These shouldn't show up
         # in %who, as they can have very large reprs.
-        ns['In']  = self.history_manager.input_hist_parsed
-        ns['Out'] = self.history_manager.output_hist
+        self.shadow_namespace['In']  = self.history_manager.input_hist_parsed
+        self.shadow_namespace['Out'] = self.history_manager.output_hist
+        self.shadow_namespace['_sh'] = self.shadow_namespace
 
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
@@ -2860,7 +2866,8 @@ class InteractiveShell(SingletonConfigurable):
             try:
                 self.hooks.pre_run_code_hook()
                 #rprint('Running code', repr(code_obj)) # dbg
-                exec(code_obj, self.user_global_ns, self.user_ns)
+                from collections import ChainMap
+                exec(code_obj, self.user_global_ns, ChainMap(self.user_ns, self.shadow_namespace))
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
