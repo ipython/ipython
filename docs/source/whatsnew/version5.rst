@@ -2,6 +2,8 @@
  5.x Series
 ============
 
+.. _whatsnew540:
+
 IPython 5.4
 ===========
 
