@@ -1,7 +1,6 @@
 """Enable pyglet to be used interacively with prompt_toolkit
 """
 
-import os
 import sys
 import time
 from timeit import default_timer as clock

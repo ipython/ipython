@@ -30,7 +30,6 @@ from IPython.core.application import (
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.importstring import import_item
 from IPython.paths import get_ipython_dir, get_ipython_package_dir
-from IPython.utils import py3compat
 from traitlets import Unicode, Bool, Dict, observe
 
 #-----------------------------------------------------------------------------

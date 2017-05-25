@@ -23,7 +23,6 @@ from IPython.core.magic import  (
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.openpy import source_to_unicode
 from IPython.utils.process import abbrev_cwd
-from IPython.utils import py3compat
 from IPython.utils.terminal import set_term_title
 
 

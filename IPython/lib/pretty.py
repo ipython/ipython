@@ -87,8 +87,7 @@ from io import StringIO
 from warnings import warn
 
 from IPython.utils.decorators import undoc
-from IPython.utils.py3compat import PYPY, cast_unicode
-from IPython.utils.encoding import get_stream_enc
+from IPython.utils.py3compat import PYPY
 
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',

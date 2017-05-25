@@ -7,7 +7,6 @@ Much of the code is taken from the tokenize module in Python 3.2.
 
 import io
 from io import TextIOWrapper, BytesIO
-import os.path
 import re
 from tokenize import open, detect_encoding
 

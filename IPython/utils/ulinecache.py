@@ -5,11 +5,7 @@ Wrapper around linecache which decodes files to unicode according to PEP 263.
 """
 import functools
 import linecache
-import sys
 from warnings import warn
-
-from IPython.utils import py3compat
-from IPython.utils import openpy
 
 getline = linecache.getline
 

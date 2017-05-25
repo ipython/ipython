@@ -15,7 +15,6 @@ from traitlets.config.application import boolean_flag
 from traitlets.config.configurable import Configurable
 from traitlets.config.loader import Config
 from IPython.core import pylabtools
-from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
 from traitlets import (

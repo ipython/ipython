@@ -100,7 +100,6 @@ import sys
 import time
 import tokenize
 import traceback
-import types
 
 try:  # Python 2
     generate_tokens = tokenize.generate_tokens
