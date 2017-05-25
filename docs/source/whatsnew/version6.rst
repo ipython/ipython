@@ -2,6 +2,59 @@
  6.x Series
 ============
 
+.. _whatsnew610:
+
+IPython 6.1
+===========
+
+- Quotes in a filename are always escaped during tab-completion on non-Windows.
+  :ghpull:`10069`
+
+- Variables now shadow magics in autocompletion. See :ghissue:`4877` and :ghpull:`10542`.
+
+- Added the ability to add parameters to alias_magic. For example ::
+
+    In [2]: %alias_magic hist history --params "-l 2" --line
+    Created `%hist` as an alias for `%history -l 2`.
+
+    In [3]: hist
+    %alias_magic hist history --params "-l 30" --line
+    %alias_magic hist history --params "-l 2" --line
+
+Previously it was only possible to have an alias attached to a single function,
+and you would have to pass in the given parameters every time::
+
+    In [4]: %alias_magic hist history --line
+    Created `%hist` as an alias for `%history`.
+
+    In [5]: hist -l 2
+    hist
+    %alias_magic hist history --line
+
+- To suppress log state messages, you can now either use ``%logstart -q``, pass
+  ``--LoggingMagics.quiet=True`` on the command line, or set
+  ``c.LoggingMagics.quiet=True`` in your configuration file.
+
+- An additional flag ``--TerminalInteractiveShell.term_title_format`` is
+  introduced to allow the user to control the format of the terminal title.  It
+  is specified as a python format string, and currently the only variable it
+  will format is ``{cwd}``.
+
+
+The following changes were also added to IPython 5.4, see :ref:`what's new in IPython 5.4 <whatsnew540>`
+for more detail description:
+
+- ``TerminalInteractiveShell`` is configurable and can be configured to
+  (re)-use the readline interface.
+
+- objects can now define a ``_repr_mimebundle_``
+
+- Execution heuristics improve for single line statements
+- ``display()`` can now return a display id to update display areas.
+
+
+.. _whatsnew600:
+
 IPython 6.0
 ===========
 
