@@ -101,7 +101,7 @@ class TerminalInteractiveShell(InteractiveShell):
     _pt_app = None
 
     simple_prompt = Bool(_use_simple_prompt,
-        help="""Use `raw_input` for the REPL, without completion, multiline input, and prompt colors.
+        help="""Use `raw_input` for the REPL, without completion and prompt colors.
 
             Useful when controlling IPython as a subprocess, and piping STDIN/OUT/ERR. Known usage are:
             IPython own testing machinery, and emacs inferior-shell integration through elpy.
@@ -227,7 +227,14 @@ class TerminalInteractiveShell(InteractiveShell):
             # Fall back to plain non-interactive output for tests.
             # This is very limited, and only accepts a single line.
             def prompt():
-                return input('In [%d]: ' % self.execution_count)
+                isp = self.input_splitter
+                prompt_text = 'In [%d]: ' % self.execution_count
+                prompt_continuation = ("%%%ds" % len(prompt_text)) % '...: '
+                while isp.push_accepts_more():
+                    line = cast_unicode_py2(input(prompt_text))
+                    isp.push(line)
+                    prompt_text = prompt_continuation
+                return isp.source_reset()
             self.prompt_for_code = prompt
             return
 
