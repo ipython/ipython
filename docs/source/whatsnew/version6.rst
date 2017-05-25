@@ -12,7 +12,7 @@ IPython 6.1
 
 - Variables now shadow magics in autocompletion. See :ghissue:`4877` and :ghpull:`10542`.
 
-- Added the ability to add parameters to alias_magic. For example ::
+- Added the ability to add parameters to alias_magic. For example::
 
     In [2]: %alias_magic hist history --params "-l 2" --line
     Created `%hist` as an alias for `%history -l 2`.
@@ -21,8 +21,8 @@ IPython 6.1
     %alias_magic hist history --params "-l 30" --line
     %alias_magic hist history --params "-l 2" --line
 
-Previously it was only possible to have an alias attached to a single function,
-and you would have to pass in the given parameters every time::
+  Previously it was only possible to have an alias attached to a single function,
+  and you would have to pass in the given parameters every time::
 
     In [4]: %alias_magic hist history --line
     Created `%hist` as an alias for `%history`.
@@ -40,6 +40,15 @@ and you would have to pass in the given parameters every time::
   is specified as a python format string, and currently the only variable it
   will format is ``{cwd}``.
 
+- ``??``/``%pinfo2`` will now show object docstrings if the source can't be retrieved. :ghpull:`10532`
+- ``IPython.display`` has gained a ``%markdown`` cell magic. :ghpull:`10563`
+- ``%config`` options can now be tab completed. :ghpull:`10555`
+- ``%config`` with no arguments are now unique and sorted. :ghpull:`10548`
+- Completion on keyword arguments does not duplicate ``=`` sign if already present. :ghpull:`10547`
+- ``%run -m <module>`` now ``<module>`` passes extra arguments to ``<module>``. :ghpull:`10546`
+- completer now understand "snake case auto complete": if ``foo_bar_kittens`` is
+  a valid completion, I can type ``f_b<tab>`` will complete to it. :ghpull:`10537`
+- tracebacks are better standardized and will compress `/path/to/home` to `~`. :ghpull:`10515`
 
 The following changes were also added to IPython 5.4, see :ref:`what's new in IPython 5.4 <whatsnew540>`
 for more detail description:
