@@ -228,8 +228,8 @@ class TerminalInteractiveShell(InteractiveShell):
             # This is very limited, and only accepts a single line.
             def prompt():
                 isp = self.input_splitter
-                prompt_text = 'In [%d]: ' % self.execution_count
-                prompt_continuation = ("%%%ds" % len(prompt_text)) % '...: '
+                prompt_text = "".join(x[1] for x in self.prompts.in_prompt_tokens())
+                prompt_continuation = "".join(x[1] for x in self.prompts.continuation_prompt_tokens())
                 while isp.push_accepts_more():
                     line = cast_unicode_py2(input(prompt_text))
                     isp.push(line)
