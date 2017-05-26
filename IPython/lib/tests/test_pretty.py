@@ -6,7 +6,9 @@
 
 
 from collections import Counter, defaultdict, deque, OrderedDict
-import types, string
+import types
+import string
+import unittest
 
 import nose.tools as nt
 
@@ -181,44 +183,46 @@ class SA(object):
 class SB(SA):
     pass
 
-def test_super_repr():
-    # "<super: module_name.SA, None>"
-    output = pretty.pretty(super(SA))
-    nt.assert_regexp_matches(output, r"<super: \S+.SA, None>")
+class TestsPretty(unittest.TestCase):
 
-    # "<super: module_name.SA, <module_name.SB at 0x...>>"
-    sb = SB()
-    output = pretty.pretty(super(SA, sb))
-    nt.assert_regexp_matches(output, r"<super: \S+.SA,\s+<\S+.SB at 0x\S+>>")
+    def test_super_repr(self):
+        # "<super: module_name.SA, None>"
+        output = pretty.pretty(super(SA))
+        self.assertRegex(output, r"<super: \S+.SA, None>")
+
+        # "<super: module_name.SA, <module_name.SB at 0x...>>"
+        sb = SB()
+        output = pretty.pretty(super(SA, sb))
+        self.assertRegex(output, r"<super: \S+.SA,\s+<\S+.SB at 0x\S+>>")
 
 
-def test_long_list():
-    lis = list(range(10000))
-    p = pretty.pretty(lis)
-    last2 = p.rsplit('\n', 2)[-2:]
-    nt.assert_equal(last2, [' 999,', ' ...]'])
+    def test_long_list(self):
+        lis = list(range(10000))
+        p = pretty.pretty(lis)
+        last2 = p.rsplit('\n', 2)[-2:]
+        self.assertEqual(last2, [' 999,', ' ...]'])
 
-def test_long_set():
-    s = set(range(10000))
-    p = pretty.pretty(s)
-    last2 = p.rsplit('\n', 2)[-2:]
-    nt.assert_equal(last2, [' 999,', ' ...}'])
+    def test_long_set(self):
+        s = set(range(10000))
+        p = pretty.pretty(s)
+        last2 = p.rsplit('\n', 2)[-2:]
+        self.assertEqual(last2, [' 999,', ' ...}'])
 
-def test_long_tuple():
-    tup = tuple(range(10000))
-    p = pretty.pretty(tup)
-    last2 = p.rsplit('\n', 2)[-2:]
-    nt.assert_equal(last2, [' 999,', ' ...)'])
+    def test_long_tuple(self):
+        tup = tuple(range(10000))
+        p = pretty.pretty(tup)
+        last2 = p.rsplit('\n', 2)[-2:]
+        self.assertEqual(last2, [' 999,', ' ...)'])
 
-def test_long_dict():
-    d = { n:n for n in range(10000) }
-    p = pretty.pretty(d)
-    last2 = p.rsplit('\n', 2)[-2:]
-    nt.assert_equal(last2, [' 999: 999,', ' ...}'])
+    def test_long_dict(self):
+        d = { n:n for n in range(10000) }
+        p = pretty.pretty(d)
+        last2 = p.rsplit('\n', 2)[-2:]
+        self.assertEqual(last2, [' 999: 999,', ' ...}'])
 
-def test_unbound_method():
-    output = pretty.pretty(MyObj.somemethod)
-    nt.assert_in('MyObj.somemethod', output)
+    def test_unbound_method(self):
+        output = pretty.pretty(MyObj.somemethod)
+        self.assertIn('MyObj.somemethod', output)
 
 
 class MetaClass(type):
