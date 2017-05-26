@@ -45,9 +45,6 @@ def test_import_prompts():
 def test_import_release():
     from IPython.core import release
 
-def test_import_shadowns():
-    from IPython.core import shadowns
-
 def test_import_ultratb():
     from IPython.core import ultratb
 
