@@ -39,8 +39,6 @@ class DisplayHook(Configurable):
                            allow_none=True)
     cull_fraction = Float(0.2)
 
-    image_viewer = None
-
     def __init__(self, shell=None, cache_size=1000, **kwargs):
         super(DisplayHook, self).__init__(shell=shell, **kwargs)
         cache_size_min = 3
