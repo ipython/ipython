@@ -118,7 +118,7 @@ class InteractiveShellTestCase(unittest.TestCase):
     def test_plain_text_only(self):
         ip = get_ipython()
         formatter = ip.display_formatter
-        assert formatter.active_types == ['text/plain']
+        assert formatter.active_types == ['text/plain', 'image/png']
         assert not formatter.ipython_display_formatter.enabled
 
         class Test(object):
