@@ -199,9 +199,9 @@ def _make_help_call(target, esc, lspace, next_input=None):
                 else 'pinfo'
     arg = " ".join([method, target])
     if next_input is None:
-        return '%sget_ipython().magic(%r)' % (lspace, arg)
+        return '%sget_ipython().run_line_magic(%r)' % (lspace, arg)
     else:
-        return '%sget_ipython().set_next_input(%r);get_ipython().magic(%r)' % \
+        return '%sget_ipython().set_next_input(%r);get_ipython().run_line_magic(%r)' % \
            (lspace, next_input, arg)
     
 # These define the transformations for the different escape characters.
@@ -225,7 +225,7 @@ def _tr_help(line_info):
 
 def _tr_magic(line_info):
     "Translate lines escaped with: %"
-    tpl = '%sget_ipython().magic(%r)'
+    tpl = '%sget_ipython().run_line_magic(%r)'
     if line_info.line.startswith(ESC_MAGIC2):
         return line_info.line
     cmd = ' '.join([line_info.ifun, line_info.the_rest]).strip()
@@ -514,7 +514,7 @@ def assign_from_system(line):
     return assign_system_template % m.group('lhs', 'cmd')
 
 assign_magic_re = re.compile(r'{}%\s*(?P<cmd>.*)'.format(_assign_pat), re.VERBOSE)
-assign_magic_template = '%s = get_ipython().magic(%r)'
+assign_magic_template = '%s = get_ipython().run_line_magic(%r)'
 @StatelessInputTransformer.wrap
 def assign_from_magic(line):
     """Transform assignment from magic commands (e.g. a = %who_ls)"""
