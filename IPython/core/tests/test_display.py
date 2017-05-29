@@ -13,6 +13,7 @@ from IPython.core import display
 from IPython.core.getipython import get_ipython
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython import paths as ipath
+from IPython.testing.tools import AssertPrints, AssertNotPrints
 
 import IPython.testing.decorators as dec
 
@@ -140,6 +141,25 @@ def test_set_matplotlib_formats_kwargs():
     expected = kwargs
     expected.update(cfg.print_figure_kwargs)
     nt.assert_equal(cell, expected)
+
+def test_display_available():
+    """
+    Test that display is available without import
+
+    We don't really care if it's in builtin or anything else, but it should
+    always be available.
+    """
+    ip = get_ipython()
+    with AssertNotPrints('NameError'):
+        ip.run_cell('display')
+    try:
+        ip.run_cell('del display')
+    except NameError:
+        pass # it's ok, it might be in builtins
+    # even if deleted it should be back
+    with AssertNotPrints('NameError'):
+        ip.run_cell('display')
+
 
 def test_displayobject_repr():
     h = display.HTML('<br />')
