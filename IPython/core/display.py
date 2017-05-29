@@ -145,7 +145,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     By default all representations will be computed and sent to the frontends.
     Frontends can decide which representation is used and how.
 
-    In terminal IPython this will be similar to using `print`, for use in richer
+    In terminal IPython this will be similar to using :func:`print`, for use in richer
     frontends see Jupyter notebook examples with rich display logic.
 
     Parameters
@@ -155,11 +155,11 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     raw : bool, optional
         Are the objects to be displayed already mimetype-keyed dicts of raw display data,
         or Python objects that need to be formatted before display? [default: False]
-    include : list or tuple, optional
+    include : list, tuple or set, optional
         A list of format type strings (MIME types) to include in the
         format data dict. If this is set *only* the format types included
         in this list will be computed.
-    exclude : list or tuple, optional
+    exclude : list, tuple or set, optional
         A list of format type strings (MIME types) to exclude in the format
         data dict. If this is set all format types will be computed,
         except for those included in this argument.
@@ -170,10 +170,10 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     transient : dict, optional
         A dictionary of transient data to associate with the output.
         Data in this dict should not be persisted to files (e.g. notebooks).
-    display_id : str, optional
+    display_id : str, bool optional
         Set an id for the display.
         This id can be used for updating this display area later via update_display.
-        If given as True, generate a new display_id
+        If given as `True`, generate a new `display_id`
     kwargs: additional keyword-args, optional
         Additional keyword-arguments are passed through to the display publisher.
 
@@ -181,8 +181,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     -------
 
     handle: DisplayHandle
-        Returns a handle on updatable displays, if display_id is given.
-        Returns None if no display_id is given (default).
+        Returns a handle on updatable displays for use with :func:`update_display`,
+        if `display_id` is given. Returns :any:`None` if no `display_id` is given
+        (default).
 
     Examples
     --------
@@ -226,7 +227,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     See Also
     --------
 
-    `update_display`
+    :func:`update_display`
 
     Notes
     -----
@@ -266,9 +267,12 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     You can refer to the documentation on IPython display formatters in order to
     register custom formatters for already existing types.
 
-    Since IPython 5.4 and 6.1 display is automatically made available to the
-    user without import. If you are using display in a document that might be
-    used in a pure python context or with older version of IPython, use the
+    .. versionadded:: 5.4 display available without import
+    .. versionadded:: 6.1 display available without import
+
+    Since IPython 5.4 and 6.1 :func:`display` is automatically made available to
+    the user without import. If you are using display in a document that might
+    be used in a pure python context or with older version of IPython, use the
     following import at the top of your file::
 
         from IPython.display import display
@@ -318,6 +322,11 @@ def update_display(obj, *, display_id, **kwargs):
         The object with which to update the display
     display_id: keyword-only
         The id of the display to update
+
+    See Also
+    --------
+
+    :func:`display`
     """
     kwargs['update'] = True
     display(obj, display_id=display_id, **kwargs)
@@ -326,10 +335,16 @@ def update_display(obj, *, display_id, **kwargs):
 class DisplayHandle(object):
     """A handle on an updatable display
 
-    Call .update(obj) to display a new object.
+    Call `.update(obj)` to display a new object.
 
-    Call .display(obj) to add a new instance of this display,
+    Call `.display(obj`) to add a new instance of this display,
     and update existing instances.
+
+    See Also
+    --------
+
+        :func:`display`, :func:`update_display`
+
     """
 
     def __init__(self, display_id=None):
