@@ -263,7 +263,7 @@ def test_macro():
     cmds = ["a=1", "def b():\n  return a**2", "print(a,b())"]
     for i, cmd in enumerate(cmds, start=1):
         ip.history_manager.store_inputs(i, cmd)
-    ip.magic("macro test 1-3")
+    ip.run_line_magic('macro', 'test 1-3')
     nt.assert_equal(ip.user_ns["test"].value, "\n".join(cmds)+"\n")
     
     # List macros
@@ -305,7 +305,7 @@ def test_numpy_reset_array_undec():
     _ip.ex('import numpy as np')
     _ip.ex('a = np.empty(2)')
     nt.assert_in('a', _ip.user_ns)
-    _ip.magic('reset -f array')
+    _ip.run_line_magic('reset', '-f array')
     nt.assert_not_in('a', _ip.user_ns)
 
 def test_reset_out():
@@ -314,7 +314,7 @@ def test_reset_out():
     # test '%reset -f out', make an Out prompt
     _ip.run_cell("parrot", store_history=True)
     nt.assert_true('dead' in [_ip.user_ns[x] for x in ('_','__','___')])
-    _ip.magic('reset -f out')
+    _ip.run_line_magic('reset', '-f out')
     nt.assert_false('dead' in [_ip.user_ns[x] for x in ('_','__','___')])
     nt.assert_equal(len(_ip.user_ns['Out']), 0)
 
@@ -323,17 +323,17 @@ def test_reset_in():
     # test '%reset -f in'
     _ip.run_cell("parrot", store_history=True)
     nt.assert_true('parrot' in [_ip.user_ns[x] for x in ('_i','_ii','_iii')])
-    _ip.magic('%reset -f in')
+    _ip.run_line_magic('%reset', '-f in')
     nt.assert_false('parrot' in [_ip.user_ns[x] for x in ('_i','_ii','_iii')])
     nt.assert_equal(len(set(_ip.user_ns['In'])), 1)
 
 def test_reset_dhist():
     "Test '%reset dhist' magic"
     _ip.run_cell("tmp = [d for d in _dh]") # copy before clearing
-    _ip.magic('cd ' + os.path.dirname(nt.__file__))
-    _ip.magic('cd -')
+    _ip.run_line_magic('cd ',  os.path.dirname(nt.__file__))
+    _ip.run_line_magic('cd', '-')
     nt.assert_true(len(_ip.user_ns['_dh']) > 0)
-    _ip.magic('reset -f dhist')
+    _ip.run_line_magic('reset','-f dhist')
     nt.assert_equal(len(_ip.user_ns['_dh']), 0)
     _ip.run_cell("_dh = [d for d in tmp]") #restore
 
