@@ -12,12 +12,6 @@ import sys
 import io as _io
 import tokenize
 
-import os
-import os.path
-import shlex
-import subprocess
-import tempfile
-
 from traitlets.config.configurable import Configurable
 from traitlets import Instance, Float
 from warnings import warn
@@ -174,10 +168,6 @@ class DisplayHook(Configurable):
         md_dict : dict (optional)
             The metadata dict to be associated with the display data.
         """
-        image_data = format_dict.get("image/png")
-        if image_data is not None and self.view_image(image_data):
-            return
-
         if 'text/plain' not in format_dict:
             # nothing to do
             return
@@ -198,37 +188,6 @@ class DisplayHook(Configurable):
                 result_repr = '\n' + result_repr
 
         print(result_repr)
-
-    def view_image(self, image_data):
-        """Attempt to display the raw image_data .
-          image_data should be a `bytes` object containing image data in PNG format
-
-          We will check if the IPYTHON_IMAGE_VIEWER environment variable is set.
-          If so, this is used to show the image.
-        """
-        # Probably not worth caching the image_viewer.
-        # Not caching has the advantage that you can set it in a running IPython.
-        image_viewer = os.getenv("IPYTHON_IMAGE_VIEWER")
-        if image_viewer is None:
-            # Environment variable does not exist
-            return False
-        # We use shlex.split so that IPYTHON_IMAGE_VIEWER can also contain
-        # options in addition to the executable.
-        image_viewer = shlex.split(image_viewer)
-        if not image_viewer:
-            # Environment variable existed but was empty
-            return False
-        with tempfile.TemporaryDirectory() as dirname:
-            png_file = os.path.join(dirname, "out.png")
-            with open(png_file, "wb") as f:
-                f.write(image_data)
-            try:
-                # We don't want to clutter the display with errors on failure,
-                # so redirect stderr to DEVNULL.
-                subprocess.check_call(tuple(image_viewer) + (png_file,), stderr=subprocess.DEVNULL)
-            except subprocess.SubprocessError:
-                return False
-        return True
 
     def update_user_ns(self, result):
         """Update user_ns with various things like _, __, _1, etc."""
