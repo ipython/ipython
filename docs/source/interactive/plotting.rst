@@ -1,7 +1,32 @@
 .. _plotting:
 
+Rich Outputs
+------------
+
+One of the main feature of IPython when used as a kernel is its ability to
+show rich output. This means that object that can be representing as image,
+sounds, animation, (etc...) can be shown this way if the frontend support it.
+
+In order for this to be possible, you need to use the ``display()`` function,
+that should be available by default on IPython 5.4+ and 6.1+, or that you can
+import with ``from IPython.display import display``. Then use ``display(<your
+object>)`` instead of ``print()``, and if possible your object will be displayed
+with a richer representation. In the terminal of course, there wont be much
+difference as object are most of the time represented by text, but in notebook
+and similar interface you will get richer outputs.
+
+
 Plotting
 --------
+
+.. note::
+
+    Starting with IPython 5.0 and matplotlib 2.0 you can avoid the use of
+    IPython's specific magic and use
+    ``matplotlib.pyplot.ion()``/``matplotlib.pyplot.ioff()`` which have the
+    advantages of working outside of IPython as well.
+
+
 One major feature of the IPython kernel is the ability to display plots that 
 are the output of running code cells. The IPython kernel is designed to work 
 seamlessly with the matplotlib_ plotting library to provide this functionality.

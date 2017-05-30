@@ -50,6 +50,19 @@ Implement display id and ability to update a given display. This should greatly
 simplify a lot of code by removing the need for widgets and allow other frontend
 to implement things like progress-bars.  See :ghpull:`10048`
 
+Display function
+----------------
+
+The :func:`display() <IPython.display.display>` function is now available by
+default in an IPython session, meaning users can call it on any object to see
+their rich representation. This should allow for better interactivity both at
+the REPL and in notebook environment.
+
+Scripts and library that rely on display and may be run outside of IPython still
+need to import the display function using ``from IPython.display import
+display``. See :ghpull:`10596`
+
+
 Miscs
 -----
 
