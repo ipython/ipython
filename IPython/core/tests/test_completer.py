@@ -578,21 +578,22 @@ def test_magic_completion_shadowing():
     nt.assert_equal(matches, ["%matplotlib"])
 
 
-
 def test_magic_config():
     ip = get_ipython()
     c = ip.Completer
 
     s, matches = c.complete(None, 'conf')
     nt.assert_in('%config', matches)
+    s, matches = c.complete(None, 'conf')
+    nt.assert_not_in('AliasManager', matches)
     s, matches = c.complete(None, 'config ')
     nt.assert_in('AliasManager', matches)
     s, matches = c.complete(None, '%config ')
     nt.assert_in('AliasManager', matches)
     s, matches = c.complete(None, 'config Ali')
-    nt.assert_in('AliasManager', matches)
+    nt.assert_list_equal(['AliasManager'], matches)
     s, matches = c.complete(None, '%config Ali')
-    nt.assert_in('AliasManager', matches)
+    nt.assert_list_equal(['AliasManager'], matches)
     s, matches = c.complete(None, 'config AliasManager')
     nt.assert_list_equal(['AliasManager'], matches)
     s, matches = c.complete(None, '%config AliasManager')
@@ -602,9 +603,27 @@ def test_magic_config():
     s, matches = c.complete(None, '%config AliasManager.')
     nt.assert_in('AliasManager.default_aliases', matches)
     s, matches = c.complete(None, 'config AliasManager.de')
-    nt.assert_in('AliasManager.default_aliases', matches)
+    nt.assert_list_equal(['AliasManager.default_aliases'], matches)
     s, matches = c.complete(None, 'config AliasManager.de')
-    nt.assert_in('AliasManager.default_aliases', matches)
+    nt.assert_list_equal(['AliasManager.default_aliases'], matches)
+
+
+def test_magic_color():
+    ip = get_ipython()
+    c = ip.Completer
+
+    s, matches = c.complete(None, 'colo')
+    nt.assert_in('%colors', matches)
+    s, matches = c.complete(None, 'colo')
+    nt.assert_not_in('NoColor', matches)
+    s, matches = c.complete(None, 'colors ')
+    nt.assert_in('NoColor', matches)
+    s, matches = c.complete(None, '%colors ')
+    nt.assert_in('NoColor', matches)
+    s, matches = c.complete(None, 'colors NoCo')
+    nt.assert_list_equal(['NoColor'], matches)
+    s, matches = c.complete(None, '%colors NoCo')
+    nt.assert_list_equal(['NoColor'], matches)
 
 
 def test_match_dict_keys():
