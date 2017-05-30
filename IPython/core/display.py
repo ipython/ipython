@@ -17,6 +17,7 @@ import os
 import struct
 import sys
 import warnings
+from copy import deepcopy
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
@@ -298,8 +299,8 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         format = InteractiveShell.instance().display_formatter.format
 
     for obj in objs:
-        if obj.metadata:
-            temp_dict = obj.metadata.copy()
+        if isinstance(obj, DisplayObject) and obj.metadata:
+            temp_dict = obj.metadata.deepcopy()
             temp_dict.update(metadata)
             metadata.update(temp_dict)
         if raw:
