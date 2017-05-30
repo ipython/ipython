@@ -55,6 +55,7 @@ from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.usage import default_banner
+from IPython.display import display
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import io
@@ -617,6 +618,7 @@ class InteractiveShell(SingletonConfigurable):
         # removing on exit or representing the existence of more than one
         # IPython at a time.
         builtin_mod.__dict__['__IPYTHON__'] = True
+        builtin_mod.__dict__['display'] = display
 
         self.builtin_trap = BuiltinTrap(shell=self)
 

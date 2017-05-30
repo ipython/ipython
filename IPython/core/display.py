@@ -145,6 +145,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     By default all representations will be computed and sent to the frontends.
     Frontends can decide which representation is used and how.
 
+    In terminal IPython this will be similar to using :func:`print`, for use in richer
+    frontends see Jupyter notebook examples with rich display logic.
+
     Parameters
     ----------
     objs : tuple of objects
@@ -152,11 +155,11 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     raw : bool, optional
         Are the objects to be displayed already mimetype-keyed dicts of raw display data,
         or Python objects that need to be formatted before display? [default: False]
-    include : list or tuple, optional
+    include : list, tuple or set, optional
         A list of format type strings (MIME types) to include in the
         format data dict. If this is set *only* the format types included
         in this list will be computed.
-    exclude : list or tuple, optional
+    exclude : list, tuple or set, optional
         A list of format type strings (MIME types) to exclude in the format
         data dict. If this is set all format types will be computed,
         except for those included in this argument.
@@ -167,25 +170,119 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     transient : dict, optional
         A dictionary of transient data to associate with the output.
         Data in this dict should not be persisted to files (e.g. notebooks).
-    display_id : str, optional
+    display_id : str, bool optional
         Set an id for the display.
         This id can be used for updating this display area later via update_display.
-        If given as True, generate a new display_id
+        If given as `True`, generate a new `display_id`
     kwargs: additional keyword-args, optional
         Additional keyword-arguments are passed through to the display publisher.
-    
+
     Returns
     -------
-    
+
     handle: DisplayHandle
-        Returns a handle on updatable displays, if display_id is given.
-        Returns None if no display_id is given (default).
+        Returns a handle on updatable displays for use with :func:`update_display`,
+        if `display_id` is given. Returns :any:`None` if no `display_id` is given
+        (default).
+
+    Examples
+    --------
+
+    >>> class Json(object):
+    ...     def __init__(self, json):
+    ...         self.json = json
+    ...     def _repr_pretty_(self, pp, cycle):
+    ...         import json
+    ...         pp.text(json.dumps(self.json, indent=2))
+    ...     def __repr__(self):
+    ...         return str(self.json)
+    ...
+
+    >>> d = Json({1:2, 3: {4:5}})
+
+    >>> print(d)
+    {1: 2, 3: {4: 5}}
+
+    >>> display(d)
+    {
+      "1": 2,
+      "3": {
+        "4": 5
+      }
+    }
+
+    >>> def int_formatter(integer, pp, cycle):
+    ...     pp.text('I'*integer)
+
+    >>> plain = get_ipython().display_formatter.formatters['text/plain']
+    >>> plain.for_type(int, int_formatter)
+    <function _repr_pprint at 0x...>
+    >>> display(7-5)
+    II
+
+    >>> del plain.type_printers[int]
+    >>> display(7-5)
+    2
+
+    See Also
+    --------
+
+    :func:`update_display`
+
+    Notes
+    -----
+
+    In Python, objects can declare their textual representation using the
+    `__repr__` method. IPython expands on this idea and allows objects to declare
+    other, rich representations including:
+
+      - HTML
+      - JSON
+      - PNG
+      - JPEG
+      - SVG
+      - LaTeX
+
+    A single object can declare some or all of these representations; all are
+    handled by IPython's display system.
+
+    The main idea of the first approach is that you have to implement special
+    display methods when you define your class, one for each representation you
+    want to use. Here is a list of the names of the special methods and the
+    values they must return:
+
+      - `_repr_html_`: return raw HTML as a string
+      - `_repr_json_`: return a JSONable dict
+      - `_repr_jpeg_`: return raw JPEG data
+      - `_repr_png_`: return raw PNG data
+      - `_repr_svg_`: return raw SVG data as a string
+      - `_repr_latex_`: return LaTeX commands in a string surrounded by "$".
+      - `_repr_mimebundle_`: return a full mimebundle containing the mapping
+      from all mimetypes to data
+
+    When you are directly writing your own classes, you can adapt them for
+    display in IPython by following the above approach. But in practice, you
+    often need to work with existing classes that you can't easily modify.
+
+    You can refer to the documentation on IPython display formatters in order to
+    register custom formatters for already existing types.
+
+    .. versionadded:: 5.4 display available without import
+    .. versionadded:: 6.1 display available without import
+
+    Since IPython 5.4 and 6.1 :func:`display` is automatically made available to
+    the user without import. If you are using display in a document that might
+    be used in a pure python context or with older version of IPython, use the
+    following import at the top of your file::
+
+        from IPython.display import display
+
     """
     raw = kwargs.pop('raw', False)
     if transient is None:
         transient = {}
     if display_id:
-        if display_id == True:
+        if display_id is True:
             display_id = _new_id()
         transient['display_id'] = display_id
     if kwargs.get('update') and 'display_id' not in transient:
@@ -225,6 +322,11 @@ def update_display(obj, *, display_id, **kwargs):
         The object with which to update the display
     display_id: keyword-only
         The id of the display to update
+
+    See Also
+    --------
+
+    :func:`display`
     """
     kwargs['update'] = True
     display(obj, display_id=display_id, **kwargs)
@@ -233,10 +335,16 @@ def update_display(obj, *, display_id, **kwargs):
 class DisplayHandle(object):
     """A handle on an updatable display
 
-    Call .update(obj) to display a new object.
+    Call `.update(obj)` to display a new object.
 
-    Call .display(obj) to add a new instance of this display,
+    Call `.display(obj`) to add a new instance of this display,
     and update existing instances.
+
+    See Also
+    --------
+
+        :func:`display`, :func:`update_display`
+
     """
 
     def __init__(self, display_id=None):
