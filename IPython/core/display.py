@@ -300,7 +300,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
 
     for obj in objs:
         if isinstance(obj, DisplayObject) and obj.metadata:
-            temp_dict = obj.metadata.deepcopy()
+            temp_dict = deepcopy(obj.metadata)
             temp_dict.update(metadata)
             metadata.update(temp_dict)
         if raw:
