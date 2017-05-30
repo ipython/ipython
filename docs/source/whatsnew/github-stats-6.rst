@@ -1,6 +1,46 @@
 Issues closed in the 6.x development cycle
 ==========================================
 
+Issues closed in 6.1
+--------------------
+
+GitHub stats for 2017/04/19 - 2017/05/30 (tag: 6.0.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 10 issues and merged 43 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A6.1+>`__
+
+The following 26 authors contributed 116 commits.
+
+* Alex Alekseyev
+* Benjamin Ragan-Kelley
+* Brian E. Granger
+* Christopher C. Aycock
+* Dave Willmer
+* David Bradway
+* ICanWaitAndFishAllDay
+* Ignat Shining
+* Jarrod Janssen
+* Joshua Storck
+* Luke Pfister
+* Matthias Bussonnier
+* Matti Remes
+* meeseeksdev[bot]
+* memeplex
+* Ming Zhang
+* Nick Weseman
+* Paul Ivanov
+* Piotr Zielinski
+* ryan thielke
+* sagnak
+* Sang Min Park
+* Srinivas Reddy Thatiparthy
+* Steve Bartz
+* Thomas Kluyver
+* Tory Haavik
+
+
 Issues closed in 6.0
 --------------------
 
