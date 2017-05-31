@@ -736,9 +736,8 @@ class SVG(DisplayObject):
     
     def _data_and_metadata(self):
         """shortcut for returning metadata with shape information, if defined"""
-        md = {}
         if self.metadata:
-            md.update(self.metadata)
+            md = deepcopy(self.metadata)
         if md:
             return self.data, md
         else:
