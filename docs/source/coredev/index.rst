@@ -22,10 +22,11 @@ If you are an admin on the IPython repository just mention the **backport bot** 
 do the work for you. The bot is evolving so instructions may be different. At
 the time of this writing you can use::
 
-    @meeseeksdev[bot] backport to <branchname>
+    @meeseeksdev[bot] backport [to <branchname>]
 
 The bot will attempt to backport the current pull-request and issue a PR if
-possible.
+possible. If the milestone is set on the issue you can omit the branch to
+backport to.
 
 .. note::
 

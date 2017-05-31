@@ -17,12 +17,6 @@ import sys
 import warnings
 from shutil import get_terminal_size as _get_terminal_size
 
-from . import py3compat
-
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
-
 # This variable is part of the expected API of the module:
 ignore_termtitle = True
 

@@ -8,6 +8,7 @@ import os
 import shutil
 import sys
 import tempfile
+import unittest
 from contextlib import contextmanager
 from unittest.mock import patch
 from os.path import join, abspath
@@ -317,7 +318,7 @@ def test_unicode_in_filename():
         str(ex)
 
 
-class TestShellGlob(object):
+class TestShellGlob(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
