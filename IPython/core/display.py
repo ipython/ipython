@@ -598,6 +598,8 @@ class DisplayObject(object):
             A URL to download the data from.
         filename : unicode
             Path to a local file to load the data from.
+        metadata : dict
+            Dict of metadata associated to be the object when displayed
         """
         if data is not None and isinstance(data, str):
             if data.startswith('http') and url is None:
