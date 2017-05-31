@@ -300,6 +300,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
 
     for obj in objs:
         if isinstance(obj, DisplayObject) and obj.metadata:
+            # The following isneeded to give priority to display(metadata=…) 
+            # without overwriting the original metadata attached to the
+            # original object.
             temp_dict = deepcopy(obj.metadata)
             temp_dict.update(metadata)
             metadata.update(temp_dict)
