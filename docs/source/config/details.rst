@@ -233,24 +233,24 @@ For more information on filters and what you can do with the ``event`` object,
 Enter to execute
 ----------------
 
-In the Terminal IPython shell – which by default use the ``prompt_toolkit``
-interface, the semantic of pressing the :kbd:`Enter` key can be ambiguous, in
-some case :kbd:`Enter` should execute code, and in others it should add a new
-line. IPython is using some heuristics to decide whether to execute or insert a
-new line at cursor position. For example, if we detect that the current code is
-not valid Python, then the user is likely editing code and the right behavior is
-to likely to insert a new line. If the current code is a simple statement like
-`ord('*')`, then the right behavior is likely to execute. Though the exact
-desired semantics often varies from users to users.
+In the Terminal IPython shell – which by default uses the ``prompt_toolkit``
+interface, the semantic meaning of pressing the :kbd:`Enter` key can be
+ambiguous. In some case :kbd:`Enter` should execute code, and in others it
+should add a new line. IPython uses heuristics to decide whether to execute or
+insert a new line at cursor position. For example, if we detect that the current
+code is not valid Python, then the user is likely editing code and the right
+behavior is to likely to insert a new line. If the current code is a simple
+statement like `ord('*')`, then the right behavior is likely to execute. Though
+the exact desired semantics often varies from users to users.
 
-As the exact behavior of :kbd:`Enter` is subject to disagreement, it has been
-special cased in order for users to completely configure the behavior they like.
-Hence you can have enter to simply alway execute code, if you prefer more fancy
-behavior : start your coffee machine on even days of odd month. You'll have to
-get your hands dirty and read prompt_toolkit and IPython documentation though.
-See :ghpull:`10500`, set the `c.TerminalInteractiveShell.handle_return` option
-and get inspiration from the following example that insert new lines only after
-a pipe (``|``). Place the following in your configuration to do so::
+As the exact behavior of :kbd:`Enter` is is ambiguous, it has been special cased
+to allow users to completely configure the behavior they like. Hence you can
+have enter always execute code. If you prefer fancier behavior, you need to get
+your hands dirty and read the ``prompt_toolkit`` and IPython documentation
+though. See :ghpull:`10500`, set the
+``c.TerminalInteractiveShell.handle_return`` option and get inspiration from the
+following example that insert new lines only after a pipe (``|``). Place the
+following in your configuration to do so::
 
     def new_line_after_pipe(shell):
         # shell is the same as get_ipython()
