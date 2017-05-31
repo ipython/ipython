@@ -299,13 +299,6 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         format = InteractiveShell.instance().display_formatter.format
 
     for obj in objs:
-        if isinstance(obj, DisplayObject) and obj.metadata:
-            # The following isneeded to give priority to display(metadata=…) 
-            # without overwriting the original metadata attached to the
-            # original object.
-            temp_dict = deepcopy(obj.metadata)
-            temp_dict.update(metadata)
-            metadata.update(temp_dict)
         if raw:
             publish_display_data(data=obj, metadata=metadata, **kwargs)
         else:
@@ -635,6 +628,15 @@ class DisplayObject(object):
         """Override in subclasses if there's something to check."""
         pass
 
+    def _data_and_metadata(self):
+        """shortcut for returning metadata with shape information, if defined"""
+        if self.metadata:
+            md = deepcopy(self.metadata)
+        if md:
+            return self.data, md
+        else:
+            return self.data
+
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.filename is not None:
@@ -734,16 +736,10 @@ class SVG(DisplayObject):
         svg = cast_unicode(svg)
         self._data = svg
     
-    def _data_and_metadata(self):
-        """shortcut for returning metadata with shape information, if defined"""
-        if self.metadata:
-            md = deepcopy(self.metadata)
-        if md:
-            return self.data, md
-        else:
-            return self.data
-
     def _repr_svg_(self):
+        return self._data_and_metadata()
+
+    def _repr_mimebundle(self):
         return self._data_and_metadata()
 
 
