@@ -2,6 +2,12 @@
  5.x Series
 ============
 
+IPython 5.4.1
+=============
+
+Released a few hours after 5.4, fix a crash when
+``backports.shutil-get-terminal-size`` is not installed. :ghissue:`10629`
+
 IPython 5.4
 ===========
 
