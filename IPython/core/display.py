@@ -1082,6 +1082,12 @@ class Image(DisplayObject):
         super(Image, self).__init__(data=data, url=url, filename=filename, 
                 metadata=metadata)
 
+        if self.width is None and self.metadata.get('width', {}):
+            self.width = metadata['width']
+
+        if self.height is None and self.metadata.get('height', {}):
+            self.height = metadata['height']
+
         if retina:
             self._retina_shape()
 
