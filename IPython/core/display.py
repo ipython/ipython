@@ -280,7 +280,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     """
     from IPython.core.interactiveshell import InteractiveShell
     
-    if not InteractiveShell.is_instantiated:
+    if not InteractiveShell.initialized():
         # Directly print objects.
         print(*objs)
         return
