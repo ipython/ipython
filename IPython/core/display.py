@@ -631,9 +631,7 @@ class DisplayObject(object):
     def _data_and_metadata(self):
         """shortcut for returning metadata with shape information, if defined"""
         if self.metadata:
-            md = deepcopy(self.metadata)
-        if md:
-            return self.data, md
+            return self.data, deepcopy(self.metadata)
         else:
             return self.data
 
@@ -737,9 +735,6 @@ class SVG(DisplayObject):
         self._data = svg
     
     def _repr_svg_(self):
-        return self._data_and_metadata()
-
-    def _repr_mimebundle(self):
         return self._data_and_metadata()
 
 
