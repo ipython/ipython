@@ -1131,14 +1131,14 @@ class Image(DisplayObject):
     def _data_and_metadata(self):
         """shortcut for returning metadata with shape information, if defined"""
         md = {}
+        if self.metadata:
+            md.update(self.metadata)
         if self.width:
             md['width'] = self.width
         if self.height:
             md['height'] = self.height
         if self.unconfined:
             md['unconfined'] = self.unconfined
-        if self.metadata:
-            md.update(self.metadata)
         if md:
             return self.data, md
         else:
