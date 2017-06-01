@@ -10,6 +10,8 @@
 .. image:: https://img.shields.io/travis/ipython/ipython.svg
     :target: https://travis-ci.org/ipython/ipython
 
+.. image:: https://www.codetriage.com/ipython/ipython/badges/users.svg
+    :target: https://www.codetriage.com/ipython/ipython/
 
 ===========================================
  IPython: Productive Interactive Computing
