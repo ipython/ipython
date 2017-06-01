@@ -278,6 +278,13 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         from IPython.display import display
 
     """
+    from IPython.core.interactiveshell import InteractiveShell
+    
+    if not InteractiveShell.is_instantiated:
+        # Directly print objects.
+        print(*objs)
+        return
+    
     raw = kwargs.pop('raw', False)
     if transient is None:
         transient = {}
@@ -289,8 +296,6 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         raise TypeError('display_id required for update_display')
     if transient:
         kwargs['transient'] = transient
-
-    from IPython.core.interactiveshell import InteractiveShell
 
     if not raw:
         format = InteractiveShell.instance().display_formatter.format
