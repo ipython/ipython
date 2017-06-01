@@ -24,7 +24,7 @@ except ImportError:
     try:
         from backports.shutil_get_terminal_size import get_terminal_size as _get_terminal_size
     except ImportError:
-        from ._get_terminal_size import _get_terminal_size
+        from ._get_terminal_size import get_terminal_size as _get_terminal_size
 
 from . import py3compat
 
