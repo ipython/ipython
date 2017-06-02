@@ -172,7 +172,7 @@ class TestMagicRunPass(tt.TempFileMixin):
         _ip = get_ipython()
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.magic('run','%s' % self.fname)
+        _ip.run_line_magic('run','%s' % self.fname)
         
     def run_tmpfile_p(self):
         _ip = get_ipython()
@@ -211,7 +211,7 @@ class TestMagicRunPass(tt.TempFileMixin):
         with tt.fake_input(['c']):
             _ip.run_line_magic('run', '-d %s' % self.fname)
         with tt.fake_input(['c']):
-            _ip.run_line_magic('run','-d %s' % self.fname)
+            _ip.run_line_magic('run', '-d %s' % self.fname)
 
 
 class TestMagicRunSimple(tt.TempFileMixin):
@@ -306,18 +306,18 @@ tclass.py: deleting object: C-third
         src = "yy = zz\n"
         self.mktmp(src)
         _ip.run_cell("zz = 23")
-        _ip.run_line_magic('run -i %s' % self.fname)
+        _ip.run_line_magic('run', '-i %s' % self.fname)
         nt.assert_equal(_ip.user_ns['yy'], 23)
         _ip.run_line_magic('reset -f')
         _ip.run_cell("zz = 23")
-        _ip.run_line_magic('run -i %s' % self.fname)
+        _ip.run_line_magic('run', '-i %s' % self.fname)
         nt.assert_equal(_ip.user_ns['yy'], 23)
     
     def test_unicode(self):
         """Check that files in odd encodings are accepted."""
         mydir = os.path.dirname(__file__)
         na = os.path.join(mydir, 'nonascii.py')
-        _ip.run_line_magic('run "%s"' % na)
+        _ip.run_line_magic('run', "%s" % na)
         nt.assert_equal(_ip.user_ns['u'], u'Ўт№Ф')
 
     def test_run_py_file_attribute(self):
@@ -326,7 +326,7 @@ tclass.py: deleting object: C-third
         self.mktmp(src)
         _missing = object()
         file1 = _ip.user_ns.get('__file__', _missing)
-        _ip.run_line_magic('run %s' % self.fname)
+        _ip.run_line_magic('run', '%s' % self.fname)
         file2 = _ip.user_ns.get('__file__', _missing)
 
         # Check that __file__ was equal to the filename in the script's
@@ -342,7 +342,7 @@ tclass.py: deleting object: C-third
         self.mktmp(src, ext='.ipy')
         _missing = object()
         file1 = _ip.user_ns.get('__file__', _missing)
-        _ip.run_line_magic('run %s' % self.fname)
+        _ip.run_line_magic('run', '%s' % self.fname)
         file2 = _ip.user_ns.get('__file__', _missing)
 
         # Check that __file__ was equal to the filename in the script's
@@ -356,18 +356,18 @@ tclass.py: deleting object: C-third
         """ Test that %run -t -N<N> does not raise a TypeError for N > 1."""
         src = "pass"
         self.mktmp(src)
-        _ip.run_line_magic('run -t -N 1 %s' % self.fname)
-        _ip.run_line_magic('run -t -N 10 %s' % self.fname)
+        _ip.run_line_magic('run', '-t -N 1 %s' % self.fname)
+        _ip.run_line_magic('run', '-t -N 10 %s' % self.fname)
     
     def test_ignore_sys_exit(self):
         """Test the -e option to ignore sys.exit()"""
         src = "import sys; sys.exit(1)"
         self.mktmp(src)
         with tt.AssertPrints('SystemExit'):
-            _ip.run_line_magic('run %s' % self.fname)
+            _ip.run_line_magic('run', '%s' % self.fname)
         
         with tt.AssertNotPrints('SystemExit'):
-            _ip.run_line_magic('run -e %s' % self.fname)
+            _ip.run_line_magic('run', '-e %s' % self.fname)
 
     def test_run_nb(self):
         """Test %run notebook.ipynb"""
@@ -381,7 +381,7 @@ tclass.py: deleting object: C-third
         src = writes(nb, version=4)
         self.mktmp(src, ext='.ipynb')
         
-        _ip.run_line_magic("run %s" % self.fname)
+        _ip.run_line_magic("run", "%s" % self.fname)
         
         nt.assert_equal(_ip.user_ns['answer'], 42)
 
@@ -436,7 +436,7 @@ class TestMagicRunWithPackage(unittest.TestCase):
 
     def check_run_submodule(self, submodule, opts=''):
         _ip.user_ns.pop('x', None)
-        _ip.run_line_magic('run {2} -m {0}.{1}'.format(self.package, submodule, opts))
+        _ip.run_line_magic('run', '{2} -m {0}.{1}'.format(self.package, submodule, opts))
         self.assertEqual(_ip.user_ns['x'], self.value,
                          'Variable `x` is not loaded from module `{0}`.'
                          .format(submodule))
@@ -488,13 +488,13 @@ def test_run__name__():
             f.write("q = __name__")
         
         _ip.user_ns.pop('q', None)
-        _ip.run_line_magic('run {}'.format(path))
+        _ip.run_line_magic('run', '{}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), '__main__')
         
-        _ip.run_line_magic('run -n {}'.format(path))
+        _ip.run_line_magic('run', '-n {}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
 
-        _ip.run_line_magic('run -i -n {}'.format(path))
+        _ip.run_line_magic('run', '-i -n {}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
 
 
