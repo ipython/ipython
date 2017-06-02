@@ -17,6 +17,7 @@ import os
 import struct
 import sys
 import warnings
+from copy import deepcopy
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
@@ -281,6 +282,8 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     raw = kwargs.pop('raw', False)
     if transient is None:
         transient = {}
+    if metadata is None:
+        metadata={}
     if display_id:
         if display_id is True:
             display_id = _new_id()
@@ -568,8 +571,9 @@ class DisplayObject(object):
 
     _read_flags = 'r'
     _show_mem_addr = False
+    metadata = None
 
-    def __init__(self, data=None, url=None, filename=None):
+    def __init__(self, data=None, url=None, filename=None, metadata=None):
         """Create a display object given raw data.
 
         When this object is returned by an expression or passed to the
@@ -587,6 +591,8 @@ class DisplayObject(object):
             A URL to download the data from.
         filename : unicode
             Path to a local file to load the data from.
+        metadata : dict
+            Dict of metadata associated to be the object when displayed
         """
         if data is not None and isinstance(data, str):
             if data.startswith('http') and url is None:
@@ -602,6 +608,11 @@ class DisplayObject(object):
         self.url = url
         self.filename = filename
 
+        if metadata is not None:
+            self.metadata = metadata
+        elif self.metadata is None:
+            self.metadata = {}
+
         self.reload()
         self._check_data()
 
@@ -616,6 +627,13 @@ class DisplayObject(object):
     def _check_data(self):
         """Override in subclasses if there's something to check."""
         pass
+
+    def _data_and_metadata(self):
+        """shortcut for returning metadata with shape information, if defined"""
+        if self.metadata:
+            return self.data, deepcopy(self.metadata)
+        else:
+            return self.data
 
     def reload(self):
         """Reload the raw data from file or URL."""
@@ -715,9 +733,9 @@ class SVG(DisplayObject):
             pass
         svg = cast_unicode(svg)
         self._data = svg
-
+    
     def _repr_svg_(self):
-        return self.data
+        return self._data_and_metadata()
 
 
 class JSON(DisplayObject):
@@ -1061,8 +1079,14 @@ class Image(DisplayObject):
         self.height = height
         self.retina = retina
         self.unconfined = unconfined
-        self.metadata = metadata
-        super(Image, self).__init__(data=data, url=url, filename=filename)
+        super(Image, self).__init__(data=data, url=url, filename=filename, 
+                metadata=metadata)
+
+        if self.width is None and self.metadata.get('width', {}):
+            self.width = metadata['width']
+
+        if self.height is None and self.metadata.get('height', {}):
+            self.height = metadata['height']
 
         if retina:
             self._retina_shape()
@@ -1107,14 +1131,14 @@ class Image(DisplayObject):
     def _data_and_metadata(self):
         """shortcut for returning metadata with shape information, if defined"""
         md = {}
+        if self.metadata:
+            md.update(self.metadata)
         if self.width:
             md['width'] = self.width
         if self.height:
             md['height'] = self.height
         if self.unconfined:
             md['unconfined'] = self.unconfined
-        if self.metadata:
-            md.update(self.metadata)
         if md:
             return self.data, md
         else:
