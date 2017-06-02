@@ -22,6 +22,8 @@ from copy import deepcopy
 from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
 
+from warnings import warn
+
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
@@ -279,6 +281,14 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         from IPython.display import display
 
     """
+    # Check whether display() has been called from IPython shell or from Pure Python shell
+    from IPython.core.interactiveshell import InteractiveShell
+    if not InteractiveShell.is_instantiated:
+        # Warn user who are calling display() from Pure Python Shell
+        #TODO:Add standard print() functionality
+        warn('display() no longer supports calls from Pure Python shell. To experience it\'s features use IPython shell instead.')
+        return
+
     raw = kwargs.pop('raw', False)
     if transient is None:
         transient = {}
@@ -360,10 +370,10 @@ class DisplayHandle(object):
 
     def display(self, obj, **kwargs):
         """Make a new display with my id, updating existing instances.
-        
+
         Parameters
         ----------
-        
+
         obj:
             object to display
         **kwargs:
@@ -373,10 +383,10 @@ class DisplayHandle(object):
 
     def update(self, obj, **kwargs):
         """Update existing displays with my id
-        
+
         Parameters
         ----------
-        
+
         obj:
             object to display
         **kwargs:
@@ -813,7 +823,7 @@ class GeoJSON(JSON):
 
     Scalar types (None, number, string) are not allowed, only dict containers.
     """
-    
+
     def __init__(self, *args, **kwargs):
         """Create a GeoJSON display object given raw data.
 
@@ -862,7 +872,7 @@ class GeoJSON(JSON):
         the GeoJSON object.
 
         """
-        
+
         super(GeoJSON, self).__init__(*args, **kwargs)
 
 
