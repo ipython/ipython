@@ -291,7 +291,7 @@ def test_magic_magic():
     """Test %magic"""
     ip = get_ipython()
     with capture_output() as captured:
-        ip.run_line_magic("magic")
+        ip.run_line_magic("magic", '')
     
     stdout = captured.stdout
     nt.assert_in('%magic', stdout)
