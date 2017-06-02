@@ -414,12 +414,12 @@ def test_dirops():
     startdir = os.getcwd()
     ipdir = os.path.realpath(_ip.ipython_dir)
     try:
-        _ip.run_line_magic('cd',str(ipdir))
+        _ip.run_line_magic('cd', ipdir)
         nt.assert_equal(curpath(), ipdir)
         _ip.run_line_magic('cd', '-')
         nt.assert_equal(curpath(), startdir)
-        _ip.run_line_magic('pushd',str(ipdir))
-        nt.assert_equal(curpath(), str(ipdir)
+        _ip.run_line_magic('pushd',ipdir)
+        nt.assert_equal(curpath(), ipdir)
         _ip.run_line_magic('popd','')
         nt.assert_equal(curpath(), startdir)
     finally:
