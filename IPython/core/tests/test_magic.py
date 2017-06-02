@@ -583,6 +583,9 @@ def test_timeit_futures():
     ip.compile.reset_compiler_flags()
     with tt.AssertNotPrints('0.25'):
         ip.run_line_magic('timeit', '-n1 -r1 print(1/4)')
+def test_timeit_invalid_return():
+    with nt.assert_raises_regexp(SyntaxError, "outside function"):
+        _ip.run_line_magic('timeit', 'return')
 
 @dec.skipif(execution.profile is None)
 def test_prun_special_syntax():
