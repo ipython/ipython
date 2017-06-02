@@ -1044,6 +1044,13 @@ python-profiler package from non-free.""")
         ast_setup = self.shell.transform_ast(ast_setup)
         ast_stmt = self.shell.transform_ast(ast_stmt)
 
+        # Check that these compile to valid Python code *outside* the timer func
+        # Invalid code may become valid when put inside the function & loop,
+        # which messes up error messages.
+        # https://github.com/ipython/ipython/issues/10636
+        self.shell.compile(ast_setup, "<magic-timeit-setup>", "exec")
+        self.shell.compile(ast_stmt, "<magic-timeit-stmt>", "exec")
+
         # This codestring is taken from timeit.template - we fill it in as an
         # AST, so that we can apply our AST transformations to the user code
         # without affecting the timing code.
