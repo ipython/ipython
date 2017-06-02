@@ -308,7 +308,7 @@ tclass.py: deleting object: C-third
         _ip.run_cell("zz = 23")
         _ip.run_line_magic('run', '-i %s' % self.fname)
         nt.assert_equal(_ip.user_ns['yy'], 23)
-        _ip.run_line_magic('reset -f')
+        _ip.run_line_magic('reset', '-f')
         _ip.run_cell("zz = 23")
         _ip.run_line_magic('run', '-i %s' % self.fname)
         nt.assert_equal(_ip.user_ns['yy'], 23)

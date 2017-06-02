@@ -430,7 +430,7 @@ def test_xmode():
     # Calling xmode three times should be a no-op
     xmode = _ip.InteractiveTB.mode
     for i in range(3):
-        _ip.magic("xmode")
+        _ip.run_line_magic("xmode",'')
     nt.assert_equal(_ip.InteractiveTB.mode, xmode)
     
 def test_reset_hard():
@@ -445,7 +445,7 @@ def test_reset_hard():
     _ip.run_cell("a")
     
     nt.assert_equal(monitor, [])
-    _ip.magic("reset","-f")
+    _ip.run_line_magic("reset","-f")
     nt.assert_equal(monitor, [1])
     
 class TestXdel(tt.TempFileMixin):
@@ -992,7 +992,7 @@ def test_ls_magic():
     ip = get_ipython()
     json_formatter = ip.display_formatter.formatters['application/json']
     json_formatter.enabled = True
-    lsmagic = ip.run_line_magic('lsmagic')
+    lsmagic = ip.run_line_magic('lsmagic', '')
     with warnings.catch_warnings(record=True) as w:
         j = json_formatter(lsmagic)
     nt.assert_equal(sorted(j), ['cell', 'line'])
