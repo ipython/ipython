@@ -576,6 +576,10 @@ def test_timeit_return_quiet():
         res = _ip.run_line_magic('timeit', '-n1 -r1 -q -o 1')
     assert (res is not None)
 
+def test_timeit_invalid_return():
+    with nt.assert_raises_regexp(SyntaxError, "outside function"):
+        _ip.run_line_magic('timeit', 'return')
+
 @dec.skipif(execution.profile is None)
 def test_prun_special_syntax():
     "Test %%prun with IPython special syntax"
