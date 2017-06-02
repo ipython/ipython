@@ -520,4 +520,4 @@ def assign_from_magic(line):
     if m is None:
         return line
     
-    return assign_magic_template % m.group('lhs', 'cmd')
+    return assign_magic_template % m.group('lhs', 'cmd', '')
