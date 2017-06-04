@@ -198,11 +198,14 @@ def _make_help_call(target, esc, lspace, next_input=None):
                 else 'psearch' if '*' in target \
                 else 'pinfo'
     arg = " ".join([method, target])
+    #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
+    t_magic_name, _, t_magic_arg_s = arg.partition(' ')
+    t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
     if next_input is None:
-        return '%sget_ipython().magic(%r)' % (lspace, arg)
+        return '%sget_ipython().run_line_magic(%r, %r)' % (lspace, t_magic_name, t_magic_arg_s)
     else:
-        return '%sget_ipython().set_next_input(%r);get_ipython().magic(%r)' % \
-           (lspace, next_input, arg)
+        return '%sget_ipython().set_next_input(%r);get_ipython().run_line_magic(%r, %r)' % \
+           (lspace, next_input, t_magic_name, t_magic_arg_s)
     
 # These define the transformations for the different escape characters.
 def _tr_system(line_info):
@@ -526,6 +529,6 @@ def assign_from_magic(line):
         return line
     #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
     m_lhs, m_cmd = m.group('lhs', 'cmd')
-    t_magic_name, _, t_magic_arg_s = cmd.partition(' ')
+    t_magic_name, _, t_magic_arg_s = m_cmd.partition(' ')
     t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
     return assign_magic_template % (m_lhs, t_magic_name, t_magic_arg_s)
