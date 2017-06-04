@@ -61,7 +61,7 @@ class HistoryMagics(Magics):
         source before executing it (things like magics or aliases are turned
         into function calls, for example). With this option, you'll see the
         native history instead of the user-entered version: '%%cd /' will be
-        seen as 'get_ipython().magic("%%cd /")' instead of '%%cd /'.
+        seen as 'get_ipython().run_line_magic("cd", "/")' instead of '%%cd /'.
         """)
     @argument(
         '-f', dest='filename',
