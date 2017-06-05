@@ -100,6 +100,8 @@ IPython and Jedi will be able to infer that ``data[0]`` is actually a string
 and should show relevant completions like ``upper()``, ``lower()`` and other
 string methods. You can use the :kbd:`Tab` key to cycle through completions,
 and while a completion is highlighted, its type will be shown as well.
+When the type of the completion is a function, the completer will also show the
+signature of the function when highlighted.
 
 Exploring your objects
 ======================
