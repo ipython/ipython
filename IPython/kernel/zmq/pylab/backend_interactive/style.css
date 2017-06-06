@@ -1,0 +1,20 @@
+body {
+	margin: 0px;
+}
+
+#fig-canvas-div {
+	position: relative;
+}
+
+#fig-canvas {
+	left: 0;
+	top: 0;
+	z-index: 0;
+}
+
+#fig-rubberband-canvas {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 1;	
+}
