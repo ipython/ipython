@@ -3,7 +3,7 @@
 Execution semantics in the IPython kernel
 =========================================
 
-The execution of use code consists of the following phases:
+The execution of user code consists of the following phases:
 
 1. Fire the ``pre_execute`` event.
 2. Fire the ``pre_run_cell`` event unless silent is True.
