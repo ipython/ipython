@@ -330,7 +330,7 @@ def detect_encoding(readline):
             # Decode as UTF-8. Either the line is an encoding declaration,
             # in which case it should be pure ASCII, or it must be UTF-8
             # per default encoding.
-            line_string = line.decode('utf-8')
+            line_string = line.decode()
         except UnicodeDecodeError:
             raise SyntaxError("invalid or missing encoding declaration")
 
