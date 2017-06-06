@@ -356,4 +356,8 @@ Known Issues:
 - Color styles might not adapt to terminal emulator themes. This will need new
   version of Pygments to be released, and can be mitigated with custom themes.
 
+ - Some characters (like double quotes) do not appear immediately when using
+   `vi` key map. cf :ghissue:`9589` this is only the case with prompt_toolkit
+   1.0.0 and will be resolved when future versions are available. 
+
 
