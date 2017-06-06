@@ -602,16 +602,13 @@ def test_prun_quotes():
     nt.assert_equal(_ip.user_ns['x'], '\t')
 
 def test_extension():
-    # Debugging information for failures of this test
-    print('sys.path:')
-    for p in sys.path:
-        print(' ', p)
-    print('CWD', os.getcwd())
-
-    nt.assert_raises(ImportError, _ip.magic, "load_ext daft_extension")
-    daft_path = os.path.join(os.path.dirname(__file__), "daft_extension")
-    sys.path.insert(0, daft_path)
+    tmpdir = TemporaryDirectory()
+    orig_ipython_dir = _ip.ipython_dir
     try:
+        _ip.ipython_dir = tmpdir.name
+        nt.assert_raises(ImportError, _ip.magic, "load_ext daft_extension")
+        url = os.path.join(os.path.dirname(__file__), "daft_extension.py")
+        _ip.magic("install_ext %s" % url)
         _ip.user_ns.pop('arq', None)
         invalidate_caches()   # Clear import caches
         _ip.magic("load_ext daft_extension")
@@ -619,8 +616,8 @@ def test_extension():
         _ip.magic("unload_ext daft_extension")
         assert 'arq' not in _ip.user_ns
     finally:
-        sys.path.remove(daft_path)
-
+        _ip.ipython_dir = orig_ipython_dir
+        tmpdir.cleanup()
 
 def test_notebook_export_json():
     _ip = get_ipython()
