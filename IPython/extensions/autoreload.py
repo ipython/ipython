@@ -272,7 +272,7 @@ def update_function(old, new):
 def update_class(old, new):
     """Replace stuff in the __dict__ of a class, and upgrade
     method code objects"""
-    for key in list(old.__dict__.keys()):
+    for key in set(list(old.__dict__.keys()) + list(new.__dict__.keys())):
         old_obj = getattr(old, key)
         try:
             new_obj = getattr(new, key)
@@ -286,7 +286,9 @@ def update_class(old, new):
                 pass
             continue
 
-        if update_generic(old_obj, new_obj): continue
+        #prevent recursion
+        if old_obj not in [old, new] and new_obj not in [old, new]:
+            if update_generic(old_obj, new_obj): continue
 
         try:
             setattr(old, key, getattr(new, key))
