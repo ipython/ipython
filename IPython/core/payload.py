@@ -52,4 +52,4 @@ class PayloadManager(Configurable):
         return self._payload
 
     def clear_payload(self):
-        self._payload = []
+        self._payload = List([])
