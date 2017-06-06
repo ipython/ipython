@@ -165,7 +165,7 @@ syntax = \
        [(i,py3compat.u_format(o)) for i,o in \
        [ (u'In [1]: %lsmagic', "get_ipython().run_line_magic({u}'lsmagic', {u}'')"),
          (u'>>> %lsmagic', "get_ipython().run_line_magic({u}'lsmagic', {u}'')"),
-         (u'In [2]: !ls', "get_ipython().system({u}'ls', {u}'')"),
+         (u'In [2]: !ls', "get_ipython().system({u}'ls')"),
          (u'In [3]: abs?', "get_ipython().run_line_magic({u}'pinfo', {u}'abs')"),
          (u'In [4]: b = %who', "b = get_ipython().run_line_magic({u}'who', {u}'')"),
          ]],
