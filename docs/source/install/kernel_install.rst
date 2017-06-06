@@ -25,6 +25,7 @@ Or using conda, create a Python 2 environment::
     conda create -n ipykernel_py2 python=2 ipykernel
     source activate ipykernel_py2    # On Windows, remove the word 'source'
     python -m ipykernel install --user
+    conda install ipywidgets --no-deps # To properly link widgets with the Notebook
 
 If you're running Jupyter on Python 2 and want to set up a Python 3 kernel,
 follow the same steps, replacing ``2`` with ``3``.
