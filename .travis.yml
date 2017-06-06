@@ -6,6 +6,8 @@ python:
     - 3.5
     - 3.4
     - 3.3
+    - pypy
+    
 sudo: false
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
