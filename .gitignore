@@ -21,3 +21,4 @@ __pycache__
 .#*
 .coverage
 *.swp
+.notes
