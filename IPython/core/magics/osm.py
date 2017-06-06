@@ -183,7 +183,7 @@ class OSMagics(Magics):
                 for pdir in path:
                     try:
                         os.chdir(pdir)
-                        dirlist = os.listdir(pdir)
+                        dirlist = os.scandir(pdir)
                     except OSError:
                         continue
                     for ff in dirlist:
@@ -203,7 +203,7 @@ class OSMagics(Magics):
                 for pdir in path:
                     try:
                         os.chdir(pdir)
-                        dirlist = os.listdir(pdir)
+                        dirlist = os.scandir(pdir)
                     except OSError:
                         continue
                     for ff in dirlist:

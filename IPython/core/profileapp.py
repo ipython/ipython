@@ -96,7 +96,7 @@ ipython locate profile foo # print the path to the directory for profile 'foo'
 
 def list_profiles_in(path):
     """list profiles in a given root directory"""
-    files = os.listdir(path)
+    files = os.scandir(path)
     profiles = []
     for f in files:
         try:
@@ -111,7 +111,7 @@ def list_profiles_in(path):
 def list_bundled_profiles():
     """list profiles that are bundled with IPython."""
     path = os.path.join(get_ipython_package_dir(), u'core', u'profile')
-    files = os.listdir(path)
+    files = os.scandir(path)
     profiles = []
     for profile in files:
         full_path = os.path.join(path, profile)
