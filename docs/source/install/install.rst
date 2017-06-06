@@ -107,6 +107,14 @@ the IPython source tree:
 
     $ iptest
 
+
+For the tests to succeed, you may also need to install :mod:`mock` and :mod:`gnureadline`:
+
+.. code-block:: bash
+
+    $ pip install mock gnureadline
+    
+
 .. _devinstall:
 
 Installing the development version
