@@ -1,0 +1,2 @@
+http://selenium.googlecode.com/svn/trunk/docs/api/py/webdriver_remote/selenium.webdriver.remote.webdriver.html
+http://selenium-python.readthedocs.org/en/latest/index.html
