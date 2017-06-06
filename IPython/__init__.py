@@ -40,6 +40,10 @@ See IPython `README.rst` file for more information:
 
 """)
 
+# Monkeypatch pygments.plugin to avoid loading pkg_resources, which is slow.
+from . import pygments_plugin
+sys.modules['pygments.plugin'] = pygments_plugin
+
 # Make it easy to import extensions - they are always directly on pythonpath.
 # Therefore, non-IPython modules can be added to extensions directory.
 # This should probably be in ipapp.py.

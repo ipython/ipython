@@ -25,7 +25,7 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
 
-from pygments.styles import get_style_by_name, get_all_styles
+from pygments.styles import get_style_by_name, STYLE_MAP
 from pygments.style import Style
 from pygments.token import Token
 
@@ -131,7 +131,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     highlighting_style = Union([Unicode('legacy'), Type(klass=Style)],
         help="""The name or class of a Pygments style to use for syntax
-        highlighting: \n %s""" % ', '.join(get_all_styles())
+        highlighting: \n %s (+ any styles from plugins)""" % ', '.join(STYLE_MAP)
     ).tag(config=True)
 
 
