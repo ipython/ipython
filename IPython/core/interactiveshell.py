@@ -2825,7 +2825,10 @@ class InteractiveShell(SingletonConfigurable):
 
         try:
             for i, node in enumerate(to_run_exec):
-                mod = ast.Module([node])
+                try:
+                    mod = ast.Module([node])
+                except TypeError:
+                    mod = ast.Module([node],'fake docstring workaround Python 3.7-master')
                 code = compiler(mod, cell_name, "exec")
                 if self.run_code(code, result):
                     return True
