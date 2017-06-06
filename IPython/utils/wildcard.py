@@ -19,9 +19,11 @@ import types
 
 from IPython.utils.dir2 import dir2
 
-def create_typestr2type_dicts(dont_include_in_type2typestr=["lambda"]):
+def create_typestr2type_dicts(dont_include_in_type2typestr=None):
     """Return dictionaries mapping lower case typename (e.g. 'tuple') to type
     objects from the types package, and vice versa."""
+    if not dont_include_in_type2typestr:
+        dont_include_in_type2typestr = ["lambda"]
     typenamelist = [tname for tname in dir(types) if tname.endswith("Type")]
     typestr2type, type2typestr = {}, {}
 

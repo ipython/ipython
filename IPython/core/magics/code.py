@@ -529,7 +529,7 @@ class CodeMagics(Magics):
 
     @skip_doctest
     @line_magic
-    def edit(self, parameter_s='',last_call=['','']):
+    def edit(self, parameter_s='', last_call=None):
         """Bring up an editor and execute the resulting code.
 
         Usage:
@@ -672,6 +672,8 @@ class CodeMagics(Magics):
         starting example for further modifications.  That file also has
         general instructions on how to set a new hook for use once you've
         defined it."""
+        if not last_call:
+            last_call = ['', '']
         opts,args = self.parse_options(parameter_s,'prxn:')
 
         try:
