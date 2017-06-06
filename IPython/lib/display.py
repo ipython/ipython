@@ -555,3 +555,64 @@ class FileLinks(FileLink):
         for dirname, subdirs, fnames in walked_dir:
             result_lines += self.terminal_display_formatter(dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
+
+
+def xkcdify(borders=True, code=True, html=True, prompts=True, output=True,
+    font_url='https://github.com/ipython/xkcd-font/raw/master/build/xkcd.otf'):
+    """Turn on xkcd mode for the notebook.
+    
+    Run this in your notebook and it will enable the xkcd regular font
+    from the xkcd website. Your browser will load this font from the internet
+    so this only works if you are online.
+
+    This mode can be used with Matplotlib's new xkcd mode to great effect. However,
+    you will have to enable that separately by calling matplotlibs xkcd function.
+
+    The long term plan is to add CSS themes to the Notebook and we would implement
+    this mode using those themes eventually.
+    """
+    from IPython.display import display, HTML
+    s = """
+    <style>
+    @font-face {
+        font-family: "xkcd";
+        src: url('%s');
+    }
+    """ % font_url
+    if borders:
+        s += """
+        div.cell {
+            border: 2px solid black;
+            margin-top: 10px;
+            margin-bottom: 10 px;
+        }
+        div.cell.selected {
+            border: 2px solid black;
+            margin-top: 10px;
+            margin-bottom: 10 px;
+        }
+        """
+    if code:
+        s += """
+        .CodeMirror {font-family: xkcd; font-size: 120%}
+        """
+    if html:
+        s += """
+        .rendered_html {font-family: xkcd; font-size: 120%}
+        pre, code {font-family: xkcd; font-size: 120%}
+        .rendered_html table {border: 2px solid black;}
+        .rendered_html tr {border: 2px solid black;}
+        .rendered_html th {border: 2px solid black; padding: 0.45em 1em;}
+        .rendered_html td {border: 2px solid black; padding: 0.45em 1em;}
+        """
+    if prompts:
+        s += """
+        div.prompt {font-family: xkcd; font-size: 120%}
+        """
+    if output:
+        s += """
+        div.output_area pre {font-family: xkcd; font-size: 120%}
+        """
+    s += """</style>"""
+    display(HTML(s))
+
