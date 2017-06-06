@@ -11,16 +11,11 @@ interface for IronPython will probably require you to help fill
 in the details. 
 """
 
-# Import cli libraries:
-import clr
+
 import System
-
-# Import Python libraries:
 import os
-
-# Import IPython libraries:
 from IPython.utils import py3compat
-from ._process_common import arg_split
+
 
 def _find_cmd(cmd):
     """Find the full path to a command using which."""
