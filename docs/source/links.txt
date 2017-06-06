@@ -85,7 +85,7 @@
 .. _notebook_p3: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%203%20-%20Plotting%20with%20Matplotlib.ipynb
 
 .. _Markdown Cells: notebook_p4_
-.. _notebook_p4: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%204%20-%20Markdown%20Cells.ipynb
+.. _notebook_p4: http://nbviewer.ipython.org/github/ipython/ipython/blob/master/examples/notebooks/Part%204%20-%20Markdown%20Cells.ipynb
 
 .. _Rich Display System: notebook_p5_
 .. _notebook_p5: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%205%20-%20Rich%20Display%20System.ipynb
