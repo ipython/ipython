@@ -81,13 +81,13 @@ def test_config():
     magic.
     """
     ## should not raise.
-    _ip.magic('config')
+    _ip.run_line_magic('config','')
 
 def test_config_available_configs():
     """ test that config magic prints available configs in unique and
     sorted order. """
     with capture_output() as captured:
-        _ip.magic('config')
+        _ip.run_line_magic('config','')
 
     stdout = captured.stdout
     config_classes = stdout.strip().split('\n')[1:]
@@ -96,7 +96,7 @@ def test_config_available_configs():
 def test_config_print_class():
     """ test that config with a classname prints the class's options. """
     with capture_output() as captured:
-        _ip.magic('config TerminalInteractiveShell')
+        _ip.run_line_magic('config', 'TerminalInteractiveShell')
 
     stdout = captured.stdout
     if not re.match("TerminalInteractiveShell.* options", stdout.splitlines()[0]):
@@ -109,7 +109,7 @@ def test_rehashx():
     _ip.alias_manager.clear_aliases()
     del _ip.db['syscmdlist']
     
-    _ip.magic('rehashx')
+    _ip.run_line_magic('rehashx', '')
     # Practically ALL ipython development systems will have more than 10 aliases
 
     nt.assert_true(len(_ip.alias_manager.aliases) > 10)
@@ -263,11 +263,11 @@ def test_macro():
     cmds = ["a=1", "def b():\n  return a**2", "print(a,b())"]
     for i, cmd in enumerate(cmds, start=1):
         ip.history_manager.store_inputs(i, cmd)
-    ip.magic("macro test 1-3")
+    ip.run_line_magic('macro', 'test 1-3')
     nt.assert_equal(ip.user_ns["test"].value, "\n".join(cmds)+"\n")
     
     # List macros
-    nt.assert_in("test", ip.magic("macro"))
+    nt.assert_in("test", ip.run_line_magic("macro",''))
 
 
 @dec.skip_without('sqlite3')
@@ -291,7 +291,7 @@ def test_magic_magic():
     """Test %magic"""
     ip = get_ipython()
     with capture_output() as captured:
-        ip.magic("magic")
+        ip.run_line_magic("magic", '')
     
     stdout = captured.stdout
     nt.assert_in('%magic', stdout)
@@ -305,7 +305,7 @@ def test_numpy_reset_array_undec():
     _ip.ex('import numpy as np')
     _ip.ex('a = np.empty(2)')
     nt.assert_in('a', _ip.user_ns)
-    _ip.magic('reset -f array')
+    _ip.run_line_magic('reset', '-f array')
     nt.assert_not_in('a', _ip.user_ns)
 
 def test_reset_out():
@@ -314,7 +314,7 @@ def test_reset_out():
     # test '%reset -f out', make an Out prompt
     _ip.run_cell("parrot", store_history=True)
     nt.assert_true('dead' in [_ip.user_ns[x] for x in ('_','__','___')])
-    _ip.magic('reset -f out')
+    _ip.run_line_magic('reset', '-f out')
     nt.assert_false('dead' in [_ip.user_ns[x] for x in ('_','__','___')])
     nt.assert_equal(len(_ip.user_ns['Out']), 0)
 
@@ -323,17 +323,17 @@ def test_reset_in():
     # test '%reset -f in'
     _ip.run_cell("parrot", store_history=True)
     nt.assert_true('parrot' in [_ip.user_ns[x] for x in ('_i','_ii','_iii')])
-    _ip.magic('%reset -f in')
+    _ip.run_line_magic('%reset', '-f in')
     nt.assert_false('parrot' in [_ip.user_ns[x] for x in ('_i','_ii','_iii')])
     nt.assert_equal(len(set(_ip.user_ns['In'])), 1)
 
 def test_reset_dhist():
     "Test '%reset dhist' magic"
     _ip.run_cell("tmp = [d for d in _dh]") # copy before clearing
-    _ip.magic('cd ' + os.path.dirname(nt.__file__))
-    _ip.magic('cd -')
+    _ip.run_line_magic('cd ',  os.path.dirname(nt.__file__))
+    _ip.run_line_magic('cd', '-')
     nt.assert_true(len(_ip.user_ns['_dh']) > 0)
-    _ip.magic('reset -f dhist')
+    _ip.run_line_magic('reset','-f dhist')
     nt.assert_equal(len(_ip.user_ns['_dh']), 0)
     _ip.run_cell("_dh = [d for d in tmp]") #restore
 
@@ -394,8 +394,8 @@ def test_time3():
 
 def test_doctest_mode():
     "Toggle doctest_mode twice, it should be a no-op and run without error"
-    _ip.magic('doctest_mode')
-    _ip.magic('doctest_mode')
+    _ip.run_line_magic('doctest_mode','')
+    _ip.run_line_magic('doctest_mode','')
 
 
 def test_parse_options():
@@ -414,13 +414,13 @@ def test_dirops():
     startdir = os.getcwd()
     ipdir = os.path.realpath(_ip.ipython_dir)
     try:
-        _ip.magic('cd "%s"' % ipdir)
+        _ip.run_line_magic('cd', ipdir)
         nt.assert_equal(curpath(), ipdir)
-        _ip.magic('cd -')
+        _ip.run_line_magic('cd', '-')
         nt.assert_equal(curpath(), startdir)
-        _ip.magic('pushd "%s"' % ipdir)
+        _ip.run_line_magic('pushd',ipdir)
         nt.assert_equal(curpath(), ipdir)
-        _ip.magic('popd')
+        _ip.run_line_magic('popd','')
         nt.assert_equal(curpath(), startdir)
     finally:
         os.chdir(startdir)
@@ -430,7 +430,7 @@ def test_xmode():
     # Calling xmode three times should be a no-op
     xmode = _ip.InteractiveTB.mode
     for i in range(3):
-        _ip.magic("xmode")
+        _ip.run_line_magic("xmode",'')
     nt.assert_equal(_ip.InteractiveTB.mode, xmode)
     
 def test_reset_hard():
@@ -445,7 +445,7 @@ def test_reset_hard():
     _ip.run_cell("a")
     
     nt.assert_equal(monitor, [])
-    _ip.magic("reset -f")
+    _ip.run_line_magic("reset","-f")
     nt.assert_equal(monitor, [1])
     
 class TestXdel(tt.TempFileMixin):
@@ -458,14 +458,14 @@ class TestXdel(tt.TempFileMixin):
                "a = A()\n")
         self.mktmp(src)
         # %run creates some hidden references...
-        _ip.magic("run %s" % self.fname)
+        _ip.run_line_magic("run", str(self.fname))
         # ... as does the displayhook.
         _ip.run_cell("a")
         
         monitor = _ip.user_ns["A"].monitor
         nt.assert_equal(monitor, [])
         
-        _ip.magic("xdel a")
+        _ip.run_line_magic("xdel", "a")
         
         # Check that a's __del__ method has been called.
         nt.assert_equal(monitor, [1])
@@ -501,7 +501,7 @@ def test_whos():
         def __repr__(self):
             raise Exception()
     _ip.user_ns['a'] = A()
-    _ip.magic("whos")
+    _ip.run_line_magic("whos",'')
 
 @py3compat.u_format
 def doctest_precision():
@@ -529,17 +529,17 @@ def test_psearch():
 def test_timeit_shlex():
     """test shlex issues with timeit (#1109)"""
     _ip.ex("def f(*a,**kw): pass")
-    _ip.magic('timeit -n1 "this is a bug".count(" ")')
-    _ip.magic('timeit -r1 -n1 f(" ", 1)')
-    _ip.magic('timeit -r1 -n1 f(" ", 1, " ", 2, " ")')
-    _ip.magic('timeit -r1 -n1 ("a " + "b")')
-    _ip.magic('timeit -r1 -n1 f("a " + "b")')
-    _ip.magic('timeit -r1 -n1 f("a " + "b ")')
+    _ip.run_line_magic('timeit', '-n1 "this is a bug".count(" ")')
+    _ip.run_line_magic('timeit', '-r1 -n1 f(" ", 1)')
+    _ip.run_line_magic('timeit', '-r1 -n1 f(" ", 1, " ", 2, " ")')
+    _ip.run_line_magic('timeit', '-r1 -n1 ("a " + "b")')
+    _ip.run_line_magic('timeit','-r1 -n1 f("a " + "b")')
+    _ip.run_line_magic('timeit', '-r1 -n1 f("a " + "b ")')
 
 
 def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
-    _ip.magic("timeit ('#')")
+    _ip.run_line_magic("timeit","('#')")
 
 
 def test_timeit_special_syntax():
@@ -598,7 +598,7 @@ def test_prun_special_syntax():
 @dec.skipif(execution.profile is None)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
-    _ip.magic(r"prun -q x = '\t'")
+    _ip.run_line_magic("prun", "-q x = '\t'")
     nt.assert_equal(_ip.user_ns['x'], '\t')
 
 def test_extension():
@@ -614,9 +614,9 @@ def test_extension():
     try:
         _ip.user_ns.pop('arq', None)
         invalidate_caches()   # Clear import caches
-        _ip.magic("load_ext daft_extension")
+        _ip.run_line_magic("load_ext","daft_extension")
         nt.assert_equal(_ip.user_ns['arq'], 185)
-        _ip.magic("unload_ext daft_extension")
+        _ip.run_line_magic("unload_ext","daft_extension")
         assert 'arq' not in _ip.user_ns
     finally:
         sys.path.remove(daft_path)
@@ -630,38 +630,38 @@ def test_notebook_export_json():
         _ip.history_manager.store_inputs(i, cmd)
     with TemporaryDirectory() as td:
         outfile = os.path.join(td, "nb.ipynb")
-        _ip.magic("notebook -e %s" % outfile)
+        _ip.run_line_magic("notebook", "-e %s" % outfile)
 
 
 class TestEnv(TestCase):
 
     def test_env(self):
-        env = _ip.magic("env")
+        env = _ip.run_line_magic("env", '')
         self.assertTrue(isinstance(env, dict))
 
     def test_env_get_set_simple(self):
-        env = _ip.magic("env var val1")
+        env = _ip.run_line_magic("env", "var val1")
         self.assertEqual(env, None)
         self.assertEqual(os.environ['var'], 'val1')
-        self.assertEqual(_ip.magic("env var"), 'val1')
-        env = _ip.magic("env var=val2")
+        self.assertEqual(_ip.run_line_magic("env", "var"), 'val1')
+        env = _ip.run_line_magic("env", "var=val2")
         self.assertEqual(env, None)
         self.assertEqual(os.environ['var'], 'val2')
 
     def test_env_get_set_complex(self):
-        env = _ip.magic("env var 'val1 '' 'val2")
+        env = _ip.run_line_magic("env","var 'val1 '' 'val2")
         self.assertEqual(env, None)
         self.assertEqual(os.environ['var'], "'val1 '' 'val2")
-        self.assertEqual(_ip.magic("env var"), "'val1 '' 'val2")
-        env = _ip.magic('env var=val2 val3="val4')
+        self.assertEqual(_ip.run_line_magic("env","var"), "'val1 '' 'val2")
+        env = _ip.run_line_magic('env', 'var=val2 val3="val4')
         self.assertEqual(env, None)
         self.assertEqual(os.environ['var'], 'val2 val3="val4')
 
     def test_env_set_bad_input(self):
-        self.assertRaises(UsageError, lambda: _ip.magic("set_env var"))
+        self.assertRaises(UsageError, lambda: _ip.run_line_magic("set_env", "var"))
 
     def test_env_set_whitespace(self):
-        self.assertRaises(UsageError, lambda: _ip.magic("env var A=B"))
+        self.assertRaises(UsageError, lambda: _ip.run_line_magic("env", "var A=B"))
 
 
 class CellMagicTestCase(TestCase):
@@ -996,7 +996,7 @@ def test_ls_magic():
     ip = get_ipython()
     json_formatter = ip.display_formatter.formatters['application/json']
     json_formatter.enabled = True
-    lsmagic = ip.magic('lsmagic')
+    lsmagic = ip.run_line_magic('lsmagic', '')
     with warnings.catch_warnings(record=True) as w:
         j = json_formatter(lsmagic)
     nt.assert_equal(sorted(j), ['cell', 'line'])

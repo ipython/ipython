@@ -172,13 +172,13 @@ class TestMagicRunPass(tt.TempFileMixin):
         _ip = get_ipython()
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.magic('run %s' % self.fname)
+        _ip.run_line_magic('run','%s' % self.fname)
         
     def run_tmpfile_p(self):
         _ip = get_ipython()
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.magic('run -p %s' % self.fname)
+        _ip.run_line_magic('run', '-p %s' % self.fname)
 
     def test_builtins_id(self):
         """Check that %run doesn't damage __builtins__ """
@@ -209,9 +209,9 @@ class TestMagicRunPass(tt.TempFileMixin):
         # https://github.com/ipython/ipython/issues/10028
         _ip = get_ipython()
         with tt.fake_input(['c']):
-            _ip.magic('run -d %s' % self.fname)
+            _ip.run_line_magic('run', '-d %s' % self.fname)
         with tt.fake_input(['c']):
-            _ip.magic('run -d %s' % self.fname)
+            _ip.run_line_magic('run', '-d %s' % self.fname)
 
 
 class TestMagicRunSimple(tt.TempFileMixin):
@@ -221,7 +221,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
         src = ("class foo: pass\n"
                "def f(): return foo()")
         self.mktmp(src)
-        _ip.magic('run %s' % self.fname)
+        _ip.run_line_magic('run','%s' % self.fname)
         _ip.run_cell('t = isinstance(f(), foo)')
         nt.assert_true(_ip.user_ns['t'])
 
@@ -256,12 +256,12 @@ class TestMagicRunSimple(tt.TempFileMixin):
             src = ("ip = get_ipython()\n"
                    "for i in range(5):\n"
                    "   try:\n"
-                   "       ip.magic(%r)\n"
+                   "       ip.run_line_magic(%r, %r)\n"
                    "   except NameError as e:\n"
                    "       print(i)\n"
-                   "       break\n" % ('run ' + empty.fname))
+                   "       break\n" % ('run ', empty.fname))
             self.mktmp(src)
-            _ip.magic('run %s' % self.fname)
+            _ip.run_line_magic('run','%s' % self.fname)
             _ip.run_cell('ip == get_ipython()')
             nt.assert_equal(_ip.user_ns['i'], 4)
     
@@ -275,8 +275,8 @@ class TestMagicRunSimple(tt.TempFileMixin):
         with tt.TempFileMixin() as empty:
             empty.mktmp("")
             
-            _ip.magic('run %s' % self.fname)
-            _ip.magic('run %s' % empty.fname)
+            _ip.run_line_magic('run',self.fname)
+            _ip.run_line_magic('run', empty.fname)
             nt.assert_equal(_ip.user_ns['afunc'](), 1)
 
     @dec.skip_win32
@@ -306,18 +306,18 @@ tclass.py: deleting object: C-third
         src = "yy = zz\n"
         self.mktmp(src)
         _ip.run_cell("zz = 23")
-        _ip.magic('run -i %s' % self.fname)
+        _ip.run_line_magic('run', '-i %s' % self.fname)
         nt.assert_equal(_ip.user_ns['yy'], 23)
-        _ip.magic('reset -f')
+        _ip.run_line_magic('reset', '-f')
         _ip.run_cell("zz = 23")
-        _ip.magic('run -i %s' % self.fname)
+        _ip.run_line_magic('run', '-i %s' % self.fname)
         nt.assert_equal(_ip.user_ns['yy'], 23)
     
     def test_unicode(self):
         """Check that files in odd encodings are accepted."""
         mydir = os.path.dirname(__file__)
         na = os.path.join(mydir, 'nonascii.py')
-        _ip.magic('run "%s"' % na)
+        _ip.run_line_magic('run', "%s" % na)
         nt.assert_equal(_ip.user_ns['u'], u'Ўт№Ф')
 
     def test_run_py_file_attribute(self):
@@ -326,7 +326,7 @@ tclass.py: deleting object: C-third
         self.mktmp(src)
         _missing = object()
         file1 = _ip.user_ns.get('__file__', _missing)
-        _ip.magic('run %s' % self.fname)
+        _ip.run_line_magic('run', '%s' % self.fname)
         file2 = _ip.user_ns.get('__file__', _missing)
 
         # Check that __file__ was equal to the filename in the script's
@@ -342,7 +342,7 @@ tclass.py: deleting object: C-third
         self.mktmp(src, ext='.ipy')
         _missing = object()
         file1 = _ip.user_ns.get('__file__', _missing)
-        _ip.magic('run %s' % self.fname)
+        _ip.run_line_magic('run', '%s' % self.fname)
         file2 = _ip.user_ns.get('__file__', _missing)
 
         # Check that __file__ was equal to the filename in the script's
@@ -356,18 +356,18 @@ tclass.py: deleting object: C-third
         """ Test that %run -t -N<N> does not raise a TypeError for N > 1."""
         src = "pass"
         self.mktmp(src)
-        _ip.magic('run -t -N 1 %s' % self.fname)
-        _ip.magic('run -t -N 10 %s' % self.fname)
+        _ip.run_line_magic('run', '-t -N 1 %s' % self.fname)
+        _ip.run_line_magic('run', '-t -N 10 %s' % self.fname)
     
     def test_ignore_sys_exit(self):
         """Test the -e option to ignore sys.exit()"""
         src = "import sys; sys.exit(1)"
         self.mktmp(src)
         with tt.AssertPrints('SystemExit'):
-            _ip.magic('run %s' % self.fname)
+            _ip.run_line_magic('run', '%s' % self.fname)
         
         with tt.AssertNotPrints('SystemExit'):
-            _ip.magic('run -e %s' % self.fname)
+            _ip.run_line_magic('run', '-e %s' % self.fname)
 
     def test_run_nb(self):
         """Test %run notebook.ipynb"""
@@ -381,7 +381,7 @@ tclass.py: deleting object: C-third
         src = writes(nb, version=4)
         self.mktmp(src, ext='.ipynb')
         
-        _ip.magic("run %s" % self.fname)
+        _ip.run_line_magic("run", "%s" % self.fname)
         
         nt.assert_equal(_ip.user_ns['answer'], 42)
 
@@ -436,7 +436,7 @@ class TestMagicRunWithPackage(unittest.TestCase):
 
     def check_run_submodule(self, submodule, opts=''):
         _ip.user_ns.pop('x', None)
-        _ip.magic('run {2} -m {0}.{1}'.format(self.package, submodule, opts))
+        _ip.run_line_magic('run', '{2} -m {0}.{1}'.format(self.package, submodule, opts))
         self.assertEqual(_ip.user_ns['x'], self.value,
                          'Variable `x` is not loaded from module `{0}`.'
                          .format(submodule))
@@ -488,13 +488,13 @@ def test_run__name__():
             f.write("q = __name__")
         
         _ip.user_ns.pop('q', None)
-        _ip.magic('run {}'.format(path))
+        _ip.run_line_magic('run', '{}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), '__main__')
         
-        _ip.magic('run -n {}'.format(path))
+        _ip.run_line_magic('run', '-n {}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
 
-        _ip.magic('run -i -n {}'.format(path))
+        _ip.run_line_magic('run', '-i -n {}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
 
 
@@ -511,7 +511,7 @@ def test_run_tb():
                 "foo()",
             ]))
         with capture_output() as io:
-            _ip.magic('run {}'.format(path))
+            _ip.run_line_magic('run','{}'.format(path))
         out = io.stdout
         nt.assert_not_in("execfile", out)
         nt.assert_in("RuntimeError", out)

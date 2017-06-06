@@ -2036,7 +2036,7 @@ class InteractiveShell(SingletonConfigurable):
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        self.magic('colors %s' % self.colors)
+        self.run_line_magic('colors', self.colors)
     
     # Defined here so that it's included in the documentation
     @functools.wraps(magic.MagicsManager.register_function)
