@@ -43,6 +43,14 @@ else:
         "/etc/ipython",
     ]
 
+
+ENV_CONFIG_DIRS = []
+_env_config_dir = os.path.join(sys.prefix, 'etc', 'ipython')
+if _env_config_dir not in SYSTEM_CONFIG_DIRS:
+    # only add ENV_CONFIG if sys.prefix is not already included
+    ENV_CONFIG_DIRS.append(_env_config_dir)
+
+
 _envvar = os.environ.get('IPYTHON_SUPPRESS_CONFIG_ERRORS')
 if _envvar in {None, ''}:
     IPYTHON_SUPPRESS_CONFIG_ERRORS = None
@@ -398,6 +406,7 @@ class BaseIPythonApplication(Application):
 
     def init_config_files(self):
         """[optionally] copy default config files into profile dir."""
+        self.config_file_paths.extend(ENV_CONFIG_DIRS)
         self.config_file_paths.extend(SYSTEM_CONFIG_DIRS)
         # copy config files
         path = self.builtin_profile_dir
