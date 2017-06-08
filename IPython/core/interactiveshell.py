@@ -2036,7 +2036,7 @@ class InteractiveShell(SingletonConfigurable):
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        self.magic('colors %s' % self.colors)
+        self.run_line_magic('colors', self.colors)
     
     # Defined here so that it's included in the documentation
     @functools.wraps(magic.MagicsManager.register_function)
@@ -2044,7 +2044,7 @@ class InteractiveShell(SingletonConfigurable):
         self.magics_manager.register_function(func, 
                                   magic_kind=magic_kind, magic_name=magic_name)
 
-    def run_line_magic(self, magic_name, line, back_compat=False):
+    def run_line_magic(self, magic_name, line, _stack_depth=1):
         """Execute the given line magic.
 
         Parameters
@@ -2055,8 +2055,8 @@ class InteractiveShell(SingletonConfigurable):
         line : str
           The rest of the input line as a single string.
           
-        back_compat : bool
-          If run_line_magic() is called from magic() then it should be 'True'.
+        _stack_depth : int
+          If run_line_magic() is called from magic() then _stack_depth=2.
           This is added to ensure backward compatibility for use of 'get_ipython().magic()'
         """
         fn = self.find_line_magic(magic_name)
@@ -2070,13 +2070,9 @@ class InteractiveShell(SingletonConfigurable):
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
             # refactored, or else we'll be expanding the wrong variables.
+            
             # Determine stack_depth depending on where run_line_magic() has been called
-            if back_compat:
-                # run_line_magic() called directly using 'get_ipython().magic()'
-                stack_depth = 2
-            else:
-                # run_line_magic() called directly using 'get_ipython().run_line_magic()'
-                stack_depth = 1
+            stack_depth = _stack_depth
             magic_arg_s = self.var_expand(line, stack_depth)
             # Put magic args in a list so we can call with f(*a) syntax
             args = [magic_arg_s]
@@ -2164,7 +2160,7 @@ class InteractiveShell(SingletonConfigurable):
         # TODO: should we issue a loud deprecation warning here?
         magic_name, _, magic_arg_s = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-        return self.run_line_magic(magic_name, magic_arg_s, back_compat=True)
+        return self.run_line_magic(magic_name, magic_arg_s, _stack_depth=2)
 
     #-------------------------------------------------------------------------
     # Things related to macros

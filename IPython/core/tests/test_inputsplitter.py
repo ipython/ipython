@@ -568,7 +568,7 @@ class CellMagicsCommon(object):
     def test_whole_cell(self):
         src = "%%cellm line\nbody\n"
         out = self.sp.transform_cell(src)
-        ref = u"get_ipython().run_cell_magic({u}'cellm', {u}'line', {u}'body')\n"
+        ref = u"get_ipython().run_cell_magic('cellm', 'line', 'body')\n"
         nt.assert_equal(out, py3compat.u_format(ref))
     
     def test_cellmagic_help(self):
