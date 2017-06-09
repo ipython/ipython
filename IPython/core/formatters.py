@@ -30,7 +30,6 @@ from traitlets import (
     default, observe,
 )
 
-
 class DisplayFormatter(Configurable):
 
     active_types = List(Unicode(),
@@ -87,7 +86,7 @@ class DisplayFormatter(Configurable):
         return d
 
     def format(self, obj, include=None, exclude=None):
-        """Return a format data dict for an object.
+        """Return a format (data dict, metadata dict) pair for an object.
 
         By default all format types will be computed.
 
@@ -122,14 +121,15 @@ class DisplayFormatter(Configurable):
         -------
         (format_dict, metadata_dict) : tuple of two dicts
         
-            format_dict is a dictionary of key/value pairs, one of each format that was
-            generated for the object. The keys are the format types, which
-            will usually be MIME type strings and the values and JSON'able
-            data structure containing the raw data for the representation in
-            that format.
+            format_dict is a dictionary of key/value pairs, one of each
+            format that was generated for the object. The keys are the format
+            types, which will usually be MIME type strings and the values and
+            JSON'able data structure containing the raw data for the
+            representation in that format.
             
-            metadata_dict is a dictionary of metadata about each mime-type output.
-            Its keys will be a strict subset of the keys in format_dict.
+            metadata_dict is a dictionary of metadata about each
+            mime-type output. Its keys will be a strict subset of the keys in
+            format_dict.
 
         Notes
         -----
@@ -138,6 +138,9 @@ class DisplayFormatter(Configurable):
             `_repr_*_`, the data returned by `_repr_mimebundle_` will take
             precedence and the corresponding `_repr_*_` for this mimetype will
             not be called.
+
+            TODO: Figure out and document whether user registered formatters do
+            overwrite (or not ?) the _repr_*_ of these objects.
 
         """
         format_dict = {}
@@ -156,7 +159,6 @@ class DisplayFormatter(Configurable):
             if exclude:
                 format_dict = {k:v for k,v in format_dict.items() if k not in exclude}
                 md_dict = {k:v for k,v in md_dict.items() if k not in exclude}
-
         for format_type, formatter in self.formatters.items():
             if format_type in format_dict:
                 # already got it from mimebundle, don't render again
@@ -633,7 +635,7 @@ class PlainTextFormatter(BaseFormatter):
             # got explicit format string
             fmt = new
             try:
-                fmt%3.14159
+                fmt % 3.14159
             except Exception:
                 raise ValueError("Precision must be int or format string, not %r"%new)
         elif new:

@@ -27,7 +27,8 @@ __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
 'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'GeoJSON', 'Javascript',
 'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
-'publish_display_data', 'update_display', 'DisplayHandle', 'Video']
+'publish_display_data', 'update_display', 'DisplayHandle', 'Video', 'get_repr_mimebundle',
+'RecursiveObject', 'ReprGetter']
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -117,6 +118,7 @@ def publish_display_data(data, metadata=None, source=None, *, transient=None, **
         Unused.
     transient : dict, keyword-only
         A dictionary of transient data, such as display_id.
+
         """
     from IPython.core.interactiveshell import InteractiveShell
 
@@ -139,6 +141,117 @@ def _new_id():
     """Generate a new random text id with urandom"""
     return b2a_hex(os.urandom(16)).decode('ascii')
 
+class RecursiveObject:
+    """
+    Default recursive object that provides a recursion repr if needed.
+
+    You may register a formatter for this object that will be call when
+    recursion is reached.
+    """
+
+    def __init__(self, already_seen):
+        pass
+
+    def __repr__(self):
+        return '<recursion ...>'
+
+    def _repr_html_(self):
+        return '&lt;recursion ...&gt;'
+
+
+class DataMetadata(tuple):
+
+    @property
+    def data(self):
+        return self[0]
+
+    @property
+    def metadata(self):
+        return  self[1]
+
+
+class ReprGetter:
+    """
+    Object to carry recursion state when computing formating information when
+    computing rich representation.
+
+    useful when computing representation concurrently of nested object that may
+    refer to common resources.
+    """
+
+    __slots__ = ('_objs',)
+
+    def __init__(self):
+        self._objs = set()
+
+    def get_repr_mimebundle(self, obj, include=None, exclude=None, *, on_recursion=RecursiveObject):
+        """
+        return the representations of an object and associated metadata.
+
+        An given object can have many representation available, that can be defined
+        in many ways: `_repr_*_` methods, `_repr_mimebundle_`, or user-registered
+        formatter for types.
+
+        When given an object, :any:`get_repr_mimebundle` will search for the
+        various formatting option with their associated priority and return the
+        requested representation and associated metadata.
+
+
+        Parameters
+        ----------
+        obj : an objects
+            The Python objects to get the representation data.
+        include : list, tuple or set, optional
+            A list of format type strings (MIME types) to include in the
+            format data dict. If this is set *only* the format types included
+            in this list will be computed.
+        exclude : list, tuple or set, optional
+            A list of format type strings (MIME types) to exclude in the format
+            data dict. If this is set all format types will be computed,
+            except for those included in this argument.
+        on_recursion: callable
+            Return an object to compute the representation when recursion is
+            detected.
+
+
+        Returns
+        -------
+        (data, metadata) : named tuple of two dicts
+
+            - 0/.data: See :any:`DisplayFormatter.format`.
+            - 1/.metadata: See :any:`DisplayFormatter.format`
+
+        Note
+        ----
+
+        When :any:`get_repr_mimebundle` detect it is recursively called, it will
+        attempt to return the representation of :class:`RecursiveObject`. You
+        may register extra formatter for :class:`RecursiveObject`
+
+        If you are computing objects representation in a concurrent way (thread,
+        coroutines, ...), you should make sure to instanciate a
+        :class:`ReprGetter` object and use one per task to avoid race conditions.
+
+        See Also
+        --------
+            :func:`display`, :any:`DisplayFormatter.format`
+
+        """
+        from IPython.core.interactiveshell import InteractiveShell
+        fmt = InteractiveShell.instance().display_formatter.format
+        if id(obj) in self._objs:
+            return DataMetadata(fmt(on_recursion(obj), include=include, exclude=exclude))
+        else:
+            try:
+                self._objs.add(id(obj))
+                return DataMetadata(fmt(obj, include=include, exclude=exclude))
+            finally:
+                self._objs.discard(id(obj))
+
+# Expose this for convenience at the top level. Similar to what the random
+# module in python does. If you want to avoid weird behavior from concurrency:
+#   Instantiate your own.
+get_repr_mimebundle = ReprGetter().get_repr_mimebundle
 
 def display(*objs, include=None, exclude=None, metadata=None, transient=None, display_id=None, **kwargs):
     """Display a Python object in all frontends.
@@ -259,7 +372,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
       - `_repr_svg_`: return raw SVG data as a string
       - `_repr_latex_`: return LaTeX commands in a string surrounded by "$".
       - `_repr_mimebundle_`: return a full mimebundle containing the mapping
-      from all mimetypes to data
+        from all mimetypes to data
 
     When you are directly writing your own classes, you can adapt them for
     display in IPython by following the above approach. But in practice, you
@@ -300,14 +413,11 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     if transient:
         kwargs['transient'] = transient
 
-    if not raw:
-        format = InteractiveShell.instance().display_formatter.format
-
     for obj in objs:
         if raw:
             publish_display_data(data=obj, metadata=metadata, **kwargs)
         else:
-            format_dict, md_dict = format(obj, include=include, exclude=exclude)
+            format_dict, md_dict = get_repr_mimebundle(obj, include=include, exclude=exclude)
             if not format_dict:
                 # nothing to display (e.g. _ipython_display_ took over)
                 continue
@@ -1338,3 +1448,15 @@ def set_matplotlib_close(close=True):
     from ipykernel.pylab.config import InlineBackend
     cfg = InlineBackend.instance()
     cfg.close_figures = close
+
+
+
+for oname in __all__:
+    # set the module name to IPython.display or sphinx cannot correctly cross
+    # link. Mostly it figures out that objets are in IPython.core.display, but
+    # that's a module we explicitly do not document.
+    try:
+        # using hasattr to check still raises an AttributeError.
+        locals()[oname].__module__ = 'IPython.display' 
+    except AttributeError:
+        pass
