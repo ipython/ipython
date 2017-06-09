@@ -162,6 +162,13 @@ def test_display_available():
     with AssertNotPrints('NameError'):
         ip.run_cell('display')
 
+def test_textdisplayobj_pretty_repr():
+     p = display.Pretty("This is a simple test")
+     nt.assert_equal(repr(p), '<IPython.core.display.Pretty object>')
+     nt.assert_equal(p.data, 'This is a simple test')
+
+     p._show_mem_addr = True
+     nt.assert_equal(repr(p), object.__repr__(p))
 
 def test_displayobject_repr():
     h = display.HTML('<br />')
