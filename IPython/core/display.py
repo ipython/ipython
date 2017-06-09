@@ -659,8 +659,8 @@ class TextDisplayObject(DisplayObject):
 
 class Pretty(TextDisplayObject):
 
-    def _repr_pretty_(self):
-        return self.data
+    def _repr_pretty_(self, pp, cycle):
+        return pp.text(self.data)
 
 
 class HTML(TextDisplayObject):
