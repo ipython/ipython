@@ -198,11 +198,14 @@ def _make_help_call(target, esc, lspace, next_input=None):
                 else 'psearch' if '*' in target \
                 else 'pinfo'
     arg = " ".join([method, target])
+    #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
+    t_magic_name, _, t_magic_arg_s = arg.partition(' ')
+    t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
     if next_input is None:
-        return '%sget_ipython().magic(%r)' % (lspace, arg)
+        return '%sget_ipython().run_line_magic(%r, %r)' % (lspace, t_magic_name, t_magic_arg_s)
     else:
-        return '%sget_ipython().set_next_input(%r);get_ipython().magic(%r)' % \
-           (lspace, next_input, arg)
+        return '%sget_ipython().set_next_input(%r);get_ipython().run_line_magic(%r, %r)' % \
+           (lspace, next_input, t_magic_name, t_magic_arg_s)
     
 # These define the transformations for the different escape characters.
 def _tr_system(line_info):
@@ -225,11 +228,14 @@ def _tr_help(line_info):
 
 def _tr_magic(line_info):
     "Translate lines escaped with: %"
-    tpl = '%sget_ipython().magic(%r)'
+    tpl = '%sget_ipython().run_line_magic(%r, %r)'
     if line_info.line.startswith(ESC_MAGIC2):
         return line_info.line
     cmd = ' '.join([line_info.ifun, line_info.the_rest]).strip()
-    return tpl % (line_info.pre, cmd)
+    #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
+    t_magic_name, _, t_magic_arg_s = cmd.partition(' ')
+    t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
+    return tpl % (line_info.pre, t_magic_name, t_magic_arg_s)
 
 def _tr_quote(line_info):
     "Translate lines escaped with: ,"
@@ -514,12 +520,15 @@ def assign_from_system(line):
     return assign_system_template % m.group('lhs', 'cmd')
 
 assign_magic_re = re.compile(r'{}%\s*(?P<cmd>.*)'.format(_assign_pat), re.VERBOSE)
-assign_magic_template = '%s = get_ipython().magic(%r)'
+assign_magic_template = '%s = get_ipython().run_line_magic(%r, %r)'
 @StatelessInputTransformer.wrap
 def assign_from_magic(line):
     """Transform assignment from magic commands (e.g. a = %who_ls)"""
     m = assign_magic_re.match(line)
     if m is None:
         return line
-    
-    return assign_magic_template % m.group('lhs', 'cmd')
+    #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
+    m_lhs, m_cmd = m.group('lhs', 'cmd')
+    t_magic_name, _, t_magic_arg_s = m_cmd.partition(' ')
+    t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
+    return assign_magic_template % (m_lhs, t_magic_name, t_magic_arg_s)

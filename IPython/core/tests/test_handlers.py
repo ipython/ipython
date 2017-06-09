@@ -53,7 +53,7 @@ def test_handlers():
     # line.
     run([(i,py3compat.u_format(o)) for i,o in \
         [('"no change"', '"no change"'),             # normal
-         (u"lsmagic",     "get_ipython().magic({u}'lsmagic ')"),   # magic
+         (u"lsmagic",     "get_ipython().run_line_magic('lsmagic', '')"),   # magic
          #("a = b # PYTHON-MODE", '_i'),          # emacs -- avoids _in cache
          ]])
 

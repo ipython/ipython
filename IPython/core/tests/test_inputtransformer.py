@@ -39,16 +39,16 @@ def transform_checker(tests, transformer, **kwargs):
 syntax = \
   dict(assign_system =
        [(i,py3compat.u_format(o)) for i,o in \
-       [(u'a =! ls', "a = get_ipython().getoutput({u}'ls')"),
-        (u'b = !ls', "b = get_ipython().getoutput({u}'ls')"),
-        (u'c= !ls', "c = get_ipython().getoutput({u}'ls')"),
+       [(u'a =! ls', "a = get_ipython().getoutput('ls')"),
+        (u'b = !ls', "b = get_ipython().getoutput('ls')"),
+        (u'c= !ls', "c = get_ipython().getoutput('ls')"),
         (u'd == !ls', u'd == !ls'), # Invalid syntax, but we leave == alone.
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
         # Tuple unpacking
-        (u"a, b = !echo 'a\\nb'", u"a, b = get_ipython().getoutput({u}\"echo 'a\\\\nb'\")"),
-        (u"a,= !echo 'a'", u"a, = get_ipython().getoutput({u}\"echo 'a'\")"),
-        (u"a, *bc = !echo 'a\\nb\\nc'", u"a, *bc = get_ipython().getoutput({u}\"echo 'a\\\\nb\\\\nc'\")"),
+        (u"a, b = !echo 'a\\nb'", u"a, b = get_ipython().getoutput(\"echo 'a\\\\nb'\")"),
+        (u"a,= !echo 'a'", u"a, = get_ipython().getoutput(\"echo 'a'\")"),
+        (u"a, *bc = !echo 'a\\nb\\nc'", u"a, *bc = get_ipython().getoutput(\"echo 'a\\\\nb\\\\nc'\")"),
         # Tuple unpacking with regular Python expressions, not our syntax.
         (u"a, b = range(2)", u"a, b = range(2)"),
         (u"a, = range(1)", u"a, = range(1)"),
@@ -57,13 +57,13 @@ syntax = \
 
        assign_magic =
        [(i,py3compat.u_format(o)) for i,o in \
-       [(u'a =% who', "a = get_ipython().magic({u}'who')"),
-        (u'b = %who', "b = get_ipython().magic({u}'who')"),
-        (u'c= %ls', "c = get_ipython().magic({u}'ls')"),
+       [(u'a =% who', "a = get_ipython().run_line_magic('who', '')"),
+        (u'b = %who', "b = get_ipython().run_line_magic('who', '')"),
+        (u'c= %ls', "c = get_ipython().run_line_magic('ls', '')"),
         (u'd == %ls', u'd == %ls'), # Invalid syntax, but we leave == alone.
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
-        (u"a, b = %foo", u"a, b = get_ipython().magic({u}'foo')"),
+        (u"a, b = %foo", u"a, b = get_ipython().run_line_magic('foo', '')"),
         ]],
 
        classic_prompt =
@@ -87,53 +87,53 @@ syntax = \
        # System calls
        escaped_shell =
        [(i,py3compat.u_format(o)) for i,o in \
-       [ (u'!ls', "get_ipython().system({u}'ls')"),
+       [ (u'!ls', "get_ipython().system('ls')"),
          # Double-escape shell, this means to capture the output of the
          # subprocess and return it
-         (u'!!ls', "get_ipython().getoutput({u}'ls')"),
+         (u'!!ls', "get_ipython().getoutput('ls')"),
          ]],
 
        # Help/object info
        escaped_help =
        [(i,py3compat.u_format(o)) for i,o in \
        [ (u'?', 'get_ipython().show_usage()'),
-         (u'?x1', "get_ipython().magic({u}'pinfo x1')"),
-         (u'??x2', "get_ipython().magic({u}'pinfo2 x2')"),
-         (u'?a.*s', "get_ipython().magic({u}'psearch a.*s')"),
-         (u'?%hist1', "get_ipython().magic({u}'pinfo %hist1')"),
-         (u'?%%hist2', "get_ipython().magic({u}'pinfo %%hist2')"),
-         (u'?abc = qwe', "get_ipython().magic({u}'pinfo abc')"),
+         (u'?x1', "get_ipython().run_line_magic('pinfo', 'x1')"),
+         (u'??x2', "get_ipython().run_line_magic('pinfo2', 'x2')"),
+         (u'?a.*s', "get_ipython().run_line_magic('psearch', 'a.*s')"),
+         (u'?%hist1', "get_ipython().run_line_magic('pinfo', '%hist1')"),
+         (u'?%%hist2', "get_ipython().run_line_magic('pinfo', '%%hist2')"),
+         (u'?abc = qwe', "get_ipython().run_line_magic('pinfo', 'abc')"),
          ]],
 
       end_help =
       [(i,py3compat.u_format(o)) for i,o in \
-      [ (u'x3?', "get_ipython().magic({u}'pinfo x3')"),
-        (u'x4??', "get_ipython().magic({u}'pinfo2 x4')"),
-        (u'%hist1?', "get_ipython().magic({u}'pinfo %hist1')"),
-        (u'%hist2??', "get_ipython().magic({u}'pinfo2 %hist2')"),
-        (u'%%hist3?', "get_ipython().magic({u}'pinfo %%hist3')"),
-        (u'%%hist4??', "get_ipython().magic({u}'pinfo2 %%hist4')"),
-        (u'f*?', "get_ipython().magic({u}'psearch f*')"),
-        (u'ax.*aspe*?', "get_ipython().magic({u}'psearch ax.*aspe*')"),
-        (u'a = abc?', "get_ipython().set_next_input({u}'a = abc');"
-                      "get_ipython().magic({u}'pinfo abc')"),
-        (u'a = abc.qe??', "get_ipython().set_next_input({u}'a = abc.qe');"
-                          "get_ipython().magic({u}'pinfo2 abc.qe')"),
-        (u'a = *.items?', "get_ipython().set_next_input({u}'a = *.items');"
-                          "get_ipython().magic({u}'psearch *.items')"),
-        (u'plot(a?', "get_ipython().set_next_input({u}'plot(a');"
-                     "get_ipython().magic({u}'pinfo a')"),
+      [ (u'x3?', "get_ipython().run_line_magic('pinfo', 'x3')"),
+        (u'x4??', "get_ipython().run_line_magic('pinfo2', 'x4')"),
+        (u'%hist1?', "get_ipython().run_line_magic('pinfo', '%hist1')"),
+        (u'%hist2??', "get_ipython().run_line_magic('pinfo2', '%hist2')"),
+        (u'%%hist3?', "get_ipython().run_line_magic('pinfo', '%%hist3')"),
+        (u'%%hist4??', "get_ipython().run_line_magic('pinfo2', '%%hist4')"),
+        (u'f*?', "get_ipython().run_line_magic('psearch', 'f*')"),
+        (u'ax.*aspe*?', "get_ipython().run_line_magic('psearch', 'ax.*aspe*')"),
+        (u'a = abc?', "get_ipython().set_next_input('a = abc');"
+                      "get_ipython().run_line_magic('pinfo', 'abc')"),
+        (u'a = abc.qe??', "get_ipython().set_next_input('a = abc.qe');"
+                          "get_ipython().run_line_magic('pinfo2', 'abc.qe')"),
+        (u'a = *.items?', "get_ipython().set_next_input('a = *.items');"
+                          "get_ipython().run_line_magic('psearch', '*.items')"),
+        (u'plot(a?', "get_ipython().set_next_input('plot(a');"
+                     "get_ipython().run_line_magic('pinfo', 'a')"),
         (u'a*2 #comment?', 'a*2 #comment?'),
         ]],
 
        # Explicit magic calls
        escaped_magic =
        [(i,py3compat.u_format(o)) for i,o in \
-       [ (u'%cd', "get_ipython().magic({u}'cd')"),
-         (u'%cd /home', "get_ipython().magic({u}'cd /home')"),
+       [ (u'%cd', "get_ipython().run_line_magic('cd', '')"),
+         (u'%cd /home', "get_ipython().run_line_magic('cd', '/home')"),
          # Backslashes need to be escaped.
-         (u'%cd C:\\User', "get_ipython().magic({u}'cd C:\\\\User')"),
-         (u'    %magic', "    get_ipython().magic({u}'magic')"),
+         (u'%cd C:\\User', "get_ipython().run_line_magic('cd', 'C:\\\\User')"),
+         (u'    %magic', "    get_ipython().run_line_magic('magic', '')"),
          ]],
 
        # Quoting with separate arguments
@@ -163,11 +163,11 @@ syntax = \
        # Check that we transform prompts before other transforms
        mixed =
        [(i,py3compat.u_format(o)) for i,o in \
-       [ (u'In [1]: %lsmagic', "get_ipython().magic({u}'lsmagic')"),
-         (u'>>> %lsmagic', "get_ipython().magic({u}'lsmagic')"),
-         (u'In [2]: !ls', "get_ipython().system({u}'ls')"),
-         (u'In [3]: abs?', "get_ipython().magic({u}'pinfo abs')"),
-         (u'In [4]: b = %who', "b = get_ipython().magic({u}'who')"),
+       [ (u'In [1]: %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
+         (u'>>> %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
+         (u'In [2]: !ls', "get_ipython().system('ls')"),
+         (u'In [3]: abs?', "get_ipython().run_line_magic('pinfo', 'abs')"),
+         (u'In [4]: b = %who', "b = get_ipython().run_line_magic('who', '')"),
          ]],
        )
 
@@ -283,11 +283,11 @@ syntax_ml = \
        
        cellmagic =
        [ [(u'%%foo a', None),
-          (None, u_fmt("get_ipython().run_cell_magic({u}'foo', {u}'a', {u}'')")),
+          (None, u_fmt("get_ipython().run_cell_magic('foo', 'a', '')")),
           ],
          [(u'%%bar 123', None),
           (u'hello', None),
-          (None , u_fmt("get_ipython().run_cell_magic({u}'bar', {u}'123', {u}'hello')")),
+          (None , u_fmt("get_ipython().run_cell_magic('bar', '123', 'hello')")),
           ],
          [(u'a=5', 'a=5'),
           (u'%%cellmagic', '%%cellmagic'),
@@ -296,31 +296,31 @@ syntax_ml = \
        
        escaped =
        [ [('%abc def \\', None),
-          ('ghi', u_fmt("get_ipython().magic({u}'abc def ghi')")),
+          ('ghi', u_fmt("get_ipython().run_line_magic('abc', 'def ghi')")),
           ],
          [('%abc def \\', None),
           ('ghi\\', None),
-          (None, u_fmt("get_ipython().magic({u}'abc def ghi')")),
+          (None, u_fmt("get_ipython().run_line_magic('abc', 'def ghi')")),
           ],
        ],
        
        assign_magic =
        [ [(u'a = %bc de \\', None),
-          (u'fg', u_fmt("a = get_ipython().magic({u}'bc de fg')")),
+          (u'fg', u_fmt("a = get_ipython().run_line_magic('bc', 'de fg')")),
           ],
          [(u'a = %bc de \\', None),
           (u'fg\\', None),
-          (None, u_fmt("a = get_ipython().magic({u}'bc de fg')")),
+          (None, u_fmt("a = get_ipython().run_line_magic('bc', 'de fg')")),
           ],
        ],
        
        assign_system =
        [ [(u'a = !bc de \\', None),
-          (u'fg', u_fmt("a = get_ipython().getoutput({u}'bc de fg')")),
+          (u'fg', u_fmt("a = get_ipython().getoutput('bc de fg')")),
           ],
          [(u'a = !bc de \\', None),
           (u'fg\\', None),
-          (None, u_fmt("a = get_ipython().getoutput({u}'bc de fg')")),
+          (None, u_fmt("a = get_ipython().getoutput('bc de fg')")),
           ],
        ],
        )
@@ -436,7 +436,7 @@ def test_cellmagic():
     
     line_example = [(u'%%bar 123', None),
                     (u'hello', None),
-                    (u'' , u_fmt("get_ipython().run_cell_magic({u}'bar', {u}'123', {u}'hello')")),
+                    (u'' , u_fmt("get_ipython().run_cell_magic('bar', '123', 'hello')")),
                    ]
     transform_checker(line_example, ipt.cellmagic, end_on_blank_line=True)
 
@@ -474,16 +474,16 @@ def decistmt(tokens):
 
 
 def test_token_input_transformer():
-    tests = [(u'1.2', u_fmt(u"Decimal ({u}'1.2')")),
+    tests = [(u'1.2', u_fmt(u"Decimal ('1.2')")),
              (u'"1.2"', u'"1.2"'),
              ]
     tt.check_pairs(transform_and_reset(decistmt), tests)
     ml_tests = \
     [ [(u"a = 1.2; b = '''x", None),
-       (u"y'''", u_fmt(u"a =Decimal ({u}'1.2');b ='''x\ny'''")),
+       (u"y'''", u_fmt(u"a =Decimal ('1.2');b ='''x\ny'''")),
       ],
       [(u"a = [1.2,", None),
-       (u"3]", u_fmt(u"a =[Decimal ({u}'1.2'),\n3 ]")),
+       (u"3]", u_fmt(u"a =[Decimal ('1.2'),\n3 ]")),
       ],
       [(u"a = '''foo", None),  # Test resetting when within a multi-line string
        (u"bar", None),

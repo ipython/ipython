@@ -479,11 +479,11 @@ class IPythonInputTestCase(InputSplitterTestCase):
         
         for raw, expected in [
             ("a=5", "a=5#"),
-            ("%ls foo", "get_ipython().magic(%r)" % u'ls foo#'),
-            ("!ls foo\n%ls bar", "get_ipython().system(%r)\nget_ipython().magic(%r)" % (
-                u'ls foo#', u'ls bar#'
+            ("%ls foo", "get_ipython().run_line_magic(%r, %r)" % (u'ls', u'foo#')),
+            ("!ls foo\n%ls bar", "get_ipython().system(%r)\nget_ipython().run_line_magic(%r, %r)" % (
+                u'ls foo#', u'ls', u'bar#'
             )),
-            ("1\n2\n3\n%ls foo\n4\n5", "1#\n2#\n3#\nget_ipython().magic(%r)\n4#\n5#" % u'ls foo#'),
+            ("1\n2\n3\n%ls foo\n4\n5", "1#\n2#\n3#\nget_ipython().run_line_magic(%r, %r)\n4#\n5#" % (u'ls', u'foo#')),
         ]:
             out = isp.transform_cell(raw)
             self.assertEqual(out.rstrip(), expected.rstrip())
@@ -568,7 +568,7 @@ class CellMagicsCommon(object):
     def test_whole_cell(self):
         src = "%%cellm line\nbody\n"
         out = self.sp.transform_cell(src)
-        ref = u"get_ipython().run_cell_magic({u}'cellm', {u}'line', {u}'body')\n"
+        ref = u"get_ipython().run_cell_magic('cellm', 'line', 'body')\n"
         nt.assert_equal(out, py3compat.u_format(ref))
     
     def test_cellmagic_help(self):
