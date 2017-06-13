@@ -249,24 +249,45 @@ have enter always execute code. If you prefer fancier behavior, you need to get
 your hands dirty and read the ``prompt_toolkit`` and IPython documentation
 though. See :ghpull:`10500`, set the
 ``c.TerminalInteractiveShell.handle_return`` option and get inspiration from the
-following example that insert new lines only after a pipe (``|``). Place the
-following in your configuration to do so::
+following example that only auto-executes the input if it begins with a bang or
+a modulo character (``!`` or ``%``). To use the following code, add it to your
+IPython configuration::
 
-    def new_line_after_pipe(shell):
-        # shell is the same as get_ipython()
-        def insert(event):
-            """When the user presses return, insert"""
-            b = event.current_buffer
-            d = b.document
+    def custom_return(shell):
 
-            # if character before cursor is `|`
-            if d.text[d.cursor_position-1] == '|':
-                # insert a new line
-                b.insert_text('\n')
-            else:
-                # otherwise execute.
-                b.accept_action.validate_and_handle(event.cli, b)
-        return insert
+        """This function is required by the API. It takes a reference to
+        the shell, which is the same thing `get_ipython()` evaluates to.
+        This function must return a function that handles each keypress
+        event. That function, named `handle` here, references `shell`
+        by closure."""
 
-    # set the heuristic to our new function
-    c.TerminalInteractiveShell.handle_return = new_line_after_pipe 
+        def handle(event):
+
+            """This function is called each time `Enter` is pressed,
+            and takes a reference to a Prompt Toolkit event object.
+            If the current input starts with a bang or modulo, then
+            the input is executed, otherwise a newline is entered,
+            followed by any spaces needed to auto-indent."""
+
+            # set up a few handy references to nested items...
+
+            buffer = event.current_buffer
+            document = buffer.document
+            text = document.text
+
+            if text.startswith('!') or text.startswith('%'): # execute the input...
+
+                buffer.accept_action.validate_and_handle(event.cli, buffer)
+
+            else: # insert a newline with auto-indentation...
+
+                if document.line_count > 1: text = text[:document.cursor_position]
+                indent = shell.input_splitter.check_complete(text + '\n')[1] or 0
+                buffer.insert_text('\n' + ' ' * indent)
+            
+                # if you just wanted a plain newline without any indentation, you
+                # could use `buffer.insert_text('\n')` instead of the lines above
+
+        return handle
+
+    c.TerminalInteractiveShell.handle_return = custom_return
