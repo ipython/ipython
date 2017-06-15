@@ -18,6 +18,7 @@ import struct
 import sys
 import warnings
 from copy import deepcopy
+from collections import namedtuple
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
@@ -150,24 +151,19 @@ class RecursiveObject:
     """
 
     def __init__(self, already_seen):
+        self.seen = already_seen
         pass
 
     def __repr__(self):
-        return '<recursion ...>'
+        return '<recursion ... {}>'.format(str(self.seen))
 
     def _repr_html_(self):
-        return '&lt;recursion ...&gt;'
+        import html
+        return '&lt;recursion ... {}&gt;'.format(html.escape(str(self.seen)))
 
 
-class DataMetadata(tuple):
 
-    @property
-    def data(self):
-        return self[0]
-
-    @property
-    def metadata(self):
-        return  self[1]
+DataMetadata = namedtuple('DataMetadata', ('data','metadata'))
 
 
 class ReprGetter:
@@ -226,27 +222,40 @@ class ReprGetter:
 
         When :any:`get_repr_mimebundle` detect it is recursively called, it will
         attempt to return the representation of :class:`RecursiveObject`. You
-        may register extra formatter for :class:`RecursiveObject`
+        may register extra formatter for :class:`RecursiveObject`.
 
         If you are computing objects representation in a concurrent way (thread,
         coroutines, ...), you should make sure to instanciate a
         :class:`ReprGetter` object and use one per task to avoid race conditions.
+
+        If a specific mimetype formatter need to call `get_repr_mimebundle()`
+        for another mimeformat, then it must pass the mimetypes values it desire
+        to `include` in order to correctly avoid recursion  
 
         See Also
         --------
             :func:`display`, :any:`DisplayFormatter.format`
 
         """
+        from there import print
         from IPython.core.interactiveshell import InteractiveShell
+        if isinstance(include, str):
+            include = (include,)
+        if not include:
+            keys = {(id(obj), None)}
+        else:
+            keys = {(id(obj), f) for f in include}
         fmt = InteractiveShell.instance().display_formatter.format
-        if id(obj) in self._objs:
-            return DataMetadata(fmt(on_recursion(obj), include=include, exclude=exclude))
+        if id(obj) == id(object):
+            return DataMetadata({'text/plain':"<class 'object'>"}, {})
+        if self._objs.intersection(keys):
+            return DataMetadata(*fmt(on_recursion(obj), include=include, exclude=exclude))
         else:
             try:
-                self._objs.add(id(obj))
-                return DataMetadata(fmt(obj, include=include, exclude=exclude))
+                self._objs.update(keys)
+                return DataMetadata(*fmt(obj, include=include, exclude=exclude))
             finally:
-                self._objs.discard(id(obj))
+                self._objs.difference_update(keys)
 
 # Expose this for convenience at the top level. Similar to what the random
 # module in python does. If you want to avoid weird behavior from concurrency:
