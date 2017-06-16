@@ -139,8 +139,9 @@ class DisplayFormatter(Configurable):
             precedence and the corresponding `_repr_*_` for this mimetype will
             not be called.
 
-            TODO: Figure out and document whether user registered formatters do
-            overwrite (or not ?) the _repr_*_ of these objects.
+            If a custom formatter is registered for an object, then it will take
+            precedence over `_repr_*_` and `_repr_mimebundle_`.
+
 
         """
         format_dict = {}
@@ -488,6 +489,11 @@ class BaseFormatter(Configurable):
             If you are registering a new formatter,
             this will be the previous value (to enable restoring later).
         """
+        if not isinstance(type_module, str):
+            raise ValueError('`type_module` should be a string.')
+        if not isinstance(type_name, str):
+            raise ValueError('`type_name` should be a string.')
+
         key = (type_module, type_name)
         
         try:

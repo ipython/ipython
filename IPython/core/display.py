@@ -28,8 +28,8 @@ __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
 'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'GeoJSON', 'Javascript',
 'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
-'publish_display_data', 'update_display', 'DisplayHandle', 'Video', 'get_repr_mimebundle',
-'RecursiveObject', 'ReprGetter']
+'publish_display_data', 'update_display', 'DisplayHandle', 'Video', 'get_repr_mimebundle'
+]
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -237,7 +237,6 @@ class ReprGetter:
             :func:`display`, :any:`DisplayFormatter.format`
 
         """
-        from there import print
         from IPython.core.interactiveshell import InteractiveShell
         if isinstance(include, str):
             include = (include,)
