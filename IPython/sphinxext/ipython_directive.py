@@ -138,13 +138,7 @@ from io import StringIO
 
 # Third-party
 from docutils.parsers.rst import directives
-import sphinx
-# sphinx.version_info available since 1.2, and we require 1.3
-# sphinx.util.compat deprecated at 1.6 and removed at 1.7
-if sphinx.version_info < (1, 5, 7):
-    from sphinx.util.compat import Directive
-else:
-    from docutils.parsers.rst import Directive
+from docutils.parsers.rst import Directive
 
 # Our own
 from traitlets.config import Config
