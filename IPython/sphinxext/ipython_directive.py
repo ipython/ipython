@@ -139,7 +139,7 @@ import shutil
 
 # Third-party
 from docutils.parsers.rst import directives
-from sphinx.util.compat import Directive
+from docutils.parsers.rst import Directive
 
 # Our own
 from traitlets.config import Config
