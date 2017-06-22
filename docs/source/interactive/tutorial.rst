@@ -93,7 +93,7 @@ existing objects, but also to infer completion statically without executing
 code. There is nothing particular need to get this to work, simply use tab
 completion on more complex expressions like the following::
 
-    >>> data = ['Number of users', 123_456]
+    >>> data = ['Number of users', 123456]
     ... data[0].<tab>
 
 IPython and Jedi will be able to infer that ``data[0]`` is actually a string
