@@ -366,12 +366,10 @@ def load_default_config(ipython_dir=None):
         ipython_dir = get_ipython_dir()
 
     profile_dir = os.path.join(ipython_dir, 'profile_default')
-
-    config = Config()
-    for cf in Application._load_config_files("ipython_config", path=profile_dir):
-        config.update(cf)
-
-    return config
+    app = TerminalIPythonApp()
+    app.config_file_paths.append(profile_dir)
+    app.load_config_file()
+    return app.config
 
 launch_new_instance = TerminalIPythonApp.launch_instance
 
