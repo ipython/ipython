@@ -577,7 +577,7 @@ def test_timeit_return_quiet():
     assert (res is not None)
 
 def test_timeit_invalid_return():
-    with nt.assert_raises_regexp(SyntaxError, "outside function"):
+    with nt.assert_raises_regex(SyntaxError, "outside function"):
         _ip.run_line_magic('timeit', 'return')
 
 @dec.skipif(execution.profile is None)
