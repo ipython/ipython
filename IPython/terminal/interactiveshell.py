@@ -1,5 +1,6 @@
 """IPython terminal interface using prompt_toolkit"""
 
+from contextlib import contextmanager
 import os
 import sys
 import warnings
@@ -236,6 +237,11 @@ class TerminalInteractiveShell(InteractiveShell):
                     prompt_text = prompt_continuation
                 return isp.source_reset()
             self.prompt_for_code = prompt
+
+            @contextmanager
+            def dummy_context(*args, **kwargs):
+                yield
+            self.patch_stdout_context = dummy_context
             return
 
         # Set up keyboard shortcuts
@@ -260,15 +266,12 @@ class TerminalInteractiveShell(InteractiveShell):
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
-        def patch_stdout(**kwargs):
-            return self.pt_cli.patch_stdout_context(**kwargs)
-
         self._pt_app = create_prompt_application(
                             editing_mode=editing_mode,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
                             completer=IPythonPTCompleter(shell=self,
-                                                    patch_stdout=patch_stdout),
+                                                    patch_stdout=self.patch_stdout_context),
                             enable_history_search=True,
                             style=self.style,
                             mouse_support=self.mouse_support,
@@ -376,6 +379,9 @@ class TerminalInteractiveShell(InteractiveShell):
             pre_run=self.pre_prompt, reset_current_buffer=True)
         return document.text
 
+    def patch_stdout_context(self, *args, **kwargs):
+        return self.pt_cli.patch_stdout_context(*args, **kwargs)
+
     def enable_win_unicode_console(self):
         if sys.version_info >= (3, 6):
             # Since PEP 528, Python uses the unicode APIs for the Windows
@@ -451,24 +457,26 @@ class TerminalInteractiveShell(InteractiveShell):
             self.rl_next_input = None
 
     def interact(self, display_banner=DISPLAY_BANNER_DEPRECATED):
+        # Patching stdout makes sure that all texts printed from other threads
+        # will appear above the prompt.
+        with self.patch_stdout_context(raw=True):
+            if display_banner is not DISPLAY_BANNER_DEPRECATED:
+                warn('interact `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
 
-        if display_banner is not DISPLAY_BANNER_DEPRECATED:
-            warn('interact `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
+            self.keep_running = True
+            while self.keep_running:
+                print(self.separate_in, end='')
 
-        self.keep_running = True
-        while self.keep_running:
-            print(self.separate_in, end='')
+                try:
+                    code = self.prompt_for_code()
+                except EOFError:
+                    if (not self.confirm_exit) \
+                            or self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
+                        self.ask_exit()
 
-            try:
-                code = self.prompt_for_code()
-            except EOFError:
-                if (not self.confirm_exit) \
-                        or self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
-                    self.ask_exit()
-
-            else:
-                if code:
-                    self.run_cell(code, store_history=True)
+                else:
+                    if code:
+                        self.run_cell(code, store_history=True)
 
     def mainloop(self, display_banner=DISPLAY_BANNER_DEPRECATED):
         # An extra layer of protection in case someone mashing Ctrl-C breaks
