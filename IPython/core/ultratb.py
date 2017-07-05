@@ -438,7 +438,7 @@ def is_recursion_error(etype, value, records):
     # by stack frames in IPython itself. >500 frames probably indicates
     # a recursion error.
     return (etype is recursion_error_type) \
-           and "recursion" in str(value).lower() \
+           and str("recursion") in str(value).lower() \
            and len(records) > 500
 
 def find_recursion(etype, value, records):
