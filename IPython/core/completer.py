@@ -292,15 +292,10 @@ def completions_sorting_key(word):
 
     This does several things:
 
-    - Lowercase all completions, so they are sorted alphabetically with
-      upper and lower case words mingled
     - Demote any completions starting with underscores to the end
     - Insert any %magic and %%cellmagic completions in the alphabetical order
       by their name
     """
-    # Case insensitive sort
-    word = word.lower()
-
     prio1, prio2 = 0, 0
 
     if word.startswith('__'):
