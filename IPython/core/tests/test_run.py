@@ -171,8 +171,8 @@ def doctest_reset_del():
 class TestMagicRunPass(tt.TempFileMixin):
 
     def setup(self):
-        """Make a valid python temp file."""
-        self.mktmp('pass\n')
+        content = "a = [1,2,3]\nb = 1"
+        self.mktmp(content)
         
     def run_tmpfile(self):
         _ip = get_ipython()
@@ -218,6 +218,16 @@ class TestMagicRunPass(tt.TempFileMixin):
             _ip.magic('run -d %s' % self.fname)
         with tt.fake_input(['c']):
             _ip.magic('run -d %s' % self.fname)
+
+    def test_run_debug_twice_with_breakpoint(self):
+        """Make a valid python temp file."""
+        _ip = get_ipython()
+        with tt.fake_input(['b 2', 'c', 'c']):
+            _ip.magic('run -d %s' % self.fname)
+
+        with tt.fake_input(['c']):
+            with tt.AssertNotPrints('KeyError'):
+                _ip.magic('run -d %s' % self.fname)
 
 
 class TestMagicRunSimple(tt.TempFileMixin):

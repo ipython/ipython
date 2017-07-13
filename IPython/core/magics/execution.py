@@ -816,6 +816,7 @@ python-profiler package from non-free.""")
         bdb.Breakpoint.next = 1
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
+        deb.clear_all_breaks()
         if bp_line is not None:
             # Set an initial breakpoint to stop execution
             maxtries = 10
