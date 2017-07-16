@@ -417,6 +417,12 @@ def test_pinfo_magic():
         ip._inspect('pinfo', 'lsmagic', detail_level=1)
 
 
+def test_pinfo_magic_dict_access():
+    ip.run_cell('foo = { "a": { "b": "foo" } }')
+    with AssertPrints('S.capitalize() -> str'):
+        ip._inspect('pinfo', 'foo["a"]["b"].capitalize', detail_level=1)
+
+
 def test_init_colors():
     # ensure colors are not present in signature info
     info = inspector.info(HasSignature)

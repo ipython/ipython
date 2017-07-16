@@ -1374,6 +1374,30 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to object introspection
     #-------------------------------------------------------------------------
 
+    _identifier_re = re.compile(r'[a-zA-Z_*][\w*]*')
+    _dict_keys_re = re.compile(r'(?<=\[)[\'"]([^\]\'"]+)')
+
+    def _split_parts(self, oname):
+        parts = []
+        for part in oname.split('.'):
+            identifier_match = self._identifier_re.search(part)
+            if identifier_match:
+                identifier = identifier_match.group(0)
+                keys = self._dict_keys_re.findall(part)
+            else:
+                identifier = oname
+                keys = []
+
+            parts.append((identifier, keys))
+
+        return parts
+
+    def _lookup(self, obj, *keys):
+        for key in keys:
+            obj = obj[key]
+
+        return obj
+
     def _ofind(self, oname, namespaces=None):
         """Find an object in the available namespaces.
 
@@ -1382,9 +1406,12 @@ class InteractiveShell(SingletonConfigurable):
         Has special code to detect magic functions.
         """
         oname = oname.strip()
+        parts = self._split_parts(oname)
         if not oname.startswith(ESC_MAGIC) and \
                 not oname.startswith(ESC_MAGIC2) and \
-                not all(a.isidentifier() for a in oname.split(".")):
+                not all(a[0].isidentifier()
+                        for a in parts):
+
             return {'found': False}
 
         if namespaces is None:
@@ -1403,14 +1430,14 @@ class InteractiveShell(SingletonConfigurable):
         parent = None
         obj = None
 
-        # Look for the given name by splitting it in parts.  If the head is
+        # Look for the given name by iterating over the parts.  If the head is
         # found, then we look for all the remaining parts as members, and only
         # declare success if we can find them all.
-        oname_parts = oname.split('.')
-        oname_head, oname_rest = oname_parts[0],oname_parts[1:]
-        for nsname,ns in namespaces:
+        oname_head, oname_rest = parts[0], parts[1:]
+        for nsname, ns in namespaces:
             try:
-                obj = ns[oname_head]
+                identifier, keys = oname_head
+                obj = self._lookup(ns[identifier], *keys)
             except KeyError:
                 continue
             else:
@@ -1420,10 +1447,14 @@ class InteractiveShell(SingletonConfigurable):
                         # The last part is looked up in a special way to avoid
                         # descriptor invocation as it may raise or have side
                         # effects.
+                        identifier, keys = part
+
                         if idx == len(oname_rest) - 1:
-                            obj = self._getattr_property(obj, part)
+                            obj = self._getattr_property(obj, identifier)
                         else:
-                            obj = getattr(obj, part)
+                            obj = getattr(obj, identifier)
+
+                        obj = self._lookup(obj, *keys)
                     except:
                         # Blanket except b/c some badly implemented objects
                         # allow __getattr__ to raise exceptions other than
