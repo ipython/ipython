@@ -470,6 +470,17 @@ class InteractiveShellTestCase(unittest.TestCase):
         text = ip.object_inspect_text('a')
         self.assertIsInstance(text, str)
 
+    def test_last_execution_result(self):
+        """ Check that last execution result gets set correctly (GH-10702) """
+        result = ip.run_cell('a = 5; a')
+        self.assertTrue(ip.last_execution_succeeded)
+        self.assertEqual(ip.last_execution_result.result, 5)
+
+        result = ip.run_cell('a = x_invalid_id_x')
+        self.assertFalse(ip.last_execution_succeeded)
+        self.assertFalse(ip.last_execution_result.success)
+        self.assertIsInstance(ip.last_execution_result.error_in_exec, NameError)
+
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 

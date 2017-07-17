@@ -431,6 +431,8 @@ class InteractiveShell(SingletonConfigurable):
 
     last_execution_succeeded = Bool(True, help='Did last executed command succeeded')
 
+    last_execution_result = Instance('IPython.core.interactiveshell.ExecutionResult', help='Result of executing the last command', allow_none=True)
+
     def __init__(self, ipython_dir=None, profile_dir=None,
                  user_module=None, user_ns=None,
                  custom_exceptions=((), None), **kwargs):
@@ -2613,7 +2615,7 @@ class InteractiveShell(SingletonConfigurable):
         result = ExecutionResult()
 
         if (not raw_cell) or raw_cell.isspace():
-            self.last_execution_succeeded = True
+            self.last_execution_succeeded, self.last_execution_result = True, result
             return result
         
         if silent:
@@ -2624,7 +2626,7 @@ class InteractiveShell(SingletonConfigurable):
 
         def error_before_exec(value):
             result.error_before_exec = value
-            self.last_execution_succeeded = False
+            self.last_execution_succeeded, self.last_execution_result = False, result
             return result
 
         self.events.trigger('pre_execute')
@@ -2714,7 +2716,7 @@ class InteractiveShell(SingletonConfigurable):
                 has_raised = self.run_ast_nodes(code_ast.body, cell_name,
                    interactivity=interactivity, compiler=compiler, result=result)
                 
-                self.last_execution_succeeded = not has_raised
+                self.last_execution_succeeded, self.last_execution_result = not has_raised, result
 
                 # Reset this so later displayed values do not modify the
                 # ExecutionResult
