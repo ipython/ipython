@@ -1213,6 +1213,10 @@ class InteractiveShell(SingletonConfigurable):
         if new_session:
             self.execution_count = 1
 
+        # Reset last execution result
+        self.last_execution_succeeded = True
+        self.last_execution_result = None
+        
         # Flush cached output items
         if self.displayhook.do_full_cache:
             self.displayhook.flush()
@@ -2619,7 +2623,8 @@ class InteractiveShell(SingletonConfigurable):
         result = ExecutionResult()
 
         if (not raw_cell) or raw_cell.isspace():
-            self.last_execution_succeeded, self.last_execution_result = True, result
+            self.last_execution_succeeded = True
+            self.last_execution_result = result
             return result
         
         if silent:
@@ -2630,7 +2635,8 @@ class InteractiveShell(SingletonConfigurable):
 
         def error_before_exec(value):
             result.error_before_exec = value
-            self.last_execution_succeeded, self.last_execution_result = False, result
+            self.last_execution_succeeded = False
+            self.last_execution_result = result
             return result
 
         self.events.trigger('pre_execute')
@@ -2720,7 +2726,8 @@ class InteractiveShell(SingletonConfigurable):
                 has_raised = self.run_ast_nodes(code_ast.body, cell_name,
                    interactivity=interactivity, compiler=compiler, result=result)
                 
-                self.last_execution_succeeded, self.last_execution_result = not has_raised, result
+                self.last_execution_succeeded = not has_raised
+                self.last_execution_result = result
 
                 # Reset this so later displayed values do not modify the
                 # ExecutionResult
