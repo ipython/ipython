@@ -1279,6 +1279,10 @@ class InteractiveShell(SingletonConfigurable):
                 for name in to_delete:
                     del ns[name]
 
+            # Ensure it is removed from the last execution result
+            if self.last_execution_result.result is obj:
+                self.last_execution_result = None
+
             # displayhook keeps extra references, but not in a dictionary
             for name in ('_', '__', '___'):
                 if getattr(self.displayhook, name) is obj:
