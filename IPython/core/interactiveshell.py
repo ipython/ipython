@@ -431,6 +431,8 @@ class InteractiveShell(SingletonConfigurable):
 
     last_execution_succeeded = Bool(True, help='Did last executed command succeeded')
 
+    last_execution_result = Instance('IPython.core.interactiveshell.ExecutionResult', help='Result of executing the last command', allow_none=True)
+
     def __init__(self, ipython_dir=None, profile_dir=None,
                  user_module=None, user_ns=None,
                  custom_exceptions=((), None), **kwargs):
@@ -1211,6 +1213,10 @@ class InteractiveShell(SingletonConfigurable):
         if new_session:
             self.execution_count = 1
 
+        # Reset last execution result
+        self.last_execution_succeeded = True
+        self.last_execution_result = None
+        
         # Flush cached output items
         if self.displayhook.do_full_cache:
             self.displayhook.flush()
@@ -1276,6 +1282,10 @@ class InteractiveShell(SingletonConfigurable):
                 to_delete = [n for n, o in ns.items() if o is obj]
                 for name in to_delete:
                     del ns[name]
+
+            # Ensure it is removed from the last execution result
+            if self.last_execution_result.result is obj:
+                self.last_execution_result = None
 
             # displayhook keeps extra references, but not in a dictionary
             for name in ('_', '__', '___'):
@@ -2614,6 +2624,7 @@ class InteractiveShell(SingletonConfigurable):
 
         if (not raw_cell) or raw_cell.isspace():
             self.last_execution_succeeded = True
+            self.last_execution_result = result
             return result
         
         if silent:
@@ -2625,6 +2636,7 @@ class InteractiveShell(SingletonConfigurable):
         def error_before_exec(value):
             result.error_before_exec = value
             self.last_execution_succeeded = False
+            self.last_execution_result = result
             return result
 
         self.events.trigger('pre_execute')
@@ -2715,6 +2727,7 @@ class InteractiveShell(SingletonConfigurable):
                    interactivity=interactivity, compiler=compiler, result=result)
                 
                 self.last_execution_succeeded = not has_raised
+                self.last_execution_result = result
 
                 # Reset this so later displayed values do not modify the
                 # ExecutionResult
