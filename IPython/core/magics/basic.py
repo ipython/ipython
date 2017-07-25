@@ -288,12 +288,14 @@ Currently the magic system has the following functions:""",
 
     @line_magic
     def profile(self, parameter_s=''):
-        """Print your currently active IPython profile.
+        """DEPRECATED since IPython 2.0.
+
+        Raise `UsageError`. To profile code use the :magic:`prun` magic.
+        
 
         See Also
         --------
-        prun : run code using the Python profiler
-               (:meth:`~IPython.core.magics.execution.ExecutionMagics.prun`)
+        prun : run code using the Python profiler (:magic:`prun`)
         """
         warn("%profile is now deprecated. Please use get_ipython().profile instead.")
         from IPython.core.application import BaseIPythonApplication
