@@ -23,7 +23,7 @@ from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
 
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
-'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
+'display_svg', 'display_png', 'display_jpeg', 'display_gif', 'display_latex', 'display_json',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
 'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'GeoJSON', 'Javascript',
 'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
@@ -96,6 +96,7 @@ def publish_display_data(data, metadata=None, source=None, *, transient=None, **
     * application/javascript
     * image/png
     * image/jpeg
+    * image/gif
     * image/svg+xml
 
     Parameters
@@ -256,6 +257,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
       - `_repr_json_`: return a JSONable dict
       - `_repr_jpeg_`: return raw JPEG data
       - `_repr_png_`: return raw PNG data
+      - `_repr_gif_`: return raw PNG data
       - `_repr_svg_`: return raw SVG data as a string
       - `_repr_latex_`: return LaTeX commands in a string surrounded by "$".
       - `_repr_mimebundle_`: return a full mimebundle containing the mapping
@@ -494,6 +496,22 @@ def display_jpeg(*objs, **kwargs):
         Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('image/jpeg', objs, **kwargs)
+    
+def display_gif(*objs, **kwargs):
+    """Display the GIF representation of an object.
+
+    Parameters
+    ----------
+    objs : tuple of objects
+        The Python objects to display, or if raw=True raw gif data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
+    """
+    _display_mimetype('image/gif', objs, **kwargs)
 
 
 def display_latex(*objs, **kwargs):
@@ -927,7 +945,7 @@ class Javascript(TextDisplayObject):
             raise TypeError('expected sequence, got: %r' % css)
         self.lib = lib
         self.css = css
-        super(Javascript, self).__init__(data=data, url=url, filename=filename)
+        superg(Javascript, self).__init__(data=data, url=url, filename=filename)
 
     def _repr_javascript_(self):
         r = ''
@@ -974,12 +992,13 @@ class Image(DisplayObject):
     _read_flags = 'rb'
     _FMT_JPEG = u'jpeg'
     _FMT_PNG = u'png'
-    _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG]
+    _FMT_GIF = u'gif'
+    _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_GIF]
 
     def __init__(self, data=None, url=None, filename=None, format=None,
                  embed=None, width=None, height=None, retina=False,
                  unconfined=False, metadata=None):
-        """Create a PNG/JPEG image object given raw data.
+        """Create a PNG/JPEG/GIF image object given raw data.
 
         When this object is returned by an input cell or passed to the
         display function, it will result in the image being displayed
@@ -997,7 +1016,7 @@ class Image(DisplayObject):
             Path to a local file to load the data from.
             Images from a file are always embedded.
         format : unicode
-            The format of the image data (png/jpeg/jpg). If a filename or URL is given
+            The format of the image data (png/jpeg/jpg/gif). If a filename or URL is given
             for format will be inferred from the filename extension.
         embed : bool
             Should the image data be embedded using a data URI (True) or be
@@ -1059,6 +1078,9 @@ class Image(DisplayObject):
                     format = self._FMT_JPEG
                 if ext == u'png':
                     format = self._FMT_PNG
+                if ext == u'gif':
+                    # use PNG format until we understand why GIF is not working
+                    format = self._FMT_PNG
                 else:
                     format = ext.lower()
             elif isinstance(data, bytes):
@@ -1069,11 +1091,15 @@ class Image(DisplayObject):
 
         # failed to detect format, default png
         if format is None:
-            format = 'png'
+            format = self._FMT_PNG
 
         if format.lower() == 'jpg':
             # jpg->jpeg
             format = self._FMT_JPEG
+            
+        if format == self._FMT_GIF:
+            # use PNG format until we understand why GIF is not working
+            format = self._FMT_PNG
 
         self.format = format.lower()
         self.embed = embed if embed is not None else (url is None)
@@ -1100,9 +1126,9 @@ class Image(DisplayObject):
         """load pixel-doubled width and height from image data"""
         if not self.embed:
             return
-        if self.format == 'png':
+        if self.format == self._FMT_PNG:
             w, h = _pngxy(self.data)
-        elif self.format == 'jpeg':
+        elif self.format == self._FMT_JPEG:
             w, h = _jpegxy(self.data)
         else:
             # retina only supports png
@@ -1150,11 +1176,15 @@ class Image(DisplayObject):
             return self.data
 
     def _repr_png_(self):
-        if self.embed and self.format == u'png':
+        if self.embed and self.format == self._FMT_PNG:
             return self._data_and_metadata()
 
     def _repr_jpeg_(self):
-        if self.embed and (self.format == u'jpeg' or self.format == u'jpg'):
+        if self.embed and (self.format == self._FMT_JPEG or self.format == u'jpg'):
+            return self._data_and_metadata()
+            
+    def _repr_gif_(self):
+        if self.embed and self.format == self._FMT_PNG:
             return self._data_and_metadata()
 
     def _find_ext(self, s):
@@ -1262,6 +1292,9 @@ class Video(DisplayObject):
         # TODO
         pass
     def _repr_jpeg_(self):
+        # TODO
+        pass
+    def _repr_gif_(self):
         # TODO
         pass
 
