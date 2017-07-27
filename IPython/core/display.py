@@ -257,7 +257,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
       - `_repr_json_`: return a JSONable dict
       - `_repr_jpeg_`: return raw JPEG data
       - `_repr_png_`: return raw PNG data
-      - `_repr_gif_`: return raw PNG data
+      - `_repr_gif_`: return raw GIF data
       - `_repr_svg_`: return raw SVG data as a string
       - `_repr_latex_`: return LaTeX commands in a string surrounded by "$".
       - `_repr_mimebundle_`: return a full mimebundle containing the mapping
@@ -945,7 +945,7 @@ class Javascript(TextDisplayObject):
             raise TypeError('expected sequence, got: %r' % css)
         self.lib = lib
         self.css = css
-        superg(Javascript, self).__init__(data=data, url=url, filename=filename)
+        super(Javascript, self).__init__(data=data, url=url, filename=filename)
 
     def _repr_javascript_(self):
         r = ''
