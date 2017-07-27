@@ -48,6 +48,9 @@ class RichOutput(object):
     
     def _repr_jpeg_(self):
         return self._repr_mime_("image/jpeg")
+        
+    def _repr_gif_(self):
+        return self._repr_mime_("image/gif")
     
     def _repr_svg_(self):
         return self._repr_mime_("image/svg+xml")
@@ -162,5 +165,3 @@ class capture_output(object):
         if self.display and self.shell:
             self.shell.display_pub = self.save_display_pub
             sys.displayhook = self.save_display_hook
-
-

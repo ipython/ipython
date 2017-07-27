@@ -74,6 +74,7 @@ class DisplayFormatter(Configurable):
             MarkdownFormatter,
             SVGFormatter,
             PNGFormatter,
+            GIFFormatter,
             PDFFormatter,
             JPEGFormatter,
             LatexFormatter,
@@ -779,6 +780,24 @@ class JPEGFormatter(BaseFormatter):
     _return_type = (bytes, str)
 
 
+class GIFFormatter(BaseFormatter):
+    """A PNG formatter.
+
+    To define the callables that compute the GIF representation of your
+    objects, define a :meth:`_repr_gif_` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
+
+    The return value of this formatter should be raw GIF data, *not*
+    base64 encoded.
+    """
+    format_type = Unicode('image/gif')
+
+    print_method = ObjectName('_repr_gif_')
+    
+    _return_type = (bytes, str)
+
+
 class LatexFormatter(BaseFormatter):
     """A LaTeX formatter.
 
@@ -973,6 +992,7 @@ FormatterABC.register(HTMLFormatter)
 FormatterABC.register(MarkdownFormatter)
 FormatterABC.register(SVGFormatter)
 FormatterABC.register(PNGFormatter)
+FormatterABC.register(GIFFormatter)
 FormatterABC.register(PDFFormatter)
 FormatterABC.register(JPEGFormatter)
 FormatterABC.register(LatexFormatter)
