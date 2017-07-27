@@ -1079,8 +1079,7 @@ class Image(DisplayObject):
                 if ext == u'png':
                     format = self._FMT_PNG
                 if ext == u'gif':
-                    # use PNG format until we understand why GIF is not working
-                    format = self._FMT_PNG
+                    format = self._FMT_GIF
                 else:
                     format = ext.lower()
             elif isinstance(data, bytes):
@@ -1097,10 +1096,6 @@ class Image(DisplayObject):
             # jpg->jpeg
             format = self._FMT_JPEG
             
-        if format == self._FMT_GIF:
-            # use PNG format until we understand why GIF is not working
-            format = self._FMT_PNG
-
         self.format = format.lower()
         self.embed = embed if embed is not None else (url is None)
 
@@ -1130,6 +1125,8 @@ class Image(DisplayObject):
             w, h = _pngxy(self.data)
         elif self.format == self._FMT_JPEG:
             w, h = _jpegxy(self.data)
+        elif self.format == self._FMT_GIF:
+            w, h = _pngxy(self.data)
         else:
             # retina only supports png
             return
@@ -1184,7 +1181,7 @@ class Image(DisplayObject):
             return self._data_and_metadata()
             
     def _repr_gif_(self):
-        if self.embed and self.format == self._FMT_PNG:
+        if self.embed and self.format == self._FMT_GIF:
             return self._data_and_metadata()
 
     def _find_ext(self, s):
