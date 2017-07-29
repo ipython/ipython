@@ -965,8 +965,7 @@ def _pngxy(data):
     """read the (width, height) from a PNG header"""
     ihdr = data.index(b'IHDR')
     # next 8 bytes are width/height
-    w4h4 = data[ihdr+4:ihdr+12]
-    return struct.unpack('>ii', w4h4)
+    return struct.unpack('>ii', data[ihdr+4:ihdr+12])
 
 def _jpegxy(data):
     """read the (width, height) from a JPEG header"""
@@ -984,8 +983,11 @@ def _jpegxy(data):
             # read another block
             idx += 2
 
-    h, w = struct.unpack('>HH', data[iSOF+5:iSOF+9])
-    return w, h
+    return struct.unpack('>HH', data[iSOF+5:iSOF+9])
+    
+def _gifxy(data):
+    """read the (width, height) from a GIF header"""
+    return struct.unpack('<HH', data[6:10])
 
 class Image(DisplayObject):
 
@@ -1126,7 +1128,7 @@ class Image(DisplayObject):
         elif self.format == self._FMT_JPEG:
             w, h = _jpegxy(self.data)
         elif self.format == self._FMT_GIF:
-            w, h = _pngxy(self.data)
+            w, h = _gifxy(self.data)
         else:
             # retina only supports png
             return
