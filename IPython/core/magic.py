@@ -17,15 +17,21 @@ import sys
 from getopt import getopt, GetoptError
 
 from traitlets.config.configurable import Configurable
+
 from IPython.core import oinspect
 from IPython.core.error import UsageError
 from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
+
 from decorator import decorator
+
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.text import dedent
+
 from traitlets import Bool, Dict, Instance, observe
+
 from logging import error
+
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -37,7 +43,7 @@ from logging import error
 # access to the class when they run.  See for more details:
 # http://stackoverflow.com/questions/2366713/can-a-python-decorator-of-an-instance-method-access-the-class
 
-magics = dict(line={}, cell={})
+magics = dict(line={}, cell={}, completer={})
 
 magic_kinds = ('line', 'cell')
 magic_spec = ('line', 'cell', 'line_cell')
@@ -103,9 +109,11 @@ def magics_class(cls):
     """
     cls.registered = True
     cls.magics = dict(line = magics['line'],
-                      cell = magics['cell'])
+                      cell = magics['cell'], 
+                      completer = magics['completer'])
     magics['line'] = {}
     magics['cell'] = {}
+    magics['completer'] = {}
     return cls
 
 
@@ -282,6 +290,24 @@ register_line_cell_magic = _function_magic_marker('line_cell')
 # Core Magic classes
 #-----------------------------------------------------------------------------
 
+def completer_for(magic_name):
+    """
+    Decorator to mark a function as being the completer for a given magic.
+
+    Example::
+        
+        @completer_for(magic_name)
+        def function(line, cell, offset):
+            yield 'Example'
+
+    """
+    def decorator(method):
+        s = str(method.__name__)
+        magics['completer'][magic_name] = s
+        return method
+    return decorator
+
+
 class MagicsManager(Configurable):
     """Object that handles all magic-related functionality for IPython.
     """
@@ -314,7 +340,7 @@ class MagicsManager(Configurable):
 
         super(MagicsManager, self).__init__(shell=shell, config=config,
                                            user_magics=user_magics, **traits)
-        self.magics = dict(line={}, cell={})
+        self.magics = dict(line={}, cell={}, completer={})
         # Let's add the user_magics to the registry for uniformity, so *all*
         # registered magic containers can be found there.
         self.registry[user_magics.__class__.__name__] = user_magics
@@ -388,7 +414,7 @@ class MagicsManager(Configurable):
             # Now that we have an instance, we can register it and update the
             # table of callables
             self.registry[m.__class__.__name__] = m
-            for mtype in magic_kinds:
+            for mtype in m.magics.keys():
                 self.magics[mtype].update(m.magics[mtype])
 
     def register_function(self, func, magic_kind='line', magic_name=None):
@@ -507,16 +533,16 @@ class Magics(Configurable):
         # But we mustn't clobber the *class* mapping, in case of multiple instances.
         class_magics = self.magics
         self.magics = {}
-        for mtype in magic_kinds:
-            tab = self.magics[mtype] = {}
+        for mtype in list(magic_kinds)+['completer']:
+            self.magics[mtype] = {}
             cls_tab = class_magics[mtype]
             for magic_name, meth_name in cls_tab.items():
                 if isinstance(meth_name, str):
                     # it's a method name, grab it
-                    tab[magic_name] = getattr(self, meth_name)
+                    self.magics[mtype][magic_name] = getattr(self, meth_name)
                 else:
                     # it's the real thing
-                    tab[magic_name] = meth_name
+                    self.magics[mtype][magic_name] = meth_name
         # Configurable **needs** to be initiated at the end or the config
         # magics get screwed up.
         super(Magics, self).__init__(**kwargs)

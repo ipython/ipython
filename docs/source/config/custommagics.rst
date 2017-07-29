@@ -177,3 +177,75 @@ setuptools, distutils, or any other distribution tools like `flit
         def cadabra(self, line, cell):
             return line, cell
 
+Defining completer for cell magics
+----------------------------------
+
+A number of magics allow to embed non-python code in Python documents. It can
+thus be useful to define custom completer which provide completion for the user.
+Since IPython 6.2 this is possible when Defining custom magic classes, and using
+the ``@complete_for`` decorator.
+
+Let's extend our above magic with completions:
+
+.. sourcecode::
+
+    from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, completer_for)
+    from IPython.core.completer import Completion
+
+    words = ['Supercalifragilisticexpialidocious', 'Alakazam', 'Shazam']
+
+    @magics_class
+    class Abracadabra(Magics):
+
+        @line_magic
+        def abra(self, line):
+            return line
+
+        @cell_magic
+        def cadabra(self, line, cell):
+            return line, cell
+        
+        @completer_for('cadabra')
+        def complete(self, line:str, cell:str, offset:int):
+            """
+            `line` will be the first line of the cell, `cell`
+            the rest of the body starting at the second line,
+            `offset` the position of the cursor in the cell, starting
+            at the beginning of `line` (incuding the % or %%) character
+            in unicode codepoints.
+            
+            The end of line ned tobe explicitly take care of.
+            
+            This function should `yield` a set of `IPython.core.completer.Completions(start, end, text)`
+            telling IPython to replace the text between `start` and `end` by `text`.
+            """
+            
+            # get the full body and text until the cursor
+            # there can be some text after the cusrsor we should
+            take care of that but keep the example simple.
+            full_body = line + '\n'+cell
+            text_until_cursor = full_body[:offset]
+            
+            # split on whitespace and get last token:
+            token_before_cursor = text_until_cursor.split()[-1].lower()
+            
+            for w in words:
+                if w.lower().startswith(token_before_cursor):
+                    # We'll replace the current token so replace
+                    # from the position of the cursor back len of token.
+                    start = offset-len(token_before_cursor)
+                    end = offset
+                    yield Completion(start, end, w)
+        
+We  can optionally register them live in an IPython shell of notebook::
+
+    ip = get_ipython()
+    ip.register_magics(Abracadabra)
+
+Now try the following::
+
+    %%cadabra
+    s<tab>
+
+You should get ``Shazam`` and ``Supercalifragilisticexpialidocious`` as
+potential completions.

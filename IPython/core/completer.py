@@ -1802,6 +1802,15 @@ class IPCompleter(Completer):
         have lots of processing to do.
 
         """
+        if full_text.startswith('%%') and '\n' in full_text:
+            line, *rest = full_text.split('\n')
+            magic = line.split(' ')[0][2:]
+            magic_completer = self.shell.magics_manager.magics['completer'].get(magic, None)
+            if magic_completer:
+                for c in magic_completer(line, '\n'.join(rest), offset):
+                    assert c.start <= offset
+                    yield c
+            return
         deadline = time.monotonic() + _timeout
 
 

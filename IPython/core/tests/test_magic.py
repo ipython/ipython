@@ -1028,7 +1028,7 @@ def test_ls_magic():
     lsmagic = ip.magic('lsmagic')
     with warnings.catch_warnings(record=True) as w:
         j = json_formatter(lsmagic)
-    nt.assert_equal(sorted(j), ['cell', 'line'])
+    nt.assert_equal(sorted(j), ['cell', 'completer', 'line'])
     nt.assert_equal(w, []) # no warnings
 
 def test_strip_initial_indent():
