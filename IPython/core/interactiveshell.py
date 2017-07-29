@@ -635,7 +635,8 @@ class InteractiveShell(SingletonConfigurable):
 
         self.builtin_trap = BuiltinTrap(shell=self)
 
-    def init_inspector(self):
+    @observe('colors')
+    def init_inspector(self, changes=None):
         # Object inspector
         self.inspector = oinspect.Inspector(oinspect.InspectColors,
                                             PyColorize.ANSICodeColors,
