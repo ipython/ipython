@@ -628,6 +628,8 @@ def test_magic_color():
     nt.assert_in('%colors', matches)
     s, matches = c.complete(None, 'colo')
     nt.assert_not_in('NoColor', matches)
+    s, matches = c.complete(None, '%colors')  # No trailing space
+    nt.assert_not_in('NoColor', matches)
     s, matches = c.complete(None, 'colors ')
     nt.assert_in('NoColor', matches)
     s, matches = c.complete(None, '%colors ')
