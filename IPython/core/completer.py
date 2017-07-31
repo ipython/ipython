@@ -1274,10 +1274,14 @@ class IPCompleter(Completer):
 
     def magic_color_matches(self, text:str) -> List[str] :
         """ Match color schemes for %colors magic"""
-        texts = text.strip().split()
+        texts = text.split()
+        if text.endswith(' '):
+            # .split() strips off the trailing whitespace. Add '' back
+            # so that: '%colors ' -> ['%colors', '']
+            texts.append('')
 
-        if len(texts) > 0 and (texts[0] == 'colors' or texts[0] == '%colors'):
-            prefix = texts[1] if len(texts) > 1 else ''
+        if len(texts) == 2 and (texts[0] == 'colors' or texts[0] == '%colors'):
+            prefix = texts[1]
             return [ color for color in InspectColors.keys()
                      if color.startswith(prefix) ]
         return []
