@@ -112,6 +112,18 @@ At present, this only affects the current session - changes you make to
 config are not saved anywhere. Also, some options are only read when
 IPython starts, so they can't be changed like this.
 
+.. _configure_embedded:
+
+Configuring embedded IPython
+----------------------------
+
+If you are :ref:`Embedding`, you can set configuration options the same
+way as in a config file by creating a traitlets config object and passing
+it to start_ipython like in the example below.
+
+.. literalinclude:: ../../../examples/Embedding/embed_configured.py
+    :language: python
+
 .. _profiles:
 
 Profiles

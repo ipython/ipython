@@ -671,6 +671,9 @@ code fragments in your programs which are ready for cut and paste:
 .. literalinclude:: ../../../examples/Embedding/embed_class_short.py
     :language: python
 
+For more information on setting configuration options for an embedded
+IPython instance, see :ref:`configure_embedded`.
+
 Using the Python debugger (pdb)
 ===============================
 
