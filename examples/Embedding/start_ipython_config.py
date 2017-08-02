@@ -1,4 +1,4 @@
-"""Quick snippet explaining how to set config options when embedding ipython."""
+"""Quick snippet explaining how to set config options when using start_ipython."""
 
 # First create a config object from the traitlets library
 from traitlets.config import Config
