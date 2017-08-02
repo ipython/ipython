@@ -6,6 +6,7 @@
 
 
 from collections import Counter, defaultdict, deque, OrderedDict
+import sys
 import types
 import string
 import unittest
@@ -372,36 +373,40 @@ def test_mappingproxy():
     cases = [
         (MP({}), "mappingproxy({})"),
         (MP({None: MP({})}), "mappingproxy({None: mappingproxy({})})"),
-        (MP({k: k.upper() for k in string.ascii_lowercase}),
-         "mappingproxy({'a': 'A',\n"
-         "              'b': 'B',\n"
-         "              'c': 'C',\n"
-         "              'd': 'D',\n"
-         "              'e': 'E',\n"
-         "              'f': 'F',\n"
-         "              'g': 'G',\n"
-         "              'h': 'H',\n"
-         "              'i': 'I',\n"
-         "              'j': 'J',\n"
-         "              'k': 'K',\n"
-         "              'l': 'L',\n"
-         "              'm': 'M',\n"
-         "              'n': 'N',\n"
-         "              'o': 'O',\n"
-         "              'p': 'P',\n"
-         "              'q': 'Q',\n"
-         "              'r': 'R',\n"
-         "              's': 'S',\n"
-         "              't': 'T',\n"
-         "              'u': 'U',\n"
-         "              'v': 'V',\n"
-         "              'w': 'W',\n"
-         "              'x': 'X',\n"
-         "              'y': 'Y',\n"
-         "              'z': 'Z'})"),
         (mp_recursive, "mappingproxy({2: {...}, 3: {2: {...}, 3: {...}}})"),
         (underlying_dict,
          "{2: mappingproxy({2: {...}, 3: {...}}), 3: {...}}"),
     ]
+
+    if sys.version_info > (3, 6):
+        cases.append(
+            (MP({k: k.upper() for k in reversed(string.ascii_lowercase)}),
+             "mappingproxy({'z': 'Z',\n"
+             "              'y': 'Y',\n"
+             "              'x': 'X',\n"
+             "              'w': 'W',\n"
+             "              'v': 'V',\n"
+             "              'u': 'U',\n"
+             "              't': 'T',\n"
+             "              's': 'S',\n"
+             "              'r': 'R',\n"
+             "              'q': 'Q',\n"
+             "              'p': 'P',\n"
+             "              'o': 'O',\n"
+             "              'n': 'N',\n"
+             "              'm': 'M',\n"
+             "              'l': 'L',\n"
+             "              'k': 'K',\n"
+             "              'j': 'J',\n"
+             "              'i': 'I',\n"
+             "              'h': 'H',\n"
+             "              'g': 'G',\n"
+             "              'f': 'F',\n"
+             "              'e': 'E',\n"
+             "              'd': 'D',\n"
+             "              'c': 'C',\n"
+             "              'b': 'B',\n"
+             "              'a': 'A'})")
+        )
     for obj, expected in cases:
         nt.assert_equal(pretty.pretty(obj), expected)
