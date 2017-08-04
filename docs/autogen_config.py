@@ -5,6 +5,7 @@ from os.path import join, dirname, abspath
 from IPython.terminal.ipapp import TerminalIPythonApp
 from ipykernel.kernelapp import IPKernelApp
 from traitlets import Undefined
+from collections import defaultdict
 
 here = abspath(dirname(__file__))
 options = join(here, 'source', 'config', 'options')
@@ -19,7 +20,14 @@ def interesting_default_value(dv):
         return bool(dv)
     return True
 
-def class_config_rst_doc(cls):
+def format_aliases(aliases):
+    fmted = []
+    for a in aliases:
+        dashes = '-' if len(a) == 1 else '--'
+        fmted.append('``%s%s``' % (dashes, a))
+    return ', '.join(fmted)
+
+def class_config_rst_doc(cls, trait_aliases):
     """Generate rST documentation for this class' config options.
 
     Excludes traits defined on parent classes.
@@ -29,7 +37,8 @@ def class_config_rst_doc(cls):
     for k, trait in sorted(cls.class_traits(config=True).items()):
         ttype = trait.__class__.__name__
 
-        lines += ['.. configtrait:: ' + classname + '.' + trait.name,
+        fullname = classname + '.' + trait.name
+        lines += ['.. configtrait:: ' + fullname,
                   ''
                  ]
 
@@ -58,13 +67,38 @@ def class_config_rst_doc(cls):
                 dvr = dvr.replace('\\n', '\\\\n')
                 lines.append(indent(':default: ``%s``' % dvr, 4))
 
+        # Command line aliases
+        if trait_aliases[fullname]:
+            fmt_aliases = format_aliases(trait_aliases[fullname])
+            lines.append(indent(':CLI option: ' + fmt_aliases, 4))
+
         # Blank line
         lines.append('')
 
     return '\n'.join(lines)
 
+def reverse_aliases(app):
+    """Produce a mapping of trait names to lists of command line aliases.
+    """
+    res = defaultdict(list)
+    for alias, trait in app.aliases.items():
+        res[trait].append(alias)
+
+    # Flags also often act as aliases for a boolean trait.
+    # Treat flags which set one trait to True as aliases.
+    for flag, (cfg, _) in app.flags.items():
+        if len(cfg) == 1:
+            classname = list(cfg)[0]
+            cls_cfg = cfg[classname]
+            if len(cls_cfg) == 1:
+                traitname = list(cls_cfg)[0]
+                if cls_cfg[traitname] is True:
+                    res[classname+'.'+traitname].append(flag)
+
+    return res
 
 def write_doc(name, title, app, preamble=None):
+    trait_aliases = reverse_aliases(app)
     filename = join(options, name+'.rst')
     with open(filename, 'w') as f:
         f.write(title + '\n')
@@ -75,7 +109,7 @@ def write_doc(name, title, app, preamble=None):
         #f.write(app.document_config_options())
 
         for c in app._classes_inc_parents():
-            f.write(class_config_rst_doc(c))
+            f.write(class_config_rst_doc(c, trait_aliases))
             f.write('\n')
 
 
