@@ -62,6 +62,7 @@ extensions = [
     'sphinx.ext.napoleon',  # to preprocess docstrings
     'github',  # for easy GitHub links
     'magics',
+    'configtraits',
 ]
 
 if ON_RTD:
