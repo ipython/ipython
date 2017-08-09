@@ -600,13 +600,6 @@ def _dict_pprinter_factory(start, end, basetype=None):
         step = len(start)
         p.begin_group(step, start)
         keys = obj.keys()
-        # if dict isn't large enough to be truncated, sort keys before displaying
-        if not (p.max_seq_length and len(obj) >= p.max_seq_length):
-            try:
-                keys = sorted(keys)
-            except Exception:
-                # Sometimes the keys don't sort.
-                pass
         for idx, key in p._enumerate(keys):
             if idx:
                 p.text(',')
