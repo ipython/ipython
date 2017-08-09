@@ -80,6 +80,35 @@ def test_extract_symbols_raises_exception_with_non_python_code():
     with nt.assert_raises(SyntaxError):
         code.extract_symbols(source, "hello")
 
+
+def test_magic_not_found():
+    # magic not found raises UsageError
+    with nt.assert_raises(UsageError):
+        _ip.magic('doesntexist')
+
+    # ensure result isn't success when a magic isn't found
+    result = _ip.run_cell('%doesntexist')
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+def test_cell_magic_not_found():
+    # magic not found raises UsageError
+    with nt.assert_raises(UsageError):
+        _ip.run_cell_magic('doesntexist', 'line', 'cell')
+
+    # ensure result isn't success when a magic isn't found
+    result = _ip.run_cell('%%doesntexist')
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+def test_magic_error_status():
+    def fail(shell):
+        1/0
+    _ip.register_magic_function(fail)
+    result = _ip.run_cell('%fail')
+    assert isinstance(result.error_in_exec, ZeroDivisionError)
+
+
 def test_config():
     """ test that config magic does not raise
     can happen if Configurable init is moved too early into
