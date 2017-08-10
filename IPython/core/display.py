@@ -5,12 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 
-try:
-    from base64 import encodebytes as base64_encode
-except ImportError:
-    from base64 import encodestring as base64_encode
-
-from binascii import b2a_hex
+from binascii import b2a_hex, b2a_base64
 import json
 import mimetypes
 import os
@@ -1135,6 +1130,7 @@ class Image(DisplayObject):
 
     def _data_and_metadata(self):
         """shortcut for returning metadata with shape information, if defined"""
+        b64_data = b2a_base64(self.data).decode('ascii')
         md = {}
         if self.metadata:
             md.update(self.metadata)
@@ -1145,9 +1141,9 @@ class Image(DisplayObject):
         if self.unconfined:
             md['unconfined'] = self.unconfined
         if md:
-            return self.data, md
+            return b64_data, md
         else:
-            return self.data
+            return b64_data
 
     def _repr_png_(self):
         if self.embed and self.format == u'png':
@@ -1246,7 +1242,7 @@ class Video(DisplayObject):
             # unicode input is already b64-encoded
             b64_video = video
         else:
-            b64_video = base64_encode(video).decode('ascii').rstrip()
+            b64_video = b2a_base64(video).decode('ascii').rstrip()
 
         output = """<video controls>
  <source src="data:{0};base64,{1}" type="{0}">
