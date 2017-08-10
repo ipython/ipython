@@ -21,6 +21,10 @@ from IPython.utils.io import ask_yes_no
 
 class KillEmbedded(Exception):pass
 
+# kept for backward compatibility as IPython 6 was released with
+# the typo. See https://github.com/ipython/ipython/pull/10706
+KillEmbeded = KillEmbedded
+
 # This is an additional magic that is exposed in embedded shells.
 @magics_class
 class EmbeddedMagics(Magics):
