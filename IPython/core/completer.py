@@ -1414,7 +1414,7 @@ class IPCompleter(Completer):
             pass
         elif not (inspect.isfunction(obj) or inspect.ismethod(obj)):
             if inspect.isclass(obj):
-                #for cython embededsignature=True the constructor docstring
+                #for cython embedsignature=True the constructor docstring
                 #belongs to the object itself not __init__
                 ret += self._default_arguments_from_docstring(
                             getattr(obj, '__doc__', ''))
