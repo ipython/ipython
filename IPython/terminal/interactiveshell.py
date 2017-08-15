@@ -126,7 +126,7 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     mouse_support = Bool(False,
-        help="Enable mouse support in the prompt"
+        help="Enable mouse support in the prompt\n(Note: prevents selecting text with the mouse)"
     ).tag(config=True)
 
     highlighting_style = Union([Unicode('legacy'), Type(klass=Style)],
