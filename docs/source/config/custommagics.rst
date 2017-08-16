@@ -84,12 +84,17 @@ IPython object:
 
 
     # In order to actually use these magics, you must register them with a
-    # running IPython.  This code must be placed in a file that is loaded once
-    # IPython is up and running:
-    ip = get_ipython()
-    # You can register the class itself without instantiating it.  IPython will
-    # call the default constructor on it.
-    ip.register_magics(MyMagics)
+    # running IPython.
+
+    def load_ipython_extension(ipython):
+        """
+        Any nodule file that define a function named load_ipython_extension can
+        be loaded via `load_ext` or be configured to be autoloaded by IPython at
+        startup time.
+        """
+        # You can register the class itself without instantiating it.  IPython will
+        # call the default constructor on it.
+        ipython.register_magics(MyMagics)
 
 If you want to create a class with a different constructor that holds
 additional state, then you should always call the parent constructor and
@@ -108,11 +113,16 @@ instantiate the class yourself before registration:
         
         # etc...
 
-    # This class must then be registered with a manually created instance,
-    # since its constructor has different arguments from the default:
-    ip = get_ipython()
-    magics = StatefulMagics(ip, some_data)
-    ip.register_magics(magics)
+    def load_ipython_extension(ipython):
+        """
+        Any nodule file that define a function named load_ipython_extension can
+        be loaded via `load_ext` or be configured to be autoloaded by IPython at
+        startup time.
+        """
+        # This class must then be registered with a manually created instance,
+        # since its constructor has different arguments from the default:
+        magics = StatefulMagics(ip, some_data)
+        ipython.register_magics(magics)
 
 
 .. note::
