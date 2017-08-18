@@ -159,8 +159,17 @@ class DisplayFormatter(Configurable):
 
         for format_type, formatter in self.formatters.items():
             if format_type in format_dict:
-                # already got it from mimebundle, don't render again
-                continue
+                # already got it from mimebundle, maybe don't render again.
+                # exception: manually registered per-mime renderer
+                # check priority:
+                # 1. user-registered per-mime formatter
+                # 2. mime-bundle (user-registered or repr method)
+                # 3. default per-mime formatter (e.g. repr method)
+                try:
+                    formatter.lookup(obj)
+                except KeyError:
+                    # no special formatter, use mime-bundle-provided value
+                    continue
             if include and format_type not in include:
                 continue
             if exclude and format_type in exclude:
