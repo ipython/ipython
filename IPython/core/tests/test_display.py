@@ -6,16 +6,21 @@ import os
 import warnings
 
 from unittest import mock
+from unittest import TestCase
 
 import nose.tools as nt
+
+import textwrap
 
 from IPython.core import display
 from IPython.core.getipython import get_ipython
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython import paths as ipath
-from IPython.testing.tools import AssertPrints, AssertNotPrints
+from IPython.testing.tools import AssertNotPrints
 
 import IPython.testing.decorators as dec
+
+
 
 def test_image_size():
     """Simple test for display.Image(args, width=x,height=y)"""
@@ -51,7 +56,7 @@ def test_geojson():
             "minZoom": 0,
             "maxZoom": 18,
         })
-    nt.assert_equal(u'<IPython.core.display.GeoJSON object>', str(gj))
+    nt.assert_equal(u'<IPython.display.GeoJSON object>', str(gj))
 
 def test_retina_png():
     here = os.path.dirname(__file__)
@@ -164,7 +169,7 @@ def test_display_available():
 
 def test_textdisplayobj_pretty_repr():
      p = display.Pretty("This is a simple test")
-     nt.assert_equal(repr(p), '<IPython.core.display.Pretty object>')
+     nt.assert_equal(repr(p), '<IPython.display.Pretty object>')
      nt.assert_equal(p.data, 'This is a simple test')
 
      p._show_mem_addr = True
@@ -172,18 +177,18 @@ def test_textdisplayobj_pretty_repr():
 
 def test_displayobject_repr():
     h = display.HTML('<br />')
-    nt.assert_equal(repr(h), '<IPython.core.display.HTML object>')
+    nt.assert_equal(repr(h), '<IPython.display.HTML object>')
     h._show_mem_addr = True
     nt.assert_equal(repr(h), object.__repr__(h))
     h._show_mem_addr = False
-    nt.assert_equal(repr(h), '<IPython.core.display.HTML object>')
+    nt.assert_equal(repr(h), '<IPython.display.HTML object>')
 
     j = display.Javascript('')
-    nt.assert_equal(repr(j), '<IPython.core.display.Javascript object>')
+    nt.assert_equal(repr(j), '<IPython.display.Javascript object>')
     j._show_mem_addr = True
     nt.assert_equal(repr(j), object.__repr__(j))
     j._show_mem_addr = False
-    nt.assert_equal(repr(j), '<IPython.core.display.Javascript object>')
+    nt.assert_equal(repr(j), '<IPython.display.Javascript object>')
 
 def test_json():
     d = {'a': 5}
@@ -361,3 +366,68 @@ def test_display_handle():
         },
         'update': True,
     })
+
+
+class ExampleObject:
+
+    def _repr_png_(self):
+        return "This is PNG DATA"
+
+def formatter_for_png_example_data(obj):
+    return "Userset PNG DATA"
+
+
+class RecList:
+    """
+    Example object tat define a recursive REPR
+    """
+
+    def __init__(self):
+        self.container = [ExampleObject(), self]
+
+
+    def _repr_png_(self):
+        rep = ''
+        for o in self.container:
+            rep += '\n '+textwrap.indent(display.get_repr_mimebundle(o).data.get('image/png','<recursion>'), ' -  ')
+        return rep
+
+
+class TestRichReprGet(TestCase):
+
+    def setUp(self):
+        ip = get_ipython()
+        ip.display_formatter.formatters['image/png'].enabled = True
+
+    def tearDown(self):
+        ip = get_ipython()
+        ip.display_formatter.formatters['image/png'].enabled = False
+
+    def test_get_magic_method(self):
+        """
+        Check that get_repr_mimebundle can getdata from repr methods
+        """
+        ip = get_ipython()
+        bundle = display.get_repr_mimebundle(ExampleObject())
+        self.assertEqual(bundle.data['image/png'], 'This is PNG DATA')
+
+    def test_get_magic_user_formatter(self):
+        """
+        Check that get_repr_mimebundle can getdata from user formatters
+        """
+        ip = get_ipython()
+        try:
+            ip.display_formatter.formatters['image/png'].for_type(ExampleObject, formatter_for_png_example_data)
+
+            bundle = display.get_repr_mimebundle(ExampleObject())
+            self.assertEqual(bundle.data['image/png'], 'Userset PNG DATA')
+            ip.display_formatter.formatters['image/png'].for_type(ExampleObject, None)
+        finally:
+            del ip.display_formatter.formatters['image/png'].type_printers[ExampleObject]
+
+
+    def test_recursion(self):
+        bundle = display.get_repr_mimebundle(RecList())
+        self.assertEqual(bundle.data['image/png'], '\n  -  This is PNG DATA\n  -  <recursion>')
+
+
