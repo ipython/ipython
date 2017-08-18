@@ -161,6 +161,9 @@ if sys.platform == 'win32':
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
+# Protect against returning an enormous number of completions which the frontend
+# may have trouble processing.
+MATCHES_LIMIT = 500
 
 _deprecation_readline_sentinel = object()
 
@@ -1943,7 +1946,8 @@ class IPCompleter(Completer):
             for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
                 name_text, name_matches = meth(base_text)
                 if name_text:
-                    return name_text, name_matches, [meth.__qualname__]*len(name_matches), ()
+                    return name_text, name_matches[:MATCHES_LIMIT], \
+                           [meth.__qualname__]*min(len(name_matches), MATCHES_LIMIT), ()
         
 
         # If no line buffer is given, assume the input text is all there was
@@ -1955,11 +1959,10 @@ class IPCompleter(Completer):
 
         # Do magic arg matches
         for matcher in self.magic_arg_matchers:
-            matches = [(m, matcher.__qualname__) for m in matcher(line_buffer)]
+            matches = list(matcher(line_buffer))[:MATCHES_LIMIT]
             if matches:
-                matches2 = [m[0] for m in matches]
-                origins = [m[1] for m in matches]
-                return text, matches2, origins, ()
+                origins = [matcher.__qualname__] * len(matches)
+                return text, matches, origins, ()
 
         # Start with a clean slate of completions
         matches = []
@@ -2006,7 +2009,8 @@ class IPCompleter(Completer):
                 seen.add(t)
 
         _filtered_matches = sorted(
-            set(filtered_matches), key=lambda x: completions_sorting_key(x[0]))
+            set(filtered_matches), key=lambda x: completions_sorting_key(x[0]))\
+            [:MATCHES_LIMIT]
 
         _matches = [m[0] for m in _filtered_matches]
         origins = [m[1] for m in _filtered_matches]
