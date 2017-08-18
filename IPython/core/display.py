@@ -951,7 +951,8 @@ def _jpegxy(data):
             # read another block
             idx += 2
 
-    return struct.unpack('>HH', data[iSOF+5:iSOF+9])
+    h, w = struct.unpack('>HH', data[iSOF+5:iSOF+9])
+    return w, h
 
 def _gifxy(data):
     """read the (width, height) from a GIF header"""
