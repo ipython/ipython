@@ -74,7 +74,6 @@ class DisplayFormatter(Configurable):
             MarkdownFormatter,
             SVGFormatter,
             PNGFormatter,
-            GIFFormatter,
             PDFFormatter,
             JPEGFormatter,
             LatexFormatter,
@@ -780,24 +779,6 @@ class JPEGFormatter(BaseFormatter):
     _return_type = (bytes, str)
 
 
-class GIFFormatter(BaseFormatter):
-    """A PNG formatter.
-
-    To define the callables that compute the GIF representation of your
-    objects, define a :meth:`_repr_gif_` method or use the :meth:`for_type`
-    or :meth:`for_type_by_name` methods to register functions that handle
-    this.
-
-    The return value of this formatter should be raw GIF data, *not*
-    base64 encoded.
-    """
-    format_type = Unicode('image/gif')
-
-    print_method = ObjectName('_repr_gif_')
-    
-    _return_type = (bytes, str)
-
-
 class LatexFormatter(BaseFormatter):
     """A LaTeX formatter.
 
@@ -977,10 +958,7 @@ class MimeBundleFormatter(BaseFormatter):
             method = get_real_method(obj, self.print_method)
 
             if method is not None:
-                d = {}
-                d['include'] = include
-                d['exclude'] = exclude
-                return method(**d)
+                return method(include=include, exclude=exclude)
             return None
         else:
             return None
@@ -992,7 +970,6 @@ FormatterABC.register(HTMLFormatter)
 FormatterABC.register(MarkdownFormatter)
 FormatterABC.register(SVGFormatter)
 FormatterABC.register(PNGFormatter)
-FormatterABC.register(GIFFormatter)
 FormatterABC.register(PDFFormatter)
 FormatterABC.register(JPEGFormatter)
 FormatterABC.register(LatexFormatter)
@@ -1006,19 +983,6 @@ def format_display_data(obj, include=None, exclude=None):
     """Return a format data dict for an object.
 
     By default all format types will be computed.
-
-    The following MIME types are currently implemented:
-
-    * text/plain
-    * text/html
-    * text/markdown
-    * text/latex
-    * application/json
-    * application/javascript
-    * application/pdf
-    * image/png
-    * image/jpeg
-    * image/svg+xml
 
     Parameters
     ----------

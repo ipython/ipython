@@ -30,7 +30,10 @@ class RichOutput(object):
             return data, self.metadata[mime]
         else:
             return data
-            
+
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        return self.data, self.metadata
+
     def _repr_html_(self):
         return self._repr_mime_("text/html")
     
@@ -48,9 +51,6 @@ class RichOutput(object):
     
     def _repr_jpeg_(self):
         return self._repr_mime_("image/jpeg")
-        
-    def _repr_gif_(self):
-        return self._repr_mime_("image/gif")
     
     def _repr_svg_(self):
         return self._repr_mime_("image/svg+xml")

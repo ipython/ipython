@@ -23,7 +23,7 @@ from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
 
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
-'display_svg', 'display_png', 'display_jpeg', 'display_gif', 'display_latex', 'display_json',
+'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
 'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'GeoJSON', 'Javascript',
 'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
@@ -86,18 +86,7 @@ def publish_display_data(data, metadata=None, source=None, *, transient=None, **
     See the ``display_data`` message in the messaging documentation for
     more details about this message type.
 
-    The following MIME types are currently implemented:
-
-    * text/plain
-    * text/html
-    * text/markdown
-    * text/latex
-    * application/json
-    * application/javascript
-    * image/png
-    * image/jpeg
-    * image/gif
-    * image/svg+xml
+    Keys of data and metadata can be any mime-type.
 
     Parameters
     ----------
@@ -257,11 +246,11 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
       - `_repr_json_`: return a JSONable dict
       - `_repr_jpeg_`: return raw JPEG data
       - `_repr_png_`: return raw PNG data
-      - `_repr_gif_`: return raw GIF data
       - `_repr_svg_`: return raw SVG data as a string
       - `_repr_latex_`: return LaTeX commands in a string surrounded by "$".
       - `_repr_mimebundle_`: return a full mimebundle containing the mapping
-      from all mimetypes to data
+                             from all mimetypes to data.
+                             Use this for any mime-type not listed above.
 
     When you are directly writing your own classes, you can adapt them for
     display in IPython by following the above approach. But in practice, you
@@ -496,22 +485,6 @@ def display_jpeg(*objs, **kwargs):
         Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('image/jpeg', objs, **kwargs)
-    
-def display_gif(*objs, **kwargs):
-    """Display the GIF representation of an object.
-
-    Parameters
-    ----------
-    objs : tuple of objects
-        The Python objects to display, or if raw=True raw gif data to
-        display.
-    raw : bool
-        Are the data objects raw data or Python objects that need to be
-        formatted before display? [default: False]
-    metadata : dict (optional)
-        Metadata to be associated with the specific mimetype output.
-    """
-    _display_mimetype('image/gif', objs, **kwargs)
 
 
 def display_latex(*objs, **kwargs):
@@ -984,10 +957,11 @@ def _jpegxy(data):
             idx += 2
 
     return struct.unpack('>HH', data[iSOF+5:iSOF+9])
-    
+
 def _gifxy(data):
     """read the (width, height) from a GIF header"""
     return struct.unpack('<HH', data[6:10])
+
 
 class Image(DisplayObject):
 
@@ -996,6 +970,11 @@ class Image(DisplayObject):
     _FMT_PNG = u'png'
     _FMT_GIF = u'gif'
     _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_GIF]
+    _MIMETYPES = {
+        _FMT_PNG: 'image/png',
+        _FMT_JPEG: 'image/jpeg',
+        _FMT_GIF: 'image/gif',
+    }
 
     def __init__(self, data=None, url=None, filename=None, format=None,
                  embed=None, width=None, height=None, retina=False,
@@ -1097,12 +1076,15 @@ class Image(DisplayObject):
         if format.lower() == 'jpg':
             # jpg->jpeg
             format = self._FMT_JPEG
-            
+
         self.format = format.lower()
         self.embed = embed if embed is not None else (url is None)
 
         if self.embed and self.format not in self._ACCEPTABLE_EMBEDDINGS:
             raise ValueError("Cannot embed the '%s' image format" % (self.format))
+        if self.embed:
+            self._mimetype = self._MIMETYPES.get(self.format)
+
         self.width = width
         self.height = height
         self.retina = retina
@@ -1118,6 +1100,7 @@ class Image(DisplayObject):
 
         if retina:
             self._retina_shape()
+
 
     def _retina_shape(self):
         """load pixel-doubled width and height from image data"""
@@ -1158,7 +1141,21 @@ class Image(DisplayObject):
                 klass=klass,
             )
 
-    def _data_and_metadata(self):
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        """Return the image as a mimebundle
+
+        Any new mimetype support should be implemented here.
+        """
+        if self.embed:
+            mimetype = self._mimetype
+            data, metadata = self._data_and_metadata(always_both=True)
+            if metadata:
+                metadata = {mimetype: metadata}
+            return {mimetype: data}, metadata
+        else:
+            return {'text/html': self._repr_html_()}
+
+    def _data_and_metadata(self, always_both=False):
         """shortcut for returning metadata with shape information, if defined"""
         md = {}
         if self.metadata:
@@ -1169,7 +1166,7 @@ class Image(DisplayObject):
             md['height'] = self.height
         if self.unconfined:
             md['unconfined'] = self.unconfined
-        if md:
+        if md or always_both:
             return self.data, md
         else:
             return self.data
@@ -1179,15 +1176,12 @@ class Image(DisplayObject):
             return self._data_and_metadata()
 
     def _repr_jpeg_(self):
-        if self.embed and (self.format == self._FMT_JPEG or self.format == u'jpg'):
-            return self._data_and_metadata()
-            
-    def _repr_gif_(self):
-        if self.embed and self.format == self._FMT_GIF:
+        if self.embed and self.format == self._FMT_JPEG:
             return self._data_and_metadata()
 
     def _find_ext(self, s):
         return s.split('.')[-1].lower()
+
 
 class Video(DisplayObject):
 
@@ -1287,15 +1281,6 @@ class Video(DisplayObject):
         # TODO
         pass
 
-    def _repr_png_(self):
-        # TODO
-        pass
-    def _repr_jpeg_(self):
-        # TODO
-        pass
-    def _repr_gif_(self):
-        # TODO
-        pass
 
 def clear_output(wait=False):
     """Clear the output of the current cell receiving output.
