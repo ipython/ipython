@@ -967,10 +967,7 @@ class MimeBundleFormatter(BaseFormatter):
             method = get_real_method(obj, self.print_method)
 
             if method is not None:
-                d = {}
-                d['include'] = include
-                d['exclude'] = exclude
-                return method(**d)
+                return method(include=include, exclude=exclude)
             return None
         else:
             return None
@@ -995,19 +992,6 @@ def format_display_data(obj, include=None, exclude=None):
     """Return a format data dict for an object.
 
     By default all format types will be computed.
-
-    The following MIME types are currently implemented:
-
-    * text/plain
-    * text/html
-    * text/markdown
-    * text/latex
-    * application/json
-    * application/javascript
-    * application/pdf
-    * image/png
-    * image/jpeg
-    * image/svg+xml
 
     Parameters
     ----------

@@ -81,17 +81,7 @@ def publish_display_data(data, metadata=None, source=None, *, transient=None, **
     See the ``display_data`` message in the messaging documentation for
     more details about this message type.
 
-    The following MIME types are currently implemented:
-
-    * text/plain
-    * text/html
-    * text/markdown
-    * text/latex
-    * application/json
-    * application/javascript
-    * image/png
-    * image/jpeg
-    * image/svg+xml
+    Keys of data and metadata can be any mime-type.
 
     Parameters
     ----------
@@ -254,7 +244,8 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
       - `_repr_svg_`: return raw SVG data as a string
       - `_repr_latex_`: return LaTeX commands in a string surrounded by "$".
       - `_repr_mimebundle_`: return a full mimebundle containing the mapping
-      from all mimetypes to data
+                             from all mimetypes to data.
+                             Use this for any mime-type not listed above.
 
     When you are directly writing your own classes, you can adapt them for
     display in IPython by following the above approach. But in practice, you
@@ -942,8 +933,7 @@ def _pngxy(data):
     """read the (width, height) from a PNG header"""
     ihdr = data.index(b'IHDR')
     # next 8 bytes are width/height
-    w4h4 = data[ihdr+4:ihdr+12]
-    return struct.unpack('>ii', w4h4)
+    return struct.unpack('>ii', data[ihdr+4:ihdr+12])
 
 def _jpegxy(data):
     """read the (width, height) from a JPEG header"""
@@ -964,17 +954,28 @@ def _jpegxy(data):
     h, w = struct.unpack('>HH', data[iSOF+5:iSOF+9])
     return w, h
 
+def _gifxy(data):
+    """read the (width, height) from a GIF header"""
+    return struct.unpack('<HH', data[6:10])
+
+
 class Image(DisplayObject):
 
     _read_flags = 'rb'
     _FMT_JPEG = u'jpeg'
     _FMT_PNG = u'png'
-    _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG]
+    _FMT_GIF = u'gif'
+    _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_GIF]
+    _MIMETYPES = {
+        _FMT_PNG: 'image/png',
+        _FMT_JPEG: 'image/jpeg',
+        _FMT_GIF: 'image/gif',
+    }
 
     def __init__(self, data=None, url=None, filename=None, format=None,
                  embed=None, width=None, height=None, retina=False,
                  unconfined=False, metadata=None):
-        """Create a PNG/JPEG image object given raw data.
+        """Create a PNG/JPEG/GIF image object given raw data.
 
         When this object is returned by an input cell or passed to the
         display function, it will result in the image being displayed
@@ -992,7 +993,7 @@ class Image(DisplayObject):
             Path to a local file to load the data from.
             Images from a file are always embedded.
         format : unicode
-            The format of the image data (png/jpeg/jpg). If a filename or URL is given
+            The format of the image data (png/jpeg/jpg/gif). If a filename or URL is given
             for format will be inferred from the filename extension.
         embed : bool
             Should the image data be embedded using a data URI (True) or be
@@ -1054,6 +1055,8 @@ class Image(DisplayObject):
                     format = self._FMT_JPEG
                 if ext == u'png':
                     format = self._FMT_PNG
+                if ext == u'gif':
+                    format = self._FMT_GIF
                 else:
                     format = ext.lower()
             elif isinstance(data, bytes):
@@ -1064,7 +1067,7 @@ class Image(DisplayObject):
 
         # failed to detect format, default png
         if format is None:
-            format = 'png'
+            format = self._FMT_PNG
 
         if format.lower() == 'jpg':
             # jpg->jpeg
@@ -1075,6 +1078,9 @@ class Image(DisplayObject):
 
         if self.embed and self.format not in self._ACCEPTABLE_EMBEDDINGS:
             raise ValueError("Cannot embed the '%s' image format" % (self.format))
+        if self.embed:
+            self._mimetype = self._MIMETYPES.get(self.format)
+
         self.width = width
         self.height = height
         self.retina = retina
@@ -1091,14 +1097,17 @@ class Image(DisplayObject):
         if retina:
             self._retina_shape()
 
+
     def _retina_shape(self):
         """load pixel-doubled width and height from image data"""
         if not self.embed:
             return
-        if self.format == 'png':
+        if self.format == self._FMT_PNG:
             w, h = _pngxy(self.data)
-        elif self.format == 'jpeg':
+        elif self.format == self._FMT_JPEG:
             w, h = _jpegxy(self.data)
+        elif self.format == self._FMT_GIF:
+            w, h = _gifxy(self.data)
         else:
             # retina only supports png
             return
@@ -1128,7 +1137,21 @@ class Image(DisplayObject):
                 klass=klass,
             )
 
-    def _data_and_metadata(self):
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        """Return the image as a mimebundle
+
+        Any new mimetype support should be implemented here.
+        """
+        if self.embed:
+            mimetype = self._mimetype
+            data, metadata = self._data_and_metadata(always_both=True)
+            if metadata:
+                metadata = {mimetype: metadata}
+            return {mimetype: data}, metadata
+        else:
+            return {'text/html': self._repr_html_()}
+
+    def _data_and_metadata(self, always_both=False):
         """shortcut for returning metadata with shape information, if defined"""
         b64_data = b2a_base64(self.data).decode('ascii')
         md = {}
@@ -1140,21 +1163,22 @@ class Image(DisplayObject):
             md['height'] = self.height
         if self.unconfined:
             md['unconfined'] = self.unconfined
-        if md:
+        if md or always_both:
             return b64_data, md
         else:
             return b64_data
 
     def _repr_png_(self):
-        if self.embed and self.format == u'png':
+        if self.embed and self.format == self._FMT_PNG:
             return self._data_and_metadata()
 
     def _repr_jpeg_(self):
-        if self.embed and (self.format == u'jpeg' or self.format == u'jpg'):
+        if self.embed and self.format == self._FMT_JPEG:
             return self._data_and_metadata()
 
     def _find_ext(self, s):
         return s.split('.')[-1].lower()
+
 
 class Video(DisplayObject):
 
@@ -1254,12 +1278,6 @@ class Video(DisplayObject):
         # TODO
         pass
 
-    def _repr_png_(self):
-        # TODO
-        pass
-    def _repr_jpeg_(self):
-        # TODO
-        pass
 
 def clear_output(wait=False):
     """Clear the output of the current cell receiving output.

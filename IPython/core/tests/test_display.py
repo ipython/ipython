@@ -32,6 +32,15 @@ def test_image_size():
     nt.assert_equal(u'<img src="%s" class="unconfined"/>' % (thisurl), img._repr_html_())
 
 
+def test_image_mimes():
+    fmt = get_ipython().display_formatter.format
+    for format in display.Image._ACCEPTABLE_EMBEDDINGS:
+        mime = display.Image._MIMETYPES[format]
+        img = display.Image(b'garbage', format=format)
+        data, metadata = fmt(img)
+        nt.assert_equal(sorted(data), sorted([mime, 'text/plain']))
+
+
 def test_geojson():
 
     gj = display.GeoJSON(data={
@@ -77,7 +86,7 @@ def test_base64image():
 def test_image_filename_defaults():
     '''test format constraint, and validity of jpeg and png'''
     tpath = ipath.get_ipython_package_dir()
-    nt.assert_raises(ValueError, display.Image, filename=os.path.join(tpath, 'testing/tests/badformat.gif'),
+    nt.assert_raises(ValueError, display.Image, filename=os.path.join(tpath, 'testing/tests/badformat.zip'),
                      embed=True)
     nt.assert_raises(ValueError, display.Image)
     nt.assert_raises(ValueError, display.Image, data='this is not an image', format='badformat', embed=True)
@@ -361,3 +370,4 @@ def test_display_handle():
         },
         'update': True,
     })
+

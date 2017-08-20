@@ -30,7 +30,10 @@ class RichOutput(object):
             return data, self.metadata[mime]
         else:
             return data
-            
+
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        return self.data, self.metadata
+
     def _repr_html_(self):
         return self._repr_mime_("text/html")
     
@@ -162,5 +165,3 @@ class capture_output(object):
         if self.display and self.shell:
             self.shell.display_pub = self.save_display_pub
             sys.displayhook = self.save_display_hook
-
-
