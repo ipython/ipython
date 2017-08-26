@@ -5,7 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 
-from binascii import b2a_hex, b2a_base64
+from binascii import b2a_hex, b2a_base64, hexlify
 import json
 import mimetypes
 import os
@@ -20,9 +20,10 @@ from IPython.testing.skipdoctest import skip_doctest
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
-'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'GeoJSON', 'Javascript',
-'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
-'publish_display_data', 'update_display', 'DisplayHandle', 'Video']
+'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'ProgressBar', 'JSON',
+'GeoJSON', 'Javascript', 'Image', 'clear_output', 'set_matplotlib_formats',
+'set_matplotlib_close', 'publish_display_data', 'update_display', 'DisplayHandle',
+'Video']
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -728,6 +729,50 @@ class SVG(DisplayObject):
     def _repr_svg_(self):
         return self._data_and_metadata()
 
+class ProgressBar(DisplayObject):
+    """Progressbar supports displaying a progressbar like element 
+    """
+    def __init__(self, total):
+        """Creates a new progressbar
+        
+        Parameters
+        ----------
+        total : int
+            maximum size of the progressbar
+        """
+        self.total = total
+        self._progress = 0
+        self.html_width = '60ex'
+        self.text_width = 60
+        self._display_id = hexlify(os.urandom(8)).decode('ascii')
+
+    def __repr__(self):
+        fraction = self.progress / self.total
+        filled = '=' * int(fraction * self.text_width)
+        rest = ' ' * (self.text_width - len(filled))
+        return '[{}{}] {}/{}'.format(
+            filled, rest,
+            self.progress, self.total,
+        )
+
+    def _repr_html_(self):
+        return "<progress style='width:{}' max='{}' value='{}'></progress>".format(
+            self.html_width, self.total, self.progress)
+
+    def display(self):
+        display(self, display_id=self._display_id)
+
+    def update(self):
+        display(self, display_id=self._display_id, update=True)
+
+    @property
+    def progress(self):
+        return self._progress
+
+    @progress.setter
+    def progress(self, value):
+        self._progress = value
+        self.update()
 
 class JSON(DisplayObject):
     """JSON expects a JSON-able dict or list
