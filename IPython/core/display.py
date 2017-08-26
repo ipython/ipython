@@ -20,9 +20,10 @@ from IPython.testing.skipdoctest import skip_doctest
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
-'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'GeoJSON', 'Javascript',
-'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
-'publish_display_data', 'update_display', 'DisplayHandle', 'Video']
+'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'ProgressBar', 'JSON',
+'GeoJSON', 'Javascript', 'Image', 'clear_output', 'set_matplotlib_formats',
+'set_matplotlib_close', 'publish_display_data', 'update_display', 'DisplayHandle',
+'Video']
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -737,7 +738,7 @@ class ProgressBar(DisplayObject):
         Parameters
         ----------
         total : int
-            maximnum size of the progressbar
+            maximum size of the progressbar
         """
         self._display_id = hexlify(os.urandom(8)).decode('ascii')
         self.total = total
