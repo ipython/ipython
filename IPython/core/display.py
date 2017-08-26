@@ -5,7 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 
-from binascii import b2a_hex, b2a_base64
+from binascii import b2a_hex, b2a_base64, hexlify
 import json
 import mimetypes
 import os
@@ -728,6 +728,38 @@ class SVG(DisplayObject):
     def _repr_svg_(self):
         return self._data_and_metadata()
 
+class ProgressBar(object):
+    """Progressbar supports displaying a progressbar like element 
+    """
+    def __init__(self, total):
+        """Creates a new progressbar
+        
+        Parameters
+        ----------
+        total : int
+            maximnum size of the progressbar
+        """
+        self._display_id = hexlify(os.urandom(8)).decode('ascii')
+        self.total = total
+        self._progress = 0
+
+    def _repr_html_(self):
+        return "<progress style='width:100%' max='{}' value='{}'></progress>".format(self.total, self.progress)
+
+    def display(self):
+        display(self, display_id=self._display_id)
+
+    def update(self):
+        display(self, display_id=self._display_id, update=True)
+
+    @property
+    def progress(self):
+        return self._progress
+
+    @progress.setter
+    def progress(self, value):
+        self._progress = value
+        self.update()
 
 class JSON(DisplayObject):
     """JSON expects a JSON-able dict or list
