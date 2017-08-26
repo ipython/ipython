@@ -740,12 +740,24 @@ class ProgressBar(DisplayObject):
         total : int
             maximum size of the progressbar
         """
-        self._display_id = hexlify(os.urandom(8)).decode('ascii')
         self.total = total
         self._progress = 0
+        self.html_width = '60ex'
+        self.text_width = 60
+        self._display_id = hexlify(os.urandom(8)).decode('ascii')
+
+    def __repr__(self):
+        fraction = self.progress / self.total
+        filled = '=' * int(fraction * self.text_width)
+        rest = ' ' * (self.text_width - len(filled))
+        return '[{}{}] {}/{}'.format(
+            filled, rest,
+            self.progress, self.total,
+        )
 
     def _repr_html_(self):
-        return "<progress style='width:100%' max='{}' value='{}'></progress>".format(self.total, self.progress)
+        return "<progress style='width:{}' max='{}' value='{}'></progress>".format(
+            self.html_width, self.total, self.progress)
 
     def display(self):
         display(self, display_id=self._display_id)
