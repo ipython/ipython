@@ -197,7 +197,9 @@ def test_displayobject_repr():
 def test_progress():
     p = display.ProgressBar(10)
     nt.assert_true('0/10' in repr(p))
-    nt.assert_equal(p._repr_html_(), "<progress style='width:100%' max='10' value='0'></progress>")
+    p.html_width = '100%'
+    p.progress = 5
+    nt.assert_equal(p._repr_html_(), "<progress style='width:100%' max='10' value='5'></progress>")
 
 def test_json():
     d = {'a': 5}
