@@ -728,7 +728,7 @@ class SVG(DisplayObject):
     def _repr_svg_(self):
         return self._data_and_metadata()
 
-class ProgressBar(object):
+class ProgressBar(DisplayObject):
     """Progressbar supports displaying a progressbar like element 
     """
     def __init__(self, total):
