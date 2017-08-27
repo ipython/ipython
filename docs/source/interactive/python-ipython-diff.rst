@@ -185,7 +185,7 @@ This allow you for example to put the list of files of the current working direc
 
 .. code-block:: ipython
 
-    In[1]: my_files != ls
+    In[1]: my_files =! ls
 
 
 You can combine the different possibilities in for loops, condition, functions...:
