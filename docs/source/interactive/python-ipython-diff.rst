@@ -45,7 +45,7 @@ All the following construct are valid IPython syntax:
 
 .. code-block:: ipython
 
-    In [1]: my_files =! ls ~/
+    In [1]: my_files = !ls ~/
     In [1]: for i,file in enumerate(my_file):
        ...:     raw = !echo $file
        ...:     !echo {files[0].upper()} $raw
@@ -185,14 +185,14 @@ This allow you for example to put the list of files of the current working direc
 
 .. code-block:: ipython
 
-    In[1]: my_files =! ls
+    In[1]: my_files = !ls
 
 
 You can combine the different possibilities in for loops, condition, functions...:
 
 .. code-block:: ipython
 
-    my_files =! ls ~/
+    my_files = !ls ~/
     b = "backup file"
     for i,file in enumerate(my_file):
         raw = !echo $backup $file
