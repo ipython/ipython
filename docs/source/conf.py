@@ -85,13 +85,6 @@ if is_stable(iprelease['_version_extra']):
     tags.add('ipystable')
 else:
     tags.add('ipydev')
-    rst_prolog = """
-    .. warning::
-
-        This documentation is for a development version of IPython. There may be
-        significant differences from the latest stable release.
-
-    """
 
 # The master toctree document.
 master_doc = 'index'
