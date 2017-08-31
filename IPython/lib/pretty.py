@@ -119,6 +119,21 @@ else:
                 cast_unicode(text, encoding=get_stream_enc(sys.stdout)))
 
 
+def _sorted_for_pprint(items):
+    """
+    Sort the given items for pretty printing. Since some predictable
+    sorting is better than no sorting at all, we sort on the string
+    representation if normal sorting fails.
+    """
+    items = list(items)
+    try:
+        return sorted(items)
+    except Exception:
+        try:
+            return sorted(items, key=str)
+        except Exception:
+            return items
+
 def pretty(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SEQ_LENGTH):
     """
     Pretty print the object's representation.
@@ -576,13 +591,10 @@ def _set_pprinter_factory(start, end, basetype):
             step = len(start)
             p.begin_group(step, start)
             # Like dictionary keys, we will try to sort the items if there aren't too many
-            items = obj
             if not (p.max_seq_length and len(obj) >= p.max_seq_length):
-                try:
-                    items = sorted(obj)
-                except Exception:
-                    # Sometimes the items don't sort.
-                    pass
+                items = _sorted_for_pprint(obj)
+            else:
+                items = obj
             for idx, x in p._enumerate(items):
                 if idx:
                     p.text(',')
@@ -610,11 +622,7 @@ def _dict_pprinter_factory(start, end, basetype=None):
         keys = obj.keys()
         # if dict isn't large enough to be truncated, sort keys before displaying
         if not (p.max_seq_length and len(obj) >= p.max_seq_length):
-            try:
-                keys = sorted(keys)
-            except Exception:
-                # Sometimes the keys don't sort.
-                pass
+            keys = _sorted_for_pprint(keys)
         for idx, key in p._enumerate(keys):
             if idx:
                 p.text(',')
