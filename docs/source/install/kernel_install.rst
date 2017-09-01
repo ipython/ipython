@@ -38,15 +38,31 @@ can be viewed and changed with a normal text editor.
 Kernels for different environments
 ----------------------------------
 
-If you want to have multiple IPython kernels for different virtualenvs or conda environments,
-you will need to specify unique names for the kernelspecs.
+If you want to have multiple IPython kernels for different virtualenvs or conda
+environments, you will need to specify unique names for the kernelspecs.
 
-For example, using conda environments:
+Make sure you have ipykernel installed in your environement. If you are using
+``pip`` to install ``ipykernel`` in a conda env, make sure ``pip`` is
+installed::
+
+.. sourcecode:: bash
+
+    source activate myenv
+    conda install pip
+    conda install ipykernel # or pip install ipykernel
+
+For example, using conda environments, install a ``Python (myenv)`` Kernel in a first
+environment:
 
 .. sourcecode:: bash
 
     source activate myenv
     python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
+
+And in a second environment, after making sure ipykernel is installed in it:
+
+.. sourcecode:: bash
+
     source activate other-env
     python -m ipykernel install --user --name other-env --display-name "Python (other-env)"
 
