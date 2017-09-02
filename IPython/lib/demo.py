@@ -109,7 +109,7 @@ the execution.
 This is probably best explained with the simple example file below.  You can
 copy this into a file named ex_demo.py, and try running it via::
 
-    from IPython.demo import Demo
+    from IPython.lib.demo import Demo
     d = Demo('ex_demo.py')
     d()
 
