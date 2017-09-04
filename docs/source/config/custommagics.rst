@@ -249,3 +249,16 @@ Now try the following::
 
 You should get ``Shazam`` and ``Supercalifragilisticexpialidocious`` as
 potential completions.
+
+Limitations
+~~~~~~~~~~~
+
+The ability to complete magics is still limited but should improve with time,
+here are a number of current limitations:
+
+  - Completion will not work while the kernel is busy.
+  - Completions are registered for a given magic, but the magics may be renamed
+    by the user in which case the completion will not dispatch correctly.
+  - If a custom completer is added to a magic, there the normal Python
+    completions will not be triggered.
+
