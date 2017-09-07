@@ -7,6 +7,7 @@ python:
     - 3.4
     - 3.3
 sudo: false
+group: edge
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
 install:
