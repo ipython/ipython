@@ -1,7 +1,15 @@
 include README.rst
 include COPYING.rst
+include LICENSE
 include setupbase.py
 include setupegg.py
+include MANIFEST.in
+include tox.ini
+include .mailmap
+
+recursive-exclude tools *
+exclude tools
+exclude CONTRIBUTING.md
 
 graft setupext
 
@@ -29,6 +37,7 @@ prune docs/dist
 # Patterns to exclude from any directory
 global-exclude *~
 global-exclude *.flc
+global-exclude *.yml
 global-exclude *.pyc
 global-exclude *.pyo
 global-exclude .dircopy.log
