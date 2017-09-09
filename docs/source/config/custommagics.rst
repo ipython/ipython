@@ -142,7 +142,7 @@ setuptools, distutils, or any other distribution tools like `flit
 <http://flit.readthedocs.io>` for pure Python packages.
 
 
-.. sourcecode::
+.. sourcecode:: bash
 
    .
    ├── example_magic
@@ -150,7 +150,7 @@ setuptools, distutils, or any other distribution tools like `flit
    │   └── abracadabra.py
    └── setup.py
 
-.. sourcecode::
+.. sourcecode:: bash
 
    $ cat example_magic/__init__.py
    """An example magic"""
@@ -161,7 +161,7 @@ setuptools, distutils, or any other distribution tools like `flit
    def load_ipython_extension(ipython):
        ipython.register_magics(Abracadabra)
 
-.. sourcecode::
+.. sourcecode:: bash
 
     $ cat example_magic/abracadabra.py
     from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
