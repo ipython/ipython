@@ -18,9 +18,13 @@ All pull requests should usually be made against ``master``, if a Pull Request
 need to be backported to an earlier release; then it should be tagged with the
 correct ``milestone``.
 
-If you are an admin on the IPython repository just mention the **backport bot** to
-do the work for you. The bot is evolving so instructions may be different. At
-the time of this writing you can use::
+If you tag a pull request with a milestone **before** merging the pull request,
+and the base ref is `master`, then our backport bot should automatically create
+a corresponding pull-request that backport on the correct branch.
+
+If you are an admin on the IPython repository you can also just mention the
+**backport bot** to do the work for you. The bot is evolving so instructions may
+be different. At the time of this writing you can use::
 
     @meeseeksdev[bot] backport [to <branchname>]
 
@@ -32,6 +36,9 @@ backport to.
 
     The ``@`` and ``[dev]`` when mentioning the bot should be optional and can
     be omitted.
+
+If the pull request cannot be automatically backported, the bot should tell you
+so on the PR and apply a "Need manual backport" tag to the origin PR.
 
 
 Backport with ghpro
