@@ -410,6 +410,7 @@ def test_unescape_glob():
     nt.assert_equals(path.unescape_glob(r'\a'), r'\a')
 
 
+@onlyif_unicode_paths
 def test_ensure_dir_exists():
     with TemporaryDirectory() as td:
         d = os.path.join(td, u'∂ir')
