@@ -17,6 +17,7 @@ import functools
 import os
 from os.path import join as pjoin
 import random
+import string
 import sys
 import textwrap
 import unittest
@@ -415,8 +416,8 @@ class TestMagicRunWithPackage(unittest.TestCase):
             f.write(textwrap.dedent(content))
 
     def setUp(self):
-        self.package = package = 'tmp{0}'.format(repr(random.random())[2:])
-        """Temporary valid python package name."""
+        self.package = package = 'tmp{0}'.format(''.join([random.choice(string.ascii_letters) for i in range(10)]))
+        """Temporary  (probably) valid python package name."""
 
         self.value = int(random.random() * 10000)
 
