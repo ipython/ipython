@@ -1769,11 +1769,16 @@ class IPCompleter(Completer):
                       category=ProvisionalCompleterWarning, stacklevel=2)
 
         seen = set()
-        for c in self._completions(text, offset, _timeout=self.jedi_compute_type_timeout/1000):
-            if c and (c in seen):
-                continue
-            yield c
-            seen.add(c)
+        try:
+            for c in self._completions(text, offset, _timeout=self.jedi_compute_type_timeout/1000):
+                if c and (c in seen):
+                    continue
+                yield c
+                seen.add(c)
+        except KeyboardInterrupt:
+            """if completions take too long and users send keyboard interrupt,
+            do not crash and return ASAP. """
+            pass
 
     def _completions(self, full_text: str, offset: int, *, _timeout)->Iterator[Completion]:
         """
