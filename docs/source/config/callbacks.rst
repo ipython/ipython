@@ -24,11 +24,18 @@ For example::
         def post_execute(self):
             if self.shell.user_ns.get('x', None) != self.last_x:
                 print("x changed!")
+        
+        def finally_execute(self, result):
+            if result.error_before_exec:
+                print('Error before execution: %s' % result.error_before_exec)
+            else:
+                print('Execution result: %s', result.result)
 
     def load_ipython_extension(ip):
         vw = VarWatcher(ip)
         ip.events.register('pre_execute', vw.pre_execute)
         ip.events.register('post_execute', vw.post_execute)
+        ip.events.register('finally_execute', vw.finally_execute)
 
 
 Events
@@ -64,16 +71,32 @@ skipping the history/display mechanisms, in which cases ``pre_run_cell`` will no
 post_run_cell
 -------------
 
-``post_run_cell`` runs after interactive execution (e.g. a cell in a notebook).
-It can be used to cleanup or notify or perform operations on any side effects produced during execution.
-For instance, the inline matplotlib backend uses this event to display any figures created but not explicitly displayed during the course of the cell.
-
+``post_run_cell`` runs after successful interactive execution (e.g. a cell in a
+notebook, but, for example, not when a ``SyntaxError`` was raised).
+It can be used to cleanup or notify or perform operations on any side effects
+produced during execution.
+For instance, the inline matplotlib backend uses this event to display any
+figures created but not explicitly displayed during the course of the cell.
 
 post_execute
 ------------
 
 The same as ``pre_execute``, ``post_execute`` is like ``post_run_cell``,
-but fires for *all* executions, not just interactive ones.
+but fires for *all* successful executions, not just interactive ones.
+
+finally_run_cell
+-------------
+
+``finally_run_cell`` is like ``post_run_cell``, but fires after *all* executions
+(even when, for example, a ``SyntaxError`` was raised).
+Additionally, the execution result is provided as an argument.
+
+finally_execute
+------------
+
+``finally_execute`` is like ``post_execute``, but fires after *all* executions
+(even when, for example, a ``SyntaxError`` was raised).
+Additionally, the execution result is provided as an argument.
 
 
 .. seealso::

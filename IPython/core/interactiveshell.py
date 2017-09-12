@@ -1879,7 +1879,7 @@ class InteractiveShell(SingletonConfigurable):
     # This is overridden in TerminalInteractiveShell to show a message about
     # the %paste magic.
     def showindentationerror(self):
-        """Called by run_cell when there's an IndentationError in code entered
+        """Called by _run_cell when there's an IndentationError in code entered
         at the prompt.
 
         This is overridden in TerminalInteractiveShell to show a message about
@@ -2616,6 +2616,29 @@ class InteractiveShell(SingletonConfigurable):
           shell. It will both be affected by previous __future__ imports, and
           any __future__ imports in the code will affect the shell. If False,
           __future__ imports are not shared in either direction.
+
+        Returns
+        -------
+        result : :class:`ExecutionResult`
+        """
+        try:
+            result = self._run_cell(
+                raw_cell, store_history, silent, shell_futures)
+        finally:
+            self.events.trigger('finally_execute', result)
+            if not silent:
+                self.events.trigger('finally_run_cell', result)
+        return result
+
+    def _run_cell(self, raw_cell, store_history, silent, shell_futures):
+        """Internal method to run a complete IPython cell.
+
+        Parameters
+        ----------
+        raw_cell : str
+        store_history : bool
+        silent : bool
+        shell_futures : bool
 
         Returns
         -------

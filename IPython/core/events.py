@@ -116,6 +116,29 @@ def post_run_cell():
     pass
 
 @_define_event
+def finally_execute(result):
+    """Always fires after code is executed in response to user/frontend action.
+    
+    This includes comm and widget messages and silent execution, as well as user
+    code cells.
+
+    Parameters
+    ----------
+    result : :class:`~IPython.core.interactiveshell.ExecutionResult`
+    """
+    pass
+
+@_define_event
+def finally_run_cell(result):
+    """Always fires after user-entered code runs.
+
+    Parameters
+    ----------
+    result : :class:`~IPython.core.interactiveshell.ExecutionResult`
+    """
+    pass
+
+@_define_event
 def shell_initialized(ip):
     """Fires after initialisation of :class:`~IPython.core.interactiveshell.InteractiveShell`.
     
