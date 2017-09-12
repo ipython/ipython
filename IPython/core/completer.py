@@ -1221,7 +1221,9 @@ class IPCompleter(Completer):
         cell_magics = lsm['cell']
         pre = self.magic_escape
         pre2 = pre+pre
-        
+
+        explicit_magic = text.startswith(pre)
+
         # Completion logic:
         # - user gives %%: only do cell magics
         # - user gives %: do both line and cell magics
@@ -1229,11 +1231,23 @@ class IPCompleter(Completer):
         # In other words, line magics are skipped if the user gives %% explicitly
         #
         # We also exclude magics that match any currently visible names:
-        # https://github.com/ipython/ipython/issues/4877
+        # https://github.com/ipython/ipython/issues/4877, unless the user has
+        # typed a %:
+        # https://github.com/ipython/ipython/issues/10754
         bare_text = text.lstrip(pre)
         global_matches = self.global_matches(bare_text)
-        matches = lambda magic: magic.startswith(bare_text) \
-                                and magic not in global_matches
+        if not explicit_magic:
+            def matches(magic):
+                """
+                Filter magics, in particular remove magics that match
+                a name present in global namespace.
+                """
+                return ( magic.startswith(bare_text) and
+                         magic not in global_matches )
+        else:
+            def matches(magic):
+                return magic.startswith(bare_text)
+
         comp = [ pre2+m for m in cell_magics if matches(m)]
         if not text.startswith(pre2):
             comp += [ pre+m for m in line_magics if matches(m)]

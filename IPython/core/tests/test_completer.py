@@ -589,6 +589,24 @@ def test_magic_completion_shadowing():
     text, matches = c.complete("mat")
     nt.assert_equal(matches, ["%matplotlib"])
 
+def test_magic_completion_shadowing_explicit():
+    """
+    If the user try to complete a shadowed magic, and explicit % start should
+    still return the completions.
+    """
+    ip = get_ipython()
+    c = ip.Completer
+
+    # Before importing matplotlib, %matplotlib magic should be the only option.
+    text, matches = c.complete("%mat")
+    nt.assert_equal(matches, ["%matplotlib"])
+
+    ip.run_cell("matplotlib = 1")
+
+    # After removing matplotlib from namespace, the magic should still be
+    # the only option.
+    text, matches = c.complete("%mat")
+    nt.assert_equal(matches, ["%matplotlib"])
 
 def test_magic_config():
     ip = get_ipython()
