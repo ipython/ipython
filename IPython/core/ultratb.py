@@ -1227,8 +1227,7 @@ class VerboseTB(TBTools):
 
         if force or self.call_pdb:
             if self.pdb is None:
-                self.pdb = self.debugger_cls(
-                    self.color_scheme_table.active_scheme_name)
+                self.pdb = self.debugger_cls()
             # the system displayhook may have changed, restore the original
             # for pdb
             display_trap = DisplayTrap(hook=sys.__displayhook__)
