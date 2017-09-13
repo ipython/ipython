@@ -47,6 +47,9 @@ if sys.platform == 'win32':
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
+# Protect against returning an enormous number of completions which the frontend
+# may have trouble processing.
+MATCHES_LIMIT = 500
 
 def has_open_quotes(s):
     """Return whether a string has open quotes.
@@ -1142,7 +1145,7 @@ class IPCompleter(Completer):
             for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
                 name_text, name_matches = meth(base_text)
                 if name_text:
-                    return name_text, name_matches
+                    return name_text, name_matches[:MATCHES_LIMIT]
         
         # if text is either None or an empty string, rely on the line buffer
         if not text:
@@ -1183,6 +1186,6 @@ class IPCompleter(Completer):
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
-        self.matches = sorted(set(self.matches), key=completions_sorting_key)
+        self.matches = sorted(set(self.matches), key=completions_sorting_key)[:MATCHES_LIMIT]
 
         return text, self.matches
