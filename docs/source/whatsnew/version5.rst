@@ -4,6 +4,36 @@
 
 .. _whatsnew540:
 
+IPython 5.5
+===========
+
+System Wide config
+------------------
+
+- IPython now looks for config files in ``{sys.prefix}/etc/ipython``
+  for environment-specific configuration.
+- Startup files can be found in ``/etc/ipython/startup`` or ``{sys.prefix}/etc/ipython/startup``
+  in addition to the profile directory, for system-wide or env-specific startup files.
+
+See :gh:`10644`
+
+ProgressBar
+-----------
+
+
+IPython now has built-in support for progressbars::
+
+    In[1]: from IPython.display import ProgressBar
+    ...  : pb = ProgressBar(100)
+    ...  : pb
+
+    In[2]: pb.progress = 50
+
+    # progress bar in cell 1 updates.
+
+See :gh:`10755`
+
+
 IPython 5.4
 ===========
 
