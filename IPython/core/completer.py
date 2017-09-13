@@ -1729,6 +1729,12 @@ class IPCompleter(Completer):
                     return [r for r in res if r.lower().startswith(text_low)]
             except TryNext:
                 pass
+            except KeyboardInterrupt:
+                """
+                If custom completer take too long,
+                let keyboard interrupt abort and return nothing.
+                """
+                break
 
         return None
 
