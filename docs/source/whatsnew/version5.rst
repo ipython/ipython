@@ -2,7 +2,8 @@
  5.x Series
 ============
 
-.. _whatsnew540:
+
+.. _whatsnew550:
 
 IPython 5.5
 ===========
@@ -55,6 +56,7 @@ and all the `backport versions <https://github.com/ipython/ipython/pulls?utf8=%E
 
 
 
+.. _whatsnew540:
 
 IPython 5.4
 ===========
