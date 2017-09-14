@@ -165,6 +165,13 @@ def test_displayobject_repr():
     j._show_mem_addr = False
     nt.assert_equal(repr(j), '<IPython.core.display.Javascript object>')
 
+def test_progress():
+    p = display.ProgressBar(10)
+    nt.assert_true('0/10' in repr(p))
+    p.html_width = '100%'
+    p.progress = 5
+    nt.assert_equal(p._repr_html_(), "<progress style='width:100%' max='10' value='5'></progress>")
+
 def test_json():
     d = {'a': 5}
     lis = [d]
