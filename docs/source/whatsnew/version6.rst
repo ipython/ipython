@@ -8,7 +8,6 @@
 IPython 6.2
 ===========
 
-
 IPython 6.2 contains all the bugs fixes and features :ref:`available in IPython 5.5 <whatsnew550>`,
 like built in progress bar support, and system-wide configuration
 
@@ -50,6 +49,11 @@ as well as type annotated assignments: ``a:int = 2``.
 
 See :ghpull:`10598`
 
+Recursive Call of ipdb
+----------------------
+
+Advanced users of the debugger can now correctly recursively enter ipdb. This is
+thanks to ``@segevfiner`` on :ghpull:`10721`.
 
 .. _whatsnew610:
 
