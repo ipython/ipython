@@ -141,13 +141,16 @@ If a major release:
       which may need some manual cleanup of ``stats.rst``. Add the cleaned
       ``stats.rst`` results to ``docs/source/whatsnew/github-stats-X.rst``
       where ``X`` is the numerical release version (don't forget to add it to
-      the git repo as well). If creating a major release, make a new
+      the git repository as well). If creating a major release, make a new
       ``github-stats-X.rst`` file; if creating a minor release, the content
       from ``stats.rst`` may simply be added to the top of an existing
-      ``github-stats-X.rst`` file.  Finally, edit
-      ``docs/source/whatsnew/index.rst`` to list the new ``github-stats-X``
-      file you just created and remove temporarily the first entry called
-      ``development`` (you'll need to add it back after release).
+      ``github-stats-X.rst`` file.
+
+    - Edit ``docs/source/whatsnew/index.rst`` to list the new ``github-stats-X``
+      file you just created.
+
+    - Remove temporarily the first entry called ``development`` (you'll need to
+      add it back after release).
 
       Make sure that the stats file has a header or it won't be rendered in
       the final documentation.
