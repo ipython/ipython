@@ -10,49 +10,6 @@ This document describes in-flight development work.
     conflicts for other Pull Requests). Instead, create a new file in the
     `docs/source/whatsnew/pr` folder
 
-IPython 6.2 contains all the bugs fixes and features available in IPython 5.5:
-
- - Built in progress bar support
- - System Wide config
-
-As well as the following:
-
-
-Function signature
-------------------
-
-Terminal IPython will now show the signature of the function while completing.
-Only the currently highlighted function will show its signature on the line
-below the completer by default. The functionality is recent so might be
-limited, we welcome bug report and enhancement request on it. :gh:`10507`
-
-Assignments return values
--------------------------
-
-IPython can now trigger the display hook on last assignment of cells. 
-Up until 6.0 the following code wouldn't show the value of the assigned
-variable::
-
-    In[1]: xyz = "something"
-    # nothing shown
-
-You would have to actually make it the last statement::
-
-    In [2]: xyz = "something else"
-    ...   : xyz
-    Out[2]: "something else"
-
-With the option ``InteractiveShell.ast_node_interactivity='last_expr_or_assign'``
-you can now do::
-
-    In [2]: xyz = "something else"
-    Out[2]: "something else"
-
-This option can be toggled at runtime with the ``%config`` magic, and will
-trigger on assignment ``a = 1``, augmented assignment ``+=``, ``-=``, ``|=`` ...
-as well as type annotated assignments: ``a:int = 2``.
-
-See :gh:`10598`
 
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
