@@ -3,6 +3,32 @@
 Issues closed in the 5.x development cycle
 ==========================================
 
+Issues closed in 5.5
+--------------------
+
+GitHub stats for 2017/06/01 - 2017/09/15 (tag: 5.4.1)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 5 issues and merged 43 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A5.5+>`__
+
+The following 13 authors contributed 59 commits.
+
+* Benjamin Ragan-Kelley
+* Eren Halici
+* Jeroen Demeyer
+* jfbu
+* Kyle Kelley
+* Marius van Niekerk
+* Matthias Bussonnier
+* pepie34
+* Ritesh Kadmawala
+* ryan thielke
+* Srinath
+* Thomas A Caswell
+* Thomas Kluyver
+
 
 Issues closed in 5.4
 --------------------
