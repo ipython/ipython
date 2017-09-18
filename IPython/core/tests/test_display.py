@@ -196,10 +196,17 @@ def test_displayobject_repr():
 
 def test_progress():
     p = display.ProgressBar(10)
-    nt.assert_true('0/10' in repr(p))
+    nt.assert_in('0/10',repr(p))
     p.html_width = '100%'
     p.progress = 5
     nt.assert_equal(p._repr_html_(), "<progress style='width:100%' max='10' value='5'></progress>")
+
+def test_progress_iter(capsys):
+    for i in display.ProgressBar(5):
+        out, err = capsys.readouterr()
+        nt.assert_in('{0}/5'.format(i), out)
+    out, err = capsys.readouterr()
+    nt.assert_in('5/5', out)
 
 def test_json():
     d = {'a': 5}
