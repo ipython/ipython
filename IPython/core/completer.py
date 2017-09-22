@@ -1346,8 +1346,7 @@ class IPCompleter(Completer):
 
         interpreter = jedi.Interpreter(
             text, namespaces, column=cursor_column, line=cursor_line + 1)
-
-        try_jedi = False
+        try_jedi = True
 
         try:
             # should we check the type of the node is Error ?
