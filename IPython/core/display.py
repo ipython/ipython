@@ -990,7 +990,7 @@ class Image(DisplayObject):
             if ext is not None:
                 if ext == u'jpg' or ext == u'jpeg':
                     format = self._FMT_JPEG
-                if ext == u'png':
+                elif ext == u'png':
                     format = self._FMT_PNG
                 else:
                     format = ext.lower()
