@@ -27,7 +27,7 @@ from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.paths import get_ipython_dir, get_ipython_package_dir
 from IPython.utils.path import ensure_dir_exists
 from traitlets import (
-    List, Unicode, Type, Bool, Dict, Set, Instance, Undefined,
+    List, Unicode, Type, Bool, Set, Instance, Undefined,
     default, observe,
 )
 
@@ -101,12 +101,12 @@ class ProfileAwareConfigLoader(PyFileConfigLoader):
 
 class BaseIPythonApplication(Application):
 
-    name = Unicode(u'ipython')
+    name = u'ipython'
     description = Unicode(u'IPython: an enhanced interactive Python shell.')
     version = Unicode(release.version)
 
-    aliases = Dict(base_aliases)
-    flags = Dict(base_flags)
+    aliases = base_aliases
+    flags = base_flags
     classes = List([ProfileDir])
     
     # enable `load_subconfig('cfg.py', profile='name')`
