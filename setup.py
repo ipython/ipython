@@ -228,7 +228,7 @@ everything = set()
 for key, deps in extras_require.items():
     if ':' not in key:
         everything.update(deps)
-extras_require['all'] = everything
+extras_require['all'] = list(sorted(everything))
 
 if 'setuptools' in sys.modules:
     setuptools_extra_args['python_requires'] = '>=3.3'

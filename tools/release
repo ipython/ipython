@@ -79,12 +79,9 @@ else:
     sh('mv ipython-*.tgz %s' % ipbackupdir)
 
     # Build release files
-    sh('./build_release %s' % ipdir)
+    sh('./build_release')
 
     cd(ipdir)
-
-    # Upload all files
-    sh(sdists)
 
     buildwheels()
     print("`./release upload` to upload source distribution on PyPI and ipython archive")

@@ -3,7 +3,6 @@
 """
 
 import subprocess
-import os
 
 from toollib import cd, sh
 

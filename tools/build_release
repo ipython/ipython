@@ -2,6 +2,7 @@
 """IPython release build script.
 """
 import os
+import sys
 from shutil import rmtree
 
 from toollib import sh, pjoin, get_ipdir, cd, execfile, sdists, buildwheels
@@ -17,7 +18,7 @@ def build_release():
 
     with open('docs/source/whatsnew/index.rst') as f:
         if '   development' in f.read():
-            raise ValueError("Please remove `development` from what's new toctree for release")
+            raise ValueError("Please remove `development` from what's new toctree (docs/source/whatsnew/index.rst) for release")
 
     # Cleanup
     for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
@@ -28,6 +29,7 @@ def build_release():
     # Build source and binary distros
     sh(sdists)
     buildwheels()
+    sh(' '.join([sys.executable, 'tools/retar.py', 'dist/*.gz']))
 
 if __name__ == '__main__':
     build_release()

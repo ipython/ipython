@@ -105,6 +105,13 @@ for the release you are actually making::
     VERSION=5.0.0
     BRANCH=master
 
+For `reproducibility of builds <https://reproducible-builds.org/specs/source-date-epoch/>`_,
+we recommend setting ``SOURCE_DATE_EPOCH`` prior to running the build; record the used value
+of ``SOURCE_DATE_EPOCH`` as it may not be available from build artifact. You
+should be able to use ``date +%s`` to get a formatted timestamp::
+
+    SOURCE_DATE_EPOCH=$(date +%s)
+
 
 2. Create GitHub stats and finish release note
 ----------------------------------------------
@@ -215,8 +222,11 @@ We encourage creating a test build of the docs as well.
 
 Commit the changes to release.py::
 
-    git commit -am "release $VERSION"
+    git commit -am "release $VERSION\n\nReleased with SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
     git push origin $BRANCH
+
+Check that the commit message have the actual interpolated ``SOURCE_DATE_EPOCH``
+value.
 
 Create and push the tag::
 
@@ -246,6 +256,16 @@ folder. Be sure to test the ``wheels``  and the ``sdist`` locally before
 uploading them to PyPI. We do not use an universal wheel as each wheel
 installs an ``ipython2`` or ``ipython3`` script, depending on the version of
 Python it is built for. Using an universal wheel would prevent this.
+
+Check the shasum of files with::
+
+    shasum -a 256 dist/*
+
+and takes notes of them you might need them to update the conda-forge recipes.
+Rerun the command and check the hash have not changed::
+
+    ./tools/release
+    shasum -a 256 dist/*
 
 Use the following to actually upload the result of the build::
 
