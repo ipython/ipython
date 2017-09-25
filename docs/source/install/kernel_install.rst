@@ -15,7 +15,12 @@ you'll need to install that manually.
 Kernels for Python 2 and 3
 --------------------------
 
-If you're running Jupyter on Python 3, you can set up a Python 2 kernel like this::
+If you're running Jupyter on Python 3, you can set up a Python 2 kernel after
+checking your version of pip is greater than 9.0::
+
+    python2 -m pip --version
+
+Then install with ::
 
     python2 -m pip install ipykernel
     python2 -m ipykernel install --user
@@ -25,6 +30,12 @@ Or using conda, create a Python 2 environment::
     conda create -n ipykernel_py2 python=2 ipykernel
     source activate ipykernel_py2    # On Windows, remove the word 'source'
     python -m ipykernel install --user
+
+.. note::
+
+    The lastest version of IPython has stopped suspport for Python 2, thus
+    installing IPython on Python 2 will give you an older version of IPython
+    (5.x series).
 
 If you're running Jupyter on Python 2 and want to set up a Python 3 kernel,
 follow the same steps, replacing ``2`` with ``3``.
