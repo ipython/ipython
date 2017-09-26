@@ -26,7 +26,7 @@ import sys
 #
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info < (3, 3):
+if sys.version_info < (3, 4):
     pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
     try:
         import pip
@@ -175,7 +175,7 @@ extras_require = dict(
     parallel = ['ipyparallel'],
     qtconsole = ['qtconsole'],
     doc = ['Sphinx>=1.3'],
-    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'nbformat', 'ipykernel'],
+    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'nbformat', 'ipykernel', 'numpy'],
     terminal = [],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
@@ -200,8 +200,6 @@ install_requires = [
 # but requires pip >= 6. pip < 6 ignores these.
 
 extras_require.update({
-    'test:python_version >= "3.4"': ['numpy'],
-    ':python_version == "3.3"': ['pathlib2'],
     ':python_version <= "3.4"': ['typing'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
@@ -232,7 +230,7 @@ for key, deps in extras_require.items():
 extras_require['all'] = everything
 
 if 'setuptools' in sys.modules:
-    setuptools_extra_args['python_requires'] = '>=3.3'
+    setuptools_extra_args['python_requires'] = '>=3.4'
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': find_entry_points(),
