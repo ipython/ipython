@@ -89,6 +89,7 @@ class ScriptMagics(Magics):
             'python2',
             'python3',
             'pypy',
+            'julia',
         ]
         if os.name == 'nt':
             defaults.extend([
