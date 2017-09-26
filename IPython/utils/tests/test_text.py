@@ -18,11 +18,7 @@ import random
 import sys
 
 import nose.tools as nt
-try:
-    from pathlib import Path
-except ImportError:
-    # for Python 3.3
-    from pathlib2 import Path
+from pathlib import Path
 
 from IPython.utils import text
 
