@@ -33,9 +33,8 @@ Or using conda, create a Python 2 environment::
 
 .. note::
 
-    The lastest version of IPython has stopped suspport for Python 2, thus
-    installing IPython on Python 2 will give you an older version of IPython
-    (5.x series).
+    IPython 6.0 stopped support for Python 2, so
+    installing IPython on Python 2 will give you an older version (5.x series).
 
 If you're running Jupyter on Python 2 and want to set up a Python 3 kernel,
 follow the same steps, replacing ``2`` with ``3``.
