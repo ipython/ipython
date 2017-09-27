@@ -121,11 +121,18 @@ class CapturingDisplayPublisher(DisplayPublisher):
     """A DisplayPublisher that stores"""
     outputs = List()
 
-    def publish(self, data, metadata=None, source=None):
+    def publish(self, data, metadata=None, source=None, **kwargs):
+
+        # These are kwargs only on Python 3, not used there.
+        # For consistency and avoid code divergence we leave them here to
+        # simplify potential backport
+        transient = kwargs.pop('transient', None)
+        update = kwargs.pop('update', False)
+
         self.outputs.append((data, metadata))
-    
+
     def clear_output(self, wait=False):
         super(CapturingDisplayPublisher, self).clear_output(wait)
-        
+
         # empty the list, *do not* reassign a new list
         del self.outputs[:]
