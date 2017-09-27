@@ -44,7 +44,7 @@ def line_at_cursor(cell, cursor_pos=0):
     lines = cell.splitlines(True)
     for line in lines:
         next_offset = offset + len(line)
-        if next_offset >= cursor_pos:
+        if next_offset > cursor_pos:
             break
         offset = next_offset
     else:

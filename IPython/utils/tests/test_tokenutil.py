@@ -108,6 +108,12 @@ def test_line_at_cursor():
     assert line == "", ("Expected '', got %r" % line)
     assert offset == 0, ("Expected '', got %r" % line)
 
+    # The position after a newline should be the start of the following line.
+    cell = "One\nTwo\n"
+    (line, offset) = line_at_cursor(cell, cursor_pos=4)
+    nt.assert_equal(line, "Two\n")
+    nt.assert_equal(offset, 4)
+
 def test_muliline_statement():
     cell = """a = (1,
     3)
