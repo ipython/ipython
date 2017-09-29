@@ -129,10 +129,11 @@ class CapturingDisplayPublisher(DisplayPublisher):
         transient = kwargs.pop('transient', None)
         update = kwargs.pop('update', False)
 
-        self.outputs.append((data, metadata))
+        self.outputs.append({'data':data, 'metadata':metadata,
+                             'transient':transient, 'update':update})
 
     def clear_output(self, wait=False):
         super(CapturingDisplayPublisher, self).clear_output(wait)
 
         # empty the list, *do not* reassign a new list
-        del self.outputs[:]
+        self.outputs.clear()
