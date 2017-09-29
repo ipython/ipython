@@ -2,6 +2,7 @@
 """Tests for IPython.core.ultratb
 """
 import io
+import logging
 import sys
 import os.path
 from textwrap import dedent
@@ -372,3 +373,28 @@ def test_handlers():
         handler(*sys.exc_info())
     buff.write('')
 
+
+class TokenizeFailureTest(unittest.TestCase):
+    """Tests related to https://github.com/ipython/ipython/issues/6864."""
+
+    def testLogging(self):
+        message = "An unexpected error occurred while tokenizing input"
+        cell = 'raise ValueError("""a\nb""")'
+
+        stream = io.StringIO()
+        handler = logging.StreamHandler(stream)
+        logger = logging.getLogger()
+        loglevel = logger.level
+        logger.addHandler(handler)
+        self.addCleanup(lambda: logger.removeHandler(handler))
+        self.addCleanup(lambda: logger.setLevel(loglevel))
+
+        logger.setLevel(logging.INFO)
+        with tt.AssertNotPrints(message):
+            ip.run_cell(cell)
+        self.assertNotIn(message, stream.getvalue())
+
+        logger.setLevel(logging.DEBUG)
+        with tt.AssertNotPrints(message):
+            ip.run_cell(cell)
+        self.assertIn(message, stream.getvalue())

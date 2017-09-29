@@ -121,7 +121,7 @@ from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
 from IPython.utils.terminal import get_terminal_size
-from logging import info, error
+from logging import info, error, debug
 
 import IPython.utils.colorable as colorable
 
@@ -952,10 +952,15 @@ class VerboseTB(TBTools):
             #  - see gh-6300
             pass
         except tokenize.TokenError as msg:
+            # Tokenizing may fail for various reasons, many of which are
+            # harmless. (A good example is when the line in question is the
+            # close of a triple-quoted string, cf gh-6864). We don't want to
+            # show this to users, but want make it available for debugging
+            # purposes.
             _m = ("An unexpected error occurred while tokenizing input\n"
                   "The following traceback may be corrupted or invalid\n"
                   "The error message is: %s\n" % msg)
-            error(_m)
+            debug(_m)
 
         # Join composite names (e.g. "dict.fromkeys")
         names = ['.'.join(n) for n in names]
