@@ -9,7 +9,7 @@ IPython 6.2.1
 =============
 
 IPython 6.2.1 ships with two minor fixes leading to no completions when using
-Jedi 0.11+ :ghpull:`10829`, and crash on some linux system with virtualenv
+Jedi 0.11+ :ghpull:`10824`, and crash on some linux system with virtualenv
 :ghpull:`10829`
 
 .. _whatsnew620:
