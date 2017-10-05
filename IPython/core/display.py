@@ -790,7 +790,7 @@ class ProgressBar(DisplayObject):
             
     def next(self):
         """Python 2 compatibility"""
-        returun self.__next__()
+        return self.__next__() 
 
 class JSON(DisplayObject):
     """JSON expects a JSON-able dict or list
