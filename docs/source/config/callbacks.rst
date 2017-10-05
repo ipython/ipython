@@ -70,11 +70,9 @@ argument, even though the actual result is not yet available.
 post_run_cell
 -------------
 
-``post_run_cell`` runs after interactive execution.
-It can be used to cleanup or notify or perform operations on any side effects
-produced during execution.
-For instance, the inline matplotlib backend uses this event to display any
-figures created but not explicitly displayed during the course of the cell.
+``post_run_cell`` runs after interactive execution (e.g. a cell in a notebook).
+It can be used to cleanup or notify or perform operations on any side effects produced during execution.
+For instance, the inline matplotlib backend uses this event to display any figures created but not explicitly displayed during the course of the cell.
 The object which will be returned as the execution result is provided as an
 argument.
 
@@ -83,20 +81,6 @@ post_execute
 
 The same as ``pre_execute``, ``post_execute`` is like ``post_run_cell``,
 but fires for *all* executions, not just interactive ones.
-
-finally_run_cell
--------------
-
-``finally_run_cell`` is like ``post_run_cell``, but fires after *all* executions
-(even when, for example, a ``SyntaxError`` was raised).
-Additionally, the execution result is provided as an argument.
-
-finally_execute
-------------
-
-``finally_execute`` is like ``post_execute``, but fires after *all* executions
-(even when, for example, a ``SyntaxError`` was raised).
-Additionally, the execution result is provided as an argument.
 
 
 .. seealso::

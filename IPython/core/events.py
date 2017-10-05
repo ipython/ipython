@@ -14,6 +14,7 @@ events and the arguments which will be passed to them.
 """
 
 from functools import wraps
+from inspect import isfunction
 try:
     from inspect import getfullargspec
 except:
@@ -79,10 +80,10 @@ class EventManager(object):
             raise TypeError('Need a callable, got %r' % function)
 
         callback_proto = available_events.get(event)
-        if (callable(callback_proto) and
+        if (isfunction(callback_proto) and isfunction(function) and
             len(getfullargspec(callback_proto).args) > 0 and
             len(getfullargspec(function).args) == 0):
-            # `callback_proto` requires args but `function` does not, so a
+            # `callback_proto` has args but `function` does not, so a
             # compatibility wrapper is needed.
             self.callbacks[event].append(_compatibility_wrapper_for(function))
         else:
