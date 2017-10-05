@@ -11,6 +11,7 @@ import nose.tools as nt
 
 from IPython.core import display
 from IPython.core.getipython import get_ipython
+from IPython.utils.io import capture_output
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython import paths as ipath
 from IPython.testing.tools import AssertPrints, AssertNotPrints
@@ -196,10 +197,18 @@ def test_displayobject_repr():
 
 def test_progress():
     p = display.ProgressBar(10)
-    nt.assert_true('0/10' in repr(p))
+    nt.assert_in('0/10',repr(p))
     p.html_width = '100%'
     p.progress = 5
     nt.assert_equal(p._repr_html_(), "<progress style='width:100%' max='10' value='5'></progress>")
+
+def test_progress_iter():
+    with capture_output(display=False) as captured:
+        for i in display.ProgressBar(5):
+            out = captured.stdout
+            nt.assert_in('{0}/5'.format(i), out)
+    out = captured.stdout
+    nt.assert_in('5/5', out)
 
 def test_json():
     d = {'a': 5}
