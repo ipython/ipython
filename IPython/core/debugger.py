@@ -545,6 +545,25 @@ class Pdb(OldPdb):
         self.print_list_lines(self.curframe.f_code.co_filename, lineno, last)
     do_ll = do_longlist
 
+    def do_debug(self, arg):
+        """debug code
+        Enter a recursive debugger that steps through the code
+        argument (which is an arbitrary expression or statement to be
+        executed in the current environment).
+        """
+        sys.settrace(None)
+        globals = self.curframe.f_globals
+        locals = self.curframe_locals
+        p = self.__class__(completekey=self.completekey,
+                           stdin=self.stdin, stdout=self.stdout)
+        p.use_rawinput = self.use_rawinput
+        p.prompt = "(%s) " % self.prompt.strip()
+        self.message("ENTERING RECURSIVE DEBUGGER")
+        sys.call_tracing(p.run, (arg, globals, locals))
+        self.message("LEAVING RECURSIVE DEBUGGER")
+        sys.settrace(self.trace_dispatch)
+        self.lastcmd = p.lastcmd
+
     def do_pdef(self, arg):
         """Print the call signature for any callable object.
 

@@ -6,6 +6,9 @@ verify subtle object deletion and reference counting issues, the %run tests
 will be kept in this separate file.  This makes it easier to aggregate in one
 place the tricks needed to handle it; most other magics are much easier to test
 and we do so in a common test_magic file.
+
+Note that any test using `run -i` should make sure to do a `reset` afterwards,
+as otherwise it may influence later tests.
 """
 
 # Copyright (c) IPython Development Team.
@@ -317,13 +320,19 @@ tclass.py: deleting object: C-third
         src = "yy = zz\n"
         self.mktmp(src)
         _ip.run_cell("zz = 23")
-        _ip.magic('run -i %s' % self.fname)
-        nt.assert_equal(_ip.user_ns['yy'], 23)
-        _ip.magic('reset -f')
+        try:
+            _ip.magic('run -i %s' % self.fname)
+            nt.assert_equal(_ip.user_ns['yy'], 23)
+        finally:
+            _ip.magic('reset -f')
+            
         _ip.run_cell("zz = 23")
-        _ip.magic('run -i %s' % self.fname)
-        nt.assert_equal(_ip.user_ns['yy'], 23)
-    
+        try:
+            _ip.magic('run -i %s' % self.fname)
+            nt.assert_equal(_ip.user_ns['yy'], 23)
+        finally:
+            _ip.magic('reset -f')
+            
     def test_unicode(self):
         """Check that files in odd encodings are accepted."""
         mydir = os.path.dirname(__file__)
@@ -505,8 +514,11 @@ def test_run__name__():
         _ip.magic('run -n {}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
 
-        _ip.magic('run -i -n {}'.format(path))
-        nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
+        try:
+            _ip.magic('run -i -n {}'.format(path))
+            nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
+        finally:
+            _ip.magic('reset -f')
 
 
 def test_run_tb():

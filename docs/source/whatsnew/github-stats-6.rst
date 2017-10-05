@@ -1,6 +1,53 @@
 Issues closed in the 6.x development cycle
 ==========================================
 
+Issues closed in 6.2
+--------------------
+
+
+GitHub stats for 2017/05/31 - 2017/09/15 (tag: 6.1.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 3 issues and merged 37 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A6.2+>`__
+
+The following 32 authors contributed 196 commits.
+
+* adityausathe
+* Antony Lee
+* Benjamin Ragan-Kelley
+* Carl Smith
+* Eren Halici
+* Erich Spaker
+* Grant Nestor
+* Jean Cruypenynck
+* Jeroen Demeyer
+* jfbu
+* jlstevens
+* jus1tin
+* Kyle Kelley
+* M Pacer
+* Marc Richter
+* Marius van Niekerk
+* Matthias Bussonnier
+* mpacer
+* Mradul Dubey
+* ormung
+* pepie34
+* Ritesh Kadmawala
+* ryan thielke
+* Segev Finer
+* Srinath
+* Srinivas Reddy Thatiparthy
+* Steven Maude
+* Sudarshan Raghunathan
+* Sudarshan Rangarajan
+* Thomas A Caswell
+* Thomas Ballinger
+* Thomas Kluyver
+
+
 Issues closed in 6.1
 --------------------
 

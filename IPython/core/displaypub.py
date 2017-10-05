@@ -114,11 +114,12 @@ class CapturingDisplayPublisher(DisplayPublisher):
     """A DisplayPublisher that stores"""
     outputs = List()
 
-    def publish(self, data, metadata=None, source=None):
-        self.outputs.append((data, metadata))
-    
+    def publish(self, data, metadata=None, source=None, *, transient=None, update=False):
+        self.outputs.append({'data':data, 'metadata':metadata,
+                             'transient':transient, 'update':update})
+
     def clear_output(self, wait=False):
         super(CapturingDisplayPublisher, self).clear_output(wait)
-        
+
         # empty the list, *do not* reassign a new list
-        del self.outputs[:]
+        self.outputs.clear()

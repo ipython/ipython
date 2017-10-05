@@ -718,7 +718,7 @@ class InteractiveShell(SingletonConfigurable):
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if p_venv.startswith('\\cygdrive'):
             p_venv = p_venv[11:]
-        elif p_venv[1] == ':':
+        elif len(p_venv) >= 2 and p_venv[1] == ':':
             p_venv = p_venv[2:]
 
         if any(p_venv in p for p in paths):

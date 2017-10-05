@@ -105,8 +105,20 @@ def test_attrs():
 def test_line_at_cursor():
     cell = ""
     (line, offset) = line_at_cursor(cell, cursor_pos=11)
-    assert line == "", ("Expected '', got %r" % line)
-    assert offset == 0, ("Expected '', got %r" % line)
+    nt.assert_equal(line, "")
+    nt.assert_equal(offset, 0)
+
+    # The position after a newline should be the start of the following line.
+    cell = "One\nTwo\n"
+    (line, offset) = line_at_cursor(cell, cursor_pos=4)
+    nt.assert_equal(line, "Two\n")
+    nt.assert_equal(offset, 4)
+
+    # The end of a cell should be on the last line
+    cell = "pri\npri"
+    (line, offset) = line_at_cursor(cell, cursor_pos=7)
+    nt.assert_equal(line, "pri")
+    nt.assert_equal(offset, 4)
 
 def test_muliline_statement():
     cell = """a = (1,

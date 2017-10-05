@@ -15,7 +15,7 @@ import sys
 import warnings
 
 from traitlets.config.loader import Config
-from traitlets.config.application import boolean_flag, catch_config_error, Application
+from traitlets.config.application import boolean_flag, catch_config_error
 from IPython.core import release
 from IPython.core import usage
 from IPython.core.completer import IPCompleter
@@ -35,7 +35,7 @@ from IPython.extensions.storemagic import StoreMagics
 from .interactiveshell import TerminalInteractiveShell
 from IPython.paths import get_ipython_dir
 from traitlets import (
-    Bool, List, Dict, default, observe, Type
+    Bool, List, default, observe, Type
 )
 
 #-----------------------------------------------------------------------------
@@ -164,11 +164,11 @@ aliases.update(shell_aliases)
 
 class LocateIPythonApp(BaseIPythonApplication):
     description = """print the path to the IPython dir"""
-    subcommands = Dict(dict(
+    subcommands = dict(
         profile=('IPython.core.profileapp.ProfileLocate',
             "print the path to an IPython profile directory",
         ),
-    ))
+    )
     def start(self):
         if self.subapp is not None:
             return self.subapp.start()
@@ -182,8 +182,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     crash_handler_class = IPAppCrashHandler
     examples = _examples
 
-    flags = Dict(flags)
-    aliases = Dict(aliases)
+    flags = flags
+    aliases = aliases
     classes = List()
 
     interactive_shell_class = Type(
@@ -356,6 +356,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.shell.mainloop()
         else:
             self.log.debug("IPython not interactive...")
+            if not self.shell.last_execution_succeeded:
+                sys.exit(1)
 
 def load_default_config(ipython_dir=None):
     """Load the default config file from the default ipython_dir.

@@ -1346,8 +1346,7 @@ class IPCompleter(Completer):
 
         interpreter = jedi.Interpreter(
             text, namespaces, column=cursor_column, line=cursor_line + 1)
-
-        try_jedi = False
+        try_jedi = True
 
         try:
             # should we check the type of the node is Error ?
@@ -1729,6 +1728,12 @@ class IPCompleter(Completer):
                     return [r for r in res if r.lower().startswith(text_low)]
             except TryNext:
                 pass
+            except KeyboardInterrupt:
+                """
+                If custom completer take too long,
+                let keyboard interrupt abort and return nothing.
+                """
+                break
 
         return None
 
