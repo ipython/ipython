@@ -775,6 +775,19 @@ class ProgressBar(DisplayObject):
         self._progress = value
         self.update()
 
+    def __iter__(self):
+        self.display()
+        self._progress = -1 # First iteration is 0
+        return self
+
+    def __next__(self):
+        """Returns current value and increments display by one."""
+        self.progress += 1
+        if self.progress < self.total:
+            return self.progress
+        else:
+            raise StopIteration()
+
 class JSON(DisplayObject):
     """JSON expects a JSON-able dict or list
     
