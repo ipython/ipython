@@ -2625,9 +2625,9 @@ class InteractiveShell(SingletonConfigurable):
             result = self._run_cell(
                 raw_cell, store_history, silent, shell_futures)
         finally:
-            self.events.trigger('finally_execute', result)
+            self.events.trigger('post_execute', result)
             if not silent:
-                self.events.trigger('finally_run_cell', result)
+                self.events.trigger('post_run_cell', result)
         return result
 
     def _run_cell(self, raw_cell, store_history, silent, shell_futures):
@@ -2746,7 +2746,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.displayhook.exec_result = result
 
                 # Execute the user code
-                interactivity = "none" if silent else self.ast_node_interactivity
+                interactivity = 'none' if silent else self.ast_node_interactivity
                 has_raised = self.run_ast_nodes(code_ast.body, cell_name,
                    interactivity=interactivity, compiler=compiler, result=result)
                 
@@ -2756,10 +2756,6 @@ class InteractiveShell(SingletonConfigurable):
                 # Reset this so later displayed values do not modify the
                 # ExecutionResult
                 self.displayhook.exec_result = None
-
-                self.events.trigger('post_execute')
-                if not silent:
-                    self.events.trigger('post_run_cell')
 
         if store_history:
             # Write output to the database. Does nothing unless

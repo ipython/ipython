@@ -13,6 +13,27 @@ events and the arguments which will be passed to them.
    This API is experimental in IPython 2.0, and may be revised in future versions.
 """
 
+from functools import wraps
+try:
+    from inspect import getfullargspec
+except:
+    from inspect import getargspec as getfullargspec  # for Python2 compatibility.
+
+# original function -> wrapper function mapping
+compatibility_wrapper_functions = {}
+
+def _compatibility_wrapper_for(function):
+    """Returns a wrapper for a function without args that accepts any args."""
+    if len(getfullargspec(function).args) > 0:
+        raise TypeError('%s cannot have arguments' % function)
+    if function in compatibility_wrapper_functions:
+        return compatibility_wrapper_functions[function]
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        function()
+    compatibility_wrapper_functions[function] = wrapper
+    return wrapper
+
 class EventManager(object):
     """Manage a collection of events and a sequence of callbacks for each.
     
@@ -56,11 +77,24 @@ class EventManager(object):
         """
         if not callable(function):
             raise TypeError('Need a callable, got %r' % function)
-        self.callbacks[event].append(function)
+
+        callback_proto = available_events.get(event)
+        if (callable(callback_proto) and
+            len(getfullargspec(callback_proto).args) > 0 and
+            len(getfullargspec(function).args) == 0):
+            # `callback_proto` requires args but `function` does not, so a
+            # compatibility wrapper is needed.
+            self.callbacks[event].append(_compatibility_wrapper_for(function))
+        else:
+            self.callbacks[event].append(function)
     
     def unregister(self, event, function):
         """Remove a callback from the given event."""
-        self.callbacks[event].remove(function)
+        wrapper = compatibility_wrapper_functions.get(function)
+        if wrapper:
+            self.callbacks[event].remove(wrapper)
+        else:
+            self.callbacks[event].remove(function)
     
     def trigger(self, event, *args, **kwargs):
         """Call callbacks for ``event``.
@@ -90,34 +124,8 @@ def _define_event(callback_proto):
 # ------------------------------------------------------------------------------
 
 @_define_event
-def pre_execute():
+def pre_execute(result):
     """Fires before code is executed in response to user/frontend action.
-    
-    This includes comm and widget messages and silent execution, as well as user
-    code cells."""
-    pass
-
-@_define_event
-def pre_run_cell():
-    """Fires before user-entered code runs."""
-    pass
-
-@_define_event
-def post_execute():
-    """Fires after code is executed in response to user/frontend action.
-    
-    This includes comm and widget messages and silent execution, as well as user
-    code cells."""
-    pass
-
-@_define_event
-def post_run_cell():
-    """Fires after user-entered code runs."""
-    pass
-
-@_define_event
-def finally_execute(result):
-    """Always fires after code is executed in response to user/frontend action.
     
     This includes comm and widget messages and silent execution, as well as user
     code cells.
@@ -125,16 +133,43 @@ def finally_execute(result):
     Parameters
     ----------
     result : :class:`~IPython.core.interactiveshell.ExecutionResult`
+      The object which will be returned as the execution result.
     """
     pass
 
 @_define_event
-def finally_run_cell(result):
-    """Always fires after user-entered code runs.
+def pre_run_cell(result):
+    """Fires before user-entered code runs.
 
     Parameters
     ----------
     result : :class:`~IPython.core.interactiveshell.ExecutionResult`
+      The object which will be returned as the execution result.
+    """
+    pass
+
+@_define_event
+def post_execute(result):
+    """Fires after code is executed in response to user/frontend action.
+    
+    This includes comm and widget messages and silent execution, as well as user
+    code cells.
+
+    Parameters
+    ----------
+    result : :class:`~IPython.core.interactiveshell.ExecutionResult`
+      The object which will be returned as the execution result.
+    """
+    pass
+
+@_define_event
+def post_run_cell(result):
+    """Fires after user-entered code runs.
+
+    Parameters
+    ----------
+    result : :class:`~IPython.core.interactiveshell.ExecutionResult`
+      The object which will be returned as the execution result.
     """
     pass
 

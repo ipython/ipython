@@ -263,17 +263,12 @@ class InteractiveShellTestCase(unittest.TestCase):
         pre_always = mock.Mock()
         post_explicit = mock.Mock()
         post_always = mock.Mock()
-        finally_explicit = mock.Mock()
-        finally_always = mock.Mock()
-        all_mocks = [pre_explicit, pre_always, post_explicit, post_always,
-                     finally_explicit,finally_always]
+        all_mocks = [pre_explicit, pre_always, post_explicit, post_always]
         
         ip.events.register('pre_run_cell', pre_explicit)
         ip.events.register('pre_execute', pre_always)
         ip.events.register('post_run_cell', post_explicit)
         ip.events.register('post_execute', post_always)
-        ip.events.register('finally_run_cell', finally_explicit)
-        ip.events.register('finally_execute', finally_always)
         
         try:
             ip.run_cell("1", silent=True)
@@ -281,31 +276,24 @@ class InteractiveShellTestCase(unittest.TestCase):
             assert not pre_explicit.called
             assert post_always.called
             assert not post_explicit.called
-            assert finally_always.called
-            assert not finally_explicit.called
             # double-check that non-silent exec did what we expected
             # silent to avoid
             ip.run_cell("1")
             assert pre_explicit.called
             assert post_explicit.called
-            assert finally_explicit.called
-            # check that finally hooks are always called
+            # check that post hooks are always called
             [m.reset_mock() for m in all_mocks]
             ip.run_cell("syntax error")
             assert pre_always.called
             assert pre_explicit.called
-            assert not post_always.called  # because of `SyntaxError`
-            assert not post_explicit.called
-            assert finally_explicit.called
-            assert finally_always.called
+            assert post_always.called
+            assert post_explicit.called
         finally:
             # remove post-exec
             ip.events.unregister('pre_run_cell', pre_explicit)
             ip.events.unregister('pre_execute', pre_always)
             ip.events.unregister('post_run_cell', post_explicit)
             ip.events.unregister('post_execute', post_always)
-            ip.events.unregister('finally_run_cell', finally_explicit)
-            ip.events.unregister('finally_execute', finally_always)
     
     def test_silent_noadvance(self):
         """run_cell(silent=True) doesn't advance execution_count"""
