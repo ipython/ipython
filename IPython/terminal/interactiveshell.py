@@ -372,8 +372,9 @@ class TerminalInteractiveShell(InteractiveShell):
             self._pt_app.layout = create_prompt_layout(**self._layout_options())
 
     def prompt_for_code(self):
-        document = self.pt_cli.run(
-            pre_run=self.pre_prompt, reset_current_buffer=True)
+        with self.pt_cli.patch_stdout_context(raw=True):
+            document = self.pt_cli.run(
+                pre_run=self.pre_prompt, reset_current_buffer=True)
         return document.text
 
     def enable_win_unicode_console(self):
