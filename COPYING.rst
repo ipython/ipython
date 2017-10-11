@@ -3,7 +3,7 @@
 =============================
 
 IPython is licensed under the terms of the Modified BSD License (also known as
-New or Revised or 3-Clause BSD), See LICENSE file:
+New or Revised or 3-Clause BSD). See the LICENSE file.
 
 
 About the IPython Development Team
