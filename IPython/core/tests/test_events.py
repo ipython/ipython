@@ -1,16 +1,22 @@
+from backcall import callback_prototype
 import unittest
 from unittest.mock import Mock
 
 from IPython.core import events
 import IPython.testing.tools as tt
 
+
 @events._define_event
+@callback_prototype
 def ping_received():
     pass
 
+
 @events._define_event
+@callback_prototype
 def event_with_argument(argument):
     pass
+
 
 class CallbackTests(unittest.TestCase):
     def setUp(self):
@@ -60,7 +66,7 @@ class CallbackTests(unittest.TestCase):
         def event_with_no_argument():
             call_count[0] += 1
 
-        self.em.register('event_with_argument', event_with_no_argument)        
+        self.em.register('event_with_argument', event_with_no_argument)
         self.em.trigger('event_with_argument', 'the argument')
         self.assertEqual(call_count[0], 1)
         

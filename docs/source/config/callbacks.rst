@@ -18,10 +18,12 @@ For example::
             self.shell = ip
             self.last_x = None
         
-        def pre_execute(self):
+        def pre_execute(self, request):
+            print('Cell code: "%s"' % request.raw_cell)
             self.last_x = self.shell.user_ns.get('x', None)
         
         def post_execute(self, result):
+            print('Cell code: "%s"' % result.request.raw_cell)
             if result.error_before_exec:
                 print('Error before execution: %s' % result.error_before_exec)
             if self.shell.user_ns.get('x', None) != self.last_x:
@@ -55,8 +57,7 @@ pre_run_cell
 
 ``pre_run_cell`` fires prior to interactive execution (e.g. a cell in a notebook).
 It can be used to note the state prior to execution, and keep track of changes.
-The object which will be returned as the execution result is provided as an
-argument, even though the actual result is not yet available.
+The object representing the code execution request is provided as an argument.
 
 pre_execute
 -----------
@@ -64,8 +65,7 @@ pre_execute
 ``pre_execute`` is like ``pre_run_cell``, but is triggered prior to *any* execution.
 Sometimes code can be executed by libraries, etc. which
 skipping the history/display mechanisms, in which cases ``pre_run_cell`` will not fire.
-The object which will be returned as the execution result is provided as an
-argument, even though the actual result is not yet available.
+The object representing the code execution request is provided as an argument.
 
 post_run_cell
 -------------

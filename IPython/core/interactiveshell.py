@@ -173,6 +173,30 @@ class DummyMod(object):
     pass
 
 
+class ExecutionRequest(object):
+    """The request of a call to :meth:`InteractiveShell.run_cell`
+
+    Stores information about what is going to happen.
+    """
+    raw_cell = None
+    store_history = False
+    silent = False
+    shell_futures = True
+
+    def __init__(self, raw_cell, store_history, silent, shell_futures):
+        self.raw_cell = raw_cell
+        self.store_history = store_history
+        self.silent = silent
+        self.shell_futures = shell_futures
+
+    def __repr__(self):
+        name = self.__class__.__qualname__
+        raw_cell = ((self.raw_cell[:50] + '..')
+                    if len(self.raw_cell) > 50 else self.raw_cell)
+        return '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s result=%s>' %\
+               (name, id(self), raw_cell, store_history, silent, shell_futures, repr(self.result))
+
+
 class ExecutionResult(object):
     """The result of a call to :meth:`InteractiveShell.run_cell`
 
@@ -181,7 +205,11 @@ class ExecutionResult(object):
     execution_count = None
     error_before_exec = None
     error_in_exec = None
+    request = None
     result = None
+
+    def __init__(self, request):
+        self.request = request
 
     @property
     def success(self):
@@ -196,8 +224,8 @@ class ExecutionResult(object):
 
     def __repr__(self):
         name = self.__class__.__qualname__
-        return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s result=%s>' %\
-                (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.result))
+        return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s request=%s result=%s>' %\
+                (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.request), repr(self.result))
 
 
 class InteractiveShell(SingletonConfigurable):
@@ -866,7 +894,7 @@ class InteractiveShell(SingletonConfigurable):
              "ip.events.register('post_run_cell', func) instead.", stacklevel=2)
         self.events.register('post_run_cell', func)
     
-    def _clear_warning_registry(self):
+    def _clear_warning_registry(self, request):
         # clear the warning registry, so that different code blocks with
         # overlapping line number ranges don't cause spurious suppression of
         # warnings (see gh-6611 for details)
@@ -2644,13 +2672,15 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
         """
-        result = ExecutionResult()
+        request = ExecutionRequest(
+            raw_cell, store_history, silent, shell_futures)
+        result = ExecutionResult(request)
 
         if (not raw_cell) or raw_cell.isspace():
             self.last_execution_succeeded = True
             self.last_execution_result = result
             return result
-        
+
         if silent:
             store_history = False
 
@@ -2663,9 +2693,9 @@ class InteractiveShell(SingletonConfigurable):
             self.last_execution_result = result
             return result
 
-        self.events.trigger('pre_execute')
+        self.events.trigger('pre_execute', request)
         if not silent:
-            self.events.trigger('pre_run_cell')
+            self.events.trigger('pre_run_cell', request)
 
         # If any of our input transformation (input_transformer_manager or
         # prefilter_manager) raises an exception, we store it in this variable

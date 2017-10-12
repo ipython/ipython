@@ -276,6 +276,9 @@ class InteractiveShellTestCase(unittest.TestCase):
             assert not pre_explicit.called
             assert post_always.called
             assert not post_explicit.called
+            request, = pre_always.call_args[0]
+            result, = post_always.call_args[0]
+            self.assertEqual(request, result.request)
             # double-check that non-silent exec did what we expected
             # silent to avoid
             ip.run_cell("1")
@@ -288,6 +291,9 @@ class InteractiveShellTestCase(unittest.TestCase):
             assert pre_explicit.called
             assert post_always.called
             assert post_explicit.called
+            request, = pre_always.call_args[0]
+            result, = post_always.call_args[0]
+            self.assertEqual(request, result.request)
         finally:
             # remove post-exec
             ip.events.unregister('pre_run_cell', pre_explicit)
