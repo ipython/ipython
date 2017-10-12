@@ -25,7 +25,7 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
 
-from pygments.styles import get_style_by_name, get_all_styles
+from pygments.styles import get_style_by_name
 from pygments.style import Style
 from pygments.token import Token
 
