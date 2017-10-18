@@ -40,7 +40,7 @@ class EventManager(object):
         self.callbacks = {n:[] for n in available_events}
     
     def register(self, event, function):
-        """Register a new event callback
+        """Register a new event callback.
         
         Parameters
         ----------
@@ -59,12 +59,21 @@ class EventManager(object):
         """
         if not callable(function):
             raise TypeError('Need a callable, got %r' % function)
-        self.callbacks[event].append(_adapt_function(event, function))
+        callback_proto = available_events.get(event)
+        self.callbacks[event].append(callback_proto.adapt(function))
     
     def unregister(self, event, function):
         """Remove a callback from the given event."""
-        self.callbacks[event].remove(_adapt_function(event, function))
-    
+        if function in self.callbacks[event]:
+            return self.callbacks[event].remove(function)
+
+        # Remove callback in case ``function`` was adapted by `backcall`.
+        for callback in self.callbacks[event]:
+            if callback.__wrapped__ is function:
+                return self.callbacks[event].remove(callback)
+
+        raise ValueError('Function {!r} is not registered as a {} callback'.format(function, event))
+
     def trigger(self, event, *args, **kwargs):
         """Call callbacks for ``event``.
         
@@ -81,29 +90,10 @@ class EventManager(object):
 # event_name -> prototype mapping
 available_events = {}
 
-# (event, function) -> adapted function mapping
-adapted_functions = {}
-
-
-def _define_event(callback_proto):
-    available_events[callback_proto.__name__] = callback_proto
+def _define_event(callback_function):
+    callback_proto = callback_prototype(callback_function)
+    available_events[callback_function.__name__] = callback_proto
     return callback_proto
-
-
-def _adapt_function(event, function):
-    """Adapts and caches a function using `backcall` to provide compatibility.
-    
-    Function adaptations depend not only on the function but also on the event,
-    as events may expect different arguments (e.g. `request` vs. `result`).
-    Hence, `(event, function)` is used as the cache key.
-    """
-    if (event, function) in adapted_functions:
-        return adapted_functions[(event, function)]
-    callback_proto = available_events.get(event)
-    adapted_function = callback_proto.adapt(function)
-    adapted_functions[(event, function)] = adapted_function
-    return adapted_function
-
 
 # ------------------------------------------------------------------------------
 # Callback prototypes
@@ -113,49 +103,35 @@ def _adapt_function(event, function):
 # ------------------------------------------------------------------------------
 
 @_define_event
-@callback_prototype
-def pre_execute(request):
+def pre_execute():
     """Fires before code is executed in response to user/frontend action.
     
     This includes comm and widget messages and silent execution, as well as user
     code cells.
-
-    Parameters
-    ----------
-    request : :class:`~IPython.core.interactiveshell.ExecutionRequest`
-      The object representing the code execution request.
     """
     pass
 
 @_define_event
-@callback_prototype
-def pre_run_cell(request):
+def pre_run_cell(info):
     """Fires before user-entered code runs.
 
     Parameters
     ----------
-    request : :class:`~IPython.core.interactiveshell.ExecutionRequest`
-      The object representing the code execution request.
+    info : :class:`~IPython.core.interactiveshell.ExecutionInfo`
+      An object containing information used for the code execution.
     """
     pass
 
 @_define_event
-@callback_prototype
-def post_execute(result):
+def post_execute():
     """Fires after code is executed in response to user/frontend action.
     
     This includes comm and widget messages and silent execution, as well as user
     code cells.
-
-    Parameters
-    ----------
-    result : :class:`~IPython.core.interactiveshell.ExecutionResult`
-      The object which will be returned as the execution result.
     """
     pass
 
 @_define_event
-@callback_prototype
 def post_run_cell(result):
     """Fires after user-entered code runs.
 

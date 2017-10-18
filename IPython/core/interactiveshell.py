@@ -173,8 +173,8 @@ class DummyMod(object):
     pass
 
 
-class ExecutionRequest(object):
-    """The request of a call to :meth:`InteractiveShell.run_cell`
+class ExecutionInfo(object):
+    """The arguments used for a call to :meth:`InteractiveShell.run_cell`
 
     Stores information about what is going to happen.
     """
@@ -205,11 +205,11 @@ class ExecutionResult(object):
     execution_count = None
     error_before_exec = None
     error_in_exec = None
-    request = None
+    info = None
     result = None
 
-    def __init__(self, request):
-        self.request = request
+    def __init__(self, info):
+        self.info = info
 
     @property
     def success(self):
@@ -224,8 +224,8 @@ class ExecutionResult(object):
 
     def __repr__(self):
         name = self.__class__.__qualname__
-        return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s request=%s result=%s>' %\
-                (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.request), repr(self.result))
+        return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s info=%s result=%s>' %\
+                (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
 
 
 class InteractiveShell(SingletonConfigurable):
@@ -894,7 +894,7 @@ class InteractiveShell(SingletonConfigurable):
              "ip.events.register('post_run_cell', func) instead.", stacklevel=2)
         self.events.register('post_run_cell', func)
     
-    def _clear_warning_registry(self, request):
+    def _clear_warning_registry(self):
         # clear the warning registry, so that different code blocks with
         # overlapping line number ranges don't cause spurious suppression of
         # warnings (see gh-6611 for details)
@@ -2653,7 +2653,7 @@ class InteractiveShell(SingletonConfigurable):
             result = self._run_cell(
                 raw_cell, store_history, silent, shell_futures)
         finally:
-            self.events.trigger('post_execute', result)
+            self.events.trigger('post_execute')
             if not silent:
                 self.events.trigger('post_run_cell', result)
         return result
@@ -2672,9 +2672,9 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
         """
-        request = ExecutionRequest(
+        info = ExecutionInfo(
             raw_cell, store_history, silent, shell_futures)
-        result = ExecutionResult(request)
+        result = ExecutionResult(info)
 
         if (not raw_cell) or raw_cell.isspace():
             self.last_execution_succeeded = True
@@ -2693,9 +2693,9 @@ class InteractiveShell(SingletonConfigurable):
             self.last_execution_result = result
             return result
 
-        self.events.trigger('pre_execute', request)
+        self.events.trigger('pre_execute')
         if not silent:
-            self.events.trigger('pre_run_cell', request)
+            self.events.trigger('pre_run_cell', info)
 
         # If any of our input transformation (input_transformer_manager or
         # prefilter_manager) raises an exception, we store it in this variable

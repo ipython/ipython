@@ -18,21 +18,27 @@ For example::
             self.shell = ip
             self.last_x = None
         
-        def pre_execute(self, request):
-            print('Cell code: "%s"' % request.raw_cell)
+        def pre_execute(self):
             self.last_x = self.shell.user_ns.get('x', None)
         
-        def post_execute(self, result):
-            print('Cell code: "%s"' % result.request.raw_cell)
-            if result.error_before_exec:
-                print('Error before execution: %s' % result.error_before_exec)
+        def pre_run_cell(self, info):
+            print('Cell code: "%s"' % info.raw_cell)
+        
+        def post_execute(self):
             if self.shell.user_ns.get('x', None) != self.last_x:
                 print("x changed!")
+        
+        def post_run_cell(self, result):
+            print('Cell code: "%s"' % result.info.raw_cell)
+            if result.error_before_exec:
+                print('Error before execution: %s' % result.error_before_exec)
         
     def load_ipython_extension(ip):
         vw = VarWatcher(ip)
         ip.events.register('pre_execute', vw.pre_execute)
+        ip.events.register('pre_run_cell', vw.pre_run_cell)
         ip.events.register('post_execute', vw.post_execute)
+        ip.events.register('post_run_cell', vw.post_run_cell)
 
 
 Events
@@ -57,7 +63,7 @@ pre_run_cell
 
 ``pre_run_cell`` fires prior to interactive execution (e.g. a cell in a notebook).
 It can be used to note the state prior to execution, and keep track of changes.
-The object representing the code execution request is provided as an argument.
+An object containing information used for the code execution is provided as an argument.
 
 pre_execute
 -----------
@@ -65,7 +71,6 @@ pre_execute
 ``pre_execute`` is like ``pre_run_cell``, but is triggered prior to *any* execution.
 Sometimes code can be executed by libraries, etc. which
 skipping the history/display mechanisms, in which cases ``pre_run_cell`` will not fire.
-The object representing the code execution request is provided as an argument.
 
 post_run_cell
 -------------

@@ -7,13 +7,11 @@ import IPython.testing.tools as tt
 
 
 @events._define_event
-@callback_prototype
 def ping_received():
     pass
 
 
 @events._define_event
-@callback_prototype
 def event_with_argument(argument):
     pass
 
