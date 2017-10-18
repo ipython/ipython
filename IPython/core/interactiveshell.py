@@ -173,6 +173,30 @@ class DummyMod(object):
     pass
 
 
+class ExecutionInfo(object):
+    """The arguments used for a call to :meth:`InteractiveShell.run_cell`
+
+    Stores information about what is going to happen.
+    """
+    raw_cell = None
+    store_history = False
+    silent = False
+    shell_futures = True
+
+    def __init__(self, raw_cell, store_history, silent, shell_futures):
+        self.raw_cell = raw_cell
+        self.store_history = store_history
+        self.silent = silent
+        self.shell_futures = shell_futures
+
+    def __repr__(self):
+        name = self.__class__.__qualname__
+        raw_cell = ((self.raw_cell[:50] + '..')
+                    if len(self.raw_cell) > 50 else self.raw_cell)
+        return '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s result=%s>' %\
+               (name, id(self), raw_cell, store_history, silent, shell_futures, repr(self.result))
+
+
 class ExecutionResult(object):
     """The result of a call to :meth:`InteractiveShell.run_cell`
 
@@ -181,7 +205,11 @@ class ExecutionResult(object):
     execution_count = None
     error_before_exec = None
     error_in_exec = None
+    info = None
     result = None
+
+    def __init__(self, info):
+        self.info = info
 
     @property
     def success(self):
@@ -196,8 +224,8 @@ class ExecutionResult(object):
 
     def __repr__(self):
         name = self.__class__.__qualname__
-        return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s result=%s>' %\
-                (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.result))
+        return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s info=%s result=%s>' %\
+                (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
 
 
 class InteractiveShell(SingletonConfigurable):
@@ -1879,7 +1907,7 @@ class InteractiveShell(SingletonConfigurable):
     # This is overridden in TerminalInteractiveShell to show a message about
     # the %paste magic.
     def showindentationerror(self):
-        """Called by run_cell when there's an IndentationError in code entered
+        """Called by _run_cell when there's an IndentationError in code entered
         at the prompt.
 
         This is overridden in TerminalInteractiveShell to show a message about
@@ -2621,13 +2649,38 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
         """
-        result = ExecutionResult()
+        try:
+            result = self._run_cell(
+                raw_cell, store_history, silent, shell_futures)
+        finally:
+            self.events.trigger('post_execute')
+            if not silent:
+                self.events.trigger('post_run_cell', result)
+        return result
+
+    def _run_cell(self, raw_cell, store_history, silent, shell_futures):
+        """Internal method to run a complete IPython cell.
+
+        Parameters
+        ----------
+        raw_cell : str
+        store_history : bool
+        silent : bool
+        shell_futures : bool
+
+        Returns
+        -------
+        result : :class:`ExecutionResult`
+        """
+        info = ExecutionInfo(
+            raw_cell, store_history, silent, shell_futures)
+        result = ExecutionResult(info)
 
         if (not raw_cell) or raw_cell.isspace():
             self.last_execution_succeeded = True
             self.last_execution_result = result
             return result
-        
+
         if silent:
             store_history = False
 
@@ -2642,7 +2695,7 @@ class InteractiveShell(SingletonConfigurable):
 
         self.events.trigger('pre_execute')
         if not silent:
-            self.events.trigger('pre_run_cell')
+            self.events.trigger('pre_run_cell', info)
 
         # If any of our input transformation (input_transformer_manager or
         # prefilter_manager) raises an exception, we store it in this variable
@@ -2723,7 +2776,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.displayhook.exec_result = result
 
                 # Execute the user code
-                interactivity = "none" if silent else self.ast_node_interactivity
+                interactivity = 'none' if silent else self.ast_node_interactivity
                 has_raised = self.run_ast_nodes(code_ast.body, cell_name,
                    interactivity=interactivity, compiler=compiler, result=result)
                 
@@ -2733,10 +2786,6 @@ class InteractiveShell(SingletonConfigurable):
                 # Reset this so later displayed values do not modify the
                 # ExecutionResult
                 self.displayhook.exec_result = None
-
-                self.events.trigger('post_execute')
-                if not silent:
-                    self.events.trigger('post_run_cell')
 
         if store_history:
             # Write output to the database. Does nothing unless

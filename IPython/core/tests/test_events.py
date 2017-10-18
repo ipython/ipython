@@ -1,15 +1,24 @@
+from backcall import callback_prototype
 import unittest
 from unittest.mock import Mock
 
 from IPython.core import events
 import IPython.testing.tools as tt
 
+
+@events._define_event
 def ping_received():
     pass
 
+
+@events._define_event
+def event_with_argument(argument):
+    pass
+
+
 class CallbackTests(unittest.TestCase):
     def setUp(self):
-        self.em = events.EventManager(get_ipython(), {'ping_received': ping_received})
+        self.em = events.EventManager(get_ipython(), {'ping_received': ping_received, 'event_with_argument': event_with_argument})
     
     def test_register_unregister(self):
         cb = Mock()
@@ -49,3 +58,16 @@ class CallbackTests(unittest.TestCase):
         self.em.trigger('ping_received')
         self.assertEqual([True, True, False], invoked)
         self.assertEqual([func3], self.em.callbacks['ping_received'])
+    
+    def test_ignore_event_arguments_if_no_argument_required(self):
+        call_count = [0]
+        def event_with_no_argument():
+            call_count[0] += 1
+
+        self.em.register('event_with_argument', event_with_no_argument)
+        self.em.trigger('event_with_argument', 'the argument')
+        self.assertEqual(call_count[0], 1)
+        
+        self.em.unregister('event_with_argument', event_with_no_argument)
+        self.em.trigger('ping_received')
+        self.assertEqual(call_count[0], 1)
