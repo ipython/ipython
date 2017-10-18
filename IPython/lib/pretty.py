@@ -83,11 +83,13 @@ import types
 import re
 import datetime
 from collections import deque
+
 from io import StringIO
 from warnings import warn
 
 from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY
+from IPython.utils.signatures import signature
 
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
@@ -99,7 +101,7 @@ _re_pattern_type = type(re.compile(''))
 
 def _safe_getattr(obj, attr, default=None):
     """Safe version of getattr.
-    
+
     Same as getattr, but will return ``default`` on any Exception,
     rather than raising.
     """
@@ -241,7 +243,7 @@ class PrettyPrinter(_PrettyPrinterBase):
             self.buffer.append(Breakable(sep, width, self))
             self.buffer_width += width
             self._break_outer_groups()
-            
+
     def break_(self):
         """
         Explicitly insert a newline into the output, maintaining correct indentation.
@@ -251,7 +253,7 @@ class PrettyPrinter(_PrettyPrinterBase):
         self.output.write(' ' * self.indentation)
         self.output_width = self.indentation
         self.buffer_width = 0
-        
+
 
     def begin_group(self, indent=0, open=''):
         """
@@ -277,7 +279,7 @@ class PrettyPrinter(_PrettyPrinterBase):
         self.group_stack.append(group)
         self.group_queue.enq(group)
         self.indentation += indent
-    
+
     def _enumerate(self, seq):
         """like enumerate, but with an upper limit on the number of items"""
         for idx, x in enumerate(seq):
@@ -287,7 +289,7 @@ class PrettyPrinter(_PrettyPrinterBase):
                 self.text('...')
                 return
             yield idx, x
-    
+
     def end_group(self, dedent=0, close=''):
         """End a group. See `begin_group` for more details."""
         self.indentation -= dedent
@@ -711,7 +713,13 @@ def _function_pprint(obj, p, cycle):
     mod = obj.__module__
     if mod and mod not in ('__builtin__', 'builtins', 'exceptions'):
         name = mod + '.' + name
-    p.text('<function %s>' % name)
+    try:
+        func_def = name + str(signature(obj))
+    except ValueError:
+        # builtins and others like numpy.ufunc, etc are not supported
+        # even though they are callables.
+        func_def = name
+    p.text('<function %s>' % func_def)
 
 
 def _exception_pprint(obj, p, cycle):
@@ -744,7 +752,7 @@ _type_pprinters = {
     tuple:                      _seq_pprinter_factory('(', ')', tuple),
     list:                       _seq_pprinter_factory('[', ']', list),
     dict:                       _dict_pprinter_factory('{', '}', dict),
-    
+
     set:                        _set_pprinter_factory('{', '}', set),
     frozenset:                  _set_pprinter_factory('frozenset({', '})', frozenset),
     super:                      _super_pprint,
@@ -753,7 +761,7 @@ _type_pprinters = {
     types.FunctionType:         _function_pprint,
     types.BuiltinFunctionType:  _function_pprint,
     types.MethodType:           _repr_pprint,
-    
+
     datetime.datetime:          _repr_pprint,
     datetime.timedelta:         _repr_pprint,
     _exception_base:            _exception_pprint
@@ -770,7 +778,7 @@ except AttributeError: # Python 3
     _type_pprinters[types.MappingProxyType] = \
         _dict_pprinter_factory('mappingproxy({', '})')
     _type_pprinters[slice] = _repr_pprint
-    
+
 try:
     _type_pprinters[long] = _repr_pprint
     _type_pprinters[unicode] = _repr_pprint
