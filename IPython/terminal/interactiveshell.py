@@ -25,7 +25,7 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
 
-from pygments.styles import get_style_by_name, get_all_styles
+from pygments.styles import get_style_by_name
 from pygments.style import Style
 from pygments.token import Token
 
@@ -129,9 +129,11 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Enable mouse support in the prompt\n(Note: prevents selecting text with the mouse)"
     ).tag(config=True)
 
+    # We don't load the list of styles for the help string, because loading
+    # Pygments plugins takes time and can cause unexpected errors.
     highlighting_style = Union([Unicode('legacy'), Type(klass=Style)],
         help="""The name or class of a Pygments style to use for syntax
-        highlighting: \n %s""" % ', '.join(get_all_styles())
+        highlighting. To see available styles, run `pygmentize -L styles`."""
     ).tag(config=True)
 
 
