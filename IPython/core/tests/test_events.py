@@ -19,8 +19,10 @@ def event_with_argument(argument):
 
 class CallbackTests(unittest.TestCase):
     def setUp(self):
-        self.em = events.EventManager(get_ipython(), {'ping_received': ping_received, 'event_with_argument': event_with_argument})
-    
+        self.em = events.EventManager(get_ipython(),
+                                      {'ping_received': ping_received,
+                                       'event_with_argument': event_with_argument})
+
     def test_register_unregister(self):
         cb = Mock()
 
