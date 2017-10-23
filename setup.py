@@ -200,7 +200,7 @@ install_requires = [
 # but requires pip >= 6. pip < 6 ignores these.
 
 extras_require.update({
-    ':python_version <= "3.4"': ['typing'],
+    ':python_version == "3.4"': ['typing'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
     ':sys_platform == "win32"': ['colorama'],
