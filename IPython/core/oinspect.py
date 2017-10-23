@@ -123,18 +123,11 @@ def getdoc(obj):
     except Exception:
         pass
     else:
-        # if we get extra info, we add it to the normal docstring.
         if isinstance(ds, str):
             return inspect.cleandoc(ds)
-    try:
-        docstr = inspect.getdoc(obj)
-        encoding = get_encoding(obj)
-        return py3compat.cast_unicode(docstr, encoding=encoding)
-    except Exception:
-        # Harden against an inspect failure, which can occur with
-        # extensions modules.
-        raise
-        return None
+    docstr = inspect.getdoc(obj)
+    encoding = get_encoding(obj)
+    return py3compat.cast_unicode(docstr, encoding=encoding)
 
 
 def getsource(obj, oname=''):
