@@ -1,0 +1,19 @@
+# Top-most EditorConfig file
+root = true
+
+[*]
+# Unix-style newlines with a newline ending every file
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+
+# Four-space indentation
+indent_size = 4
+indent_style = space
+
+trim_trailing_whitespace = false
+
+[*.yml]
+# Two-space indentation
+indent_size = 2
+indent_style = space
