@@ -218,8 +218,8 @@ class ScriptMagics(Magics):
                 print("Error while terminating subprocess (pid=%i): %s" \
                     % (p.pid, e))
             return
-        out = py3compat.bytes_to_str(out)
-        err = py3compat.bytes_to_str(err)
+        out = py3compat.decode(out)
+        err = py3compat.decode(err)
         if args.out:
             self.shell.user_ns[args.out] = out
         else:

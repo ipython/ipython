@@ -22,7 +22,6 @@ import nose.tools as nt
 
 # Our own imports
 from IPython.core import compilerop
-from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Test functions

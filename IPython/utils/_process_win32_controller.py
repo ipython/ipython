@@ -15,9 +15,6 @@ This file is meant to be used by process.py
 import os, sys, threading
 import ctypes, msvcrt
 
-# local imports
-from . import py3compat
-
 # Win32 API types needed for the API calls
 from ctypes import POINTER
 from ctypes.wintypes import HANDLE, HLOCAL, LPVOID, WORD, DWORD, BOOL, \

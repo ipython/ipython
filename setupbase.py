@@ -40,15 +40,9 @@ def oscmd(s):
     print(">", s)
     os.system(s)
 
-# Py3 compatibility hacks, without assuming IPython itself is installed with
-# the full py3compat machinery.
-
-try:
-    execfile
-except NameError:
-    def execfile(fname, globs, locs=None):
-        locs = locs or globs
-        exec(compile(open(fname).read(), fname, "exec"), globs, locs)
+def execfile(fname, globs, locs=None):
+    locs = locs or globs
+    exec(compile(open(fname).read(), fname, "exec"), globs, locs)
 
 # A little utility we'll need below, since glob() does NOT allow you to do
 # exclusion on multiple endings!

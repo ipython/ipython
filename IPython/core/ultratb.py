@@ -1136,35 +1136,32 @@ class VerboseTB(TBTools):
         colorsnormal = colors.Normal  # used a lot
         head = '%s%s%s' % (colors.topline, '-' * min(75, get_terminal_size()[0]), colorsnormal)
         structured_traceback_parts = [head]
-        if py3compat.PY3:
-            chained_exceptions_tb_offset = 0
-            lines_of_context = 3
-            formatted_exceptions = formatted_exception
+        chained_exceptions_tb_offset = 0
+        lines_of_context = 3
+        formatted_exceptions = formatted_exception
+        exception = self.get_parts_of_chained_exception(evalue)
+        if exception:
+            formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
+            etype, evalue, etb = exception
+        else:
+            evalue = None
+        chained_exc_ids = set()
+        while evalue:
+            formatted_exceptions += self.format_exception_as_a_whole(etype, evalue, etb, lines_of_context,
+                                                                     chained_exceptions_tb_offset)
             exception = self.get_parts_of_chained_exception(evalue)
-            if exception:
+
+            if exception and not id(exception[1]) in chained_exc_ids:
+                chained_exc_ids.add(id(exception[1])) # trace exception to avoid infinite 'cause' loop
                 formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
                 etype, evalue, etb = exception
             else:
                 evalue = None
-            chained_exc_ids = set()
-            while evalue:
-                formatted_exceptions += self.format_exception_as_a_whole(etype, evalue, etb, lines_of_context,
-                                                                         chained_exceptions_tb_offset)
-                exception = self.get_parts_of_chained_exception(evalue)
 
-                if exception and not id(exception[1]) in chained_exc_ids:
-                    chained_exc_ids.add(id(exception[1])) # trace exception to avoid infinite 'cause' loop
-                    formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
-                    etype, evalue, etb = exception
-                else:
-                    evalue = None
-
-            # we want to see exceptions in a reversed order:
-            # the first exception should be on top
-            for formatted_exception in reversed(formatted_exceptions):
-                structured_traceback_parts += formatted_exception
-        else:
-            structured_traceback_parts += formatted_exception[0]
+        # we want to see exceptions in a reversed order:
+        # the first exception should be on top
+        for formatted_exception in reversed(formatted_exceptions):
+            structured_traceback_parts += formatted_exception
 
         return structured_traceback_parts
 
