@@ -1,5 +1,8 @@
 # coding: utf-8
-"""Compatibility tricks for Python 3. Mainly to do with unicode."""
+"""Compatibility tricks for Python 3. Mainly to do with unicode.
+
+This file is deprecated and will be removed in a future version.
+"""
 import functools
 import os
 import sys
@@ -47,11 +50,11 @@ def _modify_str_or_docstring(str_change_func):
         else:
             func = func_or_str
             doc = func.__doc__
-        
+
         # PYTHONOPTIMIZE=2 strips docstrings, so they can disappear unexpectedly
         if doc is not None:
             doc = str_change_func(doc)
-        
+
         if func:
             func.__doc__ = doc
             return func
@@ -88,7 +91,7 @@ def _shutil_which(cmd, mode=os.F_OK | os.X_OK, path=None):
     `mode` defaults to os.F_OK | os.X_OK. `path` defaults to the result
     of os.environ.get("PATH"), or can be overridden with a custom search
     path.
-    
+
     This is a backport of shutil.which from Python 3.4
     """
     # Check that a given file can be accessed with the correct mode.
