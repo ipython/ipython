@@ -69,8 +69,11 @@ class EventManager(object):
 
         # Remove callback in case ``function`` was adapted by `backcall`.
         for callback in self.callbacks[event]:
-            if callback.__wrapped__ is function:
-                return self.callbacks[event].remove(callback)
+            try:
+                if callback.__wrapped__ is function:
+                    return self.callbacks[event].remove(callback)
+            except AttributeError:
+                pass
 
         raise ValueError('Function {!r} is not registered as a {} callback'.format(function, event))
 
