@@ -52,7 +52,7 @@ if 'upload' in sys.argv:
     cd(distdir)
 
     # do not upload OS specific files like .DS_Store
-    to_upload = glob('*.whl')+glob('*.tgz')
+    to_upload = glob('*.whl')+glob('*.tar.gz')
     for fname in to_upload:
         # TODO: update to GitHub releases API
         continue
@@ -63,7 +63,7 @@ if 'upload' in sys.argv:
     # Make target dir if it doesn't exist
     print('1. Uploading IPython to archive.ipython.org')
     sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
-    sh('scp *.tgz *.whl %s' % release_site)
+    sh('scp *.tar.gz *.whl %s' % release_site)
 
     print('2. Uploading backup files...')
     cd(ipbackupdir)
