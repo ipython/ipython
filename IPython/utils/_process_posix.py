@@ -36,7 +36,7 @@ def _find_cmd(cmd):
 
     path = sp.Popen(['/usr/bin/env', 'which', cmd],
                     stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
-    return py3compat.bytes_to_str(path)
+    return py3compat.decode(path)
 
 
 class ProcessHandler(object):

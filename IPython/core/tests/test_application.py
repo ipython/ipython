@@ -10,7 +10,6 @@ from traitlets import Unicode
 
 from IPython.core.application import BaseIPythonApplication
 from IPython.testing import decorators as dec
-from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 
 

@@ -116,7 +116,6 @@ import traceback
 import types
 import weakref
 from importlib import import_module
-from IPython.utils.py3compat import PY3
 from imp import reload
 
 from IPython.utils import openpy

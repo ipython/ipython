@@ -8,10 +8,11 @@ Writing code for Python 2 and 3
 
 
 IPython 6 requires Python 3, so our compatibility module
-``IPython.utils.py3compat`` is deprecated. In most cases, we recommend you use
-the `six module <https://pythonhosted.org/six/>`__ to support compatible code.
-This is widely used by other projects, so it is familiar to many developers and
-thoroughly battle-tested.
+``IPython.utils.py3compat`` is deprecated and will be removed in a future
+version. In most cases, we recommend you use the `six module
+<https://pythonhosted.org/six/>`__ to support compatible code. This is widely
+used by other projects, so it is familiar to many developers and thoroughly
+battle-tested.
 
 Our ``py3compat`` module provided some more specific unicode conversions than
 those offered by ``six``. If you want to use these, copy them into your own code

@@ -7,7 +7,7 @@ from warnings import warn
 
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
-from IPython.utils.py3compat import input, cast_unicode_py2
+from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
@@ -233,7 +233,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 prompt_text = "".join(x[1] for x in self.prompts.in_prompt_tokens())
                 prompt_continuation = "".join(x[1] for x in self.prompts.continuation_prompt_tokens())
                 while isp.push_accepts_more():
-                    line = cast_unicode_py2(input(prompt_text))
+                    line = input(prompt_text)
                     isp.push(line)
                     prompt_text = prompt_continuation
                 return isp.source_reset()
