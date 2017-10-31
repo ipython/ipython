@@ -93,6 +93,7 @@ repository <http://github.com/ipython/ipython>`_.
    development/index
    coredev/index
    api/index
+   sphinxext
    about/index
 
 .. seealso::
