@@ -104,8 +104,8 @@ or :okwarning: options:
         In [1]: 1/0
         In [2]: # raise warning.
 
-ToDo
-----
+To Do
+-----
 
 - Turn the ad-hoc test() function into a real test suite.
 - Break up ipython-specific functionality from matplotlib stuff into better
