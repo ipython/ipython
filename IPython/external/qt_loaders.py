@@ -263,6 +263,13 @@ def import_pyqt5():
     import sip
 
     from PyQt5 import QtCore, QtSvg, QtWidgets, QtGui
+    try:
+        # If QtWebEngineWidgets will be used, Qt5 requires that it be imported
+        # before any QCoreApplication instance is created.
+        from PyQt5 import QtWebEngineWidgets
+    except ImportError:
+        # Not available, so the user can't use it anyway - Ignore.
+        pass
 
     # Alias PyQt-specific functions for PySide compatibility.
     QtCore.Signal = QtCore.pyqtSignal
