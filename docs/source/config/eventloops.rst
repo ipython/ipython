@@ -15,11 +15,16 @@ To make IPython GUI event loop integration occur automatically at every
 startup, set the ``c.InteractiveShellApp.gui`` configuration key in your
 IPython profile (see :ref:`setting_config`).
 
-Terminal IPython handles event loops very differently from the IPython kernel,
-so different steps are needed to integrate with each.
+If the event loop you use is supported by IPython, turning on event loop
+integration follows the steps just described whether you use Terminal IPython
+or an IPython kernel.
 
-Event loops in the terminal
----------------------------
+However, the way Terminal IPython handles event loops is very different from
+the way IPython kernel does, so if you need to integrate with a new kind of
+event loop, different steps are needed to integrate with each.
+
+Integrating with a new event loop in the terminal
+-------------------------------------------------
 
 .. versionchanged:: 5.0
 
@@ -56,8 +61,8 @@ Once you have defined this function, register it with IPython:
    by running ``%gui foo``.
 
 
-Event loops in the kernel
--------------------------
+Integrating with a new event loop in the kernel
+-----------------------------------------------
 
 The kernel runs its own event loop, so it's simpler to integrate with others.
 IPython allows the other event loop to take control, but it must call
