@@ -258,7 +258,7 @@ def import_pyqt5():
     """
     Import PyQt5
 
-    ImportErrors rasied within this function are non-recoverable
+    ImportErrors raised within this function are non-recoverable
     """
     import sip
 
