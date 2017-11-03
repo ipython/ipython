@@ -8,7 +8,7 @@ IPython Events
 Extension code can register callbacks functions which will be called on specific
 events within the IPython code. You can see the current list of available
 callbacks, and the parameters that will be passed with each, in the callback
-prototype functions defined in :mod:`IPython.core.callbacks`.
+prototype functions defined in :mod:`IPython.core.events`.
 
 To register callbacks, use :meth:`IPython.core.events.EventManager.register`.
 For example::
