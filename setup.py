@@ -40,7 +40,7 @@ if sys.version_info < (3, 3):
     except Exception:
         pass
 
-        
+
     error = """
 IPython 6.0+ does not support Python 2.6, 2.7, 3.0, 3.1, or 3.2.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
@@ -185,7 +185,7 @@ extras_require = dict(
 
 install_requires = [
     'setuptools>=18.5',
-    'jedi>=0.10',
+    'jedi>=0.11',
     'decorator',
     'pickleshare',
     'simplegeneric>0.8',
