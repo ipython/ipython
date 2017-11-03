@@ -405,3 +405,19 @@ def test_mappingproxy():
     ]
     for obj, expected in cases:
         nt.assert_equal(pretty.pretty(obj), expected)
+
+def test_function_pretty():
+    "Test pretty print of function"
+    # posixpath is a pure python module, its interface is consistent
+    # across Python distributions
+    import posixpath
+    nt.assert_equal(pretty.pretty(posixpath.join), '<function posixpath.join(a, *p)>')
+ 
+    # custom function
+    def meaning_of_life(question=None):
+        if question:
+            return 42
+        return "Don't panic"
+
+    nt.assert_in('meaning_of_life(question=None)', pretty.pretty(meaning_of_life))
+    

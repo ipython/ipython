@@ -305,8 +305,13 @@ def test_empty_property_has_no_source():
 
 
 def test_property_sources():
-    import zlib
-
+    import posixpath 
+    # A simple adder whose source and signature stays
+    # the same across Python distributions
+    def simple_add(a, b):
+        "Adds two numbers"
+        return a + b
+    
     class A(object):
         @property
         def foo(self):
@@ -314,18 +319,18 @@ def test_property_sources():
 
         foo = foo.setter(lambda self, v: setattr(self, 'bar', v))
 
-        id = property(id)
-        compress = property(zlib.compress)
+        dname = property(posixpath.dirname)
+        adder = property(simple_add) 
 
     i = inspector.info(A.foo, detail_level=1)
     nt.assert_in('def foo(self):', i['source'])
     nt.assert_in('lambda self, v:', i['source'])
 
-    i = inspector.info(A.id, detail_level=1)
-    nt.assert_in('fget = <function id>', i['source'])
-
-    i = inspector.info(A.compress, detail_level=1)
-    nt.assert_in('fget = <function zlib.compress>', i['source'])
+    i = inspector.info(A.dname, detail_level=1)
+    nt.assert_in('def dirname(p)', i['source'])
+    
+    i = inspector.info(A.adder, detail_level=1)
+    nt.assert_in('def simple_add(a, b)', i['source'])
 
 
 def test_property_docstring_is_in_info_for_detail_level_0():

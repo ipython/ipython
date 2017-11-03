@@ -88,7 +88,7 @@ from warnings import warn
 
 from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY
-
+from IPython.utils.signatures import signature
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name']
@@ -711,7 +711,11 @@ def _function_pprint(obj, p, cycle):
     mod = obj.__module__
     if mod and mod not in ('__builtin__', 'builtins', 'exceptions'):
         name = mod + '.' + name
-    p.text('<function %s>' % name)
+    try:
+       func_def = name + str(signature(obj))
+    except ValueError:
+       func_def = name
+    p.text('<function %s>' % func_def)
 
 
 def _exception_pprint(obj, p, cycle):
