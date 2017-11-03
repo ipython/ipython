@@ -408,10 +408,10 @@ def test_mappingproxy():
 
 def test_function_pretty():
     "Test pretty print of function"
-    # posixpath is a pure python function, its interface is consistent
+    # posixpath is a pure python module, its interface is consistent
     # across Python distributions
-    import os
-    nt.assert_equal(pretty.pretty(os.path.join), '<function posixpath.join(a, *p)>')
+    import posixpath
+    nt.assert_equal(pretty.pretty(posixpath.join), '<function posixpath.join(a, *p)>')
  
     # custom function
     def meaning_of_life(question=None):
