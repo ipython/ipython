@@ -1350,7 +1350,13 @@ class IPCompleter(Completer):
 
         try:
             # should we check the type of the node is Error ?
-            from parso.tree import ErrorLeaf
+            try:
+                # jedi >= 0.11
+                from parso.tree import ErrorLeaf
+            except ImportError:
+                # jedi < 0.11
+                from jedi.parser.tree import ErrorLeaf
+
             next_to_last_tree = interpreter._get_module().tree_node.children[-2]
             completing_string = False
             if isinstance(next_to_last_tree, ErrorLeaf):

@@ -185,7 +185,7 @@ extras_require = dict(
 
 install_requires = [
     'setuptools>=18.5',
-    'jedi>=0.11',
+    'jedi>=0.10',
     'decorator',
     'pickleshare',
     'simplegeneric>0.8',
