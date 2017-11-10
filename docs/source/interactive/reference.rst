@@ -609,10 +609,76 @@ python, see :ref:`configure_start_ipython`.
 
 It is also possible to embed an IPython shell in a namespace in your Python code.
 This allows you to evaluate dynamically the state of your code,
-operate with your variables, analyze them, etc. Note however that
-any changes you make to values while in the shell do not propagate back
-to the running code, so it is safe to modify your values because you
-won't break your code in bizarre ways by doing so.
+operate with your variables, analyze them, etc. For example, if you run the 
+following code snippet:
+
+``` python
+import IPython
+
+a = 42
+IPython.embed()
+```
+
+and within the IPython shell, you reassign `a` to `23` to do further testing of 
+some sort, you can then exit. 
+
+``` 
+>>> IPython.embed()
+Python 3.6.2 (default, Jul 17 2017, 16:44:45) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 6.2.0.dev -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]: a = 23
+
+In [2]: exit()
+```
+
+Once you exit and print `a`, the value 23 will be returned:
+
+
+``` python
+print(a)
+```
+```
+23
+```
+
+It's important to note that the code run in the embedded IPython shell will 
+*not* change the state of your code and variables, **unless** the shell is 
+contained within the global namespace. In the above example, `a` is changed 
+because this is true.
+
+To further exemplify this, consider the following example:
+
+``` python
+import IPython
+def do():
+    a = 42
+    print(a)
+    IPython.embed()
+    print(a)
+```
+
+Now if call the function and complete the state changes as we did above, the 
+value `42` will be returned. Again, this is because it's not in the global namespace. 
+
+``` python
+do()
+```
+```
+42
+>>> IPython.embed()
+Python 3.6.2 (default, Jul 17 2017, 16:44:45) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 6.2.0.dev -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]: a = 23
+
+In [2]: exit()
+```
+```
+42
+```
 
 .. note::
 
