@@ -239,8 +239,8 @@ To run any command at the system shell, simply prefix it with ``!``, e.g.::
     
 You can capture the output into a Python list, e.g.: ``files = !ls``. To pass
 the values of Python variables or expressions to system commands, prefix them
-with $: ``!grep -rF $pattern ipython/*``. See :ref:`our shell section
-<system_shell_access>` for more details.
+with $: ``!grep -rF $pattern ipython/*`` or wrap in `{braces}`. See :ref:`our
+shell section <system_shell_access>` for more details.
 
 Define your own system aliases
 ------------------------------
