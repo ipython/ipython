@@ -224,7 +224,7 @@ def catch_format_error(method, self, *args, **kwargs):
         r = method(self, *args, **kwargs)
     except NotImplementedError:
         # don't warn on NotImplementedErrors
-        return None
+        return self._check_return(None, args[0])
     except Exception:
         exc_info = sys.exc_info()
         ip = get_ipython()
@@ -232,7 +232,7 @@ def catch_format_error(method, self, *args, **kwargs):
             ip.showtraceback(exc_info)
         else:
             traceback.print_exception(*exc_info)
-        return None
+        return self._check_return(None, args[0])
     return self._check_return(r, args[0])
 
 
