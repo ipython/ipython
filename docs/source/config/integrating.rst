@@ -19,6 +19,8 @@ returns a list of objects which are possible keys in a subscript expression
 .. versionadded:: 5.0
    Custom key completions
 
+.. _integrating_rich_display:
+
 Rich display
 ============
 
