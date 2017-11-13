@@ -521,3 +521,13 @@ def test_repr_mime_meta():
             'height': 10,
         }
     })
+
+def test_repr_mime_failure():
+    class BadReprMime(object):
+        def _repr_mimebundle_(self, include=None, exclude=None):
+            raise RuntimeError
+
+    f = get_ipython().display_formatter
+    obj = BadReprMime()
+    d, md = f.format(obj)
+    nt.assert_in('text/plain', d)
