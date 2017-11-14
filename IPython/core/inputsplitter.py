@@ -699,41 +699,55 @@ class IPythonInputSplitter(InputSplitter):
         # flush the buffer.
         self._store(lines, self._buffer_raw, 'source_raw')
 
+        transformed_lines_list = []
         for line in lines_list:
-            out = self.push_line(line)
+            transformed = self._transform_line(line)
+            if transformed is not None:
+                transformed_lines_list.append(transformed)
 
-        return out
-    
-    def push_line(self, line):
-        buf = self._buffer
+        if transformed_lines_list:
+            transformed_lines = '\n'.join(transformed_lines_list)
+            return super(IPythonInputSplitter, self).push(transformed_lines)
+        else:
+            # Got nothing back from transformers - they must be waiting for
+            # more input.
+            return False
+
+    def _transform_line(self, line):
+        """Push a line of input code through the various transformers.
         
+        Returns any output from the transformers, or None if a transformer
+        is accumulating lines.
+        
+        Sets self.transformer_accumulating as a side effect.
+        """
         def _accumulating(dbg):
             #print(dbg)
             self.transformer_accumulating = True
-            return False
-        
+            return None
+
         for transformer in self.physical_line_transforms:
             line = transformer.push(line)
             if line is None:
                 return _accumulating(transformer)
-        
+
         if not self.within_python_line:
             line = self.assemble_logical_lines.push(line)
             if line is None:
-                return _accumulating('acc logical line')        
-        
+                return _accumulating('acc logical line')
+
             for transformer in self.logical_line_transforms:
                 line = transformer.push(line)
                 if line is None:
                     return _accumulating(transformer)
-        
+
         line = self.assemble_python_lines.push(line)
         if line is None:
             self.within_python_line = True
             return _accumulating('acc python line')
         else:
             self.within_python_line = False
-        
+
         for transformer in self.python_line_transforms:
             line = transformer.push(line)
             if line is None:
@@ -741,4 +755,5 @@ class IPythonInputSplitter(InputSplitter):
 
         #print("transformers clear") #debug
         self.transformer_accumulating = False
-        return super(IPythonInputSplitter, self).push(line)
+        return line
+
