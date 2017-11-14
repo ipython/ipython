@@ -1940,7 +1940,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def _indent_current_str(self):
         """return the current level of indentation as a string"""
-        return self.input_splitter.indent_spaces * ' '
+        return self.input_splitter.get_indent_spaces() * ' '
 
     #-------------------------------------------------------------------------
     # Things related to text completion

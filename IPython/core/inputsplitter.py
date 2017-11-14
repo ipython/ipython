@@ -290,10 +290,11 @@ class InputSplitter(object):
             isp.push(line)
         print 'Input source was:\n', isp.source_reset(),
     """
-    # Number of spaces of indentation computed from input that has been pushed
-    # so far.  This is the attributes callers should query to get the current
-    # indentation level, in order to provide auto-indent facilities.
-    indent_spaces = 0
+    # A cache for calculating the current indentation.
+    # If the first value matches self.source, the second value is an integer
+    # number of spaces for the current indentation. If the first value does not
+    # match, self.source has changed, and the indentation must be recalculated.
+    _indent_spaces_cache = None, None
     # String, indicating the default input encoding.  It is computed by default
     # at initialization time via get_input_encoding(), but it can be reset by a
     # client with specific knowledge of the encoding.
@@ -327,7 +328,6 @@ class InputSplitter(object):
 
     def reset(self):
         """Reset the input buffer and associated state."""
-        self.indent_spaces = 0
         self._buffer[:] = []
         self.source = ''
         self.code = None
@@ -371,7 +371,7 @@ class InputSplitter(object):
             if self._is_invalid:
                 return 'invalid', None
             elif self.push_accepts_more():
-                return 'incomplete', self.indent_spaces
+                return 'incomplete', self.get_indent_spaces()
             else:
                 return 'complete', None
         finally:
@@ -412,7 +412,6 @@ class InputSplitter(object):
         if source.endswith('\\\n'):
             return False
 
-        self._update_indent()
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter('error', SyntaxWarning)
@@ -470,7 +469,7 @@ class InputSplitter(object):
         # If there's just a single line or AST node, and we're flush left, as is
         # the case after a simple statement such as 'a=1', we want to execute it
         # straight away.
-        if self.indent_spaces==0:
+        if self.get_indent_spaces() == 0:
             if len(self.source.splitlines()) <= 1:
                 return False
             
@@ -488,9 +487,15 @@ class InputSplitter(object):
         # General fallback - accept more code
         return True
 
-    def _update_indent(self):
+    def get_indent_spaces(self):
+        sourcefor, n = self._indent_spaces_cache
+        if sourcefor == self.source:
+            return n
+
         # self.source always has a trailing newline
-        self.indent_spaces = find_next_indent(self.source[:-1])
+        n = find_next_indent(self.source[:-1])
+        self._indent_spaces_cache = (self.source, n)
+        return n
 
     def _store(self, lines, buffer=None, store='source'):
         """Store one or more lines of input.
