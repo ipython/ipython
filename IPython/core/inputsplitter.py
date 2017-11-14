@@ -313,8 +313,6 @@ class InputSplitter(object):
     _buffer = None
     # Command compiler
     _compile = None
-    # Mark when input has changed indentation all the way back to flush-left
-    _full_dedent = False
     # Boolean indicating whether the current block is complete
     _is_complete = None
     # Boolean indicating whether the current block has an unrecoverable syntax error
@@ -335,7 +333,6 @@ class InputSplitter(object):
         self.code = None
         self._is_complete = False
         self._is_invalid = False
-        self._full_dedent = False
 
     def source_reset(self):
         """Return the input source and perform a full reset.
@@ -494,7 +491,6 @@ class InputSplitter(object):
     def _update_indent(self):
         # self.source always has a trailing newline
         self.indent_spaces = find_next_indent(self.source[:-1])
-        self._full_dedent = (self.indent_spaces == 0)
 
     def _store(self, lines, buffer=None, store='source'):
         """Store one or more lines of input.
