@@ -290,10 +290,12 @@ class InputSplitter(object):
             isp.push(line)
         print 'Input source was:\n', isp.source_reset(),
     """
-    # A cache for calculating the current indentation.
-    # If the first value matches self.source, the second value is an integer
-    # number of spaces for the current indentation. If the first value does not
-    # match, self.source has changed, and the indentation must be recalculated.
+    # A cache for storing the current indentation
+    # The first value stores the most recently processed source input
+    # The second value is the number of spaces for the current indentation 
+    # If self.source matches the first value, the second value is a valid
+    # current indentation. Otherwise, the cache is invalid and the indentation
+    # must be recalculated.
     _indent_spaces_cache = None, None
     # String, indicating the default input encoding.  It is computed by default
     # at initialization time via get_input_encoding(), but it can be reset by a
