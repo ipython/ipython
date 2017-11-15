@@ -499,6 +499,11 @@ class InputSplitter(object):
         self._indent_spaces_cache = (self.source, n)
         return n
 
+    # Backwards compatibility. I think all code that used .indent_spaces was
+    # inside IPython, but we can leave this here until IPython 7 in case any
+    # other modules are using it. -TK, November 2017
+    indent_spaces = property(get_indent_spaces)
+
     def _store(self, lines, buffer=None, store='source'):
         """Store one or more lines of input.
 
