@@ -15,7 +15,7 @@ env:
 #group: edge
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
-    - 'if [[ $GROUP == docs ]]; then pip install -r docs/doc-requirements.txt; fi'
+    - 'if [[ $GROUP == docs ]]; then pip install -r docs/requirements.txt; fi'
 install:
     - pip install setuptools pip --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
