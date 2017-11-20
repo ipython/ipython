@@ -51,3 +51,11 @@ API documentation. This build target skips that.
 ``make pdf`` will compile a pdf from the documentation.
 
 You can run ``make help`` to see information on all possible make targets.
+
+
+Continuous Integration
+----------------------
+
+Documentation builds are included in the Travis-CI continuous integration process,
+so you can see the results of the docs build for any pull request at
+https://travis-ci.org/ipython/ipython/pull_requests.
