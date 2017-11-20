@@ -56,9 +56,9 @@ To save time,
 the make targets above only proceess the files that have been changed since the
 previous docs build.
 To remove the previous docs build you can use ``make clean``.
-You can also combine ``clean`` with other targets,
+You can also combine ``clean`` with other `make` commands;
 for example,
-``make clean html`` will do a complete rebuild of the docs.
+``make clean html`` will do a complete rebuild of the docs or `make clean pdf` will do a complete build of the pdf.
 
 
 Continuous Integration
