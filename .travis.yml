@@ -7,15 +7,22 @@ python:
     - 3.4
     - 3.3
 sudo: false
-group: edge
+env:
+  global:
+    - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
+  matrix:
+    - GROUP=docs
+#group: edge
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
+    - 'if [[ $GROUP == docs ]]; then pip install -r docs/doc-requirements.txt; fi'
 install:
     - pip install setuptools pip --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
     - pip install codecov --upgrade
 script:
     - cd /tmp && iptest --coverage xml && cd -
+    - 'if [[ $GROUP == docs ]]; then make -C docs/ html; fi'
 after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./
@@ -24,6 +31,9 @@ after_success:
 matrix:
     allow_failures:
         - python: nightly
+    exclude:
+        - python: 2.7
+          env: GROUP=docs
 
 before_deploy:
     - rm -rf dist/
