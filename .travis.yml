@@ -5,14 +5,13 @@ python:
     - 3.6
     - 3.5
     - 3.4
-    - 3.3
 sudo: false
 env:
   global:
     - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
   matrix:
     - GROUP=docs
-#group: edge
+group: edge
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
     - 'if [[ $GROUP == docs ]]; then pip install -r docs/requirements.txt; fi'
