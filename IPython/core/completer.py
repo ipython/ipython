@@ -1019,10 +1019,7 @@ class IPCompleter(Completer):
         """
     ).tag(config=True)
     limit_to__all__ = Bool(False,
-        help="""
-        DEPRECATED as of version 5.0.
-        
-        Instruct the completer to use __all__ for the completion
+        help="""Instruct the completer to use __all__ for the completion
         
         Specifically, when completing on ``object.<tab>``.
         
