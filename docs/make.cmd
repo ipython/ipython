@@ -10,7 +10,7 @@ SET SRCDIR=source
 SET PYTHON=python
 
 IF "%PAPER%" == "" SET PAPER=a4
-SET ALLSPHINXOPTS=-d build\doctrees -D latex_paper_size=%PAPER% %SPHINXOPTS% %SRCDIR%
+SET ALLSPHINXOPTS=-d build\doctrees -D latex_paper_size=%PAPER% -D graphviz_dot="C:\Program Files (x86)\Graphviz2.38\bin\dot.exe" %SPHINXOPTS% %SRCDIR%
 
 FOR %%X IN (%SPHINXBUILD%.exe) DO SET P=%%~$PATH:X
 
