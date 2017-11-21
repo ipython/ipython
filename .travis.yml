@@ -5,6 +5,7 @@ python:
     - 3.6
     - 3.5
     - 3.4
+    - 3.3
 sudo: false
 env:
   global:
@@ -32,6 +33,8 @@ matrix:
         - python: nightly
     exclude:
         - python: 2.7
+          env: GROUP=docs
+        - python: 3.3
           env: GROUP=docs
 
 before_deploy:
