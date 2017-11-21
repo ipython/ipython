@@ -87,7 +87,7 @@ def parse_test_output(txt):
     txt : str
       Text output of a test run, assumed to contain a line of one of the
       following forms::
-      
+
         'FAILED (errors=1)'
         'FAILED (failures=1)'
         'FAILED (errors=1, failures=1)'
@@ -186,7 +186,7 @@ def ipexec(fname, options=None, commands=()):
 
     Returns
     -------
-    (stdout, stderr) of ipython subprocess.
+    ``(stdout, stderr)`` of ipython subprocess.
     """
     if options is None: options = []
 
@@ -333,13 +333,13 @@ notprinted_msg = """Did not find {0!r} in printed output (on {1}):
 
 class AssertPrints(object):
     """Context manager for testing that code prints certain text.
-    
+
     Examples
     --------
     >>> with AssertPrints("abc", suppress=False):
     ...     print("abcd")
     ...     print("def")
-    ... 
+    ...
     abcd
     def
     """
@@ -349,13 +349,13 @@ class AssertPrints(object):
             self.s = [self.s]
         self.channel = channel
         self.suppress = suppress
-    
+
     def __enter__(self):
         self.orig_stream = getattr(sys, self.channel)
         self.buffer = MyStringIO()
         self.tee = Tee(self.buffer, channel=self.channel)
         setattr(sys, self.channel, self.buffer if self.suppress else self.tee)
-    
+
     def __exit__(self, etype, value, traceback):
         try:
             if value is not None:
@@ -381,7 +381,7 @@ printed_msg = """Found {0!r} in printed output (on {1}):
 
 class AssertNotPrints(AssertPrints):
     """Context manager for checking that certain output *isn't* produced.
-    
+
     Counterpart of AssertPrints"""
     def __exit__(self, etype, value, traceback):
         try:

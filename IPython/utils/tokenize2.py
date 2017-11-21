@@ -13,6 +13,7 @@ Patches:
 - u and rb literals are allowed under Python 3.3 and above.
 
 ------------------------------------------------------------------------------
+
 Tokenization help for Python programs.
 
 tokenize(readline) is a generator that breaks a stream of bytes into
