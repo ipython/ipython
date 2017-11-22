@@ -16,22 +16,17 @@ Requirements
 
 The documentation must be built using Python 3.
 
-The following tools are needed to build the documentation:
+In additions to :ref:`devinstall`,
+the following tools are needed to build the documentation:
 
  - sphinx
  - sphinx_rtd_theme
+ - docrepr
 
-On Debian-based systems, you should be able to run::
+In a conda environment, or a Python 3 ``venv``, you should be able to run::
 
-    sudo apt-get install python3-sphinx python3-sphinx-rtd-theme
-
-In a conda environment, you can use::
-
-    conda install sphinx sphinx_rtd_theme
-
-In a Python 3 ``venv``, you should be able to run::
-
-    pip install -U sphinx sphinx_rtd_theme
+  cd ipython
+  pip install -U -r docs/requirements.txt
 
 
 Build Commands
