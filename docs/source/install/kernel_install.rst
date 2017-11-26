@@ -53,7 +53,7 @@ environments, you will need to specify unique names for the kernelspecs.
 
 Make sure you have ipykernel installed in your environement. If you are using
 ``pip`` to install ``ipykernel`` in a conda env, make sure ``pip`` is
-installed::
+installed:
 
 .. sourcecode:: bash
 
