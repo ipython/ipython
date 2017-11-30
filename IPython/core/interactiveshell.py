@@ -194,7 +194,7 @@ class ExecutionInfo(object):
         raw_cell = ((self.raw_cell[:50] + '..')
                     if len(self.raw_cell) > 50 else self.raw_cell)
         return '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s result=%s>' %\
-               (name, id(self), raw_cell, store_history, silent, shell_futures, repr(self.result))
+               (name, id(self), raw_cell, self.store_history, self.silent, self.shell_futures, repr(self.result))
 
 
 class ExecutionResult(object):
