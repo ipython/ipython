@@ -106,7 +106,7 @@ def test_magic_error_status():
 def test_config():
     """ test that config magic does not raise
     can happen if Configurable init is moved too early into
-    Magics.__init__ as then a Config object will be registerd as a
+    Magics.__init__ as then a Config object will be registered as a
     magic.
     """
     ## should not raise.
@@ -587,7 +587,7 @@ def test_timeit_special_syntax():
 
 def test_timeit_return():
     """
-    test wether timeit -o return object
+    test whether timeit -o return object
     """
 
     res = _ip.run_line_magic('timeit','-n10 -r10 -o 1')

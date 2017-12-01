@@ -360,7 +360,7 @@ class Completion:
     need user facing information.
 
     - Which range should be replaced replaced by what.
-    - Some metadata (like completion type), or meta informations to displayed to
+    - Some metadata (like completion type), or meta information to displayed to
       the use user.
 
     For debugging purpose we can also store the origin of the completion (``jedi``,
@@ -1873,7 +1873,7 @@ class IPCompleter(Completer):
         start_offset = before.rfind(matched_text)
 
         # TODO:
-        # Supress this, right now just for debug.
+        # Suppress this, right now just for debug.
         if jedi_matches and matches and self.debug:
             yield Completion(start=start_offset, end=offset, text='--jedi/ipython--',
                              _origin='debug', type='none', signature='')

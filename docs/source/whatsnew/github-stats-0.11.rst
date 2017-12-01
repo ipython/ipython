@@ -34,7 +34,7 @@ Pull requests (226):
 * `574 <https://github.com/ipython/ipython/issues/574>`_: Getcwdu
 * `565 <https://github.com/ipython/ipython/issues/565>`_: don't move old config files, keep nagging the user
 * `575 <https://github.com/ipython/ipython/issues/575>`_: Added more docstrings to IPython.zmq.session.
-* `567 <https://github.com/ipython/ipython/issues/567>`_: fix trailing whitespace from reseting indentation
+* `567 <https://github.com/ipython/ipython/issues/567>`_: fix trailing whitespace from resetting indentation
 * `564 <https://github.com/ipython/ipython/issues/564>`_: Command line args in docs
 * `560 <https://github.com/ipython/ipython/issues/560>`_: reorder qt support in kernel
 * `561 <https://github.com/ipython/ipython/issues/561>`_: command-line suggestions
@@ -445,7 +445,7 @@ Regular issues (285):
 * `46 <https://github.com/ipython/ipython/issues/46>`_: Input to %timeit is not preparsed
 * `285 <https://github.com/ipython/ipython/issues/285>`_: ipcluster local -n 4 fails
 * `205 <https://github.com/ipython/ipython/issues/205>`_: In the Qt console, Tab should insert 4 spaces when not completing
-* `145 <https://github.com/ipython/ipython/issues/145>`_: Bug on MSW sytems: idle can not be set as default IPython editor. Fix Suggested.
+* `145 <https://github.com/ipython/ipython/issues/145>`_: Bug on MSW systems: idle can not be set as default IPython editor. Fix Suggested.
 * `77 <https://github.com/ipython/ipython/issues/77>`_: ipython oops in cygwin
 * `121 <https://github.com/ipython/ipython/issues/121>`_: If plot windows are closed via window controls, no more plotting is possible.
 * `111 <https://github.com/ipython/ipython/issues/111>`_: Iterator version of TaskClient.map() that returns results as they become available
@@ -494,7 +494,7 @@ Regular issues (285):
 * `161 <https://github.com/ipython/ipython/issues/161>`_: make ipythonqt exit without dialog when exit() is called
 * `263 <https://github.com/ipython/ipython/issues/263>`_: [ipython + numpy] Some test errors 
 * `256 <https://github.com/ipython/ipython/issues/256>`_: reset docstring ipython 0.10 
-* `258 <https://github.com/ipython/ipython/issues/258>`_: allow caching to avoid matplotlib object referrences
+* `258 <https://github.com/ipython/ipython/issues/258>`_: allow caching to avoid matplotlib object references
 * `248 <https://github.com/ipython/ipython/issues/248>`_: Can't open and read files after upgrade from 0.10 to 0.10.0
 * `247 <https://github.com/ipython/ipython/issues/247>`_: ipython + Stackless
 * `245 <https://github.com/ipython/ipython/issues/245>`_: Magic save and macro missing newlines, line ranges don't match prompt numbers.

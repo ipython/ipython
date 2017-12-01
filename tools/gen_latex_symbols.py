@@ -3,7 +3,7 @@
 # This script autogenerates `IPython.core.latex_symbols.py`, which contains a
 # single dict , named `latex_symbols`. The keys in this dict are latex symbols,
 # such as `\\alpha` and the values in the dict are the unicode equivalents for
-# those. Most importantly, only unicode symbols that are valid identifers in
+# those. Most importantly, only unicode symbols that are valid identifiers in
 # Python 3 are included. 
 
 # 

@@ -86,7 +86,7 @@ Using virtualenv or conda envs, you can make your IPython kernel in one env avai
 
     /path/to/kernel/env/bin/python -m ipykernel install --prefix=/path/to/jupyter/env --name 'python-my-env'
 
-Note that this command will create a new configuration for the kernel in one of the prefered location (see ``jupyter --paths`` command for more details):
+Note that this command will create a new configuration for the kernel in one of the preferred location (see ``jupyter --paths`` command for more details):
 
 * system-wide (e.g. /usr/local/share),
 * in Jupyter's env (sys.prefix/share),

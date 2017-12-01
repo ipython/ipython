@@ -43,7 +43,7 @@ re_fun_name = re.compile(r'[a-zA-Z_]([a-zA-Z0-9_.]*) *$')
 # particular, all binary operators should be excluded, so that if foo is
 # callable, foo OP bar doesn't become foo(OP bar), which is invalid.  The
 # characters '!=()' don't need to be checked for, as the checkPythonChars
-# routine explicitely does so, to catch direct calls and rebindings of
+# routine explicitly does so, to catch direct calls and rebindings of
 # existing names.
 
 # Warning: the '-' HAS TO BE AT THE END of the first group, otherwise

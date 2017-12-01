@@ -23,7 +23,7 @@ def merge_branch(repo, branch ):
     
     If something does not goes smoothly, merge is aborted
     
-    Returns True if merge sucessfull, False otherwise
+    Returns True if merge successful, False otherwise
     """
     # Delete the branch first
     try :
