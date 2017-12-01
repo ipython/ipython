@@ -101,7 +101,7 @@ def fix_error_editor(self,filename,linenum,column,msg):
 `fix_error_editor` is deprecated as of IPython 6.0 and will be removed
 in future versions. It appears to be used only for automatically fixing syntax
 error that has been broken for a few years and has thus been removed. If you
-happend to use this function and still need it please make your voice heard on
+happened to use this function and still need it please make your voice heard on
 the mailing list ipython-dev@python.org , or on the GitHub Issue tracker:
 https://github.com/ipython/ipython/issues/9649 """, UserWarning)
 

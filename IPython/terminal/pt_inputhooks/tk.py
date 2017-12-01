@@ -34,7 +34,7 @@ Wrapper around the eventloop that gives some time to the Tkinter GUI to process
 events when it's loaded and while we are waiting for input at the REPL. This
 way we don't block the UI of for instance ``turtle`` and other Tk libraries.
 
-(Normally Tkinter registeres it's callbacks in ``PyOS_InputHook`` to integrate
+(Normally Tkinter registers it's callbacks in ``PyOS_InputHook`` to integrate
 in readline. ``prompt-toolkit`` doesn't understand that input hook, but this
 will fix it for Tk.)
 """

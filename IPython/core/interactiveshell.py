@@ -1899,7 +1899,7 @@ class InteractiveShell(SingletonConfigurable):
                 # Not the format we expect; leave it alone
                 pass
 
-        # If the error occured when executing compiled code, we should provide full stacktrace.
+        # If the error occurred when executing compiled code, we should provide full stacktrace.
         elist = traceback.extract_tb(last_traceback) if running_compiled_code else []
         stb = self.SyntaxTB.structured_traceback(etype, value, elist)
         self._showtraceback(etype, value, stb)

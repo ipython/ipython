@@ -298,7 +298,7 @@ System commands:
 !cp a.txt b/     : System command escape, calls os.system()
 cp a.txt b/      : after %rehashx, most system commands work without !
 cp ${f}.txt $bar : Variable expansion in magics and system commands
-files = !ls /usr : Capture sytem command output
+files = !ls /usr : Capture system command output
 files.s, files.l, files.n: "a b c", ['a','b','c'], 'a\nb\nc'
 
 History:

@@ -591,9 +591,9 @@ class Inspector(Colorable):
             Name of the variable pointing to `obj`.
         formatter: callable
         info:
-            already computed informations
+            already computed information
         detail_level: integer
-            Granularity of detail level, if set to 1, give more informations.
+            Granularity of detail level, if set to 1, give more information.
         """
 
         info = self._info(obj, oname=oname, info=info, detail_level=detail_level)
@@ -679,7 +679,7 @@ class Inspector(Colorable):
 
               The formatter is a callable that takes a string as an input
               and returns either a formatted string or a mime type bundle
-              in the form of a dictionnary.
+              in the form of a dictionary.
 
               Although the support of custom formatter returning a string
               instead of a mime type bundle is deprecated.
