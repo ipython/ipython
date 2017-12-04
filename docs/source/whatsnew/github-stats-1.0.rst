@@ -848,7 +848,7 @@ Pull Requests (793):
 * :ghpull:`2941`: fix baseUrl
 * :ghpull:`2903`: Specify toggle value on cell line number
 * :ghpull:`2911`: display order in output area configurable
-* :ghpull:`2897`: Dont rely on BaseProjectUrl data in body tag
+* :ghpull:`2897`: Don't rely on BaseProjectUrl data in body tag
 * :ghpull:`2894`: Cm configurable
 * :ghpull:`2927`: next release will be 1.0
 * :ghpull:`2932`: Simplify using notebook static files from external code
