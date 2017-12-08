@@ -24,7 +24,7 @@ script:
     - |
       if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
         pip install -r docs/requirements.txt
-        make -C docs/ html
+        make -C docs/ html SPHINXOPTS="-W"
       fi
 after_success:
     - cp /tmp/ipy_coverage.xml ./
