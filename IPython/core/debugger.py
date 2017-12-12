@@ -41,7 +41,6 @@ from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 
 
-RGX_EXTRA_INDENT = re.compile('(?<=\n)\s+')
 
 
 prompt = 'ipdb> '
@@ -177,6 +176,9 @@ class Tracer(object):
         using IPython's enhanced debugger."""
 
         self.debugger.set_trace(sys._getframe().f_back)
+
+
+RGX_EXTRA_INDENT = re.compile('(?<=\n)\s+')
 
 
 def strip_indentation(multiline_string):
