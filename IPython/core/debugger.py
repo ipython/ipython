@@ -41,8 +41,6 @@ from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 
 
-
-
 prompt = 'ipdb> '
 
 #We have to check this directly from sys.argv, config struct not yet available
