@@ -32,6 +32,7 @@ import inspect
 import linecache
 import sys
 import warnings
+import re
 
 from IPython import get_ipython
 from IPython.utils import PyColorize
@@ -175,6 +176,13 @@ class Tracer(object):
         self.debugger.set_trace(sys._getframe().f_back)
 
 
+RGX_EXTRA_INDENT = re.compile('(?<=\n)\s+')
+
+
+def strip_indentation(multiline_string):
+    return RGX_EXTRA_INDENT.sub('', multiline_string)
+
+
 def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     """Make new_fn have old_fn's doc string. This is particularly useful
     for the ``do_...`` commands that hook into the help system.
@@ -183,7 +191,7 @@ def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     def wrapper(*args, **kw):
         return new_fn(*args, **kw)
     if old_fn.__doc__:
-        wrapper.__doc__ = old_fn.__doc__ + additional_text
+        wrapper.__doc__ = strip_indentation(old_fn.__doc__) + additional_text
     return wrapper
 
 
