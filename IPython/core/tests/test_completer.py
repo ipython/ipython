@@ -939,6 +939,34 @@ def test_object_key_completion():
     nt.assert_in('qwick', matches)
 
 
+class NamedInstanceMetaclass(type):
+    def __getitem__(cls, item):
+        return cls.get_instance(item)
+
+class NamedInstanceClass(object, metaclass=NamedInstanceMetaclass):
+    def __init__(self, name):
+        if not hasattr(self.__class__, 'instances'):
+            self.__class__.instances = {}
+        self.__class__.instances[name] = self
+
+    @classmethod
+    def _ipython_key_completions_(cls):
+        return cls.instances.keys()
+
+    @classmethod
+    def get_instance(cls, name):
+        return cls.instances[name]
+
+def test_class_key_completion():
+    ip = get_ipython()
+    NamedInstanceClass('qwerty')
+    NamedInstanceClass('qwick')
+    ip.user_ns['named_instance_class'] = NamedInstanceClass
+
+    _, matches = ip.Completer.complete(line_buffer="named_instance_class['qw")
+    nt.assert_in('qwerty', matches)
+    nt.assert_in('qwick', matches)
+
 def test_tryimport():
     """
     Test that try-import don't crash on trailing dot, and import modules before

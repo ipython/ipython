@@ -6,6 +6,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 import inspect
+import types
 
 
 def safe_hasattr(obj, attr):
@@ -53,16 +54,13 @@ def dir2(obj):
 def get_real_method(obj, name):
     """Like getattr, but with a few extra sanity checks:
 
-    - If obj is a class, ignore its methods
+    - If obj is a class, ignore everything except class methods
     - Check if obj is a proxy that claims to have all attributes
     - Catch attribute access failing with any exception
     - Check that the attribute is a callable object
 
     Returns the method or None.
     """
-    if inspect.isclass(obj):
-        return None
-
     try:
         canary = getattr(obj, '_ipython_canary_method_should_not_exist_', None)
     except Exception:
@@ -75,6 +73,9 @@ def get_real_method(obj, name):
     try:
         m = getattr(obj, name, None)
     except Exception:
+        return None
+
+    if inspect.isclass(obj) and not isinstance(m, types.MethodType):
         return None
 
     if callable(m):
