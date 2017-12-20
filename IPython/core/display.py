@@ -277,6 +277,13 @@ def display(*objs, **kwargs):
         from IPython.display import display
 
     """
+    from IPython.core.interactiveshell import InteractiveShell
+    
+    if not InteractiveShell.initialized():
+        # Directly print objects.
+        print(*objs)
+        return
+    
     raw = kwargs.pop('raw', False)
     include = kwargs.pop('include', None)
     exclude = kwargs.pop('exclude', None)
@@ -293,8 +300,6 @@ def display(*objs, **kwargs):
         raise TypeError('display_id required for update_display')
     if transient:
         kwargs['transient'] = transient
-
-    from IPython.core.interactiveshell import InteractiveShell
 
     if not raw:
         format = InteractiveShell.instance().display_formatter.format
