@@ -49,7 +49,7 @@ def test_pretty():
     f = PlainTextFormatter()
     f.for_type(A, foo_printer)
     nt.assert_equal(f(A()), 'foo')
-    nt.assert_equal(f(B()), 'foo')
+    nt.assert_equal(f(B()), 'B()')
     nt.assert_equal(f(GoodPretty()), 'foo')
     # Just don't raise an exception for the following:
     f(BadPretty())
