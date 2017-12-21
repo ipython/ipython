@@ -420,4 +420,18 @@ def test_function_pretty():
         return "Don't panic"
 
     nt.assert_in('meaning_of_life(question=None)', pretty.pretty(meaning_of_life))
-    
+
+
+class OrderedCounter(Counter, OrderedDict):
+    'Counter that remembers the order elements are first encountered'
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, OrderedDict(self))
+
+    def __reduce__(self):
+        return self.__class__, (OrderedDict(self),)
+
+def test_custom_repr():
+    """A custom repr should override a pretty printer for a parent type"""
+    oc = OrderedCounter("abracadabra")
+    nt.assert_in("OrderedCounter(OrderedDict", pretty.pretty(oc))
