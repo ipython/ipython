@@ -431,7 +431,13 @@ class OrderedCounter(Counter, OrderedDict):
     def __reduce__(self):
         return self.__class__, (OrderedDict(self),)
 
+class MySet(set):  # Override repr of a basic type
+    def __repr__(self):
+        return 'mine'
+
 def test_custom_repr():
     """A custom repr should override a pretty printer for a parent type"""
     oc = OrderedCounter("abracadabra")
     nt.assert_in("OrderedCounter(OrderedDict", pretty.pretty(oc))
+
+    nt.assert_equal(pretty.pretty(MySet()), 'mine')

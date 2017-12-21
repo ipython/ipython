@@ -541,17 +541,12 @@ def _default_pprint(obj, p, cycle):
     p.end_group(1, '>')
 
 
-def _seq_pprinter_factory(start, end, basetype):
+def _seq_pprinter_factory(start, end):
     """
     Factory that returns a pprint function useful for sequences.  Used by
     the default pprint for tuples, dicts, and lists.
     """
     def inner(obj, p, cycle):
-        typ = type(obj)
-        if basetype is not None and typ is not basetype and typ.__repr__ != basetype.__repr__:
-            # If the subclass provides its own repr, use it instead.
-            return p.text(typ.__repr__(obj))
-
         if cycle:
             return p.text(start + '...' + end)
         step = len(start)
@@ -568,21 +563,16 @@ def _seq_pprinter_factory(start, end, basetype):
     return inner
 
 
-def _set_pprinter_factory(start, end, basetype):
+def _set_pprinter_factory(start, end):
     """
     Factory that returns a pprint function useful for sets and frozensets.
     """
     def inner(obj, p, cycle):
-        typ = type(obj)
-        if basetype is not None and typ is not basetype and typ.__repr__ != basetype.__repr__:
-            # If the subclass provides its own repr, use it instead.
-            return p.text(typ.__repr__(obj))
-
         if cycle:
             return p.text(start + '...' + end)
         if len(obj) == 0:
             # Special case.
-            p.text(basetype.__name__ + '()')
+            p.text(type(obj).__name__ + '()')
         else:
             step = len(start)
             p.begin_group(step, start)
@@ -600,17 +590,12 @@ def _set_pprinter_factory(start, end, basetype):
     return inner
 
 
-def _dict_pprinter_factory(start, end, basetype=None):
+def _dict_pprinter_factory(start, end):
     """
     Factory that returns a pprint function used by the default pprint of
     dicts and dict proxies.
     """
     def inner(obj, p, cycle):
-        typ = type(obj)
-        if basetype is not None and typ is not basetype and typ.__repr__ != basetype.__repr__:
-            # If the subclass provides its own repr, use it instead.
-            return p.text(typ.__repr__(obj))
-
         if cycle:
             return p.text('{...}')
         step = len(start)
@@ -749,12 +734,12 @@ _type_pprinters = {
     int:                        _repr_pprint,
     float:                      _repr_pprint,
     str:                        _repr_pprint,
-    tuple:                      _seq_pprinter_factory('(', ')', tuple),
-    list:                       _seq_pprinter_factory('[', ']', list),
-    dict:                       _dict_pprinter_factory('{', '}', dict),
+    tuple:                      _seq_pprinter_factory('(', ')'),
+    list:                       _seq_pprinter_factory('[', ']'),
+    dict:                       _dict_pprinter_factory('{', '}'),
     
-    set:                        _set_pprinter_factory('{', '}', set),
-    frozenset:                  _set_pprinter_factory('frozenset({', '})', frozenset),
+    set:                        _set_pprinter_factory('{', '}'),
+    frozenset:                  _set_pprinter_factory('frozenset({', '})'),
     super:                      _super_pprint,
     _re_pattern_type:           _re_pattern_pprint,
     type:                       _type_pprint,
