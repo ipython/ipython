@@ -581,7 +581,7 @@ Pull Requests (793):
 * :ghpull:`3575`: tweak `run -d` message to 'continue execution'
 * :ghpull:`3569`: add PYTHONSTARTUP to startup files
 * :ghpull:`3567`: Trigger a single event on js app initilized
-* :ghpull:`3565`: style.min.css shoudl always exist...
+* :ghpull:`3565`: style.min.css should always exist...
 * :ghpull:`3531`: allow markdown in heading cells
 * :ghpull:`3577`: Simplify codemirror ipython-mode
 * :ghpull:`3495`: Simplified regexp, and suggestions for clearer regexps.
@@ -666,7 +666,7 @@ Pull Requests (793):
 * :ghpull:`3373`: make cookie_secret configurable
 * :ghpull:`3307`: switch default ws_url logic to js side
 * :ghpull:`3392`: Restore anchor link on h2-h6
-* :ghpull:`3369`: Use different treshold for (auto)scroll in output
+* :ghpull:`3369`: Use different threshold for (auto)scroll in output
 * :ghpull:`3370`: normalize unicode notebook filenames
 * :ghpull:`3372`: base default cookie name on request host+port
 * :ghpull:`3378`: disable CodeMirror drag/drop on Safari
@@ -848,7 +848,7 @@ Pull Requests (793):
 * :ghpull:`2941`: fix baseUrl
 * :ghpull:`2903`: Specify toggle value on cell line number
 * :ghpull:`2911`: display order in output area configurable
-* :ghpull:`2897`: Dont rely on BaseProjectUrl data in body tag
+* :ghpull:`2897`: Don't rely on BaseProjectUrl data in body tag
 * :ghpull:`2894`: Cm configurable
 * :ghpull:`2927`: next release will be 1.0
 * :ghpull:`2932`: Simplify using notebook static files from external code
@@ -1476,7 +1476,7 @@ Issues (691):
 * :ghissue:`3374`: ipython qtconsole does not display the prompt on OSX
 * :ghissue:`3380`: simple call to kernel
 * :ghissue:`3379`: TaskRecord key 'started' not set
-* :ghissue:`3241`: notebook conection time out
+* :ghissue:`3241`: notebook connection time out
 * :ghissue:`3334`: magic interpreter interpretes non magic commands?
 * :ghissue:`3326`: python3.3: Type error when launching SGE cluster in IPython notebook
 * :ghissue:`3349`: pip3 doesn't run 2to3?
@@ -1802,7 +1802,7 @@ Issues (691):
 * :ghissue:`2351`: Multiple Notebook Apps: cookies not port specific, clash with each other
 * :ghissue:`2350`: running unittest from qtconsole prints output to terminal
 * :ghissue:`2303`:  remote tracebacks broken since 952d0d6 (PR #2223)
-* :ghissue:`2330`: qtconsole does not hightlight tab-completion suggestion with custom stylesheet
+* :ghissue:`2330`: qtconsole does not highlight tab-completion suggestion with custom stylesheet
 * :ghissue:`2325`: Parsing Tex formula fails in Notebook
 * :ghissue:`2324`: Parsing Tex formula fails
 * :ghissue:`1474`: Add argument to `run -n` for custom namespace

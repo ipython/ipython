@@ -53,7 +53,7 @@ environments, you will need to specify unique names for the kernelspecs.
 
 Make sure you have ipykernel installed in your environement. If you are using
 ``pip`` to install ``ipykernel`` in a conda env, make sure ``pip`` is
-installed::
+installed:
 
 .. sourcecode:: bash
 
@@ -86,7 +86,7 @@ Using virtualenv or conda envs, you can make your IPython kernel in one env avai
 
     /path/to/kernel/env/bin/python -m ipykernel install --prefix=/path/to/jupyter/env --name 'python-my-env'
 
-Note that this command will create a new configuration for the kernel in one of the prefered location (see ``jupyter --paths`` command for more details):
+Note that this command will create a new configuration for the kernel in one of the preferred location (see ``jupyter --paths`` command for more details):
 
 * system-wide (e.g. /usr/local/share),
 * in Jupyter's env (sys.prefix/share),

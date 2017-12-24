@@ -7,6 +7,9 @@ python:
     - 3.4
     - 3.3
 sudo: false
+env:
+  global:
+    - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
 group: edge
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
@@ -14,8 +17,15 @@ install:
     - pip install setuptools pip --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
     - pip install codecov --upgrade
+    - sudo apt-get install graphviz
 script:
     - cd /tmp && iptest --coverage xml && cd -
+    # On the latest Python only, make sure that the docs build.
+    - |
+      if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
+        pip install -r docs/requirements.txt
+        make -C docs/ html SPHINXOPTS="-W"
+      fi
 after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./

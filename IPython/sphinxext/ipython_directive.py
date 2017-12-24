@@ -287,14 +287,6 @@ class EmbeddedSphinxShell(object):
         IP = InteractiveShell.instance(config=config, profile_dir=profile)
         atexit.register(self.cleanup)
 
-        sys.stdout = self.cout
-        sys.stderr = self.cout
-
-        # For debugging, so we can see normal output, use this:
-        #from IPython.utils.io import Tee
-        #sys.stdout = Tee(self.cout, channel='stdout') # dbg
-        #sys.stderr = Tee(self.cout, channel='stderr') # dbg
-
         # Store a few parts of IPython we'll need.
         self.IP = IP
         self.user_ns = self.IP.user_ns

@@ -96,7 +96,7 @@ def idle(exe=u'idle'):
         import idlelib
         p = os.path.dirname(idlelib.__filename__)
         # i'm not sure if this actually works. Is this idle.py script
-        # guarenteed to be executable?
+        # guaranteed to be executable?
         exe = os.path.join(p, 'idle.py')
     install_editor(exe + u' {filename}')
 

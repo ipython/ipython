@@ -252,8 +252,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     display in IPython by following the above approach. But in practice, you
     often need to work with existing classes that you can't easily modify.
 
-    You can refer to the documentation on IPython display formatters in order to
-    register custom formatters for already existing types.
+    You can refer to the documentation on integrating with the display system in
+    order to register custom formatters for already existing types
+    (:ref:`integrating_rich_display`).
 
     .. versionadded:: 5.4 display available without import
     .. versionadded:: 6.1 display available without import

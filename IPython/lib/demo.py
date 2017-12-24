@@ -231,7 +231,7 @@ class Demo(object):
             value.
 
           - format_rst(False): a bool to enable comments and doc strings
-            formating with pygments rst lexer
+            formatting with pygments rst lexer
 
           - formatter('terminal'): a string of pygments formatter name to be
             used. Useful values for terminals: terminal, terminal256,

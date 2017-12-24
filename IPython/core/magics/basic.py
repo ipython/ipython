@@ -406,7 +406,7 @@ Currently the magic system has the following functions:""",
         The Python package manager (pip) can only be used from outside of IPython.
         Please reissue the `pip` command in a separate terminal or command prompt.
 
-        See the Python documentation for more informations on how to install packages:
+        See the Python documentation for more information on how to install packages:
 
             https://docs.python.org/3/installing/'''.format(args=args)))
 

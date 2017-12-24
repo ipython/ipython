@@ -284,7 +284,7 @@ Pull requests (257):
 * `798 <https://github.com/ipython/ipython/issues/798>`_: pexpect & Python 3
 * `804 <https://github.com/ipython/ipython/issues/804>`_: Magic 'range' crash if greater than len(input_hist)
 * `821 <https://github.com/ipython/ipython/issues/821>`_: update tornado dependency to 2.1
-* `807 <https://github.com/ipython/ipython/issues/807>`_: Faciliate ssh tunnel sharing by announcing ports
+* `807 <https://github.com/ipython/ipython/issues/807>`_: Facilitate ssh tunnel sharing by announcing ports
 * `795 <https://github.com/ipython/ipython/issues/795>`_: Add cluster-id for multiple cluster instances per profile
 * `742 <https://github.com/ipython/ipython/issues/742>`_: Glut
 * `668 <https://github.com/ipython/ipython/issues/668>`_: Greedy completer

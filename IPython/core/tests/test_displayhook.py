@@ -56,7 +56,7 @@ def test_underscore_no_overrite_builtins():
 
 def test_interactivehooks_ast_modes():
     """
-    Test that ast nodes can be triggerd with different modes
+    Test that ast nodes can be triggered with different modes
     """
     saved_mode = ip.ast_node_interactivity
     ip.ast_node_interactivity = 'last_expr_or_assign'
@@ -83,7 +83,7 @@ def test_interactivehooks_ast_modes():
 
 def test_interactivehooks_ast_modes_semi_supress():
     """
-    Test that ast nodes can be triggerd with different modes and supressed
+    Test that ast nodes can be triggered with different modes and suppressed
     by semicolon
     """
     saved_mode = ip.ast_node_interactivity

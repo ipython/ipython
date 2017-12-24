@@ -37,7 +37,7 @@ def mini_interactive_loop(input_func):
     # input indefinitely, until some exit/quit command was issued.  Here we
     # only illustrate the basic inner loop.
     while isp.push_accepts_more():
-        indent = ' '*isp.indent_spaces
+        indent = ' '*isp.get_indent_spaces()
         prompt = '>>> ' + indent
         line = indent + input_func(prompt)
         isp.push(line)
@@ -132,7 +132,7 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push('x=1')
         isp.reset()
         self.assertEqual(isp._buffer, [])
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         self.assertEqual(isp.source, '')
         self.assertEqual(isp.code, None)
         self.assertEqual(isp._is_complete, False)
@@ -149,21 +149,21 @@ class InputSplitterTestCase(unittest.TestCase):
     def test_indent(self):
         isp = self.isp # shorthand
         isp.push('x=1')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('if 1:\n    x=1')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         isp.push('y=2\n')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
 
     def test_indent2(self):
         isp = self.isp
         isp.push('if 1:')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         isp.push('    x=1')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         # Blank lines shouldn't change the indent level
         isp.push(' '*2)
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
 
     def test_indent3(self):
         isp = self.isp
@@ -171,75 +171,75 @@ class InputSplitterTestCase(unittest.TestCase):
         # shouldn't get confused.
         isp.push("if 1:")
         isp.push("    x = (1+\n    2)")
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
 
     def test_indent4(self):
         isp = self.isp
         # whitespace after ':' should not screw up indent level
         isp.push('if 1: \n    x=1')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         isp.push('y=2\n')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('if 1:\t\n    x=1')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         isp.push('y=2\n')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
 
     def test_dedent_pass(self):
         isp = self.isp # shorthand
         # should NOT cause dedent
         isp.push('if 1:\n    passes = 5')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         isp.push('if 1:\n     pass')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('if 1:\n     pass   ')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
 
     def test_dedent_break(self):
         isp = self.isp # shorthand
         # should NOT cause dedent
         isp.push('while 1:\n    breaks = 5')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         isp.push('while 1:\n     break')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('while 1:\n     break   ')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
 
     def test_dedent_continue(self):
         isp = self.isp # shorthand
         # should NOT cause dedent
         isp.push('while 1:\n    continues = 5')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         isp.push('while 1:\n     continue')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('while 1:\n     continue   ')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
 
     def test_dedent_raise(self):
         isp = self.isp # shorthand
         # should NOT cause dedent
         isp.push('if 1:\n    raised = 4')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         isp.push('if 1:\n     raise TypeError()')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('if 1:\n     raise')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('if 1:\n     raise      ')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
 
     def test_dedent_return(self):
         isp = self.isp # shorthand
         # should NOT cause dedent
         isp.push('if 1:\n    returning = 4')
-        self.assertEqual(isp.indent_spaces, 4)
+        self.assertEqual(isp.get_indent_spaces(), 4)
         isp.push('if 1:\n     return 5 + 493')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('if 1:\n     return')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('if 1:\n     return      ')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
         isp.push('if 1:\n     return(0)')
-        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.get_indent_spaces(), 0)
 
     def test_push(self):
         isp = self.isp
@@ -508,7 +508,7 @@ if __name__ == '__main__':
         while True:
             prompt = start_prompt
             while isp.push_accepts_more():
-                indent = ' '*isp.indent_spaces
+                indent = ' '*isp.get_indent_spaces()
                 if autoindent:
                     line = indent + input(prompt+indent)
                 else:

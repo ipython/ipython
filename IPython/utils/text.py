@@ -667,7 +667,7 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
     separator_size : int (default=2)
         How much caracters will be used as a separation between each columns.
     displaywidth : int (default=80)
-        The width of the area onto wich the columns should enter
+        The width of the area onto which the columns should enter
 
     Returns
     -------
@@ -675,7 +675,7 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
     strings_matrix
 
         nested list of string, the outer most list contains as many list as
-        rows, the innermost lists have each as many element as colums. If the
+        rows, the innermost lists have each as many element as columns. If the
         total number of elements in `items` does not equal the product of
         rows*columns, the last element of some lists are filled with `None`.
 
