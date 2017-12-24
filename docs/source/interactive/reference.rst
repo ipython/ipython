@@ -650,14 +650,15 @@ To further exemplify this, consider the following example::
       print(a)
 
 Now if call the function and complete the state changes as we did above, the
-value `42` will be returned. Again, this is because it's not in the global
+value `42` will be printed. Again, this is because it's not in the global
 namespace:: 
 
   do()
 
 Running a file with the above code can lead to the following session::
 
-  >>> IPython.embed()
+  >>> do()
+  42
   Python 3.6.2 (default, Jul 17 2017, 16:44:45) 
   Type 'copyright', 'credits' or 'license' for more information
   IPython 6.2.0.dev -- An enhanced Interactive Python. Type '?' for help.
