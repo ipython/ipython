@@ -12,91 +12,79 @@ import sys
 from typing import Callable
 
 
+from prompt_toolkit.application.current import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
-from prompt_toolkit.filters import (HasFocus, HasSelection, Condition,
-    ViInsertMode, EmacsInsertMode, HasCompletions)
-from prompt_toolkit.filters.cli import ViMode, ViNavigationMode
-from prompt_toolkit.keys import Keys
+from prompt_toolkit.filters import (has_focus, has_selection, Condition,
+    vi_insert_mode, emacs_insert_mode, has_completions, vi_mode)
 from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
+from prompt_toolkit.key_binding import KeyBindings
 
 from IPython.utils.decorators import undoc
 
 @undoc
 @Condition
-def cursor_in_leading_ws(cli):
-    before = cli.application.buffer.document.current_line_before_cursor
+def cursor_in_leading_ws():
+    before = get_app().current_buffer.document.current_line_before_cursor
     return (not before) or before.isspace()
 
-def register_ipython_shortcuts(registry, shell):
+
+def create_ipython_shortcuts(shell):
     """Set up the prompt_toolkit keyboard shortcuts for IPython"""
-    insert_mode = ViInsertMode() | EmacsInsertMode()
+
+    kb = KeyBindings()
+    insert_mode = vi_insert_mode | emacs_insert_mode
 
     if getattr(shell, 'handle_return', None):
         return_handler = shell.handle_return(shell)
     else:
         return_handler = newline_or_execute_outer(shell)
 
-    # Ctrl+J == Enter, seemingly
-    registry.add_binding(Keys.ControlJ,
-                         filter=(HasFocus(DEFAULT_BUFFER)
-                                 & ~HasSelection()
-                                 & insert_mode
+    kb.add('enter', filter=(has_focus(DEFAULT_BUFFER)
+                            & ~has_selection
+                            & insert_mode
                         ))(return_handler)
 
-    registry.add_binding(Keys.ControlBackslash)(force_exit)
+    kb.add('c-\\')(force_exit)
 
-    registry.add_binding(Keys.ControlP,
-                         filter=(ViInsertMode() & HasFocus(DEFAULT_BUFFER)
-                        ))(previous_history_or_previous_completion)
+    kb.add('c-p', filter=(vi_insert_mode & has_focus(DEFAULT_BUFFER))
+                )(previous_history_or_previous_completion)
 
-    registry.add_binding(Keys.ControlN,
-                         filter=(ViInsertMode() & HasFocus(DEFAULT_BUFFER)
-                        ))(next_history_or_next_completion)
+    kb.add('c-n', filter=(vi_insert_mode & has_focus(DEFAULT_BUFFER))
+                )(next_history_or_next_completion)
 
-    registry.add_binding(Keys.ControlG,
-                         filter=(HasFocus(DEFAULT_BUFFER) & HasCompletions()
-                        ))(dismiss_completion)
+    kb.add('c-g', filter=(has_focus(DEFAULT_BUFFER) & has_completions)
+                )(dismiss_completion)
 
-    registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER)
-                        )(reset_buffer)
+    kb.add('c-c', filter=has_focus(DEFAULT_BUFFER))(reset_buffer)
 
-    registry.add_binding(Keys.ControlC, filter=HasFocus(SEARCH_BUFFER)
-                        )(reset_search_buffer)
+    kb.add('c-c', filter=has_focus(SEARCH_BUFFER))(reset_search_buffer)
 
-    supports_suspend = Condition(lambda cli: hasattr(signal, 'SIGTSTP'))
-    registry.add_binding(Keys.ControlZ, filter=supports_suspend
-                        )(suspend_to_bg)
+    supports_suspend = Condition(lambda: hasattr(signal, 'SIGTSTP'))
+    kb.add('c-z', filter=supports_suspend)(suspend_to_bg)
 
     # Ctrl+I == Tab
-    registry.add_binding(Keys.ControlI,
-                         filter=(HasFocus(DEFAULT_BUFFER)
-                                 & ~HasSelection()
-                                 & insert_mode
-                                 & cursor_in_leading_ws
+    kb.add('tab', filter=(has_focus(DEFAULT_BUFFER)
+                          & ~has_selection
+                          & insert_mode
+                          & cursor_in_leading_ws
                         ))(indent_buffer)
 
-    registry.add_binding(Keys.ControlO,
-                         filter=(HasFocus(DEFAULT_BUFFER)
-                                & EmacsInsertMode()))(newline_autoindent_outer(shell.input_splitter))
+    kb.add('c-o', filter=(has_focus(DEFAULT_BUFFER)
+                  & emacs_insert_mode))(newline_autoindent_outer(shell.input_splitter))
 
-    registry.add_binding(Keys.F2,
-                         filter=HasFocus(DEFAULT_BUFFER)
-                        )(open_input_in_editor)
+    kb.add('f2', filter=has_focus(DEFAULT_BUFFER))(open_input_in_editor)
 
     if shell.display_completions == 'readlinelike':
-        registry.add_binding(Keys.ControlI,
-                             filter=(HasFocus(DEFAULT_BUFFER)
-                                     & ~HasSelection()
-                                     & insert_mode
-                                     & ~cursor_in_leading_ws
-                            ))(display_completions_like_readline)
+        kb.add('c-i', filter=(has_focus(DEFAULT_BUFFER)
+                              & ~has_selection
+                              & insert_mode
+                              & ~cursor_in_leading_ws
+                        ))(display_completions_like_readline)
 
     if sys.platform == 'win32':
-        registry.add_binding(Keys.ControlV,
-                             filter=(
-                             HasFocus(
-                             DEFAULT_BUFFER) & ~ViMode()
-                            ))(win_paste)
+        kb.add('c-v', filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
+
+    return kb
 
 
 def newline_or_execute_outer(shell):
@@ -127,8 +115,8 @@ def newline_or_execute_outer(shell):
             b.insert_text('\n' + (' ' * (indent or 0)))
             return
 
-        if (status != 'incomplete') and b.accept_action.is_returnable:
-            b.accept_action.validate_and_handle(event.cli, b)
+        if (status != 'incomplete') and b.accept_handler:
+            b.validate_and_handle()
         else:
             b.insert_text('\n' + (' ' * (indent or 0)))
     return newline_or_execute
@@ -170,10 +158,10 @@ def reset_search_buffer(event):
     if event.current_buffer.document.text:
         event.current_buffer.reset()
     else:
-        event.cli.push_focus(DEFAULT_BUFFER)
+        event.app.layout.focus(DEFAULT_BUFFER)
 
 def suspend_to_bg(event):
-    event.cli.suspend_to_background()
+    event.app.suspend_to_background()
 
 def force_exit(event):
     """
@@ -232,8 +220,8 @@ def newline_autoindent_outer(inputsplitter) -> Callable[..., None]:
 
 
 def open_input_in_editor(event):
-    event.cli.current_buffer.tempfile_suffix = ".py"
-    event.cli.current_buffer.open_in_editor(event.cli)
+    event.app.current_buffer.tempfile_suffix = ".py"
+    event.app.current_buffer.open_in_editor()
 
 
 if sys.platform == 'win32':
