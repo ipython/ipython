@@ -534,3 +534,23 @@ def test_dictproxy():
         nt.assert_equal(pretty.pretty(obj), expected)
     nt.assert_equal(pretty.pretty(underlying_dict),
                     "{-3: {...}, 0: dict_proxy({-3: {...}, 0: {...}})}")
+
+class OrderedCounter(Counter, OrderedDict):
+    'Counter that remembers the order elements are first encountered'
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, OrderedDict(self))
+
+    def __reduce__(self):
+        return self.__class__, (OrderedDict(self),)
+
+class MySet(set):  # Override repr of a basic type
+    def __repr__(self):
+        return 'mine'
+
+def test_custom_repr():
+    """A custom repr should override a pretty printer for a parent type"""
+    oc = OrderedCounter("abracadabra")
+    nt.assert_in("OrderedCounter(OrderedDict", pretty.pretty(oc))
+
+    nt.assert_equal(pretty.pretty(MySet()), 'mine')
