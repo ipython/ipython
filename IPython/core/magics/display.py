@@ -16,6 +16,7 @@ from IPython.core.display import display, Javascript, Latex, SVG, HTML, Markdown
 from IPython.core.magic import  (
     Magics, magics_class, cell_magic
 )
+from IPython.core import magic_arguments
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -33,7 +34,7 @@ class DisplayMagics(Magics):
     @cell_magic
     def js(self, line, cell):
         """Run the cell block of Javascript code
-        
+
         Alias of `%%javascript`
         """
         self.javascript(line, cell)
@@ -59,12 +60,23 @@ class DisplayMagics(Magics):
         """Render the cell as an SVG literal"""
         display(SVG(cell))
 
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '--isolated', action='store_true', default=False,
+        help="""Annotate the cell as 'isolated'.
+Isolated cells are rendered inside their own <iframe> tag"""
+    )
     @cell_magic
     def html(self, line, cell):
         """Render the cell as a block of HTML"""
-        display(HTML(cell))
-        
-    @cell_magic    
+        args = magic_arguments.parse_argstring(self.html, line)
+        html = HTML(cell)
+        if args.isolated:
+            display(html, metadata={'text/html':{'isolated':True}})
+        else:
+            display(html)
+
+    @cell_magic
     def markdown(self, line, cell):
         """Render the cell as Markdown text block"""
         display(Markdown(cell))
