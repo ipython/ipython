@@ -96,6 +96,9 @@ __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
 
 
 MAX_SEQ_LENGTH = 1000
+# The language spec says that dicts preserve order from 3.7, but CPython
+# does so from 3.6, so it seems likely that people will expect that.
+DICT_IS_ORDERED = sys.version_info >= (3, 6)
 _re_pattern_type = type(re.compile(''))
 
 def _safe_getattr(obj, attr, default=None):
@@ -621,7 +624,9 @@ def _dict_pprinter_factory(start, end, basetype=None):
         p.begin_group(step, start)
         keys = obj.keys()
         # if dict isn't large enough to be truncated, sort keys before displaying
-        if not (p.max_seq_length and len(obj) >= p.max_seq_length):
+        # From Python 3.7, dicts preserve order by definition, so we don't sort.
+        if not DICT_IS_ORDERED \
+                and not (p.max_seq_length and len(obj) >= p.max_seq_length):
             keys = _sorted_for_pprint(keys)
         for idx, key in p._enumerate(keys):
             if idx:
