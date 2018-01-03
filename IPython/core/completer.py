@@ -1931,7 +1931,7 @@ class IPCompleter(Completer):
         return self._complete(line_buffer=line_buffer, cursor_pos=cursor_pos, text=text, cursor_line=0)[:2]
 
     def _complete(self, *, cursor_line, cursor_pos, line_buffer=None, text=None,
-                  full_text=None, return_jedi_results=True) -> Tuple[str, List[str], List[str], Iterable[_FakeJediCompletion]]:
+                  full_text=None) -> Tuple[str, List[str], List[str], Iterable[_FakeJediCompletion]]:
         """
 
         Like complete but can also returns raw jedi completions as well as the
@@ -1997,7 +1997,7 @@ class IPCompleter(Completer):
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
         completions = ()
-        if self.use_jedi and return_jedi_results:
+        if self.use_jedi:
             if not full_text:
                 full_text = line_buffer
             completions = self._jedi_matches(
