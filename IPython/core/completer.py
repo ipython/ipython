@@ -1101,21 +1101,6 @@ class IPCompleter(Completer):
         #use this if positional argument name is also needed
         #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
 
-        # All active matcher routines for completion
-        if self.use_jedi:
-            self.matchers = [
-                self.file_matches,
-                self.magic_matches,
-                self.dict_key_matches,
-            ]
-        else:
-            self.matchers = [
-                self.python_matches,
-                self.file_matches,
-                self.magic_matches,
-                self.python_func_kw_matches,
-                self.dict_key_matches,
-            ]
         self.magic_arg_matchers = [
             self.magic_config_matches,
             self.magic_color_matches,
@@ -1123,6 +1108,24 @@ class IPCompleter(Completer):
 
         # This is set externally by InteractiveShell
         self.custom_completers = None
+
+    @property
+    def matchers(self):
+        """All active matcher routines for completion"""
+        if self.use_jedi:
+            return [
+                self.file_matches,
+                self.magic_matches,
+                self.dict_key_matches,
+            ]
+        else:
+            return [
+                self.python_matches,
+                self.file_matches,
+                self.magic_matches,
+                self.python_func_kw_matches,
+                self.dict_key_matches,
+            ]
 
     def all_completions(self, text):
         """

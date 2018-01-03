@@ -1985,6 +1985,7 @@ class InteractiveShell(SingletonConfigurable):
         self.set_hook('complete_command', reset_completer, str_key = '%reset')
 
 
+    @skip_doctest
     def complete(self, text, line=None, cursor_pos=None):
         """Return the completed text and a list of completions.
 
