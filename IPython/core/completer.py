@@ -1102,13 +1102,20 @@ class IPCompleter(Completer):
         #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
 
         # All active matcher routines for completion
-        self.matchers = [
-                         self.python_matches,
-                         self.file_matches,
-                         self.magic_matches,
-                         self.python_func_kw_matches,
-                         self.dict_key_matches,
-                         ]
+        if self.use_jedi:
+            self.matchers = [
+                self.file_matches,
+                self.magic_matches,
+                self.dict_key_matches,
+            ]
+        else:
+            self.matchers = [
+                self.python_matches,
+                self.file_matches,
+                self.magic_matches,
+                self.python_func_kw_matches,
+                self.dict_key_matches,
+            ]
         self.magic_arg_matchers = [
             self.magic_config_matches,
             self.magic_color_matches,
