@@ -380,10 +380,13 @@ def test_greedy_completions():
                     "Shouldn't have completed on a[0]: %s"%c)
     with greedy_completion(), provisionalcompleter():
         def _(line, cursor_pos, expect, message, completion):
+            ip.Completer.use_jedi = False
             _,c = ip.complete('.', line=line, cursor_pos=cursor_pos)
+            nt.assert_in(expect, c, message % c)
+
+            ip.Completer.use_jedi = True
             with provisionalcompleter():
                 completions = ip.Completer.completions(line, cursor_pos)
-            nt.assert_in(expect, c, message%c)
             nt.assert_in(completion, completions)
 
         yield _, 'a[0].', 5, 'a[0].real', "Should have completed on a[0].: %s", Completion(5,5, 'real')
@@ -404,13 +407,14 @@ def test_omit__names():
     cfg.IPCompleter.omit__names = 0
     c.update_config(cfg)
     with provisionalcompleter():
+        c.use_jedi = False
         s,matches = c.complete('ip.')
-        completions = set(c.completions('ip.', 3))
-
         nt.assert_in('ip.__str__', matches)
-        nt.assert_in(Completion(3, 3, '__str__'), completions)
-        
         nt.assert_in('ip._hidden_attr', matches)
+
+        c.use_jedi = True
+        completions = set(c.completions('ip.', 3))
+        nt.assert_in(Completion(3, 3, '__str__'), completions)
         nt.assert_in(Completion(3,3, "_hidden_attr"), completions)
 
 
@@ -418,33 +422,37 @@ def test_omit__names():
     cfg.IPCompleter.omit__names = 1
     c.update_config(cfg)
     with provisionalcompleter():
+        c.use_jedi = False
         s,matches = c.complete('ip.')
-        completions = set(c.completions('ip.', 3))
-
         nt.assert_not_in('ip.__str__', matches)
-        nt.assert_not_in(Completion(3,3,'__str__'), completions)
-
         # nt.assert_in('ip._hidden_attr', matches)
+
+        c.use_jedi = True
+        completions = set(c.completions('ip.', 3))
+        nt.assert_not_in(Completion(3,3,'__str__'), completions)
         nt.assert_in(Completion(3,3, "_hidden_attr"), completions)
 
     cfg = Config()
     cfg.IPCompleter.omit__names = 2
     c.update_config(cfg)
     with provisionalcompleter():
+        c.use_jedi = False
         s,matches = c.complete('ip.')
-        completions = set(c.completions('ip.', 3))
-
         nt.assert_not_in('ip.__str__', matches)
-        nt.assert_not_in(Completion(3,3,'__str__'), completions)
-
         nt.assert_not_in('ip._hidden_attr', matches)
+
+        c.use_jedi = True
+        completions = set(c.completions('ip.', 3))
+        nt.assert_not_in(Completion(3,3,'__str__'), completions)
         nt.assert_not_in(Completion(3,3, "_hidden_attr"), completions)
 
     with provisionalcompleter():
+        c.use_jedi = False
         s,matches = c.complete('ip._x.')
-        completions = set(c.completions('ip._x.', 6))
-
         nt.assert_in('ip._x.keys', matches)
+
+        c.use_jedi = True
+        completions = set(c.completions('ip._x.', 6))
         nt.assert_in(Completion(6,6, "keys"), completions)
 
     del ip._hidden_attr
@@ -457,6 +465,7 @@ def test_limit_to__all__False_ok():
     """
     ip = get_ipython()
     c = ip.Completer
+    c.use_jedi = False
     ip.ex('class D: x=24')
     ip.ex('d=D()')
     cfg = Config()
@@ -483,6 +492,7 @@ def test_get__all__entries_no__all__ok():
 def test_func_kw_completions():
     ip = get_ipython()
     c = ip.Completer
+    c.use_jedi = False
     ip.ex('def myfunc(a=1,b=2): return a+b')
     s, matches = c.complete(None, 'myfunc(1,b')
     nt.assert_in('b=', matches)
@@ -573,6 +583,7 @@ def test_magic_completion_order():
 def test_magic_completion_shadowing():
     ip = get_ipython()
     c = ip.Completer
+    c.use_jedi = False
 
     # Before importing matplotlib, %matplotlib magic should be the only option.
     text, matches = c.complete("mat")
@@ -1002,6 +1013,7 @@ def test_from_module_completer():
 
 def test_snake_case_completion():
     ip = get_ipython()
+    ip.Completer.use_jedi = False
     ip.user_ns['some_three'] = 3
     ip.user_ns['some_four'] = 4
     _, matches = ip.complete("s_", "print(s_f")

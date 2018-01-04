@@ -1101,14 +1101,6 @@ class IPCompleter(Completer):
         #use this if positional argument name is also needed
         #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
 
-        # All active matcher routines for completion
-        self.matchers = [
-                         self.python_matches,
-                         self.file_matches,
-                         self.magic_matches,
-                         self.python_func_kw_matches,
-                         self.dict_key_matches,
-                         ]
         self.magic_arg_matchers = [
             self.magic_config_matches,
             self.magic_color_matches,
@@ -1116,6 +1108,24 @@ class IPCompleter(Completer):
 
         # This is set externally by InteractiveShell
         self.custom_completers = None
+
+    @property
+    def matchers(self):
+        """All active matcher routines for completion"""
+        if self.use_jedi:
+            return [
+                self.file_matches,
+                self.magic_matches,
+                self.dict_key_matches,
+            ]
+        else:
+            return [
+                self.python_matches,
+                self.file_matches,
+                self.magic_matches,
+                self.python_func_kw_matches,
+                self.dict_key_matches,
+            ]
 
     def all_completions(self, text):
         """
@@ -1931,7 +1941,7 @@ class IPCompleter(Completer):
         return self._complete(line_buffer=line_buffer, cursor_pos=cursor_pos, text=text, cursor_line=0)[:2]
 
     def _complete(self, *, cursor_line, cursor_pos, line_buffer=None, text=None,
-                  full_text=None, return_jedi_results=True) -> Tuple[str, List[str], List[str], Iterable[_FakeJediCompletion]]:
+                  full_text=None) -> Tuple[str, List[str], List[str], Iterable[_FakeJediCompletion]]:
         """
 
         Like complete but can also returns raw jedi completions as well as the
@@ -1997,7 +2007,7 @@ class IPCompleter(Completer):
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
         completions = ()
-        if self.use_jedi and return_jedi_results:
+        if self.use_jedi:
             if not full_text:
                 full_text = line_buffer
             completions = self._jedi_matches(
