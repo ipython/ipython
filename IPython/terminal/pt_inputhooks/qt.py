@@ -1,15 +1,32 @@
 import sys
+import os
 from IPython.external.qt_for_kernel import QtCore, QtGui
 
 # If we create a QApplication, keep a reference to it so that it doesn't get
 # garbage collected.
 _appref = None
-
+_already_warned = False
 
 def inputhook(context):
     global _appref
     app = QtCore.QCoreApplication.instance()
     if not app:
+        if sys.platform == 'linux':
+            try:
+                os.environ['DISPLAY']  # DISPLAY is set
+                assert os.environ['DISPLAY'] != ''  # DISPLAY is not empty
+            except Exception:
+                import warnings
+                global _already_warned
+                if not _already_warned:
+                    _already_warned = True
+                    warnings.warn(
+                        'The DISPLAY enviroment variable is not set or empty '
+                        'and qt requires this enviroment variable. '
+                        'Deaktivate qt code.\n'
+                        'Backend: {}'.format(QtGui)
+                    )
+                return
         _appref = app = QtGui.QApplication([" "])
     event_loop = QtCore.QEventLoop(app)
 
