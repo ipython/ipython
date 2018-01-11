@@ -22,6 +22,8 @@ import sys
 
 import pexpect
 
+import re
+
 # Our own
 from ._process_common import getoutput, arg_split
 from IPython.utils import py3compat
@@ -59,11 +61,18 @@ class ProcessHandler(object):
 
     @property
     def sh(self):
-        if self._sh is None:        
-            self._sh = pexpect.which('sh')
-            if self._sh is None:
-                raise OSError('"sh" shell not found')
-        
+        self._sh = os.environ['SHELL']
+        # ensure we got a clean shell from our environment
+        with open('/etc/shells', 'r') as s:
+            for line in s:
+                if re.match(r'(/[^/]+)+$', line):
+                    line = line.rstrip()
+                    if line == self._sh:
+                        return self._sh
+        # if shell not clean, defaults to /bin/sh
+        self._sh = pexpect.which('sh')
+        if self._sh is None:
+            raise OSError('"sh" shell not found')
         return self._sh
 
     def __init__(self, logfile=None, read_timeout=None, terminate_timeout=None):
@@ -131,7 +140,7 @@ class ProcessHandler(object):
         """
         # Get likely encoding for the output.
         enc = DEFAULT_ENCODING
-        
+
         # Patterns to match on the output, for pexpect.  We read input and
         # allow either a short timeout or EOF
         patterns = [pexpect.TIMEOUT, pexpect.EOF]
