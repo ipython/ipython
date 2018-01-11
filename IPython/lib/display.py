@@ -5,10 +5,10 @@ Authors : MinRK, gregcaporaso, dannystaple
 from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep
 
-from IPython.core.display import DisplayObject
+from IPython.core.display import DisplayObject, TextDisplayObject
 
 __all__ = ['Audio', 'IFrame', 'YouTubeVideo', 'VimeoVideo', 'ScribdDocument',
-           'FileLink', 'FileLinks']
+           'FileLink', 'FileLinks', 'Code']
 
 
 class Audio(DisplayObject):
@@ -555,3 +555,32 @@ class FileLinks(FileLink):
         for dirname, subdirs, fnames in walked_dir:
             result_lines += self.terminal_display_formatter(dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
+
+
+class Code(TextDisplayObject):
+    def __init__(self, data=None, url=None, filename=None, language=None):
+        self.language = language
+        super().__init__(data=data, url=url, filename=filename)
+
+    def _get_lexer(self):
+        if self.language:
+            from pygments.lexers import get_lexer_by_name
+            return get_lexer_by_name(self.language)
+        elif self.filename:
+            from pygments.lexers import get_lexer_for_filename
+            return get_lexer_for_filename(self.filename)
+        else:
+            from pygments.lexers import guess_lexer
+            return guess_lexer(self.data)
+
+    def _repr_html_(self):
+        from pygments import highlight
+        from pygments.formatters import HtmlFormatter
+        fmt = HtmlFormatter()
+        style = '<style>{}</style>'.format(fmt.get_style_defs('.output_html'))
+        return style + highlight(self.data, self._get_lexer(), fmt)
+
+    def _repr_latex_(self):
+        from pygments import highlight
+        from pygments.formatters import LatexFormatter
+        return highlight(self.data, self._get_lexer(), LatexFormatter())
