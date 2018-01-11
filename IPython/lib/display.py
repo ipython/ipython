@@ -558,6 +558,23 @@ class FileLinks(FileLink):
 
 
 class Code(TextDisplayObject):
+    """Display syntax-highlighted source code.
+
+    This uses Pygments to highlight the code for HTML and Latex output.
+
+    Parameters
+    ----------
+    data : str
+        The code as a string
+    url : str
+        A URL to fetch the code from
+    filename : str
+        A local filename to load the code from
+    language : str
+        The short name of a Pygments lexer to use for highlighting.
+        If not specified, it will guess the lexer based on the filename
+        or the code. Available lexers: http://pygments.org/docs/lexers/
+    """
     def __init__(self, data=None, url=None, filename=None, language=None):
         self.language = language
         super().__init__(data=data, url=url, filename=filename)
