@@ -179,7 +179,7 @@ class HistoryAccessor(HistoryAccessorBase):
         help="""Options for configuring the SQLite connection
         
         These options are passed as keyword args to sqlite3.connect
-        when establishing database conenctions.
+        when establishing database connections.
         """
     ).tag(config=True)
 

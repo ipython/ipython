@@ -136,7 +136,7 @@ class CachingCompiler(codeop.Compile):
 def check_linecache_ipython(*args):
     """Call linecache.checkcache() safely protecting our cached values.
     """
-    # First call the orignal checkcache as intended
+    # First call the original checkcache as intended
     linecache._checkcache_ori(*args)
     # Then, update back the cache with our data, so that tracebacks related
     # to our compiled codes can be produced.

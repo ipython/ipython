@@ -2005,7 +2005,7 @@ class IPCompleter(Completer):
         # FIXME: we should extend our api to return a dict with completions for
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
-        # richer completion semantics in other evironments.
+        # richer completion semantics in other environments.
         completions = ()
         if self.use_jedi:
             if not full_text:

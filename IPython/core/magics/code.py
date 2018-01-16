@@ -53,7 +53,7 @@ $""", re.VERBOSE)
 
 def extract_code_ranges(ranges_str):
     """Turn a string of range for %%load into 2-tuples of (start, stop)
-    ready to use as a slice of the content splitted by lines.
+    ready to use as a slice of the content split by lines.
 
     Examples
     --------

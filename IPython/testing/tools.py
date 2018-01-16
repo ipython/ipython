@@ -250,7 +250,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
     out, err = ipexec(fname, options, commands)
     #print 'OUT', out  # dbg
     #print 'ERR', err  # dbg
-    # If there are any errors, we must check those befor stdout, as they may be
+    # If there are any errors, we must check those before stdout, as they may be
     # more informative than simply having an empty stdout.
     if err:
         if expected_err:

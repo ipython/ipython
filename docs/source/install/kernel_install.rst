@@ -51,7 +51,7 @@ Kernels for different environments
 If you want to have multiple IPython kernels for different virtualenvs or conda
 environments, you will need to specify unique names for the kernelspecs.
 
-Make sure you have ipykernel installed in your environement. If you are using
+Make sure you have ipykernel installed in your environment. If you are using
 ``pip`` to install ``ipykernel`` in a conda env, make sure ``pip`` is
 installed:
 

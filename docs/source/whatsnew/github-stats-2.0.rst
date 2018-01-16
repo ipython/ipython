@@ -800,7 +800,7 @@ Pull Requests (687):
 * :ghpull:`4768`: Qt console: Fix _prompt_pos accounting on timer flush output.
 * :ghpull:`4727`: Remove Nbconvert template loading magic
 * :ghpull:`4763`: Set numpydoc options to produce fewer Sphinx warnings.
-* :ghpull:`4770`: alway define aliases, even if empty
+* :ghpull:`4770`: always define aliases, even if empty
 * :ghpull:`4766`: add `python -m` entry points for everything
 * :ghpull:`4767`: remove manpages for irunner, iplogger
 * :ghpull:`4751`: Added --post-serve explanation into the nbconvert docs.
