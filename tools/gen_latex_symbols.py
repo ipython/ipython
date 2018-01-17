@@ -45,7 +45,7 @@ lines = [line_to_tuple(line) for line in lines]
 print('Filtering out characters that are not valid Python 3 identifiers')
 
 def test_ident(i):
-    """Is the unicode string valid in a Python 3 identifer."""
+    """Is the unicode string valid in a Python 3 identifier."""
     # Some characters are not valid at the start of a name, but we still want to
     # include them. So prefix with 'a', which is valid at the start.
     return ('a' + i).isidentifier()

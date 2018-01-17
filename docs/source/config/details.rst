@@ -243,7 +243,7 @@ behavior is to likely to insert a new line. If the current code is a simple
 statement like `ord('*')`, then the right behavior is likely to execute. Though
 the exact desired semantics often varies from users to users.
 
-As the exact behavior of :kbd:`Enter` is is ambiguous, it has been special cased
+As the exact behavior of :kbd:`Enter` is ambiguous, it has been special cased
 to allow users to completely configure the behavior they like. Hence you can
 have enter always execute code. If you prefer fancier behavior, you need to get
 your hands dirty and read the ``prompt_toolkit`` and IPython documentation

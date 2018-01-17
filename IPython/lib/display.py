@@ -424,7 +424,7 @@ class FileLinks(FileLink):
             raise ValueError("Cannot display a file using FileLinks. "
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
-        # remove trailing slashs for more consistent output formatting
+        # remove trailing slashes for more consistent output formatting
         path = path.rstrip('/')
 
         self.path = path

@@ -367,8 +367,8 @@ def test_greedy_completions():
     """
     Test the capability of the Greedy completer. 
 
-    Most of the test here do not really show off the greedy completer, for proof
-    each of the text bellow now pass with Jedi. The greedy completer is capable of more. 
+    Most of the test here does not really show off the greedy completer, for proof
+    each of the text below now pass with Jedi. The greedy completer is capable of more. 
 
     See the :any:`test_dict_key_completion_contexts`
 

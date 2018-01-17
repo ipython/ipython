@@ -64,7 +64,7 @@ def test_columnize():
 
 
 def test_columnize_random():
-    """Test with random input to hopfully catch edge case """
+    """Test with random input to hopefully catch edge case """
     for row_first in [True, False]:
         for nitems in [random.randint(2,70) for i in range(2,20)]:
             displaywidth = random.randint(20,200)
