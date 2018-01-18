@@ -590,6 +590,9 @@ class Code(TextDisplayObject):
             from pygments.lexers import guess_lexer
             return guess_lexer(self.data)
 
+    def __repr__(self):
+        return self.data
+
     def _repr_html_(self):
         from pygments import highlight
         from pygments.formatters import HtmlFormatter
