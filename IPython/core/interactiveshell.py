@@ -2752,23 +2752,25 @@ class InteractiveShell(SingletonConfigurable):
 
             with self.display_trap:
                 # Compile to bytecode
+                ast_error = None
                 try:
                     code_ast = compiler.ast_parse(cell, filename=cell_name)
                 except self.custom_exceptions as e:
                     etype, value, tb = sys.exc_info()
                     self.CustomTB(etype, value, tb)
-                    return error_before_exec(e)
+                    ast_error = e
                 except IndentationError as e:
                     self.showindentationerror()
-                    if store_history:
-                        self.execution_count += 1
-                    return error_before_exec(e)
+                    ast_error = e
                 except (OverflowError, SyntaxError, ValueError, TypeError,
                         MemoryError) as e:
                     self.showsyntaxerror()
+                    ast_error = e
+
+                if ast_error is not None:
                     if store_history:
                         self.execution_count += 1
-                    return error_before_exec(e)
+                    return error_before_exec(ast_error)
 
                 # Apply AST transformations
                 try:
