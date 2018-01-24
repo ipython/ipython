@@ -929,5 +929,7 @@ def test_custom_exc_count():
     ip.set_custom_exc((SyntaxError,), hook)
     before = ip.execution_count
     ip.run_cell("def foo()", store_history=True)
+    # restore default excepthook
+    ip.set_custom_exc((), None)
     nt.assert_equal(hook.call_count, 1)
     nt.assert_equal(ip.execution_count, before + 1)
