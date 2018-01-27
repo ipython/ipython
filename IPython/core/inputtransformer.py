@@ -277,7 +277,8 @@ _initial_space_re = re.compile(r'\s*')
 
 _help_end_re = re.compile(r"""(%{0,2}
                               [a-zA-Z_*][\w*]*        # Variable name
-                              (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
+                              (?:\[[^\]]+\])*
+                              (\.[a-zA-Z_*][\w*]*(?:\[[^\]]+\])*)*   # .etc.etc
                               )
                               (\?\??)$                # ? or ??
                               """,
