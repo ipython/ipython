@@ -144,6 +144,7 @@ skip_doctest = True
 
 try:
     import jedi
+    jedi.settings.case_insensitive_completion = False
     import jedi.api.helpers
     import jedi.api.classes
     JEDI_INSTALLED = True
