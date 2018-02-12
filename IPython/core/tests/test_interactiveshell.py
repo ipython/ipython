@@ -948,3 +948,14 @@ def wrn():
         with tt.AssertNotPrints("I AM  A WARNING"):
             ip.run_cell("wrn()")
         ip.run_cell("del wrn")
+
+
+def test_custom_exc_count():
+    hook = mock.Mock(return_value=None)
+    ip.set_custom_exc((SyntaxError,), hook)
+    before = ip.execution_count
+    ip.run_cell("def foo()", store_history=True)
+    # restore default excepthook
+    ip.set_custom_exc((), None)
+    nt.assert_equal(hook.call_count, 1)
+    nt.assert_equal(ip.execution_count, before + 1)
