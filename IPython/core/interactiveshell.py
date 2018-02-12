@@ -2696,6 +2696,8 @@ class InteractiveShell(SingletonConfigurable):
             result.execution_count = self.execution_count
 
         def error_before_exec(value):
+            if store_history:
+                self.execution_count += 1
             result.error_before_exec = value
             self.last_execution_succeeded = False
             self.last_execution_result = result
@@ -2760,14 +2762,10 @@ class InteractiveShell(SingletonConfigurable):
                     return error_before_exec(e)
                 except IndentationError as e:
                     self.showindentationerror()
-                    if store_history:
-                        self.execution_count += 1
                     return error_before_exec(e)
                 except (OverflowError, SyntaxError, ValueError, TypeError,
                         MemoryError) as e:
                     self.showsyntaxerror()
-                    if store_history:
-                        self.execution_count += 1
                     return error_before_exec(e)
 
                 # Apply AST transformations
@@ -2775,8 +2773,6 @@ class InteractiveShell(SingletonConfigurable):
                     code_ast = self.transform_ast(code_ast)
                 except InputRejected as e:
                     self.showtraceback()
-                    if store_history:
-                        self.execution_count += 1
                     return error_before_exec(e)
 
                 # Give the displayhook a reference to our ExecutionResult so it
