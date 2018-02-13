@@ -404,7 +404,7 @@ Regular issues (285):
 * `287 <https://github.com/ipython/ipython/issues/287>`_: Crash when using %macros in sqlite-history branch
 * `55 <https://github.com/ipython/ipython/issues/55>`_: Can't edit files whose names begin with numbers
 * `284 <https://github.com/ipython/ipython/issues/284>`_: In variable no longer works in 0.11
-* `92 <https://github.com/ipython/ipython/issues/92>`_: Using multiprocessing module crashes parallel iPython
+* `92 <https://github.com/ipython/ipython/issues/92>`_: Using multiprocessing module crashes parallel IPython
 * `262 <https://github.com/ipython/ipython/issues/262>`_: Fail to recover history after force-kill.
 * `320 <https://github.com/ipython/ipython/issues/320>`_: Tab completing re.search objects crashes IPython
 * `317 <https://github.com/ipython/ipython/issues/317>`_: IPython.kernel: parallel map issues
@@ -518,7 +518,7 @@ Regular issues (285):
 * `169 <https://github.com/ipython/ipython/issues/169>`_: Kernel can only be bound to localhost
 * `36 <https://github.com/ipython/ipython/issues/36>`_: tab completion does not escape ()
 * `177 <https://github.com/ipython/ipython/issues/177>`_: Report tracebacks of interactively entered input
-* `148 <https://github.com/ipython/ipython/issues/148>`_: dictionary having multiple keys having frozenset fails to print on iPython
+* `148 <https://github.com/ipython/ipython/issues/148>`_: dictionary having multiple keys having frozenset fails to print on IPython
 * `160 <https://github.com/ipython/ipython/issues/160>`_: magic_gui throws TypeError when gui magic is used
 * `150 <https://github.com/ipython/ipython/issues/150>`_: History entries ending with parentheses corrupt command line on OS X 10.6.4
 * `146 <https://github.com/ipython/ipython/issues/146>`_: -ipythondir - using an alternative .ipython dir for rc type stuff
