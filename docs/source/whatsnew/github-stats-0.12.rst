@@ -534,7 +534,7 @@ Regular issues (258):
 * `744 <https://github.com/ipython/ipython/issues/744>`_: cannot create notebook in offline mode if mathjax not installed
 * `865 <https://github.com/ipython/ipython/issues/865>`_: Make tracebacks from %paste show the code
 * `535 <https://github.com/ipython/ipython/issues/535>`_: exception unicode handling in %run is faulty in qtconsole
-* `817 <https://github.com/ipython/ipython/issues/817>`_: iPython crashed
+* `817 <https://github.com/ipython/ipython/issues/817>`_: IPython crashed
 * `799 <https://github.com/ipython/ipython/issues/799>`_: %edit magic not working on windows xp in qtconsole
 * `732 <https://github.com/ipython/ipython/issues/732>`_: QTConsole wrongly promotes the index of the input line on which user presses Enter
 * `662 <https://github.com/ipython/ipython/issues/662>`_: ipython test failures on Mac OS X Lion

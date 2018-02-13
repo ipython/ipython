@@ -1335,7 +1335,7 @@ Issues (691):
 * :ghissue:`2586`: cannot store aliases
 * :ghissue:`2714`: ipython qtconsole print unittest messages in console instead his own window. 
 * :ghissue:`2669`: cython magic failing to work with openmp.
-* :ghissue:`3256`: Vagrant pandas instance of iPython Notebook does not respect additional plotting arguments
+* :ghissue:`3256`: Vagrant pandas instance of IPython Notebook does not respect additional plotting arguments
 * :ghissue:`3010`: cython magic fail if cache dir is deleted while in session
 * :ghissue:`2044`: prune unused names from parallel.error
 * :ghissue:`1145`: Online help utility broken in QtConsole
@@ -1488,7 +1488,7 @@ Issues (691):
 * :ghissue:`3327`: Qt version check broken
 * :ghissue:`3303`: parallel tasks never finish under heavy load
 * :ghissue:`1381`: '\\' for equation continuations require an extra '\' in markdown cells
-* :ghissue:`3314`: Error launching iPython
+* :ghissue:`3314`: Error launching IPython
 * :ghissue:`3306`: Test failure when running on a Vagrant VM
 * :ghissue:`3280`: IPython.utils.process.getoutput returns stderr
 * :ghissue:`3299`: variables named _ or __ exhibit incorrect behavior
@@ -1791,7 +1791,7 @@ Issues (691):
 * :ghissue:`2381`: %time doesn't work for multiline statements
 * :ghissue:`1435`: Add size keywords in Image class
 * :ghissue:`2372`: interactiveshell.py misses urllib and io_open imports
-* :ghissue:`2371`: iPython not working
+* :ghissue:`2371`: IPython not working
 * :ghissue:`2367`: Tab expansion moves to next cell in notebook
 * :ghissue:`2359`: nbviever alters the order of print and display() output
 * :ghissue:`2227`: print name for IPython Notebooks has become uninformative
@@ -1847,7 +1847,7 @@ Issues (691):
 * :ghissue:`2156`: Make it possible to install ipython without nasty gui dependencies
 * :ghissue:`2154`: Scrolled long output should be off in print view by default
 * :ghissue:`2162`: Tab completion does not work with IPython.embed_kernel()
-* :ghissue:`2157`: iPython 0.13 / github-master cannot create logfile from scratch
+* :ghissue:`2157`: IPython 0.13 / github-master cannot create logfile from scratch
 * :ghissue:`2151`: missing newline when a magic is called from the qtconsole menu
 * :ghissue:`2139`: 00_notebook_tour Image example broken on master
 * :ghissue:`2143`: Add a %%cython_annotate magic
@@ -1860,7 +1860,7 @@ Issues (691):
 * :ghissue:`2121`: ipdb does not support input history in qtconsole
 * :ghissue:`2114`: %logstart doesn't log
 * :ghissue:`2085`: %ed magic fails in qtconsole
-* :ghissue:`2119`: iPython fails to run on MacOS Lion 
+* :ghissue:`2119`: IPython fails to run on MacOS Lion 
 * :ghissue:`2052`: %pylab inline magic does not work on windows
 * :ghissue:`2111`: Ipython won't start on W7
 * :ghissue:`2112`: Strange internal traceback
