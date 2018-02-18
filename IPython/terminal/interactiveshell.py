@@ -57,8 +57,6 @@ _style_overrides_linux = {
             Token.OutPromptNum: '#bb0000 bold',
 }
 
-
-
 def get_default_editor():
     try:
         return os.environ['EDITOR']
@@ -271,7 +269,11 @@ class TerminalInteractiveShell(InteractiveShell):
                             history=history,
                             completer=IPythonPTCompleter(shell=self,
                                                     patch_stdout=patch_stdout),
-                            enable_history_search=True,
+                            enable_history_search=(
+                                os.environ['enable_history_search'].capitalize()
+                                if 'enable_history_search' in os.environ
+                                else True
+                            ),
                             style=self.style,
                             mouse_support=self.mouse_support,
                             **self._layout_options()
