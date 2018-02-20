@@ -57,8 +57,6 @@ _style_overrides_linux = {
             Token.OutPromptNum: '#bb0000 bold',
 }
 
-
-
 def get_default_editor():
     try:
         return os.environ['EDITOR']
@@ -208,6 +206,10 @@ class TerminalInteractiveShell(InteractiveShell):
              "may be changed or removed in later releases."
     ).tag(config=True)
 
+    enable_history_search = Bool(True,
+        help="Allows to enable/disable the prompt toolkit history search"
+    ).tag(config=True)
+
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
@@ -271,7 +273,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             history=history,
                             completer=IPythonPTCompleter(shell=self,
                                                     patch_stdout=patch_stdout),
-                            enable_history_search=True,
+                            enable_history_search=self.enable_history_search,
                             style=self.style,
                             mouse_support=self.mouse_support,
                             **self._layout_options()
