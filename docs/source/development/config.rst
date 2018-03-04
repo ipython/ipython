@@ -34,7 +34,7 @@ location if there isn't already a directory there.
 
 Once the location of the IPython directory has been determined, you need to know
 which profile you are using. For users with a single configuration, this will
-simply be 'default', and will be located in 
+simply be 'default', and will be located in
 :file:`<IPYTHONDIR>/profile_default`.
 
 The next thing you need to know is what to call your configuration file. The
@@ -52,6 +52,7 @@ To generate the default configuration files, do::
 
 and you will have a default :file:`ipython_config.py` in your IPython directory
 under :file:`profile_default`.
+
 .. note::
 
     IPython configuration options are case sensitive, and IPython cannot
