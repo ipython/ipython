@@ -1371,7 +1371,7 @@ class IPCompleter(Completer):
             next_to_last_tree = interpreter._get_module().tree_node.children[-2]
             completing_string = False
             if isinstance(next_to_last_tree, ErrorLeaf):
-                completing_string = next_to_last_tree.value[0] in {'"', "'"}
+                completing_string = next_to_last_tree.value.lstrip()[0] in {'"', "'"}
             # if we are in a string jedi is likely not the right candidate for
             # now. Skip it.
             try_jedi = not completing_string
