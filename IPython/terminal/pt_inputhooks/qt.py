@@ -13,8 +13,8 @@ def inputhook(context):
     if not app:
         if sys.platform == 'linux':
             try:
-                os.environ['DISPLAY']  # DISPLAY is set
-                assert os.environ['DISPLAY'] != ''  # DISPLAY is not empty
+                # DISPLAY or WAYLAND_DISPLAY is set and not empty
+                assert os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')
             except Exception:
                 import warnings
                 global _already_warned
