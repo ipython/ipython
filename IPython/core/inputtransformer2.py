@@ -200,6 +200,16 @@ def make_tokens_by_line(lines):
     
     return tokens_by_line
 
+def show_linewise_tokens(s: str):
+    """For investigation"""
+    if not s.endswith('\n'):
+        s += '\n'
+    lines = s.splitlines(keepends=True)
+    for line in make_tokens_by_line(lines):
+        print("Line -------")
+        for tokinfo in line:
+            print(" ", tokinfo)
+
 class TokenTransformers:
     def __init__(self):
         self.transformers = [
