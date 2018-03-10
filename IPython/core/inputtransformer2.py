@@ -93,12 +93,33 @@ def _find_assign_op(token_line):
         elif s in ')]}':
             paren_level -= 1
 
+def find_end_of_continued_line(lines, start_line: int):
+    """Find the last line of a line explicitly extended using backslashes.
+
+    Uses 0-indexed line numbers.
+    """
+    end_line = start_line
+    while lines[end_line].endswith('\\\n'):
+        end_line += 1
+        if end_line >= len(lines):
+            break
+    return end_line
+
+def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
+    """Assemble pieces of a continued line into a single line.
+
+    Uses 0-indexed line numbers. *start* is (lineno, colno).
+    """
+    parts = [lines[start[0]][start[1]:]] + lines[start[0]+1:end_line+1]
+    return ' '.join([p[:-2] for p in parts[:-1]]  # Strip backslash+newline
+                    + [parts[-1][:-1]])         # Strip newline from last line
+
 class MagicAssign:
     @staticmethod
     def find(tokens_by_line):
         """Find the first magic assignment (a = %foo) in the cell.
         
-        Returns (line, column) of the % if found, or None.
+        Returns (line, column) of the % if found, or None. *line* is 1-indexed.
         """
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
@@ -114,21 +135,12 @@ class MagicAssign:
         """
         start_line = start[0] - 1   # Shift from 1-index to 0-index
         start_col  = start[1]
-        
-        print("Start at", start_line, start_col)
-        print("Line", lines[start_line])
-    
-        lhs, rhs = lines[start_line][:start_col], lines[start_line][start_col:-1]
+
+        lhs = lines[start_line][:start_col]
+        end_line = find_end_of_continued_line(lines, start_line)
+        rhs = assemble_continued_line(lines, (start_line, start_col), end_line)
         assert rhs.startswith('%'), rhs
         magic_name, _, args = rhs[1:].partition(' ')
-        args_parts = [args]
-        end_line = start_line
-        # Follow explicit (backslash) line continuations
-        while end_line < len(lines) and args_parts[-1].endswith('\\'):
-            end_line += 1
-            args_parts[-1] = args_parts[-1][:-1]  # Trim backslash
-            args_parts.append(lines[end_line][:-1])  # Trim newline
-        args = ' '.join(args_parts)
         
         lines_before = lines[:start_line]
         call = "get_ipython().run_line_magic({!r}, {!r})".format(magic_name, args)
@@ -143,7 +155,7 @@ class SystemAssign:
     def find(tokens_by_line):
         """Find the first system assignment (a = !foo) in the cell.
 
-        Returns (line, column) of the ! if found, or None.
+        Returns (line, column) of the ! if found, or None. *line* is 1-indexed.
         """
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
@@ -166,20 +178,11 @@ class SystemAssign:
         start_line = start[0] - 1  # Shift from 1-index to 0-index
         start_col = start[1]
 
-        print("Start at", start_line, start_col)
-        print("Line", lines[start_line])
-
-        lhs, rhs = lines[start_line][:start_col], lines[start_line][
-                                                  start_col:-1]
+        lhs = lines[start_line][:start_col]
+        end_line = find_end_of_continued_line(lines, start_line)
+        rhs = assemble_continued_line(lines, (start_line, start_col), end_line)
         assert rhs.startswith('!'), rhs
-        cmd_parts = [rhs[1:]]
-        end_line = start_line
-        # Follow explicit (backslash) line continuations
-        while end_line < len(lines) and cmd_parts[-1].endswith('\\'):
-            end_line += 1
-            cmd_parts[-1] = cmd_parts[-1][:-1]  # Trim backslash
-            cmd_parts.append(lines[end_line][:-1])  # Trim newline
-        cmd = ' '.join(cmd_parts)
+        cmd = rhs[1:]
 
         lines_before = lines[:start_line]
         call = "get_ipython().getoutput({!r})".format(cmd)

@@ -25,6 +25,12 @@ b = get_ipython().getoutput('foo    bar')
 g()
 """.splitlines(keepends=True))
 
+def test_continued_line():
+    lines = MULTILINE_MAGIC_ASSIGN[0]
+    nt.assert_equal(ipt2.find_end_of_continued_line(lines, 1), 2)
+
+    nt.assert_equal(ipt2.assemble_continued_line(lines, (1, 5), 2), "foo    bar")
+
 def test_find_assign_magic():
     tbl = make_tokens_by_line(MULTILINE_MAGIC_ASSIGN[0])
     nt.assert_equal(ipt2.MagicAssign.find(tbl), (2, 4))
