@@ -235,7 +235,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 prompt_text = "".join(x[1] for x in self.prompts.in_prompt_tokens())
                 lines = [input(prompt_text)]
                 prompt_continuation = "".join(x[1] for x in self.prompts.continuation_prompt_tokens())
-                while not itm.check_complete('\n'.join(lines)):
+                while itm.check_complete('\n'.join(lines))[0] == 'incomplete':
                     lines.append( input(prompt_continuation) )
                 return '\n'.join(lines)
             self.prompt_for_code = prompt

@@ -291,7 +291,9 @@ class EmbeddedSphinxShell(object):
         self.IP = IP
         self.user_ns = self.IP.user_ns
         self.user_global_ns = self.IP.user_global_ns
+        self.input_transformer_mgr = self.IP.input_transformer_manager
 
+        self.lines_waiting = []
         self.input = ''
         self.output = ''
         self.tmp_profile_dir = tmp_profile_dir
@@ -326,13 +328,12 @@ class EmbeddedSphinxShell(object):
         """process the input, capturing stdout"""
 
         stdout = sys.stdout
-        splitter = self.IP.input_splitter
         try:
             sys.stdout = self.cout
-            splitter.push(line)
-            more = splitter.push_accepts_more()
-            if not more:
-                source_raw = splitter.raw_reset()
+            self.lines_waiting.append(line)
+            if self.input_transformer_mgr.check_complete()[0] != 'incomplete':
+                source_raw = ''.join(self.lines_waiting)
+                self.lines_waiting = []
                 self.IP.run_cell(source_raw, store_history=store_history)
         finally:
             sys.stdout = stdout
