@@ -137,6 +137,57 @@ class MagicAssign:
         
         return lines_before + [new_line] + lines_after
 
+
+class SystemAssign:
+    @staticmethod
+    def find(tokens_by_line):
+        """Find the first system assignment (a = !foo) in the cell.
+
+        Returns (line, column) of the ! if found, or None.
+        """
+        for line in tokens_by_line:
+            assign_ix = _find_assign_op(line)
+            if (assign_ix is not None) \
+                    and (len(line) >= assign_ix + 2) \
+                    and (line[assign_ix + 1].type == tokenize2.ERRORTOKEN):
+                ix = assign_ix + 1
+
+                while ix < len(line) and line[ix].type == tokenize2.ERRORTOKEN:
+                    if line[ix].string == '!':
+                        return line[ix].start
+                    elif not line[ix].string.isspace():
+                        break
+                    ix += 1
+
+    @staticmethod
+    def transform(lines: List[str], start: Tuple[int, int]):
+        """Transform a system assignment found by find
+        """
+        start_line = start[0] - 1  # Shift from 1-index to 0-index
+        start_col = start[1]
+
+        print("Start at", start_line, start_col)
+        print("Line", lines[start_line])
+
+        lhs, rhs = lines[start_line][:start_col], lines[start_line][
+                                                  start_col:-1]
+        assert rhs.startswith('!'), rhs
+        cmd_parts = [rhs[1:]]
+        end_line = start_line
+        # Follow explicit (backslash) line continuations
+        while end_line < len(lines) and cmd_parts[-1].endswith('\\'):
+            end_line += 1
+            cmd_parts[-1] = cmd_parts[-1][:-1]  # Trim backslash
+            cmd_parts.append(lines[end_line][:-1])  # Trim newline
+        cmd = ' '.join(cmd_parts)
+
+        lines_before = lines[:start_line]
+        call = "get_ipython().getoutput({!r})".format(cmd)
+        new_line = lhs + call + '\n'
+        lines_after = lines[end_line + 1:]
+
+        return lines_before + [new_line] + lines_after
+
 def make_tokens_by_line(lines):
     tokens_by_line = [[]]
     for token in generate_tokens(iter(lines).__next__):
@@ -149,7 +200,8 @@ def make_tokens_by_line(lines):
 class TokenTransformers:
     def __init__(self):
         self.transformers = [
-            MagicAssign
+            MagicAssign,
+            SystemAssign,
         ]
     
     def do_one_transform(self, lines):
