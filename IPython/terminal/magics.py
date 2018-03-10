@@ -40,7 +40,6 @@ def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
 class TerminalMagics(Magics):
     def __init__(self, shell):
         super(TerminalMagics, self).__init__(shell)
-        self.input_splitter = IPythonInputSplitter()
 
     def store_or_execute(self, block, name):
         """ Execute a block, or store it in a variable, per the user's request.
