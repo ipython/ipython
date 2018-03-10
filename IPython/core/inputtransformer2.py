@@ -66,13 +66,6 @@ def cell_magic(lines):
     return ['get_ipython().run_cell_magic(%r, %r, %r)\n'
             % (magic_name, first_line, body)]
 
-line_transforms = [
-    leading_indent,
-    classic_prompt,
-    ipython_prompt,
-    cell_magic,
-]
-
 # -----
 
 def _find_assign_op(token_line):
@@ -378,16 +371,22 @@ def show_linewise_tokens(s: str):
         for tokinfo in line:
             print(" ", tokinfo)
 
-class TokenTransformers:
+class TransformerManager:
     def __init__(self):
-        self.transformers = [
+        self.line_transforms = [
+            leading_indent,
+            classic_prompt,
+            ipython_prompt,
+            cell_magic,
+        ]
+        self.token_transformers = [
             MagicAssign,
             SystemAssign,
             EscapedCommand,
             HelpEnd,
         ]
     
-    def do_one_transform(self, lines):
+    def do_one_token_transform(self, lines):
         """Find and run the transform earliest in the code.
         
         Returns (changed, lines).
@@ -399,11 +398,11 @@ class TokenTransformers:
         the transformed code is retokenised every time to identify the next
         piece of special syntax. Hopefully long code cells are mostly valid
         Python, not using lots of IPython special syntax, so this shouldn't be
-        a performance issue. 
+        a performance issue.
         """
         tokens_by_line = make_tokens_by_line(lines)
         candidates = []
-        for transformer_cls in self.transformers:
+        for transformer_cls in self.token_transformers:
             transformer = transformer_cls.find(tokens_by_line)
             if transformer:
                 candidates.append(transformer)
@@ -415,20 +414,19 @@ class TokenTransformers:
         transformer = min(candidates, key=TokenTransformBase.sortby)
         return True, transformer.transform(lines)
 
-    def __call__(self, lines):
+    def do_token_transforms(self, lines):
         while True:
-            changed, lines = self.do_one_transform(lines)
+            changed, lines = self.do_one_token_transform(lines)
             if not changed:
                 return lines
 
+    def transform_cell(self, cell: str):
+        if not cell.endswith('\n'):
+            cell += '\n'  # Ensure every line has a newline
+        lines = cell.splitlines(keepends=True)
+        for transform in self.line_transforms:
+            #print(transform, lines)
+            lines = transform(lines)
 
-def transform_cell(cell):
-    if not cell.endswith('\n'):
-        cell += '\n'  # Ensure every line has a newline
-    lines = cell.splitlines(keepends=True)
-    for transform in line_transforms:
-        #print(transform, lines)
-        lines = transform(lines)
-    
-    lines = TokenTransformers()(lines)
-    return ''.join(lines)
+        lines = self.do_token_transforms(lines)
+        return ''.join(lines)

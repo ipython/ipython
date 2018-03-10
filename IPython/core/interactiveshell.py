@@ -339,10 +339,9 @@ class InteractiveShell(SingletonConfigurable):
     input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
                               (), {'line_input_checker': True})
 
-    # This InputSplitter instance is used to transform completed cells before
-    # running them. It allows cell magics to contain blank lines.
-    input_transformer_manager = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
-                                         (), {'line_input_checker': False})
+    # Used to transform cells before running them.
+    input_transformer_manager = Instance('IPython.core.inputtransformer2.TransformerManager',
+                                         ())
 
     logstart = Bool(False, help=
         """
