@@ -282,7 +282,7 @@ IPython configuration::
             else: # insert a newline with auto-indentation...
 
                 if document.line_count > 1: text = text[:document.cursor_position]
-                indent = shell.input_splitter.check_complete(text + '\n')[1] or 0
+                indent = shell.input_transformer_manager.check_complete(text)[1] or 0
                 buffer.insert_text('\n' + ' ' * indent)
             
                 # if you just wanted a plain newline without any indentation, you

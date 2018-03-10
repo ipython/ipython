@@ -77,7 +77,7 @@ def register_ipython_shortcuts(registry, shell):
 
     registry.add_binding(Keys.ControlO,
                          filter=(HasFocus(DEFAULT_BUFFER)
-                                & EmacsInsertMode()))(newline_autoindent_outer(shell.input_splitter))
+                                & EmacsInsertMode()))(newline_autoindent_outer(shell.input_transformer_manager))
 
     registry.add_binding(Keys.F2,
                          filter=HasFocus(DEFAULT_BUFFER)
@@ -119,7 +119,7 @@ def newline_or_execute_outer(shell):
             check_text = d.text
         else:
             check_text = d.text[:d.cursor_position]
-        status, indent = shell.input_splitter.check_complete(check_text + '\n')
+        status, indent = shell.input_transformer_manager.check_complete(check_text + '\n')
 
         if not (d.on_last_line or
                 d.cursor_position_row >= d.line_count - d.empty_line_count_at_the_end()
