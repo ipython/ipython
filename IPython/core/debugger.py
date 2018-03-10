@@ -32,6 +32,7 @@ import inspect
 import linecache
 import sys
 import warnings
+import re
 
 from IPython import get_ipython
 from IPython.utils import PyColorize
@@ -175,6 +176,13 @@ class Tracer(object):
         self.debugger.set_trace(sys._getframe().f_back)
 
 
+RGX_EXTRA_INDENT = re.compile('(?<=\n)\s+')
+
+
+def strip_indentation(multiline_string):
+    return RGX_EXTRA_INDENT.sub('', multiline_string)
+
+
 def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     """Make new_fn have old_fn's doc string. This is particularly useful
     for the ``do_...`` commands that hook into the help system.
@@ -183,7 +191,7 @@ def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     def wrapper(*args, **kw):
         return new_fn(*args, **kw)
     if old_fn.__doc__:
-        wrapper.__doc__ = old_fn.__doc__ + additional_text
+        wrapper.__doc__ = strip_indentation(old_fn.__doc__) + additional_text
     return wrapper
 
 
@@ -544,6 +552,25 @@ class Pdb(OldPdb):
         last = lineno + len(lines)
         self.print_list_lines(self.curframe.f_code.co_filename, lineno, last)
     do_ll = do_longlist
+
+    def do_debug(self, arg):
+        """debug code
+        Enter a recursive debugger that steps through the code
+        argument (which is an arbitrary expression or statement to be
+        executed in the current environment).
+        """
+        sys.settrace(None)
+        globals = self.curframe.f_globals
+        locals = self.curframe_locals
+        p = self.__class__(completekey=self.completekey,
+                           stdin=self.stdin, stdout=self.stdout)
+        p.use_rawinput = self.use_rawinput
+        p.prompt = "(%s) " % self.prompt.strip()
+        self.message("ENTERING RECURSIVE DEBUGGER")
+        sys.call_tracing(p.run, (arg, globals, locals))
+        self.message("LEAVING RECURSIVE DEBUGGER")
+        sys.settrace(self.trace_dispatch)
+        self.lastcmd = p.lastcmd
 
     def do_pdef(self, arg):
         """Print the call signature for any callable object.

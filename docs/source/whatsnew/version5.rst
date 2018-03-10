@@ -2,6 +2,60 @@
  5.x Series
 ============
 
+
+.. _whatsnew550:
+
+IPython 5.5
+===========
+
+System Wide config
+------------------
+
+- IPython now looks for config files in ``{sys.prefix}/etc/ipython``
+  for environment-specific configuration.
+- Startup files can be found in ``/etc/ipython/startup`` or ``{sys.prefix}/etc/ipython/startup``
+  in addition to the profile directory, for system-wide or env-specific startup files.
+
+See :ghpull:`10644`
+
+ProgressBar
+-----------
+
+
+IPython now has built-in support for progressbars::
+
+    In[1]: from IPython.display import ProgressBar
+    ...  : pb = ProgressBar(100)
+    ...  : pb
+
+    In[2]: pb.progress = 50
+
+    # progress bar in cell 1 updates.
+
+See :ghpull:`10755`
+
+
+Misc
+----
+
+ - Fix ``IPython.core.display:Pretty._repr_pretty_`` had the wrong signature.
+   (:ghpull:`10625`)
+ - :magic:`timeit` now give a correct ``SyntaxError`` if naked ``return`` used.
+   (:ghpull:`10637`)
+ - Prepare the ``:ipython:`` directive to be compatible with Sphinx 1.7.
+   (:ghpull:`10668`)
+ - Make IPython work with OpenSSL in FIPS mode; change hash algorithm of input
+   from md5 to sha1. (:ghpull:`10696`)
+ - Clear breakpoints before running any script with debugger. (:ghpull:`10699`)
+ - Document that :magic:`profile` is deprecated, not to be confused with :magic:`prun`. (:ghpull:`10707`)
+ - Limit default number of returned completions to 500. (:ghpull:`10743`)
+
+You can see all the PR marked for the `5.5. milestone <https://github.com/ipython/ipython/pulls?q=is%3Apr%20milestone%3A5.5%20is%3Aclosed%20NOT%20%22Backport%20PR%22>`_,
+and all the `backport versions <https://github.com/ipython/ipython/pulls?utf8=%E2%9C%93&q=is%3Apr%20milestone%3A5.5%20is%3Aclosed%20%22Backport%20PR%22%20>`_.
+
+
+
+
 .. _whatsnew540:
 
 IPython 5.4
@@ -33,7 +87,7 @@ Define ``_repr_mimebundle_``
 Object can now define `_repr_mimebundle_` in place of multiple `_repr_*_`
 methods and return a full mimebundle. This greatly simplify many implementation
 and allow to publish custom mimetypes (like geojson, plotly, dataframes....).
-See the ``Cutom Display Logic`` example notebook for more informations.
+See the ``Custom Display Logic`` example notebook for more information.
 
 Execution Heuristics
 --------------------
@@ -53,6 +107,19 @@ Implement display id and ability to update a given display. This should greatly
 simplify a lot of code by removing the need for widgets and allow other frontend
 to implement things like progress-bars.  See :ghpull:`10048`
 
+Display function
+----------------
+
+The :func:`display() <IPython.display.display>` function is now available by
+default in an IPython session, meaning users can call it on any object to see
+their rich representation. This should allow for better interactivity both at
+the REPL and in notebook environment.
+
+Scripts and library that rely on display and may be run outside of IPython still
+need to import the display function using ``from IPython.display import
+display``. See :ghpull:`10596`
+
+
 Miscs
 -----
 
@@ -62,7 +129,7 @@ Miscs
 * Faster shutdown. :ghpull:`10408` 
 * Fix a crash in reverse search. :ghpull:`10371`
 * added ``Completer.backslash_combining_completions`` boolean option to
- deactivate backslash-tab completion that may conflict with windows path.
+  deactivate backslash-tab completion that may conflict with windows path.
 
 IPython 5.3
 ===========

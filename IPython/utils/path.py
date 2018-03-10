@@ -13,7 +13,6 @@ import shutil
 import random
 import glob
 from warnings import warn
-from hashlib import md5
 
 from IPython.utils.process import system
 from IPython.utils import py3compat
@@ -116,7 +115,7 @@ def filefind(filename, path_dirs=None):
     """Find a file by looking through a sequence of paths.
 
     This iterates through a sequence of paths looking for a file and returns
-    the full, absolute path of the first occurence of the file.  If no set of
+    the full, absolute path of the first occurrence of the file.  If no set of
     path dirs is given, the filename is tested as is, after running through
     :func:`expandvars` and :func:`expanduser`.  Thus a simple call::
 
@@ -365,13 +364,6 @@ def target_update(target,deps,cmd):
     if target_outdated(target,deps):
         system(cmd)
 
-@undoc
-def filehash(path):
-    """Make an MD5 hash of a file, ignoring any differences in line
-    ending characters."""
-    warn("filehash() is deprecated since IPython 4.0", DeprecationWarning, stacklevel=2)
-    with open(path, "rU") as f:
-        return md5(py3compat.str_to_bytes(f.read())).hexdigest()
 
 ENOLINK = 1998
 

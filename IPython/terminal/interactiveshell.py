@@ -7,7 +7,7 @@ from warnings import warn
 
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
-from IPython.utils.py3compat import input, cast_unicode_py2
+from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
@@ -25,7 +25,7 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
 
-from pygments.styles import get_style_by_name, get_all_styles
+from pygments.styles import get_style_by_name
 from pygments.style import Style
 from pygments.token import Token
 
@@ -56,8 +56,6 @@ _style_overrides_linux = {
             Token.OutPrompt: '#cc0000',
             Token.OutPromptNum: '#bb0000 bold',
 }
-
-
 
 def get_default_editor():
     try:
@@ -126,12 +124,14 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     mouse_support = Bool(False,
-        help="Enable mouse support in the prompt"
+        help="Enable mouse support in the prompt\n(Note: prevents selecting text with the mouse)"
     ).tag(config=True)
 
+    # We don't load the list of styles for the help string, because loading
+    # Pygments plugins takes time and can cause unexpected errors.
     highlighting_style = Union([Unicode('legacy'), Type(klass=Style)],
         help="""The name or class of a Pygments style to use for syntax
-        highlighting: \n %s""" % ', '.join(get_all_styles())
+        highlighting. To see available styles, run `pygmentize -L styles`."""
     ).tag(config=True)
 
 
@@ -206,6 +206,10 @@ class TerminalInteractiveShell(InteractiveShell):
              "may be changed or removed in later releases."
     ).tag(config=True)
 
+    enable_history_search = Bool(True,
+        help="Allows to enable/disable the prompt toolkit history search"
+    ).tag(config=True)
+
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
@@ -231,7 +235,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 prompt_text = "".join(x[1] for x in self.prompts.in_prompt_tokens())
                 prompt_continuation = "".join(x[1] for x in self.prompts.continuation_prompt_tokens())
                 while isp.push_accepts_more():
-                    line = cast_unicode_py2(input(prompt_text))
+                    line = input(prompt_text)
                     isp.push(line)
                     prompt_text = prompt_continuation
                 return isp.source_reset()
@@ -269,7 +273,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             history=history,
                             completer=IPythonPTCompleter(shell=self,
                                                     patch_stdout=patch_stdout),
-                            enable_history_search=True,
+                            enable_history_search=self.enable_history_search,
                             style=self.style,
                             mouse_support=self.mouse_support,
                             **self._layout_options()
@@ -372,8 +376,9 @@ class TerminalInteractiveShell(InteractiveShell):
             self._pt_app.layout = create_prompt_layout(**self._layout_options())
 
     def prompt_for_code(self):
-        document = self.pt_cli.run(
-            pre_run=self.pre_prompt, reset_current_buffer=True)
+        with self.pt_cli.patch_stdout_context(raw=True):
+            document = self.pt_cli.run(
+                pre_run=self.pre_prompt, reset_current_buffer=True)
         return document.text
 
     def enable_win_unicode_console(self):

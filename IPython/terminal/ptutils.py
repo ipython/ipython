@@ -120,9 +120,9 @@ class IPythonPTCompleter(Completer):
 
             adjusted_text = _adjust_completion_text_based_on_context(c.text, body, offset)
             if c.type == 'function':
-                display_text = display_text + '()'
-
-            yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text), display_meta=c.type)
+                yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text+'()'), display_meta=c.type+c.signature)
+            else:
+                yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text), display_meta=c.type)
 
 class IPythonPTLexer(Lexer):
     """

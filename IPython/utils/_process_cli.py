@@ -28,7 +28,7 @@ def _find_cmd(cmd):
     for path in paths:
         filename = os.path.join(path, cmd)
         if System.IO.File.Exists(filename):
-            return py3compat.bytes_to_str(filename)
+            return py3compat.decode(filename)
     raise OSError("command %r not found" % cmd)
 
 def system(cmd):

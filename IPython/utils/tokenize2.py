@@ -13,6 +13,7 @@ Patches:
 - u and rb literals are allowed under Python 3.3 and above.
 
 ------------------------------------------------------------------------------
+
 Tokenization help for Python programs.
 
 tokenize(readline) is a generator that breaks a stream of bytes into
@@ -91,11 +92,7 @@ Expfloat = r'[0-9]+' + Exponent
 Floatnumber = group(Pointfloat, Expfloat)
 Imagnumber = group(r'[0-9]+[jJ]', Floatnumber + r'[jJ]')
 Number = group(Imagnumber, Floatnumber, Intnumber)
-
-if sys.version_info.minor >= 3:
-    StringPrefix = r'(?:[bB][rR]?|[rR][bB]?|[uU])?'
-else:
-    StringPrefix = r'(?:[bB]?[rR]?)?'
+StringPrefix = r'(?:[bB][rR]?|[rR][bB]?|[uU])?'
 
 # Tail end of ' string.
 Single = r"[^'\\]*(?:\\.[^'\\]*)*'"
@@ -165,20 +162,18 @@ for t in ("'", '"',
           "bR'", 'bR"', "BR'", 'BR"' ):
     single_quoted[t] = t
 
-if sys.version_info.minor >= 3:
-    # Python 3.3
-    for _prefix in ['rb', 'rB', 'Rb', 'RB', 'u', 'U']:
-        _t2 = _prefix+'"""'
-        endprogs[_t2] = double3prog
-        triple_quoted[_t2] = _t2
-        _t1 = _prefix + "'''"
-        endprogs[_t1] = single3prog
-        triple_quoted[_t1] = _t1
-        single_quoted[_prefix+'"'] = _prefix+'"'
-        single_quoted[_prefix+"'"] = _prefix+"'"
-    del _prefix, _t2, _t1
-    endprogs['u'] = None
-    endprogs['U'] = None
+for _prefix in ['rb', 'rB', 'Rb', 'RB', 'u', 'U']:
+    _t2 = _prefix+'"""'
+    endprogs[_t2] = double3prog
+    triple_quoted[_t2] = _t2
+    _t1 = _prefix + "'''"
+    endprogs[_t1] = single3prog
+    triple_quoted[_t1] = _t1
+    single_quoted[_prefix+'"'] = _prefix+'"'
+    single_quoted[_prefix+"'"] = _prefix+"'"
+del _prefix, _t2, _t1
+endprogs['u'] = None
+endprogs['U'] = None
 
 del _compile
 
@@ -302,7 +297,7 @@ def _get_normal_name(orig_enc):
 def detect_encoding(readline):
     """
     The detect_encoding() function is used to detect the encoding that should
-    be used to decode a Python source file.  It requires one argment, readline,
+    be used to decode a Python source file.  It requires one argument, readline,
     in the same way as the tokenize() generator.
 
     It will call readline a maximum of twice, and return the encoding used
@@ -388,7 +383,7 @@ def open(filename):
 
 def tokenize(readline):
     """
-    The tokenize() generator requires one argment, readline, which
+    The tokenize() generator requires one argument, readline, which
     must be a callable object which provides the same interface as the
     readline() method of built-in file objects.  Each call to the function
     should return one line of input as bytes.  Alternately, readline

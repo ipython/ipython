@@ -159,8 +159,17 @@ class DisplayFormatter(Configurable):
 
         for format_type, formatter in self.formatters.items():
             if format_type in format_dict:
-                # already got it from mimebundle, don't render again
-                continue
+                # already got it from mimebundle, maybe don't render again.
+                # exception: manually registered per-mime renderer
+                # check priority:
+                # 1. user-registered per-mime formatter
+                # 2. mime-bundle (user-registered or repr method)
+                # 3. default per-mime formatter (e.g. repr method)
+                try:
+                    formatter.lookup(obj)
+                except KeyError:
+                    # no special formatter, use mime-bundle-provided value
+                    continue
             if include and format_type not in include:
                 continue
             if exclude and format_type in exclude:
@@ -215,7 +224,7 @@ def catch_format_error(method, self, *args, **kwargs):
         r = method(self, *args, **kwargs)
     except NotImplementedError:
         # don't warn on NotImplementedErrors
-        return None
+        return self._check_return(None, args[0])
     except Exception:
         exc_info = sys.exc_info()
         ip = get_ipython()
@@ -223,7 +232,7 @@ def catch_format_error(method, self, *args, **kwargs):
             ip.showtraceback(exc_info)
         else:
             traceback.print_exception(*exc_info)
-        return None
+        return self._check_return(None, args[0])
     return self._check_return(r, args[0])
 
 
@@ -958,10 +967,7 @@ class MimeBundleFormatter(BaseFormatter):
             method = get_real_method(obj, self.print_method)
 
             if method is not None:
-                d = {}
-                d['include'] = include
-                d['exclude'] = exclude
-                return method(**d)
+                return method(include=include, exclude=exclude)
             return None
         else:
             return None
@@ -986,19 +992,6 @@ def format_display_data(obj, include=None, exclude=None):
     """Return a format data dict for an object.
 
     By default all format types will be computed.
-
-    The following MIME types are currently implemented:
-
-    * text/plain
-    * text/html
-    * text/markdown
-    * text/latex
-    * application/json
-    * application/javascript
-    * application/pdf
-    * image/png
-    * image/jpeg
-    * image/svg+xml
 
     Parameters
     ----------

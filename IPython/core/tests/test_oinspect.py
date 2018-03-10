@@ -19,10 +19,8 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
                                 register_line_cell_magic)
 from decorator import decorator
 from IPython import get_ipython
-from IPython.testing.decorators import skipif
 from IPython.testing.tools import AssertPrints, AssertNotPrints
 from IPython.utils.path import compress_user
-from IPython.utils import py3compat
 
 
 #-----------------------------------------------------------------------------
@@ -40,14 +38,14 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 43  # Put here the actual number of this line
+THIS_LINE_NUMBER = 41  # Put here the actual number of this line
 
 from unittest import TestCase
 
 class Test(TestCase):
 
     def test_find_source_lines(self):
-        self.assertEqual(oinspect.find_source_lines(Test.test_find_source_lines), 
+        self.assertEqual(oinspect.find_source_lines(Test.test_find_source_lines),
                     THIS_LINE_NUMBER+6)
 
 
@@ -307,8 +305,13 @@ def test_empty_property_has_no_source():
 
 
 def test_property_sources():
-    import zlib
-
+    import posixpath 
+    # A simple adder whose source and signature stays
+    # the same across Python distributions
+    def simple_add(a, b):
+        "Adds two numbers"
+        return a + b
+    
     class A(object):
         @property
         def foo(self):
@@ -316,18 +319,18 @@ def test_property_sources():
 
         foo = foo.setter(lambda self, v: setattr(self, 'bar', v))
 
-        id = property(id)
-        compress = property(zlib.compress)
+        dname = property(posixpath.dirname)
+        adder = property(simple_add) 
 
     i = inspector.info(A.foo, detail_level=1)
     nt.assert_in('def foo(self):', i['source'])
     nt.assert_in('lambda self, v:', i['source'])
 
-    i = inspector.info(A.id, detail_level=1)
-    nt.assert_in('fget = <function id>', i['source'])
-
-    i = inspector.info(A.compress, detail_level=1)
-    nt.assert_in('fget = <function zlib.compress>', i['source'])
+    i = inspector.info(A.dname, detail_level=1)
+    nt.assert_in('def dirname(p)', i['source'])
+    
+    i = inspector.info(A.adder, detail_level=1)
+    nt.assert_in('def simple_add(a, b)', i['source'])
 
 
 def test_property_docstring_is_in_info_for_detail_level_0():

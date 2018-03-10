@@ -6,6 +6,7 @@ This should ONLY be run at real release time.
 from __future__ import print_function
 
 import os
+from glob import glob
 from subprocess import call
 import sys
 
@@ -49,9 +50,10 @@ cd(tooldir)
 
 if 'upload' in sys.argv:
     cd(distdir)
-    #print( 'Uploading distribution files to GitHub...')
 
-    for fname in os.listdir('.'):
+    # do not upload OS specific files like .DS_Store
+    to_upload = glob('*.whl')+glob('*.tar.gz')
+    for fname in to_upload:
         # TODO: update to GitHub releases API
         continue
         print('uploading %s to GitHub' % fname)
@@ -61,7 +63,7 @@ if 'upload' in sys.argv:
     # Make target dir if it doesn't exist
     print('1. Uploading IPython to archive.ipython.org')
     sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
-    sh('scp * %s' % release_site)
+    sh('scp *.tar.gz *.whl %s' % release_site)
 
     print('2. Uploading backup files...')
     cd(ipbackupdir)
@@ -69,7 +71,7 @@ if 'upload' in sys.argv:
 
     print('3. Uploading to PyPI using twine')
     cd(distdir)
-    call(['twine', 'upload'] + os.listdir('.'))
+    call(['twine', 'upload'] + to_upload)
 
 else:
     # Build, but don't upload

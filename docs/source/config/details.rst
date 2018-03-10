@@ -228,3 +228,66 @@ a :ref:`startup file <startup_files>`::
 For more information on filters and what you can do with the ``event`` object,
 `see the prompt_toolkit docs
 <http://python-prompt-toolkit.readthedocs.io/en/latest/pages/building_prompts.html#adding-custom-key-bindings>`__.
+
+
+Enter to execute
+----------------
+
+In the Terminal IPython shell – which by default uses the ``prompt_toolkit``
+interface, the semantic meaning of pressing the :kbd:`Enter` key can be
+ambiguous. In some case :kbd:`Enter` should execute code, and in others it
+should add a new line. IPython uses heuristics to decide whether to execute or
+insert a new line at cursor position. For example, if we detect that the current
+code is not valid Python, then the user is likely editing code and the right
+behavior is to likely to insert a new line. If the current code is a simple
+statement like `ord('*')`, then the right behavior is likely to execute. Though
+the exact desired semantics often varies from users to users.
+
+As the exact behavior of :kbd:`Enter` is ambiguous, it has been special cased
+to allow users to completely configure the behavior they like. Hence you can
+have enter always execute code. If you prefer fancier behavior, you need to get
+your hands dirty and read the ``prompt_toolkit`` and IPython documentation
+though. See :ghpull:`10500`, set the
+``c.TerminalInteractiveShell.handle_return`` option and get inspiration from the
+following example that only auto-executes the input if it begins with a bang or
+a modulo character (``!`` or ``%``). To use the following code, add it to your
+IPython configuration::
+
+    def custom_return(shell):
+
+        """This function is required by the API. It takes a reference to
+        the shell, which is the same thing `get_ipython()` evaluates to.
+        This function must return a function that handles each keypress
+        event. That function, named `handle` here, references `shell`
+        by closure."""
+
+        def handle(event):
+
+            """This function is called each time `Enter` is pressed,
+            and takes a reference to a Prompt Toolkit event object.
+            If the current input starts with a bang or modulo, then
+            the input is executed, otherwise a newline is entered,
+            followed by any spaces needed to auto-indent."""
+
+            # set up a few handy references to nested items...
+
+            buffer = event.current_buffer
+            document = buffer.document
+            text = document.text
+
+            if text.startswith('!') or text.startswith('%'): # execute the input...
+
+                buffer.accept_action.validate_and_handle(event.cli, buffer)
+
+            else: # insert a newline with auto-indentation...
+
+                if document.line_count > 1: text = text[:document.cursor_position]
+                indent = shell.input_splitter.check_complete(text + '\n')[1] or 0
+                buffer.insert_text('\n' + ' ' * indent)
+            
+                # if you just wanted a plain newline without any indentation, you
+                # could use `buffer.insert_text('\n')` instead of the lines above
+
+        return handle
+
+    c.TerminalInteractiveShell.handle_return = custom_return

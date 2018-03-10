@@ -857,7 +857,7 @@ Issues (742):
 * :ghissue:`1512`: `print stuff,` should avoid newline
 * :ghissue:`1662`: Delay flushing softspace until after cell finishes
 * :ghissue:`1643`: handle jpg/jpeg in the qtconsole
-* :ghissue:`966`: dreload fails on Windows XP with iPython 0.11 "Unexpected Error"
+* :ghissue:`966`: dreload fails on Windows XP with IPython 0.11 "Unexpected Error"
 * :ghissue:`1500`: dreload doesn't seem to exclude numpy
 * :ghissue:`1520`: kernel crash when showing tooltip (?)
 * :ghissue:`1652`: add patch_pyzmq() for backporting a few changes from newer pyzmq
@@ -890,7 +890,7 @@ Issues (742):
 * :ghissue:`1622`: deepreload fails on Python 3
 * :ghissue:`1625`: Fix deepreload on Python 3
 * :ghissue:`1626`: Failure in new `dreload` tests under Python 3.2
-* :ghissue:`1623`: iPython / matplotlib Memory error with imshow
+* :ghissue:`1623`: IPython / matplotlib Memory error with imshow
 * :ghissue:`1619`: pyin messages should have execution_count
 * :ghissue:`1620`: pyin message now have execution_count
 * :ghissue:`32`: dreload produces spurious traceback when numpy is involved
@@ -944,7 +944,7 @@ Issues (742):
 * :ghissue:`1569`: BUG: qtconsole -- non-standard handling of \a and \b. [Fixes #1561]
 * :ghissue:`1574`: BUG: Ctrl+C crashes wx pylab kernel in qtconsole
 * :ghissue:`1573`: BUG: Ctrl+C crashes wx pylab kernel in qtconsole.
-* :ghissue:`1590`: 'iPython3 qtconsole' doesn't work in Windows 7
+* :ghissue:`1590`: 'IPython3 qtconsole' doesn't work in Windows 7
 * :ghissue:`602`: User test the html notebook
 * :ghissue:`613`: Implement Namespace panel section
 * :ghissue:`879`: How to handle Javascript output in the notebook

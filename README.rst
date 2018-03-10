@@ -1,15 +1,14 @@
 .. image:: https://codecov.io/github/ipython/ipython/coverage.svg?branch=master
     :target: https://codecov.io/github/ipython/ipython?branch=master
 
-.. image:: https://img.shields.io/pypi/dm/IPython.svg
-    :target: https://pypi.python.org/pypi/ipython
-
 .. image:: https://img.shields.io/pypi/v/IPython.svg
     :target: https://pypi.python.org/pypi/ipython
 
 .. image:: https://img.shields.io/travis/ipython/ipython.svg
     :target: https://travis-ci.org/ipython/ipython
 
+.. image:: https://www.codetriage.com/ipython/ipython/badges/users.svg
+    :target: https://www.codetriage.com/ipython/ipython/
 
 ===========================================
  IPython: Productive Interactive Computing
@@ -72,7 +71,7 @@ use IPython from source. You need to checkout the remote 5.x branch. If you are
 using git the following should work:
 
   $ git fetch origin
-  $ git checkout -b origin/5.x
+  $ git checkout 5.x
 
 If you encounter this error message with a regular install of IPython, then you
 likely need to update your package manager, for example if you are using `pip`

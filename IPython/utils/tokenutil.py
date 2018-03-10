@@ -44,7 +44,12 @@ def line_at_cursor(cell, cursor_pos=0):
     lines = cell.splitlines(True)
     for line in lines:
         next_offset = offset + len(line)
-        if next_offset >= cursor_pos:
+        if not line.endswith('\n'):
+            # If the last line doesn't have a trailing newline, treat it as if
+            # it does so that the cursor at the end of the line still counts
+            # as being on that line.
+            next_offset += 1
+        if next_offset > cursor_pos:
             break
         offset = next_offset
     else:

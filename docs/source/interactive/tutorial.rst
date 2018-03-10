@@ -93,13 +93,15 @@ existing objects, but also to infer completion statically without executing
 code. There is nothing particular need to get this to work, simply use tab
 completion on more complex expressions like the following::
 
-    >>> data = ['Number of users', 123_456]
+    >>> data = ['Number of users', 123456]
     ... data[0].<tab>
 
 IPython and Jedi will be able to infer that ``data[0]`` is actually a string
 and should show relevant completions like ``upper()``, ``lower()`` and other
 string methods. You can use the :kbd:`Tab` key to cycle through completions,
 and while a completion is highlighted, its type will be shown as well.
+When the type of the completion is a function, the completer will also show the
+signature of the function when highlighted.
 
 Exploring your objects
 ======================
@@ -237,8 +239,8 @@ To run any command at the system shell, simply prefix it with ``!``, e.g.::
     
 You can capture the output into a Python list, e.g.: ``files = !ls``. To pass
 the values of Python variables or expressions to system commands, prefix them
-with $: ``!grep -rF $pattern ipython/*``. See :ref:`our shell section
-<system_shell_access>` for more details.
+with $: ``!grep -rF $pattern ipython/*`` or wrap in `{braces}`. See :ref:`our
+shell section <system_shell_access>` for more details.
 
 Define your own system aliases
 ------------------------------

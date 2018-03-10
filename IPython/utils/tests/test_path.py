@@ -192,7 +192,7 @@ def test_get_xdg_dir_0():
 
 @with_environment
 def test_get_xdg_dir_1():
-    """test_get_xdg_dir_1, check nonexistant xdg_dir"""
+    """test_get_xdg_dir_1, check nonexistent xdg_dir"""
     reload(path)
     path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
@@ -394,6 +394,7 @@ def test_unescape_glob():
     nt.assert_equal(path.unescape_glob(r'\a'), r'\a')
 
 
+@onlyif_unicode_paths
 def test_ensure_dir_exists():
     with TemporaryDirectory() as td:
         d = os.path.join(td, '∂ir')

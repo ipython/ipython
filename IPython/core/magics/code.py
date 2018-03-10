@@ -53,7 +53,7 @@ $""", re.VERBOSE)
 
 def extract_code_ranges(ranges_str):
     """Turn a string of range for %%load into 2-tuples of (start, stop)
-    ready to use as a slice of the content splitted by lines.
+    ready to use as a slice of the content split by lines.
 
     Examples
     --------
@@ -369,14 +369,14 @@ class CodeMagics(Magics):
 
         l = len(contents)
 
-        # 200 000 is ~ 2500 full 80 caracter lines
+        # 200 000 is ~ 2500 full 80 character lines
         # so in average, more than 5000 lines
         if l > 200000 and 'y' not in opts:
             try:
                 ans = self.shell.ask_yes_no(("The text you're trying to load seems pretty big"\
                 " (%d characters). Continue (y/[N]) ?" % l), default='n' )
             except StdinNotImplementedError:
-                #asume yes if raw input not implemented
+                #assume yes if raw input not implemented
                 ans = True
 
             if ans is False :

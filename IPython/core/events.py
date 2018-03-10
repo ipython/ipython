@@ -13,6 +13,9 @@ events and the arguments which will be passed to them.
    This API is experimental in IPython 2.0, and may be revised in future versions.
 """
 
+from backcall import callback_prototype
+
+
 class EventManager(object):
     """Manage a collection of events and a sequence of callbacks for each.
     
@@ -37,7 +40,7 @@ class EventManager(object):
         self.callbacks = {n:[] for n in available_events}
     
     def register(self, event, function):
-        """Register a new event callback
+        """Register a new event callback.
         
         Parameters
         ----------
@@ -56,12 +59,24 @@ class EventManager(object):
         """
         if not callable(function):
             raise TypeError('Need a callable, got %r' % function)
-        self.callbacks[event].append(function)
+        callback_proto = available_events.get(event)
+        self.callbacks[event].append(callback_proto.adapt(function))
     
     def unregister(self, event, function):
         """Remove a callback from the given event."""
-        self.callbacks[event].remove(function)
-    
+        if function in self.callbacks[event]:
+            return self.callbacks[event].remove(function)
+
+        # Remove callback in case ``function`` was adapted by `backcall`.
+        for callback in self.callbacks[event]:
+            try:
+                if callback.__wrapped__ is function:
+                    return self.callbacks[event].remove(callback)
+            except AttributeError:
+                pass
+
+        raise ValueError('Function {!r} is not registered as a {} callback'.format(function, event))
+
     def trigger(self, event, *args, **kwargs):
         """Call callbacks for ``event``.
         
@@ -78,8 +93,9 @@ class EventManager(object):
 # event_name -> prototype mapping
 available_events = {}
 
-def _define_event(callback_proto):
-    available_events[callback_proto.__name__] = callback_proto
+def _define_event(callback_function):
+    callback_proto = callback_prototype(callback_function)
+    available_events[callback_function.__name__] = callback_proto
     return callback_proto
 
 # ------------------------------------------------------------------------------
@@ -94,12 +110,19 @@ def pre_execute():
     """Fires before code is executed in response to user/frontend action.
     
     This includes comm and widget messages and silent execution, as well as user
-    code cells."""
+    code cells.
+    """
     pass
 
 @_define_event
-def pre_run_cell():
-    """Fires before user-entered code runs."""
+def pre_run_cell(info):
+    """Fires before user-entered code runs.
+
+    Parameters
+    ----------
+    info : :class:`~IPython.core.interactiveshell.ExecutionInfo`
+      An object containing information used for the code execution.
+    """
     pass
 
 @_define_event
@@ -107,12 +130,19 @@ def post_execute():
     """Fires after code is executed in response to user/frontend action.
     
     This includes comm and widget messages and silent execution, as well as user
-    code cells."""
+    code cells.
+    """
     pass
 
 @_define_event
-def post_run_cell():
-    """Fires after user-entered code runs."""
+def post_run_cell(result):
+    """Fires after user-entered code runs.
+
+    Parameters
+    ----------
+    result : :class:`~IPython.core.interactiveshell.ExecutionResult`
+      The object which will be returned as the execution result.
+    """
     pass
 
 @_define_event

@@ -57,11 +57,13 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.graphviz',
     'IPython.sphinxext.ipython_console_highlighting',
     'IPython.sphinxext.ipython_directive',
     'sphinx.ext.napoleon',  # to preprocess docstrings
     'github',  # for easy GitHub links
     'magics',
+    'configtraits',
 ]
 
 if ON_RTD:

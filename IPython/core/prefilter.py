@@ -43,7 +43,7 @@ re_fun_name = re.compile(r'[a-zA-Z_]([a-zA-Z0-9_.]*) *$')
 # particular, all binary operators should be excluded, so that if foo is
 # callable, foo OP bar doesn't become foo(OP bar), which is invalid.  The
 # characters '!=()' don't need to be checked for, as the checkPythonChars
-# routine explicitely does so, to catch direct calls and rebindings of
+# routine explicitly does so, to catch direct calls and rebindings of
 # existing names.
 
 # Warning: the '-' HAS TO BE AT THE END of the first group, otherwise
@@ -589,8 +589,11 @@ class MagicHandler(PrefilterHandler):
         """Execute magic functions."""
         ifun    = line_info.ifun
         the_rest = line_info.the_rest
-        cmd = '%sget_ipython().magic(%r)' % (line_info.pre_whitespace,
-                                                    (ifun + " " + the_rest))
+        #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
+        t_arg_s = ifun + " " + the_rest
+        t_magic_name, _, t_magic_arg_s = t_arg_s.partition(' ')
+        t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
+        cmd = '%sget_ipython().run_line_magic(%r, %r)' % (line_info.pre_whitespace, t_magic_name, t_magic_arg_s)
         return cmd
 
 

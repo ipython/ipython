@@ -13,6 +13,7 @@ reference the name under which an object is being read.
 __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
+import ast
 import inspect
 from inspect import signature
 import linecache
@@ -123,18 +124,11 @@ def getdoc(obj):
     except Exception:
         pass
     else:
-        # if we get extra info, we add it to the normal docstring.
         if isinstance(ds, str):
             return inspect.cleandoc(ds)
-    try:
-        docstr = inspect.getdoc(obj)
-        encoding = get_encoding(obj)
-        return py3compat.cast_unicode(docstr, encoding=encoding)
-    except Exception:
-        # Harden against an inspect failure, which can occur with
-        # extensions modules.
-        raise
-        return None
+    docstr = inspect.getdoc(obj)
+    encoding = get_encoding(obj)
+    return py3compat.cast_unicode(docstr, encoding=encoding)
 
 
 def getsource(obj, oname=''):
@@ -598,9 +592,9 @@ class Inspector(Colorable):
             Name of the variable pointing to `obj`.
         formatter: callable
         info:
-            already computed informations
+            already computed information
         detail_level: integer
-            Granularity of detail level, if set to 1, give more informations.
+            Granularity of detail level, if set to 1, give more information.
         """
 
         info = self._info(obj, oname=oname, info=info, detail_level=detail_level)
@@ -637,10 +631,10 @@ class Inspector(Colorable):
             # Functions, methods, classes
             append_field(_mime, 'Signature', 'definition', code_formatter)
             append_field(_mime, 'Init signature', 'init_definition', code_formatter)
+            append_field(_mime, 'Docstring', 'docstring', formatter)
             if detail_level > 0 and info['source']:
                 append_field(_mime, 'Source', 'source', code_formatter)
             else:
-                append_field(_mime, 'Docstring', 'docstring', formatter)
                 append_field(_mime, 'Init docstring', 'init_docstring', formatter)
 
             append_field(_mime, 'File', 'file')
@@ -686,7 +680,7 @@ class Inspector(Colorable):
 
               The formatter is a callable that takes a string as an input
               and returns either a formatted string or a mime type bundle
-              in the form of a dictionnary.
+              in the form of a dictionary.
 
               Although the support of custom formatter returning a string
               instead of a mime type bundle is deprecated.
@@ -828,7 +822,7 @@ class Inspector(Colorable):
                 pass
 
         # Add docstring only if no source is to be shown (avoid repetitions).
-        if ds and out.get('source', None) is None:
+        if ds and not self._source_contains_docstring(out.get('source'), ds):
             out['docstring'] = ds
 
         # Constructor docstring for classes
@@ -942,6 +936,23 @@ class Inspector(Colorable):
                     argspec_dict['varkw'] = argspec_dict.pop('keywords')
 
         return object_info(**out)
+
+    @staticmethod
+    def _source_contains_docstring(src, doc):
+        """
+        Check whether the source *src* contains the docstring *doc*.
+
+        This is is helper function to skip displaying the docstring if the
+        source already contains it, avoiding repetition of information.
+        """
+        try:
+            def_node, = ast.parse(dedent(src)).body
+            return ast.get_docstring(def_node) == doc
+        except Exception:
+            # The source can become invalid or even non-existent (because it
+            # is re-fetched from the source file) so the above code fail in
+            # arbitrary ways.
+            return False
 
     def psearch(self,pattern,ns_table,ns_search=[],
                 ignore_case=False,show_all=False):

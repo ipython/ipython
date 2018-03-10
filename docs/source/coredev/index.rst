@@ -18,19 +18,27 @@ All pull requests should usually be made against ``master``, if a Pull Request
 need to be backported to an earlier release; then it should be tagged with the
 correct ``milestone``.
 
-If you are an admin on the IPython repository just mention the **backport bot** to
-do the work for you. The bot is evolving so instructions may be different. At
-the time of this writing you can use::
+If you tag a pull request with a milestone **before** merging the pull request,
+and the base ref is `master`, then our backport bot should automatically create
+a corresponding pull-request that backport on the correct branch.
 
-    @meeseeksdev[bot] backport to <branchname>
+If you are an admin on the IPython repository you can also just mention the
+**backport bot** to do the work for you. The bot is evolving so instructions may
+be different. At the time of this writing you can use::
+
+    @meeseeksdev[bot] backport [to <branchname>]
 
 The bot will attempt to backport the current pull-request and issue a PR if
-possible.
+possible. If the milestone is set on the issue you can omit the branch to
+backport to.
 
 .. note::
 
     The ``@`` and ``[dev]`` when mentioning the bot should be optional and can
     be omitted.
+
+If the pull request cannot be automatically backported, the bot should tell you
+so on the PR and apply a "Need manual backport" tag to the origin PR.
 
 
 Backport with ghpro
@@ -133,13 +141,16 @@ If a major release:
       which may need some manual cleanup of ``stats.rst``. Add the cleaned
       ``stats.rst`` results to ``docs/source/whatsnew/github-stats-X.rst``
       where ``X`` is the numerical release version (don't forget to add it to
-      the git repo as well). If creating a major release, make a new
+      the git repository as well). If creating a major release, make a new
       ``github-stats-X.rst`` file; if creating a minor release, the content
       from ``stats.rst`` may simply be added to the top of an existing
-      ``github-stats-X.rst`` file.  Finally, edit
-      ``docs/source/whatsnew/index.rst`` to list the new ``github-stats-X``
-      file you just created and remove temporarily the first entry called
-      ``development`` (you'll need to add it back after release).
+      ``github-stats-X.rst`` file.
+
+    - Edit ``docs/source/whatsnew/index.rst`` to list the new ``github-stats-X``
+      file you just created.
+
+    - Remove temporarily the first entry called ``development`` (you'll need to
+      add it back after release).
 
       Make sure that the stats file has a header or it won't be rendered in
       the final documentation.

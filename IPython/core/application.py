@@ -27,7 +27,7 @@ from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.paths import get_ipython_dir, get_ipython_package_dir
 from IPython.utils.path import ensure_dir_exists
 from traitlets import (
-    List, Unicode, Type, Bool, Dict, Set, Instance, Undefined,
+    List, Unicode, Type, Bool, Set, Instance, Undefined,
     default, observe,
 )
 
@@ -42,6 +42,14 @@ else:
         "/usr/local/etc/ipython",
         "/etc/ipython",
     ]
+
+
+ENV_CONFIG_DIRS = []
+_env_config_dir = os.path.join(sys.prefix, 'etc', 'ipython')
+if _env_config_dir not in SYSTEM_CONFIG_DIRS:
+    # only add ENV_CONFIG if sys.prefix is not already included
+    ENV_CONFIG_DIRS.append(_env_config_dir)
+
 
 _envvar = os.environ.get('IPYTHON_SUPPRESS_CONFIG_ERRORS')
 if _envvar in {None, ''}:
@@ -93,12 +101,12 @@ class ProfileAwareConfigLoader(PyFileConfigLoader):
 
 class BaseIPythonApplication(Application):
 
-    name = Unicode(u'ipython')
+    name = u'ipython'
     description = Unicode(u'IPython: an enhanced interactive Python shell.')
     version = Unicode(release.version)
 
-    aliases = Dict(base_aliases)
-    flags = Dict(base_flags)
+    aliases = base_aliases
+    flags = base_flags
     classes = List([ProfileDir])
     
     # enable `load_subconfig('cfg.py', profile='name')`
@@ -398,6 +406,7 @@ class BaseIPythonApplication(Application):
 
     def init_config_files(self):
         """[optionally] copy default config files into profile dir."""
+        self.config_file_paths.extend(ENV_CONFIG_DIRS)
         self.config_file_paths.extend(SYSTEM_CONFIG_DIRS)
         # copy config files
         path = self.builtin_profile_dir

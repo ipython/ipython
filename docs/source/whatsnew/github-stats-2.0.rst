@@ -800,7 +800,7 @@ Pull Requests (687):
 * :ghpull:`4768`: Qt console: Fix _prompt_pos accounting on timer flush output.
 * :ghpull:`4727`: Remove Nbconvert template loading magic
 * :ghpull:`4763`: Set numpydoc options to produce fewer Sphinx warnings.
-* :ghpull:`4770`: alway define aliases, even if empty
+* :ghpull:`4770`: always define aliases, even if empty
 * :ghpull:`4766`: add `python -m` entry points for everything
 * :ghpull:`4767`: remove manpages for irunner, iplogger
 * :ghpull:`4751`: Added --post-serve explanation into the nbconvert docs.
@@ -1422,7 +1422,7 @@ Issues (434):
 * :ghissue:`3402`: Feature Request: Save As (latex, html,..etc) as a menu option in Notebook rather than explicit need to invoke nbconvert
 * :ghissue:`3224`: Revisit layout of notebook area
 * :ghissue:`2746`: rerunning a cell with long output (exception) scrolls to much (html notebook)
-* :ghissue:`2667`: can't save opened notebook if accidently delete the notebook in the dashboard
+* :ghissue:`2667`: can't save opened notebook if accidentally delete the notebook in the dashboard
 * :ghissue:`3026`: Reporting errors from _repr_<type>_ methods
 * :ghissue:`1844`: Notebook does not exist and permalinks
 * :ghissue:`2450`: [closed PR] Prevent jumping of window to input when output is clicked.

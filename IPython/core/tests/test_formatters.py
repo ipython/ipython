@@ -49,7 +49,7 @@ def test_pretty():
     f = PlainTextFormatter()
     f.for_type(A, foo_printer)
     nt.assert_equal(f(A()), 'foo')
-    nt.assert_equal(f(B()), 'foo')
+    nt.assert_equal(f(B()), 'B()')
     nt.assert_equal(f(GoodPretty()), 'foo')
     # Just don't raise an exception for the following:
     f(BadPretty())
@@ -521,3 +521,13 @@ def test_repr_mime_meta():
             'height': 10,
         }
     })
+
+def test_repr_mime_failure():
+    class BadReprMime(object):
+        def _repr_mimebundle_(self, include=None, exclude=None):
+            raise RuntimeError
+
+    f = get_ipython().display_formatter
+    obj = BadReprMime()
+    d, md = f.format(obj)
+    nt.assert_in('text/plain', d)

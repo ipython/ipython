@@ -1,4 +1,4 @@
-"""Enable pyglet to be used interacively with prompt_toolkit
+"""Enable pyglet to be used interactively with prompt_toolkit
 """
 
 import sys

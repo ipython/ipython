@@ -161,7 +161,7 @@ def should_backport(labels=None, milestone=None, project='ipython/ipython'):
 if __name__ == '__main__':
     project = 'ipython/ipython'
 
-    print("DEPRECATE: backport_pr.py is deprecated and is is now recommended"
+    print("DEPRECATE: backport_pr.py is deprecated and it is now recommended"
           "to install `ghpro` from PyPI.", file=sys.stderr)
 
     args = list(sys.argv)

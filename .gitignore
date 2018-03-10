@@ -5,7 +5,9 @@ _build
 docs/man/*.gz
 docs/source/api/generated
 docs/source/config/options
+docs/source/config/shortcuts/*.csv
 docs/source/interactive/magics-generated.txt
+docs/source/config/shortcuts/*.csv
 docs/gh-pages
 jupyter_notebook/notebook/static/mathjax
 jupyter_notebook/static/style/*.map
@@ -19,5 +21,6 @@ __pycache__
 .DS_Store
 \#*#
 .#*
+.cache
 .coverage
 *.swp

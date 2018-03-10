@@ -1,5 +1,8 @@
 # coding: utf-8
-"""Compatibility tricks for Python 3. Mainly to do with unicode."""
+"""Compatibility tricks for Python 3. Mainly to do with unicode.
+
+This file is deprecated and will be removed in a future version.
+"""
 import functools
 import os
 import sys
@@ -47,11 +50,11 @@ def _modify_str_or_docstring(str_change_func):
         else:
             func = func_or_str
             doc = func.__doc__
-        
+
         # PYTHONOPTIMIZE=2 strips docstrings, so they can disappear unexpectedly
         if doc is not None:
             doc = str_change_func(doc)
-        
+
         if func:
             func.__doc__ = doc
             return func
@@ -88,7 +91,7 @@ def _shutil_which(cmd, mode=os.F_OK | os.X_OK, path=None):
     `mode` defaults to os.F_OK | os.X_OK. `path` defaults to the result
     of os.environ.get("PATH"), or can be overridden with a custom search
     path.
-    
+
     This is a backport of shutil.which from Python 3.4
     """
     # Check that a given file can be accessed with the correct mode.
@@ -143,153 +146,72 @@ def _shutil_which(cmd, mode=os.F_OK | os.X_OK, path=None):
                     return name
     return None
 
-if sys.version_info[0] >= 3:
-    PY3 = True
-    
-    # keep reference to builtin_mod because the kernel overrides that value
-    # to forward requests to a frontend.
-    def input(prompt=''):
-        return builtin_mod.input(prompt)
-    
-    builtin_mod_name = "builtins"
-    import builtins as builtin_mod
-    
-    str_to_unicode = no_code
-    unicode_to_str = no_code
-    str_to_bytes = encode
-    bytes_to_str = decode
-    cast_bytes_py2 = no_code
-    cast_unicode_py2 = no_code
-    buffer_to_bytes_py2 = no_code
-    
-    string_types = (str,)
-    unicode_type = str
-    
-    which = shutil.which
-    
-    def isidentifier(s, dotted=False):
-        if dotted:
-            return all(isidentifier(a) for a in s.split("."))
-        return s.isidentifier()
+PY3 = True
 
-    xrange = range
-    def iteritems(d): return iter(d.items())
-    def itervalues(d): return iter(d.values())
-    getcwd = os.getcwd
-    
-    MethodType = types.MethodType
+# keep reference to builtin_mod because the kernel overrides that value
+# to forward requests to a frontend.
+def input(prompt=''):
+    return builtin_mod.input(prompt)
 
-    def execfile(fname, glob, loc=None, compiler=None):
-        loc = loc if (loc is not None) else glob
-        with open(fname, 'rb') as f:
-            compiler = compiler or compile
-            exec(compiler(f.read(), fname, 'exec'), glob, loc)
-    
-    # Refactor print statements in doctests.
-    _print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)
-    def _print_statement_sub(match):
-        expr = match.groups('expr')
-        return "print(%s)" % expr
-    
-    @_modify_str_or_docstring
-    def doctest_refactor_print(doc):
-        """Refactor 'print x' statements in a doctest to print(x) style. 2to3
-        unfortunately doesn't pick up on our doctests.
-        
-        Can accept a string or a function, so it can be used as a decorator."""
-        return _print_statement_re.sub(_print_statement_sub, doc)
-    
-    # Abstract u'abc' syntax:
-    @_modify_str_or_docstring
-    def u_format(s):
-        """"{u}'abc'" --> "'abc'" (Python 3)
-        
-        Accepts a string or a function, so it can be used as a decorator."""
-        return s.format(u='')
-    
-    def get_closure(f):
-        """Get a function's closure attribute"""
-        return f.__closure__
+builtin_mod_name = "builtins"
+import builtins as builtin_mod
 
-else:
-    PY3 = False
-    
-    # keep reference to builtin_mod because the kernel overrides that value
-    # to forward requests to a frontend.
-    def input(prompt=''):
-        return builtin_mod.raw_input(prompt)
-    
-    builtin_mod_name = "__builtin__"
-    import __builtin__ as builtin_mod
-    
-    str_to_unicode = decode
-    unicode_to_str = encode
-    str_to_bytes = no_code
-    bytes_to_str = no_code
-    cast_bytes_py2 = cast_bytes
-    cast_unicode_py2 = cast_unicode
-    buffer_to_bytes_py2 = buffer_to_bytes
-    
-    string_types = (str, unicode)
-    unicode_type = unicode
-    
-    import re
-    _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
-    def isidentifier(s, dotted=False):
-        if dotted:
-            return all(isidentifier(a) for a in s.split("."))
-        return bool(_name_re.match(s))
-    
-    xrange = xrange
-    def iteritems(d): return d.iteritems()
-    def itervalues(d): return d.itervalues()
-    getcwd = os.getcwdu
+str_to_unicode = no_code
+unicode_to_str = no_code
+str_to_bytes = encode
+bytes_to_str = decode
+cast_bytes_py2 = no_code
+cast_unicode_py2 = no_code
+buffer_to_bytes_py2 = no_code
 
-    def MethodType(func, instance):
-        return types.MethodType(func, instance, type(instance))
-    
-    def doctest_refactor_print(func_or_str):
-        return func_or_str
+string_types = (str,)
+unicode_type = str
 
-    def get_closure(f):
-        """Get a function's closure attribute"""
-        return f.func_closure
-    
-    which = _shutil_which
+which = shutil.which
 
-    # Abstract u'abc' syntax:
-    @_modify_str_or_docstring
-    def u_format(s):
-        """"{u}'abc'" --> "u'abc'" (Python 2)
-        
-        Accepts a string or a function, so it can be used as a decorator."""
-        return s.format(u='u')
+def isidentifier(s, dotted=False):
+    if dotted:
+        return all(isidentifier(a) for a in s.split("."))
+    return s.isidentifier()
 
-    if sys.platform == 'win32':
-        def execfile(fname, glob=None, loc=None, compiler=None):
-            loc = loc if (loc is not None) else glob
-            scripttext = builtin_mod.open(fname).read()+ '\n'
-            # compile converts unicode filename to str assuming
-            # ascii. Let's do the conversion before calling compile
-            if isinstance(fname, unicode):
-                filename = unicode_to_str(fname)
-            else:
-                filename = fname
-            compiler = compiler or compile
-            exec(compiler(scripttext, filename, 'exec'), glob, loc)
+xrange = range
+def iteritems(d): return iter(d.items())
+def itervalues(d): return iter(d.values())
+getcwd = os.getcwd
 
-    else:
-        def execfile(fname, glob=None, loc=None, compiler=None):
-            if isinstance(fname, unicode):
-                filename = fname.encode(sys.getfilesystemencoding())
-            else:
-                filename = fname
-            where = [ns for ns in [glob, loc] if ns is not None]
-            if compiler is None:
-                builtin_mod.execfile(filename, *where)
-            else:
-                scripttext = builtin_mod.open(fname).read().rstrip() + '\n'
-                exec(compiler(scripttext, filename, 'exec'), glob, loc)
+MethodType = types.MethodType
+
+def execfile(fname, glob, loc=None, compiler=None):
+    loc = loc if (loc is not None) else glob
+    with open(fname, 'rb') as f:
+        compiler = compiler or compile
+        exec(compiler(f.read(), fname, 'exec'), glob, loc)
+
+# Refactor print statements in doctests.
+_print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)
+def _print_statement_sub(match):
+    expr = match.groups('expr')
+    return "print(%s)" % expr
+
+@_modify_str_or_docstring
+def doctest_refactor_print(doc):
+    """Refactor 'print x' statements in a doctest to print(x) style. 2to3
+    unfortunately doesn't pick up on our doctests.
+
+    Can accept a string or a function, so it can be used as a decorator."""
+    return _print_statement_re.sub(_print_statement_sub, doc)
+
+# Abstract u'abc' syntax:
+@_modify_str_or_docstring
+def u_format(s):
+    """"{u}'abc'" --> "'abc'" (Python 3)
+
+    Accepts a string or a function, so it can be used as a decorator."""
+    return s.format(u='')
+
+def get_closure(f):
+    """Get a function's closure attribute"""
+    return f.__closure__
 
 
 PY2 = not PY3

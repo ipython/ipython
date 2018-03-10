@@ -581,7 +581,7 @@ Pull Requests (793):
 * :ghpull:`3575`: tweak `run -d` message to 'continue execution'
 * :ghpull:`3569`: add PYTHONSTARTUP to startup files
 * :ghpull:`3567`: Trigger a single event on js app initilized
-* :ghpull:`3565`: style.min.css shoudl always exist...
+* :ghpull:`3565`: style.min.css should always exist...
 * :ghpull:`3531`: allow markdown in heading cells
 * :ghpull:`3577`: Simplify codemirror ipython-mode
 * :ghpull:`3495`: Simplified regexp, and suggestions for clearer regexps.
@@ -666,7 +666,7 @@ Pull Requests (793):
 * :ghpull:`3373`: make cookie_secret configurable
 * :ghpull:`3307`: switch default ws_url logic to js side
 * :ghpull:`3392`: Restore anchor link on h2-h6
-* :ghpull:`3369`: Use different treshold for (auto)scroll in output
+* :ghpull:`3369`: Use different threshold for (auto)scroll in output
 * :ghpull:`3370`: normalize unicode notebook filenames
 * :ghpull:`3372`: base default cookie name on request host+port
 * :ghpull:`3378`: disable CodeMirror drag/drop on Safari
@@ -848,7 +848,7 @@ Pull Requests (793):
 * :ghpull:`2941`: fix baseUrl
 * :ghpull:`2903`: Specify toggle value on cell line number
 * :ghpull:`2911`: display order in output area configurable
-* :ghpull:`2897`: Dont rely on BaseProjectUrl data in body tag
+* :ghpull:`2897`: Don't rely on BaseProjectUrl data in body tag
 * :ghpull:`2894`: Cm configurable
 * :ghpull:`2927`: next release will be 1.0
 * :ghpull:`2932`: Simplify using notebook static files from external code
@@ -1335,7 +1335,7 @@ Issues (691):
 * :ghissue:`2586`: cannot store aliases
 * :ghissue:`2714`: ipython qtconsole print unittest messages in console instead his own window. 
 * :ghissue:`2669`: cython magic failing to work with openmp.
-* :ghissue:`3256`: Vagrant pandas instance of iPython Notebook does not respect additional plotting arguments
+* :ghissue:`3256`: Vagrant pandas instance of IPython Notebook does not respect additional plotting arguments
 * :ghissue:`3010`: cython magic fail if cache dir is deleted while in session
 * :ghissue:`2044`: prune unused names from parallel.error
 * :ghissue:`1145`: Online help utility broken in QtConsole
@@ -1476,7 +1476,7 @@ Issues (691):
 * :ghissue:`3374`: ipython qtconsole does not display the prompt on OSX
 * :ghissue:`3380`: simple call to kernel
 * :ghissue:`3379`: TaskRecord key 'started' not set
-* :ghissue:`3241`: notebook conection time out
+* :ghissue:`3241`: notebook connection time out
 * :ghissue:`3334`: magic interpreter interpretes non magic commands?
 * :ghissue:`3326`: python3.3: Type error when launching SGE cluster in IPython notebook
 * :ghissue:`3349`: pip3 doesn't run 2to3?
@@ -1488,7 +1488,7 @@ Issues (691):
 * :ghissue:`3327`: Qt version check broken
 * :ghissue:`3303`: parallel tasks never finish under heavy load
 * :ghissue:`1381`: '\\' for equation continuations require an extra '\' in markdown cells
-* :ghissue:`3314`: Error launching iPython
+* :ghissue:`3314`: Error launching IPython
 * :ghissue:`3306`: Test failure when running on a Vagrant VM
 * :ghissue:`3280`: IPython.utils.process.getoutput returns stderr
 * :ghissue:`3299`: variables named _ or __ exhibit incorrect behavior
@@ -1791,7 +1791,7 @@ Issues (691):
 * :ghissue:`2381`: %time doesn't work for multiline statements
 * :ghissue:`1435`: Add size keywords in Image class
 * :ghissue:`2372`: interactiveshell.py misses urllib and io_open imports
-* :ghissue:`2371`: iPython not working
+* :ghissue:`2371`: IPython not working
 * :ghissue:`2367`: Tab expansion moves to next cell in notebook
 * :ghissue:`2359`: nbviever alters the order of print and display() output
 * :ghissue:`2227`: print name for IPython Notebooks has become uninformative
@@ -1802,7 +1802,7 @@ Issues (691):
 * :ghissue:`2351`: Multiple Notebook Apps: cookies not port specific, clash with each other
 * :ghissue:`2350`: running unittest from qtconsole prints output to terminal
 * :ghissue:`2303`:  remote tracebacks broken since 952d0d6 (PR #2223)
-* :ghissue:`2330`: qtconsole does not hightlight tab-completion suggestion with custom stylesheet
+* :ghissue:`2330`: qtconsole does not highlight tab-completion suggestion with custom stylesheet
 * :ghissue:`2325`: Parsing Tex formula fails in Notebook
 * :ghissue:`2324`: Parsing Tex formula fails
 * :ghissue:`1474`: Add argument to `run -n` for custom namespace
@@ -1847,7 +1847,7 @@ Issues (691):
 * :ghissue:`2156`: Make it possible to install ipython without nasty gui dependencies
 * :ghissue:`2154`: Scrolled long output should be off in print view by default
 * :ghissue:`2162`: Tab completion does not work with IPython.embed_kernel()
-* :ghissue:`2157`: iPython 0.13 / github-master cannot create logfile from scratch
+* :ghissue:`2157`: IPython 0.13 / github-master cannot create logfile from scratch
 * :ghissue:`2151`: missing newline when a magic is called from the qtconsole menu
 * :ghissue:`2139`: 00_notebook_tour Image example broken on master
 * :ghissue:`2143`: Add a %%cython_annotate magic
@@ -1860,7 +1860,7 @@ Issues (691):
 * :ghissue:`2121`: ipdb does not support input history in qtconsole
 * :ghissue:`2114`: %logstart doesn't log
 * :ghissue:`2085`: %ed magic fails in qtconsole
-* :ghissue:`2119`: iPython fails to run on MacOS Lion 
+* :ghissue:`2119`: IPython fails to run on MacOS Lion 
 * :ghissue:`2052`: %pylab inline magic does not work on windows
 * :ghissue:`2111`: Ipython won't start on W7
 * :ghissue:`2112`: Strange internal traceback

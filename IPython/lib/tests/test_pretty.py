@@ -405,3 +405,39 @@ def test_mappingproxy():
     ]
     for obj, expected in cases:
         nt.assert_equal(pretty.pretty(obj), expected)
+
+def test_function_pretty():
+    "Test pretty print of function"
+    # posixpath is a pure python module, its interface is consistent
+    # across Python distributions
+    import posixpath
+    nt.assert_equal(pretty.pretty(posixpath.join), '<function posixpath.join(a, *p)>')
+ 
+    # custom function
+    def meaning_of_life(question=None):
+        if question:
+            return 42
+        return "Don't panic"
+
+    nt.assert_in('meaning_of_life(question=None)', pretty.pretty(meaning_of_life))
+
+
+class OrderedCounter(Counter, OrderedDict):
+    'Counter that remembers the order elements are first encountered'
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, OrderedDict(self))
+
+    def __reduce__(self):
+        return self.__class__, (OrderedDict(self),)
+
+class MySet(set):  # Override repr of a basic type
+    def __repr__(self):
+        return 'mine'
+
+def test_custom_repr():
+    """A custom repr should override a pretty printer for a parent type"""
+    oc = OrderedCounter("abracadabra")
+    nt.assert_in("OrderedCounter(OrderedDict", pretty.pretty(oc))
+
+    nt.assert_equal(pretty.pretty(MySet()), 'mine')

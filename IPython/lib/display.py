@@ -424,7 +424,7 @@ class FileLinks(FileLink):
             raise ValueError("Cannot display a file using FileLinks. "
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
-        # remove trailing slashs for more consistent output formatting
+        # remove trailing slashes for more consistent output formatting
         path = path.rstrip('/')
 
         self.path = path
@@ -508,7 +508,7 @@ class FileLinks(FileLink):
             # Working on a platform where the path separator is "\", so
             # must convert these to "/" for generating a URI
             def fp_cleaner(fp):
-                # Replace all occurences of backslash ("\") with a forward
+                # Replace all occurrences of backslash ("\") with a forward
                 # slash ("/") - this is necessary on windows when a path is
                 # provided as input, but we must link to a URI
                 return fp.replace('\\','/')

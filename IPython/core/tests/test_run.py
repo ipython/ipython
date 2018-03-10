@@ -6,6 +6,9 @@ verify subtle object deletion and reference counting issues, the %run tests
 will be kept in this separate file.  This makes it easier to aggregate in one
 place the tricks needed to handle it; most other magics are much easier to test
 and we do so in a common test_magic file.
+
+Note that any test using `run -i` should make sure to do a `reset` afterwards,
+as otherwise it may influence later tests.
 """
 
 # Copyright (c) IPython Development Team.
@@ -17,6 +20,7 @@ import functools
 import os
 from os.path import join as pjoin
 import random
+import string
 import sys
 import textwrap
 import unittest
@@ -165,8 +169,8 @@ def doctest_reset_del():
 class TestMagicRunPass(tt.TempFileMixin):
 
     def setup(self):
-        """Make a valid python temp file."""
-        self.mktmp('pass\n')
+        content = "a = [1,2,3]\nb = 1"
+        self.mktmp(content)
         
     def run_tmpfile(self):
         _ip = get_ipython()
@@ -212,6 +216,16 @@ class TestMagicRunPass(tt.TempFileMixin):
             _ip.magic('run -d %s' % self.fname)
         with tt.fake_input(['c']):
             _ip.magic('run -d %s' % self.fname)
+
+    def test_run_debug_twice_with_breakpoint(self):
+        """Make a valid python temp file."""
+        _ip = get_ipython()
+        with tt.fake_input(['b 2', 'c', 'c']):
+            _ip.magic('run -d %s' % self.fname)
+
+        with tt.fake_input(['c']):
+            with tt.AssertNotPrints('KeyError'):
+                _ip.magic('run -d %s' % self.fname)
 
 
 class TestMagicRunSimple(tt.TempFileMixin):
@@ -306,13 +320,19 @@ tclass.py: deleting object: C-third
         src = "yy = zz\n"
         self.mktmp(src)
         _ip.run_cell("zz = 23")
-        _ip.magic('run -i %s' % self.fname)
-        nt.assert_equal(_ip.user_ns['yy'], 23)
-        _ip.magic('reset -f')
+        try:
+            _ip.magic('run -i %s' % self.fname)
+            nt.assert_equal(_ip.user_ns['yy'], 23)
+        finally:
+            _ip.magic('reset -f')
+            
         _ip.run_cell("zz = 23")
-        _ip.magic('run -i %s' % self.fname)
-        nt.assert_equal(_ip.user_ns['yy'], 23)
-    
+        try:
+            _ip.magic('run -i %s' % self.fname)
+            nt.assert_equal(_ip.user_ns['yy'], 23)
+        finally:
+            _ip.magic('reset -f')
+            
     def test_unicode(self):
         """Check that files in odd encodings are accepted."""
         mydir = os.path.dirname(__file__)
@@ -405,8 +425,8 @@ class TestMagicRunWithPackage(unittest.TestCase):
             f.write(textwrap.dedent(content))
 
     def setUp(self):
-        self.package = package = 'tmp{0}'.format(repr(random.random())[2:])
-        """Temporary valid python package name."""
+        self.package = package = 'tmp{0}'.format(''.join([random.choice(string.ascii_letters) for i in range(10)]))
+        """Temporary  (probably) valid python package name."""
 
         self.value = int(random.random() * 10000)
 
@@ -494,8 +514,11 @@ def test_run__name__():
         _ip.magic('run -n {}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
 
-        _ip.magic('run -i -n {}'.format(path))
-        nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
+        try:
+            _ip.magic('run -i -n {}'.format(path))
+            nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
+        finally:
+            _ip.magic('reset -f')
 
 
 def test_run_tb():

@@ -604,6 +604,8 @@ You can start a regular IPython session with
 
 at any point in your program.  This will load IPython configuration,
 startup files, and everything, just as if it were a normal IPython session.
+For information on setting configuration options when running IPython from
+python, see :ref:`configure_start_ipython`.
 
 It is also possible to embed an IPython shell in a namespace in your Python code.
 This allows you to evaluate dynamically the state of your code,

@@ -40,7 +40,7 @@ if sys.version_info < (3, 3):
     except Exception:
         pass
 
-        
+
     error = """
 IPython 6.0+ does not support Python 2.6, 2.7, 3.0, 3.1, or 3.2.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
@@ -190,8 +190,9 @@ install_requires = [
     'pickleshare',
     'simplegeneric>0.8',
     'traitlets>=4.2',
-    'prompt_toolkit>=1.0.4,<2.0.0',
+    'prompt_toolkit>=1.0.15,<2.0.0',
     'pygments',
+    'backcall',
 ]
 
 # Platform-specific dependencies:

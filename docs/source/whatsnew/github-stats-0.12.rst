@@ -284,7 +284,7 @@ Pull requests (257):
 * `798 <https://github.com/ipython/ipython/issues/798>`_: pexpect & Python 3
 * `804 <https://github.com/ipython/ipython/issues/804>`_: Magic 'range' crash if greater than len(input_hist)
 * `821 <https://github.com/ipython/ipython/issues/821>`_: update tornado dependency to 2.1
-* `807 <https://github.com/ipython/ipython/issues/807>`_: Faciliate ssh tunnel sharing by announcing ports
+* `807 <https://github.com/ipython/ipython/issues/807>`_: Facilitate ssh tunnel sharing by announcing ports
 * `795 <https://github.com/ipython/ipython/issues/795>`_: Add cluster-id for multiple cluster instances per profile
 * `742 <https://github.com/ipython/ipython/issues/742>`_: Glut
 * `668 <https://github.com/ipython/ipython/issues/668>`_: Greedy completer
@@ -534,7 +534,7 @@ Regular issues (258):
 * `744 <https://github.com/ipython/ipython/issues/744>`_: cannot create notebook in offline mode if mathjax not installed
 * `865 <https://github.com/ipython/ipython/issues/865>`_: Make tracebacks from %paste show the code
 * `535 <https://github.com/ipython/ipython/issues/535>`_: exception unicode handling in %run is faulty in qtconsole
-* `817 <https://github.com/ipython/ipython/issues/817>`_: iPython crashed
+* `817 <https://github.com/ipython/ipython/issues/817>`_: IPython crashed
 * `799 <https://github.com/ipython/ipython/issues/799>`_: %edit magic not working on windows xp in qtconsole
 * `732 <https://github.com/ipython/ipython/issues/732>`_: QTConsole wrongly promotes the index of the input line on which user presses Enter
 * `662 <https://github.com/ipython/ipython/issues/662>`_: ipython test failures on Mac OS X Lion
