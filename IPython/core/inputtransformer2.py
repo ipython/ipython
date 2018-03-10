@@ -191,6 +191,121 @@ class SystemAssign:
 
         return lines_before + [new_line] + lines_after
 
+# The escape sequences that define the syntax transformations IPython will
+# apply to user input.  These can NOT be just changed here: many regular
+# expressions and other parts of the code may use their hardcoded values, and
+# for all intents and purposes they constitute the 'IPython syntax', so they
+# should be considered fixed.
+
+ESC_SHELL  = '!'     # Send line to underlying system shell
+ESC_SH_CAP = '!!'    # Send line to system shell and capture output
+ESC_HELP   = '?'     # Find information about object
+ESC_HELP2  = '??'    # Find extra-detailed information about object
+ESC_MAGIC  = '%'     # Call magic function
+ESC_MAGIC2 = '%%'    # Call cell-magic function
+ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
+ESC_QUOTE2 = ';'     # Quote all args as a single string, call
+ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
+
+ESCAPE_SINGLES = {'!', '?', '%', ',', ';', '/'}
+ESCAPE_DOUBLES = {'!!', '??'}  # %% (cell magic) is handled separately
+
+def _make_help_call(target, esc, next_input=None):
+    """Prepares a pinfo(2)/psearch call from a target name and the escape
+    (i.e. ? or ??)"""
+    method  = 'pinfo2' if esc == '??' \
+                else 'psearch' if '*' in target \
+                else 'pinfo'
+    arg = " ".join([method, target])
+    #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
+    t_magic_name, _, t_magic_arg_s = arg.partition(' ')
+    t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
+    if next_input is None:
+        return 'get_ipython().run_line_magic(%r, %r)' % (t_magic_name, t_magic_arg_s)
+    else:
+        return 'get_ipython().set_next_input(%r);get_ipython().run_line_magic(%r, %r)' % \
+           (next_input, t_magic_name, t_magic_arg_s)
+
+def _tr_help(content):
+    "Translate lines escaped with: ?"
+    # A naked help line should just fire the intro help screen
+    if not content:
+        return 'get_ipython().show_usage()'
+
+    return _make_help_call(content, '?')
+
+def _tr_help2(content):
+    "Translate lines escaped with: ??"
+    # A naked help line should just fire the intro help screen
+    if not content:
+        return 'get_ipython().show_usage()'
+
+    return _make_help_call(content, '??')
+
+def _tr_magic(content):
+    "Translate lines escaped with: %"
+    name, _, args = content.partition(' ')
+    return 'get_ipython().run_line_magic(%r, %r)' % (name, args)
+
+def _tr_quote(content):
+    "Translate lines escaped with: ,"
+    name, _, args = content.partition(' ')
+    return '%s("%s")' % (name, '", "'.join(args.split()) )
+
+def _tr_quote2(content):
+    "Translate lines escaped with: ;"
+    name, _, args = content.partition(' ')
+    return '%s("%s")' % (name, args)
+
+def _tr_paren(content):
+    "Translate lines escaped with: /"
+    name, _, args = content.partition(' ')
+    return '%s(%s)' % (name, ", ".join(args.split()))
+
+tr = { ESC_SHELL  : 'get_ipython().system({!r})'.format,
+       ESC_SH_CAP : 'get_ipython().getoutput({!r})'.format,
+       ESC_HELP   : _tr_help,
+       ESC_HELP2  : _tr_help2,
+       ESC_MAGIC  : _tr_magic,
+       ESC_QUOTE  : _tr_quote,
+       ESC_QUOTE2 : _tr_quote2,
+       ESC_PAREN  : _tr_paren }
+
+class EscapedCommand:
+    @staticmethod
+    def find(tokens_by_line):
+        """Find the first escaped command (%foo, !foo, etc.) in the cell.
+
+        Returns (line, column) of the escape if found, or None. *line* is 1-indexed.
+        """
+        for line in tokens_by_line:
+            ix = 0
+            while line[ix].type in {tokenize2.INDENT, tokenize2.DEDENT}:
+                ix += 1
+            if line[ix].string in ESCAPE_SINGLES:
+                return line[ix].start
+
+    @staticmethod
+    def transform(lines, start):
+        start_line = start[0] - 1  # Shift from 1-index to 0-index
+        start_col = start[1]
+
+        indent = lines[start_line][:start_col]
+        end_line = find_end_of_continued_line(lines, start_line)
+        line = assemble_continued_line(lines, (start_line, start_col), end_line)
+
+        if line[:2] in ESCAPE_DOUBLES:
+            escape, content = line[:2], line[2:]
+        else:
+            escape, content = line[:1], line[1:]
+        call = tr[escape](content)
+
+        lines_before = lines[:start_line]
+        new_line = indent + call + '\n'
+        lines_after = lines[end_line + 1:]
+
+        return lines_before + [new_line] + lines_after
+
 def make_tokens_by_line(lines):
     tokens_by_line = [[]]
     for token in generate_tokens(iter(lines).__next__):

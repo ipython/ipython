@@ -3,6 +3,17 @@ import nose.tools as nt
 from IPython.core import inputtransformer2 as ipt2
 from IPython.core.inputtransformer2 import make_tokens_by_line
 
+MULTILINE_MAGIC = ("""\
+a = f()
+%foo \\
+bar
+g()
+""".splitlines(keepends=True), """\
+a = f()
+get_ipython().run_line_magic('foo', ' bar')
+g()
+""".splitlines(keepends=True))
+
 MULTILINE_MAGIC_ASSIGN = ("""\
 a = f()
 b = %foo \\
@@ -58,3 +69,14 @@ def test_find_assign_system():
 def test_transform_assign_system():
     res = ipt2.SystemAssign.transform(MULTILINE_SYSTEM_ASSIGN[0], (2, 4))
     nt.assert_equal(res, MULTILINE_SYSTEM_ASSIGN[1])
+
+def test_find_magic_escape():
+    tbl = make_tokens_by_line(MULTILINE_MAGIC[0])
+    nt.assert_equal(ipt2.EscapedCommand.find(tbl), (2, 0))
+
+    tbl = make_tokens_by_line(MULTILINE_MAGIC_ASSIGN[0])  # Shouldn't find a = %foo
+    nt.assert_equal(ipt2.EscapedCommand.find(tbl), None)
+
+def test_transform_magic_escape():
+    res = ipt2.EscapedCommand.transform(MULTILINE_MAGIC[0], (2, 0))
+    nt.assert_equal(res, MULTILINE_MAGIC[1])
