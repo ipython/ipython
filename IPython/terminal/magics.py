@@ -9,7 +9,6 @@ import os
 import sys
 
 from IPython.core.error import TryNext, UsageError
-from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.lib.clipboard import ClipboardEmpty
 from IPython.utils.text import SList, strip_email_quotes
