@@ -61,9 +61,10 @@ def cell_magic(lines):
     if re.match('%%\w+\?', lines[0]):
         # This case will be handled by help_end
         return lines
-    magic_name, first_line = lines[0][2:].partition(' ')
-    body = '\n'.join(lines[1:])
-    return ['get_ipython().run_cell_magic(%r, %r, %r)' % (magic_name, first_line, body)]
+    magic_name, _, first_line = lines[0][2:-1].partition(' ')
+    body = ''.join(lines[1:])
+    return ['get_ipython().run_cell_magic(%r, %r, %r)\n'
+            % (magic_name, first_line, body)]
 
 line_transforms = [
     leading_indent,
@@ -430,5 +431,4 @@ def transform_cell(cell):
         lines = transform(lines)
     
     lines = TokenTransformers()(lines)
-    for line in lines:
-        print('~~', line)
+    return ''.join(lines)
