@@ -229,16 +229,15 @@ class TerminalInteractiveShell(InteractiveShell):
     def init_prompt_toolkit_cli(self):
         if self.simple_prompt:
             # Fall back to plain non-interactive output for tests.
-            # This is very limited, and only accepts a single line.
+            # This is very limited.
             def prompt():
-                isp = self.input_splitter
+                itm = self.input_transformer_manager
                 prompt_text = "".join(x[1] for x in self.prompts.in_prompt_tokens())
+                lines = [input(prompt_text)]
                 prompt_continuation = "".join(x[1] for x in self.prompts.continuation_prompt_tokens())
-                while isp.push_accepts_more():
-                    line = input(prompt_text)
-                    isp.push(line)
-                    prompt_text = prompt_continuation
-                return isp.source_reset()
+                while not itm.check_complete('\n'.join(lines)):
+                    lines.append( input(prompt_continuation) )
+                return '\n'.join(lines)
             self.prompt_for_code = prompt
             return
 
