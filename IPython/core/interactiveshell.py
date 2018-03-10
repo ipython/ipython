@@ -334,14 +334,17 @@ class InteractiveShell(SingletonConfigurable):
     filename = Unicode("<ipython console>")
     ipython_dir= Unicode('').tag(config=True) # Set to get_ipython_dir() in __init__
 
-    # Input splitter, to transform input line by line and detect when a block
-    # is ready to be executed.
-    input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
-                              (), {'line_input_checker': True})
-
-    # Used to transform cells before running them.
+    # Used to transform cells before running them, and check whether code is complete
     input_transformer_manager = Instance('IPython.core.inputtransformer2.TransformerManager',
                                          ())
+
+    @property
+    def input_splitter(self):
+        """Make this available for compatibility
+
+        ipykernel currently uses shell.input_splitter.check_complete
+        """
+        return self.input_transformer_manager
 
     logstart = Bool(False, help=
         """
