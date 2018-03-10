@@ -74,12 +74,6 @@ line_transforms = [
 
 # -----
 
-def help_end(tokens_by_line):
-    pass
-
-def escaped_command(tokens_by_line):
-    pass
-
 def _find_assign_op(token_line):
     # Find the first assignment in the line ('=' not inside brackets)
     # We don't try to support multiple special assignment (a = b = %foo)
@@ -114,9 +108,23 @@ def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
     return ' '.join([p[:-2] for p in parts[:-1]]  # Strip backslash+newline
                     + [parts[-1][:-1]])         # Strip newline from last line
 
-class MagicAssign:
-    @staticmethod
-    def find(tokens_by_line):
+class TokenTransformBase:
+    # Lower numbers -> higher priority (for matches in the same location)
+    priority = 10
+
+    def sortby(self):
+        return self.start_line, self.start_col, self.priority
+
+    def __init__(self, start):
+        self.start_line = start[0] - 1   # Shift from 1-index to 0-index
+        self.start_col = start[1]
+
+    def transform(self, lines: List[str]):
+        raise NotImplementedError
+
+class MagicAssign(TokenTransformBase):
+    @classmethod
+    def find(cls, tokens_by_line):
         """Find the first magic assignment (a = %foo) in the cell.
         
         Returns (line, column) of the % if found, or None. *line* is 1-indexed.
@@ -127,15 +135,12 @@ class MagicAssign:
                     and (len(line) >= assign_ix + 2) \
                     and (line[assign_ix+1].string == '%') \
                     and (line[assign_ix+2].type == tokenize2.NAME):
-                return line[assign_ix+1].start
+                return cls(line[assign_ix+1].start)
     
-    @staticmethod
-    def transform(lines: List[str], start: Tuple[int, int]):
+    def transform(self, lines: List[str]):
         """Transform a magic assignment found by find
         """
-        start_line = start[0] - 1   # Shift from 1-index to 0-index
-        start_col  = start[1]
-
+        start_line, start_col = self.start_line, self.start_col
         lhs = lines[start_line][:start_col]
         end_line = find_end_of_continued_line(lines, start_line)
         rhs = assemble_continued_line(lines, (start_line, start_col), end_line)
@@ -150,9 +155,9 @@ class MagicAssign:
         return lines_before + [new_line] + lines_after
 
 
-class SystemAssign:
-    @staticmethod
-    def find(tokens_by_line):
+class SystemAssign(TokenTransformBase):
+    @classmethod
+    def find(cls, tokens_by_line):
         """Find the first system assignment (a = !foo) in the cell.
 
         Returns (line, column) of the ! if found, or None. *line* is 1-indexed.
@@ -166,17 +171,15 @@ class SystemAssign:
 
                 while ix < len(line) and line[ix].type == tokenize2.ERRORTOKEN:
                     if line[ix].string == '!':
-                        return line[ix].start
+                        return cls(line[ix].start)
                     elif not line[ix].string.isspace():
                         break
                     ix += 1
 
-    @staticmethod
-    def transform(lines: List[str], start: Tuple[int, int]):
+    def transform(self, lines: List[str]):
         """Transform a system assignment found by find
         """
-        start_line = start[0] - 1  # Shift from 1-index to 0-index
-        start_col = start[1]
+        start_line, start_col = self.start_line, self.start_col
 
         lhs = lines[start_line][:start_col]
         end_line = find_end_of_continued_line(lines, start_line)
@@ -271,9 +274,9 @@ tr = { ESC_SHELL  : 'get_ipython().system({!r})'.format,
        ESC_QUOTE2 : _tr_quote2,
        ESC_PAREN  : _tr_paren }
 
-class EscapedCommand:
-    @staticmethod
-    def find(tokens_by_line):
+class EscapedCommand(TokenTransformBase):
+    @classmethod
+    def find(cls, tokens_by_line):
         """Find the first escaped command (%foo, !foo, etc.) in the cell.
 
         Returns (line, column) of the escape if found, or None. *line* is 1-indexed.
@@ -283,12 +286,10 @@ class EscapedCommand:
             while line[ix].type in {tokenize2.INDENT, tokenize2.DEDENT}:
                 ix += 1
             if line[ix].string in ESCAPE_SINGLES:
-                return line[ix].start
+                return cls(line[ix].start)
 
-    @staticmethod
-    def transform(lines, start):
-        start_line = start[0] - 1  # Shift from 1-index to 0-index
-        start_col = start[1]
+    def transform(self, lines):
+        start_line, start_col = self.start_line, self.start_col
 
         indent = lines[start_line][:start_col]
         end_line = find_end_of_continued_line(lines, start_line)
@@ -303,6 +304,57 @@ class EscapedCommand:
         lines_before = lines[:start_line]
         new_line = indent + call + '\n'
         lines_after = lines[end_line + 1:]
+
+        return lines_before + [new_line] + lines_after
+
+_help_end_re = re.compile(r"""(%{0,2}
+                              [a-zA-Z_*][\w*]*        # Variable name
+                              (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
+                              )
+                              (\?\??)$                # ? or ??
+                              """,
+                              re.VERBOSE)
+
+class HelpEnd(TokenTransformBase):
+    # This needs to be higher priority (lower number) than EscapedCommand so
+    # that inspecting magics (%foo?) works.
+    priority = 5
+
+    def __init__(self, start, q_locn):
+        super().__init__(start)
+        self.q_line = q_locn[0] - 1  # Shift from 1-indexed to 0-indexed
+        self.q_col = q_locn[1]
+
+    @classmethod
+    def find(cls, tokens_by_line):
+        for line in tokens_by_line:
+            # Last token is NEWLINE; look at last but one
+            if len(line) > 2 and line[-2].string == '?':
+                # Find the first token that's not INDENT/DEDENT
+                ix = 0
+                while line[ix].type in {tokenize2.INDENT, tokenize2.DEDENT}:
+                    ix += 1
+                return cls(line[ix].start, line[-2].start)
+
+    def transform(self, lines):
+        piece = ''.join(lines[self.start_line:self.q_line+1])
+        indent, content = piece[:self.start_col], piece[self.start_col:]
+        lines_before = lines[:self.start_line]
+        lines_after = lines[self.q_line + 1:]
+
+        m = _help_end_re.search(content)
+        assert m is not None, content
+        target = m.group(1)
+        esc = m.group(3)
+
+        # If we're mid-command, put it back on the next prompt for the user.
+        next_input = None
+        if (not lines_before) and (not lines_after) \
+                and content.strip() != m.group(0):
+            next_input = content.rstrip('?\n')
+
+        call = _make_help_call(target, esc, next_input=next_input)
+        new_line = indent + call + '\n'
 
         return lines_before + [new_line] + lines_after
 
@@ -330,6 +382,8 @@ class TokenTransformers:
         self.transformers = [
             MagicAssign,
             SystemAssign,
+            EscapedCommand,
+            HelpEnd,
         ]
     
     def do_one_transform(self, lines):
@@ -348,26 +402,23 @@ class TokenTransformers:
         """
         tokens_by_line = make_tokens_by_line(lines)
         candidates = []
-        for transformer in self.transformers:
-            locn = transformer.find(tokens_by_line)
-            if locn:
-                candidates.append((locn, transformer))
-        
+        for transformer_cls in self.transformers:
+            transformer = transformer_cls.find(tokens_by_line)
+            if transformer:
+                candidates.append(transformer)
+
         if not candidates:
             # Nothing to transform
             return False, lines
-        
-        first_locn, transformer = min(candidates)
-        return True, transformer.transform(lines, first_locn)
+
+        transformer = min(candidates, key=TokenTransformBase.sortby)
+        return True, transformer.transform(lines)
 
     def __call__(self, lines):
         while True:
             changed, lines = self.do_one_transform(lines)
             if not changed:
                 return lines
-
-def assign_from_system(tokens_by_line, lines):
-    pass
 
 
 def transform_cell(cell):
