@@ -131,7 +131,7 @@ from types import SimpleNamespace
 
 from traitlets.config.configurable import Configurable
 from IPython.core.error import TryNext
-from IPython.core.inputsplitter import ESC_MAGIC
+from IPython.core.inputtransformer2 import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.core.oinspect import InspectColors
 from IPython.utils import generics
