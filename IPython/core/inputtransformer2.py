@@ -1,7 +1,10 @@
+from codeop import compile_command
 import re
 from typing import List, Tuple
 from IPython.utils import tokenize2
 from IPython.utils.tokenutil import generate_tokens
+
+_indent_re = re.compile(r'^[ \t]+')
 
 def leading_indent(lines):
     """Remove leading indentation.
@@ -9,7 +12,7 @@ def leading_indent(lines):
     If the first line starts with a spaces or tabs, the same whitespace will be
     removed from each following line.
     """
-    m = re.match(r'^[ \t]+', lines[0])
+    m = _indent_re.match(lines[0])
     if not m:
         return lines
     space = m.group(0)
@@ -373,10 +376,12 @@ def show_linewise_tokens(s: str):
 
 class TransformerManager:
     def __init__(self):
-        self.line_transforms = [
+        self.cleanup_transforms = [
             leading_indent,
             classic_prompt,
             ipython_prompt,
+        ]
+        self.line_transforms = [
             cell_magic,
         ]
         self.token_transformers = [
@@ -424,9 +429,97 @@ class TransformerManager:
         if not cell.endswith('\n'):
             cell += '\n'  # Ensure every line has a newline
         lines = cell.splitlines(keepends=True)
-        for transform in self.line_transforms:
+        for transform in self.cleanup_transforms + self.line_transforms:
             #print(transform, lines)
             lines = transform(lines)
 
         lines = self.do_token_transforms(lines)
         return ''.join(lines)
+
+    def check_complete(self, cell: str):
+        """Return whether a block of code is ready to execute, or should be continued
+
+        Parameters
+        ----------
+        source : string
+          Python input code, which can be multiline.
+
+        Returns
+        -------
+        status : str
+          One of 'complete', 'incomplete', or 'invalid' if source is not a
+          prefix of valid code.
+        indent_spaces : int or None
+          The number of spaces by which to indent the next line of code. If
+          status is not 'incomplete', this is None.
+        """
+        if not cell.endswith('\n'):
+            cell += '\n'  # Ensure every line has a newline
+        lines = cell.splitlines(keepends=True)
+        if cell.rstrip().endswith('\\'):
+            # Explicit backslash continuation
+            return 'incomplete', find_last_indent(lines)
+
+        try:
+            for transform in self.cleanup_transforms:
+                lines = transform(lines)
+        except SyntaxError:
+            return 'invalid', None
+
+        if lines[0].startswith('%%'):
+            # Special case for cell magics - completion marked by blank line
+            if lines[-1].strip():
+                return 'incomplete', find_last_indent(lines)
+            else:
+                return 'complete', None
+
+        try:
+            for transform in self.line_transforms:
+                lines = transform(lines)
+            lines = self.do_token_transforms(lines)
+        except SyntaxError:
+            return 'invalid', None
+
+        tokens_by_line = make_tokens_by_line(lines)
+        if tokens_by_line[-1][-1].type != tokenize2.ENDMARKER:
+            # We're in a multiline string or expression
+            return 'incomplete', find_last_indent(lines)
+
+        # Find the last token on the previous line that's not NEWLINE or COMMENT
+        toks_last_line = tokens_by_line[-2]
+        ix = len(toks_last_line) - 1
+        while ix >= 0 and toks_last_line[ix].type in {tokenize2.NEWLINE,
+                                                      tokenize2.COMMENT}:
+            ix -= 1
+
+        if toks_last_line[ix].string == ':':
+            # The last line starts a block (e.g. 'if foo:')
+            ix = 0
+            while toks_last_line[ix].type in {tokenize2.INDENT, tokenize2.DEDENT}:
+                ix += 1
+            indent = toks_last_line[ix].start[1]
+            return 'incomplete', indent + 4
+
+        # If there's a blank line at the end, assume we're ready to execute.
+        if not lines[-1].strip():
+            return 'complete', None
+
+        # At this point, our checks think the code is complete (or invalid).
+        # We'll use codeop.compile_command to check this with the real parser.
+
+        try:
+            res = compile_command(''.join(lines), symbol='exec')
+        except (SyntaxError, OverflowError, ValueError, TypeError,
+                MemoryError, SyntaxWarning):
+            return 'invalid', None
+        else:
+            if res is None:
+                return 'incomplete', find_last_indent(lines)
+        return 'complete', None
+
+
+def find_last_indent(lines):
+    m = _indent_re.match(lines[-1])
+    if not m:
+        return 0
+    return len(m.group(0).replace('\t', ' '*4))
