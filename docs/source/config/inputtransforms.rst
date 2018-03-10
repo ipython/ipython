@@ -15,36 +15,31 @@ String based transformations
 
 .. currentmodule:: IPython.core.inputtransforms
 
-When the user enters a line of code, it is first processed as a string. By the
+When the user enters code, it is first processed as a string. By the
 end of this stage, it must be valid Python syntax.
 
-These transformers all subclass :class:`IPython.core.inputtransformer.InputTransformer`,
-and are used by :class:`IPython.core.inputsplitter.IPythonInputSplitter`.
+.. versionchanged:: 7.0
 
-These transformers act in three groups, stored separately as lists of instances
-in attributes of :class:`~IPython.core.inputsplitter.IPythonInputSplitter`:
+   The API for string and token-based transformations has been completely
+   redesigned. Any third party code extending input transformation will need to
+   be rewritten. The new API is, hopefully, simpler.
 
-* ``physical_line_transforms`` act on the lines as the user enters them. For
-  example, these strip Python prompts from examples pasted in.
-* ``logical_line_transforms`` act on lines as connected by explicit line
-  continuations, i.e. ``\`` at the end of physical lines. They are skipped
-  inside multiline Python statements. This is the point where IPython recognises
-  ``%magic`` commands, for instance.
-* ``python_line_transforms`` act on blocks containing complete Python statements.
-  Multi-line strings, lists and function calls are reassembled before being
-  passed to these, but note that function and class *definitions* are still a
-  series of separate statements. IPython does not use any of these by default.
+String based transformations are managed by
+:class:`IPython.core.inputtransformer2.TransformerManager`, which is attached to
+the :class:`~IPython.core.interactiveshell.InteractiveShell` instance as
+``input_transformer_manager``. This passes the
+data through a series of individual transformers. There are two kinds of
+transformers stored in three groups:
 
-An InteractiveShell instance actually has two
-:class:`~IPython.core.inputsplitter.IPythonInputSplitter` instances, as the
-attributes :attr:`~IPython.core.interactiveshell.InteractiveShell.input_splitter`,
-to tell when a block of input is complete, and
-:attr:`~IPython.core.interactiveshell.InteractiveShell.input_transformer_manager`,
-to transform complete cells. If you add a transformer, you should make sure that
-it gets added to both, e.g.::
-
-    ip.input_splitter.logical_line_transforms.append(my_transformer())
-    ip.input_transformer_manager.logical_line_transforms.append(my_transformer())
+* ``cleanup_transforms`` and ``line_transforms`` are lists of functions. Each
+  function is called with a list of input lines (which include trailing
+  newlines), and they return a list in the same format. ``cleanup_transforms``
+  are run first; they strip prompts and leading indentation from input.
+  The only default transform in ``line_transforms`` processes cell magics.
+* ``token_transformers`` is a list of :class:`IPython.core.inputtransformer2.TokenTransformBase`
+  subclasses (not instances). They recognise special syntax like
+  ``%line magics`` and ``help?``, and transform them to Python syntax. The
+  interface for these is more complex; see below.
 
 These transformers may raise :exc:`SyntaxError` if the input code is invalid, but
 in most cases it is clearer to pass unrecognised code through unmodified and let
@@ -54,124 +49,103 @@ Python's own parser decide whether it is valid.
 
    Added the option to raise :exc:`SyntaxError`.
 
-Stateless transformations
--------------------------
+Line based transformations
+--------------------------
 
-The simplest kind of transformations work one line at a time. Write a function
-which takes a line and returns a line, and decorate it with
-:meth:`StatelessInputTransformer.wrap`::
+For example, imagine we want to obfuscate our code by reversing each line, so
+we'd write ``)5(f =+ a`` instead of ``a += f(5)``. Here's how we could swap it
+back the right way before IPython tries to run it::
 
-    @StatelessInputTransformer.wrap
-    def my_special_commands(line):
-        if line.startswith("¬"):
-            return "specialcommand(" + repr(line) + ")"
-        return line
+    def reverse_line_chars(lines):
+        new_lines = []
+        for line in lines:
+            chars = line[:-1]  # the newline needs to stay at the end
+            new_lines.append(chars[::-1] + '\n')
+        return new_lines
 
-The decorator returns a factory function which will produce instances of
-:class:`~IPython.core.inputtransformer.StatelessInputTransformer` using your
-function.
-
-Transforming a full block
--------------------------
-
-.. warning::
-
-    Transforming a full block at once will break the automatic detection of
-    whether a block of code is complete in interfaces relying on this
-    functionality, such as terminal IPython. You will need to use a
-    shortcut to force-execute your cells.
-
-Transforming a full block of python code is possible by implementing a
-:class:`~IPython.core.inputtransformer.Inputtransformer` and overwriting the
-``push`` and ``reset`` methods. The reset method should send the full block of
-transformed text. As an example a transformer the reversed the lines from last
-to first.
-
-    from IPython.core.inputtransformer import InputTransformer
-
-    class ReverseLineTransformer(InputTransformer):
-
-        def __init__(self):
-            self.acc = []
-
-        def push(self, line):
-            self.acc.append(line)
-            return None
-
-        def reset(self):
-            ret = '\n'.join(self.acc[::-1])
-            self.acc = []
-            return ret
-
-
-Coroutine transformers
-----------------------
-
-More advanced transformers can be written as coroutines. The coroutine will be
-sent each line in turn, followed by ``None`` to reset it. It can yield lines, or
-``None`` if it is accumulating text to yield at a later point. When reset, it
-should give up any code it has accumulated.
-
-You may use :meth:`CoroutineInputTransformer.wrap` to simplify the creation of
-such a transformer.
-
-Here is a simple :class:`CoroutineInputTransformer` that can be thought of
-being the identity::
-
-    from IPython.core.inputtransformer import CoroutineInputTransformer
-
-    @CoroutineInputTransformer.wrap
-    def noop():
-        line = ''
-        while True:
-            line = (yield line)
+To start using this::
 
     ip = get_ipython()
+    ip.input_transformer_manager.line_transforms.append(reverse_line_chars)
 
-    ip.input_splitter.logical_line_transforms.append(noop())
-    ip.input_transformer_manager.logical_line_transforms.append(noop())
+Token based transformations
+---------------------------
 
-This code in IPython strips a constant amount of leading indentation from each
-line in a cell::
+These recognise special syntax like ``%magics`` and ``help?``, and transform it
+into valid Python code. Using tokens makes it easy to avoid transforming similar
+patterns inside comments or strings.
 
-    from IPython.core.inputtransformer import CoroutineInputTransformer
+The API for a token-based transformation looks like this::
 
-    @CoroutineInputTransformer.wrap
-    def leading_indent():
-        """Remove leading indentation.
-        
-        If the first line starts with a spaces or tabs, the same whitespace will be
-        removed from each following line until it is reset.
-        """
-        space_re = re.compile(r'^[ \t]+')
-        line = ''
-        while True:
-            line = (yield line)
-            
-            if line is None:
-                continue
-            
-            m = space_re.match(line)
-            if m:
-                space = m.group(0)
-                while line is not None:
-                    if line.startswith(space):
-                        line = line[len(space):]
-                    line = (yield line)
-            else:
-                # No leading spaces - wait for reset
-                while line is not None:
-                    line = (yield line)
+.. class:: MyTokenTransformer
+   
+   .. classmethod:: find(tokens_by_line)
 
+      Takes a list of lists of :class:`tokenize.TokenInfo` objects. Each sublist
+      is the tokens from one Python line, which may span several physical lines,
+      because of line continuations, multiline strings or expressions. If it
+      finds a pattern to transform, it returns an instance of the class.
+      Otherwise, it returns None.
 
-Token-based transformers
-------------------------
+   .. attribute:: start_lineno
+                  start_col
+                  priority
 
-There is an experimental framework that takes care of tokenizing and
-untokenizing lines of code. Define a function that accepts a list of tokens, and
-returns an iterable of output tokens, and decorate it with
-:meth:`TokenInputTransformer.wrap`. These should only be used in
-``python_line_transforms``.
+      These attributes are used to select which transformation to run first.
+      ``start_lineno`` is 0-indexed (whereas the locations on
+      :class:`~tokenize.TokenInfo` use 1-indexed line numbers). If there are
+      multiple matches in the same location, the one with the smaller
+      ``priority`` number is used.
+
+   .. method:: transform(lines)
+
+      This should transform the individual recognised pattern that was
+      previously found. As with line-based transforms, it takes a list of
+      lines as strings, and returns a similar list.
+
+Because each transformation may affect the parsing of the code after it,
+``TransformerManager`` takes a careful approach. It calls ``find()`` on all
+available transformers. If any find a match, the transformation which matched
+closest to the start is run. Then it tokenises the transformed code again,
+and starts the process again. This continues until none of the transformers
+return a match. So it's important that the transformation removes the pattern
+which ``find()`` recognises, otherwise it will enter an infinite loop.
+
+For example, here's a transformer which will recognise ``¬`` as a prefix for a
+new kind of special command::
+
+    import tokenize
+    from IPython.core.inputtransformer2 import TokenTransformBase
+
+    class MySpecialCommand(TokenTransformBase):
+        @classmethod
+        def find(cls, tokens_by_line):
+            """Find the first escaped command (¬foo) in the cell.
+            """
+            for line in tokens_by_line:
+                ix = 0
+                # Find the first token that's not INDENT/DEDENT
+                while line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
+                    ix += 1
+                if line[ix].string == '¬':
+                    return cls(line[ix].start)
+    
+        def transform(self, lines):   
+            indent  = lines[self.start_line][:self.start_col]
+            content = lines[self.start_line][self.start_col+1:]
+    
+            lines_before = lines[:self.start_line]
+            call = "specialcommand(%r)" % content
+            new_line = indent + call + '\n'
+            lines_after = lines[self.start_line + 1:]
+    
+            return lines_before + [new_line] + lines_after
+
+And here's how you'd use it::
+
+    ip = get_ipython()
+    ip.input_transformer_manager.token_transformers.append(MySpecialCommand)
+
 
 AST transformations
 ===================
