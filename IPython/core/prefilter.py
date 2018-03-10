@@ -14,7 +14,7 @@ import re
 
 from IPython.core.autocall import IPyAutocall
 from traitlets.config.configurable import Configurable
-from IPython.core.inputsplitter import (
+from IPython.core.inputtransformer2 import (
     ESC_MAGIC,
     ESC_QUOTE,
     ESC_QUOTE2,

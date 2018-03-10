@@ -19,7 +19,7 @@ from getopt import getopt, GetoptError
 from traitlets.config.configurable import Configurable
 from IPython.core import oinspect
 from IPython.core.error import UsageError
-from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
+from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
 from decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split

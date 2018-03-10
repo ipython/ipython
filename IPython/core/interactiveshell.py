@@ -48,7 +48,7 @@ from IPython.core.error import InputRejected, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
-from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
+from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
