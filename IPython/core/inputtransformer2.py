@@ -427,7 +427,7 @@ class TransformerManager:
 
     def transform_cell(self, cell: str):
         if not cell.endswith('\n'):
-            cell += '\n'  # Ensure every line has a newline
+            cell += '\n'  # Ensure the cell has a trailing newline
         lines = cell.splitlines(keepends=True)
         for transform in self.cleanup_transforms + self.line_transforms:
             #print(transform, lines)
@@ -454,7 +454,7 @@ class TransformerManager:
           status is not 'incomplete', this is None.
         """
         if not cell.endswith('\n'):
-            cell += '\n'  # Ensure every line has a newline
+            cell += '\n'  # Ensure the cell has a trailing newline
         lines = cell.splitlines(keepends=True)
         if lines[-1][:-1].endswith('\\'):
             # Explicit backslash continuation
