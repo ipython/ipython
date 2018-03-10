@@ -456,7 +456,7 @@ class TransformerManager:
         if not cell.endswith('\n'):
             cell += '\n'  # Ensure every line has a newline
         lines = cell.splitlines(keepends=True)
-        if cell.rstrip().endswith('\\'):
+        if lines[-1][:-1].endswith('\\'):
             # Explicit backslash continuation
             return 'incomplete', find_last_indent(lines)
 
