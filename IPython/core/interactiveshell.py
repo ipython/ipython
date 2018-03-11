@@ -2988,6 +2988,26 @@ class InteractiveShell(SingletonConfigurable):
     # For backwards compatibility
     runcode = run_code
 
+    def check_complete(self, code):
+        """Return whether a block of code is ready to execute, or should be continued
+
+        Parameters
+        ----------
+        source : string
+          Python input code, which can be multiline.
+
+        Returns
+        -------
+        status : str
+          One of 'complete', 'incomplete', or 'invalid' if source is not a
+          prefix of valid code.
+        indent : str
+          When status is 'incomplete', this is some whitespace to insert on
+          the next line of the prompt.
+        """
+        status, nspaces = self.input_transformer_manager.check_complete(code)
+        return status, ' ' * (nspaces or 0)
+
     #-------------------------------------------------------------------------
     # Things related to GUI support and pylab
     #-------------------------------------------------------------------------

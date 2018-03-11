@@ -119,18 +119,18 @@ def newline_or_execute_outer(shell):
             check_text = d.text
         else:
             check_text = d.text[:d.cursor_position]
-        status, indent = shell.input_transformer_manager.check_complete(check_text + '\n')
+        status, indent = shell.check_complete(check_text)
 
         if not (d.on_last_line or
                 d.cursor_position_row >= d.line_count - d.empty_line_count_at_the_end()
                 ):
-            b.insert_text('\n' + (' ' * (indent or 0)))
+            b.insert_text('\n' + indent)
             return
 
         if (status != 'incomplete') and b.accept_action.is_returnable:
             b.accept_action.validate_and_handle(event.cli, b)
         else:
-            b.insert_text('\n' + (' ' * (indent or 0)))
+            b.insert_text('\n' + indent)
     return newline_or_execute
 
 
