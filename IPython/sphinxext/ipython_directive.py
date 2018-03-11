@@ -291,7 +291,6 @@ class EmbeddedSphinxShell(object):
         self.IP = IP
         self.user_ns = self.IP.user_ns
         self.user_global_ns = self.IP.user_global_ns
-        self.input_transformer_mgr = self.IP.input_transformer_manager
 
         self.lines_waiting = []
         self.input = ''
@@ -331,7 +330,7 @@ class EmbeddedSphinxShell(object):
         try:
             sys.stdout = self.cout
             self.lines_waiting.append(line)
-            if self.input_transformer_mgr.check_complete()[0] != 'incomplete':
+            if self.IP.check_complete()[0] != 'incomplete':
                 source_raw = ''.join(self.lines_waiting)
                 self.lines_waiting = []
                 self.IP.run_cell(source_raw, store_history=store_history)

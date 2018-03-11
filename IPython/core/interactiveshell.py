@@ -3005,7 +3005,7 @@ class InteractiveShell(SingletonConfigurable):
           When status is 'incomplete', this is some whitespace to insert on
           the next line of the prompt.
         """
-        status, nspaces = self.input_splitter.check_complete(code)
+        status, nspaces = self.input_transformer_manager.check_complete(code)
         return status, ' ' * (nspaces or 0)
 
     #-------------------------------------------------------------------------

@@ -231,11 +231,10 @@ class TerminalInteractiveShell(InteractiveShell):
             # Fall back to plain non-interactive output for tests.
             # This is very limited.
             def prompt():
-                itm = self.input_transformer_manager
                 prompt_text = "".join(x[1] for x in self.prompts.in_prompt_tokens())
                 lines = [input(prompt_text)]
                 prompt_continuation = "".join(x[1] for x in self.prompts.continuation_prompt_tokens())
-                while itm.check_complete('\n'.join(lines))[0] == 'incomplete':
+                while self.check_complete('\n'.join(lines))[0] == 'incomplete':
                     lines.append( input(prompt_continuation) )
                 return '\n'.join(lines)
             self.prompt_for_code = prompt
