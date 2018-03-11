@@ -45,7 +45,10 @@ A crash report was automatically generated with the following information:
 It was left in the file named:
 \t'{crash_report_fname}'
 If you can email this file to the developers, the information in it will help
-them in understanding and correcting the problem.
+them in understanding and correcting the problem. Please include information
+about your operating system: is it Linux, macOS, Windows, other, and which
+version, for example Ubuntu 16.04, macOS 10.13.2, Windows 10 Pro 64-bit...
+Please also include information on how you installed {app_name}.
 
 You can mail it to: {contact_name} at {contact_email}
 with the subject '{app_name} Crash Report'.
