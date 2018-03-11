@@ -1,3 +1,12 @@
+"""Input transformer machinery to support IPython special syntax.
+
+This includes the machinery to recognise and transform ``%magic`` commands,
+``!system`` commands, ``help?`` querying, prompt stripping, and so forth.
+"""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from codeop import compile_command
 import re
 from typing import List, Tuple

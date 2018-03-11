@@ -1,4 +1,6 @@
-"""Input transformer classes to support IPython special syntax.
+"""DEPRECATED: Input transformer classes to support IPython special syntax.
+
+This module was deprecated in IPython 7.0, in favour of inputtransformer2.
 
 This includes the machinery to recognise and transform ``%magic`` commands,
 ``!system`` commands, ``help?`` querying, prompt stripping, and so forth.

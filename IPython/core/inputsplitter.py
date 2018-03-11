@@ -1,4 +1,6 @@
-"""Input handling and transformation machinery.
+"""DEPRECATED: Input handling and transformation machinery.
+
+This module was deprecated in IPython 7.0, in favour of inputtransformer2.
 
 The first class in this module, :class:`InputSplitter`, is designed to tell when
 input from a line-oriented frontend is complete and should be executed, and when
