@@ -9,9 +9,8 @@ This includes the machinery to recognise and transform ``%magic`` commands,
 
 from codeop import compile_command
 import re
+import tokenize
 from typing import List, Tuple
-from IPython.utils import tokenize2
-from IPython.utils.tokenutil import generate_tokens
 
 _indent_re = re.compile(r'^[ \t]+')
 
@@ -140,7 +139,7 @@ class MagicAssign(TokenTransformBase):
             if (assign_ix is not None) \
                     and (len(line) >= assign_ix + 2) \
                     and (line[assign_ix+1].string == '%') \
-                    and (line[assign_ix+2].type == tokenize2.NAME):
+                    and (line[assign_ix+2].type == tokenize.NAME):
                 return cls(line[assign_ix+1].start)
     
     def transform(self, lines: List[str]):
@@ -172,10 +171,10 @@ class SystemAssign(TokenTransformBase):
             assign_ix = _find_assign_op(line)
             if (assign_ix is not None) \
                     and (len(line) >= assign_ix + 2) \
-                    and (line[assign_ix + 1].type == tokenize2.ERRORTOKEN):
+                    and (line[assign_ix + 1].type == tokenize.ERRORTOKEN):
                 ix = assign_ix + 1
 
-                while ix < len(line) and line[ix].type == tokenize2.ERRORTOKEN:
+                while ix < len(line) and line[ix].type == tokenize.ERRORTOKEN:
                     if line[ix].string == '!':
                         return cls(line[ix].start)
                     elif not line[ix].string.isspace():
@@ -289,7 +288,7 @@ class EscapedCommand(TokenTransformBase):
         """
         for line in tokens_by_line:
             ix = 0
-            while line[ix].type in {tokenize2.INDENT, tokenize2.DEDENT}:
+            while line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
                 ix += 1
             if line[ix].string in ESCAPE_SINGLES:
                 return cls(line[ix].start)
@@ -338,7 +337,7 @@ class HelpEnd(TokenTransformBase):
             if len(line) > 2 and line[-2].string == '?':
                 # Find the first token that's not INDENT/DEDENT
                 ix = 0
-                while line[ix].type in {tokenize2.INDENT, tokenize2.DEDENT}:
+                while line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
                     ix += 1
                 return cls(line[ix].start, line[-2].start)
 
@@ -365,11 +364,31 @@ class HelpEnd(TokenTransformBase):
         return lines_before + [new_line] + lines_after
 
 def make_tokens_by_line(lines):
+    """Tokenize a series of lines and group tokens by line.
+
+    The tokens for a multiline Python string or expression are
+    grouped as one line.
+    """
+    # NL tokens are used inside multiline expressions, but also after blank
+    # lines or comments. This is intentional - see https://bugs.python.org/issue17061
+    # We want to group the former case together but split the latter, so we
+    # track parentheses level, similar to the internals of tokenize.
+    NEWLINE, NL = tokenize.NEWLINE, tokenize.NL
     tokens_by_line = [[]]
-    for token in generate_tokens(iter(lines).__next__):
-        tokens_by_line[-1].append(token)
-        if token.type == tokenize2.NEWLINE:
-            tokens_by_line.append([])
+    parenlev = 0
+    try:
+        for token in tokenize.generate_tokens(iter(lines).__next__):
+            tokens_by_line[-1].append(token)
+            if (token.type == NEWLINE) \
+                    or ((token.type == NL) and (parenlev <= 0)):
+                tokens_by_line.append([])
+            elif token.string in {'(', '[', '{'}:
+                parenlev += 1
+            elif token.string in {')', ']', '}'}:
+                parenlev -= 1
+    except tokenize.TokenError:
+        # Input ended in a multiline string or expression. That's OK for us.
+        pass
     
     return tokens_by_line
 
@@ -490,21 +509,21 @@ class TransformerManager:
             return 'invalid', None
 
         tokens_by_line = make_tokens_by_line(lines)
-        if tokens_by_line[-1][-1].type != tokenize2.ENDMARKER:
+        if tokens_by_line[-1][-1].type != tokenize.ENDMARKER:
             # We're in a multiline string or expression
             return 'incomplete', find_last_indent(lines)
 
         # Find the last token on the previous line that's not NEWLINE or COMMENT
         toks_last_line = tokens_by_line[-2]
         ix = len(toks_last_line) - 1
-        while ix >= 0 and toks_last_line[ix].type in {tokenize2.NEWLINE,
-                                                      tokenize2.COMMENT}:
+        while ix >= 0 and toks_last_line[ix].type in {tokenize.NEWLINE,
+                                                      tokenize.COMMENT}:
             ix -= 1
 
         if toks_last_line[ix].string == ':':
             # The last line starts a block (e.g. 'if foo:')
             ix = 0
-            while toks_last_line[ix].type in {tokenize2.INDENT, tokenize2.DEDENT}:
+            while toks_last_line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
                 ix += 1
             indent = toks_last_line[ix].start[1]
             return 'incomplete', indent + 4
