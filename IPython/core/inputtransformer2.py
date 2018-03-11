@@ -11,6 +11,7 @@ from codeop import compile_command
 import re
 import tokenize
 from typing import List, Tuple
+import warnings
 
 _indent_re = re.compile(r'^[ \t]+')
 
@@ -536,7 +537,9 @@ class TransformerManager:
         # We'll use codeop.compile_command to check this with the real parser.
 
         try:
-            res = compile_command(''.join(lines), symbol='exec')
+            with warnings.catch_warnings():
+                warnings.simplefilter('error', SyntaxWarning)
+                res = compile_command(''.join(lines), symbol='exec')
         except (SyntaxError, OverflowError, ValueError, TypeError,
                 MemoryError, SyntaxWarning):
             return 'invalid', None
