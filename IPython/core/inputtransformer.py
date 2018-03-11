@@ -8,11 +8,11 @@ This includes the machinery to recognise and transform ``%magic`` commands,
 import abc
 import functools
 import re
+import tokenize
+from tokenize import generate_tokens, untokenize, TokenError
 from io import StringIO
 
 from IPython.core.splitinput import LineInfo
-from IPython.utils import tokenize2
-from IPython.utils.tokenize2 import generate_tokens, untokenize, TokenError
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -140,10 +140,10 @@ class TokenInputTransformer(InputTransformer):
             for intok in self.tokenizer:
                 tokens.append(intok)
                 t = intok[0]
-                if t == tokenize2.NEWLINE or (stop_at_NL and t == tokenize2.NL):
+                if t == tokenize.NEWLINE or (stop_at_NL and t == tokenize.NL):
                     # Stop before we try to pull a line we don't have yet
                     break
-                elif t == tokenize2.ERRORTOKEN:
+                elif t == tokenize.ERRORTOKEN:
                     stop_at_NL = True
         except TokenError:
             # Multi-line statement - stop and try again with the next line
@@ -319,7 +319,7 @@ def has_comment(src):
     comment : bool
         True if source has a comment.
     """
-    return (tokenize2.COMMENT in _line_tokens(src))
+    return (tokenize.COMMENT in _line_tokens(src))
 
 def ends_in_comment_or_string(src):
     """Indicates whether or not an input line ends in a comment or within
@@ -336,7 +336,7 @@ def ends_in_comment_or_string(src):
         True if source ends in a comment or multiline string.
     """
     toktypes = _line_tokens(src)
-    return (tokenize2.COMMENT in toktypes) or (_MULTILINE_STRING in toktypes)
+    return (tokenize.COMMENT in toktypes) or (_MULTILINE_STRING in toktypes)
         
 
 @StatelessInputTransformer.wrap
