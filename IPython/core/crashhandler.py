@@ -45,16 +45,23 @@ A crash report was automatically generated with the following information:
 It was left in the file named:
 \t'{crash_report_fname}'
 If you can email this file to the developers, the information in it will help
-them in understanding and correcting the problem. Please include information
-about your operating system: is it Linux, macOS, Windows, other, and which
-version, for example Ubuntu 16.04, macOS 10.13.2, Windows 10 Pro 64-bit...
-Please also include information on how you installed {app_name}.
+them in understanding and correcting the problem.
 
 You can mail it to: {contact_name} at {contact_email}
 with the subject '{app_name} Crash Report'.
 
 If you want to do it now, the following command will work (under Unix):
 mail -s '{app_name} Crash Report' {contact_email} < {crash_report_fname}
+
+Please also include in your email:
+- information about your operating system: is it Linux, macOS, Windows, other,
+  and which version, for example Ubuntu 16.04, macOS 10.13.2, Windows 10 Pro,
+  is it 32-bit or 64-bit, ...
+- information on how you installed {app_name}: from binary, compiled from source,
+  via Docker, on a virtual machine...
+- information on how to reproduce the crash: what exact sequence of instructions
+  can one input to get the same crash? Ideally, find a minimal yet complete
+  sequence of instructions that yields the crash.
 
 To ensure accurate tracking of this issue, please file a report about it at:
 {bug_tracker}
