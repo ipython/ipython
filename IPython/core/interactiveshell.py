@@ -1179,7 +1179,7 @@ class InteractiveShell(SingletonConfigurable):
         -----
         All data structures here are only filled in, they are NOT reset by this
         method.  If they were not empty before, data will simply be added to
-        therm.
+        them.
         """
         # This function works in two parts: first we put a few things in
         # user_ns, and we sync that contents into user_ns_hidden so that these
