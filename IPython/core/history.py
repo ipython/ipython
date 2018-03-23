@@ -20,7 +20,7 @@ import threading
 from traitlets.config.configurable import LoggingConfigurable
 from decorator import decorator
 from IPython.utils.decorators import undoc
-from IPython.utils.path import locate_profile
+from IPython.paths import locate_profile
 from traitlets import (
     Any, Bool, Dict, Instance, Integer, List, Unicode, TraitError,
     default, observe,
