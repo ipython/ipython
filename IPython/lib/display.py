@@ -2,6 +2,7 @@
 
 Authors : MinRK, gregcaporaso, dannystaple
 """
+from html import escape as html_escape
 from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep, fsdecode
 
@@ -340,9 +341,10 @@ class FileLink(object):
         self.result_html_suffix = result_html_suffix
 
     def _format_path(self):
-        fp = ''.join([self.url_prefix,self.path])
+        fp = ''.join([self.url_prefix, html_escape(self.path)])
         return ''.join([self.result_html_prefix,
-                        self.html_link_str % (fp, self.path),
+                        self.html_link_str % \
+                            (fp, html_escape(self.path, quote=False)),
                         self.result_html_suffix])
 
     def _repr_html_(self):
