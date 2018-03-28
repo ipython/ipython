@@ -3,7 +3,7 @@
 Authors : MinRK, gregcaporaso, dannystaple
 """
 from os.path import exists, isfile, splitext, abspath, join, isdir
-from os import walk, sep
+from os import walk, sep, fsdecode
 
 from IPython.core.display import DisplayObject
 
@@ -334,7 +334,7 @@ class FileLink(object):
         if isdir(path):
             raise ValueError("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
-        self.path = path
+        self.path = fsdecode(path)
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
         self.result_html_suffix = result_html_suffix
