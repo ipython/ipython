@@ -183,3 +183,7 @@ def test_recursive_FileLinks():
 def test_audio_from_file():
     path = pjoin(dirname(__file__), 'test.wav')
     display.Audio(filename=path)
+
+def test_code_from_file():
+    c = display.Code(filename=__file__)
+    assert c._repr_html_().startswith('<style>')
