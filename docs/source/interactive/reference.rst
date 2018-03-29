@@ -629,7 +629,7 @@ some sort, you can then exit::
 
   In [2]: exit()
 
-Once you exit and print `a`, the value 23 will be returned::
+Once you exit and print `a`, the value 23 will be shown::
 
 
   In: print(a)
