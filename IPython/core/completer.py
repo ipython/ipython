@@ -683,7 +683,7 @@ class Completer(Configurable):
         Assuming the text is of the form NAME.NAME....[NAME], and is
         evaluatable in self.namespace or self.global_namespace, it will be
         evaluated and its attributes (as revealed by dir()) are used as
-        possible completions.  (For class instances, class members are are
+        possible completions.  (For class instances, class members are
         also considered.)
 
         WARNING: this can still invoke arbitrary C code, if an object
@@ -949,8 +949,8 @@ def _formatparamchildren(parameter) -> str:
 
     Jedi does not expose a simple way to get `param=value` from its API.
 
-    Prameter
-    ========
+    Parameter
+    =========
 
     parameter:
         Jedi's function `Param`

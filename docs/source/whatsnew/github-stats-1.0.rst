@@ -580,7 +580,7 @@ Pull Requests (793):
 * :ghpull:`3576`: Added support for markdown in heading cells when they are nbconverted.
 * :ghpull:`3575`: tweak `run -d` message to 'continue execution'
 * :ghpull:`3569`: add PYTHONSTARTUP to startup files
-* :ghpull:`3567`: Trigger a single event on js app initilized
+* :ghpull:`3567`: Trigger a single event on js app initialized
 * :ghpull:`3565`: style.min.css should always exist...
 * :ghpull:`3531`: allow markdown in heading cells
 * :ghpull:`3577`: Simplify codemirror ipython-mode
@@ -1195,7 +1195,7 @@ Issues (691):
 * :ghissue:`3957`: Notebook help page broken in Firefox
 * :ghissue:`3894`: nbconvert test failure
 * :ghissue:`3887`: 1.0.0a1 shows blank screen in both firefox and chrome (windows 7)
-* :ghissue:`3703`: `nbconvert`: Output options -- names and documentataion
+* :ghissue:`3703`: `nbconvert`: Output options -- names and documentation
 * :ghissue:`3931`: Tab completion not working during debugging in the notebook
 * :ghissue:`3936`: Ipcluster plugin is not working with Ipython 1.0dev
 * :ghissue:`3941`: IPython Notebook kernel crash on Win7x64
@@ -1264,7 +1264,7 @@ Issues (691):
 * :ghissue:`3737`: ipython nbconvert crashes with ValueError: Invalid format string.
 * :ghissue:`3730`: nbconvert: unhelpful error when pandoc isn't installed
 * :ghissue:`3718`: markdown cell cursor misaligned in notebook
-* :ghissue:`3710`: mutiple input fields for %debug in the notebook after resetting the kernel
+* :ghissue:`3710`: multiple input fields for %debug in the notebook after resetting the kernel
 * :ghissue:`3713`: PyCharm has problems with IPython working inside PyPy created by virtualenv
 * :ghissue:`3712`: Code completion: Complete on dictionary keys
 * :ghissue:`3680`: --pylab and --matplotlib flag
@@ -1405,7 +1405,7 @@ Issues (691):
 * :ghissue:`3519`: IPython Parallel map mysteriously turns pandas Series into numpy ndarray
 * :ghissue:`3345`: IPython embedded shells ask if I want to exit, but I set confirm_exit = False
 * :ghissue:`3509`: IPython won't close without asking "Are you sure?" in Firefox 
-* :ghissue:`3471`: Notebook jinja2/markupsafe depedencies in manual
+* :ghissue:`3471`: Notebook jinja2/markupsafe dependencies in manual
 * :ghissue:`3502`: Notebook broken in master
 * :ghissue:`3302`: autoreload does not work in ipython 0.13.x, python 3.3
 * :ghissue:`3475`: no warning when leaving/closing notebook on master without saved changes
@@ -1477,7 +1477,7 @@ Issues (691):
 * :ghissue:`3380`: simple call to kernel
 * :ghissue:`3379`: TaskRecord key 'started' not set
 * :ghissue:`3241`: notebook connection time out
-* :ghissue:`3334`: magic interpreter interpretes non magic commands?
+* :ghissue:`3334`: magic interpreter interprets non magic commands?
 * :ghissue:`3326`: python3.3: Type error when launching SGE cluster in IPython notebook
 * :ghissue:`3349`: pip3 doesn't run 2to3?
 * :ghissue:`3347`: Longlist support in ipdb
