@@ -950,7 +950,7 @@ def _formatparamchildren(parameter) -> str:
     Jedi does not expose a simple way to get `param=value` from its API.
 
     Parameter
-    ========
+    =========
 
     parameter:
         Jedi's function `Param`
