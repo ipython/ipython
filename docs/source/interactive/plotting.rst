@@ -11,7 +11,7 @@ In order for this to be possible, you need to use the ``display()`` function,
 that should be available by default on IPython 5.4+ and 6.1+, or that you can
 import with ``from IPython.display import display``. Then use ``display(<your
 object>)`` instead of ``print()``, and if possible your object will be displayed
-with a richer representation. In the terminal of course, there wont be much
+with a richer representation. In the terminal of course, there won't be much
 difference as object are most of the time represented by text, but in notebook
 and similar interface you will get richer outputs.
 
