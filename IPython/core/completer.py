@@ -1356,7 +1356,7 @@ class IPCompleter(Completer):
                     raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
 
         interpreter = jedi.Interpreter(
-            text, namespaces, column=cursor_column, line=cursor_line + 1)
+            text[:cursor_column], namespaces, column=cursor_column, line=cursor_line + 1)
         try_jedi = True
 
         try:
