@@ -1340,7 +1340,6 @@ class IPCompleter(Completer):
             namespaces.append(self.global_namespace)
 
         completion_filter = lambda x:x
-        # cursor_pos is an it, jedi wants line and column
         offset = cursor_to_position(text, cursor_line, cursor_column)
         # filter output if we are completing for object members
         if offset:
@@ -1356,7 +1355,7 @@ class IPCompleter(Completer):
                     raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
 
         interpreter = jedi.Interpreter(
-            text, namespaces, column=cursor_column, line=cursor_line + 1)
+            text[:offset], namespaces, column=cursor_column, line=cursor_line + 1)
         try_jedi = True
 
         try:
