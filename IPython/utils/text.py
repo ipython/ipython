@@ -13,11 +13,7 @@ import re
 import sys
 import textwrap
 from string import Formatter
-try:
-    from pathlib import Path
-except ImportError:
-    # for Python 3.3
-    from pathlib2 import Path
+from pathlib import Path
 
 from IPython.utils import py3compat
 

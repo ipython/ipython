@@ -430,8 +430,5 @@ def test_init_colors():
 def test_builtin_init():
     info = inspector.info(list)
     init_def = info['init_definition']
-    # Python < 3.4 can't get init definition from builtins,
-    # but still exercise the inspection in case of error-raising bugs.
-    if sys.version_info >= (3,4):
-        nt.assert_is_not_none(init_def)
+    nt.assert_is_not_none(init_def)
 

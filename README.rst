@@ -23,7 +23,9 @@ contribute to the project.
 
 **IPython versions and Python Support**
 
-**IPython 6** requires Python version 3.3 and above.
+**IPython 7.0** requires Python version 3.4 and above.
+
+**IPython 6.x** requires Python version 3.3 and above.
 
 **IPython 5.x LTS** is the compatible release for Python 2.7.
 If you require Python 2 support, you **must** use IPython 5.x LTS. Please
