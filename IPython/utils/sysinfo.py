@@ -21,7 +21,7 @@ import sys
 import subprocess
 
 from IPython.core import release
-from IPython.utils import py3compat, _sysinfo, encoding
+from IPython.utils import _sysinfo, encoding
 
 #-----------------------------------------------------------------------------
 # Code
@@ -98,7 +98,6 @@ def get_sys_info():
     path = p.realpath(p.dirname(p.abspath(p.join(__file__, '..'))))
     return pkg_info(path)
 
-@py3compat.doctest_refactor_print
 def sys_info():
     """Return useful information about IPython and the system, as a string.
 
@@ -106,7 +105,7 @@ def sys_info():
     --------
     ::
     
-        In [2]: print sys_info()
+        In [2]: print(sys_info())
         {'commit_hash': '144fdae',      # random
          'commit_source': 'repository',
          'ipython_path': '/home/fperez/usr/lib/python2.6/site-packages/IPython',

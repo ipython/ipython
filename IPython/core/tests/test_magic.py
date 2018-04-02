@@ -26,7 +26,6 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
 from IPython.core.magics import execution, script, code, logging
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils import py3compat
 from IPython.utils.io import capture_output
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.process import find_cmd
@@ -304,12 +303,10 @@ def test_macro_run():
     """Test that we can run a multi-line macro successfully."""
     ip = get_ipython()
     ip.history_manager.reset()
-    cmds = ["a=10", "a+=1", py3compat.doctest_refactor_print("print a"),
-                                                            "%macro test 2-3"]
+    cmds = ["a=10", "a+=1", "print(a)", "%macro test 2-3"]
     for cmd in cmds:
         ip.run_cell(cmd, store_history=True)
-    nt.assert_equal(ip.user_ns["test"].value,
-                            py3compat.doctest_refactor_print("a+=1\nprint a\n"))
+    nt.assert_equal(ip.user_ns["test"].value, "a+=1\nprint(a)\n")
     with tt.AssertPrints("12"):
         ip.run_cell("test")
     with tt.AssertPrints("13"):
@@ -532,7 +529,6 @@ def test_whos():
     _ip.user_ns['a'] = A()
     _ip.magic("whos")
 
-@py3compat.u_format
 def doctest_precision():
     """doctest for %precision
     
