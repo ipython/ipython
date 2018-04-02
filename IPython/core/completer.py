@@ -869,7 +869,7 @@ def position_to_cursor(text:str, offset:int)->Tuple[int, int]:
 
     """
 
-    assert 0 < offset <= len(text) , "0 < %s <= %s" % (offset , len(text))
+    assert 0 <= offset <= len(text) , "0 <= %s <= %s" % (offset , len(text))
 
     before = text[:offset]
     blines = before.split('\n')  # ! splitnes trim trailing \n
