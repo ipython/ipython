@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """IPython release script.
 
 This should ONLY be run at real release time.
