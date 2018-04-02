@@ -2,11 +2,26 @@
  5.x Series
 ============
 
-IPython 5.4.1
-=============
+.. _whatsnew560:
 
-Released a few hours after 5.4, fix a crash when
-``backports.shutil-get-terminal-size`` is not installed. :ghissue:`10629`
+IPython 5.6
+===========
+
+* In Python 3.6 and above, dictionaries preserve the order items were added to
+  them. On these versions, IPython will display dictionaries in their native
+  order, rather than sorting by the keys (:ghpull:`10958`).
+* :class:`~.IPython.display.ProgressBar` can now be used as an iterator
+  (:ghpull:`10813`).
+* The shell object gains a :meth:`~.InteractiveShell.check_complete` method,
+  to allow a smoother transition to new input processing machinery planned for
+  IPython 7 (:ghpull:`11044`).
+* IPython should start faster, as it no longer looks for all available pygments
+  styles on startup (:ghpull:`10859`).
+
+You can see all the PR marked for the `5.6. milestone <https://github.com/ipython/ipython/pulls?utf8=%E2%9C%93&q=is%3Apr+milestone%3A5.6+is%3Aclosed+NOT+%22Backport+PR%22+>`_,
+and all the `backport versions <https://github.com/ipython/ipython/pulls?utf8=%E2%9C%93&q=is%3Apr%20milestone%3A5.6%20is%3Aclosed%20%22Backport%20PR%22%20>`__.
+
+.. _whatsnew550:
 
 IPython 5.5
 ===========
@@ -56,9 +71,12 @@ Misc
 You can see all the PR marked for the `5.5. milestone <https://github.com/ipython/ipython/pulls?q=is%3Apr%20milestone%3A5.5%20is%3Aclosed%20NOT%20%22Backport%20PR%22>`_,
 and all the `backport versions <https://github.com/ipython/ipython/pulls?utf8=%E2%9C%93&q=is%3Apr%20milestone%3A5.5%20is%3Aclosed%20%22Backport%20PR%22%20>`_.
 
+IPython 5.4.1
+=============
+Released a few hours after 5.4, fix a crash when
+``backports.shutil-get-terminal-size`` is not installed. :ghissue:`10629`
 
-
-
+.. _whatsnew540:
 
 IPython 5.4
 ===========
@@ -410,5 +428,3 @@ Known Issues:
 
 - Color styles might not adapt to terminal emulator themes. This will need new
   version of Pygments to be released, and can be mitigated with custom themes.
-
-
