@@ -3,6 +3,33 @@
 ============
 
 
+.. _whatsnew630:
+
+IPython 6.3
+===========
+
+IPython 6.3 contains all the bug fixes and features in
+:ref:`IPython 5.6 <whatsnew560>`. In addition:
+
+* A new display class :class:`IPython.display.Code` can be used to display
+  syntax highlighted code in a notebook (:ghpull:`10978`).
+* The :cellmagic:`html` magic now takes a ``--isolated`` option to put the
+  content in an iframe (:ghpull:`10962`).
+* The code to find completions using the Jedi library has had various
+  adjustments. This is still a work in progress, but we hope this version has
+  fewer annoyances (:ghpull:`10956`, :ghpull:`10969`, :ghpull:`10999`,
+  :ghpull:`11035`, :ghpull:`11063`, :ghpull:`11065`).
+* The *post* event callbacks are now always called, even when the execution failed
+  (for example because of a ``SyntaxError``).
+* The execution info and result objects are now made available in the
+  corresponding *pre* or *post* ``*_run_cell`` :doc:`event callbacks </config/callbacks>`
+  in a backward compatible manner (:ghissue:`10774` and :ghpull:`10795`).
+* Performance with very long code cells (hundreds of lines) is greatly improved
+  (:ghpull:`10898`). Further improvements are planned for IPython 7.
+
+You can see all `pull requests for the 6.3 milestone
+<https://github.com/ipython/ipython/pulls?utf8=%E2%9C%93&q=is%3Apr+milestone%3A6.3+is%3Aclosed>`__.
+
 .. _whatsnew620:
 
 IPython 6.2
