@@ -42,9 +42,9 @@ if sys.version_info < (3, 4):
 
 
     error = """
-IPython 6.3+ supports Python 3.4 and above.
+IPython 7.0+ supports Python 3.4 and above.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
-Python 3.3 was supported up to IPython 6.2.
+Python 3.3 was supported up to IPython 6.x.
 
 See IPython `README.rst` file for more information:
 
