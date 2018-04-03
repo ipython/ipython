@@ -15,9 +15,10 @@ before_install:
 install:
     - pip install setuptools pip --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
-    - pip install codecov --upgrade
+    - pip install codecov check-manifest --upgrade
     - sudo apt-get install graphviz
 script:
+    - check-manifest
     - cd /tmp && iptest --coverage xml && cd -
     # On the latest Python only, make sure that the docs build.
     - |
