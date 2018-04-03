@@ -18,7 +18,6 @@ import nose.tools as nt
 
 from IPython.testing.decorators import skipif, skip_win32
 from IPython.utils.io import IOStream, Tee, capture_output
-from IPython.utils.py3compat import doctest_refactor_print
 from IPython.utils.tempdir import TemporaryDirectory
 
 
@@ -59,7 +58,7 @@ class TeeTestCase(unittest.TestCase):
 def test_io_init():
     """Test that io.stdin/out/err exist at startup"""
     for name in ('stdin', 'stdout', 'stderr'):
-        cmd = doctest_refactor_print("from IPython.utils import io;print io.%s.__class__"%name)
+        cmd = "from IPython.utils import io;print(io.%s.__class__)"%name
         p = Popen([sys.executable, '-c', cmd],
                     stdout=PIPE)
         p.wait()
