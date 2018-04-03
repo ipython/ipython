@@ -302,21 +302,6 @@ Currently the magic system has the following functions:""",
             print('Object `%s` not found' % oname)
 
     @line_magic
-    def profile(self, parameter_s=''):
-        """DEPRECATED since IPython 2.0.
-
-        Raise `UsageError`. To profile code use the :magic:`prun` magic.
-        
-
-        See Also
-        --------
-        prun : run code using the Python profiler (:magic:`prun`)
-        """
-        raise UsageError("The `%profile` magic has been deprecated since IPython 2.0. "
-            "and removed in IPython 6.0. Please use the value of `get_ipython().profile` instead "
-            "to see current profile in use. Perhaps you meant to use `%prun` to profile code?")
-
-    @line_magic
     def pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
         ptformatter = self.shell.display_formatter.formatters['text/plain']
