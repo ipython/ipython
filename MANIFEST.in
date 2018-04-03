@@ -10,6 +10,7 @@ include .mailmap
 recursive-exclude tools *
 exclude tools
 exclude CONTRIBUTING.md
+exclude .editorconfig
 
 graft setupext
 
