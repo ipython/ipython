@@ -70,14 +70,14 @@ Support version.
 
 If you are encountering this error message you are likely trying to install or
 use IPython from source. You need to checkout the remote 5.x branch. If you are
-using git the following should work:
+using git the following should work::
 
   $ git fetch origin
   $ git checkout 5.x
 
 If you encounter this error message with a regular install of IPython, then you
 likely need to update your package manager, for example if you are using `pip`
-check the version of pip with
+check the version of pip with::
 
   $ pip --version
 
