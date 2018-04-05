@@ -347,8 +347,8 @@ def test_completion_have_signature():
     with provisionalcompleter():
         ip.Completer.use_jedi = True
         completions = ip.Completer.completions('ope', 3)
-        ip.Completer.use_jedi = False
         c = next(completions)  # should be `open`
+        ip.Completer.use_jedi = False
     assert 'file' in c.signature, "Signature of function was not found by completer"
     assert 'encoding' in c.signature, "Signature of function was not found by completer"
 
