@@ -576,7 +576,7 @@ class Completer(Configurable):
         """
     ).tag(config=True)
 
-    use_jedi = Bool(default_value=JEDI_INSTALLED,
+    use_jedi = Bool(default_value=False,
                     help="Experimental: Use Jedi to generate autocompletions. "
                     "Default to True if jedi is installed").tag(config=True)
 
