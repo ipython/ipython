@@ -316,13 +316,17 @@ def test_jedi():
         start = start if start is not None else l
         end = end if end is not None else l
         with provisionalcompleter():
+            ip.Completer.use_jedi = True
             completions = set(ip.Completer.completions(s, l))
+            ip.Completer.use_jedi = False
             assert_in(Completion(start, end, comp), completions, reason)
 
     def _test_not_complete(reason, s, comp):
         l = len(s)
         with provisionalcompleter():
+            ip.Completer.use_jedi = True
             completions = set(ip.Completer.completions(s, l))
+            ip.Completer.use_jedi = False
             assert_not_in(Completion(l, l, comp), completions, reason)
 
     import jedi
@@ -341,7 +345,9 @@ def test_completion_have_signature():
     """
     ip = get_ipython()
     with provisionalcompleter():
+        ip.Completer.use_jedi = True
         completions = ip.Completer.completions('ope', 3)
+        ip.Completer.use_jedi = False
         c = next(completions)  # should be `open`
     assert 'file' in c.signature, "Signature of function was not found by completer"
     assert 'encoding' in c.signature, "Signature of function was not found by completer"
@@ -357,7 +363,9 @@ def test_deduplicate_completions():
         zoo = 1
     '''))
     with provisionalcompleter():
+        ip.Completer.use_jedi = True
         l = list(_deduplicate_completions('Z.z', ip.Completer.completions('Z.z', 3)))
+        ip.Completer.use_jedi = False
 
     assert len(l) == 1, 'Completions (Z.z<tab>) correctly deduplicate: %s ' % l
     assert l[0].text == 'zoo'  # and not `it.accumulate`
