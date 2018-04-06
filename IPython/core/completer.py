@@ -576,9 +576,9 @@ class Completer(Configurable):
         """
     ).tag(config=True)
 
-    use_jedi = Bool(default_value=JEDI_INSTALLED,
+    use_jedi = Bool(default_value=False,
                     help="Experimental: Use Jedi to generate autocompletions. "
-                    "Default to True if jedi is installed").tag(config=True)
+                    "Off by default.").tag(config=True)
 
     jedi_compute_type_timeout = Int(default_value=400,
         help="""Experimental: restrict time (in milliseconds) during which Jedi can compute types.
