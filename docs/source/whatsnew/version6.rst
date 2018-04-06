@@ -3,6 +3,18 @@
 ============
 
 
+.. _whatsnew631:
+
+IPython 6.3.1
+=============
+
+This is a bugfix release to switch the default completions back to IPython's
+own completion machinery. We discovered some problems with the completions
+from Jedi, including completing column names on pandas data frames.
+
+You can switch the completions source with the config option
+:configtrait:`Completer.use_jedi`.
+
 .. _whatsnew630:
 
 IPython 6.3
