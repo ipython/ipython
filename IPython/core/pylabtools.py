@@ -46,6 +46,9 @@ backend2gui['CocoaAgg'] = 'osx'
 # And some backends that don't need GUI integration
 del backend2gui['nbAgg']
 del backend2gui['agg']
+del backend2gui['svg']
+del backend2gui['pdf']
+del backend2gui['ps']
 del backend2gui['module://ipykernel.pylab.backend_inline']
 
 #-----------------------------------------------------------------------------
