@@ -114,8 +114,4 @@ def _list_readline(x):
     return readline
 
 # Code for going between .py files and cached .pyc files ----------------------
-try: 
-    from importlib.util import source_from_cache, cache_from_source
-except ImportError :
-    ## deprecated since 3.4
-    from imp import source_from_cache, cache_from_source
+from importlib.util import source_from_cache, cache_from_source
