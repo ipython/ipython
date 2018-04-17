@@ -1,4 +1,7 @@
+import sys
 from IPython.testing.tools import AssertPrints, AssertNotPrints
+from IPython.core.displayhook import CapturingDisplayHook
+from IPython.utils.capture import CapturedIO
 
 ip = get_ipython()
 
