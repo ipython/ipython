@@ -101,3 +101,11 @@ def test_interactivehooks_ast_modes_semi_supress():
 
     finally:
         ip.ast_node_interactivity = saved_mode
+
+def test_capture_display_hook_format():
+    """Tests that the capture display hook conforms to the CapturedIO output format"""
+    hook = CapturingDisplayHook(ip)
+    hook({"foo": "bar"})
+    captured = CapturedIO(sys.stdout, sys.stderr, hook.outputs)
+    # Should not raise with RichOutput transformation error
+    captured.outputs
