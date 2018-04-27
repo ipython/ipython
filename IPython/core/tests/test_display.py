@@ -275,6 +275,10 @@ def test_video_embedding():
         html = v._repr_html_()
         nt.assert_in('src="data:video/xyz;base64,YWJj"',html)
 
+def test_html_metadata():
+    s = "<h1>Test</h1>"
+    h = display.HTML(s, metadata={"isolated": True})
+    nt.assert_equal(h._repr_html_(), (s, {"isolated": True}))
 
 def test_display_id():
     ip = get_ipython()
