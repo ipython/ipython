@@ -12,18 +12,16 @@ def inputhook(context):
     app = QtCore.QCoreApplication.instance()
     if not app:
         if sys.platform == 'linux':
-            try:
-                # DISPLAY or WAYLAND_DISPLAY is set and not empty
-                assert os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')
-            except Exception:
+            if not os.environ.get('DISPLAY') \
+                    and not os.environ.get('WAYLAND_DISPLAY'):
                 import warnings
                 global _already_warned
                 if not _already_warned:
                     _already_warned = True
                     warnings.warn(
-                        'The DISPLAY enviroment variable is not set or empty '
-                        'and Qt5 requires this enviroment variable. '
-                        'Deactivate Qt5 code.'
+                        'The DISPLAY or WAYLAND_DISPLAY enviroment variable is '
+                        'not set or empty and Qt5 requires this enviroment '
+                        'variable. Deactivate Qt5 code.'
                     )
                 return
         _appref = app = QtGui.QApplication([" "])
