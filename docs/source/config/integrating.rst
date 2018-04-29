@@ -25,7 +25,7 @@ Rich display
 ============
 
 The notebook and the Qt console can display richer representations of objects.
-To use this, you can define any of a number of ``_repr_*_()`` methods. Note that
+To use this, you can define any number of ``_repr_*_()`` methods. Note that
 these are surrounded by single, not double underscores.
 
 Both the notebook and the Qt console can display ``svg``, ``png`` and ``jpeg``
@@ -41,6 +41,13 @@ For example::
         
         def _repr_html_(self):
             return "<h1>" + self.text + "</h1>"
+
+We often want to provide frontends with guidance on how to display the data. To
+support this, ``_repr_*_()`` methods can also return a data, metadata tuple where
+metadata is a dictionary containing arbitrary key, value pairs for the frontend
+to interpret. An example use case is ``_repr_jpeg()``, which can be set to
+return a jpeg image and a ``{'height': 400, 'width': 600}`` dictionary to inform
+the frontend how to size the image.
 
 There are also two more powerful display methods:
 
