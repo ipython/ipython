@@ -667,7 +667,7 @@ class Pretty(TextDisplayObject):
 class HTML(TextDisplayObject):
 
     def _repr_html_(self):
-        return self.data
+        return self._data_and_metadata()
 
     def __html__(self):
         """
@@ -681,20 +681,23 @@ class HTML(TextDisplayObject):
 class Markdown(TextDisplayObject):
 
     def _repr_markdown_(self):
-        return self.data
+        return self._data_and_metadata()
 
 
 class Math(TextDisplayObject):
 
     def _repr_latex_(self):
-        s = self.data.strip('$')
-        return "$$%s$$" % s
+        s = "$$%s$$" % self.data.strip('$')
+        if self.metadata:
+            return s, deepcopy(self.metadata)
+        else:
+            return s
 
 
 class Latex(TextDisplayObject):
 
     def _repr_latex_(self):
-        return self.data
+        return self._data_and_metadata()
 
 
 class SVG(DisplayObject):
