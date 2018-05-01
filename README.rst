@@ -33,7 +33,7 @@ update your project configurations and requirements as necessary.
 
 
 The Notebook, Qt console and a number of other pieces are now parts of *Jupyter*.
-See the `Jupyter installation docs <http://jupyter.readthedocs.io/en/latest/install.html>`__
+See the `Jupyter installation docs <https://jupyter.readthedocs.io/en/latest/install.html>`__
 if you want to use these.
 
 
@@ -43,7 +43,7 @@ Development and Instant running
 ===============================
 
 You can find the latest version of the development documentation on `readthedocs
-<http://ipython.readthedocs.io/en/latest/>`_.
+<https://ipython.readthedocs.io/en/latest/>`_.
 
 You can run IPython from this directory without even installing it system-wide
 by typing at the terminal::
@@ -51,7 +51,7 @@ by typing at the terminal::
    $ python -m IPython
 
 Or see the `development installation docs
-<http://ipython.readthedocs.io/en/latest/install/install.html#installing-the-development-version>`_
+<https://ipython.readthedocs.io/en/latest/install/install.html#installing-the-development-version>`_
 for the latest revision on read the docs.
 
 Documentation and installation instructions for older version of IPython can be
