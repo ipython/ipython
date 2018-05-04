@@ -317,4 +317,4 @@ class CapturingDisplayHook(object):
         if result is None:
             return
         format_dict, md_dict = self.shell.display_formatter.format(result)
-        self.outputs.append((format_dict, md_dict))
+        self.outputs.append({ 'data': format_dict, 'metadata': md_dict })
