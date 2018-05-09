@@ -2,6 +2,15 @@
  5.x Series
 ============
 
+
+.. _whatsnew570:
+
+IPython 5.7
+===========
+
+* Fix IPython trying to import non-existing matplotlib backends :ghpull:`11087`
+* fix for display hook not publishing object metadata :ghpull:`11101`
+
 .. _whatsnew560:
 
 IPython 5.6
