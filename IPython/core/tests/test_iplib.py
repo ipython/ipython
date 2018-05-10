@@ -72,7 +72,7 @@ In [4]: run simpleerr.py
 ---------------------------------------------------------------------------
 ZeroDivisionError                         Traceback (most recent call last)
 <BLANKLINE>
-... in <module>()
+... in <module>
      30         mode = 'div'
      31 
 ---> 32     bar(mode)
@@ -104,7 +104,7 @@ In [6]: run simpleerr.py
 ---------------------------------------------------------------------------
 ZeroDivisionError                         Traceback (most recent call last)
 <BLANKLINE>
-... in <module>()
+... in <module>
      30         mode = 'div'
      31 
 ---> 32     bar(mode)
@@ -161,7 +161,7 @@ In [22]: %tb
 ---------------------------------------------------------------------------
 SystemExit                                Traceback (most recent call last)
 <BLANKLINE>
-...<module>()
+...<module>
      30         mode = 'div'
      31 
 ---> 32     bar(mode)
@@ -189,7 +189,7 @@ In [24]: %tb
 ---------------------------------------------------------------------------
 SystemExit                                Traceback (most recent call last)
 <BLANKLINE>
-... in <module>()
+... in <module>
      30         mode = 'div'
      31 
 ---> 32     bar(mode)

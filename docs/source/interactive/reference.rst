@@ -765,7 +765,7 @@ context line to show. This allows to a many line of context on shallow stack tra
     In[6]: foo(1)
     # ...
     ipdb> where 8
-    <ipython-input-6-9e45007b2b59>(1)<module>()
+    <ipython-input-6-9e45007b2b59>(1)<module>
     ----> 1 foo(1)
 
     <ipython-input-5-7baadc3d1465>(5)foo()
@@ -794,7 +794,7 @@ And less context on shallower Stack Trace:
 .. code::
 
     ipdb> where 1
-    <ipython-input-13-afa180a57233>(1)<module>()
+    <ipython-input-13-afa180a57233>(1)<module>
     ----> 1 foo(7)
 
     <ipython-input-5-7baadc3d1465>(5)foo()
