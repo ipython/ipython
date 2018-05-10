@@ -2,6 +2,16 @@
  6.x Series
 ============
 
+.. _whatsnew640:
+
+IPython 6.4.0
+=============
+
+Everything new in :ref:`IPython 5.7 <whatsnew570>`
+
+* Fix display object not emitting metadata :ghpull:`11106`
+* Comments failing Jedi test :ghpull:`11110` 
+
 
 .. _whatsnew631:
 
