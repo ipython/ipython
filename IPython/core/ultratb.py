@@ -873,6 +873,8 @@ class VerboseTB(TBTools):
 
         if func == '?':
             call = ''
+        elif func == '<module>':
+            call = tpl_call % (func, '')
         else:
             # Decide whether to include variable details or not
             var_repr = self.include_vars and eqrepr or nullrepr
