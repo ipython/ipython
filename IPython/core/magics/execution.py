@@ -109,7 +109,6 @@ class TimeitResult(object):
         unic = self.__str__()
         p.text(u'<TimeitResult : '+unic+u'>')
 
-_pass = ast.Pass()
 
 class TimeitTemplateFiller(ast.NodeTransformer):
     """Fill in the AST template for timing execution.
