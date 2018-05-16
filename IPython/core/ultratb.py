@@ -375,16 +375,32 @@ def _fixed_getinnerframes(etb, context=1, tb_offset=0):
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
 
-def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,  _line_format=(lambda x,_:x,None)):
+def _format_traceback_lines(lnum, index, lines, Colors, lvals, _line_format):
+    """
+    Format tracebacks lines with pointing arrow, leading numbers...
+
+    Parameters
+    ==========
+
+    lnum: int
+    index: int
+    lines: list[string]
+    Colors:
+        ColorScheme used.
+    lvals: bytes
+        Values of local variables, already colored, to inject just after the error line.
+    _line_format: f (str) -> (str, bool)
+        return (colorized version of str, failure to do so)
+    """
     numbers_width = INDENT_SIZE - 1
     res = []
-    i = lnum - index
 
-    for line in lines:
+    for i,line in enumerate(lines, lnum-index):
         line = py3compat.cast_unicode(line)
 
         new_line, err = _line_format(line, 'str')
-        if not err: line = new_line
+        if not err:
+            line = new_line
 
         if i == lnum:
             # This is the line with the error
@@ -400,7 +416,6 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,  _line_forma
         res.append(line)
         if lvals and i == lnum:
             res.append(lvals + '\n')
-        i = i + 1
     return res
 
 def is_recursion_error(etype, value, records):
@@ -853,7 +868,7 @@ class VerboseTB(TBTools):
 
         file = py3compat.cast_unicode(file, util_path.fs_encoding)
         link = tpl_link % util_path.compress_user(file)
-        args, varargs, varkw, locals = inspect.getargvalues(frame)
+        args, varargs, varkw, locals_ = inspect.getargvalues(frame)
 
         if func == '?':
             call = ''
@@ -863,7 +878,7 @@ class VerboseTB(TBTools):
             try:
                 call = tpl_call % (func, inspect.formatargvalues(args,
                                                                  varargs, varkw,
-                                                                 locals, formatvalue=var_repr))
+                                                                 locals_, formatvalue=var_repr))
             except KeyError:
                 # This happens in situations like errors inside generator
                 # expressions, where local variables are listed in the
@@ -952,14 +967,15 @@ class VerboseTB(TBTools):
         unique_names = uniq_stable(names)
 
         # Start loop over vars
-        lvals = []
+        lvals = ''
+        lvals_list = []
         if self.include_vars:
             for name_full in unique_names:
                 name_base = name_full.split('.', 1)[0]
                 if name_base in frame.f_code.co_varnames:
-                    if name_base in locals:
+                    if name_base in locals_:
                         try:
-                            value = repr(eval(name_full, locals))
+                            value = repr(eval(name_full, locals_))
                         except:
                             value = undefined
                     else:
@@ -974,11 +990,9 @@ class VerboseTB(TBTools):
                     else:
                         value = undefined
                     name = tpl_global_var % name_full
-                lvals.append(tpl_name_val % (name, value))
-        if lvals:
-            lvals = '%s%s' % (indent, em_normal.join(lvals))
-        else:
-            lvals = ''
+                lvals_list.append(tpl_name_val % (name, value))
+        if lvals_list:
+            lvals = '%s%s' % (indent, em_normal.join(lvals_list))
 
         level = '%s %s\n' % (link, call)
 

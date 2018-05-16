@@ -213,7 +213,7 @@ class Parser(Colorable):
 
         string_output = 0
         if out == 'str' or self.out == 'str' or \
-           isinstance(self.out,StringIO):
+           isinstance(self.out, StringIO):
             # XXX - I don't really like this state handling logic, but at this
             # point I don't want to make major changes, so adding the
             # isinstance() check is the simplest I can do to ensure correct
@@ -223,6 +223,8 @@ class Parser(Colorable):
             string_output = 1
         elif out is not None:
             self.out = out
+        else:
+            raise ValueError('`out` or `self.out` should be file-like or the value `"str"`')
 
         # Fast return of the unmodified input for NoColor scheme
         if self.style == 'NoColor':
@@ -275,12 +277,13 @@ class Parser(Colorable):
             return (output, error)
         return (None, error)
 
-    def __call__(self, toktype, toktext, start_pos, end_pos, line):
-        """ Token handler, with syntax highlighting."""
+    def _inner_call_(self, toktype, toktext, start_pos, end_pos, line):
+        """like call but write to a temporary buffer"""
+        buff = StringIO()
         (srow,scol) = start_pos
         (erow,ecol) = end_pos
         colors = self.colors
-        owrite = self.out.write
+        owrite = buff.write
 
         # line separator, so this works across platforms
         linesep = os.linesep
@@ -297,7 +300,8 @@ class Parser(Colorable):
         # skip indenting tokens
         if toktype in [token.INDENT, token.DEDENT]:
             self.pos = newpos
-            return
+            buff.seek(0)
+            return buff.read()
 
         # map token type to a color group
         if token.LPAR <= toktype <= token.OP:
@@ -316,3 +320,12 @@ class Parser(Colorable):
 
         # send text
         owrite('%s%s%s' % (color,toktext,colors.normal))
+        buff.seek(0)
+        return buff.read()
+
+
+    def __call__(self, toktype, toktext, start_pos, end_pos, line):
+        """ Token handler, with syntax highlighting."""
+        self.out.write(
+            self._inner_call_(toktype, toktext, start_pos, end_pos, line))
+
