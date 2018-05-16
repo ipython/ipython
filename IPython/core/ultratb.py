@@ -121,6 +121,7 @@ from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
 from IPython.utils.terminal import get_terminal_size
+
 from logging import info, error, debug
 
 import IPython.utils.colorable as colorable
@@ -621,16 +622,6 @@ class ListTB(TBTools):
         lines = ''.join(self._format_exception_only(etype, value))
         out_list.append(lines)
 
-        # Note: this code originally read:
-
-        ## for line in lines[:-1]:
-        ##     out_list.append(" "+line)
-        ## out_list.append(lines[-1])
-
-        # This means it was indenting everything but the last line by a little
-        # bit.  I've disabled this for now, but if we see ugliness somewhere we
-        # can restore it.
-
         return out_list
 
     def _format_list(self, extracted_list):
@@ -841,13 +832,6 @@ class VerboseTB(TBTools):
                                                  Colors.vName, ColorsNormal)
         tpl_name_val = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
 
-        tpl_line = '%s%%s%s %%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em = '%s%%s%s %%s%s' % (Colors.linenoEm, Colors.line,
-                                         ColorsNormal)
-
-        abspath = os.path.abspath
-
-
         if not file:
             file = '?'
         elif file.startswith(str("<")) and file.endswith(str(">")):
@@ -875,7 +859,7 @@ class VerboseTB(TBTools):
             call = ''
         else:
             # Decide whether to include variable details or not
-            var_repr = self.include_vars and eqrepr or nullrepr
+            var_repr = eqrepr if self.include_vars else nullrepr
             try:
                 call = tpl_call % (func, inspect.formatargvalues(args,
                                                                  varargs, varkw,
@@ -1041,7 +1025,6 @@ class VerboseTB(TBTools):
     def format_exception(self, etype, evalue):
         colors = self.Colors  # just a shorthand + quicker name lookup
         colorsnormal = colors.Normal  # used a lot
-        indent = ' ' * INDENT_SIZE
         # Get (safely) a string form of the exception info
         try:
             etype_str, evalue_str = map(str, (etype, evalue))
