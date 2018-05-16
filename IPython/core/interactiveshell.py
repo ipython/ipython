@@ -2865,7 +2865,6 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not nodelist:
             return
-
         if interactivity == 'last_expr_or_assign':
             if isinstance(nodelist[-1], _assign_nodes):
                 asg = nodelist[-1]
@@ -2895,7 +2894,6 @@ class InteractiveShell(SingletonConfigurable):
             to_run_exec, to_run_interactive = [], nodelist
         else:
             raise ValueError("Interactivity was %r" % interactivity)
-
         try:
             for i, node in enumerate(to_run_exec):
                 mod = ast.Module([node])
