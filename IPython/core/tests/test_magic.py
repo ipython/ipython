@@ -568,7 +568,13 @@ def test_timeit_shlex():
 
 def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
-    _ip.magic("timeit ('#')")
+    if sys.version_info < (3,7):
+        _ip.magic("timeit ('#')")
+    else:
+        # 3.7 optimize no-op statement like above out, and complain there is
+        # nothing in the for loop.
+        _ip.magic("timeit a=('#')")
+
 
 
 def test_timeit_special_syntax():

@@ -110,7 +110,6 @@ class TimeitResult(object):
         p.text(u'<TimeitResult : '+unic+u'>')
 
 
-
 class TimeitTemplateFiller(ast.NodeTransformer):
     """Fill in the AST template for timing execution.
 
