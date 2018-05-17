@@ -116,13 +116,14 @@ from IPython.core import debugger
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
-from IPython.utils import openpy
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
 from IPython.utils.terminal import get_terminal_size
 
 from logging import info, error, debug
+
+from importlib.util import source_from_cache
 
 import IPython.utils.colorable as colorable
 
@@ -907,7 +908,7 @@ class VerboseTB(TBTools):
         elif file.endswith(('.pyc', '.pyo')):
             # Look up the corresponding source file.
             try:
-                file = openpy.source_from_cache(file)
+                file = source_from_cache(file)
             except ValueError:
                 # Failed to get the source file for some reason
                 # E.g. https://github.com/ipython/ipython/issues/9486

@@ -29,11 +29,3 @@ def test_source_to_unicode():
 
     source_no_cookie = openpy.source_to_unicode(source_bytes, skip_encoding_cookie=True)
     nt.assert_not_in(u'coding: iso-8859-5', source_no_cookie)
-
-def test_list_readline():
-    l = ['a', 'b']
-    readline = openpy._list_readline(l)
-    nt.assert_equal(readline(), 'a')
-    nt.assert_equal(readline(), 'b')
-    with nt.assert_raises(StopIteration):
-        readline()
