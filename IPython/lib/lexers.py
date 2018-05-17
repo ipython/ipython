@@ -236,7 +236,7 @@ class IPythonConsoleLexer(Lexer):
 
             ---------------------------------------------------------------------------
             Exception                                 Traceback (most recent call last)
-            <ipython-input-1-fca2ab0ca76b> in <module>()
+            <ipython-input-1-fca2ab0ca76b> in <module>
             ----> 1 raise Exception
 
             Exception:
