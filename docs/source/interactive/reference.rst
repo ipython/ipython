@@ -308,6 +308,9 @@ one of (note that the modes are given unquoted):
     * [append:] well, that says it.
     * [rotate:] create rotating logs log_name.1~, log_name.2~, etc.
 
+Adding the '-o' flag to '%logstart' magic (as in '%logstart -o [log_name [log_mode]]')
+will also include output from iPython in the log file.
+
 The :magic:`logoff` and :magic:`logon` functions allow you to temporarily stop and
 resume logging to a file which had previously been started with
 %logstart. They will fail (with an explanation) if you try to use them
