@@ -5,13 +5,16 @@ import sys
 
 from IPython.core.displayhook import DisplayHook
 
-from prompt_toolkit.layout.utils import token_list_width
+from prompt_toolkit.formatted_text.utils import fragment_list_width
+from prompt_toolkit.shortcuts.utils import print_formatted_text
+from prompt_toolkit.formatted_text import PygmentsTokens
+
 
 class Prompts(object):
     def __init__(self, shell):
         self.shell = shell
 
-    def in_prompt_tokens(self, cli=None):
+    def in_prompt_tokens(self):
         return [
             (Token.Prompt, 'In ['),
             (Token.PromptNum, str(self.shell.execution_count)),
@@ -19,9 +22,9 @@ class Prompts(object):
         ]
 
     def _width(self):
-        return token_list_width(self.in_prompt_tokens())
+        return fragment_list_width(self.in_prompt_tokens())
 
-    def continuation_prompt_tokens(self, cli=None, width=None):
+    def continuation_prompt_tokens(self, width=None):
         if width is None:
             width = self._width()
         return [
@@ -42,12 +45,12 @@ class Prompts(object):
         ]
 
 class ClassicPrompts(Prompts):
-    def in_prompt_tokens(self, cli=None):
+    def in_prompt_tokens(self):
         return [
             (Token.Prompt, '>>> '),
         ]
 
-    def continuation_prompt_tokens(self, cli=None, width=None):
+    def continuation_prompt_tokens(self, width=None):
         return [
             (Token.Prompt, '... ')
         ]
@@ -73,7 +76,8 @@ class RichPromptDisplayHook(DisplayHook):
                 # Ask for a newline before multiline output
                 self.prompt_end_newline = False
 
-            if self.shell.pt_cli:
-                self.shell.pt_cli.print_tokens(tokens)
+            if self.shell.pt_app:
+                print_formatted_text(
+                    PygmentsTokens(tokens), style=self.shell.pt_app.app.style)
             else:
                 sys.stdout.write(prompt_txt)
