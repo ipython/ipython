@@ -1,7 +1,7 @@
 """
 Async helper function that are invalid syntax on Python 3.5 and below.
 
-Known limitation and possible improvement. 
+Known limitation and possible improvement.
 
 Top level code that contain a return statement (instead of, or in addition to
 await) will be detected as requiring being wrapped in async calls. This should
@@ -16,12 +16,14 @@ import inspect
 from textwrap import dedent, indent
 from types import CodeType
 
+
 def _asyncio_runner(coro):
     """
     Handler for asyncio autoawait
     """
     import asyncio
     return asyncio.get_event_loop().run_until_complete(coro)
+
 
 def _curio_runner(coroutine):
     """
@@ -30,7 +32,8 @@ def _curio_runner(coroutine):
     import curio
     return curio.run(coroutine)
 
-if sys.version_info > (3,5):
+
+if sys.version_info > (3, 5):
     # nose refuses to avoid this file and async def is invalidsyntax
     s = dedent('''
     def _trio_runner(function):
@@ -45,20 +48,23 @@ if sys.version_info > (3,5):
     ''')
     exec(s, globals(), locals())
 
-def _asyncify(code:str) -> str:
+
+def _asyncify(code: str) -> str:
     """wrap code in async def definition.
 
     And setup a bit of context to run it later.
     """
     res = dedent("""
-        async def ___wrapper___():
-            {usercode}
-            locals()
-            return None
-        """).format(usercode=indent(code,' '*4)[4:])
+        async def __wrapper__():
+            try:
+                {usercode}
+            finally:
+                locals()
+    """).format(usercode=indent(code, ' ' * 4)[4:])
     return res
 
-def _should_be_async(cell:str) -> bool:
+
+def _should_be_async(cell: str) -> bool:
     """Detect if a block of code need to be wrapped in an `async def`
 
     Attempt to parse the block of code, it it compile we're fine.

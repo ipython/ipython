@@ -2,19 +2,20 @@
 
 
 import argparse
-import textwrap
+from logging import error
 import io
-import sys
 from pprint import pformat
+import textwrap
+import sys
+from warnings import warn
 
+from traitlets.utils.importstring import import_item
 from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
 from IPython.utils.text import format_screen, dedent, indent
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
-from warnings import warn
-from logging import error
 
 
 class MagicsDisplay(object):
@@ -381,10 +382,10 @@ Currently the magic system has the following functions:""",
     @line_magic
     def autoawait(self, parameter_s):
         """
-        Allow to change the status of the autoawait option. 
+        Allow to change the status of the autoawait option.
 
         This allow you to set a specific asynchronous code runner.
-        
+
         If no value is passed, print the currently used asynchronous integration
         and whether it is activated.
 
@@ -404,7 +405,7 @@ Currently the magic system has the following functions:""",
         set it as the runner, and activate autoawait."""
 
         param = parameter_s.strip()
-        d = {True:"on",False:"Off"}
+        d = {True: "on", False: "off"}
 
         if not param:
             print("IPython autoawait is `{}`, and set to use `{}`".format(
@@ -430,9 +431,8 @@ Currently the magic system has the following functions:""",
             self.shell.autoawait = True
             return None
 
-        from traitlets.utils.importstring import import_item
         runner = import_item(param)
-        
+
         self.shell.loop_runner = runner
         self.shell.autoawait = True
 

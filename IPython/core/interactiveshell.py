@@ -2028,7 +2028,6 @@ class InteractiveShell(SingletonConfigurable):
         self.set_hook('complete_command', cd_completer, str_key = '%cd')
         self.set_hook('complete_command', reset_completer, str_key = '%reset')
 
-
     def complete(self, text, line=None, cursor_pos=None):
         """Return the completed text and a list of completions.
 
@@ -2700,7 +2699,7 @@ class InteractiveShell(SingletonConfigurable):
         if (not raw_cell) or raw_cell.isspace():
             self.last_execution_succeeded = True
             return result
-        
+
         if silent:
             store_history = False
 
@@ -2766,7 +2765,7 @@ class InteractiveShell(SingletonConfigurable):
             with self.display_trap:
                 # Compile to bytecode
                 try:
-                    if _should_be_async(cell) and self.autoawait:
+                    if self.autoawait and _should_be_async(cell):
                         # the code AST below will not be user code: we wrap it
                         # in an `async def`. This will likely make some AST
                         # transformer below miss some transform opportunity and
@@ -2935,7 +2934,7 @@ class InteractiveShell(SingletonConfigurable):
                 async_wrapper_code = compiler(mod, 'cell_name', 'exec')
                 exec(async_wrapper_code, self.user_global_ns, self.user_ns)
                 async_code = removed_co_newlocals(self.user_ns.pop('async-def-wrapper')).__code__
-                if self.run_code(async_code, result, async=True):
+                if self.run_code(async_code, result, async_=True):
                     return True
             else:
                 for i, node in enumerate(to_run_exec):
@@ -2973,9 +2972,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def _async_exec(self, code_obj:types.CodeType, user_ns:dict, *, loop_runner=None):
         """
-        Evaluate an asynchronous code object using a code runner, 
-
-
+        Evaluate an asynchronous code object using a code runner
 
         Fake asynchronous execution of code_object in a namespace via a proxy namespace.
 
@@ -2993,7 +2990,7 @@ class InteractiveShell(SingletonConfigurable):
         return loop_runner(coro)
 
 
-    def run_code(self, code_obj, result=None, *, async=False):
+    def run_code(self, code_obj, result=None, *, async_=False):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -3005,7 +3002,7 @@ class InteractiveShell(SingletonConfigurable):
           A compiled code object, to be executed
         result : ExecutionResult, optional
           An object to store exceptions that occur during execution.
-        async :  Bool (Experimental)
+        async_ :  Bool (Experimental)
           Attempt to run top-level asynchronous code in a default loop.
 
         Returns
@@ -3024,10 +3021,10 @@ class InteractiveShell(SingletonConfigurable):
         try:
             try:
                 self.hooks.pre_run_code_hook()
-                if async:
+                if async_:
                     last_expr = self._async_exec(code_obj, self.user_ns)
                     code = compile('last_expr', 'fake', "single")
-                    exec(code, {'last_expr':last_expr})
+                    exec(code, {'last_expr': last_expr})
                 else:
                     exec(code_obj, self.user_global_ns, self.user_ns)
             finally:
