@@ -380,7 +380,14 @@ class InteractiveShell(SingletonConfigurable):
     @validate('loop_runner')
     def _import_runner(self, proposal):
         if isinstance(proposal.value, str):
-            return import_item(proposal.value)
+            if proposal.value in self.loop_runner_map:
+                return self.loop_runner_map[proposal.value]
+            runner = import_item(proposal.value)
+            if not callable(runner):
+                raise ValueError('loop_runner must be callable')
+            return runner
+        if not callable(proposal.value):
+            raise ValueError('loop_runner must be callable')
         return proposal.value
 
     automagic = Bool(True, help=
