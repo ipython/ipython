@@ -6,21 +6,14 @@
 
 import os
 import os.path
-import warnings
-from shutil import copyfile
 import sys
-from importlib import import_module
+from importlib import import_module, reload
 
 from traitlets.config.configurable import Configurable
 from IPython.utils.path import ensure_dir_exists, compress_user
 from IPython.utils.decorators import undoc
 from traitlets import Instance
 
-try:
-    from importlib import reload
-except ImportError :
-    ## deprecated since 3.4
-    from imp import reload
 
 #-----------------------------------------------------------------------------
 # Main class

@@ -19,10 +19,8 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
                                 register_line_cell_magic)
 from decorator import decorator
 from IPython import get_ipython
-from IPython.testing.decorators import skipif
 from IPython.testing.tools import AssertPrints, AssertNotPrints
 from IPython.utils.path import compress_user
-from IPython.utils import py3compat
 
 
 #-----------------------------------------------------------------------------
@@ -40,14 +38,14 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 43  # Put here the actual number of this line
+THIS_LINE_NUMBER = 41  # Put here the actual number of this line
 
 from unittest import TestCase
 
 class Test(TestCase):
 
     def test_find_source_lines(self):
-        self.assertEqual(oinspect.find_source_lines(Test.test_find_source_lines), 
+        self.assertEqual(oinspect.find_source_lines(Test.test_find_source_lines),
                     THIS_LINE_NUMBER+6)
 
 
@@ -307,8 +305,13 @@ def test_empty_property_has_no_source():
 
 
 def test_property_sources():
-    import zlib
-
+    import posixpath 
+    # A simple adder whose source and signature stays
+    # the same across Python distributions
+    def simple_add(a, b):
+        "Adds two numbers"
+        return a + b
+    
     class A(object):
         @property
         def foo(self):
@@ -316,18 +319,18 @@ def test_property_sources():
 
         foo = foo.setter(lambda self, v: setattr(self, 'bar', v))
 
-        id = property(id)
-        compress = property(zlib.compress)
+        dname = property(posixpath.dirname)
+        adder = property(simple_add) 
 
     i = inspector.info(A.foo, detail_level=1)
     nt.assert_in('def foo(self):', i['source'])
     nt.assert_in('lambda self, v:', i['source'])
 
-    i = inspector.info(A.id, detail_level=1)
-    nt.assert_in('fget = <function id>', i['source'])
-
-    i = inspector.info(A.compress, detail_level=1)
-    nt.assert_in('fget = <function zlib.compress>', i['source'])
+    i = inspector.info(A.dname, detail_level=1)
+    nt.assert_in('def dirname(p)', i['source'])
+    
+    i = inspector.info(A.adder, detail_level=1)
+    nt.assert_in('def simple_add(a, b)', i['source'])
 
 
 def test_property_docstring_is_in_info_for_detail_level_0():
@@ -384,6 +387,31 @@ def test_pinfo_no_docstring_if_source():
         ip._inspect('pinfo', 'foo', detail_level=1)
 
 
+def test_pinfo_docstring_if_detail_and_no_source():
+    """ Docstring should be displayed if source info not available """
+    obj_def = '''class Foo(object):
+                  """ This is a docstring for Foo """
+                  def bar(self):
+                      """ This is a docstring for Foo.bar """
+                      pass
+              ''' 
+    
+    ip.run_cell(obj_def)
+    ip.run_cell('foo = Foo()')
+    
+    with AssertNotPrints("Source:"):
+        with AssertPrints('Docstring:'):
+            ip._inspect('pinfo', 'foo', detail_level=0)
+        with AssertPrints('Docstring:'):
+            ip._inspect('pinfo', 'foo', detail_level=1)
+        with AssertPrints('Docstring:'):
+            ip._inspect('pinfo', 'foo.bar', detail_level=0)
+
+    with AssertNotPrints('Docstring:'):
+        with AssertPrints('Source:'):
+            ip._inspect('pinfo', 'foo.bar', detail_level=1)
+
+
 def test_pinfo_magic():
     with AssertPrints('Docstring:'):
         ip._inspect('pinfo', 'lsmagic', detail_level=0)
@@ -402,8 +430,5 @@ def test_init_colors():
 def test_builtin_init():
     info = inspector.info(list)
     init_def = info['init_definition']
-    # Python < 3.4 can't get init definition from builtins,
-    # but still exercise the inspection in case of error-raising bugs.
-    if sys.version_info >= (3,4):
-        nt.assert_is_not_none(init_def)
+    nt.assert_is_not_none(init_def)
 

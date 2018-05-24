@@ -106,18 +106,6 @@ def _detect_screen_size(screen_lines_def):
         # can fail on Linux 2.6, pager_page will catch the TypeError
         raise TypeError('termios error: {0}'.format(err))
 
-    # Curses modifies the stdout buffer size by default, which messes
-    # up Python's normal stdout buffering.  This would manifest itself
-    # to IPython users as delayed printing on stdout after having used
-    # the pager.
-    #
-    # We can prevent this by manually setting the NCURSES_NO_SETBUF
-    # environment variable.  For more details, see:
-    # http://bugs.python.org/issue10144
-    NCURSES_NO_SETBUF = os.environ.get('NCURSES_NO_SETBUF', None)
-    os.environ['NCURSES_NO_SETBUF'] = ''
-
-    # Proceed with curses initialization
     try:
         scr = curses.initscr()
     except AttributeError:
@@ -126,12 +114,6 @@ def _detect_screen_size(screen_lines_def):
     
     screen_lines_real,screen_cols = scr.getmaxyx()
     curses.endwin()
-
-    # Restore environment
-    if NCURSES_NO_SETBUF is None:
-        del os.environ['NCURSES_NO_SETBUF']
-    else:
-        os.environ['NCURSES_NO_SETBUF'] = NCURSES_NO_SETBUF
 
     # Restore terminal state in case endwin() didn't.
     termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
@@ -231,8 +213,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                 pager = os.popen(pager_cmd, 'w')
                 try:
                     pager_encoding = pager.encoding or sys.stdout.encoding
-                    pager.write(py3compat.cast_bytes_py2(
-                        strng, encoding=pager_encoding))
+                    pager.write(strng)
                 finally:
                     retval = pager.close()
             except IOError as msg:  # broken pipe when user quits

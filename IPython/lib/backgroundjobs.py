@@ -35,7 +35,7 @@ import threading
 
 from IPython import get_ipython
 from IPython.core.ultratb import AutoFormattedTB
-from logging import error
+from logging import error, debug
 
 
 class BackgroundJobManager(object):
@@ -190,7 +190,7 @@ class BackgroundJobManager(object):
         job.num = len(self.all)+1 if self.all else 0
         self.running.append(job)
         self.all[job.num] = job
-        print('Starting job # %s in a separate thread.' % job.num)
+        debug('Starting job # %s in a separate thread.' % job.num)
         job.start()
         return job
 

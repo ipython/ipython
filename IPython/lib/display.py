@@ -2,13 +2,14 @@
 
 Authors : MinRK, gregcaporaso, dannystaple
 """
+from html import escape as html_escape
 from os.path import exists, isfile, splitext, abspath, join, isdir
-from os import walk, sep
+from os import walk, sep, fsdecode
 
-from IPython.core.display import DisplayObject
+from IPython.core.display import DisplayObject, TextDisplayObject
 
 __all__ = ['Audio', 'IFrame', 'YouTubeVideo', 'VimeoVideo', 'ScribdDocument',
-           'FileLink', 'FileLinks']
+           'FileLink', 'FileLinks', 'Code']
 
 
 class Audio(DisplayObject):
@@ -334,15 +335,16 @@ class FileLink(object):
         if isdir(path):
             raise ValueError("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
-        self.path = path
+        self.path = fsdecode(path)
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
         self.result_html_suffix = result_html_suffix
 
     def _format_path(self):
-        fp = ''.join([self.url_prefix,self.path])
+        fp = ''.join([self.url_prefix, html_escape(self.path)])
         return ''.join([self.result_html_prefix,
-                        self.html_link_str % (fp, self.path),
+                        self.html_link_str % \
+                            (fp, html_escape(self.path, quote=False)),
                         self.result_html_suffix])
 
     def _repr_html_(self):
@@ -424,7 +426,7 @@ class FileLinks(FileLink):
             raise ValueError("Cannot display a file using FileLinks. "
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
-        # remove trailing slashs for more consistent output formatting
+        # remove trailing slashes for more consistent output formatting
         path = path.rstrip('/')
 
         self.path = path
@@ -508,7 +510,7 @@ class FileLinks(FileLink):
             # Working on a platform where the path separator is "\", so
             # must convert these to "/" for generating a URI
             def fp_cleaner(fp):
-                # Replace all occurences of backslash ("\") with a forward
+                # Replace all occurrences of backslash ("\") with a forward
                 # slash ("/") - this is necessary on windows when a path is
                 # provided as input, but we must link to a URI
                 return fp.replace('\\','/')
@@ -555,3 +557,52 @@ class FileLinks(FileLink):
         for dirname, subdirs, fnames in walked_dir:
             result_lines += self.terminal_display_formatter(dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
+
+
+class Code(TextDisplayObject):
+    """Display syntax-highlighted source code.
+
+    This uses Pygments to highlight the code for HTML and Latex output.
+
+    Parameters
+    ----------
+    data : str
+        The code as a string
+    url : str
+        A URL to fetch the code from
+    filename : str
+        A local filename to load the code from
+    language : str
+        The short name of a Pygments lexer to use for highlighting.
+        If not specified, it will guess the lexer based on the filename
+        or the code. Available lexers: http://pygments.org/docs/lexers/
+    """
+    def __init__(self, data=None, url=None, filename=None, language=None):
+        self.language = language
+        super().__init__(data=data, url=url, filename=filename)
+
+    def _get_lexer(self):
+        if self.language:
+            from pygments.lexers import get_lexer_by_name
+            return get_lexer_by_name(self.language)
+        elif self.filename:
+            from pygments.lexers import get_lexer_for_filename
+            return get_lexer_for_filename(self.filename)
+        else:
+            from pygments.lexers import guess_lexer
+            return guess_lexer(self.data)
+
+    def __repr__(self):
+        return self.data
+
+    def _repr_html_(self):
+        from pygments import highlight
+        from pygments.formatters import HtmlFormatter
+        fmt = HtmlFormatter()
+        style = '<style>{}</style>'.format(fmt.get_style_defs('.output_html'))
+        return style + highlight(self.data, self._get_lexer(), fmt)
+
+    def _repr_latex_(self):
+        from pygments import highlight
+        from pygments.formatters import LatexFormatter
+        return highlight(self.data, self._get_lexer(), LatexFormatter())

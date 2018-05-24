@@ -10,6 +10,29 @@ from IPython.core.inputtransformer import InputTransformer
 from IPython.testing import tools as tt
 from IPython.utils.capture import capture_output
 
+from IPython.terminal.ptutils import _elide, _adjust_completion_text_based_on_context
+import nose.tools as nt
+
+class TestElide(unittest.TestCase):
+
+    def test_elide(self):
+        _elide('concatenate((a1, a2, ...), axis') # do not raise
+        _elide('concatenate((a1, a2, ..), . axis') # do not raise
+        nt.assert_equal(_elide('aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh'), 'aaaa.b…g.hhhhhh')
+
+
+class TestContextAwareCompletion(unittest.TestCase):
+
+    def test_adjust_completion_text_based_on_context(self):
+        # Adjusted case
+        nt.assert_equal(_adjust_completion_text_based_on_context('arg1=', 'func1(a=)', 7), 'arg1')
+
+        # Untouched cases
+        nt.assert_equal(_adjust_completion_text_based_on_context('arg1=', 'func1(a)', 7), 'arg1=')
+        nt.assert_equal(_adjust_completion_text_based_on_context('arg1=', 'func1(a', 7), 'arg1=')
+        nt.assert_equal(_adjust_completion_text_based_on_context('%magic', 'func1(a=)', 7), '%magic')
+        nt.assert_equal(_adjust_completion_text_based_on_context('func2', 'func1(a=)', 7), 'func2')
+
 # Decorator for interaction loop tests -----------------------------------------
 
 class mock_input_helper(object):

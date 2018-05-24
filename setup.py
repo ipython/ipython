@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Setup script for IPython.
 
@@ -17,42 +17,47 @@ requires utilities which are not available under Windows."""
 #  The full license is in the file COPYING.rst, distributed with this software.
 #-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Minimal Python version sanity check
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
+import os
 import sys
 
+# **Python version check**
+#
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info < (3,3):
+if sys.version_info < (3, 4):
+    pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
+    try:
+        import pip
+        pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
+        if pip_version < (9, 0, 1) :
+            pip_message = 'Your pip version is out of date, please install pip >= 9.0.1. '\
+            'pip {} detected.'.format(pip.__version__)
+        else:
+            # pip is new enough - it must be something else
+            pip_message = ''
+    except Exception:
+        pass
+
+
     error = """
-IPython 6.0+ does not support Python 2.6, 2.7, 3.0, 3.1, or 3.2.
+IPython 7.0+ supports Python 3.4 and above.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
-Beginning with IPython 6.0, Python 3.3 and above is required.
+Python 3.3 was supported up to IPython 6.x.
 
 See IPython `README.rst` file for more information:
 
     https://github.com/ipython/ipython/blob/master/README.rst
 
-Python {} detected.
-
-""".format(sys.version_info)
+Python {py} detected.
+{pip}
+""".format(py=sys.version_info, pip=pip_message )
 
     print(error, file=sys.stderr)
     sys.exit(1)
 
 # At least we're on the python version we need, move on.
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
-
-# Stdlib imports
-import os
-
-from glob import glob
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
@@ -134,32 +139,11 @@ setup_args['data_files'] = data_files
 #---------------------------------------------------------------------------
 # imports here, so they are after setuptools import if there was one
 from distutils.command.sdist import sdist
-from distutils.command.upload import upload
-
-class UploadWindowsInstallers(upload):
-
-    description = "Upload Windows installers to PyPI (only used from tools/release_windows.py)"
-    user_options = upload.user_options + [
-        ('files=', 'f', 'exe file (or glob) to upload')
-    ]
-    def initialize_options(self):
-        upload.initialize_options(self)
-        meta = self.distribution.metadata
-        base = '{name}-{version}'.format(
-            name=meta.get_name(),
-            version=meta.get_version()
-        )
-        self.files = os.path.join('dist', '%s.*.exe' % base)
-
-    def run(self):
-        for dist_file in glob(self.files):
-            self.upload_file('bdist_wininst', 'any', dist_file)
 
 setup_args['cmdclass'] = {
     'build_py': \
             check_package_data_first(git_prebuild('IPython')),
     'sdist' : git_prebuild('IPython', sdist),
-    'upload_wininst' : UploadWindowsInstallers,
     'symlink': install_symlinked,
     'install_lib_symlink': install_lib_symlink,
     'install_scripts_sym': install_scripts_for_symlink,
@@ -173,10 +157,10 @@ setup_args['cmdclass'] = {
 
 # For some commands, use setuptools.  Note that we do NOT list install here!
 # If you want a setuptools-enhanced install, just run 'setupegg.py install'
-needs_setuptools = set(('develop', 'release', 'bdist_egg', 'bdist_rpm',
+needs_setuptools = {'develop', 'release', 'bdist_egg', 'bdist_rpm',
            'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
            'egg_info', 'easy_install', 'upload', 'install_egg_info',
-            ))
+          }
 
 if len(needs_setuptools.intersection(sys.argv)) > 0:
     import setuptools
@@ -191,7 +175,7 @@ extras_require = dict(
     parallel = ['ipyparallel'],
     qtconsole = ['qtconsole'],
     doc = ['Sphinx>=1.3'],
-    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'nbformat', 'ipykernel'],
+    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'nbformat', 'ipykernel', 'numpy'],
     terminal = [],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
@@ -206,8 +190,9 @@ install_requires = [
     'pickleshare',
     'simplegeneric>0.8',
     'traitlets>=4.2',
-    'prompt_toolkit>=1.0.4,<2.0.0',
+    'prompt_toolkit>=1.0.15,<2.0.0',
     'pygments',
+    'backcall',
 ]
 
 # Platform-specific dependencies:
@@ -215,9 +200,7 @@ install_requires = [
 # but requires pip >= 6. pip < 6 ignores these.
 
 extras_require.update({
-    'test:python_version >= "3.4"': ['numpy'],
-    ':python_version == "3.3"': ['pathlib2'],
-    ':python_version <= "3.4"': ['typing'],
+    ':python_version == "3.4"': ['typing'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
     ':sys_platform == "win32"': ['colorama'],
@@ -247,7 +230,7 @@ for key, deps in extras_require.items():
 extras_require['all'] = everything
 
 if 'setuptools' in sys.modules:
-    setuptools_extra_args['python_requires'] = '>=3.3'
+    setuptools_extra_args['python_requires'] = '>=3.4'
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': find_entry_points(),
@@ -258,23 +241,7 @@ if 'setuptools' in sys.modules:
         ],
     }
     setup_args['extras_require'] = extras_require
-    requires = setup_args['install_requires'] = install_requires
-
-    # Script to be run by the windows binary installer after the default setup
-    # routine, to add shortcuts and similar windows-only things.  Windows
-    # post-install scripts MUST reside in the scripts/ dir, otherwise distutils
-    # doesn't find them.
-    if 'bdist_wininst' in sys.argv:
-        if len(sys.argv) > 2 and \
-               ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
-            print("ERROR: bdist_wininst must be run alone. Exiting.", file=sys.stderr)
-            sys.exit(1)
-        setup_args['data_files'].append(
-            ['Scripts', ('scripts/ipython.ico', 'scripts/ipython_nb.ico')])
-        setup_args['scripts'] = [pjoin('scripts','ipython_win_post_install.py')]
-        setup_args['options'] = {"bdist_wininst":
-                                 {"install_script":
-                                  "ipython_win_post_install.py"}}
+    setup_args['install_requires'] = install_requires
 
 else:
     # scripts has to be a non-empty list, or install_scripts isn't called

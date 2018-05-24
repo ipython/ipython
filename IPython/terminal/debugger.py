@@ -63,6 +63,7 @@ class TerminalPdb(Pdb):
                             mouse_support=self.shell.mouse_support,
                             get_prompt_tokens=get_prompt_tokens,
                             display_completions_in_columns=multicolumn,
+                            style=self.shell.style
         )
         self.pt_cli = CommandLineInterface(self._pt_app, eventloop=self.shell._eventloop)
 

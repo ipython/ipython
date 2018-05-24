@@ -12,13 +12,10 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-# Stdlib
-import os
 
 # Our own packages
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
-from  warnings import warn
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes

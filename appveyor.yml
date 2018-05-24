@@ -8,8 +8,8 @@ environment:
      PYTHON_VERSION: "3.6.x"
      PYTHON_ARCH: "32"
 
-   - PYTHON: "C:\\Python33-x64"
-     PYTHON_VERSION: "3.3.x"
+   - PYTHON: "C:\\Python34-x64"
+     PYTHON_VERSION: "3.4.x"
      PYTHON_ARCH: "64"
 
    - PYTHON: "C:\\Python36-x64"
@@ -21,7 +21,7 @@ init:
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - "%CMD_IN_ENV%  pip install setuptools>=18.5 --upgrade"
+  - "%CMD_IN_ENV%  python -m pip install --upgrade setuptools pip"
   - "%CMD_IN_ENV%  pip install nose coverage"
   - "%CMD_IN_ENV%  pip install .[test]"
   - "%CMD_IN_ENV%  mkdir results"

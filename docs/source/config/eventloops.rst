@@ -7,11 +7,24 @@ loop, so you can use both a GUI and an interactive prompt together. IPython
 supports a number of common GUI toolkits, but from IPython 3.0, it is possible
 to integrate other event loops without modifying IPython itself.
 
-Terminal IPython handles event loops very differently from the IPython kernel,
-so different steps are needed to integrate with each.
+Supported event loops include ``qt4``, ``qt5``, ``gtk2``, ``gtk3``, ``wx``,
+``osx`` and ``tk``. Make sure the event loop you specify matches the GUI
+toolkit used by your own code.
 
-Event loops in the terminal
----------------------------
+To make IPython GUI event loop integration occur automatically at every
+startup, set the ``c.InteractiveShellApp.gui`` configuration key in your
+IPython profile (see :ref:`setting_config`).
+
+If the event loop you use is supported by IPython, turning on event loop
+integration follows the steps just described whether you use Terminal IPython
+or an IPython kernel.
+
+However, the way Terminal IPython handles event loops is very different from
+the way IPython kernel does, so if you need to integrate with a new kind of
+event loop, different steps are needed to integrate with each.
+
+Integrating with a new event loop in the terminal
+-------------------------------------------------
 
 .. versionchanged:: 5.0
 
@@ -48,8 +61,8 @@ Once you have defined this function, register it with IPython:
    by running ``%gui foo``.
 
 
-Event loops in the kernel
--------------------------
+Integrating with a new event loop in the kernel
+-----------------------------------------------
 
 The kernel runs its own event loop, so it's simpler to integrate with others.
 IPython allows the other event loop to take control, but it must call

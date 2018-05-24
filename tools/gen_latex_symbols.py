@@ -3,7 +3,7 @@
 # This script autogenerates `IPython.core.latex_symbols.py`, which contains a
 # single dict , named `latex_symbols`. The keys in this dict are latex symbols,
 # such as `\\alpha` and the values in the dict are the unicode equivalents for
-# those. Most importantly, only unicode symbols that are valid identifers in
+# those. Most importantly, only unicode symbols that are valid identifiers in
 # Python 3 are included. 
 
 # 
@@ -45,7 +45,7 @@ lines = [line_to_tuple(line) for line in lines]
 print('Filtering out characters that are not valid Python 3 identifiers')
 
 def test_ident(i):
-    """Is the unicode string valid in a Python 3 identifer."""
+    """Is the unicode string valid in a Python 3 identifier."""
     # Some characters are not valid at the start of a name, but we still want to
     # include them. So prefix with 'a', which is valid at the start.
     return ('a' + i).isidentifier()

@@ -8,7 +8,7 @@ IPython Events
 Extension code can register callbacks functions which will be called on specific
 events within the IPython code. You can see the current list of available
 callbacks, and the parameters that will be passed with each, in the callback
-prototype functions defined in :mod:`IPython.core.callbacks`.
+prototype functions defined in :mod:`IPython.core.events`.
 
 To register callbacks, use :meth:`IPython.core.events.EventManager.register`.
 For example::
@@ -21,14 +21,24 @@ For example::
         def pre_execute(self):
             self.last_x = self.shell.user_ns.get('x', None)
         
+        def pre_run_cell(self, info):
+            print('Cell code: "%s"' % info.raw_cell)
+        
         def post_execute(self):
             if self.shell.user_ns.get('x', None) != self.last_x:
                 print("x changed!")
-
+        
+        def post_run_cell(self, result):
+            print('Cell code: "%s"' % result.info.raw_cell)
+            if result.error_before_exec:
+                print('Error before execution: %s' % result.error_before_exec)
+        
     def load_ipython_extension(ip):
         vw = VarWatcher(ip)
         ip.events.register('pre_execute', vw.pre_execute)
+        ip.events.register('pre_run_cell', vw.pre_run_cell)
         ip.events.register('post_execute', vw.post_execute)
+        ip.events.register('post_run_cell', vw.post_run_cell)
 
 
 Events
@@ -53,6 +63,7 @@ pre_run_cell
 
 ``pre_run_cell`` fires prior to interactive execution (e.g. a cell in a notebook).
 It can be used to note the state prior to execution, and keep track of changes.
+An object containing information used for the code execution is provided as an argument.
 
 pre_execute
 -----------
@@ -67,7 +78,8 @@ post_run_cell
 ``post_run_cell`` runs after interactive execution (e.g. a cell in a notebook).
 It can be used to cleanup or notify or perform operations on any side effects produced during execution.
 For instance, the inline matplotlib backend uses this event to display any figures created but not explicitly displayed during the course of the cell.
-
+The object which will be returned as the execution result is provided as an
+argument.
 
 post_execute
 ------------

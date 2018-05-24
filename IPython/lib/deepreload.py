@@ -273,7 +273,7 @@ def deep_reload_hook(m):
     """Replacement for reload()."""
     # Hardcode this one  as it would raise a NotImplemeentedError from the
     # bowels of Python and screw up the import machinery after.
-    # unlike other imports the `exclude` list aleady in place is not enough.
+    # unlike other imports the `exclude` list already in place is not enough.
 
     if m is types:
         return m

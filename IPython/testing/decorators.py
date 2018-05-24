@@ -31,8 +31,9 @@ we've copied verbatim from numpy.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import sys
 import os
+import shutil
+import sys
 import tempfile
 import unittest
 import warnings
@@ -47,9 +48,6 @@ from .ipunittest import ipdoctest, ipdocstring
 # occasionally update from upstream: decorators.py is a copy of
 # numpy.testing.decorators, we expose all of it here.
 from IPython.external.decorators import *
-
-# For onlyif_cmd_exists decorator
-from IPython.utils.py3compat import which
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -360,7 +358,7 @@ def onlyif_cmds_exist(*commands):
     Decorator to skip test when at least one of `commands` is not found.
     """
     for cmd in commands:
-        if not which(cmd):
+        if not shutil.which(cmd):
             return skip("This test runs only if command '{0}' "
                         "is installed".format(cmd))
     return null_deco
@@ -372,7 +370,7 @@ def onlyif_any_cmd_exists(*commands):
     warnings.warn("The function `onlyif_any_cmd_exists` is deprecated since IPython 4.0",
             DeprecationWarning, stacklevel=2)
     for cmd in commands:
-        if which(cmd):
+        if shutil.which(cmd):
             return null_deco
     return skip("This test runs only if one of the commands {0} "
                 "is installed".format(commands))

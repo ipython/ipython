@@ -31,12 +31,17 @@ def register_ipython_shortcuts(registry, shell):
     """Set up the prompt_toolkit keyboard shortcuts for IPython"""
     insert_mode = ViInsertMode() | EmacsInsertMode()
 
+    if getattr(shell, 'handle_return', None):
+        return_handler = shell.handle_return(shell)
+    else:
+        return_handler = newline_or_execute_outer(shell)
+
     # Ctrl+J == Enter, seemingly
     registry.add_binding(Keys.ControlJ,
                          filter=(HasFocus(DEFAULT_BUFFER)
                                  & ~HasSelection()
                                  & insert_mode
-                        ))(newline_or_execute_outer(shell))
+                        ))(return_handler)
 
     registry.add_binding(Keys.ControlBackslash)(force_exit)
 
@@ -108,8 +113,13 @@ def newline_or_execute_outer(shell):
                 b.cancel_completion()
             return
 
-        before_text = d.text[:d.cursor_position]
-        status, indent = shell.input_splitter.check_complete(before_text + '\n')
+        # If there's only one line, treat it as if the cursor is at the end.
+        # See https://github.com/ipython/ipython/issues/10425
+        if d.line_count == 1:
+            check_text = d.text
+        else:
+            check_text = d.text[:d.cursor_position]
+        status, indent = shell.input_splitter.check_complete(check_text + '\n')
 
         if not (d.on_last_line or
                 d.cursor_position_row >= d.line_count - d.empty_line_count_at_the_end()

@@ -3,7 +3,6 @@ import nose.tools as nt
 
 from IPython.core.splitinput import split_user_input, LineInfo
 from IPython.testing import tools as tt
-from IPython.utils import py3compat
 
 tests = [
     ('x=1', ('', '', 'x', '=1')),

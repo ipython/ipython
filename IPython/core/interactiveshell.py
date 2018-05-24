@@ -36,7 +36,6 @@ from IPython.core import oinspect
 from IPython.core import magic
 from IPython.core import page
 from IPython.core import prefilter
-from IPython.core import shadowns
 from IPython.core import ultratb
 from IPython.core.alias import Alias, AliasManager
 from IPython.core.autocall import ExitAutocall
@@ -58,6 +57,7 @@ from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.usage import default_banner
+from IPython.display import display
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import io
@@ -81,6 +81,9 @@ from warnings import warn
 from logging import error
 import IPython.core.hooks
 
+from typing import List as ListType
+from ast import AST
+
 # NoOpContext is deprecated, but ipykernel imports it from here.
 # See https://github.com/ipython/ipykernel/issues/157
 from IPython.utils.contexts import NoOpContext
@@ -103,6 +106,13 @@ class ProvisionalWarning(DeprecationWarning):
     Warning class for unstable features
     """
     pass
+
+if sys.version_info > (3,6):
+    _assign_nodes         = (ast.AugAssign, ast.AnnAssign, ast.Assign)
+    _single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
+else:
+    _assign_nodes         = (ast.AugAssign, ast.Assign )
+    _single_targets_nodes = (ast.AugAssign, )
 
 #-----------------------------------------------------------------------------
 # Await Helpers
@@ -261,6 +271,30 @@ class DummyMod(object):
     pass
 
 
+class ExecutionInfo(object):
+    """The arguments used for a call to :meth:`InteractiveShell.run_cell`
+
+    Stores information about what is going to happen.
+    """
+    raw_cell = None
+    store_history = False
+    silent = False
+    shell_futures = True
+
+    def __init__(self, raw_cell, store_history, silent, shell_futures):
+        self.raw_cell = raw_cell
+        self.store_history = store_history
+        self.silent = silent
+        self.shell_futures = shell_futures
+
+    def __repr__(self):
+        name = self.__class__.__qualname__
+        raw_cell = ((self.raw_cell[:50] + '..')
+                    if len(self.raw_cell) > 50 else self.raw_cell)
+        return '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s>' %\
+               (name, id(self), raw_cell, self.store_history, self.silent, self.shell_futures)
+
+
 class ExecutionResult(object):
     """The result of a call to :meth:`InteractiveShell.run_cell`
 
@@ -269,7 +303,11 @@ class ExecutionResult(object):
     execution_count = None
     error_before_exec = None
     error_in_exec = None
+    info = None
     result = None
+
+    def __init__(self, info):
+        self.info = info
 
     @property
     def success(self):
@@ -284,8 +322,8 @@ class ExecutionResult(object):
 
     def __repr__(self):
         name = self.__class__.__qualname__
-        return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s result=%s>' %\
-                (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.result))
+        return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s info=%s result=%s>' %\
+                (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
 
 
 class InteractiveShell(SingletonConfigurable):
@@ -362,8 +400,8 @@ class InteractiveShell(SingletonConfigurable):
         """
         Set the size of the output cache.  The default is 1000, you can
         change it permanently in your config file.  Setting it to 0 completely
-        disables the caching system, and the minimum value accepted is 20 (if
-        you provide a value less than 20, it is reset to 0 and a warning is
+        disables the caching system, and the minimum value accepted is 3 (if
+        you provide a value less than 3, it is reset to 0 and a warning is
         issued).  This limit is defined because otherwise you'll spend more
         time re-flushing a too small cache than working
         """
@@ -501,11 +539,12 @@ class InteractiveShell(SingletonConfigurable):
         """
     ).tag(config=True)
 
-    ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
+    ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none', 'last_expr_or_assign'],
                                   default_value='last_expr',
                                   help="""
-        'all', 'last', 'last_expr' or 'none', specifying which nodes should be
-        run interactively (displaying output from expressions)."""
+        'all', 'last', 'last_expr' or 'none', 'last_expr_or_assign' specifying
+        which nodes should be run interactively (displaying output from expressions).
+        """
     ).tag(config=True)
 
     # TODO: this part of prompt management should be moved to the frontends.
@@ -544,6 +583,8 @@ class InteractiveShell(SingletonConfigurable):
     pylab_gui_select = None
 
     last_execution_succeeded = Bool(True, help='Did last executed command succeeded')
+
+    last_execution_result = Instance('IPython.core.interactiveshell.ExecutionResult', help='Result of executing the last command', allow_none=True)
 
     def __init__(self, ipython_dir=None, profile_dir=None,
                  user_module=None, user_ns=None,
@@ -743,10 +784,12 @@ class InteractiveShell(SingletonConfigurable):
         # removing on exit or representing the existence of more than one
         # IPython at a time.
         builtin_mod.__dict__['__IPYTHON__'] = True
+        builtin_mod.__dict__['display'] = display
 
         self.builtin_trap = BuiltinTrap(shell=self)
 
-    def init_inspector(self):
+    @observe('colors')
+    def init_inspector(self, changes=None):
         # Object inspector
         self.inspector = oinspect.Inspector(oinspect.InspectColors,
                                             PyColorize.ANSICodeColors,
@@ -814,17 +857,31 @@ class InteractiveShell(SingletonConfigurable):
             # Not in a virtualenv
             return
         
-        # venv detection:
+        p = os.path.normcase(sys.executable)
+        p_venv = os.path.normcase(os.environ['VIRTUAL_ENV'])
+
+        # executable path should end like /bin/python or \\scripts\\python.exe
+        p_exe_up2 = os.path.dirname(os.path.dirname(p))
+        if p_exe_up2 and os.path.samefile(p_exe_up2, p_venv):
+            # Our exe is inside the virtualenv, don't need to do anything.
+            return
+
+        # fallback venv detection:
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
-        p = os.path.normcase(sys.executable)
         paths = [p]
         while os.path.islink(p):
             p = os.path.normcase(os.path.join(os.path.dirname(p), os.readlink(p)))
             paths.append(p)
-        p_venv = os.path.normcase(os.environ['VIRTUAL_ENV'])
-        if any(p.startswith(p_venv) for p in paths):
+        
+        # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
+        if p_venv.startswith('\\cygdrive'):
+            p_venv = p_venv[11:]
+        elif len(p_venv) >= 2 and p_venv[1] == ':':
+            p_venv = p_venv[2:]
+
+        if any(p_venv in p for p in paths):
             # Running properly in the virtualenv, don't need to do anything
             return
         
@@ -1005,7 +1062,7 @@ class InteractiveShell(SingletonConfigurable):
             main_mod = self._main_mod_cache[filename]
         except KeyError:
             main_mod = self._main_mod_cache[filename] = types.ModuleType(
-                        py3compat.cast_bytes_py2(modname),
+                        modname,
                         doc="Module created for script run in IPython")
         else:
             main_mod.__dict__.clear()
@@ -1247,7 +1304,7 @@ class InteractiveShell(SingletonConfigurable):
         -----
         All data structures here are only filled in, they are NOT reset by this
         method.  If they were not empty before, data will simply be added to
-        therm.
+        them.
         """
         # This function works in two parts: first we put a few things in
         # user_ns, and we sync that contents into user_ns_hidden so that these
@@ -1272,8 +1329,6 @@ class InteractiveShell(SingletonConfigurable):
         ns['_ih'] = self.history_manager.input_hist_parsed
         ns['_oh'] = self.history_manager.output_hist
         ns['_dh'] = self.history_manager.dir_hist
-
-        ns['_sh'] = shadowns
 
         # user aliases to input and output histories.  These shouldn't show up
         # in %who, as they can have very large reprs.
@@ -1319,6 +1374,10 @@ class InteractiveShell(SingletonConfigurable):
         if new_session:
             self.execution_count = 1
 
+        # Reset last execution result
+        self.last_execution_succeeded = True
+        self.last_execution_result = None
+        
         # Flush cached output items
         if self.displayhook.do_full_cache:
             self.displayhook.flush()
@@ -1384,6 +1443,10 @@ class InteractiveShell(SingletonConfigurable):
                 to_delete = [n for n, o in ns.items() if o is obj]
                 for name in to_delete:
                     del ns[name]
+
+            # Ensure it is removed from the last execution result
+            if self.last_execution_result.result is obj:
+                self.last_execution_result = None
 
             # displayhook keeps extra references, but not in a dictionary
             for name in ('_', '__', '___'):
@@ -1490,10 +1553,9 @@ class InteractiveShell(SingletonConfigurable):
         Has special code to detect magic functions.
         """
         oname = oname.strip()
-        #print '1- oname: <%r>' % oname  # dbg
         if not oname.startswith(ESC_MAGIC) and \
-            not oname.startswith(ESC_MAGIC2) and \
-            not py3compat.isidentifier(oname, dotted=True):
+                not oname.startswith(ESC_MAGIC2) and \
+                not all(a.isidentifier() for a in oname.split(".")):
             return {'found': False}
 
         if namespaces is None:
@@ -1505,13 +1567,12 @@ class InteractiveShell(SingletonConfigurable):
                            ('Python builtin', builtin_mod.__dict__),
                            ]
 
-        # initialize results to 'null'
-        obj = None
-        parent = None
-        ospace = None
-        found = False
         ismagic = False
         isalias = False
+        found = False
+        ospace = None
+        parent = None
+        obj = None
 
         # Look for the given name by splitting it in parts.  If the head is
         # found, then we look for all the remaining parts as members, and only
@@ -1571,8 +1632,14 @@ class InteractiveShell(SingletonConfigurable):
             found = True
             ospace = 'Interactive'
 
-        return {'found':found, 'obj':obj, 'namespace':ospace,
-                'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
+        return {
+                'obj':obj,
+                'found':found,
+                'parent':parent,
+                'ismagic':ismagic,
+                'isalias':isalias,
+                'namespace':ospace
+               }
 
     @staticmethod
     def _getattr_property(obj, attrname):
@@ -1749,16 +1816,14 @@ class InteractiveShell(SingletonConfigurable):
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
         facility should only be used if you really know what you are doing."""
-
-        assert type(exc_tuple)==type(()) , \
-               "The custom exceptions must be given AS A TUPLE."
+        if not isinstance(exc_tuple, tuple):
+            raise TypeError("The custom exceptions must be given as a tuple.")
 
         def dummy_handler(self, etype, value, tb, tb_offset=None):
             print('*** Simple custom exception handler ***')
-            print('Exception type :',etype)
-            print('Exception value:',value)
-            print('Traceback      :',tb)
-            #print 'Source code    :','\n'.join(self.buffer)
+            print('Exception type :', etype)
+            print('Exception value:', value)
+            print('Traceback      :', tb)
         
         def validate_stb(stb):
             """validate structured traceback return type
@@ -1884,7 +1949,7 @@ class InteractiveShell(SingletonConfigurable):
         return ''.join(msg)
 
     def showtraceback(self, exc_tuple=None, filename=None, tb_offset=None,
-                      exception_only=False):
+                      exception_only=False, running_compiled_code=False):
         """Display the exception that just occurred.
 
         If nothing is known about the exception, this is the method which
@@ -1902,11 +1967,11 @@ class InteractiveShell(SingletonConfigurable):
             except ValueError:
                 print('No traceback available to show.', file=sys.stderr)
                 return
-            
+
             if issubclass(etype, SyntaxError):
                 # Though this won't be called by syntax errors in the input
                 # line, there may be SyntaxError cases with imported code.
-                self.showsyntaxerror(filename)
+                self.showsyntaxerror(filename, running_compiled_code)
             elif etype is UsageError:
                 self.show_usage_error(value)
             else:
@@ -1945,7 +2010,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         print(self.InteractiveTB.stb2text(stb))
 
-    def showsyntaxerror(self, filename=None):
+    def showsyntaxerror(self, filename=None, running_compiled_code=False):
         """Display the syntax error that just occurred.
 
         This doesn't display a stack trace because there isn't one.
@@ -1953,7 +2018,10 @@ class InteractiveShell(SingletonConfigurable):
         If a filename is given, it is stuffed in the exception instead
         of what was there before (because Python's parser always uses
         "<string>" when reading from a string).
-        """
+
+        If the syntax error occurred when running a compiled code (i.e. running_compile_code=True),
+        longer stack trace will be displayed.
+         """
         etype, value, last_traceback = self._get_exc_info()
 
         if filename and issubclass(etype, SyntaxError):
@@ -1962,14 +2030,16 @@ class InteractiveShell(SingletonConfigurable):
             except:
                 # Not the format we expect; leave it alone
                 pass
-        
-        stb = self.SyntaxTB.structured_traceback(etype, value, [])
+
+        # If the error occurred when executing compiled code, we should provide full stacktrace.
+        elist = traceback.extract_tb(last_traceback) if running_compiled_code else []
+        stb = self.SyntaxTB.structured_traceback(etype, value, elist)
         self._showtraceback(etype, value, stb)
 
     # This is overridden in TerminalInteractiveShell to show a message about
     # the %paste magic.
     def showindentationerror(self):
-        """Called by run_cell when there's an IndentationError in code entered
+        """Called by _run_cell when there's an IndentationError in code entered
         at the prompt.
 
         This is overridden in TerminalInteractiveShell to show a message about
@@ -1998,11 +2068,11 @@ class InteractiveShell(SingletonConfigurable):
             In [1]: _ip.set_next_input("Hello Word")
             In [2]: Hello Word_  # cursor is here
         """
-        self.rl_next_input = py3compat.cast_bytes_py2(s)
+        self.rl_next_input = s
 
     def _indent_current_str(self):
         """return the current level of indentation as a string"""
-        return self.input_splitter.indent_spaces * ' '
+        return self.input_splitter.get_indent_spaces() * ' '
 
     #-------------------------------------------------------------------------
     # Things related to text completion
@@ -2039,6 +2109,7 @@ class InteractiveShell(SingletonConfigurable):
         self.set_hook('complete_command', cd_completer, str_key = '%cd')
         self.set_hook('complete_command', reset_completer, str_key = '%reset')
 
+    @skip_doctest
     def complete(self, text, line=None, cursor_pos=None):
         """Return the completed text and a list of completions.
 
@@ -2136,7 +2207,7 @@ class InteractiveShell(SingletonConfigurable):
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        self.magic('colors %s' % self.colors)
+        self.run_line_magic('colors', self.colors)
     
     # Defined here so that it's included in the documentation
     @functools.wraps(magic.MagicsManager.register_function)
@@ -2144,7 +2215,7 @@ class InteractiveShell(SingletonConfigurable):
         self.magics_manager.register_function(func, 
                                   magic_kind=magic_kind, magic_name=magic_name)
 
-    def run_line_magic(self, magic_name, line):
+    def run_line_magic(self, magic_name, line, _stack_depth=1):
         """Execute the given line magic.
 
         Parameters
@@ -2154,6 +2225,10 @@ class InteractiveShell(SingletonConfigurable):
 
         line : str
           The rest of the input line as a single string.
+          
+        _stack_depth : int
+          If run_line_magic() is called from magic() then _stack_depth=2.
+          This is added to ensure backward compatibility for use of 'get_ipython().magic()'
         """
         fn = self.find_line_magic(magic_name)
         if fn is None:
@@ -2161,12 +2236,14 @@ class InteractiveShell(SingletonConfigurable):
             etpl = "Line magic function `%%%s` not found%s."
             extra = '' if cm is None else (' (But cell magic `%%%%%s` exists, '
                                     'did you mean that instead?)' % magic_name )
-            error(etpl % (magic_name, extra))
+            raise UsageError(etpl % (magic_name, extra))
         else:
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
             # refactored, or else we'll be expanding the wrong variables.
-            stack_depth = 2
+            
+            # Determine stack_depth depending on where run_line_magic() has been called
+            stack_depth = _stack_depth
             magic_arg_s = self.var_expand(line, stack_depth)
             # Put magic args in a list so we can call with f(*a) syntax
             args = [magic_arg_s]
@@ -2198,7 +2275,7 @@ class InteractiveShell(SingletonConfigurable):
             etpl = "Cell magic `%%{0}` not found{1}."
             extra = '' if lm is None else (' (But line magic `%{0}` exists, '
                             'did you mean that instead?)'.format(magic_name))
-            error(etpl.format(magic_name, extra))
+            raise UsageError(etpl.format(magic_name, extra))
         elif cell == '':
             message = '%%{0} is a cell magic, but the cell body is empty.'.format(magic_name)
             if self.find_line_magic(magic_name) is not None:
@@ -2254,7 +2331,7 @@ class InteractiveShell(SingletonConfigurable):
         # TODO: should we issue a loud deprecation warning here?
         magic_name, _, magic_arg_s = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-        return self.run_line_magic(magic_name, magic_arg_s)
+        return self.run_line_magic(magic_name, magic_arg_s, _stack_depth=2)
 
     #-------------------------------------------------------------------------
     # Things related to macros
@@ -2628,13 +2705,12 @@ class InteractiveShell(SingletonConfigurable):
             """generator for sequence of code blocks to run"""
             if fname.endswith('.ipynb'):
                 from nbformat import read
-                with io_open(fname) as f:
-                    nb = read(f, as_version=4)
-                    if not nb.cells:
-                        return
-                    for cell in nb.cells:
-                        if cell.cell_type == 'code':
-                            yield cell.source
+                nb = read(fname, as_version=4)
+                if not nb.cells:
+                    return
+                for cell in nb.cells:
+                    if cell.cell_type == 'code':
+                        yield cell.source
             else:
                 with open(fname) as f:
                     yield f.read()
@@ -2673,7 +2749,7 @@ class InteractiveShell(SingletonConfigurable):
                 where.update(
                     runpy.run_module(str(mod_name), run_name="__main__",
                                      alter_sys=True)
-                    )
+                            )
             except SystemExit as status:
                 if status.code:
                     raise
@@ -2716,7 +2792,19 @@ class InteractiveShell(SingletonConfigurable):
 
     @asyncio.coroutine
     def run_cell_async(self, raw_cell, store_history=False, silent=False, shell_futures=True):
-        """Run a complete IPython cell asynchronously.
+        """Run a complete IPython cell asynchronously."""
+        try:
+            result = yield from self._run_cell(
+                raw_cell, store_history, silent, shell_futures)
+        finally:
+            self.events.trigger('post_execute')
+            if not silent:
+                self.events.trigger('post_run_cell', result)
+        return result
+
+    @asyncio.coroutine
+    def _run_cell(self, raw_cell, store_history, silent, shell_futures):
+        """Internal method to run a complete IPython cell.
 
         Parameters
         ----------
@@ -2739,10 +2827,13 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
         """
-        result = ExecutionResult()
+        info = ExecutionInfo(
+            raw_cell, store_history, silent, shell_futures)
+        result = ExecutionResult(info)
 
         if (not raw_cell) or raw_cell.isspace():
             self.last_execution_succeeded = True
+            self.last_execution_result = result
             return result
 
         if silent:
@@ -2752,13 +2843,16 @@ class InteractiveShell(SingletonConfigurable):
             result.execution_count = self.execution_count
 
         def error_before_exec(value):
+            if store_history:
+                self.execution_count += 1
             result.error_before_exec = value
             self.last_execution_succeeded = False
+            self.last_execution_result = result
             return result
 
         self.events.trigger('pre_execute')
         if not silent:
-            self.events.trigger('pre_run_cell')
+            self.events.trigger('pre_run_cell', info)
 
         # If any of our input transformation (input_transformer_manager or
         # prefilter_manager) raises an exception, we store it in this variable
@@ -2835,14 +2929,10 @@ class InteractiveShell(SingletonConfigurable):
                     return error_before_exec(e)
                 except IndentationError as e:
                     self.showindentationerror()
-                    if store_history:
-                        self.execution_count += 1
                     return error_before_exec(e)
                 except (OverflowError, SyntaxError, ValueError, TypeError,
                         MemoryError) as e:
                     self.showsyntaxerror()
-                    if store_history:
-                        self.execution_count += 1
                     return error_before_exec(e)
 
                 # Apply AST transformations
@@ -2850,8 +2940,6 @@ class InteractiveShell(SingletonConfigurable):
                     code_ast = self.transform_ast(code_ast)
                 except InputRejected as e:
                     self.showtraceback()
-                    if store_history:
-                        self.execution_count += 1
                     return error_before_exec(e)
 
                 # Give the displayhook a reference to our ExecutionResult so it
@@ -2861,19 +2949,16 @@ class InteractiveShell(SingletonConfigurable):
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
                 if _run_async:
-                    interactivity = 'async'
+                    interactivity = "async"
                 has_raised = yield from self.run_ast_nodes(code_ast.body, cell_name,
                        interactivity=interactivity, compiler=compiler, result=result)
-                
+
                 self.last_execution_succeeded = not has_raised
+                self.last_execution_result = result
 
                 # Reset this so later displayed values do not modify the
                 # ExecutionResult
                 self.displayhook.exec_result = None
-
-                self.events.trigger('post_execute')
-                if not silent:
-                    self.events.trigger('post_run_cell')
 
         if store_history:
             # Write output to the database. Does nothing unless
@@ -2915,8 +3000,7 @@ class InteractiveShell(SingletonConfigurable):
             ast.fix_missing_locations(node)
         return node
 
-    @asyncio.coroutine
-    def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr',
+    def run_ast_nodes(self, nodelist:ListType[AST], cell_name:str, interactivity='last_expr',
                       compiler=compile, result=None):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
@@ -2929,16 +3013,18 @@ class InteractiveShell(SingletonConfigurable):
           Will be passed to the compiler as the filename of the cell. Typically
           the value returned by ip.compile.cache(cell).
         interactivity : str
-          'all', 'last', 'last_expr' or 'none', specifying which nodes should be
-          run interactively (displaying output from expressions). 'last_expr'
-          will run the last node interactively only if it is an expression (i.e.
-          expressions in loops or other blocks are not displayed. Other values
-          for this parameter will raise a ValueError.
+          'all', 'last', 'last_expr' , 'last_expr_or_assign' or 'none',
+          specifying which nodes should be run interactively (displaying output
+          from expressions). 'last_expr' will run the last node interactively
+          only if it is an expression (i.e. expressions in loops or other blocks
+          are not displayed) 'last_expr_or_assign' will run the last expression
+          or the last assignment. Other values for this parameter will raise a
+          ValueError.
 
           Experimental value: 'async' Will try to run top level interactive
           async/await code in default runner, this will not respect the
           interactivty setting and will only run the last node if it is an
-          expression. 
+          expression.
 
         compiler : callable
           A function with the same interface as the built-in compile(), to turn
@@ -2954,6 +3040,21 @@ class InteractiveShell(SingletonConfigurable):
         if not nodelist:
             return
         _async = False
+        if interactivity == 'last_expr_or_assign':
+            if isinstance(nodelist[-1], _assign_nodes):
+                asg = nodelist[-1]
+                if isinstance(asg, ast.Assign) and len(asg.targets) == 1:
+                    target = asg.targets[0]
+                elif isinstance(asg, _single_targets_nodes):
+                    target = asg.target
+                else:
+                    target = None
+                if isinstance(target, ast.Name):
+                    nnode = ast.Expr(ast.Name(target.id, ast.Load()))
+                    ast.fix_missing_locations(nnode)
+                    nodelist.append(nnode)
+            interactivity = 'last_expr'
+
         if interactivity == 'last_expr':
             if isinstance(nodelist[-1], ast.Expr):
                 interactivity = "last"
@@ -2970,7 +3071,6 @@ class InteractiveShell(SingletonConfigurable):
             _async = True
         else:
             raise ValueError("Interactivity was %r" % interactivity)
-
         try:
             if _async:
                 # If interactivity is async the semantics of run_code are
@@ -3084,13 +3184,33 @@ class InteractiveShell(SingletonConfigurable):
         except:
             if result is not None:
                 result.error_in_exec = sys.exc_info()[1]
-            self.showtraceback()
+            self.showtraceback(running_compiled_code=True)
         else:
             outflag = False
         return outflag
 
     # For backwards compatibility
     runcode = run_code
+
+    def check_complete(self, code):
+        """Return whether a block of code is ready to execute, or should be continued
+
+        Parameters
+        ----------
+        source : string
+          Python input code, which can be multiline.
+
+        Returns
+        -------
+        status : str
+          One of 'complete', 'incomplete', or 'invalid' if source is not a
+          prefix of valid code.
+        indent : str
+          When status is 'incomplete', this is some whitespace to insert on
+          the next line of the prompt.
+        """
+        status, nspaces = self.input_splitter.check_complete(code)
+        return status, ' ' * (nspaces or 0)
 
     #-------------------------------------------------------------------------
     # Things related to GUI support and pylab

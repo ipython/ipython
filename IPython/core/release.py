@@ -19,11 +19,11 @@ name = 'ipython'
 # IPython version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development
 # version
-_version_major = 6
+_version_major = 7
 _version_minor = 0
 _version_patch = 0
 _version_extra = '.dev'
-# _version_extra = 'rc1'
+# _version_extra = 'rc2'
 # _version_extra = ''  # Uncomment this for full releases
 
 # Construct full version string from these.
@@ -98,9 +98,9 @@ authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
 
 author = 'The IPython Development Team'
 
-author_email = 'ipython-dev@scipy.org'
+author_email = 'ipython-dev@python.org'
 
-url = 'http://ipython.org'
+url = 'https://ipython.org'
 
 
 platforms = ['Linux','Mac OSX','Windows']
@@ -114,5 +114,6 @@ classifiers = [
     'License :: OSI Approved :: BSD License',
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3 :: Only',
     'Topic :: System :: Shells'
     ]

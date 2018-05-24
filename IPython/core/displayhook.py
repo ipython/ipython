@@ -13,7 +13,6 @@ import io as _io
 import tokenize
 
 from traitlets.config.configurable import Configurable
-from IPython.utils.py3compat import cast_unicode_py2
 from traitlets import Instance, Float
 from warnings import warn
 
@@ -87,7 +86,7 @@ class DisplayHook(Configurable):
         # do not print output if input ends in ';'
         
         try:
-            cell = cast_unicode_py2(self.shell.history_manager.input_hist_parsed[-1])
+            cell = self.shell.history_manager.input_hist_parsed[-1]
         except IndexError:
             # some uses of ipshellembed may fail here
             return False
@@ -318,4 +317,4 @@ class CapturingDisplayHook(object):
         if result is None:
             return
         format_dict, md_dict = self.shell.display_formatter.format(result)
-        self.outputs.append((format_dict, md_dict))
+        self.outputs.append({ 'data': format_dict, 'metadata': md_dict })

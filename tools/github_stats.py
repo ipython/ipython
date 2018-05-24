@@ -110,7 +110,7 @@ def report(issues, show_urls=False):
 
 if __name__ == "__main__":
 
-    print("DEPRECATE: backport_pr.py is deprecated and is is now recommended"
+    print("DEPRECATE: backport_pr.py is deprecated and it is now recommended"
           "to install `ghpro` from PyPI.", file=sys.stderr)
 
     
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
     print("We closed %d issues and merged %d pull requests." % (n_issues, n_pulls))
     if milestone:
-        print("The full list can be seen `on GitHub <https://github.com/{project}/issues?q=milestone%3A{milestone}+>`__".format(project=project,milestone=milestone)
+        print("The full list can be seen `on GitHub <https://github.com/{project}/issues?q=milestone%3A{milestone}>`__".format(project=project,milestone=milestone)
         )
     
     print()

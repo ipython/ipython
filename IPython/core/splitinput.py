@@ -114,7 +114,7 @@ class LineInfo(object):
 
         self.pre_char       = self.pre.strip()
         if self.pre_char:
-            self.pre_whitespace = '' # No whitespace allowd before esc chars
+            self.pre_whitespace = '' # No whitespace allowed before esc chars
         else:
             self.pre_whitespace = self.pre
 

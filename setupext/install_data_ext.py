@@ -65,7 +65,7 @@ class install_data_ext(install_data):
             files = lof[2]
             if len(files) == 0:
                 # If there are no files listed, the user must be
-                # trying to create an empty directory, so add the the
+                # trying to create an empty directory, so add the
                 # directory to the list of output files.
                 self.outfiles.append(dir)
             else:

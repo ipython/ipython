@@ -11,7 +11,6 @@ import errno
 from traitlets.config.configurable import LoggingConfigurable
 from IPython.paths import get_ipython_package_dir
 from IPython.utils.path import expand_path, ensure_dir_exists
-from IPython.utils import py3compat
 from traitlets import Unicode, Bool, observe
 
 #-----------------------------------------------------------------------------

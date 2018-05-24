@@ -127,3 +127,50 @@ class TestLexers(TestCase):
             (Token.Text, '\n'),
         ]
         self.assertEqual(tokens, list(self.lexer.get_tokens(fragment)))
+
+        fragment = '%%writefile -a foo.py\nif a == b:\n    pass'
+        tokens = [
+            (Token.Operator, '%%writefile'),
+            (Token.Text, ' -a foo.py\n'),
+            (Token.Keyword, 'if'),
+            (Token.Text, ' '),
+            (Token.Name, 'a'),
+            (Token.Text, ' '),
+            (Token.Operator, '=='),
+            (Token.Text, ' '),
+            (Token.Name, 'b'),
+            (Token.Punctuation, ':'),
+            (Token.Text, '\n'),
+            (Token.Text, '    '),
+            (Token.Keyword, 'pass'),
+            (Token.Text, '\n'),
+        ]
+        self.assertEqual(tokens, list(self.lexer.get_tokens(fragment)))
+
+        fragment = '%%timeit\nmath.sin(0)'
+        tokens = [
+            (Token.Operator, '%%timeit\n'),
+            (Token.Name, 'math'),
+            (Token.Operator, '.'),
+            (Token.Name, 'sin'),
+            (Token.Punctuation, '('),
+            (Token.Literal.Number.Integer, '0'),
+            (Token.Punctuation, ')'),
+            (Token.Text, '\n'),
+        ]
+
+        fragment = '%%HTML\n<div>foo</div>'
+        tokens = [
+            (Token.Operator, '%%HTML'),
+            (Token.Text, '\n'),
+            (Token.Punctuation, '<'),
+            (Token.Name.Tag, 'div'),
+            (Token.Punctuation, '>'),
+            (Token.Text, 'foo'),
+            (Token.Punctuation, '<'),
+            (Token.Punctuation, '/'),
+            (Token.Name.Tag, 'div'),
+            (Token.Punctuation, '>'),
+            (Token.Text, '\n'),
+        ]
+        self.assertEqual(tokens, list(self.lexer.get_tokens(fragment)))

@@ -92,6 +92,10 @@ class BasicMagics(Magics):
         'target',
         help="""Name of the existing line or cell magic."""
     )
+    @magic_arguments.argument(
+        '-p', '--params', default=None,
+        help="""Parameters passed to the magic function."""
+    )
     @line_magic
     def alias_magic(self, line=''):
         """Create an alias for an existing line or cell magic.
@@ -119,7 +123,11 @@ class BasicMagics(Magics):
 
           In [6]: %whereami
           Out[6]: u'/home/testuser'
+          
+          In [7]: %alias_magic h history -p "-l 30" --line
+          Created `%h` as an alias for `%history -l 30`.
         """
+
         args = magic_arguments.parse_argstring(self.alias_magic, line)
         shell = self.shell
         mman = self.shell.magics_manager
@@ -127,6 +135,12 @@ class BasicMagics(Magics):
 
         target = args.target.lstrip(escs)
         name = args.name.lstrip(escs)
+
+        params = args.params
+        if (params and
+                ((params.startswith('"') and params.endswith('"'))
+                or (params.startswith("'") and params.endswith("'")))):
+            params = params[1:-1]
 
         # Find the requested magics.
         m_line = shell.find_magic(target, 'line')
@@ -148,17 +162,19 @@ class BasicMagics(Magics):
             args.line = bool(m_line)
             args.cell = bool(m_cell)
 
+        params_str = "" if params is None else " " + params
+
         if args.line:
-            mman.register_alias(name, target, 'line')
-            print('Created `%s%s` as an alias for `%s%s`.' % (
+            mman.register_alias(name, target, 'line', params)
+            print('Created `%s%s` as an alias for `%s%s%s`.' % (
                 magic_escapes['line'], name,
-                magic_escapes['line'], target))
+                magic_escapes['line'], target, params_str))
 
         if args.cell:
-            mman.register_alias(name, target, 'cell')
-            print('Created `%s%s` as an alias for `%s%s`.' % (
+            mman.register_alias(name, target, 'cell', params)
+            print('Created `%s%s` as an alias for `%s%s%s`.' % (
                 magic_escapes['cell'], name,
-                magic_escapes['cell'], target))
+                magic_escapes['cell'], target, params_str))
 
     @line_magic
     def lsmagic(self, parameter_s=''):
@@ -285,22 +301,6 @@ Currently the magic system has the following functions:""",
             page.page(txt)
         else:
             print('Object `%s` not found' % oname)
-
-    @line_magic
-    def profile(self, parameter_s=''):
-        """Print your currently active IPython profile.
-
-        See Also
-        --------
-        prun : run code using the Python profiler
-               (:meth:`~IPython.core.magics.execution.ExecutionMagics.prun`)
-        """
-        warn("%profile is now deprecated. Please use get_ipython().profile instead.")
-        from IPython.core.application import BaseIPythonApplication
-        if BaseIPythonApplication.initialized():
-            print(BaseIPythonApplication.instance().profile)
-        else:
-            error("profile is an application-level value, but you don't appear to be in an IPython application")
 
     @line_magic
     def pprint(self, parameter_s=''):
@@ -450,7 +450,7 @@ Currently the magic system has the following functions:""",
         The Python package manager (pip) can only be used from outside of IPython.
         Please reissue the `pip` command in a separate terminal or command prompt.
 
-        See the Python documentation for more informations on how to install packages:
+        See the Python documentation for more information on how to install packages:
 
             https://docs.python.org/3/installing/'''.format(args=args)))
 

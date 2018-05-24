@@ -3,13 +3,12 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-
 from collections import namedtuple
 from io import StringIO
 from keyword import iskeyword
 
 from . import tokenize2
-from .py3compat import cast_unicode_py2
+
 
 Token = namedtuple('Token', ['token', 'text', 'start', 'end', 'line'])
 
@@ -45,7 +44,12 @@ def line_at_cursor(cell, cursor_pos=0):
     lines = cell.splitlines(True)
     for line in lines:
         next_offset = offset + len(line)
-        if next_offset >= cursor_pos:
+        if not line.endswith('\n'):
+            # If the last line doesn't have a trailing newline, treat it as if
+            # it does so that the cursor at the end of the line still counts
+            # as being on that line.
+            next_offset += 1
+        if next_offset > cursor_pos:
             break
         offset = next_offset
     else:
@@ -68,7 +72,6 @@ def token_at_cursor(cell, cursor_pos=0):
     cursor_pos : int
         The location of the cursor in the block where the token should be found
     """
-    cell = cast_unicode_py2(cell)
     names = []
     tokens = []
     call_names = []

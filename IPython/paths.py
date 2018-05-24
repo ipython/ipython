@@ -9,8 +9,7 @@ import IPython
 from IPython.utils.importstring import import_item
 from IPython.utils.path import (
     get_home_dir, get_xdg_dir, get_xdg_cache_dir, compress_user, _writable_dir,
-    ensure_dir_exists, fs_encoding, filefind
-)
+    ensure_dir_exists, fs_encoding)
 from IPython.utils import py3compat
 
 def get_ipython_dir():

@@ -4,7 +4,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 import IPython.testing.tools as tt
-from IPython.testing.decorators import skip_without
 
 
 def test_ipython_help():

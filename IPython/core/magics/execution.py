@@ -11,6 +11,7 @@ import builtins as builtin_mod
 import gc
 import itertools
 import os
+import shlex
 import sys
 import time
 import timeit
@@ -85,15 +86,28 @@ class TimeitResult(object):
         return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
 
     def __str__(self):
-        return (u"%s loop%s, average of %d: %s +- %s per loop (using standard deviation)"
-                   % (self.loops,"" if self.loops == 1 else "s", self.repeat,
-                      _format_time(self.average, self._precision),
-                      _format_time(self.stdev, self._precision)))
+        pm = '+-'
+        if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
+            try:
+                u'\xb1'.encode(sys.stdout.encoding)
+                pm = u'\xb1'
+            except:
+                pass
+        return (
+            u"{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops} loop{loop_plural} each)"
+                .format(
+                    pm = pm,
+                    runs = self.repeat,
+                    loops = self.loops,
+                    loop_plural = "" if self.loops == 1 else "s",
+                    run_plural = "" if self.repeat == 1 else "s",
+                    mean = _format_time(self.average, self._precision),
+                    std = _format_time(self.stdev, self._precision))
+                )
 
     def _repr_pretty_(self, p , cycle):
-       unic = self.__str__()
-       p.text(u'<TimeitResult : '+unic+u'>')
-
+        unic = self.__str__()
+        p.text(u'<TimeitResult : '+unic+u'>')
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
@@ -603,6 +617,20 @@ python-profiler package from non-free.""")
 
         """
 
+        # Logic to handle issue #3664
+        # Add '--' after '-m <module_name>' to ignore additional args passed to a module.
+        if '-m' in parameter_s and '--' not in parameter_s:
+            argv = shlex.split(parameter_s, posix=(os.name == 'posix'))
+            for idx, arg in enumerate(argv):
+                if arg and arg.startswith('-') and arg != '-':
+                    if arg == '-m':
+                        argv.insert(idx + 2, '--')
+                        break
+                else:
+                    # Positional arg, break
+                    break
+            parameter_s = ' '.join(shlex.quote(arg) for arg in argv)
+
         # get arguments and set sys.argv for program to be run.
         opts, arg_lst = self.parse_options(parameter_s,
                                            'nidtN:b:pD:l:rs:T:em:G',
@@ -820,6 +848,7 @@ python-profiler package from non-free.""")
         bdb.Breakpoint.next = 1
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
+        deb.clear_all_breaks()
         if bp_line is not None:
             # Set an initial breakpoint to stop execution
             maxtries = 10
@@ -911,7 +940,8 @@ python-profiler package from non-free.""")
 
     @skip_doctest
     @line_cell_magic
-    def timeit(self, line='', cell=None):
+    @needs_local_scope
+    def timeit(self, line='', cell=None, local_ns=None):
         """Time execution of a Python statement or expression
 
         Usage, in line mode:
@@ -959,20 +989,18 @@ python-profiler package from non-free.""")
         ::
 
           In [1]: %timeit pass
-          100000000 loops, average of 7: 5.48 ns +- 0.354 ns per loop (using standard deviation)
+          8.26 ns ± 0.12 ns per loop (mean ± std. dev. of 7 runs, 100000000 loops each)
 
           In [2]: u = None
 
           In [3]: %timeit u is None
-          10000000 loops, average of 7: 22.7 ns +- 2.33 ns per loop (using standard deviation)
+          29.9 ns ± 0.643 ns per loop (mean ± std. dev. of 7 runs, 10000000 loops each)
 
           In [4]: %timeit -r 4 u == None
-          10000000 loops, average of 4: 27.5 ns +- 2.91 ns per loop (using standard deviation)
 
           In [5]: import time
 
           In [6]: %timeit -n1 time.sleep(2)
-          1 loop, average of 7: 2 s +- 4.71 µs per loop (using standard deviation)
 
 
         The times reported by %timeit will be slightly higher than those
@@ -1017,6 +1045,13 @@ python-profiler package from non-free.""")
         ast_setup = self.shell.transform_ast(ast_setup)
         ast_stmt = self.shell.transform_ast(ast_stmt)
 
+        # Check that these compile to valid Python code *outside* the timer func
+        # Invalid code may become valid when put inside the function & loop,
+        # which messes up error messages.
+        # https://github.com/ipython/ipython/issues/10636
+        self.shell.compile(ast_setup, "<magic-timeit-setup>", "exec")
+        self.shell.compile(ast_stmt, "<magic-timeit-stmt>", "exec")
+
         # This codestring is taken from timeit.template - we fill it in as an
         # AST, so that we can apply our AST transformations to the user code
         # without affecting the timing code.
@@ -1040,7 +1075,16 @@ python-profiler package from non-free.""")
         tc = clock()-t0
 
         ns = {}
-        exec(code, self.shell.user_ns, ns)
+        glob = self.shell.user_ns
+        # handles global vars with same name as local vars. We store them in conflict_globs.
+        if local_ns is not None:
+            conflict_globs = {}
+            for var_name, var_val in glob.items():
+                if var_name in local_ns:
+                    conflict_globs[var_name] = var_val
+            glob.update(local_ns)
+            
+        exec(code, glob, ns)
         timer.inner = ns["inner"]
 
         # This is used to check if there is a huge difference between the
@@ -1059,6 +1103,11 @@ python-profiler package from non-free.""")
         worst = max(all_runs) / number
         timeit_result = TimeitResult(number, repeat, best, worst, all_runs, tc, precision)
 
+        # Restore global vars from conflict_globs
+        if local_ns is not None:
+            if len(conflict_globs) > 0:
+                glob.update(conflict_globs)
+                
         if not quiet :
             # Check best timing is greater than zero to avoid a
             # ZeroDivisionError.

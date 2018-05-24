@@ -218,8 +218,8 @@ class ScriptMagics(Magics):
                 print("Error while terminating subprocess (pid=%i): %s" \
                     % (p.pid, e))
             return
-        out = py3compat.bytes_to_str(out)
-        err = py3compat.bytes_to_str(err)
+        out = py3compat.decode(out)
+        err = py3compat.decode(err)
         if args.out:
             self.shell.user_ns[args.out] = out
         else:
@@ -245,6 +245,8 @@ class ScriptMagics(Magics):
 
     def kill_bg_processes(self):
         """Kill all BG processes which are still running."""
+        if not self.bg_processes:
+            return
         for p in self.bg_processes:
             if p.poll() is None:
                 try:
@@ -252,6 +254,9 @@ class ScriptMagics(Magics):
                 except:
                     pass
         time.sleep(0.1)
+        self._gc_bg_processes()
+        if not self.bg_processes:
+            return
         for p in self.bg_processes:
             if p.poll() is None:
                 try:
@@ -259,6 +264,9 @@ class ScriptMagics(Magics):
                 except:
                     pass
         time.sleep(0.1)
+        self._gc_bg_processes()
+        if not self.bg_processes:
+            return
         for p in self.bg_processes:
             if p.poll() is None:
                 try:

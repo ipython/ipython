@@ -24,7 +24,6 @@ from IPython.core.magic_arguments import (argument, magic_arguments,
                                           parse_argstring)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
-from IPython.utils.py3compat import cast_unicode_py2
 
 #-----------------------------------------------------------------------------
 # Magics class implementation
@@ -62,7 +61,7 @@ class HistoryMagics(Magics):
         source before executing it (things like magics or aliases are turned
         into function calls, for example). With this option, you'll see the
         native history instead of the user-entered version: '%%cd /' will be
-        seen as 'get_ipython().magic("%%cd /")' instead of '%%cd /'.
+        seen as 'get_ipython().run_line_magic("cd", "/")' instead of '%%cd /'.
         """)
     @argument(
         '-f', dest='filename',
@@ -214,7 +213,7 @@ class HistoryMagics(Magics):
                     inline = "\n... ".join(inline.splitlines()) + "\n..."
             print(inline, file=outfile)
             if get_output and output:
-                print(cast_unicode_py2(output), file=outfile)
+                print(output, file=outfile)
 
         if close_at_end:
             outfile.close()

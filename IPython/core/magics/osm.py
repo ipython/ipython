@@ -23,7 +23,6 @@ from IPython.core.magic import  (
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.openpy import source_to_unicode
 from IPython.utils.process import abbrev_cwd
-from IPython.utils import py3compat
 from IPython.utils.terminal import set_term_title
 
 
@@ -81,11 +80,21 @@ class OSMagics(Magics):
           In [9]: show $$PATH
           /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
 
-        You can use the alias facility to acess all of $PATH.  See the %rehashx
+        You can use the alias facility to access all of $PATH.  See the %rehashx
         function, which automatically creates aliases for the contents of your
         $PATH.
 
-        If called with no parameters, %alias prints the current alias table."""
+        If called with no parameters, %alias prints the current alias table
+        for your system.  For posix systems, the default aliases are 'cat',
+        'cp', 'mv', 'rm', 'rmdir', and 'mkdir', and other platform-specific
+        aliases are added.  For windows-based systems, the default aliases are
+        'copy', 'ddir', 'echo', 'ls', 'ldir', 'mkdir', 'ren', and 'rmdir'.
+
+        You can see the definition of alias by adding a question mark in the
+        end::
+
+          In [1]: cat?
+          Repr: <alias cat for 'cat'>"""
 
         par = parameter_s.strip()
         if not par:
@@ -342,7 +351,7 @@ class OSMagics(Magics):
             try:
                 os.chdir(os.path.expanduser(ps))
                 if hasattr(self.shell, 'term_title') and self.shell.term_title:
-                    set_term_title('IPython: ' + abbrev_cwd())
+                    set_term_title(self.shell.term_title_format.format(cwd=abbrev_cwd()))
             except OSError:
                 print(sys.exc_info()[1])
             else:
@@ -355,7 +364,7 @@ class OSMagics(Magics):
         else:
             os.chdir(self.shell.home_dir)
             if hasattr(self.shell, 'term_title') and self.shell.term_title:
-                set_term_title('IPython: ' + '~')
+                set_term_title(self.shell.term_title_format.format(cwd="~"))
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
 
@@ -418,7 +427,7 @@ class OSMagics(Magics):
             err = "refusing to set env var with whitespace: '{0}'"
             err = err.format(val)
             raise UsageError(err)
-        os.environ[py3compat.cast_bytes_py2(var)] = py3compat.cast_bytes_py2(val)
+        os.environ[var] = val
         print('env: {0}={1}'.format(var,val))
 
     @line_magic

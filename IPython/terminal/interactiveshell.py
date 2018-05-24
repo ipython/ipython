@@ -7,10 +7,13 @@ from warnings import warn
 
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
-from IPython.utils.py3compat import cast_unicode_py2, input
+from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union
+from traitlets import (
+    Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union,
+    Any,
+)
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -22,7 +25,7 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
 
-from pygments.styles import get_style_by_name, get_all_styles
+from pygments.styles import get_style_by_name
 from pygments.style import Style
 from pygments.token import Token
 
@@ -53,8 +56,6 @@ _style_overrides_linux = {
             Token.OutPrompt: '#cc0000',
             Token.OutPromptNum: '#bb0000 bold',
 }
-
-
 
 def get_default_editor():
     try:
@@ -98,7 +99,7 @@ class TerminalInteractiveShell(InteractiveShell):
     _pt_app = None
 
     simple_prompt = Bool(_use_simple_prompt,
-        help="""Use `raw_input` for the REPL, without completion, multiline input, and prompt colors.
+        help="""Use `raw_input` for the REPL, without completion and prompt colors.
 
             Useful when controlling IPython as a subprocess, and piping STDIN/OUT/ERR. Known usage are:
             IPython own testing machinery, and emacs inferior-shell integration through elpy.
@@ -123,12 +124,14 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     mouse_support = Bool(False,
-        help="Enable mouse support in the prompt"
+        help="Enable mouse support in the prompt\n(Note: prevents selecting text with the mouse)"
     ).tag(config=True)
 
+    # We don't load the list of styles for the help string, because loading
+    # Pygments plugins takes time and can cause unexpected errors.
     highlighting_style = Union([Unicode('legacy'), Type(klass=Style)],
-        help="The name or class of a Pygments style to use for syntax "
-        "highlighting: \n %s" % ', '.join(get_all_styles())
+        help="""The name or class of a Pygments style to use for syntax
+        highlighting. To see available styles, run `pygmentize -L styles`."""
     ).tag(config=True)
 
 
@@ -176,6 +179,11 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Automatically set the terminal title"
     ).tag(config=True)
 
+    term_title_format = Unicode("IPython: {cwd}",
+        help="Customize the terminal title format.  This is a python format string. " +
+             "Available substitutions are: {cwd}."
+    ).tag(config=True)
+
     display_completions = Enum(('column', 'multicolumn','readlinelike'),
         help= ( "Options for displaying tab completions, 'column', 'multicolumn', and "
                 "'readlinelike'. These options are for `prompt_toolkit`, see "
@@ -192,12 +200,22 @@ class TerminalInteractiveShell(InteractiveShell):
              "This is in addition to the F2 binding, which is always enabled."
     ).tag(config=True)
 
+    handle_return = Any(None,
+        help="Provide an alternative handler to be called when the user presses "
+             "Return. This is an advanced option intended for debugging, which "
+             "may be changed or removed in later releases."
+    ).tag(config=True)
+
+    enable_history_search = Bool(True,
+        help="Allows to enable/disable the prompt toolkit history search"
+    ).tag(config=True)
+
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
         if self.term_title:
             toggle_set_term_title(True)
-            set_term_title('IPython: ' + abbrev_cwd())
+            set_term_title(self.term_title_format.format(cwd=abbrev_cwd()))
         else:
             toggle_set_term_title(False)
 
@@ -213,7 +231,14 @@ class TerminalInteractiveShell(InteractiveShell):
             # Fall back to plain non-interactive output for tests.
             # This is very limited, and only accepts a single line.
             def prompt():
-                return cast_unicode_py2(input('In [%d]: ' % self.execution_count))
+                isp = self.input_splitter
+                prompt_text = "".join(x[1] for x in self.prompts.in_prompt_tokens())
+                prompt_continuation = "".join(x[1] for x in self.prompts.continuation_prompt_tokens())
+                while isp.push_accepts_more():
+                    line = input(prompt_text)
+                    isp.push(line)
+                    prompt_text = prompt_continuation
+                return isp.source_reset()
             self.prompt_for_code = prompt
             return
 
@@ -235,7 +260,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 last_cell = cell
 
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
-        style = DynamicStyle(lambda: self._style)
+        self.style = DynamicStyle(lambda: self._style)
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
@@ -248,8 +273,8 @@ class TerminalInteractiveShell(InteractiveShell):
                             history=history,
                             completer=IPythonPTCompleter(shell=self,
                                                     patch_stdout=patch_stdout),
-                            enable_history_search=True,
-                            style=style,
+                            enable_history_search=self.enable_history_search,
+                            style=self.style,
                             mouse_support=self.mouse_support,
                             **self._layout_options()
         )
@@ -351,8 +376,9 @@ class TerminalInteractiveShell(InteractiveShell):
             self._pt_app.layout = create_prompt_layout(**self._layout_options())
 
     def prompt_for_code(self):
-        document = self.pt_cli.run(
-            pre_run=self.pre_prompt, reset_current_buffer=True)
+        with self.pt_cli.patch_stdout_context(raw=True):
+            document = self.pt_cli.run(
+                pre_run=self.pre_prompt, reset_current_buffer=True)
         return document.text
 
     def enable_win_unicode_console(self):
@@ -418,7 +444,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # We can't set the buffer here, because it will be reset just after
             # this. Adding a callable to pre_run_callables does what we need
             # after the buffer is reset.
-            s = cast_unicode_py2(self.rl_next_input)
+            s = self.rl_next_input
             def set_doc():
                 self.pt_cli.application.buffer.document = Document(s)
             if hasattr(self.pt_cli, 'pre_run_callables'):

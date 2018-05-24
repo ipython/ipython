@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """IPython release build script.
 """
 import os
@@ -14,6 +14,10 @@ def build_release():
 
     # Load release info
     execfile(pjoin('IPython', 'core', 'release.py'), globals())
+
+    with open('docs/source/whatsnew/index.rst') as f:
+        if '   development' in f.read():
+            raise ValueError("Please remove `development` from what's new toctree for release")
 
     # Cleanup
     for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),

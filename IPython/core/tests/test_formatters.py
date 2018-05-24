@@ -49,7 +49,7 @@ def test_pretty():
     f = PlainTextFormatter()
     f.for_type(A, foo_printer)
     nt.assert_equal(f(A()), 'foo')
-    nt.assert_equal(f(B()), 'foo')
+    nt.assert_equal(f(B()), 'B()')
     nt.assert_equal(f(GoodPretty()), 'foo')
     # Just don't raise an exception for the following:
     f(BadPretty())
@@ -116,8 +116,6 @@ def test_for_type():
 def test_for_type_string():
     f = PlainTextFormatter()
     
-    mod = C.__module__
-    
     type_str = '%s.%s' % (C.__module__, 'C')
     
     # initial return, None
@@ -166,7 +164,6 @@ def test_lookup_by_type():
     f = PlainTextFormatter()
     f.for_type(C, foo_printer)
     nt.assert_is(f.lookup_by_type(C), foo_printer)
-    type_str = '%s.%s' % (C.__module__, 'C')
     with nt.assert_raises(KeyError):
         f.lookup_by_type(A)
 
@@ -436,4 +433,101 @@ def test_json_as_string_deprecated():
         d = f(JSONString())
     nt.assert_equal(d, {})
     nt.assert_equal(len(w), 1)
+
+
+def test_repr_mime():
+    class HasReprMime(object):
+        def _repr_mimebundle_(self, include=None, exclude=None):
+            return {
+                'application/json+test.v2': {
+                    'x': 'y'
+                },
+                'plain/text' : '<HasReprMime>',
+                'image/png' : 'i-overwrite'
+            }
+
+        def _repr_png_(self):
+            return 'should-be-overwritten'
+        def _repr_html_(self):
+            return '<b>hi!</b>'
     
+    f = get_ipython().display_formatter
+    html_f = f.formatters['text/html']
+    save_enabled = html_f.enabled
+    html_f.enabled = True
+    obj = HasReprMime()
+    d, md = f.format(obj)
+    html_f.enabled = save_enabled
+    
+    nt.assert_equal(sorted(d), ['application/json+test.v2',
+                                'image/png',
+                                'plain/text',
+                                'text/html',
+                                'text/plain'])
+    nt.assert_equal(md, {})
+
+    d, md = f.format(obj, include={'image/png'})
+    nt.assert_equal(list(d.keys()), ['image/png'],
+                    'Include should filter out even things from repr_mimebundle')
+    nt.assert_equal(d['image/png'], 'i-overwrite', '_repr_mimebundle_ take precedence')
+
+
+
+def test_pass_correct_include_exclude():
+    class Tester(object):
+
+        def __init__(self, include=None, exclude=None):
+            self.include = include
+            self.exclude = exclude
+
+        def _repr_mimebundle_(self, include, exclude, **kwargs):
+            if include and (include != self.include):
+                raise ValueError('include got modified: display() may be broken.')
+            if exclude and (exclude != self.exclude):
+                raise ValueError('exclude got modified: display() may be broken.')
+
+            return None
+
+    include = {'a', 'b', 'c'}
+    exclude = {'c', 'e' , 'f'}
+
+    f = get_ipython().display_formatter
+    f.format(Tester(include=include, exclude=exclude), include=include, exclude=exclude)
+    f.format(Tester(exclude=exclude), exclude=exclude)
+    f.format(Tester(include=include), include=include)
+
+
+def test_repr_mime_meta():
+    class HasReprMimeMeta(object):
+        def _repr_mimebundle_(self, include=None, exclude=None):
+            data = {
+                'image/png': 'base64-image-data',
+            }
+            metadata = {
+                'image/png': {
+                    'width': 5,
+                    'height': 10,
+                }
+            }
+            return (data, metadata)
+    
+    f = get_ipython().display_formatter
+    obj = HasReprMimeMeta()
+    d, md = f.format(obj)
+    nt.assert_equal(sorted(d), ['image/png', 'text/plain'])
+    nt.assert_equal(md, {
+        'image/png': {
+            'width': 5,
+            'height': 10,
+        }
+    })
+
+def test_repr_mime_failure():
+    class BadReprMime(object):
+        def _repr_mimebundle_(self, include=None, exclude=None):
+            raise RuntimeError
+
+    f = get_ipython().display_formatter
+    obj = BadReprMime()
+    d, md = f.format(obj)
+    nt.assert_in('text/plain', d)

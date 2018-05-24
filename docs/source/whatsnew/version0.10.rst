@@ -34,7 +34,7 @@ Highlights of this release:
   (such as a linux text console without X11).
   
 For this release we merged 24 commits, contributed by the following people
-(please let us know if we ommitted your name and we'll gladly fix this in the
+(please let us know if we omitted your name and we'll gladly fix this in the
 notes for the future):
 
 * Fernando Perez

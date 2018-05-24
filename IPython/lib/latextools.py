@@ -15,7 +15,7 @@ from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config
 from traitlets.config.configurable import SingletonConfigurable
 from traitlets import List, Bool, Unicode
-from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u
+from IPython.utils.py3compat import cast_unicode
 
 
 class LaTeXTool(SingletonConfigurable):
@@ -161,20 +161,20 @@ def genelatex(body, wrap):
     """Generate LaTeX document for dvipng backend."""
     lt = LaTeXTool.instance()
     breqn = wrap and lt.use_breqn and kpsewhich("breqn.sty")
-    yield u(r'\documentclass{article}')
+    yield r'\documentclass{article}'
     packages = lt.packages
     if breqn:
         packages = packages + ['breqn']
     for pack in packages:
-        yield u(r'\usepackage{{{0}}}'.format(pack))
-    yield u(r'\pagestyle{empty}')
+        yield r'\usepackage{{{0}}}'.format(pack)
+    yield r'\pagestyle{empty}'
     if lt.preamble:
         yield lt.preamble
-    yield u(r'\begin{document}')
+    yield r'\begin{document}'
     if breqn:
-        yield u(r'\begin{dmath*}')
+        yield r'\begin{dmath*}'
         yield body
-        yield u(r'\end{dmath*}')
+        yield r'\end{dmath*}'
     elif wrap:
         yield u'$${0}$$'.format(body)
     else:

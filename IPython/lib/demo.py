@@ -109,7 +109,7 @@ the execution.
 This is probably best explained with the simple example file below.  You can
 copy this into a file named ex_demo.py, and try running it via::
 
-    from IPython.demo import Demo
+    from IPython.lib.demo import Demo
     d = Demo('ex_demo.py')
     d()
 
@@ -231,7 +231,7 @@ class Demo(object):
             value.
 
           - format_rst(False): a bool to enable comments and doc strings
-            formating with pygments rst lexer
+            formatting with pygments rst lexer
 
           - formatter('terminal'): a string of pygments formatter name to be
             used. Useful values for terminals: terminal, terminal256,

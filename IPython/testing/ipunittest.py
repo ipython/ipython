@@ -55,7 +55,7 @@ class IPython2PythonConverter(object):
     """Convert IPython 'syntax' to valid Python.
 
     Eventually this code may grow to be the full IPython syntax conversion
-    implementation, but for now it only does prompt convertion."""
+    implementation, but for now it only does prompt conversion."""
     
     def __init__(self):
         self.rps1 = re.compile(r'In\ \[\d+\]: ')

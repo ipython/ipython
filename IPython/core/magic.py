@@ -14,7 +14,6 @@
 import os
 import re
 import sys
-import types
 from getopt import getopt, GetoptError
 
 from traitlets.config.configurable import Configurable
@@ -426,7 +425,7 @@ class MagicsManager(Configurable):
         setattr(self.user_magics, magic_name, func)
         record_magic(self.magics, magic_kind, magic_name, func)
 
-    def register_alias(self, alias_name, magic_name, magic_kind='line'):
+    def register_alias(self, alias_name, magic_name, magic_kind='line', magic_params=None):
         """Register an alias to a magic function.
 
         The alias is an instance of :class:`MagicAlias`, which holds the
@@ -452,7 +451,7 @@ class MagicsManager(Configurable):
             raise ValueError('magic_kind must be one of %s, %s given' %
                              magic_kinds, magic_kind)
 
-        alias = MagicAlias(self.shell, magic_name, magic_kind)
+        alias = MagicAlias(self.shell, magic_name, magic_kind, magic_params)
         setattr(self.user_magics, alias_name, alias)
         record_magic(self.magics, magic_kind, alias_name, alias)
 
@@ -653,9 +652,10 @@ class MagicAlias(object):
     Use the :meth:`MagicsManager.register_alias` method or the
     `%alias_magic` magic function to create and register a new alias.
     """
-    def __init__(self, shell, magic_name, magic_kind):
+    def __init__(self, shell, magic_name, magic_kind, magic_params=None):
         self.shell = shell
         self.magic_name = magic_name
+        self.magic_params = magic_params
         self.magic_kind = magic_kind
 
         self.pretty_target = '%s%s' % (magic_escapes[self.magic_kind], self.magic_name)
@@ -675,6 +675,10 @@ class MagicAlias(object):
                              "magic aliases cannot call themselves.")
         self._in_call = True
         try:
+            if self.magic_params:
+                args_list = list(args)
+                args_list[0] = self.magic_params + " " + args[0]
+                args = tuple(args_list)
             return fn(*args, **kwargs)
         finally:
             self._in_call = False

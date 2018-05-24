@@ -104,8 +104,8 @@ or :okwarning: options:
         In [1]: 1/0
         In [2]: # raise warning.
 
-ToDo
-----
+To Do
+-----
 
 - Turn the ad-hoc test() function into a real test suite.
 - Break up ipython-specific functionality from matplotlib stuff into better
@@ -114,7 +114,7 @@ ToDo
 Authors
 -------
 
-- John D Hunter: orignal author.
+- John D Hunter: original author.
 - Fernando Perez: refactoring, documentation, cleanups, port to 0.11.
 - VáclavŠmilauer <eudoxos-AT-arcig.cz>: Prompt generalizations.
 - Skipper Seabold, refactoring, cleanups, pure python addition
@@ -138,13 +138,12 @@ from io import StringIO
 
 # Third-party
 from docutils.parsers.rst import directives
-from sphinx.util.compat import Directive
+from docutils.parsers.rst import Directive
 
 # Our own
 from traitlets.config import Config
 from IPython import InteractiveShell
 from IPython.core.profiledir import ProfileDir
-from IPython.utils import io
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -284,17 +283,9 @@ class EmbeddedSphinxShell(object):
         profile = ProfileDir.create_profile_dir(pdir)
 
         # Create and initialize global ipython, but don't start its mainloop.
-        # This will persist across different EmbededSphinxShell instances.
+        # This will persist across different EmbeddedSphinxShell instances.
         IP = InteractiveShell.instance(config=config, profile_dir=profile)
         atexit.register(self.cleanup)
-
-        sys.stdout = self.cout
-        sys.stderr = self.cout
-
-        # For debugging, so we can see normal output, use this:
-        #from IPython.utils.io import Tee
-        #sys.stdout = Tee(self.cout, channel='stdout') # dbg
-        #sys.stderr = Tee(self.cout, channel='stderr') # dbg
 
         # Store a few parts of IPython we'll need.
         self.IP = IP

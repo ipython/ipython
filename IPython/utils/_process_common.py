@@ -130,7 +130,7 @@ def getoutput(cmd):
     out = process_handler(cmd, lambda p: p.communicate()[0], subprocess.STDOUT)
     if out is None:
         return ''
-    return py3compat.bytes_to_str(out)
+    return py3compat.decode(out)
 
 
 def getoutputerror(cmd):
@@ -172,7 +172,7 @@ def get_output_error_code(cmd):
     if out_err is None:
         return '', '', p.returncode
     out, err = out_err
-    return py3compat.bytes_to_str(out), py3compat.bytes_to_str(err), p.returncode
+    return py3compat.decode(out), py3compat.decode(err), p.returncode
 
 def arg_split(s, posix=False, strict=True):
     """Split a command line's arguments in a shell-like manner.

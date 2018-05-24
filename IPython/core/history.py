@@ -20,8 +20,7 @@ import threading
 from traitlets.config.configurable import LoggingConfigurable
 from decorator import decorator
 from IPython.utils.decorators import undoc
-from IPython.utils.path import locate_profile
-from IPython.utils import py3compat
+from IPython.paths import locate_profile
 from traitlets import (
     Any, Bool, Dict, Instance, Integer, List, Unicode, TraitError,
     default, observe,
@@ -180,7 +179,7 @@ class HistoryAccessor(HistoryAccessorBase):
         help="""Options for configuring the SQLite connection
         
         These options are passed as keyword args to sqlite3.connect
-        when establishing database conenctions.
+        when establishing database connections.
         """
     ).tag(config=True)
 

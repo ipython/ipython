@@ -13,6 +13,7 @@ reference the name under which an object is being read.
 __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
+import ast
 import inspect
 from inspect import signature
 import linecache
@@ -123,18 +124,11 @@ def getdoc(obj):
     except Exception:
         pass
     else:
-        # if we get extra info, we add it to the normal docstring.
         if isinstance(ds, str):
             return inspect.cleandoc(ds)
-    try:
-        docstr = inspect.getdoc(obj)
-        encoding = get_encoding(obj)
-        return py3compat.cast_unicode(docstr, encoding=encoding)
-    except Exception:
-        # Harden against an inspect failure, which can occur with
-        # extensions modules.
-        raise
-        return None
+    docstr = inspect.getdoc(obj)
+    encoding = get_encoding(obj)
+    return py3compat.cast_unicode(docstr, encoding=encoding)
 
 
 def getsource(obj, oname=''):
@@ -587,7 +581,21 @@ class Inspector(Colorable):
         return bundle
 
     def _get_info(self, obj, oname='', formatter=None, info=None, detail_level=0):
-        """Retrieve an info dict and format it."""
+        """Retrieve an info dict and format it.
+        
+        Parameters
+        ==========
+
+        obj: any
+            Object to inspect and return info from
+        oname: str (default: ''):
+            Name of the variable pointing to `obj`.
+        formatter: callable
+        info:
+            already computed information
+        detail_level: integer
+            Granularity of detail level, if set to 1, give more information.
+        """
 
         info = self._info(obj, oname=oname, info=info, detail_level=detail_level)
 
@@ -623,10 +631,10 @@ class Inspector(Colorable):
             # Functions, methods, classes
             append_field(_mime, 'Signature', 'definition', code_formatter)
             append_field(_mime, 'Init signature', 'init_definition', code_formatter)
+            append_field(_mime, 'Docstring', 'docstring', formatter)
             if detail_level > 0 and info['source']:
                 append_field(_mime, 'Source', 'source', code_formatter)
             else:
-                append_field(_mime, 'Docstring', 'docstring', formatter)
                 append_field(_mime, 'Init docstring', 'init_docstring', formatter)
 
             append_field(_mime, 'File', 'file')
@@ -648,7 +656,7 @@ class Inspector(Colorable):
             
             # Source or docstring, depending on detail level and whether
             # source found.
-            if detail_level > 0:
+            if detail_level > 0 and info['source']:
                 append_field(_mime, 'Source', 'source', code_formatter)
             else:
                 append_field(_mime, 'Docstring', 'docstring', formatter)
@@ -672,7 +680,7 @@ class Inspector(Colorable):
 
               The formatter is a callable that takes a string as an input
               and returns either a formatted string or a mime type bundle
-              in the form of a dictionnary.
+              in the form of a dictionary.
 
               Although the support of custom formatter returning a string
               instead of a mime type bundle is deprecated.
@@ -696,24 +704,31 @@ class Inspector(Colorable):
                       DeprecationWarning, stacklevel=2)
         return self._info(obj, oname=oname, info=info, detail_level=detail_level)
 
-    def _info(self, obj, oname='', info=None, detail_level=0):
+    def _info(self, obj, oname='', info=None, detail_level=0) -> dict:
         """Compute a dict with detailed information about an object.
 
-        Optional arguments:
+        Parameters
+        ==========
 
-        - oname: name of the variable pointing to the object.
+        obj: any
+            An object to find information about
+        oname: str (default: ''):
+            Name of the variable pointing to `obj`.
+        info: (default: None)
+            A struct (dict like with attr access) with some information fields
+            which may have been precomputed already.
+        detail_level: int (default:0)
+            If set to 1, more information is given.
 
-        - info: a structure with some information fields which may have been
-          precomputed already.
+        Returns
+        =======
 
-        - detail_level: if set to 1, more information is given.
+        An object info dict with known fields from `info_fields`.
         """
 
-        obj_type = type(obj)
-
         if info is None:
-            ismagic = 0
-            isalias = 0
+            ismagic = False
+            isalias = False
             ospace = ''
         else:
             ismagic = info.ismagic
@@ -743,17 +758,17 @@ class Inspector(Colorable):
         shalf = int((string_max - 5) / 2)
 
         if ismagic:
-            obj_type_name = 'Magic function'
+            out['type_name'] = 'Magic function'
         elif isalias:
-            obj_type_name = 'System alias'
+            out['type_name'] = 'System alias'
         else:
-            obj_type_name = obj_type.__name__
-        out['type_name'] = obj_type_name
+            out['type_name'] = type(obj).__name__
 
         try:
             bclass = obj.__class__
             out['base_class'] = str(bclass)
-        except: pass
+        except:
+            pass
 
         # String form, but snip if too long in ? form (full in ??)
         if detail_level >= self.str_detail_level:
@@ -774,7 +789,8 @@ class Inspector(Colorable):
         # Length (for strings and lists)
         try:
             out['length'] = str(len(obj))
-        except: pass
+        except Exception:
+            pass
 
         # Filename where object was defined
         binary_file = False
@@ -806,7 +822,7 @@ class Inspector(Colorable):
                 pass
 
         # Add docstring only if no source is to be shown (avoid repetitions).
-        if ds and out.get('source', None) is None:
+        if ds and not self._source_contains_docstring(out.get('source'), ds):
             out['docstring'] = ds
 
         # Constructor docstring for classes
@@ -907,7 +923,7 @@ class Inspector(Colorable):
         if callable_obj is not None:
             try:
                 argspec = getargspec(callable_obj)
-            except (TypeError, AttributeError):
+            except Exception:
                 # For extensions/builtins we can't retrieve the argspec
                 pass
             else:
@@ -920,6 +936,23 @@ class Inspector(Colorable):
                     argspec_dict['varkw'] = argspec_dict.pop('keywords')
 
         return object_info(**out)
+
+    @staticmethod
+    def _source_contains_docstring(src, doc):
+        """
+        Check whether the source *src* contains the docstring *doc*.
+
+        This is is helper function to skip displaying the docstring if the
+        source already contains it, avoiding repetition of information.
+        """
+        try:
+            def_node, = ast.parse(dedent(src)).body
+            return ast.get_docstring(def_node) == doc
+        except Exception:
+            # The source can become invalid or even non-existent (because it
+            # is re-fetched from the source file) so the above code fail in
+            # arbitrary ways.
+            return False
 
     def psearch(self,pattern,ns_table,ns_search=[],
                 ignore_case=False,show_all=False):

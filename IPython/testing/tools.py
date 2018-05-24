@@ -33,7 +33,6 @@ from IPython.utils.process import get_output_error_code
 from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile, Tee
 from IPython.utils import py3compat
-from IPython.utils.encoding import DEFAULT_ENCODING
 
 from . import decorators as dec
 from . import skipdoctest
@@ -88,7 +87,7 @@ def parse_test_output(txt):
     txt : str
       Text output of a test run, assumed to contain a line of one of the
       following forms::
-      
+
         'FAILED (errors=1)'
         'FAILED (failures=1)'
         'FAILED (errors=1, failures=1)'
@@ -187,7 +186,7 @@ def ipexec(fname, options=None, commands=()):
 
     Returns
     -------
-    (stdout, stderr) of ipython subprocess.
+    ``(stdout, stderr)`` of ipython subprocess.
     """
     if options is None: options = []
 
@@ -210,8 +209,8 @@ def ipexec(fname, options=None, commands=()):
         if not isinstance(v, str):
             print(k, v)
     p = Popen(full_cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE, env=env)
-    out, err = p.communicate(input=py3compat.str_to_bytes('\n'.join(commands)) or None)
-    out, err = py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
+    out, err = p.communicate(input=py3compat.encode('\n'.join(commands)) or None)
+    out, err = py3compat.decode(out), py3compat.decode(err)
     # `import readline` causes 'ESC[?1034h' to be output sometimes,
     # so strip that out before doing comparisons
     if out:
@@ -251,7 +250,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
     out, err = ipexec(fname, options, commands)
     #print 'OUT', out  # dbg
     #print 'ERR', err  # dbg
-    # If there are any errors, we must check those befor stdout, as they may be
+    # If there are any errors, we must check those before stdout, as they may be
     # more informative than simply having an empty stdout.
     if err:
         if expected_err:
@@ -271,20 +270,25 @@ class TempFileMixin(object):
     def mktmp(self, src, ext='.py'):
         """Make a valid python temp file."""
         fname, f = temp_pyfile(src, ext)
-        self.tmpfile = f
+        if not hasattr(self, 'tmps'):
+            self.tmps=[]
+        self.tmps.append((f, fname))
         self.fname = fname
 
     def tearDown(self):
-        if hasattr(self, 'tmpfile'):
-            # If the tmpfile wasn't made because of skipped tests, like in
-            # win32, there's nothing to cleanup.
-            self.tmpfile.close()
-            try:
-                os.unlink(self.fname)
-            except:
-                # On Windows, even though we close the file, we still can't
-                # delete it.  I have no clue why
-                pass
+        # If the tmpfile wasn't made because of skipped tests, like in
+        # win32, there's nothing to cleanup.
+        if hasattr(self, 'tmps'):
+            for f,fname in self.tmps:
+                # If the tmpfile wasn't made because of skipped tests, like in
+                # win32, there's nothing to cleanup.
+                f.close()
+                try:
+                    os.unlink(fname)
+                except:
+                    # On Windows, even though we close the file, we still can't
+                    # delete it.  I have no clue why
+                    pass
 
     def __enter__(self):
         return self
@@ -334,13 +338,13 @@ notprinted_msg = """Did not find {0!r} in printed output (on {1}):
 
 class AssertPrints(object):
     """Context manager for testing that code prints certain text.
-    
+
     Examples
     --------
     >>> with AssertPrints("abc", suppress=False):
     ...     print("abcd")
     ...     print("def")
-    ... 
+    ...
     abcd
     def
     """
@@ -350,13 +354,13 @@ class AssertPrints(object):
             self.s = [self.s]
         self.channel = channel
         self.suppress = suppress
-    
+
     def __enter__(self):
         self.orig_stream = getattr(sys, self.channel)
         self.buffer = MyStringIO()
         self.tee = Tee(self.buffer, channel=self.channel)
         setattr(sys, self.channel, self.buffer if self.suppress else self.tee)
-    
+
     def __exit__(self, etype, value, traceback):
         try:
             if value is not None:
@@ -382,7 +386,7 @@ printed_msg = """Found {0!r} in printed output (on {1}):
 
 class AssertNotPrints(AssertPrints):
     """Context manager for checking that certain output *isn't* produced.
-    
+
     Counterpart of AssertPrints"""
     def __exit__(self, etype, value, traceback):
         try:

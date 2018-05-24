@@ -55,7 +55,7 @@ def code_name(code, number=0):
     
     This now expects code to be unicode.
     """
-    hash_digest = hashlib.md5(code.encode("utf-8")).hexdigest()
+    hash_digest = hashlib.sha1(code.encode("utf-8")).hexdigest()
     # Include the number and 12 characters of the hash in the name.  It's
     # pretty much impossible that in a single session we'll have collisions
     # even with truncated hashes, and the full one makes tracebacks too long
@@ -90,13 +90,31 @@ class CachingCompiler(codeop.Compile):
         # stdlib that call it outside our control go through our codepath
         # (otherwise we'd lose our tracebacks).
         linecache.checkcache = check_linecache_ipython
+
+
+    def _fix_module_ds(self, module):
+        """
+        Starting in python 3.7 the AST for mule have changed, and if
+        the first expressions encountered is a string it is attached to the 
+        `docstring` attribute of the `Module` ast node.
+
+        This breaks IPython, as if this string is the only expression, IPython
+        will not return it as the result of the current cell.
+        """
+        from ast import Str, Expr, Module, fix_missing_locations
+        docstring = getattr(module, 'docstring', None)
+        if not docstring:
+            return module
+        new_body=[Expr(Str(docstring, lineno=1, col_offset=0), lineno=1, col_offset=0)]
+        new_body.extend(module.body)
+        return fix_missing_locations(Module(new_body))
         
     def ast_parse(self, source, filename='<unknown>', symbol='exec'):
         """Parse code to an AST with the current compiler flags active.
         
         Arguments are exactly the same as ast.parse (in the standard library),
         and are passed to the built-in compile function."""
-        return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
+        return self._fix_module_ds(compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1))
     
     def reset_compiler_flags(self):
         """Reset compiler flags to default state."""
@@ -136,7 +154,7 @@ class CachingCompiler(codeop.Compile):
 def check_linecache_ipython(*args):
     """Call linecache.checkcache() safely protecting our cached values.
     """
-    # First call the orignal checkcache as intended
+    # First call the original checkcache as intended
     linecache._checkcache_ori(*args)
     # Then, update back the cache with our data, so that tracebacks related
     # to our compiled codes can be produced.

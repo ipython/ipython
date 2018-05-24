@@ -19,7 +19,11 @@ from IPython.terminal.ipapp import load_default_config
 from traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
-class KillEmbeded(Exception):pass
+class KillEmbedded(Exception):pass
+
+# kept for backward compatibility as IPython 6 was released with
+# the typo. See https://github.com/ipython/ipython/pull/10706
+KillEmbeded = KillEmbedded
 
 # This is an additional magic that is exposed in embedded shells.
 @magics_class
@@ -94,7 +98,7 @@ class EmbeddedMagics(Magics):
         """%exit_raise Make the current embedded kernel exit and raise and exception.
 
         This function sets an internal flag so that an embedded IPython will
-        raise a `IPython.terminal.embed.KillEmbeded` Exception on exit, and then exit the current I. This is
+        raise a `IPython.terminal.embed.KillEmbedded` Exception on exit, and then exit the current I. This is
         useful to permanently exit a loop that create IPython embed instance.
         """
 
@@ -230,7 +234,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             print(self.exit_msg)
 
         if self.should_raise:
-            raise KillEmbeded('Embedded IPython raising error, as user requested.')
+            raise KillEmbedded('Embedded IPython raising error, as user requested.')
 
 
     def mainloop(self, local_ns=None, module=None, stack_depth=0,

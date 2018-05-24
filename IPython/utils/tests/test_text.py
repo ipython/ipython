@@ -18,11 +18,7 @@ import random
 import sys
 
 import nose.tools as nt
-try:
-    from pathlib import Path
-except ImportError:
-    # for Python 3.3
-    from pathlib2 import Path
+from pathlib import Path
 
 from IPython.utils import text
 
@@ -64,7 +60,7 @@ def test_columnize():
 
 
 def test_columnize_random():
-    """Test with random input to hopfully catch edge case """
+    """Test with random input to hopefully catch edge case """
     for row_first in [True, False]:
         for nitems in [random.randint(2,70) for i in range(2,20)]:
             displaywidth = random.randint(20,200)
@@ -137,13 +133,9 @@ def eval_formatter_no_slicing_check(f):
     
     s = f.format('{stuff[slice(1,4)]}', **ns)
     nt.assert_equal(s, 'ell')
-    
-    if sys.version_info >= (3, 4):
-        # String formatting has changed in Python 3.4, so this now works.
-        s = f.format("{a[:]}", a=[1, 2])
-        nt.assert_equal(s, "[1, 2]")
-    else:
-        nt.assert_raises(SyntaxError, f.format, "{a[:]}")
+
+    s = f.format("{a[:]}", a=[1, 2])
+    nt.assert_equal(s, "[1, 2]")
 
 def test_eval_formatter():
     f = text.EvalFormatter()

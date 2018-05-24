@@ -46,29 +46,26 @@ Authors
 #-----------------------------------------------------------------------------
 
 from IPython.testing.ipunittest import ipdoctest, ipdocstring
-from IPython.utils.py3compat import doctest_refactor_print
 
 #-----------------------------------------------------------------------------
 # Test classes and functions
 #-----------------------------------------------------------------------------
 @ipdoctest
-@doctest_refactor_print
 def simple_dt():
     """
-    >>> print 1+1
+    >>> print(1+1)
     2
     """
 
 
 @ipdoctest
-@doctest_refactor_print
 def ipdt_flush():
     """
-In [20]: print 1
+In [20]: print(1)
 1
 
 In [26]: for i in range(4):
-   ....:     print i
+   ....:     print(i)
    ....:     
    ....: 
 0
@@ -82,14 +79,13 @@ Out[27]: 7
 
 
 @ipdoctest
-@doctest_refactor_print
 def ipdt_indented_test():
     """
-    In [20]: print 1
+    In [20]: print(1)
     1
 
     In [26]: for i in range(4):
-       ....:     print i
+       ....:     print(i)
        ....:     
        ....: 
     0
@@ -110,14 +106,13 @@ class Foo(object):
     """
 
     @ipdocstring
-    @doctest_refactor_print
     def ipdt_method(self):
         """
-        In [20]: print 1
+        In [20]: print(1)
         1
 
         In [26]: for i in range(4):
-           ....:     print i
+           ....:     print(i)
            ....:     
            ....: 
         0
@@ -129,9 +124,8 @@ class Foo(object):
         Out[27]: 7
         """
 
-    @doctest_refactor_print
     def normaldt_method(self):
         """
-        >>> print 1+1
+        >>> print(1+1)
         2
         """

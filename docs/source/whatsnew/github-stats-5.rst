@@ -3,6 +3,78 @@
 Issues closed in the 5.x development cycle
 ==========================================
 
+Issues closed in 5.6
+--------------------
+
+GitHub stats for 2017/09/15 - 2018/04/02 (tag: 5.5.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 2 issues and merged 28 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A5.6>`__
+
+The following 10 authors contributed 47 commits.
+
+* Benjamin Ragan-Kelley
+* Henry Fredrick Schreiner
+* Joris Van den Bossche
+* Matthias Bussonnier
+* Mradul Dubey
+* Roshan Rao
+* Samuel Lelièvre
+* Teddy Rendahl
+* Thomas A Caswell
+* Thomas Kluyver
+
+Issues closed in 5.4
+--------------------
+
+GitHub stats for 2017/02/24 - 2017/05/30 (tag: 5.3.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 8 issues and merged 43 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A5.4+>`__
+
+The following 11 authors contributed 64 commits.
+
+* Benjamin Ragan-Kelley
+* Carol Willing
+* Kyle Kelley
+* Leo Singer
+* Luke Pfister
+* Lumir Balhar
+* Matthias Bussonnier
+* meeseeksdev[bot]
+* memeplex
+* Thomas Kluyver
+* Ximin Luo
+
+Issues closed in 5.3
+--------------------
+
+GitHub stats for 2017/02/24 - 2017/05/30 (tag: 5.3.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 6 issues and merged 28 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A5.3+>`__
+
+The following 11 authors contributed 53 commits.
+
+* Benjamin Ragan-Kelley
+* Carol Willing
+* Justin Jent
+* Kyle Kelley
+* Lumir Balhar
+* Matthias Bussonnier
+* meeseeksdev[bot]
+* Segev Finer
+* Steven Maude
+* Thomas A Caswell
+* Thomas Kluyver
+
+
 Issues closed in 5.2
 --------------------
 

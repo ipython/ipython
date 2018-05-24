@@ -2,6 +2,7 @@
 """Tests for IPython.core.ultratb
 """
 import io
+import logging
 import sys
 import os.path
 from textwrap import dedent
@@ -166,6 +167,33 @@ class SyntaxErrorTest(unittest.TestCase):
         with tt.AssertNotPrints("TypeError"):
             with tt.AssertPrints("line unknown"):
                 ip.run_cell("raise SyntaxError()")
+
+    def test_syntaxerror_no_stacktrace_at_compile_time(self):
+        syntax_error_at_compile_time = """
+def foo():
+    ..
+"""
+        with tt.AssertPrints("SyntaxError"):
+            ip.run_cell(syntax_error_at_compile_time)
+
+        with tt.AssertNotPrints("foo()"):
+            ip.run_cell(syntax_error_at_compile_time)
+
+    def test_syntaxerror_stacktrace_when_running_compiled_code(self):
+        syntax_error_at_runtime = """
+def foo():
+    eval("..")
+
+def bar():
+    foo()
+
+bar()
+"""
+        with tt.AssertPrints("SyntaxError"):
+            ip.run_cell(syntax_error_at_runtime)
+        # Assert syntax error during runtime generate stacktrace
+        with tt.AssertPrints(["foo()", "bar()"]):
+            ip.run_cell(syntax_error_at_runtime)
 
     def test_changing_py_file(self):
         with TemporaryDirectory() as td:
@@ -345,3 +373,28 @@ def test_handlers():
         handler(*sys.exc_info())
     buff.write('')
 
+
+class TokenizeFailureTest(unittest.TestCase):
+    """Tests related to https://github.com/ipython/ipython/issues/6864."""
+
+    def testLogging(self):
+        message = "An unexpected error occurred while tokenizing input"
+        cell = 'raise ValueError("""a\nb""")'
+
+        stream = io.StringIO()
+        handler = logging.StreamHandler(stream)
+        logger = logging.getLogger()
+        loglevel = logger.level
+        logger.addHandler(handler)
+        self.addCleanup(lambda: logger.removeHandler(handler))
+        self.addCleanup(lambda: logger.setLevel(loglevel))
+
+        logger.setLevel(logging.INFO)
+        with tt.AssertNotPrints(message):
+            ip.run_cell(cell)
+        self.assertNotIn(message, stream.getvalue())
+
+        logger.setLevel(logging.DEBUG)
+        with tt.AssertNotPrints(message):
+            ip.run_cell(cell)
+        self.assertIn(message, stream.getvalue())

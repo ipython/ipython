@@ -293,7 +293,7 @@ Backwards incompatible changes
   deprecated, but continue to work.
 
 * For embedding a shell, note that the parameters ``user_global_ns`` and
-  ``global_ns`` have been deprectated in favour of ``user_module`` and
+  ``global_ns`` have been deprecated in favour of ``user_module`` and
   ``module`` respsectively.  The new parameters expect a module-like object,
   rather than a namespace dict.  The old parameters remain for backwards
   compatibility, although ``user_global_ns`` is now ignored. The ``user_ns``

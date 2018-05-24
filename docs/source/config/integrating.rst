@@ -19,6 +19,8 @@ returns a list of objects which are possible keys in a subscript expression
 .. versionadded:: 5.0
    Custom key completions
 
+.. _integrating_rich_display:
+
 Rich display
 ============
 
@@ -28,8 +30,8 @@ these are surrounded by single, not double underscores.
 
 Both the notebook and the Qt console can display ``svg``, ``png`` and ``jpeg``
 representations. The notebook can also display ``html``, ``javascript``,
-and ``latex``. If the methods don't exist, or return ``None``, it falls
-back to a standard ``repr()``.
+``markdown`` and ``latex``. If the methods don't exist, or return ``None``, it
+falls back to a standard ``repr()``.
 
 For example::
 
@@ -39,6 +41,45 @@ For example::
         
         def _repr_html_(self):
             return "<h1>" + self.text + "</h1>"
+
+We often want to provide frontends with guidance on how to display the data. To
+support this, ``_repr_*_()`` methods can also return a ``(data, metadata)``
+tuple where ``metadata`` is a dictionary containing arbitrary key-value pairs for
+the frontend to interpret. An example use case is ``_repr_jpeg_()``, which can
+be set to return a jpeg image and a ``{'height': 400, 'width': 600}`` dictionary
+to inform the frontend how to size the image.
+
+There are also two more powerful display methods:
+
+.. class:: MyObject
+
+   .. method:: _repr_mimebundle_(include=None, exclude=None)
+
+     Should return a dictionary of multiple formats, keyed by mimetype, or a tuple
+     of two dictionaries: *data, metadata*. If this returns something, other
+     ``_repr_*_`` methods are ignored. The method should take keyword arguments
+     ``include`` and ``exclude``, though it is not required to respect them.
+
+   .. method:: _ipython_display_()
+
+      Displays the object as a side effect; the return value is ignored. If this
+      is defined, all other display methods are ignored.
+
+Formatters for third-party types
+--------------------------------
+
+The user can also register formatters for types without modifying the class::
+
+    from bar import Foo
+
+    def foo_html(obj):
+        return '<marquee>Foo object %s</marquee>' % obj.name
+
+    html_formatter = get_ipython().display_formatter.formatters['text/html']
+    html_formatter.for_type(Foo, foo_html)
+
+    # Or register a type without importing it - this does the same as above:
+    html_formatter.for_type_by_name('bar.Foo', foo_html)
 
 Custom exception tracebacks
 ===========================

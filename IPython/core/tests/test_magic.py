@@ -6,6 +6,7 @@ Needs to be run by nose (to make ipython session available).
 
 import io
 import os
+import re
 import sys
 import warnings
 from unittest import TestCase
@@ -14,16 +15,17 @@ from io import StringIO
 
 import nose.tools as nt
 
+import shlex
+
 from IPython import get_ipython
 from IPython.core import magic
 from IPython.core.error import UsageError
 from IPython.core.magic import (Magics, magics_class, line_magic,
                                 cell_magic,
                                 register_line_magic, register_cell_magic)
-from IPython.core.magics import execution, script, code
+from IPython.core.magics import execution, script, code, logging
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils import py3compat
 from IPython.utils.io import capture_output
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.process import find_cmd
@@ -71,14 +73,64 @@ def test_extract_symbols_raises_exception_with_non_python_code():
     with nt.assert_raises(SyntaxError):
         code.extract_symbols(source, "hello")
 
+
+def test_magic_not_found():
+    # magic not found raises UsageError
+    with nt.assert_raises(UsageError):
+        _ip.magic('doesntexist')
+
+    # ensure result isn't success when a magic isn't found
+    result = _ip.run_cell('%doesntexist')
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+def test_cell_magic_not_found():
+    # magic not found raises UsageError
+    with nt.assert_raises(UsageError):
+        _ip.run_cell_magic('doesntexist', 'line', 'cell')
+
+    # ensure result isn't success when a magic isn't found
+    result = _ip.run_cell('%%doesntexist')
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+def test_magic_error_status():
+    def fail(shell):
+        1/0
+    _ip.register_magic_function(fail)
+    result = _ip.run_cell('%fail')
+    assert isinstance(result.error_in_exec, ZeroDivisionError)
+
+
 def test_config():
     """ test that config magic does not raise
     can happen if Configurable init is moved too early into
-    Magics.__init__ as then a Config object will be registerd as a
+    Magics.__init__ as then a Config object will be registered as a
     magic.
     """
     ## should not raise.
     _ip.magic('config')
+
+def test_config_available_configs():
+    """ test that config magic prints available configs in unique and
+    sorted order. """
+    with capture_output() as captured:
+        _ip.magic('config')
+
+    stdout = captured.stdout
+    config_classes = stdout.strip().split('\n')[1:]
+    nt.assert_list_equal(config_classes, sorted(set(config_classes)))
+
+def test_config_print_class():
+    """ test that config with a classname prints the class's options. """
+    with capture_output() as captured:
+        _ip.magic('config TerminalInteractiveShell')
+
+    stdout = captured.stdout
+    if not re.match("TerminalInteractiveShell.* options", stdout.splitlines()[0]):
+        print(stdout)
+        raise AssertionError("1st line of stdout not like "
+                             "'TerminalInteractiveShell.* options'")
 
 def test_rehashx():
     # clear up everything
@@ -251,12 +303,10 @@ def test_macro_run():
     """Test that we can run a multi-line macro successfully."""
     ip = get_ipython()
     ip.history_manager.reset()
-    cmds = ["a=10", "a+=1", py3compat.doctest_refactor_print("print a"),
-                                                            "%macro test 2-3"]
+    cmds = ["a=10", "a+=1", "print(a)", "%macro test 2-3"]
     for cmd in cmds:
         ip.run_cell(cmd, store_history=True)
-    nt.assert_equal(ip.user_ns["test"].value,
-                            py3compat.doctest_refactor_print("a+=1\nprint a\n"))
+    nt.assert_equal(ip.user_ns["test"].value, "a+=1\nprint(a)\n")
     with tt.AssertPrints("12"):
         ip.run_cell("test")
     with tt.AssertPrints("13"):
@@ -479,23 +529,22 @@ def test_whos():
     _ip.user_ns['a'] = A()
     _ip.magic("whos")
 
-@py3compat.u_format
 def doctest_precision():
     """doctest for %precision
     
     In [1]: f = get_ipython().display_formatter.formatters['text/plain']
     
     In [2]: %precision 5
-    Out[2]: {u}'%.5f'
+    Out[2]: '%.5f'
     
     In [3]: f.float_format
-    Out[3]: {u}'%.5f'
+    Out[3]: '%.5f'
     
     In [4]: %precision %e
-    Out[4]: {u}'%e'
+    Out[4]: '%e'
     
     In [5]: f(3.1415927)
-    Out[5]: {u}'3.141593e+00'
+    Out[5]: '3.141593e+00'
     """
 
 def test_psearch():
@@ -515,7 +564,13 @@ def test_timeit_shlex():
 
 def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
-    _ip.magic("timeit ('#')")
+    if sys.version_info < (3,7):
+        _ip.magic("timeit ('#')")
+    else:
+        # 3.7 optimize no-op statement like above out, and complain there is
+        # nothing in the for loop.
+        _ip.magic("timeit a=('#')")
+
 
 
 def test_timeit_special_syntax():
@@ -534,7 +589,7 @@ def test_timeit_special_syntax():
 
 def test_timeit_return():
     """
-    test wether timeit -o return object
+    test whether timeit -o return object
     """
 
     res = _ip.run_line_magic('timeit','-n10 -r10 -o 1')
@@ -551,6 +606,10 @@ def test_timeit_return_quiet():
     with tt.AssertNotPrints("loops"):
         res = _ip.run_line_magic('timeit', '-n1 -r1 -q -o 1')
     assert (res is not None)
+
+def test_timeit_invalid_return():
+    with nt.assert_raises_regex(SyntaxError, "outside function"):
+        _ip.run_line_magic('timeit', 'return')
 
 @dec.skipif(execution.profile is None)
 def test_prun_special_syntax():
@@ -867,6 +926,11 @@ def test_alias_magic():
     nt.assert_equal(ip.run_line_magic('env', ''),
                     ip.run_line_magic('env_alias', ''))
 
+    # Test that line alias with parameters passed in is created successfully.
+    ip.run_line_magic('alias_magic', '--line history_alias history --params ' + shlex.quote('3'))
+    nt.assert_in('history_alias', mm.magics['line'])
+
+
 def test_save():
     """Test %save."""
     ip = get_ipython()
@@ -977,3 +1041,35 @@ def test_strip_initial_indent():
     nt.assert_equal(sii("  a = 1\nb = 2"), "a = 1\nb = 2")
     nt.assert_equal(sii("  a\n    b\nc"), "a\n  b\nc")
     nt.assert_equal(sii("a\n  b"), "a\n  b")
+
+def test_logging_magic_quiet_from_arg():
+    _ip.config.LoggingMagics.quiet = False
+    lm = logging.LoggingMagics(shell=_ip)
+    with TemporaryDirectory() as td:
+        try:
+            with tt.AssertNotPrints(re.compile("Activating.*")):
+                lm.logstart('-q {}'.format(
+                        os.path.join(td, "quiet_from_arg.log")))
+        finally:
+            _ip.logger.logstop()
+
+def test_logging_magic_quiet_from_config():
+    _ip.config.LoggingMagics.quiet = True
+    lm = logging.LoggingMagics(shell=_ip)
+    with TemporaryDirectory() as td:
+        try:
+            with tt.AssertNotPrints(re.compile("Activating.*")):
+                lm.logstart(os.path.join(td, "quiet_from_config.log"))
+        finally:
+            _ip.logger.logstop()
+    
+def test_logging_magic_not_quiet():
+    _ip.config.LoggingMagics.quiet = False
+    lm = logging.LoggingMagics(shell=_ip)
+    with TemporaryDirectory() as td:
+        try:
+            with tt.AssertPrints(re.compile("Activating.*")):
+                lm.logstart(os.path.join(td, "not_quiet.log"))
+        finally:
+            _ip.logger.logstop()
+    

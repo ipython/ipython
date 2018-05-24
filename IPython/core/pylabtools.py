@@ -8,7 +8,6 @@ from io import BytesIO
 
 from IPython.core.display import _pngxy
 from IPython.utils.decorators import flag_calls
-from IPython.utils import py3compat
 
 # If user specifies a GUI, that dictates the backend, otherwise we read the
 # user's mpl default from the mpl rc structure
@@ -16,16 +15,20 @@ backends = {'tk': 'TkAgg',
             'gtk': 'GTKAgg',
             'gtk3': 'GTK3Agg',
             'wx': 'WXAgg',
-            'qt': 'Qt4Agg', # qt3 not supported
             'qt4': 'Qt4Agg',
             'qt5': 'Qt5Agg',
+            'qt': 'Qt5Agg',
             'osx': 'MacOSX',
             'nbagg': 'nbAgg',
             'notebook': 'nbAgg',
             'agg': 'agg',
+            'svg': 'svg',
+            'pdf': 'pdf',
+            'ps': 'ps',
             'inline': 'module://ipykernel.pylab.backend_inline',
             'ipympl': 'module://ipympl.backend_nbagg',
-}
+            'widget': 'module://ipympl.backend_nbagg',
+            }
 
 # We also need a reverse backends2guis mapping that will properly choose which
 # GUI support to activate based on the desired matplotlib backend.  For the
@@ -43,6 +46,9 @@ backend2gui['CocoaAgg'] = 'osx'
 # And some backends that don't need GUI integration
 del backend2gui['nbAgg']
 del backend2gui['agg']
+del backend2gui['svg']
+del backend2gui['pdf']
+del backend2gui['ps']
 del backend2gui['module://ipykernel.pylab.backend_inline']
 
 #-----------------------------------------------------------------------------
@@ -97,7 +103,6 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     Any keyword args are passed to fig.canvas.print_figure,
     such as ``quality`` or ``bbox_inches``.
     """
-    from matplotlib import rcParams
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
     if not fig.axes and not fig.lines:
