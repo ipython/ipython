@@ -2995,10 +2995,9 @@ class InteractiveShell(SingletonConfigurable):
             loop_runner = self.loop_runner
 
         if isinstance(loop_runner, str):
-            loop_runner = self.loop_runner_map.get(loop_runner, import_item(loop_runner))
+            loop_runner = self.loop_runner_map[loop_runner]
         coro = eval(code_obj, user_ns)
         return loop_runner(coro)
-
 
     def run_code(self, code_obj, result=None, *, async_=False):
         """Execute a code object.
