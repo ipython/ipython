@@ -13,6 +13,7 @@
 
 import abc
 import ast
+import asyncio
 import atexit
 import builtins as builtin_mod
 import functools
@@ -2704,6 +2705,40 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
         """
+        return self.loop_runner(
+            self.run_cell_async(
+                raw_cell,
+                store_history=store_history,
+                silent=silent,
+                shell_futures=shell_futures,
+            )
+        )
+
+    @asyncio.coroutine
+    def run_cell_async(self, raw_cell, store_history=False, silent=False, shell_futures=True):
+        """Run a complete IPython cell asynchronously.
+
+        Parameters
+        ----------
+        raw_cell : str
+          The code (including IPython code such as %magic functions) to run.
+        store_history : bool
+          If True, the raw and translated cell will be stored in IPython's
+          history. For user code calling back into IPython's machinery, this
+          should be set to False.
+        silent : bool
+          If True, avoid side-effects, such as implicit displayhooks and
+          and logging.  silent=True forces store_history=False.
+        shell_futures : bool
+          If True, the code will share future statements with the interactive
+          shell. It will both be affected by previous __future__ imports, and
+          any __future__ imports in the code will affect the shell. If False,
+          __future__ imports are not shared in either direction.
+
+        Returns
+        -------
+        result : :class:`ExecutionResult`
+        """
         result = ExecutionResult()
 
         if (not raw_cell) or raw_cell.isspace():
@@ -2827,7 +2862,7 @@ class InteractiveShell(SingletonConfigurable):
                 interactivity = "none" if silent else self.ast_node_interactivity
                 if _run_async:
                     interactivity = 'async'
-                has_raised = self.run_ast_nodes(code_ast.body, cell_name,
+                has_raised = yield from self.run_ast_nodes(code_ast.body, cell_name,
                        interactivity=interactivity, compiler=compiler, result=result)
                 
                 self.last_execution_succeeded = not has_raised
@@ -2875,14 +2910,14 @@ class InteractiveShell(SingletonConfigurable):
             except Exception:
                 warn("AST transformer %r threw an error. It will be unregistered." % transformer)
                 self.ast_transformers.remove(transformer)
-        
+
         if self.ast_transformers:
             ast.fix_missing_locations(node)
         return node
-                
 
+    @asyncio.coroutine
     def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr',
-                        compiler=compile, result=None):
+                      compiler=compile, result=None):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
 
@@ -2944,19 +2979,19 @@ class InteractiveShell(SingletonConfigurable):
                 async_wrapper_code = compiler(mod, 'cell_name', 'exec')
                 exec(async_wrapper_code, self.user_global_ns, self.user_ns)
                 async_code = removed_co_newlocals(self.user_ns.pop('async-def-wrapper')).__code__
-                if self.run_code(async_code, result, async_=True):
+                if (yield from self.run_code(async_code, result, async_=True)):
                     return True
             else:
                 for i, node in enumerate(to_run_exec):
                     mod = ast.Module([node])
                     code = compiler(mod, cell_name, "exec")
-                    if self.run_code(code, result):
+                    if (yield from self.run_code(code, result)):
                         return True
 
                 for i, node in enumerate(to_run_interactive):
                     mod = ast.Interactive([node])
                     code = compiler(mod, cell_name, "single")
-                    if self.run_code(code, result):
+                    if (yield from self.run_code(code, result)):
                         return True
 
             # Flush softspace
@@ -2980,25 +3015,22 @@ class InteractiveShell(SingletonConfigurable):
 
         return False
 
-    def _async_exec(self, code_obj:types.CodeType, user_ns:dict, *, loop_runner=None):
+    def _async_exec(self, code_obj: types.CodeType, user_ns: dict):
         """
         Evaluate an asynchronous code object using a code runner
 
         Fake asynchronous execution of code_object in a namespace via a proxy namespace.
+
+        Returns coroutine object, which can be executed via async loop runner
 
         WARNING: The semantics of `async_exec` are quite different from `exec`,
         in particular you can only pass a single namespace. It also return a
         handle to the value of the last things returned by code_object.
         """
 
-        if not loop_runner:
-            loop_runner = self.loop_runner
+        return eval(code_obj, user_ns)
 
-        if isinstance(loop_runner, str):
-            loop_runner = self.loop_runner_map[loop_runner]
-        coro = eval(code_obj, user_ns)
-        return loop_runner(coro)
-
+    @asyncio.coroutine
     def run_code(self, code_obj, result=None, *, async_=False):
         """Execute a code object.
 
@@ -3031,7 +3063,7 @@ class InteractiveShell(SingletonConfigurable):
             try:
                 self.hooks.pre_run_code_hook()
                 if async_:
-                    last_expr = self._async_exec(code_obj, self.user_ns)
+                    last_expr = (yield from self._async_exec(code_obj, self.user_ns))
                     code = compile('last_expr', 'fake', "single")
                     exec(code, {'last_expr': last_expr})
                 else:
