@@ -162,7 +162,7 @@ def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
     wrapper_name: str
         The name of the function to be used to wrap the passed `cell`. It is
         advised to **not** use a python identifier in order to not pollute the
-        global namespace in which the function will be ran. 
+        global namespace in which the function will be ran.
 
     Return
     ------
@@ -181,7 +181,7 @@ def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
     ``removed_co_newlocals``) in a subsequent step to not create new `locals()`
     meaning that the local and global scope are the same, ie as if the body of
     the function was at module level.
-    
+
     Lastly a call to `locals()` is made just before the last expression of the
     function, or just after the last assignment or statement to make sure the
     global dict is updated as python function work with a local fast cache which
@@ -193,10 +193,10 @@ def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
 
     function_def = tree.body[0]
     function_def.name = wrapper_name
-    lastexpr = function_def.body[-3]
+    try_block = function_def.body[0]
+    lastexpr = try_block.body[-1]
     if isinstance(lastexpr, (Expr, Await)):
-        del function_def.body[-3]
-        function_def.body[-1] = Return(lastexpr.value)
+        try_block.body[-1] = Return(lastexpr.value)
     ast.fix_missing_locations(tree)
     return tree
 #-----------------------------------------------------------------------------

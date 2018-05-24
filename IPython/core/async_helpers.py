@@ -60,7 +60,7 @@ def _asyncify(code: str) -> str:
                 {usercode}
             finally:
                 locals()
-    """).format(usercode=indent(code, ' ' * 4)[4:])
+    """).format(usercode=indent(code, ' ' * 8)[8:])
     return res
 
 
