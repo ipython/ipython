@@ -74,7 +74,7 @@ from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
 from IPython.utils.tempdir import TemporaryDirectory
 from traitlets import (
     Integer, Bool, CaselessStrEnum, Enum, List, Dict, Unicode, Instance, Type,
-    observe, default, Any
+    observe, default, validate, Any
 )
 from warnings import warn
 from logging import error
@@ -333,6 +333,16 @@ class InteractiveShell(SingletonConfigurable):
         allow_none=True,
         help="""Select the loop runner that will be used to execute top-level asynchronous code"""
     ).tag(config=True)
+
+    @default('loop_runner')
+    def _default_loop_runner(self):
+        return import_item("IPython.core.interactiveshell._asyncio_runner")
+
+    @validate('loop_runner')
+    def _import_runner(self, proposal):
+        if isinstance(proposal.value, str):
+            return import_item(proposal.value)
+        return proposal.value
 
     automagic = Bool(True, help=
         """
