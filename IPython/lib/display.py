@@ -54,6 +54,9 @@ class Audio(DisplayObject):
     autoplay : bool
         Set to True if the audio should immediately start playing.
         Default is `False`.
+    norm : bool
+        Normalize (rescale) audio to maximum possible range.
+        Default is `True`.
 
     Examples
     --------
@@ -83,7 +86,7 @@ class Audio(DisplayObject):
     """
     _read_flags = 'rb'
 
-    def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False):
+    def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False, norm=True):
         if filename is None and url is None and data is None:
             raise ValueError("No image data found. Expecting filename, url, or data.")
         if embed is False and url is None:
@@ -97,7 +100,7 @@ class Audio(DisplayObject):
         super(Audio, self).__init__(data=data, url=url, filename=filename)
 
         if self.data is not None and not isinstance(self.data, bytes):
-            self.data = self._make_wav(data,rate)
+            self.data = self._make_wav(data,rate,norm)
 
     def reload(self):
         """Reload the raw data from file or URL."""
@@ -112,7 +115,7 @@ class Audio(DisplayObject):
         else:
             self.mimetype = "audio/wav"
 
-    def _make_wav(self, data, rate):
+    def _make_wav(self, data, rate, norm):
         """ Transform a numpy array to a PCM bytestring """
         import struct
         from io import BytesIO
@@ -133,7 +136,11 @@ class Audio(DisplayObject):
                 data = data.T.ravel()
             else:
                 raise ValueError('Array audio input must be a 1D or 2D array')
-            scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
+            if norm:
+                scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
+            else:
+                scaled = np.int16(data*32767).tolist()
+
         except ImportError:
             # check that it is a "1D" list
             idata = iter(data)  # fails if not an iterable
@@ -144,8 +151,12 @@ class Audio(DisplayObject):
             except TypeError:
                 # this means it's not a nested list, which is what we want
                 pass
-            maxabsvalue = float(max([abs(x) for x in data]))
-            scaled = [int(x/maxabsvalue*32767) for x in data]
+            if norm:
+                maxabsvalue = float(max([abs(x) for x in data]))
+                scaled = [int(x/maxabsvalue*32767) for x in data]
+            else:
+                scaled = [int(x*32767) for x in data]
+
             nchan = 1
 
         fp = BytesIO()
@@ -253,7 +264,7 @@ class YouTubeVideo(IFrame):
 
     Other parameters can be provided as documented at
     https://developers.google.com/youtube/player_parameters#Parameters
-    
+
     When converting the notebook using nbconvert, a jpeg representation of the video
     will be inserted in the document.
     """
@@ -262,7 +273,7 @@ class YouTubeVideo(IFrame):
         self.id=id
         src = "https://www.youtube.com/embed/{0}".format(id)
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
-    
+
     def _repr_jpeg_(self):
         # Deferred import
         from urllib.request import urlopen
