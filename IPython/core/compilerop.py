@@ -28,7 +28,6 @@ Authors
 
 # Stdlib imports
 import __future__
-import ast
 from ast import PyCF_ONLY_AST
 import codeop
 import functools
@@ -97,15 +96,7 @@ class CachingCompiler(codeop.Compile):
 
         Arguments are exactly the same as ast.parse (in the standard library),
         and are passed to the built-in compile function."""
-        node = compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
-        if symbol == 'exec' and len(node.body) == 0:
-            # Python 3.7: some single statements (bare strings) can be treated
-            # differently and won't result in nodes in the body.
-            # Recompile with 'single' and reconstruct a Module from the resulting
-            # Interactive node.
-            interactive = compile(source, filename, 'single', self.flags | PyCF_ONLY_AST, 1)
-            node = ast.Module(interactive.body)
-        return node
+        return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
 
     def reset_compiler_flags(self):
         """Reset compiler flags to default state."""
