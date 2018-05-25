@@ -136,7 +136,11 @@ class Audio(DisplayObject):
                 data = data.T.ravel()
             else:
                 raise ValueError('Array audio input must be a 1D or 2D array')
-            scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
+            if norm:
+                scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
+            else:
+                scaled = np.int16(data*32767).tolist()
+
         except ImportError:
             # check that it is a "1D" list
             idata = iter(data)  # fails if not an iterable
@@ -147,7 +151,7 @@ class Audio(DisplayObject):
             except TypeError:
                 # this means it's not a nested list, which is what we want
                 pass
-            if (norm):
+            if norm:
                 maxabsvalue = float(max([abs(x) for x in data]))
                 scaled = [int(x/maxabsvalue*32767) for x in data]
             else:
