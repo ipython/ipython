@@ -405,6 +405,9 @@ def show_linewise_tokens(s: str):
         for tokinfo in line:
             print(" ", tokinfo)
 
+# Arbitrary limit to prevent getting stuck in infinite loops
+TRANSFORM_LOOP_LIMIT = 500
+
 class TransformerManager:
     def __init__(self):
         self.cleanup_transforms = [
@@ -451,10 +454,13 @@ class TransformerManager:
         return True, transformer.transform(lines)
 
     def do_token_transforms(self, lines):
-        while True:
+        for _ in range(TRANSFORM_LOOP_LIMIT):
             changed, lines = self.do_one_token_transform(lines)
             if not changed:
                 return lines
+
+        raise RuntimeError("Input transformation still changing after "
+                           "%d iterations. Aborting." % TRANSFORM_LOOP_LIMIT)
 
     def transform_cell(self, cell: str):
         if not cell.endswith('\n'):
