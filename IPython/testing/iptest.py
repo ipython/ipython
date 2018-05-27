@@ -69,7 +69,7 @@ if version_info < (6,):
     warnings.filterwarnings(
         'ignore', message='.*Please use assertEqual instead', category=Warning, module='IPython.*')
 
-if version_info < (7,):
+if version_info < (8,):
     warnings.filterwarnings('ignore', message='.*Completer.complete.*',
                             category=PendingDeprecationWarning, module='.*')
 else:
