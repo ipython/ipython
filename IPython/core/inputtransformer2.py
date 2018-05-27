@@ -81,7 +81,7 @@ def cell_magic(lines):
 # -----
 
 def _find_assign_op(token_line):
-    # Find the first assignment in the line ('=' not inside brackets)
+    # Get the index of the first assignment in the line ('=' not inside brackets)
     # We don't try to support multiple special assignment (a = b = %foo)
     paren_level = 0
     for i, ti in enumerate(token_line):
@@ -91,7 +91,8 @@ def _find_assign_op(token_line):
         if s in '([{':
             paren_level += 1
         elif s in ')]}':
-            paren_level -= 1
+            if paren_level > 0:
+                paren_level -= 1
 
 def find_end_of_continued_line(lines, start_line: int):
     """Find the last line of a line explicitly extended using backslashes.
@@ -386,7 +387,8 @@ def make_tokens_by_line(lines):
             elif token.string in {'(', '[', '{'}:
                 parenlev += 1
             elif token.string in {')', ']', '}'}:
-                parenlev -= 1
+                if parenlev > 0:
+                    parenlev -= 1
     except tokenize.TokenError:
         # Input ended in a multiline string or expression. That's OK for us.
         pass
