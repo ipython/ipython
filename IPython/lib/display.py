@@ -139,7 +139,7 @@ class Audio(DisplayObject):
             if norm:
                 scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
             else:
-                scaled = np.int16(data*32767).tolist()
+                scaled = np.int16(np.clip(data,-1,1)*32767).tolist()
 
         except ImportError:
             # check that it is a "1D" list
@@ -155,7 +155,7 @@ class Audio(DisplayObject):
                 maxabsvalue = float(max([abs(x) for x in data]))
                 scaled = [int(x/maxabsvalue*32767) for x in data]
             else:
-                scaled = [int(x*32767) for x in data]
+                scaled = [int(np.clip(x,-1,1)*32767) for x in data]
 
             nchan = 1
 
