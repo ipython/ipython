@@ -6,6 +6,7 @@
 
 
 from collections import Counter, defaultdict, deque, OrderedDict
+import os
 import types
 import string
 import unittest
@@ -405,6 +406,15 @@ def test_mappingproxy():
     ]
     for obj, expected in cases:
         nt.assert_equal(pretty.pretty(obj), expected)
+
+
+def test_pretty_environ():
+    dict_repr = pretty.pretty(dict(os.environ))
+    # reindent to align with 'environ' prefix
+    dict_indented = dict_repr.replace('\n', '\n' + (' ' * len('environ')))
+    env_repr = pretty.pretty(os.environ)
+    nt.assert_equals(env_repr, 'environ' + dict_indented)
+
 
 def test_function_pretty():
     "Test pretty print of function"
