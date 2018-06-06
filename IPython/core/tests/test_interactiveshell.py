@@ -546,6 +546,10 @@ class ExitCodeChecks(tt.TempFileMixin):
             else:
                 del os.environ['SHELL']
 
+    def tearDown(self):
+        tt.TempFileMixin.tearDown(self)
+
+
 class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
     system = ip.system_raw
 
@@ -566,9 +570,15 @@ class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
                       "keyboard interrupt from subprocess.call")
         self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGINT)
 
+    def tearDown(self):
+        ExitCodeChecks.tearDown(self)
+
 # TODO: Exit codes are currently ignored on Windows.
 class TestSystemPipedExitCode(unittest.TestCase, ExitCodeChecks):
     system = ip.system_piped
+
+    def tearDown(self):
+        ExitCodeChecks.tearDown(self)
 
     @skip_win32
     def test_exit_code_ok(self):
@@ -593,6 +603,9 @@ class TestModules(unittest.TestCase, tt.TempFileMixin):
                    )
         out = "False\nFalse\nFalse\n"
         tt.ipexec_validate(self.fname, out)
+
+    def tearDown(self):
+        tt.TempFileMixin.tearDown(self)
 
 class Negator(ast.NodeTransformer):
     """Negates all number literals in an AST."""
