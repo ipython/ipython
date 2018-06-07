@@ -15,16 +15,14 @@ from traitlets import (
     Any,
 )
 
-from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import PromptSession, CompleteStyle
-from prompt_toolkit.output.defaults import create_output
-from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
+from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.shortcuts import PromptSession, CompleteStyle
 from prompt_toolkit.styles import DynamicStyle, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
 
