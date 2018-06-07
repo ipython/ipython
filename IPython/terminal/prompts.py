@@ -76,7 +76,8 @@ class RichPromptDisplayHook(DisplayHook):
                 self.prompt_end_newline = False
 
             if self.shell.pt_app:
-                print_formatted_text(
-                    PygmentsTokens(tokens), style=self.shell.pt_app.app.style)
+                print_formatted_text(PygmentsTokens(tokens),
+                    style=self.shell.pt_app.app.style, end='',
+                )
             else:
                 sys.stdout.write(prompt_txt)
