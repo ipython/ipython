@@ -89,11 +89,8 @@ _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
 class TerminalInteractiveShell(InteractiveShell):
     space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
-                                                  'to reserve for the completion menu'
+                                     'to reserve for the completion menu'
                             ).tag(config=True)
-
-#    def _space_for_menu_changed(self, old, new):
-#        self._update_layout()
 
     pt_app = None
     debugger_history = None
