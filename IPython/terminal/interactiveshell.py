@@ -22,7 +22,7 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.patch_stdout import patch_stdout
-from prompt_toolkit.shortcuts import PromptSession, CompleteStyle
+from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
 from prompt_toolkit.styles import DynamicStyle, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
 
@@ -506,7 +506,8 @@ class TerminalInteractiveShell(InteractiveShell):
 
         tokens = self.prompts.rewrite_prompt_tokens()
         if self.pt_app:
-            self.pt_app.print_tokens(tokens)  # XXX
+            print_formatted_text(PygmentsTokens(tokens), end='',
+                                 style=self.pt_app.app.style)
             print(cmd)
         else:
             prompt = ''.join(s for t, s in tokens)
