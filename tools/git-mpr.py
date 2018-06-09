@@ -58,7 +58,7 @@ def merge_pr(num):
         cmd = "git pull "+repo+" "+branch
         not_merged[str(num)] = cmd
         print("==============================================================================")
-        print("Something went wrong merging this branch, you can try it manually by runngin :")
+        print("Something went wrong merging this branch, you can try it manually by running :")
         print(cmd)
         print("==============================================================================")
         
