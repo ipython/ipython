@@ -170,7 +170,7 @@ class SeparateUnicode(Unicode):
 class DummyMod(object):
     """A dummy module used for IPython's interactive module when
     a namespace must be assigned to the module's __dict__."""
-    pass
+    __spec__ = None
 
 
 class ExecutionInfo(object):
