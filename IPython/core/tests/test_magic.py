@@ -562,17 +562,6 @@ def test_timeit_shlex():
     _ip.magic('timeit -r1 -n1 f("a " + "b ")')
 
 
-def test_timeit_arguments():
-    "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
-    if sys.version_info < (3,7):
-        _ip.magic("timeit ('#')")
-    else:
-        # 3.7 optimize no-op statement like above out, and complain there is
-        # nothing in the for loop.
-        _ip.magic("timeit a=('#')")
-
-
-
 def test_timeit_special_syntax():
     "Test %%timeit with IPython special syntax"
     @register_line_magic
@@ -839,13 +828,16 @@ def test_script_out_err():
 def test_script_bg_out():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
+
     nt.assert_equal(ip.user_ns['output'].read(), b'hi\n')
+    ip.user_ns['output'].close()
 
 @dec.skip_win32
 def test_script_bg_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --err error sh", "echo 'hello' >&2")
     nt.assert_equal(ip.user_ns['error'].read(), b'hello\n')
+    ip.user_ns['error'].close()
 
 @dec.skip_win32
 def test_script_bg_out_err():
@@ -853,6 +845,8 @@ def test_script_bg_out_err():
     ip.run_cell_magic("script", "--bg --out output --err error sh", "echo 'hi'\necho 'hello' >&2")
     nt.assert_equal(ip.user_ns['output'].read(), b'hi\n')
     nt.assert_equal(ip.user_ns['error'].read(), b'hello\n')
+    ip.user_ns['output'].close()
+    ip.user_ns['error'].close()
 
 def test_script_defaults():
     ip = get_ipython()
@@ -1072,4 +1066,15 @@ def test_logging_magic_not_quiet():
                 lm.logstart(os.path.join(td, "not_quiet.log"))
         finally:
             _ip.logger.logstop()
-    
+
+## 
+# this is slow, put at the end for local testing.
+## 
+def test_timeit_arguments():
+    "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
+    if sys.version_info < (3,7):
+        _ip.magic("timeit ('#')")
+    else:
+        # 3.7 optimize no-op statement like above out, and complain there is
+        # nothing in the for loop.
+        _ip.magic("timeit a=('#')")
