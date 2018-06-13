@@ -546,11 +546,8 @@ class ExitCodeChecks(tt.TempFileMixin):
             else:
                 del os.environ['SHELL']
 
-    def tearDown(self):
-        tt.TempFileMixin.tearDown(self)
 
-
-class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
+class TestSystemRaw(ExitCodeChecks, unittest.TestCase):
     system = ip.system_raw
 
     @onlyif_unicode_paths
@@ -570,15 +567,9 @@ class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
                       "keyboard interrupt from subprocess.call")
         self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGINT)
 
-    def tearDown(self):
-        ExitCodeChecks.tearDown(self)
-
 # TODO: Exit codes are currently ignored on Windows.
-class TestSystemPipedExitCode(unittest.TestCase, ExitCodeChecks):
+class TestSystemPipedExitCode(ExitCodeChecks, unittest.TestCase):
     system = ip.system_piped
-
-    def tearDown(self):
-        ExitCodeChecks.tearDown(self)
 
     @skip_win32
     def test_exit_code_ok(self):
@@ -592,7 +583,7 @@ class TestSystemPipedExitCode(unittest.TestCase, ExitCodeChecks):
     def test_exit_code_signal(self):
         ExitCodeChecks.test_exit_code_signal(self)
 
-class TestModules(unittest.TestCase, tt.TempFileMixin):
+class TestModules(tt.TempFileMixin, unittest.TestCase):
     def test_extraneous_loads(self):
         """Test we're not loading modules on startup that we shouldn't.
         """
@@ -603,9 +594,6 @@ class TestModules(unittest.TestCase, tt.TempFileMixin):
                    )
         out = "False\nFalse\nFalse\n"
         tt.ipexec_validate(self.fname, out)
-
-    def tearDown(self):
-        tt.TempFileMixin.tearDown(self)
 
 class Negator(ast.NodeTransformer):
     """Negates all number literals in an AST."""
