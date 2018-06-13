@@ -1,7 +1,6 @@
 from os.path import abspath, dirname, join
 
-from IPython.terminal.interactiveshell import KeyBindingManager
-
+from IPython.terminal.shortcuts import create_ipython_shortcuts
 
 def name(c):
     s = c.__class__.__name__
@@ -42,8 +41,14 @@ def multi_filter_str(flt):
 log_filters = {'_AndList': 'And', '_OrList': 'Or'}
 log_invert =  {'_Invert'}
 
-kbm = KeyBindingManager.for_prompt()
-ipy_bindings = kbm.registry.key_bindings
+class _DummyTerminal(object):
+    """Used as a buffer to get prompt_toolkit bindings
+    """
+    handle_return = None
+    input_splitter = None
+    display_completions = None
+
+ipy_bindings = create_ipython_shortcuts(_DummyTerminal()).bindings
 
 dummy_docs = []  # ignore bindings without proper documentation
 
