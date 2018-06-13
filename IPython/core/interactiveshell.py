@@ -737,7 +737,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # executable path should end like /bin/python or \\scripts\\python.exe
         p_exe_up2 = os.path.dirname(os.path.dirname(p))
-        if p_exe_up2 and os.path.samefile(p_exe_up2, p_venv):
+        if p_exe_up2 and os.path.exists(p_venv) and os.path.samefile(p_exe_up2, p_venv):
             # Our exe is inside the virtualenv, don't need to do anything.
             return
 
