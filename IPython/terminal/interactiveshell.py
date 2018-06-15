@@ -343,7 +343,7 @@ class TerminalInteractiveShell(InteractiveShell):
             'multicolumn': CompleteStyle.MULTI_COLUMN,
             'column': CompleteStyle.COLUMN,
             'readlinelike': CompleteStyle.READLINE_LIKE,
-        }[self.display_completions],
+        }[self.display_completions]
 
     def _extra_prompt_options(self):
         """
