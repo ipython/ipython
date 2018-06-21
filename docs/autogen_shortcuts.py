@@ -45,7 +45,7 @@ class _DummyTerminal(object):
     """Used as a buffer to get prompt_toolkit bindings
     """
     handle_return = None
-    input_splitter = None
+    input_transformer_manager = None
     display_completions = None
 
 ipy_bindings = create_ipython_shortcuts(_DummyTerminal()).bindings
