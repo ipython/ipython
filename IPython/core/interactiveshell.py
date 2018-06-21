@@ -339,6 +339,15 @@ class InteractiveShell(SingletonConfigurable):
                                          ())
 
     @property
+    def input_transformers_cleanup(self):
+        return self.input_transformer_manager.cleanup_transforms
+
+    input_transformers_post = List([],
+        help="A list of string input transformers, to be applied after IPython's "
+             "own input transformations."
+    )
+
+    @property
     def input_splitter(self):
         """Make this available for compatibility
 
@@ -2717,21 +2726,10 @@ class InteractiveShell(SingletonConfigurable):
         preprocessing_exc_tuple = None
         try:
             # Static input transformations
-            cell = self.input_transformer_manager.transform_cell(raw_cell)
-        except SyntaxError:
+            cell = self.transform_cell(raw_cell)
+        except Exception:
             preprocessing_exc_tuple = sys.exc_info()
             cell = raw_cell  # cell has to exist so it can be stored/logged
-        else:
-            if len(cell.splitlines()) == 1:
-                # Dynamic transformations - only applied for single line commands
-                with self.builtin_trap:
-                    try:
-                        # use prefilter_lines to handle trailing newlines
-                        # restore trailing newline for ast.parse
-                        cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
-                    except Exception:
-                        # don't allow prefilter errors to crash IPython
-                        preprocessing_exc_tuple = sys.exc_info()
 
         # Store raw and processed history
         if store_history:
@@ -2802,6 +2800,24 @@ class InteractiveShell(SingletonConfigurable):
             self.execution_count += 1
 
         return result
+
+    def transform_cell(self, raw_cell):
+        # Static input transformations
+        cell = self.input_transformer_manager.transform_cell(raw_cell)
+
+        if len(cell.splitlines()) == 1:
+            # Dynamic transformations - only applied for single line commands
+            with self.builtin_trap:
+                # use prefilter_lines to handle trailing newlines
+                # restore trailing newline for ast.parse
+                cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
+
+        lines = cell.splitlines(keepends=True)
+        for transform in self.input_transformers_post:
+            lines = transform(lines)
+        cell = ''.join(lines)
+
+        return cell
     
     def transform_ast(self, node):
         """Apply the AST transformations from self.ast_transformers
