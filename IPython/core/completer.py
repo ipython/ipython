@@ -576,9 +576,9 @@ class Completer(Configurable):
         """
     ).tag(config=True)
 
-    use_jedi = Bool(default_value=JEDI_INSTALLED,
+    use_jedi = Bool(default_value=False,
                     help="Experimental: Use Jedi to generate autocompletions. "
-                    "Default to True if jedi is installed").tag(config=True)
+                    "Off by default.").tag(config=True)
 
     jedi_compute_type_timeout = Int(default_value=400,
         help="""Experimental: restrict time (in milliseconds) during which Jedi can compute types.
@@ -683,7 +683,7 @@ class Completer(Configurable):
         Assuming the text is of the form NAME.NAME....[NAME], and is
         evaluatable in self.namespace or self.global_namespace, it will be
         evaluated and its attributes (as revealed by dir()) are used as
-        possible completions.  (For class instances, class members are are
+        possible completions.  (For class instances, class members are
         also considered.)
 
         WARNING: this can still invoke arbitrary C code, if an object
@@ -869,7 +869,7 @@ def position_to_cursor(text:str, offset:int)->Tuple[int, int]:
 
     """
 
-    assert 0 < offset <= len(text) , "0 < %s <= %s" % (offset , len(text))
+    assert 0 <= offset <= len(text) , "0 <= %s <= %s" % (offset , len(text))
 
     before = text[:offset]
     blines = before.split('\n')  # ! splitnes trim trailing \n
@@ -949,8 +949,8 @@ def _formatparamchildren(parameter) -> str:
 
     Jedi does not expose a simple way to get `param=value` from its API.
 
-    Prameter
-    ========
+    Parameter
+    =========
 
     parameter:
         Jedi's function `Param`
@@ -1340,7 +1340,6 @@ class IPCompleter(Completer):
             namespaces.append(self.global_namespace)
 
         completion_filter = lambda x:x
-        # cursor_pos is an it, jedi wants line and column
         offset = cursor_to_position(text, cursor_line, cursor_column)
         # filter output if we are completing for object members
         if offset:
@@ -1356,7 +1355,7 @@ class IPCompleter(Completer):
                     raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
 
         interpreter = jedi.Interpreter(
-            text, namespaces, column=cursor_column, line=cursor_line + 1)
+            text[:offset], namespaces, column=cursor_column, line=cursor_line + 1)
         try_jedi = True
 
         try:
@@ -1371,7 +1370,7 @@ class IPCompleter(Completer):
             next_to_last_tree = interpreter._get_module().tree_node.children[-2]
             completing_string = False
             if isinstance(next_to_last_tree, ErrorLeaf):
-                completing_string = next_to_last_tree.value[0] in {'"', "'"}
+                completing_string = next_to_last_tree.value.lstrip()[0] in {'"', "'"}
             # if we are in a string jedi is likely not the right candidate for
             # now. Skip it.
             try_jedi = not completing_string
@@ -1805,11 +1804,16 @@ class IPCompleter(Completer):
                       category=ProvisionalCompleterWarning, stacklevel=2)
 
         seen = set()
-        for c in self._completions(text, offset, _timeout=self.jedi_compute_type_timeout/1000):
-            if c and (c in seen):
-                continue
-            yield c
-            seen.add(c)
+        try:
+            for c in self._completions(text, offset, _timeout=self.jedi_compute_type_timeout/1000):
+                if c and (c in seen):
+                    continue
+                yield c
+                seen.add(c)
+        except KeyboardInterrupt:
+            """if completions take too long and users send keyboard interrupt,
+            do not crash and return ASAP. """
+            pass
 
     def _completions(self, full_text: str, offset: int, *, _timeout)->Iterator[Completion]:
         """

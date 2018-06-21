@@ -2,7 +2,7 @@
 """
 Support for creating GUI apps and starting event loops.
 
-IPython's GUI integration allows interative plotting and GUI usage in IPython
+IPython's GUI integration allows interactive plotting and GUI usage in IPython
 session. IPython has two different types of GUI integration:
 
 1. The terminal based IPython supports GUI event loops through Python's

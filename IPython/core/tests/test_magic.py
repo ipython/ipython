@@ -26,7 +26,6 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
 from IPython.core.magics import execution, script, code, logging
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils import py3compat
 from IPython.utils.io import capture_output
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.process import find_cmd
@@ -304,12 +303,10 @@ def test_macro_run():
     """Test that we can run a multi-line macro successfully."""
     ip = get_ipython()
     ip.history_manager.reset()
-    cmds = ["a=10", "a+=1", py3compat.doctest_refactor_print("print a"),
-                                                            "%macro test 2-3"]
+    cmds = ["a=10", "a+=1", "print(a)", "%macro test 2-3"]
     for cmd in cmds:
         ip.run_cell(cmd, store_history=True)
-    nt.assert_equal(ip.user_ns["test"].value,
-                            py3compat.doctest_refactor_print("a+=1\nprint a\n"))
+    nt.assert_equal(ip.user_ns["test"].value, "a+=1\nprint(a)\n")
     with tt.AssertPrints("12"):
         ip.run_cell("test")
     with tt.AssertPrints("13"):
@@ -532,7 +529,6 @@ def test_whos():
     _ip.user_ns['a'] = A()
     _ip.magic("whos")
 
-@py3compat.u_format
 def doctest_precision():
     """doctest for %precision
     
@@ -564,11 +560,6 @@ def test_timeit_shlex():
     _ip.magic('timeit -r1 -n1 ("a " + "b")')
     _ip.magic('timeit -r1 -n1 f("a " + "b")')
     _ip.magic('timeit -r1 -n1 f("a " + "b ")')
-
-
-def test_timeit_arguments():
-    "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
-    _ip.magic("timeit ('#')")
 
 
 def test_timeit_special_syntax():
@@ -837,13 +828,16 @@ def test_script_out_err():
 def test_script_bg_out():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
+
     nt.assert_equal(ip.user_ns['output'].read(), b'hi\n')
+    ip.user_ns['output'].close()
 
 @dec.skip_win32
 def test_script_bg_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --err error sh", "echo 'hello' >&2")
     nt.assert_equal(ip.user_ns['error'].read(), b'hello\n')
+    ip.user_ns['error'].close()
 
 @dec.skip_win32
 def test_script_bg_out_err():
@@ -851,6 +845,8 @@ def test_script_bg_out_err():
     ip.run_cell_magic("script", "--bg --out output --err error sh", "echo 'hi'\necho 'hello' >&2")
     nt.assert_equal(ip.user_ns['output'].read(), b'hi\n')
     nt.assert_equal(ip.user_ns['error'].read(), b'hello\n')
+    ip.user_ns['output'].close()
+    ip.user_ns['error'].close()
 
 def test_script_defaults():
     ip = get_ipython()
@@ -1070,4 +1066,15 @@ def test_logging_magic_not_quiet():
                 lm.logstart(os.path.join(td, "not_quiet.log"))
         finally:
             _ip.logger.logstop()
-    
+
+## 
+# this is slow, put at the end for local testing.
+## 
+def test_timeit_arguments():
+    "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
+    if sys.version_info < (3,7):
+        _ip.magic("timeit ('#')")
+    else:
+        # 3.7 optimize no-op statement like above out, and complain there is
+        # nothing in the for loop.
+        _ip.magic("timeit a=('#')")

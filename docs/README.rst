@@ -48,7 +48,7 @@ API documentation. This build target skips that.
 You can run ``make help`` to see information on all possible make targets.
 
 To save time,
-the make targets above only proceess the files that have been changed since the
+the make targets above only process the files that have been changed since the
 previous docs build.
 To remove the previous docs build you can use ``make clean``.
 You can also combine ``clean`` with other `make` commands;

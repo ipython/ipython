@@ -15,15 +15,16 @@ from traitlets import (
     Any,
 )
 
-from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
+from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_prompt_layout, create_output
-from prompt_toolkit.interface import CommandLineInterface
-from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
-from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
+from prompt_toolkit.output import ColorDepth
+from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
+from prompt_toolkit.styles import DynamicStyle, merge_styles
+from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
 
 from pygments.styles import get_style_by_name
 from pygments.style import Style
@@ -34,7 +35,7 @@ from .magics import TerminalMagics
 from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
-from .shortcuts import register_ipython_shortcuts
+from .shortcuts import create_ipython_shortcuts
 
 DISPLAY_BANNER_DEPRECATED = object()
 
@@ -88,15 +89,11 @@ _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
 class TerminalInteractiveShell(InteractiveShell):
     space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
-                                                  'to reserve for the completion menu'
+                                     'to reserve for the completion menu'
                             ).tag(config=True)
 
-    def _space_for_menu_changed(self, old, new):
-        self._update_layout()
-
-    pt_cli = None
+    pt_app = None
     debugger_history = None
-    _pt_app = None
 
     simple_prompt = Bool(_use_simple_prompt,
         help="""Use `raw_input` for the REPL, without completion and prompt colors.
@@ -167,9 +164,9 @@ class TerminalInteractiveShell(InteractiveShell):
     def _prompts_default(self):
         return self.prompts_class(self)
 
-    @observe('prompts')
-    def _(self, change):
-        self._update_layout()
+#    @observe('prompts')
+#    def _(self, change):
+#        self._update_layout()
 
     @default('displayhook_class')
     def _displayhook_class_default(self):
@@ -241,10 +238,7 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
         # Set up keyboard shortcuts
-        kbmanager = KeyBindingManager.for_prompt(
-            enable_open_in_editor=self.extra_open_editor_shortcuts,
-        )
-        register_ipython_shortcuts(kbmanager.registry, self)
+        key_bindings = create_ipython_shortcuts(self)
 
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
@@ -254,7 +248,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # Ignore blank lines and consecutive duplicates
             cell = cell.rstrip()
             if cell and (cell != last_cell):
-                history.append(cell)
+                history.append_string(cell)
                 last_cell = cell
 
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
@@ -262,24 +256,18 @@ class TerminalInteractiveShell(InteractiveShell):
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
-        def patch_stdout(**kwargs):
-            return self.pt_cli.patch_stdout_context(**kwargs)
-
-        self._pt_app = create_prompt_application(
+        self.pt_app = PromptSession(
                             editing_mode=editing_mode,
-                            key_bindings_registry=kbmanager.registry,
+                            key_bindings=key_bindings,
                             history=history,
-                            completer=IPythonPTCompleter(shell=self,
-                                                    patch_stdout=patch_stdout),
-                            enable_history_search=self.enable_history_search,
+                            completer=IPythonPTCompleter(shell=self),
+                            enable_history_search = self.enable_history_search,
                             style=self.style,
+                            include_default_pygments_style=False,
                             mouse_support=self.mouse_support,
-                            **self._layout_options()
-        )
-        self._eventloop = create_eventloop(self.inputhook)
-        self.pt_cli = CommandLineInterface(
-            self._pt_app, eventloop=self._eventloop,
-            output=create_output(true_color=self.true_color))
+                            enable_open_in_editor=self.extra_open_editor_shortcuts,
+                            color_depth=(ColorDepth.TRUE_COLOR if self.true_color else None),
+                            **self._extra_prompt_options())
 
     def _make_style_from_name_or_cls(self, name_or_cls):
         """
@@ -340,44 +328,60 @@ class TerminalInteractiveShell(InteractiveShell):
                 Token.OutPromptNum: '#ff0000 bold',
             }
         style_overrides.update(self.highlighting_style_overrides)
-        style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
-                                            style_dict=style_overrides)
+        style = merge_styles([
+            style_from_pygments_cls(style_cls),
+            style_from_pygments_dict(style_overrides),
+        ])
 
         return style
 
-    def _layout_options(self):
+    @property
+    def pt_complete_style(self):
+        return {
+            'multicolumn': CompleteStyle.MULTI_COLUMN,
+            'column': CompleteStyle.COLUMN,
+            'readlinelike': CompleteStyle.READLINE_LIKE,
+        }[self.display_completions]
+
+    def _extra_prompt_options(self):
         """
         Return the current layout option for the current Terminal InteractiveShell
         """
+        def get_message():
+            return PygmentsTokens(self.prompts.in_prompt_tokens())
+
         return {
+                'complete_in_thread': False,
                 'lexer':IPythonPTLexer(),
                 'reserve_space_for_menu':self.space_for_menu,
-                'get_prompt_tokens':self.prompts.in_prompt_tokens,
-                'get_continuation_tokens':self.prompts.continuation_prompt_tokens,
-                'multiline':True,
-                'display_completions_in_columns': (self.display_completions == 'multicolumn'),
+                'message': get_message,
+                'prompt_continuation': (
+                    lambda width, lineno, is_soft_wrap:
+                        PygmentsTokens(self.prompts.continuation_prompt_tokens(width))),
+                'multiline': True,
+                'complete_style': self.pt_complete_style,
 
                 # Highlight matching brackets, but only when this setting is
                 # enabled, and only when the DEFAULT_BUFFER has the focus.
-                'extra_input_processors': [ConditionalProcessor(
+                'input_processors': [ConditionalProcessor(
                         processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                         filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
-                            Condition(lambda cli: self.highlight_matching_brackets))],
+                            Condition(lambda: self.highlight_matching_brackets))],
                 }
 
-    def _update_layout(self):
-        """
-        Ask for a re computation of the application layout, if for example ,
-        some configuration options have changed.
-        """
-        if self._pt_app:
-            self._pt_app.layout = create_prompt_layout(**self._layout_options())
-
     def prompt_for_code(self):
-        with self.pt_cli.patch_stdout_context(raw=True):
-            document = self.pt_cli.run(
-                pre_run=self.pre_prompt, reset_current_buffer=True)
-        return document.text
+        if self.rl_next_input:
+            default = self.rl_next_input
+            self.rl_next_input = None
+        else:
+            default = ''
+
+        with patch_stdout(raw=True):
+            text = self.pt_app.prompt(
+                default=default,
+#                pre_run=self.pre_prompt,# reset_current_buffer=True,
+                **self._extra_prompt_options())
+        return text
 
     def enable_win_unicode_console(self):
         if sys.version_info >= (3, 6):
@@ -436,22 +440,6 @@ class TerminalInteractiveShell(InteractiveShell):
         self.keep_running = False
 
     rl_next_input = None
-
-    def pre_prompt(self):
-        if self.rl_next_input:
-            # We can't set the buffer here, because it will be reset just after
-            # this. Adding a callable to pre_run_callables does what we need
-            # after the buffer is reset.
-            s = self.rl_next_input
-            def set_doc():
-                self.pt_cli.application.buffer.document = Document(s)
-            if hasattr(self.pt_cli, 'pre_run_callables'):
-                self.pt_cli.pre_run_callables.append(set_doc)
-            else:
-                # Older version of prompt_toolkit; it's OK to set the document
-                # directly here.
-                set_doc()
-            self.rl_next_input = None
 
     def interact(self, display_banner=DISPLAY_BANNER_DEPRECATED):
 
@@ -515,8 +503,9 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
         tokens = self.prompts.rewrite_prompt_tokens()
-        if self.pt_cli:
-            self.pt_cli.print_tokens(tokens)
+        if self.pt_app:
+            print_formatted_text(PygmentsTokens(tokens), end='',
+                                 style=self.pt_app.app.style)
             print(cmd)
         else:
             prompt = ''.join(s for t, s in tokens)
@@ -531,7 +520,7 @@ class TerminalInteractiveShell(InteractiveShell):
         elif self._prompts_before:
             self.prompts = self._prompts_before
             self._prompts_before = None
-        self._update_layout()
+#        self._update_layout()
 
 
 InteractiveShellABC.register(TerminalInteractiveShell)

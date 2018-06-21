@@ -14,6 +14,11 @@
 #-----------------------------------------------------------------------------
 from tempfile import NamedTemporaryFile, mkdtemp
 from os.path import split, join as pjoin, dirname
+import sys
+try:
+    import pathlib
+except ImportError:
+    pass
 
 # Third-party imports
 import nose.tools as nt
@@ -33,6 +38,9 @@ from IPython.testing.decorators import skipif_not_numpy
 def test_instantiation_FileLink():
     """FileLink: Test class can be instantiated"""
     fl = display.FileLink('example.txt')
+    # TODO: remove if when only Python >= 3.6 is supported
+    if sys.version_info >= (3, 6):
+        fl = display.FileLink(pathlib.PurePath('example.txt'))
 
 def test_warning_on_non_existant_path_FileLink():
     """FileLink: Calling _repr_html_ on non-existant files returns a warning
@@ -175,3 +183,7 @@ def test_recursive_FileLinks():
 def test_audio_from_file():
     path = pjoin(dirname(__file__), 'test.wav')
     display.Audio(filename=path)
+
+def test_code_from_file():
+    c = display.Code(filename=__file__)
+    assert c._repr_html_().startswith('<style>')

@@ -43,5 +43,3 @@ development work they do here in a user friendly format.
    version0.10
    version0.9
    version0.8
-
-

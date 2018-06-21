@@ -58,7 +58,7 @@ def merge_pr(num):
         cmd = "git pull "+repo+" "+branch
         not_merged[str(num)] = cmd
         print("==============================================================================")
-        print("Something went wrong merging this branch, you can try it manually by runngin :")
+        print("Something went wrong merging this branch, you can try it manually by running :")
         print(cmd)
         print("==============================================================================")
         
@@ -118,7 +118,7 @@ def main(*args):
 
     if not_merged :
         print('*************************************************************************************')
-        print('the following branch have not been merged automatically, considere doing it by hand :')
+        print('The following branch has not been merged automatically, consider doing it by hand   :')
         for num, cmd in not_merged.items() :
             print( "PR {num}: {cmd}".format(num=num, cmd=cmd))
         print('*************************************************************************************')

@@ -77,11 +77,13 @@ Inheritance diagram:
             Portions (c) 2009 by Robert Kern.
 :license: BSD License.
 """
+
 from contextlib import contextmanager
+import datetime
+import os
+import re
 import sys
 import types
-import re
-import datetime
 from collections import deque
 from io import StringIO
 from warnings import warn
@@ -742,7 +744,6 @@ _type_pprinters = {
     tuple:                      _seq_pprinter_factory('(', ')'),
     list:                       _seq_pprinter_factory('[', ']'),
     dict:                       _dict_pprinter_factory('{', '}'),
-    
     set:                        _set_pprinter_factory('{', '}'),
     frozenset:                  _set_pprinter_factory('frozenset({', '})'),
     super:                      _super_pprint,
@@ -751,11 +752,16 @@ _type_pprinters = {
     types.FunctionType:         _function_pprint,
     types.BuiltinFunctionType:  _function_pprint,
     types.MethodType:           _repr_pprint,
-    
     datetime.datetime:          _repr_pprint,
     datetime.timedelta:         _repr_pprint,
     _exception_base:            _exception_pprint
 }
+
+# render os.environ like a dict
+_env_type = type(os.environ)
+# future-proof in case os.environ becomes a plain dict?
+if _env_type is not dict:
+    _type_pprinters[_env_type] = _dict_pprinter_factory('environ{', '}')
 
 try:
     # In PyPy, types.DictProxyType is dict, setting the dictproxy printer
@@ -768,7 +774,7 @@ except AttributeError: # Python 3
     _type_pprinters[types.MappingProxyType] = \
         _dict_pprinter_factory('mappingproxy({', '})')
     _type_pprinters[slice] = _repr_pprint
-    
+
 try:
     _type_pprinters[long] = _repr_pprint
     _type_pprinters[unicode] = _repr_pprint

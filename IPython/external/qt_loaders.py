@@ -109,47 +109,6 @@ def loaded_api():
 def has_binding(api):
     """Safely check for PyQt4/5, PySide or PySide2, without importing submodules
 
-    Supports Python <= 3.3
-
-       Parameters
-       ----------
-       api : str [ 'pyqtv1' | 'pyqt' | 'pyqt5' | 'pyside' | 'pyside2' | 'pyqtdefault']
-            Which module to check for
-
-       Returns
-       -------
-       True if the relevant module appears to be importable
-    """
-    # we can't import an incomplete pyside and pyqt4
-    # this will cause a crash in sip (#1431)
-    # check for complete presence before importing
-    module_name = api_to_module[api]
-
-    import imp
-    try:
-        #importing top level PyQt4/PySide module is ok...
-        mod = import_module(module_name)
-        #...importing submodules is not
-        imp.find_module('QtCore', mod.__path__)
-        imp.find_module('QtGui', mod.__path__)
-        imp.find_module('QtSvg', mod.__path__)
-        if api in (QT_API_PYQT5, QT_API_PYSIDE2):
-            # QT5 requires QtWidgets too
-            imp.find_module('QtWidgets', mod.__path__)
-
-        #we can also safely check PySide version
-        if api == QT_API_PYSIDE:
-            return check_version(mod.__version__, '1.0.3')
-        else:
-            return True
-    except ImportError:
-        return False
-
-def has_binding_new(api):
-    """Safely check for PyQt4/5, PySide or PySide2, without importing submodules
-
-    Supports Python >= 3.4
-
         Parameters
         ----------
         api : str [ 'pyqtv1' | 'pyqt' | 'pyqt5' | 'pyside' | 'pyside2' | 'pyqtdefault']
@@ -185,8 +144,6 @@ def has_binding_new(api):
 
     return True
 
-if sys.version_info >= (3, 4):
-    has_binding = has_binding_new
 
 def qtapi_version():
     """Return which QString API has been set, if any

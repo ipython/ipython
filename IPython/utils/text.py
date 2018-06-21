@@ -13,11 +13,7 @@ import re
 import sys
 import textwrap
 from string import Formatter
-try:
-    from pathlib import Path
-except ImportError:
-    # for Python 3.3
-    from pathlib2 import Path
+from pathlib import Path
 
 from IPython.utils import py3compat
 
@@ -665,7 +661,7 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
     empty : (default None)
         default value to fill list if needed
     separator_size : int (default=2)
-        How much caracters will be used as a separation between each columns.
+        How much characters will be used as a separation between each columns.
     displaywidth : int (default=80)
         The width of the area onto which the columns should enter
 

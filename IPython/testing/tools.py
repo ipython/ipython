@@ -270,20 +270,25 @@ class TempFileMixin(object):
     def mktmp(self, src, ext='.py'):
         """Make a valid python temp file."""
         fname, f = temp_pyfile(src, ext)
-        self.tmpfile = f
+        if not hasattr(self, 'tmps'):
+            self.tmps=[]
+        self.tmps.append((f, fname))
         self.fname = fname
 
     def tearDown(self):
-        if hasattr(self, 'tmpfile'):
-            # If the tmpfile wasn't made because of skipped tests, like in
-            # win32, there's nothing to cleanup.
-            self.tmpfile.close()
-            try:
-                os.unlink(self.fname)
-            except:
-                # On Windows, even though we close the file, we still can't
-                # delete it.  I have no clue why
-                pass
+        # If the tmpfile wasn't made because of skipped tests, like in
+        # win32, there's nothing to cleanup.
+        if hasattr(self, 'tmps'):
+            for f,fname in self.tmps:
+                # If the tmpfile wasn't made because of skipped tests, like in
+                # win32, there's nothing to cleanup.
+                f.close()
+                try:
+                    os.unlink(fname)
+                except:
+                    # On Windows, even though we close the file, we still can't
+                    # delete it.  I have no clue why
+                    pass
 
     def __enter__(self):
         return self

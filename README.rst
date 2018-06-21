@@ -23,7 +23,9 @@ contribute to the project.
 
 **IPython versions and Python Support**
 
-**IPython 6** requires Python version 3.3 and above.
+**IPython 7.0** requires Python version 3.4 and above.
+
+**IPython 6.x** requires Python version 3.3 and above.
 
 **IPython 5.x LTS** is the compatible release for Python 2.7.
 If you require Python 2 support, you **must** use IPython 5.x LTS. Please
@@ -31,7 +33,7 @@ update your project configurations and requirements as necessary.
 
 
 The Notebook, Qt console and a number of other pieces are now parts of *Jupyter*.
-See the `Jupyter installation docs <http://jupyter.readthedocs.io/en/latest/install.html>`__
+See the `Jupyter installation docs <https://jupyter.readthedocs.io/en/latest/install.html>`__
 if you want to use these.
 
 
@@ -41,7 +43,7 @@ Development and Instant running
 ===============================
 
 You can find the latest version of the development documentation on `readthedocs
-<http://ipython.readthedocs.io/en/latest/>`_.
+<https://ipython.readthedocs.io/en/latest/>`_.
 
 You can run IPython from this directory without even installing it system-wide
 by typing at the terminal::
@@ -49,7 +51,7 @@ by typing at the terminal::
    $ python -m IPython
 
 Or see the `development installation docs
-<http://ipython.readthedocs.io/en/latest/install/install.html#installing-the-development-version>`_
+<https://ipython.readthedocs.io/en/latest/install/install.html#installing-the-development-version>`_
 for the latest revision on read the docs.
 
 Documentation and installation instructions for older version of IPython can be
@@ -68,14 +70,14 @@ Support version.
 
 If you are encountering this error message you are likely trying to install or
 use IPython from source. You need to checkout the remote 5.x branch. If you are
-using git the following should work:
+using git the following should work::
 
   $ git fetch origin
   $ git checkout 5.x
 
 If you encounter this error message with a regular install of IPython, then you
 likely need to update your package manager, for example if you are using `pip`
-check the version of pip with
+check the version of pip with::
 
   $ pip --version
 

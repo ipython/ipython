@@ -29,7 +29,7 @@ scan Python source code and re-emit it with no changes to its original
 formatting (which is the hard part).
 """
 
-__all__ = ['ANSICodeColors','Parser']
+__all__ = ['ANSICodeColors', 'Parser']
 
 _scheme_default = 'Linux'
 
@@ -43,7 +43,7 @@ import tokenize
 
 generate_tokens = tokenize.generate_tokens
 
-from IPython.utils.coloransi import TermColors, InputTermColors ,ColorScheme, ColorSchemeTable
+from IPython.utils.coloransi import TermColors, InputTermColors,ColorScheme, ColorSchemeTable
 from .colorable import Colorable
 from io import StringIO
 
@@ -185,8 +185,11 @@ class Parser(Colorable):
 
         super(Parser, self).__init__(parent=parent)
 
-        self.color_table = color_table and color_table or ANSICodeColors
+        self.color_table = color_table if color_table else ANSICodeColors
         self.out = out
+        self.pos = None
+        self.lines = None
+        self.raw = None
         if not style:
             self.style = self.default_style
         else:
@@ -213,7 +216,7 @@ class Parser(Colorable):
 
         string_output = 0
         if out == 'str' or self.out == 'str' or \
-           isinstance(self.out,StringIO):
+           isinstance(self.out, StringIO):
             # XXX - I don't really like this state handling logic, but at this
             # point I don't want to make major changes, so adding the
             # isinstance() check is the simplest I can do to ensure correct
@@ -223,15 +226,16 @@ class Parser(Colorable):
             string_output = 1
         elif out is not None:
             self.out = out
+        else:
+            raise ValueError('`out` or `self.out` should be file-like or the value `"str"`')
 
         # Fast return of the unmodified input for NoColor scheme
         if self.style == 'NoColor':
             error = False
             self.out.write(raw)
             if string_output:
-                return raw,error
-            else:
-                return None,error
+                return raw, error
+            return None, error
 
         # local shorthands
         colors = self.color_table[self.style].colors
@@ -245,9 +249,10 @@ class Parser(Colorable):
         pos = 0
         raw_find = self.raw.find
         lines_append = self.lines.append
-        while 1:
+        while True:
             pos = raw_find('\n', pos) + 1
-            if not pos: break
+            if not pos:
+                break
             lines_append(pos)
         lines_append(len(self.raw))
 
@@ -275,12 +280,13 @@ class Parser(Colorable):
             return (output, error)
         return (None, error)
 
-    def __call__(self, toktype, toktext, start_pos, end_pos, line):
-        """ Token handler, with syntax highlighting."""
-        (srow,scol) = start_pos
-        (erow,ecol) = end_pos
+
+    def _inner_call_(self, toktype, toktext, start_pos):
+        """like call but write to a temporary buffer"""
+        buff = StringIO()
+        srow, scol = start_pos
         colors = self.colors
-        owrite = self.out.write
+        owrite = buff.write
 
         # line separator, so this works across platforms
         linesep = os.linesep
@@ -297,7 +303,8 @@ class Parser(Colorable):
         # skip indenting tokens
         if toktype in [token.INDENT, token.DEDENT]:
             self.pos = newpos
-            return
+            buff.seek(0)
+            return buff.read()
 
         # map token type to a color group
         if token.LPAR <= toktype <= token.OP:
@@ -305,8 +312,6 @@ class Parser(Colorable):
         elif toktype == token.NAME and keyword.iskeyword(toktext):
             toktype = _KEYWORD
         color = colors.get(toktype, colors[_TEXT])
-
-        #print '<%s>' % toktext,    # dbg
 
         # Triple quoted strings must be handled carefully so that backtracking
         # in pagers works correctly. We need color terminators on _each_ line.
@@ -316,3 +321,11 @@ class Parser(Colorable):
 
         # send text
         owrite('%s%s%s' % (color,toktext,colors.normal))
+        buff.seek(0)
+        return buff.read()
+
+
+    def __call__(self, toktype, toktext, start_pos, end_pos, line):
+        """ Token handler, with syntax highlighting."""
+        self.out.write(
+            self._inner_call_(toktype, toktext, start_pos))

@@ -116,9 +116,8 @@ import traceback
 import types
 import weakref
 from importlib import import_module
+from importlib.util import source_from_cache
 from imp import reload
-
-from IPython.utils import openpy
 
 #------------------------------------------------------------------------------
 # Autoreload functionality
@@ -195,7 +194,7 @@ class ModuleReloader(object):
             py_filename = filename
         else:
             try:
-                py_filename = openpy.source_from_cache(filename)
+                py_filename = source_from_cache(filename)
             except ValueError:
                 return None, None
 

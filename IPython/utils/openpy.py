@@ -103,19 +103,3 @@ def read_py_url(url, errors='replace', skip_encoding_cookie=True):
     response = urlopen(url)
     buffer = io.BytesIO(response.read())
     return source_to_unicode(buffer, errors, skip_encoding_cookie)
-
-def _list_readline(x):
-    """Given a list, returns a readline() function that returns the next element
-    with each call.
-    """
-    x = iter(x)
-    def readline():
-        return next(x)
-    return readline
-
-# Code for going between .py files and cached .pyc files ----------------------
-try: 
-    from importlib.util import source_from_cache, cache_from_source
-except ImportError :
-    ## deprecated since 3.4
-    from imp import source_from_cache, cache_from_source

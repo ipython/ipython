@@ -105,7 +105,7 @@ def test_select_figure_formats_kwargs():
     f = formatter.lookup_by_type(Figure)
     cell = f.__closure__[0].cell_contents
     nt.assert_equal(cell, kwargs)
-    
+
     # check that the formatter doesn't raise
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
@@ -150,7 +150,7 @@ class TestPylabSwitch(object):
     class Shell(InteractiveShell):
         def enable_gui(self, gui):
             pass
-    
+
     def setup(self):
         import matplotlib
         def act_mpl(backend):
@@ -244,3 +244,7 @@ class TestPylabSwitch(object):
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
+
+def test_no_gui_backends():
+    for k in ['agg', 'svg', 'pdf', 'ps']:
+        assert k not in pt.backend2gui

@@ -31,7 +31,6 @@ from nose import SkipTest
 
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils import py3compat
 from IPython.utils.io import capture_output
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core import debugger
@@ -145,13 +144,12 @@ def doctest_run_option_parser_for_windows():
     """
 
 
-@py3compat.doctest_refactor_print
 def doctest_reset_del():
     """Test that resetting doesn't cause errors in __del__ methods.
 
     In [2]: class A(object):
        ...:     def __del__(self):
-       ...:         print str("Hi")
+       ...:         print(str("Hi"))
        ...:
 
     In [3]: a = A()
@@ -248,9 +246,9 @@ class TestMagicRunSimple(tt.TempFileMixin):
                 raise SkipTest("Test requires pywin32")
         src = ("class A(object):\n"
                "    def __del__(self):\n"
-               "        print 'object A deleted'\n"
+               "        print('object A deleted')\n"
                "a = A()\n")
-        self.mktmp(py3compat.doctest_refactor_print(src))
+        self.mktmp(src)
         if dec.module_not_available('sqlite3'):
             err = 'WARNING: IPython History requires SQLite, your history will not be saved\n'
         else:

@@ -14,7 +14,6 @@ from IPython.testing.globalipapp import get_ipython
 ip = get_ipython()
 
 
-@py3compat.doctest_refactor_print
 def doctest_autocall():
     """
     In [1]: def f1(a,b,c):
@@ -39,7 +38,7 @@ def doctest_autocall():
 
     In [7]: assert _ == 'abc'
 
-    In [8]: print _
+    In [8]: print(_)
     abc
 
     In [9]: /f1 1,2,3

@@ -170,7 +170,7 @@ class SeparateUnicode(Unicode):
 class DummyMod(object):
     """A dummy module used for IPython's interactive module when
     a namespace must be assigned to the module's __dict__."""
-    pass
+    __spec__ = None
 
 
 class ExecutionInfo(object):
@@ -748,7 +748,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # executable path should end like /bin/python or \\scripts\\python.exe
         p_exe_up2 = os.path.dirname(os.path.dirname(p))
-        if p_exe_up2 and os.path.samefile(p_exe_up2, p_venv):
+        if p_exe_up2 and os.path.exists(p_venv) and os.path.samefile(p_exe_up2, p_venv):
             # Our exe is inside the virtualenv, don't need to do anything.
             return
 
@@ -1190,7 +1190,7 @@ class InteractiveShell(SingletonConfigurable):
         -----
         All data structures here are only filled in, they are NOT reset by this
         method.  If they were not empty before, data will simply be added to
-        therm.
+        them.
         """
         # This function works in two parts: first we put a few things in
         # user_ns, and we sync that contents into user_ns_hidden so that these
@@ -2884,7 +2884,6 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not nodelist:
             return
-
         if interactivity == 'last_expr_or_assign':
             if isinstance(nodelist[-1], _assign_nodes):
                 asg = nodelist[-1]
@@ -2914,7 +2913,6 @@ class InteractiveShell(SingletonConfigurable):
             to_run_exec, to_run_interactive = [], nodelist
         else:
             raise ValueError("Interactivity was %r" % interactivity)
-
         try:
             for i, node in enumerate(to_run_exec):
                 mod = ast.Module([node])
