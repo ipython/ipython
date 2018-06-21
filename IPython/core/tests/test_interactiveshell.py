@@ -844,10 +844,10 @@ class TestSyntaxErrorTransformer(unittest.TestCase):
         return lines
 
     def setUp(self):
-        ip.input_transformer_manager.line_transforms.append(self.transformer)
+        ip.input_transformers_post.append(self.transformer)
 
     def tearDown(self):
-        ip.input_transformer_manager.line_transforms.remove(self.transformer)
+        ip.input_transformers_post.remove(self.transformer)
 
     def test_syntaxerror_input_transformer(self):
         with tt.AssertPrints('1234'):
