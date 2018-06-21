@@ -96,7 +96,7 @@ class InteractiveShellTestCase(unittest.TestCase):
     @mock_input
     def test_inputtransformer_syntaxerror(self):
         ip = get_ipython()
-        ip.input_transformer_manager.line_transforms.append(syntax_error_transformer)
+        ip.input_transformers_post.append(syntax_error_transformer)
 
         try:
             #raise Exception
@@ -110,7 +110,7 @@ class InteractiveShellTestCase(unittest.TestCase):
                 yield u'print(4*4)'
 
         finally:
-            ip.input_transformer_manager.line_transforms.remove(syntax_error_transformer)
+            ip.input_transformers_post.remove(syntax_error_transformer)
 
     def test_plain_text_only(self):
         ip = get_ipython()
