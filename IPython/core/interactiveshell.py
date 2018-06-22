@@ -349,10 +349,15 @@ class InteractiveShell(SingletonConfigurable):
 
     @property
     def input_splitter(self):
-        """Make this available for compatibility
+        """Make this available for backward compatibility (pre-7.0 release) with existing code.
 
-        ipykernel currently uses shell.input_splitter.check_complete
+        For example, ipykernel ipykernel currently uses
+        `shell.input_splitter.check_complete`
         """
+        from warnings import warn
+        warn("`input_splitter` is deprecated since IPython 7.0, prefer `input_transformer_manager`.",
+             DeprecationWarning, stacklevel=2
+        )
         return self.input_transformer_manager
 
     logstart = Bool(False, help=

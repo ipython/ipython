@@ -1,3 +1,9 @@
+"""Tests for the token-based transformers in IPython.core.inputtransformer2
+
+Line-based transformers are the simpler ones; token-based transformers are
+more complex.
+"""
+
 import nose.tools as nt
 
 from IPython.core import inputtransformer2 as ipt2

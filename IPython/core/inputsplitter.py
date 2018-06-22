@@ -16,6 +16,11 @@ and stores the results.
 For more details, see the class docstrings below.
 """
 
+from warnings import warn
+
+warn('IPython.core.inputsplitter is deprecated since IPython 7 in favor of `IPython.core.inputtransformer2`',
+     DeprecationWarning)
+
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 import ast
