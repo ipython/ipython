@@ -2807,6 +2807,18 @@ class InteractiveShell(SingletonConfigurable):
         return result
 
     def transform_cell(self, raw_cell):
+        """Transform an input cell before parsing it.
+
+        Static transformations, implemented in IPython.core.inputtransformer2,
+        deal with things like ``%magic`` and ``!system`` commands.
+        These run on all input.
+        Dynamic transformations, for things like unescaped magics and the exit
+        autocall, depend on the state of the interpreter.
+        These only apply to single line inputs.
+
+        These string-based transformations are followed by AST transformations;
+        see :meth:`transform_ast`.
+        """
         # Static input transformations
         cell = self.input_transformer_manager.transform_cell(raw_cell)
 

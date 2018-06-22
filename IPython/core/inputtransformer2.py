@@ -2,6 +2,9 @@
 
 This includes the machinery to recognise and transform ``%magic`` commands,
 ``!system`` commands, ``help?`` querying, prompt stripping, and so forth.
+
+Added: IPython 7.0. Replaces inputsplitter and inputtransformer which were
+deprecated in 7.0.
 """
 
 # Copyright (c) IPython Development Team.
@@ -19,7 +22,7 @@ def leading_indent(lines):
     """Remove leading indentation.
     
     If the first line starts with a spaces or tabs, the same whitespace will be
-    removed from each following line.
+    removed from each following line in the cell.
     """
     m = _indent_re.match(lines[0])
     if not m:
@@ -35,11 +38,12 @@ class PromptStripper:
     Parameters
     ----------
     prompt_re : regular expression
-        A regular expression matching any input prompt (including continuation)
+        A regular expression matching any input prompt (including continuation,
+        e.g. ``...``)
     initial_re : regular expression, optional
         A regular expression matching only the initial prompt, but not continuation.
         If no initial expression is given, prompt_re will be used everywhere.
-        Used mainly for plain Python prompts, where the continuation prompt
+        Used mainly for plain Python prompts (``>>>``), where the continuation prompt
         ``...`` is a valid Python expression in Python 3, so shouldn't be stripped.
     
     If initial_re and prompt_re differ,
@@ -78,11 +82,12 @@ def cell_magic(lines):
     return ['get_ipython().run_cell_magic(%r, %r, %r)\n'
             % (magic_name, first_line, body)]
 
-# -----
 
 def _find_assign_op(token_line):
-    # Get the index of the first assignment in the line ('=' not inside brackets)
-    # We don't try to support multiple special assignment (a = b = %foo)
+    """Get the index of the first assignment in the line ('=' not inside brackets)
+
+    Note: We don't try to support multiple special assignment (a = b = %foo)
+    """
     paren_level = 0
     for i, ti in enumerate(token_line):
         s = ti.string
@@ -107,15 +112,48 @@ def find_end_of_continued_line(lines, start_line: int):
     return end_line
 
 def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
-    """Assemble pieces of a continued line into a single line.
+    """Assemble a single line from multiple continued line pieces 
 
-    Uses 0-indexed line numbers. *start* is (lineno, colno).
+    Continued lines are lines ending in ``\``, and the line following the last
+    ``\`` in the block.
+
+    For example, this code continues over multiple lines::
+
+        if (assign_ix is not None) \
+             and (len(line) >= assign_ix + 2) \
+             and (line[assign_ix+1].string == '%') \
+             and (line[assign_ix+2].type == tokenize.NAME):
+
+    This statement contains four continued line pieces.
+    Assembling these pieces into a single line would give::
+
+        if (assign_ix is not None) and (len(line) >= assign_ix + 2) and (line[...
+
+    This uses 0-indexed line numbers. *start* is (lineno, colno).
+
+    Used to allow ``%magic`` and ``!system`` commands to be continued over
+    multiple lines.
     """
     parts = [lines[start[0]][start[1]:]] + lines[start[0]+1:end_line+1]
     return ' '.join([p[:-2] for p in parts[:-1]]  # Strip backslash+newline
                     + [parts[-1][:-1]])         # Strip newline from last line
 
 class TokenTransformBase:
+    """Base class for transformations which examine tokens.
+
+    Special syntax should not be transformed when it occurs inside strings or
+    comments. This is hard to reliably avoid with regexes. The solution is to
+    tokenise the code as Python, and recognise the special syntax in the tokens.
+
+    IPython's special syntax is not valid Python syntax, so tokenising may go
+    wrong after the special syntax starts. These classes therefore find and
+    transform *one* instance of special syntax at a time into regular Python
+    syntax. After each transformation, tokens are regenerated to find the next
+    piece of special syntax.
+
+    Subclasses need to implement one class method (find)
+    and one regular method (transform).
+    """
     # Lower numbers -> higher priority (for matches in the same location)
     priority = 10
 
@@ -126,15 +164,32 @@ class TokenTransformBase:
         self.start_line = start[0] - 1   # Shift from 1-index to 0-index
         self.start_col = start[1]
 
+    @classmethod
+    def find(cls, tokens_by_line):
+        """Find one instance of special syntax in the provided tokens.
+
+        Tokens are grouped into logical lines for convenience,
+        so it is easy to e.g. look at the first token of each line.
+        *tokens_by_line* is a list of lists of tokenize.TokenInfo objects.
+
+        This should return an instance of its class, pointing to the start
+        position it has found, or None if it found no match.
+        """
+        raise NotImplementedError
+
     def transform(self, lines: List[str]):
+        """Transform one instance of special syntax found by ``find()``
+
+        Takes a list of strings representing physical lines,
+        returns a similar list of transformed lines.
+        """
         raise NotImplementedError
 
 class MagicAssign(TokenTransformBase):
+    """Transformer for assignments from magics (a = %foo)"""
     @classmethod
     def find(cls, tokens_by_line):
         """Find the first magic assignment (a = %foo) in the cell.
-        
-        Returns (line, column) of the % if found, or None. *line* is 1-indexed.
         """
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
@@ -145,7 +200,7 @@ class MagicAssign(TokenTransformBase):
                 return cls(line[assign_ix+1].start)
     
     def transform(self, lines: List[str]):
-        """Transform a magic assignment found by find
+        """Transform a magic assignment found by the ``find()`` classmethod.
         """
         start_line, start_col = self.start_line, self.start_col
         lhs = lines[start_line][:start_col]
@@ -163,11 +218,10 @@ class MagicAssign(TokenTransformBase):
 
 
 class SystemAssign(TokenTransformBase):
+    """Transformer for assignments from system commands (a = !foo)"""
     @classmethod
     def find(cls, tokens_by_line):
         """Find the first system assignment (a = !foo) in the cell.
-
-        Returns (line, column) of the ! if found, or None. *line* is 1-indexed.
         """
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
@@ -184,7 +238,7 @@ class SystemAssign(TokenTransformBase):
                     ix += 1
 
     def transform(self, lines: List[str]):
-        """Transform a system assignment found by find
+        """Transform a system assignment found by the ``find()`` classmethod.
         """
         start_line, start_col = self.start_line, self.start_col
 
@@ -237,38 +291,42 @@ def _make_help_call(target, esc, next_input=None):
            (next_input, t_magic_name, t_magic_arg_s)
 
 def _tr_help(content):
-    "Translate lines escaped with: ?"
-    # A naked help line should just fire the intro help screen
+    """Translate lines escaped with: ?
+
+    A naked help line should fire the intro help screen (shell.show_usage())
+    """
     if not content:
         return 'get_ipython().show_usage()'
 
     return _make_help_call(content, '?')
 
 def _tr_help2(content):
-    "Translate lines escaped with: ??"
-    # A naked help line should just fire the intro help screen
+    """Translate lines escaped with: ??
+
+    A naked help line should fire the intro help screen (shell.show_usage())
+    """
     if not content:
         return 'get_ipython().show_usage()'
 
     return _make_help_call(content, '??')
 
 def _tr_magic(content):
-    "Translate lines escaped with: %"
+    "Translate lines escaped with a percent sign: %"
     name, _, args = content.partition(' ')
     return 'get_ipython().run_line_magic(%r, %r)' % (name, args)
 
 def _tr_quote(content):
-    "Translate lines escaped with: ,"
+    "Translate lines escaped with a comma: ,"
     name, _, args = content.partition(' ')
     return '%s("%s")' % (name, '", "'.join(args.split()) )
 
 def _tr_quote2(content):
-    "Translate lines escaped with: ;"
+    "Translate lines escaped with a semicolon: ;"
     name, _, args = content.partition(' ')
     return '%s("%s")' % (name, args)
 
 def _tr_paren(content):
-    "Translate lines escaped with: /"
+    "Translate lines escaped with a slash: /"
     name, _, args = content.partition(' ')
     return '%s(%s)' % (name, ", ".join(args.split()))
 
@@ -282,11 +340,10 @@ tr = { ESC_SHELL  : 'get_ipython().system({!r})'.format,
        ESC_PAREN  : _tr_paren }
 
 class EscapedCommand(TokenTransformBase):
+    """Transformer for escaped commands like %foo, !foo, or /foo"""
     @classmethod
     def find(cls, tokens_by_line):
         """Find the first escaped command (%foo, !foo, etc.) in the cell.
-
-        Returns (line, column) of the escape if found, or None. *line* is 1-indexed.
         """
         for line in tokens_by_line:
             ix = 0
@@ -296,6 +353,8 @@ class EscapedCommand(TokenTransformBase):
                 return cls(line[ix].start)
 
     def transform(self, lines):
+        """Transform an escaped line found by the ``find()`` classmethod.
+        """
         start_line, start_col = self.start_line, self.start_col
 
         indent = lines[start_line][:start_col]
@@ -323,6 +382,7 @@ _help_end_re = re.compile(r"""(%{0,2}
                               re.VERBOSE)
 
 class HelpEnd(TokenTransformBase):
+    """Transformer for help syntax: obj? and obj??"""
     # This needs to be higher priority (lower number) than EscapedCommand so
     # that inspecting magics (%foo?) works.
     priority = 5
@@ -334,6 +394,8 @@ class HelpEnd(TokenTransformBase):
 
     @classmethod
     def find(cls, tokens_by_line):
+        """Find the first help command (foo?) in the cell.
+        """
         for line in tokens_by_line:
             # Last token is NEWLINE; look at last but one
             if len(line) > 2 and line[-2].string == '?':
@@ -344,6 +406,8 @@ class HelpEnd(TokenTransformBase):
                 return cls(line[ix].start, line[-2].start)
 
     def transform(self, lines):
+        """Transform a help command found by the ``find()`` classmethod.
+        """
         piece = ''.join(lines[self.start_line:self.q_line+1])
         indent, content = piece[:self.start_col], piece[self.start_col:]
         lines_before = lines[:self.start_line]
@@ -396,7 +460,7 @@ def make_tokens_by_line(lines):
     return tokens_by_line
 
 def show_linewise_tokens(s: str):
-    """For investigation"""
+    """For investigation and debugging"""
     if not s.endswith('\n'):
         s += '\n'
     lines = s.splitlines(keepends=True)
@@ -409,6 +473,11 @@ def show_linewise_tokens(s: str):
 TRANSFORM_LOOP_LIMIT = 500
 
 class TransformerManager:
+    """Applies various transformations to a cell or code block.
+
+    The key methods for external use are ``transform_cell()``
+    and ``check_complete()``.
+    """
     def __init__(self):
         self.cleanup_transforms = [
             leading_indent,
@@ -462,7 +531,8 @@ class TransformerManager:
         raise RuntimeError("Input transformation still changing after "
                            "%d iterations. Aborting." % TRANSFORM_LOOP_LIMIT)
 
-    def transform_cell(self, cell: str):
+    def transform_cell(self, cell: str) -> str:
+        """Transforms a cell of input code"""
         if not cell.endswith('\n'):
             cell += '\n'  # Ensure the cell has a trailing newline
         lines = cell.splitlines(keepends=True)
