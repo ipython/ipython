@@ -68,8 +68,8 @@ def create_ipython_shortcuts(shell):
                           & insert_mode
                           & cursor_in_leading_ws
                         ))(indent_buffer)
-    kb.add('c-o', filter=(has_focus(DEFAULT_BUFFER)
-                  & emacs_insert_mode))(newline_autoindent_outer(shell.input_transformer_manager))
+    kb.add('c-o', filter=(has_focus(DEFAULT_BUFFER) & emacs_insert_mode)
+           )(newline_autoindent_outer(shell.input_transformer_manager))
 
     kb.add('f2', filter=has_focus(DEFAULT_BUFFER))(open_input_in_editor)
 
