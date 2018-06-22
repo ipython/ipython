@@ -153,6 +153,10 @@ class TokenTransformBase:
 
     Subclasses need to implement one class method (find)
     and one regular method (transform).
+
+    The priority attribute can select which transformation to apply if multiple
+    transformers match in the same place. Lower numbers have higher priority.
+    This allows "%magic?" to be turned into a help call rather than a magic call.
     """
     # Lower numbers -> higher priority (for matches in the same location)
     priority = 10
