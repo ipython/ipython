@@ -8,7 +8,7 @@ import os
 import sys
 import signal
 import time
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, CalledProcessError
 import atexit
 
 from IPython.core import magic_arguments
@@ -54,6 +54,12 @@ def script_args(f):
             This is used only when --bg option is given.
             """
         ),
+        magic_arguments.argument(
+            '--raise-error', action="store_true",
+            help="""Whether you should raise an error message in addition to 
+            a stream on stderr if you get a nonzero exit code.
+            """
+        )
     ]
     for arg in args:
         f = arg(f)
@@ -235,6 +241,8 @@ class ScriptMagics(Magics):
         else:
             sys.stderr.write(err)
             sys.stderr.flush()
+        if args.raise_error and p.returncode!=0:
+            raise CalledProcessError(p.returncode, cell, output=out, stderr=err)
     
     def _run_script(self, p, cell, to_close):
         """callback for running the script in the background"""
