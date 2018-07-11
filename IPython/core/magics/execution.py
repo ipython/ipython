@@ -962,11 +962,12 @@ python-profiler package from non-free.""")
           body has access to any variables created in the setup code.
 
         Options:
-        -n<N>: execute the given statement <N> times in a loop. If this value
-        is not given, a fitting value is chosen.
+        -n<N>: execute the given statement <N> times in a loop. If <N> is not
+        provided, <N> is determined so as to get sufficient accuracy.
 
-        -r<R>: repeat the loop iteration <R> times and take the best result.
-        Default: 3
+        -r<R>: number of repeats <R>, each consisting of <N> loops, and take the
+        best result.
+        Default: 7
 
         -t: use time.time to measure the time, which is the default on Unix.
         This function measures wall time.
