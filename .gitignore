@@ -24,3 +24,5 @@ __pycache__
 .cache
 .coverage
 *.swp
+.vscode
+.pytest_cache
