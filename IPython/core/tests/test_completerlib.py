@@ -170,6 +170,9 @@ def test_module_without_init():
     fake_module_name = "foo"
     with TemporaryDirectory() as tmpdir:
         sys.path.insert(0, tmpdir)
-        os.makedirs(os.path.join(tmpdir, fake_module_name))
-        s = try_import(mod=fake_module_name)
-        assert s == []
+        try:
+            os.makedirs(os.path.join(tmpdir, fake_module_name))
+            s = try_import(mod=fake_module_name)
+            assert s == []
+        finally:
+            sys.path.remove(tmpdir)
