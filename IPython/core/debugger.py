@@ -498,7 +498,7 @@ class Pdb(OldPdb):
         """
         self.lastcmd = 'list'
         last = None
-        if arg:
+        if arg and arg != '.':
             try:
                 x = eval(arg, {}, {})
                 if type(x) == type(()):
@@ -513,7 +513,7 @@ class Pdb(OldPdb):
             except:
                 print('*** Error in argument:', repr(arg))
                 return
-        elif self.lineno is None:
+        elif self.lineno is None or arg == '.':
             first = max(1, self.curframe.f_lineno - 5)
         else:
             first = self.lineno + 1
