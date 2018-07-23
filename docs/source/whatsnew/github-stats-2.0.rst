@@ -1416,7 +1416,7 @@ Issues (434):
 * :ghissue:`4759`: Application._load_config_files log parameter default fails
 * :ghissue:`3153`: docs / file menu: explain how to exit the notebook
 * :ghissue:`4791`: Did updates to ipython_directive bork support for cython magic snippets?
-* :ghissue:`4385`: "Part 4 - Markdown Cells.ipynb" nbviewer example seems not well referenced in current online documentation page http://ipython.org/ipython-doc/stable/interactive/notebook.htm
+* :ghissue:`4385`: "Part 4 - Markdown Cells.ipynb" nbviewer example seems not well referenced in current online documentation page https://ipython.org/ipython-doc/stable/interactive/notebook.htm
 * :ghissue:`4655`: prefer marked to pandoc for markdown2html
 * :ghissue:`3441`: Fix focus related problems in the notebook
 * :ghissue:`3402`: Feature Request: Save As (latex, html,..etc) as a menu option in Notebook rather than explicit need to invoke nbconvert

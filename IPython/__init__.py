@@ -2,7 +2,7 @@
 """
 IPython: tools for interactive and parallel computing in Python.
 
-http://ipython.org
+https://ipython.org
 """
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2008-2011, IPython Development Team.

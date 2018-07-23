@@ -28,7 +28,7 @@ Overview
 
 This document describes in detail the steps required to install IPython. For a
 few quick ways to get started with package managers or full Python
-distributions, see `the install page <http://ipython.org/install.html>`_ of the
+distributions, see `the install page <https://ipython.org/install.html>`_ of the
 IPython website.
 
 Please let us know if you have problems installing IPython or any of its

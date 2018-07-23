@@ -55,7 +55,7 @@ Or see the `development installation docs
 for the latest revision on read the docs.
 
 Documentation and installation instructions for older version of IPython can be
-found on the `IPython website <http://ipython.org/documentation.html>`_
+found on the `IPython website <https://ipython.org/documentation.html>`_
 
 
 
@@ -87,7 +87,7 @@ manager.
 
 For more information see one of our blog posts:
 
-    http://blog.jupyter.org/2016/07/08/ipython-5-0-released/
+    https://blog.jupyter.org/2016/07/08/ipython-5-0-released/
 
 As well as the following Pull-Request for discussion:
 
