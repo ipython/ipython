@@ -27,5 +27,5 @@ done some work in the classic Python REPL.
 
 .. seealso::
 
-    `A Qt Console for Jupyter <http://jupyter.org/qtconsole/>`__
+    `A Qt Console for Jupyter <https://jupyter.org/qtconsole/>`__
     `The Jupyter Notebook <http://jupyter-notebook.readthedocs.io/en/latest/>`__

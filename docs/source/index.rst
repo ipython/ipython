@@ -22,7 +22,7 @@ interactively.  Its main components are:
     :align: center
 
 
-* A `Jupyter <http://jupyter.org/>`_ kernel to work with Python code in Jupyter
+* A `Jupyter <https://jupyter.org/>`_ kernel to work with Python code in Jupyter
   notebooks and other interactive frontends.
 
 The enhanced interactive Python shells and kernel have the following main
