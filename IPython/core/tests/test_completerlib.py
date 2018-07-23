@@ -16,7 +16,7 @@ from os.path import join
 
 import nose.tools as nt
 
-from IPython.core.completerlib import magic_run_completer, module_completion
+from IPython.core.completerlib import magic_run_completer, module_completion, try_import
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.testing.decorators import onlyif_unicode_paths
 
@@ -159,3 +159,20 @@ def test_bad_module_all():
             nt.assert_is_instance(r, str)
     finally:
         sys.path.remove(testsdir)
+
+
+def test_module_without_init():
+    """
+    Test module without __init__.py.
+    
+    https://github.com/ipython/ipython/issues/11226
+    """
+    fake_module_name = "foo"
+    with TemporaryDirectory() as tmpdir:
+        sys.path.insert(0, tmpdir)
+        try:
+            os.makedirs(os.path.join(tmpdir, fake_module_name))
+            s = try_import(mod=fake_module_name)
+            assert s == []
+        finally:
+            sys.path.remove(tmpdir)
