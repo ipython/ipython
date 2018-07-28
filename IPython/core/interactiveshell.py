@@ -2756,6 +2756,14 @@ class InteractiveShell(SingletonConfigurable):
                 # Compile to bytecode
                 try:
                     code_ast = compiler.ast_parse(cell, filename=cell_name)
+                    # Python 3.7: some single statements (bare strings) can be treated
+                    # differently and won't result in nodes in the body.
+                    # Recompile with 'single' and reconstruct a Module from the resulting
+                    # Interactive node.
+                    if len(code_ast.body) == 0:
+                        interactive = compiler.ast_parse(
+                            cell, filename=cell_name, symbol="single")
+                        code_ast = ast.Module(interactive.body)
                 except self.custom_exceptions as e:
                     etype, value, tb = sys.exc_info()
                     self.CustomTB(etype, value, tb)
