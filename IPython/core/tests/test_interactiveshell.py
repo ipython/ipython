@@ -546,7 +546,8 @@ class ExitCodeChecks(tt.TempFileMixin):
             else:
                 del os.environ['SHELL']
 
-class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
+
+class TestSystemRaw(ExitCodeChecks, unittest.TestCase):
     system = ip.system_raw
 
     @onlyif_unicode_paths
@@ -567,7 +568,7 @@ class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
         self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGINT)
 
 # TODO: Exit codes are currently ignored on Windows.
-class TestSystemPipedExitCode(unittest.TestCase, ExitCodeChecks):
+class TestSystemPipedExitCode(ExitCodeChecks, unittest.TestCase):
     system = ip.system_piped
 
     @skip_win32
@@ -582,7 +583,7 @@ class TestSystemPipedExitCode(unittest.TestCase, ExitCodeChecks):
     def test_exit_code_signal(self):
         ExitCodeChecks.test_exit_code_signal(self)
 
-class TestModules(unittest.TestCase, tt.TempFileMixin):
+class TestModules(tt.TempFileMixin, unittest.TestCase):
     def test_extraneous_loads(self):
         """Test we're not loading modules on startup that we shouldn't.
         """
