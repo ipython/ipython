@@ -2,7 +2,7 @@
  5.x Series
 ============
 
-.. _whatsnew580
+.. _whatsnew580:
 
 IPython 5.8.0
 =============
