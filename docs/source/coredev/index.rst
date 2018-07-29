@@ -34,7 +34,7 @@ backport to.
 
 .. note::
 
-    The ``@`` and ``[dev]`` when mentioning the bot should be optional and can
+    The ``@`` and ``[bot]`` when mentioning the bot should be optional and can
     be omitted.
 
 If the pull request cannot be automatically backported, the bot should tell you
@@ -44,7 +44,7 @@ so on the PR and apply a "Need manual backport" tag to the origin PR.
 Backport with ghpro
 -------------------
 
-We can also use `ghpro <https://pypi.python.org/pypi/ghpro>`
+We can also use `ghpro <https://pypi.python.org/pypi/ghpro>`_
 to automatically list and apply the PR on other branches. For example:
 
 .. code-block:: bash
