@@ -2,6 +2,12 @@
  5.x Series
 ============
 
+.. _whatsnew580
+
+IPython 5.8.0
+=============
+
+* Update inspecting function/methods for future-proofing. :ghpull:`11139`
 
 .. _whatsnew570:
 
