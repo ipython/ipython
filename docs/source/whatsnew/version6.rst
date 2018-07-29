@@ -10,8 +10,8 @@ IPython 6.5.0
 Miscellaneous bug fixes and compatibility with Python 3.7.
 
 * Autocompletion fix for modules with out ``__init__.py`` :ghpull:`11227`
-* update the ``%pastbin`` magic to use ``dpaste.com`` instead og GitHub Gist
-  which now require authentication :ghpull:`11182`
+* update the ``%pastebin`` magic to use ``dpaste.com`` instead og GitHub Gist
+  which now requires authentication :ghpull:`11182`
 * Fix crash with multiprocessing :ghpull:`11185`
 
 .. _whatsnew640:
