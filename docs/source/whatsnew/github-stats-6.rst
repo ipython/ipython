@@ -1,6 +1,24 @@
 Issues closed in the 6.x development cycle
 ==========================================
 
+Issues closed in 6.5
+--------------------
+
+GitHub stats for 2018/05/10 - 2018/07/29 (tag: 6.4.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 1 issues and merged 11 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A6.5>`__
+
+The following 5 authors contributed 23 commits.
+
+* Anatol Ulrich
+* gpotter2
+* Matthias Bussonnier
+* Thomas Kluyver
+* Wei Yen
+
 Issues closed in 6.3
 --------------------
 
