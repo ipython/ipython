@@ -202,7 +202,7 @@ def get_home_dir(require_writable=False):
                 import _winreg as wreg  # Py 2
             key = wreg.OpenKey(
                 wreg.HKEY_CURRENT_USER,
-                "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+                r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
             )
             homedir = wreg.QueryValueEx(key,'Personal')[0]
             key.Close()
