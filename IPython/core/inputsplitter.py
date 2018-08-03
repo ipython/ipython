@@ -65,7 +65,7 @@ ini_spaces_re = re.compile(r'^([ \t\r\f\v]+)')
 
 # regexp to match pure comment lines so we don't accidentally insert 'if 1:'
 # before pure comments
-comment_line_re = re.compile('^\s*\#')
+comment_line_re = re.compile(r'^\s*\#')
 
 
 def num_ini_spaces(s):
