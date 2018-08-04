@@ -85,12 +85,12 @@ import re
 import sys
 import types
 from collections import deque
+from inspect import signature
 from io import StringIO
 from warnings import warn
 
 from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY
-from IPython.utils.signatures import signature
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name']
