@@ -201,6 +201,7 @@ install_requires = [
 
 extras_require.update({
     ':python_version == "3.4"': ['typing'],
+    ':python_version >= "3.5"': ['trio', 'curio'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
     ':sys_platform == "win32"': ['colorama'],

@@ -13,6 +13,7 @@
 
 import abc
 import ast
+import asyncio
 import atexit
 import builtins as builtin_mod
 import functools
@@ -30,6 +31,7 @@ from io import open as io_open
 from pickleshare import PickleShareDB
 
 from traitlets.config.configurable import SingletonConfigurable
+from traitlets.utils.importstring import import_item
 from IPython.core import oinspect
 from IPython.core import magic
 from IPython.core import page
@@ -73,7 +75,7 @@ from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
 from IPython.utils.tempdir import TemporaryDirectory
 from traitlets import (
     Integer, Bool, CaselessStrEnum, Enum, List, Dict, Unicode, Instance, Type,
-    observe, default,
+    observe, default, validate, Any
 )
 from warnings import warn
 from logging import error
@@ -112,6 +114,102 @@ else:
     _assign_nodes         = (ast.AugAssign, ast.Assign )
     _single_targets_nodes = (ast.AugAssign, )
 
+#-----------------------------------------------------------------------------
+# Await Helpers
+#-----------------------------------------------------------------------------
+
+def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
+    """Return a function that do not create a new local scope. 
+
+    Given a function, create a clone of this function where the co_newlocal flag
+    has been removed, making this function code actually run in the sourounding
+    scope. 
+
+    We need this in order to run asynchronous code in user level namespace.
+    """
+    from types import CodeType, FunctionType
+    CO_NEWLOCALS = 0x0002
+    code = function.__code__
+    new_code = CodeType(
+        code.co_argcount, 
+        code.co_kwonlyargcount,
+        code.co_nlocals, 
+        code.co_stacksize, 
+        code.co_flags & ~CO_NEWLOCALS,
+        code.co_code, 
+        code.co_consts,
+        code.co_names, 
+        code.co_varnames, 
+        code.co_filename, 
+        code.co_name, 
+        code.co_firstlineno, 
+        code.co_lnotab, 
+        code.co_freevars, 
+        code.co_cellvars
+    )
+    return FunctionType(new_code, globals(), function.__name__, function.__defaults__)
+
+
+if sys.version_info > (3,5):
+    from .async_helpers import (_asyncio_runner, _curio_runner, _trio_runner,
+                                _should_be_async, _asyncify
+                                )
+else :
+    _asyncio_runner = _curio_runner = _trio_runner = None
+
+    def _should_be_async(whatever:str)->bool:
+        return False
+
+
+def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
+    """
+    Parse a cell with top-level await and modify the AST to be able to run it later.
+
+    Parameter
+    ---------
+
+    cell: str
+        The code cell to asyncronify
+    wrapper_name: str
+        The name of the function to be used to wrap the passed `cell`. It is
+        advised to **not** use a python identifier in order to not pollute the
+        global namespace in which the function will be ran.
+
+    Return
+    ------
+
+    A module object AST containing **one** function named `wrapper_name`.
+
+    The given code is wrapped in a async-def function, parsed into an AST, and
+    the resulting function definition AST is modified to return the last
+    expression.
+
+    The last expression or await node is moved into a return statement at the
+    end of the function, and removed from its original location. If the last
+    node is not Expr or Await nothing is done.
+
+    The function `__code__` will need to be later modified  (by
+    ``removed_co_newlocals``) in a subsequent step to not create new `locals()`
+    meaning that the local and global scope are the same, ie as if the body of
+    the function was at module level.
+
+    Lastly a call to `locals()` is made just before the last expression of the
+    function, or just after the last assignment or statement to make sure the
+    global dict is updated as python function work with a local fast cache which
+    is updated only on `local()` calls.
+    """
+
+    from ast import Expr, Await, Return
+    tree = ast.parse(_asyncify(cell))
+
+    function_def = tree.body[0]
+    function_def.name = wrapper_name
+    try_block = function_def.body[0]
+    lastexpr = try_block.body[-1]
+    if isinstance(lastexpr, (Expr, Await)):
+        try_block.body[-1] = Return(lastexpr.value)
+    ast.fix_missing_locations(tree)
+    return tree
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -257,6 +355,40 @@ class InteractiveShell(SingletonConfigurable):
         Autoindent IPython code entered interactively.
         """
     ).tag(config=True)
+
+    autoawait = Bool(True, help=
+        """
+        Automatically run await statement in the top level repl.
+        """
+    ).tag(config=True)
+
+    loop_runner_map ={
+        'asyncio':_asyncio_runner,
+        'curio':_curio_runner,
+        'trio':_trio_runner,
+    }
+
+    loop_runner = Any(default_value="IPython.core.interactiveshell._asyncio_runner",
+        allow_none=True,
+        help="""Select the loop runner that will be used to execute top-level asynchronous code"""
+    ).tag(config=True)
+
+    @default('loop_runner')
+    def _default_loop_runner(self):
+        return import_item("IPython.core.interactiveshell._asyncio_runner")
+
+    @validate('loop_runner')
+    def _import_runner(self, proposal):
+        if isinstance(proposal.value, str):
+            if proposal.value in self.loop_runner_map:
+                return self.loop_runner_map[proposal.value]
+            runner = import_item(proposal.value)
+            if not callable(runner):
+                raise ValueError('loop_runner must be callable')
+            return runner
+        if not callable(proposal.value):
+            raise ValueError('loop_runner must be callable')
+        return proposal.value
 
     automagic = Bool(True, help=
         """
@@ -1984,7 +2116,6 @@ class InteractiveShell(SingletonConfigurable):
         self.set_hook('complete_command', cd_completer, str_key = '%cd')
         self.set_hook('complete_command', reset_completer, str_key = '%reset')
 
-
     @skip_doctest
     def complete(self, text, line=None, cursor_pos=None):
         """Return the completed text and a list of completions.
@@ -2657,8 +2788,20 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
         """
+        return self.loop_runner(
+            self.run_cell_async(
+                raw_cell,
+                store_history=store_history,
+                silent=silent,
+                shell_futures=shell_futures,
+            )
+        )
+
+    @asyncio.coroutine
+    def run_cell_async(self, raw_cell, store_history=False, silent=False, shell_futures=True):
+        """Run a complete IPython cell asynchronously."""
         try:
-            result = self._run_cell(
+            result = yield from self._run_cell(
                 raw_cell, store_history, silent, shell_futures)
         finally:
             self.events.trigger('post_execute')
@@ -2666,15 +2809,26 @@ class InteractiveShell(SingletonConfigurable):
                 self.events.trigger('post_run_cell', result)
         return result
 
+    @asyncio.coroutine
     def _run_cell(self, raw_cell, store_history, silent, shell_futures):
         """Internal method to run a complete IPython cell.
 
         Parameters
         ----------
         raw_cell : str
+          The code (including IPython code such as %magic functions) to run.
         store_history : bool
+          If True, the raw and translated cell will be stored in IPython's
+          history. For user code calling back into IPython's machinery, this
+          should be set to False.
         silent : bool
+          If True, avoid side-effects, such as implicit displayhooks and
+          and logging.  silent=True forces store_history=False.
         shell_futures : bool
+          If True, the code will share future statements with the interactive
+          shell. It will both be affected by previous __future__ imports, and
+          any __future__ imports in the code will affect the shell. If False,
+          __future__ imports are not shared in either direction.
 
         Returns
         -------
@@ -2749,13 +2903,33 @@ class InteractiveShell(SingletonConfigurable):
         # compiler
         compiler = self.compile if shell_futures else CachingCompiler()
 
+        _run_async = False
+
         with self.builtin_trap:
             cell_name = self.compile.cache(cell, self.execution_count)
 
             with self.display_trap:
                 # Compile to bytecode
                 try:
-                    code_ast = compiler.ast_parse(cell, filename=cell_name)
+                    if self.autoawait and _should_be_async(cell):
+                        # the code AST below will not be user code: we wrap it
+                        # in an `async def`. This will likely make some AST
+                        # transformer below miss some transform opportunity and
+                        # introduce a small coupling to run_code (in which we
+                        # bake some assumptions of what _ast_asyncify returns.
+                        # they are ways around (like grafting part of the ast
+                        # later:
+                        #    - Here, return code_ast.body[0].body[1:-1], as well
+                        #    as last expression in  return statement which is
+                        #    the user code part.
+                        #    - Let it go through the AST transformers, and graft
+                        #    - it back after the AST transform
+                        # But that seem unreasonable, at least while we
+                        # do not need it.
+                        code_ast = _ast_asyncify(cell, 'async-def-wrapper')
+                        _run_async = True
+                    else:
+                        code_ast = compiler.ast_parse(cell, filename=cell_name)
                 except self.custom_exceptions as e:
                     etype, value, tb = sys.exc_info()
                     self.CustomTB(etype, value, tb)
@@ -2780,10 +2954,12 @@ class InteractiveShell(SingletonConfigurable):
                 self.displayhook.exec_result = result
 
                 # Execute the user code
-                interactivity = 'none' if silent else self.ast_node_interactivity
-                has_raised = self.run_ast_nodes(code_ast.body, cell_name,
-                   interactivity=interactivity, compiler=compiler, result=result)
-                
+                interactivity = "none" if silent else self.ast_node_interactivity
+                if _run_async:
+                    interactivity = "async"
+                has_raised = yield from self.run_ast_nodes(code_ast.body, cell_name,
+                       interactivity=interactivity, compiler=compiler, result=result)
+
                 self.last_execution_succeeded = not has_raised
                 self.last_execution_result = result
 
@@ -2826,14 +3002,13 @@ class InteractiveShell(SingletonConfigurable):
             except Exception:
                 warn("AST transformer %r threw an error. It will be unregistered." % transformer)
                 self.ast_transformers.remove(transformer)
-        
+
         if self.ast_transformers:
             ast.fix_missing_locations(node)
         return node
-                
 
     def run_ast_nodes(self, nodelist:ListType[AST], cell_name:str, interactivity='last_expr',
-                        compiler=compile, result=None):
+                      compiler=compile, result=None):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
 
@@ -2852,6 +3027,12 @@ class InteractiveShell(SingletonConfigurable):
           are not displayed) 'last_expr_or_assign' will run the last expression
           or the last assignment. Other values for this parameter will raise a
           ValueError.
+
+          Experimental value: 'async' Will try to run top level interactive
+          async/await code in default runner, this will not respect the
+          interactivty setting and will only run the last node if it is an
+          expression.
+
         compiler : callable
           A function with the same interface as the built-in compile(), to turn
           the AST nodes into code objects. Default is the built-in compile().
@@ -2865,6 +3046,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not nodelist:
             return
+        _async = False
         if interactivity == 'last_expr_or_assign':
             if isinstance(nodelist[-1], _assign_nodes):
                 asg = nodelist[-1]
@@ -2892,20 +3074,32 @@ class InteractiveShell(SingletonConfigurable):
             to_run_exec, to_run_interactive = nodelist[:-1], nodelist[-1:]
         elif interactivity == 'all':
             to_run_exec, to_run_interactive = [], nodelist
+        elif interactivity == 'async':
+            _async = True
         else:
             raise ValueError("Interactivity was %r" % interactivity)
         try:
-            for i, node in enumerate(to_run_exec):
-                mod = ast.Module([node])
-                code = compiler(mod, cell_name, "exec")
-                if self.run_code(code, result):
+            if _async:
+                # If interactivity is async the semantics of run_code are
+                # completely different Skip usual machinery.
+                mod = ast.Module(nodelist)
+                async_wrapper_code = compiler(mod, 'cell_name', 'exec')
+                exec(async_wrapper_code, self.user_global_ns, self.user_ns)
+                async_code = removed_co_newlocals(self.user_ns.pop('async-def-wrapper')).__code__
+                if (yield from self.run_code(async_code, result, async_=True)):
                     return True
+            else:
+                for i, node in enumerate(to_run_exec):
+                    mod = ast.Module([node])
+                    code = compiler(mod, cell_name, "exec")
+                    if (yield from self.run_code(code, result)):
+                        return True
 
-            for i, node in enumerate(to_run_interactive):
-                mod = ast.Interactive([node])
-                code = compiler(mod, cell_name, "single")
-                if self.run_code(code, result):
-                    return True
+                for i, node in enumerate(to_run_interactive):
+                    mod = ast.Interactive([node])
+                    code = compiler(mod, cell_name, "single")
+                    if (yield from self.run_code(code, result)):
+                        return True
 
             # Flush softspace
             if softspace(sys.stdout, 0):
@@ -2928,7 +3122,23 @@ class InteractiveShell(SingletonConfigurable):
 
         return False
 
-    def run_code(self, code_obj, result=None):
+    def _async_exec(self, code_obj: types.CodeType, user_ns: dict):
+        """
+        Evaluate an asynchronous code object using a code runner
+
+        Fake asynchronous execution of code_object in a namespace via a proxy namespace.
+
+        Returns coroutine object, which can be executed via async loop runner
+
+        WARNING: The semantics of `async_exec` are quite different from `exec`,
+        in particular you can only pass a single namespace. It also return a
+        handle to the value of the last things returned by code_object.
+        """
+
+        return eval(code_obj, user_ns)
+
+    @asyncio.coroutine
+    def run_code(self, code_obj, result=None, *, async_=False):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -2940,6 +3150,8 @@ class InteractiveShell(SingletonConfigurable):
           A compiled code object, to be executed
         result : ExecutionResult, optional
           An object to store exceptions that occur during execution.
+        async_ :  Bool (Experimental)
+          Attempt to run top-level asynchronous code in a default loop.
 
         Returns
         -------
@@ -2957,8 +3169,12 @@ class InteractiveShell(SingletonConfigurable):
         try:
             try:
                 self.hooks.pre_run_code_hook()
-                #rprint('Running code', repr(code_obj)) # dbg
-                exec(code_obj, self.user_global_ns, self.user_ns)
+                if async_:
+                    last_expr = (yield from self._async_exec(code_obj, self.user_ns))
+                    code = compile('last_expr', 'fake', "single")
+                    exec(code, {'last_expr': last_expr})
+                else:
+                    exec(code_obj, self.user_global_ns, self.user_ns)
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook

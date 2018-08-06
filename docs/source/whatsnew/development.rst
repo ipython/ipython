@@ -11,6 +11,17 @@ This document describes in-flight development work.
     `docs/source/whatsnew/pr` folder
 
 
+Released .... ...., 2018
+
+
+Need to be updated:
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   pr/*
+
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
