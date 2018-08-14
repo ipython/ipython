@@ -77,7 +77,9 @@ def _should_be_async(cell: str) -> bool:
     """
 
     try:
-        ast.parse(cell)
+        # we can't limit ourself to ast.parse, as it __accepts__ to parse on
+        # 3.7+, but just does not _compile_
+        compile(cell, '<>', 'exec')
         return False
     except SyntaxError:
         try:
