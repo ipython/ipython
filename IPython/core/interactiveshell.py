@@ -150,14 +150,16 @@ def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
     return FunctionType(new_code, globals(), function.__name__, function.__defaults__)
 
 
-if sys.version_info > (3,5):
-    from .async_helpers import (_asyncio_runner, _curio_runner, _trio_runner,
-                                _should_be_async, _asyncify
-                                )
-else :
-    _asyncio_runner = _curio_runner = _trio_runner = None
+# we still need to run things using the asyncio eventloop, but there is no
+# async integration
+from .async_helpers import (_asyncio_runner,  _asyncify)
 
-    def _should_be_async(whatever:str)->bool:
+if sys.version_info > (3,5):
+    from .async_helpers import _curio_runner, _trio_runner, _should_be_async
+else :
+    _curio_runner = _trio_runner = None
+
+    def _should_be_async(cell:str)->bool:
         return False
 
 
@@ -2200,6 +2202,8 @@ class InteractiveShell(SingletonConfigurable):
             m.ExtensionMagics, m.HistoryMagics, m.LoggingMagics,
             m.NamespaceMagics, m.OSMagics, m.PylabMagics, m.ScriptMagics,
         )
+        if sys.version_info >(3,5):
+            self.register_magics(m.AsyncMagics)
 
         # Register Magic Aliases
         mman = self.magics_manager
