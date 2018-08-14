@@ -1,5 +1,4 @@
-
-.. autoawait:
+.. _autoawait:
 
 Asynchronous in REPL: Autoawait
 ===============================
