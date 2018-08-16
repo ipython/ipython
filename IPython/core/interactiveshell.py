@@ -154,7 +154,7 @@ def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
 # async integration
 from .async_helpers import (_asyncio_runner,  _asyncify)
 
-if sys.version_info > (3,5):
+if sys.version_info > (3, 5):
     from .async_helpers import _curio_runner, _trio_runner, _should_be_async
 else :
     _curio_runner = _trio_runner = None

@@ -89,6 +89,7 @@ def _should_be_async(cell: str) -> bool:
     except SyntaxError:
         try:
             ast.parse(_asyncify(cell))
+            # TODO verify ast has not "top level" return or yield.
         except SyntaxError:
             return False
         return True

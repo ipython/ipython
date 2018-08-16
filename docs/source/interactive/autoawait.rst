@@ -3,12 +3,17 @@
 Asynchronous in REPL: Autoawait
 ===============================
 
-Starting with IPython 6.0, and when user Python 3.6 and above, IPython offer the
-ability to run asynchronous code from the REPL. constructs which are
+Starting with IPython 7.0, and when user Python 3.6 and above, IPython offer the
+ability to run asynchronous code from the REPL. Constructs which are
 :exc:`SyntaxError` s in the Python REPL can be used seamlessly in IPython.
 
-When a supported libray is used, IPython will automatically `await` Futures
-and Coroutines in the REPL. This will happen if an :ref:`await <await>` (or `async`) is
+The example given here are for terminal IPython, running async code in a
+notebook interface or any other frontend using the Jupyter protocol will need to
+use a newer version of IPykernel. The details of how async code runs in
+IPykernel will differ between IPython, IPykernel and their versions.
+
+When a supported library is used, IPython will automatically `await` Futures
+and Coroutines in the REPL. This will happen if an :ref:`await <await>` is
 use at top level scope, or if any structure valid only in `async def
 <https://docs.python.org/3/reference/compound_stmts.html#async-def>`_ function
 context are present. For example, the following being a syntax error in the
@@ -29,7 +34,7 @@ Should behave as expected in the IPython REPL::
 
     Python 3.6.0
     Type 'copyright', 'credits' or 'license' for more information
-    IPython 6.0.0.dev -- An enhanced Interactive Python. Type '?' for help.
+    IPython 7.0.0 -- An enhanced Interactive Python. Type '?' for help.
 
     In [1]: import aiohttp
        ...: result = aiohttp.get('https://api.github.com')
@@ -58,7 +63,9 @@ use the :magic:`%autoawait` magic to toggle the behavior at runtime::
 
 By default IPython will assume integration with Python's provided
 :mod:`asyncio`, but integration with other libraries is provided. In particular
-we provide experimental integration with the ``curio`` and ``trio`` library.
+we provide experimental integration with the ``curio`` and ``trio`` library, the
+later one being necessary if you require the ability to do nested call of
+IPython's ``embed()`` functionality.
 
 You can switch current integration by using the
 ``c.InteractiveShell.loop_runner`` option or the ``autoawait <name
@@ -103,24 +110,25 @@ other features of IPython and various registered extensions. In particular if yo
 are a direct or indirect user of the AST transformers, these may not apply to
 your code.
 
-The default loop, or runner does not run in the background, so top level
-asynchronous code must finish for the REPL to allow you to enter more code. As
-with usual Python semantic, the awaitables are started only when awaited for the
-first time. That is to say, in first example, no network request is done between
-``In[1]`` and ``In[2]``.
+When Using command line IPython, the default loop (or runner) does not process
+in the background, so top level asynchronous code must finish for the REPL to
+allow you to enter more code. As with usual Python semantic, the awaitables are
+started only when awaited for the first time. That is to say, in first example,
+no network request is done between ``In[1]`` and ``In[2]``.
 
 
 Internals
 =========
 
-As running asynchronous code is not supported in interactive REPL as of Python
-3.6 we have to rely to a number of complex workaround to allow this to happen.
-It is interesting to understand how this works in order to understand potential
+As running asynchronous code is not supported in interactive REPL (as of Python
+3.7) we have to rely to a number of complex workaround to allow this to happen.
+It is interesting to understand how this works in order to comprehend potential
 bugs, or provide a custom runner.
 
 Among the many approaches that are at our disposition, we find only one that
-suited out need. Under the hood we :ct the code object from a async-def function
-and run it in global namesapace after modifying the ``__code__`` object.::
+suited out need. Under the hood we use the code object from a async-def function
+and run it in global namespace after modifying it to not create a new
+``locals()`` scope::
 
     async def inner_async():
         locals().update(**global_namespace)
@@ -135,7 +143,7 @@ and run it in global namesapace after modifying the ``__code__`` object.::
 
 
 The first thing you'll notice is that unlike classical ``exec``, there is only
-one name space. Second, user code runs in a function scope, and not a module
+one namespace. Second, user code runs in a function scope, and not a module
 scope.
 
 On top of the above there are significant modification to the AST of
@@ -181,5 +189,5 @@ We can set it up by passing it to ``%autoawait``::
 
 
 Asynchronous programming in python (and in particular in the REPL) is still a
-relatively young subject. Feel free to contribute improvements to this codebase
-and give us feedback.
+relatively young subject. We expect some code to not behave as you expect, so
+feel free to contribute improvements to this codebase and give us feedback.
