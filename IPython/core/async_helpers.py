@@ -9,7 +9,6 @@ be prevented as early return will not work.
 """
 
 
-
 import ast
 import sys
 import inspect
@@ -22,6 +21,7 @@ def _asyncio_runner(coro):
     Handler for asyncio autoawait
     """
     import asyncio
+
     return asyncio.get_event_loop().run_until_complete(coro)
 
 
@@ -30,12 +30,14 @@ def _curio_runner(coroutine):
     handler for curio autoawait
     """
     import curio
+
     return curio.run(coroutine)
 
 
 if sys.version_info > (3, 5):
     # nose refuses to avoid this file and async def is invalidsyntax
-    s = dedent('''
+    s = dedent(
+        '''
     def _trio_runner(function):
         import trio
         async def loc(coro):
@@ -45,7 +47,8 @@ if sys.version_info > (3, 5):
             """
             return await coro
         return trio.run(loc, function)
-    ''')
+    '''
+    )
     exec(s, globals(), locals())
 
 
@@ -54,13 +57,15 @@ def _asyncify(code: str) -> str:
 
     And setup a bit of context to run it later.
     """
-    res = dedent("""
+    res = dedent(
+        """
         async def __wrapper__():
             try:
                 {usercode}
             finally:
                 locals()
-    """).format(usercode=indent(code, ' ' * 8)[8:])
+    """
+    ).format(usercode=indent(code, " " * 8)[8:])
     return res
 
 
@@ -79,7 +84,7 @@ def _should_be_async(cell: str) -> bool:
     try:
         # we can't limit ourself to ast.parse, as it __accepts__ to parse on
         # 3.7+, but just does not _compile_
-        compile(cell, '<>', 'exec')
+        compile(cell, "<>", "exec")
         return False
     except SyntaxError:
         try:
