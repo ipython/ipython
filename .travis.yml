@@ -3,9 +3,9 @@ language: python
 python:
     - "nightly"
     - "3.7-dev"
+    - 3.7
     - 3.6
     - 3.5
-    - 3.4
 sudo: false
 env:
   global:
