@@ -413,7 +413,7 @@ def test_pretty_environ():
     # reindent to align with 'environ' prefix
     dict_indented = dict_repr.replace('\n', '\n' + (' ' * len('environ')))
     env_repr = pretty.pretty(os.environ)
-    nt.assert_equals(env_repr, 'environ' + dict_indented)
+    nt.assert_equal(env_repr, 'environ' + dict_indented)
 
 
 def test_function_pretty():
