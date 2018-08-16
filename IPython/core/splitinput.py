@@ -41,7 +41,7 @@ from IPython.utils.encoding import get_stream_enc
 # ! and !! trigger if they are first char(s) *or* follow an indent
 # ? triggers as first or last char.
 
-line_split = re.compile("""
+line_split = re.compile(r"""
              ^(\s*)               # any leading space
              ([,;/%]|!!?|\?\??)?  # escape character or characters
              \s*(%{0,2}[\w\.\*]*)     # function/method, possibly with leading %
@@ -68,7 +68,7 @@ def split_user_input(line, pattern=None):
         except ValueError:
             # print "split failed for line '%s'" % line
             ifun, the_rest = line, u''
-        pre = re.match('^(\s*)(.*)',line).groups()[0]
+        pre = re.match(r'^(\s*)(.*)',line).groups()[0]
         esc = ""
     else:
         pre, esc, ifun, the_rest = match.groups()

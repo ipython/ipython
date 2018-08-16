@@ -176,7 +176,7 @@ class Tracer(object):
         self.debugger.set_trace(sys._getframe().f_back)
 
 
-RGX_EXTRA_INDENT = re.compile('(?<=\n)\s+')
+RGX_EXTRA_INDENT = re.compile(r'(?<=\n)\s+')
 
 
 def strip_indentation(multiline_string):

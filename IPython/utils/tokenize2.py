@@ -47,7 +47,7 @@ from token import *
 from codecs import lookup, BOM_UTF8
 import collections
 from io import TextIOWrapper
-cookie_re = re.compile("coding[:=]\s*([-\w.]+)")
+cookie_re = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 import token
 __all__ = token.__all__ + ["COMMENT", "tokenize", "detect_encoding",

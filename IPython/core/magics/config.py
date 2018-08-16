@@ -24,7 +24,7 @@ from logging import error
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
-reg = re.compile('^\w+\.\w+$')
+reg = re.compile(r'^\w+\.\w+$')
 @magics_class
 class ConfigMagics(Magics):
 

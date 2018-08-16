@@ -171,7 +171,7 @@ class assemble_python_lines(TokenInputTransformer):
 
 @CoroutineInputTransformer.wrap
 def assemble_logical_lines():
-    """Join lines following explicit line continuations (\)"""
+    r"""Join lines following explicit line continuations (\)"""
     line = ''
     while True:
         line = (yield line)
@@ -361,7 +361,7 @@ def cellmagic(end_on_blank_line=False):
     reset (sent None).
     """
     tpl = 'get_ipython().run_cell_magic(%r, %r, %r)'
-    cellmagic_help_re = re.compile('%%\w+\?')
+    cellmagic_help_re = re.compile(r'%%\w+\?')
     line = ''
     while True:
         line = (yield line)

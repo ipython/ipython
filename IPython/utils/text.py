@@ -588,7 +588,7 @@ class DollarFormatter(FullEvalFormatter):
         In [4]: f.format('$a or {b}', a=1, b=2)
         Out[4]: '1 or 2'
     """
-    _dollar_pattern_ignore_single_quote = re.compile("(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)")
+    _dollar_pattern_ignore_single_quote = re.compile(r"(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)")
     def parse(self, fmt_string):
         for literal_txt, field_name, format_spec, conversion \
                     in Formatter.parse(self, fmt_string):
