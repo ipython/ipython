@@ -35,32 +35,6 @@ You should be able to update by using:
     pip install ipython --upgrade
 
 
-Autowait: Asynchronous REPL
-===========================
-
-Staring with IPython 7.0 and on Python 3.6+, IPython can automatically await
-code at top level, you should not need to access an event loop or runner
-yourself. To know more read the `autoawait`_ section of our docs, or try the
-following code::
-
-   In [6]: from asyncio import sleep
-      ...: print('Going to sleep...')
-      ...: await sleep(3)
-      ...: print('Waking up')
-   Going to sleep...
-   Waking up
-
-Asynchronous code in a Notebook interface or any other frontend using the
-Jupyter Protocol will need further updates of the IPykernel package.
-
-
-Change to Nested Embed
-======================
-
-The introduction of the ability to run async code had ripple effect on the
-ability to use nested IPython. You may need to install the ``trio`` library
-(version 05 at the time of this writing) to
-have this feature working. 
 
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.

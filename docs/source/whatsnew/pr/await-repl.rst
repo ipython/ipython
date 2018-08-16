@@ -1,12 +1,14 @@
-Await REPL
-----------
+Autowait: Asynchronous REPL
+---------------------------
 
-:ghpull:`10390` introduced the ability to ``await`` Futures and
-Coroutines in the REPL. For example::
+Staring with IPython 7.0 and on Python 3.6+, IPython can automatically await
+code at top level, you should not need to access an event loop or runner
+yourself. To know more read the :ref:`autoawait` section of our docs, see
+:ghpull:`11265` or try the following code::
 
     Python 3.6.0
     Type 'copyright', 'credits' or 'license' for more information
-    IPython 6.0.0.dev -- An enhanced Interactive Python. Type '?' for help.
+    IPython 7.0.0 -- An enhanced Interactive Python. Type '?' for help.
 
     In [1]: import aiohttp
        ...: result = aiohttp.get('https://api.github.com')
@@ -51,5 +53,17 @@ like ``curio`` or ``trio``, to improve concurrency in the REPL::
 
 See :ref:`autoawait` for more information.
 
+
+Asynchronous code in a Notebook interface or any other frontend using the
+Jupyter Protocol will need further updates of the IPykernel package.
+
+
+Change to Nested Embed
+----------------------
+
+The introduction of the ability to run async code had ripple effect on the
+ability to use nested IPython. You may need to install the ``trio`` library
+(version 05 at the time of this writing) to
+have this feature working. 
 
 
