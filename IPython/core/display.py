@@ -859,16 +859,17 @@ _css_t = """var link = document.createElement("link");
 	document.head.appendChild(link);
 """
 
-_lib_t1 = """var script = document.createElement("script");
-	script.type = "text/javascript";
+_lib_t1 = """new Promise(function(resolve, reject) {
+	var script = document.createElement("script");
+	script.onload = resolve;
+	script.onerror = reject;
 	script.src = "%s";
-	script.onload = script.onreadystatechange = function() {
-    if (!this.readyState || this.readyState == 'complete') {
+	document.head.appendChild(script);
+}).then(() => {
 """
 
-_lib_t2 = """}
-  };
-	document.head.appendChild(script);"""
+_lib_t2 = """
+});"""
 
 class GeoJSON(JSON):
     """GeoJSON expects JSON-able dict
