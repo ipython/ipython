@@ -622,9 +622,14 @@ class AsyncMagics(BasicMagics):
         - asyncio/curio/trio activate autoawait integration and use integration
           with said library.
 
+        - `sync` turn on the pseudo-sync integration (mostly used for
+          `IPython.embed()` which does not run IPython with a real eventloop and
+          deactivate running asynchronous code. Turning on Asynchronous code with
+          the pseudo sync loop is undefined behavior and may lead IPython to crash.
+
         If the passed parameter does not match any of the above and is a python
         identifier, get said object from user namespace and set it as the
-        runner, and activate autoawait.
+        runner, and activate autoawait. 
 
         If the object is a fully qualified object name, attempt to import it and
         set it as the runner, and activate autoawait."""
@@ -647,8 +652,7 @@ class AsyncMagics(BasicMagics):
             return None
 
         if param in self.shell.loop_runner_map:
-            self.shell.loop_runner = param
-            self.shell.autoawait = True
+            self.shell.loop_runner, self.shell.autoawait = self.shell.loop_runner_map[param]
             return None
 
         if param in self.shell.user_ns :

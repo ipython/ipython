@@ -121,8 +121,15 @@ no network request is done between ``In[1]`` and ``In[2]``.
 Effects on IPython.embed()
 ==========================
 
-IPython core being synchronous, the use of ``IPython.embed()`` will now require
-a loop to run. This affect the ability to nest ``IPython.embed()`` which may
+IPython core being asynchronous, the use of ``IPython.embed()`` will now require
+a loop to run. In order to allow ``IPython.embed()`` to be nested, as most event
+loops can't be nested, ``IPython.embed()`` default to a pseudo-synchronous mode,
+where async code is not allowed. This mode is available in classical IPython
+using ``%autoawait sync``
+
+
+
+This affect the ability to nest ``IPython.embed()`` which may
 require you to install alternate IO libraries  like ``curio`` and ``trio`` 
 
 

@@ -152,7 +152,7 @@ def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
 
 # we still need to run things using the asyncio eventloop, but there is no
 # async integration
-from .async_helpers import (_asyncio_runner,  _asyncify)
+from .async_helpers import (_asyncio_runner,  _asyncify, _pseudo_sync_runner)
 
 if sys.version_info > (3, 5):
     from .async_helpers import _curio_runner, _trio_runner, _should_be_async
@@ -365,9 +365,10 @@ class InteractiveShell(SingletonConfigurable):
     ).tag(config=True)
 
     loop_runner_map ={
-        'asyncio':_asyncio_runner,
-        'curio':_curio_runner,
-        'trio':_trio_runner,
+        'asyncio':(_asyncio_runner, True),
+        'curio':(_curio_runner, True),
+        'trio':(_trio_runner, True),
+        'sync': (_pseudo_sync_runner, False)
     }
 
     loop_runner = Any(default_value="IPython.core.interactiveshell._asyncio_runner",
@@ -383,7 +384,9 @@ class InteractiveShell(SingletonConfigurable):
     def _import_runner(self, proposal):
         if isinstance(proposal.value, str):
             if proposal.value in self.loop_runner_map:
-                return self.loop_runner_map[proposal.value]
+                runner, autoawait = self.loop_runner_map[proposal.value]
+                self.autoawait = autoawait
+                return runner
             runner = import_item(proposal.value)
             if not callable(runner):
                 raise ValueError('loop_runner must be callable')
@@ -2815,7 +2818,7 @@ class InteractiveShell(SingletonConfigurable):
         )
 
     @asyncio.coroutine
-    def run_cell_async(self, raw_cell, store_history=False, silent=False, shell_futures=True):
+    def run_cell_async(self, raw_cell:str, store_history=False, silent=False, shell_futures=True) -> ExecutionResult:
         """Run a complete IPython cell asynchronously.
 
         Parameters

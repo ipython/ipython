@@ -34,7 +34,7 @@ def _curio_runner(coroutine):
     return curio.run(coroutine)
 
 
-def _trio_runner(function):
+def _trio_runner(async_fn):
     import trio
     async def loc(coro):
         """
@@ -42,7 +42,25 @@ def _trio_runner(function):
         trio's internal. See https://github.com/python-trio/trio/issues/89
         """
         return await coro
-    return trio.run(loc, function)
+    return trio.run(loc, async_fn)
+
+
+def _pseudo_sync_runner(coro):
+    """
+    A runner that does not really allow async execution, and just advance the coroutine.
+
+    See discussion in https://github.com/python-trio/trio/issues/608,
+
+    Credit to Nathaniel Smith
+
+    """
+    try:
+        coro.send(None)
+    except StopIteration as exc:
+        return exc.value
+    else:
+        # TODO: do not raise but return an execution result with the right info.
+        raise RuntimeError(f"{coro.__name__!r} needs a real async loop")
 
 
 def _asyncify(code: str) -> str:
