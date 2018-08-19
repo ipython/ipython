@@ -34,22 +34,15 @@ def _curio_runner(coroutine):
     return curio.run(coroutine)
 
 
-if sys.version_info > (3, 5):
-    # nose refuses to avoid this file and async def is invalidsyntax
-    s = dedent(
-        '''
-    def _trio_runner(function):
-        import trio
-        async def loc(coro):
-            """
-            We need the dummy no-op async def to protect from
-            trio's internal. See https://github.com/python-trio/trio/issues/89
-            """
-            return await coro
-        return trio.run(loc, function)
-    '''
-    )
-    exec(s, globals(), locals())
+def _trio_runner(function):
+    import trio
+    async def loc(coro):
+        """
+        We need the dummy no-op async def to protect from
+        trio's internal. See https://github.com/python-trio/trio/issues/89
+        """
+        return await coro
+    return trio.run(loc, function)
 
 
 def _asyncify(code: str) -> str:

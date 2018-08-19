@@ -63,7 +63,7 @@ Change to Nested Embed
 
 The introduction of the ability to run async code had ripple effect on the
 ability to use nested IPython. You may need to install the ``trio`` library
-(version 05 at the time of this writing) to
+(version 0.5 at the time of this writing) to
 have this feature working. 
 
 

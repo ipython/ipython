@@ -12,9 +12,10 @@ notebook interface or any other frontend using the Jupyter protocol will need to
 use a newer version of IPykernel. The details of how async code runs in
 IPykernel will differ between IPython, IPykernel and their versions.
 
-When a supported library is used, IPython will automatically `await` Futures
-and Coroutines in the REPL. This will happen if an :ref:`await <await>` is
-use at top level scope, or if any structure valid only in `async def
+When a supported library is used, IPython will automatically `await` Futures and
+Coroutines in the REPL. This will happen if an :ref:`await <await>` (or any
+other async constructs like async-with, async-for) is use at top level scope, or
+if any structure valid only in `async def
 <https://docs.python.org/3/reference/compound_stmts.html#async-def>`_ function
 context are present. For example, the following being a syntax error in the
 Python REPL::
@@ -115,6 +116,15 @@ in the background, so top level asynchronous code must finish for the REPL to
 allow you to enter more code. As with usual Python semantic, the awaitables are
 started only when awaited for the first time. That is to say, in first example,
 no network request is done between ``In[1]`` and ``In[2]``.
+
+
+Effects on IPython.embed()
+==========================
+
+IPython core being synchronous, the use of ``IPython.embed()`` will now require
+a loop to run. This affect the ability to nest ``IPython.embed()`` which may
+require you to install alternate IO libraries  like ``curio`` and ``trio`` 
+
 
 
 Internals
