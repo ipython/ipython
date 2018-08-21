@@ -2808,14 +2808,24 @@ class InteractiveShell(SingletonConfigurable):
 
     def _run_cell(self, raw_cell, store_history, silent, shell_futures):
         """Internal method to run a complete IPython cell."""
-        return self.loop_runner(
-            self.run_cell_async(
-                raw_cell,
-                store_history=store_history,
-                silent=silent,
-                shell_futures=shell_futures,
-            )
+        coro = self.run_cell_async(
+            raw_cell,
+            store_history=store_history,
+            silent=silent,
+            shell_futures=shell_futures,
         )
+
+        try:
+            interactivity = coro.send(None)
+        except StopIteration as exc:
+            return exc.value
+
+        if isinstance(interactivity, ExecutionResult):
+            return interactivity
+
+        if interactivity == 'async':
+            return self.loop_runner(coro)
+        return _pseudo_sync_runner(coro)
 
     @asyncio.coroutine
     def run_cell_async(self, raw_cell:str, store_history=False, silent=False, shell_futures=True) -> ExecutionResult:
@@ -2965,6 +2975,9 @@ class InteractiveShell(SingletonConfigurable):
                 interactivity = "none" if silent else self.ast_node_interactivity
                 if _run_async:
                     interactivity = 'async'
+                # yield interactivity so let run_cell decide whether to use
+                # an async loop_runner
+                yield interactivity
                 has_raised = yield from self.run_ast_nodes(code_ast.body, cell_name,
                        interactivity=interactivity, compiler=compiler, result=result)
                 
