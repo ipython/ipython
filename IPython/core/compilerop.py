@@ -40,7 +40,7 @@ import time
 # Constants
 #-----------------------------------------------------------------------------
 
-# Roughtly equal to PyCF_MASK | PyCF_MASK_OBSOLETE as defined in pythonrun.h,
+# Roughly equal to PyCF_MASK | PyCF_MASK_OBSOLETE as defined in pythonrun.h,
 # this is used as a bitmask to extract future-related code flags.
 PyCF_MASK = functools.reduce(operator.or_,
                              (getattr(__future__, fname).compiler_flag

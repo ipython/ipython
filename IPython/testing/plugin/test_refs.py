@@ -21,7 +21,7 @@ def doctest_run():
     """
     
 def doctest_runvars():
-    """Test that variables defined in scripts get loaded correcly via %run.
+    """Test that variables defined in scripts get loaded correclty via %run.
 
     In [13]: run simplevars.py
     x is: 1

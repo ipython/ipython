@@ -765,7 +765,7 @@ if _env_type is not dict:
 
 try:
     # In PyPy, types.DictProxyType is dict, setting the dictproxy printer
-    # using dict.setdefault avoids overwritting the dict printer
+    # using dict.setdefault avoids overwriting the dict printer
     _type_pprinters.setdefault(types.DictProxyType,
                                _dict_pprinter_factory('dict_proxy({', '})'))
     _type_pprinters[types.ClassType] = _type_pprint
