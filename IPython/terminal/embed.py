@@ -19,23 +19,6 @@ from IPython.terminal.ipapp import load_default_config
 from traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
-from contextlib import contextmanager
-
-_sentinel = object()
-@contextmanager
-def new_context():
-    import trio._core._run as tcr
-    old_runner = getattr(tcr.GLOBAL_RUN_CONTEXT, 'runner', _sentinel)
-    old_task = getattr(tcr.GLOBAL_RUN_CONTEXT, 'task', None)
-    if old_runner is not _sentinel:
-        del tcr.GLOBAL_RUN_CONTEXT.runner
-    tcr.GLOBAL_RUN_CONTEXT.task = None
-    yield
-    if old_runner is not _sentinel:
-        tcr.GLOBAL_RUN_CONTEXT.runner = old_runner
-    tcr.GLOBAL_RUN_CONTEXT.task = old_task
-
-
 class KillEmbedded(Exception):pass
 
 # kept for backward compatibility as IPython 6 was released with
@@ -400,12 +383,11 @@ def embed(**kwargs):
         cls = type(saved_shell_instance)
         cls.clear_instance()
     frame = sys._getframe(1)
-    with new_context():
-        shell = InteractiveShellEmbed.instance(_init_location_id='%s:%s' % (
-            frame.f_code.co_filename, frame.f_lineno), **kwargs)
-        shell(header=header, stack_depth=2, compile_flags=compile_flags,
-            _call_location_id='%s:%s' % (frame.f_code.co_filename, frame.f_lineno))
-        InteractiveShellEmbed.clear_instance()
+    shell = InteractiveShellEmbed.instance(_init_location_id='%s:%s' % (
+        frame.f_code.co_filename, frame.f_lineno), **kwargs)
+    shell(header=header, stack_depth=2, compile_flags=compile_flags,
+        _call_location_id='%s:%s' % (frame.f_code.co_filename, frame.f_lineno))
+    InteractiveShellEmbed.clear_instance()
     #restore previous instance
     if saved_shell_instance is not None:
         cls = type(saved_shell_instance)

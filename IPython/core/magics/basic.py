@@ -632,7 +632,12 @@ class AsyncMagics(BasicMagics):
         runner, and activate autoawait. 
 
         If the object is a fully qualified object name, attempt to import it and
-        set it as the runner, and activate autoawait."""
+        set it as the runner, and activate autoawait.
+        
+        
+        The exact behavior of autoawait is experimental and subject to change
+        across version of IPython and Python.
+        """
 
         param = parameter_s.strip()
         d = {True: "on", False: "off"}

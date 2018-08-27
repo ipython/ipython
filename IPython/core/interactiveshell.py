@@ -2806,7 +2806,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.events.trigger('post_run_cell', result)
         return result
 
-    def _run_cell(self, raw_cell, store_history, silent, shell_futures):
+    def _run_cell(self, raw_cell:str, store_history:bool, silent:bool, shell_futures:bool):
         """Internal method to run a complete IPython cell."""
         coro = self.run_cell_async(
             raw_cell,
@@ -2815,11 +2815,16 @@ class InteractiveShell(SingletonConfigurable):
             shell_futures=shell_futures,
         )
 
+        # run_cell_async is async, but may not actually need and eventloop.
+        # when this is the case, we want to run it using the pseudo_sync_runner
+        # so that code can invoke eventloops (for example via the %run , and
+        # `%paste` magic.
         try:
             interactivity = coro.send(None)
         except StopIteration as exc:
             return exc.value
 
+        # if code was not async, sending `None` was actually executing the code.
         if isinstance(interactivity, ExecutionResult):
             return interactivity
 
@@ -3159,7 +3164,6 @@ class InteractiveShell(SingletonConfigurable):
 
         return eval(code_obj, user_ns)
 
-    @asyncio.coroutine
     def run_code(self, code_obj, result=None, *, async_=False):
         """Execute a code object.
 

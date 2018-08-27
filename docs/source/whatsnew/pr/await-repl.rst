@@ -23,6 +23,10 @@ yourself. To know more read the :ref:`autoawait` section of our docs, see
     ...
     }
 
+.. note::
+
+   Async integration is experimental code, behavior may change or be removed
+   between Python and IPython versions without warnings.
 
 Integration is by default with `asyncio`, but other libraries can be configured, 
 like ``curio`` or ``trio``, to improve concurrency in the REPL::
@@ -57,13 +61,33 @@ See :ref:`autoawait` for more information.
 Asynchronous code in a Notebook interface or any other frontend using the
 Jupyter Protocol will need further updates of the IPykernel package.
 
+Non-Asynchronous code 
+---------------------
+
+As the internal API of IPython are now asynchronous, IPython need to run under
+an even loop. In order to allow many workflow, (like using the ``%run`` magic,
+or copy_pasting code that explicitly starts/stop event loop), when top-level code
+is detected as not being asynchronous, IPython code is advanced via a
+pseudo-synchronous runner, and will not may not advance pending tasks.
 
 Change to Nested Embed
 ----------------------
 
-The introduction of the ability to run async code had ripple effect on the
-ability to use nested IPython. You may need to install the ``trio`` library
-(version 0.5 at the time of this writing) to
-have this feature working. 
+The introduction of the ability to run async code had some effect on the
+``IPython.embed()`` API. By default embed will not allow you to run asynchronous
+code unless a event loop is specified.
 
+Expected Future changes
+-----------------------
 
+We expect more internal but public IPython function to become ``async``, and
+will likely end up having a persisting event loop while IPython is running.
+
+Thanks
+------
+
+This took more than a year in the making, and the code was rebased a number of
+time leading to commit authorship that may have been lost in the final
+Pull-Request. Huge thanks to many people for contribution, discussion, code,
+documentation, use-case: dalejung, danielballan, ellisonbg, fperez, gnestor,
+minrk, njsmith, pganssle, tacaswell, takluyver , vidartf ... And many other.

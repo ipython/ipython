@@ -3,6 +3,11 @@
 Asynchronous in REPL: Autoawait
 ===============================
 
+.. note::
+
+   This feature is experimental and behavior can change betwen python and
+   IPython version without prior deprecation.
+
 Starting with IPython 7.0, and when user Python 3.6 and above, IPython offer the
 ability to run asynchronous code from the REPL. Constructs which are
 :exc:`SyntaxError` s in the Python REPL can be used seamlessly in IPython.
@@ -12,10 +17,10 @@ notebook interface or any other frontend using the Jupyter protocol will need to
 use a newer version of IPykernel. The details of how async code runs in
 IPykernel will differ between IPython, IPykernel and their versions.
 
-When a supported library is used, IPython will automatically `await` Futures and
-Coroutines in the REPL. This will happen if an :ref:`await <await>` (or any
-other async constructs like async-with, async-for) is use at top level scope, or
-if any structure valid only in `async def
+When a supported library is used, IPython will automatically allow Futures and
+Coroutines in the REPL to be ``await`` ed. This will happen if an :ref:`await
+<await>` (or any other async constructs like async-with, async-for) is use at
+top level scope, or if any structure valid only in `async def
 <https://docs.python.org/3/reference/compound_stmts.html#async-def>`_ function
 context are present. For example, the following being a syntax error in the
 Python REPL::
@@ -58,15 +63,13 @@ use the :magic:`%autoawait` magic to toggle the behavior at runtime::
     In [1]: %autoawait False
 
     In [2]: %autoawait
-    IPython autoawait is `Off`, and set to use `IPython.core.interactiveshell._asyncio_runner`
+    IPython autoawait is `Off`, and set to use `asyncio`
 
 
 
 By default IPython will assume integration with Python's provided
 :mod:`asyncio`, but integration with other libraries is provided. In particular
-we provide experimental integration with the ``curio`` and ``trio`` library, the
-later one being necessary if you require the ability to do nested call of
-IPython's ``embed()`` functionality.
+we provide experimental integration with the ``curio`` and ``trio`` library.
 
 You can switch current integration by using the
 ``c.InteractiveShell.loop_runner`` option or the ``autoawait <name
@@ -111,7 +114,7 @@ other features of IPython and various registered extensions. In particular if yo
 are a direct or indirect user of the AST transformers, these may not apply to
 your code.
 
-When Using command line IPython, the default loop (or runner) does not process
+When using command line IPython, the default loop (or runner) does not process
 in the background, so top level asynchronous code must finish for the REPL to
 allow you to enter more code. As with usual Python semantic, the awaitables are
 started only when awaited for the first time. That is to say, in first example,
@@ -122,25 +125,20 @@ Effects on IPython.embed()
 ==========================
 
 IPython core being asynchronous, the use of ``IPython.embed()`` will now require
-a loop to run. In order to allow ``IPython.embed()`` to be nested, as most event
-loops can't be nested, ``IPython.embed()`` default to a pseudo-synchronous mode,
-where async code is not allowed. This mode is available in classical IPython
-using ``%autoawait sync``
+a loop to run. By default IPython will use a fake coroutine runner which should
+allow ``IPython.embed()`` to be nested. Though this will prevent usage of the
+``autoawait`` feature when using IPython embed. 
 
-
-
-This affect the ability to nest ``IPython.embed()`` which may
-require you to install alternate IO libraries  like ``curio`` and ``trio`` 
-
-
+You can set explicitly a coroutine runner for ``embed()`` if you desire to run
+asynchronous code, the exact behavior is though undefined.
 
 Internals
 =========
 
 As running asynchronous code is not supported in interactive REPL (as of Python
-3.7) we have to rely to a number of complex workaround to allow this to happen.
-It is interesting to understand how this works in order to comprehend potential
-bugs, or provide a custom runner.
+3.7) we have to rely to a number of complex workaround and heuristic to allow
+this to happen. It is interesting to understand how this works in order to
+comprehend potential bugs, or provide a custom runner.
 
 Among the many approaches that are at our disposition, we find only one that
 suited out need. Under the hood we use the code object from a async-def function
@@ -168,8 +166,10 @@ On top of the above there are significant modification to the AST of
 significant overhead to this kind of code.
 
 By default the generated coroutine function will be consumed by Asyncio's
-``loop_runner = asyncio.get_evenloop().run_until_complete()`` method. It is
-though possible to provide your own.
+``loop_runner = asyncio.get_evenloop().run_until_complete()`` method if
+``async`` mode is deemed necessary, otherwise the coroutine will just be
+exhausted in a simple runner. It is though possible to change the default
+runner.
 
 A loop runner is a *synchronous*  function responsible from running a coroutine
 object.
@@ -208,3 +208,6 @@ We can set it up by passing it to ``%autoawait``::
 Asynchronous programming in python (and in particular in the REPL) is still a
 relatively young subject. We expect some code to not behave as you expect, so
 feel free to contribute improvements to this codebase and give us feedback.
+
+We invite you to thoroughly test this feature and report any unexpected behavior
+as well as propose any improvement.

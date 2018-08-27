@@ -1,28 +1,35 @@
 """
 Async helper function that are invalid syntax on Python 3.5 and below.
 
-Known limitation and possible improvement.
+This code is best effort, and may have edge cases not behaving as expected. In
+particular it contain a number of heuristics to detect whether code is
+effectively async and need to run in an event loop or not.
 
-Top level code that contain a return statement (instead of, or in addition to
-await) will be detected as requiring being wrapped in async calls. This should
-be prevented as early return will not work.
+Some constructs (like top-level `return`, or `yield`) are taken care of
+explicitly to actually raise a SyntaxError and stay as close as possible to
+Python semantics.
 """
 
 
 import ast
 import sys
-import inspect
 from textwrap import dedent, indent
-from types import CodeType
 
 
-def _asyncio_runner(coro):
-    """
-    Handler for asyncio autoawait
-    """
-    import asyncio
+class _AsyncIORunner:
 
-    return asyncio.get_event_loop().run_until_complete(coro)
+    def __call__(self, coro):
+        """
+        Handler for asyncio autoawait
+        """
+        import asyncio
+
+        return asyncio.get_event_loop().run_until_complete(coro)
+
+    def __str__(self):
+        return 'asyncio'
+
+_asyncio_runner = _AsyncIORunner()
 
 
 def _curio_runner(coroutine):
@@ -36,12 +43,14 @@ def _curio_runner(coroutine):
 
 def _trio_runner(async_fn):
     import trio
+
     async def loc(coro):
         """
         We need the dummy no-op async def to protect from
         trio's internal. See https://github.com/python-trio/trio/issues/89
         """
         return await coro
+
     return trio.run(loc, async_fn)
 
 
@@ -60,7 +69,9 @@ def _pseudo_sync_runner(coro):
         return exc.value
     else:
         # TODO: do not raise but return an execution result with the right info.
-        raise RuntimeError("{coro_name!r} needs a real async loop".format(coro_name=coro.__name__))
+        raise RuntimeError(
+            "{coro_name!r} needs a real async loop".format(coro_name=coro.__name__)
+        )
 
 
 def _asyncify(code: str) -> str:
@@ -69,7 +80,7 @@ def _asyncify(code: str) -> str:
     And setup a bit of context to run it later.
     """
     res = dedent(
-    """
+        """
     async def __wrapper__():
         try:
     {usercode}
@@ -86,12 +97,13 @@ class _AsyncSyntaxErrorVisitor(ast.NodeVisitor):
     the implementation involves wrapping the repl in an async function, it
     is erroneously allowed (e.g. yield or return at the top level)
     """
+
     def generic_visit(self, node):
         func_types = (ast.FunctionDef, ast.AsyncFunctionDef)
         invalid_types = (ast.Return, ast.Yield, ast.YieldFrom)
 
         if isinstance(node, func_types):
-            return      # Don't recurse into functions
+            return  # Don't recurse into functions
         elif isinstance(node, invalid_types):
             raise SyntaxError()
         else:
