@@ -10,8 +10,7 @@ from textwrap import dedent, indent
 from unittest import TestCase
 
 ip = get_ipython()
-iprc = lambda x: ip.run_cell(dedent(x))
-iprc_err = lambda x: iprc(x).raise_error()
+iprc = lambda x: ip.run_cell(dedent(x)).raise_error()
 
 if sys.version_info > (3, 5):
     from IPython.core.async_helpers import _should_be_async
@@ -142,14 +141,14 @@ if sys.version_info > (3, 5):
             for test_name, test_case in tl_err_test_cases:
                 # This example should work if 'pass' is used as the value
                 with self.subTest((test_name, 'pass')):
-                    iprc_err(test_case.format(val='pass'))
+                    iprc(test_case.format(val='pass'))
 
                 # It should fail with all the values
                 for val in vals:
                     with self.subTest((test_name, val)):
                         msg = "Syntax error not raised for %s, %s" % (test_name, val)
                         with self.assertRaises(SyntaxError, msg=msg):
-                            iprc_err(test_case.format(val=val))
+                            iprc(test_case.format(val=val))
 
         def test_in_func_no_error(self):
             # Test that the implementation of top-level return/yield
@@ -197,7 +196,7 @@ if sys.version_info > (3, 5):
 
                     for val in vals:
                         with self.subTest((test_name, context_name, val)):
-                            iprc_err(nested_case.format(val=val))
+                            iprc(nested_case.format(val=val))
 
                 # These tests should still raise a SyntaxError
                 for test_name, test_case in failure_tests:
@@ -206,32 +205,30 @@ if sys.version_info > (3, 5):
                     for val in vals:
                         with self.subTest((test_name, context_name, val)):
                             with self.assertRaises(SyntaxError):
-                                iprc_err(nested_case.format(val=val))
+                                iprc(nested_case.format(val=val))
 
 
         def test_execute(self):
-            iprc(
-                """
+            iprc("""
             import asyncio
             await asyncio.sleep(0.001)
             """
             )
 
         def test_autoawait(self):
-            ip.run_cell("%autoawait False")
-            ip.run_cell("%autoawait True")
-            iprc(
-                """
-                from asyncio import sleep
-                await.sleep(0.1)
+            iprc("%autoawait False")
+            iprc("%autoawait True")
+            iprc("""
+            from asyncio import sleep
+            await sleep(0.1)
             """
             )
 
         def test_autoawait_curio(self):
-            ip.run_cell("%autoawait curio")
+            iprc("%autoawait curio")
 
         def test_autoawait_trio(self):
-            ip.run_cell("%autoawait trio")
+            iprc("%autoawait trio")
 
         def tearDown(self):
             ip.loop_runner = "asyncio"
