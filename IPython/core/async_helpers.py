@@ -69,14 +69,14 @@ def _asyncify(code: str) -> str:
     And setup a bit of context to run it later.
     """
     res = dedent(
-        """
-        async def __wrapper__():
-            try:
-                {usercode}
-            finally:
-                locals()
     """
-    ).format(usercode=indent(code, " " * 8)[8:])
+    async def __wrapper__():
+        try:
+    {usercode}
+        finally:
+            locals()
+    """
+    ).format(usercode=indent(code, " " * 8))
     return res
 
 
