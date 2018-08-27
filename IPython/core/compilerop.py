@@ -52,7 +52,7 @@ PyCF_MASK = functools.reduce(operator.or_,
 
 def code_name(code, number=0):
     """ Compute a (probably) unique name for code for caching.
-    
+
     This now expects code to be unicode.
     """
     hash_digest = hashlib.sha1(code.encode("utf-8")).hexdigest()
@@ -71,7 +71,7 @@ class CachingCompiler(codeop.Compile):
 
     def __init__(self):
         codeop.Compile.__init__(self)
-        
+
         # This is ugly, but it must be done this way to allow multiple
         # simultaneous ipython instances to coexist.  Since Python itself
         # directly accesses the data structures in the linecache module, and
@@ -95,7 +95,7 @@ class CachingCompiler(codeop.Compile):
     def _fix_module_ds(self, module):
         """
         Starting in python 3.7 the AST for mule have changed, and if
-        the first expressions encountered is a string it is attached to the 
+        the first expressions encountered is a string it is attached to the
         `docstring` attribute of the `Module` ast node.
 
         This breaks IPython, as if this string is the only expression, IPython
@@ -108,14 +108,14 @@ class CachingCompiler(codeop.Compile):
         new_body=[Expr(Str(docstring, lineno=1, col_offset=0), lineno=1, col_offset=0)]
         new_body.extend(module.body)
         return fix_missing_locations(Module(new_body))
-        
+
     def ast_parse(self, source, filename='<unknown>', symbol='exec'):
         """Parse code to an AST with the current compiler flags active.
-        
+
         Arguments are exactly the same as ast.parse (in the standard library),
         and are passed to the built-in compile function."""
         return self._fix_module_ds(compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1))
-    
+
     def reset_compiler_flags(self):
         """Reset compiler flags to default state."""
         # This value is copied from codeop.Compile.__init__, so if that ever
@@ -127,10 +127,10 @@ class CachingCompiler(codeop.Compile):
         """Flags currently active in the compilation process.
         """
         return self.flags
-        
+
     def cache(self, code, number=0):
         """Make a name for a block of code, and cache the code.
-        
+
         Parameters
         ----------
         code : str
@@ -138,7 +138,7 @@ class CachingCompiler(codeop.Compile):
         number : int
           A number which forms part of the code's name. Used for the execution
           counter.
-          
+
         Returns
         -------
         The name of the cached code (as a string). Pass this as the filename
