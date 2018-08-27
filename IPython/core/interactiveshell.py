@@ -3164,6 +3164,7 @@ class InteractiveShell(SingletonConfigurable):
 
         return eval(code_obj, user_ns)
 
+    @asyncio.coroutine
     def run_code(self, code_obj, result=None, *, async_=False):
         """Execute a code object.
 
