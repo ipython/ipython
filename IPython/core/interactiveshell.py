@@ -2829,7 +2829,14 @@ class InteractiveShell(SingletonConfigurable):
             return interactivity
 
         if interactivity == 'async':
-            return self.loop_runner(coro)
+            try:
+                return self.loop_runner(coro)
+            except Exception as e:
+                info = ExecutionInfo(raw_cell, store_history, silent, shell_futures)
+                result = ExecutionResult(info)
+                result.error_in_exec = e
+                self.showtraceback(running_compiled_code=True)
+                return result
         return _pseudo_sync_runner(coro)
 
     @asyncio.coroutine

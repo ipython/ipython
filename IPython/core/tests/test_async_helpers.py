@@ -13,6 +13,7 @@ from IPython.testing.decorators import skip_without
 
 ip = get_ipython()
 iprc = lambda x: ip.run_cell(dedent(x)).raise_error()
+iprc_nr = lambda x: ip.run_cell(dedent(x))
 
 if sys.version_info > (3, 5):
     from IPython.core.async_helpers import _should_be_async
@@ -250,6 +251,27 @@ if sys.version_info > (3, 5):
         @skip_without('trio')
         def test_autoawait_trio(self):
             iprc("%autoawait trio")
+
+        @skip_without('trio')
+        def test_autoawait_trio_wrong_sleep(self):
+            iprc("%autoawait trio")
+            res = iprc_nr("""
+            import asyncio
+            await asyncio.sleep(0)
+            """)
+            with nt.assert_raises(TypeError):
+                res.raise_error()
+
+        @skip_without('trio')
+        def test_autoawait_asyncio_wrong_sleep(self):
+            iprc("%autoawait asyncio")
+            res = iprc_nr("""
+            import trio
+            await trio.sleep(0)
+            """)
+            with nt.assert_raises(RuntimeError):
+                res.raise_error()
+
 
         def tearDown(self):
             ip.loop_runner = "asyncio"
