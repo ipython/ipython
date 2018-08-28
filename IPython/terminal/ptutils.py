@@ -8,6 +8,7 @@ not to be used outside IPython.
 # Distributed under the terms of the Modified BSD License.
 
 import unicodedata
+
 from wcwidth import wcwidth
 
 from IPython.core.completer import (

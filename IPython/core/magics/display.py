@@ -14,13 +14,14 @@
 # Our own packages
 from IPython.core.display import display, Javascript, Latex, SVG, HTML, Markdown
 from IPython.core.magic import  (
-    Magics, magics_class, cell_magic
+    Magics, magics_class, cell_magic, completer_for
 )
 from IPython.core import magic_arguments
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
+
 
 
 @magics_class
