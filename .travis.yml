@@ -16,6 +16,7 @@ install:
     - pip install pip --upgrade
     - pip install setuptools --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
+    - pip install trio curio
     - pip install codecov check-manifest --upgrade
     - sudo apt-get install graphviz
 script:
