@@ -174,7 +174,7 @@ class CommandChainDispatcher:
 def shutdown_hook(self):
     """ default shutdown hook
 
-    Typically, shotdown hooks should raise TryNext so all shutdown ops are done
+    Typically, shutdown hooks should raise TryNext so all shutdown ops are done
     """
 
     #print "default shutdown hook ok" # dbg
