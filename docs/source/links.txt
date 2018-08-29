@@ -17,11 +17,11 @@
    NOTE: Some of these were taken from the nipy links compendium.
 
 .. Main IPython links
-.. _ipython: http://ipython.org
-.. _`ipython manual`: http://ipython.org/documentation.html
+.. _ipython: https://ipython.org
+.. _`ipython manual`: https://ipython.org/documentation.html
 .. _ipython_github: http://github.com/ipython/ipython/
 .. _ipython_github_repo: http://github.com/ipython/ipython/
-.. _ipython_downloads: http://ipython.org/download.html
+.. _ipython_downloads: https://ipython.org/download.html
 .. _ipython_pypi: http://pypi.python.org/pypi/ipython
 .. _nbviewer: http://nbviewer.ipython.org
 

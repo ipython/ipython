@@ -24,7 +24,7 @@ sqlite_err_maybe = dec.module_not_available('sqlite3')
 SQLITE_NOT_AVAILABLE_ERROR = ('WARNING: IPython History requires SQLite,'
                               ' your history will not be saved\n')
 
-class TestFileToRun(unittest.TestCase, tt.TempFileMixin):
+class TestFileToRun(tt.TempFileMixin, unittest.TestCase):
     """Test the behavior of the file_to_run parameter."""
 
     def test_py_script_file_attribute(self):

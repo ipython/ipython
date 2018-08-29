@@ -82,7 +82,7 @@ class PrefilterManager(Configurable):
     prefilter consumes lines of input and produces transformed lines of
     input.
 
-    The iplementation consists of two phases:
+    The implementation consists of two phases:
 
     1. Transformers
     2. Checkers and handlers

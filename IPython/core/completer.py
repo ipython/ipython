@@ -1592,7 +1592,7 @@ class IPCompleter(Completer):
             $
             '''
             regexps = self.__dict_key_regexps = {
-                False: re.compile(dict_key_re_fmt % '''
+                False: re.compile(dict_key_re_fmt % r'''
                                   # identifiers separated by .
                                   (?!\d)\w+
                                   (?:\.(?!\d)\w+)*

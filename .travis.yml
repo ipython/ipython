@@ -14,7 +14,8 @@ group: edge
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
 install:
-    - pip install setuptools pip --upgrade
+    - pip install pip --upgrade
+    - pip install setuptools --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
     - pip install codecov check-manifest --upgrade
     - sudo apt-get install graphviz

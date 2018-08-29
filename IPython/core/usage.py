@@ -60,7 +60,7 @@ Usage
     environment variable with this name and setting it to the desired path.
 
     For more information, see the manual available in HTML and PDF in your
-    installation, or online at http://ipython.org/documentation.html.
+    installation, or online at https://ipython.org/documentation.html.
 """
 
 interactive_usage = """

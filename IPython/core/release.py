@@ -48,7 +48,7 @@ IPython provides a rich toolkit to help you make the most out of using Python
 interactively.  Its main components are:
 
 * A powerful interactive Python shell
-* A `Jupyter <http://jupyter.org/>`_ kernel to work with Python code in Jupyter
+* A `Jupyter <https://jupyter.org/>`_ kernel to work with Python code in Jupyter
   notebooks and other interactive frontends.
 
 The enhanced interactive Python shells have the following main features:
