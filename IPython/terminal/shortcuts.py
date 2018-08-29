@@ -112,13 +112,19 @@ def newline_or_execute_outer(shell):
         if not (d.on_last_line or
                 d.cursor_position_row >= d.line_count - d.empty_line_count_at_the_end()
                 ):
-            b.insert_text('\n' + (' ' * (indent or 0)))
+            if shell.autoindent:
+                b.insert_text('\n' + (' ' * (indent or 0)))
+            else:
+                b.insert_text('\n')
             return
 
         if (status != 'incomplete') and b.accept_handler:
             b.validate_and_handle()
         else:
-            b.insert_text('\n' + (' ' * (indent or 0)))
+            if shell.autoindent:
+                b.insert_text('\n' + (' ' * (indent or 0)))
+            else:
+                b.insert_text('\n')
     return newline_or_execute
 
 
