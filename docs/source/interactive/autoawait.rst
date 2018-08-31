@@ -132,6 +132,15 @@ allow ``IPython.embed()`` to be nested. Though this will prevent usage of the
 You can set explicitly a coroutine runner for ``embed()`` if you desire to run
 asynchronous code, the exact behavior is though undefined.
 
+Effects on Magics
+=================
+
+A couple of magics (``%%timeit``, ``%timeit``, ``%%time``, ``%%prun``) have not
+yet been updated to work with asynchronous code and will raise syntax errors
+when trying to use top-level ``await``. We welcome any contribution to help fix
+those, and extra cases we haven't caught yet. We hope for better support in Cor
+Python for top-level Async code.
+
 Internals
 =========
 

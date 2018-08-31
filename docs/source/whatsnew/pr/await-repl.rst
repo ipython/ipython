@@ -77,6 +77,12 @@ The introduction of the ability to run async code had some effect on the
 ``IPython.embed()`` API. By default embed will not allow you to run asynchronous
 code unless a event loop is specified.
 
+Effects on Magics
+-----------------
+
+Some magics will not work with Async, and will need updates. Contribution
+welcome.
+
 Expected Future changes
 -----------------------
 
