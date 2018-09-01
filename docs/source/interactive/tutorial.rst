@@ -146,7 +146,7 @@ The built-in magics include:
   :magic:`macro`, :magic:`recall`, etc.
 
 - Functions which affect the shell: :magic:`colors`, :magic:`xmode`,
-  :magic:`autoindent`, :magic:`automagic`, etc.
+  :magic:`automagic`, etc.
 
 - Other functions such as :magic:`reset`, :magic:`timeit`,
   :cellmagic:`writefile`, :magic:`load`, or :magic:`paste`.

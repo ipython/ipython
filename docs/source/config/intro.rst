@@ -67,7 +67,6 @@ Example config file
         'mycode.py',
         'fancy.ipy'
     ]
-    c.InteractiveShell.autoindent = True
     c.InteractiveShell.colors = 'LightBG'
     c.InteractiveShell.confirm_exit = False
     c.InteractiveShell.editor = 'nano'
