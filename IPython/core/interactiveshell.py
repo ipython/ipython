@@ -250,8 +250,7 @@ class InteractiveShell(SingletonConfigurable):
         objects are automatically called (even if no arguments are present).
         """
     ).tag(config=True)
-    # TODO: remove all autoindent logic and put into frontends.
-    # We can't do this yet because even runlines uses the autoindent.
+
     autoindent = Bool(True, help=
         """
         Autoindent IPython code entered interactively.
