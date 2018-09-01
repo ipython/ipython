@@ -193,14 +193,6 @@ def _print_statement_sub(match):
     expr = match.groups('expr')
     return "print(%s)" % expr
 
-@_modify_str_or_docstring
-def doctest_refactor_print(doc):
-    """Refactor 'print x' statements in a doctest to print(x) style. 2to3
-    unfortunately doesn't pick up on our doctests.
-
-    Can accept a string or a function, so it can be used as a decorator."""
-    return _print_statement_re.sub(_print_statement_sub, doc)
-
 # Abstract u'abc' syntax:
 @_modify_str_or_docstring
 def u_format(s):
