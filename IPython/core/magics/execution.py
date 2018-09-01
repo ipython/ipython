@@ -297,7 +297,7 @@ python-profiler package from non-free.""")
                                            list_all=True, posix=False)
         if cell is not None:
             arg_str += '\n' + cell
-        arg_str = self.shell.input_splitter.transform_cell(arg_str)
+        arg_str = self.shell.transform_cell(arg_str)
         return self._run_with_profiler(arg_str, opts, self.shell.user_ns)
 
     def _run_with_profiler(self, code, opts, namespace):
@@ -1033,7 +1033,7 @@ python-profiler package from non-free.""")
         # this code has tight coupling to the inner workings of timeit.Timer,
         # but is there a better way to achieve that the code stmt has access
         # to the shell namespace?
-        transform  = self.shell.input_splitter.transform_cell
+        transform  = self.shell.transform_cell
 
         if cell is None:
             # called as line magic
@@ -1191,9 +1191,9 @@ python-profiler package from non-free.""")
             raise UsageError("Can't use statement directly after '%%time'!")
         
         if cell:
-            expr = self.shell.input_transformer_manager.transform_cell(cell)
+            expr = self.shell.transform_cell(cell)
         else:
-            expr = self.shell.input_transformer_manager.transform_cell(line)
+            expr = self.shell.transform_cell(line)
 
         # Minimum time above which parse time will be reported
         tp_min = 0.1

@@ -68,9 +68,8 @@ def create_ipython_shortcuts(shell):
                           & insert_mode
                           & cursor_in_leading_ws
                         ))(indent_buffer)
-
-    kb.add('c-o', filter=(has_focus(DEFAULT_BUFFER)
-                  & emacs_insert_mode))(newline_autoindent_outer(shell.input_splitter))
+    kb.add('c-o', filter=(has_focus(DEFAULT_BUFFER) & emacs_insert_mode)
+           )(newline_autoindent_outer(shell.input_transformer_manager))
 
     kb.add('f2', filter=has_focus(DEFAULT_BUFFER))(open_input_in_editor)
 
@@ -107,13 +106,13 @@ def newline_or_execute_outer(shell):
             check_text = d.text
         else:
             check_text = d.text[:d.cursor_position]
-        status, indent = shell.input_splitter.check_complete(check_text + '\n')
+        status, indent = shell.check_complete(check_text)
 
         if not (d.on_last_line or
                 d.cursor_position_row >= d.line_count - d.empty_line_count_at_the_end()
                 ):
             if shell.autoindent:
-                b.insert_text('\n' + (' ' * (indent or 0)))
+                b.insert_text('\n' + indent)
             else:
                 b.insert_text('\n')
             return
@@ -122,7 +121,7 @@ def newline_or_execute_outer(shell):
             b.validate_and_handle()
         else:
             if shell.autoindent:
-                b.insert_text('\n' + (' ' * (indent or 0)))
+                b.insert_text('\n' + indent)
             else:
                 b.insert_text('\n')
     return newline_or_execute

@@ -7,7 +7,7 @@ from collections import namedtuple
 from io import StringIO
 from keyword import iskeyword
 
-from . import tokenize2
+import tokenize
 
 
 Token = namedtuple('Token', ['token', 'text', 'start', 'end', 'line'])
@@ -15,9 +15,9 @@ Token = namedtuple('Token', ['token', 'text', 'start', 'end', 'line'])
 def generate_tokens(readline):
     """wrap generate_tokens to catch EOF errors"""
     try:
-        for token in tokenize2.generate_tokens(readline):
+        for token in tokenize.generate_tokens(readline):
             yield token
-    except tokenize2.TokenError:
+    except tokenize.TokenError:
         # catch EOF error
         return
 
@@ -99,12 +99,12 @@ def token_at_cursor(cell, cursor_pos=0):
             # don't consume it
             break
         
-        if tok.token == tokenize2.NAME and not iskeyword(tok.text):
-            if names and tokens and tokens[-1].token == tokenize2.OP and tokens[-1].text == '.':
+        if tok.token == tokenize.NAME and not iskeyword(tok.text):
+            if names and tokens and tokens[-1].token == tokenize.OP and tokens[-1].text == '.':
                 names[-1] = "%s.%s" % (names[-1], tok.text)
             else:
                 names.append(tok.text)
-        elif tok.token == tokenize2.OP:
+        elif tok.token == tokenize.OP:
             if tok.text == '=' and names:
                 # don't inspect the lhs of an assignment
                 names.pop(-1)

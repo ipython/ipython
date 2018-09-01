@@ -48,7 +48,7 @@ from IPython.core.error import InputRejected, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
-from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
+from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
@@ -333,15 +333,31 @@ class InteractiveShell(SingletonConfigurable):
     filename = Unicode("<ipython console>")
     ipython_dir= Unicode('').tag(config=True) # Set to get_ipython_dir() in __init__
 
-    # Input splitter, to transform input line by line and detect when a block
-    # is ready to be executed.
-    input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
-                              (), {'line_input_checker': True})
+    # Used to transform cells before running them, and check whether code is complete
+    input_transformer_manager = Instance('IPython.core.inputtransformer2.TransformerManager',
+                                         ())
 
-    # This InputSplitter instance is used to transform completed cells before
-    # running them. It allows cell magics to contain blank lines.
-    input_transformer_manager = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
-                                         (), {'line_input_checker': False})
+    @property
+    def input_transformers_cleanup(self):
+        return self.input_transformer_manager.cleanup_transforms
+
+    input_transformers_post = List([],
+        help="A list of string input transformers, to be applied after IPython's "
+             "own input transformations."
+    )
+
+    @property
+    def input_splitter(self):
+        """Make this available for backward compatibility (pre-7.0 release) with existing code.
+
+        For example, ipykernel ipykernel currently uses
+        `shell.input_splitter.check_complete`
+        """
+        from warnings import warn
+        warn("`input_splitter` is deprecated since IPython 7.0, prefer `input_transformer_manager`.",
+             DeprecationWarning, stacklevel=2
+        )
+        return self.input_transformer_manager
 
     logstart = Bool(False, help=
         """
@@ -2656,6 +2672,7 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
         """
+        result = None
         try:
             result = self._run_cell(
                 raw_cell, store_history, silent, shell_futures)
@@ -2713,21 +2730,10 @@ class InteractiveShell(SingletonConfigurable):
         preprocessing_exc_tuple = None
         try:
             # Static input transformations
-            cell = self.input_transformer_manager.transform_cell(raw_cell)
-        except SyntaxError:
+            cell = self.transform_cell(raw_cell)
+        except Exception:
             preprocessing_exc_tuple = sys.exc_info()
             cell = raw_cell  # cell has to exist so it can be stored/logged
-        else:
-            if len(cell.splitlines()) == 1:
-                # Dynamic transformations - only applied for single line commands
-                with self.builtin_trap:
-                    try:
-                        # use prefilter_lines to handle trailing newlines
-                        # restore trailing newline for ast.parse
-                        cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
-                    except Exception:
-                        # don't allow prefilter errors to crash IPython
-                        preprocessing_exc_tuple = sys.exc_info()
 
         # Store raw and processed history
         if store_history:
@@ -2798,6 +2804,36 @@ class InteractiveShell(SingletonConfigurable):
             self.execution_count += 1
 
         return result
+
+    def transform_cell(self, raw_cell):
+        """Transform an input cell before parsing it.
+
+        Static transformations, implemented in IPython.core.inputtransformer2,
+        deal with things like ``%magic`` and ``!system`` commands.
+        These run on all input.
+        Dynamic transformations, for things like unescaped magics and the exit
+        autocall, depend on the state of the interpreter.
+        These only apply to single line inputs.
+
+        These string-based transformations are followed by AST transformations;
+        see :meth:`transform_ast`.
+        """
+        # Static input transformations
+        cell = self.input_transformer_manager.transform_cell(raw_cell)
+
+        if len(cell.splitlines()) == 1:
+            # Dynamic transformations - only applied for single line commands
+            with self.builtin_trap:
+                # use prefilter_lines to handle trailing newlines
+                # restore trailing newline for ast.parse
+                cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
+
+        lines = cell.splitlines(keepends=True)
+        for transform in self.input_transformers_post:
+            lines = transform(lines)
+        cell = ''.join(lines)
+
+        return cell
     
     def transform_ast(self, node):
         """Apply the AST transformations from self.ast_transformers
@@ -2999,7 +3035,7 @@ class InteractiveShell(SingletonConfigurable):
           When status is 'incomplete', this is some whitespace to insert on
           the next line of the prompt.
         """
-        status, nspaces = self.input_splitter.check_complete(code)
+        status, nspaces = self.input_transformer_manager.check_complete(code)
         return status, ' ' * (nspaces or 0)
 
     #-------------------------------------------------------------------------

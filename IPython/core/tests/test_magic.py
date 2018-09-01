@@ -691,8 +691,8 @@ class CellMagicTestCase(TestCase):
         out = _ip.run_cell_magic(magic, 'a', 'b')
         nt.assert_equal(out, ('a','b'))
         # Via run_cell, it goes into the user's namespace via displayhook
-        _ip.run_cell('%%' + magic +' c\nd')
-        nt.assert_equal(_ip.user_ns['_'], ('c','d'))
+        _ip.run_cell('%%' + magic +' c\nd\n')
+        nt.assert_equal(_ip.user_ns['_'], ('c','d\n'))
 
     def test_cell_magic_func_deco(self):
         "Cell magic using simple decorator"

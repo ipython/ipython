@@ -833,28 +833,22 @@ def test_user_expression():
 class TestSyntaxErrorTransformer(unittest.TestCase):
     """Check that SyntaxError raised by an input transformer is handled by run_cell()"""
 
-    class SyntaxErrorTransformer(InputTransformer):
-
-        def push(self, line):
+    @staticmethod
+    def transformer(lines):
+        for line in lines:
             pos = line.find('syntaxerror')
             if pos >= 0:
                 e = SyntaxError('input contains "syntaxerror"')
                 e.text = line
                 e.offset = pos + 1
                 raise e
-            return line
-
-        def reset(self):
-            pass
+        return lines
 
     def setUp(self):
-        self.transformer = TestSyntaxErrorTransformer.SyntaxErrorTransformer()
-        ip.input_splitter.python_line_transforms.append(self.transformer)
-        ip.input_transformer_manager.python_line_transforms.append(self.transformer)
+        ip.input_transformers_post.append(self.transformer)
 
     def tearDown(self):
-        ip.input_splitter.python_line_transforms.remove(self.transformer)
-        ip.input_transformer_manager.python_line_transforms.remove(self.transformer)
+        ip.input_transformers_post.remove(self.transformer)
 
     def test_syntaxerror_input_transformer(self):
         with tt.AssertPrints('1234'):

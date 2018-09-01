@@ -1,4 +1,6 @@
-"""Input handling and transformation machinery.
+"""DEPRECATED: Input handling and transformation machinery.
+
+This module was deprecated in IPython 7.0, in favour of inputtransformer2.
 
 The first class in this module, :class:`InputSplitter`, is designed to tell when
 input from a line-oriented frontend is complete and should be executed, and when
@@ -13,6 +15,11 @@ and stores the results.
 
 For more details, see the class docstrings below.
 """
+
+from warnings import warn
+
+warn('IPython.core.inputsplitter is deprecated since IPython 7 in favor of `IPython.core.inputtransformer2`',
+     DeprecationWarning)
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
