@@ -6,7 +6,6 @@ a doctest) and which have no test functionality of their own, should be called
 empty function call is counted as a test, which just inflates tests numbers
 artificially).
 """
-from IPython.utils.py3compat import doctest_refactor_print
 
 def doctest_simple():
     """ipdoctest must handle simple inputs
