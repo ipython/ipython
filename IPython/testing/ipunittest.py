@@ -146,7 +146,8 @@ class Doc2UnitTester(object):
             def test(self):
                 # Make a new runner per function to be tested
                 runner = DocTestRunner(verbose=d2u.verbose)
-                map(runner.run, d2u.finder.find(func, func.__name__))
+                for the_test in d2u.finder.find(func, func.__name__):
+                    runner.run(the_test)
                 failed = count_failures(runner)
                 if failed:
                     # Since we only looked at a single function's docstring,
