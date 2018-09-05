@@ -6,25 +6,22 @@ a doctest) and which have no test functionality of their own, should be called
 empty function call is counted as a test, which just inflates tests numbers
 artificially).
 """
-from IPython.utils.py3compat import doctest_refactor_print
 
-@doctest_refactor_print
 def doctest_simple():
     """ipdoctest must handle simple inputs
     
     In [1]: 1
     Out[1]: 1
 
-    In [2]: print 1
+    In [2]: print(1)
     1
     """
 
-@doctest_refactor_print
 def doctest_multiline1():
     """The ipdoctest machinery must handle multiline examples gracefully.
 
     In [2]: for i in range(4):
-       ...:     print i
+       ...:     print(i)
        ...:      
     0
     1
@@ -32,7 +29,6 @@ def doctest_multiline1():
     3
     """
 
-@doctest_refactor_print
 def doctest_multiline2():
     """Multiline examples that define functions and print output.
 
@@ -44,7 +40,7 @@ def doctest_multiline2():
     Out[8]: 2
 
     In [9]: def g(x):
-       ...:     print 'x is:',x
+       ...:     print('x is:',x)
        ...:      
 
     In [10]: g(1)
