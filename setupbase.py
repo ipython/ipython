@@ -152,43 +152,6 @@ def check_package_data_first(command):
 # Find data files
 #---------------------------------------------------------------------------
 
-def make_dir_struct(tag,base,out_base):
-    """Make the directory structure of all files below a starting dir.
-
-    This is just a convenience routine to help build a nested directory
-    hierarchy because distutils is too stupid to do this by itself.
-
-    XXX - this needs a proper docstring!
-    """
-
-    # we'll use these a lot below
-    lbase = len(base)
-    pathsep = os.path.sep
-    lpathsep = len(pathsep)
-
-    out = []
-    for (dirpath,dirnames,filenames) in os.walk(base):
-        # we need to strip out the dirpath from the base to map it to the
-        # output (installation) path.  This requires possibly stripping the
-        # path separator, because otherwise pjoin will not work correctly
-        # (pjoin('foo/','/bar') returns '/bar').
-
-        dp_eff = dirpath[lbase:]
-        if dp_eff.startswith(pathsep):
-            dp_eff = dp_eff[lpathsep:]
-        # The output path must be anchored at the out_base marker
-        out_path = pjoin(out_base,dp_eff)
-        # Now we can generate the final filenames. Since os.walk only produces
-        # filenames, we must join back with the dirpath to get full valid file
-        # paths:
-        pfiles = [pjoin(dirpath,f) for f in filenames]
-        # Finally, generate the entry we need, which is a pari of (output
-        # path, files) for use as a data_files parameter in install_data.
-        out.append((out_path, pfiles))
-
-    return out
-
-
 def find_data_files():
     """
     Find IPython's data_files.
@@ -209,30 +172,6 @@ def find_data_files():
 
     return data_files
 
-
-def make_man_update_target(manpage):
-    """Return a target_update-compliant tuple for the given manpage.
-
-    Parameters
-    ----------
-    manpage : string
-      Name of the manpage, must include the section number (trailing number).
-
-    Example
-    -------
-
-    >>> make_man_update_target('ipython.1') #doctest: +NORMALIZE_WHITESPACE
-    ('docs/man/ipython.1.gz',
-     ['docs/man/ipython.1'],
-     'cd docs/man && gzip -9c ipython.1 > ipython.1.gz')
-    """
-    man_dir = pjoin('docs', 'man')
-    manpage_gz = manpage + '.gz'
-    manpath = pjoin(man_dir, manpage)
-    manpath_gz = pjoin(man_dir, manpage_gz)
-    gz_cmd = ( "cd %(man_dir)s && gzip -9c %(manpage)s > %(manpage_gz)s" %
-               locals() )
-    return (manpath_gz, [manpath], gz_cmd)
 
 # The two functions below are copied from IPython.utils.path, so we don't need
 # to import IPython during setup, which fails on Python 3.
