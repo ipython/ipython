@@ -36,10 +36,6 @@ isfile = os.path.isfile
 pjoin = os.path.join
 repo_root = os.path.dirname(os.path.abspath(__file__))
 
-def oscmd(s):
-    print(">", s)
-    os.system(s)
-
 def execfile(fname, globs, locs=None):
     locs = locs or globs
     exec(compile(open(fname).read(), fname, "exec"), globs, locs)
@@ -78,6 +74,12 @@ setup_args = dict(
       keywords         = keywords,
       classifiers      = classifiers,
       cmdclass         = {'install_data': install_data_ext},
+      project_urls={
+          'Documentation': 'https://ipython.readthedocs.io/',
+          'Funding'      : 'https://numfocus.org/',
+          'Source'       : 'https://github.com/ipython/ipython',
+          'Tracker'      : 'https://github.com/ipython/ipython/issues',
+      }
       )
 
 
