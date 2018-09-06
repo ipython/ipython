@@ -151,6 +151,59 @@ class TestAutoreload(Fixture):
         with tt.AssertNotPrints(('[autoreload of %s failed:' % mod_name), channel='stderr'):
             self.shell.run_code("pass")  # trigger another reload
 
+    def test_reload_class_attributes(self):
+        self.shell.magic_autoreload("2")
+        mod_name, mod_fn = self.new_module(textwrap.dedent("""
+                                class MyClass:
+
+                                    def __init__(self, a=10):
+                                        self.a = a
+                                        self.b = 22 
+                                        # self.toto = 33
+
+                                    def square(self):
+                                        print('compute square')
+                                        return self.a*self.a
+                            """))
+        self.shell.run_code("from %s import MyClass" % mod_name)
+        self.shell.run_code("c = MyClass(5)")
+        self.shell.run_code("c.square()")
+        with nt.assert_raises(AttributeError):
+            self.shell.run_code("c.cube()")
+        with nt.assert_raises(AttributeError):
+            self.shell.run_code("c.power(5)")
+        self.shell.run_code("c.b")
+        with nt.assert_raises(AttributeError):
+            self.shell.run_code("c.toto")
+
+
+        self.write_file(mod_fn, textwrap.dedent("""
+                            class MyClass:
+
+                                def __init__(self, a=10):
+                                    self.a = a
+                                    self.b = 11
+
+                                def power(self, p):
+                                    print('compute power '+str(p))
+                                    return self.a**p
+                            """))
+
+        self.shell.run_code("d = MyClass(5)")
+        self.shell.run_code("d.power(5)")
+        with nt.assert_raises(AttributeError):
+            self.shell.run_code("c.cube()")
+        with nt.assert_raises(AttributeError):
+            self.shell.run_code("c.square(5)")
+        self.shell.run_code("c.b")
+        self.shell.run_code("c.a")
+        with nt.assert_raises(AttributeError):
+            self.shell.run_code("c.toto")
+
+
+
+
+
 
     def _check_smoketest(self, use_aimport=True):
         """
@@ -340,3 +393,7 @@ x = -99
 
     def test_smoketest_autoreload(self):
         self._check_smoketest(use_aimport=False)
+
+
+
+
