@@ -164,20 +164,26 @@ class TestAutoreload(Fixture):
                                     def square(self):
                                         print('compute square')
                                         return self.a*self.a
-                            """))
+                            """
+            )
+        )
         self.shell.run_code("from %s import MyClass" % mod_name)
-        self.shell.run_code("c = MyClass(5)")
-        self.shell.run_code("c.square()")
+        self.shell.run_code("first = MyClass(5)")
+        self.shell.run_code("first.square()")
         with nt.assert_raises(AttributeError):
-            self.shell.run_code("c.cube()")
+            self.shell.run_code("first.cube()")
         with nt.assert_raises(AttributeError):
-            self.shell.run_code("c.power(5)")
-        self.shell.run_code("c.b")
+            self.shell.run_code("first.power(5)")
+        self.shell.run_code("first.b")
         with nt.assert_raises(AttributeError):
-            self.shell.run_code("c.toto")
+            self.shell.run_code("first.toto")
 
+        # remove square, add power
 
-        self.write_file(mod_fn, textwrap.dedent("""
+        self.write_file(
+            mod_fn,
+            textwrap.dedent(
+                """
                             class MyClass:
 
                                 def __init__(self, a=10):
@@ -187,23 +193,22 @@ class TestAutoreload(Fixture):
                                 def power(self, p):
                                     print('compute power '+str(p))
                                     return self.a**p
-                            """))
+                            """
+            ),
+        )
 
-        self.shell.run_code("d = MyClass(5)")
-        self.shell.run_code("d.power(5)")
-        with nt.assert_raises(AttributeError):
-            self.shell.run_code("c.cube()")
-        with nt.assert_raises(AttributeError):
-            self.shell.run_code("c.square(5)")
-        self.shell.run_code("c.b")
-        self.shell.run_code("c.a")
-        with nt.assert_raises(AttributeError):
-            self.shell.run_code("c.toto")
+        self.shell.run_code("second = MyClass(5)")
 
-
-
-
-
+        for object_name in {'first', 'second'}:
+            self.shell.run_code("{object_name}.power(5)".format(object_name=object_name))
+            with nt.assert_raises(AttributeError):
+                self.shell.run_code("{object_name}.cube()".format(object_name=object_name))
+            with nt.assert_raises(AttributeError):
+                self.shell.run_code("{object_name}.square(5)".format(object_name=object_name))
+            self.shell.run_code("{object_name}.b".format(object_name=object_name))
+            self.shell.run_code("{object_name}.a".format(object_name=object_name))
+            with nt.assert_raises(AttributeError):
+                self.shell.run_code("{object_name}.toto".format(object_name=object_name))
 
     def _check_smoketest(self, use_aimport=True):
         """
