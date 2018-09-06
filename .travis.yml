@@ -26,6 +26,7 @@ script:
     - |
       if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
         pip install -r docs/requirements.txt
+        python tools/fixup_whats_new_pr.py
         make -C docs/ html SPHINXOPTS="-W"
       fi
 after_success:
