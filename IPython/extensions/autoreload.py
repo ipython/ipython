@@ -269,7 +269,7 @@ def update_function(old, new):
 
 def update_class(old, new):
     """Replace stuff in the __dict__ of a class, and upgrade
-    method code objects"""
+    method code objects, and add new methods, if any"""
     for key in list(old.__dict__.keys()):
         old_obj = getattr(old, key)
         try:
@@ -290,6 +290,13 @@ def update_class(old, new):
             setattr(old, key, getattr(new, key))
         except (AttributeError, TypeError):
             pass # skip non-writable attributes
+
+    for key in list(new.__dict__.keys()):
+        if key not in list(old.__dict__.keys()):
+            try:
+                setattr(old, key, getattr(new, key))
+            except (AttributeError, TypeError):
+                pass # skip non-writable attributes
 
 
 def update_property(old, new):

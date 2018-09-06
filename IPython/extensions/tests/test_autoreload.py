@@ -151,6 +151,64 @@ class TestAutoreload(Fixture):
         with tt.AssertNotPrints(('[autoreload of %s failed:' % mod_name), channel='stderr'):
             self.shell.run_code("pass")  # trigger another reload
 
+    def test_reload_class_attributes(self):
+        self.shell.magic_autoreload("2")
+        mod_name, mod_fn = self.new_module(textwrap.dedent("""
+                                class MyClass:
+
+                                    def __init__(self, a=10):
+                                        self.a = a
+                                        self.b = 22 
+                                        # self.toto = 33
+
+                                    def square(self):
+                                        print('compute square')
+                                        return self.a*self.a
+                            """
+            )
+        )
+        self.shell.run_code("from %s import MyClass" % mod_name)
+        self.shell.run_code("first = MyClass(5)")
+        self.shell.run_code("first.square()")
+        with nt.assert_raises(AttributeError):
+            self.shell.run_code("first.cube()")
+        with nt.assert_raises(AttributeError):
+            self.shell.run_code("first.power(5)")
+        self.shell.run_code("first.b")
+        with nt.assert_raises(AttributeError):
+            self.shell.run_code("first.toto")
+
+        # remove square, add power
+
+        self.write_file(
+            mod_fn,
+            textwrap.dedent(
+                """
+                            class MyClass:
+
+                                def __init__(self, a=10):
+                                    self.a = a
+                                    self.b = 11
+
+                                def power(self, p):
+                                    print('compute power '+str(p))
+                                    return self.a**p
+                            """
+            ),
+        )
+
+        self.shell.run_code("second = MyClass(5)")
+
+        for object_name in {'first', 'second'}:
+            self.shell.run_code("{object_name}.power(5)".format(object_name=object_name))
+            with nt.assert_raises(AttributeError):
+                self.shell.run_code("{object_name}.cube()".format(object_name=object_name))
+            with nt.assert_raises(AttributeError):
+                self.shell.run_code("{object_name}.square()".format(object_name=object_name))
+            self.shell.run_code("{object_name}.b".format(object_name=object_name))
+            self.shell.run_code("{object_name}.a".format(object_name=object_name))
+            with nt.assert_raises(AttributeError):
+                self.shell.run_code("{object_name}.toto".format(object_name=object_name))
 
     def _check_smoketest(self, use_aimport=True):
         """
@@ -340,3 +398,7 @@ x = -99
 
     def test_smoketest_autoreload(self):
         self._check_smoketest(use_aimport=False)
+
+
+
+

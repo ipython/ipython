@@ -386,6 +386,12 @@ def run_iptest():
         monkeypatch_xunit()
 
     arg1 = sys.argv[1]
+    if arg1.startswith('IPython/'):
+        if arg1.endswith('.py'):
+            arg1 = arg1[:-3]
+        sys.argv[1] = arg1.replace('/', '.')
+    
+    arg1 = sys.argv[1]
     if arg1 in test_sections:
         section = test_sections[arg1]
         sys.argv[1:2] = section.includes
