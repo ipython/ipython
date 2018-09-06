@@ -204,7 +204,7 @@ class TestAutoreload(Fixture):
             with nt.assert_raises(AttributeError):
                 self.shell.run_code("{object_name}.cube()".format(object_name=object_name))
             with nt.assert_raises(AttributeError):
-                self.shell.run_code("{object_name}.square(5)".format(object_name=object_name))
+                self.shell.run_code("{object_name}.square()".format(object_name=object_name))
             self.shell.run_code("{object_name}.b".format(object_name=object_name))
             self.shell.run_code("{object_name}.a".format(object_name=object_name))
             with nt.assert_raises(AttributeError):
