@@ -55,7 +55,7 @@ def script_args(f):
             """
         ),
         magic_arguments.argument(
-            '--raise-error', action="store_true",
+            '--no-raise-error', action="store_false", dest='raise_error',
             help="""Whether you should raise an error message in addition to 
             a stream on stderr if you get a nonzero exit code.
             """
