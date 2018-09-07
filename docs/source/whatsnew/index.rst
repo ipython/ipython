@@ -21,6 +21,7 @@ development work they do here in a user friendly format.
    :maxdepth: 1
 
    development
+   version7
    version6
    github-stats-6
    version5
