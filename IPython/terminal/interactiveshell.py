@@ -367,6 +367,7 @@ class TerminalInteractiveShell(InteractiveShell):
                         processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                         filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
                             Condition(lambda: self.highlight_matching_brackets))],
+                'inputhook': self.inputhook,
                 }
 
     def prompt_for_code(self):
