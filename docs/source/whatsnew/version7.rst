@@ -22,7 +22,7 @@ on the bugfix only 5.x branch, but we remind you that Python 2 EOL is Jan 1st
 
 We were able to backport bug fixes to the 5.x branch thanks to our backport bot which
 backported more than `70 Pull-Requests
-<https://github.com/ipython/ipython/pulls?page=3&q=is%3Apr+sort%3Aupdated-desc+author%3Aapp%2Fmeeseeksdev++5.x&utf8=%E2%9C%93>`_, but there are still many PRs that required manually work, and this is an area of the project were you can easily contribute by looking for `PRs still needed backport<https://github.com/ipython/ipython/issues?q=label%3A%22Still+Needs+Manual+Backport%22+is%3Aclosed+sort%3Aupdated-desc>`_
+<https://github.com/ipython/ipython/pulls?page=3&q=is%3Apr+sort%3Aupdated-desc+author%3Aapp%2Fmeeseeksdev++5.x&utf8=%E2%9C%93>`_, but there are still many PRs that required manually work, and this is an area of the project were you can easily contribute by looking for `PRs still needed backport <https://github.com/ipython/ipython/issues?q=label%3A%22Still+Needs+Manual+Backport%22+is%3Aclosed+sort%3Aupdated-desc>`_
 
 IPython 6.x branch will likely not see any further release unless we critical
 bugs are found.
@@ -166,6 +166,7 @@ This new feature helps dual environment development - Jupyter+IDE - where the co
    first = MyClass(5)
 
 .. code::
+
    # mymodule/file1.py
 
    class MyClass:

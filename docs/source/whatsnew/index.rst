@@ -12,6 +12,23 @@
 What's new in IPython
 =====================
 
+.. this will appear in the docs if we are nto releasing a versin (ie is
+.. _version_extra in release.py is empty stringA
+
+.. only:: ipydev
+
+   Developpement version in-progress features:
+   
+   .. toctree::
+      development
+
+.. this make a hidden toctree that avoid sphinx to complain about documents
+.. included nowhere when building docs for stable
+.. only:: ipystable
+   .. toctree::
+      :hidden:
+      development
+
 This section documents the changes that have been made in various versions of
 IPython. Users should consult these pages to learn about new features, bug
 fixes and backwards incompatibilities. Developers should summarize the
@@ -20,7 +37,6 @@ development work they do here in a user friendly format.
 .. toctree::
    :maxdepth: 1
 
-   development
    version7
    version6
    github-stats-6
