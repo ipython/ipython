@@ -9,6 +9,7 @@ recurring bugs we seem to encounter with high-level interaction.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import asyncio
 import ast
 import os
 import signal
@@ -24,6 +25,7 @@ import nose.tools as nt
 
 from IPython.core.error import InputRejected
 from IPython.core.inputtransformer import InputTransformer
+from IPython.core import interactiveshell
 from IPython.testing.decorators import (
     skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
 )
@@ -928,3 +930,19 @@ def test_custom_exc_count():
     ip.set_custom_exc((), None)
     nt.assert_equal(hook.call_count, 1)
     nt.assert_equal(ip.execution_count, before + 1)
+
+
+def test_run_cell_async():
+    loop = asyncio.get_event_loop()
+    ip.run_cell("import asyncio")
+    coro = ip.run_cell_async("await asyncio.sleep(0.01)\n5")
+    assert asyncio.iscoroutine(coro)
+    result = loop.run_until_complete(coro)
+    assert isinstance(result, interactiveshell.ExecutionResult)
+    assert result.result == 5
+
+
+def test_should_run_async():
+    assert not ip.should_run_async("a = 5")
+    assert ip.should_run_async("await x")
+    assert ip.should_run_async("import asyncio; await asyncio.sleep(1)")
