@@ -2830,32 +2830,52 @@ class InteractiveShell(SingletonConfigurable):
             shell_futures=shell_futures,
         )
 
-        # run_cell_async is async, but may not actually need and eventloop.
+        # run_cell_async is async, but may not actually need an eventloop.
         # when this is the case, we want to run it using the pseudo_sync_runner
         # so that code can invoke eventloops (for example via the %run , and
         # `%paste` magic.
+        if self.should_run_async(raw_cell):
+            runner = self.loop_runner
+        else:
+            runner = _pseudo_sync_runner
+
         try:
-            interactivity = coro.send(None)
-        except StopIteration as exc:
-            return exc.value
+            return runner(coro)
+        except Exception as e:
+            info = ExecutionInfo(raw_cell, store_history, silent, shell_futures)
+            result = ExecutionResult(info)
+            result.error_in_exec = e
+            self.showtraceback(running_compiled_code=True)
+            return result
+        return
 
-        # if code was not async, sending `None` was actually executing the code.
-        if isinstance(interactivity, ExecutionResult):
-            return interactivity
+    def should_run_async(self, raw_cell: str) -> bool:
+        """Return whether a cell should be run asynchronously via a coroutine runner
 
-        if interactivity == 'async':
-            try:
-                return self.loop_runner(coro)
-            except Exception as e:
-                info = ExecutionInfo(raw_cell, store_history, silent, shell_futures)
-                result = ExecutionResult(info)
-                result.error_in_exec = e
-                self.showtraceback(running_compiled_code=True)
-                return result
-        return _pseudo_sync_runner(coro)
+        Parameters
+        ----------
+        raw_cell: str
+            The code to be executed
+
+        Returns
+        -------
+        result: bool
+            Whether the code needs to be run with a coroutine runner or not
+
+        .. versionadded: 7.0
+        """
+        if not self.autoawait:
+            return False
+        try:
+            cell = self.transform_cell(raw_cell)
+        except Exception:
+            # any exception during transform will be raised
+            # prior to execution
+            return False
+        return _should_be_async(cell)
 
     @asyncio.coroutine
-    def run_cell_async(self, raw_cell:str, store_history=False, silent=False, shell_futures=True) -> ExecutionResult:
+    def run_cell_async(self, raw_cell: str, store_history=False, silent=False, shell_futures=True) -> ExecutionResult:
         """Run a complete IPython cell asynchronously.
 
         Parameters
@@ -2878,6 +2898,8 @@ class InteractiveShell(SingletonConfigurable):
         Returns
         -------
         result : :class:`ExecutionResult`
+
+        .. versionadded: 7.0
         """
         info = ExecutionInfo(
             raw_cell, store_history, silent, shell_futures)
@@ -2910,13 +2932,13 @@ class InteractiveShell(SingletonConfigurable):
         # prefilter_manager) raises an exception, we store it in this variable
         # so that we can display the error after logging the input and storing
         # it in the history.
-        preprocessing_exc_tuple = None
         try:
-            # Static input transformations
             cell = self.transform_cell(raw_cell)
         except Exception:
             preprocessing_exc_tuple = sys.exc_info()
             cell = raw_cell  # cell has to exist so it can be stored/logged
+        else:
+            preprocessing_exc_tuple = None
 
         # Store raw and processed history
         if store_history:
@@ -2991,12 +3013,10 @@ class InteractiveShell(SingletonConfigurable):
                 interactivity = "none" if silent else self.ast_node_interactivity
                 if _run_async:
                     interactivity = 'async'
-                # yield interactivity so let run_cell decide whether to use
-                # an async loop_runner
-                yield interactivity
+
                 has_raised = yield from self.run_ast_nodes(code_ast.body, cell_name,
                        interactivity=interactivity, compiler=compiler, result=result)
-                
+
                 self.last_execution_succeeded = not has_raised
                 self.last_execution_result = result
 
@@ -3042,7 +3062,7 @@ class InteractiveShell(SingletonConfigurable):
         cell = ''.join(lines)
 
         return cell
-    
+
     def transform_ast(self, node):
         """Apply the AST transformations from self.ast_transformers
         
