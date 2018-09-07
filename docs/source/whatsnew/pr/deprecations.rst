@@ -1,3 +1,6 @@
+Deprecations
+============
+
 A couple of unused function and methods have been deprecated and will be removed
 in future versions:
 

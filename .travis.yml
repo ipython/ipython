@@ -5,7 +5,6 @@ python:
     - "3.7-dev"
     - 3.6
     - 3.5
-    - 3.4
 sudo: false
 env:
   global:
@@ -17,6 +16,7 @@ install:
     - pip install pip --upgrade
     - pip install setuptools --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
+    - pip install trio curio
     - pip install codecov check-manifest --upgrade
     - sudo apt-get install graphviz
 script:
@@ -26,6 +26,7 @@ script:
     - |
       if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
         pip install -r docs/requirements.txt
+        python tools/fixup_whats_new_pr.py
         make -C docs/ html SPHINXOPTS="-W"
       fi
 after_success:

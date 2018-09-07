@@ -143,7 +143,8 @@ today_fmt = '%B %d, %Y'
 
 # Exclude these glob-style patterns when looking for source files. They are
 # relative to the source/ directory.
-exclude_patterns = ['whatsnew/pr']
+exclude_patterns = ['whatsnew/pr/antigravity-feature.*', 
+                    'whatsnew/pr/incompat-switching-to-perl.*']
 
 
 # If true, '()' will be appended to :func: etc. cross-reference text.

@@ -72,6 +72,7 @@ def test_nest_embed():
 
     child = pexpect.spawn(sys.executable, ['-m', 'IPython', '--colors=nocolor'],
                           env=env)
+    child.timeout = 5
     child.expect(ipy_prompt)
     child.sendline("import IPython")
     child.expect(ipy_prompt)
@@ -86,7 +87,8 @@ def test_nest_embed():
     except pexpect.TIMEOUT as e:
         print(e)
         #child.interact()
-    child.sendline("embed1 = get_ipython()"); child.expect(ipy_prompt)
+    child.sendline("embed1 = get_ipython()")
+    child.expect(ipy_prompt)
     child.sendline("print('true' if embed1 is not ip0 else 'false')")
     assert(child.expect(['true\r\n', 'false\r\n']) == 0)
     child.expect(ipy_prompt)
@@ -103,7 +105,8 @@ def test_nest_embed():
     except pexpect.TIMEOUT as e:
         print(e)
         #child.interact()
-    child.sendline("embed2 = get_ipython()"); child.expect(ipy_prompt)
+    child.sendline("embed2 = get_ipython()")
+    child.expect(ipy_prompt)
     child.sendline("print('true' if embed2 is not embed1 else 'false')")
     assert(child.expect(['true\r\n', 'false\r\n']) == 0)
     child.expect(ipy_prompt)

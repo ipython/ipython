@@ -366,6 +366,9 @@ def embed(**kwargs):
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
         kwargs['config'] = config
+    using = kwargs.get('using', 'sync')
+    if using :
+        kwargs['config'].update({'TerminalInteractiveShell':{'loop_runner':using, 'colors':'NoColor', 'autoawait': using!='sync'}})
     #save ps1/ps2 if defined
     ps1 = None
     ps2 = None
@@ -383,7 +386,7 @@ def embed(**kwargs):
     shell = InteractiveShellEmbed.instance(_init_location_id='%s:%s' % (
         frame.f_code.co_filename, frame.f_lineno), **kwargs)
     shell(header=header, stack_depth=2, compile_flags=compile_flags,
-          _call_location_id='%s:%s' % (frame.f_code.co_filename, frame.f_lineno))
+        _call_location_id='%s:%s' % (frame.f_code.co_filename, frame.f_lineno))
     InteractiveShellEmbed.clear_instance()
     #restore previous instance
     if saved_shell_instance is not None:

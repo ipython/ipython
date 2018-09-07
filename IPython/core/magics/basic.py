@@ -2,19 +2,20 @@
 
 
 import argparse
-import textwrap
+from logging import error
 import io
-import sys
 from pprint import pformat
+import textwrap
+import sys
+from warnings import warn
 
+from traitlets.utils.importstring import import_item
 from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
 from IPython.utils.text import format_screen, dedent, indent
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
-from warnings import warn
-from logging import error
 
 
 class MagicsDisplay(object):
@@ -378,6 +379,8 @@ Currently the magic system has the following functions:""",
         except:
             xmode_switch_err('user')
 
+
+
     @line_magic
     def pip(self, args=''):
         """
@@ -597,3 +600,72 @@ Currently the magic system has the following functions:""",
         nb = v4.new_notebook(cells=cells)
         with io.open(args.filename, 'w', encoding='utf-8') as f:
             write(nb, f, version=4)
+
+@magics_class
+class AsyncMagics(BasicMagics):
+
+    @line_magic
+    def autoawait(self, parameter_s):
+        """
+        Allow to change the status of the autoawait option.
+
+        This allow you to set a specific asynchronous code runner.
+
+        If no value is passed, print the currently used asynchronous integration
+        and whether it is activated.
+
+        It can take a number of value evaluated in the following order:
+
+        - False/false/off deactivate autoawait integration
+        - True/true/on activate autoawait integration using configured default
+          loop
+        - asyncio/curio/trio activate autoawait integration and use integration
+          with said library.
+
+        - `sync` turn on the pseudo-sync integration (mostly used for
+          `IPython.embed()` which does not run IPython with a real eventloop and
+          deactivate running asynchronous code. Turning on Asynchronous code with
+          the pseudo sync loop is undefined behavior and may lead IPython to crash.
+
+        If the passed parameter does not match any of the above and is a python
+        identifier, get said object from user namespace and set it as the
+        runner, and activate autoawait. 
+
+        If the object is a fully qualified object name, attempt to import it and
+        set it as the runner, and activate autoawait.
+        
+        
+        The exact behavior of autoawait is experimental and subject to change
+        across version of IPython and Python.
+        """
+
+        param = parameter_s.strip()
+        d = {True: "on", False: "off"}
+
+        if not param:
+            print("IPython autoawait is `{}`, and set to use `{}`".format(
+                d[self.shell.autoawait],
+                self.shell.loop_runner
+            ))
+            return None
+
+        if param.lower() in ('false', 'off'):
+            self.shell.autoawait = False
+            return None
+        if param.lower() in ('true', 'on'):
+            self.shell.autoawait = True
+            return None
+
+        if param in self.shell.loop_runner_map:
+            self.shell.loop_runner, self.shell.autoawait = self.shell.loop_runner_map[param]
+            return None
+
+        if param in self.shell.user_ns :
+            self.shell.loop_runner = self.shell.user_ns[param]
+            self.shell.autoawait = True
+            return None
+
+        runner = import_item(param)
+
+        self.shell.loop_runner = runner
+        self.shell.autoawait = True
