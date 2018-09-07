@@ -26,7 +26,9 @@ What's new in IPython
 ..
    this make a hidden toctree that avoid sphinx to complain about documents
    included nowhere when building docs for stable
+   
 .. only:: ipystable
+
    .. toctree::
       :hidden:
       development
