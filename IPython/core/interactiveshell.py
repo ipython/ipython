@@ -2841,7 +2841,7 @@ class InteractiveShell(SingletonConfigurable):
 
         try:
             return runner(coro)
-        except Exception as e:
+        except BaseException as e:
             info = ExecutionInfo(raw_cell, store_history, silent, shell_futures)
             result = ExecutionResult(info)
             result.error_in_exec = e
