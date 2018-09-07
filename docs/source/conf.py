@@ -87,8 +87,10 @@ def is_stable(extra):
 
 if is_stable(iprelease['_version_extra']):
     tags.add('ipystable')
+    print('Adding Tag: ipystable')
 else:
     tags.add('ipydev')
+    print('Adding Tag: ipydev')
     rst_prolog += """
 .. warning::
 

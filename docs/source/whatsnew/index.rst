@@ -21,6 +21,7 @@ What's new in IPython
    Developpement version in-progress features:
    
    .. toctree::
+
       development
 
 ..
@@ -31,6 +32,7 @@ What's new in IPython
 
    .. toctree::
       :hidden:
+
       development
 
 This section documents the changes that have been made in various versions of
