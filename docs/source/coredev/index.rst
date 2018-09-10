@@ -222,7 +222,7 @@ Commit the changes to release.py::
 Create and push the tag::
 
     git tag -am "release $VERSION" "$VERSION"
-    git push origin --tags
+    git push origin $VERSION
 
 Update release.py back to ``x.y-dev`` or ``x.y-maint``, and re-add the
 ``development`` entry in ``docs/source/whatsnew/index.rst`` and push::
