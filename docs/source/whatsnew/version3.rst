@@ -182,7 +182,7 @@ Other new features
 * ``NotebookApp.webapp_settings`` is deprecated and replaced with
   the more informatively named ``NotebookApp.tornado_settings``.
 
-* Using :magic:`timeit` prints warnings if there is atleast a 4x difference in timings
+* Using :magic:`timeit` prints warnings if there is at least a 4x difference in timings
   between the slowest and fastest runs, since this might meant that the multiple
   runs are not independent of one another.
 

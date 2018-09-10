@@ -18,23 +18,9 @@ Need to be updated:
 
 .. toctree::
    :maxdepth: 2
-   :glob: 
+   :glob:
 
    pr/*
-
-IPython 6 feature a major improvement in the completion machinery which is now
-capable of completing non-executed code. It is also the first version of IPython
-to stop compatibility with Python 2, which is still supported on the bugfix only
-5.x branch. Read below to have a non-exhaustive list of new features.
-
-Make sure you have pip > 9.0 before upgrading. 
-You should be able to update by using:
-
-.. code::
-
-    pip install ipython --upgrade
-
-
 
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.

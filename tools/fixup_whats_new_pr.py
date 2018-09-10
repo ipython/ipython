@@ -26,8 +26,11 @@ def main():
 
         with open(filename) as f:
             data = f.read()
-        if data and data.splitlines()[1].startswith('='):
-            continue
+        try:
+            if data and data.splitlines()[1].startswith('='):
+                continue
+        except IndexError:
+            pass
 
         with open(filename, 'w') as f:
             f.write(title+'\n')

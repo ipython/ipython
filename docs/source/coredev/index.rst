@@ -19,18 +19,17 @@ need to be backported to an earlier release; then it should be tagged with the
 correct ``milestone``.
 
 If you tag a pull request with a milestone **before** merging the pull request,
-and the base ref is `master`, then our backport bot should automatically create
+and the base ref is ``master``, then our backport bot should automatically create
 a corresponding pull-request that backport on the correct branch.
 
-If you are an admin on the IPython repository you can also just mention the
+If you have write access to the IPython repository you can also just mention the
 **backport bot** to do the work for you. The bot is evolving so instructions may
 be different. At the time of this writing you can use::
 
-    @meeseeksdev[bot] backport [to <branchname>]
+    @meeseeksdev[bot] backport [to] <branchname>
 
 The bot will attempt to backport the current pull-request and issue a PR if
-possible. If the milestone is set on the issue you can omit the branch to
-backport to.
+possible. 
 
 .. note::
 
@@ -149,8 +148,10 @@ If a major release:
     - Edit ``docs/source/whatsnew/index.rst`` to list the new ``github-stats-X``
       file you just created.
 
-    - Remove temporarily the first entry called ``development`` (you'll need to
-      add it back after release).
+    - You do not need to temporarily remove the first entry called
+      ``development``, nor re-add it after the release, it will automatically be
+      hidden when releasing a stable version of IPython (if ``_version_extra``
+      in ``release.py`` is an empty string.
 
       Make sure that the stats file has a header or it won't be rendered in
       the final documentation.
