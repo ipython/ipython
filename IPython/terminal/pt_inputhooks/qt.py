@@ -1,15 +1,29 @@
 import sys
+import os
 from IPython.external.qt_for_kernel import QtCore, QtGui
 
 # If we create a QApplication, keep a reference to it so that it doesn't get
 # garbage collected.
 _appref = None
-
+_already_warned = False
 
 def inputhook(context):
     global _appref
     app = QtCore.QCoreApplication.instance()
     if not app:
+        if sys.platform == 'linux':
+            if not os.environ.get('DISPLAY') \
+                    and not os.environ.get('WAYLAND_DISPLAY'):
+                import warnings
+                global _already_warned
+                if not _already_warned:
+                    _already_warned = True
+                    warnings.warn(
+                        'The DISPLAY or WAYLAND_DISPLAY enviroment variable is '
+                        'not set or empty and Qt5 requires this enviroment '
+                        'variable. Deactivate Qt5 code.'
+                    )
+                return
         _appref = app = QtGui.QApplication([" "])
     event_loop = QtCore.QEventLoop(app)
 
