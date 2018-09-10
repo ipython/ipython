@@ -9,25 +9,25 @@ IPython 7.0.0
 
 .. warning::
 
-   IPython 7.0 is currently in Beta, Feedback on API/changes and
-   addition/updates to this cahngelog are welcomed.
+   IPython 7.0 is currently in Beta. We welcome feedback on API/changes and
+   addition/updates to this changelog.
 
-Released .... ...., 2017
+Released .... ...., 2018
 
 IPython 7 include major features improvement as you can read in the following
-changelog. This is also the second major version of IPython to stop support only
-Python 3 – starting at Python 3.4. Python 2 is still still community supported
-on the bugfix only 5.x branch, but we remind you that Python 2 EOL is Jan 1st
-2020.
+changelog. This is also the second major version of IPython to support only
+Python 3 – starting at Python 3.4. Python 2 is still community supported
+on the bugfix only 5.x branch, but we remind you that Python 2 "end of life"
+is on Jan 1st 2020.
 
 We were able to backport bug fixes to the 5.x branch thanks to our backport bot which
 backported more than `70 Pull-Requests
 <https://github.com/ipython/ipython/pulls?page=3&q=is%3Apr+sort%3Aupdated-desc+author%3Aapp%2Fmeeseeksdev++5.x&utf8=%E2%9C%93>`_, but there are still many PRs that required manually work, and this is an area of the project were you can easily contribute by looking for `PRs still needed backport <https://github.com/ipython/ipython/issues?q=label%3A%22Still+Needs+Manual+Backport%22+is%3Aclosed+sort%3Aupdated-desc>`_
 
-IPython 6.x branch will likely not see any further release unless we critical
+IPython 6.x branch will likely not see any further release unless critical
 bugs are found.
 
-Make sure you have pip > 9.0 before upgrading. You should be able to update by simply runngin
+Make sure you have pip > 9.0 before upgrading. You should be able to update by simply running
 
 .. code::
 
@@ -44,7 +44,7 @@ Or if you have conda installed:
 Prompt Toolkit 2.0
 ------------------
 
-IPython 7.0+ now use ``prompt_toolkit 2.0``, if you still need to use earlier 
+IPython 7.0+ now uses ``prompt_toolkit 2.0``, if you still need to use earlier
 ``prompt_toolkit`` version you may need to pin IPython to ``<7.0``.
 
 Autowait: Asynchronous REPL
@@ -145,7 +145,7 @@ This took more than a year in the making, and the code was rebased a number of
 time leading to commit authorship that may have been lost in the final
 Pull-Request. Huge thanks to many people for contribution, discussion, code,
 documentation, use-case: dalejung, danielballan, ellisonbg, fperez, gnestor,
-minrk, njsmith, pganssle, tacaswell, takluyver , vidartf ... And many other.
+minrk, njsmith, pganssle, tacaswell, takluyver , vidartf ... And many others.
 
 
 Autoreload Improvement
@@ -194,7 +194,10 @@ un-deprecated in :ghpull:`11257`
 Make ``%run -n -i ...`` work correctly. Earlier, if ``%run`` was passed both arguments, ``-n`` would be silently ignored. See :ghpull:`10308`
 
 
-
+The ``%%script`` (as well as ``%%bash``, ``ruby``... ) cell magics now raise
+by default if the return code of the given code is non-zero (thus halting
+execution of further cells in a notebook). The behavior can be disable by
+passing the ``--no-raise-error`` flag.
 
 
 Deprecations
