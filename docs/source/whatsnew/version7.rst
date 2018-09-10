@@ -148,8 +148,8 @@ documentation, use-case: dalejung, danielballan, ellisonbg, fperez, gnestor,
 minrk, njsmith, pganssle, tacaswell, takluyver , vidartf ... And many other.
 
 
-Autoreload Improvment
----------------------
+Autoreload Improvement
+----------------------
 
 The magic ``%autoreload 2`` now captures new methods added to classes. Earlier, only methods existing as of the initial import were being tracked and updated.  
 

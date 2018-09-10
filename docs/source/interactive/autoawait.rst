@@ -5,7 +5,7 @@ Asynchronous in REPL: Autoawait
 
 .. note::
 
-   This feature is experimental and behavior can change betwen python and
+   This feature is experimental and behavior can change between python and
    IPython version without prior deprecation.
 
 Starting with IPython 7.0, and when user Python 3.6 and above, IPython offer the

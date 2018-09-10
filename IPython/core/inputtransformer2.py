@@ -541,7 +541,6 @@ class TransformerManager:
             cell += '\n'  # Ensure the cell has a trailing newline
         lines = cell.splitlines(keepends=True)
         for transform in self.cleanup_transforms + self.line_transforms:
-            #print(transform, lines)
             lines = transform(lines)
 
         lines = self.do_token_transforms(lines)

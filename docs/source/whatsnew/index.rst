@@ -13,12 +13,12 @@ What's new in IPython
 =====================
 
 ..
-    this will appear in the docs if we are nto releasing a versin (ie is
-    `_version_extra` in release.py is empty stringA
+    this will appear in the docs if we are not releasing a versin (ie is
+    `_version_extra` in release.py is empty string
 
 .. only:: ipydev
 
-   Developpement version in-progress features:
+   Development version in-progress features:
    
    .. toctree::
 

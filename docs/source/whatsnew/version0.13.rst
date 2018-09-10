@@ -155,7 +155,7 @@ Other improvements to the Notebook
 These are some other notable small improvements to the notebook, in addition to
 many bug fixes and minor changes to add polish and robustness throughout:
 
-* The notebook pager (the area at the bottom) is now resizeable by dragging its
+* The notebook pager (the area at the bottom) is now Resizable by dragging its
   divider handle, a feature that had been requested many times by just about
   anyone who had used the notebook system.  :ghpull:`1705`.
 
