@@ -13,8 +13,8 @@ What's new in IPython
 =====================
 
 ..
-    this will appear in the docs if we are not releasing a versin (ie is
-    `_version_extra` in release.py is empty string
+    this will appear in the docs if we are not releasing a version (ie if
+    `_version_extra` in release.py is an empty string)
 
 .. only:: ipydev
 
@@ -25,8 +25,8 @@ What's new in IPython
       development
 
 ..
-   this make a hidden toctree that avoid sphinx to complain about documents
-   included nowhere when building docs for stable
+   this makes a hidden toctree that keeps sphinx from complaining about
+   documents included nowhere when building docs for stable
    
 .. only:: ipystable
 

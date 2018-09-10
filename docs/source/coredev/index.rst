@@ -209,7 +209,7 @@ the build procedure runs OK, and tests other steps in the release process.
 The ``build_release`` script will in particular verify that the version number
 match PEP 440, in order to avoid surprise at the time of build upload.
 
-We encourage creating a test build of the docs as well.
+We encourage creating a test build of the docs as well. 
 
 6. Create and push the new tag
 ------------------------------
