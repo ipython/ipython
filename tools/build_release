@@ -4,20 +4,13 @@
 import os
 from shutil import rmtree
 
-from toollib import sh, pjoin, get_ipdir, cd, execfile, sdists, buildwheels
+from toollib import sh, pjoin, get_ipdir, cd, sdists, buildwheels
 
 def build_release():
 
     # Get main ipython dir, this will raise if it doesn't pass some checks
     ipdir = get_ipdir()
     cd(ipdir)
-
-    # Load release info
-    execfile(pjoin('IPython', 'core', 'release.py'), globals())
-
-    with open('docs/source/whatsnew/index.rst') as f:
-        if '   development' in f.read():
-            raise ValueError("Please remove `development` from what's new toctree for release")
 
     # Cleanup
     for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
