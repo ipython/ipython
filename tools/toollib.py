@@ -3,6 +3,7 @@
 
 # Library imports
 import os
+import sys
 
 # Useful shorthands
 pjoin = os.path.join
@@ -20,7 +21,7 @@ archive = '%s:%s' % (archive_user, archive_dir)
 sdists = './setup.py sdist --formats=gztar'
 # Binary dists
 def buildwheels():
-    sh('python3 setupegg.py bdist_wheel')
+    sh('{python} setupegg.py bdist_wheel'.format(python=sys.executable))
 
 # Utility functions
 def sh(cmd):
@@ -30,9 +31,6 @@ def sh(cmd):
     #stat = 0  # Uncomment this and comment previous to run in debug mode
     if stat:
         raise SystemExit("Command %s failed with code: %s" % (cmd, stat))
-
-# Backwards compatibility
-c = sh
 
 def get_ipdir():
     """Get IPython directory from command line, or assume it's the one above."""
@@ -47,9 +45,6 @@ def get_ipdir():
         raise SystemExit('Invalid ipython directory: %s' % ipdir)
     return ipdir
 
-try:
-    execfile = execfile
-except NameError:
-    def execfile(fname, globs, locs=None):
-        locs = locs or globs
-        exec(compile(open(fname).read(), fname, "exec"), globs, locs)
+def execfile(fname, globs, locs=None):
+    locs = locs or globs
+    exec(compile(open(fname).read(), fname, "exec"), globs, locs)
