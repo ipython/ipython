@@ -22,7 +22,7 @@ script:
     - cd /tmp && iptest --coverage xml && cd -
     # On the latest Python only, make sure that the docs build.
     - |
-      if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
+      if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]]; then
         pip install -r docs/requirements.txt
         python tools/fixup_whats_new_pr.py
         make -C docs/ html SPHINXOPTS="-W"
@@ -35,6 +35,7 @@ after_success:
 matrix:
     include:
         - { python: "3.7", dist: xenial, sudo: true }
+        - { python: "3.7-dev", dist: xenial, sudo: true }
         - { python: "nightly", dist: xenial, sudo: true }
     allow_failures:
         - python: nightly
