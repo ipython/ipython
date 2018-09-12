@@ -526,12 +526,13 @@ class TransformerManager:
         if not candidates:
             # Nothing to transform
             return False, lines
-
-        transformer = min(candidates, key=TokenTransformBase.sortby)
-        transformed = transformer.transform(lines)
-        if transformed is None:
-            return False, lines
-        return True, transformer.transform(lines)
+        ordered_transformers = sorted(candidates, key=TokenTransformBase.sortby)
+        for transformer in ordered_transformers:
+            try:
+                return True, transformer.transform(lines)
+            except SyntaxError:
+                pass
+        return False, lines
 
     def do_token_transforms(self, lines):
         for _ in range(TRANSFORM_LOOP_LIMIT):
