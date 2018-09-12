@@ -1,8 +1,6 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
 python:
-    - "nightly"
-    - "3.7-dev"
     - 3.6
     - 3.5
 sudo: false
@@ -35,6 +33,9 @@ after_success:
     - codecov
 
 matrix:
+    include:
+        - { python: "3.7", dist: xenial, sudo: true }
+        - { python: "nightly", dist: xenial, sudo: true }
     allow_failures:
         - python: nightly
 
