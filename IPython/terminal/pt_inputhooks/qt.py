@@ -19,8 +19,8 @@ def inputhook(context):
                 if not _already_warned:
                     _already_warned = True
                     warnings.warn(
-                        'The DISPLAY or WAYLAND_DISPLAY enviroment variable is '
-                        'not set or empty and Qt5 requires this enviroment '
+                        'The DISPLAY or WAYLAND_DISPLAY environment variable is '
+                        'not set or empty and Qt5 requires this environment '
                         'variable. Deactivate Qt5 code.'
                     )
                 return
