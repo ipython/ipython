@@ -418,6 +418,8 @@ class HelpEnd(TokenTransformBase):
         lines_after = lines[self.q_line + 1:]
 
         m = _help_end_re.search(content)
+        if not m:
+            raise SyntaxError(content)
         assert m is not None, content
         target = m.group(1)
         esc = m.group(3)
@@ -460,6 +462,8 @@ def make_tokens_by_line(lines):
     except tokenize.TokenError:
         # Input ended in a multiline string or expression. That's OK for us.
         pass
+    if not tokens_by_line[-1]:
+        tokens_by_line.pop()
     
     return tokens_by_line
 
@@ -524,6 +528,9 @@ class TransformerManager:
             return False, lines
 
         transformer = min(candidates, key=TokenTransformBase.sortby)
+        transformed = transformer.transform(lines)
+        if transformed is None:
+            return False, lines
         return True, transformer.transform(lines)
 
     def do_token_transforms(self, lines):
@@ -591,10 +598,13 @@ class TransformerManager:
             return 'invalid', None
 
         tokens_by_line = make_tokens_by_line(lines)
+        if not tokens_by_line:
+            return 'incomplete', find_last_indent(lines)
         if tokens_by_line[-1][-1].type != tokenize.ENDMARKER:
             # We're in a multiline string or expression
             return 'incomplete', find_last_indent(lines)
-
+        if len(tokens_by_line) == 1:
+            return 'incomplete', find_last_indent(lines)
         # Find the last token on the previous line that's not NEWLINE or COMMENT
         toks_last_line = tokens_by_line[-2]
         ix = len(toks_last_line) - 1
