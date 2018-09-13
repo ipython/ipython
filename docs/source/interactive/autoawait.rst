@@ -13,7 +13,7 @@ ability to run asynchronous code from the REPL. Constructs which are
 :exc:`SyntaxError` s in the Python REPL can be used seamlessly in IPython.
 
 The example given here are for terminal IPython, running async code in a
-notebook interface or any other frontend using the Jupyter protocol need to
+notebook interface or any other frontend using the Jupyter protocol needs
 IPykernel version 5.0 or above. The details of how async code runs in
 IPykernel will differ between IPython, IPykernel and their versions.
 
@@ -57,8 +57,8 @@ Should behave as expected in the IPython REPL::
 
 
 You can use the ``c.InteractiveShell.autoawait`` configuration option and set it
-to :any:`False` to deactivate automatic wrapping of asynchronous code. You can also
-use the :magic:`%autoawait` magic to toggle the behavior at runtime::
+to :any:`False` to deactivate automatic wrapping of asynchronous code. You can
+also use the :magic:`%autoawait` magic to toggle the behavior at runtime::
 
     In [1]: %autoawait False
 
@@ -110,9 +110,9 @@ In the above example, ``async with`` at top level scope is a syntax error in
 Python.
 
 Using this mode can have unexpected consequences if used in interaction with
-other features of IPython and various registered extensions. In particular if you
-are a direct or indirect user of the AST transformers, these may not apply to
-your code.
+other features of IPython and various registered extensions. In particular if
+you are a direct or indirect user of the AST transformers, these may not apply
+to your code.
 
 When using command line IPython, the default loop (or runner) does not process
 in the background, so top level asynchronous code must finish for the REPL to
@@ -231,25 +231,26 @@ Update ipykernel to version 5.0 or greater::
    conda install ipykernel ipython --upgrade
 
 This should automatically enable ``autoawait`` integration. Unlike terminal
-IPython all code run on ``asynio`` eventloop, so creating a loop by hand will
-not work, including with magics like ``%run`` or other framework that create
-the eventloop themselves. In case like this you can try to use projects like
-`nest_asyncio <https://github.com/erdewit/nest_asyncio>`_ and see discussion like `this one
+IPython, all code runs on ``asynio`` eventloop, so creating a loop by hand will
+not work, including with magics like ``%run`` or other frameworks that create
+the eventloop themselves. In case like theses you can try to use projects like
+`nest_asyncio <https://github.com/erdewit/nest_asyncio>`_ and see discussion
+like `this one
 <https://github.com/jupyter/notebook/issues/3397#issuecomment-419386811>`_
 
 Difference between terminal IPython and IPykernel
 =================================================
 
-The exact asynchronous code running behavior can varies between Terminal
-IPython and IPykernel. The root cause of this behavior is due to IPykernel
-having a _persistent_ ``asyncio`` loop running, while Terminal IPython start
-and stop a loop for each code block. This can lead to surprising behavior in
-some case if you are used to manipulate asyncio loop yourself, see for example
+The exact asynchronous code running behavior varies between Terminal IPython and
+IPykernel. The root cause of this behavior is due to IPykernel having a
+_persistent_ ``asyncio`` loop running, while Terminal IPython starts and stop a
+loop for each code block. This can lead to surprising behavior in some case if
+you are used to manipulate asyncio loop yourself, see for example
 :ghissue:`11303` for a longer discussion but here are some of the astonishing
 cases.
 
-This behavior is an implementation detail, and should not be relied upon. It
-can change without warnings in future versions of IPython.
+This behavior is an implementation detail, and should not be relied upon. It can
+change without warnings in future versions of IPython.
 
 In terminal IPython a loop is started for each code blocks only if there is top
 level async code::
@@ -283,8 +284,8 @@ In a Notebook, with ipykernel the asyncio eventloop is always running::
    In [3]: loop1 is loop2
    Out[3]: True
 
-In Terminal IPython background task are only processed while the foreground
-task is running, and IIF the foreground task is async::
+In Terminal IPython background tasks are only processed while the foreground
+task is running, if and only if the foreground task is async::
 
    $ ipython
    In [1]: import asyncio
@@ -313,4 +314,4 @@ task is running, and IIF the foreground task is async::
    background 6
 
 In a Notebook, QtConsole, or any other frontend using IPykernel, background
-task should behave as expected.
+tasks should behave as expected.
