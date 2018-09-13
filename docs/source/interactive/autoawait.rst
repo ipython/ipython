@@ -12,10 +12,10 @@ Starting with IPython 7.0, and when user Python 3.6 and above, IPython offer the
 ability to run asynchronous code from the REPL. Constructs which are
 :exc:`SyntaxError` s in the Python REPL can be used seamlessly in IPython.
 
-The example given here are for terminal IPython, running async code in a
+The examples given here are for terminal IPython, running async code in a
 notebook interface or any other frontend using the Jupyter protocol needs
-IPykernel version 5.0 or above. The details of how async code runs in
-IPykernel will differ between IPython, IPykernel and their versions.
+IPykernel version 5.0 or above. The details of how async code runs in IPykernel
+will differ between IPython, IPykernel and their versions.
 
 When a supported library is used, IPython will automatically allow Futures and
 Coroutines in the REPL to be ``await`` ed. This will happen if an :ref:`await
