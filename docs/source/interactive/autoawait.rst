@@ -243,7 +243,7 @@ Difference between terminal IPython and IPykernel
 
 The exact asynchronous code running behavior varies between Terminal IPython and
 IPykernel. The root cause of this behavior is due to IPykernel having a
-_persistent_ ``asyncio`` loop running, while Terminal IPython starts and stop a
+_persistent_ ``asyncio`` loop running, while Terminal IPython starts and stops a
 loop for each code block. This can lead to surprising behavior in some case if
 you are used to manipulate asyncio loop yourself, see for example
 :ghissue:`11303` for a longer discussion but here are some of the astonishing
