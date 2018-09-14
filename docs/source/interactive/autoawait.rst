@@ -58,7 +58,7 @@ Should behave as expected in the IPython REPL::
 
 You can use the ``c.InteractiveShell.autoawait`` configuration option and set it
 to :any:`False` to deactivate automatic wrapping of asynchronous code. You can
-also use the :magic:`autoawait` magic to toggle the behavior at runtime::
+also use the :magic:`%autoawait` magic to toggle the behavior at runtime::
 
     In [1]: %autoawait False
 
@@ -127,7 +127,7 @@ Effects on IPython.embed()
 IPython core being asynchronous, the use of ``IPython.embed()`` will now require
 a loop to run. By default IPython will use a fake coroutine runner which should
 allow ``IPython.embed()`` to be nested. Though this will prevent usage of the
-:magic:`autoawait` feature when using IPython embed. 
+:magic:`%autoawait` feature when using IPython embed. 
 
 You can set explicitly a coroutine runner for ``embed()`` if you desire to run
 asynchronous code, the exact behavior is though undefined.
