@@ -114,10 +114,10 @@ Non-Asynchronous code
 ~~~~~~~~~~~~~~~~~~~~~
 
 As the internal API of IPython are now asynchronous, IPython need to run under
-an even loop. In order to allow many workflow, (like using the ``%run`` magic,
-or copy_pasting code that explicitly starts/stop event loop), when top-level code
-is detected as not being asynchronous, IPython code is advanced via a
-pseudo-synchronous runner, and will not may not advance pending tasks.
+an even loop. In order to allow many workflow, (like using the :magic:`%run`
+magic, or copy_pasting code that explicitly starts/stop event loop), when
+top-level code is detected as not being asynchronous, IPython code is advanced
+via a pseudo-synchronous runner, and will not may not advance pending tasks.
 
 Change to Nested Embed
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -151,11 +151,17 @@ minrk, njsmith, pganssle, tacaswell, takluyver , vidartf ... And many others.
 Autoreload Improvement
 ----------------------
 
-The magic ``%autoreload 2`` now captures new methods added to classes. Earlier, only methods existing as of the initial import were being tracked and updated.  
+The magic :magic:`%autoreload 2 <autoreload>` now captures new methods added to
+classes. Earlier, only methods existing as of the initial import were being
+tracked and updated.  
 
-This new feature helps dual environment development - Jupyter+IDE - where the code gradually moves from notebook cells to package files, as it gets structured.
+This new feature helps dual environment development - Jupyter+IDE - where the
+code gradually moves from notebook cells to package files, as it gets
+structured.
 
-**Example**: An instance of the class `MyClass` will be able to access the method `cube()` after it is uncommented and the file `file1.py` saved on disk.
+**Example**: An instance of the class ``MyClass`` will be able to access the
+method ``cube()`` after it is uncommented and the file ``file1.py`` saved on
+disk.
 
 
 ..code::
@@ -191,13 +197,14 @@ Misc
 The autoindent feature that was deprecated in 5.x was re-enabled and
 un-deprecated in :ghpull:`11257`
 
-Make ``%run -n -i ...`` work correctly. Earlier, if ``%run`` was passed both arguments, ``-n`` would be silently ignored. See :ghpull:`10308`
+Make :magic:`%run -n -i ... <run>` work correctly. Earlier, if :magic:`%run` was
+passed both arguments, ``-n`` would be silently ignored. See :ghpull:`10308`
 
 
-The ``%%script`` (as well as ``%%bash``, ``ruby``... ) cell magics now raise
-by default if the return code of the given code is non-zero (thus halting
-execution of further cells in a notebook). The behavior can be disable by
-passing the ``--no-raise-error`` flag.
+The :cellmagic:`%%script`` (as well as :cellmagic:`%%bash``,
+:cellmagic:`%%ruby``... ) cell magics now raise by default if the return code of
+the given code is non-zero (thus halting execution of further cells in a
+notebook). The behavior can be disable by passing the ``--no-raise-error`` flag.
 
 
 Deprecations

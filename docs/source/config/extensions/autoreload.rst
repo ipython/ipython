@@ -4,4 +4,6 @@
 autoreload
 ==========
 
+.. magic:: autoreload
+
 .. automodule:: IPython.extensions.autoreload
