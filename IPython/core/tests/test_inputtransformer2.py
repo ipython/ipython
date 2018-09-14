@@ -5,6 +5,7 @@ more complex. See test_inputtransformer2_line for tests for line-based
 transformations.
 """
 import nose.tools as nt
+import string
 
 from IPython.core import inputtransformer2 as ipt2
 from IPython.core.inputtransformer2 import make_tokens_by_line
@@ -100,6 +101,16 @@ b) = zip?
 [r"get_ipython().set_next_input('(a,\nb) = zip');get_ipython().run_line_magic('pinfo', 'zip')" + "\n"]
 )
 
+def check_make_token_by_line_never_ends_empty():
+    """
+    Check that not sequence of single or double characters ends up leading to en empty list of tokens
+    """
+    from string import printable
+    for c in printable:
+        nt.assert_not_equal(make_tokens_by_line(c)[-1], [])
+        for k in printable:
+            nt.assert_not_equal(make_tokens_by_line(c+k)[-1], [])
+
 def check_find(transformer, case, match=True):
     sample, expected_start, _  = case
     tbl = make_tokens_by_line(sample)
@@ -190,6 +201,17 @@ def test_check_complete():
     nt.assert_equal(cc("for a in range(5):"), ('incomplete', 4))
     nt.assert_equal(cc("raise = 2"), ('invalid', None))
     nt.assert_equal(cc("a = [1,\n2,"), ('incomplete', 0))
+    nt.assert_equal(cc(")"), ('incomplete', 0))
+    nt.assert_equal(cc("\\\r\n"), ('incomplete', 0))
     nt.assert_equal(cc("a = '''\n   hi"), ('incomplete', 3))
     nt.assert_equal(cc("def a():\n x=1\n global x"), ('invalid', None))
     nt.assert_equal(cc("a \\ "), ('invalid', None))  # Nothing allowed after backslash
+
+    # no need to loop on all the letters/numbers.
+    short = '12abAB'+string.printable[62:]
+    for c in short:
+        # test does not raise:
+        cc(c)
+        for k in short:
+            cc(c+k)
+
