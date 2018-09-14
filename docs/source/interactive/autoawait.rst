@@ -231,11 +231,10 @@ Update ipykernel to version 5.0 or greater::
    conda install ipykernel ipython --upgrade
 
 This should automatically enable ``autoawait`` integration. Unlike terminal
-IPython, all code runs on ``asynio`` eventloop, so creating a loop by hand will
+IPython, all code runs on ``asyncio`` eventloop, so creating a loop by hand will
 not work, including with magics like ``%run`` or other frameworks that create
-the eventloop themselves. In case like theses you can try to use projects like
-`nest_asyncio <https://github.com/erdewit/nest_asyncio>`_ and see discussion
-like `this one
+the eventloop themselves. In cases like these you can try to use projects like
+`nest_asyncio <https://github.com/erdewit/nest_asyncio>`_ and follow `this discussion
 <https://github.com/jupyter/notebook/issues/3397#issuecomment-419386811>`_
 
 Difference between terminal IPython and IPykernel
@@ -311,7 +310,7 @@ task is running, if and only if the foreground task is async::
    In [4]: await asyncio.sleep(3)
    background 4
    background 5
-   background 6
+   background 6g
 
 In a Notebook, QtConsole, or any other frontend using IPykernel, background
 tasks should behave as expected.
