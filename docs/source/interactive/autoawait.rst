@@ -122,7 +122,7 @@ no network request is done between ``In[1]`` and ``In[2]``.
 
 
 Effects on IPython.embed()
-==========================
+--------------------------
 
 IPython core being asynchronous, the use of ``IPython.embed()`` will now require
 a loop to run. By default IPython will use a fake coroutine runner which should
@@ -133,7 +133,7 @@ You can set explicitly a coroutine runner for ``embed()`` if you desire to run
 asynchronous code, the exact behavior is though undefined.
 
 Effects on Magics
-=================
+-----------------
 
 A couple of magics (``%%timeit``, ``%timeit``, ``%%time``, ``%%prun``) have not
 yet been updated to work with asynchronous code and will raise syntax errors
@@ -142,7 +142,7 @@ those, and extra cases we haven't caught yet. We hope for better support in Cor
 Python for top-level Async code.
 
 Internals
-=========
+---------
 
 As running asynchronous code is not supported in interactive REPL (as of Python
 3.7) we have to rely to a number of complex workaround and heuristic to allow
@@ -222,7 +222,7 @@ We invite you to thoroughly test this feature and report any unexpected behavior
 as well as propose any improvement.
 
 Using Autoawait in a notebook (IPykernel)
-=========================================
+-----------------------------------------
 
 Update ipykernel to version 5.0 or greater::
 
@@ -238,11 +238,11 @@ the eventloop themselves. In cases like these you can try to use projects like
 <https://github.com/jupyter/notebook/issues/3397#issuecomment-419386811>`_
 
 Difference between terminal IPython and IPykernel
-=================================================
+-------------------------------------------------
 
 The exact asynchronous code running behavior varies between Terminal IPython and
 IPykernel. The root cause of this behavior is due to IPykernel having a
-_persistent_ ``asyncio`` loop running, while Terminal IPython starts and stops a
+*persistent* ``asyncio`` loop running, while Terminal IPython starts and stops a
 loop for each code block. This can lead to surprising behavior in some case if
 you are used to manipulate asyncio loop yourself, see for example
 :ghissue:`11303` for a longer discussion but here are some of the astonishing
