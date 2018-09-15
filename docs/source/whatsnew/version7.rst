@@ -35,7 +35,8 @@ Make sure you have pip > 9.0 before upgrading. You should be able to update by s
 
 .. only:: ipydev
 
-  To update the beta version, run
+  If you are trying to install or update an ``alpha``, ``beta``, or ``rc``
+  version, use pip ``--pre`` flag.
 
   .. code::
 
