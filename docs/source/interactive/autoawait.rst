@@ -127,7 +127,7 @@ Effects on IPython.embed()
 IPython core being asynchronous, the use of ``IPython.embed()`` will now require
 a loop to run. By default IPython will use a fake coroutine runner which should
 allow ``IPython.embed()`` to be nested. Though this will prevent usage of the
-``autoawait`` feature when using IPython embed. 
+:magic:`%autoawait` feature when using IPython embed. 
 
 You can set explicitly a coroutine runner for ``embed()`` if you desire to run
 asynchronous code, the exact behavior is though undefined.
@@ -230,11 +230,12 @@ Update ipykernel to version 5.0 or greater::
    # or
    conda install ipykernel ipython --upgrade
 
-This should automatically enable ``autoawait`` integration. Unlike terminal
-IPython, all code runs on ``asyncio`` eventloop, so creating a loop by hand will
-not work, including with magics like ``%run`` or other frameworks that create
-the eventloop themselves. In cases like these you can try to use projects like
-`nest_asyncio <https://github.com/erdewit/nest_asyncio>`_ and follow `this discussion
+This should automatically enable :magic:`autoawait` integration. Unlike
+terminal IPython, all code runs on ``asyncio`` eventloop, so creating a loop by
+hand will not work, including with magics like :magic:`%run` or other
+frameworks that create the eventloop themselves. In cases like these you can
+try to use projects like `nest_asyncio
+<https://github.com/erdewit/nest_asyncio>`_ and follow `this discussion
 <https://github.com/jupyter/notebook/issues/3397#issuecomment-419386811>`_
 
 Difference between terminal IPython and IPykernel
@@ -242,7 +243,7 @@ Difference between terminal IPython and IPykernel
 
 The exact asynchronous code running behavior varies between Terminal IPython and
 IPykernel. The root cause of this behavior is due to IPykernel having a
-*persistent* ``asyncio`` loop running, while Terminal IPython starts and stops a
+*persistent* `asyncio` loop running, while Terminal IPython starts and stops a
 loop for each code block. This can lead to surprising behavior in some case if
 you are used to manipulate asyncio loop yourself, see for example
 :ghissue:`11303` for a longer discussion but here are some of the astonishing
