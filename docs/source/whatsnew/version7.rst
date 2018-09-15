@@ -33,6 +33,15 @@ Make sure you have pip > 9.0 before upgrading. You should be able to update by s
 
     pip install ipython --upgrade
 
+.. only:: ipydev
+
+  To update the beta version, run
+
+  .. code::
+
+      pip install ipython --upgrade --pre
+
+
 Or if you have conda installed: 
 
 .. code::
