@@ -350,7 +350,7 @@ class Completion:
     Completion object used and return by IPython completers.
 
     .. warning:: Unstable
-        
+
         This function is unstable, API may change without warning.
         It will also raise unless use in proper context manager.
 
@@ -591,7 +591,7 @@ class Completer(Configurable):
                       'information for experimental jedi integration.')\
                       .tag(config=True)
 
-    backslash_combining_completions = Bool(True, 
+    backslash_combining_completions = Bool(True,
         help="Enable unicode completions, e.g. \\alpha<tab> . "
              "Includes completion of latex commands, unicode names, and expanding "
              "unicode characters back to latex commands.").tag(config=True)
@@ -693,7 +693,7 @@ class Completer(Configurable):
 
         # Another option, seems to work great. Catches things like ''.<tab>
         m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
-    
+
         if m:
             expr, attr = m.group(1, 3)
         elif self.greedy:
@@ -703,7 +703,7 @@ class Completer(Configurable):
             expr, attr = m2.group(1,2)
         else:
             return []
-    
+
         try:
             obj = eval(expr, self.namespace)
         except:
@@ -738,7 +738,7 @@ def get__all__entries(obj):
         words = getattr(obj, '__all__')
     except:
         return []
- 
+
     return [w for w in words if isinstance(w, str)]
 
 
@@ -887,14 +887,14 @@ def _safe_isinstance(obj, module, class_name):
 
 def back_unicode_name_matches(text):
     u"""Match unicode characters back to unicode name
-    
+
     This does  ``☃`` -> ``\\snowman``
 
     Note that snowman is not a valid python3 combining character but will be expanded.
     Though it will not recombine back to the snowman character by the completion machinery.
 
     This will not either back-complete standard sequences like \\n, \\b ...
-    
+
     Used on Python 3 only.
     """
     if len(text)<2:
@@ -917,7 +917,7 @@ def back_unicode_name_matches(text):
 
 def back_latex_name_matches(text:str):
     """Match latex characters back to unicode name
-    
+
     This does ``\\ℵ`` -> ``\\aleph``
 
     Used on Python 3 only.
@@ -991,7 +991,7 @@ def _make_signature(completion)-> str:
 
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
-    
+
     @observe('greedy')
     def _greedy_changed(self, change):
         """update the splitter and readline delims when greedy is changed"""
@@ -999,36 +999,39 @@ class IPCompleter(Completer):
             self.splitter.delims = GREEDY_DELIMS
         else:
             self.splitter.delims = DELIMS
-    
+
+    dict_keys_only = Bool(False,
+        help="""Whether to show dict key matches only""")
+
     merge_completions = Bool(True,
         help="""Whether to merge completion results into a single list
-        
+
         If False, only the completion results from the first non-empty
         completer will be returned.
         """
     ).tag(config=True)
     omit__names = Enum((0,1,2), default_value=2,
         help="""Instruct the completer to omit private method names
-        
+
         Specifically, when completing on ``object.<tab>``.
-        
+
         When 2 [default]: all names that start with '_' will be excluded.
-        
+
         When 1: all 'magic' names (``__foo__``) will be excluded.
-        
+
         When 0: nothing will be excluded.
         """
     ).tag(config=True)
     limit_to__all__ = Bool(False,
         help="""
         DEPRECATED as of version 5.0.
-        
+
         Instruct the completer to use __all__ for the completion
-        
+
         Specifically, when completing on ``object.<tab>``.
-        
+
         When True: only those names in obj.__all__ will be included.
-        
+
         When False [default]: the __all__ attribute is ignored
         """,
     ).tag(config=True)
@@ -1061,7 +1064,7 @@ class IPCompleter(Completer):
             secondary optional dict for completions, to
             handle cases (such as IPython embedded inside functions) where
             both Python scopes are visible.
-       
+
         use_readline : bool, optional
             DEPRECATED, ignored since IPython 6.0, will have no effects
         """
@@ -1113,6 +1116,9 @@ class IPCompleter(Completer):
     @property
     def matchers(self):
         """All active matcher routines for completion"""
+        if self.dict_keys_only:
+            return [self.dict_key_matches]
+
         if self.use_jedi:
             return [
                 self.file_matches,
@@ -1621,7 +1627,7 @@ class IPCompleter(Completer):
         closing_quote, token_offset, matches = match_dict_keys(keys, prefix, self.splitter.delims)
         if not matches:
             return matches
-        
+
         # get the cursor position of
         # - the text being completed
         # - the start of the key text
@@ -1632,13 +1638,13 @@ class IPCompleter(Completer):
             completion_start = key_start + token_offset
         else:
             key_start = completion_start = match.end()
-        
+
         # grab the leading prefix, to make sure all completions start with `text`
         if text_start > key_start:
             leading = ''
         else:
             leading = text[text_start:completion_start]
-        
+
         # the index of the `[` character
         bracket_idx = match.end(1)
 
@@ -1657,18 +1663,18 @@ class IPCompleter(Completer):
             # brackets were opened inside text, maybe close them
             if not continuation.startswith(']'):
                 suf += ']'
-        
+
         return [leading + k + suf for k in matches]
 
     def unicode_name_matches(self, text):
         u"""Match Latex-like syntax for unicode characters base
         on the name of the character.
-        
+
         This does  ``\\GREEK SMALL LETTER ETA`` -> ``η``
 
         Works only on valid python 3 identifier, or on combining characters that
         will combine to form a valid identifier.
-        
+
         Used on Python 3 only.
         """
         slashpos = text.rfind('\\')
@@ -1686,7 +1692,7 @@ class IPCompleter(Completer):
 
     def latex_matches(self, text):
         u"""Match Latex syntax for unicode characters.
-        
+
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
 
         Used on Python 3 only.
@@ -1758,13 +1764,13 @@ class IPCompleter(Completer):
         Returns an iterator over the possible completions
 
         .. warning:: Unstable
-            
+
             This function is unstable, API may change without warning.
             It will also raise unless use in proper context manager.
 
         Parameters
         ----------
-        
+
         text:str
             Full text of the current input, multi line string.
         offset:int
@@ -1793,7 +1799,7 @@ class IPCompleter(Completer):
             and usual IPython completion.
 
         .. note::
-            
+
             Completions are not completely deduplicated yet. If identical
             completions are coming from different sources this function does not
             ensure that each completion object will only be present once.
@@ -1988,7 +1994,7 @@ class IPCompleter(Completer):
                 if name_text:
                     return name_text, name_matches[:MATCHES_LIMIT], \
                            [meth.__qualname__]*min(len(name_matches), MATCHES_LIMIT), ()
-        
+
 
         # If no line buffer is given, assume the input text is all there was
         if line_buffer is None:
