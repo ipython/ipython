@@ -81,7 +81,7 @@ from warnings import warn
 from logging import error
 import IPython.core.hooks
 
-from typing import List as ListType
+from typing import List as ListType, Tuple
 from ast import AST
 
 # NoOpContext is deprecated, but ipykernel imports it from here.
@@ -3287,7 +3287,7 @@ class InteractiveShell(SingletonConfigurable):
     # For backwards compatibility
     runcode = run_code
 
-    def check_complete(self, code):
+    def check_complete(self, code: str) -> Tuple[str, str]:
         """Return whether a block of code is ready to execute, or should be continued
 
         Parameters
