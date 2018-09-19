@@ -2,11 +2,66 @@
 """
 Sphinx directive to support embedded IPython code.
 
+IPython provides an extension for `Sphinx <http://www.sphinx-doc.org/>`_ to
+highlight and run code.
+
 This directive allows pasting of entire interactive IPython sessions, prompts
 and all, and their code will actually get re-executed at doc build time, with
 all prompts renumbered sequentially. It also allows you to input code as a pure
 python input by giving the argument python to the directive. The output looks
 like an interactive ipython section.
+
+Here is an example of how the IPython directive can
+**run** python code, at build time.
+
+.. ipython::
+
+   In [1]: 1+1
+
+   In [1]: import datetime
+      ...: datetime.datetime.now()
+
+It supports IPython construct that plain
+Python does not understand (like magics):
+
+.. ipython::
+
+   In [0]: import time
+
+   In [0]: %timeit time.sleep(0.05)
+
+This will also support top-level async when using IPython 7.0+
+
+.. ipython::
+
+   In [2]: import asyncio
+      ...: print('before')
+      ...: await asyncio.sleep(1)
+      ...: print('after')
+
+
+The namespace will persist across multiple code chucks, Let's define a variable:
+
+.. ipython::
+
+   In [0]: who = "World"
+
+And now say hello:
+
+.. ipython::
+
+   In [0]: print('Hello,', who)
+
+If the current section raises an exception, you can add the ``:okexcept:`` flag
+to the current block, otherwise the build will fail.
+
+.. ipython::
+   :okexcept:
+
+   In [1]: 1/0
+
+IPython Sphinx directive module
+===============================
 
 To enable this directive, simply list it in your Sphinx ``conf.py`` file
 (making sure the directory where you placed it is visible to sphinx, as is
@@ -27,19 +82,19 @@ ipython_savefig_dir:
     Sphinx source directory. The default is `html_static_path`.
 ipython_rgxin:
     The compiled regular expression to denote the start of IPython input
-    lines. The default is re.compile('In \[(\d+)\]:\s?(.*)\s*'). You
+    lines. The default is ``re.compile('In \[(\d+)\]:\s?(.*)\s*')``. You
     shouldn't need to change this.
 ipython_rgxout:
     The compiled regular expression to denote the start of IPython output
-    lines. The default is re.compile('Out\[(\d+)\]:\s?(.*)\s*'). You
+    lines. The default is ``re.compile('Out\[(\d+)\]:\s?(.*)\s*')``. You
     shouldn't need to change this.
 ipython_promptin:
     The string to represent the IPython input prompt in the generated ReST.
-    The default is 'In [%d]:'. This expects that the line numbers are used
+    The default is ``'In [%d]:'``. This expects that the line numbers are used
     in the prompt.
 ipython_promptout:
     The string to represent the IPython prompt in the generated ReST. The
-    default is 'Out [%d]:'. This expects that the line numbers are used
+    default is ``'Out [%d]:'``. This expects that the line numbers are used
     in the prompt.
 ipython_mplbackend:
     The string which specifies if the embedded Sphinx shell should import
@@ -54,7 +109,7 @@ ipython_execlines:
     A list of strings to be exec'd in the embedded Sphinx shell. Typical
     usage is to make certain packages always available. Set this to an empty
     list if you wish to have no imports always available. If specified in
-    conf.py as `None`, then it has the effect of making no imports available.
+    ``conf.py`` as `None`, then it has the effect of making no imports available.
     If omitted from conf.py altogether, then the default value of
     ['import numpy as np', 'import matplotlib.pyplot as plt'] is used.
 ipython_holdcount
@@ -105,20 +160,21 @@ or :okwarning: options:
         In [2]: # raise warning.
 
 To Do
------
+=====
 
 - Turn the ad-hoc test() function into a real test suite.
 - Break up ipython-specific functionality from matplotlib stuff into better
   separated code.
 
-Authors
--------
-
-- John D Hunter: original author.
-- Fernando Perez: refactoring, documentation, cleanups, port to 0.11.
-- VáclavŠmilauer <eudoxos-AT-arcig.cz>: Prompt generalizations.
-- Skipper Seabold, refactoring, cleanups, pure python addition
 """
+
+# Authors
+# =======
+# 
+# - John D Hunter: original author.
+# - Fernando Perez: refactoring, documentation, cleanups, port to 0.11.
+# - VáclavŠmilauer <eudoxos-AT-arcig.cz>: Prompt generalizations.
+# - Skipper Seabold, refactoring, cleanups, pure python addition
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -144,6 +200,14 @@ from docutils.parsers.rst import Directive
 from traitlets.config import Config
 from IPython import InteractiveShell
 from IPython.core.profiledir import ProfileDir
+
+
+use_matpltolib = False
+try:
+    import matplotlib
+    use_matpltolib = True
+except Exception:
+    pass
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -325,13 +389,12 @@ class EmbeddedSphinxShell(object):
 
     def process_input_line(self, line, store_history=True):
         """process the input, capturing stdout"""
-
         stdout = sys.stdout
         try:
             sys.stdout = self.cout
             self.lines_waiting.append(line)
-            if self.IP.check_complete()[0] != 'incomplete':
-                source_raw = ''.join(self.lines_waiting)
+            source_raw = ''.join(self.lines_waiting)
+            if self.IP.check_complete(source_raw)[0] != 'incomplete':
                 self.lines_waiting = []
                 self.IP.run_cell(source_raw, store_history=store_history)
         finally:
@@ -501,6 +564,7 @@ class EmbeddedSphinxShell(object):
             sys.stdout.write(s)
             sys.stdout.write(processed_output)
             sys.stdout.write('<<<' + ('-' * 73) + '\n\n')
+            raise RuntimeError('Non Expected exception in `{}` line {}'.format(filename, lineno))
 
         # output any warning raised during execution to stdout
         # unless :okwarning: has been specified.
@@ -515,6 +579,7 @@ class EmbeddedSphinxShell(object):
                                          w.filename, w.lineno, w.line)
                 sys.stdout.write(s)
                 sys.stdout.write('<<<' + ('-' * 73) + '\n')
+                raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
 
         self.cout.truncate(0)
 
@@ -866,7 +931,7 @@ class IPythonDirective(Directive):
             # EmbeddedSphinxShell is created, its interactive shell member
             # is the same for each instance.
 
-            if mplbackend and 'matplotlib.backends' not in sys.modules:
+            if mplbackend and 'matplotlib.backends' not in sys.modules and use_matpltolib:
                 import matplotlib
                 matplotlib.use(mplbackend)
 
@@ -985,7 +1050,9 @@ def setup(app):
 
     # If the user sets this config value to `None`, then EmbeddedSphinxShell's
     # __init__ method will treat it as [].
-    execlines = ['import numpy as np', 'import matplotlib.pyplot as plt']
+    execlines = ['import numpy as np']
+    if use_matpltolib:
+        execlines.append('import matplotlib.pyplot as plt')
     app.add_config_value('ipython_execlines', execlines, 'env')
 
     app.add_config_value('ipython_holdcount', True, 'env')
