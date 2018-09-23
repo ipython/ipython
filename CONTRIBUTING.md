@@ -1,3 +1,31 @@
+## Triaging Issues
+
+On the IPython repository we strive to trust users and give them responsibility,
+this is why than to one of our bot, any user can close issues, add and remove
+labels by mentioning the bot and asking it to do things on your behalf.
+
+To close and issue (or PR), even if it is not your, use the following:
+
+> @meeseeksdev close
+
+This command can be in the middle of another comments, but must start a line. 
+
+To add labels to an issue, as the bot to `tag` with a comma separated list of
+tags to add:
+
+> @meeseeksdev tag windows, documentation
+
+Only already pre-created tags can be added, and the list is so far limitted to `async/await`,
+`backported`, `help wanted`, `documentation`, `notebook`, `tab-completion`, `windows`
+
+To remove a label, use the `untag` command:
+
+> @meeseeksdev untag windows, documentation
+
+The list of commands that the bot can do is larger and we'll be experimenting
+with what is possible.
+
+
 ## Opening an Issue
 
 When opening a new Issue, please take the following steps:
