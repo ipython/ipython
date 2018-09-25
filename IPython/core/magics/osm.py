@@ -776,7 +776,7 @@ class OSMagics(Magics):
         
         The file will be overwritten unless the -a (--append) flag is specified.
         """
-        line = line if len(line.split())==1 else '"%s"' % line
+        line = line if len(line.split())==1 else '"%s"' % line.strip("\"\'")
         args = magic_arguments.parse_argstring(self.writefile, line)
         filename = os.path.expanduser(args.filename.strip("\"\'"))        
 
