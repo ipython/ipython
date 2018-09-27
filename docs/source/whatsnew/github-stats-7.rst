@@ -4,15 +4,14 @@ Issues closed in the 7.x development cycle
 Issues closed in 7.0
 --------------------
 
-
-GitHub stats for 2018/04/02 - 2018/09/XX (tag: 7.0.0)
+GitHub stats for 2018/07/29 - 2018/09/27 (since tag: 6.5.0)
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
-We closed 10 issues and merged 62 pull requests.
+We closed 20 issues and merged 76 pull requests.
 The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.0>`__
 
-The following 45 authors contributed 423 commits.
+The following 49 authors contributed 471 commits.
 
 * alphaCTzo7G
 * Alyssa Whitwell
@@ -30,6 +29,7 @@ The following 45 authors contributed 423 commits.
 * Gabriel Potter
 * gpotter2
 * Grant Nestor
+* hongshaoyang
 * Hugo
 * J Forde
 * Jonathan Slenders
@@ -41,6 +41,7 @@ The following 45 authors contributed 423 commits.
 * Matthew Seal
 * Matthias Bussonnier
 * meeseeksdev[bot]
+* Michael Käufl
 * Olesya Baranova
 * oscar6echo
 * Paul Ganssle
@@ -50,6 +51,7 @@ The following 45 authors contributed 423 commits.
 * Shailyn javier Ortiz jimenez
 * Sourav Singh
 * Srinivas Reddy Thatiparthy
+* Steven Silvester
 * stonebig
 * Subhendu Ranjan Mishra
 * Takafumi Arakaki
@@ -57,5 +59,6 @@ The following 45 authors contributed 423 commits.
 * Thomas Kluyver
 * Todd
 * Wei Yen
+* Yarko Tymciurak
 * Yutao Yuan
 * Zi Chong Kao
