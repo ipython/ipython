@@ -7,12 +7,7 @@
 IPython 7.0.0
 =============
 
-.. warning::
-
-   IPython 7.0 is currently in Beta. We welcome feedback on API/changes and
-   addition/updates to this changelog.
-
-Released .... ...., 2018
+Released Thursday September 27th, 2018
 
 IPython 7 include major features improvement as you can read in the following
 changelog. This is also the second major version of IPython to support only
