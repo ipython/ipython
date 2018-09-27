@@ -1,3 +1,32 @@
+## Triaging Issues
+
+On the IPython repository we strive to trust users and give them responsibility.
+By using one of our bot, any user can close issues, add and remove
+labels by mentioning the bot and asking it to do things on your behalf.
+
+To close and issue (or PR), even if you did not create it, use the following:
+
+> @meeseeksdev close
+
+This command can be in the middle of another comments, but must start on its
+own line. 
+
+To add labels to an issue, ask the bot to `tag` with a comma separated list of
+tags to add:
+
+> @meeseeksdev tag windows, documentation
+
+Only already pre-created tags can be added, and the list is so far limited to
+`async/await`, `backported`, `help wanted`, `documentation`, `notebook`,
+`tab-completion`, `windows`
+
+To remove a label, use the `untag` command:
+
+> @meeseeksdev untag windows, documentation
+
+e'll be adding additional capabilities for the bot and will share them here
+when they are ready to be used.
+
 ## Opening an Issue
 
 When opening a new Issue, please take the following steps:
@@ -11,8 +40,8 @@ When opening a new Issue, please take the following steps:
 
         python -c "import IPython; print(IPython.sys_info())"
 
-   And include any relevant package versions, depending on the issue,
-   such as matplotlib, numpy, Qt, Qt bindings (PyQt/PySide), tornado, web browser, etc.
+   And include any relevant package versions, depending on the issue, such as
+   matplotlib, numpy, Qt, Qt bindings (PyQt/PySide), tornado, web browser, etc.
 
 ## Pull Requests
 
