@@ -2812,16 +2812,20 @@ class InteractiveShell(SingletonConfigurable):
         result : :class:`ExecutionResult`
         """
         result = None
+        if self.should_run_async(raw_cell):
+            runner = self.loop_runner
+        else:
+            runner = _pseudo_sync_runner
         try:
-            result = self._run_cell(
-                raw_cell, store_history, silent, shell_futures)
+            result = runner(self._run_cell(
+                raw_cell, store_history, silent, shell_futures))
         finally:
             self.events.trigger('post_execute')
             if not silent:
                 self.events.trigger('post_run_cell', result)
         return result
 
-    def _run_cell(self, raw_cell:str, store_history:bool, silent:bool, shell_futures:bool):
+    async def _run_cell(self, raw_cell:str, store_history:bool, silent:bool, shell_futures:bool):
         """Internal method to run a complete IPython cell."""
         coro = self.run_cell_async(
             raw_cell,
@@ -2834,14 +2838,11 @@ class InteractiveShell(SingletonConfigurable):
         # when this is the case, we want to run it using the pseudo_sync_runner
         # so that code can invoke eventloops (for example via the %run , and
         # `%paste` magic.
-        if self.should_run_async(raw_cell):
-            runner = self.loop_runner
-        else:
-            runner = _pseudo_sync_runner
 
         try:
-            return runner(coro)
+            return await coro
         except BaseException as e:
+            print('IN BE')
             info = ExecutionInfo(raw_cell, store_history, silent, shell_futures)
             result = ExecutionResult(info)
             result.error_in_exec = e

@@ -256,6 +256,11 @@ class TerminalInteractiveShell(InteractiveShell):
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
+        from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
+        from prompt_toolkit.patch_stdout import patch_stdout
+
+        # Tell prompt_toolkit to use the asyncio event loop.
+        use_asyncio_event_loop()
         self.pt_app = PromptSession(
                             editing_mode=editing_mode,
                             key_bindings=key_bindings,
@@ -370,7 +375,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 'inputhook': self.inputhook,
                 }
 
-    def prompt_for_code(self):
+    async def prompt_for_code(self):
         if self.rl_next_input:
             default = self.rl_next_input
             self.rl_next_input = None
@@ -378,9 +383,10 @@ class TerminalInteractiveShell(InteractiveShell):
             default = ''
 
         with patch_stdout(raw=True):
-            text = self.pt_app.prompt(
+            text = await self.pt_app.prompt(
                 default=default,
 #                pre_run=self.pre_prompt,# reset_current_buffer=True,
+                async_=True,
                 **self._extra_prompt_options())
         return text
 
@@ -442,7 +448,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     rl_next_input = None
 
-    def interact(self, display_banner=DISPLAY_BANNER_DEPRECATED):
+    async def interact(self, display_banner=DISPLAY_BANNER_DEPRECATED):
 
         if display_banner is not DISPLAY_BANNER_DEPRECATED:
             warn('interact `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
@@ -452,7 +458,7 @@ class TerminalInteractiveShell(InteractiveShell):
             print(self.separate_in, end='')
 
             try:
-                code = self.prompt_for_code()
+                code = await self.prompt_for_code()
             except EOFError:
                 if (not self.confirm_exit) \
                         or self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
@@ -460,18 +466,25 @@ class TerminalInteractiveShell(InteractiveShell):
 
             else:
                 if code:
-                    self.run_cell(code, store_history=True)
+                    await self.run_cell_async(code, store_history=True)
 
     def mainloop(self, display_banner=DISPLAY_BANNER_DEPRECATED):
         # An extra layer of protection in case someone mashing Ctrl-C breaks
         # out of our internal code.
         if display_banner is not DISPLAY_BANNER_DEPRECATED:
             warn('mainloop `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
+        import asyncio
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.ensure_future(self._mainloop()))
+
+    async def _mainloop(self):
         while True:
             try:
-                self.interact()
+                await self.interact()
                 break
             except KeyboardInterrupt as e:
+                import traceback
+                traceback.print_exc()
                 print("\n%s escaped interact()\n" % type(e).__name__)
             finally:
                 # An interrupt during the eventloop will mess up the
