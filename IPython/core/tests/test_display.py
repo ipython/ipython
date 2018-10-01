@@ -195,6 +195,14 @@ def test_displayobject_repr():
     j._show_mem_addr = False
     nt.assert_equal(repr(j), '<IPython.core.display.Javascript object>')
 
+@mock.patch('warnings.warn')
+def test_encourage_iframe_over_html(m_warn):
+    display.HTML('<br />')
+    m_warn.assert_not_called()
+
+    display.HTML('<iframe src="http://a.com"></iframe>')
+    m_warn.assert_called_with('Consider using IPython.display.IFrame instead')
+
 def test_progress():
     p = display.ProgressBar(10)
     nt.assert_in('0/10',repr(p))
