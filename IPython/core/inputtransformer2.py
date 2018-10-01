@@ -636,7 +636,7 @@ class TransformerManager:
                 MemoryError, SyntaxWarning):
             return 'invalid', None
         else:
-            if res is None:
+            if not lines[-1].strip().endswith(':'):
                 return 'incomplete', find_last_indent(lines)
         return 'complete', None
 
