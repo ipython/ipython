@@ -238,15 +238,21 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     want to use. Here is a list of the names of the special methods and the
     values they must return:
 
-      - `_repr_html_`: return raw HTML as a string
-      - `_repr_json_`: return a JSONable dict
-      - `_repr_jpeg_`: return raw JPEG data
-      - `_repr_png_`: return raw PNG data
-      - `_repr_svg_`: return raw SVG data as a string
-      - `_repr_latex_`: return LaTeX commands in a string surrounded by "$".
+      - `_repr_html_`: return raw HTML as a string, or a tuple (see below).
+      - `_repr_json_`: return a JSONable dict, or a tuple (see below).
+      - `_repr_jpeg_`: return raw JPEG data, or a tuple (see below).
+      - `_repr_png_`: return raw PNG data, or a tuple (see below).
+      - `_repr_svg_`: return raw SVG data as a string, or a tuple (see below).
+      - `_repr_latex_`: return LaTeX commands in a string surrounded by "$",
+                        or a tuple (see below).
       - `_repr_mimebundle_`: return a full mimebundle containing the mapping
                              from all mimetypes to data.
                              Use this for any mime-type not listed above.
+
+    The above functions may also return the object's metadata alonside the
+    data.  If the metadata is available, the functions will return a tuple
+    containing the data and metadata, in that order.  If there is no metadata
+    available, then the functions will return the data only.
 
     When you are directly writing your own classes, you can adapt them for
     display in IPython by following the above approach. But in practice, you
