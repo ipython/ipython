@@ -338,7 +338,7 @@ class StrongRef(object):
         return self.obj
 
 
-def superreload(module, reload=reload, old_objects={}):
+def superreload(module, reload=reload, old_objects=None):
     """Enhanced version of the builtin reload function.
 
     superreload remembers objects previously in the module, and
@@ -348,6 +348,8 @@ def superreload(module, reload=reload, old_objects={}):
     - clears the module's namespace before reloading
 
     """
+    if old_objects is None:
+        old_objects = {}
 
     # collect old objects in the module
     for name, obj in list(module.__dict__.items()):
