@@ -101,6 +101,12 @@ b) = zip?
 [r"get_ipython().set_next_input('(a,\nb) = zip');get_ipython().run_line_magic('pinfo', 'zip')" + "\n"]
 )
 
+def null_cleanup_transformer(lines):
+    """
+    A cleanup transform that returns an empty list.
+    """
+    return []
+
 def check_make_token_by_line_never_ends_empty():
     """
     Check that not sequence of single or double characters ends up leading to en empty list of tokens
@@ -215,3 +221,7 @@ def test_check_complete():
         for k in short:
             cc(c+k)
 
+def test_null_cleanup_transformer():
+    manager = ipt2.TransformerManager()
+    manager.cleanup_transforms.insert(0, null_cleanup_transformer)
+    nt.assert_is(manager.transform_cell(""), "")
