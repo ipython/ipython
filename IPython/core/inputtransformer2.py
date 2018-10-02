@@ -24,6 +24,8 @@ def leading_indent(lines):
     If the first line starts with a spaces or tabs, the same whitespace will be
     removed from each following line in the cell.
     """
+    if not lines: 
+        return lines
     m = _indent_re.match(lines[0])
     if not m:
         return lines
