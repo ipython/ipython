@@ -206,6 +206,7 @@ def test_check_complete():
     nt.assert_equal(cc("a = '''\n   hi"), ('incomplete', 3))
     nt.assert_equal(cc("def a():\n x=1\n global x"), ('invalid', None))
     nt.assert_equal(cc("a \\ "), ('invalid', None))  # Nothing allowed after backslash
+    nt.assert_equal(cc("1\\\n+2"), ('complete', None))
 
     # no need to loop on all the letters/numbers.
     short = '12abAB'+string.printable[62:]
