@@ -571,8 +571,7 @@ class TransformerManager:
           The number of spaces by which to indent the next line of code. If
           status is not 'incomplete', this is None.
         """
-        if not cell.endswith('\n'):
-            cell += '\n'  # Ensure the cell has a trailing newline
+        cell += '\n'  # Ensure the cell has a trailing newline
         lines = cell.splitlines(keepends=True)
         if lines[-1][:-1].endswith('\\'):
             # Explicit backslash continuation
