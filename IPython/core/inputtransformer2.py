@@ -20,10 +20,12 @@ _indent_re = re.compile(r'^[ \t]+')
 
 def leading_indent(lines):
     """Remove leading indentation.
-    
+
     If the first line starts with a spaces or tabs, the same whitespace will be
     removed from each following line in the cell.
     """
+    if not lines:
+        return lines
     m = _indent_re.match(lines[0])
     if not m:
         return lines
@@ -34,7 +36,7 @@ def leading_indent(lines):
 
 class PromptStripper:
     """Remove matching input prompts from a block of input.
-    
+
     Parameters
     ----------
     prompt_re : regular expression
@@ -45,7 +47,7 @@ class PromptStripper:
         If no initial expression is given, prompt_re will be used everywhere.
         Used mainly for plain Python prompts (``>>>``), where the continuation prompt
         ``...`` is a valid Python expression in Python 3, so shouldn't be stripped.
-    
+
     If initial_re and prompt_re differ,
     only initial_re will be tested against the first line.
     If any prompt is found on the first two lines,
@@ -59,6 +61,8 @@ class PromptStripper:
         return [self.prompt_re.sub('', l, count=1) for l in lines]
 
     def __call__(self, lines):
+        if not lines:
+            return lines
         if self.initial_re.match(lines[0]) or \
                 (len(lines) > 1 and self.prompt_re.match(lines[1])):
             return self._strip(lines)
@@ -72,7 +76,7 @@ classic_prompt = PromptStripper(
 ipython_prompt = PromptStripper(re.compile(r'^(In \[\d+\]: |\s*\.{3,}: ?)'))
 
 def cell_magic(lines):
-    if not lines[0].startswith('%%'):
+    if not lines or not lines[0].startswith('%%'):
         return lines
     if re.match('%%\w+\?', lines[0]):
         # This case will be handled by help_end
@@ -92,7 +96,7 @@ def _find_assign_op(token_line):
     for i, ti in enumerate(token_line):
         s = ti.string
         if s == '=' and paren_level == 0:
-            return i 
+            return i
         if s in '([{':
             paren_level += 1
         elif s in ')]}':
@@ -112,7 +116,7 @@ def find_end_of_continued_line(lines, start_line: int):
     return end_line
 
 def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
-    """Assemble a single line from multiple continued line pieces 
+    """Assemble a single line from multiple continued line pieces
 
     Continued lines are lines ending in ``\``, and the line following the last
     ``\`` in the block.
@@ -202,7 +206,7 @@ class MagicAssign(TokenTransformBase):
                     and (line[assign_ix+1].string == '%') \
                     and (line[assign_ix+2].type == tokenize.NAME):
                 return cls(line[assign_ix+1].start)
-    
+
     def transform(self, lines: List[str]):
         """Transform a magic assignment found by the ``find()`` classmethod.
         """
@@ -212,12 +216,12 @@ class MagicAssign(TokenTransformBase):
         rhs = assemble_continued_line(lines, (start_line, start_col), end_line)
         assert rhs.startswith('%'), rhs
         magic_name, _, args = rhs[1:].partition(' ')
-        
+
         lines_before = lines[:start_line]
         call = "get_ipython().run_line_magic({!r}, {!r})".format(magic_name, args)
         new_line = lhs + call + '\n'
         lines_after = lines[end_line+1:]
-        
+
         return lines_before + [new_line] + lines_after
 
 
@@ -464,7 +468,7 @@ def make_tokens_by_line(lines):
         pass
     if not tokens_by_line[-1]:
         tokens_by_line.pop()
-    
+
     return tokens_by_line
 
 def show_linewise_tokens(s: str):
@@ -501,12 +505,12 @@ class TransformerManager:
             EscapedCommand,
             HelpEnd,
         ]
-    
+
     def do_one_token_transform(self, lines):
         """Find and run the transform earliest in the code.
-        
+
         Returns (changed, lines).
-        
+
         This method is called repeatedly until changed is False, indicating
         that all available transformations are complete.
 
