@@ -65,6 +65,21 @@ There are also two more powerful display methods:
       Displays the object as a side effect; the return value is ignored. If this
       is defined, all other display methods are ignored.
 
+To customize how the REPL pretty-prints your object, add a `_repr_pretty_`
+method to the class.  The method should accept a pretty printer, and a boolean
+that indicates whether the printer detected a cycle.  The method should act on
+the printer to produce your customized pretty output.  Here is an example::
+
+    class MyObject(object):
+
+        def _repr_pretty_(self, p, cycle):
+            if cycle:
+                p.text('MyObject(...)')
+            else:
+                p.text('MyObject[...]')
+
+For details, see :py:mod:`IPython.lib.pretty`.
+
 Formatters for third-party types
 --------------------------------
 
