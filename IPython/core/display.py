@@ -238,15 +238,21 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     want to use. Here is a list of the names of the special methods and the
     values they must return:
 
-      - `_repr_html_`: return raw HTML as a string
-      - `_repr_json_`: return a JSONable dict
-      - `_repr_jpeg_`: return raw JPEG data
-      - `_repr_png_`: return raw PNG data
-      - `_repr_svg_`: return raw SVG data as a string
-      - `_repr_latex_`: return LaTeX commands in a string surrounded by "$".
+      - `_repr_html_`: return raw HTML as a string, or a tuple (see below).
+      - `_repr_json_`: return a JSONable dict, or a tuple (see below).
+      - `_repr_jpeg_`: return raw JPEG data, or a tuple (see below).
+      - `_repr_png_`: return raw PNG data, or a tuple (see below).
+      - `_repr_svg_`: return raw SVG data as a string, or a tuple (see below).
+      - `_repr_latex_`: return LaTeX commands in a string surrounded by "$",
+                        or a tuple (see below).
       - `_repr_mimebundle_`: return a full mimebundle containing the mapping
                              from all mimetypes to data.
                              Use this for any mime-type not listed above.
+
+    The above functions may also return the object's metadata alonside the
+    data.  If the metadata is available, the functions will return a tuple
+    containing the data and metadata, in that order.  If there is no metadata
+    available, then the functions will return the data only.
 
     When you are directly writing your own classes, you can adapt them for
     display in IPython by following the above approach. But in practice, you
@@ -665,6 +671,11 @@ class Pretty(TextDisplayObject):
 
 
 class HTML(TextDisplayObject):
+
+    def __init__(self, data=None, url=None, filename=None, metadata=None):
+        if data and "<iframe " in data and "</iframe>" in data:
+            warnings.warn("Consider using IPython.display.IFrame instead")
+        super(HTML, self).__init__(data=data, url=url, filename=filename, metadata=metadata)
 
     def _repr_html_(self):
         return self._data_and_metadata()
@@ -1256,7 +1267,8 @@ class Image(DisplayObject):
 
 class Video(DisplayObject):
 
-    def __init__(self, data=None, url=None, filename=None, embed=False, mimetype=None):
+    def __init__(self, data=None, url=None, filename=None, embed=False,
+                 mimetype=None, width=None, height=None):
         """Create a video object given raw data or an URL.
 
         When this object is returned by an input cell or passed to the
@@ -1288,6 +1300,12 @@ class Video(DisplayObject):
         mimetype: unicode
             Specify the mimetype for embedded videos.
             Default will be guessed from file extension, if available.
+        width : int
+            Width in pixels to which to constrain the video in HTML.
+            If not supplied, defaults to the width of the video.
+        height : int
+            Height in pixels to which to constrain the video in html.
+            If not supplied, defaults to the height of the video.
 
         Examples
         --------
@@ -1314,16 +1332,24 @@ class Video(DisplayObject):
 
         self.mimetype = mimetype
         self.embed = embed
+        self.width = width
+        self.height = height
         super(Video, self).__init__(data=data, url=url, filename=filename)
 
     def _repr_html_(self):
+        width = height = ''
+        if self.width:
+            width = ' width="%d"' % self.width
+        if self.height:
+            height = ' height="%d"' % self.height
+
         # External URLs and potentially local files are not embedded into the
         # notebook output.
         if not self.embed:
             url = self.url if self.url is not None else self.filename
-            output = """<video src="{0}" controls>
+            output = """<video src="{0}" controls {1} {2}>
       Your browser does not support the <code>video</code> element.
-    </video>""".format(url)
+    </video>""".format(url, width, height)
             return output
 
         # Embedded videos are base64-encoded.
@@ -1342,10 +1368,10 @@ class Video(DisplayObject):
         else:
             b64_video = b2a_base64(video).decode('ascii').rstrip()
 
-        output = """<video controls>
- <source src="data:{0};base64,{1}" type="{0}">
+        output = """<video controls {0} {1}>
+ <source src="data:{2};base64,{3}" type="{2}">
  Your browser does not support the video tag.
- </video>""".format(mimetype, b64_video)
+ </video>""".format(width, height, mimetype, b64_video)
         return output
 
     def reload(self):

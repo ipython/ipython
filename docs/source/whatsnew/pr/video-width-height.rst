@@ -1,0 +1,1 @@
+``IPython.display.Video`` now supports ``width`` and ``height`` arguments, allowing a custom width and height to be set instead of using the video's width and height
