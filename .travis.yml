@@ -34,6 +34,7 @@ after_success:
 
 matrix:
     include:
+        - { python: "3.6-dev", dist: xenial, sudo: true }
         - { python: "3.7", dist: xenial, sudo: true }
         - { python: "3.7-dev", dist: xenial, sudo: true }
         - { python: "nightly", dist: xenial, sudo: true }
