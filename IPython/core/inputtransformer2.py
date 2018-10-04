@@ -653,6 +653,9 @@ class TransformerManager:
             if res is None:
                 return 'incomplete', find_last_indent(lines)
 
+        if toks_last_line[-2].type in {tokenize.NEWLINE, tokenize.NL}:
+            return 'complete', None
+
         if toks_last_line[-2].type == tokenize.DEDENT:
             if not lines[-1].endswith('\n'):
                 return 'incomplete', find_last_indent(lines)
