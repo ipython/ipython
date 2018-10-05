@@ -470,8 +470,11 @@ def make_tokens_by_line(lines):
     except tokenize.TokenError:
         # Input ended in a multiline string or expression. That's OK for us.
         pass
+
+
     if not tokens_by_line[-1]:
         tokens_by_line.pop()
+
 
     return tokens_by_line
 
@@ -579,7 +582,24 @@ class TransformerManager:
           The number of spaces by which to indent the next line of code. If
           status is not 'incomplete', this is None.
         """
+        # Remember if the lines ends in a new line.
+        ends_with_newline = False
+        for character in reversed(cell):
+            if character == '\n':
+                ends_with_newline = True
+                break
+            elif character.strip():
+                break
+            else:
+                continue
+
+        if ends_with_newline:
+            # Append an newline for consistent tokenization
+            # See https://bugs.python.org/issue33899
+            cell += '\n'
+
         lines = cell.splitlines(keepends=True)
+
         if not lines:
             return 'complete', None
 
@@ -608,6 +628,7 @@ class TransformerManager:
             return 'invalid', None
 
         tokens_by_line = make_tokens_by_line(lines)
+
         if not tokens_by_line:
             return 'incomplete', find_last_indent(lines)
 
@@ -615,30 +636,33 @@ class TransformerManager:
             # We're in a multiline string or expression
             return 'incomplete', find_last_indent(lines)
 
-        if len(tokens_by_line[-1]) == 1:
-            return 'incomplete', find_last_indent(lines)
-        # Find the last token on the previous line that's not NEWLINE or COMMENT
-        toks_last_line = tokens_by_line[-1]
-        ix = len(tokens_by_line) - 1
+        newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER}
 
+        # Remove newline_types for the list of tokens
+        while len(tokens_by_line) > 1 and len(tokens_by_line[-1]) == 1 \
+                and tokens_by_line[-1][-1].type in newline_types:
+            tokens_by_line.pop()
 
-        while ix >= 0 and toks_last_line[-1].type in {tokenize.NEWLINE,
-                                                      tokenize.COMMENT}:
-            ix -= 1
-        if tokens_by_line[ix][-2].string == ':':
+        last_line_token = tokens_by_line[-1]
+
+        while tokens_by_line[-1][-1].type in newline_types:
+            last_line_token = tokens_by_line[-1].pop()
+
+        if len(last_line_token) == 1 and not last_line_token[-1]:
+            return 'incomplete', 0
+
+        if last_line_token[-1].string == ':':
             # The last line starts a block (e.g. 'if foo:')
             ix = 0
-            while toks_last_line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
+            while last_line_token[ix].type \
+                        in {tokenize.INDENT, tokenize.DEDENT}:
                 ix += 1
-            indent = toks_last_line[ix].start[1]
-            return 'incomplete', indent + 4
-        if tokens_by_line[ix][-2].string == '\\':
-            if not tokens_by_line[ix][-2].line.endswith('\\'):
-                return 'invalid', None
 
-        # If there's a blank line at the end, assume we're ready to execute
-        if not lines[-1].strip():
-            return 'complete', None
+            indent = last_line_token[ix].start[1]
+            return 'incomplete', indent + 4
+
+        if last_line_token[-1].line.endswith('\\'):
+            return 'incomplete', None
 
         # At this point, our checks think the code is complete (or invalid).
         # We'll use codeop.compile_command to check this with the real parser
@@ -653,12 +677,13 @@ class TransformerManager:
             if res is None:
                 return 'incomplete', find_last_indent(lines)
 
-        if toks_last_line[-2].type in {tokenize.NEWLINE, tokenize.NL}:
-            return 'complete', None
+        if last_line_token[-1].type == tokenize.DEDENT:
+            if ends_with_newline:
+                return 'complete', None
+            return 'incomplete', find_last_indent(lines)
 
-        if toks_last_line[-2].type == tokenize.DEDENT:
-            if not lines[-1].endswith('\n'):
-                return 'incomplete', find_last_indent(lines)
+        if len(last_line_token) <= 1:
+            return 'incomplete', find_last_indent(lines)
 
         return 'complete', None
 
