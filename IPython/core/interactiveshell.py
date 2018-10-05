@@ -2842,7 +2842,6 @@ class InteractiveShell(SingletonConfigurable):
         try:
             return await coro
         except BaseException as e:
-            print('IN BE')
             info = ExecutionInfo(raw_cell, store_history, silent, shell_futures)
             result = ExecutionResult(info)
             result.error_in_exec = e
