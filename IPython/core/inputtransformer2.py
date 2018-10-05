@@ -643,25 +643,23 @@ class TransformerManager:
                 and tokens_by_line[-1][-1].type in newline_types:
             tokens_by_line.pop()
 
-        last_line_token = tokens_by_line[-1]
 
-        while tokens_by_line[-1][-1].type in newline_types:
-            last_line_token = tokens_by_line[-1].pop()
+        while tokens_by_line[-1] and tokens_by_line[-1][-1].type in newline_types:
+            tokens_by_line[-1].pop()
 
-        if len(last_line_token) == 1 and not last_line_token[-1]:
+        if len(tokens_by_line) == 1 and not tokens_by_line[-1]:
             return 'incomplete', 0
 
-        if last_line_token[-1].string == ':':
+        if tokens_by_line[-1][-1].string == ':':
             # The last line starts a block (e.g. 'if foo:')
             ix = 0
-            while last_line_token[ix].type \
-                        in {tokenize.INDENT, tokenize.DEDENT}:
+            while tokens_by_line[-1][ix].type in {tokenize.INDENT, tokenize.DEDENT}:
                 ix += 1
 
-            indent = last_line_token[ix].start[1]
+            indent = tokens_by_line[-1][ix].start[1]
             return 'incomplete', indent + 4
 
-        if last_line_token[-1].line.endswith('\\'):
+        if tokens_by_line[-1][0].line.endswith('\\'):
             return 'incomplete', None
 
         # At this point, our checks think the code is complete (or invalid).
@@ -677,13 +675,17 @@ class TransformerManager:
             if res is None:
                 return 'incomplete', find_last_indent(lines)
 
-        if last_line_token[-1].type == tokenize.DEDENT:
+        if tokens_by_line[-1][-1].type == tokenize.DEDENT:
             if ends_with_newline:
                 return 'complete', None
             return 'incomplete', find_last_indent(lines)
 
-        if len(last_line_token) <= 1:
+        if len(tokens_by_line[-1]) <= 1:
             return 'incomplete', find_last_indent(lines)
+
+        # If there's a blank line at the end, assume we're ready to execute
+        if not lines[-1].strip():
+            return 'complete', None
 
         return 'complete', None
 
