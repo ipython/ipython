@@ -24,12 +24,58 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.openpy import source_to_unicode
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.terminal import set_term_title
+from os import DirEntry
 
 
 @magics_class
 class OSMagics(Magics):
     """Magics to interact with the underlying OS (shell-type functionality).
     """
+
+    def __init__(self, shell=None, **kwargs):
+
+        # Now define isexec in a cross platform manner.
+        self.is_posix: bool = False
+        self.execre = None
+        if os.name == 'posix':
+            self.is_posix = True
+        else:
+            try:
+                winext = os.environ['pathext'].replace(';','|').replace('.','')
+            except KeyError:
+                winext = 'exe|com|bat|py'
+            
+            self.execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
+
+        # call up the chain
+        super(OSMagics, self).__init__(shell=shell, **kwargs)
+
+
+    @skip_doctest
+    def _isexec_POSIX(self, f:DirEntry) -> bool:
+        """
+            Test for executible on a POSIX system
+        """
+        return f.is_file() and os.access(f.path, os.X_OK)
+
+    
+    @skip_doctest
+    def _isexec_WIN(self, f:DirEntry) -> int:
+        """
+            Test for executible file on non POSIX system
+        """
+        return f.is_file() and self.execre.match(f.name) is not None
+
+    @skip_doctest
+    def isexec(self, f:DirEntry) -> bool:
+        """
+            Test for executible file on non POSIX system
+        """
+        if self.is_posix:
+            return self._isexec_POSIX(f)
+        else:
+            return self._isexec_WIN(f)
+
 
     @skip_doctest
     @line_magic
@@ -160,19 +206,6 @@ class OSMagics(Magics):
             os.environ.get('PATH','').split(os.pathsep)]
 
         syscmdlist = []
-        # Now define isexec in a cross platform manner.
-        if os.name == 'posix':
-            isexec = lambda fname:os.path.isfile(fname) and \
-                     os.access(fname,os.X_OK)
-        else:
-            try:
-                winext = os.environ['pathext'].replace(';','|').replace('.','')
-            except KeyError:
-                winext = 'exe|com|bat|py'
-            if 'py' not in winext:
-                winext += '|py'
-            execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
-            isexec = lambda fname:os.path.isfile(fname) and execre.match(fname)
         savedir = os.getcwd()
 
         # Now walk the paths looking for executables to alias.
@@ -183,42 +216,44 @@ class OSMagics(Magics):
                 for pdir in path:
                     try:
                         os.chdir(pdir)
-                        dirlist = os.listdir(pdir)
                     except OSError:
                         continue
-                    for ff in dirlist:
-                        if isexec(ff):
-                            try:
-                                # Removes dots from the name since ipython
-                                # will assume names with dots to be python.
-                                if not self.shell.alias_manager.is_alias(ff):
-                                    self.shell.alias_manager.define_alias(
-                                        ff.replace('.',''), ff)
-                            except InvalidAliasError:
-                                pass
-                            else:
-                                syscmdlist.append(ff)
+                    with os.scandir(pdir) as dirlist:
+                        for ff in dirlist:
+                            if self.isexec(ff):
+                                fname = ff.name
+                                try:
+                                    # Removes dots from the name since ipython
+                                    # will assume names with dots to be python.
+                                    if not self.shell.alias_manager.is_alias(fname):
+                                        self.shell.alias_manager.define_alias(
+                                            fname.replace('.',''), fname)
+                                except InvalidAliasError:
+                                    pass
+                                else:
+                                    syscmdlist.append(fname)
             else:
                 no_alias = Alias.blacklist
                 for pdir in path:
                     try:
                         os.chdir(pdir)
-                        dirlist = os.listdir(pdir)
                     except OSError:
                         continue
-                    for ff in dirlist:
-                        base, ext = os.path.splitext(ff)
-                        if isexec(ff) and base.lower() not in no_alias:
-                            if ext.lower() == '.exe':
-                                ff = base
-                                try:
-                                    # Removes dots from the name since ipython
-                                    # will assume names with dots to be python.
-                                    self.shell.alias_manager.define_alias(
-                                        base.lower().replace('.',''), ff)
-                                except InvalidAliasError:
-                                    pass
-                                syscmdlist.append(ff)
+                    with os.scandir(pdir) as dirlist:
+                        for ff in dirlist:
+                            fname = ff.name
+                            base, ext = os.path.splitext(fname)
+                            if self.isexec(ff) and base.lower() not in no_alias:
+                                if ext.lower() == '.exe':
+                                    fname = base
+                                    try:
+                                        # Removes dots from the name since ipython
+                                        # will assume names with dots to be python.
+                                        self.shell.alias_manager.define_alias(
+                                            base.lower().replace('.',''), fname)
+                                    except InvalidAliasError:
+                                        pass
+                                    syscmdlist.append(fname)
             self.shell.db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
@@ -481,6 +516,7 @@ class OSMagics(Magics):
 
         dh = self.shell.user_ns['_dh']
         if parameter_s:
+            args = []
             try:
                 args = map(int,parameter_s.split())
             except:
