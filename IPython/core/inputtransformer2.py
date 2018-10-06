@@ -234,6 +234,7 @@ class SystemAssign(TokenTransformBase):
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
             if (assign_ix is not None) \
+                    and not line[assign_ix].line.strip().startswith('=') \
                     and (len(line) >= assign_ix + 2) \
                     and (line[assign_ix + 1].type == tokenize.ERRORTOKEN):
                 ix = assign_ix + 1
