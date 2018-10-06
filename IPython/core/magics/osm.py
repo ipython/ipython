@@ -24,7 +24,6 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.openpy import source_to_unicode
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.terminal import set_term_title
-from os import DirEntry
 
 
 @magics_class
@@ -35,7 +34,7 @@ class OSMagics(Magics):
     def __init__(self, shell=None, **kwargs):
 
         # Now define isexec in a cross platform manner.
-        self.is_posix: bool = False
+        self.is_posix = False
         self.execre = None
         if os.name == 'posix':
             self.is_posix = True
@@ -52,29 +51,29 @@ class OSMagics(Magics):
 
 
     @skip_doctest
-    def _isexec_POSIX(self, f:DirEntry) -> bool:
+    def _isexec_POSIX(self, file):
         """
             Test for executible on a POSIX system
         """
-        return f.is_file() and os.access(f.path, os.X_OK)
+        return file.is_file() and os.access(file.path, os.X_OK)
 
     
     @skip_doctest
-    def _isexec_WIN(self, f:DirEntry) -> int:
+    def _isexec_WIN(self, file):
         """
             Test for executible file on non POSIX system
         """
-        return f.is_file() and self.execre.match(f.name) is not None
+        return file.is_file() and self.execre.match(file.name) is not None
 
     @skip_doctest
-    def isexec(self, f:DirEntry) -> bool:
+    def isexec(self, file):
         """
             Test for executible file on non POSIX system
         """
         if self.is_posix:
-            return self._isexec_POSIX(f)
+            return self._isexec_POSIX(file)
         else:
-            return self._isexec_WIN(f)
+            return self._isexec_WIN(file)
 
 
     @skip_doctest
@@ -212,7 +211,7 @@ class OSMagics(Magics):
         try:
             # write the whole loop for posix/Windows so we don't have an if in
             # the innermost part
-            if os.name == 'posix':
+            if self.is_posix:
                 for pdir in path:
                     try:
                         os.chdir(pdir)
