@@ -212,25 +212,27 @@ class OSMagics(Magics):
             # write the whole loop for posix/Windows so we don't have an if in
             # the innermost part
             if self.is_posix:
+                print(path)
                 for pdir in path:
                     try:
                         os.chdir(pdir)
                     except OSError:
                         continue
-                    with os.scandir(pdir) as dirlist:
-                        for ff in dirlist:
-                            if self.isexec(ff):
-                                fname = ff.name
-                                try:
-                                    # Removes dots from the name since ipython
-                                    # will assume names with dots to be python.
-                                    if not self.shell.alias_manager.is_alias(fname):
-                                        self.shell.alias_manager.define_alias(
-                                            fname.replace('.',''), fname)
-                                except InvalidAliasError:
-                                    pass
-                                else:
-                                    syscmdlist.append(fname)
+                    dirlist = os.scandir(path=pdir)
+                    #with os.scandir(pdir) as dirlist:
+                    for ff in dirlist:
+                        if self.isexec(ff):
+                            fname = ff.name
+                            try:
+                                # Removes dots from the name since ipython
+                                # will assume names with dots to be python.
+                                if not self.shell.alias_manager.is_alias(fname):
+                                    self.shell.alias_manager.define_alias(
+                                        fname.replace('.',''), fname)
+                            except InvalidAliasError:
+                                pass
+                            else:
+                                syscmdlist.append(fname)
             else:
                 no_alias = Alias.blacklist
                 for pdir in path:
