@@ -253,7 +253,7 @@ class SystemAssign(TokenTransformBase):
         lhs = lines[start_line][:start_col]
         end_line = find_end_of_continued_line(lines, start_line)
         rhs = assemble_continued_line(lines, (start_line, start_col), end_line)
-        # assert rhs.startswith('!'), rhs
+        assert rhs.startswith('!'), rhs
         cmd = rhs[1:]
 
         lines_before = lines[:start_line]
