@@ -644,7 +644,6 @@ class TransformerManager:
                 and tokens_by_line[-1][-1].type in newline_types:
             tokens_by_line.pop()
 
-
         while tokens_by_line[-1] and tokens_by_line[-1][-1].type in newline_types:
             tokens_by_line[-1].pop()
 
@@ -679,9 +678,6 @@ class TransformerManager:
         if tokens_by_line[-1][-1].type == tokenize.DEDENT:
             if ends_with_newline:
                 return 'complete', None
-            return 'incomplete', find_last_indent(lines)
-
-        if len(tokens_by_line[-1]) <= 1:
             return 'incomplete', find_last_indent(lines)
 
         # If there's a blank line at the end, assume we're ready to execute
