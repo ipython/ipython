@@ -97,10 +97,12 @@ ipython locate profile foo # print the path to the directory for profile 'foo'
 def list_profiles_in(path):
     """list profiles in a given root directory"""
     profiles = []
-    with os.scandir(path) as files:
-        for f in files:
-            if f.is_dir() and f.name.startswith('profile_'):
-                profiles.append(f.name.split('_', 1)[-1])
+
+    # use with notation for python 3.6 onward
+    files = os.scandir(path)
+    for f in files:
+        if f.is_dir() and f.name.startswith('profile_'):
+            profiles.append(f.name.split('_', 1)[-1])
     return profiles
 
 
@@ -108,10 +110,12 @@ def list_bundled_profiles():
     """list profiles that are bundled with IPython."""
     path = os.path.join(get_ipython_package_dir(), u'core', u'profile')
     profiles = []
-    with os.scandir(path) as files:
-        for profile in files:
-            if profile.is_dir() and profile.name != "__pycache__":
-                profiles.append(profile.name)
+
+    # use with notation for python 3.6 onward
+    files =  os.scandir(path)
+    for profile in files:
+        if profile.is_dir() and profile.name != "__pycache__":
+            profiles.append(profile.name)
     return profiles
 
 

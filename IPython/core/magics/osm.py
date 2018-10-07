@@ -218,8 +218,9 @@ class OSMagics(Magics):
                         os.chdir(pdir)
                     except OSError:
                         continue
+
+                    # use with notation for python 3.6 onward
                     dirlist = os.scandir(path=pdir)
-                    #with os.scandir(pdir) as dirlist:
                     for ff in dirlist:
                         if self.isexec(ff):
                             fname = ff.name
@@ -240,21 +241,23 @@ class OSMagics(Magics):
                         os.chdir(pdir)
                     except OSError:
                         continue
-                    with os.scandir(pdir) as dirlist:
-                        for ff in dirlist:
-                            fname = ff.name
-                            base, ext = os.path.splitext(fname)
-                            if self.isexec(ff) and base.lower() not in no_alias:
-                                if ext.lower() == '.exe':
-                                    fname = base
-                                    try:
-                                        # Removes dots from the name since ipython
-                                        # will assume names with dots to be python.
-                                        self.shell.alias_manager.define_alias(
-                                            base.lower().replace('.',''), fname)
-                                    except InvalidAliasError:
-                                        pass
-                                    syscmdlist.append(fname)
+
+                    # use with notation for python 3.6 onward
+                    dirlist = os.scandir(pdir)
+                    for ff in dirlist:
+                        fname = ff.name
+                        base, ext = os.path.splitext(fname)
+                        if self.isexec(ff) and base.lower() not in no_alias:
+                            if ext.lower() == '.exe':
+                                fname = base
+                                try:
+                                    # Removes dots from the name since ipython
+                                    # will assume names with dots to be python.
+                                    self.shell.alias_manager.define_alias(
+                                        base.lower().replace('.',''), fname)
+                                except InvalidAliasError:
+                                    pass
+                                syscmdlist.append(fname)
             self.shell.db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
