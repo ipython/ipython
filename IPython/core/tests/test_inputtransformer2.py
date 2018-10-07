@@ -215,7 +215,6 @@ def test_check_complete():
     nt.assert_equal(cc("def a():\n x=1\n global x"), ('invalid', None))
     nt.assert_equal(cc("a \\ "), ('invalid', None))  # Nothing allowed after backslash
     nt.assert_equal(cc("1\\\n+2"), ('complete', None))
-    nt.assert_equal(cc("1\\\n+2"), ('complete', None))
     nt.assert_equal(cc("exit"), ('complete', None))
 
     example = dedent("""
