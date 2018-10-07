@@ -667,7 +667,7 @@ class Pretty(TextDisplayObject):
 class HTML(TextDisplayObject):
 
     def __init__(self, data=None, url=None, filename=None, metadata=None):
-        if data and "<iframe " in data and "</iframe>" in data:
+        if data and data.startswith("<iframe ") and data.endswith("</iframe>"):
             warnings.warn("Consider using IPython.display.IFrame instead")
         super(HTML, self).__init__(data=data, url=url, filename=filename, metadata=metadata)
 
