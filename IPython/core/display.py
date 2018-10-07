@@ -667,7 +667,19 @@ class Pretty(TextDisplayObject):
 class HTML(TextDisplayObject):
 
     def __init__(self, data=None, url=None, filename=None, metadata=None):
-        if data and data.startswith("<iframe ") and data.endswith("</iframe>"):
+        def warn():
+            if not data:
+                return False
+
+            #
+            # Avoid calling lower() on the entire data, because it could be a
+            # long string and we're only interested in its beginning and end.
+            #
+            prefix = data[:10].lower()
+            suffix = data[-10:].lower()
+            return prefix.startswith("<iframe ") and suffix.endswith("</iframe>")
+
+        if warn():
             warnings.warn("Consider using IPython.display.IFrame instead")
         super(HTML, self).__init__(data=data, url=url, filename=filename, metadata=metadata)
 
