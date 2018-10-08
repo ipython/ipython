@@ -59,12 +59,12 @@ try:
 except ImportError:
     # There is no distinction of user/system time under windows, so we just use
     # time.clock() for everything...
-    clocku = clocks = clock = time.clock
+    clocku = clocks = clock = time.perf_counter
     def clock2():
         """Under windows, system CPU time can't be measured.
 
         This just returns clock() and zero."""
-        return time.clock(),0.0
+        return time.perf_counter(),0.0
 
     
 def timings_out(reps,func,*args,**kw):
