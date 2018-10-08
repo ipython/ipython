@@ -58,12 +58,12 @@ try:
         return resource.getrusage(resource.RUSAGE_SELF)[:2]
 except ImportError:
     # There is no distinction of user/system time under windows, so we just use
-    # time.clock() for everything...
+    # time.perff_counter() for everything...
     clocku = clocks = clock = time.perf_counter
     def clock2():
         """Under windows, system CPU time can't be measured.
 
-        This just returns clock() and zero."""
+        This just returns perf_counter() and zero."""
         return time.perf_counter(),0.0
 
     
