@@ -234,6 +234,7 @@ class SystemAssign(TokenTransformBase):
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
             if (assign_ix is not None) \
+                    and not line[assign_ix].line.strip().startswith('=') \
                     and (len(line) >= assign_ix + 2) \
                     and (line[assign_ix + 1].type == tokenize.ERRORTOKEN):
                 ix = assign_ix + 1
@@ -369,11 +370,15 @@ class EscapedCommand(TokenTransformBase):
         end_line = find_end_of_continued_line(lines, start_line)
         line = assemble_continued_line(lines, (start_line, start_col), end_line)
 
-        if line[:2] in ESCAPE_DOUBLES:
+        if len(line) > 1 and line[:2] in ESCAPE_DOUBLES:
             escape, content = line[:2], line[2:]
         else:
             escape, content = line[:1], line[1:]
-        call = tr[escape](content)
+
+        if escape in tr:
+            call = tr[escape](content)
+        else:
+            call = ''
 
         lines_before = lines[:start_line]
         new_line = indent + call + '\n'
@@ -466,8 +471,11 @@ def make_tokens_by_line(lines):
     except tokenize.TokenError:
         # Input ended in a multiline string or expression. That's OK for us.
         pass
+
+
     if not tokens_by_line[-1]:
         tokens_by_line.pop()
+
 
     return tokens_by_line
 
@@ -575,10 +583,28 @@ class TransformerManager:
           The number of spaces by which to indent the next line of code. If
           status is not 'incomplete', this is None.
         """
-        if not cell.endswith('\n'):
-            cell += '\n'  # Ensure the cell has a trailing newline
+        # Remember if the lines ends in a new line.
+        ends_with_newline = False
+        for character in reversed(cell):
+            if character == '\n':
+                ends_with_newline = True
+                break
+            elif character.strip():
+                break
+            else:
+                continue
+
+        if ends_with_newline:
+            # Append an newline for consistent tokenization
+            # See https://bugs.python.org/issue33899
+            cell += '\n'
+
         lines = cell.splitlines(keepends=True)
-        if lines[-1][:-1].endswith('\\'):
+
+        if not lines:
+            return 'complete', None
+
+        if lines[-1].endswith('\\'):
             # Explicit backslash continuation
             return 'incomplete', find_last_indent(lines)
 
@@ -603,35 +629,41 @@ class TransformerManager:
             return 'invalid', None
 
         tokens_by_line = make_tokens_by_line(lines)
+
         if not tokens_by_line:
             return 'incomplete', find_last_indent(lines)
+
         if tokens_by_line[-1][-1].type != tokenize.ENDMARKER:
             # We're in a multiline string or expression
             return 'incomplete', find_last_indent(lines)
-        if len(tokens_by_line) == 1:
-            return 'incomplete', find_last_indent(lines)
-        # Find the last token on the previous line that's not NEWLINE or COMMENT
-        toks_last_line = tokens_by_line[-2]
-        ix = len(toks_last_line) - 1
-        while ix >= 0 and toks_last_line[ix].type in {tokenize.NEWLINE,
-                                                      tokenize.COMMENT}:
-            ix -= 1
 
-        if toks_last_line[ix].string == ':':
+        newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER}
+
+        # Remove newline_types for the list of tokens
+        while len(tokens_by_line) > 1 and len(tokens_by_line[-1]) == 1 \
+                and tokens_by_line[-1][-1].type in newline_types:
+            tokens_by_line.pop()
+
+        while tokens_by_line[-1] and tokens_by_line[-1][-1].type in newline_types:
+            tokens_by_line[-1].pop()
+
+        if len(tokens_by_line) == 1 and not tokens_by_line[-1]:
+            return 'incomplete', 0
+
+        if tokens_by_line[-1][-1].string == ':':
             # The last line starts a block (e.g. 'if foo:')
             ix = 0
-            while toks_last_line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
+            while tokens_by_line[-1][ix].type in {tokenize.INDENT, tokenize.DEDENT}:
                 ix += 1
-            indent = toks_last_line[ix].start[1]
+
+            indent = tokens_by_line[-1][ix].start[1]
             return 'incomplete', indent + 4
 
-        # If there's a blank line at the end, assume we're ready to execute.
-        if not lines[-1].strip():
-            return 'complete', None
+        if tokens_by_line[-1][0].line.endswith('\\'):
+            return 'incomplete', None
 
         # At this point, our checks think the code is complete (or invalid).
-        # We'll use codeop.compile_command to check this with the real parser.
-
+        # We'll use codeop.compile_command to check this with the real parser
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter('error', SyntaxWarning)
@@ -642,6 +674,16 @@ class TransformerManager:
         else:
             if res is None:
                 return 'incomplete', find_last_indent(lines)
+
+        if tokens_by_line[-1][-1].type == tokenize.DEDENT:
+            if ends_with_newline:
+                return 'complete', None
+            return 'incomplete', find_last_indent(lines)
+
+        # If there's a blank line at the end, assume we're ready to execute
+        if not lines[-1].strip():
+            return 'complete', None
+
         return 'complete', None
 
 
