@@ -24,7 +24,7 @@ To remove a label, use the `untag` command:
 
 > @meeseeksdev untag windows, documentation
 
-e'll be adding additional capabilities for the bot and will share them here
+We'll be adding additional capabilities for the bot and will share them here
 when they are ready to be used.
 
 ## Opening an Issue
