@@ -71,4 +71,4 @@ IPython and Pull Requests, but it may make sense to manually perform tests,
 particularly for PRs that affect `IPython.parallel` or Windows.
 
 For more detailed information, see our [GitHub Workflow](https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow).
-
+//free
