@@ -188,7 +188,7 @@ python-profiler package from non-free.""")
 
         """Run a statement through the python code profiler.
 
-        Usage, in line mode:
+        Usage, in line mode:run
           %prun [options] statement
 
         Usage, in cell mode:
@@ -506,6 +506,8 @@ python-profiler package from non-free.""")
         real shells, quotation does not suppress expansions.  Use
         *two* back slashes (e.g. ``\\\\*``) to suppress expansions.
         To completely disable these expansions, you can use -G flag.
+
+        On Windows systems, the use of double quotes `"` is required.
 
         Options:
 
