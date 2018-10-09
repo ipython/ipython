@@ -97,24 +97,26 @@ class _AsyncSyntaxErrorVisitor(ast.NodeVisitor):
     the implementation involves wrapping the repl in an async function, it
     is erroneously allowed (e.g. yield or return at the top level)
     """
-    def __init__(self, is_toplevel=True):
-        self.is_toplevel = is_toplevel
+    def __init__(self):
+        self.depth = 0
         super().__init__()
 
     def generic_visit(self, node):
         func_types = (ast.FunctionDef, ast.AsyncFunctionDef)
-        toplevel_invalid_types = (ast.Return, ast.Yield, ast.YieldFrom)
-        inner_invalid_types = (ast.Nonlocal,)
+        invalid_types_by_depth = {
+            0: (ast.Return, ast.Yield, ast.YieldFrom),
+            1: (ast.Nonlocal,)
+        }
 
-        if isinstance(node, func_types) and self.is_toplevel:
-            self.is_toplevel = False
+        should_traverse = self.depth < max(invalid_types_by_depth.keys())
+        if isinstance(node, func_types) and should_traverse:
+            self.depth += 1
             super().generic_visit(node)
-        elif self.is_toplevel and isinstance(node, toplevel_invalid_types):
-            raise SyntaxError()
-        elif not self.is_toplevel and isinstance(node, inner_invalid_types):
+        elif isinstance(node, invalid_types_by_depth[self.depth]):
             raise SyntaxError()
         else:
             super().generic_visit(node)
+
 
 def _async_parse_cell(cell: str) -> ast.AST:
     """
