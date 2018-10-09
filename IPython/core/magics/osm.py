@@ -776,10 +776,12 @@ class OSMagics(Magics):
         
         The file will be overwritten unless the -a (--append) flag is specified.
         """
-        line = line if len(line.split())==1 else '"%s"' % line.strip("\"\'")
         args = magic_arguments.parse_argstring(self.writefile, line)
-        filename = os.path.expanduser(args.filename.strip("\"\'"))        
-
+        if re.match(r'[\'*\']|["*"]', args.filename):
+            filename = os.path.expanduser(args.filename[1:-1])
+        else:
+            filename = os.path.expanduser(args.filename)
+            
         if os.path.exists(filename):
             if args.append:
                 print("Appending to %s" % filename)
