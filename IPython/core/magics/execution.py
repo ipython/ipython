@@ -507,7 +507,8 @@ python-profiler package from non-free.""")
         *two* back slashes (e.g. ``\\\\*``) to suppress expansions.
         To completely disable these expansions, you can use -G flag.
 
-        On Windows systems, the use of double quotes `"` is required.
+        On Windows systems, the use of single quotes `'` when specifing 
+        a file is not supported. Use double quotes `"`.
 
         Options:
 
