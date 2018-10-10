@@ -47,7 +47,7 @@ class OSMagics(Magics):
             self.execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
 
         # call up the chain
-        super(OSMagics, self).__init__(shell=shell, **kwargs)
+        super().__init__(shell=shell, **kwargs)
 
 
     @skip_doctest
@@ -520,7 +520,6 @@ class OSMagics(Magics):
 
         dh = self.shell.user_ns['_dh']
         if parameter_s:
-            args = []
             try:
                 args = map(int,parameter_s.split())
             except:
