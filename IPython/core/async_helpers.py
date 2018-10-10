@@ -97,14 +97,22 @@ class _AsyncSyntaxErrorVisitor(ast.NodeVisitor):
     the implementation involves wrapping the repl in an async function, it
     is erroneously allowed (e.g. yield or return at the top level)
     """
+    def __init__(self):
+        self.depth = 0
+        super().__init__()
 
     def generic_visit(self, node):
         func_types = (ast.FunctionDef, ast.AsyncFunctionDef)
-        invalid_types = (ast.Return, ast.Yield, ast.YieldFrom)
+        invalid_types_by_depth = {
+            0: (ast.Return, ast.Yield, ast.YieldFrom),
+            1: (ast.Nonlocal,)
+        }
 
-        if isinstance(node, func_types):
-            return  # Don't recurse into functions
-        elif isinstance(node, invalid_types):
+        should_traverse = self.depth < max(invalid_types_by_depth.keys())
+        if isinstance(node, func_types) and should_traverse:
+            self.depth += 1
+            super().generic_visit(node)
+        elif isinstance(node, invalid_types_by_depth[self.depth]):
             raise SyntaxError()
         else:
             super().generic_visit(node)

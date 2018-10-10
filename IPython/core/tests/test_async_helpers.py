@@ -227,6 +227,35 @@ if sys.version_info > (3, 5):
                             else:
                                 iprc(cell)
 
+        def test_nonlocal(self):
+            # fails if outer scope is not a function scope or if var not defined
+            with self.assertRaises(SyntaxError):
+                iprc("nonlocal x")
+                iprc("""
+                x = 1
+                def f():
+                    nonlocal x
+                    x = 10000
+                    yield x
+                """)
+                iprc("""
+                def f():
+                    def g():
+                        nonlocal x
+                        x = 10000
+                        yield x
+                """)
+
+            # works if outer scope is a function scope and var exists
+            iprc("""
+            def f():
+                x = 20
+                def g():
+                    nonlocal x
+                    x = 10000
+                    yield x
+            """)
+
 
         def test_execute(self):
             iprc("""
