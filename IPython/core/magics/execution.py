@@ -912,7 +912,7 @@ python-profiler package from non-free.""")
             Number of times to execute `run`.
 
         """
-        twall0 = time.time()
+        twall0 = time.perf_counter()
         if nruns == 1:
             t0 = clock2()
             run()
@@ -935,7 +935,7 @@ python-profiler package from non-free.""")
             print("  Times  : %10s   %10s" % ('Total', 'Per run'))
             print("  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns))
             print("  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns))
-        twall1 = time.time()
+        twall1 = time.perf_counter()
         print("Wall time: %10.2f s." % (twall1 - twall0))
 
     @skip_doctest
