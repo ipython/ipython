@@ -98,6 +98,7 @@ def build_ipy_lexer(python3):
         (r'(?s)(\s*)(%%time)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
         (r'(?s)(\s*)(%%timeit)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
         (r'(?s)(\s*)(%%writefile)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
+        (r'(?s)(\s*)(%%file)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
         (r"(?s)(\s*)(%%)(\w+)(.*)", bygroups(Text, Operator, Keyword, Text)),
         (r'(?s)(^\s*)(%%!)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(BashLexer))),
         (r"(%%?)(\w+)(\?\??)$",  bygroups(Operator, Keyword, Operator)),
