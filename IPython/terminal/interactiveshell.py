@@ -297,9 +297,9 @@ class TerminalInteractiveShell(InteractiveShell):
                     Token.Name.Class: 'bold #2080D0',
                     Token.Name.Namespace: 'bold #2080D0',
                     Token.Prompt: '#009900',
-                    Token.PromptNum: '#00ff00 bold',
+                    Token.PromptNum: '#ansibrightgreen bold',
                     Token.OutPrompt: '#990000',
-                    Token.OutPromptNum: '#ff0000 bold',
+                    Token.OutPromptNum: '#ansibrightred bold',
                 })
 
                 # Hack: Due to limited color support on the Windows console
@@ -323,9 +323,9 @@ class TerminalInteractiveShell(InteractiveShell):
                 style_cls = name_or_cls
             style_overrides = {
                 Token.Prompt: '#009900',
-                Token.PromptNum: '#00ff00 bold',
+                Token.PromptNum: '#ansibrightgreen bold',
                 Token.OutPrompt: '#990000',
-                Token.OutPromptNum: '#ff0000 bold',
+                Token.OutPromptNum: '#ansibrightred bold',
             }
         style_overrides.update(self.highlighting_style_overrides)
         style = merge_styles([
