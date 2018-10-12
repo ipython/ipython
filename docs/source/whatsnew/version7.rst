@@ -118,11 +118,11 @@ Jupyter Protocol will need further updates of the IPykernel package.
 Non-Asynchronous code
 ~~~~~~~~~~~~~~~~~~~~~
 
-As the internal API of IPython are now asynchronous, IPython need to run under
-an even loop. In order to allow many workflow, (like using the :magic:`%run`
+As the internal API of IPython is now asynchronous, IPython needs to run under
+an event loop. In order to allow many workflows, (like using the :magic:`%run`
 magic, or copy_pasting code that explicitly starts/stop event loop), when
 top-level code is detected as not being asynchronous, IPython code is advanced
-via a pseudo-synchronous runner, and will not may not advance pending tasks.
+via a pseudo-synchronous runner, and may not advance pending tasks.
 
 Change to Nested Embed
 ~~~~~~~~~~~~~~~~~~~~~~
