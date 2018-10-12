@@ -804,7 +804,7 @@ def test_file_spaces():
     ip = get_ipython()
     with TemporaryWorkingDirectory() as td:
         fname = "file name"
-        ip.run_cell_magic("file", "'%s'"%fname, u'\n'.join([
+        ip.run_cell_magic("file", '"%s"'%fname, u'\n'.join([
             'line1',
             'line2',
         ]))
