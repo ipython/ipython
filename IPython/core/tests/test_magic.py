@@ -803,7 +803,7 @@ def test_file_spaces():
     """%%file with spaces in filename"""
     ip = get_ipython()
     with TemporaryWorkingDirectory() as td:
-        fname = 'file name'
+        fname = "file name"
         ip.run_cell_magic("file", "'%s'"%fname, u'\n'.join([
             'line1',
             'line2',
