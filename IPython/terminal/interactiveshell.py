@@ -11,7 +11,7 @@ from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
-    Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union,
+    Bool, Unicode, Dict, Integer, Float, observe, Instance, Type, default, Enum, Union,
     Any,
 )
 
@@ -23,7 +23,7 @@ from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatc
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
-from prompt_toolkit.styles import DynamicStyle, merge_styles
+from prompt_toolkit.styles import DynamicStyle, merge_styles, AdjustBrightnessStyleTransformation
 from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
 
 from pygments.styles import get_style_by_name
@@ -91,6 +91,8 @@ class TerminalInteractiveShell(InteractiveShell):
     space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
                                      'to reserve for the completion menu'
                             ).tag(config=True)
+    min_brightness = Float(0.0)
+    max_brightness = Float(1.0)
 
     pt_app = None
     debugger_history = None
@@ -368,6 +370,9 @@ class TerminalInteractiveShell(InteractiveShell):
                         filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
                             Condition(lambda: self.highlight_matching_brackets))],
                 'inputhook': self.inputhook,
+                'style_transformation': AdjustBrightnessStyleTransformation(
+                    lambda: max(0.0, self.min_brightness),
+                    lambda: min(1.0, self.max_brightness))
                 }
 
     def prompt_for_code(self):
