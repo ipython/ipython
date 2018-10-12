@@ -738,11 +738,11 @@ class CellMagicTestCase(TestCase):
         nt.assert_equal(c33, None)
 
 def test_file():
-    """Basic %%file"""
+    """Basic %%writefile"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, 'file1')
-        ip.run_cell_magic("file", fname, u'\n'.join([
+        ip.run_cell_magic("writefile", fname, u'\n'.join([
             'line1',
             'line2',
         ]))
@@ -752,12 +752,12 @@ def test_file():
         nt.assert_in('line2', s)
 
 def test_file_var_expand():
-    """%%file $filename"""
+    """%%writefile $filename"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, 'file1')
         ip.user_ns['filename'] = fname
-        ip.run_cell_magic("file", '$filename', u'\n'.join([
+        ip.run_cell_magic("writefile", '$filename', u'\n'.join([
             'line1',
             'line2',
         ]))
@@ -767,11 +767,11 @@ def test_file_var_expand():
         nt.assert_in('line2', s)
 
 def test_file_unicode():
-    """%%file with unicode cell"""
+    """%%writefile with unicode cell"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, 'file1')
-        ip.run_cell_magic("file", fname, u'\n'.join([
+        ip.run_cell_magic("writefile", fname, u'\n'.join([
             u'liné1',
             u'liné2',
         ]))
@@ -781,15 +781,15 @@ def test_file_unicode():
         nt.assert_in(u'liné2', s)
 
 def test_file_amend():
-    """%%file -a amends files"""
+    """%%writefile -a amends files"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, 'file2')
-        ip.run_cell_magic("file", fname, u'\n'.join([
+        ip.run_cell_magic("writefile", fname, u'\n'.join([
             'line1',
             'line2',
         ]))
-        ip.run_cell_magic("file", "-a %s" % fname, u'\n'.join([
+        ip.run_cell_magic("writefile", "-a %s" % fname, u'\n'.join([
             'line3',
             'line4',
         ]))
