@@ -81,7 +81,7 @@ class LSString(str):
 #     print arg
 #
 #
-# print_lsstring = result_display.when_type(LSString)(print_lsstring)
+# print_lsstring = result_display.register(LSString)(print_lsstring)
 
 
 class SList(list):
@@ -243,7 +243,7 @@ class SList(list):
 #
 #     nlprint(arg)   # This was a nested list printer, now removed.
 #
-# print_slist = result_display.when_type(SList)(print_slist)
+# print_slist = result_display.register(SList)(print_slist)
 
 
 def indent(instr,nspaces=4, ntabs=0, flatten=False):
