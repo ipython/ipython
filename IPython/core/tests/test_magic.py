@@ -27,7 +27,8 @@ from IPython.core.magics import execution, script, code, logging
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils.io import capture_output
-from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils.tempdir import (TemporaryDirectory,
+                                    TemporaryWorkingDirectory)
 from IPython.utils.process import find_cmd
 
 
@@ -797,7 +798,20 @@ def test_file_amend():
             s = f.read()
         nt.assert_in('line1\n', s)
         nt.assert_in('line3\n', s)
-        
+
+def test_file_spaces():
+    """%%file with spaces in filename"""
+    ip = get_ipython()
+    with TemporaryWorkingDirectory() as td:
+        fname = "file name"
+        ip.run_cell_magic("file", '"%s"'%fname, u'\n'.join([
+            'line1',
+            'line2',
+        ]))
+        with open(fname) as f:
+            s = f.read()
+        nt.assert_in('line1\n', s)
+        nt.assert_in('line2', s)
     
 def test_script_config():
     ip = get_ipython()
