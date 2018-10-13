@@ -188,7 +188,7 @@ python-profiler package from non-free.""")
 
         """Run a statement through the python code profiler.
 
-        Usage, in line mode:run
+        Usage, in line mode:
           %prun [options] statement
 
         Usage, in cell mode:
