@@ -227,11 +227,9 @@ class TerminalInteractiveShell(InteractiveShell):
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
         if self.term_title:
-            toggle_set_term_title(True)
             set_term_title(self.term_title_format.format(cwd=abbrev_cwd()))
-        else:
-            toggle_set_term_title(False)
-
+        toggle_set_term_title(self.term_title)
+        
     def init_display_formatter(self):
         super(TerminalInteractiveShell, self).init_display_formatter()
         # terminal only supports plain text
@@ -247,9 +245,11 @@ class TerminalInteractiveShell(InteractiveShell):
                 prompt_text = "".join(x[1] for x in self.prompts.in_prompt_tokens())
                 lines = [input(prompt_text)]
                 prompt_continuation = "".join(x[1] for x in self.prompts.continuation_prompt_tokens())
+
                 while self.check_complete('\n'.join(lines))[0] == 'incomplete':
                     lines.append( input(prompt_continuation) )
                 return '\n'.join(lines)
+
             self.prompt_for_code = prompt
             return
 
@@ -353,8 +353,8 @@ class TerminalInteractiveShell(InteractiveShell):
 
         return {
                 'complete_in_thread': False,
-                'lexer':IPythonPTLexer(),
-                'reserve_space_for_menu':self.space_for_menu,
+                'lexer': IPythonPTLexer(),
+                'reserve_space_for_menu': self.space_for_menu,
                 'message': get_message,
                 'prompt_continuation': (
                     lambda width, lineno, is_soft_wrap:
