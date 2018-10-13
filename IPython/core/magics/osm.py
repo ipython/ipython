@@ -31,6 +31,51 @@ class OSMagics(Magics):
     """Magics to interact with the underlying OS (shell-type functionality).
     """
 
+    def __init__(self, shell=None, **kwargs):
+
+        # Now define isexec in a cross platform manner.
+        self.is_posix = False
+        self.execre = None
+        if os.name == 'posix':
+            self.is_posix = True
+        else:
+            try:
+                winext = os.environ['pathext'].replace(';','|').replace('.','')
+            except KeyError:
+                winext = 'exe|com|bat|py'
+            
+            self.execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
+
+        # call up the chain
+        super().__init__(shell=shell, **kwargs)
+
+
+    @skip_doctest
+    def _isexec_POSIX(self, file):
+        """
+            Test for executible on a POSIX system
+        """
+        return file.is_file() and os.access(file.path, os.X_OK)
+
+    
+    @skip_doctest
+    def _isexec_WIN(self, file):
+        """
+            Test for executible file on non POSIX system
+        """
+        return file.is_file() and self.execre.match(file.name) is not None
+
+    @skip_doctest
+    def isexec(self, file):
+        """
+            Test for executible file on non POSIX system
+        """
+        if self.is_posix:
+            return self._isexec_POSIX(file)
+        else:
+            return self._isexec_WIN(file)
+
+
     @skip_doctest
     @line_magic
     def alias(self, parameter_s=''):
@@ -160,65 +205,59 @@ class OSMagics(Magics):
             os.environ.get('PATH','').split(os.pathsep)]
 
         syscmdlist = []
-        # Now define isexec in a cross platform manner.
-        if os.name == 'posix':
-            isexec = lambda fname:os.path.isfile(fname) and \
-                     os.access(fname,os.X_OK)
-        else:
-            try:
-                winext = os.environ['pathext'].replace(';','|').replace('.','')
-            except KeyError:
-                winext = 'exe|com|bat|py'
-            if 'py' not in winext:
-                winext += '|py'
-            execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
-            isexec = lambda fname:os.path.isfile(fname) and execre.match(fname)
         savedir = os.getcwd()
 
         # Now walk the paths looking for executables to alias.
         try:
             # write the whole loop for posix/Windows so we don't have an if in
             # the innermost part
-            if os.name == 'posix':
+            if self.is_posix:
                 for pdir in path:
                     try:
                         os.chdir(pdir)
-                        dirlist = os.listdir(pdir)
                     except OSError:
                         continue
+
+                    # for python 3.6+ rewrite to: with os.scandir(pdir) as dirlist:
+                    dirlist = os.scandir(path=pdir)
                     for ff in dirlist:
-                        if isexec(ff):
+                        if self.isexec(ff):
+                            fname = ff.name
                             try:
                                 # Removes dots from the name since ipython
                                 # will assume names with dots to be python.
-                                if not self.shell.alias_manager.is_alias(ff):
+                                if not self.shell.alias_manager.is_alias(fname):
                                     self.shell.alias_manager.define_alias(
-                                        ff.replace('.',''), ff)
+                                        fname.replace('.',''), fname)
                             except InvalidAliasError:
                                 pass
                             else:
-                                syscmdlist.append(ff)
+                                syscmdlist.append(fname)
             else:
                 no_alias = Alias.blacklist
                 for pdir in path:
                     try:
                         os.chdir(pdir)
-                        dirlist = os.listdir(pdir)
                     except OSError:
                         continue
+
+                    # for python 3.6+ rewrite to: with os.scandir(pdir) as dirlist:
+                    dirlist = os.scandir(pdir)
                     for ff in dirlist:
-                        base, ext = os.path.splitext(ff)
-                        if isexec(ff) and base.lower() not in no_alias:
+                        fname = ff.name
+                        base, ext = os.path.splitext(fname)
+                        if self.isexec(ff) and base.lower() not in no_alias:
                             if ext.lower() == '.exe':
-                                ff = base
+                                fname = base
                                 try:
                                     # Removes dots from the name since ipython
                                     # will assume names with dots to be python.
                                     self.shell.alias_manager.define_alias(
-                                        base.lower().replace('.',''), ff)
+                                        base.lower().replace('.',''), fname)
                                 except InvalidAliasError:
                                     pass
-                                syscmdlist.append(ff)
+                                syscmdlist.append(fname)
+
             self.shell.db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
