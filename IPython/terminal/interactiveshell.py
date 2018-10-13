@@ -42,8 +42,6 @@ DISPLAY_BANNER_DEPRECATED = object()
 
 class _NoStyle(Style): pass
 
-
-
 _style_overrides_light_bg = {
             Token.Prompt: '#0000ff',
             Token.PromptNum: '#0000ee bold',
@@ -58,6 +56,26 @@ _style_overrides_linux = {
             Token.OutPromptNum: '#bb0000 bold',
 }
 
+_style_overrides_neutral = {
+            Token.Number: '#007700',
+            Token.Operator: 'noinherit',
+            Token.String: '#BB6622',
+            Token.Name.Function: '#2080D0',
+            Token.Name.Class: 'bold #2080D0',
+            Token.Name.Namespace: 'bold #2080D0',
+            Token.Prompt: '#009900',
+            Token.PromptNum: '#00ff00 bold',
+            Token.OutPrompt: '#990000',
+            Token.OutPromptNum: '#ff0000 bold'
+}
+
+_style_overrides_windows = {
+            Token.Prompt: '#ansidarkgreen',
+            Token.PromptNum: '#ansigreen bold',
+            Token.OutPrompt: '#ansidarkred',
+            Token.OutPromptNum: '#ansired bold'
+}
+
 def get_default_editor():
     try:
         return os.environ['EDITOR']
@@ -69,8 +87,7 @@ def get_default_editor():
 
     if os.name == 'posix':
         return 'vi'  # the only one guaranteed to be there!
-    else:
-        return 'notepad' # same in Windows!
+    return 'notepad' # same in Windows!
 
 # conservatively check for tty
 # overridden streams can result in things like:
@@ -78,17 +95,16 @@ def get_default_editor():
 # - no isatty method
 for _name in ('stdin', 'stdout', 'stderr'):
     _stream = getattr(sys, _name)
+    _is_tty = True
+    
     if not _stream or not hasattr(_stream, 'isatty') or not _stream.isatty():
         _is_tty = False
         break
-else:
-    _is_tty = True
-
 
 _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
 class TerminalInteractiveShell(InteractiveShell):
-    space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
+    space_for_menu = Integer(6, help ='Number of line at the bottom of the screen '
                                      'to reserve for the completion menu'
                             ).tag(config=True)
 
@@ -98,7 +114,7 @@ class TerminalInteractiveShell(InteractiveShell):
     simple_prompt = Bool(_use_simple_prompt,
         help="""Use `raw_input` for the REPL, without completion and prompt colors.
 
-            Useful when controlling IPython as a subprocess, and piping STDIN/OUT/ERR. Known usage are:
+            Useful when controlling IPython as a subprocess, and piping STDIN/OUT/ERR. Known usages are:
             IPython own testing machinery, and emacs inferior-shell integration through elpy.
 
             This mode default to `True` if the `IPY_TEST_SIMPLE_PROMPT`
@@ -289,30 +305,15 @@ class TerminalInteractiveShell(InteractiveShell):
                 # and a light background, because we can't tell what the terminal
                 # looks like. These tweaks to the default theme help with that.
                 style_cls = get_style_by_name('default')
-                style_overrides.update({
-                    Token.Number: '#007700',
-                    Token.Operator: 'noinherit',
-                    Token.String: '#BB6622',
-                    Token.Name.Function: '#2080D0',
-                    Token.Name.Class: 'bold #2080D0',
-                    Token.Name.Namespace: 'bold #2080D0',
-                    Token.Prompt: '#009900',
-                    Token.PromptNum: '#00ff00 bold',
-                    Token.OutPrompt: '#990000',
-                    Token.OutPromptNum: '#ff0000 bold',
-                })
+                style_overrides = _style_overrides_neutral
 
                 # Hack: Due to limited color support on the Windows console
                 # the prompt colors will be wrong without this
                 if os.name == 'nt':
-                    style_overrides.update({
-                        Token.Prompt: '#ansidarkgreen',
-                        Token.PromptNum: '#ansigreen bold',
-                        Token.OutPrompt: '#ansidarkred',
-                        Token.OutPromptNum: '#ansired bold',
-                    })
-            elif legacy =='nocolor':
-                style_cls=_NoStyle
+                    style_overrides = _style_overrides_windows
+                    
+            elif legacy == 'nocolor':
+                style_cls = _NoStyle
                 style_overrides = {}
             else :
                 raise ValueError('Got unknown colors: ', legacy)
