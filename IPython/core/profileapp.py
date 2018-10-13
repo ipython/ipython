@@ -98,7 +98,7 @@ def list_profiles_in(path):
     """list profiles in a given root directory"""
     profiles = []
 
-    # use with notation for python 3.6 onward
+    # for python 3.6+ rewrite to: with os.scandir(path) as dirlist:
     files = os.scandir(path)
     for f in files:
         if f.is_dir() and f.name.startswith('profile_'):
@@ -111,7 +111,7 @@ def list_bundled_profiles():
     path = os.path.join(get_ipython_package_dir(), u'core', u'profile')
     profiles = []
 
-    # use with notation for python 3.6 onward
+    # for python 3.6+ rewrite to: with os.scandir(path) as dirlist:
     files =  os.scandir(path)
     for profile in files:
         if profile.is_dir() and profile.name != "__pycache__":

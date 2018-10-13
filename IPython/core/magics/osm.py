@@ -212,14 +212,13 @@ class OSMagics(Magics):
             # write the whole loop for posix/Windows so we don't have an if in
             # the innermost part
             if self.is_posix:
-                print(path)
                 for pdir in path:
                     try:
                         os.chdir(pdir)
                     except OSError:
                         continue
 
-                    # use with notation for python 3.6 onward
+                    # for python 3.6+ rewrite to: with os.scandir(pdir) as dirlist:
                     dirlist = os.scandir(path=pdir)
                     for ff in dirlist:
                         if self.isexec(ff):
@@ -242,7 +241,7 @@ class OSMagics(Magics):
                     except OSError:
                         continue
 
-                    # use with notation for python 3.6 onward
+                    # for python 3.6+ rewrite to: with os.scandir(pdir) as dirlist:
                     dirlist = os.scandir(pdir)
                     for ff in dirlist:
                         fname = ff.name
@@ -258,6 +257,7 @@ class OSMagics(Magics):
                                 except InvalidAliasError:
                                     pass
                                 syscmdlist.append(fname)
+
             self.shell.db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
