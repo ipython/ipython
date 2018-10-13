@@ -12,7 +12,7 @@ from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
     Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union,
-    Any,
+    Any, validate
 )
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -131,6 +131,23 @@ class TerminalInteractiveShell(InteractiveShell):
         highlighting. To see available styles, run `pygmentize -L styles`."""
     ).tag(config=True)
 
+    @validate('editing_mode')
+    def _validate_editing_mode(self, proposal):
+        if proposal['value'].lower() == 'vim':
+            proposal['value']= 'vi'
+        elif proposal['value'].lower() == 'default':
+            proposal['value']= 'emacs'
+
+        if hasattr(EditingMode, proposal['value'].upper()):
+            return proposal['value'].lower()
+
+        return self.editing_mode
+
+
+    @observe('editing_mode')
+    def _editing_mode(self, change):
+        u_mode = change.new.upper()
+        self.pt_app.editing_mode = u_mode
 
     @observe('highlighting_style')
     @observe('colors')
