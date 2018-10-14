@@ -111,6 +111,22 @@ At present, this only affects the current session - changes you make to
 config are not saved anywhere. Also, some options are only read when
 IPython starts, so they can't be changed like this.
 
+The output of `%config IPCompleter.greedy` will return true.
+
+To make the changes live using config magic dynamically in the shell,
+run::
+
+  get_ipython().init_prompt_toolkit_cli()
+
+Another way to change the configuration dynamically::
+
+    ip= get_ipython()
+    ip.editing_mode='vi'
+    
+    ip.init_prompt_toolkit_cli()
+
+In this example `ip.editing_mode` should return `'vi'` now and the vi keybindings should work now.
+
 .. _configure_start_ipython:
 
 Running IPython from Python
