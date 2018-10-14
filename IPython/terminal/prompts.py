@@ -13,8 +13,17 @@ class Prompts(object):
     def __init__(self, shell):
         self.shell = shell
 
+    def vi_mode(self):
+        if not hasattr(self.shell.pt_app, 'editing_mode'):
+            return ''
+        if self.shell.pt_app.editing_mode == 'VI':
+            return '['+str(self.shell.pt_app.app.vi_state.input_mode)[3:6]+'] '
+        return ''
+
+
     def in_prompt_tokens(self):
         return [
+            (Token.Prompt, self.vi_mode() ),
             (Token.Prompt, 'In ['),
             (Token.PromptNum, str(self.shell.execution_count)),
             (Token.Prompt, ']: '),
