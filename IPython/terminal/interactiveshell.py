@@ -93,10 +93,9 @@ def get_default_editor():
 # overridden streams can result in things like:
 # - sys.stdin = None
 # - no isatty method
+_is_tty = True
 for _name in ('stdin', 'stdout', 'stderr'):
-    _stream = getattr(sys, _name)
-    _is_tty = True
-    
+    _stream = getattr(sys, _name)    
     if not _stream or not hasattr(_stream, 'isatty') or not _stream.isatty():
         _is_tty = False
         break
@@ -104,7 +103,7 @@ for _name in ('stdin', 'stdout', 'stderr'):
 _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
 class TerminalInteractiveShell(InteractiveShell):
-    space_for_menu = Integer(6, help ='Number of line at the bottom of the screen '
+    space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
                                      'to reserve for the completion menu'
                             ).tag(config=True)
 
