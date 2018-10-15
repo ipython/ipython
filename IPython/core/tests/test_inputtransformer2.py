@@ -233,6 +233,17 @@ def test_check_complete():
         for k in short:
             cc(c+k)
 
+def test_check_complete_II():
+    """
+    Test that multiple line strings are properly handled.
+
+    Separate test function for convenience
+
+    """
+    cc = ipt2.TransformerManager().check_complete
+    nt.assert_equal(cc('''def foo():\n    """'''), ('incomplete', 4))
+
+
 def test_null_cleanup_transformer():
     manager = ipt2.TransformerManager()
     manager.cleanup_transforms.insert(0, null_cleanup_transformer)
