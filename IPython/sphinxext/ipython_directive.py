@@ -556,7 +556,7 @@ class EmbeddedSphinxShell(object):
 
         # output any exceptions raised during execution to stdout
         # unless :okexcept: has been specified.
-        if not is_okexcept and "Traceback" in processed_output:
+        if not is_okexcept and (("Traceback" in processed_output) or ("SyntaxError" in processed_output)):
             s =  "\nException in %s at block ending on line %s\n" % (filename, lineno)
             s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
             sys.stdout.write('\n\n>>>' + ('-' * 73))

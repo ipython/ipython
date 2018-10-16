@@ -19,3 +19,4 @@ Developer's guide for third party tools and libraries
    lexer
    config
    inputhook_app
+   ipython_directive
