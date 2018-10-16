@@ -84,6 +84,10 @@ ipython_rgxin:
     The compiled regular expression to denote the start of IPython input
     lines. The default is ``re.compile('In \[(\d+)\]:\s?(.*)\s*')``. You
     shouldn't need to change this.
+ipython_warning_is_error: [default to True]
+    Fail the build if something unexpected happen, for example if a block raise
+    an exception but does not have the `:okexcept:` flag. The exact behavior of
+    what is considered strict, may change between the sphinx directive version.
 ipython_rgxout:
     The compiled regular expression to denote the start of IPython output
     lines. The default is ``re.compile('Out\[(\d+)\]:\s?(.*)\s*')``. You
@@ -559,7 +563,8 @@ class EmbeddedSphinxShell(object):
             sys.stdout.write(s)
             sys.stdout.write(processed_output)
             sys.stdout.write('<<<' + ('-' * 73) + '\n\n')
-            raise RuntimeError('Non Expected exception in `{}` line {}'.format(filename, lineno))
+            if self.warning_is_error:
+                raise RuntimeError('Non Expected exception in `{}` line {}'.format(filename, lineno))
 
         # output any warning raised during execution to stdout
         # unless :okwarning: has been specified.
@@ -574,7 +579,8 @@ class EmbeddedSphinxShell(object):
                                          w.filename, w.lineno, w.line)
                 sys.stdout.write(s)
                 sys.stdout.write('<<<' + ('-' * 73) + '\n')
-                raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
+                if self.shell.warning_is_error:
+                    raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
 
         self.cout.truncate(0)
         return (ret, input_lines, processed_output,
@@ -899,6 +905,7 @@ class IPythonDirective(Directive):
         # get regex and prompt stuff
         rgxin      = config.ipython_rgxin
         rgxout     = config.ipython_rgxout
+        warning_is_error= config.ipython_warning_is_error
         promptin   = config.ipython_promptin
         promptout  = config.ipython_promptout
         mplbackend = config.ipython_mplbackend
@@ -906,12 +913,12 @@ class IPythonDirective(Directive):
         hold_count = config.ipython_holdcount
 
         return (savefig_dir, source_dir, rgxin, rgxout,
-                promptin, promptout, mplbackend, exec_lines, hold_count)
+                promptin, promptout, mplbackend, exec_lines, hold_count, warning_is_error)
 
     def setup(self):
         # Get configuration values.
         (savefig_dir, source_dir, rgxin, rgxout, promptin, promptout,
-         mplbackend, exec_lines, hold_count) = self.get_config_options()
+         mplbackend, exec_lines, hold_count, warning_is_error) = self.get_config_options()
 
         try:
             os.makedirs(savefig_dir)
@@ -951,6 +958,7 @@ class IPythonDirective(Directive):
         self.shell.savefig_dir = savefig_dir
         self.shell.source_dir = source_dir
         self.shell.hold_count = hold_count
+        self.shell.warning_is_error = warning_is_error
 
         # setup bookmark for saving figures directory
         self.shell.process_input_line('bookmark ipy_savedir %s'%savefig_dir,
@@ -1028,6 +1036,7 @@ def setup(app):
 
     app.add_directive('ipython', IPythonDirective)
     app.add_config_value('ipython_savefig_dir', 'savefig', 'env')
+    app.add_config_value('ipython_warning_is_error', True, 'env')
     app.add_config_value('ipython_rgxin',
                          re.compile('In \[(\d+)\]:\s?(.*)\s*'), 'env')
     app.add_config_value('ipython_rgxout',
