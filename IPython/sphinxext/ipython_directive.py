@@ -201,7 +201,6 @@ from traitlets.config import Config
 from IPython import InteractiveShell
 from IPython.core.profiledir import ProfileDir
 
-
 use_matpltolib = False
 try:
     import matplotlib
@@ -356,7 +355,6 @@ class EmbeddedSphinxShell(object):
         self.user_ns = self.IP.user_ns
         self.user_global_ns = self.IP.user_global_ns
 
-        self.lines_waiting = []
         self.input = ''
         self.output = ''
         self.tmp_profile_dir = tmp_profile_dir
@@ -387,16 +385,16 @@ class EmbeddedSphinxShell(object):
         self.cout.seek(0)
         self.cout.truncate(0)
 
-    def process_input_line(self, line, store_history=True):
+    def process_input_line(self, line, store_history):
+        return self.process_input_lines([line], store_history=store_history)
+
+    def process_input_lines(self, lines, store_history=True):
         """process the input, capturing stdout"""
         stdout = sys.stdout
+        source_raw = '\n'.join(lines)
         try:
             sys.stdout = self.cout
-            self.lines_waiting.append(line)
-            source_raw = ''.join(self.lines_waiting)
-            if self.IP.check_complete(source_raw)[0] != 'incomplete':
-                self.lines_waiting = []
-                self.IP.run_cell(source_raw, store_history=store_history)
+            self.IP.run_cell(source_raw, store_history=store_history)
         finally:
             sys.stdout = stdout
 
@@ -470,28 +468,25 @@ class EmbeddedSphinxShell(object):
 
         # Note: catch_warnings is not thread safe
         with warnings.catch_warnings(record=True) as ws:
-            for i, line in enumerate(input_lines):
-                if line.endswith(';'):
-                    is_semicolon = True
+            if input_lines[0].endswith(';'):
+                is_semicolon = True
+            #for i, line in enumerate(input_lines):
 
+            # process the first input line
+            if is_verbatim:
+                self.process_input_lines([''])
+                self.IP.execution_count += 1 # increment it anyway
+            else:
+                # only submit the line in non-verbatim mode
+                self.process_input_lines(input_lines, store_history=store_history)
+
+        if not is_suppress:
+            for i, line in enumerate(input_lines):
                 if i == 0:
-                    # process the first input line
-                    if is_verbatim:
-                        self.process_input_line('')
-                        self.IP.execution_count += 1 # increment it anyway
-                    else:
-                        # only submit the line in non-verbatim mode
-                        self.process_input_line(line, store_history=store_history)
                     formatted_line = '%s %s'%(input_prompt, line)
                 else:
-                    # process a continuation line
-                    if not is_verbatim:
-                        self.process_input_line(line, store_history=store_history)
-
                     formatted_line = '%s %s'%(continuation, line)
-
-                if not is_suppress:
-                    ret.append(formatted_line)
+                ret.append(formatted_line)
 
         if not is_suppress and len(rest.strip()) and is_verbatim:
             # The "rest" is the standard output of the input. This needs to be
@@ -582,7 +577,6 @@ class EmbeddedSphinxShell(object):
                 raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
 
         self.cout.truncate(0)
-
         return (ret, input_lines, processed_output,
                 is_doctest, decorator, image_file, image_directive)
 
@@ -734,7 +728,6 @@ class EmbeddedSphinxShell(object):
                     # will truncate tracebacks.
                     sys.stdout.write(e)
                     raise RuntimeError('An invalid block was detected.')
-
                 out_data = \
                     self.process_output(data, output_prompt, input_lines,
                                         output, is_doctest, decorator,
