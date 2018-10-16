@@ -25,7 +25,7 @@ from IPython.testing.decorators import skipif
 def setUp():
     nt.assert_equal(sys.getdefaultencoding(), "utf-8")
 
-@skipif(sqlite3.version_info > (3,24,0))
+@skipif(sqlite3.sqlite_version_info > (3,24,0))
 def test_history():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
