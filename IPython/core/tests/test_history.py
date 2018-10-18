@@ -11,6 +11,7 @@ import os
 import sys
 import tempfile
 from datetime import datetime
+import sqlite3
 
 # third party
 import nose.tools as nt
@@ -19,10 +20,12 @@ import nose.tools as nt
 from traitlets.config.loader import Config
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core.history import HistoryManager, extract_hist_ranges
+from IPython.testing.decorators import skipif
 
 def setUp():
     nt.assert_equal(sys.getdefaultencoding(), "utf-8")
 
+@skipif(sqlite3.sqlite_version_info > (3,24,0))
 def test_history():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
@@ -40,7 +43,7 @@ def test_history():
             ip.history_manager.store_output(3)
 
             nt.assert_equal(ip.history_manager.input_hist_raw, [''] + hist)
-            
+
             # Detailed tests for _get_range_session
             grs = ip.history_manager._get_range_session
             nt.assert_equal(list(grs(start=2,stop=-1)), list(zip([0], [2], hist[1:-1])))
@@ -50,7 +53,7 @@ def test_history():
             # Check whether specifying a range beyond the end of the current
             # session results in an error (gh-804)
             ip.magic('%hist 2-500')
-            
+
             # Check that we can write non-ascii characters to a file
             ip.magic("%%hist -f %s" % os.path.join(tmpdir, "test1"))
             ip.magic("%%hist -pf %s" % os.path.join(tmpdir, "test2"))
@@ -85,6 +88,7 @@ def test_history():
             nt.assert_equal(list(gothist), expected)
 
             # Check get_hist_search
+
             gothist = ip.history_manager.search("*test*")
             nt.assert_equal(list(gothist), [(1,2,hist[1])] )
 
