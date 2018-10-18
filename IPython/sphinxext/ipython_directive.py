@@ -84,6 +84,10 @@ ipython_rgxin:
     The compiled regular expression to denote the start of IPython input
     lines. The default is ``re.compile('In \[(\d+)\]:\s?(.*)\s*')``. You
     shouldn't need to change this.
+ipython_warning_is_error: [default to True]
+    Fail the build if something unexpected happen, for example if a block raise
+    an exception but does not have the `:okexcept:` flag. The exact behavior of
+    what is considered strict, may change between the sphinx directive version.
 ipython_rgxout:
     The compiled regular expression to denote the start of IPython output
     lines. The default is ``re.compile('Out\[(\d+)\]:\s?(.*)\s*')``. You
@@ -200,7 +204,6 @@ from docutils.parsers.rst import Directive
 from traitlets.config import Config
 from IPython import InteractiveShell
 from IPython.core.profiledir import ProfileDir
-
 
 use_matpltolib = False
 try:
@@ -356,7 +359,6 @@ class EmbeddedSphinxShell(object):
         self.user_ns = self.IP.user_ns
         self.user_global_ns = self.IP.user_global_ns
 
-        self.lines_waiting = []
         self.input = ''
         self.output = ''
         self.tmp_profile_dir = tmp_profile_dir
@@ -387,16 +389,16 @@ class EmbeddedSphinxShell(object):
         self.cout.seek(0)
         self.cout.truncate(0)
 
-    def process_input_line(self, line, store_history=True):
+    def process_input_line(self, line, store_history):
+        return self.process_input_lines([line], store_history=store_history)
+
+    def process_input_lines(self, lines, store_history=True):
         """process the input, capturing stdout"""
         stdout = sys.stdout
+        source_raw = '\n'.join(lines)
         try:
             sys.stdout = self.cout
-            self.lines_waiting.append(line)
-            source_raw = ''.join(self.lines_waiting)
-            if self.IP.check_complete(source_raw)[0] != 'incomplete':
-                self.lines_waiting = []
-                self.IP.run_cell(source_raw, store_history=store_history)
+            self.IP.run_cell(source_raw, store_history=store_history)
         finally:
             sys.stdout = stdout
 
@@ -470,28 +472,25 @@ class EmbeddedSphinxShell(object):
 
         # Note: catch_warnings is not thread safe
         with warnings.catch_warnings(record=True) as ws:
-            for i, line in enumerate(input_lines):
-                if line.endswith(';'):
-                    is_semicolon = True
+            if input_lines[0].endswith(';'):
+                is_semicolon = True
+            #for i, line in enumerate(input_lines):
 
+            # process the first input line
+            if is_verbatim:
+                self.process_input_lines([''])
+                self.IP.execution_count += 1 # increment it anyway
+            else:
+                # only submit the line in non-verbatim mode
+                self.process_input_lines(input_lines, store_history=store_history)
+
+        if not is_suppress:
+            for i, line in enumerate(input_lines):
                 if i == 0:
-                    # process the first input line
-                    if is_verbatim:
-                        self.process_input_line('')
-                        self.IP.execution_count += 1 # increment it anyway
-                    else:
-                        # only submit the line in non-verbatim mode
-                        self.process_input_line(line, store_history=store_history)
                     formatted_line = '%s %s'%(input_prompt, line)
                 else:
-                    # process a continuation line
-                    if not is_verbatim:
-                        self.process_input_line(line, store_history=store_history)
-
                     formatted_line = '%s %s'%(continuation, line)
-
-                if not is_suppress:
-                    ret.append(formatted_line)
+                ret.append(formatted_line)
 
         if not is_suppress and len(rest.strip()) and is_verbatim:
             # The "rest" is the standard output of the input. This needs to be
@@ -557,14 +556,15 @@ class EmbeddedSphinxShell(object):
 
         # output any exceptions raised during execution to stdout
         # unless :okexcept: has been specified.
-        if not is_okexcept and "Traceback" in processed_output:
+        if not is_okexcept and (("Traceback" in processed_output) or ("SyntaxError" in processed_output)):
             s =  "\nException in %s at block ending on line %s\n" % (filename, lineno)
             s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
             sys.stdout.write('\n\n>>>' + ('-' * 73))
             sys.stdout.write(s)
             sys.stdout.write(processed_output)
             sys.stdout.write('<<<' + ('-' * 73) + '\n\n')
-            raise RuntimeError('Non Expected exception in `{}` line {}'.format(filename, lineno))
+            if self.warning_is_error:
+                raise RuntimeError('Non Expected exception in `{}` line {}'.format(filename, lineno))
 
         # output any warning raised during execution to stdout
         # unless :okwarning: has been specified.
@@ -579,10 +579,10 @@ class EmbeddedSphinxShell(object):
                                          w.filename, w.lineno, w.line)
                 sys.stdout.write(s)
                 sys.stdout.write('<<<' + ('-' * 73) + '\n')
-                raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
+                if self.shell.warning_is_error:
+                    raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
 
         self.cout.truncate(0)
-
         return (ret, input_lines, processed_output,
                 is_doctest, decorator, image_file, image_directive)
 
@@ -734,7 +734,6 @@ class EmbeddedSphinxShell(object):
                     # will truncate tracebacks.
                     sys.stdout.write(e)
                     raise RuntimeError('An invalid block was detected.')
-
                 out_data = \
                     self.process_output(data, output_prompt, input_lines,
                                         output, is_doctest, decorator,
@@ -906,6 +905,7 @@ class IPythonDirective(Directive):
         # get regex and prompt stuff
         rgxin      = config.ipython_rgxin
         rgxout     = config.ipython_rgxout
+        warning_is_error= config.ipython_warning_is_error
         promptin   = config.ipython_promptin
         promptout  = config.ipython_promptout
         mplbackend = config.ipython_mplbackend
@@ -913,12 +913,12 @@ class IPythonDirective(Directive):
         hold_count = config.ipython_holdcount
 
         return (savefig_dir, source_dir, rgxin, rgxout,
-                promptin, promptout, mplbackend, exec_lines, hold_count)
+                promptin, promptout, mplbackend, exec_lines, hold_count, warning_is_error)
 
     def setup(self):
         # Get configuration values.
         (savefig_dir, source_dir, rgxin, rgxout, promptin, promptout,
-         mplbackend, exec_lines, hold_count) = self.get_config_options()
+         mplbackend, exec_lines, hold_count, warning_is_error) = self.get_config_options()
 
         try:
             os.makedirs(savefig_dir)
@@ -958,6 +958,7 @@ class IPythonDirective(Directive):
         self.shell.savefig_dir = savefig_dir
         self.shell.source_dir = source_dir
         self.shell.hold_count = hold_count
+        self.shell.warning_is_error = warning_is_error
 
         # setup bookmark for saving figures directory
         self.shell.process_input_line('bookmark ipy_savedir %s'%savefig_dir,
@@ -1035,6 +1036,7 @@ def setup(app):
 
     app.add_directive('ipython', IPythonDirective)
     app.add_config_value('ipython_savefig_dir', 'savefig', 'env')
+    app.add_config_value('ipython_warning_is_error', True, 'env')
     app.add_config_value('ipython_rgxin',
                          re.compile('In \[(\d+)\]:\s?(.*)\s*'), 'env')
     app.add_config_value('ipython_rgxout',
