@@ -108,7 +108,7 @@ Multi-line input is supported.
 
 You can do doctesting on multi-line output as well.  Just be careful
 when using non-deterministic inputs like random numbers in the ipython
-directive, because your inputs are ruin through a live interpreter, so
+directive, because your inputs are run through a live interpreter, so
 if you are doctesting random output you will get an error.  Here we
 "seed" the random number generator for deterministic output, and we
 suppress the seed line so it doesn't show up in the rendered output
@@ -172,14 +172,14 @@ the inputs::
   .. ipython::
      :suppress:
 
-     In [144]: from pylab import *
+     In [144]: from matplotlib.pylab import *
 
      In [145]: ion()
 
 .. ipython::
    :suppress:
 
-   In [144]: from pylab import *
+   In [144]: from matplotlib.pylab import *
 
    In [145]: ion()
 
@@ -406,26 +406,26 @@ ipython_savefig_dir
 ipython_rgxin
 
     The compiled regular expression to denote the start of IPython input 
-    lines. The default is re.compile('In \[(\d+)\]:\s?(.*)\s*'). You 
+    lines. The default is `re.compile('In \[(\d+)\]:\s?(.*)\s*')`. You 
     shouldn't need to change this.
 
 ipython_rgxout
 
     The compiled regular expression to denote the start of IPython output 
-    lines. The default is re.compile('Out\[(\d+)\]:\s?(.*)\s*'). You 
+    lines. The default is `re.compile('Out\[(\d+)\]:\s?(.*)\s*')`. You 
     shouldn't need to change this.
 
 
 ipython_promptin
 
     The string to represent the IPython input prompt in the generated ReST. 
-    The default is 'In [%d]:'. This expects that the line numbers are used
+    The default is `'In [%d]:'`. This expects that the line numbers are used
     in the prompt.
 
 ipython_promptout
 
     The string to represent the IPython prompt in the generated ReST. The
-    default is 'Out [%d]:'. This expects that the line numbers are used
+    default is `'Out [%d]:'`. This expects that the line numbers are used
     in the prompt.
 
 
