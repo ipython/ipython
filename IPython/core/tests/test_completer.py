@@ -115,7 +115,7 @@ def test_custom_completion_error():
     class A(object): pass
     ip.user_ns['a'] = A()
     
-    @complete_object.when_type(A)
+    @complete_object.register(A)
     def complete_A(a, existing_completions):
         raise TypeError("this should be silenced")
     
