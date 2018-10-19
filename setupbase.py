@@ -16,6 +16,8 @@ This includes:
 import re
 import os
 import sys
+import numpy
+import matplotlib
 
 from distutils import log
 from distutils.command.build_py import build_py
@@ -91,7 +93,7 @@ def find_packages():
     """
     Find all of IPython's packages.
     """
-    excludes = ['deathrow', 'quarantine']
+    excludes = ['quarantine', 'deathrow']
     packages = []
     for dir,subdirs,files in os.walk('IPython'):
         package = dir.replace(os.path.sep, '.')
