@@ -1538,24 +1538,20 @@ class IPCompleter(Completer):
 
             usedNamedArgs.add(token)
 
-        # lookup the candidate callable matches either using global_matches
-        # or attr_matches for dotted names
-        if len(ids) == 1:
-            callableMatches = self.global_matches(ids[0])
-        else:
-            callableMatches = self.attr_matches('.'.join(ids[::-1]))
         argMatches = []
-        for callableMatch in callableMatches:
-            try:
-                namedArgs = self._default_arguments(eval(callableMatch,
-                                                        self.namespace))
-            except:
-                continue
+        try:
+            callableObj = '.'.join(ids[::-1])
+            print(callableObj)
+            namedArgs = self._default_arguments(eval(callableObj,
+                                                    self.namespace))
 
             # Remove used named arguments from the list, no need to show twice
             for namedArg in set(namedArgs) - usedNamedArgs:
                 if namedArg.startswith(text):
                     argMatches.append(u"%s=" %namedArg)
+        except:
+            pass
+            
         return argMatches
 
     def dict_key_matches(self, text):
