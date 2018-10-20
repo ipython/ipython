@@ -206,8 +206,8 @@ Make :magic:`%run -n -i ... <run>` work correctly. Earlier, if :magic:`%run` was
 passed both arguments, ``-n`` would be silently ignored. See :ghpull:`10308`
 
 
-The :cellmagic:`%%script`` (as well as :cellmagic:`%%bash``,
-:cellmagic:`%%ruby``... ) cell magics now raise by default if the return code of
+The :cellmagic:`%%script` (as well as :cellmagic:`%%bash`,
+:cellmagic:`%%ruby`... ) cell magics now raise by default if the return code of
 the given code is non-zero (thus halting execution of further cells in a
 notebook). The behavior can be disable by passing the ``--no-raise-error`` flag.
 

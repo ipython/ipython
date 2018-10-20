@@ -75,7 +75,7 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     
     Parameters
     ----------
-    module : ModuleType, optional
+    module : types.ModuleType, optional
         The module to load into IPython globals (default: caller)
     local_ns : dict, optional
         The namespace to load into IPython user namespace (default: caller)
