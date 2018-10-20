@@ -207,6 +207,7 @@ def test_check_complete():
     cc = ipt2.TransformerManager().check_complete
     nt.assert_equal(cc("a = 1"), ('complete', None))
     nt.assert_equal(cc("for a in range(5):"), ('incomplete', 4))
+    nt.assert_equal(cc("for a in range(5):\n    if a > 0:"), ('incomplete', 8))
     nt.assert_equal(cc("raise = 2"), ('invalid', None))
     nt.assert_equal(cc("a = [1,\n2,"), ('incomplete', 0))
     nt.assert_equal(cc(")"), ('incomplete', 0))

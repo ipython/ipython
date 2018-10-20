@@ -655,7 +655,15 @@ class TransformerManager:
         if len(tokens_by_line) == 1 and not tokens_by_line[-1]:
             return 'incomplete', 0
 
-        if tokens_by_line[-1][-1].string == ':':
+        new_block = False
+        for token in reversed(tokens_by_line[-1]):
+            if token.type == tokenize.DEDENT:
+                continue
+            elif token.string == ':':
+                new_block = True
+            break
+
+        if new_block:
             # The last line starts a block (e.g. 'if foo:')
             ix = 0
             while tokens_by_line[-1][ix].type in {tokenize.INDENT, tokenize.DEDENT}:
