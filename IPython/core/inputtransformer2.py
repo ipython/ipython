@@ -644,6 +644,18 @@ class TransformerManager:
 
         newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER}
 
+        # Convert if using cpython tokenize
+        if (list(map(lambda x: x.type, tokens_by_line[-1])) == 
+                [tokenize.DEDENT] * (len(tokens_by_line[-1]) - 1) + [tokenize.ENDMARKER]):
+            if (
+                len(tokens_by_line) > 1 and
+                len(tokens_by_line[-2]) > 0 and
+                tokens_by_line[-2][-1].type == tokenize.NEWLINE
+            ):
+                tokens_by_line[-2].pop()
+                tokens_by_line[-2] += tokens_by_line[-1]
+                tokens_by_line.pop()
+
         # Remove newline_types for the list of tokens
         while len(tokens_by_line) > 1 and len(tokens_by_line[-1]) == 1 \
                 and tokens_by_line[-1][-1].type in newline_types:
