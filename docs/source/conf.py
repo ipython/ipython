@@ -66,11 +66,6 @@ extensions = [
     'configtraits',
 ]
 
-if ON_RTD:
-    # Remove extensions not currently supported on RTD
-    extensions.remove('IPython.sphinxext.ipython_directive')
-    extensions.remove('IPython.sphinxext.ipython_console_highlighting')
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -124,6 +119,7 @@ github_project_url = "https://github.com/ipython/ipython"
 # numpydoc config
 numpydoc_show_class_members = False # Otherwise Sphinx emits thousands of warnings
 numpydoc_class_members_toctree = False
+warning_is_error = True
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
