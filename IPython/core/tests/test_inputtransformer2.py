@@ -8,7 +8,7 @@ import nose.tools as nt
 import string
 
 from IPython.core import inputtransformer2 as ipt2
-from IPython.core.inputtransformer2 import make_tokens_by_line
+from IPython.core.inputtransformer2 import make_tokens_by_line, _find_assign_op
 
 from textwrap import dedent
 
@@ -52,6 +52,22 @@ a = f()
 b = get_ipython().getoutput('foo    bar')
 g()
 """.splitlines(keepends=True))
+
+#####
+
+MULTILINE_SYSTEM_ASSIGN_AFTER_DEDENT = ("""\
+def test():
+  for i in range(1):
+    print(i)
+  res =! ls
+""".splitlines(keepends=True), (4, 7), '''\
+def test():
+  for i in range(1):
+    print(i)
+  res =get_ipython().getoutput(\' ls\')
+'''.splitlines(keepends=True))
+
+######
 
 AUTOCALL_QUOTE = (
     [",f 1 2 3\n"], (1, 0),
@@ -103,6 +119,7 @@ b) = zip?
 [r"get_ipython().set_next_input('(a,\nb) = zip');get_ipython().run_line_magic('pinfo', 'zip')" + "\n"]
 )
 
+
 def null_cleanup_transformer(lines):
     """
     A cleanup transform that returns an empty list.
@@ -144,18 +161,21 @@ def test_continued_line():
 def test_find_assign_magic():
     check_find(ipt2.MagicAssign, MULTILINE_MAGIC_ASSIGN)
     check_find(ipt2.MagicAssign, MULTILINE_SYSTEM_ASSIGN, match=False)
+    check_find(ipt2.MagicAssign, MULTILINE_SYSTEM_ASSIGN_AFTER_DEDENT, match=False)
 
 def test_transform_assign_magic():
     check_transform(ipt2.MagicAssign, MULTILINE_MAGIC_ASSIGN)
 
 def test_find_assign_system():
     check_find(ipt2.SystemAssign, MULTILINE_SYSTEM_ASSIGN)
+    check_find(ipt2.SystemAssign, MULTILINE_SYSTEM_ASSIGN_AFTER_DEDENT)
     check_find(ipt2.SystemAssign, (["a =  !ls\n"], (1, 5), None))
     check_find(ipt2.SystemAssign, (["a=!ls\n"], (1, 2), None))
     check_find(ipt2.SystemAssign, MULTILINE_MAGIC_ASSIGN, match=False)
 
 def test_transform_assign_system():
     check_transform(ipt2.SystemAssign, MULTILINE_SYSTEM_ASSIGN)
+    check_transform(ipt2.SystemAssign, MULTILINE_SYSTEM_ASSIGN_AFTER_DEDENT)
 
 def test_find_magic_escape():
     check_find(ipt2.EscapedCommand, MULTILINE_MAGIC)
@@ -202,6 +222,17 @@ def test_transform_help():
 
     tf = ipt2.HelpEnd((1, 0), (2, 8))
     nt.assert_equal(tf.transform(HELP_MULTILINE[0]), HELP_MULTILINE[2])
+
+def test_find_assign_op_dedent():
+    """
+    be carefull that empty token like dedent are not counted as parens
+    """
+    class Tk:
+        def __init__(self, s):
+            self.string = s
+
+    nt.assert_equal(_find_assign_op([Tk(s) for s in ('','a','=','b')]), 2)
+    nt.assert_equal(_find_assign_op([Tk(s) for s in ('','(', 'a','=','b', ')', '=' ,'5')]), 6)
 
 def test_check_complete():
     cc = ipt2.TransformerManager().check_complete
