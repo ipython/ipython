@@ -1,20 +1,18 @@
 # encoding: utf-8
 """Generic functions for extending IPython.
-
-See http://pypi.python.org/pypi/simplegeneric.
 """
 
 from IPython.core.error import TryNext
-from simplegeneric import generic
+from functools import singledispatch
 
 
-@generic
+@singledispatch
 def inspect_object(obj):
     """Called when you do obj?"""
     raise TryNext
 
 
-@generic
+@singledispatch
 def complete_object(obj, prev_completions):
     """Custom completer dispatching for python objects.
 
@@ -30,5 +28,3 @@ def complete_object(obj, prev_completions):
     own_attrs + prev_completions.
     """
     raise TryNext
-
-

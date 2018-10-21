@@ -2,6 +2,79 @@
  7.x Series
 ============
 
+.. _whatsnew710:
+
+IPython 7.1.0
+=============
+
+
+IPython 7.1.0 is the first minor release after 7.0.0 and mostly bring fixes to
+new feature, internal refactor and regressions that happen during the 6.x->7.x
+transition. It also bring **Compatibility with Python 3.7.1**, as were
+unwillingly relying on a bug in CPython.
+
+New Core Dev:
+
+ - We welcome Jonathan Slenders to the commiters. Jonathan has done a fantastic
+   work on Prompt toolkit, and we'd like to recognise his impact by giving him
+   commit rights. :ghissue:`11397`
+
+Notable New Features:
+
+ - Restore functionality and documentation of the **sphinx directive**, which is
+   now stricter (fail on error by default), gained configuration options, have a
+   brand new documentation page :ref:`ipython_directive`, which need some cleanup.
+   It is also now *tested* so we hope to have less regressions.
+   :ghpull:`11402`
+
+ - ``IPython.display.Video`` now supports ``width`` and ``height`` arguments,
+   allowing a custom width and height to be set instead of using the video's
+   width and height. :ghpull:`11353`
+
+ - Warn when using ``HTML('<iframe>')`` instead of ``IFrame`` :ghpull:`11350`
+
+ - Allow Dynamic switching of editing mode between vi/emacs and show
+   normal/input mode in prompt when using vi. :ghpull:`11390`. Use ``%config
+   TerminalInteractiveShell.editing_mode = 'vi'`` or ``%config
+   TerminalInteractiveShell.editing_mode = 'emacs'`` to dynamically spwitch
+
+
+Notable Fixes:
+
+ - Fix entering of **multi-line block in terminal** IPython, and various crashes
+   in the new input transformation machinery :ghpull:`11354`, :ghpull:`11356`, :ghpull:`11358`, these
+   ones also fix a **Compatibility but with Python 3.7.1**.
+
+ - Fix moving through generator stack in ipdb :ghpull:`11266`
+
+ - Magics arguments now support quoting. :ghpull:`11330`
+
+ - Re-add ``rprint`` and ``rprinte`` aliases. :ghpull:`11331`
+
+ - Remove implicit dependency to ``ipython_genutils`` :ghpull:`11317`
+
+ - Make ``nonlocal`` raise ``SyntaxError`` instead of silently failing in async
+   mode. :ghpull:`11382`
+
+
+Notable Internals improvements:
+
+ - Use of ``os.scandir`` (Python 3 only) to speedup some file system operations.
+   :ghpull:`11365`
+
+ - use ``perf_counter`` instead of ``clock`` for more precise
+   timing result with ``%time`` :ghpull:`11376`
+
+Many thanks to all the contributors and in particular to ``bartskowron``, and
+``tonyfast`` who handled a pretty complicated bugs in the input machinery. We
+had a number of first time contributors and maybe hacktoberfest participant that
+made significant contributions, and helped us free some time to focus on more
+complicated bugs.
+
+You
+can see all the closed issues and Merged PR, new features and fixes `here
+<https://github.com/ipython/ipython/issues?utf8=%E2%9C%93&q=+is%3Aclosed+milestone%3A7.1+>`_.
+
 .. _whatsnew700:
 
 IPython 7.0.0

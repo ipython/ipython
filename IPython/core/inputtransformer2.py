@@ -355,9 +355,14 @@ class EscapedCommand(TokenTransformBase):
         """Find the first escaped command (%foo, !foo, etc.) in the cell.
         """
         for line in tokens_by_line:
+            if not line:
+                continue
             ix = 0
-            while line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
+            ll = len(line)
+            while ll > ix and line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
                 ix += 1
+            if ix >= ll:
+                continue
             if line[ix].string in ESCAPE_SINGLES:
                 return cls(line[ix].start)
 
