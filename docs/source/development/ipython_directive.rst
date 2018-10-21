@@ -7,8 +7,8 @@ IPython Sphinx Directive
 
 .. note::
 
-   This has been salvadged from history, so information may be approximate or
-   duplicated. Fixes welcome.
+   The IPython Sphinx Directive is in 'beta' and currently under 
+   active development. Improvements to the code or documentation are welcome!
 
 The ipython directive is a stateful ipython shell for embedding in
 sphinx documents.  It knows about standard ipython prompts, and
@@ -42,6 +42,9 @@ will be rendered as
    document that generates the rendered output.
    
 
+Persisting the Python session across IPython directive blocks
+=============================================================
+
 The state from previous sessions is stored, and standard error is
 trapped. At doc build time, ipython's output and std err will be
 inserted, and prompts will be renumbered. So the prompt below should
@@ -68,13 +71,16 @@ left off.
   SyntaxError: invalid syntax
 
 
+Adding documentation tests to your IPython directive
+====================================================
+
 The embedded interpreter supports some limited markup.  For example,
 you can put comments in your ipython sessions, which are reported
 verbatim.  There are some handy "pseudo-decorators" that let you
 doctest the output.  The inputs are fed to an embedded ipython
 session and the outputs from the ipython session are inserted into
 your doc.  If the output in your doc and in the ipython session don't
-match on a doctest assertion, an error will be
+match on a doctest assertion, an error will occur.
 
 
 .. ipython::
@@ -82,7 +88,7 @@ match on a doctest assertion, an error will be
    In [1]: x = 'hello world'
 
    # this will raise an error if the ipython output is different
-   @doctest
+   @doctest"
    In [2]: x.upper()
    Out[2]: 'HELLO WORLD'
 
@@ -93,6 +99,10 @@ match on a doctest assertion, an error will be
    In [3]: x.st<TAB>
    x.startswith  x.strip
 
+For more information on @doctest decorator, please refer to the end of this page in Pseudo-Decorators section.
+
+Multi-line input
+================
 
 Multi-line input is supported. 
 
@@ -106,7 +116,25 @@ Multi-line input is supported.
    --------> print(url.split('&'))
    ['http://ichart.finance.yahoo.com/table.csv?s=CROX', 'd=9', 'e=22',
 
-You can do doctesting on multi-line output as well.  Just be careful
+Testing directive outputs
+=========================
+
+The IPython Sphinx Directive makes it possible to test the outputs that you provide with your code. To do this, 
+decorate the contents in your directive block with one of the following:
+
+  * list directives here
+
+If an IPython doctest decorator is found, it will take these steps when your documentation is built:
+
+1. Run the *input* lines in your IPython directive block against the current Python kernel (remember that the session 
+persists across IPython directive blocks);
+
+2. Compare the *output* of this with the output text that you've put in the IPython directive block 9what comes 
+after `Out[NN]`);
+
+3. If there is a difference, the directive will raise an error and your documentation build will fial.
+
+You can do doctesting on multi-line output as well.  Just be careful 
 when using non-deterministic inputs like random numbers in the ipython
 directive, because your inputs are run through a live interpreter, so
 if you are doctesting random output you will get an error.  Here we
@@ -134,6 +162,8 @@ suppress the seed line so it doesn't show up in the rendered output
           [0.22591016, 0.77731835],
           [0.0072729 , 0.34273127]])
 
+For more information on @supress and @dostest decorators, please refer to the end of this file in 
+Pseudo-Decorators section.
 
 Another demonstration of multi-line input and output
 
@@ -221,6 +251,8 @@ settings to the entire block.  For example,
 You can create one or more pyplot plots and insert them with the
 ``@savefig`` decorator.
 
+For more information on @savefig decorator, please refer to the end of this page in Pseudo-Decorators section.
+
 .. ipython::
 
    @savefig plot_simple.png width=4in
@@ -299,6 +331,8 @@ output with a semicolon
    @savefig plot_simple_python.png width=4in
    plot([1,2,3]);
 
+For more information on @savefig decorator, please refer to the end of this page in Pseudo-Decorators section.
+
 Similarly, std err is inserted
 
 .. ipython:: python
@@ -306,6 +340,9 @@ Similarly, std err is inserted
 
    foo = 'bar'
    foo[)
+
+Handling Comments
+==================
 
 Comments are handled and state is preserved
 
@@ -322,7 +359,10 @@ If you don't see the next code block then the options work.
    ioff()
    ion()
 
-Multi-line input is handled.
+Splitting Python statements across lines
+========================================
+
+Multi-line input is handled. 
 
 .. ipython:: python
 
