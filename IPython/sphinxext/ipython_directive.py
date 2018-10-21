@@ -1009,6 +1009,15 @@ class IPythonDirective(Directive):
 
                 if figure is not None:
                     figures.append(figure)
+            else:
+                message = 'Code input with no code at {}, line {}'\
+                            .format(
+                                self.state.document.current_source,
+                                self.state.document.current_line)
+                if self.shell.warning_is_error:
+                    raise RuntimeError(message)
+                else:
+                    warnings.warn(message)
 
         for figure in figures:
             lines.append('')
