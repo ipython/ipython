@@ -88,7 +88,7 @@ match on a doctest assertion, an error will occur.
    In [1]: x = 'hello world'
 
    # this will raise an error if the ipython output is different
-   @doctest"
+   @doctest""
    In [2]: x.upper()
    Out[2]: 'HELLO WORLD'
 
