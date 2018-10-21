@@ -1,10 +1,10 @@
 ## Triaging Issues
 
-On the IPython repository we strive to trust users and give them responsibility.
-By using one of our bot, any user can close issues, add and remove
+On the IPython repository,  we strive to trust users and give them responsibility.
+By using one of our bot, any user can close issues or add and remove
 labels by mentioning the bot and asking it to do things on your behalf.
 
-To close and issue (or PR), even if you did not create it, use the following:
+To close an issue (or PR), even if you did not create it, use the following:
 
 > @meeseeksdev close
 
@@ -16,7 +16,7 @@ tags to add:
 
 > @meeseeksdev tag windows, documentation
 
-Only already pre-created tags can be added, and the list is so far limited to
+Only already pre-created tags can be added.  So far, the list is limited to:
 `async/await`, `backported`, `help wanted`, `documentation`, `notebook`,
 `tab-completion`, `windows`
 
