@@ -482,6 +482,7 @@ def make_tokens_by_line(lines):
         tokens_by_line.pop()
 
     # Convert if using cpython tokenize
+    # upstream bug was fixed in Python 3.7.1, so once we drop 3.7 this can likely be removed. 
     if (list(map(lambda x: x.type, tokens_by_line[-1])) == 
             [tokenize.DEDENT] * (len(tokens_by_line[-1]) - 1) + [tokenize.ENDMARKER]):
         if (
