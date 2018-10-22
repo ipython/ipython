@@ -481,18 +481,6 @@ def make_tokens_by_line(lines):
     if not tokens_by_line[-1]:
         tokens_by_line.pop()
 
-    # Convert if using cpython tokenize
-    # upstream bug was fixed in Python 3.7.1, so once we drop 3.7 this can likely be removed. 
-    if (list(map(lambda x: x.type, tokens_by_line[-1])) == 
-            [tokenize.DEDENT] * (len(tokens_by_line[-1]) - 1) + [tokenize.ENDMARKER]):
-        if (
-            len(tokens_by_line) > 1 and
-            len(tokens_by_line[-2]) > 0 and
-            tokens_by_line[-2][-1].type == tokenize.NEWLINE
-        ):
-            tokens_by_line[-2].pop()
-            tokens_by_line[-2] += tokens_by_line[-1]
-            tokens_by_line.pop()
 
     return tokens_by_line
 
@@ -611,7 +599,7 @@ class TransformerManager:
             else:
                 continue
 
-        if ends_with_newline:
+        if not ends_with_newline:
             # Append an newline for consistent tokenization
             # See https://bugs.python.org/issue33899
             cell += '\n'
@@ -656,10 +644,13 @@ class TransformerManager:
 
         newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER}
 
-        # Remove newline_types for the list of tokens
-        while len(tokens_by_line) > 1 and len(tokens_by_line[-1]) == 1 \
-                and tokens_by_line[-1][-1].type in newline_types:
-            tokens_by_line.pop()
+        # Pop the last line which only contains DEDENTs and ENDMARKER
+        last_token_line = None
+        if {t.type for t in tokens_by_line[-1]} in [
+            {tokenize.DEDENT, tokenize.ENDMARKER},
+            {tokenize.ENDMARKER}
+        ] and len(tokens_by_line) > 1:
+            last_token_line = tokens_by_line.pop()
 
         while tokens_by_line[-1] and tokens_by_line[-1][-1].type in newline_types:
             tokens_by_line[-1].pop()
@@ -667,15 +658,7 @@ class TransformerManager:
         if len(tokens_by_line) == 1 and not tokens_by_line[-1]:
             return 'incomplete', 0
 
-        new_block = False
-        for token in reversed(tokens_by_line[-1]):
-            if token.type == tokenize.DEDENT:
-                continue
-            elif token.string == ':':
-                new_block = True
-            break
-
-        if new_block:
+        if tokens_by_line[-1][-1].string == ':':
             # The last line starts a block (e.g. 'if foo:')
             ix = 0
             while tokens_by_line[-1][ix].type in {tokenize.INDENT, tokenize.DEDENT}:
@@ -700,7 +683,7 @@ class TransformerManager:
             if res is None:
                 return 'incomplete', find_last_indent(lines)
 
-        if tokens_by_line[-1][-1].type == tokenize.DEDENT:
+        if last_token_line and last_token_line[0].type == tokenize.DEDENT:
             if ends_with_newline:
                 return 'complete', None
             return 'incomplete', find_last_indent(lines)
