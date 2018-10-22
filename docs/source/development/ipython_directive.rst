@@ -91,7 +91,7 @@ match on a doctest assertion, an error will occur.
 <<<<<<< HEAD
    @doctest""
 =======
-   @doctest"
+   @doctest
 >>>>>>> d89517735f54d9ced614cd882ac7c49599f3fb23
    In [2]: x.upper()
    Out[2]: 'HELLO WORLD'
