@@ -13,7 +13,7 @@ deprecated in 7.0.
 from codeop import compile_command
 import re
 import tokenize
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import warnings
 
 _indent_re = re.compile(r'^[ \t]+')
@@ -87,7 +87,7 @@ def cell_magic(lines):
             % (magic_name, first_line, body)]
 
 
-def _find_assign_op(token_line):
+def _find_assign_op(token_line) -> Union[int, None]:
     """Get the index of the first assignment in the line ('=' not inside brackets)
 
     Note: We don't try to support multiple special assignment (a = b = %foo)
@@ -97,9 +97,9 @@ def _find_assign_op(token_line):
         s = ti.string
         if s == '=' and paren_level == 0:
             return i
-        if s in '([{':
+        if s in {'(','[','{'}:
             paren_level += 1
-        elif s in ')]}':
+        elif s in {')', ']', '}'}:
             if paren_level > 0:
                 paren_level -= 1
 
@@ -449,11 +449,14 @@ class HelpEnd(TokenTransformBase):
 
         return lines_before + [new_line] + lines_after
 
-def make_tokens_by_line(lines):
+def make_tokens_by_line(lines:List[str]):
     """Tokenize a series of lines and group tokens by line.
 
-    The tokens for a multiline Python string or expression are
-    grouped as one line.
+    The tokens for a multiline Python string or expression are grouped as one
+    line. All lines except the last lines should keep their line ending ('\\n',
+    '\\r\\n') for this to properly work. Use `.splitlines(keeplineending=True)`
+    for example when passing block of text to this function.
+
     """
     # NL tokens are used inside multiline expressions, but also after blank
     # lines or comments. This is intentional - see https://bugs.python.org/issue17061
@@ -461,6 +464,8 @@ def make_tokens_by_line(lines):
     # track parentheses level, similar to the internals of tokenize.
     NEWLINE, NL = tokenize.NEWLINE, tokenize.NL
     tokens_by_line = [[]]
+    if len(lines) > 1 and not lines[0].endswith(('\n', '\r', '\r\n', '\x0b', '\x0c')):
+        warnings.warn("`make_tokens_by_line` received a list of lines which do not have lineending markers ('\\n', '\\r', '\\r\\n', '\\x0b', '\\x0c'), behavior will be unspecified")
     parenlev = 0
     try:
         for token in tokenize.generate_tokens(iter(lines).__next__):

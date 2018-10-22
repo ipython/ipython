@@ -88,7 +88,11 @@ match on a doctest assertion, an error will occur.
    In [1]: x = 'hello world'
 
    # this will raise an error if the ipython output is different
+<<<<<<< HEAD
    @doctest""
+=======
+   @doctest"
+>>>>>>> d89517735f54d9ced614cd882ac7c49599f3fb23
    In [2]: x.upper()
    Out[2]: 'HELLO WORLD'
 
