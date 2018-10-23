@@ -579,7 +579,7 @@ class EmbeddedSphinxShell(object):
                                          w.filename, w.lineno, w.line)
                 sys.stdout.write(s)
                 sys.stdout.write('<<<' + ('-' * 73) + '\n')
-                if self.shell.warning_is_error:
+                if self.warning_is_error:
                     raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
 
         self.cout.truncate(0)
