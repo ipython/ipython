@@ -3,7 +3,6 @@ include COPYING.rst
 include LICENSE
 include setupbase.py
 include setupegg.py
-include MANIFEST.in
 include .mailmap
 
 recursive-exclude tools *
