@@ -1,8 +1,5 @@
 import os.path
-import sys
-from setuptools import setup
 from setuptools.command.build_py import build_py
-
 from setupbase import (setup_args,
                        find_scripts,
                        find_packages,
@@ -10,7 +7,8 @@ from setupbase import (setup_args,
                        record_commit_info,
                        bdist_wininst_options,
                        )
-    
+    import sys
+from setuptools import setup
 setup_args['entry_points'] = find_scripts(True, suffix='3')
 setup_args['packages'] = find_packages()
 setup_args['package_data'] = find_package_data()
