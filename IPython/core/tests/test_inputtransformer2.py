@@ -225,7 +225,7 @@ def test_transform_help():
 
 def test_find_assign_op_dedent():
     """
-    be carefull that empty token like dedent are not counted as parens
+    be careful that empty token like dedent are not counted as parens
     """
     class Tk:
         def __init__(self, s):
