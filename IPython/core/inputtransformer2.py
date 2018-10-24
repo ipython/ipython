@@ -604,7 +604,7 @@ class TransformerManager:
             else:
                 continue
 
-        if ends_with_newline:
+        if not ends_with_newline:
             # Append an newline for consistent tokenization
             # See https://bugs.python.org/issue33899
             cell += '\n'
@@ -649,10 +649,13 @@ class TransformerManager:
 
         newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER}
 
-        # Remove newline_types for the list of tokens
-        while len(tokens_by_line) > 1 and len(tokens_by_line[-1]) == 1 \
-                and tokens_by_line[-1][-1].type in newline_types:
-            tokens_by_line.pop()
+        # Pop the last line which only contains DEDENTs and ENDMARKER
+        last_token_line = None
+        if {t.type for t in tokens_by_line[-1]} in [
+            {tokenize.DEDENT, tokenize.ENDMARKER},
+            {tokenize.ENDMARKER}
+        ] and len(tokens_by_line) > 1:
+            last_token_line = tokens_by_line.pop()
 
         while tokens_by_line[-1] and tokens_by_line[-1][-1].type in newline_types:
             tokens_by_line[-1].pop()
@@ -685,7 +688,7 @@ class TransformerManager:
             if res is None:
                 return 'incomplete', find_last_indent(lines)
 
-        if tokens_by_line[-1][-1].type == tokenize.DEDENT:
+        if last_token_line and last_token_line[0].type == tokenize.DEDENT:
             if ends_with_newline:
                 return 'complete', None
             return 'incomplete', find_last_indent(lines)
