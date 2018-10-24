@@ -1541,7 +1541,6 @@ class IPCompleter(Completer):
         argMatches = []
         try:
             callableObj = '.'.join(ids[::-1])
-            print(callableObj)
             namedArgs = self._default_arguments(eval(callableObj,
                                                     self.namespace))
 
