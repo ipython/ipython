@@ -242,7 +242,7 @@ method ``cube()`` after it is uncommented and the file ``file1.py`` saved on
 disk.
 
 
-..code::
+.. code::
 
    # notebook
 
