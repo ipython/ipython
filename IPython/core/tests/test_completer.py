@@ -1027,3 +1027,23 @@ def test_snake_case_completion():
     _, matches = ip.complete("s_", "print(s_f")
     nt.assert_in('some_three', matches)
     nt.assert_in('some_four', matches)
+
+def test_mix_terms():
+    ip = get_ipython()
+    from textwrap import dedent
+    ip.Completer.use_jedi = False
+    ip.ex(dedent("""
+        class Test:
+            def meth(self, meth_arg1):
+                print("meth")
+
+            def meth_1(self, meth1_arg1, meth1_arg2):
+                print("meth1")
+
+            def meth_2(self, meth2_arg1, meth2_arg2):
+                print("meth2")
+        test = Test()
+        """))
+    _, matches = ip.complete(None, "test.meth(")
+    nt.assert_in('meth_arg1=', matches)
+    nt.assert_not_in('meth2_arg1=', matches)
