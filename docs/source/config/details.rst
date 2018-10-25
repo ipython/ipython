@@ -31,7 +31,7 @@ which defines the defaults. The required interface is like this:
 .. class:: MyPrompts(shell)
 
    Prompt style definition. *shell* is a reference to the
-   :class:`~.TerminalInteractiveShell` instance.
+   :class:`~.Terminal.InteractiveShell` instance.
 
    .. method:: in_prompt_tokens(cli=None)
                continuation_prompt_tokens(self, cli=None, width=None)
@@ -74,7 +74,7 @@ extensions to customise prompts.
 
 Inside IPython or in a startup script, you can use a custom prompts class
 by setting ``get_ipython().prompts`` to an *instance* of the class.
-In configuration, ``TerminalInteractiveShell.prompts_class`` may be set to
+In configuration, ``Terminal.InteractiveShell.prompts_class`` may be set to
 either the class object, or a string of its full importable name.
 
 To include invisible terminal control sequences in a prompt, use
@@ -101,7 +101,7 @@ is set to ``'legacy'``. It has four case-insensitive values:
 should be legible on either dark or light terminal backgrounds. *linux* is
 optimised for dark backgrounds and *lightbg* for light ones.
 
-``TerminalInteractiveShell.highlighting_style`` determines prompt colours and
+``Terminal.InteractiveShell.highlighting_style`` determines prompt colours and
 syntax highlighting. It takes the name (as a string) or class (as a subclass of
 ``pygments.style.Style``) of a Pygments style, or the special value ``'legacy'``
 to pick a style in accordance with ``InteractiveShell.colors``.
@@ -111,7 +111,7 @@ You can see the Pygments styles available on your system by running::
     import pygments
     list(pygments.styles.get_all_styles())
 
-Additionally, ``TerminalInteractiveShell.highlighting_style_overrides`` can override
+Additionally, ``Terminal.InteractiveShell.highlighting_style_overrides`` can override
 specific styles in the highlighting. It should be a dictionary mapping Pygments
 token types to strings defining the style. See `Pygments' documentation
 <http://pygments.org/docs/styles/#creating-own-styles>`__ for the language used
@@ -150,7 +150,7 @@ start (that is, something other than a new instance of Emacs). This way you
 can edit multi-line code quickly and with the power of a real editor right
 inside IPython.
 
-You can also control the editor by setting :attr:`TerminalInteractiveShell.editor`
+You can also control the editor by setting :attr:`Terminal.InteractiveShell.editor`
 in :file:`ipython_config.py`.
 
 Vim
@@ -268,7 +268,7 @@ to allow users to completely configure the behavior they like. Hence you can
 have enter always execute code. If you prefer fancier behavior, you need to get
 your hands dirty and read the ``prompt_toolkit`` and IPython documentation
 though. See :ghpull:`10500`, set the
-``c.TerminalInteractiveShell.handle_return`` option and get inspiration from the
+``c.Terminal.InteractiveShell.handle_return`` option and get inspiration from the
 following example that only auto-executes the input if it begins with a bang or
 a modulo character (``!`` or ``%``). To use the following code, add it to your
 IPython configuration::
@@ -310,4 +310,4 @@ IPython configuration::
 
         return handle
 
-    c.TerminalInteractiveShell.handle_return = custom_return
+    c.Terminal.InteractiveShell.handle_return = custom_return
