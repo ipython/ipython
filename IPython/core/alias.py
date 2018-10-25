@@ -204,6 +204,8 @@ class AliasManager(Configurable):
     def init_aliases(self):
         # Load default & user aliases
         for name, cmd in self.default_aliases + self.user_aliases:
+            if cmd.startswith('ls ') and self.shell.colors == 'NoColor':
+                cmd = cmd.replace(' --color', '')
             self.soft_define_alias(name, cmd)
 
     @property
