@@ -12,7 +12,7 @@ developers of third party tools and libraries that use IPython should see the
 For instructions on how to make a developer install see :ref:`devinstall`.
 
 Backporting Pull requests
--------------------------
+=========================
 
 All pull requests should usually be made against ``master``, if a Pull Request
 need to be backported to an earlier release; then it should be tagged with the
@@ -67,7 +67,6 @@ to automatically list and apply the PR on other branches. For example:
 
 .. _release_process:
 
-=======================
 IPython release process
 =======================
 
