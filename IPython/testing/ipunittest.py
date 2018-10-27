@@ -63,8 +63,8 @@ class IPython2PythonConverter(object):
         self.rout = re.compile(r'Out\[\d+\]: \s*?\n?')
         self.pyps1 = '>>> '
         self.pyps2 = '... '
-        self.rpyps1 = re.compile ('(\s*%s)(.*)$' % self.pyps1)
-        self.rpyps2 = re.compile ('(\s*%s)(.*)$' % self.pyps2)
+        self.rpyps1 = re.compile (r'(\s*%s)(.*)$' % self.pyps1)
+        self.rpyps2 = re.compile (r'(\s*%s)(.*)$' % self.pyps2)
 
     def __call__(self, ds):
         """Convert IPython prompts to python ones in a string."""

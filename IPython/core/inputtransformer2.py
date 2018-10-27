@@ -78,7 +78,7 @@ ipython_prompt = PromptStripper(re.compile(r'^(In \[\d+\]: |\s*\.{3,}: ?)'))
 def cell_magic(lines):
     if not lines or not lines[0].startswith('%%'):
         return lines
-    if re.match('%%\w+\?', lines[0]):
+    if re.match(r'%%\w+\?', lines[0]):
         # This case will be handled by help_end
         return lines
     magic_name, _, first_line = lines[0][2:-1].partition(' ')
@@ -116,7 +116,7 @@ def find_end_of_continued_line(lines, start_line: int):
     return end_line
 
 def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
-    """Assemble a single line from multiple continued line pieces
+    r"""Assemble a single line from multiple continued line pieces
 
     Continued lines are lines ending in ``\``, and the line following the last
     ``\`` in the block.

@@ -185,7 +185,7 @@ def try_import(mod: str, only_modules=False) -> List[str]:
 #-----------------------------------------------------------------------------
 
 def quick_completer(cmd, completions):
-    """ Easily create a trivial completer for a command.
+    r""" Easily create a trivial completer for a command.
 
     Takes either a list of completions, or all completions in string (that will
     be split on whitespace).
