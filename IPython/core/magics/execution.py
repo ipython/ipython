@@ -16,6 +16,7 @@ import sys
 import time
 import timeit
 import math
+import re
 from pdb import Restart
 
 # cProfile was added in Python2.5
@@ -646,7 +647,9 @@ python-profiler package from non-free.""")
                 return
             arg_lst = [modpath] + arg_lst
         try:
-            filename = file_finder(arg_lst[0])
+            fpath = None # initialize to make sure fpath is in scope later
+            fpath = arg_lst[0]
+            filename = file_finder(fpath)
         except IndexError:
             warn('you must provide at least a filename.')
             print('\n%run:\n', oinspect.getdoc(self.run))
@@ -656,6 +659,8 @@ python-profiler package from non-free.""")
                 msg = str(e)
             except UnicodeError:
                 msg = e.message
+            if os.name == 'nt' and re.match(r"^'.*'$",fpath):
+                warn('For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"')
             error(msg)
             return
 
