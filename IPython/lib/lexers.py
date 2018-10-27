@@ -494,7 +494,7 @@ class IPythonConsoleLexer(Lexer):
             yield token
 
 class IPyLexer(Lexer):
-    """
+    r"""
     Primary lexer for all IPython-like code.
 
     This is a simple helper lexer.  If the first line of the text begins with

@@ -179,7 +179,7 @@ def genelatex(body, wrap):
         yield u'$${0}$$'.format(body)
     else:
         yield body
-    yield u'\end{document}'
+    yield u'\\end{document}'
 
 
 _data_uri_template_png = u"""<img src="data:image/png;base64,%s" alt=%s />"""

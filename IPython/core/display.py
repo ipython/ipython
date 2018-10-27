@@ -710,7 +710,7 @@ class Markdown(TextDisplayObject):
 class Math(TextDisplayObject):
 
     def _repr_latex_(self):
-        s = "$\displaystyle %s$" % self.data.strip('$')
+        s = r"$\displaystyle %s$" % self.data.strip('$')
         if self.metadata:
             return s, deepcopy(self.metadata)
         else:
