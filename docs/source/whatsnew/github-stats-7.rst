@@ -1,6 +1,53 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+Issues closed in 7.1
+--------------------
+
+GitHub stats for 2018/09/27 - 2018/10/27 (since tag: 7.0.1)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 31 issues and merged 54 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.1>`__
+
+The following 33 authors contributed 254 commits.
+
+* ammarmallik
+* Audrey Dutcher
+* Bart Skowron
+* Benjamin Ragan-Kelley
+* BinaryCrochet
+* Chris Barker
+* Christopher Moura
+* Dedipyaman Das
+* Dominic Kuang
+* Elyashiv
+* Emil Hessman
+* felixzhuologist
+* hongshaoyang
+* Hugo
+* kd2718
+* kory donati
+* Kory Donati
+* koryd
+* luciana
+* luz.paz
+* Massimo Santini
+* Matthias Bussonnier
+* Matthias Geier
+* meeseeksdev[bot]
+* Michael Penkov
+* Mukesh Bhandarkar
+* Nguyen Duy Hai
+* Roy Wellington Ⅳ
+* Sha Liu
+* Shao Yang
+* Shashank Kumar
+* Tony Fast
+* wim glenn
+
+
 Issues closed in 7.0
 --------------------
 
