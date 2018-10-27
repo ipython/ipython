@@ -35,7 +35,7 @@ When opening a new Issue, please take the following steps:
    Keyword searches for your error messages are most helpful.
 2. If possible, try updating to master and reproducing your issue,
    because we may have already fixed it.
-3. Try to include a minimal reproducible test case
+3. Try to include a minimal reproducible test case.
 4. Include relevant system information.  Start with the output of:
 
         python -c "import IPython; print(IPython.sys_info())"
@@ -55,8 +55,8 @@ Some guidelines on contributing to IPython:
   The worst case is that the PR is closed.
 * Pull Requests should generally be made against master
 * Pull Requests should be tested, if feasible:
-    - bugfixes should include regression tests
-    - new behavior should at least get minimal exercise
+    - bugfixes should include regression tests.
+    - new behavior should at least get minimal exercise.
 * New features and backwards-incompatible changes should be documented by adding
   a new file to the [pr](docs/source/whatsnew/pr) directory, see [the README.md
   there](docs/source/whatsnew/pr/README.md) for details.
