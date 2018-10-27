@@ -7,7 +7,6 @@
 IPython 7.1.0
 =============
 
-
 IPython 7.1.0 is the first minor release after 7.0.0 and mostly bring fixes to
 new feature, internal refactor and regressions that happen during the 6.x->7.x
 transition. It also bring **Compatibility with Python 3.7.1**, as were
@@ -19,12 +18,16 @@ New Core Dev:
    work on Prompt toolkit, and we'd like to recognise his impact by giving him
    commit rights. :ghissue:`11397`
 
+Notables Changes
+
+ - Major update of "latex to unicode" tab completion map (see below)
+
 Notable New Features:
 
- - Restore functionality and documentation of the **sphinx directive**, which is
-   now stricter (fail on error by default), gained configuration options, have a
-   brand new documentation page :ref:`ipython_directive`, which need some cleanup.
-   It is also now *tested* so we hope to have less regressions.
+ - Restore functionality and documentation of the **sphinx directive**, which
+   is now stricter (fail on error by default), gained configuration options,
+   have a brand new documentation page :ref:`ipython_directive`, which need
+   some cleanup. It is also now *tested* so we hope to have less regressions.
    :ghpull:`11402`
 
  - ``IPython.display.Video`` now supports ``width`` and ``height`` arguments,
@@ -41,9 +44,10 @@ Notable New Features:
 
 Notable Fixes:
 
- - Fix entering of **multi-line block in terminal** IPython, and various crashes
-   in the new input transformation machinery :ghpull:`11354`, :ghpull:`11356`, :ghpull:`11358`, these
-   ones also fix a **Compatibility but with Python 3.7.1**.
+ - Fix entering of **multi-line block in terminal** IPython, and various
+   crashes in the new input transformation machinery :ghpull:`11354`,
+   :ghpull:`11356`, :ghpull:`11358`, these ones also fix a **Compatibility but
+   with Python 3.7.1**.
 
  - Fix moving through generator stack in ipdb :ghpull:`11266`
 
@@ -55,6 +59,11 @@ Notable Fixes:
 
  - Make ``nonlocal`` raise ``SyntaxError`` instead of silently failing in async
    mode. :ghpull:`11382`
+
+ - Fix mishandling of magics and ``= !`` assignment just after a dedent in
+   nested code blocks :ghpull:`11418`
+
+ - Fix instructions for custom shortcuts :ghpull:`11426`
 
 
 Notable Internals improvements:
@@ -74,6 +83,48 @@ complicated bugs.
 You
 can see all the closed issues and Merged PR, new features and fixes `here
 <https://github.com/ipython/ipython/issues?utf8=%E2%9C%93&q=+is%3Aclosed+milestone%3A7.1+>`_.
+
+Unicode Completion update
+-------------------------
+
+In IPython 7.1 the Unicode completion map has been updated and synchronized with
+the Julia language.
+
+Added and removed character characters:
+
+ ``\jmath`` (``ȷ``), ``\\underleftrightarrow`` (U+034D, combining) have been
+ added, while ``\\textasciicaron`` have been removed
+
+Some sequence have seen their prefix removed:
+
+ - 6 characters ``\text...<tab>`` should now be inputed with ``\...<tab>`` directly,
+ - 45 characters ``\Elz...<tab>`` should now be inputed with ``\...<tab>`` directly,
+ - 65 characters ``\B...<tab>`` should now be inputed with ``\...<tab>`` directly,
+ - 450 characters ``\m...<tab>`` should now be inputed with ``\...<tab>`` directly,
+
+Some sequence have seen their prefix shortened:
+
+ - 5 characters ``\mitBbb...<tab>`` should now be inputed with ``\bbi...<tab>`` directly,
+ - 52 characters ``\mit...<tab>`` should now be inputed with ``\i...<tab>`` directly,
+ - 216 characters ``\mbfit...<tab>`` should now be inputed with ``\bi...<tab>`` directly,
+ - 222 characters ``\mbf...<tab>`` should now be inputed with ``\b...<tab>`` directly,
+
+A couple of character had their sequence simplified:
+
+ - ``ð``, type ``\dh<tab>``, instead of ``\eth<tab>``
+ - ``ħ``, type ``\hbar<tab>``, instead of ``\Elzxh<tab>``
+ - ``ɸ``, type ``\ltphi<tab>``, instead of ``\textphi<tab>``
+ - ``ϴ``, type ``\varTheta<tab>``, instead of ``\textTheta<tab>``
+ - ``ℇ``, type ``\eulermascheroni<tab>``, instead of ``\Eulerconst<tab>``
+ - ``ℎ``, type ``\planck<tab>``, instead of ``\Planckconst<tab>``
+
+ - U+0336 (COMBINING LONG STROKE OVERLAY), type ``\strike<tab>``, instead of ``\Elzbar<tab>``.
+
+A couple of sequences have been updated:
+
+ - ``\varepsilon`` now give ``ɛ`` (GREEK SMALL LETTER EPSILON) instead of ``ε`` (GREEK LUNATE EPSILON SYMBOL),
+ - ``\underbar`` now give U+0331 (COMBINING MACRON BELOW) instead of U+0332 (COMBINING LOW LINE).
+
 
 .. _whatsnew700:
 
