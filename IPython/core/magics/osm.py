@@ -55,7 +55,11 @@ class OSMagics(Magics):
         """
             Test for executible on a POSIX system
         """
-        return file.is_file() and os.access(file.path, os.X_OK)
+        if os.access(file.path, os.X_OK):
+            # will fail on maxOS if access is not X_OK
+            return file.is_file()
+        return False
+
 
     
     @skip_doctest
