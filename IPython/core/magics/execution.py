@@ -16,6 +16,7 @@ import sys
 import time
 import timeit
 import math
+import re
 from pdb import Restart
 
 # cProfile was added in Python2.5
@@ -658,7 +659,6 @@ python-profiler package from non-free.""")
                 msg = str(e)
             except UnicodeError:
                 msg = e.message
-            import re
             if os.name == 'nt' and re.match(r"^'.*'$",fpath):
                 warn('For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"')
             error(msg)
