@@ -5,7 +5,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.magic import MagicAlias
 from IPython.utils.text import dedent, indent
 
-shell = InteractiveShell.instance()
+shell=InteractiveShell.instance()
 magics = shell.magics_manager.magics
 
 def _strip_underline(line):
