@@ -23,7 +23,7 @@ contribute to the project.
 
 **IPython versions and Python Support**
 
-**IPython 7.0** requires Python version 3.4 and above.
+**IPython 7.0** requires Python version 3.5 and above.
 
 **IPython 6.x** requires Python version 3.3 and above.
 
