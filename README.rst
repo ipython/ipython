@@ -18,7 +18,7 @@ Overview
 ========
 
 Welcome to IPython.  Our full documentation is available on `ipython.readthedocs.io
-<https://ipython.readthedocs.io/en/stable/>`_ and contains information on how to install, use and
+<https://ipython.readthedocs.io/en/stable/>`_ and contains information on how to install, use, and
 contribute to the project.
 
 **IPython versions and Python Support**
