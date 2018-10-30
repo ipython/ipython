@@ -1,17 +1,17 @@
 ## Triaging Issues
 
 On the IPython repository,  we strive to trust users and give them responsibility.
-By using one of our bot, any user can close issues or add and remove
+By using one of our bots, any user can close issues or add/remove
 labels by mentioning the bot and asking it to do things on your behalf.
 
 To close an issue (or PR), even if you did not create it, use the following:
 
 > @meeseeksdev close
 
-This command can be in the middle of another comments, but must start on its
+This command can be in the middle of another comment, but must start on its
 own line. 
 
-To add labels to an issue, ask the bot to `tag` with a comma separated list of
+To add labels to an issue, ask the bot to `tag` with a comma-separated list of
 tags to add:
 
 > @meeseeksdev tag windows, documentation
