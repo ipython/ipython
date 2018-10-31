@@ -35,6 +35,7 @@ before_install:
         pyenv global "$PYENV_VERSION"
         pyenv rehash
       fi
+    - python --version
 
 
 install:
