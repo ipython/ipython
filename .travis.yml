@@ -15,8 +15,13 @@ sudo: false
 env:
   global:
     - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
+    - PYTHON_BUILD_CACHE_PATH=$HOME/.pyenv_cache
 
 group: edge
+
+cache:
+  directories:
+    - $HOME/.pyenv_cache
 
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
@@ -56,6 +61,7 @@ script:
         python tools/fixup_whats_new_pr.py
         make -C docs/ html SPHINXOPTS="-W"
       fi
+
 after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./
