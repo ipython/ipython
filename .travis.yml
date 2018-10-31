@@ -31,11 +31,9 @@ before_install:
         brew upgrade pyenv
         eval "$(pyenv init -)"
         pyenv install "$PYENV_VERSION"
+        pyenv rehash
         pyenv global "$PYENV_VERSION"
         pyenv shell "$PYENV_VERSION"
-        pyenv rehash
-        python --version
-        echo $(python --version)
       fi
 
 
