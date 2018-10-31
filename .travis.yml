@@ -20,11 +20,18 @@ group: edge
 
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update                    ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade pyenv             ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install "$PYENV_VERSION" ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv global "$PYENV_VERSION"  ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python --version               ; fi
+    - |
+      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        brew update
+        brew upgrade pyenv
+        eval "$(pyenv init -)"
+        pyenv install "$PYENV_VERSION"
+        pyenv global "$PYENV_VERSION"
+        pyenv shell "$PYENV_VERSION"
+        pyenv rehash
+        python --version
+        echo $(python --version)
+      fi
 
 
 install:
