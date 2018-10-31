@@ -1,10 +1,11 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
+os: linux
 
 addons:
-    apt:
-        packages:
-            - graphviz
+  apt:
+    packages:
+      - graphviz
 
 python:
     - 3.6
@@ -19,18 +20,20 @@ env:
 group: edge
 
 before_install:
-    - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
-    - |
-      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        brew update
-        brew upgrade pyenv
-        eval "$(pyenv init -)"
-        pyenv install --skip-existing "$PYENV_VERSION"
-        pyenv global "$PYENV_VERSION"
-        pyenv rehash
+  - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
+  - |
+    # install Python on macOS
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      env | sort
+      if ! which python$TRAVIS_PYTHON_VERSION; then
+        HOMEBREW_NO_AUTO_UPDATE=1 brew tap minrk/homebrew-python-frameworks
+        HOMEBREW_NO_AUTO_UPDATE=1 brew cask install python-framework-${TRAVIS_PYTHON_VERSION/./}
       fi
-    - python --version
-
+      python3 -m pip install virtualenv
+      python3 -m virtualenv -p $(which python$TRAVIS_PYTHON_VERSION) ~/travis-env
+      source ~/travis-env/bin/activate
+    fi
+  - python --version
 
 install:
     - pip install pip --upgrade
@@ -61,15 +64,26 @@ after_success:
     - codecov
 
 matrix:
-    include:
-        - { python: "3.6-dev", dist: xenial, sudo: true, os: linux }
-        - { python: "3.7", dist: xenial, sudo: true, os: linux }
-        - { python: "3.7-dev", dist: xenial, sudo: true, os: linux }
-        - { python: "nightly", dist: xenial, sudo: true, os: linux }
-        - { os: osx, language: generic, env: TRAVIS_PYTHON_VERSION="3.6" PYENV_VERSION="3.6.7" }
-        - { os: osx, language: generic, env: TRAVIS_PYTHON_VERSION="3.7" PYENV_VERSION="3.7.1" }
-    allow_failures:
-        - python: nightly
+  include:
+    - python: "3.7"
+      dist: xenial
+      sudo: true
+    - python: "3.7-dev"
+      dist: xenial
+      sudo: true
+    - python: "nightly"
+      dist: xenial
+      sudo: true
+    - os: osx
+      language: generic
+      python: 3.6
+      env: TRAVIS_PYTHON_VERSION=3.6
+    - os: osx
+      language: generic
+      python: 3.7
+      env: TRAVIS_PYTHON_VERSION=3.7
+  allow_failures:
+    - python: nightly
 
 before_deploy:
     - rm -rf dist/
@@ -77,15 +91,15 @@ before_deploy:
     - python setup.py bdist_wheel
 
 deploy:
-    provider: releases
-    api_key:
-        secure: Y/Ae9tYs5aoBU8bDjN2YrwGG6tCbezj/h3Lcmtx8HQavSbBgXnhnZVRb2snOKD7auqnqjfT/7QMm4ZyKvaOEgyggGktKqEKYHC8KOZ7yp8I5/UMDtk6j9TnXpSqqBxPiud4MDV76SfRYEQiaDoG4tGGvSfPJ9KcNjKrNvSyyxns=
-    file: dist/*
-    file_glob: true
-    skip_cleanup: true
-    on:
-        repo: ipython/ipython
-        all_branches: true  # Backports are released from e.g. 5.x branch
-        tags: true
-        python: 3.6  # Any version should work, but we only need one
-        condition: $TRAVIS_OS_NAME = "linux"
+  provider: releases
+  api_key:
+      secure: Y/Ae9tYs5aoBU8bDjN2YrwGG6tCbezj/h3Lcmtx8HQavSbBgXnhnZVRb2snOKD7auqnqjfT/7QMm4ZyKvaOEgyggGktKqEKYHC8KOZ7yp8I5/UMDtk6j9TnXpSqqBxPiud4MDV76SfRYEQiaDoG4tGGvSfPJ9KcNjKrNvSyyxns=
+  file: dist/*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: ipython/ipython
+    all_branches: true  # Backports are released from e.g. 5.x branch
+    tags: true
+    python: 3.6  # Any version should work, but we only need one
+    condition: $TRAVIS_OS_NAME = "linux"
