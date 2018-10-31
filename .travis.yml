@@ -49,9 +49,9 @@ script:
          cp /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar37.txt /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar38.txt
       fi
     - cd /tmp && iptest --coverage xml && cd -
-    # On the latest Python only, make sure that the docs build.
+    # On the latest Python (on Linux) only, make sure that the docs build.
     - |
-      if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]]; then
+      if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
         pip install -r docs/requirements.txt
         python tools/fixup_whats_new_pr.py
         make -C docs/ html SPHINXOPTS="-W"
