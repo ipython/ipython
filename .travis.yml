@@ -1,22 +1,38 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
+
+os:
+    - linux
+    - osx
+
+addons:
+    apt:packages:
+        - graphviz
+
 python:
     - 3.6
     - 3.5
+
 sudo: false
+
 env:
   global:
     - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
+
 group: edge
+
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install graphviz; fi
+
 install:
     - pip install pip --upgrade
     - pip install setuptools --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
     - pip install trio curio
     - pip install codecov check-manifest --upgrade
-    - sudo apt-get install graphviz
+
 script:
     - check-manifest
     - |
@@ -39,10 +55,10 @@ after_success:
 
 matrix:
     include:
-        - { python: "3.6-dev", dist: xenial, sudo: true }
-        - { python: "3.7", dist: xenial, sudo: true }
-        - { python: "3.7-dev", dist: xenial, sudo: true }
-        - { python: "nightly", dist: xenial, sudo: true }
+        - { python: "3.6-dev", dist: xenial, sudo: true, os: linux }
+        - { python: "3.7", dist: xenial, sudo: true, os: linux }
+        - { python: "3.7-dev", dist: xenial, sudo: true, os: linux }
+        - { python: "nightly", dist: xenial, sudo: true, os: linux }
     allow_failures:
         - python: nightly
 
@@ -63,3 +79,4 @@ deploy:
         all_branches: true  # Backports are released from e.g. 5.x branch
         tags: true
         python: 3.6  # Any version should work, but we only need one
+        condition: $TRAVIS_OS_NAME = "linux"
