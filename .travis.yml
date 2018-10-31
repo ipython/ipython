@@ -1,13 +1,10 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
 
-os:
-    - linux
-    - osx
-
 addons:
-    apt:packages:
-        - graphviz
+    apt:
+        packages:
+            - graphviz
 
 python:
     - 3.6
@@ -23,8 +20,11 @@ group: edge
 
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install graphviz; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update                    ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install pyenv             ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install "$PYENV_VERSION" ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv local "$PYENV_VERSION"   ; fi
+
 
 install:
     - pip install pip --upgrade
@@ -59,6 +59,8 @@ matrix:
         - { python: "3.7", dist: xenial, sudo: true, os: linux }
         - { python: "3.7-dev", dist: xenial, sudo: true, os: linux }
         - { python: "nightly", dist: xenial, sudo: true, os: linux }
+        - { os: osx, language: generic, env: TRAVIS_PYTHON_VERSION="3.6" PYENV_VERSION="3.6.7" }
+        - { os: osx, language: generic, env: TRAVIS_PYTHON_VERSION="3.7" PYENV_VERSION="3.7.1" }
     allow_failures:
         - python: nightly
 
