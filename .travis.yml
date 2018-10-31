@@ -18,18 +18,12 @@ env:
 
 group: edge
 
-cache:
-  directories:
-    - $HOME/.cache/pyenv
-
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
     - |
       if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         brew update
         brew upgrade pyenv
-        mkdir -p $HOME/.cache/pyenv/versions $HOME/.pyenv
-        ln -s $HOME/.cache/pyenv/versions $HOME/.pyenv/versions
         eval "$(pyenv init -)"
         pyenv install --skip-existing "$PYENV_VERSION"
         pyenv global "$PYENV_VERSION"
