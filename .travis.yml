@@ -24,7 +24,7 @@ before_install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade pyenv             ; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install "$PYENV_VERSION" ; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv global "$PYENV_VERSION"  ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv shell "$PYENV_VERSION"   ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python --version               ; fi
 
 
 install:
