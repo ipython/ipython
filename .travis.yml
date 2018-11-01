@@ -1,65 +1,104 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
+os: linux
+
+addons:
+  apt:
+    packages:
+      - graphviz
+
 python:
     - 3.6
     - 3.5
+
 sudo: false
+
 env:
   global:
     - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
+
 group: edge
+
 before_install:
-    - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
+  - |
+    # install Python on macOS
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      env | sort
+      if ! which python$TRAVIS_PYTHON_VERSION; then
+        HOMEBREW_NO_AUTO_UPDATE=1 brew tap minrk/homebrew-python-frameworks
+        HOMEBREW_NO_AUTO_UPDATE=1 brew cask install python-framework-${TRAVIS_PYTHON_VERSION/./}
+      fi
+      python3 -m pip install virtualenv
+      python3 -m virtualenv -p $(which python$TRAVIS_PYTHON_VERSION) ~/travis-env
+      source ~/travis-env/bin/activate
+    fi
+  - python --version
+
 install:
-    - pip install pip --upgrade
-    - pip install setuptools --upgrade
-    - pip install -e file://$PWD#egg=ipython[test] --upgrade
-    - pip install trio curio
-    - pip install codecov check-manifest --upgrade
-    - sudo apt-get install graphviz
+  - pip install pip --upgrade
+  - pip install setuptools --upgrade
+  - pip install -e file://$PWD#egg=ipython[test] --upgrade
+  - pip install trio curio
+  - pip install codecov check-manifest --upgrade
+
 script:
-    - check-manifest
-    - |
-      if [[ "$TRAVIS_PYTHON_VERSION" == "nightly" ]]; then
-         # on nightly fake parso known the grammar
-         cp /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar37.txt /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar38.txt
-      fi
-    - cd /tmp && iptest --coverage xml && cd -
-    # On the latest Python only, make sure that the docs build.
-    - |
-      if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]]; then
-        pip install -r docs/requirements.txt
-        python tools/fixup_whats_new_pr.py
-        make -C docs/ html SPHINXOPTS="-W"
-      fi
+  - check-manifest
+  - |
+    if [[ "$TRAVIS_PYTHON_VERSION" == "nightly" ]]; then
+       # on nightly fake parso known the grammar
+       cp /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar37.txt /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar38.txt
+    fi
+  - cd /tmp && iptest --coverage xml && cd -
+  # On the latest Python (on Linux) only, make sure that the docs build.
+  - |
+    if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      pip install -r docs/requirements.txt
+      python tools/fixup_whats_new_pr.py
+      make -C docs/ html SPHINXOPTS="-W"
+    fi
+
 after_success:
-    - cp /tmp/ipy_coverage.xml ./
-    - cp /tmp/.coverage ./
-    - codecov
+  - cp /tmp/ipy_coverage.xml ./
+  - cp /tmp/.coverage ./
+  - codecov
 
 matrix:
-    include:
-        - { python: "3.6-dev", dist: xenial, sudo: true }
-        - { python: "3.7", dist: xenial, sudo: true }
-        - { python: "3.7-dev", dist: xenial, sudo: true }
-        - { python: "nightly", dist: xenial, sudo: true }
-    allow_failures:
-        - python: nightly
+  include:
+    - python: "3.7"
+      dist: xenial
+      sudo: true
+    - python: "3.7-dev"
+      dist: xenial
+      sudo: true
+    - python: "nightly"
+      dist: xenial
+      sudo: true
+    - os: osx
+      language: generic
+      python: 3.6
+      env: TRAVIS_PYTHON_VERSION=3.6
+    - os: osx
+      language: generic
+      python: 3.7
+      env: TRAVIS_PYTHON_VERSION=3.7
+  allow_failures:
+    - python: nightly
 
 before_deploy:
-    - rm -rf dist/
-    - python setup.py sdist
-    - python setup.py bdist_wheel
+  - rm -rf dist/
+  - python setup.py sdist
+  - python setup.py bdist_wheel
 
 deploy:
-    provider: releases
-    api_key:
-        secure: Y/Ae9tYs5aoBU8bDjN2YrwGG6tCbezj/h3Lcmtx8HQavSbBgXnhnZVRb2snOKD7auqnqjfT/7QMm4ZyKvaOEgyggGktKqEKYHC8KOZ7yp8I5/UMDtk6j9TnXpSqqBxPiud4MDV76SfRYEQiaDoG4tGGvSfPJ9KcNjKrNvSyyxns=
-    file: dist/*
-    file_glob: true
-    skip_cleanup: true
-    on:
-        repo: ipython/ipython
-        all_branches: true  # Backports are released from e.g. 5.x branch
-        tags: true
-        python: 3.6  # Any version should work, but we only need one
+  provider: releases
+  api_key:
+    secure: Y/Ae9tYs5aoBU8bDjN2YrwGG6tCbezj/h3Lcmtx8HQavSbBgXnhnZVRb2snOKD7auqnqjfT/7QMm4ZyKvaOEgyggGktKqEKYHC8KOZ7yp8I5/UMDtk6j9TnXpSqqBxPiud4MDV76SfRYEQiaDoG4tGGvSfPJ9KcNjKrNvSyyxns=
+  file: dist/*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: ipython/ipython
+    all_branches: true  # Backports are released from e.g. 5.x branch
+    tags: true
+    python: 3.6  # Any version should work, but we only need one
+    condition: $TRAVIS_OS_NAME = "linux"
