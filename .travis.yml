@@ -36,32 +36,32 @@ before_install:
   - python --version
 
 install:
-    - pip install pip --upgrade
-    - pip install setuptools --upgrade
-    - pip install -e file://$PWD#egg=ipython[test] --upgrade
-    - pip install trio curio
-    - pip install codecov check-manifest --upgrade
+  - pip install pip --upgrade
+  - pip install setuptools --upgrade
+  - pip install -e file://$PWD#egg=ipython[test] --upgrade
+  - pip install trio curio
+  - pip install codecov check-manifest --upgrade
 
 script:
-    - check-manifest
-    - |
-      if [[ "$TRAVIS_PYTHON_VERSION" == "nightly" ]]; then
-         # on nightly fake parso known the grammar
-         cp /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar37.txt /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar38.txt
-      fi
-    - cd /tmp && iptest --coverage xml && cd -
-    # On the latest Python (on Linux) only, make sure that the docs build.
-    - |
-      if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        pip install -r docs/requirements.txt
-        python tools/fixup_whats_new_pr.py
-        make -C docs/ html SPHINXOPTS="-W"
-      fi
+  - check-manifest
+  - |
+    if [[ "$TRAVIS_PYTHON_VERSION" == "nightly" ]]; then
+       # on nightly fake parso known the grammar
+       cp /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar37.txt /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar38.txt
+    fi
+  - cd /tmp && iptest --coverage xml && cd -
+  # On the latest Python (on Linux) only, make sure that the docs build.
+  - |
+    if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      pip install -r docs/requirements.txt
+      python tools/fixup_whats_new_pr.py
+      make -C docs/ html SPHINXOPTS="-W"
+    fi
 
 after_success:
-    - cp /tmp/ipy_coverage.xml ./
-    - cp /tmp/.coverage ./
-    - codecov
+  - cp /tmp/ipy_coverage.xml ./
+  - cp /tmp/.coverage ./
+  - codecov
 
 matrix:
   include:
@@ -86,14 +86,14 @@ matrix:
     - python: nightly
 
 before_deploy:
-    - rm -rf dist/
-    - python setup.py sdist
-    - python setup.py bdist_wheel
+  - rm -rf dist/
+  - python setup.py sdist
+  - python setup.py bdist_wheel
 
 deploy:
   provider: releases
   api_key:
-      secure: Y/Ae9tYs5aoBU8bDjN2YrwGG6tCbezj/h3Lcmtx8HQavSbBgXnhnZVRb2snOKD7auqnqjfT/7QMm4ZyKvaOEgyggGktKqEKYHC8KOZ7yp8I5/UMDtk6j9TnXpSqqBxPiud4MDV76SfRYEQiaDoG4tGGvSfPJ9KcNjKrNvSyyxns=
+    secure: Y/Ae9tYs5aoBU8bDjN2YrwGG6tCbezj/h3Lcmtx8HQavSbBgXnhnZVRb2snOKD7auqnqjfT/7QMm4ZyKvaOEgyggGktKqEKYHC8KOZ7yp8I5/UMDtk6j9TnXpSqqBxPiud4MDV76SfRYEQiaDoG4tGGvSfPJ9KcNjKrNvSyyxns=
   file: dist/*
   file_glob: true
   skip_cleanup: true
