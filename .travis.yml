@@ -20,7 +20,6 @@ env:
 group: edge
 
 before_install:
-  - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
   - |
     # install Python on macOS
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
