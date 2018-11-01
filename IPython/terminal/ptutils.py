@@ -24,7 +24,10 @@ _completion_sentinel = object()
 
 def _elide(string, *, min_elide=30):
     """
-    If a string is long enough, and has at least 2 dots,
+    If a string is long enough, and has at least 3 dots,
+    replace the middle part with ellipses.
+
+    If a string naming a file is long enough, and has at least 3 slashes,
     replace the middle part with ellipses.
 
     If three consecutive dots, or two consecutive dots are encountered these are
@@ -36,12 +39,16 @@ def _elide(string, *, min_elide=30):
     if len(string) < min_elide:
         return string
 
-    parts = string.split('.')
+    object_parts = string.split('.')
+    file_parts = string.split('/')
 
-    if len(parts) <= 3:
-        return string
+    if len(object_parts) > 3:
+        return '{}.{}\N{HORIZONTAL ELLIPSIS}{}.{}'.format(parts[0], parts[1][0], parts[-2][-1], parts[-1])
 
-    return '{}.{}\N{HORIZONTAL ELLIPSIS}{}.{}'.format(parts[0], parts[1][0], parts[-2][-1], parts[-1])
+    elif len(file_parts) > 3:
+        return '{}/{}\N{HORIZONTAL ELLIPSIS}{}/{}'.format(parts[0], parts[1][0], parts[-2][-1], parts[-1])
+
+    return string
 
 
 def _adjust_completion_text_based_on_context(text, body, offset):
