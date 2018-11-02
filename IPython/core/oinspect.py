@@ -22,7 +22,7 @@ import os
 from textwrap import dedent
 import types
 import io as stdlib_io
-from itertools import zip_longest 
+from itertools import zip_longest
 
 # IPython's own
 from IPython.core import page
@@ -203,7 +203,7 @@ def is_simple_callable(obj):
 def getargspec(obj):
     """Wrapper around :func:`inspect.getfullargspec` on Python 3, and
     :func:inspect.getargspec` on Python 2.
-    
+
     In addition to functions and methods, this can also handle objects with a
     ``__call__`` attribute.
     """
@@ -327,7 +327,7 @@ def find_source_lines(obj):
       The line number where the object definition starts.
     """
     obj = _get_wrapped(obj)
-    
+
     try:
         try:
             lineno = inspect.getsourcelines(obj)[1]
@@ -582,7 +582,7 @@ class Inspector(Colorable):
 
     def _get_info(self, obj, oname='', formatter=None, info=None, detail_level=0):
         """Retrieve an info dict and format it.
-        
+
         Parameters
         ==========
 
@@ -639,6 +639,7 @@ class Inspector(Colorable):
 
             append_field(_mime, 'File', 'file')
             append_field(_mime, 'Type', 'type_name')
+            append_field(_mime, 'Subclasses', 'subclasses')
 
         else:
             # General Python objects
@@ -653,7 +654,7 @@ class Inspector(Colorable):
 
             append_field(_mime, 'Length', 'length')
             append_field(_mime, 'File', 'file')
-            
+
             # Source or docstring, depending on detail level and whether
             # source found.
             if detail_level > 0 and info['source']:
@@ -664,7 +665,7 @@ class Inspector(Colorable):
             append_field(_mime, 'Class docstring', 'class_docstring', formatter)
             append_field(_mime, 'Init docstring', 'init_docstring', formatter)
             append_field(_mime, 'Call docstring', 'call_docstring', formatter)
-            
+
 
         return self.format_mime(_mime)
 
@@ -859,6 +860,9 @@ class Inspector(Colorable):
             if init_ds:
                 out['init_docstring'] = init_ds
 
+            names = [sub.__name__ for sub in obj.__subclasses__()]
+            all_names = ', '.join(names)
+            out['subclasses'] = all_names
         # and class docstring for instances:
         else:
             # reconstruct the function definition and print it:
