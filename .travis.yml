@@ -15,6 +15,12 @@ group: edge
 before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
 install:
+    - |
+      if [[ "$TRAVIS_PYTHON_VERSION" == "3.3" ]]; then
+        pip install 'pip<18' --upgrade
+      else
+        pip install pip --upgrade
+      fi
     - pip install pip --upgrade
     - pip install setuptools --upgrade
     - pip install -e file://$PWD#egg=ipython[test] --upgrade
