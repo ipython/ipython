@@ -753,7 +753,7 @@ class Inspector(Colorable):
                 ds = '<no docstring>'
 
         # store output in a dict, we initialize it here and fill it as we go
-        out = dict(name=oname, found=True, isalias=isalias, ismagic=ismagic)
+        out = dict(name=oname, found=True, isalias=isalias, ismagic=ismagic, subclasses=None)
 
         string_max = 200 # max size of strings to show (snipped if longer)
         shalf = int((string_max - 5) / 2)
