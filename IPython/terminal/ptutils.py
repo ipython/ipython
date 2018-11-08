@@ -19,6 +19,7 @@ from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.patch_stdout import patch_stdout
 
 import pygments.lexers as pygments_lexers
+import os
 
 _completion_sentinel = object()
 
@@ -40,13 +41,13 @@ def _elide(string, *, min_elide=30):
         return string
 
     object_parts = string.split('.')
-    file_parts = string.split('/')
+    file_parts = string.split(os.sep)
 
     if len(object_parts) > 3:
-        return '{}.{}\N{HORIZONTAL ELLIPSIS}{}.{}'.format(parts[0], parts[1][0], parts[-2][-1], parts[-1])
+        return '{}.{}\N{HORIZONTAL ELLIPSIS}{}.{}'.format(object_parts[0], object_parts[1][0], object_parts[-2][-1], object_parts[-1])
 
     elif len(file_parts) > 3:
-        return '{}/{}\N{HORIZONTAL ELLIPSIS}{}/{}'.format(parts[0], parts[1][0], parts[-2][-1], parts[-1])
+        return '{}/{}\N{HORIZONTAL ELLIPSIS}{}/{}'.format(file_parts[0], file_parts[1][0], file_parts[-2][-1], file_parts[-1])
 
     return string
 
