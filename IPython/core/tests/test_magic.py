@@ -23,7 +23,7 @@ from IPython.core.error import UsageError
 from IPython.core.magic import (Magics, magics_class, line_magic,
                                 cell_magic,
                                 register_line_magic, register_cell_magic)
-from IPython.core.magics import execution, script, code, logging
+from IPython.core.magics import execution, script, code, logging, osm
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils.io import capture_output
@@ -433,7 +433,7 @@ def test_parse_options():
     nt.assert_equal(m.parse_options('foo', '')[1], 'foo')
     nt.assert_equal(m.parse_options(u'foo', '')[1], u'foo')
 
-    
+
 def test_dirops():
     """Test various directory handling operations."""
     # curpath = lambda :os.path.splitdrive(os.getcwd())[1].replace('\\','/')
@@ -449,6 +449,23 @@ def test_dirops():
         nt.assert_equal(curpath(), ipdir)
         _ip.magic('popd')
         nt.assert_equal(curpath(), startdir)
+    finally:
+        os.chdir(startdir)
+
+
+def test_cd_force_quiet():
+    """Test OSMagics.cd_force_quiet option"""
+    _ip.config.OSMagics.cd_force_quiet = True
+    osmagics = osm.OSMagics(shell=_ip)
+
+    startdir = os.getcwd()
+    ipdir = os.path.realpath(_ip.ipython_dir)
+
+    try:
+        with tt.AssertNotPrints(ipdir):
+            osmagics.cd('"%s"' % ipdir)
+        with tt.AssertNotPrints(startdir):
+            osmagics.cd('-')
     finally:
         os.chdir(startdir)
 
