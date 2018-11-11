@@ -225,6 +225,10 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Allows to enable/disable the prompt toolkit history search"
     ).tag(config=True)
 
+    prompt_includes_vi_mode = Bool(True,
+        help="Display the current vi mode (when using vi editing mode)."
+    ).tag(config=True)
+
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
