@@ -258,13 +258,17 @@ class Demo(object):
         self.auto_all = auto_all
         self.src = src
 
-        self.inside_ipython = "get_ipython" in globals()
+        try:
+            ip = get_ipython()  # this is in builtins whenever IPython is running
+            self.inside_ipython = True
+        except NameError:
+            self.inside_ipython = False
+
         if self.inside_ipython:
             # get a few things from ipython.  While it's a bit ugly design-wise,
             # it ensures that things like color scheme and the like are always in
             # sync with the ipython mode being used.  This class is only meant to
             # be used inside ipython anyways,  so it's OK.
-            ip = get_ipython()  # this is in builtins whenever IPython is running
             self.ip_ns       = ip.user_ns
             self.ip_colorize = ip.pycolorize
             self.ip_showtb   = ip.showtraceback
