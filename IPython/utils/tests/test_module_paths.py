@@ -28,7 +28,8 @@ import nose.tools as nt
 
 env = os.environ
 TEST_FILE_PATH = split(abspath(__file__))[0]
-TMP_TEST_DIR = tempfile.mkdtemp()
+
+TMP_TEST_DIR = tempfile.mkdtemp(suffix='with.dot')
 #
 # Setup/teardown functions/decorators
 #
@@ -65,6 +66,13 @@ def teardown():
     # that non-empty directories are all recursively removed.
     shutil.rmtree(TMP_TEST_DIR)
     sys.path = old_syspath
+
+def test_tempdir():
+    """
+    Ensure the test are done with a temporary file that have a dot somewhere.
+    """
+    nt.assert_in('.',TMP_TEST_DIR)
+
 
 def test_find_mod_1():
     """

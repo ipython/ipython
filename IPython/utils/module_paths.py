@@ -64,7 +64,7 @@ def find_mod(module_name):
         return None
     else:
         split_path = module_path.split(".")
-        if split_path[1] in ["py", "pyw"]:
+        if split_path[-1] in ["py", "pyw"]:
             return module_path
         else:
             return None
