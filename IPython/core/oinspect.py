@@ -1028,15 +1028,15 @@ def _render_signature(obj_signature, obj_name):
     pos_only = False
     kw_only = True
     for param in obj_signature.parameters.values():
-        if param.kind == _POSITIONAL_ONLY:
+        if param.kind == inspect._POSITIONAL_ONLY:
             pos_only = True
         elif pos_only:
             result.append('/')
             pos_only = False
 
-        if param.kind == _VAR_POSITIONAL:
+        if param.kind == inspect._VAR_POSITIONAL:
             kw_only = False
-        elif param.kind == _KEYWORD_ONLY and kw_only:
+        elif param.kind == inspect._KEYWORD_ONLY and kw_only:
             result.append('*')
             kw_only = False
 
@@ -1052,8 +1052,8 @@ def _render_signature(obj_signature, obj_name):
     else:
         rendered = '{}({})'.format(obj_name, ', '.join(result))
 
-    if obj_signature.return_annotation is not _empty:
-        anno = formatannotation(obj_signature.return_annotation)
+    if obj_signature.return_annotation is not inspect._empty:
+        anno = inspect.formatannotation(obj_signature.return_annotation)
         rendered += ' -> {}'.format(anno)
 
     return rendered
