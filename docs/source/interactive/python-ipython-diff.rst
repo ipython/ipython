@@ -105,7 +105,7 @@ and if possible display the python source code of this object.
 .. code-block:: ipython
 
     In[1]: import collections
-    In[2]: collection.Counter??
+    In[2]: collections.Counter??
 
     Init signature: collections.Counter(*args, **kwds)
     Source:
