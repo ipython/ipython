@@ -362,7 +362,7 @@ class Inspector(Colorable):
         If any exception is generated, None is returned instead and the
         exception is suppressed."""
         try:
-            hdef = self._render_signature(oname)
+            hdef = self._render_signature(signature(obj), oname)
             return cast_unicode(hdef)
         except:
             return None
@@ -1018,7 +1018,7 @@ class Inspector(Colorable):
         page.page('\n'.join(sorted(search_result)))
 
 
-    def _render_signature(self, oname):
+    def _render_signature(obj_signature, obj_name):
         """
         This was mostly taken from inspect.Signature.__str__.
         Look there for the comments.
@@ -1027,7 +1027,7 @@ class Inspector(Colorable):
         result = []
         pos_only = False
         kw_only = True
-        for param in self.parameters.values():
+        for param in obj_signature.parameters.values():
             if param.kind == _POSITIONAL_ONLY:
                 pos_only = True
             elif pos_only:
@@ -1046,14 +1046,14 @@ class Inspector(Colorable):
             result.append('/')
 
         # add up name, parameters, braces (2), and commas
-        if len(oname) + sum(len(r) + 2 for r in result) > 75:
+        if len(obj_name) + sum(len(r) + 2 for r in result) > 75:
             # This doesn’t fit behind “Signature: ” in an inspect window.
-            rendered = '(\n{})'.format(''.join('    {},\n'.format(result)))
+            rendered = '{}(\n{})'.format(obj_name, ''.join('    {},\n'.format(result)))
         else:
-            rendered = '({})'.format(', '.join(result))
+            rendered = '{}({})'.format(obj_name, ', '.join(result))
 
-        if self.return_annotation is not _empty:
-            anno = formatannotation(self.return_annotation)
+        if obj_signature.return_annotation is not _empty:
+            anno = formatannotation(obj_signature.return_annotation)
             rendered += ' -> {}'.format(anno)
 
         return rendered
