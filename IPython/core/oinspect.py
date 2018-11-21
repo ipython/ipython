@@ -362,7 +362,7 @@ class Inspector(Colorable):
         If any exception is generated, None is returned instead and the
         exception is suppressed."""
         try:
-            hdef = self._render_signature(signature(obj), oname)
+            hdef = _render_signature(signature(obj), oname)
             return cast_unicode(hdef)
         except:
             return None
@@ -1018,42 +1018,42 @@ class Inspector(Colorable):
         page.page('\n'.join(sorted(search_result)))
 
 
-    def _render_signature(obj_signature, obj_name):
-        """
-        This was mostly taken from inspect.Signature.__str__.
-        Look there for the comments.
-        The only change is to add linebreaks when this gets too long.
-        """
-        result = []
-        pos_only = False
-        kw_only = True
-        for param in obj_signature.parameters.values():
-            if param.kind == _POSITIONAL_ONLY:
-                pos_only = True
-            elif pos_only:
-                result.append('/')
-                pos_only = False
-
-            if param.kind == _VAR_POSITIONAL:
-                kw_only = False
-            elif param.kind == _KEYWORD_ONLY and kw_only:
-                result.append('*')
-                kw_only = False
-
-            result.append(str(param))
-
-        if pos_only:
+def _render_signature(obj_signature, obj_name):
+    """
+    This was mostly taken from inspect.Signature.__str__.
+    Look there for the comments.
+    The only change is to add linebreaks when this gets too long.
+    """
+    result = []
+    pos_only = False
+    kw_only = True
+    for param in obj_signature.parameters.values():
+        if param.kind == _POSITIONAL_ONLY:
+            pos_only = True
+        elif pos_only:
             result.append('/')
+            pos_only = False
 
-        # add up name, parameters, braces (2), and commas
-        if len(obj_name) + sum(len(r) + 2 for r in result) > 75:
-            # This doesn’t fit behind “Signature: ” in an inspect window.
-            rendered = '{}(\n{})'.format(obj_name, ''.join('    {},\n'.format(result)))
-        else:
-            rendered = '{}({})'.format(obj_name, ', '.join(result))
+        if param.kind == _VAR_POSITIONAL:
+            kw_only = False
+        elif param.kind == _KEYWORD_ONLY and kw_only:
+            result.append('*')
+            kw_only = False
 
-        if obj_signature.return_annotation is not _empty:
-            anno = formatannotation(obj_signature.return_annotation)
-            rendered += ' -> {}'.format(anno)
+        result.append(str(param))
 
-        return rendered
+    if pos_only:
+        result.append('/')
+
+    # add up name, parameters, braces (2), and commas
+    if len(obj_name) + sum(len(r) + 2 for r in result) > 75:
+        # This doesn’t fit behind “Signature: ” in an inspect window.
+        rendered = '{}(\n{})'.format(obj_name, ''.join('    {},\n'.format(result)))
+    else:
+        rendered = '{}({})'.format(obj_name, ', '.join(result))
+
+    if obj_signature.return_annotation is not _empty:
+        anno = formatannotation(obj_signature.return_annotation)
+        rendered += ' -> {}'.format(anno)
+
+    return rendered
