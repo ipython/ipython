@@ -115,6 +115,9 @@ class NonAsciiTest(unittest.TestCase):
         with tt.AssertPrints(u"Exception: é"):
             ip.run_cell(cell)
 
+        # Put this back into Context mode for later tests.
+        ip.run_cell("%xmode context")
+
 class NestedGenExprTestCase(unittest.TestCase):
     """
     Regression test for the following issues:
