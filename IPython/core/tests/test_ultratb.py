@@ -111,6 +111,9 @@ class NonAsciiTest(unittest.TestCase):
         with tt.AssertPrints(expected):
             ip.run_cell(cell)
 
+        ip.run_cell("%xmode minimal")
+        with tt.AssertPrints(u"Exception: é"):
+            ip.run_cell(cell)
 
 class NestedGenExprTestCase(unittest.TestCase):
     """

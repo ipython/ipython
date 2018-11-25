@@ -1251,7 +1251,7 @@ class FormattedTB(VerboseTB, ListTB):
                  parent=None, config=None):
 
         # NEVER change the order of this list. Put new modes at the end:
-        self.valid_modes = ['Plain', 'Context', 'Verbose']
+        self.valid_modes = ['Plain', 'Context', 'Verbose', 'Minimal']
         self.verbose_modes = self.valid_modes[1:3]
 
         VerboseTB.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
@@ -1262,7 +1262,8 @@ class FormattedTB(VerboseTB, ListTB):
 
         # Different types of tracebacks are joined with different separators to
         # form a single string.  They are taken from this dict
-        self._join_chars = dict(Plain='', Context='\n', Verbose='\n')
+        self._join_chars = dict(Plain='', Context='\n', Verbose='\n',
+                                Minimal='')
         # set_mode also sets the tb_join_char attribute
         self.set_mode(mode)
 
@@ -1280,6 +1281,8 @@ class FormattedTB(VerboseTB, ListTB):
             return VerboseTB.structured_traceback(
                 self, etype, value, tb, tb_offset, number_of_lines_of_context
             )
+        elif mode == 'Minimal':
+            return ListTB.get_exception_only(self, etype, value)
         else:
             # We must check the source cache because otherwise we can print
             # out-of-date source code.
@@ -1323,6 +1326,9 @@ class FormattedTB(VerboseTB, ListTB):
 
     def verbose(self):
         self.set_mode(self.valid_modes[2])
+
+    def minimal(self):
+        self.set_mode(self.valid_modes[3])
 
 
 #----------------------------------------------------------------------------
