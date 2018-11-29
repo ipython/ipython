@@ -466,10 +466,35 @@ python-profiler package from non-free.""")
 
     @line_magic
     def tb(self, s):
-        """Print the last traceback with the currently active exception mode.
+        """Print the last traceback.
 
-        See %xmode for changing exception reporting modes."""
-        self.shell.showtraceback()
+        Optionally, specify an exception reporting mode, tuning the
+        verbosity of the traceback. By default the currently-active exception
+        mode is used. See %xmode for changing exception reporting modes.
+
+        Valid modes: Plain, Context, Verbose, and Minimal.
+        """
+        interactive_tb = self.shell.InteractiveTB
+        if s:
+            # Switch exception reporting mode for this one call.
+            # Ensure it is switched back.
+            def xmode_switch_err(name):
+                warn('Error changing %s exception modes.\n%s' %
+                    (name,sys.exc_info()[1]))
+
+            new_mode = s.strip().capitalize()
+            original_mode = interactive_tb.mode
+            try:
+                try:
+                    interactive_tb.set_mode(mode=new_mode)
+                except Exception:
+                    xmode_switch_err('user')
+                else:
+                    self.shell.showtraceback()
+            finally:
+                interactive_tb.set_mode(mode=original_mode)
+        else:
+            self.shell.showtraceback()
 
     @skip_doctest
     @line_magic

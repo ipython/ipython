@@ -580,7 +580,7 @@ class InteractiveShell(SingletonConfigurable):
     separate_out = SeparateUnicode('').tag(config=True)
     separate_out2 = SeparateUnicode('').tag(config=True)
     wildcards_case_sensitive = Bool(True).tag(config=True)
-    xmode = CaselessStrEnum(('Context','Plain', 'Verbose'),
+    xmode = CaselessStrEnum(('Context', 'Plain', 'Verbose', 'Minimal'),
                             default_value='Context',
                             help="Switch modes for the IPython exception handlers."
                             ).tag(config=True)
@@ -1788,7 +1788,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # The interactive one is initialized with an offset, meaning we always
         # want to remove the topmost item in the traceback, which is our own
-        # internal code. Valid modes: ['Plain','Context','Verbose']
+        # internal code. Valid modes: ['Plain','Context','Verbose','Minimal']
         self.InteractiveTB = ultratb.AutoFormattedTB(mode = 'Plain',
                                                      color_scheme='NoColor',
                                                      tb_offset = 1,
