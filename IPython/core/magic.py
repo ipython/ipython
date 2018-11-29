@@ -278,7 +278,7 @@ def no_var_expand(magic_func):
     (%timeit, %time, etc.).
     Decorate magics with `@no_var_expand` to opt-out of variable expansion.
 
-    .. versionadded:: 7.2
+    .. versionadded:: 7.3
     """
     setattr(magic_func, MAGIC_NO_VAR_EXPAND_ATTR, True)
     return magic_func

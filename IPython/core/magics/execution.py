@@ -296,7 +296,7 @@ python-profiler package from non-free.""")
 
           In [1]: import profile; profile.help()
 
-        .. versionchanged:: 7.2
+        .. versionchanged:: 7.3
             User variables are no longer expanded,
             the magic line is always left unmodified.
 
@@ -451,7 +451,7 @@ python-profiler package from non-free.""")
         If you want IPython to automatically do this on every exception, see
         the %pdb magic for more details.
 
-        .. versionchanged:: 7.2
+        .. versionchanged:: 7.3
             When running code, user variables are no longer expanded,
             the magic line is always left unmodified.
 
@@ -1031,7 +1031,7 @@ python-profiler package from non-free.""")
         -o: return a TimeitResult that can be stored in a variable to inspect
             the result in more details.
 
-        .. versionchanged:: 7.2
+        .. versionchanged:: 7.3
             User variables are no longer expanded,
             the magic line is always left unmodified.
 
@@ -1199,7 +1199,7 @@ python-profiler package from non-free.""")
         This function provides very basic timing functionality.  Use the timeit
         magic for more control over the measurement.
 
-        .. versionchanged:: 7.2
+        .. versionchanged:: 7.3
             User variables are no longer expanded,
             the magic line is always left unmodified.
 
