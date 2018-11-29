@@ -2,6 +2,58 @@
  7.x Series
 ============
 
+.. _whatsnew720:
+
+IPython 7.2.0
+=============
+
+IPython 7.2.0 bring minor fixes, improvement and new options.
+
+ - Fix a bug preventing to enable PySide2 gui integration :ghpull:`11464`
+ - Run CI on Mac OS ! :ghpull:`11471`
+ - Fix IPython "Demo" mode. :ghpull:`11498`
+ - Fix ``%run`` magic  with path in name :ghpull:`11499`
+ - Fix: add CWD to sys.path *after* stdlib :ghpull:`11502`
+ - Better rendering of signatures, especially long ones. :ghpull:`11505`
+ - Re enable jedi by default if installed :ghpull:`11506`
+ - Add New ``minimal`` exception reporting mode (useful for educational purpose). See :ghpull:`11509`
+
+
+Added ability to show subclasses when using pinfo and other utilities
+---------------------------------------------------------------------
+
+When using ``?``/``??`` on a class, IPython will now list the first 10 subclasses.
+
+Special Thanks to Chris Mentzel of the Moore Foundation for this feature, Chris
+is one of the people who played a critical role in IPython/Jupyter getting
+funding.
+
+We are grateful for all the help Chris gave us through the years, We are now
+proud to have code contributed by Chris in IPython.
+
+OSMagics.cd_force_quiet configuration option
+--------------------------------------------
+
+You can set this option to force the %cd magic to behave as if ``-q`` was passed:
+::
+
+    In [1]: cd /
+    /
+
+    In [2]: %config OSMagics.cd_force_quiet = True
+
+    In [3]: cd /tmp
+
+    In [4]:
+
+See :ghpull:`11491`
+
+In vi editing mode, whether the prompt includes the current vi mode can now be configured
+-----------------------------------------------------------------------------------------
+
+Set the ``TerminalInteractiveShell.prompt_includes_vi_mode`` to a boolean value
+(default: True) to control this feature. See :ghpull:`11492`
+
 .. _whatsnew710:
 
 IPython 7.1.0

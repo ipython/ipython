@@ -861,7 +861,10 @@ class Inspector(Colorable):
                 out['init_docstring'] = init_ds
 
             names = [sub.__name__ for sub in obj.__subclasses__()]
-            all_names = ', '.join(names)
+            if len(names) < 10:
+                all_names = ', '.join(names)
+            else:
+                all_names = ', '.join(names[:10]+['...'])
             out['subclasses'] = all_names
         # and class docstring for instances:
         else:
