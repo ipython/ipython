@@ -7,15 +7,15 @@
 IPython 7.2.0
 =============
 
-IPython 7.2.0 bring minor fixes, improvement and new options.
+IPython 7.2.0 brings minor bugfixes, improvements, and new configuration options:
 
- - Fix a bug preventing to enable PySide2 gui integration :ghpull:`11464`
+ - Fix a bug preventing PySide2 GUI integration from working :ghpull:`11464`
  - Run CI on Mac OS ! :ghpull:`11471`
  - Fix IPython "Demo" mode. :ghpull:`11498`
  - Fix ``%run`` magic  with path in name :ghpull:`11499`
  - Fix: add CWD to sys.path *after* stdlib :ghpull:`11502`
  - Better rendering of signatures, especially long ones. :ghpull:`11505`
- - Re enable jedi by default if installed :ghpull:`11506`
+ - Re-enable jedi by default if it's installed :ghpull:`11506`
  - Add New ``minimal`` exception reporting mode (useful for educational purpose). See :ghpull:`11509`
 
 
@@ -24,12 +24,12 @@ Added ability to show subclasses when using pinfo and other utilities
 
 When using ``?``/``??`` on a class, IPython will now list the first 10 subclasses.
 
-Special Thanks to Chris Mentzel of the Moore Foundation for this feature, Chris
+Special Thanks to Chris Mentzel of the Moore Foundation for this feature. Chris
 is one of the people who played a critical role in IPython/Jupyter getting
 funding.
 
-We are grateful for all the help Chris gave us through the years, We are now
-proud to have code contributed by Chris in IPython.
+We are grateful for all the help Chris has given us over the years,
+and we're now proud to have code contributed by Chris in IPython.
 
 OSMagics.cd_force_quiet configuration option
 --------------------------------------------
@@ -59,27 +59,27 @@ Set the ``TerminalInteractiveShell.prompt_includes_vi_mode`` to a boolean value
 IPython 7.1.0
 =============
 
-IPython 7.1.0 is the first minor release after 7.0.0 and mostly bring fixes to
-new feature, internal refactor and regressions that happen during the 6.x->7.x
-transition. It also bring **Compatibility with Python 3.7.1**, as were
+IPython 7.1.0 is the first minor release after 7.0.0 and mostly brings fixes to
+new features, internal refactoring, and fixes for regressions that happened during the 6.x->7.x
+transition. It also brings **Compatibility with Python 3.7.1**, as we're
 unwillingly relying on a bug in CPython.
 
 New Core Dev:
 
  - We welcome Jonathan Slenders to the commiters. Jonathan has done a fantastic
-   work on Prompt toolkit, and we'd like to recognise his impact by giving him
+   work on prompt_toolkit, and we'd like to recognise his impact by giving him
    commit rights. :ghissue:`11397`
 
-Notables Changes
+Notable Changes
 
  - Major update of "latex to unicode" tab completion map (see below)
 
 Notable New Features:
 
  - Restore functionality and documentation of the **sphinx directive**, which
-   is now stricter (fail on error by default), gained configuration options,
-   have a brand new documentation page :ref:`ipython_directive`, which need
-   some cleanup. It is also now *tested* so we hope to have less regressions.
+   is now stricter (fail on error by daefault), has new configuration options,
+   has a brand new documentation page :ref:`ipython_directive` (which needs
+   some cleanup). It is also now *tested* so we hope to have less regressions.
    :ghpull:`11402`
 
  - ``IPython.display.Video`` now supports ``width`` and ``height`` arguments,
@@ -91,23 +91,24 @@ Notable New Features:
  - Allow Dynamic switching of editing mode between vi/emacs and show
    normal/input mode in prompt when using vi. :ghpull:`11390`. Use ``%config
    TerminalInteractiveShell.editing_mode = 'vi'`` or ``%config
-   TerminalInteractiveShell.editing_mode = 'emacs'`` to dynamically spwitch
+   TerminalInteractiveShell.editing_mode = 'emacs'`` to dynamically switch
+   between modes.
 
 
 Notable Fixes:
 
- - Fix entering of **multi-line block in terminal** IPython, and various
+ - Fix entering of **multi-line blocks in terminal** IPython, and various
    crashes in the new input transformation machinery :ghpull:`11354`,
-   :ghpull:`11356`, :ghpull:`11358`, these ones also fix a **Compatibility but
+   :ghpull:`11356`, :ghpull:`11358`. These also fix a **Compatibility bug
    with Python 3.7.1**.
 
  - Fix moving through generator stack in ipdb :ghpull:`11266`
 
- - Magics arguments now support quoting. :ghpull:`11330`
+ - %Magic command arguments now support quoting. :ghpull:`11330`
 
  - Re-add ``rprint`` and ``rprinte`` aliases. :ghpull:`11331`
 
- - Remove implicit dependency to ``ipython_genutils`` :ghpull:`11317`
+ - Remove implicit dependency on ``ipython_genutils`` :ghpull:`11317`
 
  - Make ``nonlocal`` raise ``SyntaxError`` instead of silently failing in async
    mode. :ghpull:`11382`
@@ -120,16 +121,16 @@ Notable Fixes:
 
 Notable Internals improvements:
 
- - Use of ``os.scandir`` (Python 3 only) to speedup some file system operations.
+ - Use of ``os.scandir`` (Python 3 only) to speed up some file system operations.
    :ghpull:`11365`
 
  - use ``perf_counter`` instead of ``clock`` for more precise
-   timing result with ``%time`` :ghpull:`11376`
+   timing results with ``%time`` :ghpull:`11376`
 
-Many thanks to all the contributors and in particular to ``bartskowron``, and
-``tonyfast`` who handled a pretty complicated bugs in the input machinery. We
-had a number of first time contributors and maybe hacktoberfest participant that
-made significant contributions, and helped us free some time to focus on more
+Many thanks to all the contributors and in particular to ``bartskowron`` and
+``tonyfast`` who handled some pretty complicated bugs in the input machinery. We
+had a number of first time contributors and maybe hacktoberfest participants that
+made significant contributions and helped us free some time to focus on more
 complicated bugs.
 
 You
@@ -147,21 +148,21 @@ Added and removed character characters:
  ``\jmath`` (``ȷ``), ``\\underleftrightarrow`` (U+034D, combining) have been
  added, while ``\\textasciicaron`` have been removed
 
-Some sequence have seen their prefix removed:
+Some sequences have seen their prefix removed:
 
  - 6 characters ``\text...<tab>`` should now be inputed with ``\...<tab>`` directly,
  - 45 characters ``\Elz...<tab>`` should now be inputed with ``\...<tab>`` directly,
  - 65 characters ``\B...<tab>`` should now be inputed with ``\...<tab>`` directly,
  - 450 characters ``\m...<tab>`` should now be inputed with ``\...<tab>`` directly,
 
-Some sequence have seen their prefix shortened:
+Some sequences have seen their prefix shortened:
 
  - 5 characters ``\mitBbb...<tab>`` should now be inputed with ``\bbi...<tab>`` directly,
  - 52 characters ``\mit...<tab>`` should now be inputed with ``\i...<tab>`` directly,
  - 216 characters ``\mbfit...<tab>`` should now be inputed with ``\bi...<tab>`` directly,
  - 222 characters ``\mbf...<tab>`` should now be inputed with ``\b...<tab>`` directly,
 
-A couple of character had their sequence simplified:
+A couple of characters had their sequence simplified:
 
  - ``ð``, type ``\dh<tab>``, instead of ``\eth<tab>``
  - ``ħ``, type ``\hbar<tab>``, instead of ``\Elzxh<tab>``
@@ -174,8 +175,8 @@ A couple of character had their sequence simplified:
 
 A couple of sequences have been updated:
 
- - ``\varepsilon`` now give ``ɛ`` (GREEK SMALL LETTER EPSILON) instead of ``ε`` (GREEK LUNATE EPSILON SYMBOL),
- - ``\underbar`` now give U+0331 (COMBINING MACRON BELOW) instead of U+0332 (COMBINING LOW LINE).
+ - ``\varepsilon`` now gives ``ɛ`` (GREEK SMALL LETTER EPSILON) instead of ``ε`` (GREEK LUNATE EPSILON SYMBOL),
+ - ``\underbar`` now gives U+0331 (COMBINING MACRON BELOW) instead of U+0332 (COMBINING LOW LINE).
 
 
 .. _whatsnew700:
@@ -185,20 +186,20 @@ IPython 7.0.0
 
 Released Thursday September 27th, 2018
 
-IPython 7 include major features improvement as you can read in the following
-changelog. This is also the second major version of IPython to support only
-Python 3 – starting at Python 3.4. Python 2 is still community supported
+IPython 7 includes major feature improvements.
+This is also the second major version of IPython to support only
+Python 3 – starting at Python 3.4. Python 2 is still community-supported
 on the bugfix only 5.x branch, but we remind you that Python 2 "end of life"
 is on Jan 1st 2020.
 
 We were able to backport bug fixes to the 5.x branch thanks to our backport bot which
 backported more than `70 Pull-Requests
-<https://github.com/ipython/ipython/pulls?page=3&q=is%3Apr+sort%3Aupdated-desc+author%3Aapp%2Fmeeseeksdev++5.x&utf8=%E2%9C%93>`_, but there are still many PRs that required manually work, and this is an area of the project were you can easily contribute by looking for `PRs still needed backport <https://github.com/ipython/ipython/issues?q=label%3A%22Still+Needs+Manual+Backport%22+is%3Aclosed+sort%3Aupdated-desc>`_
+<https://github.com/ipython/ipython/pulls?page=3&q=is%3Apr+sort%3Aupdated-desc+author%3Aapp%2Fmeeseeksdev++5.x&utf8=%E2%9C%93>`_, but there are still many PRs that required manual work. This is an area of the project where you can easily contribute by looking for `PRs that still need manual backport <https://github.com/ipython/ipython/issues?q=label%3A%22Still+Needs+Manual+Backport%22+is%3Aclosed+sort%3Aupdated-desc>`_
 
-IPython 6.x branch will likely not see any further release unless critical
+The IPython 6.x branch will likely not see any further release unless critical
 bugs are found.
 
-Make sure you have pip > 9.0 before upgrading. You should be able to update by simply running
+Make sure you have pip > 9.0 before upgrading. You should be able to update by running:
 
 .. code::
 
@@ -214,7 +215,7 @@ Make sure you have pip > 9.0 before upgrading. You should be able to update by s
       pip install ipython --upgrade --pre
 
 
-Or if you have conda installed: 
+Or, if you have conda installed: 
 
 .. code::
    
@@ -225,16 +226,16 @@ Or if you have conda installed:
 Prompt Toolkit 2.0
 ------------------
 
-IPython 7.0+ now uses ``prompt_toolkit 2.0``, if you still need to use earlier
-``prompt_toolkit`` version you may need to pin IPython to ``<7.0``.
+IPython 7.0+ now uses ``prompt_toolkit 2.0``. If you still need to use an earlier
+``prompt_toolkit`` version, you may need to pin IPython to ``<7.0``.
 
 Autowait: Asynchronous REPL
 ---------------------------
 
-Staring with IPython 7.0 and on Python 3.6+, IPython can automatically await
-code at top level, you should not need to access an event loop or runner
-yourself. To know more read the :ref:`autoawait` section of our docs, see
-:ghpull:`11265` or try the following code::
+Staring with IPython 7.0 on Python 3.6+, IPython can automatically ``await``
+top level code. You should not need to access an event loop or runner
+yourself. To learn more, read the :ref:`autoawait` section of our docs, see
+:ghpull:`11265`, or try the following code::
 
     Python 3.6.0
     Type 'copyright', 'credits' or 'license' for more information
@@ -258,8 +259,8 @@ yourself. To know more read the :ref:`autoawait` section of our docs, see
    Async integration is experimental code, behavior may change or be removed
    between Python and IPython versions without warnings.
 
-Integration is by default with `asyncio`, but other libraries can be configured,
-like ``curio`` or ``trio``, to improve concurrency in the REPL::
+Integration is by default with `asyncio`, but other libraries can be configured --
+like ``curio`` or ``trio`` -- to improve concurrency in the REPL::
 
     In [1]: %autoawait trio
 
@@ -289,14 +290,14 @@ See :ref:`autoawait` for more information.
 
 
 Asynchronous code in a Notebook interface or any other frontend using the
-Jupyter Protocol will need further updates of the IPykernel package.
+Jupyter Protocol will require further updates to the IPykernel package.
 
 Non-Asynchronous code
 ~~~~~~~~~~~~~~~~~~~~~
 
 As the internal API of IPython is now asynchronous, IPython needs to run under
 an event loop. In order to allow many workflows, (like using the :magic:`%run`
-magic, or copy_pasting code that explicitly starts/stop event loop), when
+magic, or copy-pasting code that explicitly starts/stop event loop), when
 top-level code is detected as not being asynchronous, IPython code is advanced
 via a pseudo-synchronous runner, and may not advance pending tasks.
 
@@ -304,28 +305,29 @@ Change to Nested Embed
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The introduction of the ability to run async code had some effect on the
-``IPython.embed()`` API. By default embed will not allow you to run asynchronous
-code unless a event loop is specified.
+``IPython.embed()`` API. By default, embed will not allow you to run asynchronous
+code unless an event loop is specified.
 
 Effects on Magics
 ~~~~~~~~~~~~~~~~~
 
-Some magics will not work with Async, and will need updates. Contribution
-welcome.
+Some magics will not work with async until they're updated.
+Contributions welcome.
 
 Expected Future changes
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-We expect more internal but public IPython function to become ``async``, and
-will likely end up having a persisting event loop while IPython is running.
+We expect more internal but public IPython functions to become ``async``, and
+will likely end up having a persistent event loop while IPython is running.
 
 Thanks
 ~~~~~~
 
-This took more than a year in the making, and the code was rebased a number of
-time leading to commit authorship that may have been lost in the final
+This release took more than a year in the making.
+The code was rebased a number of
+times; leading to commit authorship that may have been lost in the final
 Pull-Request. Huge thanks to many people for contribution, discussion, code,
-documentation, use-case: dalejung, danielballan, ellisonbg, fperez, gnestor,
+documentation, use-cases: dalejung, danielballan, ellisonbg, fperez, gnestor,
 minrk, njsmith, pganssle, tacaswell, takluyver , vidartf ... And many others.
 
 
@@ -337,11 +339,11 @@ classes. Earlier, only methods existing as of the initial import were being
 tracked and updated.  
 
 This new feature helps dual environment development - Jupyter+IDE - where the
-code gradually moves from notebook cells to package files, as it gets
+code gradually moves from notebook cells to package files as it gets
 structured.
 
 **Example**: An instance of the class ``MyClass`` will be able to access the
-method ``cube()`` after it is uncommented and the file ``file1.py`` saved on
+method ``cube()`` after it is uncommented and the file ``file1.py`` is saved on
 disk.
 
 
@@ -391,7 +393,7 @@ notebook). The behavior can be disable by passing the ``--no-raise-error`` flag.
 Deprecations
 ------------
 
-A couple of unused function and methods have been deprecated and will be removed
+A couple of unused functions and methods have been deprecated and will be removed
 in future versions:
 
   - ``IPython.utils.io.raw_print_err``
@@ -402,5 +404,5 @@ Backwards incompatible changes
 ------------------------------
 
 * The API for transforming input before it is parsed as Python code has been
-  completely redesigned, and any custom input transformations will need to be
+  completely redesigned: any custom input transformations will need to be
   rewritten. See :doc:`/config/inputtransforms` for details of the new API.
