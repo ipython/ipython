@@ -215,19 +215,25 @@ We encourage creating a test build of the docs as well.
 
 Commit the changes to release.py::
 
-    git commit -am "release $VERSION"
+    git commit -am "release $VERSION" -S
     git push origin $BRANCH
+
+(omit the ``-S`` if you are no signing the package)
 
 Create and push the tag::
 
-    git tag -am "release $VERSION" "$VERSION"
+    git tag -am "release $VERSION" "$VERSION" -S
     git push origin $VERSION
+
+(omit the ``-S`` if you are no signing the package)
 
 Update release.py back to ``x.y-dev`` or ``x.y-maint``, and re-add the
 ``development`` entry in ``docs/source/whatsnew/index.rst`` and push::
 
-    git commit -am "back to development"
+    git commit -am "back to development" -S
     git push origin $BRANCH
+
+(omit the ``-S`` if you are no signing the package)
 
 Now checkout the tag we just made::
 
