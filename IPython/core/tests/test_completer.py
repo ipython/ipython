@@ -16,7 +16,7 @@ import nose.tools as nt
 from traitlets.config.loader import Config
 from IPython import get_ipython
 from IPython.core import completer
-from IPython.external.decorators import knownfailureif
+from IPython.external.decorators.dec import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
 from IPython.testing import decorators as dec
