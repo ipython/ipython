@@ -37,7 +37,7 @@ from IPython import version_info
 from IPython.utils.py3compat import decode
 from IPython.utils.importstring import import_item
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
-from IPython.external.decorators import KnownFailure, knownfailureif
+from IPython.external.decorators import KnownFailure, dec
 
 pjoin = path.join
 
@@ -83,7 +83,7 @@ else:
 # ------------------------------------------------------------------------------
 def monkeypatch_xunit():
     try:
-        knownfailureif(True)(lambda: None)()
+        dec.knownfailureif(True)(lambda: None)()
     except Exception as e:
         KnownFailureTest = type(e)
 
