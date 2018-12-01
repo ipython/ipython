@@ -333,7 +333,7 @@ skipif_not_matplotlib = skip_without('matplotlib')
 
 skipif_not_sympy = skip_without('sympy')
 
-skip_known_failure = knownfailureif(True,'This test is known to fail')
+skip_known_failure = dec.knownfailureif(True,'This test is known to fail')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
