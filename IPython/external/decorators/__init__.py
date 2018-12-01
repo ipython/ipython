@@ -1,5 +1,6 @@
 try:
     from numpy.testing import *
+    from numpy.testing import dec
     from numpy.testing.noseclasses import KnownFailure
 except ImportError:
     from ._decorators import *
