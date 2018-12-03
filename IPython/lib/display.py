@@ -33,9 +33,9 @@ class Audio(DisplayObject):
           * Bytestring containing raw PCM data or
           * URL pointing to a file on the web.
 
-        If the array option is used the waveform will be normalized.
+        If the array option is used, the waveform will be normalized.
 
-        If a filename or url is used the format support will be browser
+        If a filename or url is used, the format support will be browser
         dependent.
     url : unicode
         A URL to download the data from.
@@ -63,7 +63,7 @@ class Audio(DisplayObject):
         import numpy as np
         framerate = 44100
         t = np.linspace(0,5,framerate*5)
-        data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t))
+        data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
         Audio(data,rate=framerate)
 
         # Can also do stereo or more channels
