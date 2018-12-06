@@ -24,6 +24,7 @@ from .history import HistoryMagics
 from .logging import LoggingMagics
 from .namespace import NamespaceMagics
 from .osm import OSMagics
+from .packaging import PackagingMagics
 from .pylab import PylabMagics
 from .script import ScriptMagics
 

@@ -379,25 +379,6 @@ Currently the magic system has the following functions:""",
         except:
             xmode_switch_err('user')
 
-
-
-    @line_magic
-    def pip(self, args=''):
-        """
-        Intercept usage of ``pip`` in IPython and direct user to run command outside of IPython.
-        """
-        print(textwrap.dedent('''
-        The following command must be run outside of the IPython shell:
-
-            $ pip {args}
-
-        The Python package manager (pip) can only be used from outside of IPython.
-        Please reissue the `pip` command in a separate terminal or command prompt.
-
-        See the Python documentation for more information on how to install packages:
-
-            https://docs.python.org/3/installing/'''.format(args=args)))
-
     @line_magic
     def quickref(self, arg):
         """ Show a quick reference sheet """
