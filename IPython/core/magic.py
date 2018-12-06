@@ -265,6 +265,25 @@ def _function_magic_marker(magic_kind):
     return magic_deco
 
 
+MAGIC_NO_VAR_EXPAND_ATTR = '_ipython_magic_no_var_expand'
+
+
+def no_var_expand(magic_func):
+    """Mark a magic function as not needing variable expansion
+
+    By default, IPython interprets `{a}` or `$a` in the line passed to magics
+    as variables that should be interpolated from the interactive namespace
+    before passing the line to the magic function.
+    This is not always desirable, e.g. when the magic executes Python code
+    (%timeit, %time, etc.).
+    Decorate magics with `@no_var_expand` to opt-out of variable expansion.
+
+    .. versionadded:: 7.3
+    """
+    setattr(magic_func, MAGIC_NO_VAR_EXPAND_ATTR, True)
+    return magic_func
+
+
 # Create the actual decorators for public use
 
 # These three are used to decorate methods in class definitions

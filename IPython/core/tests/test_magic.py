@@ -1087,7 +1087,8 @@ def test_logging_magic_quiet_from_config():
                 lm.logstart(os.path.join(td, "quiet_from_config.log"))
         finally:
             _ip.logger.logstop()
-    
+
+
 def test_logging_magic_not_quiet():
     _ip.config.LoggingMagics.quiet = False
     lm = logging.LoggingMagics(shell=_ip)
@@ -1098,9 +1099,15 @@ def test_logging_magic_not_quiet():
         finally:
             _ip.logger.logstop()
 
-## 
+
+def test_time_no_var_expand():
+    _ip.user_ns['a'] = 5
+    _ip.user_ns['b'] = []
+    _ip.magic('time b.append("{a}")')
+    assert _ip.user_ns['b'] == ['{a}']
+
+
 # this is slow, put at the end for local testing.
-## 
 def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
     if sys.version_info < (3,7):

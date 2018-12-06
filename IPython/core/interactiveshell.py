@@ -2273,10 +2273,14 @@ class InteractiveShell(SingletonConfigurable):
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
             # refactored, or else we'll be expanding the wrong variables.
-            
+
             # Determine stack_depth depending on where run_line_magic() has been called
             stack_depth = _stack_depth
-            magic_arg_s = self.var_expand(line, stack_depth)
+            if getattr(fn, magic.MAGIC_NO_VAR_EXPAND_ATTR, False):
+                # magic has opted out of var_expand
+                magic_arg_s = line
+            else:
+                magic_arg_s = self.var_expand(line, stack_depth)
             # Put magic args in a list so we can call with f(*a) syntax
             args = [magic_arg_s]
             kwargs = {}
@@ -2284,12 +2288,12 @@ class InteractiveShell(SingletonConfigurable):
             if getattr(fn, "needs_local_scope", False):
                 kwargs['local_ns'] = sys._getframe(stack_depth).f_locals
             with self.builtin_trap:
-                result = fn(*args,**kwargs)
+                result = fn(*args, **kwargs)
             return result
 
     def run_cell_magic(self, magic_name, line, cell):
         """Execute the given cell magic.
-        
+
         Parameters
         ----------
         magic_name : str
@@ -2318,7 +2322,11 @@ class InteractiveShell(SingletonConfigurable):
             # This will need to be updated if the internal calling logic gets
             # refactored, or else we'll be expanding the wrong variables.
             stack_depth = 2
-            magic_arg_s = self.var_expand(line, stack_depth)
+            if getattr(fn, magic.MAGIC_NO_VAR_EXPAND_ATTR, False):
+                # magic has opted out of var_expand
+                magic_arg_s = line
+            else:
+                magic_arg_s = self.var_expand(line, stack_depth)
             with self.builtin_trap:
                 result = fn(magic_arg_s, cell)
             return result
