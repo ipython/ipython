@@ -66,6 +66,7 @@ class PackagingMagics(Magics):
           %pip install [pkgs]
         """
         self.shell.system(' '.join([sys.executable, '-m', 'pip', line]))
+        print("Note: you may need to restart the kernel to use updated packages.")
 
     @line_magic
     def conda(self, line):
@@ -99,3 +100,4 @@ class PackagingMagics(Magics):
             extra_args.extend(["--prefix", sys.prefix])
 
         self.shell.system(' '.join([conda, command] + extra_args + args))
+        print("\nNote: you may need to restart the kernel to use updated packages.")
