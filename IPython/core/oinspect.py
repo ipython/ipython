@@ -1051,7 +1051,9 @@ def _render_signature(obj_signature, obj_name):
     # add up name, parameters, braces (2), and commas
     if len(obj_name) + sum(len(r) + 2 for r in result) > 75:
         # This doesn’t fit behind “Signature: ” in an inspect window.
-        rendered = '{}(\n{})'.format(obj_name, ''.join('    {},\n'.format(result)))
+        rendered = '{}(\n{})'.format(obj_name, ''.join(
+            '    {},\n'.format(r) for r in result)
+        )
     else:
         rendered = '{}({})'.format(obj_name, ', '.join(result))
 
