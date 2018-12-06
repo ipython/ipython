@@ -5,7 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 
-from inspect import Signature, Parameter
+from inspect import signature, Signature, Parameter
 import os
 import re
 import sys
@@ -432,3 +432,43 @@ def test_builtin_init():
     init_def = info['init_definition']
     nt.assert_is_not_none(init_def)
 
+
+def test_render_signature_short():
+    def short_fun(a=1): pass
+    sig = oinspect._render_signature(
+        signature(short_fun),
+        short_fun.__name__,
+    )
+    nt.assert_equal(sig, 'short_fun(a=1)')
+
+
+def test_render_signature_long():
+    from typing import Optional
+
+    def long_function(
+        a_really_long_parameter: int,
+        and_another_long_one: bool = False,
+        let_us_make_sure_this_is_looong: Optional[str] = None,
+    ) -> bool: pass
+
+    sig = oinspect._render_signature(
+        signature(long_function),
+        long_function.__name__,
+    )
+    nt.assert_in(sig, [
+        # Python >=3.7
+        '''\
+long_function(
+    a_really_long_parameter: int,
+    and_another_long_one: bool = False,
+    let_us_make_sure_this_is_looong: Union[str, NoneType] = None,
+) -> bool\
+''',  # Python <=3.6
+        '''\
+long_function(
+    a_really_long_parameter:int,
+    and_another_long_one:bool=False,
+    let_us_make_sure_this_is_looong:Union[str, NoneType]=None,
+) -> bool\
+''',
+    ])
