@@ -179,7 +179,7 @@ class BasicMagics(Magics):
     @line_magic
     def lsmagic(self, parameter_s=''):
         """List currently available magic functions."""
-        return MagicsDisplay(self.shell.magics_manager, ignore=[self.pip])
+        return MagicsDisplay(self.shell.magics_manager, ignore=[])
 
     def _magic_docs(self, brief=False, rest=False):
         """Return docstrings from magic functions."""
