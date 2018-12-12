@@ -1433,6 +1433,13 @@ class InteractiveShell(SingletonConfigurable):
         self.alias_manager.clear_aliases()
         self.alias_manager.init_aliases()
 
+        # Now define aliases that only make sense on the terminal, because they
+        # need direct access to the console in a way that we can't emulate in
+        # GUI or web frontend
+        if os.name == 'posix':
+            for cmd in ('clear', 'more', 'less', 'man'):
+                self.alias_manager.soft_define_alias(cmd, cmd)
+
         # Flush the private list of module references kept for script
         # execution protection
         self.clear_main_mod_cache()

@@ -447,7 +447,7 @@ class TerminalInteractiveShell(InteractiveShell):
         # need direct access to the console in a way that we can't emulate in
         # GUI or web frontend
         if os.name == 'posix':
-            for cmd in ['clear', 'more', 'less', 'man']:
+            for cmd in ('clear', 'more', 'less', 'man'):
                 self.alias_manager.soft_define_alias(cmd, cmd)
 
 

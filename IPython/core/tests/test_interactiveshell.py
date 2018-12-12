@@ -495,6 +495,16 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertFalse(ip.last_execution_result.success)
         self.assertIsInstance(ip.last_execution_result.error_in_exec, NameError)
 
+    def test_reset_aliasing(self):
+        """ Check that standard posix aliases work after %reset. """
+        if os.name != 'posix':
+            return
+
+        ip.reset()
+        for cmd in ('clear', 'more', 'less', 'man'):
+            res = ip.run_cell('%' + cmd)
+            self.assertEqual(res.success, True)
+
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
