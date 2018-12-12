@@ -312,7 +312,7 @@ class InteractiveShellApp(Configurable):
                 # behavior.
                 with preserve_keys(self.shell.user_ns, '__file__'):
                     self.shell.user_ns['__file__'] = fname
-                    if full_filename.endswith('.ipy'):
+                    if full_filename.endswith('.ipy') or full_filename.endswith('.ipynb'):
                         self.shell.safe_execfile_ipy(full_filename,
                                                      shell_futures=shell_futures)
                     else:
