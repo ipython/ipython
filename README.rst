@@ -87,7 +87,7 @@ manager.
 
 For more information see one of our blog posts:
 
-    https://blog.jupyter.org/2016/07/08/ipython-5-0-released/
+    https://blog.jupyter.org/release-of-ipython-5-0-8ce60b8d2e8e
 
 As well as the following Pull-Request for discussion:
 
