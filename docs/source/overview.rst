@@ -208,7 +208,7 @@ of the `Jupyter` project, which includes ``jupyter console``,  ``jupyter
 qtconsole``, and ``jupyter notebook``.
 
 As an example, this means that when you start ``jupyter qtconsole``, you're
-really starting two processes, a kernel and a Qt-based client can send
+really starting two processes, a kernel and a Qt-based client which can send
 commands to and receive results from that kernel. If there is already a kernel
 running that you want to connect to, you can pass the  ``--existing`` flag
 which will skip initiating a new kernel and connect to the most recent kernel,
