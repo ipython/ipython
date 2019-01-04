@@ -2328,8 +2328,13 @@ class InteractiveShell(SingletonConfigurable):
                 magic_arg_s = line
             else:
                 magic_arg_s = self.var_expand(line, stack_depth)
+            kwargs = {}
+            if getattr(fn, "needs_local_scope", False):
+                kwargs['local_ns'] = sys._getframe(stack_depth).f_locals
+
             with self.builtin_trap:
-                result = fn(magic_arg_s, cell)
+                args = (magic_arg_s, cell)
+                result = fn(*args, **kwargs)
             return result
 
     def find_line_magic(self, magic_name):
