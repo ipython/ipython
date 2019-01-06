@@ -8,8 +8,8 @@ mydir = os.path.dirname(__file__)
 nonascii_path = os.path.join(mydir, '../../core/tests/nonascii.py')
 
 def test_detect_encoding():
-    f = open(nonascii_path, 'rb')
-    enc, lines = openpy.detect_encoding(f.readline)
+    with open(nonascii_path, 'rb') as f:
+        enc, lines = openpy.detect_encoding(f.readline)
     nt.assert_equal(enc, 'iso-8859-5')
 
 def test_read_file():

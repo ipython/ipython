@@ -688,11 +688,8 @@ class ExtensionDoctest(doctests.Doctest):
         else:
             if self.extension and anyp(filename.endswith, self.extension):
                 name = os.path.basename(filename)
-                dh = open(filename)
-                try:
+                with open(filename) as dh:
                     doc = dh.read()
-                finally:
-                    dh.close()
                 test = self.parser.get_doctest(
                     doc, globs={'__file__': filename}, name=name,
                     filename=filename, lineno=0)

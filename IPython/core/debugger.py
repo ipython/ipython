@@ -206,9 +206,8 @@ def _file_lines(fname):
     except IOError:
         return []
     else:
-        out = outfile.readlines()
-        outfile.close()
-        return out
+        with out:
+            return outfile.readlines()
 
 
 class Pdb(OldPdb):
