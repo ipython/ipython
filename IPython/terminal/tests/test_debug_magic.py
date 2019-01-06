@@ -26,7 +26,7 @@ def test_debug_magic_passes_through_generators():
     """
     import pexpect
     import re
-    in_prompt = re.compile(b'In ?\[\\d+\]:')
+    in_prompt = re.compile(br'In ?\[\d+\]:')
     ipdb_prompt = 'ipdb>'
     env = os.environ.copy()
     child = pexpect.spawn(sys.executable, ['-m', 'IPython', '--colors=nocolor', '--simple-prompt'],
