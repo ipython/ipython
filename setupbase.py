@@ -270,7 +270,7 @@ class build_scripts_entrypt(build_scripts):
                 # Write .cmd wrappers for Windows so 'ipython' etc. work at the
                 # command line
                 cmd_file = os.path.join(self.build_dir, name + '.cmd')
-                cmd = '@"{python}" "%~dp0\{script}" %*\r\n'.format(
+                cmd = r'@"{python}" "%~dp0\{script}" %*\r\n'.format(
                         python=sys.executable, script=name)
                 log.info("Writing %s wrapper script" % cmd_file)
                 with open(cmd_file, 'w') as f:
@@ -358,7 +358,7 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
         def run(self):
             # loose as `.dev` is suppose to be invalid
             print("check version number")
-            loose_pep440re = re.compile('^(\d+)\.(\d+)\.(\d+((a|b|rc)\d+)?)(\.post\d+)?(\.dev\d*)?$')
+            loose_pep440re = re.compile(r'^(\d+)\.(\d+)\.(\d+((a|b|rc)\d+)?)(\.post\d+)?(\.dev\d*)?$')
             if not loose_pep440re.match(version):
                 raise ValueError("Version number '%s' is not valid (should match [N!]N(.N)*[{a|b|rc}N][.postN][.devN])" % version)
 
