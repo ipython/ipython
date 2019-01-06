@@ -27,11 +27,13 @@ if len(sys.argv) > 2:
 else:
     dest = sys.stdout
     raw = True
-dest.write("# coding: utf-8\n")
 
-# Profiles other than 'default' can be specified here with a profile= argument:
-hist = HistoryAccessor()
+with dest:
+    dest.write("# coding: utf-8\n")
 
-for session, lineno, cell in hist.get_range(session=session_number, raw=raw):
-    cell = cell.encode('utf-8')  # This line is only needed on Python 2.
-    dest.write(cell + '\n')
+    # Profiles other than 'default' can be specified here with a profile= argument:
+    hist = HistoryAccessor()
+
+    for session, lineno, cell in hist.get_range(session=session_number, raw=raw):
+      cell = cell.encode('utf-8')  # This line is only needed on Python 2.
+      dest.write(cell + '\n')

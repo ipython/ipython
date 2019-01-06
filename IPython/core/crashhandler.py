@@ -179,13 +179,14 @@ class CrashHandler(object):
             print('Could not create crash report on disk.', file=sys.stderr)
             return
 
-        # Inform user on stderr of what happened
-        print('\n'+'*'*70+'\n', file=sys.stderr)
-        print(self.message_template.format(**self.info), file=sys.stderr)
+        with report:
+            # Inform user on stderr of what happened
+            print('\n'+'*'*70+'\n', file=sys.stderr)
+            print(self.message_template.format(**self.info), file=sys.stderr)
 
-        # Construct report on disk
-        report.write(self.make_report(traceback))
-        report.close()
+            # Construct report on disk
+            report.write(self.make_report(traceback))
+
         input("Hit <Enter> to quit (your terminal may close):")
 
     def make_report(self,traceback):

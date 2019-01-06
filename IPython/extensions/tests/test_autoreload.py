@@ -109,19 +109,13 @@ class Fixture(object):
         time.sleep(1.05)
 
         # Write
-        f = open(filename, 'w')
-        try:
+        with open(filename, 'w') as f:
             f.write(content)
-        finally:
-            f.close()
 
     def new_module(self, code):
         mod_name, mod_fn = self.get_module()
-        f = open(mod_fn, 'w')
-        try:
+        with open(mod_fn, 'w') as f:
             f.write(code)
-        finally:
-            f.close()
         return mod_name, mod_fn
 
 #-----------------------------------------------------------------------------

@@ -37,8 +37,7 @@ TMP_TEST_DIR = tempfile.mkdtemp(suffix='with.dot')
 old_syspath = sys.path
 
 def make_empty_file(fname):
-    f = open(fname, 'w')
-    f.close()
+    open(fname, 'w').close()
 
 
 def setup():

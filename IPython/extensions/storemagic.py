@@ -172,20 +172,19 @@ class StoreMagics(Magics):
                     fil = open(fnam, 'a')
                 else:
                     fil = open(fnam, 'w')
-                obj = ip.ev(args[0])
-                print("Writing '%s' (%s) to file '%s'." % (args[0],
-                  obj.__class__.__name__, fnam))
+                with fil:
+                    obj = ip.ev(args[0])
+                    print("Writing '%s' (%s) to file '%s'." % (args[0],
+                        obj.__class__.__name__, fnam))
 
+                    if not isinstance (obj, str):
+                        from pprint import pprint
+                        pprint(obj, fil)
+                    else:
+                        fil.write(obj)
+                        if not obj.endswith('\n'):
+                            fil.write('\n')
 
-                if not isinstance (obj, str):
-                    from pprint import pprint
-                    pprint(obj, fil)
-                else:
-                    fil.write(obj)
-                    if not obj.endswith('\n'):
-                        fil.write('\n')
-
-                fil.close()
                 return
 
             # %store foo

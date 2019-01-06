@@ -3469,9 +3469,8 @@ class InteractiveShell(SingletonConfigurable):
         self.tempfiles.append(filename)
 
         if data:
-            tmp_file = open(filename,'w')
-            tmp_file.write(data)
-            tmp_file.close()
+            with open(filename, 'w') as tmp_file:
+                tmp_file.write(data)
         return filename
 
     @undoc

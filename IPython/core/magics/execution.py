@@ -370,9 +370,8 @@ python-profiler package from non-free.""")
             print('\n*** Profile stats marshalled to file',\
                   repr(dump_file)+'.',sys_exit)
         if text_file:
-            pfile = open(text_file,'w')
-            pfile.write(output)
-            pfile.close()
+            with open(text_file, 'w') as pfile:
+                pfile.write(output)
             print('\n*** Profile printout saved to text file',\
                   repr(text_file)+'.',sys_exit)
 
