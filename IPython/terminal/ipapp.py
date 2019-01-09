@@ -287,7 +287,10 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     something_to_run=Bool(False)
 
     def parse_command_line(self, argv=None):
-        """override to allow old '-pylab' flag with deprecation warning"""
+        """override to allow old '-pylab' flag with deprecation warning
+           and to pass arguments after .ipy scripts without explicit --
+           delimiter, which is needed for standalone executable .ipy
+        """
 
         argv = sys.argv[1:] if argv is None else argv
 
@@ -299,6 +302,14 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             warnings.warn("`-pylab` flag has been deprecated.\n"
             "    Use `--matplotlib <backend>` and import pylab manually.")
             argv[idx] = '--pylab'
+
+        if '--' not in argv:
+            # scan for .ipy script
+            for idx,arg in enumerate(argv):
+                if arg.endswith('.ipy'):
+                    argv = argv[:] # copy, don't clobber
+                    argv.insert(idx+1, '--')
+                    break
 
         return super(TerminalIPythonApp, self).parse_command_line(argv)
     
