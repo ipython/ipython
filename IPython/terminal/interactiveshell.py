@@ -288,7 +288,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             include_default_pygments_style=False,
                             mouse_support=self.mouse_support,
                             enable_open_in_editor=self.extra_open_editor_shortcuts,
-                            color_depth=(ColorDepth.TRUE_COLOR if self.true_color else None),
+                            color_depth=self.color_depth,
                             **self._extra_prompt_options())
 
     def _make_style_from_name_or_cls(self, name_or_cls):
@@ -364,6 +364,10 @@ class TerminalInteractiveShell(InteractiveShell):
             'column': CompleteStyle.COLUMN,
             'readlinelike': CompleteStyle.READLINE_LIKE,
         }[self.display_completions]
+
+    @property
+    def color_depth(self):
+        return (ColorDepth.TRUE_COLOR if self.true_color else None)
 
     def _extra_prompt_options(self):
         """
