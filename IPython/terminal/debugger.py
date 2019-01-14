@@ -58,6 +58,7 @@ class TerminalPdb(Pdb):
                             complete_style=self.shell.pt_complete_style,
                             style=self.shell.style,
                             inputhook=self.shell.inputhook,
+                            color_depth=self.shell.color_depth,
         )
 
     def cmdloop(self, intro=None):
