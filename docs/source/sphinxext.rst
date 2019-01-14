@@ -127,10 +127,10 @@ If an IPython doctest decorator is found, it will take these steps when your doc
 1. Run the *input* lines in your IPython directive block against the current Python kernel (remember that the session
 persists across IPython directive blocks);
 
-2. Compare the *output* of this with the output text that you've put in the IPython directive block 9what comes
+2. Compare the *output* of this with the output text that you've put in the IPython directive block (what comes
 after `Out[NN]`);
 
-3. If there is a difference, the directive will raise an error and your documentation build will fial.
+3. If there is a difference, the directive will raise an error and your documentation build will fail.
 
 You can do doctesting on multi-line output as well.  Just be careful
 when using non-deterministic inputs like random numbers in the ipython
