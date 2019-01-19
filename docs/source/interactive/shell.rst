@@ -189,6 +189,9 @@ Now we can just remove these files by doing 'rm $junk.s'.
 The .n, .s, .p properties
 -------------------------
 
+These properties of `SList` (IPython.utils.text.SList) objects provide
+convenient ways to use contained text in different formats:
+
 * ``.n`` returns (original) string with lines separated by a newline
 * ``.s`` returns string with lines separated by single space (for
   convenient passing to system commands)
