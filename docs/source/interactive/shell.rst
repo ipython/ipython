@@ -195,5 +195,4 @@ convenient ways to use contained text in different formats:
 * ``.n`` returns (original) string with lines separated by a newline
 * ``.s`` returns string with lines separated by single space (for
   convenient passing to system commands)
-* ``.p`` if string contains file names, returns list of "path" objects
-  for convenient file manipulation
+* ``.p`` returns list of "path" objects from detected file names
