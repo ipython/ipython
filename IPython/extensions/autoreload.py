@@ -274,7 +274,9 @@ def update_class(old, new):
         old_obj = getattr(old, key)
         try:
             new_obj = getattr(new, key)
-            if old_obj == new_obj:
+            # explicitly checking that comparison returns True to handle
+            # cases where `==` doesn't return a boolean.
+            if (old_obj == new_obj) is True:
                 continue
         except AttributeError:
             # obsolete attribute: remove it
