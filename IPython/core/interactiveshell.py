@@ -1949,6 +1949,8 @@ class InteractiveShell(SingletonConfigurable):
             etype, value, tb = sys.exc_info()
         else:
             etype, value, tb = exc_tuple
+        # must not create circular reference to locals() in each frame of stored tb
+        traceback.clear_frames(tb)
 
         if etype is None:
             if hasattr(sys, 'last_type'):
