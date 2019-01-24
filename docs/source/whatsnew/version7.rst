@@ -2,7 +2,34 @@
  7.x Series
 ============
 
+.. _whatsnew730:
+
+IPython 7.3.0
+=============
+
 .. _whatsnew720:
+
+IPython 7.3.0 bring several bug fixes and small improvements that you will
+described bellow. 
+
+The biggest change to this release is the implementation of the ``%conda`` and
+``%pip`` magics, that will attempt to install packages in the **current
+environment**. You may still need to restart your interpreter or kernel for the
+change to be taken into account, but it should simplify installation of packages
+into remote environment. Installing using pip/conda from the command line is
+still the prefer method.
+
+The ``%pip`` magic was already present, but was only printing a warning; now it
+will actually forward commands to pip. 
+
+Misc bug fixes and improvements:
+
+ - Do not expand shell variable in execution magics, and added the
+   ``no_var_expand`` decorator for magic requiring a similar functionality
+   :ghpull:`11516`
+ - Add ``%pip`` and ``%conda`` magic :ghpull:`11524`
+ - Re-initialize posix aliases after a ``%reset`` :ghpull:`11528`
+ - Allow the IPython command line to run ``*.ipynb`` files :ghpull:`11529`
 
 IPython 7.2.0
 =============
