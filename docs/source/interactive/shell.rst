@@ -186,13 +186,13 @@ First, capture output of "hg status"::
 
 Now we can just remove these files by doing 'rm $junk.s'.
 
-The .s, .n, .p properties
+The .n, .s, .p properties
 -------------------------
 
-The ``.s`` property returns one string where lines are separated by
-single space (for convenient passing to system commands). The ``.n``
-property return one string where the lines are separated by a newline
-(i.e. the original output of the function). If the items in string
-list are file names, ``.p`` can be used to get a list of "path" objects
-for convenient file manipulation.
+Properties of `SList <https://ipython.readthedocs.io/en/stable/api/generated/IPython.utils.text.html?highlight=SList#IPython.utils.text.SList>`_ wrapper
+provide a convenient ways to use contained text in different formats:
 
+* ``.n`` returns (original) string with lines separated by a newline
+* ``.s`` returns string with lines separated by single space (for
+  convenient passing to system commands)
+* ``.p`` returns list of "path" objects from detected file names
