@@ -67,9 +67,9 @@ Experimental
 
 Starting with IPython 6.0, this module can make use of the Jedi library to
 generate completions both using static analysis of the code, and dynamically
-inspecting multiple namespaces. The APIs attached to this new mechanism is
-unstable and will raise unless use in an :any:`provisionalcompleter` context
-manager.
+inspecting multiple namespaces. Jedi is an autocompletion and static analysis 
+for Python. The APIs attached to this new mechanism is unstable and will 
+raise unless use in an :any:`provisionalcompleter` context manager.
 
 You will find that the following are experimental:
 
@@ -84,7 +84,7 @@ You will find that the following are experimental:
 
 We welcome any feedback on these new API, and we also encourage you to try this
 module in debug mode (start IPython with ``--Completer.debug=True``) in order
-to have extra logging information is :any:`jedi` is crashing, or if current
+to have extra logging information if :any:`jedi` is crashing, or if current
 IPython completer pending deprecations are returning results not yet handled
 by :any:`jedi`
 
@@ -1986,9 +1986,12 @@ class IPCompleter(Completer):
             name_matches = []
             for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
                 name_text, name_matches = meth(base_text)
+                completion_text, completion_matches = self.fwd_unicode_match(base_text)
                 if name_text:
                     return name_text, name_matches[:MATCHES_LIMIT], \
                            [meth.__qualname__]*min(len(name_matches), MATCHES_LIMIT), ()
+                elif (completion_text):
+                    return completion_text, completion_matches, ()
 
 
         # If no line buffer is given, assume the input text is all there was
@@ -2059,3 +2062,14 @@ class IPCompleter(Completer):
         self.matches = _matches
 
         return text, _matches, origins, completions
+
+    def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
+    # `text` is what the user typed. If it start with `\`, 
+    # then lookup in `names`  (defined above), all the possible candidates.
+    # return text, [list of candidates]
+        unicode_matches = []
+        if (text[0] == "\\"):
+            # lookup in names
+            pass
+        else:
+            return [text,unicode_matches]
