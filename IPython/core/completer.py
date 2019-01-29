@@ -1984,6 +1984,7 @@ class IPCompleter(Completer):
                 return latex_text, latex_matches, ['latex_matches']*len(latex_matches), ()
             name_text = ''
             name_matches = []
+            # need to add self.fwd_unicode_match() function here when done
             for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
                 name_text, name_matches = meth(base_text)
                 completion_text, completion_matches = self.fwd_unicode_match(base_text)
@@ -2062,14 +2063,23 @@ class IPCompleter(Completer):
         self.matches = _matches
 
         return text, _matches, origins, completions
-
+        
     def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
-    # `text` is what the user typed. If it start with `\`, 
-    # then lookup in `names`  (defined above), all the possible candidates.
-    # return text, [list of candidates]
-        unicode_matches = []
-        if (text[0] == "\\"):
-            # lookup in names
-            pass
+    # initial code based on latex_matches() method
+        slashpos = text.rfind('\\')
+        # if text starts with slash
+        if slashpos > -1:
+            s = text[slashpos:]
+            # check if s is already a unicode, maybe this is not necessary
+            try unicodedata.lookup(s):
+                # need to find the unicodes equivalent list to latex_symbols
+                return s, [latex_symbols[s]]
+            except KeyError:
+                return u'', []
+            # need to find the unicode equivalent to latex_symbols and do something similar 
+            matches = [k for k in latex_symbols if k.startswith(s)]
+            return s, matches
+        
+        # if text does not start with slash
         else:
-            return [text,unicode_matches]
+            return u'', []
