@@ -1136,8 +1136,12 @@ class IPCompleter(Completer):
 
     def all_completions(self, text):
         """
-        Wrapper around the complete method for the benefit of emacs.
+        Wrapper around the completions method for the benefit of emacs.
         """
+        prefix = text[:text.rfind(".") + 1]
+        return map(lambda c: prefix + c.text,
+                   self.completions(text, len(text)))
+
         return self.complete(text)[1]
 
     def _clean_glob(self, text):
