@@ -168,6 +168,12 @@ MATCHES_LIMIT = 500
 
 _deprecation_readline_sentinel = object()
 
+names = []
+for c in range(0,0x10FFFF + 1):
+    try:
+        names.append(unicodedata.name(char(c)))
+    except ValueError:
+        pass
 
 class ProvisionalCompleterWarning(FutureWarning):
     """
@@ -2065,20 +2071,12 @@ class IPCompleter(Completer):
         return text, _matches, origins, completions
         
     def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
-    # initial code based on latex_matches() method
+        # initial code based on latex_matches() method
         slashpos = text.rfind('\\')
         # if text starts with slash
         if slashpos > -1:
-            s = text[slashpos:]
-            # check if s is already a unicode, maybe this is not necessary
-            try unicodedata.lookup(s):
-                # need to find the unicodes equivalent list to latex_symbols
-                return s, [latex_symbols[s]]
-            except KeyError:
-                return u'', []
-            # need to find the unicode equivalent to latex_symbols and do something similar 
-            matches = [k for k in latex_symbols if k.startswith(s)]
-            return s, matches
+            s = text[slashpos+1:]
+            return s, [x for x in names if x.startswith(s)]
         
         # if text does not start with slash
         else:
