@@ -107,6 +107,14 @@ class ProvisionalWarning(DeprecationWarning):
     """
     pass
 
+if sys.version_info > (3,8):
+    from ast import Module
+else :
+    # mock the new API, ignore second argument
+    # see https://github.com/ipython/ipython/issues/11590
+    from ast import Module as OriginalModule
+    Module = lambda nodelist, type_ignores: OriginalModule(nodelist)
+
 if sys.version_info > (3,6):
     _assign_nodes         = (ast.AugAssign, ast.AnnAssign, ast.Assign)
     _single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
@@ -3188,15 +3196,15 @@ class InteractiveShell(SingletonConfigurable):
             if _async:
                 # If interactivity is async the semantics of run_code are
                 # completely different Skip usual machinery.
-                mod = ast.Module(nodelist)
-                async_wrapper_code = compiler(mod, 'cell_name', 'exec')
+                mod = Module(nodelist, [])
+                async_wrapper_code = compiler(mod, cell_name, 'exec')
                 exec(async_wrapper_code, self.user_global_ns, self.user_ns)
                 async_code = removed_co_newlocals(self.user_ns.pop('async-def-wrapper')).__code__
                 if (yield from self.run_code(async_code, result, async_=True)):
                     return True
             else:
                 for i, node in enumerate(to_run_exec):
-                    mod = ast.Module([node])
+                    mod = Module([node], [])
                     code = compiler(mod, cell_name, "exec")
                     if (yield from self.run_code(code, result)):
                         return True
