@@ -1134,13 +1134,14 @@ class IPCompleter(Completer):
                 self.dict_key_matches,
             ]
 
-    def all_completions(self, text):
+    def all_completions(self, text) -> List[str]:
         """
         Wrapper around the completions method for the benefit of emacs.
         """
         prefix = text[:text.rfind(".") + 1]
-        return map(lambda c: prefix + c.text,
-                   self.completions(text, len(text)))
+        with provisionalcompleter():
+            return list(map(lambda c: prefix + c.text,
+                   self.completions(text, len(text))))
 
         return self.complete(text)[1]
 
