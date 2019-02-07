@@ -618,6 +618,7 @@ class Negator(ast.NodeTransformer):
         def visit_Constant(self, node):
             if isinstance(node.value, int):
                 return self.visit_Num(node)
+            return node
 
 class TestAstTransform(unittest.TestCase):
     def setUp(self):
@@ -690,6 +691,7 @@ class IntegerWrapper(ast.NodeTransformer):
         def visit_Constant(self, node):
             if isinstance(node.value, int):
                 return self.visit_Num(node)
+            return node
 
 
 class TestAstTransform2(unittest.TestCase):
@@ -739,6 +741,7 @@ class ErrorTransformer(ast.NodeTransformer):
         def visit_Constant(self, node):
             if isinstance(node.value, int):
                 return self.visit_Num(node)
+            return node
 
 
 class TestAstTransformError(unittest.TestCase):
@@ -767,6 +770,7 @@ class StringRejector(ast.NodeTransformer):
     def visit_Constant(self, node):
         if isinstance(node.value, str):
             raise InputRejected("test")
+        return node
 
 
 class TestAstTransformInputRejection(unittest.TestCase):
