@@ -609,9 +609,14 @@ class TestModules(tt.TempFileMixin, unittest.TestCase):
 
 class Negator(ast.NodeTransformer):
     """Negates all number literals in an AST."""
+
     def visit_Num(self, node):
         node.n = -node.n
         return node
+
+    if sys.version_info > (3,8):
+        def visit_Constant(self, node):
+            return self.visit_Num(node)
 
 class TestAstTransform(unittest.TestCase):
     def setUp(self):
@@ -680,6 +685,11 @@ class IntegerWrapper(ast.NodeTransformer):
                             args=[node], keywords=[])
         return node
 
+    if sys.version_info > (3,8):
+        def visit_Constant(self, node):
+            return self.visit_Num(node)
+
+
 class TestAstTransform2(unittest.TestCase):
     def setUp(self):
         self.intwrapper = IntegerWrapper()
@@ -722,6 +732,11 @@ class ErrorTransformer(ast.NodeTransformer):
     """Throws an error when it sees a number."""
     def visit_Num(self, node):
         raise ValueError("test")
+
+    if sys.version_info > (3,8):
+        def visit_Constant(self, node):
+            return self.visit_Num(node)
+
 
 class TestAstTransformError(unittest.TestCase):
     def test_unregistering(self):
