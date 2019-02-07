@@ -379,10 +379,12 @@ def test_handlers():
         handler(*sys.exc_info())
     buff.write('')
 
+from IPython.testing.decorators import skipif
 
 class TokenizeFailureTest(unittest.TestCase):
     """Tests related to https://github.com/ipython/ipython/issues/6864."""
 
+    @skipif(sys.version_info > (3,8))
     def testLogging(self):
         message = "An unexpected error occurred while tokenizing input"
         cell = 'raise ValueError("""a\nb""")'
