@@ -72,3 +72,24 @@ particularly for PRs that affect `IPython.parallel` or Windows.
 
 For more detailed information, see our [GitHub Workflow](https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow).
 
+## Running Tests
+
+All the tests can by run by using
+```shell
+python3 IPython/testing/iptest.py IPython/core/tests
+```
+
+All the tests for a single file (for example **test_alias.py**) can be run by using
+```shell
+python3 IPython/testing/iptest.py IPython/core/tests/test_alias.py
+```
+
+Only a single test (for example **test_alias_lifecycle**) within a single file can be run by using
+```shell
+python3 IPython/testing/iptest.py IPython/core/tests/test_alias:test_alias_lifecycle
+```
+
+The directory separator (/) can be replaced with dot (.) character as well, for example we can run all the tests by using
+```shell
+python3 IPython/testing/iptest.py IPython.core.tests
+```
