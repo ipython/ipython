@@ -825,7 +825,7 @@ class OSMagics(Magics):
         The file will be overwritten unless the -a (--append) flag is specified.
         """
         args = magic_arguments.parse_argstring(self.writefile, line)
-        if re.match(r'[\'*\']|["*"]', args.filename):
+        if re.match(r'^(\'.*\')|(".*")$', args.filename):
             filename = os.path.expanduser(args.filename[1:-1])
         else:
             filename = os.path.expanduser(args.filename)
