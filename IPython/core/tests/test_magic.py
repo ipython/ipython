@@ -769,6 +769,7 @@ def test_file():
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
 
+@dec.skip_win32
 def test_file_single_quote():
     """Basic %%writefile with embedded single quotes"""
     ip = get_ipython()
@@ -783,6 +784,7 @@ def test_file_single_quote():
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
 
+@dec.skip_win32
 def test_file_double_quote():
     """Basic %%writefile with embedded double quotes"""
     ip = get_ipython()
