@@ -769,6 +769,36 @@ def test_file():
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
 
+@dec.skip_win32
+def test_file_single_quote():
+    """Basic %%writefile with embedded single quotes"""
+    ip = get_ipython()
+    with TemporaryDirectory() as td:
+        fname = os.path.join(td, '\'file1\'')
+        ip.run_cell_magic("writefile", fname, u'\n'.join([
+            'line1',
+            'line2',
+        ]))
+        with open(fname) as f:
+            s = f.read()
+        nt.assert_in('line1\n', s)
+        nt.assert_in('line2', s)
+
+@dec.skip_win32
+def test_file_double_quote():
+    """Basic %%writefile with embedded double quotes"""
+    ip = get_ipython()
+    with TemporaryDirectory() as td:
+        fname = os.path.join(td, '"file1"')
+        ip.run_cell_magic("writefile", fname, u'\n'.join([
+            'line1',
+            'line2',
+        ]))
+        with open(fname) as f:
+            s = f.read()
+        nt.assert_in('line1\n', s)
+        nt.assert_in('line2', s)
+
 def test_file_var_expand():
     """%%writefile $filename"""
     ip = get_ipython()
