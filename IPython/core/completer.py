@@ -171,7 +171,7 @@ _deprecation_readline_sentinel = object()
 names = []
 for c in range(0,0x10FFFF + 1):
     try:
-        names.append(unicodedata.name(char(c)))
+        names.append(unicodedata.name(chr(c)))
     except ValueError:
         pass
 
