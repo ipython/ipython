@@ -384,6 +384,10 @@ from IPython.testing.decorators import skipif
 class TokenizeFailureTest(unittest.TestCase):
     """Tests related to https://github.com/ipython/ipython/issues/6864."""
 
+    # that appear to test that we are handling an exception that can be thrown
+    # by the tokenizer due to a bug that seem to have been fixed in 3.8, though
+    # I'm unsure if other sequences can make it raise this error. Let's just
+    # skip in 3.8 for now
     @skipif(sys.version_info > (3,8))
     def testLogging(self):
         message = "An unexpected error occurred while tokenizing input"
