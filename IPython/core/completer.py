@@ -2073,8 +2073,12 @@ class IPCompleter(Completer):
         # if text starts with slash
         if slashpos > -1:
             s = text[slashpos+1:]
-            return s, [x for x in names if x.startswith(s)]
+            candidates = [x for x in names if x.startswith(s)]
+            if candidates:
+                return s, [x for x in names if x.startswith(s)]
+            else:
+                return '', ()
         
         # if text does not start with slash
         else:
-            return u'', []
+            return u'', ()
