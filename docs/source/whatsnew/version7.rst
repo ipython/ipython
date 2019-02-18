@@ -24,6 +24,7 @@ will actually forward commands to pip.
 
 Misc bug fixes and improvements:
 
+ - Compatibility with Python 3.8.
  - Do not expand shell variable in execution magics, and added the
    ``no_var_expand`` decorator for magic requiring a similar functionality
    :ghpull:`11516`
