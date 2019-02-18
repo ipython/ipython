@@ -22,7 +22,8 @@ else:
 
 # Keyring stores passwords by a 'username', but we're not storing a username and
 # password
-fake_username = 'ipython_tools'
+import socket
+fake_username = 'ipython_tools_%s' % socket.gethostname().replace('.','_').replace('-','_')
 
 class Obj(dict):
     """Dictionary with attribute access to names."""
@@ -59,7 +60,7 @@ def get_auth_token():
         "public_repo",
         "gist"
       ],
-      "note": "IPython tools",
+      "note": "IPython tools %s" % socket.gethostname(),
       "note_url": "https://github.com/ipython/ipython/tree/master/tools",
     }
     response = requests.post('https://api.github.com/authorizations',
