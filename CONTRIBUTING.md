@@ -72,3 +72,24 @@ particularly for PRs that affect `IPython.parallel` or Windows.
 
 For more detailed information, see our [GitHub Workflow](https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow).
 
+## Running Tests
+
+All the tests can by running
+```shell
+iptest
+```
+
+All the tests for a single module (for example **test_alias**) can be run by using the fully qualified path to the module.
+```shell
+iptest IPython.core.tests.test_alias
+```
+
+Only a single test (for example **test_alias_lifecycle**) within a single file can be run by adding the specific test after a `:` at the end:
+```shell
+iptest IPython.core.tests.test_alias:test_alias_lifecycle
+```
+
+For convenience, the full path to a file can often be used instead of the module path on unix systems. For example we can run all the tests by using
+```shell
+iptest IPython/core/tests/test_alial.py
+```
