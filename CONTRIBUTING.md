@@ -74,22 +74,22 @@ For more detailed information, see our [GitHub Workflow](https://github.com/ipyt
 
 ## Running Tests
 
-All the tests can by run by using
+All the tests can by running
 ```shell
-python3 IPython/testing/iptest.py IPython/core/tests
+iptest
 ```
 
-All the tests for a single file (for example **test_alias.py**) can be run by using
+All the tests for a single module (for example **test_alias**) can be run by using the fully qualified path to the module.
 ```shell
-python3 IPython/testing/iptest.py IPython/core/tests/test_alias.py
+iptest IPython.core.tests.test_alias
 ```
 
-Only a single test (for example **test_alias_lifecycle**) within a single file can be run by using
+Only a single test (for example **test_alias_lifecycle**) within a single file can be run by adding the specific test after a `:` at the end:
 ```shell
-python3 IPython/testing/iptest.py IPython/core/tests/test_alias:test_alias_lifecycle
+iptest IPython.core.tests.test_alias:test_alias_lifecycle
 ```
 
-The directory separator (/) can be replaced with dot (.) character as well, for example we can run all the tests by using
+For convenience, the full path to a file can often be used instead of the module path on unix systems. For example we can run all the tests by using
 ```shell
-python3 IPython/testing/iptest.py IPython.core.tests
+iptest IPython/core/tests/test_alial.py
 ```
