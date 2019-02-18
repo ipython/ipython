@@ -1991,14 +1991,11 @@ class IPCompleter(Completer):
             name_text = ''
             name_matches = []
             # need to add self.fwd_unicode_match() function here when done
-            for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
+            for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches, self.fwd_unicode_match):
                 name_text, name_matches = meth(base_text)
-                completion_text, completion_matches = self.fwd_unicode_match(base_text)
                 if name_text:
                     return name_text, name_matches[:MATCHES_LIMIT], \
                            [meth.__qualname__]*min(len(name_matches), MATCHES_LIMIT), ()
-                elif (completion_text):
-                    return completion_text, completion_matches, ()
 
 
         # If no line buffer is given, assume the input text is all there was
