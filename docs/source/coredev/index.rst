@@ -222,13 +222,12 @@ Commit the changes to release.py::
 
 Create and push the tag::
 
-    git tag -am "release $VERSION" "$VERSION" -S
+    git tag -am "release $VERSION" "$VERSION" -s
     git push origin $VERSION
 
-(omit the ``-S`` if you are no signing the package)
+(omit the ``-s`` if you are no signing the package)
 
-Update release.py back to ``x.y-dev`` or ``x.y-maint``, and re-add the
-``development`` entry in ``docs/source/whatsnew/index.rst`` and push::
+Update release.py back to ``x.y-dev`` or ``x.y-maint`` commit and push::
 
     git commit -am "back to development" -S
     git push origin $BRANCH
