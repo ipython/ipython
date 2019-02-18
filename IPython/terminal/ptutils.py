@@ -53,7 +53,7 @@ def _elide(string, *, min_elide=30):
 
 
 def _adjust_completion_text_based_on_context(text, body, offset):
-    if text.endswith('=') and len(body) > offset and body[offset] is '=':
+    if text.endswith('=') and len(body) > offset and body[offset] == '=':
         return text[:-1]
     else:
         return text
