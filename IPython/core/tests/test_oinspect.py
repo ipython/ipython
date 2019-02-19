@@ -363,6 +363,12 @@ def test_pinfo_nonascii():
     ip.user_ns['nonascii2'] = nonascii2
     ip._inspect('pinfo', 'nonascii2', detail_level=1)
 
+def test_pinfo_type():
+    """
+    type can fail in various edge case, for example `type.__subclass__()`
+    """
+    ip._inspect('pinfo', 'type')
+
 
 def test_pinfo_docstring_no_source():
     """Docstring should be included with detail_level=1 if there is no source"""
