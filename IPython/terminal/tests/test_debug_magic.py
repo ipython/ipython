@@ -31,9 +31,12 @@ def test_debug_magic_passes_through_generators():
     env = os.environ.copy()
     child = pexpect.spawn(sys.executable, ['-m', 'IPython', '--colors=nocolor', '--simple-prompt'],
                           env=env)
-    child.timeout = 2
+    child.timeout = 15
 
     child.expect(in_prompt)
+
+    child.timeout = 2
+
     child.sendline("def f(x):")
     child.sendline("    raise Exception")
     child.sendline("")
