@@ -67,9 +67,9 @@ Experimental
 
 Starting with IPython 6.0, this module can make use of the Jedi library to
 generate completions both using static analysis of the code, and dynamically
-inspecting multiple namespaces. The APIs attached to this new mechanism is
-unstable and will raise unless use in an :any:`provisionalcompleter` context
-manager.
+inspecting multiple namespaces. Jedi is an autocompletion and static analysis 
+for Python. The APIs attached to this new mechanism is unstable and will 
+raise unless use in an :any:`provisionalcompleter` context manager.
 
 You will find that the following are experimental:
 
@@ -84,7 +84,7 @@ You will find that the following are experimental:
 
 We welcome any feedback on these new API, and we also encourage you to try this
 module in debug mode (start IPython with ``--Completer.debug=True``) in order
-to have extra logging information is :any:`jedi` is crashing, or if current
+to have extra logging information if :any:`jedi` is crashing, or if current
 IPython completer pending deprecations are returning results not yet handled
 by :any:`jedi`
 
@@ -168,6 +168,12 @@ MATCHES_LIMIT = 500
 
 _deprecation_readline_sentinel = object()
 
+names = []
+for c in range(0,0x10FFFF + 1):
+    try:
+        names.append(unicodedata.name(chr(c)))
+    except ValueError:
+        pass
 
 class ProvisionalCompleterWarning(FutureWarning):
     """
@@ -1989,7 +1995,8 @@ class IPCompleter(Completer):
                 return latex_text, latex_matches, ['latex_matches']*len(latex_matches), ()
             name_text = ''
             name_matches = []
-            for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
+            # need to add self.fwd_unicode_match() function here when done
+            for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches, self.fwd_unicode_match):
                 name_text, name_matches = meth(base_text)
                 if name_text:
                     return name_text, name_matches[:MATCHES_LIMIT], \
@@ -2064,3 +2071,19 @@ class IPCompleter(Completer):
         self.matches = _matches
 
         return text, _matches, origins, completions
+        
+    def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
+        # initial code based on latex_matches() method
+        slashpos = text.rfind('\\')
+        # if text starts with slash
+        if slashpos > -1:
+            s = text[slashpos+1:]
+            candidates = [x for x in names if x.startswith(s)]
+            if candidates:
+                return s, [x for x in names if x.startswith(s)]
+            else:
+                return '', ()
+        
+        # if text does not start with slash
+        else:
+            return u'', ()
