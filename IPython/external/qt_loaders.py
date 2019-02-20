@@ -217,10 +217,13 @@ def import_pyqt5():
 
     ImportErrors rasied within this function are non-recoverable
     """
-    import sip
 
     from PyQt5 import QtCore, QtSvg, QtWidgets, QtGui
-
+    
+    # Note that import sip must follow other PyQt5 imports for PyQt >5.11
+    # http://pyqt.sourceforge.net/Docs/PyQt5/incompatibilities.html#pyqt-v5-11
+    import sip
+    
     # Alias PyQt-specific functions for PySide compatibility.
     QtCore.Signal = QtCore.pyqtSignal
     QtCore.Slot = QtCore.pyqtSlot
