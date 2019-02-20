@@ -860,7 +860,7 @@ class Inspector(Colorable):
             if init_ds:
                 out['init_docstring'] = init_ds
 
-            names = [sub.__name__ for sub in obj.__subclasses__()]
+            names = [sub.__name__ for sub in type.__subclasses__(obj)]
             if len(names) < 10:
                 all_names = ', '.join(names)
             else:
