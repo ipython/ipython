@@ -134,6 +134,18 @@ instantiate the class yourself before registration:
    :func:`define_magic` function are advised to adjust their code
    for the current API.
 
+
+Accessing user namespace and local scope
+========================================
+
+When creating line magics, you may need to access surrounding scope  to get user
+variables (e.g when called inside functions). IPython provide the
+``@needs_local_scope`` decorator that can be imported from
+``IPython.core.magics``. When decorated with ``@needs_local_scope`` a magic will
+be passed ``local_ns`` as an argument. As a convenience ``@needs_local_scope``
+can also be applied to cell magics even if cell magics cannot appear at local
+scope context.
+
 Complete Example
 ================
 
