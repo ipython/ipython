@@ -54,7 +54,7 @@ class CallbackTests(unittest.TestCase):
     def test_cb_keyboard_interrupt(self):
         cb = Mock(side_effect=KeyboardInterrupt)
         self.em.register('ping_received', cb)
-        with tt.assertPrints("Error in callback"):
+        with tt.AssertPrints("Error in callback"):
             self.em.trigger('ping_received')
 
     def test_unregister_during_callback(self):
