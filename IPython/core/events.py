@@ -86,7 +86,7 @@ class EventManager(object):
         for func in self.callbacks[event][:]:
             try:
                 func(*args, **kwargs)
-            except Exception:
+            except (Exception, KeyboardInterrupt):
                 print("Error in callback {} (for {}):".format(func, event))
                 self.shell.showtraceback()
 
