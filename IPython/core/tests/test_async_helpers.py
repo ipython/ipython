@@ -139,7 +139,13 @@ if sys.version_info > (3, 5):
             tl_err_test_cases = self._get_top_level_cases()
             tl_err_test_cases.extend(self._get_ry_syntax_errors())
 
-            vals = ('return', 'yield', 'yield from (_ for _ in range(3))')
+            vals = ('return', 'yield', 'yield from (_ for _ in range(3))',
+                    dedent('''
+                        def f():
+                            pass
+                        return
+                        '''),
+                    )
 
             for test_name, test_case in tl_err_test_cases:
                 # This example should work if 'pass' is used as the value

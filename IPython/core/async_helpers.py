@@ -112,6 +112,7 @@ class _AsyncSyntaxErrorVisitor(ast.NodeVisitor):
         if isinstance(node, func_types) and should_traverse:
             self.depth += 1
             super().generic_visit(node)
+            self.depth -= 1
         elif isinstance(node, invalid_types_by_depth[self.depth]):
             raise SyntaxError()
         else:
