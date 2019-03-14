@@ -97,7 +97,7 @@ class Audio(DisplayObject):
         super(Audio, self).__init__(data=data, url=url, filename=filename)
 
         if self.data is not None and not isinstance(self.data, bytes):
-            self.data = self._make_wav(data,rate)
+            self.data = Audio._make_wav(data, rate)
 
     def reload(self):
         """Reload the raw data from file or URL."""
@@ -112,41 +112,17 @@ class Audio(DisplayObject):
         else:
             self.mimetype = "audio/wav"
 
-    def _make_wav(self, data, rate):
+    @staticmethod
+    def _make_wav(data, rate):
         """ Transform a numpy array to a PCM bytestring """
         import struct
         from io import BytesIO
         import wave
 
         try:
-            import numpy as np
-
-            data = np.array(data, dtype=float)
-            if len(data.shape) == 1:
-                nchan = 1
-            elif len(data.shape) == 2:
-                # In wave files,channels are interleaved. E.g.,
-                # "L1R1L2R2..." for stereo. See
-                # http://msdn.microsoft.com/en-us/library/windows/hardware/dn653308(v=vs.85).aspx
-                # for channel ordering
-                nchan = data.shape[0]
-                data = data.T.ravel()
-            else:
-                raise ValueError('Array audio input must be a 1D or 2D array')
-            scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
+            scaled, nchan = Audio._validate_and_normalize_with_numpy(data)
         except ImportError:
-            # check that it is a "1D" list
-            idata = iter(data)  # fails if not an iterable
-            try:
-                iter(idata.next())
-                raise TypeError('Only lists of mono audio are '
-                    'supported if numpy is not installed')
-            except TypeError:
-                # this means it's not a nested list, which is what we want
-                pass
-            maxabsvalue = float(max([abs(x) for x in data]))
-            scaled = [int(x/maxabsvalue*32767) for x in data]
-            nchan = 1
+            scaled, nchan = Audio._validate_and_normalize_without_numpy(data)
 
         fp = BytesIO()
         waveobj = wave.open(fp,mode='wb')
@@ -159,6 +135,41 @@ class Audio(DisplayObject):
         waveobj.close()
 
         return val
+
+    @staticmethod
+    def _validate_and_normalize_with_numpy(data):
+        import numpy as np
+
+        data = np.array(data, dtype=float)
+        if len(data.shape) == 1:
+            nchan = 1
+        elif len(data.shape) == 2:
+            # In wave files,channels are interleaved. E.g.,
+            # "L1R1L2R2..." for stereo. See
+            # http://msdn.microsoft.com/en-us/library/windows/hardware/dn653308(v=vs.85).aspx
+            # for channel ordering
+            nchan = data.shape[0]
+            data = data.T.ravel()
+        else:
+            raise ValueError('Array audio input must be a 1D or 2D array')
+        scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
+        return scaled, nchan
+
+    @staticmethod
+    def _validate_and_normalize_without_numpy(data):
+        # check that it is a "1D" list
+        idata = iter(data)  # fails if not an iterable
+        try:
+            iter(idata.next())
+            raise TypeError('Only lists of mono audio are '
+                'supported if numpy is not installed')
+        except TypeError:
+            # this means it's not a nested list, which is what we want
+            pass
+        maxabsvalue = float(max([abs(x) for x in data]))
+        scaled = [int(x/maxabsvalue*32767) for x in data]
+        nchan = 1
+        return scaled, nchan
 
     def _data_and_metadata(self):
         """shortcut for returning metadata with url information, if defined"""
