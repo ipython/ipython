@@ -54,6 +54,12 @@ class Audio(DisplayObject):
     autoplay : bool
         Set to True if the audio should immediately start playing.
         Default is `False`.
+    normalize : bool
+        Whether audio should be normalized (rescaled) to the maximum possible
+        range. Default is `True`. When set to `False`, `data` must be between
+        -1 and 1 (inclusive), otherwise an error is raised.
+        Applies only when `data` is a list or array of samples; other types of
+        audio are never normalized.
 
     Examples
     --------
@@ -83,7 +89,7 @@ class Audio(DisplayObject):
     """
     _read_flags = 'rb'
 
-    def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False):
+    def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False, normalize=True):
         if filename is None and url is None and data is None:
             raise ValueError("No audio data found. Expecting filename, url, or data.")
         if embed is False and url is None:
@@ -99,7 +105,7 @@ class Audio(DisplayObject):
         if self.data is not None and not isinstance(self.data, bytes):
             if rate is None:
                 raise ValueError("rate must be specified when data is a numpy array or list of audio samples.")
-            self.data = Audio._make_wav(data, rate)
+            self.data = Audio._make_wav(data, rate, normalize)
 
     def reload(self):
         """Reload the raw data from file or URL."""
@@ -115,16 +121,16 @@ class Audio(DisplayObject):
             self.mimetype = "audio/wav"
 
     @staticmethod
-    def _make_wav(data, rate):
+    def _make_wav(data, rate, normalize):
         """ Transform a numpy array to a PCM bytestring """
         import struct
         from io import BytesIO
         import wave
 
         try:
-            scaled, nchan = Audio._validate_and_normalize_with_numpy(data)
+            scaled, nchan = Audio._validate_and_normalize_with_numpy(data, normalize)
         except ImportError:
-            scaled, nchan = Audio._validate_and_normalize_without_numpy(data)
+            scaled, nchan = Audio._validate_and_normalize_without_numpy(data, normalize)
 
         fp = BytesIO()
         waveobj = wave.open(fp,mode='wb')
@@ -139,7 +145,7 @@ class Audio(DisplayObject):
         return val
 
     @staticmethod
-    def _validate_and_normalize_with_numpy(data):
+    def _validate_and_normalize_with_numpy(data, normalize):
         import numpy as np
 
         data = np.array(data, dtype=float)
@@ -154,20 +160,31 @@ class Audio(DisplayObject):
             data = data.T.ravel()
         else:
             raise ValueError('Array audio input must be a 1D or 2D array')
-        scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
+        
+        max_abs_value = np.max(np.abs(data))
+        normalization_factor = Audio._get_normalization_factor(max_abs_value, normalize)
+        scaled = np.int16(data / normalization_factor * 32767).tolist()
         return scaled, nchan
 
+
     @staticmethod
-    def _validate_and_normalize_without_numpy(data):
+    def _validate_and_normalize_without_numpy(data, normalize):
         try:
-            maxabsvalue = float(max([abs(x) for x in data]))
+            max_abs_value = float(max([abs(x) for x in data]))
         except TypeError:
             raise TypeError('Only lists of mono audio are '
                 'supported if numpy is not installed')
 
-        scaled = [int(x/maxabsvalue*32767) for x in data]
+        normalization_factor = Audio._get_normalization_factor(max_abs_value, normalize)
+        scaled = [int(x / normalization_factor * 32767) for x in data]
         nchan = 1
         return scaled, nchan
+
+    @staticmethod
+    def _get_normalization_factor(max_abs_value, normalize):
+        if not normalize and max_abs_value > 1:
+            raise ValueError('Audio data must be between -1 and 1 when normalize=False.')
+        return max_abs_value if normalize else 1
 
     def _data_and_metadata(self):
         """shortcut for returning metadata with url information, if defined"""
