@@ -159,16 +159,12 @@ class Audio(DisplayObject):
 
     @staticmethod
     def _validate_and_normalize_without_numpy(data):
-        # check that it is a "1D" list
-        idata = iter(data)  # fails if not an iterable
         try:
-            iter(idata.next())
+            maxabsvalue = float(max([abs(x) for x in data]))
+        except TypeError:
             raise TypeError('Only lists of mono audio are '
                 'supported if numpy is not installed')
-        except TypeError:
-            # this means it's not a nested list, which is what we want
-            pass
-        maxabsvalue = float(max([abs(x) for x in data]))
+
         scaled = [int(x/maxabsvalue*32767) for x in data]
         nchan = 1
         return scaled, nchan

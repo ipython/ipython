@@ -19,6 +19,7 @@ try:
     import pathlib
 except ImportError:
     pass
+from unittest import mock
 
 # Third-party imports
 import nose.tools as nt
@@ -185,6 +186,17 @@ def test_audio_from_file():
 
 def test_audio_from_numpy_array():
     display.Audio(get_test_tone(), rate=44100)
+
+def test_audio_from_list_without_numpy():
+    # Simulate numpy not installed.
+    with mock.patch('numpy.array', side_effect=ImportError):
+        display.Audio(list(get_test_tone()), rate=44100)
+
+def test_audio_from_list_without_numpy_raises_for_nested_list():
+    # Simulate numpy not installed.
+    with mock.patch('numpy.array', side_effect=ImportError):
+        stereo_signal = [list(get_test_tone())] * 2
+        nt.assert_raises(TypeError, lambda: display.Audio(stereo_signal, rate=44100))
 
 def test_audio_from_numpy_array_without_rate_raises():
     nt.assert_raises(ValueError, display.Audio, get_test_tone())
