@@ -97,6 +97,8 @@ class Audio(DisplayObject):
         super(Audio, self).__init__(data=data, url=url, filename=filename)
 
         if self.data is not None and not isinstance(self.data, bytes):
+            if rate is None:
+                raise ValueError("rate must be specified when data is a numpy array or list of audio samples.")
             self.data = Audio._make_wav(data, rate)
 
     def reload(self):
