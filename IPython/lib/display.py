@@ -85,7 +85,7 @@ class Audio(DisplayObject):
 
     def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False):
         if filename is None and url is None and data is None:
-            raise ValueError("No image data found. Expecting filename, url, or data.")
+            raise ValueError("No audio data found. Expecting filename, url, or data.")
         if embed is False and url is None:
             raise ValueError("No url found. Expecting url when embed=False")
 
