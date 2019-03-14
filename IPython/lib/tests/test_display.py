@@ -22,10 +22,10 @@ except ImportError:
 
 # Third-party imports
 import nose.tools as nt
+import numpy
 
 # Our own imports
 from IPython.lib import display
-from IPython.testing.decorators import skipif_not_numpy
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -179,10 +179,18 @@ def test_recursive_FileLinks():
     actual = actual.split('\n')
     nt.assert_equal(len(actual), 2, actual)
 
-@skipif_not_numpy
 def test_audio_from_file():
     path = pjoin(dirname(__file__), 'test.wav')
     display.Audio(filename=path)
+
+def test_audio_from_numpy_array():
+    display.Audio(get_test_tone(), rate=44100)
+
+def test_audio_from_numpy_array_without_rate_raises():
+    nt.assert_raises(ValueError, display.Audio, get_test_tone())
+
+def get_test_tone():
+    return numpy.sin(2 * numpy.pi * 440 * numpy.linspace(0, 1, 44100))
 
 def test_code_from_file():
     c = display.Code(filename=__file__)
