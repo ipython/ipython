@@ -35,10 +35,12 @@ from IPython.core.events import EventManager, pre_run_cell
 
 noop = lambda *a, **kw: None
 
-class FakeShell(object):
+class FakeShell:
 
     def __init__(self):
         self.ns = {}
+        self.user_ns = {}
+        self.user_ns_hidden = {}
         self.events = EventManager(self, {'pre_run_cell', pre_run_cell})
         self.auto_magics = AutoreloadMagics(shell=self)
         self.events.register('pre_run_cell', self.auto_magics.pre_run_cell)
