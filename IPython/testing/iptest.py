@@ -8,9 +8,9 @@ itself from the command line. There are two ways of running this script:
    calling this script (with different arguments) recursively.  This
    causes modules and package to be tested in different processes, using nose
    or trial where appropriate.
-2. With the regular nose syntax, like `iptest -vvs IPython`.  In this form
+2. With the regular nose syntax, like `iptest IPython -- -vvs`. In this form
    the script simply calls nose, but with special command line flags and
-   plugins loaded.
+   plugins loaded. Options after `--` are passed to nose.
 
 """
 
