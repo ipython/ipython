@@ -1,8 +1,6 @@
 # Simple tool to help for release
 # when releasing with bash, simplei source it to get asked questions. 
 
-set -euo pipefail
-
 echo -n PREV_RELEASE:
 read PREV_RELEASE
 echo -n MILESTONE:
