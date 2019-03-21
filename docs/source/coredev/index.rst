@@ -58,6 +58,9 @@ During the release process, you might need the extra following dependencies:
 
 Make sure you have all the required dependencies to run the tests as well.
 
+You can try to ``source tools/release_helper.sh`` when releasing via bash, it 
+should guide you through most of the process.
+
 
 1. Set Environment variables
 ----------------------------
