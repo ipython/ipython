@@ -2,6 +2,50 @@
  7.x Series
 ============
 
+.. _whatsnew740:
+
+IPython 7.4.0
+=============
+
+Unicode name completions
+------------------------
+
+Previously, we provided completion for a unicode name with its relative symbol.
+With this, now IPython provides complete suggestions to unicode name symbols.
+
+As on the PR, if user types ``\LAT<tab>``, IPython provides a list of
+possible completions. In this case, it would be something like::
+
+   'LATIN CAPITAL LETTER A',
+   'LATIN CAPITAL LETTER B',
+   'LATIN CAPITAL LETTER C',
+   'LATIN CAPITAL LETTER D',
+   ....
+
+This help to type unicode character that do not have short latex aliases, and
+have long unicode names. for example ``Ͱ``, ``\GREEK CAPITAL LETTER HETA``.
+
+This feature was contributed by Luciana Marques :ghpull:`11583`.
+
+Make audio normalization optional
+---------------------------------
+
+Added 'normalize' argument to `IPython.display.Audio`. This argument applies
+when audio data is given as an array of samples. The default of `normalize=True`
+preserves prior behavior of normalizing the audio to the maximum possible range.
+Setting to `False` disables normalization.
+
+
+Miscelanious
+------------
+
+ - Fix improper acceptation of ``return`` outside of functions. :ghpull:`11641`.
+ - Fixed PyQt 5.11 backwards incompatibility causing sip import failure.
+   :ghpull:`11613`.
+ - Fix Bug where ``type?`` woudl crash IPython. :ghpull:`1608`.
+ - Allow to apply ``@needs_local_scope`` to cell magics for convenience.
+   :ghpull:`11542`.
+
 .. _whatsnew730:
 
 IPython 7.3.0

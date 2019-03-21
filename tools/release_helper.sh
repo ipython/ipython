@@ -1,6 +1,8 @@
 # Simple tool to help for release
 # when releasing with bash, simplei source it to get asked questions. 
 
+set -euo pipefail
+
 echo -n PREV_RELEASE:
 read PREV_RELEASE
 echo -n MILESTONE:
@@ -10,12 +12,20 @@ read VERSION
 echo -n branch:
 read branch
 
+echo 
 echo "updating what's new with informations from docs/source/whatsnew/pr"
 python tools/update_whatsnew.py
 
+echo
+echo "please move the contents of developents.rst ot version-X.rst"
+echo "Press enter to continue"
+read
+
+echo 
 echo "here are all the authors that contributed to this release:"
 git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
 
+echo 
 echo "If you see any duplicates cancel (Ctrl-C), then edit .mailmap" Press enter to continue
 read
 
@@ -33,3 +43,17 @@ echo "please update version number in IPython/core/release.py"
 
 echo "Press enter to continue"
 read
+
+echo 
+echo "Attempting to build the docs.."
+make html -C docs
+
+echo 
+echo "Check the docs, press enter to continue"
+read
+
+echo
+echo "Attempting to build package..."
+
+tools/build_release
+
