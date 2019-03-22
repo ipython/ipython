@@ -42,7 +42,7 @@ Miscelanious
  - Fix improper acceptation of ``return`` outside of functions. :ghpull:`11641`.
  - Fixed PyQt 5.11 backwards incompatibility causing sip import failure.
    :ghpull:`11613`.
- - Fix Bug where ``type?`` woudl crash IPython. :ghpull:`1608`.
+ - Fix Bug where ``type?`` would crash IPython. :ghpull:`1608`.
  - Allow to apply ``@needs_local_scope`` to cell magics for convenience.
    :ghpull:`11542`.
 
