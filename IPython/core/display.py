@@ -1270,10 +1270,12 @@ class Image(DisplayObject):
             return b64_data
 
     def _repr_png_(self):
-        return self._data_and_metadata()
+        if self.embed and self.format == self._FMT_PNG:
+            return self._data_and_metadata()
 
     def _repr_jpeg_(self):
-        return self._data_and_metadata()
+        if self.embed and self.format == self._FMT_JPEG:
+            return self._data_and_metadata()
 
     def _find_ext(self, s):
         return s.split('.')[-1].lower()
