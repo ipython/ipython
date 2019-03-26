@@ -1250,7 +1250,11 @@ class Image(DisplayObject):
 
     def _data_and_metadata(self, always_both=False):
         """shortcut for returning metadata with shape information, if defined"""
-        b64_data = b2a_base64(self.data).decode('ascii')
+        try:
+            b64_data = b2a_base64(self.data).decode('ascii')
+        except TypeError:
+            raise FileNotFoundError(
+                "No such file or directory: '%s'" % (self.data))
         md = {}
         if self.metadata:
             md.update(self.metadata)
