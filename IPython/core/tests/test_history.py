@@ -21,6 +21,7 @@ from traitlets.config.loader import Config
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core.history import HistoryManager, extract_hist_ranges
 from IPython.testing.decorators import skipif
+from IPython.utils.capture import capture_output
 
 def setUp():
     nt.assert_equal(sys.getdefaultencoding(), "utf-8")
@@ -167,6 +168,28 @@ def test_magic_rerun():
     nt.assert_equal(ip.user_ns["a"], 11)
     ip.run_cell("%rerun", store_history=True)
     nt.assert_equal(ip.user_ns["a"], 12)
+
+def test_magic_rerun_search():
+    """Test for %rerun -g (searching for text match)"""
+    ip = get_ipython()
+    ip.run_cell("a = 10", store_history=True)
+    ip.run_cell("a += 1", store_history=True)
+    nt.assert_equal(ip.user_ns["a"], 11)
+    ip.run_cell("%rerun -g 10", store_history=True)
+    nt.assert_equal(ip.user_ns["a"], 10)
+
+
+def test_magic_rerun_quiet():
+    """Simple test for %rerun -q (quiet, no echoing of output)"""
+    ip = get_ipython()
+    ip.run_cell("a = 10", store_history=True)
+    ip.run_cell("a += 1", store_history=True)
+    nt.assert_equal(ip.user_ns["a"], 11)
+    with capture_output() as cap:
+        ip.run_cell("%rerun -q", store_history=True)
+    nt.assert_equal(ip.user_ns["a"], 12)
+    nt.assert_not_in("a += 1", cap.stdout)
+
 
 def test_timestamp_type():
     ip = get_ipython()
