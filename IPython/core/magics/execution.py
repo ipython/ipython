@@ -1178,9 +1178,8 @@ python-profiler package from non-free.""")
 
     @skip_doctest
     @no_var_expand
-    @needs_local_scope
     @line_cell_magic
-    def time(self,line='', cell=None, local_ns=None):
+    def time(self, line='', cell=None, local_ns=None):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
