@@ -437,8 +437,6 @@ class EmbeddedSphinxShell(object):
         Process data block for INPUT token.
 
         """
-        import pdb
-        # pdb.set_trace()
         decorator, input, rest = data
         image_file = None
         image_directive = None
@@ -791,17 +789,18 @@ class EmbeddedSphinxShell(object):
         prompts as needed capturing stderr and stdout, then returns
         the content as a list as if it were ipython code
         """
-        import pdb
-        pdb.set_trace()
         output = []
+        fmtin = self.promptin
+        ct = 1
 
-        savefigs = [i for i in range(len(content))
-                    if content[i][:8] == '@savefig']
+        savefigs = [i for i, line in enumerate(content)
+                    if line[:8] == '@savefig']
+        comments = [i for i, line in enumerate(content)
+                    if line != '' and line[0] == '#']
         content_text = '\n'.join([c if c[:8] != '@savefig' else ''
                                   for c in content])
         mod = ast.parse(content_text)
         linestarts = [body.lineno - 1 for body in mod.body]
-        comments = [i for i in range(len(content)) if content[i][0] == '#']
 
         breaks = sorted(savefigs + linestarts + comments)
         for i, lineno in enumerate(breaks):
@@ -811,12 +810,25 @@ class EmbeddedSphinxShell(object):
 
         output.append([c for c in content[lineno:]])
 
+        fmtoutput = []
+        for block in output:
+            for i, line in enumerate(block):
+                if i == 0:
+                    modified = u'%s %s' % (fmtin % ct, line.strip())
+                    continuation = u'   %s:' % ''.join(['.']*(len(str(ct))+2))
+                    ct += 1
+                    fmtoutput.append(modified)
+                else:
+                    modified = u'%s %s' % (continuation, line)
+                    fmtoutput.append(modified)
+            fmtoutput.append('')
+
         if len(savefigs) > 0:  # clear figure if plotted
             self.ensure_pyplot()
             self.process_input_line('plt.clf()', store_history=False)
             self.clear_cout()
 
-        return output
+        return fmtoutput
 
     def custom_doctest(self, decorator, input_lines, found, submitted):
         """
@@ -876,8 +888,6 @@ class IPythonDirective(Directive):
 
     def setup(self):
         # Get configuration values.
-        import pdb
-        # pdb.set_trace()
         (savefig_dir, source_dir, rgxin, rgxout, promptin, promptout,
          mplbackend, exec_lines, hold_count, warning_is_error) = self.get_config_options()
 
@@ -935,8 +945,6 @@ class IPythonDirective(Directive):
         self.shell.clear_cout()
 
     def run(self):
-        import pdb
-        pdb.set_trace()
         debug = False
 
         #TODO, any reason block_parser can't be a method of embeddable shell
