@@ -174,7 +174,7 @@ To Do
 
 # Authors
 # =======
-# 
+#
 # - John D Hunter: original author.
 # - Fernando Perez: refactoring, documentation, cleanups, port to 0.11.
 # - VáclavŠmilauer <eudoxos-AT-arcig.cz>: Prompt generalizations.
@@ -437,6 +437,8 @@ class EmbeddedSphinxShell(object):
         Process data block for INPUT token.
 
         """
+        import pdb
+        # pdb.set_trace()
         decorator, input, rest = data
         image_file = None
         image_directive = None
@@ -789,73 +791,30 @@ class EmbeddedSphinxShell(object):
         prompts as needed capturing stderr and stdout, then returns
         the content as a list as if it were ipython code
         """
+        import pdb
+        pdb.set_trace()
         output = []
-        savefig = False # keep up with this to clear figure
-        multiline = False # to handle line continuation
-        multiline_start = None
-        fmtin = self.promptin
 
-        ct = 0
+        savefigs = [i for i in range(len(content))
+                    if content[i][:8] == '@savefig']
+        content_text = '\n'.join([c if c[:8] != '@savefig' else ''
+                                  for c in content])
+        mod = ast.parse(content_text)
+        linestarts = [body.lineno - 1 for body in mod.body]
+        comments = [i for i in range(len(content)) if content[i][0] == '#']
 
-        for lineno, line in enumerate(content):
-
-            line_stripped = line.strip()
-            if not len(line):
-                output.append(line)
+        breaks = sorted(savefigs + linestarts + comments)
+        for i, lineno in enumerate(breaks):
+            if i == 0:
                 continue
+            output.append([c for c in content[breaks[i-1]:lineno]])
 
-            # handle decorators
-            if line_stripped.startswith('@'):
-                output.extend([line])
-                if 'savefig' in line:
-                    savefig = True # and need to clear figure
-                continue
+        output.append([c for c in content[lineno:]])
 
-            # handle comments
-            if line_stripped.startswith('#'):
-                output.extend([line])
-                continue
-
-            # deal with lines checking for multiline
-            continuation  = u'   %s:'% ''.join(['.']*(len(str(ct))+2))
-            if not multiline:
-                modified = u"%s %s" % (fmtin % ct, line_stripped)
-                output.append(modified)
-                ct += 1
-                try:
-                    ast.parse(line_stripped)
-                    output.append(u'')
-                except Exception: # on a multiline
-                    multiline = True
-                    multiline_start = lineno
-            else: # still on a multiline
-                modified = u'%s %s' % (continuation, line)
-                output.append(modified)
-
-                # if the next line is indented, it should be part of multiline
-                if len(content) > lineno + 1:
-                    nextline = content[lineno + 1]
-                    if len(nextline) - len(nextline.lstrip()) > 3:
-                        continue
-                try:
-                    mod = ast.parse(
-                            '\n'.join(content[multiline_start:lineno+1]))
-                    if isinstance(mod.body[0], ast.FunctionDef):
-                        # check to see if we have the whole function
-                        for element in mod.body[0].body:
-                            if isinstance(element, ast.Return):
-                                multiline = False
-                    else:
-                        output.append(u'')
-                        multiline = False
-                except Exception:
-                    pass
-
-            if savefig: # clear figure if plotted
-                self.ensure_pyplot()
-                self.process_input_line('plt.clf()', store_history=False)
-                self.clear_cout()
-                savefig = False
+        if len(savefigs) > 0:  # clear figure if plotted
+            self.ensure_pyplot()
+            self.process_input_line('plt.clf()', store_history=False)
+            self.clear_cout()
 
         return output
 
@@ -917,6 +876,8 @@ class IPythonDirective(Directive):
 
     def setup(self):
         # Get configuration values.
+        import pdb
+        # pdb.set_trace()
         (savefig_dir, source_dir, rgxin, rgxout, promptin, promptout,
          mplbackend, exec_lines, hold_count, warning_is_error) = self.get_config_options()
 
@@ -974,6 +935,8 @@ class IPythonDirective(Directive):
         self.shell.clear_cout()
 
     def run(self):
+        import pdb
+        pdb.set_trace()
         debug = False
 
         #TODO, any reason block_parser can't be a method of embeddable shell
