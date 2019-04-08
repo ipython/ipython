@@ -813,6 +813,8 @@ class EmbeddedSphinxShell(object):
         fmtoutput = []
         for block in output:
             for i, line in enumerate(block):
+                if line[:8] == '@savefig':
+                    fmtoutput.append(line)
                 if i == 0:
                     modified = u'%s %s' % (fmtin % ct, line.strip())
                     continuation = u'   %s:' % ''.join(['.']*(len(str(ct))+2))
