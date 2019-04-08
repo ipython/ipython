@@ -112,6 +112,7 @@ class StoreMagics(Magics):
         python types can be safely %store'd.
 
         Also aliases can be %store'd across sessions.
+        To remove an alias from the storage, use the %unalias magic.
         """
 
         opts,argsl = self.parse_options(parameter_s,'drz',mode='string')
