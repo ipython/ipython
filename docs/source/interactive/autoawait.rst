@@ -29,7 +29,8 @@ Python REPL::
     [GCC 4.2.1]
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import aiohttp
-    >>> result = aiohttp.get('https://api.github.com')
+    >>> session = aiohttp.ClientSession()
+    >>> result = session.get('https://api.github.com')
     >>> response = await result
       File "<stdin>", line 1
         response = await result
@@ -43,7 +44,8 @@ Should behave as expected in the IPython REPL::
     IPython 7.0.0 -- An enhanced Interactive Python. Type '?' for help.
 
     In [1]: import aiohttp
-       ...: result = aiohttp.get('https://api.github.com')
+       ...: session = aiohttp.ClientSession()
+       ...: result = session.get('https://api.github.com')
 
     In [2]: response = await result
     <pause for a few 100s ms>
