@@ -168,12 +168,6 @@ MATCHES_LIMIT = 500
 
 _deprecation_readline_sentinel = object()
 
-names = []
-for c in range(0,0x10FFFF + 1):
-    try:
-        names.append(unicodedata.name(chr(c)))
-    except ValueError:
-        pass
 
 class ProvisionalCompleterWarning(FutureWarning):
     """
@@ -997,6 +991,8 @@ def _make_signature(completion)-> str:
 
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
+
+    _names = None
 
     @observe('greedy')
     def _greedy_changed(self, change):
@@ -2073,14 +2069,21 @@ class IPCompleter(Completer):
         return text, _matches, origins, completions
         
     def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
-        # initial code based on latex_matches() method
+        if self._names is None:
+            self._names = []
+            for c in range(0,0x10FFFF + 1):
+                try:
+                    self._names.append(unicodedata.name(chr(c)))
+                except ValueError:
+                    pass
+
         slashpos = text.rfind('\\')
         # if text starts with slash
         if slashpos > -1:
             s = text[slashpos+1:]
-            candidates = [x for x in names if x.startswith(s)]
+            candidates = [x for x in self._names if x.startswith(s)]
             if candidates:
-                return s, [x for x in names if x.startswith(s)]
+                return s, candidates
             else:
                 return '', ()
         
