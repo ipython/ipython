@@ -963,7 +963,7 @@ class Inspector(Colorable):
             return False
 
     def psearch(self,pattern,ns_table,ns_search=[],
-                ignore_case=False,show_all=False, list_types=False):
+                ignore_case=False,show_all=False, *, list_types=False):
         """Search namespaces with wildcards for objects.
 
         Arguments:
