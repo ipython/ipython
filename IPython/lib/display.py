@@ -89,7 +89,7 @@ class Audio(DisplayObject):
     """
     _read_flags = 'rb'
 
-    def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False, normalize=True,
+    def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False, normalize=True, *,
                  element_id=None):
         if filename is None and url is None and data is None:
             raise ValueError("No audio data found. Expecting filename, url, or data.")
