@@ -86,10 +86,16 @@ class Audio(DisplayObject):
         Audio(b'RAW_WAV_DATA..)  # From bytes
         Audio(data=b'RAW_WAV_DATA..)
 
+    See Also
+    --------
+    
+    See also the ``Audio`` widgets form the ``ipywidget`` package for more flexibility and options.
+    
     """
     _read_flags = 'rb'
 
-    def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False, normalize=True):
+    def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False, normalize=True, *,
+                 element_id=None):
         if filename is None and url is None and data is None:
             raise ValueError("No audio data found. Expecting filename, url, or data.")
         if embed is False and url is None:
@@ -100,6 +106,7 @@ class Audio(DisplayObject):
         else:
             self.embed = True
         self.autoplay = autoplay
+        self.element_id = element_id
         super(Audio, self).__init__(data=data, url=url, filename=filename)
 
         if self.data is not None and not isinstance(self.data, bytes):
@@ -198,12 +205,13 @@ class Audio(DisplayObject):
 
     def _repr_html_(self):
         src = """
-                <audio controls="controls" {autoplay}>
+                <audio {element_id} controls="controls" {autoplay}>
                     <source src="{src}" type="{type}" />
                     Your browser does not support the audio element.
                 </audio>
               """
-        return src.format(src=self.src_attr(),type=self.mimetype, autoplay=self.autoplay_attr())
+        return src.format(src=self.src_attr(), type=self.mimetype, autoplay=self.autoplay_attr(),
+                          element_id=self.element_id_attr())
 
     def src_attr(self):
         import base64
@@ -219,6 +227,12 @@ class Audio(DisplayObject):
     def autoplay_attr(self):
         if(self.autoplay):
             return 'autoplay="autoplay"'
+        else:
+            return ''
+    
+    def element_id_attr(self):
+        if (self.element_id):
+            return 'id="{element_id}"'.format(element_id=self.element_id)
         else:
             return ''
 
