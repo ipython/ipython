@@ -86,6 +86,11 @@ class Audio(DisplayObject):
         Audio(b'RAW_WAV_DATA..)  # From bytes
         Audio(data=b'RAW_WAV_DATA..)
 
+    See Also
+    --------
+    
+    See also the ``Audio`` widgets form the ``ipywidget`` package for more flexibility and options.
+    
     """
     _read_flags = 'rb'
 
