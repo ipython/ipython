@@ -1127,8 +1127,8 @@ python-profiler package from non-free.""")
         ns = {}
         glob = self.shell.user_ns
         # handles global vars with same name as local vars. We store them in conflict_globs.
-        if local_ns is not None:
-            conflict_globs = {}
+        conflict_globs = {}
+        if local_ns and cell is None:
             for var_name, var_val in glob.items():
                 if var_name in local_ns:
                     conflict_globs[var_name] = var_val
@@ -1154,9 +1154,8 @@ python-profiler package from non-free.""")
         timeit_result = TimeitResult(number, repeat, best, worst, all_runs, tc, precision)
 
         # Restore global vars from conflict_globs
-        if local_ns is not None:
-            if len(conflict_globs) > 0:
-                glob.update(conflict_globs)
+        if conflict_globs:
+           glob.update(conflict_globs)
                 
         if not quiet :
             # Check best timing is greater than zero to avoid a

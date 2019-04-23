@@ -419,6 +419,16 @@ def test_time3():
                     "run = 0\n"
                     "run += 1")
 
+def test_time_local_ns():
+    """
+    Test that local_ns is actually global_ns when running a cell magic
+    """
+    ip = get_ipython()
+    ip.run_cell("%%time\n"
+                "myvar = 1")
+    nt.assert_equal(ip.user_ns['myvar'], 1)
+    del ip.user_ns['myvar']
+
 def test_doctest_mode():
     "Toggle doctest_mode twice, it should be a no-op and run without error"
     _ip.magic('doctest_mode')
