@@ -22,12 +22,12 @@ Run doctests
 ------------
 
 Run your doctests from within IPython for development and debugging. The
-special %doctest_mode command toggles a mode where the prompt, output and
+special ``%doctest_mode`` command toggles a mode where the prompt, output and
 exceptions display matches as closely as possible that of the default Python
 interpreter. In addition, this mode allows you to directly paste in code that
 contains leading '>>>' prompts, even if they have extra leading whitespace
-(as is common in doctest files). This combined with the ``%history -t`` call
-to see your translated history allows for an easy doctest workflow, where you
+(as is common in doctest files). This combined with the ``%hist -t`` call to
+see your translated history allows for an easy doctest workflow, where you
 can go from doctest to interactive execution to pasting into valid Python code
 as needed.
 
