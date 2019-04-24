@@ -4,6 +4,19 @@
 
 .. _whatsnew740:
 
+IPython 7.5.0
+=============
+
+IPython 7.5.0 consist mostly of bug-fixes, and documentation updates, with one
+minor new feature. The `Audio` display element can now be assigned an element
+id when displayed in browser. See :ghpull:`11670`
+
+The major outstanding bug fix correct a change of behavior that was introduce
+in 7.4.0 where some cell magics would not be able to access or modify global
+scope when using the ``@needs_local_scope`` decorator. This was typically
+encountered with the ``%%time`` and ``%%timeit`` magics. See :ghissue:`11659`
+and :ghpull:`11698`.
+
 IPython 7.4.0
 =============
 
