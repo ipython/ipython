@@ -15,7 +15,7 @@ echo "updating what's new with informations from docs/source/whatsnew/pr"
 python tools/update_whatsnew.py
 
 echo
-echo "please move the contents of developents.rst ot version-X.rst"
+echo "please move the contents of "docs/source/whatsnew/development.rst" to version-X.rst"
 echo "Press enter to continue"
 read
 

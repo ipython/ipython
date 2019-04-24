@@ -1,6 +1,27 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+Issues closed in 7.5
+--------------------
+
+GitHub stats for 2019/03/21 - 2019/04/24 (tag: 7.4.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 2 issues and merged 9 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.5>`__
+
+The following 7 authors contributed 28 commits.
+
+* Akshay Paropkari
+* Benjamin Ragan-Kelley
+* Ivan Tham
+* Matthias Bussonnier
+* Nick Tallant
+* Sebastian Witowski
+* stef-ubuntu
+
+
 Issues closed in 7.4
 --------------------
 
