@@ -1899,8 +1899,6 @@ class IPCompleter(Completer):
 
         start_offset = before.rfind(matched_text)
 
-        # TODO:
-        # Suppress this, right now just for debug.
         if jedi_matches and matches and self.debug:
             yield Completion(start=start_offset, end=offset, text='--jedi/ipython--',
                              _origin='debug', type='none', signature='')
@@ -1953,15 +1951,13 @@ class IPCompleter(Completer):
         warnings.warn('`Completer.complete` is pending deprecation since '
                 'IPython 6.0 and will be replaced by `Completer.completions`.',
                       PendingDeprecationWarning)
-        # potential todo, FOLD the 3rd throw away argument of _complete
-        # into the first 2 one.
-        return self._complete(line_buffer=line_buffer, cursor_pos=cursor_pos, text=text, cursor_line=0)[:2]
+        return self._complete(line_buffer=line_buffer, cursor_pos=cursor_pos, cursor_line=0)[:2]
 
-    def _complete(self, *, cursor_line, cursor_pos, line_buffer=None, text=None,
+    def _complete(self, *, cursor_line, cursor_pos, line_buffer=None,
                   full_text=None) -> Tuple[str, List[str], List[str], Iterable[_FakeJediCompletion]]:
         """
 
-        Like complete but can also returns raw jedi completions as well as the
+        Like complete but can also return raw jedi completions as well as the
         origin of the completion text. This could (and should) be made much
         cleaner but that will be simpler once we drop the old (and stateful)
         :any:`complete` API.
@@ -1976,36 +1972,32 @@ class IPCompleter(Completer):
         # if the cursor position isn't given, the only sane assumption we can
         # make is that it's at the end of the line (the common case)
         if cursor_pos is None:
-            cursor_pos = len(line_buffer) if text is None else len(text)
+            cursor_pos = len(line_buffer)
 
         if self.use_main_ns:
             self.namespace = __main__.__dict__
 
-        # if text is either None or an empty string, rely on the line buffer
+        # if no provided line_buffer but provided full_text, rely on full_text
         if (not line_buffer) and full_text:
             line_buffer = full_text.split('\n')[cursor_line]
-        if not text:
-            text = self.splitter.split_line(line_buffer, cursor_pos)
 
         if self.backslash_combining_completions:
             # allow deactivation of these on windows.
-            base_text = text if not line_buffer else line_buffer[:cursor_pos]
+            base_text = line_buffer[:cursor_pos]
+
+            # look up for latex mateches
             latex_text, latex_matches = self.latex_matches(base_text)
             if latex_matches:
                 return latex_text, latex_matches, ['latex_matches']*len(latex_matches), ()
+            
+            # look up for unicode
             name_text = ''
             name_matches = []
-            # need to add self.fwd_unicode_match() function here when done
             for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches, self.fwd_unicode_match):
                 name_text, name_matches = meth(base_text)
                 if name_text:
                     return name_text, name_matches[:MATCHES_LIMIT], \
                            [meth.__qualname__]*min(len(name_matches), MATCHES_LIMIT), ()
-
-
-        # If no line buffer is given, assume the input text is all there was
-        if line_buffer is None:
-            line_buffer = text
 
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
@@ -2015,11 +2007,11 @@ class IPCompleter(Completer):
             matches = list(matcher(line_buffer))[:MATCHES_LIMIT]
             if matches:
                 origins = [matcher.__qualname__] * len(matches)
-                return text, matches, origins, ()
+                return self.text_until_cursor, matches, origins, ()
 
         # Start with a clean slate of completions
         matches = []
-        custom_res = self.dispatch_custom_completer(text)
+        custom_res = self.dispatch_custom_completer(self.text_until_cursor)
         # FIXME: we should extend our api to return a dict with completions for
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
@@ -2042,7 +2034,7 @@ class IPCompleter(Completer):
                 for matcher in self.matchers:
                     try:
                         matches.extend([(m, matcher.__qualname__)
-                                        for m in matcher(text)])
+                                        for m in matcher(self.text_until_cursor)])
                     except:
                         # Show the ugly traceback if the matcher causes an
                         # exception, but do NOT crash the kernel!
@@ -2050,7 +2042,7 @@ class IPCompleter(Completer):
             else:
                 for matcher in self.matchers:
                     matches = [(m, matcher.__qualname__)
-                               for m in matcher(text)]
+                               for m in matcher(self.text_until_cursor)]
                     if matches:
                         break
         seen = set()
@@ -2070,7 +2062,7 @@ class IPCompleter(Completer):
 
         self.matches = _matches
 
-        return text, _matches, origins, completions
+        return self.text_until_cursor, _matches, origins, completions
         
     def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
         # initial code based on latex_matches() method

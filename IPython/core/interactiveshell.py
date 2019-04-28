@@ -2198,7 +2198,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Inject names into __builtin__ so we can complete on the added names.
         with self.builtin_trap:
-            return self.Completer.complete(text, line, cursor_pos)
+            return self.Completer.complete(line, cursor_pos)
 
     def set_custom_completer(self, completer, pos=0):
         """Adds a new custom completer function.
