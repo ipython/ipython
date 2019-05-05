@@ -139,7 +139,6 @@ class CachingCompiler(codeop.Compile):
     def extra_flags(self, flags):
         old_flags = self.flags
         self.flags = self.flags | flags
-        print('flags', old_flags ,'->', self.flags)
         try:
             yield
         finally:
