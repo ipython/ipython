@@ -3227,7 +3227,7 @@ class InteractiveShell(SingletonConfigurable):
                 for i, node in enumerate(to_run_interactive):
                     print('B: interactive, async=', _async, nodelist)
                     mod = ast.Interactive([node])
-                    with compiler.extra_flags(ast.ast.PyCF_ALLOW_TOP_LEVEL_AWAIT if _async else 0x0):
+                    with compiler.extra_flags(ast.PyCF_ALLOW_TOP_LEVEL_AWAIT if self.autoawait else 0x0):
                         code = compiler(mod, cell_name, "single")
                         asy = compare(code)
 
