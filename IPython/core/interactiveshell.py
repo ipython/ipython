@@ -210,6 +210,8 @@ def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
     """
 
     from ast import Expr, Await, Return
+    if sys.version_info >= (3,8):
+        return ast.parse(cell)
     tree = ast.parse(_asyncify(cell))
 
     function_def = tree.body[0]
@@ -3194,11 +3196,12 @@ class InteractiveShell(SingletonConfigurable):
         elif interactivity == 'all':
             to_run_exec, to_run_interactive = [], nodelist
         elif interactivity == 'async':
+            to_run_exec, to_run_interactive = [], nodelist
             _async = True
         else:
             raise ValueError("Interactivity was %r" % interactivity)
         try:
-            if _async:
+            if _async and sys.version_info < (3,8):
                 # If interactivity is async the semantics of run_code are
                 # completely different Skip usual machinery.
                 mod = Module(nodelist, [])
@@ -3215,9 +3218,11 @@ class InteractiveShell(SingletonConfigurable):
                         return True
 
                 for i, node in enumerate(to_run_interactive):
+                    print('B: interactive, async=', _async, nodelist)
                     mod = ast.Interactive([node])
-                    code = compiler(mod, cell_name, "single")
-                    if (yield from self.run_code(code, result)):
+                    with compiler.extra_flags(0x2000 if _async else 0x0):
+                        code = compiler(mod, cell_name, "single")
+                    if (yield from self.run_code(code, result, async_=_async)):
                         return True
 
             # Flush softspace
@@ -3288,10 +3293,12 @@ class InteractiveShell(SingletonConfigurable):
         try:
             try:
                 self.hooks.pre_run_code_hook()
-                if async_:
+                if async_ and sys.version_info < (3,8):
                     last_expr = (yield from self._async_exec(code_obj, self.user_ns))
                     code = compile('last_expr', 'fake', "single")
                     exec(code, {'last_expr': last_expr})
+                elif async_ :
+                    res = yield from eval(code_obj, self.user_ns)
                 else:
                     exec(code_obj, self.user_global_ns, self.user_ns)
             finally:
