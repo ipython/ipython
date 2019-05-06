@@ -187,7 +187,12 @@ class DisplayHook(Configurable):
                 # But avoid extraneous empty lines.
                 result_repr = '\n' + result_repr
 
-        print(result_repr)
+        try:
+            print(result_repr)
+        except UnicodeEncodeError:
+            # If a character is not supported by the terminal encoding replace
+            # it with its \u or \x representation
+            print(result_repr.encode(sys.stdout.encoding,'backslashreplace').decode(sys.stdout.encoding))
 
     def update_user_ns(self, result):
         """Update user_ns with various things like _, __, _1, etc."""
