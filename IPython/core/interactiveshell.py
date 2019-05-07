@@ -3045,7 +3045,8 @@ class InteractiveShell(SingletonConfigurable):
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
                 if _run_async:
-                    interactivity = 'async'
+                    print(interactivity)
+                    interactivity = 'last_expr'
 
                 has_raised = yield from self.run_ast_nodes(code_ast.body, cell_name,
                        interactivity=interactivity, compiler=compiler, result=result)
@@ -3167,6 +3168,9 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not nodelist:
             return
+        if interactivity == 'async':
+            interactivify = 'last'
+
         if interactivity == 'last_expr_or_assign':
             if isinstance(nodelist[-1], _assign_nodes):
                 asg = nodelist[-1]
@@ -3200,6 +3204,8 @@ class InteractiveShell(SingletonConfigurable):
             _async = True
         else:
             raise ValueError("Interactivity was %r" % interactivity)
+
+        print('interactivity:', interactivity)
         try:
             if _async and sys.version_info < (3,8):
                 raise ValueError
@@ -3217,17 +3223,20 @@ class InteractiveShell(SingletonConfigurable):
                     is_async = (inspect.CO_COROUTINE & code.co_flags == inspect.CO_COROUTINE)
                     print('async=', _async, 'autodetect=', is_async)
                     return is_async
+
+                # refactor that to just change the mod constructor.
                 for i, node in enumerate(to_run_exec):
                     mod = Module([node], [])
-                    code = compiler(mod, cell_name, "exec")
-                    compare(code)
-                    if (yield from self.run_code(code, result)):
+                    with compiler.extra_flags(getattr(ast, 'PyCF_ALLOW_TOP_LEVEL_AWAIT', 0x0) if self.autoawait else 0x0):
+                        code = compiler(mod, cell_name, "exec")
+                        asy = compare(code)
+                    if (yield from self.run_code(code, result,  async_=asy)):
                         return True
 
                 for i, node in enumerate(to_run_interactive):
                     print('B: interactive, async=', _async, nodelist)
                     mod = ast.Interactive([node])
-                    with compiler.extra_flags(ast.PyCF_ALLOW_TOP_LEVEL_AWAIT if self.autoawait else 0x0):
+                    with compiler.extra_flags(getattr(ast, 'PyCF_ALLOW_TOP_LEVEL_AWAIT', 0x0) if self.autoawait else 0x0):
                         code = compiler(mod, cell_name, "single")
                         asy = compare(code)
 
