@@ -1261,6 +1261,7 @@ python-profiler package from non-free.""")
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
 
+        expr_val=None
         if len(expr_ast.body)==1 and isinstance(expr_ast.body[0], ast.Expr):
             mode = 'eval'
             source = '<timed eval>'
@@ -1268,6 +1269,15 @@ python-profiler package from non-free.""")
         else:
             mode = 'exec'
             source = '<timed exec>'
+            # multi-line %%time case
+            if len(expr_ast.body) > 1 :
+                expr_val=expr_ast.body[-1]
+                code_val = self.shell.compile(ast.Expression(expr_val.value)
+                                                , '<timed eval>'
+                                                , 'eval')
+                expr_ast=expr_ast.body[:-1]
+                expr_ast = ast.Module(expr_ast)
+
         t0 = clock()
         code = self.shell.compile(expr_ast, source, mode)
         tc = clock()-t0
@@ -1289,11 +1299,15 @@ python-profiler package from non-free.""")
             st = clock2()
             try:
                 exec(code, glob, local_ns)
+                out=None
+                # multi-line %%time case
+                if expr_val and isinstance(expr_val, ast.Expr):
+                    out = eval(code_val, glob, local_ns)  
             except:
                 self.shell.showtraceback()
                 return
             end = clock2()
-            out = None
+
         wall_end = wtime()
         # Compute actual times and report
         wall_time = wall_end-wall_st
