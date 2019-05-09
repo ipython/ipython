@@ -16,6 +16,7 @@ from traitlets import (
 )
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
+from prompt_toolkit.eventloop.inputhook import set_eventloop_with_inputhook
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.history import InMemoryHistory
@@ -291,6 +292,8 @@ class TerminalInteractiveShell(InteractiveShell):
                             color_depth=self.color_depth,
                             **self._extra_prompt_options())
 
+        set_eventloop_with_inputhook(self.inputhook)
+
     def _make_style_from_name_or_cls(self, name_or_cls):
         """
         Small wrapper that make an IPython compatible style from a style name
@@ -393,8 +396,7 @@ class TerminalInteractiveShell(InteractiveShell):
                         processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                         filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
                             Condition(lambda: self.highlight_matching_brackets))],
-                'inputhook': self.inputhook,
-                }
+        }
 
     def prompt_for_code(self):
         if self.rl_next_input:
