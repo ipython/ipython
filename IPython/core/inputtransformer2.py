@@ -18,6 +18,19 @@ import warnings
 
 _indent_re = re.compile(r'^[ \t]+')
 
+def leading_empty_lines(lines):
+    """Remove leading empty lines
+
+    If the leading lines are empty or contain only whitespace, they will be
+    removed.
+    """
+    if not lines:
+        return lines
+    for i, line in enumerate(lines):
+        if line and not line.isspace():
+            return lines[i:]
+    return lines
+
 def leading_indent(lines):
     """Remove leading indentation.
 
@@ -510,6 +523,7 @@ class TransformerManager:
     """
     def __init__(self):
         self.cleanup_transforms = [
+            leading_empty_lines,
             leading_indent,
             classic_prompt,
             ipython_prompt,
