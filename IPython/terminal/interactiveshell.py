@@ -15,8 +15,8 @@ from traitlets import (
     Any, validate
 )
 
+import prompt_toolkit
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.eventloop.inputhook import set_eventloop_with_inputhook
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.history import InMemoryHistory
@@ -39,6 +39,15 @@ from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import create_ipython_shortcuts
 
 DISPLAY_BANNER_DEPRECATED = object()
+
+try:
+    PROMPT_TOOLKIT_VERSION = int(prompt_toolkit.__version__[0])
+    if PROMPT_TOOLKIT_VERSION >= 3:
+        from prompt_toolkit.eventloop.inputhook import set_eventloop_with_inputhook
+except ValueError:
+    warn("Unknown prompt_toolkit version !")
+    # Let's assume v2 for now
+    PROMPT_TOOLKIT_VERSION = 2
 
 
 class _NoStyle(Style): pass
@@ -292,7 +301,9 @@ class TerminalInteractiveShell(InteractiveShell):
                             color_depth=self.color_depth,
                             **self._extra_prompt_options())
 
-        set_eventloop_with_inputhook(self.inputhook)
+        if PROMPT_TOOLKIT_VERSION >= 3:
+            # see _extra_prompt_options for ptk v2
+            set_eventloop_with_inputhook(self.inputhook)
 
     def _make_style_from_name_or_cls(self, name_or_cls):
         """
@@ -380,6 +391,7 @@ class TerminalInteractiveShell(InteractiveShell):
             return PygmentsTokens(self.prompts.in_prompt_tokens())
 
         return {
+            **{
                 'complete_in_thread': False,
                 'lexer':IPythonPTLexer(),
                 'reserve_space_for_menu':self.space_for_menu,
@@ -396,6 +408,11 @@ class TerminalInteractiveShell(InteractiveShell):
                         processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                         filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
                             Condition(lambda: self.highlight_matching_brackets))],
+            }, **(
+                {
+                    'inputhook': self.inputhook
+                } if PROMPT_TOOLKIT_VERSION == 2 else {}
+            )
         }
 
     def prompt_for_code(self):

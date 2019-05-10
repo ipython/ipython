@@ -189,7 +189,7 @@ install_requires = [
     'decorator',
     'pickleshare',
     'traitlets>=4.2',
-    'prompt_toolkit>=3.0.0,<3.1.0',
+    'prompt_toolkit>=2.0.0,<3.1.0',
     'pygments',
     'backcall',
 ]
