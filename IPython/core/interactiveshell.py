@@ -138,7 +138,7 @@ def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
     from types import CodeType, FunctionType
     CO_NEWLOCALS = 0x0002
     code = function.__code__
-    if sys.version_info > (3,8):
+    if sys.version_info > (3, 8, 0, 'alpha', 3):
         new_code = CodeType(
             code.co_argcount,
             code.co_posonlyargcount, # Python-3.8 PEP570 positional only argument
