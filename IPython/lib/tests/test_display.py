@@ -239,7 +239,11 @@ class TestAudioDataWithNumpy(TestCase):
             lambda: display.Audio([-1.001], rate=44100, normalize=False))
 
 def simulate_numpy_not_installed():
-    return mock.patch('numpy.array', mock.MagicMock(side_effect=ImportError))
+    try:
+        import numpy
+        return mock.patch('numpy.array', mock.MagicMock(side_effect=ImportError))
+    except ModuleNotFoundError:
+        return lambda x:x
 
 @simulate_numpy_not_installed()
 class TestAudioDataWithoutNumpy(TestAudioDataWithNumpy):
@@ -252,6 +256,7 @@ class TestAudioDataWithoutNumpy(TestAudioDataWithNumpy):
             TypeError,
             lambda: display.Audio(stereo_signal, rate=44100))
 
+@skipif_not_numpy
 def get_test_tone(scale=1):
     return numpy.sin(2 * numpy.pi * 440 * numpy.linspace(0, 1, 44100)) * scale
 
