@@ -37,7 +37,7 @@ from IPython import version_info
 from IPython.utils.py3compat import decode
 from IPython.utils.importstring import import_item
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
-from IPython.external.decorators import KnownFailure, dec
+from IPython.external.decorators import KnownFailure, knownfailureif
 
 pjoin = path.join
 

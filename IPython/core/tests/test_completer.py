@@ -183,7 +183,7 @@ def test_forward_unicode_completion():
     nt.assert_equal(matches[0], 'Ⅴ')
 
 @nt.nottest # now we have a completion for \jmath
-@decorators.dec.knownfailureif(sys.platform == 'win32', 'Fails if there is a C:\\j... path')
+@decorators.knownfailureif(sys.platform == 'win32', 'Fails if there is a C:\\j... path')
 def test_no_ascii_back_completion():
     ip = get_ipython()
     with TemporaryWorkingDirectory():  # Avoid any filename completions
@@ -234,7 +234,7 @@ def test_has_open_quotes4():
         nt.assert_false(completer.has_open_quotes(s))
 
 
-@decorators.dec.knownfailureif(sys.platform == 'win32', "abspath completions fail on Windows")
+@decorators.knownfailureif(sys.platform == 'win32', "abspath completions fail on Windows")
 def test_abspath_file_completions():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
