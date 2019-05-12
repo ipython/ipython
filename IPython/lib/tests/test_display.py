@@ -26,10 +26,16 @@ from io import BytesIO
 
 # Third-party imports
 import nose.tools as nt
-import numpy
+
+try:
+    import numpy
+except ImportError:
+    pass
 
 # Our own imports
 from IPython.lib import display
+
+from IPython.testing.decorators import skipif_not_numpy
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -188,19 +194,24 @@ def test_audio_from_file():
     display.Audio(filename=path)
 
 class TestAudioDataWithNumpy(TestCase):
+
+    @skipif_not_numpy
     def test_audio_from_numpy_array(self):
         test_tone = get_test_tone()
         audio = display.Audio(test_tone, rate=44100)
         nt.assert_equal(len(read_wav(audio.data)), len(test_tone))
 
+    @skipif_not_numpy
     def test_audio_from_list(self):
         test_tone = get_test_tone()
         audio = display.Audio(list(test_tone), rate=44100)
         nt.assert_equal(len(read_wav(audio.data)), len(test_tone))
 
+    @skipif_not_numpy
     def test_audio_from_numpy_array_without_rate_raises(self):
         nt.assert_raises(ValueError, display.Audio, get_test_tone())
 
+    @skipif_not_numpy
     def test_audio_data_normalization(self):
         expected_max_value = numpy.iinfo(numpy.int16).max
         for scale in [1, 0.5, 2]:
@@ -208,6 +219,7 @@ class TestAudioDataWithNumpy(TestCase):
             actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
             nt.assert_equal(actual_max_value, expected_max_value)
 
+    @skipif_not_numpy
     def test_audio_data_without_normalization(self):
         max_int16 = numpy.iinfo(numpy.int16).max
         for scale in [1, 0.5, 0.2]:
@@ -233,6 +245,7 @@ def simulate_numpy_not_installed():
 class TestAudioDataWithoutNumpy(TestAudioDataWithNumpy):
     # All tests from `TestAudioDataWithNumpy` are inherited.
 
+    @skipif_not_numpy
     def test_audio_raises_for_nested_list(self):
         stereo_signal = [list(get_test_tone())] * 2
         nt.assert_raises(

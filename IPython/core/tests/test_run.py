@@ -538,7 +538,7 @@ def test_run_tb():
         nt.assert_in("RuntimeError", out)
         nt.assert_equal(out.count("---->"), 3)
 
-@dec.dec.knownfailureif(sys.platform == 'win32', "writes to io.stdout aren't captured on Windows")
+@dec.knownfailureif(sys.platform == 'win32', "writes to io.stdout aren't captured on Windows")
 def test_script_tb():
     """Test traceback offset in `ipython script.py`"""
     with TemporaryDirectory() as td:

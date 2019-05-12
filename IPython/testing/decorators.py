@@ -47,7 +47,7 @@ from .ipunittest import ipdoctest, ipdocstring
 # Grab the numpy-specific decorators which we keep in a file that we
 # occasionally update from upstream: decorators.py is a copy of
 # numpy.testing.decorators, we expose all of it here.
-from IPython.external.decorators import *
+from IPython.external.decorators import knownfailureif
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -333,7 +333,7 @@ skipif_not_matplotlib = skip_without('matplotlib')
 
 skipif_not_sympy = skip_without('sympy')
 
-skip_known_failure = dec.knownfailureif(True,'This test is known to fail')
+skip_known_failure = knownfailureif(True,'This test is known to fail')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
