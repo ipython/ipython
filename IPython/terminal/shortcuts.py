@@ -87,10 +87,23 @@ def create_ipython_shortcuts(shell):
 
 
 def newline_or_execute_outer(shell):
+
+    import black
     def newline_or_execute(event):
         """When the user presses return, insert a newline or execute the code."""
         b = event.current_buffer
         d = b.document
+        def try_reformat():
+            try:
+                tbc = b.delete_before_cursor(len(d.text[:d.cursor_position]))
+                fmt= black.format_str(tbc, mode=black.FileMode())
+                if not tbc.endswith('\n') and fmt.endswith('\n'):
+                    fmt = fmt[:-1]
+                b.insert_text(fmt)
+                #print(f'no eexc |{tbc[-1]}|,|{d.text[-1]}|, |{fmt[-3:-1]}|')
+            except Exception as e:
+                b.insert_text(tbc)
+
 
         if b.complete_state:
             cc = b.complete_state.current_completion
@@ -118,9 +131,11 @@ def newline_or_execute_outer(shell):
             return
 
         if (status != 'incomplete') and b.accept_handler:
+            try_reformat()
             b.validate_and_handle()
         else:
             if shell.autoindent:
+                try_reformat()
                 b.insert_text('\n' + indent)
             else:
                 b.insert_text('\n')
