@@ -75,7 +75,7 @@ info_fields = ['type_name', 'base_class', 'string_form', 'namespace',
                'call_def', 'call_docstring',
                # These won't be printed but will be used to determine how to
                # format the object
-               'ismagic', 'isalias', 'isclass', 'argspec', 'found', 'name'
+               'ismagic', 'isalias', 'isclass', 'found', 'name'
                ]
 
 
@@ -198,64 +198,6 @@ def is_simple_callable(obj):
     """True if obj is a function ()"""
     return (inspect.isfunction(obj) or inspect.ismethod(obj) or \
             isinstance(obj, _builtin_func_type) or isinstance(obj, _builtin_meth_type))
-
-
-def getargspec(obj):
-    """Wrapper around :func:`inspect.getfullargspec` on Python 3, and
-    :func:inspect.getargspec` on Python 2.
-
-    In addition to functions and methods, this can also handle objects with a
-    ``__call__`` attribute.
-    """
-    if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
-        obj = obj.__call__
-
-    return inspect.getfullargspec(obj)
-
-
-def format_argspec(argspec):
-    """Format argspect, convenience wrapper around inspect's.
-
-    This takes a dict instead of ordered arguments and calls
-    inspect.format_argspec with the arguments in the necessary order.
-    """
-    return inspect.formatargspec(argspec['args'], argspec['varargs'],
-                                 argspec['varkw'], argspec['defaults'])
-
-@undoc
-def call_tip(oinfo, format_call=True):
-    """DEPRECATED. Extract call tip data from an oinfo dict.
-    """
-    warnings.warn('`call_tip` function is deprecated as of IPython 6.0'
-                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
-    # Get call definition
-    argspec = oinfo.get('argspec')
-    if argspec is None:
-        call_line = None
-    else:
-        # Callable objects will have 'self' as their first argument, prune
-        # it out if it's there for clarity (since users do *not* pass an
-        # extra first argument explicitly).
-        try:
-            has_self = argspec['args'][0] == 'self'
-        except (KeyError, IndexError):
-            pass
-        else:
-            if has_self:
-                argspec['args'] = argspec['args'][1:]
-
-        call_line = oinfo['name']+format_argspec(argspec)
-
-    # Now get docstring.
-    # The priority is: call docstring, constructor docstring, main one.
-    doc = oinfo.get('call_docstring')
-    if doc is None:
-        doc = oinfo.get('init_docstring')
-    if doc is None:
-        doc = oinfo.get('docstring','')
-
-    return call_line, doc
-
 
 def _get_wrapped(obj):
     """Get the original object if wrapped in one or more @decorators
@@ -914,33 +856,6 @@ class Inspector(Colorable):
                     call_ds = None
                 if call_ds:
                     out['call_docstring'] = call_ds
-
-        # Compute the object's argspec as a callable.  The key is to decide
-        # whether to pull it from the object itself, from its __init__ or
-        # from its __call__ method.
-
-        if inspect.isclass(obj):
-            # Old-style classes need not have an __init__
-            callable_obj = getattr(obj, "__init__", None)
-        elif callable(obj):
-            callable_obj = obj
-        else:
-            callable_obj = None
-
-        if callable_obj is not None:
-            try:
-                argspec = getargspec(callable_obj)
-            except Exception:
-                # For extensions/builtins we can't retrieve the argspec
-                pass
-            else:
-                # named tuples' _asdict() method returns an OrderedDict, but we
-                # we want a normal
-                out['argspec'] = argspec_dict = dict(argspec._asdict())
-                # We called this varkw before argspec became a named tuple.
-                # With getfullargspec it's also called varkw.
-                if 'varkw' not in argspec_dict:
-                    argspec_dict['varkw'] = argspec_dict.pop('keywords')
 
         return object_info(**out)
 
