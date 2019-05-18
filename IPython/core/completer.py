@@ -1125,6 +1125,7 @@ class IPCompleter(Completer):
             return [
                 self.file_matches,
                 self.magic_matches,
+                self.python_func_kw_matches,  # partially disabled
                 self.dict_key_matches,
             ]
         else:
@@ -1486,10 +1487,10 @@ class IPCompleter(Completer):
 
     def python_func_kw_matches(self,text):
         """Match named parameters (kwargs) of the last open function"""
-
         if "." in text: # a parameter cannot be dotted
             return []
-        try: regexp = self.__funcParamsRegex
+        try:
+            regexp = self.__funcParamsRegex
         except AttributeError:
             regexp = self.__funcParamsRegex = re.compile(r'''
                 '.*?(?<!\\)' |    # single quoted strings or
@@ -1548,8 +1549,19 @@ class IPCompleter(Completer):
         argMatches = []
         try:
             callableObj = '.'.join(ids[::-1])
-            namedArgs = self._default_arguments(eval(callableObj,
-                                                    self.namespace))
+            obj = eval(callableObj, self.namespace)
+            # Objects can define their own completions, for instance when
+            # a class/function is using **kwargs by defining an
+            # _ipython_kw_completions_() method.
+            # See config/integrating.rst#tab-completion for more info
+            method = get_real_method(obj, '_ipython_kw_completions_')
+            if method:
+                namedArgs = method()
+            elif self.use_jedi:
+                # Let's not try our own guess if jedi is available
+                return []
+            else:
+                namedArgs = self._default_arguments(obj)
 
             # Remove used named arguments from the list, no need to show twice
             for namedArg in set(namedArgs) - usedNamedArgs:
@@ -1565,6 +1577,7 @@ class IPCompleter(Completer):
         def get_keys(obj):
             # Objects can define their own completions by defining an
             # _ipy_key_completions_() method.
+            # See config/integrating.rst#tab-completion for more info
             method = get_real_method(obj, '_ipython_key_completions_')
             if method is not None:
                 return method()

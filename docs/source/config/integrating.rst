@@ -11,13 +11,55 @@ To change the attributes displayed by tab-completing your object, define a
 ``__dir__(self)`` method for it. For more details, see the documentation of the
 built-in `dir() function <http://docs.python.org/library/functions.html#dir>`_.
 
-You can also customise key completions for your objects, e.g. pressing tab after
-``obj["a``. To do so, define a method ``_ipython_key_completions_()``, which
-returns a list of objects which are possible keys in a subscript expression
+You can also customise key completions for your objects.
+Two types of completion are supported for now:
+
+- **Dictionary key completion** (e.g. pressing tab after ``obj["a``.):
+
+Define a method ``_ipython_key_completions_()``, which
+returns a list of strings which are possible keys in a subscript expression
 ``obj[key]``.
 
+.. code:: python
+
+    >>> class KeyCompletable(dict):
+    ...:    def __init__(self):
+    ...:        dict.__init__(self, {"a": 1, "b": 2})
+    ...:
+    ...:    def _ipython_key_completions_(self):
+    ...:        return ["a", "c"]
+    ...:
+    >>> obj = KeyCompletable()
+    >>> obj["  [tab]
+        [...] a and c but not b [...]
+
 .. versionadded:: 5.0
-   Custom key completions
+   Custom dictionary key completions
+
+- **Keywords arguments completion** (e.g. pressing tab after ``func(``):
+
+Define a method ``_ipython_kw_completions_()``, which
+returns a list of strings which are possible keyword arguments in your function.
+This is especially useful when used amongst ``**kwargs``.
+
+.. code:: python
+
+    >>> class KwCompletable(object):
+    ...:    def __init__(self, **kwargs):
+    ...:        print(kwargs)
+    ...:
+    ...:    def _ipython_kw_completions_(self):
+    ...:        return ["hello", "hippopotamus", "hey"]
+    ...:
+    >>> obj = KwCompletable()
+    >>> obj(h  [tab]
+        hello=
+        hey=
+        hippopotamus=
+        [...]
+
+.. versionadded:: 7.6
+   Custom key arguments completions
 
 .. _integrating_rich_display:
 
