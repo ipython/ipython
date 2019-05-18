@@ -7,7 +7,11 @@ SET SPHINXOPTS=
 SET SPHINXBUILD=sphinx-build
 SET PAPER=
 SET SRCDIR=source
-SET PYTHON=python
+SET PYTHON=python3
+
+REM Check that the Python version is available
+WHERE %PYTHON% >nul 2>&1
+IF %ERRORLEVEL% NEQ 0 set PYTHON=python
 
 IF "%PAPER%" == "" SET PAPER=a4
 SET ALLSPHINXOPTS=-d build\doctrees -D latex_paper_size=%PAPER% %SPHINXOPTS% %SRCDIR%
