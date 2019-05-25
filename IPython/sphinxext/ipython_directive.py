@@ -188,6 +188,7 @@ To Do
 import atexit
 import errno
 import os
+import pathlib
 import re
 import sys
 import tempfile
@@ -415,11 +416,13 @@ class EmbeddedSphinxShell(object):
         source_dir = self.source_dir
         saveargs = decorator.split(' ')
         filename = saveargs[1]
-        # insert relative path to image file in source (as absolute path for Sphinx)
-        outfile = '/' + os.path.relpath(os.path.join(savefig_dir,filename),
-                                        source_dir)
+        # insert relative path to image file in source 
+        # as absolute path for Sphinx
+        # sphinx expects a posix path, even on Windows
+        posix_path = pathlib.Path(savefig_dir,filename).as_posix()
+        outfile = '/' + os.path.relpath(posix_path, source_dir)
 
-        imagerows = ['.. image:: %s'%outfile]
+        imagerows = ['.. image:: %s' % outfile]
 
         for kwarg in saveargs[2:]:
             arg, val = kwarg.split('=')
