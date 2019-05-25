@@ -298,7 +298,7 @@ class DisplayHook(Configurable):
         self._, self.__, self.___ = '', '', ''
 
         if '_' not in builtin_mod.__dict__:
-            self.shell.user_ns.update({'_':None,'__':None, '___':None})
+            self.shell.user_ns.update({'_':self._,'__':self.__,'___':self.___})
         import gc
         # TODO: Is this really needed?
         # IronPython blocks here forever
