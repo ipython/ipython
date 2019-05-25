@@ -96,7 +96,7 @@ class PylabMagics(Magics):
             backends_list = list(backends.keys())
             print("Available matplotlib backends: %s" % backends_list)
         else:
-            gui, backend = self.shell.enable_matplotlib(args.gui)
+            gui, backend = self.shell.enable_matplotlib(args.gui.lower())
             self._show_matplotlib_backend(args.gui, backend)
 
     @skip_doctest
