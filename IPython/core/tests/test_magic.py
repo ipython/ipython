@@ -9,6 +9,7 @@ import os
 import re
 import sys
 import warnings
+from textwrap import dedent
 from unittest import TestCase
 from importlib import invalidate_caches
 from io import StringIO
@@ -418,6 +419,19 @@ def test_time3():
         ip.run_cell("%%time\n"
                     "run = 0\n"
                     "run += 1")
+
+def test_multiline_time():
+    """Make sure last statement from time return a value."""
+    ip = get_ipython()
+    ip.user_ns.pop('run', None)
+
+    ip.run_cell(dedent("""\
+        %%time
+        a = "ho"
+        b = "hey"
+        a+b
+        """))
+    nt.assert_equal(ip.user_ns_hidden['_'], 'hohey')
 
 def test_time_local_ns():
     """
