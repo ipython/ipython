@@ -109,7 +109,7 @@ ONLY_EMPTY_LINES = ("""\
 
 """)
 
-def leading_empty_lines():
+def test_leading_empty_lines():
     for sample, expected in [LEADING_EMPTY_LINES, ONLY_EMPTY_LINES]:
         nt.assert_equal(
                 ipt2.leading_empty_lines(sample.splitlines(keepends=True)),
