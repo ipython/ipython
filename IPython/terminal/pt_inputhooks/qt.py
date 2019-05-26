@@ -7,6 +7,7 @@ from IPython.external.qt_for_kernel import QtCore, QtGui
 _appref = None
 _already_warned = False
 
+
 def inputhook(context):
     global _appref
     app = QtCore.QCoreApplication.instance()
@@ -41,9 +42,12 @@ def inputhook(context):
         # loop when there is input ready to read.
         notifier = QtCore.QSocketNotifier(context.fileno(),
                                           QtCore.QSocketNotifier.Read)
-        # connect the callback we care about before we turn it on
-        notifier.activated.connect(event_loop.exit)
-        notifier.setEnabled(True)
-        # only start the event loop we are not already flipped
-        if not context.input_is_ready():
-            event_loop.exec_()
+        try:
+            # connect the callback we care about before we turn it on
+            notifier.activated.connect(event_loop.exit)
+            notifier.setEnabled(True)
+            # only start the event loop we are not already flipped
+            if not context.input_is_ready():
+                event_loop.exec_()
+        finally:
+            notifier.setEnabled(False)
