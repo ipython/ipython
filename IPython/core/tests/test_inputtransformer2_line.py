@@ -86,3 +86,31 @@ def test_leading_indent():
     for sample, expected in [INDENT_SPACES, INDENT_TABS]:
         nt.assert_equal(ipt2.leading_indent(sample.splitlines(keepends=True)),
                         expected.splitlines(keepends=True))
+
+LEADING_EMPTY_LINES = ("""\
+    \t
+
+if True:
+    a = 3
+
+b = 4
+""", """\
+if True:
+    a = 3
+
+b = 4
+""")
+
+ONLY_EMPTY_LINES = ("""\
+    \t
+
+""", """\
+    \t
+
+""")
+
+def test_leading_empty_lines():
+    for sample, expected in [LEADING_EMPTY_LINES, ONLY_EMPTY_LINES]:
+        nt.assert_equal(
+                ipt2.leading_empty_lines(sample.splitlines(keepends=True)),
+                expected.splitlines(keepends=True))
