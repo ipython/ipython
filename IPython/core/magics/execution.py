@@ -49,6 +49,14 @@ from warnings import warn
 from logging import error
 from io import StringIO
 
+if sys.version_info > (3,8):
+    from ast import Module
+else :
+    # mock the new API, ignore second argument
+    # see https://github.com/ipython/ipython/issues/11590
+    from ast import Module as OriginalModule
+    Module = lambda nodelist, type_ignores: OriginalModule(nodelist)
+
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -1276,7 +1284,7 @@ python-profiler package from non-free.""")
                                                 , '<timed eval>'
                                                 , 'eval')
                 expr_ast=expr_ast.body[:-1]
-                expr_ast = ast.Module(expr_ast)
+                expr_ast = Module(expr_ast, [])
 
         t0 = clock()
         code = self.shell.compile(expr_ast, source, mode)
