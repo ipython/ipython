@@ -86,6 +86,7 @@ class BackgroundJobManager(object):
         self._s_running   = BackgroundJobBase.stat_running_c
         self._s_completed = BackgroundJobBase.stat_completed_c
         self._s_dead      = BackgroundJobBase.stat_dead_c
+        self._current_job_id = 0
 
     @property
     def running(self):
@@ -187,7 +188,8 @@ class BackgroundJobManager(object):
 
         if kwargs.get('daemon', False):
             job.daemon = True
-        job.num = len(self.all)+1 if self.all else 0
+        job.num = self._current_job_id
+        self._current_job_id += 1
         self.running.append(job)
         self.all[job.num] = job
         debug('Starting job # %s in a separate thread.' % job.num)
