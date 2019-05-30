@@ -23,8 +23,12 @@ from IPython.utils.path import compress_user
 # Globals and constants
 #-----------------------------------------------------------------------------
 
-inspector = oinspect.Inspector()
-ip = get_ipython()
+inspector = None
+
+def setup_module():
+    global inspector
+    inspector = oinspect.Inspector()
+
 
 #-----------------------------------------------------------------------------
 # Local utilities
@@ -34,7 +38,7 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 37  # Put here the actual number of this line
+THIS_LINE_NUMBER = 41  # Put here the actual number of this line
 
 from unittest import TestCase
 
@@ -121,7 +125,6 @@ class HasSignature(object):
 class SimpleClass(object):
     def method(self, x, z=2):
         """Some method's docstring"""
-
 
 
 class Awkward(object):
@@ -221,7 +224,6 @@ def support_function_one(x, y=2, *a, **kw):
 def test_calldef_none():
     # We should ignore __call__ for all of these.
     for obj in [support_function_one, SimpleClass().method, any, str.upper]:
-        print(obj)
         i = inspector.info(obj)
         nt.assert_is(i['call_def'], None)
 

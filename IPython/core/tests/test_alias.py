@@ -39,7 +39,7 @@ def test_alias_args_error():
         _ip.run_cell('parts 1')
 
     nt.assert_equal(cap.stderr.split(':')[0], 'UsageError')
-    
+
 def test_alias_args_commented():
     """Check that alias correctly ignores 'commented out' args"""
     _ip.magic('alias commetarg echo this is %%s a commented out arg')
@@ -47,7 +47,10 @@ def test_alias_args_commented():
     with capture_output() as cap:
         _ip.run_cell('commetarg')
     
-    nt.assert_equal(cap.stdout, 'this is %s a commented out arg')
+    # strip() is for pytest compat; testing via iptest patch IPython shell
+    # in testin.globalipapp and replace the system call which messed up the
+    # \r\n
+    assert cap.stdout.strip() ==  'this is %s a commented out arg'
 
 def test_alias_args_commented_nargs():
     """Check that alias correctly counts args, excluding those commented out"""

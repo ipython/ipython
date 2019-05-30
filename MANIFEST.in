@@ -4,6 +4,7 @@ include LICENSE
 include setupbase.py
 include setupegg.py
 include MANIFEST.in
+include pytest.ini
 include .mailmap
 
 recursive-exclude tools *

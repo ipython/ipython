@@ -49,7 +49,7 @@ class TestController:
         self.env = {}
         self.dirs = []
 
-    def setup(self):
+    def setUp(self):
         """Create temporary directories etc.
         
         This is only called when we know the test group will be run. Things
@@ -440,7 +440,6 @@ argparser.add_argument('testgroups', nargs='*',
                     'all tests.')
 argparser.add_argument('--all', action='store_true',
                     help='Include slow tests not run by default.')
-argparser.add_argument('--url', help="URL to use for the JS tests.")
 argparser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
                     help='Run test sections in parallel. This starts as many '
                     'processes as you have cores, or you can specify a number.')

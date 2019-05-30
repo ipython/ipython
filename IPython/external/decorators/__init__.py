@@ -1,5 +1,5 @@
 try:
-    from numpy.testing.noseclasses import KnownFailure, knownfailureif
+    from numpy.testing import KnownFailure, knownfailureif
 except ImportError:
     from ._decorators import knownfailureif
     try:
