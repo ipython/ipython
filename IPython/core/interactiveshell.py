@@ -162,9 +162,7 @@ def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
 # we still need to run things using the asyncio eventloop, but there is no
 # async integration
 from .async_helpers import (_asyncio_runner,  _asyncify, _pseudo_sync_runner)
-if sys.version_info > (3, 8):
-    from .async_helpers import _curio_runner, _trio_runner
-elif sys.version_info > (3, 5):
+if sys.version_info > (3, 5):
     from .async_helpers import _curio_runner, _trio_runner, _should_be_async
 else :
     _curio_runner = _trio_runner = None
