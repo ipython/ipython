@@ -137,12 +137,17 @@ class CachingCompiler(codeop.Compile):
 
     @contextmanager
     def extra_flags(self, flags):
-        old_flags = self.flags
+        ## bits that we'll set to 1
+        turn_on_bits = ~self.flags & flags
+
+
         self.flags = self.flags | flags
         try:
             yield
         finally:
-            self.flags = old_flags
+            # turn off only the bits we turned on so that something like
+            # __future__ that set flags stays. 
+            self.flags &= ~turn_on_bits
 
 
 def check_linecache_ipython(*args):
