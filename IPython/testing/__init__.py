@@ -8,6 +8,9 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+
+import os
+
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
@@ -32,6 +35,14 @@ def test(**kwargs):
     for name, val in kwargs.items():
         setattr(options, name, val)
     run_iptestall(options)
+
+#-----------------------------------------------------------------------------
+# Constants
+#-----------------------------------------------------------------------------
+
+# We scale all timeouts via this factor, slow machines can increase it
+IPYTHON_TESTING_TIMEOUT_SCALE = float(os.getenv(
+                                    'IPYTHON_TESTING_TIMEOUT_SCALE', 1))
 
 # So nose doesn't try to run this as a test itself and we end up with an
 # infinite test loop
