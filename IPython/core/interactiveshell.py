@@ -17,6 +17,7 @@ import asyncio
 import atexit
 import builtins as builtin_mod
 import functools
+import inspect
 import os
 import re
 import runpy
@@ -161,8 +162,9 @@ def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
 # we still need to run things using the asyncio eventloop, but there is no
 # async integration
 from .async_helpers import (_asyncio_runner,  _asyncify, _pseudo_sync_runner)
-
-if sys.version_info > (3, 5):
+if sys.version_info > (3, 8):
+    from .async_helpers import _curio_runner, _trio_runner
+elif sys.version_info > (3, 5):
     from .async_helpers import _curio_runner, _trio_runner, _should_be_async
 else :
     _curio_runner = _trio_runner = None
@@ -3000,23 +3002,26 @@ class InteractiveShell(SingletonConfigurable):
             with self.display_trap:
                 # Compile to bytecode
                 try:
-                    if self.autoawait and _should_be_async(cell):
-                        # the code AST below will not be user code: we wrap it
-                        # in an `async def`. This will likely make some AST
-                        # transformer below miss some transform opportunity and
-                        # introduce a small coupling to run_code (in which we
-                        # bake some assumptions of what _ast_asyncify returns.
-                        # they are ways around (like grafting part of the ast
-                        # later:
-                        #    - Here, return code_ast.body[0].body[1:-1], as well
-                        #    as last expression in  return statement which is
-                        #    the user code part.
-                        #    - Let it go through the AST transformers, and graft
-                        #    - it back after the AST transform
-                        # But that seem unreasonable, at least while we
-                        # do not need it.
-                        code_ast = _ast_asyncify(cell, 'async-def-wrapper')
-                        _run_async = True
+                    if sys.version_info < (3,8) and self.autoawait:
+                        if _should_be_async(cell):
+                            # the code AST below will not be user code: we wrap it
+                            # in an `async def`. This will likely make some AST
+                            # transformer below miss some transform opportunity and
+                            # introduce a small coupling to run_code (in which we
+                            # bake some assumptions of what _ast_asyncify returns.
+                            # they are ways around (like grafting part of the ast
+                            # later:
+                            #    - Here, return code_ast.body[0].body[1:-1], as well
+                            #    as last expression in  return statement which is
+                            #    the user code part.
+                            #    - Let it go through the AST transformers, and graft
+                            #    - it back after the AST transform
+                            # But that seem unreasonable, at least while we
+                            # do not need it.
+                            code_ast = _ast_asyncify(cell, 'async-def-wrapper')
+                            _run_async = True
+                        else:
+                            code_ast = compiler.ast_parse(cell, filename=cell_name)
                     else:
                         code_ast = compiler.ast_parse(cell, filename=cell_name)
                 except self.custom_exceptions as e:
@@ -3045,8 +3050,7 @@ class InteractiveShell(SingletonConfigurable):
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
                 if _run_async:
-                    print(interactivity)
-                    interactivity = 'last_expr'
+                    interactivity = 'async'
 
                 has_raised = yield from self.run_ast_nodes(code_ast.body, cell_name,
                        interactivity=interactivity, compiler=compiler, result=result)
@@ -3168,8 +3172,6 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not nodelist:
             return
-        if interactivity == 'async':
-            interactivify = 'last'
 
         if interactivity == 'last_expr_or_assign':
             if isinstance(nodelist[-1], _assign_nodes):
@@ -3205,10 +3207,11 @@ class InteractiveShell(SingletonConfigurable):
         else:
             raise ValueError("Interactivity was %r" % interactivity)
 
-        print('interactivity:', interactivity)
         try:
-            if _async and sys.version_info < (3,8):
-                raise ValueError
+            if _async and sys.version_info > (3,8):
+                raise ValueError("This branch should never happen on Python 3.8 and above, "
+                                 "please try to upgrade IPython and open a bug report with your case.")
+            if _async:
                 # If interactivity is async the semantics of run_code are
                 # completely different Skip usual machinery.
                 mod = Module(nodelist, [])
@@ -3218,29 +3221,31 @@ class InteractiveShell(SingletonConfigurable):
                 if (yield from self.run_code(async_code, result, async_=True)):
                     return True
             else:
-                def compare(code):
-                    import inspect
-                    is_async = (inspect.CO_COROUTINE & code.co_flags == inspect.CO_COROUTINE)
-                    print('async=', _async, 'autodetect=', is_async)
-                    return is_async
+                if sys.version_info > (3, 8):
+                    def compare(code):
+                        is_async = (inspect.CO_COROUTINE & code.co_flags == inspect.CO_COROUTINE)
+                        return is_async
+                else:
+                    def compare(code):
+                        return _async
 
                 # refactor that to just change the mod constructor.
-                for i, node in enumerate(to_run_exec):
-                    mod = Module([node], [])
+                to_run = []
+                for node in to_run_exec:
+                    to_run.append((node, 'exec'))
+
+                for node in to_run_interactive:
+                    to_run.append((node, 'single'))
+
+                for node,mode in to_run:
+                    if mode == 'exec':
+                        mod = Module([node], [])
+                    elif mode == 'single':
+                        mod = ast.Interactive([node])
                     with compiler.extra_flags(getattr(ast, 'PyCF_ALLOW_TOP_LEVEL_AWAIT', 0x0) if self.autoawait else 0x0):
-                        code = compiler(mod, cell_name, "exec")
+                        code = compiler(mod, cell_name, mode)
                         asy = compare(code)
                     if (yield from self.run_code(code, result,  async_=asy)):
-                        return True
-
-                for i, node in enumerate(to_run_interactive):
-                    print('B: interactive, async=', _async, nodelist)
-                    mod = ast.Interactive([node])
-                    with compiler.extra_flags(getattr(ast, 'PyCF_ALLOW_TOP_LEVEL_AWAIT', 0x0) if self.autoawait else 0x0):
-                        code = compiler(mod, cell_name, "single")
-                        asy = compare(code)
-
-                    if (yield from self.run_code(code, result, async_=asy)):
                         return True
 
             # Flush softspace
