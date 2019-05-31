@@ -173,6 +173,9 @@ class NamespaceMagics(Magics):
           'builtin', 'user', 'user_global','internal', 'alias', where
           'builtin' and 'user' are the search defaults.  Note that you should
           not use quotes when specifying namespaces.
+          
+          -l: List all available object types for object matching. This function
+          can be used without arguments.
 
           'Builtin' contains the python module builtin, 'user' contains all
           user data, 'alias' only contain the shell aliases and no python
@@ -200,6 +203,10 @@ class NamespaceMagics(Magics):
         Show objects beginning with a single _::
 
           %psearch -a _*         list objects beginning with a single underscore
+          
+        List available objects::
+        
+          %psearch -l            list all available object types
         """
         try:
             parameter_s.encode('ascii')
@@ -211,10 +218,15 @@ class NamespaceMagics(Magics):
         def_search = ['user_local', 'user_global', 'builtin']
 
         # Process options/args
-        opts,args = self.parse_options(parameter_s,'cias:e:',list_all=True)
+        opts,args = self.parse_options(parameter_s,'cias:e:l',list_all=True)
         opt = opts.get
         shell = self.shell
         psearch = shell.inspector.psearch
+        
+        # select list object types
+        list_types = False
+        if 'l' in opts:
+            list_types = True
 
         # select case options
         if 'i' in opts:
@@ -232,7 +244,7 @@ class NamespaceMagics(Magics):
         # Call the actual search
         try:
             psearch(args,shell.ns_table,ns_search,
-                    show_all=opt('a'),ignore_case=ignore_case)
+                    show_all=opt('a'),ignore_case=ignore_case, list_types=list_types)
         except:
             shell.showtraceback()
 

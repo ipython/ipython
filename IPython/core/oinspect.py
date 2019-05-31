@@ -35,6 +35,7 @@ from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.path import compress_user
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
+from IPython.utils.wildcard import typestr2type
 from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import cast_unicode
 from IPython.utils.colorable import Colorable
@@ -962,7 +963,7 @@ class Inspector(Colorable):
             return False
 
     def psearch(self,pattern,ns_table,ns_search=[],
-                ignore_case=False,show_all=False):
+                ignore_case=False,show_all=False, *, list_types=False):
         """Search namespaces with wildcards for objects.
 
         Arguments:
@@ -981,12 +982,19 @@ class Inspector(Colorable):
 
           - show_all(False): show all names, including those starting with
             underscores.
+            
+          - list_types(False): list all available object types for object matching.
         """
         #print 'ps pattern:<%r>' % pattern # dbg
 
         # defaults
         type_pattern = 'all'
         filter = ''
+
+        # list all object types
+        if list_types:
+            page.page('\n'.join(sorted(typestr2type)))
+            return
 
         cmds = pattern.split()
         len_cmds  =  len(cmds)
