@@ -2,7 +2,31 @@
  7.x Series
 ============
 
-.. _whatsnew740:
+.. _whatsnew760:
+
+IPython 7.6.0
+=============
+
+IPython 7.6.0 contains a couple of bug fixes and number of small features
+additions as well as some compatibility with the current development version of
+Python 3.8.
+
+   - Add a ``-l`` option to :magic:`psearch` to list the available search
+     types. :ghpull:`11672`
+   - Support ``PathLike`` for ``DisplayObject`` and ``Image``. :ghpull:`11764`
+   - Configurability of timeout in the test suite for slow platforms.
+     :ghpull:`11756`
+   - Accept any casing for matplotlib backend. :ghpull:`121748`
+   - Properly skip test that requires numpy to be installed :ghpull:`11723`
+   - More support for Python 3.8 and positional only arguments (pep570)
+     :ghpull:`11720`
+   - Unicode names for the completion are loaded lazily on first use which
+     should decrease startup time. :ghpull:`11693`
+
+Special Thanks to Gabriel (@gpotter2 on GitHub), who among other took care many
+of the remaining task for 7.4 and 7.5, like updating the website.
+
+.. _whatsnew750:
 
 IPython 7.5.0
 =============
@@ -16,6 +40,8 @@ in 7.4.0 where some cell magics would not be able to access or modify global
 scope when using the ``@needs_local_scope`` decorator. This was typically
 encountered with the ``%%time`` and ``%%timeit`` magics. See :ghissue:`11659`
 and :ghpull:`11698`.
+
+.. _whatsnew740:
 
 IPython 7.4.0
 =============

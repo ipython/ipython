@@ -24,16 +24,6 @@ What's new in IPython
 
       development
 
-..
-   this makes a hidden toctree that keeps sphinx from complaining about
-   documents included nowhere when building docs for stable
-   
-.. only:: ipystable
-
-   .. toctree::
-      :hidden:
-
-      development
 
 This section documents the changes that have been made in various versions of
 IPython. Users should consult these pages to learn about new features, bug
@@ -67,3 +57,15 @@ development work they do here in a user friendly format.
    version0.10
    version0.9
    version0.8
+
+..
+   this makes a hidden toctree that keeps sphinx from complaining about
+   documents included nowhere when building docs for stable
+   We place it at the end as it will still be reachable via prev/next links.
+   
+.. only:: ipystable
+
+   .. toctree::
+      :hidden:
+
+      development
