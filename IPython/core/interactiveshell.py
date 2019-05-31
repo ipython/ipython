@@ -2909,8 +2909,7 @@ class InteractiveShell(SingletonConfigurable):
             return False
         return _should_be_async(cell)
 
-    @asyncio.coroutine
-    def run_cell_async(self, raw_cell: str, store_history=False, silent=False, shell_futures=True) -> ExecutionResult:
+    async def run_cell_async(self, raw_cell: str, store_history=False, silent=False, shell_futures=True) -> ExecutionResult:
         """Run a complete IPython cell asynchronously.
 
         Parameters
@@ -3052,7 +3051,7 @@ class InteractiveShell(SingletonConfigurable):
                 if _run_async:
                     interactivity = 'async'
 
-                has_raised = yield from self.run_ast_nodes(code_ast.body, cell_name,
+                has_raised = await self.run_ast_nodes(code_ast.body, cell_name,
                        interactivity=interactivity, compiler=compiler, result=result)
 
                 self.last_execution_succeeded = not has_raised
@@ -3132,8 +3131,7 @@ class InteractiveShell(SingletonConfigurable):
             ast.fix_missing_locations(node)
         return node
 
-    @asyncio.coroutine
-    def run_ast_nodes(self, nodelist:ListType[AST], cell_name:str, interactivity='last_expr',
+    async def run_ast_nodes(self, nodelist:ListType[AST], cell_name:str, interactivity='last_expr',
                         compiler=compile, result=None):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
@@ -3218,7 +3216,7 @@ class InteractiveShell(SingletonConfigurable):
                 async_wrapper_code = compiler(mod, cell_name, 'exec')
                 exec(async_wrapper_code, self.user_global_ns, self.user_ns)
                 async_code = removed_co_newlocals(self.user_ns.pop('async-def-wrapper')).__code__
-                if (yield from self.run_code(async_code, result, async_=True)):
+                if (await self.run_code(async_code, result, async_=True)):
                     return True
             else:
                 if sys.version_info > (3, 8):
@@ -3245,7 +3243,7 @@ class InteractiveShell(SingletonConfigurable):
                     with compiler.extra_flags(getattr(ast, 'PyCF_ALLOW_TOP_LEVEL_AWAIT', 0x0) if self.autoawait else 0x0):
                         code = compiler(mod, cell_name, mode)
                         asy = compare(code)
-                    if (yield from self.run_code(code, result,  async_=asy)):
+                    if (await self.run_code(code, result,  async_=asy)):
                         return True
 
             # Flush softspace
@@ -3284,8 +3282,7 @@ class InteractiveShell(SingletonConfigurable):
 
         return eval(code_obj, user_ns)
 
-    @asyncio.coroutine
-    def run_code(self, code_obj, result=None, *, async_=False):
+    async def run_code(self, code_obj, result=None, *, async_=False):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -3317,11 +3314,11 @@ class InteractiveShell(SingletonConfigurable):
             try:
                 self.hooks.pre_run_code_hook()
                 if async_ and sys.version_info < (3,8):
-                    last_expr = (yield from self._async_exec(code_obj, self.user_ns))
+                    last_expr = (await self._async_exec(code_obj, self.user_ns))
                     code = compile('last_expr', 'fake', "single")
                     exec(code, {'last_expr': last_expr})
                 elif async_ :
-                    yield from eval(code_obj, self.user_global_ns, self.user_ns)
+                    await eval(code_obj, self.user_global_ns, self.user_ns)
                 else:
                     exec(code_obj, self.user_global_ns, self.user_ns)
             finally:
