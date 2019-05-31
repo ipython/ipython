@@ -13,6 +13,7 @@ import struct
 import sys
 import warnings
 from copy import deepcopy
+from os.path import splitext
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
@@ -1278,7 +1279,13 @@ class Image(DisplayObject):
             return self._data_and_metadata()
 
     def _find_ext(self, s):
-        return s.split('.')[-1].lower()
+        base, ext = splitext(s)
+
+        if not ext:
+            return base
+
+        # `splitext` includes leading period, so we skip it
+        return ext[1:].lower()
 
 
 class Video(DisplayObject):
