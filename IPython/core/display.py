@@ -14,6 +14,7 @@ import sys
 import warnings
 from copy import deepcopy
 from os.path import splitext
+from pathlib import Path, PurePath
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
@@ -594,6 +595,9 @@ class DisplayObject(object):
         metadata : dict
             Dict of metadata associated to be the object when displayed
         """
+        if isinstance(data, (Path, PurePath)):
+            data = str(data)
+
         if data is not None and isinstance(data, str):
             if data.startswith('http') and url is None:
                 url = data
@@ -864,6 +868,9 @@ class JSON(DisplayObject):
 
     @data.setter
     def data(self, data):
+        if isinstance(data, (Path, PurePath)):
+            data = str(data)
+
         if isinstance(data, str):
             if getattr(self, 'filename', None) is None:
                 warnings.warn("JSON expects JSONable dict or list, not JSON strings")
@@ -1134,6 +1141,9 @@ class Image(DisplayObject):
         Image(url='http://www.google.fr/images/srpr/logo3w.png')
 
         """
+        if isinstance(data, (Path, PurePath)):
+            data = str(data)
+
         if filename is not None:
             ext = self._find_ext(filename)
         elif url is not None:
@@ -1338,6 +1348,9 @@ class Video(DisplayObject):
         Video('path/to/video.mp4', embed=True)
         Video(b'raw-videodata', embed=True)
         """
+        if isinstance(data, (Path, PurePath)):
+            data = str(data)
+
         if url is None and isinstance(data, str) and data.startswith(('http:', 'https:')):
             url = data
             data = None
