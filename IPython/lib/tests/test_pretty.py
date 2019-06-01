@@ -19,7 +19,7 @@ from IPython.testing.decorators import skip_without
 from io import StringIO
 
 
-class MyList(object):
+class MyList:
     def __init__(self, content):
         self.content = content
     def _repr_pretty_(self, p, cycle):
@@ -40,40 +40,40 @@ class MyDict(dict):
     def _repr_pretty_(self, p, cycle):
         p.text("MyDict(...)")
 
-class MyObj(object):
+class MyObj:
     def somemethod(self):
         pass
 
 
-class Dummy1(object):
+class Dummy1:
     def _repr_pretty_(self, p, cycle):
         p.text("Dummy1(...)")
 
 class Dummy2(Dummy1):
     _repr_pretty_ = None
 
-class NoModule(object):
+class NoModule:
     pass
 
 NoModule.__module__ = None
 
-class Breaking(object):
+class Breaking:
     def _repr_pretty_(self, p, cycle):
         with p.group(4,"TG: ",":"):
             p.text("Breaking(")
             p.break_()
             p.text(")")
 
-class BreakingRepr(object):
+class BreakingRepr:
     def __repr__(self):
         return "Breaking(\n)"
 
-class BreakingReprParent(object):
+class BreakingReprParent:
     def _repr_pretty_(self, p, cycle):
         with p.group(4,"TG: ",":"):
             p.pretty(BreakingRepr())
 
-class BadRepr(object):
+class BadRepr:
     
     def __repr__(self):
         return 1/0
@@ -114,8 +114,8 @@ def test_sets():
     """
     Test that set and frozenset use Python 3 formatting.
     """
-    objects = [set(), frozenset(), set([1]), frozenset([1]), set([1, 2]),
-        frozenset([1, 2]), set([-1, -2, -3])]
+    objects = [set(), frozenset(), {1}, frozenset([1]), {1, 2},
+        frozenset([1, 2]), {-1, -2, -3}]
     expected = ['set()', 'frozenset()', '{1}', 'frozenset({1})', '{1, 2}',
         'frozenset({1, 2})', '{-3, -2, -1}']
     for obj, expected_output in zip(objects, expected):
@@ -164,7 +164,7 @@ class BadException(Exception):
     def __str__(self):
         return -1
 
-class ReallyBadRepr(object):
+class ReallyBadRepr:
     __module__ = 1
     @property
     def __class__(self):
@@ -178,7 +178,7 @@ def test_really_bad_repr():
         pretty.pretty(ReallyBadRepr())
 
 
-class SA(object):
+class SA:
     pass
 
 class SB(SA):
@@ -243,10 +243,10 @@ def test_metaclass_repr():
 
 
 def test_unicode_repr():
-    u = u"üniçodé"
+    u = "üniçodé"
     ustr = u
     
-    class C(object):
+    class C:
         def __repr__(self):
             return ustr
     
@@ -254,7 +254,7 @@ def test_unicode_repr():
     p = pretty.pretty(c)
     nt.assert_equal(p, u)
     p = pretty.pretty([c])
-    nt.assert_equal(p, u'[%s]' % u)
+    nt.assert_equal(p, '[%s]' % u)
 
 
 def test_basic_class():
@@ -436,7 +436,7 @@ class OrderedCounter(Counter, OrderedDict):
     'Counter that remembers the order elements are first encountered'
 
     def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, OrderedDict(self))
+        return '{}({!r})'.format(self.__class__.__name__, OrderedDict(self))
 
     def __reduce__(self):
         return self.__class__, (OrderedDict(self),)

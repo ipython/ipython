@@ -10,10 +10,10 @@ from traitlets.config.configurable import Configurable
 from traitlets import Instance
 
 
-class __BuiltinUndefined(object): pass
+class __BuiltinUndefined: pass
 BuiltinUndefined = __BuiltinUndefined()
 
-class __HideBuiltin(object): pass
+class __HideBuiltin: pass
 HideBuiltin = __HideBuiltin()
 
 
@@ -23,7 +23,7 @@ class BuiltinTrap(Configurable):
                      allow_none=True)
 
     def __init__(self, shell=None):
-        super(BuiltinTrap, self).__init__(shell=shell, config=None)
+        super().__init__(shell=shell, config=None)
         self._orig_builtins = {}
         # We define this to track if a single BuiltinTrap is nested.
         # Only turn off the trap when the outermost call to __exit__ is made.

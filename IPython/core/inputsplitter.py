@@ -127,8 +127,7 @@ def partial_tokens(s):
     readline = io.StringIO(s).readline
     token = tokenize.TokenInfo(tokenize.NEWLINE, '', (1, 0), (1, 0), '')
     try:
-        for token in tokenize.generate_tokens(readline):
-            yield token
+        yield from tokenize.generate_tokens(readline)
     except tokenize.TokenError as e:
         # catch EOF error
         lines = s.splitlines(keepends=True)
@@ -277,7 +276,7 @@ def get_input_encoding():
 # Classes and functions for normal Python syntax handling
 #-----------------------------------------------------------------------------
 
-class InputSplitter(object):
+class InputSplitter:
     r"""An object that can accumulate lines of Python source before execution.
 
     This object is designed to be fed python source line-by-line, using
@@ -483,7 +482,7 @@ class InputSplitter(object):
                 return False
             
             try:
-                code_ast = ast.parse(u''.join(self._buffer))
+                code_ast = ast.parse(''.join(self._buffer))
             except Exception:
                 #print("Can't parse AST")  # debug
                 return False
@@ -527,7 +526,7 @@ class InputSplitter(object):
         setattr(self, store, self._set_source(buffer))
 
     def _set_source(self, buffer):
-        return u''.join(buffer)
+        return ''.join(buffer)
 
 
 class IPythonInputSplitter(InputSplitter):
@@ -551,7 +550,7 @@ class IPythonInputSplitter(InputSplitter):
 
     def __init__(self, line_input_checker=True, physical_line_transforms=None,
                     logical_line_transforms=None, python_line_transforms=None):
-        super(IPythonInputSplitter, self).__init__()
+        super().__init__()
         self._buffer_raw = []
         self._validate = True
         
@@ -601,7 +600,7 @@ class IPythonInputSplitter(InputSplitter):
 
     def reset(self):
         """Reset the input buffer and associated state."""
-        super(IPythonInputSplitter, self).reset()
+        super().reset()
         self._buffer_raw[:] = []
         self.source_raw = ''
         self.transformer_accumulating = False
@@ -664,7 +663,7 @@ class IPythonInputSplitter(InputSplitter):
         if self.transformer_accumulating:
             return True
         else:
-            return super(IPythonInputSplitter, self).push_accepts_more()
+            return super().push_accepts_more()
 
     def transform_cell(self, cell):
         """Process and translate a cell of input.
@@ -721,7 +720,7 @@ class IPythonInputSplitter(InputSplitter):
 
         if transformed_lines_list:
             transformed_lines = '\n'.join(transformed_lines_list)
-            return super(IPythonInputSplitter, self).push(transformed_lines)
+            return super().push(transformed_lines)
         else:
             # Got nothing back from transformers - they must be waiting for
             # more input.

@@ -36,7 +36,7 @@ def display_page(strng, start=0, screen_lines=25):
         data = strng
     else:
         if start:
-            strng = u'\n'.join(strng.splitlines()[start:])
+            strng = '\n'.join(strng.splitlines()[start:])
         data = { 'text/plain': strng }
     display(data, raw=True)
 
@@ -104,7 +104,7 @@ def _detect_screen_size(screen_lines_def):
         term_flags = termios.tcgetattr(sys.stdout)
     except termios.error as err:
         # can fail on Linux 2.6, pager_page will catch the TypeError
-        raise TypeError('termios error: {0}'.format(err))
+        raise TypeError('termios error: {}'.format(err))
 
     try:
         scr = curses.initscr()
@@ -197,7 +197,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                     os.close(fd)
                     with open(tmpname, 'wt') as tmpfile:
                         tmpfile.write(strng)
-                        cmd = "%s < %s" % (pager_cmd, tmpname)
+                        cmd = "{} < {}".format(pager_cmd, tmpname)
                     # tmpfile needs to be closed for windows
                     if os.system(cmd):
                         retval = 1

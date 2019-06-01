@@ -149,7 +149,7 @@ LocalFree = ctypes.windll.kernel32.LocalFree
 LocalFree.argtypes = [HLOCAL]
 LocalFree.restype = HLOCAL
 
-class AvoidUNCPath(object):
+class AvoidUNCPath:
     """A context manager to protect command execution from UNC paths.
 
     In the Win32 API, commands can't be invoked with the cwd being a UNC path.
@@ -186,7 +186,7 @@ class AvoidUNCPath(object):
             os.chdir(self.path)
 
 
-class Win32ShellCommandController(object):
+class Win32ShellCommandController:
     """Runs a shell command in a 'with' context.
 
     This implementation is Win32-specific.
@@ -281,7 +281,7 @@ class Win32ShellCommandController(object):
             dwCreationFlags = CREATE_SUSPENDED | CREATE_NO_WINDOW # | CREATE_NEW_CONSOLE
 
             if not CreateProcess(None,
-                    u"cmd.exe /c " + cmd,
+                    "cmd.exe /c " + cmd,
                     None, None, True, dwCreationFlags,
                     None, None, ctypes.byref(siStartInfo),
                     ctypes.byref(piProcInfo)):
@@ -561,7 +561,7 @@ def system(cmd):
     """
     with AvoidUNCPath() as path:
         if path is not None:
-            cmd = '"pushd %s &&"%s' % (path, cmd)
+            cmd = '"pushd {} &&"{}'.format(path, cmd)
         with Win32ShellCommandController(cmd) as scc:
             scc.run()
 

@@ -513,7 +513,7 @@ else:
 GREEDY_DELIMS = ' =\r\n'
 
 
-class CompletionSplitter(object):
+class CompletionSplitter:
     """An object to split an input line in a manner similar to readline.
 
     By having our own implementation, we can expose readline-like completion in
@@ -627,7 +627,7 @@ class Completer(Configurable):
         else:
             self.global_namespace = global_namespace
 
-        super(Completer, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def complete(self, text, state):
         """Return the next possible completion for 'text'.
@@ -729,7 +729,7 @@ class Completer(Configurable):
             pass
         # Build match list to return
         n = len(attr)
-        return [u"%s.%s" % (expr, w) for w in words if w[:n] == attr ]
+        return ["{}.{}".format(expr, w) for w in words if w[:n] == attr ]
 
 
 def get__all__entries(obj):
@@ -807,7 +807,7 @@ def match_dict_keys(keys: List[str], prefix: str, delims: str):
             rem_repr = rem_repr.replace('"', '\\"')
 
         # then reinsert prefix from start of token
-        matched.append('%s%s' % (token_prefix, rem_repr))
+        matched.append('{}{}'.format(token_prefix, rem_repr))
     return quote, token_start, matched
 
 
@@ -869,7 +869,7 @@ def position_to_cursor(text:str, offset:int)->Tuple[int, int]:
 
     """
 
-    assert 0 <= offset <= len(text) , "0 <= %s <= %s" % (offset , len(text))
+    assert 0 <= offset <= len(text) , "0 <= {} <= {}".format(offset , len(text))
 
     before = text[:offset]
     blines = before.split('\n')  # ! splitnes trim trailing \n
@@ -886,7 +886,7 @@ def _safe_isinstance(obj, module, class_name):
 
 
 def back_unicode_name_matches(text):
-    u"""Match unicode characters back to unicode name
+    """Match unicode characters back to unicode name
 
     This does  ``☃`` -> ``\\snowman``
 
@@ -898,22 +898,22 @@ def back_unicode_name_matches(text):
     Used on Python 3 only.
     """
     if len(text)<2:
-        return u'', ()
+        return '', ()
     maybe_slash = text[-2]
     if maybe_slash != '\\':
-        return u'', ()
+        return '', ()
 
     char = text[-1]
     # no expand on quote for completion in strings.
     # nor backcomplete standard ascii keys
     if char in string.ascii_letters or char in ['"',"'"]:
-        return u'', ()
+        return '', ()
     try :
         unic = unicodedata.name(char)
         return '\\'+char,['\\'+unic]
     except KeyError:
         pass
-    return u'', ()
+    return '', ()
 
 def back_latex_name_matches(text:str):
     """Match latex characters back to unicode name
@@ -923,24 +923,24 @@ def back_latex_name_matches(text:str):
     Used on Python 3 only.
     """
     if len(text)<2:
-        return u'', ()
+        return '', ()
     maybe_slash = text[-2]
     if maybe_slash != '\\':
-        return u'', ()
+        return '', ()
 
 
     char = text[-1]
     # no expand on quote for completion in strings.
     # nor backcomplete standard ascii keys
     if char in string.ascii_letters or char in ['"',"'"]:
-        return u'', ()
+        return '', ()
     try :
         latex = reverse_latex_symbol[char]
         # '\\' replace the \ as well
         return '\\'+char,[latex]
     except KeyError:
         pass
-    return u'', ()
+    return '', ()
 
 
 def _formatparamchildren(parameter) -> str:
@@ -1174,9 +1174,9 @@ class IPCompleter(Completer):
         # when escaped with backslash
         if text.startswith('!'):
             text = text[1:]
-            text_prefix = u'!'
+            text_prefix = '!'
         else:
-            text_prefix = u''
+            text_prefix = ''
 
         text_until_cursor = self.text_until_cursor
         # track strings with open quotes
@@ -1284,9 +1284,9 @@ class IPCompleter(Completer):
 
         if len(texts) > 0 and (texts[0] == 'config' or texts[0] == '%config'):
             # get all configuration classes
-            classes = sorted(set([ c for c in self.shell.configurables
+            classes = sorted({ c for c in self.shell.configurables
                                    if c.__class__.class_traits(config=True)
-                                   ]), key=lambda x: x.__class__.__name__)
+                                   }, key=lambda x: x.__class__.__name__)
             classnames = [ c.__class__.__name__ for c in classes ]
 
             # return all classnames if config or %config is given
@@ -1554,7 +1554,7 @@ class IPCompleter(Completer):
             # Remove used named arguments from the list, no need to show twice
             for namedArg in set(namedArgs) - usedNamedArgs:
                 if namedArg.startswith(text):
-                    argMatches.append(u"%s=" %namedArg)
+                    argMatches.append("%s=" %namedArg)
         except:
             pass
             
@@ -1669,7 +1669,7 @@ class IPCompleter(Completer):
         return [leading + k + suf for k in matches]
 
     def unicode_name_matches(self, text):
-        u"""Match Latex-like syntax for unicode characters base
+        """Match Latex-like syntax for unicode characters base
         on the name of the character.
 
         This does  ``\\GREEK SMALL LETTER ETA`` -> ``η``
@@ -1689,11 +1689,11 @@ class IPCompleter(Completer):
                     return '\\'+s,[unic]
             except KeyError:
                 pass
-        return u'', []
+        return '', []
 
 
     def latex_matches(self, text):
-        u"""Match Latex syntax for unicode characters.
+        """Match Latex syntax for unicode characters.
 
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
 
@@ -1711,7 +1711,7 @@ class IPCompleter(Completer):
                 # a full list of options \al -> [\aleph, \alpha]
                 matches = [k for k in latex_symbols if k.startswith(s)]
                 return s, matches
-        return u'', []
+        return '', []
 
     def dispatch_custom_completer(self, text):
         if not self.custom_completers:
@@ -2089,4 +2089,4 @@ class IPCompleter(Completer):
         
         # if text does not start with slash
         else:
-            return u'', ()
+            return '', ()

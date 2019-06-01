@@ -71,7 +71,7 @@ def skipif(skip_condition, msg=None):
             else:
                 out = '\n'+msg
 
-            return "Skipping test: %s%s" % (func.__name__,out)
+            return "Skipping test: {}{}".format(func.__name__,out)
 
         # We need to define *two* skippers because Python doesn't allow both
         # return with value and yield inside the same function.
@@ -87,8 +87,7 @@ def skipif(skip_condition, msg=None):
             if skip_val():
                 raise nose.SkipTest(get_msg(f,msg))
             else:
-                for x in f(*args, **kwargs):
-                    yield x
+                yield from f(*args, **kwargs)
 
         # Choose the right skipper to use when building the actual decorator.
         if nose.util.isgenerator(f):

@@ -35,7 +35,7 @@ class TestContextAwareCompletion(unittest.TestCase):
 
 # Decorator for interaction loop tests -----------------------------------------
 
-class mock_input_helper(object):
+class mock_input_helper:
     """Machinery for tests of the main interact loop.
 
     Used by the mock_input decorator.
@@ -58,11 +58,11 @@ class mock_input_helper(object):
             return next(self.testgen)
         except StopIteration:
             self.ip.keep_running = False
-            return u''
+            return ''
         except:
             self.exception = sys.exc_info()
             self.ip.keep_running = False
-            return u''
+            return ''
 
 def mock_input(testfunc):
     """Decorator for tests of the main interact loop.
@@ -101,13 +101,13 @@ class InteractiveShellTestCase(unittest.TestCase):
         try:
             #raise Exception
             with tt.AssertPrints('4', suppress=False):
-                yield u'print(2*2)'
+                yield 'print(2*2)'
 
             with tt.AssertPrints('SyntaxError: input contains', suppress=False):
-                yield u'print(2345) # syntaxerror'
+                yield 'print(2345) # syntaxerror'
 
             with tt.AssertPrints('16', suppress=False):
-                yield u'print(4*4)'
+                yield 'print(4*4)'
 
         finally:
             ip.input_transformers_post.remove(syntax_error_transformer)
@@ -118,7 +118,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         assert formatter.active_types == ['text/plain']
         assert not formatter.ipython_display_formatter.enabled
 
-        class Test(object):
+        class Test:
             def __repr__(self):
                 return "<Test %i>" % id(self)
 

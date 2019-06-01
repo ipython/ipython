@@ -32,7 +32,7 @@ from .encoding import DEFAULT_ENCODING
 # Function definitions
 #-----------------------------------------------------------------------------
 
-class AvoidUNCPath(object):
+class AvoidUNCPath:
     """A context manager to protect command execution from UNC paths.
 
     In the Win32 API, commands can't be invoked with the cwd being a UNC path.
@@ -127,7 +127,7 @@ def system(cmd):
 
     with AvoidUNCPath() as path:
         if path is not None:
-            cmd = '"pushd %s &&"%s' % (path, cmd)
+            cmd = '"pushd {} &&"{}'.format(path, cmd)
         return process_handler(cmd, _system_body)
 
 def getoutput(cmd):
@@ -147,7 +147,7 @@ def getoutput(cmd):
 
     with AvoidUNCPath() as path:
         if path is not None:
-            cmd = '"pushd %s &&"%s' % (path, cmd)
+            cmd = '"pushd {} &&"{}'.format(path, cmd)
         out = process_handler(cmd, lambda p: p.communicate()[0], STDOUT)
 
     if out is None:

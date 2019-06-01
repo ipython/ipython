@@ -331,7 +331,7 @@ class MagicsManager(Configurable):
 
     def __init__(self, shell=None, config=None, user_magics=None, **traits):
 
-        super(MagicsManager, self).__init__(shell=shell, config=config,
+        super().__init__(shell=shell, config=config,
                                            user_magics=user_magics, **traits)
         self.magics = dict(line={}, cell={})
         # Let's add the user_magics to the registry for uniformity, so *all*
@@ -538,7 +538,7 @@ class Magics(Configurable):
                     tab[magic_name] = meth_name
         # Configurable **needs** to be initiated at the end or the config
         # magics get screwed up.
-        super(Magics, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
@@ -608,7 +608,7 @@ class Magics(Configurable):
 
         # inject default options at the beginning of the input line
         caller = sys._getframe(1).f_code.co_name
-        arg_str = '%s %s' % (self.options_table.get(caller,''),arg_str)
+        arg_str = '{} {}'.format(self.options_table.get(caller,''),arg_str)
 
         mode = kw.get('mode','string')
         if mode not in ['string','list']:
@@ -629,7 +629,7 @@ class Magics(Configurable):
             try:
                 opts,args = getopt(argv, opt_str, long_opts)
             except GetoptError as e:
-                raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str,
+                raise UsageError('{} ( allowed: "{}" {})'.format(e.msg,opt_str,
                                         " ".join(long_opts)))
             for o,a in opts:
                 if o.startswith('--'):
@@ -661,7 +661,7 @@ class Magics(Configurable):
         self.options_table[fn] = optstr
 
 
-class MagicAlias(object):
+class MagicAlias:
     """An alias to another magic function.
 
     An alias is determined by its magic name and magic kind. Lookup
@@ -677,7 +677,7 @@ class MagicAlias(object):
         self.magic_params = magic_params
         self.magic_kind = magic_kind
 
-        self.pretty_target = '%s%s' % (magic_escapes[self.magic_kind], self.magic_name)
+        self.pretty_target = '{}{}'.format(magic_escapes[self.magic_kind], self.magic_name)
         self.__doc__ = "Alias for `%s`." % self.pretty_target
 
         self._in_call = False

@@ -275,17 +275,17 @@ class SeparateUnicode(Unicode):
     def validate(self, obj, value):
         if value == '0': value = ''
         value = value.replace('\\n','\n')
-        return super(SeparateUnicode, self).validate(obj, value)
+        return super().validate(obj, value)
 
 
 @undoc
-class DummyMod(object):
+class DummyMod:
     """A dummy module used for IPython's interactive module when
     a namespace must be assigned to the module's __dict__."""
     __spec__ = None
 
 
-class ExecutionInfo(object):
+class ExecutionInfo:
     """The arguments used for a call to :meth:`InteractiveShell.run_cell`
 
     Stores information about what is going to happen.
@@ -309,7 +309,7 @@ class ExecutionInfo(object):
                (name, id(self), raw_cell, self.store_history, self.silent, self.shell_futures)
 
 
-class ExecutionResult(object):
+class ExecutionResult:
     """The result of a call to :meth:`InteractiveShell.run_cell`
 
     Stores information about what took place.
@@ -631,7 +631,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # This is where traits with a config_key argument are updated
         # from the values on config.
-        super(InteractiveShell, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         if 'PromptManager' in self.config:
             warn('As of IPython 5.0 `PromptManager` config will have no effect'
                  ' and has been replaced by TerminalInteractiveShell.prompts_class')
@@ -2329,13 +2329,13 @@ class InteractiveShell(SingletonConfigurable):
         if fn is None:
             lm = self.find_line_magic(magic_name)
             etpl = "Cell magic `%%{0}` not found{1}."
-            extra = '' if lm is None else (' (But line magic `%{0}` exists, '
+            extra = '' if lm is None else (' (But line magic `%{}` exists, '
                             'did you mean that instead?)'.format(magic_name))
             raise UsageError(etpl.format(magic_name, extra))
         elif cell == '':
-            message = '%%{0} is a cell magic, but the cell body is empty.'.format(magic_name)
+            message = '%%{} is a cell magic, but the cell body is empty.'.format(magic_name)
             if self.find_line_magic(magic_name) is not None:
-                message += ' Did you mean the line magic %{0} (single %)?'.format(magic_name)
+                message += ' Did you mean the line magic %{} (single %)?'.format(magic_name)
             raise UsageError(message)
         else:
             # Note: this is the distance in the stack to the user's frame.
@@ -2464,7 +2464,7 @@ class InteractiveShell(SingletonConfigurable):
             from IPython.utils._process_win32 import AvoidUNCPath
             with AvoidUNCPath() as path:
                 if path is not None:
-                    cmd = '"pushd %s &&"%s' % (path, cmd)
+                    cmd = '"pushd {} &&"{}'.format(path, cmd)
                 try:
                     ec = os.system(cmd)
                 except KeyboardInterrupt:
@@ -2601,10 +2601,10 @@ class InteractiveShell(SingletonConfigurable):
         stb = self.InteractiveTB.get_exception_only(etype, evalue)
         
         exc_info = {
-            u'status' : 'error',
-            u'traceback' : stb,
-            u'ename' : etype.__name__,
-            u'evalue' : py3compat.safe_unicode(evalue),
+            'status' : 'error',
+            'traceback' : stb,
+            'ename' : etype.__name__,
+            'evalue' : py3compat.safe_unicode(evalue),
         }
 
         return exc_info

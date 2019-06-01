@@ -13,7 +13,7 @@ from IPython.utils import wildcard
 # Globals for test
 #-----------------------------------------------------------------------------
 
-class obj_t(object):
+class obj_t:
     pass
 
 root = obj_t()
@@ -128,7 +128,7 @@ class Tests (unittest.TestCase):
             self.assertEqual(a, res)
     
     def test_dict_dir(self):
-        class A(object):
+        class A:
             def __init__(self):
                 self.a = 1
                 self.b = 2

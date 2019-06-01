@@ -80,7 +80,7 @@ def safe_unicode(e):
     except UnicodeError:
         pass
 
-    return u'Unrecoverably corrupt evalue'
+    return 'Unrecoverably corrupt evalue'
 
 # shutil.which from Python 3.4
 def _shutil_which(cmd, mode=os.F_OK | os.X_OK, path=None):

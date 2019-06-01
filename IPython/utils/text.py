@@ -331,7 +331,7 @@ def marquee(txt='',width=78,mark='*'):
     nmark = (width-len(txt)-2)//len(mark)//2
     if nmark < 0: nmark =0
     marks = mark*nmark
-    return '%s %s %s' % (marks,txt,marks)
+    return '{} {} {}'.format(marks,txt,marks)
 
 
 ini_spaces_re = re.compile(r'^(\s+)')
@@ -763,10 +763,10 @@ def get_text_list(list_, last_sep=' and ', sep=", ", wrap_item_with=""):
     if len(list_) == 0:
         return ''
     if wrap_item_with:
-        list_ = ['%s%s%s' % (wrap_item_with, item, wrap_item_with) for
+        list_ = ['{}{}{}'.format(wrap_item_with, item, wrap_item_with) for
                  item in list_]
     if len(list_) == 1:
         return list_[0]
-    return '%s%s%s' % (
+    return '{}{}{}'.format(
         sep.join(i for i in list_[:-1]),
         last_sep, list_[-1])

@@ -11,13 +11,13 @@ ip = get_ipython()
 
 class PromptTests(unittest.TestCase):
     def test_lazy_eval_unicode(self):
-        u = u'ünicødé'
+        u = 'ünicødé'
         lz = LazyEvaluate(lambda : u)
         self.assertEqual(str(lz), u)
         self.assertEqual(format(lz), u)
     
     def test_lazy_eval_nonascii_bytes(self):
-        u = u'ünicødé'
+        u = 'ünicødé'
         b = u.encode('utf8')
         lz = LazyEvaluate(lambda : b)
         # unicode(lz) would fail

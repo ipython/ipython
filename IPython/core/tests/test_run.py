@@ -336,7 +336,7 @@ tclass.py: deleting object: C-third
         mydir = os.path.dirname(__file__)
         na = os.path.join(mydir, 'nonascii.py')
         _ip.magic('run "%s"' % na)
-        nt.assert_equal(_ip.user_ns['u'], u'Ўт№Ф')
+        nt.assert_equal(_ip.user_ns['u'], 'Ўт№Ф')
 
     def test_run_py_file_attribute(self):
         """Test handling of `__file__` attribute in `%run <file>.py`."""
@@ -408,7 +408,7 @@ tclass.py: deleting object: C-third
                'a = " ".join(sys.argv[1:])\n')
         self.mktmp(src)
         test_opts = '-x 3 --verbose'
-        _ip.run_line_magic("run", '{0} {1}'.format(self.fname, test_opts))
+        _ip.run_line_magic("run", '{} {}'.format(self.fname, test_opts))
         nt.assert_equal(_ip.user_ns['a'], test_opts)
 
 
@@ -423,7 +423,7 @@ class TestMagicRunWithPackage(unittest.TestCase):
             f.write(textwrap.dedent(content))
 
     def setUp(self):
-        self.package = package = 'tmp{0}'.format(''.join([random.choice(string.ascii_letters) for i in range(10)]))
+        self.package = package = 'tmp{}'.format(''.join([random.choice(string.ascii_letters) for i in range(10)]))
         """Temporary  (probably) valid python package name."""
 
         self.value = int(random.random() * 10000)
@@ -434,13 +434,13 @@ class TestMagicRunWithPackage(unittest.TestCase):
 
         self.writefile(os.path.join(package, '__init__.py'), '')
         self.writefile(os.path.join(package, 'sub.py'), """
-        x = {0!r}
+        x = {!r}
         """.format(self.value))
         self.writefile(os.path.join(package, 'relative.py'), """
         from .sub import x
         """)
         self.writefile(os.path.join(package, 'absolute.py'), """
-        from {0}.sub import x
+        from {}.sub import x
         """.format(package))
         self.writefile(os.path.join(package, 'args.py'), """
         import sys
@@ -456,7 +456,7 @@ class TestMagicRunWithPackage(unittest.TestCase):
         _ip.user_ns.pop('x', None)
         _ip.magic('run {2} -m {0}.{1}'.format(self.package, submodule, opts))
         self.assertEqual(_ip.user_ns['x'], self.value,
-                         'Variable `x` is not loaded from module `{0}`.'
+                         'Variable `x` is not loaded from module `{}`.'
                          .format(submodule))
 
     def test_run_submodule_with_absolute_import(self):
@@ -490,13 +490,13 @@ class TestMagicRunWithPackage(unittest.TestCase):
     def test_module_options(self):
         _ip.user_ns.pop('a', None)
         test_opts = '-x abc -m test'
-        _ip.run_line_magic('run', '-m {0}.args {1}'.format(self.package, test_opts))
+        _ip.run_line_magic('run', '-m {}.args {}'.format(self.package, test_opts))
         nt.assert_equal(_ip.user_ns['a'], test_opts)
 
     def test_module_options_with_separator(self):
         _ip.user_ns.pop('a', None)
         test_opts = '-x abc -m test'
-        _ip.run_line_magic('run', '-m {0}.args -- {1}'.format(self.package, test_opts))
+        _ip.run_line_magic('run', '-m {}.args -- {}'.format(self.package, test_opts))
         nt.assert_equal(_ip.user_ns['a'], test_opts)
 
 def test_run__name__():

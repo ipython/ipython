@@ -16,7 +16,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 @dec.onlyif_unicode_paths
 def test_unicode_cwd():
     """Check that IPython starts with non-ascii characters in the path."""
-    wd = tempfile.mkdtemp(suffix=u"€")
+    wd = tempfile.mkdtemp(suffix="€")
     
     old_wd = os.getcwd()
     os.chdir(wd)
@@ -33,7 +33,7 @@ def test_unicode_cwd():
 @dec.onlyif_unicode_paths
 def test_unicode_ipdir():
     """Check that IPython starts with non-ascii characters in the IP dir."""
-    ipdir = tempfile.mkdtemp(suffix=u"€")
+    ipdir = tempfile.mkdtemp(suffix="€")
     
     # Create the config file, so it tries to load it.
     with open(os.path.join(ipdir, 'ipython_config.py'), "w") as f:

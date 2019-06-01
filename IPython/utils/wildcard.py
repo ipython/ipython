@@ -82,9 +82,9 @@ def filter_ns(ns, name_pattern="*", type_pattern="all", ignore_case=True,
         reg = re.compile(pattern+"$")
 
     # Check each one matches regex; shouldn't be hidden; of correct type.
-    return dict((key,obj) for key, obj in ns.items() if reg.match(key) \
+    return {key:obj for key, obj in ns.items() if reg.match(key) \
                                             and show_hidden(key, show_all) \
-                                            and is_type(obj, type_pattern) )
+                                            and is_type(obj, type_pattern) }
 
 def list_namespace(namespace, type_pattern, filter, ignore_case=False, show_all=False):
     """Return dictionary of all objects in a namespace dictionary that match

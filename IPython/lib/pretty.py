@@ -157,7 +157,7 @@ def pprint(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SE
     sys.stdout.write(newline)
     sys.stdout.flush()
 
-class _PrettyPrinterBase(object):
+class _PrettyPrinterBase:
 
     @contextmanager
     def indent(self, indent):
@@ -425,7 +425,7 @@ class RepresentationPrinter(PrettyPrinter):
         return printer
 
 
-class Printable(object):
+class Printable:
 
     def output(self, stream, output_width):
         return output_width
@@ -477,7 +477,7 @@ class Group(Printable):
         self.want_break = False
 
 
-class GroupQueue(object):
+class GroupQueue:
 
     def __init__(self, *groups):
         self.queue = []
@@ -718,7 +718,7 @@ def _exception_pprint(obj, p, cycle):
     """Base pprint for all exceptions."""
     name = getattr(obj.__class__, '__qualname__', obj.__class__.__name__)
     if obj.__class__.__module__ not in ('exceptions', 'builtins'):
-        name = '%s.%s' % (obj.__class__.__module__, name)
+        name = '{}.{}'.format(obj.__class__.__module__, name)
     step = len(name) + 1
     p.begin_group(step, name + '(')
     for idx, arg in enumerate(getattr(obj, 'args', ())):
@@ -857,7 +857,7 @@ for_type_by_name('collections', 'Counter', _counter_pprint)
 
 if __name__ == '__main__':
     from random import randrange
-    class Foo(object):
+    class Foo:
         def __init__(self):
             self.foo = 1
             self.bar = re.compile(r'\s+')

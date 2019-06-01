@@ -14,7 +14,7 @@ cd = os.chdir
 # SSH root address of the archive site
 archive_user = 'ipython@archive.ipython.org'
 archive_dir = 'archive.ipython.org'
-archive = '%s:%s' % (archive_user, archive_dir)
+archive = '{}:{}'.format(archive_user, archive_dir)
 
 # Build commands
 # Source dists
@@ -30,7 +30,7 @@ def sh(cmd):
     stat = os.system(cmd)
     #stat = 0  # Uncomment this and comment previous to run in debug mode
     if stat:
-        raise SystemExit("Command %s failed with code: %s" % (cmd, stat))
+        raise SystemExit("Command {} failed with code: {}".format(cmd, stat))
 
 def get_ipdir():
     """Get IPython directory from command line, or assume it's the one above."""

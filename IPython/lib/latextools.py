@@ -83,7 +83,7 @@ def latex_to_png(s, encode=False, backend=None, wrap=False):
     elif backend == 'dvipng':
         f = latex_to_png_dvipng
     else:
-        raise ValueError('No such backend {0}'.format(backend))
+        raise ValueError('No such backend {}'.format(backend))
     bin_data = f(s, wrap)
     if encode and bin_data:
         bin_data = encodebytes(bin_data)
@@ -100,7 +100,7 @@ def latex_to_png_mpl(s, wrap):
     # mpl mathtext doesn't support display math, force inline
     s = s.replace('$$', '$')
     if wrap:
-        s = u'${0}$'.format(s)
+        s = '${}$'.format(s)
 
     try:
         mt = mathtext.MathTextParser('bitmap')
@@ -176,13 +176,13 @@ def genelatex(body, wrap):
         yield body
         yield r'\end{dmath*}'
     elif wrap:
-        yield u'$${0}$$'.format(body)
+        yield '$${}$$'.format(body)
     else:
         yield body
-    yield u'\\end{document}'
+    yield '\\end{document}'
 
 
-_data_uri_template_png = u"""<img src="data:image/png;base64,%s" alt=%s />"""
+_data_uri_template_png = """<img src="data:image/png;base64,%s" alt=%s />"""
 
 def latex_to_html(s, alt='image'):
     """Render LaTeX to HTML with embedded PNG data using data URIs.

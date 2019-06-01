@@ -8,7 +8,7 @@ import re
 from IPython.core.hooks import CommandChainDispatcher
 
 # Code begins
-class StrDispatch(object):
+class StrDispatch:
     """Dispatch (lookup) a set of strings / regexps for match.
 
     Example:
@@ -52,7 +52,7 @@ class StrDispatch(object):
                 pass
 
     def __repr__(self):
-        return "<Strdispatch %s, %s>" % (self.strs, self.regexs)
+        return "<Strdispatch {}, {}>".format(self.strs, self.regexs)
 
     def s_matches(self, key):
         if key not in self.strs:

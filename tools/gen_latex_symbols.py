@@ -76,7 +76,7 @@ s = """# encoding: utf-8
 latex_symbols = {\n
 """
 for line in valid_idents:
-    s += '    "%s" : "%s",\n' % (line[0], line[1])
+    s += '    "{}" : "{}",\n'.format(line[0], line[1])
 s += "}\n"
 
 s += """

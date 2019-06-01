@@ -100,7 +100,7 @@ def test_prefilter_attribute_errors():
 
     See http://github.com/ipython/ipython/issues/988."""
 
-    class X(object):
+    class X:
         def __getattr__(self, k):
             raise ValueError('broken object')
         def __call__(self, x):

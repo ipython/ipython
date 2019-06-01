@@ -60,7 +60,7 @@ class ChangedPyFileTest(unittest.TestCase):
                 with tt.AssertPrints("ZeroDivisionError"):
                     ip.run_cell("foo.f()")
 
-iso_8859_5_file = u'''# coding: iso-8859-5
+iso_8859_5_file = '''# coding: iso-8859-5
 
 def fail():
     """дбИЖ"""
@@ -71,8 +71,8 @@ class NonAsciiTest(unittest.TestCase):
     @onlyif_unicode_paths
     def test_nonascii_path(self):
         # Non-ascii directory name as well.
-        with TemporaryDirectory(suffix=u'é') as td:
-            fname = os.path.join(td, u"fooé.py")
+        with TemporaryDirectory(suffix='é') as td:
+            fname = os.path.join(td, "fooé.py")
             with open(fname, "w") as f:
                 f.write(file_1)
             
@@ -93,12 +93,12 @@ class NonAsciiTest(unittest.TestCase):
                 ip.run_cell("from dfghjkl import fail")
             
             with tt.AssertPrints("ZeroDivisionError"):
-                with tt.AssertPrints(u'дбИЖ', suppress=False):
+                with tt.AssertPrints('дбИЖ', suppress=False):
                     ip.run_cell('fail()')
     
     def test_nonascii_msg(self):
-        cell = u"raise Exception('é')"
-        expected = u"Exception('é')"
+        cell = "raise Exception('é')"
+        expected = "Exception('é')"
         ip.run_cell("%xmode plain")
         with tt.AssertPrints(expected):
             ip.run_cell(cell)
@@ -112,7 +112,7 @@ class NonAsciiTest(unittest.TestCase):
             ip.run_cell(cell)
 
         ip.run_cell("%xmode minimal")
-        with tt.AssertPrints(u"Exception: é"):
+        with tt.AssertPrints("Exception: é"):
             ip.run_cell(cell)
 
         # Put this back into Context mode for later tests.

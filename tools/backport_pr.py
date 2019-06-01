@@ -119,9 +119,9 @@ def already_backported(branch, since_tag=None):
     """return set of PRs that have been backported already"""
     if since_tag is None:
         since_tag = check_output(['git','describe', branch, '--abbrev=0']).decode('utf8').strip()
-    cmd = ['git', 'log', '%s..%s' % (since_tag, branch), '--oneline']
+    cmd = ['git', 'log', '{}..{}'.format(since_tag, branch), '--oneline']
     lines = check_output(cmd).decode('utf8')
-    return set(int(num) for num in backport_re.findall(lines))
+    return {int(num) for num in backport_re.findall(lines)}
 
 def should_backport(labels=None, milestone=None, project='ipython/ipython'):
     """return set of PRs marked for backport"""

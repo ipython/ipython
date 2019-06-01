@@ -7,7 +7,7 @@ def name(c):
     if s == '_Invert':
         return '(Not: %s)' % name(c.filter)
     if s in log_filters.keys():
-        return '(%s: %s)' % (log_filters[s], ', '.join(name(x) for x in c.filters))
+        return '({}: {})'.format(log_filters[s], ', '.join(name(x) for x in c.filters))
     return log_filters[s] if s in log_filters.keys() else s
 
 
@@ -41,7 +41,7 @@ def multi_filter_str(flt):
 log_filters = {'_AndList': 'And', '_OrList': 'Or'}
 log_invert =  {'_Invert'}
 
-class _DummyTerminal(object):
+class _DummyTerminal:
     """Used as a buffer to get prompt_toolkit bindings
     """
     handle_return = None

@@ -64,7 +64,7 @@ def test_existing_path_FileLink():
     tf = NamedTemporaryFile()
     fl = display.FileLink(tf.name)
     actual = fl._repr_html_()
-    expected = "<a href='%s' target='_blank'>%s</a><br>" % (tf.name,tf.name)
+    expected = "<a href='{}' target='_blank'>{}</a><br>".format(tf.name,tf.name)
     nt.assert_equal(actual,expected)
 
 def test_existing_path_FileLink_repr():

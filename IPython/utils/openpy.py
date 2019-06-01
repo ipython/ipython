@@ -35,7 +35,7 @@ def source_to_unicode(txt, errors='replace', skip_encoding_cookie=True):
     text = TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True)
     text.mode = 'r'
     if skip_encoding_cookie:
-        return u"".join(strip_encoding_cookie(text))
+        return "".join(strip_encoding_cookie(text))
     else:
         return text.read()
 
@@ -54,8 +54,7 @@ def strip_encoding_cookie(filelike):
     except StopIteration:
         return
     
-    for line in it:
-        yield line
+    yield from it
 
 def read_py_file(filename, skip_encoding_cookie=True):
     """Read a Python file, using the encoding declared inside the file.

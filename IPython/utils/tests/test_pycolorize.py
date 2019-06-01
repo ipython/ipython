@@ -28,7 +28,7 @@ import io
 # Test functions
 #-----------------------------------------------------------------------------
 
-sample = u"""
+sample = """
 def function(arg, *args, kwarg=True, **kwargs):
     '''
     this is docs
@@ -54,7 +54,7 @@ def test_loop_colors():
         def test_unicode_colorize():
             p = Parser(style=style)
             f1 = p.format('1/0', 'str')
-            f2 = p.format(u'1/0', 'str')
+            f2 = p.format('1/0', 'str')
             nt.assert_equal(f1, f2)
 
         def test_parse_sample():

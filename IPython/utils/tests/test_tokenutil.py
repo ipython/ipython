@@ -15,7 +15,7 @@ def expect_token(expected, cell, cursor_pos):
         else:
             offset += len(line)+1
     column = cursor_pos - offset
-    line_with_cursor = '%s|%s' % (line[:column], line[column:])
+    line_with_cursor = '{}|{}'.format(line[:column], line[column:])
     nt.assert_equal(token, expected,
         "Expected %r, got %r in: %r (pos %i)" % (
         expected, token, line_with_cursor, cursor_pos)

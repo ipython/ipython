@@ -165,7 +165,7 @@ def exception_colors():
 
     return ex_colors
 
-class Deprec(object):
+class Deprec:
 
     def __init__(self, wrapped_obj):
         self.wrapped=wrapped_obj

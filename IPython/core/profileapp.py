@@ -108,7 +108,7 @@ def list_profiles_in(path):
 
 def list_bundled_profiles():
     """list profiles that are bundled with IPython."""
-    path = os.path.join(get_ipython_package_dir(), u'core', u'profile')
+    path = os.path.join(get_ipython_package_dir(), 'core', 'profile')
     profiles = []
 
     # for python 3.6+ rewrite to: with os.scandir(path) as dirlist:
@@ -123,7 +123,7 @@ class ProfileLocate(BaseIPythonApplication):
     description = """print the path to an IPython profile dir"""
     
     def parse_command_line(self, argv=None):
-        super(ProfileLocate, self).parse_command_line(argv)
+        super().parse_command_line(argv)
         if self.extra_args:
             self.profile = self.extra_args[0]
     
@@ -132,7 +132,7 @@ class ProfileLocate(BaseIPythonApplication):
 
 
 class ProfileList(Application):
-    name = u'ipython-profile'
+    name = 'ipython-profile'
     description = list_help
     examples = _list_examples
 
@@ -205,7 +205,7 @@ create_flags['parallel'] = ({'ProfileCreate': {'parallel' : True}},
 
 
 class ProfileCreate(BaseIPythonApplication):
-    name = u'ipython-profile'
+    name = 'ipython-profile'
     description = create_help
     examples = _create_examples
     auto_create = Bool(True)
@@ -234,7 +234,7 @@ class ProfileCreate(BaseIPythonApplication):
                     self.config_files.remove(cf)
 
     def parse_command_line(self, argv):
-        super(ProfileCreate, self).parse_command_line(argv)
+        super().parse_command_line(argv)
         # accept positional arg as profile name
         if self.extra_args:
             self.profile = self.extra_args[0]
@@ -256,7 +256,7 @@ class ProfileCreate(BaseIPythonApplication):
         return app
 
     def init_config_files(self):
-        super(ProfileCreate, self).init_config_files()
+        super().init_config_files()
         # use local imports, since these classes may import from here
         from IPython.terminal.ipapp import TerminalIPythonApp
         apps = [TerminalIPythonApp]
@@ -290,7 +290,7 @@ class ProfileCreate(BaseIPythonApplication):
 
 
 class ProfileApp(Application):
-    name = u'ipython profile'
+    name = 'ipython profile'
     description = profile_help
     examples = _main_examples
 

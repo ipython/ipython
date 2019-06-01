@@ -26,7 +26,7 @@ import re
 from importlib import import_module
 
 
-class Obj(object):
+class Obj:
     '''Namespace to hold arbitrary information.'''
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -75,7 +75,7 @@ class FuncClsScanner(ast.NodeVisitor):
         return self.functions, self.classes
 
 # Functions and classes
-class ApiDocWriter(object):
+class ApiDocWriter:
     ''' Class for automatic detection and parsing of API docs
     to Sphinx-parsable reST format'''
 

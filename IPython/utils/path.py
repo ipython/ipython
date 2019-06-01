@@ -308,7 +308,7 @@ def unescape_glob(string):
     """Unescape glob pattern in `string`."""
     def unescape(s):
         for pattern in '*[]!?':
-            s = s.replace(r'\{0}'.format(pattern), pattern)
+            s = s.replace(r'\{}'.format(pattern), pattern)
         return s
     return '\\'.join(map(unescape, string.split('\\\\')))
 

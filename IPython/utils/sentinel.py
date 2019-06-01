@@ -3,7 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-class Sentinel(object):
+class Sentinel:
 
     def __init__(self, name, module, docstring=None):
         self.name = name

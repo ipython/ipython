@@ -332,7 +332,7 @@ class IPythonConsoleLexer(Lexer):
     def reset(self):
         self.mode = 'output'
         self.index = 0
-        self.buffer = u''
+        self.buffer = ''
         self.insertions = []
 
     def buffered_tokens(self):
@@ -354,7 +354,7 @@ class IPythonConsoleLexer(Lexer):
 
         # Clear it all
         self.index += len(self.buffer)
-        self.buffer = u''
+        self.buffer = ''
         self.insertions = []
 
     def get_mci(self, line):
@@ -392,7 +392,7 @@ class IPythonConsoleLexer(Lexer):
             # Only look for an end of input when not in tb mode.
             # An ellipsis could appear within the traceback.
             mode = 'output'
-            code = u''
+            code = ''
             insertion = (0, Generic.Prompt, line)
             return mode, code, insertion
 
@@ -482,16 +482,14 @@ class IPythonConsoleLexer(Lexer):
 
             if mode != self.mode:
                 # Yield buffered tokens before transitioning to new mode.
-                for token in self.buffered_tokens():
-                    yield token
+                yield from self.buffered_tokens()
                 self.mode = mode
 
             if insertion:
                 self.insertions.append((len(self.buffer), [insertion]))
             self.buffer += code
 
-        for token in self.buffered_tokens():
-            yield token
+        yield from self.buffered_tokens()
 
 class IPyLexer(Lexer):
     r"""
@@ -527,6 +525,5 @@ class IPyLexer(Lexer):
             lex = self.IPythonConsoleLexer
         else:
             lex = self.IPythonLexer
-        for token in lex.get_tokens_unprocessed(text):
-            yield token
+        yield from lex.get_tokens_unprocessed(text)
 

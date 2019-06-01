@@ -307,7 +307,7 @@ def _make_help_call(target, esc, next_input=None):
     t_magic_name, _, t_magic_arg_s = arg.partition(' ')
     t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
     if next_input is None:
-        return 'get_ipython().run_line_magic(%r, %r)' % (t_magic_name, t_magic_arg_s)
+        return 'get_ipython().run_line_magic({!r}, {!r})'.format(t_magic_name, t_magic_arg_s)
     else:
         return 'get_ipython().set_next_input(%r);get_ipython().run_line_magic(%r, %r)' % \
            (next_input, t_magic_name, t_magic_arg_s)
@@ -335,22 +335,22 @@ def _tr_help2(content):
 def _tr_magic(content):
     "Translate lines escaped with a percent sign: %"
     name, _, args = content.partition(' ')
-    return 'get_ipython().run_line_magic(%r, %r)' % (name, args)
+    return 'get_ipython().run_line_magic({!r}, {!r})'.format(name, args)
 
 def _tr_quote(content):
     "Translate lines escaped with a comma: ,"
     name, _, args = content.partition(' ')
-    return '%s("%s")' % (name, '", "'.join(args.split()) )
+    return '{}("{}")'.format(name, '", "'.join(args.split()) )
 
 def _tr_quote2(content):
     "Translate lines escaped with a semicolon: ;"
     name, _, args = content.partition(' ')
-    return '%s("%s")' % (name, args)
+    return '{}("{}")'.format(name, args)
 
 def _tr_paren(content):
     "Translate lines escaped with a slash: /"
     name, _, args = content.partition(' ')
-    return '%s(%s)' % (name, ", ".join(args.split()))
+    return '{}({})'.format(name, ", ".join(args.split()))
 
 tr = { ESC_SHELL  : 'get_ipython().system({!r})'.format,
        ESC_SH_CAP : 'get_ipython().getoutput({!r})'.format,

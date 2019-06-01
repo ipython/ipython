@@ -49,7 +49,7 @@ class ExtensionManager(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
-        super(ExtensionManager, self).__init__(shell=shell, **kwargs)
+        super().__init__(shell=shell, **kwargs)
         self.shell.observe(
             self._on_ipython_dir_changed, names=('ipython_dir',)
         )
@@ -57,7 +57,7 @@ class ExtensionManager(Configurable):
 
     @property
     def ipython_extension_dir(self):
-        return os.path.join(self.shell.ipython_dir, u'extensions')
+        return os.path.join(self.shell.ipython_dir, 'extensions')
 
     def _on_ipython_dir_changed(self, change):
         ensure_dir_exists(self.ipython_extension_dir)

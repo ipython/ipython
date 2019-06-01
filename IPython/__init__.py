@@ -60,7 +60,7 @@ from .utils.sysinfo import sys_info
 from .utils.frame import extract_module_locals
 
 # Release data
-__author__ = '%s <%s>' % (release.author, release.author_email)
+__author__ = '{} <{}>'.format(release.author, release.author_email)
 __license__  = release.license
 __version__  = release.version
 version_info = release.version_info

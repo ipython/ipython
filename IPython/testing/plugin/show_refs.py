@@ -5,7 +5,7 @@ This is used by a companion test case.
 
 import gc
 
-class C(object):
+class C:
    def __del__(self):
       pass
       #print 'deleting object...'  # dbg

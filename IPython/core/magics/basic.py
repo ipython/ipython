@@ -18,7 +18,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
 
 
-class MagicsDisplay(object):
+class MagicsDisplay:
     def __init__(self, magics_manager, ignore=None):
         self.ignore = ignore if ignore else []
         self.magics_manager = magics_manager
@@ -166,13 +166,13 @@ class BasicMagics(Magics):
 
         if args.line:
             mman.register_alias(name, target, 'line', params)
-            print('Created `%s%s` as an alias for `%s%s%s`.' % (
+            print('Created `{}{}` as an alias for `{}{}{}`.'.format(
                 magic_escapes['line'], name,
                 magic_escapes['line'], target, params_str))
 
         if args.cell:
             mman.register_alias(name, target, 'cell', params)
-            print('Created `%s%s` as an alias for `%s%s%s`.' % (
+            print('Created `{}{}` as an alias for `{}{}{}`.'.format(
                 magic_escapes['cell'], name,
                 magic_escapes['cell'], target, params_str))
 

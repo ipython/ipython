@@ -63,7 +63,7 @@ else :
 #-----------------------------------------------------------------------------
 
 
-class TimeitResult(object):
+class TimeitResult:
     """
     Object returned by the timeit magic with info about the run.
 
@@ -99,12 +99,12 @@ class TimeitResult(object):
         pm = '+-'
         if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
             try:
-                u'\xb1'.encode(sys.stdout.encoding)
-                pm = u'\xb1'
+                '\xb1'.encode(sys.stdout.encoding)
+                pm = '\xb1'
             except:
                 pass
         return (
-            u"{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops} loop{loop_plural} each)"
+            "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops} loop{loop_plural} each)"
                 .format(
                     pm = pm,
                     runs = self.repeat,
@@ -117,7 +117,7 @@ class TimeitResult(object):
 
     def _repr_pretty_(self, p , cycle):
         unic = self.__str__()
-        p.text(u'<TimeitResult : '+unic+u'>')
+        p.text('<TimeitResult : '+unic+'>')
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
@@ -180,7 +180,7 @@ class ExecutionMagics(Magics):
     """
 
     def __init__(self, shell):
-        super(ExecutionMagics, self).__init__(shell)
+        super().__init__(shell)
         if profile is None:
             self.prun = self.profile_missing_notice
         # Default execution function used to actually run user code.
@@ -919,7 +919,7 @@ python-profiler package from non-free.""")
                            "with the -b option." % bp)
                     raise UsageError(msg)
             # if we find a good linenumber, set the breakpoint
-            deb.do_break('%s:%s' % (bp_file, bp_line))
+            deb.do_break('{}:{}'.format(bp_file, bp_line))
 
         if filename:
             # Mimic Pdb._runscript(...)
@@ -985,9 +985,9 @@ python-profiler package from non-free.""")
             t_sys = t1[1] - t0[1]
             print("\nIPython CPU timings (estimated):")
             print("Total runs performed:", nruns)
-            print("  Times  : %10s   %10s" % ('Total', 'Per run'))
-            print("  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns))
-            print("  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns))
+            print("  Times  : {:>10}   {:>10}".format('Total', 'Per run'))
+            print("  User   : {:10.2f} s, {:10.2f} s.".format(t_usr, t_usr / nruns))
+            print("  System : {:10.2f} s, {:10.2f} s.".format(t_sys, t_sys / nruns))
         twall1 = time.perf_counter()
         print("Wall time: %10.2f s." % (twall1 - twall0))
 
@@ -1472,7 +1472,7 @@ def _format_time(timespan, precision=3):
             value = int(leftover / length)
             if value > 0:
                 leftover = leftover % length
-                time.append(u'%s%s' % (str(value), suffix))
+                time.append('{}{}'.format(str(value), suffix))
             if leftover < 1:
                 break
         return " ".join(time)
@@ -1483,11 +1483,11 @@ def _format_time(timespan, precision=3):
     # See bug: https://bugs.launchpad.net/ipython/+bug/348466
     # Try to prevent crashes by being more secure than it needs to
     # E.g. eclipse is able to print a µ, but has no sys.stdout.encoding set.
-    units = [u"s", u"ms",u'us',"ns"] # the save value   
+    units = ["s", "ms",'us',"ns"] # the save value   
     if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
         try:
-            u'\xb5'.encode(sys.stdout.encoding)
-            units = [u"s", u"ms",u'\xb5s',"ns"]
+            '\xb5'.encode(sys.stdout.encoding)
+            units = ["s", "ms",'\xb5s',"ns"]
         except:
             pass
     scaling = [1, 1e3, 1e6, 1e9]
@@ -1496,4 +1496,4 @@ def _format_time(timespan, precision=3):
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
         order = 3
-    return u"%.*g %s" % (precision, timespan * scaling[order], units[order])
+    return "%.*g %s" % (precision, timespan * scaling[order], units[order])

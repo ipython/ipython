@@ -33,7 +33,7 @@ def test_history():
         hist_file = os.path.join(tmpdir, 'history.sqlite')
         try:
             ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
-            hist = [u'a=1', u'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
+            hist = ['a=1', 'def f():\n    test = 1\n    return test', "b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)
 
@@ -62,10 +62,10 @@ def test_history():
 
             # New session
             ip.history_manager.reset()
-            newcmds = [u"z=5",
-                       u"class X(object):\n    pass",
-                       u"k='p'",
-                       u"z=5"]
+            newcmds = ["z=5",
+                       "class X(object):\n    pass",
+                       "k='p'",
+                       "z=5"]
             for i, cmd in enumerate(newcmds, start=1):
                 ip.history_manager.store_inputs(i, cmd)
             gothist = ip.history_manager.get_range(start=1, stop=4)
@@ -130,7 +130,7 @@ def test_history():
             ip.magic("save " + testfilename + " ~1/1-3")
             with io.open(testfilename, encoding='utf-8') as testfile:
                 nt.assert_equal(testfile.read(),
-                                        u"# coding: utf-8\n" + u"\n".join(hist)+u"\n")
+                                        "# coding: utf-8\n" + "\n".join(hist)+"\n")
 
             # Duplicate line numbers - check that it doesn't crash, and
             # gets a new session
@@ -201,7 +201,7 @@ def test_histmanager_disabled():
         cfg.HistoryManager.hist_file = hist_file
         try:
             ip.history_manager = HistoryManager(shell=ip, config=cfg)
-            hist = [u'a=1', u'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
+            hist = ['a=1', 'def f():\n    test = 1\n    return test', "b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)
             nt.assert_equal(ip.history_manager.input_hist_raw, [''] + hist)

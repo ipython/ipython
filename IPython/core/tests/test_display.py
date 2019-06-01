@@ -22,15 +22,15 @@ def test_image_size():
     """Simple test for display.Image(args, width=x,height=y)"""
     thisurl = 'http://www.google.fr/images/srpr/logo3w.png'
     img = display.Image(url=thisurl, width=200, height=200)
-    nt.assert_equal(u'<img src="%s" width="200" height="200"/>' % (thisurl), img._repr_html_())
+    nt.assert_equal('<img src="%s" width="200" height="200"/>' % (thisurl), img._repr_html_())
     img = display.Image(url=thisurl, metadata={'width':200, 'height':200})
-    nt.assert_equal(u'<img src="%s" width="200" height="200"/>' % (thisurl), img._repr_html_())
+    nt.assert_equal('<img src="%s" width="200" height="200"/>' % (thisurl), img._repr_html_())
     img = display.Image(url=thisurl, width=200)
-    nt.assert_equal(u'<img src="%s" width="200"/>' % (thisurl), img._repr_html_())
+    nt.assert_equal('<img src="%s" width="200"/>' % (thisurl), img._repr_html_())
     img = display.Image(url=thisurl)
-    nt.assert_equal(u'<img src="%s"/>' % (thisurl), img._repr_html_())
+    nt.assert_equal('<img src="%s"/>' % (thisurl), img._repr_html_())
     img = display.Image(url=thisurl, unconfined=True)
-    nt.assert_equal(u'<img src="%s" class="unconfined"/>' % (thisurl), img._repr_html_())
+    nt.assert_equal('<img src="%s" class="unconfined"/>' % (thisurl), img._repr_html_())
 
 
 def test_image_mimes():
@@ -61,7 +61,7 @@ def test_geojson():
             "minZoom": 0,
             "maxZoom": 18,
         })
-    nt.assert_equal(u'<IPython.core.display.GeoJSON object>', str(gj))
+    nt.assert_equal('<IPython.core.display.GeoJSON object>', str(gj))
 
 def test_retina_png():
     here = os.path.dirname(__file__)
@@ -224,7 +224,7 @@ def test_progress_iter():
     with capture_output(display=False) as captured:
         for i in display.ProgressBar(5):
             out = captured.stdout
-            nt.assert_in('{0}/5'.format(i), out)
+            nt.assert_in('{}/5'.format(i), out)
     out = captured.stdout
     nt.assert_in('5/5', out)
 
@@ -299,7 +299,7 @@ def test_video_embedding():
         html = v._repr_html_()
         nt.assert_in('src="data:video/mp4;base64,YWJj"',html)
 
-        v = display.Video(u'YWJj', embed=True, mimetype='video/xyz')
+        v = display.Video('YWJj', embed=True, mimetype='video/xyz')
         html = v._repr_html_()
         nt.assert_in('src="data:video/xyz;base64,YWJj"',html)
 

@@ -153,10 +153,10 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         clid = kw.pop('_init_location_id', None)
         if not clid:
             frame = sys._getframe(1)
-            clid = '%s:%s' % (frame.f_code.co_filename, frame.f_lineno)
+            clid = '{}:{}'.format(frame.f_code.co_filename, frame.f_lineno)
         self._init_location_id = clid
 
-        super(InteractiveShellEmbed,self).__init__(**kw)
+        super().__init__(**kw)
 
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped
@@ -171,7 +171,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         pass
 
     def init_magics(self):
-        super(InteractiveShellEmbed, self).init_magics()
+        super().init_magics()
         self.register_magics(EmbeddedMagics)
 
     def __call__(self, header='', local_ns=None, module=None, dummy=None,
@@ -199,7 +199,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         clid = kw.pop('_call_location_id', None)
         if not clid:
             frame = sys._getframe(1)
-            clid = '%s:%s' % (frame.f_code.co_filename, frame.f_lineno)
+            clid = '{}:{}'.format(frame.f_code.co_filename, frame.f_lineno)
         self._call_location_id = clid
 
         if not self.embedded_active:
@@ -360,7 +360,7 @@ def embed(**kwargs):
     config argument.
     """
     config = kwargs.get('config')
-    header = kwargs.pop('header', u'')
+    header = kwargs.pop('header', '')
     compile_flags = kwargs.pop('compile_flags', None)
     if config is None:
         config = load_default_config()
@@ -383,10 +383,10 @@ def embed(**kwargs):
         cls = type(saved_shell_instance)
         cls.clear_instance()
     frame = sys._getframe(1)
-    shell = InteractiveShellEmbed.instance(_init_location_id='%s:%s' % (
+    shell = InteractiveShellEmbed.instance(_init_location_id='{}:{}'.format(
         frame.f_code.co_filename, frame.f_lineno), **kwargs)
     shell(header=header, stack_depth=2, compile_flags=compile_flags,
-        _call_location_id='%s:%s' % (frame.f_code.co_filename, frame.f_lineno))
+        _call_location_id='{}:{}'.format(frame.f_code.co_filename, frame.f_lineno))
     InteractiveShellEmbed.clear_instance()
     #restore previous instance
     if saved_shell_instance is not None:

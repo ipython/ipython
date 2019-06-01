@@ -200,7 +200,7 @@ def skipif(skip_condition, msg=None):
             """Skip message with information about function being skipped."""
             if msg is None: out = 'Test skipped due to test condition.'
             else: out = msg
-            return "Skipping test: %s. %s" % (func.__name__,out)
+            return "Skipping test: {}. {}".format(func.__name__,out)
 
         # We need to define *two* skippers because Python doesn't allow both
         # return with value and yield inside the same function.
@@ -216,8 +216,7 @@ def skipif(skip_condition, msg=None):
             if skip_val():
                 raise nose.SkipTest(get_msg(f,msg))
             else:
-                for x in f(*args, **kwargs):
-                    yield x
+                yield from f(*args, **kwargs)
 
         # Choose the right skipper to use when building the actual generator.
         if nose.util.isgenerator(f):
@@ -342,7 +341,7 @@ null_deco = lambda f: f
 # Some tests only run where we can use unicode paths. Note that we can't just
 # check os.path.supports_unicode_filenames, which is always False on Linux.
 try:
-    f = tempfile.NamedTemporaryFile(prefix=u"tmp€")
+    f = tempfile.NamedTemporaryFile(prefix="tmp€")
 except UnicodeEncodeError:
     unicode_paths = False
 else:
@@ -359,7 +358,7 @@ def onlyif_cmds_exist(*commands):
     """
     for cmd in commands:
         if not shutil.which(cmd):
-            return skip("This test runs only if command '{0}' "
+            return skip("This test runs only if command '{}' "
                         "is installed".format(cmd))
     return null_deco
 
@@ -372,5 +371,5 @@ def onlyif_any_cmd_exists(*commands):
     for cmd in commands:
         if shutil.which(cmd):
             return null_deco
-    return skip("This test runs only if one of the commands {0} "
+    return skip("This test runs only if one of the commands {} "
                 "is installed".format(commands))

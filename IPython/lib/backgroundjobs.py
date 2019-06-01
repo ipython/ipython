@@ -38,7 +38,7 @@ from IPython.core.ultratb import AutoFormattedTB
 from logging import error, debug
 
 
-class BackgroundJobManager(object):
+class BackgroundJobManager:
     """Class to manage a pool of backgrounded threaded jobs.
 
     Below, we assume that 'jobs' is a BackgroundJobManager instance.
@@ -249,7 +249,7 @@ class BackgroundJobManager(object):
         if group:
             print('%s jobs:' % name)
             for job in group:
-                print('%s : %s' % (job.num,job))
+                print('{} : {}'.format(job.num,job))
             print()
             return True
 
@@ -261,7 +261,7 @@ class BackgroundJobManager(object):
         njobs = len(group)
         if njobs:
             plural = {1:''}.setdefault(njobs,'s')
-            print('Flushing %s %s job%s.' % (njobs,name,plural))
+            print('Flushing {} {} job{}.'.format(njobs,name,plural))
             group[:] = []
             return True
         

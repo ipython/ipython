@@ -141,7 +141,7 @@ class HistoryClear(HistoryTrim):
             HistoryTrim.start(self)
 
 class HistoryApp(Application):
-    name = u'ipython-history'
+    name = 'ipython-history'
     description = "Manage the IPython history database."
 
     subcommands = Dict(dict(

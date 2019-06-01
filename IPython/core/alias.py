@@ -117,7 +117,7 @@ class AliasError(Exception):
 class InvalidAliasError(AliasError):
     pass
 
-class Alias(object):
+class Alias:
     """Callable object storing the details of one alias.
 
     Instances are registered as magic functions to allow use of aliases.
@@ -174,14 +174,14 @@ class Alias(object):
             if cmd.find('%%s') >= 1:
                 cmd = cmd.replace('%%s', '%s')
             # Simple, argument-less aliases
-            cmd = '%s %s' % (cmd, rest)
+            cmd = '{} {}'.format(cmd, rest)
         else:
             # Handle aliases with positional arguments
             args = rest.split(None, nargs)
             if len(args) < nargs:
                 raise UsageError('Alias <%s> requires %s arguments, %s given.' %
                       (self.name, nargs, len(args)))
-            cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
+            cmd = '{} {}'.format(cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
 
         self.shell.system(cmd)
 
@@ -196,7 +196,7 @@ class AliasManager(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
-        super(AliasManager, self).__init__(shell=shell, **kwargs)
+        super().__init__(shell=shell, **kwargs)
         # For convenient access
         self.linemagics = self.shell.magics_manager.magics['line']
         self.init_aliases()

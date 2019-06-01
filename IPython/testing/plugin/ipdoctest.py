@@ -65,7 +65,7 @@ def is_extension_module(filename):
     return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
 
 
-class DocTestSkip(object):
+class DocTestSkip:
     """Object wrapper for doctests to be skipped."""
 
     ds_skip = """Doctest to skip.
@@ -140,7 +140,7 @@ class DocTestFinder(doctest.DocTestFinder):
         # Look for tests in a module's contained objects.
         if inspect.ismodule(obj) and self._recurse:
             for valname, val in obj.__dict__.items():
-                valname1 = '%s.%s' % (name, valname)
+                valname1 = '{}.{}'.format(name, valname)
                 if ( (isroutine(val) or isclass(val))
                      and self._from_module(module, val) ):
 
@@ -162,7 +162,7 @@ class DocTestFinder(doctest.DocTestFinder):
                      inspect.ismethod(val) or
                       isinstance(val, property)) and
                       self._from_module(module, val)):
-                    valname = '%s.%s' % (name, valname)
+                    valname = '{}.{}'.format(name, valname)
                     self._find(tests, val, valname, module, source_lines,
                                globs, seen)
 
@@ -283,7 +283,7 @@ class DocTestCase(doctests.DocTestCase):
             _ip.user_ns['__builtins__'] = builtin_mod
             self._dt_test.globs = _ip.user_ns
 
-        super(DocTestCase, self).setUp()
+        super().setUp()
 
     def tearDown(self):
 
@@ -310,7 +310,7 @@ class DocTestCase(doctests.DocTestCase):
         # attribute error whose message would be the name of self._result_var,
         # and letting any other error propagate.
         try:
-            super(DocTestCase, self).tearDown()
+            super().tearDown()
         except AttributeError as exc:
             if exc.args[0] != self._result_var:
                 raise
@@ -564,7 +564,7 @@ class IPDocTestParser(doctest.DocTestParser):
 SKIP = doctest.register_optionflag('SKIP')
 
 
-class IPDocTestRunner(doctest.DocTestRunner,object):
+class IPDocTestRunner(doctest.DocTestRunner):
     """Test runner that synchronizes the IPython namespace with test globals.
     """
 
@@ -583,7 +583,7 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
 
         # Override terminal size to standardise traceback format
         with modified_env({'COLUMNS': '80', 'LINES': '24'}):
-            return super(IPDocTestRunner,self).run(test,
+            return super().run(test,
                                                    compileflags,out,clear_globs)
 
 
@@ -683,8 +683,7 @@ class ExtensionDoctest(doctests.Doctest):
     def loadTestsFromFile(self, filename):
         #print "ipdoctest - from file", filename # dbg
         if is_extension_module(filename):
-            for t in self.loadTestsFromExtensionModule(filename):
-                yield t
+            yield from self.loadTestsFromExtensionModule(filename)
         else:
             if self.extension and anyp(filename.endswith, self.extension):
                 name = os.path.basename(filename)
