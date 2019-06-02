@@ -28,9 +28,6 @@ from IPython.utils.py3compat import decode
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 
-def popen_wait(p, timeout):
-    return p.wait(timeout)
-
 class TestController(object):
     """Run tests in a subprocess
     """
