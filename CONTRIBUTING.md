@@ -91,5 +91,5 @@ iptest IPython.core.tests.test_alias:test_alias_lifecycle
 
 For convenience, the full path to a file can often be used instead of the module path on unix systems. For example we can run all the tests by using
 ```shell
-iptest IPython/core/tests/test_alial.py
+iptest IPython/core/tests/test_alias.py
 ```
