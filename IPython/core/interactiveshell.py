@@ -138,43 +138,27 @@ def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
     from types import CodeType, FunctionType
     CO_NEWLOCALS = 0x0002
     code = function.__code__
+    new_co_flags = code.co_flags & ~CO_NEWLOCALS
     if sys.version_info > (3, 8, 0, 'alpha', 3):
-        new_code = CodeType(
-            code.co_argcount,
-            code.co_posonlyargcount, # Python-3.8 PEP570 positional only argument
-            code.co_kwonlyargcount,
-            code.co_nlocals, 
-            code.co_stacksize, 
-            code.co_flags & ~CO_NEWLOCALS,
-            code.co_code, 
-            code.co_consts,
-            code.co_names, 
-            code.co_varnames, 
-            code.co_filename, 
-            code.co_name, 
-            code.co_firstlineno, 
-            code.co_lnotab, 
-            code.co_freevars, 
-            code.co_cellvars
-        )
+        new_code = code.replace(co_flags=new_co_flags)
     else:
         new_code = CodeType(
             code.co_argcount,
             code.co_kwonlyargcount,
-            code.co_nlocals, 
-            code.co_stacksize, 
-            code.co_flags & ~CO_NEWLOCALS,
-            code.co_code, 
+            code.co_nlocals,
+            code.co_stacksize,
+            new_co_flags,
+            code.co_code,
             code.co_consts,
-            code.co_names, 
-            code.co_varnames, 
-            code.co_filename, 
-            code.co_name, 
-            code.co_firstlineno, 
-            code.co_lnotab, 
-            code.co_freevars, 
+            code.co_names,
+            code.co_varnames,
+            code.co_filename,
+            code.co_name,
+            code.co_firstlineno,
+            code.co_lnotab,
+            code.co_freevars,
             code.co_cellvars
-        )            
+        )
     return FunctionType(new_code, globals(), function.__name__, function.__defaults__)
 
 
