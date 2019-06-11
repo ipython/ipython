@@ -32,7 +32,7 @@ def test_tee_simple():
 
 class TeeTestCase(unittest.TestCase):
 
-    def tchan(self, channel, check='close'):
+    def tchan(self, channel):
         trap = StringIO()
         chan = StringIO()
         text = 'Hello'
@@ -41,28 +41,27 @@ class TeeTestCase(unittest.TestCase):
         setattr(sys, channel, trap)
 
         tee = Tee(chan, channel=channel)
+
         print(text, end='', file=chan)
-        setattr(sys, channel, std_ori)
         trap_val = trap.getvalue()
         nt.assert_equal(chan.getvalue(), text)
-        if check=='close':
-            tee.close()
-        else:
-            del tee
+
+        tee.close()
+
+        setattr(sys, channel, std_ori)
+        assert getattr(sys, channel) == std_ori
 
     def test(self):
         for chan in ['stdout', 'stderr']:
-            for check in ['close', 'del']:
-                self.tchan(chan, check)
+            self.tchan(chan)
 
 def test_io_init():
     """Test that io.stdin/out/err exist at startup"""
     for name in ('stdin', 'stdout', 'stderr'):
         cmd = "from IPython.utils import io;print(io.%s.__class__)"%name
-        p = Popen([sys.executable, '-c', cmd],
-                    stdout=PIPE)
-        p.wait()
-        classname = p.stdout.read().strip().decode('ascii')
+        with Popen([sys.executable, '-c', cmd], stdout=PIPE) as p:
+            p.wait()
+            classname = p.stdout.read().strip().decode('ascii')
         # __class__ is a reference to the class object in Python 3, so we can't
         # just test for string equality.
         assert 'IPython.utils.io.IOStream' in classname, classname
@@ -79,6 +78,7 @@ def test_IOStream_init():
     iostream = IOStream(BadStringIO())
     iostream.write('hi, bad iostream\n')
     assert not hasattr(iostream, 'name')
+    iostream.close()
 
 def test_capture_output():
     """capture_output() context works"""
