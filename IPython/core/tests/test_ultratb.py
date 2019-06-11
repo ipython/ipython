@@ -10,15 +10,14 @@ import traceback
 import unittest
 from unittest import mock
 
-from ..ultratb import ColorTB, VerboseTB, find_recursion
+import IPython.core.ultratb as ultratb
+from IPython.core.ultratb import ColorTB, VerboseTB, find_recursion
 
 
 from IPython.testing import tools as tt
 from IPython.testing.decorators import onlyif_unicode_paths
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.tempdir import TemporaryDirectory
-
-ip = get_ipython()
 
 file_1 = """1
 2
@@ -30,6 +29,30 @@ def f():
 file_2 = """def f():
   1/0
 """
+
+
+def recursionlimit(frames):
+    """
+    decorator to set the recursion limit temporarily
+    """
+
+    def inner(test_function):
+        def wrapper(*args, **kwargs):
+            _orig_rec_limit = ultratb._FRAME_RECURSION_LIMIT
+            ultratb._FRAME_RECURSION_LIMIT = frames - 50
+
+            rl = sys.getrecursionlimit()
+            sys.setrecursionlimit(frames)
+            try:
+                return test_function(*args, **kwargs)
+            finally:
+                sys.setrecursionlimit(rl)
+                ultratb._FRAME_RECURSION_LIMIT = _orig_rec_limit
+
+        return wrapper
+
+    return inner
+
 
 class ChangedPyFileTest(unittest.TestCase):
     def test_changing_py_file(self):
@@ -200,6 +223,8 @@ bar()
         # Assert syntax error during runtime generate stacktrace
         with tt.AssertPrints(["foo()", "bar()"]):
             ip.run_cell(syntax_error_at_runtime)
+        del ip.user_ns['bar']
+        del ip.user_ns['foo']
 
     def test_changing_py_file(self):
         with TemporaryDirectory() as td:
@@ -302,14 +327,17 @@ def r3o2():
         with tt.AssertNotPrints("frames repeated"):
             ip.run_cell("non_recurs()")
 
+    @recursionlimit(65)
     def test_recursion_one_frame(self):
         with tt.AssertPrints("1 frames repeated"):
             ip.run_cell("r1()")
 
+    @recursionlimit(65)
     def test_recursion_three_frames(self):
         with tt.AssertPrints("3 frames repeated"):
             ip.run_cell("r3o2()")
 
+    @recursionlimit(65)
     def test_find_recursion(self):
         captured = []
         def capture_exc(*args, **kwargs):

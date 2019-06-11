@@ -3,10 +3,13 @@ import tempfile, os
 from traitlets.config.loader import Config
 import nose.tools as nt
 
-ip = get_ipython()
-ip.magic('load_ext storemagic')
+
+def setup_module():
+    ip.magic('load_ext storemagic')
 
 def test_store_restore():
+    assert 'bar' not in ip.user_ns, "Error: some other test leaked `bar` in user_ns"
+    assert 'foo' not in ip.user_ns, "Error: some other test leaked `foo` in user_ns"
     ip.user_ns['foo'] = 78
     ip.magic('alias bar echo "hello"')
     tmpd = tempfile.mkdtemp()
