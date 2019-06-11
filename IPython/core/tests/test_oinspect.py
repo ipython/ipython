@@ -8,17 +8,13 @@
 from inspect import signature, Signature, Parameter
 import os
 import re
-import sys
 
 import nose.tools as nt
 
 from .. import oinspect
-from IPython.core.magic import (Magics, magics_class, line_magic,
-                                cell_magic, line_cell_magic,
-                                register_line_magic, register_cell_magic,
-                                register_line_cell_magic)
+
 from decorator import decorator
-from IPython import get_ipython
+
 from IPython.testing.tools import AssertPrints, AssertNotPrints
 from IPython.utils.path import compress_user
 
@@ -38,7 +34,7 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 41  # Put here the actual number of this line
+THIS_LINE_NUMBER = 37  # Put here the actual number of this line
 
 from unittest import TestCase
 
@@ -138,36 +134,6 @@ def f(x, y=2, *a, **kw):
 
 def g(y, z=3, *a, **kw):
     pass  # no docstring
-
-
-@register_line_magic
-def lmagic(line):
-    "A line magic"
-
-
-@register_cell_magic
-def cmagic(line, cell):
-    "A cell magic"
-
-
-@register_line_cell_magic
-def lcmagic(line, cell=None):
-    "A line/cell magic"
-
-
-@magics_class
-class SimpleMagics(Magics):
-    @line_magic
-    def Clmagic(self, cline):
-        "A class-based line magic"
-        
-    @cell_magic
-    def Ccmagic(self, cline, ccell):
-        "A class-based cell magic"
-        
-    @line_cell_magic
-    def Clcmagic(self, cline, ccell=None):
-        "A class-based line/cell magic"
 
 
 class Awkward(object):
