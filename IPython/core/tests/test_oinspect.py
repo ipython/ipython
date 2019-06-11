@@ -123,18 +123,6 @@ class SimpleClass(object):
         """Some method's docstring"""
 
 
-class OldStyle:
-    """An old-style class for testing."""
-    pass
-
-
-def f(x, y=2, *a, **kw):
-    """A simple function."""
-
-
-def g(y, z=3, *a, **kw):
-    pass  # no docstring
-
 
 class Awkward(object):
     def __getattr__(self, name):
@@ -227,9 +215,12 @@ def test_info_serialliar():
     # infinite loops: https://github.com/ipython/ipython/issues/9122
     nt.assert_less(fib_tracker[0], 9000)
 
+def support_function_one(x, y=2, *a, **kw):
+    """A simple function."""
+
 def test_calldef_none():
     # We should ignore __call__ for all of these.
-    for obj in [f, SimpleClass().method, any, str.upper]:
+    for obj in [support_function_one, SimpleClass().method, any, str.upper]:
         print(obj)
         i = inspector.info(obj)
         nt.assert_is(i['call_def'], None)
