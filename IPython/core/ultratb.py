@@ -137,6 +137,12 @@ INDENT_SIZE = 8
 # to users of ultratb who are NOT running inside ipython.
 DEFAULT_SCHEME = 'NoColor'
 
+
+# Number of frame above which we are likely to have a recursion and will
+# **attempt** to detect it.  Made modifiable mostly to speedup test suite
+# as detecting recursion is one of our slowest test
+_FRAME_RECURSION_LIMIT = 500
+
 # ---------------------------------------------------------------------------
 # Code begins
 
@@ -431,7 +437,7 @@ def is_recursion_error(etype, value, records):
     # a recursion error.
     return (etype is recursion_error_type) \
            and "recursion" in str(value).lower() \
-           and len(records) > 500
+           and len(records) > _FRAME_RECURSION_LIMIT
 
 def find_recursion(etype, value, records):
     """Identify the repeating stack frames from a RecursionError traceback

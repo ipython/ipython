@@ -122,6 +122,7 @@ def start_ipython():
     _ip = shell
     get_ipython = _ip.get_ipython
     builtin_mod._ip = _ip
+    builtin_mod.ip = _ip
     builtin_mod.get_ipython = get_ipython
 
     # Override paging, so we don't require user interaction during the tests.
