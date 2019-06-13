@@ -40,7 +40,7 @@ def make_empty_file(fname):
     open(fname, 'w').close()
 
 
-def setup():
+def setup_module():
     """Setup testenvironment for the module:
 
     """
@@ -54,7 +54,7 @@ def setup():
     make_empty_file(join(TMP_TEST_DIR, "packpyc.pyc"))
     sys.path = [TMP_TEST_DIR]
 
-def teardown():
+def teardown_module():
     """Teardown testenvironment for the module:
 
             - Remove tempdir

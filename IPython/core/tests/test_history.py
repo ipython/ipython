@@ -22,7 +22,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core.history import HistoryManager, extract_hist_ranges
 from IPython.testing.decorators import skipif
 
-def setUp():
+def test_proper_default_encoding():
     nt.assert_equal(sys.getdefaultencoding(), "utf-8")
 
 @skipif(sqlite3.sqlite_version_info > (3,24,0))

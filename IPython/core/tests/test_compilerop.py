@@ -47,7 +47,7 @@ def test_cache():
     cp.cache('x=1')
     nt.assert_true(len(linecache.cache) > ncache)
 
-def setUp():
+def test_proper_default_encoding():
     # Check we're in a proper Python 2 environment (some imports, such
     # as GTK, can change the default encoding, which can hide bugs.)
     nt.assert_equal(sys.getdefaultencoding(), "utf-8")

@@ -19,7 +19,7 @@ XDG_TEST_DIR = os.path.join(HOME_TEST_DIR, "xdg_test_dir")
 XDG_CACHE_DIR = os.path.join(HOME_TEST_DIR, "xdg_cache_dir")
 IP_TEST_DIR = os.path.join(HOME_TEST_DIR,'.ipython')
 
-def setup():
+def setup_module():
     """Setup testenvironment for the module:
 
             - Adds dummy home dir tree
@@ -31,7 +31,7 @@ def setup():
     os.makedirs(os.path.join(XDG_CACHE_DIR, 'ipython'))
 
 
-def teardown():
+def teardown_module():
     """Teardown testenvironment for the module:
 
             - Remove dummy home dir tree
