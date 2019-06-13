@@ -518,12 +518,12 @@ class NamespaceMagics(Magics):
           In [7]: a
           Out[7]: 1
 
-          In [8]: 'a' in _ip.user_ns
+          In [8]: 'a' in get_ipython().user_ns
           Out[8]: True
 
           In [9]: %reset -f
 
-          In [1]: 'a' in _ip.user_ns
+          In [1]: 'a' in get_ipython().user_ns
           Out[1]: False
 
           In [2]: %reset -f in
