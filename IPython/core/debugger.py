@@ -295,7 +295,7 @@ class Pdb(OldPdb):
         try:
             OldPdb.interaction(self, frame, traceback)
         except KeyboardInterrupt:
-            sys.stdout.write('\n' + self.shell.get_exception_only())
+            self.stdout.write('\n' + self.shell.get_exception_only())
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
@@ -339,7 +339,7 @@ class Pdb(OldPdb):
         except KeyboardInterrupt:
             pass
 
-    def print_stack_entry(self,frame_lineno, prompt_prefix='\n-> ',
+    def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
                           context=None):
         if context is None:
             context = self.context
@@ -349,7 +349,7 @@ class Pdb(OldPdb):
                 raise ValueError("Context must be a positive integer")
         except (TypeError, ValueError):
                 raise ValueError("Context must be a positive integer")
-        print(self.format_stack_entry(frame_lineno, '', context))
+        print(self.format_stack_entry(frame_lineno, '', context), file=self.stdout)
 
         # vds: >>
         frame, lineno = frame_lineno
@@ -363,9 +363,9 @@ class Pdb(OldPdb):
         try:
             context=int(context)
             if context <= 0:
-                print("Context must be a positive integer")
+                print("Context must be a positive integer", file=self.stdout)
         except (TypeError, ValueError):
-                print("Context must be a positive integer")
+                print("Context must be a positive integer", file=self.stdout)
         try:
             import reprlib  # Py 3
         except ImportError:
@@ -487,7 +487,7 @@ class Pdb(OldPdb):
                 src.append(line)
                 self.lineno = lineno
 
-            print(''.join(src))
+            print(''.join(src), file=self.stdout)
 
         except KeyboardInterrupt:
             pass
@@ -510,7 +510,7 @@ class Pdb(OldPdb):
                 else:
                     first = max(1, int(x) - 5)
             except:
-                print('*** Error in argument:', repr(arg))
+                print('*** Error in argument:', repr(arg), file=self.stdout)
                 return
         elif self.lineno is None:
             first = max(1, self.curframe.f_lineno - 5)
