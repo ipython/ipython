@@ -77,7 +77,7 @@ def editor(self, filename, linenum=None, wait=True):
         editor = '"%s"' % editor
 
     # Call the actual editor
-    proc = subprocess.Popen('%s %s %s' % (editor, linemark, filename),
+    proc = subprocess.Popen('{} {} {}'.format(editor, linemark, filename),
                             shell=True)
     if wait and proc.wait() != 0:
         raise TryNext()

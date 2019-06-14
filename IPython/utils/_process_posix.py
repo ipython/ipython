@@ -39,7 +39,7 @@ def _find_cmd(cmd):
     return py3compat.decode(path)
 
 
-class ProcessHandler(object):
+class ProcessHandler:
     """Execute subprocesses under the control of pexpect.
     """
     # Timeout in seconds to wait on each reading of the subprocess' output.

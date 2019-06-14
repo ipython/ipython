@@ -406,7 +406,7 @@ def test_ensure_dir_exists():
         with nt.assert_raises(IOError):
             path.ensure_dir_exists(f)
 
-class TestLinkOrCopy(object):
+class TestLinkOrCopy:
     def setUp(self):
         self.tempdir = TemporaryDirectory()
         self.src = self.dst("src")

@@ -104,7 +104,7 @@ else:
 #-----------------------------------------------------------------------------
 
 
-class InputHookManager(object):
+class InputHookManager:
     """DEPRECATED since IPython 5.0
 
     Manage PyOS_InputHook for different GUI toolkits.
@@ -307,7 +307,7 @@ class InputHookManager(object):
             self.apps[gui]._in_event_loop = False
         return self.clear_inputhook()
 
-class InputHookBase(object):
+class InputHookBase:
     """DEPRECATED since IPython 5.0
 
     Base class for input hooks for specific toolkits.
@@ -591,7 +591,7 @@ class GlutInputHook(InputHookBase):
 
         glut.glutHideWindow() # This is an event to be processed below
         glutMainLoopEvent()
-        super(GlutInputHook, self).disable()
+        super().disable()
 
 @inputhook_manager.register('pyglet')
 class PygletInputHook(InputHookBase):

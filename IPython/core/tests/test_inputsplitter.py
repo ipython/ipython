@@ -103,7 +103,7 @@ def test_get_input_encoding():
     nt.assert_true(isinstance(encoding, str))
     # simple-minded check that at least encoding a simple string works with the
     # encoding we got.
-    nt.assert_equal(u'test'.encode(encoding), b'test')
+    nt.assert_equal('test'.encode(encoding), b'test')
 
 
 class NoInputEncodingTestCase(unittest.TestCase):
@@ -321,9 +321,9 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertEqual(isp.push_accepts_more(), False)
 
     def test_unicode(self):
-        self.isp.push(u"Pérez")
-        self.isp.push(u'\xc3\xa9')
-        self.isp.push(u"u'\xc3\xa9'")
+        self.isp.push("Pérez")
+        self.isp.push('\xc3\xa9')
+        self.isp.push("u'\xc3\xa9'")
 
     def test_line_continuation(self):
         """ Test issue #2108."""
@@ -448,14 +448,14 @@ class IPythonInputTestCase(InputSplitterTestCase):
     def test_cellmagic_preempt(self):
         isp = self.isp
         for raw, name, line, cell in [
-            ("%%cellm a\nIn[1]:", u'cellm', u'a', u'In[1]:'),
-            ("%%cellm \nline\n>>> hi", u'cellm', u'', u'line\n>>> hi'),
-            (">>> %%cellm \nline\n>>> hi", u'cellm', u'', u'line\nhi'),
-            ("%%cellm \n>>> hi", u'cellm', u'', u'>>> hi'),
-            ("%%cellm \nline1\nline2", u'cellm', u'', u'line1\nline2'),
-            ("%%cellm \nline1\\\\\nline2", u'cellm', u'', u'line1\\\\\nline2'),
+            ("%%cellm a\nIn[1]:", 'cellm', 'a', 'In[1]:'),
+            ("%%cellm \nline\n>>> hi", 'cellm', '', 'line\n>>> hi'),
+            (">>> %%cellm \nline\n>>> hi", 'cellm', '', 'line\nhi'),
+            ("%%cellm \n>>> hi", 'cellm', '', '>>> hi'),
+            ("%%cellm \nline1\nline2", 'cellm', '', 'line1\nline2'),
+            ("%%cellm \nline1\\\\\nline2", 'cellm', '', 'line1\\\\\nline2'),
         ]:
-            expected = "get_ipython().run_cell_magic(%r, %r, %r)" % (
+            expected = "get_ipython().run_cell_magic({!r}, {!r}, {!r})".format(
                 name, line, cell
             )
             out = isp.transform_cell(raw)
@@ -479,11 +479,11 @@ class IPythonInputTestCase(InputSplitterTestCase):
         
         for raw, expected in [
             ("a=5", "a=5#"),
-            ("%ls foo", "get_ipython().run_line_magic(%r, %r)" % (u'ls', u'foo#')),
-            ("!ls foo\n%ls bar", "get_ipython().system(%r)\nget_ipython().run_line_magic(%r, %r)" % (
-                u'ls foo#', u'ls', u'bar#'
+            ("%ls foo", "get_ipython().run_line_magic({!r}, {!r})".format('ls', 'foo#')),
+            ("!ls foo\n%ls bar", "get_ipython().system({!r})\nget_ipython().run_line_magic({!r}, {!r})".format(
+                'ls foo#', 'ls', 'bar#'
             )),
-            ("1\n2\n3\n%ls foo\n4\n5", "1#\n2#\n3#\nget_ipython().run_line_magic(%r, %r)\n4#\n5#" % (u'ls', u'foo#')),
+            ("1\n2\n3\n%ls foo\n4\n5", "1#\n2#\n3#\nget_ipython().run_line_magic({!r}, {!r})\n4#\n5#".format('ls', 'foo#')),
         ]:
             out = isp.transform_cell(raw)
             self.assertEqual(out.rstrip(), expected.rstrip())
@@ -563,12 +563,12 @@ def test_last_two_blanks():
     nt.assert_true(isp.last_two_blanks('abc\nd\ne\nf\n\n\n'))
 
 
-class CellMagicsCommon(object):
+class CellMagicsCommon:
 
     def test_whole_cell(self):
         src = "%%cellm line\nbody\n"
         out = self.sp.transform_cell(src)
-        ref = u"get_ipython().run_cell_magic('cellm', 'line', 'body')\n"
+        ref = "get_ipython().run_cell_magic('cellm', 'line', 'body')\n"
         nt.assert_equal(out, py3compat.u_format(ref))
     
     def test_cellmagic_help(self):

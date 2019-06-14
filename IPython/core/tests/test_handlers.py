@@ -27,7 +27,7 @@ num_tests = 0
 # Test functions
 #-----------------------------------------------------------------------------
 
-class CallableIndexable(object):
+class CallableIndexable:
     def __getitem__(self, idx): return True
     def __call__(self, *args, **kws): return True
 
@@ -53,7 +53,7 @@ def test_handlers():
     # line.
     run([(i,py3compat.u_format(o)) for i,o in \
         [('"no change"', '"no change"'),             # normal
-         (u"lsmagic",     "get_ipython().run_line_magic('lsmagic', '')"),   # magic
+         ("lsmagic",     "get_ipython().run_line_magic('lsmagic', '')"),   # magic
          #("a = b # PYTHON-MODE", '_i'),          # emacs -- avoids _in cache
          ]])
 

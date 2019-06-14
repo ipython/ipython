@@ -32,7 +32,7 @@ from warnings import warn
 #-----------------------------------------------------------------------------
 
 @undoc
-class DummyDB(object):
+class DummyDB:
     """Dummy DB that will act as a black hole for history.
     
     Only used in the absence of sqlite"""
@@ -105,7 +105,7 @@ def catch_corrupt_db(f, self, *a, **kw):
                         if not os.path.isfile(newpath):
                             break
                         else:
-                            newpath = base + '-corrupt-' + now + (u'-%i' % i) + ext
+                            newpath = base + '-corrupt-' + now + ('-%i' % i) + ext
                 else:
                     # not much content, possibly empty; don't worry about clobbering
                     # maybe we should just delete it?
@@ -197,7 +197,7 @@ class HistoryAccessor(HistoryAccessorBase):
                     (self.__class__.__name__, new)
             raise TraitError(msg)
     
-    def __init__(self, profile='default', hist_file=u'', **traits):
+    def __init__(self, profile='default', hist_file='', **traits):
         """Create a new history accessor.
         
         Parameters
@@ -211,14 +211,14 @@ class HistoryAccessor(HistoryAccessorBase):
           Config object. hist_file can also be set through this.
         """
         # We need a pointer back to the shell for various tasks.
-        super(HistoryAccessor, self).__init__(**traits)
+        super().__init__(**traits)
         # defer setting hist_file from kwarg until after init,
         # otherwise the default kwarg value would clobber any value
         # set by config
         if hist_file:
             self.hist_file = hist_file
         
-        if self.hist_file == u'':
+        if self.hist_file == '':
             # No one has set the hist_file, yet.
             self.hist_file = self._get_hist_file_name(profile)
 
@@ -399,7 +399,7 @@ class HistoryAccessor(HistoryAccessorBase):
         sqlform = "WHERE %s GLOB ?" % tosearch
         params = (pattern,)
         if unique:
-            sqlform += ' GROUP BY {0}'.format(tosearch)
+            sqlform += ' GROUP BY {}'.format(tosearch)
         if n is not None:
             sqlform += " ORDER BY session DESC, line DESC LIMIT ?"
             params += (n,)
@@ -465,8 +465,7 @@ class HistoryAccessor(HistoryAccessorBase):
         Tuples as :meth:`get_range`
         """
         for sess, s, e in extract_hist_ranges(rangestr):
-            for line in self.get_range(sess, s, e, raw=raw, output=output):
-                yield line
+            yield from self.get_range(sess, s, e, raw=raw, output=output)
 
 
 class HistoryManager(HistoryAccessor):
@@ -519,10 +518,10 @@ class HistoryManager(HistoryAccessor):
     # Variables used to store the three last inputs from the user.  On each new
     # history update, we populate the user's namespace with these, shifted as
     # necessary.
-    _i00 = Unicode(u'')
-    _i = Unicode(u'')
-    _ii = Unicode(u'')
-    _iii = Unicode(u'')
+    _i00 = Unicode('')
+    _i = Unicode('')
+    _ii = Unicode('')
+    _iii = Unicode('')
 
     # A regex matching all forms of the exit command, so that we don't store
     # them in the history (it's annoying to rewind the first entry and land on
@@ -533,7 +532,7 @@ class HistoryManager(HistoryAccessor):
         """Create a new history manager associated with a shell instance.
         """
         # We need a pointer back to the shell for various tasks.
-        super(HistoryManager, self).__init__(shell=shell, config=config,
+        super().__init__(shell=shell, config=config,
             **traits)
         self.save_flag = threading.Event()
         self.db_input_cache_lock = threading.Lock()
@@ -628,7 +627,7 @@ class HistoryManager(HistoryAccessor):
         if session <= 0:
             session += self.session_number
 
-        return super(HistoryManager, self).get_session_info(session=session)
+        return super().get_session_info(session=session)
 
     def _get_range_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
@@ -682,7 +681,7 @@ class HistoryManager(HistoryAccessor):
             session += self.session_number
         if session==self.session_number:          # Current session
             return self._get_range_session(start, stop, raw, output)
-        return super(HistoryManager, self).get_range(session, start, stop, raw,
+        return super().get_range(session, start, stop, raw,
                                                      output)
 
     ## ----------------------------
@@ -813,7 +812,7 @@ class HistorySavingThread(threading.Thread):
     stop_now = False
     enabled = True
     def __init__(self, history_manager):
-        super(HistorySavingThread, self).__init__(name="IPythonHistorySavingThread")
+        super().__init__(name="IPythonHistorySavingThread")
         self.history_manager = history_manager
         self.enabled = history_manager.enabled
         atexit.register(self.stop)
@@ -903,4 +902,4 @@ def _format_lineno(session, line):
     """Helper function to format line numbers properly."""
     if session == 0:
         return str(line)
-    return "%s#%s" % (session, line)
+    return "{}#{}".format(session, line)

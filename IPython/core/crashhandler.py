@@ -80,7 +80,7 @@ Extra-detailed tracebacks for bug-reporting purposes can be enabled via:
 """
 
 
-class CrashHandler(object):
+class CrashHandler:
     """Customizable crash handlers for IPython applications.
 
     Instances of this class provide a :meth:`__call__` method which can be

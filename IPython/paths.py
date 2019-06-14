@@ -50,21 +50,21 @@ def get_ipython_dir():
                     warn(('{0} is deprecated. Move link to {1} to '
                         'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
                 else:
-                    warn('Moving {0} to {1}'.format(cu(xdg_ipdir), cu(ipdir)))
+                    warn('Moving {} to {}'.format(cu(xdg_ipdir), cu(ipdir)))
                     shutil.move(xdg_ipdir, ipdir)
 
     ipdir = os.path.normpath(os.path.expanduser(ipdir))
 
     if os.path.exists(ipdir) and not _writable_dir(ipdir):
         # ipdir exists, but is not writable
-        warn("IPython dir '{0}' is not a writable location,"
+        warn("IPython dir '{}' is not a writable location,"
                 " using a temp directory.".format(ipdir))
         ipdir = tempfile.mkdtemp()
     elif not os.path.exists(ipdir):
         parent = os.path.dirname(ipdir)
         if not _writable_dir(parent):
             # ipdir does not exist and parent isn't writable
-            warn("IPython parent '{0}' is not a writable location,"
+            warn("IPython parent '{}' is not a writable location,"
                     " using a temp directory.".format(parent))
             ipdir = tempfile.mkdtemp()
 

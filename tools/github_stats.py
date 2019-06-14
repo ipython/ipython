@@ -98,11 +98,11 @@ def report(issues, show_urls=False):
     if show_urls:
         for i in issues:
             role = 'ghpull' if 'merged_at' in i else 'ghissue'
-            print(u'* :%s:`%d`: %s' % (role, i['number'],
-                                        i['title'].replace(u'`', u'``')))
+            print('* :%s:`%d`: %s' % (role, i['number'],
+                                        i['title'].replace('`', '``')))
     else:
         for i in issues:
-            print(u'* %d: %s' % (i['number'], i['title'].replace(u'`', u'``')))
+            print('* %d: %s' % (i['number'], i['title'].replace('`', '``')))
 
 #-----------------------------------------------------------------------------
 # Main script
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     milestone = opts.milestone
     project = opts.project
 
-    print("fetching GitHub stats since %s (tag: %s, milestone: %s)" % (since, tag, milestone), file=sys.stderr)
+    print("fetching GitHub stats since {} (tag: {}, milestone: {})".format(since, tag, milestone), file=sys.stderr)
     if milestone:
         milestone_id = get_milestone_id(project=project, milestone=milestone,
                 auth=True)
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     print()
     since_day = since.strftime("%Y/%m/%d")
     today = datetime.today().strftime("%Y/%m/%d")
-    print("GitHub stats for %s - %s (tag: %s)" % (since_day, today, tag))
+    print("GitHub stats for {} - {} (tag: {})".format(since_day, today, tag))
     print()
     print("These lists are automatically generated, and may be incomplete or contain duplicates.")
     print()
@@ -207,7 +207,7 @@ if __name__ == "__main__":
     ncommits = len(pr_authors) + ncommits - len(pulls)
     author_cmd = ['git', 'check-mailmap'] + pr_authors
     with_email = check_output(author_cmd).decode('utf-8', 'replace').splitlines()
-    all_authors.extend([ u'* ' + a.split(' <')[0] for a in with_email ])
+    all_authors.extend([ '* ' + a.split(' <')[0] for a in with_email ])
     unique_authors = sorted(set(all_authors), key=lambda s: s.lower())
 
     print("We closed %d issues and merged %d pull requests." % (n_issues, n_pulls))

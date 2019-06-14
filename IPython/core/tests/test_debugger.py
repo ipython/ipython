@@ -15,7 +15,7 @@ from IPython.core import debugger
 # Helper classes, from CPython's Pdb test suite
 #-----------------------------------------------------------------------------
 
-class _FakeInput(object):
+class _FakeInput:
     """
     A fake input stream for pdb's interactive debugger.  Whenever a
     line is read, print it (to simulate the user typing it), and then
@@ -30,7 +30,7 @@ class _FakeInput(object):
         print(line)
         return line+'\n'
 
-class PdbTestInput(object):
+class PdbTestInput:
     """Context manager that makes testing Pdb in doctests easier."""
 
     def __init__(self, input):

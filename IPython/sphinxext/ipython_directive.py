@@ -327,7 +327,7 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
     return block
 
 
-class EmbeddedSphinxShell(object):
+class EmbeddedSphinxShell:
     """An embedded IPython instance to run inside Sphinx"""
 
     def __init__(self, exec_lines=None):
@@ -560,7 +560,7 @@ class EmbeddedSphinxShell(object):
         # output any exceptions raised during execution to stdout
         # unless :okexcept: has been specified.
         if not is_okexcept and (("Traceback" in processed_output) or ("SyntaxError" in processed_output)):
-            s =  "\nException in %s at block ending on line %s\n" % (filename, lineno)
+            s =  "\nException in {} at block ending on line {}\n".format(filename, lineno)
             s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
             sys.stdout.write('\n\n>>>' + ('-' * 73))
             sys.stdout.write(s)
@@ -573,7 +573,7 @@ class EmbeddedSphinxShell(object):
         # unless :okwarning: has been specified.
         if not is_okwarning:
             for w in ws:
-                s =  "\nWarning in %s at block ending on line %s\n" % (filename, lineno)
+                s =  "\nWarning in {} at block ending on line {}\n".format(filename, lineno)
                 s += "Specify :okwarning: as an option in the ipython:: block to suppress this message\n"
                 sys.stdout.write('\n\n>>>' + ('-' * 73))
                 sys.stdout.write(s)
@@ -666,7 +666,7 @@ class EmbeddedSphinxShell(object):
             # prompt for now, and we might have to adjust if it doesn't work
             # in other cases. Finally, the submitted output does not have
             # a trailing newline, so we must add it manually.
-            out_data.append("{0} {1}\n".format(output_prompt, data))
+            out_data.append("{} {}\n".format(output_prompt, data))
 
         return out_data
 
@@ -820,19 +820,19 @@ class EmbeddedSphinxShell(object):
                 continue
 
             # deal with lines checking for multiline
-            continuation  = u'   %s:'% ''.join(['.']*(len(str(ct))+2))
+            continuation  = '   %s:'% ''.join(['.']*(len(str(ct))+2))
             if not multiline:
-                modified = u"%s %s" % (fmtin % ct, line_stripped)
+                modified = "{} {}".format(fmtin % ct, line_stripped)
                 output.append(modified)
                 ct += 1
                 try:
                     ast.parse(line_stripped)
-                    output.append(u'')
+                    output.append('')
                 except Exception: # on a multiline
                     multiline = True
                     multiline_start = lineno
             else: # still on a multiline
-                modified = u'%s %s' % (continuation, line)
+                modified = '{} {}'.format(continuation, line)
                 output.append(modified)
 
                 # if the next line is indented, it should be part of multiline
@@ -849,7 +849,7 @@ class EmbeddedSphinxShell(object):
                             if isinstance(element, ast.Return):
                                 multiline = False
                     else:
-                        output.append(u'')
+                        output.append('')
                         multiline = False
                 except Exception:
                     pass
@@ -874,7 +874,7 @@ class EmbeddedSphinxShell(object):
         if doctest_type in doctests:
             doctests[doctest_type](self, args, input_lines, found, submitted)
         else:
-            e = "Invalid option to @doctest: {0}".format(doctest_type)
+            e = "Invalid option to @doctest: {}".format(doctest_type)
             raise Exception(e)
 
 
@@ -1007,7 +1007,7 @@ class IPythonDirective(Directive):
             if len(block):
                 rows, figure = self.shell.process_block(block)
                 for row in rows:
-                    lines.extend(['   {0}'.format(line)
+                    lines.extend(['   {}'.format(line)
                                   for line in row.split('\n')])
 
                 if figure is not None:

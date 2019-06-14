@@ -155,7 +155,7 @@ if sys.version_info > (3, 5):
                 # It should fail with all the values
                 for val in vals:
                     with self.subTest((test_name, val)):
-                        msg = "Syntax error not raised for %s, %s" % (test_name, val)
+                        msg = "Syntax error not raised for {}, {}".format(test_name, val)
                         with self.assertRaises(SyntaxError, msg=msg):
                             iprc(test_case.format(val=val))
 

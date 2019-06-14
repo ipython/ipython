@@ -141,7 +141,7 @@ class HistoryMagics(Magics):
             """Helper function to format line numbers properly."""
             if session in (0, history_manager.session_number):
                 return str(line)
-            return "%s/%s" % (session, line)
+            return "{}/{}".format(session, line)
 
         # Check if output to specific file was requested.
         outfname = args.filename
@@ -205,10 +205,10 @@ class HistoryMagics(Magics):
             multiline = "\n" in inline
             line_sep = '\n' if multiline else ' '
             if print_nums:
-                print(u'%s:%s' % (_format_lineno(session, lineno).rjust(width),
-                        line_sep),  file=outfile, end=u'')
+                print('{}:{}'.format(_format_lineno(session, lineno).rjust(width),
+                        line_sep),  file=outfile, end='')
             if pyprompts:
-                print(u">>> ", end=u"", file=outfile)
+                print(">>> ", end="", file=outfile)
                 if multiline:
                     inline = "\n... ".join(inline.splitlines()) + "\n..."
             print(inline, file=outfile)

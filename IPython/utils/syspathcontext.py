@@ -17,7 +17,7 @@ Authors:
 import sys
 
 
-class appended_to_syspath(object):
+class appended_to_syspath:
     """A context for appending a directory to sys.path for a second."""
 
     def __init__(self, dir):
@@ -39,7 +39,7 @@ class appended_to_syspath(object):
         # Returning False causes any exceptions to be re-raised.
         return False
 
-class prepended_to_syspath(object):
+class prepended_to_syspath:
     """A context for prepending a directory to sys.path for a second."""
 
     def __init__(self, dir):

@@ -19,4 +19,4 @@ tar_name = '%s.tgz' % base_name
 cd('..')
 git_tpl = 'git archive --format=tar --prefix={0}/ HEAD | gzip > {1}'
 sh(git_tpl.format(base_name, tar_name))
-sh('mv {0} tools/'.format(tar_name))
+sh('mv {} tools/'.format(tar_name))

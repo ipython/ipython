@@ -80,7 +80,7 @@ class StatelessInputTransformer(InputTransformer):
         self.func = func
     
     def __repr__(self):
-        return "StatelessInputTransformer(func={0!r})".format(self.func)
+        return "StatelessInputTransformer(func={!r})".format(self.func)
     
     def push(self, line):
         """Send a line of input to the transformer, returning the
@@ -99,7 +99,7 @@ class CoroutineInputTransformer(InputTransformer):
         next(self.coro)
     
     def __repr__(self):
-        return "CoroutineInputTransformer(coro={0!r})".format(self.coro)
+        return "CoroutineInputTransformer(coro={!r})".format(self.coro)
     
     def push(self, line):
         """Send a line of input to the transformer, returning the
@@ -166,7 +166,7 @@ class TokenInputTransformer(InputTransformer):
 
 class assemble_python_lines(TokenInputTransformer):
     def __init__(self):
-        super(assemble_python_lines, self).__init__(None)
+        super().__init__(None)
     
     def output(self, tokens):
         return self.reset()
@@ -204,7 +204,7 @@ def _make_help_call(target, esc, lspace, next_input=None):
     t_magic_name, _, t_magic_arg_s = arg.partition(' ')
     t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
     if next_input is None:
-        return '%sget_ipython().run_line_magic(%r, %r)' % (lspace, t_magic_name, t_magic_arg_s)
+        return '{}get_ipython().run_line_magic({!r}, {!r})'.format(lspace, t_magic_name, t_magic_arg_s)
     else:
         return '%sget_ipython().set_next_input(%r);get_ipython().run_line_magic(%r, %r)' % \
            (lspace, next_input, t_magic_name, t_magic_arg_s)
@@ -213,12 +213,12 @@ def _make_help_call(target, esc, lspace, next_input=None):
 def _tr_system(line_info):
     "Translate lines escaped with: !"
     cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
-    return '%sget_ipython().system(%r)' % (line_info.pre, cmd)
+    return '{}get_ipython().system({!r})'.format(line_info.pre, cmd)
 
 def _tr_system2(line_info):
     "Translate lines escaped with: !!"
     cmd = line_info.line.lstrip()[2:]
-    return '%sget_ipython().getoutput(%r)' % (line_info.pre, cmd)
+    return '{}get_ipython().getoutput({!r})'.format(line_info.pre, cmd)
 
 def _tr_help(line_info):
     "Translate lines escaped with: ?/??"
@@ -241,17 +241,17 @@ def _tr_magic(line_info):
 
 def _tr_quote(line_info):
     "Translate lines escaped with: ,"
-    return '%s%s("%s")' % (line_info.pre, line_info.ifun,
+    return '{}{}("{}")'.format(line_info.pre, line_info.ifun,
                          '", "'.join(line_info.the_rest.split()) )
 
 def _tr_quote2(line_info):
     "Translate lines escaped with: ;"
-    return '%s%s("%s")' % (line_info.pre, line_info.ifun,
+    return '{}{}("{}")'.format(line_info.pre, line_info.ifun,
                            line_info.the_rest)
 
 def _tr_paren(line_info):
     "Translate lines escaped with: /"
-    return '%s%s(%s)' % (line_info.pre, line_info.ifun,
+    return '{}{}({})'.format(line_info.pre, line_info.ifun,
                          ", ".join(line_info.the_rest.split()))
 
 tr = { ESC_SHELL  : _tr_system,
@@ -392,7 +392,7 @@ def cellmagic(end_on_blank_line=False):
         # Output
         magic_name, _, first = first.partition(' ')
         magic_name = magic_name.lstrip(ESC_MAGIC2)
-        line = tpl % (magic_name, first, u'\n'.join(body))
+        line = tpl % (magic_name, first, '\n'.join(body))
 
 
 def _strip_prompts(prompt_re, initial_re=None, turnoff_re=None):

@@ -118,7 +118,7 @@ class PrefilterManager(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
-        super(PrefilterManager, self).__init__(shell=shell, **kwargs)
+        super().__init__(shell=shell, **kwargs)
         self.shell = shell
         self.init_transformers()
         self.init_handlers()
@@ -352,7 +352,7 @@ class PrefilterTransformer(Configurable):
     enabled = Bool(True).tag(config=True)
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
-        super(PrefilterTransformer, self).__init__(
+        super().__init__(
             shell=shell, prefilter_manager=prefilter_manager, **kwargs
         )
         self.prefilter_manager.register_transformer(self)
@@ -362,7 +362,7 @@ class PrefilterTransformer(Configurable):
         return None
 
     def __repr__(self):
-        return "<%s(priority=%r, enabled=%r)>" % (
+        return "<{}(priority={!r}, enabled={!r})>".format(
             self.__class__.__name__, self.priority, self.enabled)
 
 
@@ -380,7 +380,7 @@ class PrefilterChecker(Configurable):
     enabled = Bool(True).tag(config=True)
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
-        super(PrefilterChecker, self).__init__(
+        super().__init__(
             shell=shell, prefilter_manager=prefilter_manager, **kwargs
         )
         self.prefilter_manager.register_checker(self)
@@ -390,7 +390,7 @@ class PrefilterChecker(Configurable):
         return None
 
     def __repr__(self):
-        return "<%s(priority=%r, enabled=%r)>" % (
+        return "<{}(priority={!r}, enabled={!r})>".format(
             self.__class__.__name__, self.priority, self.enabled)
 
 
@@ -537,7 +537,7 @@ class PrefilterHandler(Configurable):
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
-        super(PrefilterHandler, self).__init__(
+        super().__init__(
             shell=shell, prefilter_manager=prefilter_manager, **kwargs
         )
         self.prefilter_manager.register_handler(
@@ -567,7 +567,7 @@ class PrefilterHandler(Configurable):
         return line
 
     def __str__(self):
-        return "<%s(name=%s)>" % (self.__class__.__name__, self.handler_name)
+        return "<{}(name={})>".format(self.__class__.__name__, self.handler_name)
 
 
 class MacroHandler(PrefilterHandler):
@@ -593,7 +593,7 @@ class MagicHandler(PrefilterHandler):
         t_arg_s = ifun + " " + the_rest
         t_magic_name, _, t_magic_arg_s = t_arg_s.partition(' ')
         t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
-        cmd = '%sget_ipython().run_line_magic(%r, %r)' % (line_info.pre_whitespace, t_magic_name, t_magic_arg_s)
+        cmd = '{}get_ipython().run_line_magic({!r}, {!r})'.format(line_info.pre_whitespace, t_magic_name, t_magic_arg_s)
         return cmd
 
 
@@ -627,12 +627,12 @@ class AutoHandler(PrefilterHandler):
 
         if esc == ESC_QUOTE:
             # Auto-quote splitting on whitespace
-            newcmd = '%s("%s")' % (ifun,'", "'.join(the_rest.split()) )
+            newcmd = '{}("{}")'.format(ifun,'", "'.join(the_rest.split()) )
         elif esc == ESC_QUOTE2:
             # Auto-quote whole string
-            newcmd = '%s("%s")' % (ifun,the_rest)
+            newcmd = '{}("{}")'.format(ifun,the_rest)
         elif esc == ESC_PAREN:
-            newcmd = '%s(%s)' % (ifun,",".join(the_rest.split()))
+            newcmd = '{}({})'.format(ifun,",".join(the_rest.split()))
         else:
             # Auto-paren.
             if force_auto:
@@ -653,9 +653,9 @@ class AutoHandler(PrefilterHandler):
             # Figure out the rewritten command
             if do_rewrite:
                 if the_rest.endswith(';'):
-                    newcmd = '%s(%s);' % (ifun.rstrip(),the_rest[:-1])
+                    newcmd = '{}({});'.format(ifun.rstrip(),the_rest[:-1])
                 else:
-                    newcmd = '%s(%s)' % (ifun.rstrip(), the_rest)
+                    newcmd = '{}({})'.format(ifun.rstrip(), the_rest)
             else:
                 normal_handler = self.prefilter_manager.get_handler_by_name('normal')
                 return normal_handler.handle(line_info)

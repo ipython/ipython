@@ -167,7 +167,7 @@ def getsource(obj, oname=''):
                     # Default str/repr only prints function name,
                     # pretty.pretty prints module name too.
                     sources.append(cast_unicode(
-                        '%s%s = %s\n' % (
+                        '{}{} = {}\n'.format(
                             oname_prefix, attrname, pretty(fn)),
                         encoding=encoding))
         if sources:
@@ -350,7 +350,7 @@ class Inspector(Colorable):
                  scheme=None,
                  str_detail_level=0,
                  parent=None, config=None):
-        super(Inspector, self).__init__(parent=parent, config=config)
+        super().__init__(parent=parent, config=config)
         self.color_table = color_table
         self.parser = PyColorize.Parser(out='str', parent=self, style=scheme)
         self.format = self.parser.format
@@ -370,7 +370,7 @@ class Inspector(Colorable):
 
     def __head(self,h):
         """Return a header string with proper colors."""
-        return '%s%s%s' % (self.color_table.active_colors.header,h,
+        return '{}{}{}'.format(self.color_table.active_colors.header,h,
                            self.color_table.active_colors.normal)
 
     def set_active_scheme(self, scheme):

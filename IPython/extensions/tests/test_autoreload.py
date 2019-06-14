@@ -35,7 +35,7 @@ from IPython.core.events import EventManager, pre_run_cell
 
 noop = lambda *a, **kw: None
 
-class FakeShell(object):
+class FakeShell:
 
     def __init__(self):
         self.ns = {}
@@ -61,7 +61,7 @@ class FakeShell(object):
         self.auto_magics.post_execute_hook()
 
 
-class Fixture(object):
+class Fixture:
     """Fixture for creating test module files"""
 
     test_dir = None

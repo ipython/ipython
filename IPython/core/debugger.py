@@ -83,7 +83,7 @@ def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
     print('Exiting Debugger.')
 
 
-class Tracer(object):
+class Tracer:
     """
     DEPRECATED
 
@@ -375,10 +375,10 @@ class Pdb(OldPdb):
 
         Colors = self.color_scheme_table.active_colors
         ColorsNormal = Colors.Normal
-        tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
+        tpl_link = '{}%s{}'.format(Colors.filenameEm, ColorsNormal)
+        tpl_call = '{}%s{}%s{}'.format(Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_line = '%s{}%s {}%s'.format(Colors.lineno, ColorsNormal)
+        tpl_line_em = '%s{}%s {}%s{}'.format(Colors.linenoEm, Colors.line,
                                             ColorsNormal)
 
         frame, lineno = frame_lineno
@@ -413,7 +413,7 @@ class Pdb(OldPdb):
             ret.append('> ')
         else:
             ret.append('  ')
-        ret.append(u'%s(%s)%s\n' % (link,lineno,call))
+        ret.append('{}({}){}\n'.format(link,lineno,call))
 
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
@@ -455,7 +455,7 @@ class Pdb(OldPdb):
         if arrow:
             # This is the line with the error
             pad = numbers_width - len(str(lineno)) - len(bp_mark)
-            num = '%s%s' % (make_arrow(pad), str(lineno))
+            num = '{}{}'.format(make_arrow(pad), str(lineno))
         else:
             num = '%*s' % (numbers_width - len(bp_mark), str(lineno))
 
@@ -468,8 +468,8 @@ class Pdb(OldPdb):
         try:
             Colors = self.color_scheme_table.active_colors
             ColorsNormal = Colors.Normal
-            tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-            tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
+            tpl_line = '%s{}%s {}%s'.format(Colors.lineno, ColorsNormal)
+            tpl_line_em = '%s{}%s {}%s{}'.format(Colors.linenoEm, Colors.line, ColorsNormal)
             src = []
             if filename == "<string>" and hasattr(self, "_exec_filename"):
                 filename = self._exec_filename

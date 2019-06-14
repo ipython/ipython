@@ -32,7 +32,7 @@ api_to_module = {QT_API_PYSIDE2: 'PySide2',
                 }
 
 
-class ImportDenier(object):
+class ImportDenier:
     """Import Hook that will guard against bad Qt imports
     once IPython commits to a specific binding
     """
@@ -128,7 +128,7 @@ def has_binding(api):
 
     for submod in required:
         try:
-            spec = find_spec('%s.%s' % (module_name, submod))
+            spec = find_spec('{}.{}'.format(module_name, submod))
         except ImportError:
             # Package (e.g. PyQt5) not found
             return False

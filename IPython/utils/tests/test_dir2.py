@@ -2,7 +2,7 @@ import nose.tools as nt
 from IPython.utils.dir2 import dir2
 
 
-class Base(object):
+class Base:
     x = 1
     z = 23
 
@@ -42,7 +42,7 @@ def test_misbehaving_object_without_trait_names():
     # dir2 shouldn't raise even when objects are dumb and raise
     # something other than AttribteErrors on bad getattr.
 
-    class MisbehavingGetattr(object):
+    class MisbehavingGetattr:
         def __getattr__(self):
             raise KeyError("I should be caught")
 

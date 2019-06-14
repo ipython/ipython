@@ -126,7 +126,7 @@ class InteractiveShellTestCase(unittest.TestCase):
     def test_gh_597(self):
         """Pretty-printing lists of objects with non-ascii reprs may cause
         problems."""
-        class Spam(object):
+        class Spam:
           def __repr__(self):
             return "\xe9"*50
         import IPython.core.formatters
@@ -148,9 +148,9 @@ class InteractiveShellTestCase(unittest.TestCase):
         "Can we pickle objects defined interactively (GH-29)"
         ip = get_ipython()
         ip.reset()
-        ip.run_cell(("class Mylist(list):\n"
+        ip.run_cell("class Mylist(list):\n"
                      "    def __init__(self,x=[]):\n"
-                     "        list.__init__(self,x)"))
+                     "        list.__init__(self,x)")
         ip.run_cell("w=Mylist([1,2,3])")
         
         from pickle import dumps
@@ -170,8 +170,8 @@ class InteractiveShellTestCase(unittest.TestCase):
         "Code in functions must be able to access variables outside them."
         ip = get_ipython()
         ip.run_cell("a = 10")
-        ip.run_cell(("def f(x):\n"
-                     "    return x + a"))
+        ip.run_cell("def f(x):\n"
+                     "    return x + a")
         ip.run_cell("b = f(12)")
         self.assertEqual(ip.user_ns["b"], 22)
 
@@ -180,7 +180,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.set_custom_exc((IOError,), lambda etype,value,tb: 1/0)
         self.assertEqual(ip.custom_exceptions, (IOError,))
         with tt.AssertPrints("Custom TB Handler failed", channel='stderr'):
-            ip.run_cell(u'raise IOError("foo")')
+            ip.run_cell('raise IOError("foo")')
         self.assertEqual(ip.custom_exceptions, ())
 
     def test_bad_custom_tb_return(self):
@@ -188,7 +188,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.set_custom_exc((NameError,),lambda etype,value,tb, tb_offset=None: 1)
         self.assertEqual(ip.custom_exceptions, (NameError,))
         with tt.AssertPrints("Custom TB Handler failed", channel='stderr'):
-            ip.run_cell(u'a=abracadabra')
+            ip.run_cell('a=abracadabra')
         self.assertEqual(ip.custom_exceptions, ())
 
     def test_drop_by_id(self):
@@ -206,17 +206,17 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.reset()
 
     def test_var_expand(self):
-        ip.user_ns['f'] = u'Ca\xf1o'
-        self.assertEqual(ip.var_expand(u'echo $f'), u'echo Ca\xf1o')
-        self.assertEqual(ip.var_expand(u'echo {f}'), u'echo Ca\xf1o')
-        self.assertEqual(ip.var_expand(u'echo {f[:-1]}'), u'echo Ca\xf1')
-        self.assertEqual(ip.var_expand(u'echo {1*2}'), u'echo 2')
+        ip.user_ns['f'] = 'Ca\xf1o'
+        self.assertEqual(ip.var_expand('echo $f'), 'echo Ca\xf1o')
+        self.assertEqual(ip.var_expand('echo {f}'), 'echo Ca\xf1o')
+        self.assertEqual(ip.var_expand('echo {f[:-1]}'), 'echo Ca\xf1')
+        self.assertEqual(ip.var_expand('echo {1*2}'), 'echo 2')
         
-        self.assertEqual(ip.var_expand(u"grep x | awk '{print $1}'"), u"grep x | awk '{print $1}'")
+        self.assertEqual(ip.var_expand("grep x | awk '{print $1}'"), "grep x | awk '{print $1}'")
 
         ip.user_ns['f'] = b'Ca\xc3\xb1o'
         # This should not raise any exception:
-        ip.var_expand(u'echo $f')
+        ip.var_expand('echo $f')
    
     def test_var_expand_local(self):
         """Test local variable expansion in !system and %magic calls"""
@@ -251,11 +251,11 @@ class InteractiveShellTestCase(unittest.TestCase):
     def test_bad_var_expand(self):
         """var_expand on invalid formats shouldn't raise"""
         # SyntaxError
-        self.assertEqual(ip.var_expand(u"{'a':5}"), u"{'a':5}")
+        self.assertEqual(ip.var_expand("{'a':5}"), "{'a':5}")
         # NameError
-        self.assertEqual(ip.var_expand(u"{asdf}"), u"{asdf}")
+        self.assertEqual(ip.var_expand("{asdf}"), "{asdf}")
         # ZeroDivisionError
-        self.assertEqual(ip.var_expand(u"{1/0}"), u"{1/0}")
+        self.assertEqual(ip.var_expand("{1/0}"), "{1/0}")
     
     def test_silent_postexec(self):
         """run_cell(silent=True) doesn't invoke pre/post_run_cell callbacks"""
@@ -364,7 +364,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         nt.assert_equal(find, info)
 
     def test_ofind_property_with_error(self):
-        class A(object):
+        class A:
             @property
             def foo(self):
                 raise NotImplementedError()
@@ -376,7 +376,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         nt.assert_equal(found, info)
 
     def test_ofind_multiple_attribute_lookups(self):
-        class A(object):
+        class A:
             @property
             def foo(self):
                 raise NotImplementedError()
@@ -391,7 +391,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         nt.assert_equal(found, info)
 
     def test_ofind_slotted_attributes(self):
-        class A(object):
+        class A:
             __slots__ = ['foo']
             def __init__(self):
                 self.foo = 'bar'
@@ -408,7 +408,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         nt.assert_equal(found, info)
 
     def test_ofind_prefers_property_to_instance_level_attribute(self):
-        class A(object):
+        class A:
             @property
             def foo(self):
                 return 'bar'
@@ -462,8 +462,8 @@ class InteractiveShellTestCase(unittest.TestCase):
 
     def test_new_main_mod(self):
         # Smoketest to check that this accepts a unicode module name
-        name = u'jiefmw'
-        mod = ip.new_main_mod(u'%s.py' % name, name)
+        name = 'jiefmw'
+        mod = ip.new_main_mod('%s.py' % name, name)
         self.assertEqual(mod.__name__, name)
 
     def test_get_exception_only(self):
@@ -511,13 +511,13 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
     @onlyif_unicode_paths
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
-        self.TESTDIR = join(self.BASETESTDIR, u"åäö")
+        self.TESTDIR = join(self.BASETESTDIR, "åäö")
         os.mkdir(self.TESTDIR)
-        with open(join(self.TESTDIR, u"åäötestscript.py"), "w") as sfile:
+        with open(join(self.TESTDIR, "åäötestscript.py"), "w") as sfile:
             sfile.write("pass\n")
         self.oldpath = os.getcwd()
         os.chdir(self.TESTDIR)
-        self.fname = u"åäötestscript.py"
+        self.fname = "åäötestscript.py"
 
     def tearDown(self):
         os.chdir(self.oldpath)
@@ -543,7 +543,7 @@ class ExitCodeChecks(tt.TempFileMixin):
         self.mktmp("import signal, time\n"
                    "signal.setitimer(signal.ITIMER_REAL, 0.1)\n"
                    "time.sleep(1)\n")
-        self.system("%s %s" % (sys.executable, self.fname))
+        self.system("{} {}".format(sys.executable, self.fname))
         self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGALRM)
     
     @onlyif_cmds_exist("csh")
@@ -566,7 +566,7 @@ class TestSystemRaw(ExitCodeChecks, unittest.TestCase):
     def test_1(self):
         """Test system_raw with non-ascii cmd
         """
-        cmd = u'''python -c "'åäö'"   '''
+        cmd = '''python -c "'åäö'"   '''
         ip.system_raw(cmd)
 
     @mock.patch('subprocess.call', side_effect=KeyboardInterrupt)
@@ -811,7 +811,7 @@ def test__IPYTHON__():
     __IPYTHON__
 
 
-class DummyRepr(object):
+class DummyRepr:
     def __repr__(self):
         return "DummyRepr"
     

@@ -27,7 +27,7 @@ def format_aliases(aliases):
     fmted = []
     for a in aliases:
         dashes = '-' if len(a) == 1 else '--'
-        fmted.append('``%s%s``' % (dashes, a))
+        fmted.append('``{}{}``'.format(dashes, a))
     return ', '.join(fmted)
 
 def class_config_rst_doc(cls, trait_aliases):

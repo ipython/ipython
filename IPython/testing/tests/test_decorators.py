@@ -97,7 +97,7 @@ def test_skip_dt_decorator():
 
 
 # Doctest skipping should work for class methods too
-class FooClass(object):
+class FooClass:
     """FooClass
 
     Example:
@@ -147,7 +147,7 @@ def test_skip_dt_decorator2():
     # Introspect out the value
     dtargsr = getargspec(doctest_bad)
     assert dtargsr==dtargs, \
-           "Incorrectly reconstructed args for doctest_bad: %s" % (dtargsr,)
+           "Incorrectly reconstructed args for doctest_bad: {}".format(dtargsr)
 
 
 @dec.skip_linux

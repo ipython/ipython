@@ -7,7 +7,7 @@ import warnings
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-class preserve_keys(object):
+class preserve_keys:
     """Preserve a set of keys in a dictionary.
 
     Upon entering the context manager the current values of the keys
@@ -60,7 +60,7 @@ class preserve_keys(object):
         d.update(self.to_update)
 
 
-class NoOpContext(object):
+class NoOpContext:
     """
     Deprecated
     

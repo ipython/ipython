@@ -34,7 +34,7 @@ class DisplayHook(Configurable):
     cull_fraction = Float(0.2)
 
     def __init__(self, shell=None, cache_size=1000, **kwargs):
-        super(DisplayHook, self).__init__(shell=shell, **kwargs)
+        super().__init__(shell=shell, **kwargs)
         cache_size_min = 3
         if cache_size <= 0:
             self.do_full_cache = 0
@@ -311,7 +311,7 @@ class DisplayHook(Configurable):
             gc.collect()
 
 
-class CapturingDisplayHook(object):
+class CapturingDisplayHook:
     def __init__(self, shell, outputs=None):
         self.shell = shell
         if outputs is None:

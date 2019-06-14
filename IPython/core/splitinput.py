@@ -67,7 +67,7 @@ def split_user_input(line, pattern=None):
             ifun, the_rest = line.split(None,1)
         except ValueError:
             # print "split failed for line '%s'" % line
-            ifun, the_rest = line, u''
+            ifun, the_rest = line, ''
         pre = re.match(r'^(\s*)(.*)',line).groups()[0]
         esc = ""
     else:
@@ -78,7 +78,7 @@ def split_user_input(line, pattern=None):
     return pre, esc or '', ifun.strip(), the_rest.lstrip()
 
 
-class LineInfo(object):
+class LineInfo:
     """A single line of input and associated info.
 
     Includes the following as properties:

@@ -161,8 +161,7 @@ def strip_initial_indent(lines):
         yield first_line
 
     # Pass the remaining lines through without dedenting
-    for line in it:
-        yield line
+    yield from it
 
 
 class InteractivelyDefined(Exception):
@@ -177,7 +176,7 @@ class CodeMagics(Magics):
 
     def __init__(self, *args, **kwargs):
         self._knowntemps = set()
-        super(CodeMagics, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @line_magic
     def save(self, parameter_s=''):
@@ -214,16 +213,16 @@ class CodeMagics(Magics):
         force = 'f' in opts
         append = 'a' in opts
         mode = 'a' if append else 'w'
-        ext = u'.ipy' if raw else u'.py'
+        ext = '.ipy' if raw else '.py'
         fname, codefrom = args[0], " ".join(args[1:])
-        if not fname.endswith((u'.py',u'.ipy')):
+        if not fname.endswith(('.py','.ipy')):
             fname += ext
         file_exists = os.path.isfile(fname)
         if file_exists and not force and not append:
             try:
                 overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
             except StdinNotImplementedError:
-                print("File `%s` exists. Use `%%save -f %s` to force overwrite" % (fname, parameter_s))
+                print("File `{}` exists. Use `%save -f {}` to force overwrite".format(fname, parameter_s))
                 return
             if not overwrite :
                 print('Operation cancelled.')
@@ -236,11 +235,11 @@ class CodeMagics(Magics):
         out = py3compat.cast_unicode(cmds)
         with io.open(fname, mode, encoding="utf-8") as f:
             if not file_exists or not append:
-                f.write(u"# coding: utf-8\n")
+                f.write("# coding: utf-8\n")
             f.write(out)
             # make sure we end on a newline
-            if not out.endswith(u'\n'):
-                f.write(u'\n')
+            if not out.endswith('\n'):
+                f.write('\n')
         print('The following commands were written to file `%s`:' % fname)
         print(cmds)
 

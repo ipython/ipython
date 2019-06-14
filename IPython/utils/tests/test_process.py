@@ -66,12 +66,12 @@ def test_find_cmd_fail():
 def test_arg_split():
     """Ensure that argument lines are correctly split like in a shell."""
     tests = [['hi', ['hi']],
-             [u'hi', [u'hi']],
+             ['hi', ['hi']],
              ['hello there', ['hello', 'there']],
              # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
              # Do not use \N because the tests crash with syntax error in
              # some cases, for example windows python2.6.
-             [u'h\u01cello', [u'h\u01cello']],
+             ['h\u01cello', ['h\u01cello']],
              ['something "with quotes"', ['something', '"with quotes"']],
              ]
     for argstr, argv in tests:
@@ -81,9 +81,9 @@ def test_arg_split():
 def test_arg_split_win32():
     """Ensure that argument lines are correctly split like in a shell."""
     tests = [['hi', ['hi']],
-             [u'hi', [u'hi']],
+             ['hi', ['hi']],
              ['hello there', ['hello', 'there']],
-             [u'h\u01cello', [u'h\u01cello']],
+             ['h\u01cello', ['h\u01cello']],
              ['something "with quotes"', ['something', 'with quotes']],
              ]
     for argstr, argv in tests:
@@ -101,7 +101,7 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         self.mktmp('\n'.join(lines))
 
     def test_system(self):
-        status = system('%s "%s"' % (python, self.fname))
+        status = system('{} "{}"'.format(python, self.fname))
         self.assertEqual(status, 0)
 
     def test_system_quotes(self):
@@ -109,7 +109,7 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         self.assertEqual(status, 0)
 
     def test_getoutput(self):
-        out = getoutput('%s "%s"' % (python, self.fname))
+        out = getoutput('{} "{}"'.format(python, self.fname))
         # we can't rely on the order the line buffered streams are flushed
         try:
             self.assertEqual(out, 'on stderron stdout')
@@ -129,7 +129,7 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         self.assertEqual(out.strip(), '1')
 
     def test_getoutput_error(self):
-        out, err = getoutputerror('%s "%s"' % (python, self.fname))
+        out, err = getoutputerror('{} "{}"'.format(python, self.fname))
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
     
@@ -139,7 +139,7 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         self.assertEqual(out, '')
         self.assertEqual(err, '')
         self.assertEqual(code, 1)
-        out, err, code = get_output_error_code('%s "%s"' % (python, self.fname))
+        out, err, code = get_output_error_code('{} "{}"'.format(python, self.fname))
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
         self.assertEqual(code, 0)

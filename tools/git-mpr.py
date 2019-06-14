@@ -96,8 +96,8 @@ def main(*args):
         for pr in pr_list :
             mergeable = gh_api.get_pull_request(gh_project, pr['number'])['mergeable']
 
-            ismgb = u"√" if mergeable else " "
-            print(u"* #{number} [{ismgb}]:  {title}".format(
+            ismgb = "√" if mergeable else " "
+            print("* #{number} [{ismgb}]:  {title}".format(
                 number=pr['number'],
                 title=pr['title'],
                 ismgb=ismgb))

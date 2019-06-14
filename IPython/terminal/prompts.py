@@ -9,7 +9,7 @@ from prompt_toolkit.formatted_text import fragment_list_width, PygmentsTokens
 from prompt_toolkit.shortcuts import print_formatted_text
 
 
-class Prompts(object):
+class Prompts:
     def __init__(self, shell):
         self.shell = shell
 

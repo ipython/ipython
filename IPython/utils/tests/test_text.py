@@ -75,7 +75,7 @@ def test_columnize_random():
                 print("displaywidth : %s " % displaywidth)
                 print("number of element : %s " % nitems)
                 print("size of each element :\n %s" % rand_len)
-                assert False, "row_first={0}".format(row_first)
+                assert False, "row_first={}".format(row_first)
 
 def test_columnize_medium():
     """Test with inputs than shouldn't be wider than 80"""
@@ -83,7 +83,7 @@ def test_columnize_medium():
     items = [l*size for l in 'abc']
     for row_first in [True, False]:
         out = text.columnize(items, row_first=row_first, displaywidth=80)
-        nt.assert_equal(out, '\n'.join(items+['']), "row_first={0}".format(row_first))
+        nt.assert_equal(out, '\n'.join(items+['']), "row_first={}".format(row_first))
 
 def test_columnize_long():
     """Test columnize with inputs longer than the display window"""
@@ -91,10 +91,10 @@ def test_columnize_long():
     items = [l*size for l in 'abc']
     for row_first in [True, False]:
         out = text.columnize(items, row_first=row_first, displaywidth=size-1)
-        nt.assert_equal(out, '\n'.join(items+['']), "row_first={0}".format(row_first))
+        nt.assert_equal(out, '\n'.join(items+['']), "row_first={}".format(row_first))
 
 def eval_formatter_check(f):
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os, u=u"café", b="café")
+    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os, u="café", b="café")
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     nt.assert_equal(s, "12 3 hello")
     s = f.format(' '.join(['{n//%i}'%i for i in range(1,8)]), **ns)

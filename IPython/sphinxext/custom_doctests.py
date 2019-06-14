@@ -71,11 +71,11 @@ def str_to_array(s):
     # This also assumes default printoptions for NumPy.
     from numpy import inf, nan
 
-    if s.startswith(u'array'):
+    if s.startswith('array'):
         # Remove array( and )
         s = s[6:-1]
 
-    if s.startswith(u'['):
+    if s.startswith('['):
         a = np.array(eval(s), dtype=float)
     else:
         # Assume its a regular float. Force 1D so we can index into it.
@@ -109,7 +109,7 @@ def float_doctest(sphinx_shell, args, input_lines, found, submitted):
             atol = float(args[3])
         except IndexError:
             e = ("Both `rtol` and `atol` must be specified "
-                 "if either are specified: {0}".format(args))
+                 "if either are specified: {}".format(args))
             raise IndexError(e)
 
     try:

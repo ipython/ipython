@@ -387,7 +387,7 @@ class OSMagics(Magics):
 
                 if ps in bkms:
                     target = bkms[ps]
-                    print('(bookmark:%s) -> %s' % (ps, target))
+                    print('(bookmark:{}) -> {}'.format(ps, target))
                     ps = target
                 else:
                     if 'b' in opts:
@@ -442,7 +442,7 @@ class OSMagics(Magics):
                 if key in os.environ:
                     return os.environ[key]
                 else:
-                    err = "Environment does not have key: {0}".format(key)
+                    err = "Environment does not have key: {}".format(key)
                     raise UsageError(err)
             if len(bits) > 1:
                 return self.set_env(parameter_s)
@@ -476,7 +476,7 @@ class OSMagics(Magics):
             err = err.format(val)
             raise UsageError(err)
         os.environ[var] = val
-        print('env: {0}={1}'.format(var,val))
+        print('env: {}={}'.format(var,val))
 
     @line_magic
     def pushd(self, parameter_s=''):
@@ -658,7 +658,7 @@ class OSMagics(Magics):
         split = 'l' in opts
         out = self.shell.getoutput(cmd, split=split)
         if 'v' in opts:
-            print('%s ==\n%s' % (var, pformat(out)))
+            print('{} ==\n{}'.format(var, pformat(out)))
         if var:
             self.shell.user_ns.update({var:out})
         else:

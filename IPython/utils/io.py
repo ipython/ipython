@@ -95,7 +95,7 @@ with warnings.catch_warnings():
     stdout = IOStream(sys.stdout, fallback=devnull)
     stderr = IOStream(sys.stderr, fallback=devnull)
 
-class Tee(object):
+class Tee:
     """A class to duplicate an output stream to stdout/err.
 
     This works in a manner very similar to the Unix 'tee' command.

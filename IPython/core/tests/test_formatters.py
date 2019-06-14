@@ -17,7 +17,7 @@ from IPython.core.formatters import (
 )
 from IPython.utils.io import capture_output
 
-class A(object):
+class A:
     def __repr__(self):
         return 'A()'
 
@@ -28,14 +28,14 @@ class B(A):
 class C:
     pass
 
-class BadRepr(object):
+class BadRepr:
     def __repr__(self):
         raise ValueError("bad repr")
 
-class BadPretty(object):
+class BadPretty:
     _repr_pretty_ = None
 
-class GoodPretty(object):
+class GoodPretty:
     def _repr_pretty_(self, pp, cycle):
         pp.text('foo')
 
@@ -116,7 +116,7 @@ def test_for_type():
 def test_for_type_string():
     f = PlainTextFormatter()
     
-    type_str = '%s.%s' % (C.__module__, 'C')
+    type_str = '{}.{}'.format(C.__module__, 'C')
     
     # initial return, None
     nt.assert_is(f.for_type(type_str, foo_printer), None)
@@ -152,7 +152,7 @@ def test_lookup():
 
 def test_lookup_string():
     f = PlainTextFormatter()
-    type_str = '%s.%s' % (C.__module__, 'C')
+    type_str = '{}.{}'.format(C.__module__, 'C')
     
     f.for_type(type_str, foo_printer)
     nt.assert_is(f.lookup(C()), foo_printer)
@@ -169,7 +169,7 @@ def test_lookup_by_type():
 
 def test_lookup_by_type_string():
     f = PlainTextFormatter()
-    type_str = '%s.%s' % (C.__module__, 'C')
+    type_str = '{}.{}'.format(C.__module__, 'C')
     f.for_type(type_str, foo_printer)
     
     # verify insertion
@@ -189,13 +189,13 @@ def test_lookup_by_type_string():
 def test_in_formatter():
     f = PlainTextFormatter()
     f.for_type(C, foo_printer)
-    type_str = '%s.%s' % (C.__module__, 'C')
+    type_str = '{}.{}'.format(C.__module__, 'C')
     nt.assert_in(C, f)
     nt.assert_in(type_str, f)
 
 def test_string_in_formatter():
     f = PlainTextFormatter()
-    type_str = '%s.%s' % (C.__module__, 'C')
+    type_str = '{}.{}'.format(C.__module__, 'C')
     f.for_type(type_str, foo_printer)
     nt.assert_in(type_str, f)
     nt.assert_in(C, f)
@@ -217,7 +217,7 @@ def test_pop():
 
 def test_pop_string():
     f = PlainTextFormatter()
-    type_str = '%s.%s' % (C.__module__, 'C')
+    type_str = '{}.{}'.format(C.__module__, 'C')
     
     with nt.assert_raises(KeyError):
         f.pop(type_str)
@@ -240,7 +240,7 @@ def test_pop_string():
 
 def test_error_method():
     f = HTMLFormatter()
-    class BadHTML(object):
+    class BadHTML:
         def _repr_html_(self):
             raise ValueError("Bad HTML")
     bad = BadHTML()
@@ -253,7 +253,7 @@ def test_error_method():
 
 def test_nowarn_notimplemented():
     f = HTMLFormatter()
-    class HTMLNotImplemented(object):
+    class HTMLNotImplemented:
         def _repr_html_(self):
             raise NotImplementedError
     h = HTMLNotImplemented()
@@ -275,7 +275,7 @@ def test_warn_error_for_type():
 
 def test_error_pretty_method():
     f = PlainTextFormatter()
-    class BadPretty(object):
+    class BadPretty:
         def _repr_pretty_(self):
             return "hello"
     bad = BadPretty()
@@ -300,7 +300,7 @@ def test_bad_repr_traceback():
     nt.assert_in("ValueError", captured.stdout)
 
 
-class MakePDF(object):
+class MakePDF:
     def _repr_pdf_(self):
         return 'PDF'
 
@@ -311,7 +311,7 @@ def test_pdf_formatter():
 
 def test_print_method_bound():
     f = HTMLFormatter()
-    class MyHTML(object):
+    class MyHTML:
         def _repr_html_(self):
             return "hello"
     with capture_output() as captured:
@@ -326,7 +326,7 @@ def test_print_method_bound():
 
 def test_print_method_weird():
 
-    class TextMagicHat(object):
+    class TextMagicHat:
         def __getattr__(self, key):
             return key
 
@@ -340,7 +340,7 @@ def test_print_method_weird():
     nt.assert_is(result, None)
     nt.assert_not_in("FormatterWarning", captured.stderr)
 
-    class CallableMagicHat(object):
+    class CallableMagicHat:
         def __getattr__(self, key):
             return lambda : key
     
@@ -350,7 +350,7 @@ def test_print_method_weird():
     
     nt.assert_equal(result, None)
 
-    class BadReprArgs(object):
+    class BadReprArgs:
         def _repr_html_(self, extra, args):
             return "html"
     
@@ -393,11 +393,11 @@ def test_ipython_display_formatter():
     """Objects with _ipython_display_ defined bypass other formatters"""
     f = get_ipython().display_formatter
     catcher = []
-    class SelfDisplaying(object):
+    class SelfDisplaying:
         def _ipython_display_(self):
             catcher.append(self)
 
-    class NotSelfDisplaying(object):
+    class NotSelfDisplaying:
         def __repr__(self):
             return "NotSelfDisplaying"
         
@@ -424,7 +424,7 @@ def test_ipython_display_formatter():
 
 
 def test_json_as_string_deprecated():
-    class JSONString(object):
+    class JSONString:
         def _repr_json_(self):
             return '{}'
     
@@ -436,7 +436,7 @@ def test_json_as_string_deprecated():
 
 
 def test_repr_mime():
-    class HasReprMime(object):
+    class HasReprMime:
         def _repr_mimebundle_(self, include=None, exclude=None):
             return {
                 'application/json+test.v2': {
@@ -474,7 +474,7 @@ def test_repr_mime():
 
 
 def test_pass_correct_include_exclude():
-    class Tester(object):
+    class Tester:
 
         def __init__(self, include=None, exclude=None):
             self.include = include
@@ -498,7 +498,7 @@ def test_pass_correct_include_exclude():
 
 
 def test_repr_mime_meta():
-    class HasReprMimeMeta(object):
+    class HasReprMimeMeta:
         def _repr_mimebundle_(self, include=None, exclude=None):
             data = {
                 'image/png': 'base64-image-data',
@@ -523,7 +523,7 @@ def test_repr_mime_meta():
     })
 
 def test_repr_mime_failure():
-    class BadReprMime(object):
+    class BadReprMime:
         def _repr_mimebundle_(self, include=None, exclude=None):
             raise RuntimeError
 

@@ -59,7 +59,7 @@ def code_name(code, number=0):
     # Include the number and 12 characters of the hash in the name.  It's
     # pretty much impossible that in a single session we'll have collisions
     # even with truncated hashes, and the full one makes tracebacks too long
-    return '<ipython-input-{0}-{1}>'.format(number, hash_digest[:12])
+    return '<ipython-input-{}-{}>'.format(number, hash_digest[:12])
 
 #-----------------------------------------------------------------------------
 # Classes and functions

@@ -123,7 +123,7 @@ class InteractiveShellApp(Configurable):
     ).tag(config=True)
 
     # Extensions that are always loaded (not configurable)
-    default_extensions = List(Unicode(), [u'storemagic']).tag(config=False)
+    default_extensions = List(Unicode(), ['storemagic']).tag(config=False)
 
     hide_initial_ns = Bool(True,
         help="""Should variables loaded at startup (by startup files, exec_lines, etc.)
@@ -150,7 +150,7 @@ class InteractiveShellApp(Configurable):
         help="Run the module as a script."
     ).tag(config=True)
     gui = CaselessStrEnum(gui_keys, allow_none=True,
-        help="Enable GUI event loop integration with any of {0}.".format(gui_keys)
+        help="Enable GUI event loop integration with any of {}.".format(gui_keys)
     ).tag(config=True)
     matplotlib = CaselessStrEnum(backend_keys, allow_none=True,
         help="""Configure matplotlib for interactive use with
@@ -313,7 +313,7 @@ class InteractiveShellApp(Configurable):
 
     def _exec_file(self, fname, shell_futures=False):
         try:
-            full_filename = filefind(fname, [u'.', self.ipython_dir])
+            full_filename = filefind(fname, ['.', self.ipython_dir])
         except IOError:
             self.log.warning("File not found: %r"%fname)
             return

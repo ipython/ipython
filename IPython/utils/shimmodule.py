@@ -13,7 +13,7 @@ from .importstring import import_item
 class ShimWarning(Warning):
     """A warning to show when a module has moved, and a shim is in its place."""
 
-class ShimImporter(object):
+class ShimImporter:
     """Import hook for a shim.
     
     This ensures that submodule imports return the real target module,
@@ -57,7 +57,7 @@ class ShimModule(types.ModuleType):
         src = kwargs.pop("src", None)
         if src:
             kwargs['name'] = src.rsplit('.', 1)[-1]
-        super(ShimModule, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # add import hook for descendent modules
         if src:
             sys.meta_path.append(
@@ -87,7 +87,7 @@ class ShimModule(types.ModuleType):
 
     def __getattr__(self, key):
         # Use the equivalent of import_item(name), see below
-        name = "%s.%s" % (self._mirror, key)
+        name = "{}.{}".format(self._mirror, key)
         try:
             return import_item(name)
         except ImportError:

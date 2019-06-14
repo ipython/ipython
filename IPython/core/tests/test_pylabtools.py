@@ -38,7 +38,7 @@ def test_figure_to_svg():
     ax.plot([1,2,3])
     plt.draw()
     svg = pt.print_figure(fig, 'svg')[:100].lower()
-    nt.assert_in(u'doctype svg', svg)
+    nt.assert_in('doctype svg', svg)
 
 def _check_pil_jpeg_bytes():
     """Skip if PIL can't write JPEGs to BytesIO objects"""
@@ -51,7 +51,7 @@ def _check_pil_jpeg_bytes():
         img.save(buf, 'jpeg')
     except Exception as e:
         ename = e.__class__.__name__
-        raise SkipTest("PIL can't write JPEG to BytesIO: %s: %s" % (ename, e))
+        raise SkipTest("PIL can't write JPEG to BytesIO: {}: {}".format(ename, e))
 
 @dec.skip_without("PIL.Image")
 def test_figure_to_jpeg():
@@ -146,7 +146,7 @@ def test_import_pylab():
     nt.assert_true('plt' in ns)
     nt.assert_equal(ns['np'], np)
 
-class TestPylabSwitch(object):
+class TestPylabSwitch:
     class Shell(InteractiveShell):
         def enable_gui(self, gui):
             pass

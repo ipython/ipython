@@ -51,7 +51,7 @@ def extract_vars(*names,**kw):
     depth = kw.get('depth',0)
 
     callerNS = sys._getframe(depth+1).f_locals
-    return dict((k,callerNS[k]) for k in names)
+    return {k:callerNS[k] for k in names}
 
 
 def extract_vars_above(*names):
@@ -65,7 +65,7 @@ def extract_vars_above(*names):
     keyword passing."""
 
     callerNS = sys._getframe(2).f_locals
-    return dict((k,callerNS[k]) for k in names)
+    return {k:callerNS[k] for k in names}
 
 
 def debugx(expr,pre_msg=''):
@@ -80,7 +80,7 @@ def debugx(expr,pre_msg=''):
     expr->value pair."""
 
     cf = sys._getframe(1)
-    print('[DBG:%s] %s%s -> %r' % (cf.f_code.co_name,pre_msg,expr,
+    print('[DBG:{}] {}{} -> {!r}'.format(cf.f_code.co_name,pre_msg,expr,
                                    eval(expr,cf.f_globals,cf.f_locals)))
 
 

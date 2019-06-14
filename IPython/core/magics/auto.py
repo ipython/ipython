@@ -26,7 +26,7 @@ class AutoMagics(Magics):
     """Magics that control various autoX behaviors."""
 
     def __init__(self, shell):
-        super(AutoMagics, self).__init__(shell)
+        super().__init__(shell)
         # namespace for holding state we may need
         self._magic_state = Bunch()
 

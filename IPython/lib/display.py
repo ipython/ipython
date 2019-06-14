@@ -107,7 +107,7 @@ class Audio(DisplayObject):
             self.embed = True
         self.autoplay = autoplay
         self.element_id = element_id
-        super(Audio, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
         if self.data is not None and not isinstance(self.data, bytes):
             if rate is None:
@@ -118,7 +118,7 @@ class Audio(DisplayObject):
         """Reload the raw data from file or URL."""
         import mimetypes
         if self.embed:
-            super(Audio, self).reload()
+            super().reload()
 
         if self.filename is not None:
             self.mimetype = mimetypes.guess_type(self.filename)[0]
@@ -236,7 +236,7 @@ class Audio(DisplayObject):
         else:
             return ''
 
-class IFrame(object):
+class IFrame:
     """
     Generic class to embed an iframe in an IPython notebook
     """
@@ -300,8 +300,8 @@ class YouTubeVideo(IFrame):
 
     def __init__(self, id, width=400, height=300, **kwargs):
         self.id=id
-        src = "https://www.youtube.com/embed/{0}".format(id)
-        super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
+        src = "https://www.youtube.com/embed/{}".format(id)
+        super().__init__(src, width, height, **kwargs)
     
     def _repr_jpeg_(self):
         # Deferred import
@@ -318,8 +318,8 @@ class VimeoVideo(IFrame):
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src="https://player.vimeo.com/video/{0}".format(id)
-        super(VimeoVideo, self).__init__(src, width, height, **kwargs)
+        src="https://player.vimeo.com/video/{}".format(id)
+        super().__init__(src, width, height, **kwargs)
 
 class ScribdDocument(IFrame):
     """
@@ -334,10 +334,10 @@ class ScribdDocument(IFrame):
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src="https://www.scribd.com/embeds/{0}/content".format(id)
-        super(ScribdDocument, self).__init__(src, width, height, **kwargs)
+        src="https://www.scribd.com/embeds/{}/content".format(id)
+        super().__init__(src, width, height, **kwargs)
 
-class FileLink(object):
+class FileLink:
     """Class for embedding a local file link in an IPython session, based on path
 
     e.g. to embed a link that was generated in the IPython notebook as my/data.txt

@@ -28,7 +28,10 @@ from IPython.utils.py3compat import decode
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 
-class TestController(object):
+def popen_wait(p, timeout):
+    return p.wait(timeout)
+
+class TestController:
     """Run tests in a subprocess
     """
     #: str, IPython test suite to be executed.
@@ -209,7 +212,7 @@ class PyTestController(TestController):
 
     def launch(self, buffer_output=False):
         self.cmd[2] = self.pycmd
-        super(PyTestController, self).launch(buffer_output=buffer_output)
+        super().launch(buffer_output=buffer_output)
 
 
 def prepare_controllers(options):
@@ -419,7 +422,7 @@ def run_iptestall(options):
             from coverage.html import HtmlReporter
             class CustomHtmlReporter(HtmlReporter):
                 def find_code_units(self, morfs):
-                    super(CustomHtmlReporter, self).find_code_units(morfs)
+                    super().find_code_units(morfs)
                     for cu in self.code_units:
                         nameparts = cu.name.split(os.sep)
                         if 'IPython' not in nameparts:

@@ -299,7 +299,7 @@ class install_lib_symlink(Command):
         if os.path.islink(dest):
             print('removing existing symlink at %s' % dest)
             os.unlink(dest)
-        print('symlinking %s -> %s' % (pkg, dest))
+        print('symlinking {} -> {}'.format(pkg, dest))
         os.symlink(pkg, dest)
 
 class unsymlink(install):
@@ -387,7 +387,7 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
                 # nothing to write, don't clobber
                 return
             
-            print("writing git commit '%s' to %s" % (repo_commit, out_pth))
+            print("writing git commit '{}' to {}".format(repo_commit, out_pth))
             
             # remove to avoid overwriting original via hard link
             try:

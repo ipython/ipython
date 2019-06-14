@@ -63,7 +63,7 @@ class EventLoopTimer(wx.Timer):
     def Notify(self):
         self.func()
 
-class EventLoopRunner(object):
+class EventLoopRunner:
 
     def Run(self, time):
         self.evtloop = wx.EventLoop()

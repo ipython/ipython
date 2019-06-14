@@ -122,7 +122,7 @@ def test_list_profiles_in():
     for name in ('profile_foo', 'profile_hello', 'not_a_profile'):
         os.mkdir(os.path.join(td, name))
     if dec.unicode_paths:
-        os.mkdir(os.path.join(td, u'profile_ünicode'))
+        os.mkdir(os.path.join(td, 'profile_ünicode'))
     
     with open(os.path.join(td, 'profile_file'), 'w') as f:
         f.write("I am not a profile directory")

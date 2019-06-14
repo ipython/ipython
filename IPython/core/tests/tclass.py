@@ -8,7 +8,7 @@ import sys
 # We want to ensure that while objects remain available for immediate access,
 # objects from *previous* runs of the same script get collected, to avoid
 # accumulating massive amounts of old references.
-class C(object):
+class C:
     def __init__(self,name):
         self.name = name
         self.p = print

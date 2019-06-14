@@ -277,7 +277,7 @@ def doctest_hist_op():
 
 def test_hist_pof():
     ip = get_ipython()
-    ip.run_cell(u"1+2", store_history=True)
+    ip.run_cell("1+2", store_history=True)
     #raise Exception(ip.history_manager.session_number)
     #raise Exception(list(ip.history_manager._get_range_session()))
     with TemporaryDirectory() as td:
@@ -455,7 +455,7 @@ def test_parse_options():
     # the very least we check that basic text/unicode calls work OK.
     m = DummyMagics(_ip)
     nt.assert_equal(m.parse_options('foo', '')[1], 'foo')
-    nt.assert_equal(m.parse_options(u'foo', '')[1], u'foo')
+    nt.assert_equal(m.parse_options('foo', '')[1], 'foo')
 
 
 def test_dirops():
@@ -503,7 +503,7 @@ def test_xmode():
     
 def test_reset_hard():
     monitor = []
-    class A(object):
+    class A:
         def __del__(self):
             monitor.append(1)
         def __repr__(self):
@@ -565,7 +565,7 @@ def doctest_who():
 
 def test_whos():
     """Check that whos is protected against objects where repr() fails."""
-    class A(object):
+    class A:
         def __repr__(self):
             raise Exception()
     _ip.user_ns['a'] = A()
@@ -687,7 +687,7 @@ def test_extension():
 def test_notebook_export_json():
     _ip = get_ipython()
     _ip.history_manager.reset()   # Clear any existing history.
-    cmds = [u"a=1", u"def b():\n  return a**2", u"print('noël, été', b())"]
+    cmds = ["a=1", "def b():\n  return a**2", "print('noël, été', b())"]
     for i, cmd in enumerate(cmds, start=1):
         _ip.history_manager.store_inputs(i, cmd)
     with TemporaryDirectory() as td:
@@ -784,7 +784,7 @@ def test_file():
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, 'file1')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
+        ip.run_cell_magic("writefile", fname, '\n'.join([
             'line1',
             'line2',
         ]))
@@ -799,7 +799,7 @@ def test_file_single_quote():
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, '\'file1\'')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
+        ip.run_cell_magic("writefile", fname, '\n'.join([
             'line1',
             'line2',
         ]))
@@ -814,7 +814,7 @@ def test_file_double_quote():
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, '"file1"')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
+        ip.run_cell_magic("writefile", fname, '\n'.join([
             'line1',
             'line2',
         ]))
@@ -829,7 +829,7 @@ def test_file_var_expand():
     with TemporaryDirectory() as td:
         fname = os.path.join(td, 'file1')
         ip.user_ns['filename'] = fname
-        ip.run_cell_magic("writefile", '$filename', u'\n'.join([
+        ip.run_cell_magic("writefile", '$filename', '\n'.join([
             'line1',
             'line2',
         ]))
@@ -843,25 +843,25 @@ def test_file_unicode():
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, 'file1')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
-            u'liné1',
-            u'liné2',
+        ip.run_cell_magic("writefile", fname, '\n'.join([
+            'liné1',
+            'liné2',
         ]))
         with io.open(fname, encoding='utf-8') as f:
             s = f.read()
-        nt.assert_in(u'liné1\n', s)
-        nt.assert_in(u'liné2', s)
+        nt.assert_in('liné1\n', s)
+        nt.assert_in('liné2', s)
 
 def test_file_amend():
     """%%writefile -a amends files"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, 'file2')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
+        ip.run_cell_magic("writefile", fname, '\n'.join([
             'line1',
             'line2',
         ]))
-        ip.run_cell_magic("writefile", "-a %s" % fname, u'\n'.join([
+        ip.run_cell_magic("writefile", "-a %s" % fname, '\n'.join([
             'line3',
             'line4',
         ]))
@@ -875,7 +875,7 @@ def test_file_spaces():
     ip = get_ipython()
     with TemporaryWorkingDirectory() as td:
         fname = "file name"
-        ip.run_cell_magic("file", '"%s"'%fname, u'\n'.join([
+        ip.run_cell_magic("file", '"%s"'%fname, '\n'.join([
             'line1',
             'line2',
         ]))
@@ -1014,7 +1014,7 @@ def test_save():
     """Test %save."""
     ip = get_ipython()
     ip.history_manager.reset()   # Clear any existing history.
-    cmds = [u"a=1", u"def b():\n  return a**2", u"print(a, b())"]
+    cmds = ["a=1", "def b():\n  return a**2", "print(a, b())"]
     for i, cmd in enumerate(cmds, start=1):
         ip.history_manager.store_inputs(i, cmd)
     with TemporaryDirectory() as tmpdir:
@@ -1076,7 +1076,7 @@ def test_edit_interactive():
     """%edit on interactively defined objects"""
     ip = get_ipython()
     n = ip.execution_count
-    ip.run_cell(u"def foo(): return 1", store_history=True)
+    ip.run_cell("def foo(): return 1", store_history=True)
     
     try:
         _run_edit_test("foo")
@@ -1090,7 +1090,7 @@ def test_edit_cell():
     """%edit [cell id]"""
     ip = get_ipython()
     
-    ip.run_cell(u"def foo(): return 1", store_history=True)
+    ip.run_cell("def foo(): return 1", store_history=True)
     
     # test
     _run_edit_test("1", exp_contents=ip.user_ns['In'][1], exp_is_temp=True)

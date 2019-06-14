@@ -138,7 +138,7 @@ def get_paged_request(url, headers=None, **params):
             params = None
             print("fetching %s" % url, file=sys.stderr)
         else:
-            print("fetching %s with %s" % (url, params), file=sys.stderr)
+            print("fetching {} with {}".format(url, params), file=sys.stderr)
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         results.extend(response.json())
@@ -201,7 +201,7 @@ def get_authors(pr):
     authors = []
     for commit in commits:
         author = commit['commit']['author']
-        authors.append("%s <%s>" % (author['name'], author['email']))
+        authors.append("{} <{}>".format(author['name'], author['email']))
     return authors
 
 # encode_multipart_formdata is from urllib3.filepost
@@ -212,8 +212,7 @@ def iter_fields(fields):
     for key in ('key', 'acl', 'Filename', 'success_action_status', 'AWSAccessKeyId',
         'Policy', 'Signature', 'Content-Type', 'file'):
         yield (key, fields.pop(key))
-    for (k,v) in fields.items():
-        yield k,v
+    yield from fields.items()
 
 def encode_multipart_formdata(fields, boundary=None):
     """
@@ -257,7 +256,7 @@ def encode_multipart_formdata(fields, boundary=None):
 
         if isinstance(data, int):
             data = str(data)  # Backwards compatibility
-        if isinstance(data, six.text_type):
+        if isinstance(data, str):
             writer(body).write(data)
         else:
             body.write(data)

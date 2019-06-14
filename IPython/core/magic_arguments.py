@@ -93,14 +93,14 @@ class MagicHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 if not NAME_RE.match(args_string):
                     args_string = "<%s>" % args_string
                 for option_string in action.option_strings:
-                    parts.append('%s %s' % (option_string, args_string))
+                    parts.append('{} {}'.format(option_string, args_string))
 
             return ', '.join(parts)
 
     # Override the default prefix ('usage') to our % magic escape,
     # in a code block.
     def add_usage(self, usage, actions, groups, prefix="::\n\n  %"):
-        super(MagicHelpFormatter, self).add_usage(usage, actions, groups, prefix)
+        super().add_usage(usage, actions, groups, prefix)
 
 class MagicArgumentParser(argparse.ArgumentParser):
     """ An ArgumentParser tweaked for use by IPython magics.
@@ -118,7 +118,7 @@ class MagicArgumentParser(argparse.ArgumentParser):
                  add_help=False):
         if parents is None:
             parents = []
-        super(MagicArgumentParser, self).__init__(prog=prog, usage=usage,
+        super().__init__(prog=prog, usage=usage,
             description=description, epilog=epilog,
             parents=parents, formatter_class=formatter_class,
             prefix_chars=prefix_chars, argument_default=argument_default,
@@ -173,7 +173,7 @@ def real_name(magic_func):
     return getattr(magic_func, 'argcmd_name', magic_name)
 
 
-class ArgDecorator(object):
+class ArgDecorator:
     """ Base class for decorators to add ArgumentParser information to a method.
     """
 
@@ -269,7 +269,7 @@ class kwds(ArgDecorator):
         self.kwds = kwds
 
     def __call__(self, func):
-        func = super(kwds, self).__call__(func)
+        func = super().__call__(func)
         func.argcmd_kwds = self.kwds
         return func
 

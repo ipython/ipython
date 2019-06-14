@@ -55,7 +55,7 @@ def setUp():
 def test_cache_unicode():
     cp = compilerop.CachingCompiler()
     ncache = len(linecache.cache)
-    cp.cache(u"t = 'žćčšđ'")
+    cp.cache("t = 'žćčšđ'")
     nt.assert_true(len(linecache.cache) > ncache)
 
 def test_compiler_check_cache():

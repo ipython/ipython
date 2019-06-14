@@ -8,7 +8,7 @@ import os as _os
 from tempfile import TemporaryDirectory
 
 
-class NamedFileInTemporaryDirectory(object):
+class NamedFileInTemporaryDirectory:
 
     def __init__(self, filename, mode='w+b', bufsize=-1, **kwds):
         """
@@ -50,8 +50,8 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
     def __enter__(self):
         self.old_wd = _os.getcwd()
         _os.chdir(self.name)
-        return super(TemporaryWorkingDirectory, self).__enter__()
+        return super().__enter__()
 
     def __exit__(self, exc, value, tb):
         _os.chdir(self.old_wd)
-        return super(TemporaryWorkingDirectory, self).__exit__(exc, value, tb)
+        return super().__exit__(exc, value, tb)

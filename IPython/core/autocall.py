@@ -28,7 +28,7 @@ Notes
 # Code
 #-----------------------------------------------------------------------------
 
-class IPyAutocall(object):
+class IPyAutocall:
     """ Instances of this class are always autocalled
     
     This happens regardless of 'autocall' variable state. Use this to

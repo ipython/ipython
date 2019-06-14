@@ -98,7 +98,7 @@ def ipdt_indented_test():
     """
 
 
-class Foo(object):
+class Foo:
     """For methods, the normal decorator doesn't work.
 
     But rewriting the docstring with ip2py does, *but only if using nose

@@ -38,7 +38,7 @@ def test_latex_to_png_dvipng_runs():
         nt.assert_equal(filename, "breqn.sty")
         return None
 
-    for (s, wrap) in [(u"$$x^2$$", False), (u"x^2", True)]:
+    for (s, wrap) in [("$$x^2$$", False), ("x^2", True)]:
         yield (latextools.latex_to_png_dvipng, s, wrap)
 
         with patch.object(latextools, "kpsewhich", mock_kpsewhich):
@@ -71,7 +71,7 @@ def test_genelatex_no_wrap():
     """
     def mock_kpsewhich(filename):
         assert False, ("kpsewhich should not be called "
-                       "(called with {0})".format(filename))
+                       "(called with {})".format(filename))
 
     with patch.object(latextools, "kpsewhich", mock_kpsewhich):
         nt.assert_equal(

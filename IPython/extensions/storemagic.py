@@ -66,7 +66,7 @@ class StoreMagics(Magics):
     ).tag(config=True)
     
     def __init__(self, shell):
-        super(StoreMagics, self).__init__(shell=shell)
+        super().__init__(shell=shell)
         self.shell.configurables.append(self)
         if self.autorestore:
             restore_data(self.shell)
@@ -175,7 +175,7 @@ class StoreMagics(Magics):
                     fil = open(fnam, 'w')
                 with fil:
                     obj = ip.ev(args[0])
-                    print("Writing '%s' (%s) to file '%s'." % (args[0],
+                    print("Writing '{}' ({}) to file '{}'.".format(args[0],
                         obj.__class__.__name__, fnam))
 
                     if not isinstance (obj, str):
@@ -202,7 +202,7 @@ class StoreMagics(Magics):
                 staliases = db.get('stored_aliases',{})
                 staliases[name] = cmd
                 db['stored_aliases'] = staliases
-                print("Alias stored: %s (%s)" % (name, cmd))
+                print("Alias stored: {} ({})".format(name, cmd))
                 return
 
             else:
@@ -217,7 +217,7 @@ class StoreMagics(Magics):
                     return
                 #pickled = pickle.dumps(obj)
                 db[ 'autorestore/' + args[0] ] = obj
-                print("Stored '%s' (%s)" % (args[0], obj.__class__.__name__))
+                print("Stored '{}' ({})".format(args[0], obj.__class__.__name__))
 
 
 def load_ipython_extension(ip):

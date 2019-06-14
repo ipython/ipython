@@ -336,7 +336,7 @@ def update_display(obj, *, display_id, **kwargs):
     display(obj, display_id=display_id, **kwargs)
 
 
-class DisplayHandle(object):
+class DisplayHandle:
     """A handle on an updatable display
 
     Call `.update(obj)` to display a new object.
@@ -357,7 +357,7 @@ class DisplayHandle(object):
         self.display_id = display_id
 
     def __repr__(self):
-        return "<%s display_id=%s>" % (self.__class__.__name__, self.display_id)
+        return "<{} display_id={}>".format(self.__class__.__name__, self.display_id)
 
     def display(self, obj, **kwargs):
         """Make a new display with my id, updating existing instances.
@@ -567,7 +567,7 @@ def display_pdf(*objs, **kwargs):
 #-----------------------------------------------------------------------------
 
 
-class DisplayObject(object):
+class DisplayObject:
     """An object that wraps data to be displayed."""
 
     _read_flags = 'r'
@@ -623,9 +623,9 @@ class DisplayObject(object):
     def __repr__(self):
         if not self._show_mem_addr:
             cls = self.__class__
-            r = "<%s.%s object>" % (cls.__module__, cls.__name__)
+            r = "<{}.{} object>".format(cls.__module__, cls.__name__)
         else:
-            r = super(DisplayObject, self).__repr__()
+            r = super().__repr__()
         return r
 
     def _check_data(self):
@@ -667,7 +667,7 @@ class TextDisplayObject(DisplayObject):
     """Validate that display data is text"""
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, str):
-            raise TypeError("%s expects text, not %r" % (self.__class__.__name__, self.data))
+            raise TypeError("{} expects text, not {!r}".format(self.__class__.__name__, self.data))
 
 class Pretty(TextDisplayObject):
 
@@ -692,7 +692,7 @@ class HTML(TextDisplayObject):
 
         if warn():
             warnings.warn("Consider using IPython.display.IFrame instead")
-        super(HTML, self).__init__(data=data, url=url, filename=filename, metadata=metadata)
+        super().__init__(data=data, url=url, filename=filename, metadata=metadata)
 
     def _repr_html_(self):
         return self._data_and_metadata()
@@ -856,11 +856,11 @@ class JSON(DisplayObject):
             self.metadata.update(metadata)
         if kwargs:
             self.metadata.update(kwargs)
-        super(JSON, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, (dict, list)):
-            raise TypeError("%s expects JSONable dict or list, not %r" % (self.__class__.__name__, self.data))
+            raise TypeError("{} expects JSONable dict or list, not {!r}".format(self.__class__.__name__, self.data))
 
     @property
     def data(self):
@@ -959,7 +959,7 @@ class GeoJSON(JSON):
 
         """
         
-        super(GeoJSON, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
     def _ipython_display_(self):
@@ -1018,7 +1018,7 @@ class Javascript(TextDisplayObject):
             raise TypeError('expected sequence, got: %r' % css)
         self.lib = lib
         self.css = css
-        super(Javascript, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
     def _repr_javascript_(self):
         r = ''
@@ -1067,9 +1067,9 @@ def _gifxy(data):
 class Image(DisplayObject):
 
     _read_flags = 'rb'
-    _FMT_JPEG = u'jpeg'
-    _FMT_PNG = u'png'
-    _FMT_GIF = u'gif'
+    _FMT_JPEG = 'jpeg'
+    _FMT_PNG = 'png'
+    _FMT_GIF = 'gif'
     _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_GIF]
     _MIMETYPES = {
         _FMT_PNG: 'image/png',
@@ -1159,11 +1159,11 @@ class Image(DisplayObject):
 
         if format is None:
             if ext is not None:
-                if ext == u'jpg' or ext == u'jpeg':
+                if ext == 'jpg' or ext == 'jpeg':
                     format = self._FMT_JPEG
-                elif ext == u'png':
+                elif ext == 'png':
                     format = self._FMT_PNG
-                elif ext == u'gif':
+                elif ext == 'gif':
                     format = self._FMT_GIF
                 else:
                     format = ext.lower()
@@ -1193,7 +1193,7 @@ class Image(DisplayObject):
         self.height = height
         self.retina = retina
         self.unconfined = unconfined
-        super(Image, self).__init__(data=data, url=url, filename=filename, 
+        super().__init__(data=data, url=url, filename=filename, 
                 metadata=metadata)
 
         if self.width is None and self.metadata.get('width', {}):
@@ -1225,7 +1225,7 @@ class Image(DisplayObject):
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.embed:
-            super(Image,self).reload()
+            super().reload()
             if self.retina:
                 self._retina_shape()
 
@@ -1238,7 +1238,7 @@ class Image(DisplayObject):
                 height = ' height="%d"' % self.height
             if self.unconfined:
                 klass = ' class="unconfined"'
-            return u'<img src="{url}"{width}{height}{klass}/>'.format(
+            return '<img src="{url}"{width}{height}{klass}/>'.format(
                 url=self.url,
                 width=width,
                 height=height,
@@ -1370,7 +1370,7 @@ class Video(DisplayObject):
         self.embed = embed
         self.width = width
         self.height = height
-        super(Video, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
     def _repr_html_(self):
         width = height = ''
@@ -1383,7 +1383,7 @@ class Video(DisplayObject):
         # notebook output.
         if not self.embed:
             url = self.url if self.url is not None else self.filename
-            output = """<video src="{0}" controls {1} {2}>
+            output = """<video src="{}" controls {} {}>
       Your browser does not support the <code>video</code> element.
     </video>""".format(url, width, height)
             return output

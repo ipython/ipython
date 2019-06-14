@@ -140,7 +140,7 @@ def default_config():
     config.TerminalInteractiveShell.colors = 'NoColor'
     config.TerminalTerminalInteractiveShell.term_title = False,
     config.TerminalInteractiveShell.autocall = 0
-    f = tempfile.NamedTemporaryFile(suffix=u'test_hist.sqlite', delete=False)
+    f = tempfile.NamedTemporaryFile(suffix='test_hist.sqlite', delete=False)
     config.HistoryManager.hist_file = f.name
     f.close()
     config.HistoryManager.db_cache_size = 10000
@@ -262,7 +262,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
     nt.assert_equal("\n".join(out.strip().splitlines()), "\n".join(expected_out.strip().splitlines()))
 
 
-class TempFileMixin(object):
+class TempFileMixin:
     """Utility class to create temporary Python/IPython files.
 
     Meant as a mixin class for test cases."""
@@ -336,7 +336,7 @@ notprinted_msg = """Did not find {0!r} in printed output (on {1}):
 -------
 """
 
-class AssertPrints(object):
+class AssertPrints:
     """Context manager for testing that code prints certain text.
 
     Examples

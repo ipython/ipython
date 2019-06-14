@@ -102,7 +102,7 @@ def test_find_file_magic():
 
 # A few generic objects we can then inspect in the tests below
 
-class Call(object):
+class Call:
     """This is the class docstring."""
 
     def __init__(self, x, y=1):
@@ -114,7 +114,7 @@ class Call(object):
     def method(self, x, z=2):
         """Some method's docstring"""
 
-class HasSignature(object):
+class HasSignature:
     """This is the class docstring."""
     __signature__ = Signature([Parameter('test', Parameter.POSITIONAL_OR_KEYWORD)])
 
@@ -122,7 +122,7 @@ class HasSignature(object):
         """This is the init docstring"""
 
 
-class SimpleClass(object):
+class SimpleClass:
     def method(self, x, z=2):
         """Some method's docstring"""
 
@@ -170,7 +170,7 @@ class SimpleMagics(Magics):
         "A class-based line/cell magic"
 
 
-class Awkward(object):
+class Awkward:
     def __getattr__(self, name):
         raise Exception(name)
 
@@ -188,7 +188,7 @@ class NoBoolCall:
         raise NotImplementedError('Must be implemented')
 
 
-class SerialLiar(object):
+class SerialLiar:
     """Attribute accesses always get another copy of the same class.
 
     unittest.mock.call does something similar, but it's not ideal for testing
@@ -276,16 +276,16 @@ def test_definition_kwonlyargs():
     nt.assert_equal(i['definition'], "f_kwarg(pos, *, kwonly)")
 
 def test_getdoc():
-    class A(object):
+    class A:
         """standard docstring"""
         pass
 
-    class B(object):
+    class B:
         """standard docstring"""
         def getdoc(self):
             return "custom docstring"
     
-    class C(object):
+    class C:
         """standard docstring"""
         def getdoc(self):
             return None
@@ -312,7 +312,7 @@ def test_property_sources():
         "Adds two numbers"
         return a + b
     
-    class A(object):
+    class A:
         @property
         def foo(self):
             return 'bar'
@@ -334,7 +334,7 @@ def test_property_sources():
 
 
 def test_property_docstring_is_in_info_for_detail_level_0():
-    class A(object):
+    class A:
         @property
         def foobar(self):
             """This is `foobar` property."""
