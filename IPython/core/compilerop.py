@@ -35,6 +35,7 @@ import hashlib
 import linecache
 import operator
 import time
+from contextlib import contextmanager
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -133,6 +134,21 @@ class CachingCompiler(codeop.Compile):
         linecache.cache[name] = entry
         linecache._ipython_cache[name] = entry
         return name
+
+    @contextmanager
+    def extra_flags(self, flags):
+        ## bits that we'll set to 1
+        turn_on_bits = ~self.flags & flags
+
+
+        self.flags = self.flags | flags
+        try:
+            yield
+        finally:
+            # turn off only the bits we turned on so that something like
+            # __future__ that set flags stays. 
+            self.flags &= ~turn_on_bits
+
 
 def check_linecache_ipython(*args):
     """Call linecache.checkcache() safely protecting our cached values.

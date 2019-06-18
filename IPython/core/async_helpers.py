@@ -13,6 +13,7 @@ Python semantics.
 
 import ast
 import sys
+import inspect
 from textwrap import dedent, indent
 
 
@@ -98,6 +99,8 @@ class _AsyncSyntaxErrorVisitor(ast.NodeVisitor):
     is erroneously allowed (e.g. yield or return at the top level)
     """
     def __init__(self):
+        if sys.version_info >= (3,8):
+            raise ValueError('DEPRECATED in Python 3.8+')
         self.depth = 0
         super().__init__()
 
@@ -146,12 +149,16 @@ def _should_be_async(cell: str) -> bool:
     Not handled yet: If the block of code has a return statement as  the top
     level, it will be seen as async. This is a know limitation.
     """
-
+    if sys.version_info > (3, 8):
+        try:
+            code = compile(cell, "<>", "exec", flags=getattr(ast,'PyCF_ALLOW_TOP_LEVEL_AWAIT', 0x0))
+            return inspect.CO_COROUTINE & code.co_flags == inspect.CO_COROUTINE
+        except SyntaxError:
+            return False
     try:
         # we can't limit ourself to ast.parse, as it __accepts__ to parse on
         # 3.7+, but just does not _compile_
-        compile(cell, "<>", "exec")
-        return False
+        code = compile(cell, "<>", "exec")
     except SyntaxError:
         try:
             parse_tree = _async_parse_cell(cell)
