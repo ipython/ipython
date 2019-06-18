@@ -48,7 +48,7 @@ IP_TEST_DIR = os.path.join(HOME_TEST_DIR,'.ipython')
 # Setup/teardown functions/decorators
 #
 
-def setup():
+def setup_module():
     """Setup test environment for the module:
 
             - Adds dummy home dir tree
@@ -58,7 +58,7 @@ def setup():
     os.makedirs(IP_TEST_DIR)
 
 
-def teardown():
+def teardown_module():
     """Teardown test environment for the module:
 
             - Remove dummy home dir tree
