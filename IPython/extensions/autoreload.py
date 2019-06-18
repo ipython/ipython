@@ -323,7 +323,6 @@ def update_instances(old, new, objects=None, visited={}):
 def update_class(old, new):
     """Replace stuff in the __dict__ of a class, and upgrade
     method code objects, and add new methods, if any"""
-    print('old is', id(old))
     for key in list(old.__dict__.keys()):
         old_obj = getattr(old, key)
         try:
