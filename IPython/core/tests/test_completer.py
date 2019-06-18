@@ -387,8 +387,8 @@ def test_greedy_completions():
     _,c = ip.complete('.',line='a[0].')
     nt.assert_false('.real' in c,
                     "Shouldn't have completed on a[0]: %s"%c)
-    with greedy_completion(), provisionalcompleter():
-        def _(line, cursor_pos, expect, message, completion):
+    def _(line, cursor_pos, expect, message, completion):
+        with greedy_completion(), provisionalcompleter():
             ip.Completer.use_jedi = False
             _,c = ip.complete('.', line=line, cursor_pos=cursor_pos)
             nt.assert_in(expect, c, message % c)
@@ -398,6 +398,7 @@ def test_greedy_completions():
                 completions = ip.Completer.completions(line, cursor_pos)
             nt.assert_in(completion, completions)
 
+    with provisionalcompleter():
         yield _, 'a[0].', 5, 'a[0].real', "Should have completed on a[0].: %s", Completion(5,5, 'real')
         yield _, 'a[0].r', 6, 'a[0].real', "Should have completed on a[0].r: %s", Completion(5,6, 'real')
 
