@@ -10,7 +10,6 @@ import nose.tools as nt
 # our own packages
 from IPython.core import autocall
 from IPython.testing import tools as tt
-from IPython.testing.globalipapp import get_ipython
 from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
@@ -18,7 +17,6 @@ from IPython.utils import py3compat
 #-----------------------------------------------------------------------------
 
 # Get the public instance of IPython
-ip = get_ipython()
 
 failures = []
 num_tests = 0

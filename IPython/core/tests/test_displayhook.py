@@ -3,8 +3,6 @@ from IPython.testing.tools import AssertPrints, AssertNotPrints
 from IPython.core.displayhook import CapturingDisplayHook
 from IPython.utils.capture import CapturedIO
 
-ip = get_ipython()
-
 def test_output_displayed():
     """Checking to make sure that output is displayed"""
   

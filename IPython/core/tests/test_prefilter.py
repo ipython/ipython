@@ -6,12 +6,10 @@
 import nose.tools as nt
 
 from IPython.core.prefilter import AutocallChecker
-from IPython.testing.globalipapp import get_ipython
 
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
-ip = get_ipython()
 
 def test_prefilter():
     """Test user input conversions"""

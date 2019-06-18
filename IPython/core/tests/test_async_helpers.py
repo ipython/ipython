@@ -3,7 +3,6 @@ Test for async helpers.
 
 Should only trigger on python 3.5+ or will have syntax errors.
 """
-
 import sys
 from itertools import chain, repeat
 import nose.tools as nt
@@ -11,7 +10,7 @@ from textwrap import dedent, indent
 from unittest import TestCase
 from IPython.testing.decorators import skip_without
 
-ip = get_ipython()
+
 iprc = lambda x: ip.run_cell(dedent(x)).raise_error()
 iprc_nr = lambda x: ip.run_cell(dedent(x))
 

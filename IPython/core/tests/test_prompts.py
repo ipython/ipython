@@ -4,10 +4,6 @@
 import unittest
 
 from IPython.core.prompts import  LazyEvaluate
-from IPython.testing.globalipapp import get_ipython
-
-ip = get_ipython()
-
 
 class PromptTests(unittest.TestCase):
     def test_lazy_eval_unicode(self):
