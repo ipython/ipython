@@ -245,8 +245,10 @@ def skip(msg=None):
          Decorator, which, when applied to a function, causes SkipTest
          to be raised, with the optional message added.
       """
-
-    return skipif(True,msg)
+    if msg and not isinstance(msg, str):
+        raise ValueError('invalid object passed to `@skip` decorator, did you '
+                         'meant `@skip()` with brackets ?')
+    return skipif(True, msg)
 
 
 def onlyif(condition, msg):
