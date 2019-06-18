@@ -8,14 +8,6 @@
 import nose.tools as nt
 
 # our own packages
-from IPython.testing.globalipapp import get_ipython
-
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
-
-# Get the public instance of IPython
-ip = get_ipython()
 
 #-----------------------------------------------------------------------------
 # Test functions

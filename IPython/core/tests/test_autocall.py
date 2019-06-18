@@ -8,11 +8,6 @@ with better-isolated tests that don't rely on the global instance in iptest.
 from IPython.core.splitinput import LineInfo
 from IPython.core.prefilter import AutocallChecker
 from IPython.utils import py3compat
-from IPython.testing.globalipapp import get_ipython
-
-
-ip = get_ipython()
-
 
 def doctest_autocall():
     """
