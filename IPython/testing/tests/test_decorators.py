@@ -46,7 +46,7 @@ def trivial():
     pass
 
 
-@dec.skip
+@dec.skip()
 def test_deliberately_broken():
     """A deliberately broken test - we want to skip this one."""
     1/0
