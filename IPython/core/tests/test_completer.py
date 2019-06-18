@@ -114,7 +114,7 @@ class NamedInstanceMetaclass(type):
     def __getitem__(cls, item):
         return cls.get_instance(item)
 
-class NamedInstanceClass(object, metaclass=NamedInstanceMetaclass):
+class NamedInstanceClass(metaclass=NamedInstanceMetaclass):
     def __init__(self, name):
         if not hasattr(self.__class__, 'instances'):
             self.__class__.instances = {}
@@ -128,7 +128,7 @@ class NamedInstanceClass(object, metaclass=NamedInstanceMetaclass):
     def get_instance(cls, name):
         return cls.instances[name]
 
-class KeyCompletable(object):
+class KeyCompletable:
     def __init__(self, things=()):
         self.things = things
 
@@ -155,7 +155,7 @@ class TestCompleter(unittest.TestCase):
     def test_custom_completion_error(self):
         """Test that errors from custom attribute completers are silenced."""
         ip = get_ipython()
-        class A(object): pass
+        class A: pass
         ip.user_ns['x'] = A()
         
         @complete_object.register(A)
@@ -190,11 +190,11 @@ class TestCompleter(unittest.TestCase):
             nt.assert_equal(text, k)
             nt.assert_equal(matches[0], latex_symbols[k])
         # Test a more complex line
-        text, matches = ip.complete(u'print(\\alpha')
-        nt.assert_equal(text, u'\\alpha')
+        text, matches = ip.complete('print(\\alpha')
+        nt.assert_equal(text, '\\alpha')
         nt.assert_equal(matches[0], latex_symbols['\\alpha'])
         # Test multiple matching latex symbols
-        text, matches = ip.complete(u'\\al')
+        text, matches = ip.complete('\\al')
         nt.assert_in('\\alpha', matches)
         nt.assert_in('\\aleph', matches)
 
@@ -313,7 +313,7 @@ class TestCompleter(unittest.TestCase):
             # Now check with a function call
             cmd = 'a = f("%s' % prefix
             c = ip.complete(prefix, cmd)[1]
-            comp = set(prefix+s for s in suffixes)
+            comp = {prefix+s for s in suffixes}
             nt.assert_true(comp.issubset(set(c)))
 
 
@@ -528,14 +528,14 @@ class TestCompleter(unittest.TestCase):
 
 
     def test_get__all__entries_ok(self):
-        class A(object):
+        class A:
             __all__ = ['x', 1]
         words = completer.get__all__entries(A())
         nt.assert_equal(words, ['x'])
 
 
     def test_get__all__entries_no__all__ok(self):
-        class A(object):
+        class A:
             pass
         words = completer.get__all__entries(A())
         nt.assert_equal(words, [])
@@ -907,7 +907,7 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
         complete = ip.Completer.complete
 
-        ip.user_ns['d'] = {u'a\u05d0': None}
+        ip.user_ns['d'] = {'a\u05d0': None}
 
         # query using escape
         if sys.platform != 'win32':
@@ -917,7 +917,7 @@ class TestCompleter(unittest.TestCase):
 
         # query using character
         _, matches = complete(line_buffer="d['a\u05d0")
-        nt.assert_in(u"a\u05d0", matches)
+        nt.assert_in("a\u05d0", matches)
         
         with greedy_completion():
             # query using escape
@@ -926,7 +926,7 @@ class TestCompleter(unittest.TestCase):
 
             # query using character
             _, matches = complete(line_buffer="d['a\u05d0")
-            nt.assert_in(u"d['a\u05d0']", matches)
+            nt.assert_in("d['a\u05d0']", matches)
             
 
 
