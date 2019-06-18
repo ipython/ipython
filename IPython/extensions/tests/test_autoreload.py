@@ -35,10 +35,12 @@ from IPython.core.events import EventManager, pre_run_cell
 
 noop = lambda *a, **kw: None
 
-class FakeShell(object):
+class FakeShell:
 
     def __init__(self):
         self.ns = {}
+        self.user_ns = self.ns
+        self.user_ns_hidden = {}
         self.events = EventManager(self, {'pre_run_cell', pre_run_cell})
         self.auto_magics = AutoreloadMagics(shell=self)
         self.events.register('pre_run_cell', self.auto_magics.pre_run_cell)
@@ -47,7 +49,7 @@ class FakeShell(object):
 
     def run_code(self, code):
         self.events.trigger('pre_run_cell')
-        exec(code, self.ns)
+        exec(code, self.user_ns)
         self.auto_magics.post_execute_hook()
 
     def push(self, items):
@@ -104,7 +106,7 @@ class Fixture(object):
         (because that is stored in the file).  The only reliable way
         to achieve this seems to be to sleep.
         """
-
+        content = textwrap.dedent(content)
         # Sleep one second + eps
         time.sleep(1.05)
 
@@ -113,6 +115,7 @@ class Fixture(object):
             f.write(content)
 
     def new_module(self, code):
+        code = textwrap.dedent(code)
         mod_name, mod_fn = self.get_module()
         with open(mod_fn, 'w') as f:
             f.write(code)
@@ -121,6 +124,17 @@ class Fixture(object):
 #-----------------------------------------------------------------------------
 # Test automatic reloading
 #-----------------------------------------------------------------------------
+
+def pickle_get_current_class(obj):
+    """
+    Original issue comes from pickle; hence the name.
+    """
+    name = obj.__class__.__name__
+    module_name = getattr(obj, "__module__", None)
+    obj2 = sys.modules[module_name]
+    for subpath in name.split("."):
+        obj2 = getattr(obj2, subpath)
+    return obj2
 
 class TestAutoreload(Fixture):
 
@@ -144,6 +158,42 @@ class TestAutoreload(Fixture):
                             """))
         with tt.AssertNotPrints(('[autoreload of %s failed:' % mod_name), channel='stderr'):
             self.shell.run_code("pass")  # trigger another reload
+
+    def test_reload_class_type(self):
+        self.shell.magic_autoreload("2")
+        mod_name, mod_fn = self.new_module(
+            """
+            class Test():
+                def meth(self):
+                    return "old"
+        """
+        )
+        assert "test" not in self.shell.ns
+        assert "result" not in self.shell.ns
+
+        self.shell.run_code("from %s import Test" % mod_name)
+        self.shell.run_code("test = Test()")
+
+        self.write_file(
+            mod_fn,
+            """
+            class Test():
+                def meth(self):
+                    return "new"
+        """,
+        )
+
+        test_object = self.shell.ns["test"]
+
+        # important to trigger autoreload logic !
+        self.shell.run_code("pass")
+
+        test_class = pickle_get_current_class(test_object)
+        assert isinstance(test_object, test_class)
+
+        # extra check.
+        self.shell.run_code("import pickle")
+        self.shell.run_code("p = pickle.dumps(test)")
 
     def test_reload_class_attributes(self):
         self.shell.magic_autoreload("2")
@@ -392,6 +442,7 @@ x = -99
 
     def test_smoketest_autoreload(self):
         self._check_smoketest(use_aimport=False)
+
 
 
 
