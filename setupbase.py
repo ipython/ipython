@@ -38,7 +38,8 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 
 def execfile(fname, globs, locs=None):
     locs = locs or globs
-    exec(compile(open(fname).read(), fname, "exec"), globs, locs)
+    with open(fname) as f:
+        exec(compile(f.read(), fname, "exec"), globs, locs)
 
 # A little utility we'll need below, since glob() does NOT allow you to do
 # exclusion on multiple endings!
