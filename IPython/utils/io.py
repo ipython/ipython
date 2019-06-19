@@ -205,10 +205,10 @@ def temp_pyfile(src, ext='.py'):
       It is the caller's responsibility to close the open file and unlink it.
     """
     fname = tempfile.mkstemp(ext)[1]
-    f = open(fname,'w')
-    f.write(src)
-    f.flush()
-    return fname, f
+    with open(fname,'w') as f:
+        f.write(src)
+        f.flush()
+    return fname
 
 @undoc
 def atomic_writing(*args, **kwargs):

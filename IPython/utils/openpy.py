@@ -32,12 +32,12 @@ def source_to_unicode(txt, errors='replace', skip_encoding_cookie=True):
     except SyntaxError:
         encoding = "ascii"
     buffer.seek(0)
-    text = TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True)
-    text.mode = 'r'
-    if skip_encoding_cookie:
-        return u"".join(strip_encoding_cookie(text))
-    else:
-        return text.read()
+    with TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True) as text:
+        text.mode = 'r'
+        if skip_encoding_cookie:
+            return u"".join(strip_encoding_cookie(text))
+        else:
+            return text.read()
 
 def strip_encoding_cookie(filelike):
     """Generator to pull lines from a text-mode file, skipping the encoding

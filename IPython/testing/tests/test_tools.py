@@ -62,9 +62,8 @@ def test_parser():
 
 def test_temp_pyfile():
     src = 'pass\n'
-    fname, fh = tt.temp_pyfile(src)
+    fname = tt.temp_pyfile(src)
     assert os.path.isfile(fname)
-    fh.close()
     with open(fname) as fh2:
         src2 = fh2.read()
     nt.assert_equal(src2, src)
