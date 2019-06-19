@@ -66,28 +66,29 @@ def test_io_init():
         # just test for string equality.
         assert 'IPython.utils.io.IOStream' in classname, classname
 
-def test_IOStream_init():
-    """IOStream initializes from a file-like object missing attributes. """
-    # Cause a failure from getattr and dir(). (Issue #6386)
-    class BadStringIO(StringIO):
-        def __dir__(self):
-            attrs = super(StringIO, self).__dir__()
-            attrs.append('name')
-            return attrs
+class TestIOStream(unittest.TestCase):
 
-    iostream = IOStream(BadStringIO())
-    iostream.write('hi, bad iostream\n')
-    assert not hasattr(iostream, 'name')
-    iostream.close()
+    def test_IOStream_init(self):
+        """IOStream initializes from a file-like object missing attributes. """
+        # Cause a failure from getattr and dir(). (Issue #6386)
+        class BadStringIO(StringIO):
+            def __dir__(self):
+                attrs = super().__dir__()
+                attrs.append('name')
+                return attrs
+        with self.assertWarns(DeprecationWarning):
+            iostream = IOStream(BadStringIO())
+            iostream.write('hi, bad iostream\n')
 
-def test_capture_output():
-    """capture_output() context works"""
-    
-    with capture_output() as io:
-        print('hi, stdout')
-        print('hi, stderr', file=sys.stderr)
-    
-    nt.assert_equal(io.stdout, 'hi, stdout\n')
-    nt.assert_equal(io.stderr, 'hi, stderr\n')
+        assert not hasattr(iostream, 'name')
+        iostream.close()
 
-
+    def test_capture_output(self):
+        """capture_output() context works"""
+        
+        with capture_output() as io:
+            print('hi, stdout')
+            print('hi, stderr', file=sys.stderr)
+        
+        nt.assert_equal(io.stdout, 'hi, stdout\n')
+        nt.assert_equal(io.stderr, 'hi, stderr\n')

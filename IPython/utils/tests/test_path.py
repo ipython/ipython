@@ -263,28 +263,31 @@ def test_get_long_path_name():
     p = path.get_long_path_name('/usr/local')
     nt.assert_equal(p,'/usr/local')
 
-@dec.skip_win32 # can't create not-user-writable dir on win
-@with_environment
-def test_not_writable_ipdir():
-    tmpdir = tempfile.mkdtemp()
-    os.name = "posix"
-    env.pop('IPYTHON_DIR', None)
-    env.pop('IPYTHONDIR', None)
-    env.pop('XDG_CONFIG_HOME', None)
-    env['HOME'] = tmpdir
-    ipdir = os.path.join(tmpdir, '.ipython')
-    os.mkdir(ipdir, 0o555)
-    try:
-        open(os.path.join(ipdir, "_foo_"), 'w').close()
-    except IOError:
-        pass
-    else:
-        # I can still write to an unwritable dir,
-        # assume I'm root and skip the test
-        raise SkipTest("I can't create directories that I can't write to")
-    with AssertPrints('is not a writable location', channel='stderr'):
-        ipdir = paths.get_ipython_dir()
-    env.pop('IPYTHON_DIR', None)
+
+class TestRaiseDeprecation(unittest.TestCase):
+
+    @dec.skip_win32 # can't create not-user-writable dir on win
+    @with_environment
+    def test_not_writable_ipdir(self):
+        tmpdir = tempfile.mkdtemp()
+        os.name = "posix"
+        env.pop('IPYTHON_DIR', None)
+        env.pop('IPYTHONDIR', None)
+        env.pop('XDG_CONFIG_HOME', None)
+        env['HOME'] = tmpdir
+        ipdir = os.path.join(tmpdir, '.ipython')
+        os.mkdir(ipdir, 0o555)
+        try:
+            open(os.path.join(ipdir, "_foo_"), 'w').close()
+        except IOError:
+            pass
+        else:
+            # I can still write to an unwritable dir,
+            # assume I'm root and skip the test
+            raise SkipTest("I can't create directories that I can't write to")
+        with self.assertWarnsRegex(UserWarning, 'is not a writable location'):
+            ipdir = paths.get_ipython_dir()
+        env.pop('IPYTHON_DIR', None)
 
 @with_environment
 def test_get_py_filename():
@@ -313,7 +316,7 @@ def test_unicode_in_filename():
     """
     try:
         # these calls should not throw unicode encode exceptions
-        path.get_py_filename('fooéè.py', force_win32=False)
+        path.get_py_filename('fooéè.py')
     except IOError as ex:
         str(ex)
 
@@ -406,7 +409,7 @@ def test_ensure_dir_exists():
         with nt.assert_raises(IOError):
             path.ensure_dir_exists(f)
 
-class TestLinkOrCopy(object):
+class TestLinkOrCopy(unittest.TestCase):
     def setUp(self):
         self.tempdir = TemporaryDirectory()
         self.src = self.dst("src")
