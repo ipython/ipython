@@ -530,6 +530,10 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
         ip.safe_execfile(self.fname, {}, raise_exceptions=True)
 
 class ExitCodeChecks(tt.TempFileMixin):
+
+    def setUp(self):
+        self.system = ip.system_raw
+
     def test_exit_code_ok(self):
         self.system('exit 0')
         self.assertEqual(ip.user_ns['_exit_code'], 0)
@@ -559,8 +563,11 @@ class ExitCodeChecks(tt.TempFileMixin):
                 del os.environ['SHELL']
 
 
-class TestSystemRaw(ExitCodeChecks, unittest.TestCase):
-    system = ip.system_raw
+class TestSystemRaw(ExitCodeChecks):
+
+    def setUp(self):
+        super().setUp()
+        self.sytem = ip.system_raw
 
     @onlyif_unicode_paths
     def test_1(self):
@@ -580,8 +587,11 @@ class TestSystemRaw(ExitCodeChecks, unittest.TestCase):
         self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGINT)
 
 # TODO: Exit codes are currently ignored on Windows.
-class TestSystemPipedExitCode(ExitCodeChecks, unittest.TestCase):
-    system = ip.system_piped
+class TestSystemPipedExitCode(ExitCodeChecks):
+
+    def setUp(self):
+        super().setUp()
+        self.sytem = ip.system_piped
 
     @skip_win32
     def test_exit_code_ok(self):
@@ -595,7 +605,7 @@ class TestSystemPipedExitCode(ExitCodeChecks, unittest.TestCase):
     def test_exit_code_signal(self):
         ExitCodeChecks.test_exit_code_signal(self)
 
-class TestModules(tt.TempFileMixin, unittest.TestCase):
+class TestModules(tt.TempFileMixin):
     def test_extraneous_loads(self):
         """Test we're not loading modules on startup that we shouldn't.
         """
@@ -944,7 +954,7 @@ def wrn():
 
 class TestImportNoDeprecate(tt.TempFileMixin):
 
-    def setup(self):
+    def setUp(self):
         """Make a valid python temp file."""
         self.mktmp("""
 import warnings
@@ -954,6 +964,7 @@ def wrn():
         DeprecationWarning
     )
 """)
+        super().setUp()
 
     def test_no_dep(self):
         """

@@ -90,7 +90,7 @@ def test_arg_split_win32():
         nt.assert_equal(arg_split(argstr), argv)
 
 
-class SubProcessTestCase(TestCase, tt.TempFileMixin):
+class SubProcessTestCase(tt.TempFileMixin):
     def setUp(self):
         """Make a valid python temp file."""
         lines = [ "import sys",

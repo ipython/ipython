@@ -85,7 +85,7 @@ class TestAssertPrints(unittest.TestCase):
         self.assertRaises(AssertionError, func)
 
 
-class Test_ipexec_validate(unittest.TestCase, tt.TempFileMixin):
+class Test_ipexec_validate(tt.TempFileMixin):
     def test_main_path(self):
         """Test with only stdout results.
         """

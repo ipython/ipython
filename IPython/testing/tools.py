@@ -13,6 +13,7 @@ import os
 import re
 import sys
 import tempfile
+import unittest
 
 from contextlib import contextmanager
 from io import StringIO
@@ -262,7 +263,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
     nt.assert_equal("\n".join(out.strip().splitlines()), "\n".join(expected_out.strip().splitlines()))
 
 
-class TempFileMixin(object):
+class TempFileMixin(unittest.TestCase):
     """Utility class to create temporary Python/IPython files.
 
     Meant as a mixin class for test cases."""
