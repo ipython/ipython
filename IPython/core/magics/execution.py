@@ -934,6 +934,7 @@ python-profiler package from non-free.""")
                 deb._exec_filename = filename
             while True:
                 try:
+                    trace = sys.gettrace()
                     deb.run(code, code_ns)
                 except Restart:
                     print("Restarting")
@@ -943,6 +944,8 @@ python-profiler package from non-free.""")
                     continue
                 else:
                     break
+                finally:
+                    sys.settrace(trace)
             
 
         except:
