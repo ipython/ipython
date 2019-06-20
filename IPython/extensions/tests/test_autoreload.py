@@ -24,6 +24,8 @@ from io import StringIO
 import nose.tools as nt
 import IPython.testing.tools as tt
 
+from unittest import TestCase
+
 from IPython.testing.decorators import skipif
 
 from IPython.extensions.autoreload import AutoreloadMagics
@@ -63,7 +65,7 @@ class FakeShell:
         self.auto_magics.post_execute_hook()
 
 
-class Fixture(object):
+class Fixture(TestCase):
     """Fixture for creating test module files"""
 
     test_dir = None

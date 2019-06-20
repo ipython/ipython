@@ -165,7 +165,7 @@ def doctest_reset_del():
 
 class TestMagicRunPass(tt.TempFileMixin):
 
-    def setup(self):
+    def setUp(self):
         content = "a = [1,2,3]\nb = 1"
         self.mktmp(content)
         
