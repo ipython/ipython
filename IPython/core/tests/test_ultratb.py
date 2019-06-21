@@ -39,7 +39,7 @@ def recursionlimit(frames):
     def inner(test_function):
         def wrapper(*args, **kwargs):
             _orig_rec_limit = ultratb._FRAME_RECURSION_LIMIT
-            ultratb._FRAME_RECURSION_LIMIT = frames - 50
+            ultratb._FRAME_RECURSION_LIMIT = 50
 
             rl = sys.getrecursionlimit()
             sys.setrecursionlimit(frames)
@@ -327,17 +327,17 @@ def r3o2():
         with tt.AssertNotPrints("frames repeated"):
             ip.run_cell("non_recurs()")
 
-    @recursionlimit(65)
+    @recursionlimit(150)
     def test_recursion_one_frame(self):
         with tt.AssertPrints("1 frames repeated"):
             ip.run_cell("r1()")
 
-    @recursionlimit(65)
+    @recursionlimit(150)
     def test_recursion_three_frames(self):
         with tt.AssertPrints("3 frames repeated"):
             ip.run_cell("r3o2()")
 
-    @recursionlimit(65)
+    @recursionlimit(150)
     def test_find_recursion(self):
         captured = []
         def capture_exc(*args, **kwargs):

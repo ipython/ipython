@@ -36,7 +36,6 @@ from IPython.utils.process import find_cmd
 # Globals
 #-----------------------------------------------------------------------------
 # This is used by every single test, no point repeating it ad nauseam
-ip = get_ipython()
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -127,8 +126,8 @@ class InteractiveShellTestCase(unittest.TestCase):
         """Pretty-printing lists of objects with non-ascii reprs may cause
         problems."""
         class Spam(object):
-          def __repr__(self):
-            return "\xe9"*50
+            def __repr__(self):
+                return "\xe9"*50
         import IPython.core.formatters
         f = IPython.core.formatters.PlainTextFormatter()
         f([Spam(),Spam()])
@@ -766,7 +765,7 @@ class TestAstTransformError(unittest.TestCase):
         err_transformer = ErrorTransformer()
         ip.ast_transformers.append(err_transformer)
         
-        with tt.AssertPrints("unregister", channel='stderr'):
+        with self.assertWarnsRegex(UserWarning, "It will be unregistered"):
             ip.run_cell("1 + 2")
         
         # This should have been removed.
@@ -882,9 +881,6 @@ def test_user_expression():
     
     # back to text only
     ip.display_formatter.active_types = ['text/plain']
-    
-
-
 
 
 class TestSyntaxErrorTransformer(unittest.TestCase):
@@ -918,25 +914,25 @@ class TestSyntaxErrorTransformer(unittest.TestCase):
             ip.run_cell('3456')
 
 
+class TestWarningSupression(unittest.TestCase):
+    def test_warning_suppression(self):
+        ip.run_cell("import warnings")
+        try:
+            with self.assertWarnsRegex(UserWarning, "asdf"):
+                ip.run_cell("warnings.warn('asdf')")
+            # Here's the real test -- if we run that again, we should get the
+            # warning again. Traditionally, each warning was only issued once per
+            # IPython session (approximately), even if the user typed in new and
+            # different code that should have also triggered the warning, leading
+            # to much confusion.
+            with self.assertWarnsRegex(UserWarning, "asdf"):
+                ip.run_cell("warnings.warn('asdf')")
+        finally:
+            ip.run_cell("del warnings")
 
-def test_warning_suppression():
-    ip.run_cell("import warnings")
-    try:
-        with tt.AssertPrints("UserWarning: asdf", channel="stderr"):
-            ip.run_cell("warnings.warn('asdf')")
-        # Here's the real test -- if we run that again, we should get the
-        # warning again. Traditionally, each warning was only issued once per
-        # IPython session (approximately), even if the user typed in new and
-        # different code that should have also triggered the warning, leading
-        # to much confusion.
-        with tt.AssertPrints("UserWarning: asdf", channel="stderr"):
-            ip.run_cell("warnings.warn('asdf')")
-    finally:
-        ip.run_cell("del warnings")
 
-
-def test_deprecation_warning():
-    ip.run_cell("""
+    def test_deprecation_warning(self):
+        ip.run_cell("""
 import warnings
 def wrn():
     warnings.warn(
@@ -944,12 +940,12 @@ def wrn():
         DeprecationWarning
     )
         """)
-    try:
-        with tt.AssertPrints("I AM  A WARNING", channel="stderr"):
-            ip.run_cell("wrn()")
-    finally:
-        ip.run_cell("del warnings")
-        ip.run_cell("del wrn")
+        try:
+            with self.assertWarnsRegex(DeprecationWarning, "I AM  A WARNING"):
+                ip.run_cell("wrn()")
+        finally:
+            ip.run_cell("del warnings")
+            ip.run_cell("del wrn")
 
 
 class TestImportNoDeprecate(tt.TempFileMixin):

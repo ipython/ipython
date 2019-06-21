@@ -128,6 +128,6 @@ int()
 map()
 """
     for c in range(16, 22):
-        yield lambda: expect_token("int", cell, c)
+        yield lambda cell, c: expect_token("int", cell, c), cell, c
     for c in range(22, 28):
-        yield lambda: expect_token("map", cell, c)
+        yield lambda cell, c: expect_token("map", cell, c), cell, c
