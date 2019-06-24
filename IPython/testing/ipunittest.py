@@ -38,6 +38,7 @@ Authors
 import re
 import unittest
 from doctest import DocTestFinder, DocTestRunner, TestResults
+from IPython.terminal.interactiveshell import InteractiveShell
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -78,7 +79,7 @@ class IPython2PythonConverter(object):
         dnew = self.rps1.sub(pyps1, dnew)
         dnew = self.rps2.sub(pyps2, dnew)
         dnew = self.rout.sub(pyout, dnew)
-        ip = globalipapp.get_ipython()
+        ip = InteractiveShell.instance()
 
         # Convert input IPython source into valid Python.
         out = []

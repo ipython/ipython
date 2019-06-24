@@ -39,6 +39,7 @@ install:
   - pip install setuptools --upgrade
   - pip install -e file://$PWD#egg=ipython[test] --upgrade
   - pip install trio curio
+  - pip install 'pytest<4' matplotlib
   - pip install codecov check-manifest --upgrade
 
 script:
@@ -49,6 +50,7 @@ script:
        cp /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar37.txt /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar38.txt
     fi
   - cd /tmp && iptest --coverage xml && cd -
+  - pytest IPython
   # On the latest Python (on Linux) only, make sure that the docs build.
   - |
     if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then

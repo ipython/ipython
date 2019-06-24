@@ -33,9 +33,6 @@ from IPython.utils.tempdir import (TemporaryDirectory,
 from IPython.utils.process import find_cmd
 
 
-
-_ip = get_ipython()
-
 @magic.magics_class
 class DummyMagics(magic.Magics): pass
 
@@ -150,6 +147,7 @@ def test_rehashx():
     # rehashx must fill up syscmdlist
     scoms = _ip.db['syscmdlist']
     nt.assert_true(len(scoms) > 10)
+            
 
 
 def test_magic_parse_options():
