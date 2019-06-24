@@ -22,6 +22,34 @@ Python 3.8.
      :ghpull:`11720`
    - Unicode names for the completion are loaded lazily on first use which
      should decrease startup time. :ghpull:`11693`
+   - Autoreload now fix the types of reloaded objects; this for example allow
+     pickling of reloaded objects. :ghpull:`11644`
+
+
+Prepare migration to pytest (instead of nose) for testing
+---------------------------------------------------------
+
+Most of the work between 7.5 and 7.6 was to prepare the migration from our
+testing framework to pytest. Most of the test suite should now work by simply
+issuing ``pytest`` from the root of the repository.
+
+The migration to pytest is just at its beginning. Many of our test still rely
+on IPython-specific plugins for nose using pytest (doctest using IPython syntax
+is one example of this where test appear as "passing", while no code has been
+ran). Many test also need to be updated like ``yield-test`` to be properly
+parametrized tests.
+
+Migration to pytest allowed me to discover a number of issues in our test
+suite; which was hiding a number of subtle issues – or not actually running
+some of the tests in our test suite – I have thus corrected many of those; like
+improperly closed resources; or used of deprecated features. I also made use of
+the ``pytest --durations=...`` to find some of our slowest test and speed them
+up (our test suite can now be up to 10% faster). Pytest as also a variety of
+plugins and flags which will make the code quality of IPython and the testing
+experience better.
+
+Misc
+----
 
 Special Thanks to Gabriel (@gpotter2 on GitHub), who among other took care many
 of the remaining task for 7.4 and 7.5, like updating the website.
