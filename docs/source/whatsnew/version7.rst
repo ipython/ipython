@@ -22,8 +22,9 @@ Python 3.8.
      :ghpull:`11720`
    - Unicode names for the completion are loaded lazily on first use which
      should decrease startup time. :ghpull:`11693`
-   - Autoreload now fix the types of reloaded objects; this for example allow
+   - Autoreload now update the types of reloaded objects; this for example allow
      pickling of reloaded objects. :ghpull:`11644`
+   - Fix a big where ``%%time`` magic would suppress cell output. :ghpull:`11716`
 
 
 Prepare migration to pytest (instead of nose) for testing
@@ -50,6 +51,10 @@ experience better.
 
 Misc
 ----
+
+We skipped the release of 7.6 at the end of May, but will attempt to get back
+on schedule. We are starting to think about making introducing backward
+incompatible change and start the 8.0 series.
 
 Special Thanks to Gabriel (@gpotter2 on GitHub), who among other took care many
 of the remaining task for 7.4 and 7.5, like updating the website.
