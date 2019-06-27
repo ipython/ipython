@@ -1139,10 +1139,10 @@ class IPCompleter(Completer):
         """
         Wrapper around the completion methods for the benefit of emacs.
         """
-        prefix = text[:text.rfind(".") + 1]
+        prefix = text.rpartition('.')[0]
         with provisionalcompleter():
-            return list(map(lambda c: prefix + c.text,
-                   self.completions(text, len(text))))
+            return ['.'.join([prefix, c.text]) if prefix and self.use_jedi else c.text
+                    for c in self.completions(text, len(text))]
 
         return self.complete(text)[1]
 

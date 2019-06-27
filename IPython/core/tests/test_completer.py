@@ -346,6 +346,24 @@ class TestCompleter(unittest.TestCase):
             )[1]
             nt.assert_equal(c, [escaped])
 
+    def test_all_completions_dups(self):
+        """
+        Make sure the output of `IPCompleter.all_completions` does not have
+        duplicated prefixes.
+        """
+        ip = get_ipython()
+        c = ip.Completer
+        ip.ex("class TestClass():\n\ta=1\n\ta1=2")
+        for jedi_status in [True, False]:
+            with provisionalcompleter():
+                ip.Completer.use_jedi = jedi_status
+                matches = c.all_completions("TestCl")
+                assert matches == ['TestClass'], jedi_status
+                matches = c.all_completions("TestClass.")
+                assert len(matches) > 2, jedi_status
+                matches = c.all_completions("TestClass.a")
+                assert matches == ['TestClass.a', 'TestClass.a1'], jedi_status
+
     def test_jedi(self):
         """
         A couple of issue we had with Jedi
