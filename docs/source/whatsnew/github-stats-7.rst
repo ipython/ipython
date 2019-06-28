@@ -1,6 +1,39 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+Issues closed in 7.6
+--------------------
+
+GitHub stats for 2019/04/24 - 2019/06/28 (tag: 7.5.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 9 issues and merged 43 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.6>`__
+
+The following 19 authors contributed 144 commits.
+
+* Alok Singh
+* Andreas
+* Antony Lee
+* Daniel Hahler
+* Ed OBrien
+* Kevin Sheppard
+* Luciana da Costa Marques
+* Maor Kleinberger
+* Matthias Bussonnier
+* Miro Hrončok
+* Niclas
+* Nikita Bezdolniy
+* Oriol Abril
+* Piers Titus van der Torren
+* Pragnya Srinivasan
+* Robin Gustafsson
+* stonebig
+* Thomas A Caswell
+* zzzz-qq
+
+
 Issues closed in 7.5
 --------------------
 
