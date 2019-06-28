@@ -1,13 +1,13 @@
 # Simple tool to help for release
 # when releasing with bash, simplei source it to get asked questions. 
 
-echo -n PREV_RELEASE:
+echo -n 'PREV_RELEASE (X.y.z):'
 read PREV_RELEASE
-echo -n MILESTONE:
+echo -n 'MILESTONE (X.y):'
 read MILESTONE
-echo -n VERSION:
+echo -n 'VERSION (X.y.z):'
 read VERSION
-echo -n branch:
+echo -n 'branch (master|X.y):'
 read branch
 
 echo 
