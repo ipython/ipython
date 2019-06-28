@@ -10,6 +10,9 @@ read VERSION
 echo -n 'branch (master|X.y):'
 read branch
 
+RED=$(tput setaf 1)
+NOR=$(tput sgr0)
+
 echo 
 echo "updating what's new with informations from docs/source/whatsnew/pr"
 python tools/update_whatsnew.py
@@ -37,7 +40,8 @@ read
 echo "Cleaning repository"
 git clean -xfdi
 
-echo "please update version number in IPython/core/release.py"
+echo "please update version number in ${RED}IPython/core/release.py${NOR} , Do not commit
+yet – we'll do it later."
 
 echo "Press enter to continue"
 read
@@ -54,4 +58,10 @@ echo
 echo "Attempting to build package..."
 
 tools/build_release
+
+echo
+echo "Let\'s commit : git commit -am \"release $VERSION\" -S"
+echo "Press enter to continue"
+read
+git commit -am "release $VERSION"
 
