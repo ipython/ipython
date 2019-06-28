@@ -1450,7 +1450,10 @@ class InteractiveShell(SingletonConfigurable):
         # GUI or web frontend
         if os.name == 'posix':
             for cmd in ('clear', 'more', 'less', 'man'):
-                self.alias_manager.soft_define_alias(cmd, cmd)
+                try:
+                    name = self.magics_manager.magics['line'][cmd]
+                except KeyError:
+                    self.alias_manager.soft_define_alias(cmd, cmd)
 
         # Flush the private list of module references kept for script
         # execution protection
