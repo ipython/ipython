@@ -400,6 +400,15 @@ def test_time():
         with tt.AssertPrints("hihi", suppress=False):
             ip.run_cell("f('hi')")
 
+def test_time_last_not_expression():
+    ip.run_cell("%%time\n"
+                "var_1 = 1\n"
+                "var_2 = 2\n")
+    assert ip.user_ns['var_1'] == 1
+    del ip.user_ns['var_1']
+    assert ip.user_ns['var_2'] == 2
+    del ip.user_ns['var_2']
+    
 
 @dec.skip_win32
 def test_time2():
