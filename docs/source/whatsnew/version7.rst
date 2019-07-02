@@ -2,6 +2,15 @@
  7.x Series
 ============
 
+.. _version761:
+
+IPython 7.6.1
+=============
+
+IPython 7.6.1 contain a critical bugfix in the ``%timeit`` magic, which would
+crash on some inputs as a side effect of :ghpull:`11716`. See :ghpull:`11812`
+
+
 .. _whatsnew760:
 
 IPython 7.6.0
@@ -24,7 +33,7 @@ Python 3.8.
      should decrease startup time. :ghpull:`11693`
    - Autoreload now update the types of reloaded objects; this for example allow
      pickling of reloaded objects. :ghpull:`11644`
-   - Fix a big where ``%%time`` magic would suppress cell output. :ghpull:`11716`
+   - Fix a bug where ``%%time`` magic would suppress cell output. :ghpull:`11716`
 
 
 Prepare migration to pytest (instead of nose) for testing
