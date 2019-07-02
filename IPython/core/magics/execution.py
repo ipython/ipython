@@ -1281,13 +1281,11 @@ python-profiler package from non-free.""")
             mode = 'exec'
             source = '<timed exec>'
             # multi-line %%time case
-            if len(expr_ast.body) > 1 :
-                expr_val=expr_ast.body[-1]
-                code_val = self.shell.compile(ast.Expression(expr_val.value)
-                                                , '<timed eval>'
-                                                , 'eval')
-                expr_ast=expr_ast.body[:-1]
+            if len(expr_ast.body) > 1 and isinstance(expr_ast.body[-1], ast.Expr):
+                expr_val= expr_ast.body[-1]
+                expr_ast = expr_ast.body[:-1]
                 expr_ast = Module(expr_ast, [])
+                expr_val = ast.Expression(expr_val.value)
 
         t0 = clock()
         code = self.shell.compile(expr_ast, source, mode)
@@ -1312,8 +1310,9 @@ python-profiler package from non-free.""")
                 exec(code, glob, local_ns)
                 out=None
                 # multi-line %%time case
-                if expr_val and isinstance(expr_val, ast.Expr):
-                    out = eval(code_val, glob, local_ns)  
+                if expr_val is not None:
+                    code_2 = self.shell.compile(expr_val, source, 'eval')
+                    out = eval(code_2, glob, local_ns)
             except:
                 self.shell.showtraceback()
                 return
