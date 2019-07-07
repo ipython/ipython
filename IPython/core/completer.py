@@ -67,8 +67,8 @@ Experimental
 
 Starting with IPython 6.0, this module can make use of the Jedi library to
 generate completions both using static analysis of the code, and dynamically
-inspecting multiple namespaces. Jedi is an autocompletion and static analysis 
-for Python. The APIs attached to this new mechanism is unstable and will 
+inspecting multiple namespaces. Jedi is an autocompletion and static analysis
+for Python. The APIs attached to this new mechanism is unstable and will
 raise unless use in an :any:`provisionalcompleter` context manager.
 
 You will find that the following are experimental:
@@ -185,11 +185,11 @@ def provisionalcompleter(action='ignore'):
     """
 
 
-    This contest manager has to be used in any place where unstable completer
+    This context manager has to be used in any place where unstable completer
     behavior and API may be called.
 
     >>> with provisionalcompleter():
-    ...     completer.do_experimetal_things() # works
+    ...     completer.do_experimental_things() # works
 
     >>> completer.do_experimental_things() # raises.
 
@@ -198,12 +198,11 @@ def provisionalcompleter(action='ignore'):
         By using this context manager you agree that the API in use may change
         without warning, and that you won't complain if they do so.
 
-        You also understand that if the API is not to you liking you should report
-        a bug to explain your use case upstream and improve the API and will loose
-        credibility if you complain after the API is make stable.
+        You also understand that, if the API is not to your liking, you should report
+        a bug to explain your use case upstream.
 
-        We'll be happy to get your feedback , feature request and improvement on
-        any of the unstable APIs !
+        We'll be happy to get your feedback, feature requests, and improvements on
+        any of the unstable APIs!
     """
     with warnings.catch_warnings():
         warnings.filterwarnings(action, category=ProvisionalCompleterWarning)
@@ -1138,12 +1137,12 @@ class IPCompleter(Completer):
 
     def all_completions(self, text) -> List[str]:
         """
-        Wrapper around the completions method for the benefit of emacs.
+        Wrapper around the completion methods for the benefit of emacs.
         """
-        prefix = text[:text.rfind(".") + 1]
+        prefix = text.rpartition('.')[0]
         with provisionalcompleter():
-            return list(map(lambda c: prefix + c.text,
-                   self.completions(text, len(text))))
+            return ['.'.join([prefix, c.text]) if prefix and self.use_jedi else c.text
+                    for c in self.completions(text, len(text))]
 
         return self.complete(text)[1]
 
@@ -1557,7 +1556,7 @@ class IPCompleter(Completer):
                     argMatches.append(u"%s=" %namedArg)
         except:
             pass
-            
+
         return argMatches
 
     def dict_key_matches(self, text):
@@ -2067,7 +2066,7 @@ class IPCompleter(Completer):
         self.matches = _matches
 
         return text, _matches, origins, completions
-        
+
     def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
         if self._names is None:
             self._names = []
@@ -2086,7 +2085,7 @@ class IPCompleter(Completer):
                 return s, candidates
             else:
                 return '', ()
-        
+
         # if text does not start with slash
         else:
             return u'', ()
