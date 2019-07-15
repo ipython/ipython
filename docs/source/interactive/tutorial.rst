@@ -10,11 +10,11 @@ more than the standard prompt. Some key features are described here. For more
 information, check the :ref:`tips page <tips>`, or look at examples in the
 `IPython cookbook <https://github.com/ipython/ipython/wiki/Cookbook%3A-Index>`_.
 
-If you haven't done that yet see `how to install ipython <install>`_ .
+If you haven't done that yet see `how to install ipython <https://ipython.readthedocs.io/en/stable/install/index.html>`_ .
 
 If you've never used Python before, you might want to look at `the official
 tutorial <http://docs.python.org/tutorial/>`_ or an alternative, `Dive into
-Python <http://diveintopython.net/toc/index.html>`_.
+Python <https://www.diveinto.org/python3/table-of-contents.html>`_.
 
 Start IPython by issuing the ``ipython`` command from your shell, you should be
 greeted by the following::
