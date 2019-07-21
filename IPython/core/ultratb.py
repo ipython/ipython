@@ -41,7 +41,7 @@ Give it a shot--you'll love it or you'll hate it.
 .. note::
 
   The verbose mode print all variables in the stack, which means it can
-  potentially leak sensitive information like access keys, or unencryted
+  potentially leak sensitive information like access keys, or unencrypted
   password.
 
 Installation instructions for VerboseTB::

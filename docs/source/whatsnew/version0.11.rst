@@ -264,7 +264,7 @@ reference docs.
 Refactoring
 -----------
 
-As of this release, a signifiant portion of IPython has been refactored.  This
+As of this release, a significant portion of IPython has been refactored.  This
 refactoring is founded on a number of new abstractions.  The main new classes
 that implement these abstractions are:
 

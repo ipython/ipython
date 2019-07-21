@@ -96,7 +96,7 @@ def _detect_screen_size(screen_lines_def):
     # There is a bug in curses, where *sometimes* it fails to properly
     # initialize, and then after the endwin() call is made, the
     # terminal is left in an unusable state.  Rather than trying to
-    # check everytime for this (by requesting and comparing termios
+    # check every time for this (by requesting and comparing termios
     # flags each time), we just save the initial terminal state and
     # unconditionally reset it every time.  It's cheaper than making
     # the checks.

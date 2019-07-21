@@ -83,7 +83,7 @@ print('\nBack in caller program, moving along...\n')
 # messages. The IPython banner (which actually may contain initialization
 # messages) is available as get_ipython().banner in case you want it.
 
-# InteractiveShellEmbed instances print the following information everytime they
+# InteractiveShellEmbed instances print the following information every time they
 # start:
 
 # - A global startup banner.

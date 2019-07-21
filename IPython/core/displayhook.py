@@ -252,7 +252,7 @@ class DisplayHook(Configurable):
     def __call__(self, result=None):
         """Printing with history cache management.
 
-        This is invoked everytime the interpreter needs to print, and is
+        This is invoked every time the interpreter needs to print, and is
         activated by setting the variable sys.displayhook to it.
         """
         self.check_for_underscore()
