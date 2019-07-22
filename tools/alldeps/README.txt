@@ -43,7 +43,7 @@ It is meant to be used in an environment where you have your ``$PATH``,
 ``$PYTHONPATH``, etc variables properly configured, so that the installation of
 packages can be made with (using ``~/usr/local`` as an example)::
 
-    python setup.py install --prefix=~/usr/local
+    pip install . --prefix=~/usr/local
 
 For an explanation of how to do this, see below.
 

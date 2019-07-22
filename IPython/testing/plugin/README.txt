@@ -12,12 +12,7 @@ install the plugin by using standard Python procedures (``setup.py install``
 with appropriate arguments).
 
 To install the plugin using the Makefile, edit its first line to reflect where
-you'd like the installation.  If you want it system-wide, you may want to edit
-the install line in the plugin target to use sudo and no prefix::
-
-  sudo python setup.py install
-
-instead of the code using `--prefix` that's in there.
+you'd like the installation.
 
 Once you've set the prefix, simply build/install the plugin with::
 
