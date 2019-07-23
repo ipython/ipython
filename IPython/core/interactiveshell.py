@@ -2988,7 +2988,7 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback(preprocessing_exc_tuple)
             if store_history:
                 self.execution_count += 1
-            return error_before_exec(preprocessing_exc_tuple[2])
+            return error_before_exec(preprocessing_exc_tuple[1])
 
         # Our own compiler remembers the __future__ environment. If we want to
         # run code with a separate __future__ environment, use the default
