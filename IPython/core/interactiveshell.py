@@ -1435,9 +1435,9 @@ class InteractiveShell(SingletonConfigurable):
         drop_keys.discard('__name__')
         for k in drop_keys:
             del ns[k]
-        
+
         self.user_ns_hidden.clear()
-        
+
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
 
@@ -1450,9 +1450,7 @@ class InteractiveShell(SingletonConfigurable):
         # GUI or web frontend
         if os.name == 'posix':
             for cmd in ('clear', 'more', 'less', 'man'):
-                try:
-                    name = self.magics_manager.magics['line'][cmd]
-                except KeyError:
+                if cmd not in self.magics_manager.magics['line']:
                     self.alias_manager.soft_define_alias(cmd, cmd)
 
         # Flush the private list of module references kept for script
