@@ -574,7 +574,7 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
         # so that it can propagate user variables loaded by %run into
         # test.globs.  We put them here into our modified %run as a function
         # attribute.  Our new %run will then only make the namespace update
-        # when called (rather than unconconditionally updating test.globs here
+        # when called (rather than unconditionally updating test.globs here
         # for all examples, most of which won't be calling %run anyway).
         #_ip._ipdoctest_test_globs = test.globs
         #_ip._ipdoctest_test_filename = test.filename

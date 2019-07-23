@@ -293,7 +293,7 @@ class BaseIPythonApplication(Application):
         printed on screen. For testing, the suppress_errors option is set
         to False, so errors will make tests fail.
 
-        `supress_errors` default value is to be `None` in which case the
+        `suppress_errors` default value is to be `None` in which case the
         behavior default to the one of `traitlets.Application`.
 
         The default value can be set :

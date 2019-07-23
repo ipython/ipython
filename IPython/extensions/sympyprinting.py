@@ -14,7 +14,7 @@ pretty-printed.
 As of SymPy 0.7.2, maintenance of this extension has moved to SymPy under
 sympy.interactive.ipythonprinting, any modifications to account for changes to
 SymPy should be submitted to SymPy rather than changed here. This module is
-maintained here for backwards compatablitiy with old SymPy versions.
+maintained here for backwards compatibility with old SymPy versions.
 
 """
 #-----------------------------------------------------------------------------
