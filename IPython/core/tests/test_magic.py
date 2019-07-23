@@ -369,6 +369,31 @@ def test_reset_in_length():
     _ip.run_cell("reset -f in")
     nt.assert_equal(len(_ip.user_ns['In']), _ip.displayhook.prompt_count+1)
 
+class TestResetErrors(TestCase):
+
+    def test_reset_redefine(self):
+
+        @magics_class
+        class KernelMagics(Magics):
+              @line_magic
+              def less(self, shell): pass
+
+        _ip.register_magics(KernelMagics)
+
+        with self.assertLogs() as cm:
+            # hack, we want to just capture logs, but assertLogs fails if not
+            # logs get produce.
+            # so log one things we ignore.
+            import logging as log_mod
+            log = log_mod.getLogger()
+            log.info('Nothing')
+            # end hack.
+            _ip.run_cell("reset -f")
+
+        assert len(cm.output) == 1
+        for out in cm.output:
+            assert "Invalid alias" not in out
+
 def test_tb_syntaxerror():
     """test %tb after a SyntaxError"""
     ip = get_ipython()
