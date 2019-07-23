@@ -67,7 +67,7 @@ all: base ipython
 
 # Main plugin and cleanup
 IPython_doctest_plugin.egg-info: $(SRC)
-	python setup.py install --prefix=$(PREFIX)
+	pip install . --prefix=$(PREFIX)
 	touch $@
 
 clean:
