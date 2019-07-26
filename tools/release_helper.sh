@@ -1,6 +1,13 @@
 # Simple tool to help for release
 # when releasing with bash, simplei source it to get asked questions. 
 
+# misc check before starting
+
+python -c 'import keyring'
+python -c 'import twine'
+python -c 'import sphinx'
+python -c 'import sphinx_rtd_theme'
+
 echo -n 'PREV_RELEASE (X.y.z):'
 read PREV_RELEASE
 echo -n 'MILESTONE (X.y):'
@@ -40,8 +47,7 @@ read
 echo "Cleaning repository"
 git clean -xfdi
 
-echo "please update version number in ${RED}IPython/core/release.py${NOR} , Do not commit
-yet – we'll do it later."
+echo "please update version number in ${RED}IPython/core/release.py${NOR} , Do not commit yet – we'll do it later."
 
 echo "Press enter to continue"
 read
