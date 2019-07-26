@@ -7,6 +7,7 @@ python -c 'import keyring'
 python -c 'import twine'
 python -c 'import sphinx'
 python -c 'import sphinx_rtd_theme'
+python -c 'import nose'
 
 echo -n 'PREV_RELEASE (X.y.z):'
 read PREV_RELEASE
