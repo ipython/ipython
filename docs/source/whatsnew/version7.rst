@@ -2,6 +2,31 @@
  7.x Series
 ============
 
+.. _version770:
+
+IPython 7.7.0
+=============
+
+IPython 7.7.0 contain multiple bug fixes and documentation updates; Here are a
+few of the outstanding issue fixed:
+
+   - Fix a bug introduced in 7.6 where the ``%matplotlib`` magic would fail on
+     previously acceptable arguments :ghpull:`11814`.
+   - Fix the manage location on freebsd :ghpull:`11808`.
+   - Fix error message about aliases after ``%reset`` call in ipykernel
+     :ghpull:`11806`
+   - Fix Duplication completions in emacs :ghpull:`11803`
+
+We are planning to adopt `NEP29 <https://github.com/numpy/numpy/pull/14086>`_
+(still currently in draft) which may make this minor version of IPython the
+last one to support Python 3.5 and will make the code base more aggressive
+toward removing compatibility with older versions of Python.
+
+GitHub now support to give only "Triage" permissions to users; if you'd like to
+help close stale issues and labels issues please reach to us with your GitHub
+Username and we'll add you to the triage team. It is a great way to start
+contributing and a path toward getting commit rights.
+
 .. _version761:
 
 IPython 7.6.1
