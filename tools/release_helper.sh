@@ -68,7 +68,15 @@ tools/build_release
 
 echo
 echo "Let\'s commit : git commit -am \"release $VERSION\" -S"
+echo $"Press enter to continue"
+read
+git commit -am "release $VERSION" -S
+
+echo
+echo "git push origin \$BRANCH ?"
 echo "Press enter to continue"
 read
-git commit -am "release $VERSION"
+git push origin $BRANCH
+# git tag -am "release $VERSION" "$VERSION" -s
+# git push origin $VERSION
 
