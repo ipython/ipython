@@ -22,7 +22,7 @@ class LaTeXTool(SingletonConfigurable):
     """An object to store configuration of the LaTeX tool."""
     def _config_default(self):
         return get_config()
-    
+
     backends = List(
         Unicode(), ["matplotlib", "dvipng"],
         help="Preferred backend to draw LaTeX math equations. "
@@ -55,7 +55,7 @@ class LaTeXTool(SingletonConfigurable):
         ).tag(config=True)
 
 
-def latex_to_png(s, encode=False, backend=None, wrap=False):
+def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black'):
     """Render a LaTeX string to PNG.
 
     Parameters
@@ -68,6 +68,8 @@ def latex_to_png(s, encode=False, backend=None, wrap=False):
         Backend for producing PNG data.
     wrap : bool
         If true, Automatically wrap `s` as a LaTeX equation.
+    color : string
+        Foreground color name among dvipsnames.
 
     None is returned when the backend cannot be used.
 
@@ -84,13 +86,13 @@ def latex_to_png(s, encode=False, backend=None, wrap=False):
         f = latex_to_png_dvipng
     else:
         raise ValueError('No such backend {0}'.format(backend))
-    bin_data = f(s, wrap)
+    bin_data = f(s, wrap, color)
     if encode and bin_data:
         bin_data = encodebytes(bin_data)
     return bin_data
 
 
-def latex_to_png_mpl(s, wrap):
+def latex_to_png_mpl(s, wrap, color='Black'):
     try:
         from matplotlib import mathtext
         from pyparsing import ParseFatalException
@@ -105,13 +107,13 @@ def latex_to_png_mpl(s, wrap):
     try:
         mt = mathtext.MathTextParser('bitmap')
         f = BytesIO()
-        mt.to_png(f, s, fontsize=12)
+        mt.to_png(f, s, fontsize=12, color=color)
         return f.getvalue()
     except (ValueError, RuntimeError, ParseFatalException):
         return None
 
 
-def latex_to_png_dvipng(s, wrap):
+def latex_to_png_dvipng(s, wrap, color='Black'):
     try:
         find_cmd('latex')
         find_cmd('dvipng')
@@ -133,8 +135,8 @@ def latex_to_png_dvipng(s, wrap):
 
             subprocess.check_call(
                 ["dvipng", "-T", "tight", "-x", "1500", "-z", "9",
-                 "-bg", "transparent", "-o", outfile, dvifile], cwd=workdir,
-                stdout=devnull, stderr=devnull)
+                 "-bg", "transparent", "-o", outfile, dvifile, "-fg", color],
+                 cwd=workdir, stdout=devnull, stderr=devnull)
 
         with open(outfile, "rb") as f:
             return f.read()
