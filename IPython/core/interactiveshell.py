@@ -863,7 +863,7 @@ class InteractiveShell(SingletonConfigurable):
         self.configurables.append(self.display_formatter)
 
     def init_display_pub(self):
-        self.display_pub = self.display_pub_class(parent=self)
+        self.display_pub = self.display_pub_class(parent=self, shell=self)
         self.configurables.append(self.display_pub)
 
     def init_data_pub(self):
