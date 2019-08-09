@@ -10,7 +10,7 @@ import tempfile
 import shutil
 import subprocess
 from base64 import encodebytes
-from textwrap import wrap as splitstring
+import textwrap
 
 from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config
@@ -94,7 +94,7 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
             if len(color) == 7:
                 try:
                     color = "RGB {}".format(" ".join([str(int(x, 16)) for x in
-                                                      splitstring(color[1:], 2)]))
+                                                      textwrap.wrap(color[1:], 2)]))
                 except ValueError:
                     raise ValueError('Invalid color specification {}.'.format(color))
             else:
