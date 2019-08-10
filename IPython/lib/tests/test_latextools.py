@@ -62,7 +62,7 @@ def test_latex_to_png_mpl_runs():
 @skipif_not_matplotlib
 def test_latex_to_html():
     img = latextools.latex_to_html("$x^2$")
-    nt.assert_in("data:image/png;base64,iVBOR", img) 
+    nt.assert_in("data:image/png;base64,iVBOR", img)
 
 
 def test_genelatex_no_wrap():
@@ -132,3 +132,50 @@ def test_genelatex_wrap_without_breqn():
 \begin{document}
 $$x^2$$
 \end{document}''')
+
+
+@skipif_not_matplotlib
+@onlyif_cmds_exist('latex', 'dvipng')
+def test_latex_to_png_color():
+    """
+    Test color settings for latex_to_png.
+    """
+    latex_string = "$x^2$"
+    default_value = latextools.latex_to_png(latex_string, wrap=False)
+    default_hexblack = latextools.latex_to_png(latex_string, wrap=False,
+                                               color='#000000')
+    dvipng_default = latextools.latex_to_png_dvipng(latex_string, False)
+    dvipng_black = latextools.latex_to_png_dvipng(latex_string, False, 'Black')
+    nt.assert_equal(dvipng_default, dvipng_black)
+    mpl_default = latextools.latex_to_png_mpl(latex_string, False)
+    mpl_black = latextools.latex_to_png_mpl(latex_string, False, 'Black')
+    nt.assert_equal(mpl_default, mpl_black)
+    nt.assert_in(default_value, [dvipng_black, mpl_black])
+    nt.assert_in(default_hexblack, [dvipng_black, mpl_black])
+
+    # Test that dvips name colors can be used without error
+    dvipng_maroon = latextools.latex_to_png_dvipng(latex_string, False,
+                                                   'Maroon')
+    # And that it doesn't return the black one
+    nt.assert_not_equal(dvipng_black, dvipng_maroon)
+
+    mpl_maroon = latextools.latex_to_png_mpl(latex_string, False, 'Maroon')
+    nt.assert_not_equal(mpl_black, mpl_maroon)
+    mpl_white = latextools.latex_to_png_mpl(latex_string, False, 'White')
+    mpl_hexwhite = latextools.latex_to_png_mpl(latex_string, False, '#FFFFFF')
+    nt.assert_equal(mpl_white, mpl_hexwhite)
+
+    mpl_white_scale = latextools.latex_to_png_mpl(latex_string, False,
+                                                  'White', 1.2)
+    nt.assert_not_equal(mpl_white, mpl_white_scale)
+
+
+def test_latex_to_png_invalid_hex_colors():
+    """
+    Test that invalid hex colors provided to dvipng gives an exception.
+    """
+    latex_string = "$x^2$"
+    nt.assert_raises(ValueError, lambda: latextools.latex_to_png(latex_string,
+                                        backend='dvipng', color="#f00bar"))
+    nt.assert_raises(ValueError, lambda: latextools.latex_to_png(latex_string,
+                                        backend='dvipng', color="#f00"))
