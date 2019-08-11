@@ -12,6 +12,13 @@ exclude tools
 exclude CONTRIBUTING.md
 exclude .editorconfig
 
+exclude docs/source/_images/ipy_013_qtconsole_baboon.png
+exclude examples/images/FrontendKernel.png
+exclude examples/images/FrontendKernel.graffle
+exclude docs/source/interactive/figs/besselj.png
+exclude docs/source/interactive/figs/colors_dark.png
+exclude docs/source/_images/2.0/running.png
+
 graft setupext
 
 graft scripts
