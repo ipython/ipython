@@ -389,6 +389,10 @@ class InteractiveShell(SingletonConfigurable):
         help="""Select the loop runner that will be used to execute top-level asynchronous code"""
     ).tag(config=True)
 
+    completion_sensitive = Bool(True,
+        help="Keep case-sensitive matching during tab completion",
+    ).tag(config=True)
+
     @default('loop_runner')
     def _default_loop_runner(self):
         return import_item("IPython.core.interactiveshell._asyncio_runner")

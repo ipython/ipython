@@ -123,6 +123,7 @@ import sys
 import unicodedata
 import string
 import warnings
+import fnmatch
 
 from contextlib import contextmanager
 from importlib import import_module
@@ -168,6 +169,15 @@ MATCHES_LIMIT = 500
 
 _deprecation_readline_sentinel = object()
 
+def glob_incase(which):
+    '''Returns list of filenames from CWD (if which is relative path )/specified path matched by 'which'
+           shell pattern. Matching is case-insensitive.'''
+    rule = re.compile(fnmatch.translate(which), re.IGNORECASE)
+    dirname=os.path.dirname(which)
+    if not dirname:
+        return [name for name in os.listdir('.') if rule.match(name)]
+    else:
+        return [dirname+"/"+name for name in os.listdir(dirname) if rule.match(dirname+"/"+name)]
 
 class ProvisionalCompleterWarning(FutureWarning):
     """
@@ -1088,6 +1098,8 @@ class IPCompleter(Completer):
         self.space_name_re = re.compile(r'([^\\] )')
         # Hold a local ref. to glob.glob for speed
         self.glob = glob.glob
+        if not self.shell.completion_sensitive:
+            self.glob = glob_incase
 
         # Determine if we are running on 'dumb' terminals, like (X)Emacs
         # buffers, to avoid completion problems.
@@ -1728,6 +1740,7 @@ class IPCompleter(Completer):
         cmd = line.split(None,1)[0]
         event.command = cmd
         event.text_until_cursor = self.text_until_cursor
+        event.ignore_case = not self.shell.completion_sensitive
 
         # for foo etc, try also to find completer for %foo
         if not cmd.startswith(self.magic_escape):
@@ -1744,7 +1757,7 @@ class IPCompleter(Completer):
                 if res:
                     # first, try case sensitive match
                     withcase = [r for r in res if r.startswith(text)]
-                    if withcase:
+                    if self.shell.completion_sensitive and withcase:
                         return withcase
                     # if none, then case insensitive ones are ok too
                     text_low = text.lower()
