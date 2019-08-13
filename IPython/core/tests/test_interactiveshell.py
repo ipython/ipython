@@ -566,7 +566,7 @@ class TestSystemRaw(ExitCodeChecks):
 
     def setUp(self):
         super().setUp()
-        self.sytem = ip.system_raw
+        self.system = ip.system_raw
 
     @onlyif_unicode_paths
     def test_1(self):
@@ -590,7 +590,7 @@ class TestSystemPipedExitCode(ExitCodeChecks):
 
     def setUp(self):
         super().setUp()
-        self.sytem = ip.system_piped
+        self.system = ip.system_piped
 
     @skip_win32
     def test_exit_code_ok(self):
@@ -914,7 +914,7 @@ class TestSyntaxErrorTransformer(unittest.TestCase):
             ip.run_cell('3456')
 
 
-class TestWarningSupression(unittest.TestCase):
+class TestWarningSuppression(unittest.TestCase):
     def test_warning_suppression(self):
         ip.run_cell("import warnings")
         try:

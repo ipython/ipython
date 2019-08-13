@@ -82,7 +82,7 @@ def test_interactivehooks_ast_modes():
     finally:
         ip.ast_node_interactivity = saved_mode
 
-def test_interactivehooks_ast_modes_semi_supress():
+def test_interactivehooks_ast_modes_semi_suppress():
     """
     Test that ast nodes can be triggered with different modes and suppressed
     by semicolon

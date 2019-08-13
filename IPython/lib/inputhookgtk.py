@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Enable pygtk to be used interacive by setting PyOS_InputHook.
+Enable pygtk to be used interactively by setting PyOS_InputHook.
 
 Authors: Brian Granger
 """

@@ -282,7 +282,7 @@ def load_qt(api_options):
     Raises
     ------
     ImportError, if it isn't possible to import any requested
-    bindings (either becaues they aren't installed, or because
+    bindings (either because they aren't installed, or because
     an incompatible library has already been installed)
     """
     loaders = {

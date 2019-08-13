@@ -3157,7 +3157,7 @@ class InteractiveShell(SingletonConfigurable):
 
           Experimental value: 'async' Will try to run top level interactive
           async/await code in default runner, this will not respect the
-          interactivty setting and will only run the last node if it is an
+          interactivity setting and will only run the last node if it is an
           expression. 
 
         compiler : callable

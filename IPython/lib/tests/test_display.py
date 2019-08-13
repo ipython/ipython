@@ -52,8 +52,8 @@ def test_instantiation_FileLink():
     if sys.version_info >= (3, 6):
         fl = display.FileLink(pathlib.PurePath('example.txt'))
 
-def test_warning_on_non_existant_path_FileLink():
-    """FileLink: Calling _repr_html_ on non-existant files returns a warning
+def test_warning_on_non_existent_path_FileLink():
+    """FileLink: Calling _repr_html_ on non-existent files returns a warning
     """
     fl = display.FileLink('example.txt')
     nt.assert_true(fl._repr_html_().startswith('Path (<tt>example.txt</tt>)'))
@@ -91,8 +91,8 @@ def test_instantiation_FileLinks():
     """
     fls = display.FileLinks('example')
 
-def test_warning_on_non_existant_path_FileLinks():
-    """FileLinks: Calling _repr_html_ on non-existant files returns a warning
+def test_warning_on_non_existent_path_FileLinks():
+    """FileLinks: Calling _repr_html_ on non-existent files returns a warning
     """
     fls = display.FileLinks('example')
     nt.assert_true(fls._repr_html_().startswith('Path (<tt>example</tt>)'))

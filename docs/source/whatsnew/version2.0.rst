@@ -341,7 +341,7 @@ Backwards incompatible changes
   Python versions are now 2.7 and 3.3.
 * The Transformer classes have been renamed to Preprocessor in nbconvert and
   their ``call`` methods have been renamed to ``preprocess``.
-* The ``call`` methods of nbconvert post-processsors have been renamed to
+* The ``call`` methods of nbconvert post-processors have been renamed to
   ``postprocess``.
 
 * The module ``IPython.core.fakemodule`` has been removed.

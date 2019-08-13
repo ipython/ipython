@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Enable wxPython to be used interacive by setting PyOS_InputHook.
+Enable wxPython to be used interactively by setting PyOS_InputHook.
 
 Authors:  Robin Dunn, Brian Granger, Ondrej Certik
 """

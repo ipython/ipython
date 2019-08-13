@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Enable Gtk3 to be used interacive by IPython.
+Enable Gtk3 to be used interactively by IPython.
 
 Authors: Thomi Richards
 """
