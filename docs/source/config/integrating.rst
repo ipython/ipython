@@ -85,7 +85,7 @@ Formatters for third-party types
 
 The user can also register formatters for types without modifying the class::
 
-    from bar import Foo
+    from bar.baz import Foo
 
     def foo_html(obj):
         return '<marquee>Foo object %s</marquee>' % obj.name
@@ -94,7 +94,7 @@ The user can also register formatters for types without modifying the class::
     html_formatter.for_type(Foo, foo_html)
 
     # Or register a type without importing it - this does the same as above:
-    html_formatter.for_type_by_name('bar.Foo', foo_html)
+    html_formatter.for_type_by_name('bar.baz', 'Foo', foo_html)
 
 Custom exception tracebacks
 ===========================
