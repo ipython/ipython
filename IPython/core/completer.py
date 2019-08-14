@@ -2014,7 +2014,7 @@ class IPCompleter(Completer):
 
         # Start with a clean slate of completions
         matches = []
-        custom_res = self.dispatch_custom_completer(text)
+        
         # FIXME: we should extend our api to return a dict with completions for
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
@@ -2025,29 +2025,24 @@ class IPCompleter(Completer):
                 full_text = line_buffer
             completions = self._jedi_matches(
                 cursor_pos, cursor_line, full_text)
-        if custom_res is not None:
-            # did custom completers produce something?
-            matches = [(m, 'custom') for m in custom_res]
+                
+        if self.merge_completions:
+            matches = []
+            for matcher in self.matchers:
+                try:
+                    matches.extend([(m, matcher.__qualname__)
+                                    for m in matcher(text)])
+                except:
+                    # Show the ugly traceback if the matcher causes an
+                    # exception, but do NOT crash the kernel!
+                    sys.excepthook(*sys.exc_info())
         else:
-            # Extend the list of completions with the results of each
-            # matcher, so we return results to the user from all
-            # namespaces.
-            if self.merge_completions:
-                matches = []
-                for matcher in self.matchers:
-                    try:
-                        matches.extend([(m, matcher.__qualname__)
-                                        for m in matcher(text)])
-                    except:
-                        # Show the ugly traceback if the matcher causes an
-                        # exception, but do NOT crash the kernel!
-                        sys.excepthook(*sys.exc_info())
-            else:
-                for matcher in self.matchers:
-                    matches = [(m, matcher.__qualname__)
-                               for m in matcher(text)]
-                    if matches:
-                        break
+            for matcher in self.matchers:
+                matches = [(m, matcher.__qualname__)
+                            for m in matcher(text)]
+                if matches:
+                    break
+                    
         seen = set()
         filtered_matches = set()
         for m in matches:
@@ -2056,17 +2051,20 @@ class IPCompleter(Completer):
                 filtered_matches.add(m)
                 seen.add(t)
 
-        _filtered_matches = sorted(
-            set(filtered_matches), key=lambda x: completions_sorting_key(x[0]))\
-            [:MATCHES_LIMIT]
+        _filtered_matches = sorted(filtered_matches, key=lambda x: completions_sorting_key(x[0]))
 
+        custom_res = [(m, 'custom') for m in self.dispatch_custom_completer(text) or []]
+        
+        _filtered_matches = custom_res or _filtered_matches
+        
+        _filtered_matches = _filtered_matches[:MATCHES_LIMIT]
         _matches = [m[0] for m in _filtered_matches]
         origins = [m[1] for m in _filtered_matches]
 
         self.matches = _matches
 
         return text, _matches, origins, completions
-
+        
     def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
         if self._names is None:
             self._names = []
