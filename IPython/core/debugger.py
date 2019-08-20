@@ -205,6 +205,18 @@ class Pdb(OldPdb):
 
     def __init__(self, color_scheme=None, completekey=None,
                  stdin=None, stdout=None, context=5, **kwargs):
+        """Create a new IPython debugger.
+        
+        :param color_scheme: Deprecated, do not use.
+        :param completekey: Passed to pdb.Pdb.
+        :param stdin: Passed to pdb.Pdb.
+        :param stdout: Passed to pdb.Pdb.
+        :param context: Number of lines of source code context to show when
+            displaying stacktrace information.
+        :param kwargs: Passed to pdb.Pdb.
+            The possibilities are python version dependent, see the python
+            docs for more info.
+        """
 
         # Parent constructor:
         try:
