@@ -19,6 +19,8 @@ from prompt_toolkit.formatted_text import PygmentsTokens
 
 
 class TerminalPdb(Pdb):
+    """Standalone IPython debugger."""
+
     def __init__(self, *args, **kwargs):
         Pdb.__init__(self, *args, **kwargs)
         self._ptcomp = None
