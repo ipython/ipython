@@ -204,7 +204,7 @@ class Pdb(OldPdb):
     """
 
     def __init__(self, color_scheme=None, completekey=None,
-                 stdin=None, stdout=None, context=5):
+                 stdin=None, stdout=None, context=5, **kwargs):
 
         # Parent constructor:
         try:
@@ -213,8 +213,8 @@ class Pdb(OldPdb):
                 raise ValueError("Context must be a positive integer")
         except (TypeError, ValueError):
                 raise ValueError("Context must be a positive integer")
-
-        OldPdb.__init__(self, completekey, stdin, stdout)
+        # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
+        OldPdb.__init__(self, completekey, stdin, stdout, **kwargs)
 
         # IPython changes...
         self.shell = get_ipython()
