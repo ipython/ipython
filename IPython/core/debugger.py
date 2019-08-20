@@ -225,6 +225,7 @@ class Pdb(OldPdb):
                 raise ValueError("Context must be a positive integer")
         except (TypeError, ValueError):
                 raise ValueError("Context must be a positive integer")
+
         # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
         OldPdb.__init__(self, completekey, stdin, stdout, **kwargs)
 
