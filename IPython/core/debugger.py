@@ -195,21 +195,6 @@ def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     return wrapper
 
 
-def _file_lines(fname):
-    """Return the contents of a named file as a list of lines.
-
-    This function never raises an IOError exception: if the file can't be
-    read, it simply returns an empty list."""
-
-    try:
-        outfile = open(fname)
-    except IOError:
-        return []
-    else:
-        with out:
-            return outfile.readlines()
-
-
 class Pdb(OldPdb):
     """Modified Pdb class, does not load readline.
 
@@ -219,7 +204,19 @@ class Pdb(OldPdb):
     """
 
     def __init__(self, color_scheme=None, completekey=None,
-                 stdin=None, stdout=None, context=5):
+                 stdin=None, stdout=None, context=5, **kwargs):
+        """Create a new IPython debugger.
+        
+        :param color_scheme: Deprecated, do not use.
+        :param completekey: Passed to pdb.Pdb.
+        :param stdin: Passed to pdb.Pdb.
+        :param stdout: Passed to pdb.Pdb.
+        :param context: Number of lines of source code context to show when
+            displaying stacktrace information.
+        :param kwargs: Passed to pdb.Pdb.
+            The possibilities are python version dependent, see the python
+            docs for more info.
+        """
 
         # Parent constructor:
         try:
@@ -229,7 +226,8 @@ class Pdb(OldPdb):
         except (TypeError, ValueError):
                 raise ValueError("Context must be a positive integer")
 
-        OldPdb.__init__(self, completekey, stdin, stdout)
+        # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
+        OldPdb.__init__(self, completekey, stdin, stdout, **kwargs)
 
         # IPython changes...
         self.shell = get_ipython()
