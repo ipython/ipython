@@ -206,10 +206,10 @@ from traitlets.config import Config
 from IPython import InteractiveShell
 from IPython.core.profiledir import ProfileDir
 
-use_matpltolib = False
+use_matplotlib = False
 try:
     import matplotlib
-    use_matpltolib = True
+    use_matplotlib = True
 except Exception:
     pass
 
@@ -934,7 +934,7 @@ class IPythonDirective(Directive):
             # EmbeddedSphinxShell is created, its interactive shell member
             # is the same for each instance.
 
-            if mplbackend and 'matplotlib.backends' not in sys.modules and use_matpltolib:
+            if mplbackend and 'matplotlib.backends' not in sys.modules and use_matplotlib:
                 import matplotlib
                 matplotlib.use(mplbackend)
 
@@ -1065,7 +1065,7 @@ def setup(app):
     # If the user sets this config value to `None`, then EmbeddedSphinxShell's
     # __init__ method will treat it as [].
     execlines = ['import numpy as np']
-    if use_matpltolib:
+    if use_matplotlib:
         execlines.append('import matplotlib.pyplot as plt')
     app.add_config_value('ipython_execlines', execlines, 'env')
 

@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Enable pyglet to be used interacive by setting PyOS_InputHook.
+Enable pyglet to be used interactively by setting PyOS_InputHook.
 
 Authors
 -------

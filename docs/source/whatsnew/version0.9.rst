@@ -33,7 +33,7 @@ New features
 
 * A new, still experimental but highly functional, WX shell by Gael Varoquaux.
   This work was sponsored by Enthought, and while it's still very new, it is
-  based on a more cleanly organized arhictecture of the various IPython
+  based on a more cleanly organized architecture of the various IPython
   components. We will continue to develop this over the next few releases as a
   model for GUI components that use IPython.
 
@@ -69,7 +69,7 @@ New features
   method that has the same syntax as the built-in `map`.  We have also defined
   a `mapper` factory interface that creates objects that implement
   :class:`IPython.kernel.mapper.IMapper` for different controllers.  Both the
-  multiengine and task controller now have mapping capabilties.
+  multiengine and task controller now have mapping capabilities.
 
 * The parallel function capabilities have been reworks.  The major changes are
   that i) there is now an `@parallel` magic that creates parallel functions,

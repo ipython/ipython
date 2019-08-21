@@ -1,4 +1,4 @@
-"""Enable wxPython to be used interacively in prompt_toolkit
+"""Enable wxPython to be used interactively in prompt_toolkit
 """
 
 import sys

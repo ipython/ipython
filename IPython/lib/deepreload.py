@@ -271,7 +271,7 @@ modules_reloading = {}
 
 def deep_reload_hook(m):
     """Replacement for reload()."""
-    # Hardcode this one  as it would raise a NotImplemeentedError from the
+    # Hardcode this one  as it would raise a NotImplementedError from the
     # bowels of Python and screw up the import machinery after.
     # unlike other imports the `exclude` list already in place is not enough.
 

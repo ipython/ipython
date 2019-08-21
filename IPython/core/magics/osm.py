@@ -58,7 +58,7 @@ class OSMagics(Magics):
     @skip_doctest
     def _isexec_POSIX(self, file):
         """
-            Test for executible on a POSIX system
+            Test for executable on a POSIX system
         """
         if os.access(file.path, os.X_OK):
             # will fail on maxOS if access is not X_OK
@@ -70,14 +70,14 @@ class OSMagics(Magics):
     @skip_doctest
     def _isexec_WIN(self, file):
         """
-            Test for executible file on non POSIX system
+            Test for executable file on non POSIX system
         """
         return file.is_file() and self.execre.match(file.name) is not None
 
     @skip_doctest
     def isexec(self, file):
         """
-            Test for executible file on non POSIX system
+            Test for executable file on non POSIX system
         """
         if self.is_posix:
             return self._isexec_POSIX(file)

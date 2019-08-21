@@ -1171,7 +1171,7 @@ python-profiler package from non-free.""")
         if not quiet :
             # Check best timing is greater than zero to avoid a
             # ZeroDivisionError.
-            # In cases where the slowest timing is lesser than a micosecond
+            # In cases where the slowest timing is lesser than a microsecond
             # we assume that it does not really matter if the fastest
             # timing is 4 times faster than the slowest timing or not.
             if worst > 4 * best and best > 0 and worst > 1e-6:

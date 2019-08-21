@@ -48,7 +48,7 @@ class Test_magic_run_completer(unittest.TestCase):
         shutil.rmtree(self.BASETESTDIR)
 
     def test_1(self):
-        """Test magic_run_completer, should match two alterntives
+        """Test magic_run_completer, should match two alternatives
         """
         event = MockEvent(u"%run a")
         mockself = None
@@ -56,7 +56,7 @@ class Test_magic_run_completer(unittest.TestCase):
         self.assertEqual(match, {u"a.py", u"aao.py", u"adir/"})
 
     def test_2(self):
-        """Test magic_run_completer, should match one alterntive
+        """Test magic_run_completer, should match one alternative
         """
         event = MockEvent(u"%run aa")
         mockself = None
@@ -102,7 +102,7 @@ class Test_magic_run_completer_nonascii(unittest.TestCase):
 
     @onlyif_unicode_paths
     def test_1(self):
-        """Test magic_run_completer, should match two alterntives
+        """Test magic_run_completer, should match two alternatives
         """
         event = MockEvent(u"%run a")
         mockself = None
@@ -111,7 +111,7 @@ class Test_magic_run_completer_nonascii(unittest.TestCase):
 
     @onlyif_unicode_paths
     def test_2(self):
-        """Test magic_run_completer, should match one alterntive
+        """Test magic_run_completer, should match one alternative
         """
         event = MockEvent(u"%run aa")
         mockself = None

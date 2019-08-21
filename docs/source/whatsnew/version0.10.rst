@@ -77,7 +77,7 @@ Highlights of this release:
   in remote tasks, as well as providing better control for remote task IDs.
 
 - New IPython Sphinx directive contributed by John Hunter.  You can use this
-  directive to mark blocks in reSructuredText documents as containing IPython
+  directive to mark blocks in reStructuredText documents as containing IPython
   syntax (including figures) and the will be executed during the build:
 
   .. sourcecode:: ipython

@@ -142,8 +142,8 @@ preserves prior behavior of normalizing the audio to the maximum possible range.
 Setting to `False` disables normalization.
 
 
-Miscelanious
-------------
+Miscellaneous
+-------------
 
  - Fix improper acceptation of ``return`` outside of functions. :ghpull:`11641`.
  - Fixed PyQt 5.11 backwards incompatibility causing sip import failure.

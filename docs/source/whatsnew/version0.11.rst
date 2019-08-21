@@ -155,7 +155,7 @@ cycle from several institutions:
 .. __: http://modular.math.washington.edu/grants/compmath09
 
 - Microsoft's team working on `Python Tools for Visual Studio`__ developed the 
-  integraton of IPython into the Python plugin for Visual Studio 2010.
+  integratron of IPython into the Python plugin for Visual Studio 2010.
 
 .. __: http://pytools.codeplex.com
 

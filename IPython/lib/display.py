@@ -500,7 +500,7 @@ class FileLinks(FileLink):
              substituted for the first and fname will be substituted for the
              second
            fp_format: string to use for formatting filepaths, must contain
-            exactly two "%s" and the dirname will be subsituted for the first
+            exactly two "%s" and the dirname will be substituted for the first
             and fname will be substituted for the second
         """
         def f(dirname, fnames, included_suffixes=None):
