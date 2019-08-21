@@ -143,7 +143,7 @@ Setting to `False` disables normalization.
 
 
 Miscellaneous
-------------
+-------------
 
  - Fix improper acceptation of ``return`` outside of functions. :ghpull:`11641`.
  - Fixed PyQt 5.11 backwards incompatibility causing sip import failure.
