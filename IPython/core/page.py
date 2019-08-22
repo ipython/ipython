@@ -210,7 +210,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                 retval = None
                 # if I use popen4, things hang. No idea why.
                 #pager,shell_out = os.popen4(pager_cmd)
-                pager = os.popen(pager_cmd, 'w')
+                pager = os.popen(pager_cmd + ' 2>/dev/null', 'w')
                 try:
                     pager_encoding = pager.encoding or sys.stdout.encoding
                     pager.write(strng)
