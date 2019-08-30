@@ -78,7 +78,7 @@ echo
 echo "Let\'s commit : git commit -am \"release $VERSION\" -S"
 echo $GREEN"Press enter to continue"$NOR
 read
-git commit -am "release $VERSION" # -S
+git commit -am "release $VERSION" -S
 
 echo
 echo "git push origin \$BRANCH ?"
