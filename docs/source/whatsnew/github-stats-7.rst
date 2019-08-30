@@ -1,6 +1,25 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+
+Issues closed in 7.8
+--------------------
+
+GitHub stats for 2019/07/26 - 2019/08/30 (tag: 7.7.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 1 issues and merged 4 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.8>`__
+
+The following 5 authors contributed 27 commits.
+
+* Dan Allan
+* Matthias Bussonnier
+* Min ho Kim
+* Oscar Gustafsson
+* Terry Davis
+
 Issues closed in 7.7
 --------------------
 

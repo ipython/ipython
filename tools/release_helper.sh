@@ -45,10 +45,11 @@ echo
 echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap."$GREEN"Press enter to continue:"$NOR
 read
 
-echo $BLUE"generating stats"NOR
+echo $BLUE"generating stats"$NOR
 python tools/github_stats.py --milestone $MILESTONE > stats.rst
 
-echo $BLUE"stats.rst files generated."$GREEN"Please merge it with the right file (github-stats-X.rst)"$NOR
+echo $BLUE"stats.rst files generated."$NOR
+echo $GREEN"Please merge it with the right file (github-stats-X.rst) and commit."$NOR
 echo $GREEN"press enter to continue."$NOR
 read
 
