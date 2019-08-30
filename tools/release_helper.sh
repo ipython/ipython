@@ -56,9 +56,9 @@ read
 echo "Cleaning repository"
 git clean -xfdi
 
-echo "please update version number in ${RED}IPython/core/release.py${NOR} , Do not commit yet – we'll do it later."
+echo $GREEN"please update version number in ${RED}IPython/core/release.py${NOR} , Do not commit yet – we'll do it later."$NOR
 
-echo "Press enter to continue"
+echo $GREEN"Press enter to continue"$NOR
 read
 
 echo 
@@ -66,19 +66,19 @@ echo "Attempting to build the docs.."
 make html -C docs
 
 echo 
-echo "Check the docs, press enter to continue"
+echo $GREEN"Check the docs, press enter to continue"$NOR
 read
 
 echo
-echo "Attempting to build package..."
+echo $BLUE"Attempting to build package..."$NOR
 
 tools/build_release
 
 echo
 echo "Let\'s commit : git commit -am \"release $VERSION\" -S"
-echo $"Press enter to continue"
+echo $GREEN"Press enter to continue"$NOR
 read
-git commit -am "release $VERSION" -S
+git commit -am "release $VERSION" # -S
 
 echo
 echo "git push origin \$BRANCH ?"
