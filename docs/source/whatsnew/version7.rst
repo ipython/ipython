@@ -2,6 +2,35 @@
  7.x Series
 ============
 
+.. _version780:
+
+IPython 7.8.0
+=============
+
+IPython 7.8.0 contain a few bugfix and 2 new APIs:
+
+ - Enable changing the font color for LaTeX rendering :ghpull:`11840`
+ - and Re-Expose some PDB API (see below)
+
+Expose Pdb API
+--------------
+
+Expose the built-in ``pdb.Pdb`` API. ``Pdb`` constructor arguments are generically
+exposed, regardless of python version.
+Newly exposed arguments:
+
+- ``skip`` - Python 3.1+
+- ``nosiginnt`` - Python 3.2+
+- ``readrc`` - Python 3.6+
+
+Try it out::
+
+    from IPython.terminal.debugger import TerminalPdb
+    pdb = TerminalPdb(skip=["skipthismodule"])
+
+
+See :ghpull:`11840`
+
 .. _version770:
 
 IPython 7.7.0
