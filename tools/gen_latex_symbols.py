@@ -11,7 +11,7 @@
 
 import os, sys
 
-if not sys.version_info[0] == 3:
+if sys.version_info[0] < 3:
     print("This script must be run with Python 3, exiting...")
     sys.exit(1)
 
