@@ -115,7 +115,7 @@ import sys
 import traceback
 import types
 import weakref
-import inspect
+import gc
 from importlib import import_module
 from importlib.util import source_from_cache
 from imp import reload
@@ -268,56 +268,16 @@ def update_function(old, new):
             pass
 
 
-def update_instances(old, new, objects=None, visited={}):
-    """Iterate through objects recursively, searching for instances of old and
-    replace their __class__ reference with new. If no objects are given, start 
-    with the current ipython workspace.
-    """
-    if objects is None:
-        # make sure visited is cleaned when not called recursively
-        visited = {}
-        # find ipython workspace stack frame
-        frame = next(frame_nfo.frame for frame_nfo in inspect.stack() 
-                     if 'trigger' in frame_nfo.function)
-        # build generator for non-private variable values from workspace
-        shell = frame.f_locals['self'].shell
-        user_ns = shell.user_ns
-        user_ns_hidden = shell.user_ns_hidden
-        nonmatching = object()
-        objects = ( value for key, value in user_ns.items()
-                if not key.startswith('_') 
-                and (value is not user_ns_hidden.get(key, nonmatching)) 
-                and not inspect.ismodule(value))
+def update_instances(old, new):
+    """Use garbage collector to find all instances that refer to the old
+    class definition and update their __class__ to point to the new class
+    definition"""
     
-    # use dict values if objects is a dict but don't touch private variables
-    if hasattr(objects, 'items'):
-        objects = (value for key, value in objects.items()
-                       if not str(key).startswith('_')
-                       and not inspect.ismodule(value) )
+    refs = gc.get_referrers(old)
 
-    # try if objects is iterable
-    try:
-        for obj in (obj for obj in objects if id(obj) not in visited):
-            # add current object to visited to avoid revisiting
-            visited.update({id(obj):obj})
-
-            # update, if object is instance of old_class (but no subclasses)
-            if type(obj) is old:
-                obj.__class__ = new
-                
-
-            # if object is instance of other class, look for nested instances
-            if hasattr(obj, '__dict__') and not (inspect.isfunction(obj)
-                                                 or inspect.ismethod(obj)):
-                update_instances(old, new, obj.__dict__, visited)
-
-            # if object is a container, search it
-            if hasattr(obj, 'items') or (hasattr(obj, '__contains__')
-                                         and not isinstance(obj, str)):
-                update_instances(old, new, obj, visited)
-
-    except TypeError:
-        pass
+    for ref in refs:
+        if type(ref) is old:
+            ref.__class__ = new
 
 
 def update_class(old, new):
