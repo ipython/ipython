@@ -11,6 +11,7 @@ import sys
 import warnings
 from textwrap import dedent
 from unittest import TestCase
+from unittest import mock
 from importlib import invalidate_caches
 from io import StringIO
 
@@ -732,6 +733,24 @@ class TestEnv(TestCase):
     def test_env(self):
         env = _ip.magic("env")
         self.assertTrue(isinstance(env, dict))
+
+    def test_env_secret(self):
+        env = _ip.magic("env")
+        hidden = "<hidden>"
+        with mock.patch.dict(
+            os.environ,
+            {
+                "API_KEY": "abc123",
+                "SECRET_THING": "ssshhh",
+                "JUPYTER_TOKEN": "",
+                "VAR": "abc"
+            }
+        ):
+            env = _ip.magic("env")
+        assert env["API_KEY"] == hidden
+        assert env["SECRET_THING"] == hidden
+        assert env["JUPYTER_TOKEN"] == hidden
+        assert env["VAR"] == "abc"
 
     def test_env_get_set_simple(self):
         env = _ip.magic("env var val1")
