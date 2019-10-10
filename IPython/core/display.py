@@ -296,6 +296,13 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     if transient:
         kwargs['transient'] = transient
 
+    if not objs and display_id:
+        # if given no objects, but still a request for a display_id,
+        # we assume the user wants to insert an empty output that
+        # can be updated later
+        objs = [{}]
+        raw = True
+
     if not raw:
         format = InteractiveShell.instance().display_formatter.format
 
