@@ -58,14 +58,26 @@ def _set_term_title(*args,**kw):
     pass
 
 
+def _restore_term_title():
+    pass
+
+
 def _set_term_title_xterm(title):
     """ Change virtual terminal title in xterm-workalikes """
+    # save the current title to the xterm "stack"
+    sys.stdout.write('\033[22;0t') 
     sys.stdout.write('\033]0;%s\007' % title)
+
+
+def _restore_term_title_xterm():
+    sys.stdout.write('\033[23;0t') 
+
 
 if os.name == 'posix':
     TERM = os.environ.get('TERM','')
     if TERM.startswith('xterm'):
         _set_term_title = _set_term_title_xterm
+        _restore_term_title = _restore_term_title_xterm
 elif sys.platform == 'win32':
     try:
         import ctypes
@@ -98,6 +110,13 @@ def set_term_title(title):
     if ignore_termtitle:
         return
     _set_term_title(title)
+
+
+def restore_term_title():
+    """Restore, if possible, terminal title to the original state"""
+    if ignore_termtitle:
+        return
+    _restore_term_title()
 
 
 def freeze_term_title():
