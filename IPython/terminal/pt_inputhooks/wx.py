@@ -137,11 +137,66 @@ def inputhook_wx3(context):
         pass
     return 0
 
+
+def inputhook_wxphoenix(context):
+    """Run the wx event loop by processing pending events only.
+
+    This is equivalent to inputhook_wx3, but has been updated to work with
+    wxPython Phoenix.
+    """
+
+    # See inputhook_wx3 for in-line comments.
+    try:
+        app = wx.GetApp()
+        if app is not None:
+            assert wx.IsMainThread()
+
+            if not callable(signal.getsignal(signal.SIGINT)):
+                signal.signal(signal.SIGINT, signal.default_int_handler)
+
+            evtloop = wx.GUIEventLoop()
+            ea = wx.EventLoopActivator(evtloop)
+            t = clock()
+            while not context.input_is_ready():
+                while evtloop.Pending():
+                    t = clock()
+                    evtloop.Dispatch()
+
+                # Not all events will be procesed by Dispatch -
+                # we have to call ProcessPendingEvents as well
+                # to ensure that all events get processed.
+                app.ProcessPendingEvents()
+                evtloop.ProcessIdle()
+
+                used_time = clock() - t
+
+                if used_time > 10.0:
+                    time.sleep(1.0)
+                elif used_time > 0.1:
+                    time.sleep(0.05)
+                else:
+                    time.sleep(0.001)
+            del ea
+    except KeyboardInterrupt:
+        pass
+    return 0
+
+
 if sys.platform == 'darwin':
     # On OSX, evtloop.Pending() always returns True, regardless of there being
     # any events pending. As such we can't use implementations 1 or 3 of the
     # inputhook as those depend on a pending/dispatch loop.
     inputhook = inputhook_wx2
 else:
-    # This is our default implementation
-    inputhook = inputhook_wx3
+
+    # Get the major wx version number
+    if hasattr(wx, '__version__'):
+        major_version = wx.__version__[0]
+    else:
+        major_version = '3'
+
+    # Use the phoenix hook for wxpython >= 4
+    if int(major_version) >= 4:
+        inputhook = inputhook_wxphoenix
+    else:
+        inputhook = inputhook_wx3
