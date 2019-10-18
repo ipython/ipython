@@ -190,13 +190,14 @@ if sys.platform == 'darwin':
 else:
 
     # Get the major wx version number
-    if hasattr(wx, '__version__'):
-        major_version = wx.__version__[0]
-    else:
-        major_version = '3'
+    major_version = 3
+    try:
+        major_version = int(wx.__version__[0])
+    except Exception:
+        pass
 
     # Use the phoenix hook for wxpython >= 4
-    if int(major_version) >= 4:
+    if major_version >= 4:
         inputhook = inputhook_wxphoenix
     else:
         inputhook = inputhook_wx3
