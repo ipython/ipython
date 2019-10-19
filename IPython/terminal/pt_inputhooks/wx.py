@@ -139,65 +139,64 @@ def inputhook_wx3(context):
 
 
 def inputhook_wxphoenix(context):
-    """Run the wx event loop by processing pending events only.
+    """Run the wx event loop until the user provides more input.
 
-    This is equivalent to inputhook_wx3, but has been updated to work with
-    wxPython Phoenix.
+    This function uses the same approach to that used in
+    ipykernel.eventloops.loop_wx.
     """
 
-    # See inputhook_wx3 for in-line comments.
-    try:
-        app = wx.GetApp()
-        if app is not None:
-            assert wx.IsMainThread()
+    app = wx.GetApp()
 
-            if not callable(signal.getsignal(signal.SIGINT)):
-                signal.signal(signal.SIGINT, signal.default_int_handler)
+    if app is None:
+        return
 
-            evtloop = wx.GUIEventLoop()
-            ea = wx.EventLoopActivator(evtloop)
-            t = clock()
-            while not context.input_is_ready():
-                while evtloop.Pending():
-                    t = clock()
-                    evtloop.Dispatch()
+     # Wx uses milliseconds
+    poll_interval = 100
 
-                # Not all events will be procesed by Dispatch -
-                # we have to call ProcessPendingEvents as well
-                # to ensure that all events get processed.
-                app.ProcessPendingEvents()
-                evtloop.ProcessIdle()
+    # This function gets polled periodically; when
+    # input is ready, the wx main loop is stopped.
+    def wake():
+        if context.input_is_ready():
+            app.ExitMainLoop()
 
-                used_time = clock() - t
+    # We have to put the wx.Timer in a wx.Frame for it to fire properly.
+    # We make the Frame hidden when we create it in the main app below.
+    class TimerFrame(wx.Frame):
+        def __init__(self, func):
+            wx.Frame.__init__(self, None, -1)
+            self.timer = wx.Timer(self)
+            self.timer.Start(poll_interval)
+            self.Bind(wx.EVT_TIMER, self.on_timer)
+            self.func = func
 
-                if used_time > 10.0:
-                    time.sleep(1.0)
-                elif used_time > 0.1:
-                    time.sleep(0.05)
-                else:
-                    time.sleep(0.001)
-            del ea
-    except KeyboardInterrupt:
-        pass
-    return 0
+        def on_timer(self, event):
+            self.func()
 
+    frame = TimerFrame(wake)
+    frame.Show(False)
 
-if sys.platform == 'darwin':
-    # On OSX, evtloop.Pending() always returns True, regardless of there being
-    # any events pending. As such we can't use implementations 1 or 3 of the
-    # inputhook as those depend on a pending/dispatch loop.
+    # The import of wx on Linux sets the handler for signal.SIGINT
+    # to 0.  This is a bug in wx or gtk.  We fix by just setting it
+    # back to the Python default.
+    if not callable(signal.getsignal(signal.SIGINT)):
+        signal.signal(signal.SIGINT, signal.default_int_handler)
+
+    app.MainLoop()
+
+# Get the major wx version number to figure out what input hook we should use.
+major_version = 3
+try:
+    major_version = int(wx.__version__[0])
+except Exception:
+    pass
+
+# Use the phoenix hook on all platforms for wxpython >= 4
+if major_version >= 4:
+    inputhook = inputhook_wxphoenix
+# On OSX, evtloop.Pending() always returns True, regardless of there being
+# any events pending. As such we can't use implementations 1 or 3 of the
+# inputhook as those depend on a pending/dispatch loop.
+elif sys.platform == 'darwin':
     inputhook = inputhook_wx2
 else:
-
-    # Get the major wx version number
-    major_version = 3
-    try:
-        major_version = int(wx.__version__[0])
-    except Exception:
-        pass
-
-    # Use the phoenix hook for wxpython >= 4
-    if major_version >= 4:
-        inputhook = inputhook_wxphoenix
-    else:
-        inputhook = inputhook_wx3
+    inputhook = inputhook_wx3
