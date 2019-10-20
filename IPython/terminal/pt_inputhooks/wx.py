@@ -9,8 +9,12 @@ import wx
 
 
 def ignore_keyboardinterrupts(func):
-    """Decorator which causes KeyboardInterrupt exceptions to be
-    ignored during execution of the decorated function.
+    """Decorator which causes KeyboardInterrupt exceptions to be ignored during
+    execution of the decorated function.
+
+    This is used by the inputhook functions to handle the event where the user
+    presses CTRL+C while IPython is idle, and the inputhook loop is running. In
+    this case, we want to ignore interrupts.
     """
     def wrapper(*args, **kwargs):
         try:
@@ -159,34 +163,34 @@ def inputhook_wxphoenix(context):
     if app is None:
         return
 
-     # Wx uses milliseconds
+    if context.input_is_ready():
+        return
+
+    assert wx.IsMainThread()
+
+    # Wx uses milliseconds
     poll_interval = 100
 
-    # This function gets polled periodically; when
-    # input is ready, the wx main loop is stopped.
-    def wake():
+    # We have to create a dummy wx.Frame, otherwise wx.App.MainLoop will know
+    # that it has nothing to do, and will return immediately.
+    frame = getattr(inputhook_wxphoenix, '_frame', None)
+    if frame is None:
+        inputhook_wxphoenix._frame = frame = wx.Frame(None)
+        frame.Show(False)
+
+    # Use a wx.Timer to periodically check whether input is ready - as soon as
+    # it is, we exit the main loop
+    def poll(ev):
         if context.input_is_ready():
             app.ExitMainLoop()
 
-    # We have to put the wx.Timer in a wx.Frame for it to fire properly.
-    # We make the Frame hidden when we create it in the main app below.
-    class TimerFrame(wx.Frame):
-        def __init__(self, func):
-            wx.Frame.__init__(self, None, -1)
-            self.timer = wx.Timer(self)
-            self.timer.Start(poll_interval)
-            self.Bind(wx.EVT_TIMER, self.on_timer)
-            self.func = func
+    timer = wx.Timer()
+    timer.Start(poll_interval)
+    timer.Bind(wx.EVT_TIMER, poll)
 
-        def on_timer(self, event):
-            self.func()
-
-    frame = TimerFrame(wake)
-    frame.Show(False)
-
-    # The import of wx on Linux sets the handler for signal.SIGINT
-    # to 0.  This is a bug in wx or gtk.  We fix by just setting it
-    # back to the Python default.
+    # The import of wx on Linux sets the handler for signal.SIGINT to 0.  This
+    # is a bug in wx or gtk.  We fix by just setting it back to the Python
+    # default.
     if not callable(signal.getsignal(signal.SIGINT)):
         signal.signal(signal.SIGINT, signal.default_int_handler)
 
@@ -195,6 +199,7 @@ def inputhook_wxphoenix(context):
 
 # Get the major wx version number to figure out what input hook we should use.
 major_version = 3
+
 try:
     major_version = int(wx.__version__[0])
 except Exception:
