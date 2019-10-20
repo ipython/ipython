@@ -154,7 +154,9 @@ def inputhook_wx3(context):
 def inputhook_wxphoenix(context):
     """Run the wx event loop until the user provides more input.
 
-    This function uses the same approach to that used in
+    This input hook is suitable for use with wxPython >= 4 (a.k.a. Phoenix).
+
+    It uses the same approach to that used in
     ipykernel.eventloops.loop_wx. The wx.MainLoop is executed, and a wx.Timer
     is used to periodically poll the context for input. As soon as input is
     ready, the wx.MainLoop is stopped.
