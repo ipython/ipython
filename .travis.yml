@@ -38,7 +38,7 @@ install:
   - pip install pip --upgrade
   - pip install setuptools --upgrade
   - pip install -e file://$PWD#egg=ipython[test] --upgrade
-  - pip install trio curio
+  - pip install trio curio --upgrade --upgrade-strategy eager
   - pip install 'pytest<4' matplotlib
   - pip install codecov check-manifest --upgrade
 
