@@ -198,7 +198,7 @@ class DisplayHook(Configurable):
         """Update user_ns with various things like _, __, _1, etc."""
 
         # Avoid recursive reference when displaying _oh/Out
-        if result is not self.shell.user_ns['_oh']:
+        if self.cache_size and result is not self.shell.user_ns['_oh']:
             if len(self.shell.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
                 self.cull_cache()
 
