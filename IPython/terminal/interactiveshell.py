@@ -8,7 +8,7 @@ from warnings import warn
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
 from IPython.utils.py3compat import input
-from IPython.utils.terminal import toggle_set_term_title, set_term_title
+from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
     Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union,
@@ -237,6 +237,10 @@ class TerminalInteractiveShell(InteractiveShell):
             set_term_title(self.term_title_format.format(cwd=abbrev_cwd()))
         else:
             toggle_set_term_title(False)
+
+    def restore_term_title(self):
+        if self.term_title:
+            restore_term_title()
 
     def init_display_formatter(self):
         super(TerminalInteractiveShell, self).init_display_formatter()
@@ -506,6 +510,9 @@ class TerminalInteractiveShell(InteractiveShell):
                 # https://github.com/ipython/ipython/pull/9867
                 if hasattr(self, '_eventloop'):
                     self._eventloop.stop()
+
+                self.restore_term_title()
+
 
     _inputhook = None
     def inputhook(self, context):
