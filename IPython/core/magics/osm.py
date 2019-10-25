@@ -446,7 +446,13 @@ class OSMagics(Magics):
                     raise UsageError(err)
             if len(bits) > 1:
                 return self.set_env(parameter_s)
-        return dict(os.environ)
+        env = dict(os.environ)
+        # hide likely secrets when printing the whole environment
+        for key in list(env):
+            if any(s in key.lower() for s in ('key', 'token', 'secret')):
+                env[key] = '<hidden>'
+
+        return env
 
     @line_magic
     def set_env(self, parameter_s):
