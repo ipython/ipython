@@ -13,6 +13,12 @@ IPython 7.9 is a small release with a couple of improvement and bug fixes.
    find all objects needing reload. This should avoid large objects traversal
    like pandas dataframes. :ghpull:`11876`
  - Get ready for Python 4. :ghpull:`11874`
+ - `%env` Magic nonw has euristic to hide potentially sensitive values :ghpull:`11896`
+
+This is a small release despite a number of Pull Request Pending that need to
+be reviewed/worked on. Many of the core developers have been busy outside of
+IPython/Jupyter and we thanks all contributor for their patience; we'll work on
+these as soon as we have time. 
 
 
 .. _version780:
