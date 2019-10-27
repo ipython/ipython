@@ -20,12 +20,15 @@ from IPython.core.magic import Magics, magics_class, line_magic
 from traitlets import Bool
 
 
-def restore_aliases(ip):
+def restore_aliases(ip, alias=None):
     staliases = ip.db.get('stored_aliases', {})
-    for k,v in staliases.items():
-        #print "restore alias",k,v # dbg
-        #self.alias_table[k] = v
-        ip.alias_manager.define_alias(k,v)
+    if alias is None:
+        for k,v in staliases.items():
+            #print "restore alias",k,v # dbg
+            #self.alias_table[k] = v
+            ip.alias_manager.define_alias(k,v)
+    else:
+        ip.alias_manager.define_alias(alias, staliases[alias])
 
 
 def refresh_variables(ip):
@@ -58,13 +61,13 @@ class StoreMagics(Magics):
     """Lightweight persistence for python variables.
 
     Provides the %store magic."""
-    
+
     autorestore = Bool(False, help=
         """If True, any %store-d variables will be automatically restored
         when IPython starts.
         """
     ).tag(config=True)
-    
+
     def __init__(self, shell):
         super(StoreMagics, self).__init__(shell=shell)
         self.shell.configurables.append(self)
@@ -94,13 +97,13 @@ class StoreMagics(Magics):
 
         * ``%store``          - Show list of all variables and their current
                                 values
-        * ``%store spam``     - Store the *current* value of the variable spam
-                                to disk
+        * ``%store spam bar`` - Store the *current* value of the variables spam
+                                and bar to disk
         * ``%store -d spam``  - Remove the variable and its value from storage
         * ``%store -z``       - Remove all variables from storage
-        * ``%store -r``       - Refresh all variables from store (overwrite
-                                current vals)
-        * ``%store -r spam bar`` - Refresh specified variables from store
+        * ``%store -r``       - Refresh all variables, aliases and directory history
+                                from store (overwrite current vals)
+        * ``%store -r spam bar`` - Refresh specified variables and aliases from store
                                    (delete current val)
         * ``%store foo >a.txt``  - Store value of foo to new file a.txt
         * ``%store foo >>a.txt`` - Append value of foo to file a.txt
@@ -116,7 +119,7 @@ class StoreMagics(Magics):
         """
 
         opts,argsl = self.parse_options(parameter_s,'drz',mode='string')
-        args = argsl.split(None,1)
+        args = argsl.split()
         ip = self.shell
         db = ip.db
         # delete
@@ -141,7 +144,10 @@ class StoreMagics(Magics):
                     try:
                         obj = db['autorestore/' + arg]
                     except KeyError:
-                        print("no stored variable %s" % arg)
+                        try:
+                            restore_aliases(ip, alias=arg)
+                        except KeyError:
+                            print("no stored variable or alias %s" % arg)
                     else:
                         ip.user_ns[arg] = obj
             else:
@@ -189,38 +195,39 @@ class StoreMagics(Magics):
                 return
 
             # %store foo
-            try:
-                obj = ip.user_ns[args[0]]
-            except KeyError:
-                # it might be an alias
-                name = args[0]
+            for arg in args:
                 try:
-                    cmd = ip.alias_manager.retrieve_alias(name)
-                except ValueError:
-                    raise UsageError("Unknown variable '%s'" % name)
-                
-                staliases = db.get('stored_aliases',{})
-                staliases[name] = cmd
-                db['stored_aliases'] = staliases
-                print("Alias stored: %s (%s)" % (name, cmd))
-                return
+                    obj = ip.user_ns[arg]
+                except KeyError:
+                    # it might be an alias
+                    name = arg
+                    try:
+                        cmd = ip.alias_manager.retrieve_alias(name)
+                    except ValueError:
+                        raise UsageError("Unknown variable '%s'" % name)
 
-            else:
-                modname = getattr(inspect.getmodule(obj), '__name__', '')
-                if modname == '__main__':
-                    print(textwrap.dedent("""\
-                    Warning:%s is %s
-                    Proper storage of interactively declared classes (or instances
-                    of those classes) is not possible! Only instances
-                    of classes in real modules on file system can be %%store'd.
-                    """ % (args[0], obj) ))
+                    staliases = db.get('stored_aliases',{})
+                    staliases[name] = cmd
+                    db['stored_aliases'] = staliases
+                    print("Alias stored: %s (%s)" % (name, cmd))
                     return
-                #pickled = pickle.dumps(obj)
-                db[ 'autorestore/' + args[0] ] = obj
-                print("Stored '%s' (%s)" % (args[0], obj.__class__.__name__))
+
+                else:
+                    modname = getattr(inspect.getmodule(obj), '__name__', '')
+                    if modname == '__main__':
+                        print(textwrap.dedent("""\
+                        Warning:%s is %s
+                        Proper storage of interactively declared classes (or instances
+                        of those classes) is not possible! Only instances
+                        of classes in real modules on file system can be %%store'd.
+                        """ % (arg, obj) ))
+                        return
+                    #pickled = pickle.dumps(obj)
+                    db[ 'autorestore/' + arg ] = obj
+                    print("Stored '%s' (%s)" % (arg, obj.__class__.__name__))
 
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     ip.register_magics(StoreMagics)
-    
+
