@@ -175,13 +175,6 @@ def inputhook_wxphoenix(context):
     # Wx uses milliseconds
     poll_interval = 100
 
-    # We have to create a dummy wx.Frame, otherwise wx.App.MainLoop will know
-    # that it has nothing to do, and will return immediately.
-    frame = getattr(inputhook_wxphoenix, '_frame', None)
-    if frame is None:
-        inputhook_wxphoenix._frame = frame = wx.Frame(None)
-        frame.Show(False)
-
     # Use a wx.Timer to periodically check whether input is ready - as soon as
     # it is, we exit the main loop
     def poll(ev):
@@ -198,6 +191,9 @@ def inputhook_wxphoenix(context):
     if not callable(signal.getsignal(signal.SIGINT)):
         signal.signal(signal.SIGINT, signal.default_int_handler)
 
+    # The SetExitOnFrameDelete call allows us to run the wx mainloop without
+    # having a frame open.
+    app.SetExitOnFrameDelete(False)
     app.MainLoop()
 
 
