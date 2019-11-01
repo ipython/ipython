@@ -377,14 +377,12 @@ class TerminalInteractiveShell(InteractiveShell):
         """
         Return the current layout option for the current Terminal InteractiveShell
         """
-        def get_message():
-            return PygmentsTokens(self.prompts.in_prompt_tokens())
 
         return {
                 'complete_in_thread': False,
                 'lexer':IPythonPTLexer(),
                 'reserve_space_for_menu':self.space_for_menu,
-                'message': get_message,
+                'message': PygmentsTokens(self.prompts.in_prompt_tokens()),
                 'prompt_continuation': (
                     lambda width, lineno, is_soft_wrap:
                         PygmentsTokens(self.prompts.continuation_prompt_tokens(width))),
