@@ -310,12 +310,12 @@ def activate_matplotlib(backend):
     # magic of switch_backend().
     matplotlib.rcParams['backend'] = backend
 
-    import matplotlib.pyplot
-    matplotlib.pyplot.switch_backend(backend)
+    # Due to circular imports, pyplot may be only partially initialised
+    # when this function runs.
+    # So avoid needing matplotlib attribute-lookup to access pyplot.
+    from matplotlib import pyplot as plt
 
-    # This must be imported last in the matplotlib series, after
-    # backend/interactivity choices have been made
-    import matplotlib.pyplot as plt
+    plt.switch_backend(backend)
 
     plt.show._needmain = False
     # We need to detect at runtime whether show() is called by the user.
