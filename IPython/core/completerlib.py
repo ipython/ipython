@@ -30,7 +30,7 @@ from time import time
 from zipimport import zipimporter
 
 # Our own imports
-from IPython.core.completer import expand_user, compress_user
+from IPython.core.completer import expand_user, compress_user, glob_incase
 from IPython.core.error import TryNext
 from IPython.utils._process_common import arg_split
 
@@ -294,7 +294,6 @@ def magic_run_completer(self, event):
     #print('run comp:', dirs+pys) # dbg
     return [compress_user(p, tilde_expand, tilde_val) for p in matches]
 
-
 def cd_completer(self, event):
     """Completer function for cd, which only returns directories."""
     ip = get_ipython()
@@ -326,7 +325,10 @@ def cd_completer(self, event):
     relpath = relpath.replace('\\','/')
 
     found = []
-    for d in [f.replace('\\','/') + '/' for f in glob.glob(relpath+'*')
+    lglob = glob.glob
+    if event.ignore_case:
+        lglob = glob_incase
+    for d in [f.replace('\\','/') + '/' for f in lglob(relpath+'*')
               if os.path.isdir(f)]:
         if ' ' in d:
             # we don't want to deal with any of that, complex code
