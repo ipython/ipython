@@ -28,7 +28,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 
 # Platform-dependent imports
 try:
-    import winreg as wreg  
+    import winreg as wreg
 except ImportError:
     #Fake _winreg module on non-windows platforms
     import types
@@ -128,6 +128,7 @@ def test_get_home_dir_2():
     nt.assert_equal(home_dir, unfrozen)
 
 
+@skipif(sys.version_info > (3,8) and os.name == 'nt')
 @with_environment
 def test_get_home_dir_3():
     """get_home_dir() uses $HOME if set"""
@@ -247,7 +248,7 @@ def test_filefind():
 def test_get_long_path_name_win32():
     with TemporaryDirectory() as tmpdir:
 
-        # Make a long path. Expands the path of tmpdir prematurely as it may already have a long 
+        # Make a long path. Expands the path of tmpdir prematurely as it may already have a long
         # path component, so ensure we include the long form of it
         long_path = os.path.join(path.get_long_path_name(tmpdir), 'this is my long path name')
         os.makedirs(long_path)
@@ -311,7 +312,7 @@ def test_get_py_filename():
 def test_unicode_in_filename():
     """When a file doesn't exist, the exception raised should be safe to call
     str() on - i.e. in Python 2 it must only have ASCII characters.
-    
+
     https://github.com/ipython/ipython/issues/875
     """
     try:

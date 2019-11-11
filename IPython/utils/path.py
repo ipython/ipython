@@ -175,7 +175,8 @@ def get_home_dir(require_writable=False):
     Uses os.path.expanduser('~'), and checks for writability.
 
     See stdlib docs for how this is determined.
-    $HOME is first priority on *ALL* platforms.
+    For Python <3.8, $HOME is first priority on *ALL* platforms.
+    For Python >=3.8 on Windows, %HOME% is no longer considered.
 
     Parameters
     ----------
