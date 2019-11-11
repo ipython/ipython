@@ -108,9 +108,9 @@ def make_label_dec(label, ds=None):
     >>> slow = make_label_dec('slow')
     >>> slow.__doc__
     "Labels a test as 'slow'."
-    
+
     And one that uses multiple labels and a custom docstring:
-    
+
     >>> rare = make_label_dec(['slow','hard'],
     ... "Mix labels 'slow' and 'hard' for rare tests.")
     >>> rare.__doc__
@@ -280,7 +280,7 @@ def module_not_available(module):
 
 def decorated_dummy(dec, name):
     """Return a dummy function decorated with dec, with the given name.
-    
+
     Examples
     --------
     import IPython.testing.decorators as dec
@@ -317,6 +317,11 @@ _x11_skip_cond = (sys.platform not in ('darwin', 'win32') and
 _x11_skip_msg = "Skipped under *nix when X11/XOrg not available"
 
 skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
+
+
+# Decorators to skip certain tests on specific platform/python combinations
+skip_win32_py38 = skipif(sys.version_info > (3,8) and os.name == 'nt')
+
 
 # not a decorator itself, returns a dummy function to be used as setup
 def skip_file_no_x11(name):
