@@ -21,14 +21,16 @@ import IPython
 from IPython import paths
 from IPython.testing import decorators as dec
 from IPython.testing.decorators import (skip_if_not_win32, skip_win32,
-                                        onlyif_unicode_paths,)
+                                        onlyif_unicode_paths, skipif,
+                                        skip_win32_py38,)
 from IPython.testing.tools import make_tempfile, AssertPrints
 from IPython.utils import path
 from IPython.utils.tempdir import TemporaryDirectory
 
+
 # Platform-dependent imports
 try:
-    import winreg as wreg  
+    import winreg as wreg
 except ImportError:
     #Fake _winreg module on non-windows platforms
     import types
@@ -128,6 +130,7 @@ def test_get_home_dir_2():
     nt.assert_equal(home_dir, unfrozen)
 
 
+@skip_win32_py38
 @with_environment
 def test_get_home_dir_3():
     """get_home_dir() uses $HOME if set"""
@@ -145,6 +148,7 @@ def test_get_home_dir_4():
     # this should still succeed, but we don't care what the answer is
     home = path.get_home_dir(False)
 
+@skip_win32_py38
 @with_environment
 def test_get_home_dir_5():
     """raise HomeDirError if $HOME is specified, but not a writable dir"""
@@ -247,7 +251,7 @@ def test_filefind():
 def test_get_long_path_name_win32():
     with TemporaryDirectory() as tmpdir:
 
-        # Make a long path. Expands the path of tmpdir prematurely as it may already have a long 
+        # Make a long path. Expands the path of tmpdir prematurely as it may already have a long
         # path component, so ensure we include the long form of it
         long_path = os.path.join(path.get_long_path_name(tmpdir), 'this is my long path name')
         os.makedirs(long_path)
@@ -311,7 +315,7 @@ def test_get_py_filename():
 def test_unicode_in_filename():
     """When a file doesn't exist, the exception raised should be safe to call
     str() on - i.e. in Python 2 it must only have ASCII characters.
-    
+
     https://github.com/ipython/ipython/issues/875
     """
     try:
