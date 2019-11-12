@@ -9,8 +9,8 @@ import shutil
 import errno
 
 from traitlets.config.configurable import LoggingConfigurable
-from IPython.paths import get_ipython_package_dir
-from IPython.utils.path import expand_path, ensure_dir_exists
+from ..paths import get_ipython_package_dir
+from ..utils.path import expand_path, ensure_dir_exists
 from traitlets import Unicode, Bool, observe
 
 #-----------------------------------------------------------------------------

@@ -25,7 +25,7 @@ import re
 import sys
 
 from traitlets.config.configurable import Configurable
-from IPython.core.error import UsageError
+from .error import UsageError
 
 from traitlets import List, Instance
 from logging import error
