@@ -6,11 +6,11 @@ import pytest
 import pathlib
 import shutil
 
-from IPython.testing import tools
+from .testing import tools
 
 
 def get_ipython():
-    from IPython.terminal.interactiveshell import TerminalInteractiveShell
+    from .terminal.interactiveshell import TerminalInteractiveShell
     if TerminalInteractiveShell._instance:
         return TerminalInteractiveShell.instance()
 
@@ -60,7 +60,7 @@ def inject():
     builtins.ip = get_ipython()
     builtins.ip.system = types.MethodType(xsys, ip)
     builtins.ip.builtin_trap.activate()
-    from IPython.core import page
+    from .core import page
 
     page.pager_page = nopage
     # yield

@@ -40,7 +40,7 @@ import subprocess
 import warnings
 import sys
 
-from IPython.core.error import TryNext
+from .error import TryNext
 
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
@@ -83,7 +83,7 @@ def editor(self, filename, linenum=None, wait=True):
         raise TryNext()
 
 import tempfile
-from IPython.utils.decorators import undoc
+from ..utils.decorators import undoc
 
 @undoc
 def fix_error_editor(self,filename,linenum,column,msg):
@@ -212,7 +212,7 @@ def pre_run_code_hook(self):
 def clipboard_get(self):
     """ Get text from the clipboard.
     """
-    from IPython.lib.clipboard import (
+    from ..lib.clipboard import (
         osx_clipboard_get, tkinter_clipboard_get,
         win32_clipboard_get
     )

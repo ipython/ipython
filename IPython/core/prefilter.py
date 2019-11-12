@@ -12,16 +12,16 @@ transforms are used to implement additional syntax such as !ls and %magic.
 from keyword import iskeyword
 import re
 
-from IPython.core.autocall import IPyAutocall
+from .autocall import IPyAutocall
 from traitlets.config.configurable import Configurable
-from IPython.core.inputtransformer2 import (
+from .inputtransformer2 import (
     ESC_MAGIC,
     ESC_QUOTE,
     ESC_QUOTE2,
     ESC_PAREN,
 )
-from IPython.core.macro import Macro
-from IPython.core.splitinput import LineInfo
+from .macro import Macro
+from .splitinput import LineInfo
 
 from traitlets import (
     List, Integer, Unicode, Bool, Instance, CRegExp

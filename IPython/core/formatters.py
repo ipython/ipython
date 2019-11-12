@@ -20,10 +20,10 @@ from io import StringIO
 from decorator import decorator
 
 from traitlets.config.configurable import Configurable
-from IPython.core.getipython import get_ipython
-from IPython.utils.sentinel import Sentinel
-from IPython.utils.dir2 import get_real_method
-from IPython.lib import pretty
+from .getipython import get_ipython
+from ..utils.sentinel import Sentinel
+from ..utils.dir2 import get_real_method
+from ..lib import pretty
 from traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
     ForwardDeclaredInstance,
@@ -1015,7 +1015,7 @@ def format_display_data(obj, include=None, exclude=None):
         data dict. If this is set all format types will be computed,
         except for those included in this argument.
     """
-    from IPython.core.interactiveshell import InteractiveShell
+    from .interactiveshell import InteractiveShell
 
     return InteractiveShell.instance().display_formatter.format(
         obj,
