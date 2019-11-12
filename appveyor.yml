@@ -32,15 +32,6 @@ init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
 
 install:
-  - ps: |
-      Set-PSDebug -Trace 1
-      if ($Env:PYTHON_VERSION.StartsWith("3.8")) {
-        if ($Env:PYTHON_ARCH -eq "64") {
-          iex "choco install python3 --version=3.8 --no-progress --params /InstallDir:$Env:PYTHON"
-        } else {
-          iex "choco install python3 --version=3.8 --no-progress --params /InstallDir:$Env:PYTHON --x86"
-        }
-      }
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "%CMD_IN_ENV%  python -m pip install --upgrade setuptools pip"
   - "%CMD_IN_ENV%  pip install nose coverage"
