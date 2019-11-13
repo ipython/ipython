@@ -380,6 +380,16 @@ class TerminalInteractiveShell(InteractiveShell):
         def get_message():
             return PygmentsTokens(self.prompts.in_prompt_tokens())
 
+        if self.editing_mode == 'emacs':
+            # with emacs mode the prompt is (usually) static, so we call only
+            # the function once. With VI mode it can toggle between [ins] and
+            # [nor] so we can't precompute.
+            # here I'm going to favor the default keybinding which almost
+            # everybody uses to decrease CPU usage.
+            # if we have issues with users with custom Prompts we can see how to
+            # work around this.
+            get_message = get_message()
+
         return {
                 'complete_in_thread': False,
                 'lexer':IPythonPTLexer(),
