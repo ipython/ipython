@@ -9,7 +9,6 @@ addons:
 
 python:
     - 3.6
-    - 3.5
 
 sudo: false
 
