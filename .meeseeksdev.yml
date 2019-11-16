@@ -12,6 +12,7 @@ special:
     config:
       tag:
         only:
+           - good first issue
            - async/await
            - backported
            - help wanted
