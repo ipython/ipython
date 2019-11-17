@@ -15,9 +15,11 @@ rid of that dependency, we could move it there.
 
 
 import os
+import io
 import re
 import sys
 import tempfile
+import subprocess
 
 from io import UnsupportedOperation
 
@@ -208,9 +210,13 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
         else:
             try:
                 retval = None
-                # if I use popen4, things hang. No idea why.
-                #pager,shell_out = os.popen4(pager_cmd)
-                pager = os.popen(pager_cmd + ' 2>/dev/null', 'w')
+                # Emulate os.popen, but redirect stderr
+                proc = subprocess.Popen(pager_cmd,
+                                shell=True,
+                                stdin=subprocess.PIPE,
+                                stderr=subprocess.DEVNULL
+                                )
+                pager = os._wrap_close(io.TextIOWrapper(proc.stdin), proc)
                 try:
                     pager_encoding = pager.encoding or sys.stdout.encoding
                     pager.write(strng)
