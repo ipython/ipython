@@ -269,7 +269,6 @@ class TerminalInteractiveShell(InteractiveShell):
         self.display_formatter.ipython_display_formatter.enabled = False
 
     def init_prompt_toolkit_cli(self):
-        self.reformat_handler = lambda x:x
         if self.simple_prompt:
             # Fall back to plain non-interactive output for tests.
             # This is very limited.
