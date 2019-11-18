@@ -48,9 +48,7 @@ from IPython.testing.decorators import skipif_not_numpy
 def test_instantiation_FileLink():
     """FileLink: Test class can be instantiated"""
     fl = display.FileLink('example.txt')
-    # TODO: remove if when only Python >= 3.6 is supported
-    if sys.version_info >= (3, 6):
-        fl = display.FileLink(pathlib.PurePath('example.txt'))
+    fl = display.FileLink(pathlib.PurePath('example.txt'))
 
 def test_warning_on_non_existent_path_FileLink():
     """FileLink: Calling _repr_html_ on non-existent files returns a warning

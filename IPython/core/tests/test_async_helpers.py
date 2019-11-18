@@ -14,8 +14,7 @@ from IPython.testing.decorators import skip_without
 iprc = lambda x: ip.run_cell(dedent(x)).raise_error()
 iprc_nr = lambda x: ip.run_cell(dedent(x))
 
-if sys.version_info > (3, 5):
-    from IPython.core.async_helpers import _should_be_async
+from IPython.core.async_helpers import _should_be_async
 
     class AsyncTest(TestCase):
         def test_should_be_async(self):
@@ -201,7 +200,7 @@ if sys.version_info > (3, 5):
             # and yield from is not allowed in any version
             vals = ('return', 'yield', 'yield from (_ for _ in range(3))')
             async_safe = (True,
-                          sys.version_info >= (3, 6),
+                          True,
                           False)
             vals = tuple(zip(vals, async_safe))
 

@@ -484,11 +484,9 @@ class TestCompleter(unittest.TestCase):
             yield _, "a[0].r", 6, "a[0].real", "Should have completed on a[0].r: %s", Completion(
                 5, 6, "real"
             )
-
-            if sys.version_info > (3, 4):
-                yield _, "a[0].from_", 10, "a[0].from_bytes", "Should have completed on a[0].from_: %s", Completion(
-                    5, 10, "from_bytes"
-                )
+            yield _, "a[0].from_", 10, "a[0].from_bytes", "Should have completed on a[0].from_: %s", Completion(
+                5, 10, "from_bytes"
+            )
 
     def test_omit__names(self):
         # also happens to test IPCompleter as a configurable
