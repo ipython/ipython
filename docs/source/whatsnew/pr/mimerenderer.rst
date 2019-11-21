@@ -17,3 +17,6 @@ contribution is welcomed.
 
 We welcome any feedback on the API. See :ref:`shell_mimerenderer` for more
 informations.
+
+This is originally based on work form in :ghpull:`10610` from stephanh42
+started over two years ago, and still a lot need to be done.
