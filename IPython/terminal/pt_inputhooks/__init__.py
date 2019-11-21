@@ -12,7 +12,7 @@ backends = [
     'tk',
     'wx',
     'pyglet', 'glut',
-    'osx',
+    'osx'
 ]
 
 registered = {}

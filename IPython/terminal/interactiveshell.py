@@ -96,6 +96,8 @@ def black_reformat_handler(text_before_cursor):
 
 
 class TerminalInteractiveShell(InteractiveShell):
+    mime_renderers = Dict().tag(config=True)
+
     space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
                                      'to reserve for the completion menu'
                             ).tag(config=True)
@@ -551,7 +553,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     active_eventloop = None
     def enable_gui(self, gui=None):
-        if gui:
+        if gui and (gui != 'inline') :
             self.active_eventloop, self._inputhook =\
                 get_inputhook_name_and_func(gui)
         else:
