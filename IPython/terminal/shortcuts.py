@@ -44,6 +44,15 @@ def create_ipython_shortcuts(shell):
                             & insert_mode
                         ))(return_handler)
 
+    def reformat_and_execute(event):
+        reformat_text_before_cursor(event.current_buffer, event.current_buffer.document, shell)
+        event.current_buffer.validate_and_handle()
+
+    kb.add('escape', 'enter', filter=(has_focus(DEFAULT_BUFFER)
+                            & ~has_selection
+                            & insert_mode
+                                      ))(reformat_and_execute)
+
     kb.add('c-\\')(force_exit)
 
     kb.add('c-p', filter=(vi_insert_mode & has_focus(DEFAULT_BUFFER))
@@ -86,7 +95,17 @@ def create_ipython_shortcuts(shell):
     return kb
 
 
+def reformat_text_before_cursor(buffer, document, shell):
+    text = buffer.delete_before_cursor(len(document.text[:document.cursor_position]))
+    try:
+        formatted_text = shell.reformat_handler(text)
+        buffer.insert_text(formatted_text)
+    except Exception as e:
+        buffer.insert_text(text)
+
+
 def newline_or_execute_outer(shell):
+
     def newline_or_execute(event):
         """When the user presses return, insert a newline or execute the code."""
         b = event.current_buffer
@@ -107,7 +126,12 @@ def newline_or_execute_outer(shell):
         else:
             check_text = d.text[:d.cursor_position]
         status, indent = shell.check_complete(check_text)
-
+       
+        # if all we have after the cursor is whitespace: reformat current text
+        # before cursor
+        after_cursor = d.text[d.cursor_position:]
+        if not after_cursor.strip():
+            reformat_text_before_cursor(b, d, shell)
         if not (d.on_last_line or
                 d.cursor_position_row >= d.line_count - d.empty_line_count_at_the_end()
                 ):
@@ -118,6 +142,7 @@ def newline_or_execute_outer(shell):
             return
 
         if (status != 'incomplete') and b.accept_handler:
+            reformat_text_before_cursor(b, d, shell)
             b.validate_and_handle()
         else:
             if shell.autoindent:

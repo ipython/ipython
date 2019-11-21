@@ -87,6 +87,14 @@ else:
 
 _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
+def black_reformat_handler(text_before_cursor):
+    import black
+    formatted_text = black.format_str(text_before_cursor, mode=black.FileMode())
+    if not text_before_cursor.endswith('\n') and formatted_text.endswith('\n'):
+       formatted_text = formatted_text[:-1]
+    return formatted_text
+
+
 class TerminalInteractiveShell(InteractiveShell):
     space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
                                      'to reserve for the completion menu'
@@ -120,6 +128,11 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
     ).tag(config=True)
 
+    autoformatter = Unicode(None,
+        help="Autoformatter to reformat Terminal code. Can be `'black'` or `None`",
+        allow_none=True
+    ).tag(config=True)
+
     mouse_support = Bool(False,
         help="Enable mouse support in the prompt\n(Note: prevents selecting text with the mouse)"
     ).tag(config=True)
@@ -149,6 +162,16 @@ class TerminalInteractiveShell(InteractiveShell):
         u_mode = change.new.upper()
         if self.pt_app:
             self.pt_app.editing_mode = u_mode
+
+    @observe('autoformatter')
+    def _autoformatter_changed(self, change):
+        formatter = change.new
+        if formatter is None:
+            self.reformat_handler = lambda x:x
+        elif formatter == 'black':
+            self.reformat_handler = black_reformat_handler
+        else:
+            raise ValueError
 
     @observe('highlighting_style')
     @observe('colors')
