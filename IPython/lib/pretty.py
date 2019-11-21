@@ -99,7 +99,7 @@ __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
 MAX_SEQ_LENGTH = 1000
 # The language spec says that dicts preserve order from 3.7, but CPython
 # does so from 3.6, so it seems likely that people will expect that.
-DICT_IS_ORDERED = sys.version_info >= (3, 6)
+DICT_IS_ORDERED = True
 _re_pattern_type = type(re.compile(''))
 
 def _safe_getattr(obj, attr, default=None):

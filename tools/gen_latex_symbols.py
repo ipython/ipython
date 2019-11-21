@@ -11,10 +11,6 @@
 
 import os, sys
 
-if sys.version_info[0] < 3:
-    print("This script must be run with Python 3, exiting...")
-    sys.exit(1)
-
 # Import the Julia LaTeX symbols
 print('Importing latex_symbols.js from Julia...')
 import requests

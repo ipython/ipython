@@ -425,19 +425,16 @@ class TerminalInteractiveShell(InteractiveShell):
         return text
 
     def enable_win_unicode_console(self):
-        if sys.version_info >= (3, 6):
-            # Since PEP 528, Python uses the unicode APIs for the Windows
-            # console by default, so WUC shouldn't be needed.
-            return
-
-        import win_unicode_console
-        win_unicode_console.enable()
+        # Since IPython 7.10 doesn't support python < 3.6 and PEP 528, Python uses the unicode APIs for the Windows
+        # console by default, so WUC shouldn't be needed.
+        from warnings import warn
+        warn("`enable_win_unicode_console` is deprecated since IPython 7.10, does not do anything and will be removed in the future",
+             DeprecationWarning,
+             stacklevel=2)
 
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
             return
-
-        self.enable_win_unicode_console()
 
         import colorama
         colorama.init()

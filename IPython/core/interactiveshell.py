@@ -166,13 +166,7 @@ def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
 # we still need to run things using the asyncio eventloop, but there is no
 # async integration
 from .async_helpers import (_asyncio_runner,  _asyncify, _pseudo_sync_runner)
-if sys.version_info > (3, 5):
-    from .async_helpers import _curio_runner, _trio_runner, _should_be_async
-else :
-    _curio_runner = _trio_runner = None
-
-    def _should_be_async(cell:str)->bool:
-        return False
+from .async_helpers import _curio_runner, _trio_runner, _should_be_async
 
 
 def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
@@ -2245,8 +2239,7 @@ class InteractiveShell(SingletonConfigurable):
             m.NamespaceMagics, m.OSMagics, m.PackagingMagics,
             m.PylabMagics, m.ScriptMagics,
         )
-        if sys.version_info >(3,5):
-            self.register_magics(m.AsyncMagics)
+        self.register_magics(m.AsyncMagics)
 
         # Register Magic Aliases
         mman = self.magics_manager

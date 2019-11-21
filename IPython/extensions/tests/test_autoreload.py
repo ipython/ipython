@@ -140,7 +140,6 @@ def pickle_get_current_class(obj):
 
 class TestAutoreload(Fixture):
 
-    @skipif(sys.version_info < (3, 6))
     def test_reload_enums(self):
         import enum
         mod_name, mod_fn = self.new_module(textwrap.dedent("""
