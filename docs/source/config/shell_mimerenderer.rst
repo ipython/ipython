@@ -56,5 +56,5 @@ to png, before displaying it inline for iterm2 on macOS ::
         register_mimerenderer(ipython, 'text/latex', mathcat)
 
 This example only work for iterm2 on macOS and skip error handling for brevity.
-One could also invoke an external viewer with ``subporcess.run()`` and a
+One could also invoke an external viewer with ``subprocess.run()`` and a
 temporary file, which is left as an exercise.
