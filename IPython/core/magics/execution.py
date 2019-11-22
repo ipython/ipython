@@ -853,6 +853,8 @@ python-profiler package from non-free.""")
             sys.argv = save_argv
             if restore_main:
                 sys.modules['__main__'] = restore_main
+                if '__mp_main__' in sys.modules:
+                    sys.modules['__mp_main__'] = restore_main
             else:
                 # Remove from sys.modules the reference to main_mod we'd
                 # added.  Otherwise it will trap references to objects
