@@ -117,3 +117,15 @@ version::
         ...
         install_requires=install_req
     )
+
+Alternatives to IPython
+=======================
+
+IPython may not be to your taste; if that's the case there might be similar
+project that you might want to use:
+
+- the classic Python REPL.
+- `bpython <https://bpython-interpreter.org/>`_
+- `mypython <https://www.asmeurer.com/mypython/>`_
+- `ptpython and ptipython <https://pypi.org/project/ptpython/>`
+- `xonsh <https://xon.sh/>`
