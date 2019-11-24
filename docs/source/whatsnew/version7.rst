@@ -2,7 +2,103 @@
  7.x Series
 ============
 
+IPython 7.10.0
+==============
+
+IPython 7.10 is the first double digit minor release in the  last decade, and
+first since the release of IPython 1.0, previous double digit minor release was
+in August 2009.
+
+We've been trying to give you regular release on the last Friday of every month
+for a guaranty of rapid access to bug fixes and new features.
+
+Unlike the previous first few releases that have seen only a couple of code
+changes, 7.10 bring a number of changes, new features and bugfixes.
+
+Stop Support for Python 3.5 – Adopt NEP 29
+------------------------------------------
+
+IPython has decided to follow the informational `NEP 29
+<https://numpy.org/neps/nep-0029-deprecation_policy.html>`_ which layout a clear
+policy as to which version of (C)Python and NumPy are supported.
+
+We thus dropped support for Python 3.5, and cleaned up a number of code path
+that were Python-version dependant. If you are on 3.5 or earlier pip should
+automatically give you the latest compatible version of IPython so you do not
+need to pin to a given version.
+
+
+Prompt Rendering Performance improvements
+-----------------------------------------
+
+Pull Request :ghpull:`11933` introduced an optimisation in the prompt rendering
+logic that should decrease the resource usage of IPython when using the
+_default_ configuration but could potentially introduce a regression of
+functionalities if you are using a custom prompt.
+
+We know assume if you haven't changed the default keybindings that the prompt
+**will not change** during the duration of your input – which is for example
+not true when using vi insert mode that switches between `[ins]` and `[nor]`
+for the current mode.
+
+If you are experiencing any issue let us know.
+
+Code autoformatting
+-------------------
+
+The IPython terminal can now auto format your code just before entering a new
+line or executing a command. To do so use the
+``--TerminalInteractiveShell.autoformatter`` option and set it to ``'black'``;
+if black is installed IPython will use black to format your code when possible.
+
+IPython cannot always properly format your code; in particular it will
+auto formatting with *black* will only work if:
+
+   - Your code does not contains magics or special python syntax.
+
+   - There is no code after your cursor.
+
+The Black API is also still in motion; so this may not work with all versions of
+black.
+
+It should be possible to register custom reformatter, though the API is till in
+flux.
+
+Arbitrary Mimetypes Handing in Terminal
+---------------------------------------
+
+When using IPython terminal it is now possible to register function to handle
+arbitrary mimetypes. While rendering non-text based representation was possible in
+many jupyter frontend; it was not possible in terminal IPython, as usually
+terminal are limited to displaying text. As many terminal these days provide
+escape sequences to display non-text; bringing this loved feature to IPython CLI
+made a lot of sens. This functionality will not only allow inline images; but
+allow opening of external program; for example ``mplayer`` to "display" sound
+files.
+
+So far only the hooks necessary for this are in place, but no default mime
+renderers added; so inline images will only be available via extensions. We will
+progressively enable these features by default in the next few releases, and
+contribution is welcomed.
+
+We welcome any feedback on the API. See :ref:`shell_mimerenderer` for more
+informations.
+
+This is originally based on work form in :ghpull:`10610` from stephanh42
+started over two years ago, and still a lot need to be done.
+
+MISC
+----
+
+ - Completions can define their own ordering :ghpull:`11855`
+ - Enable Plotting in the same cell than the one that import matplotlib
+   :ghpull:`11916`
+ - Allow to store and restore multiple variables at once :ghpull:`11930`
+
 .. _version 790:
+
+IPython 7.9.0
+=============
 
 IPython 7.9 is a small release with a couple of improvement and bug fixes.
 
