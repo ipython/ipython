@@ -24,6 +24,65 @@ Need to be updated:
 
 
 
+Prompt Rendering Performance improvements
+=========================================
+
+Pull Request :ghpull:`11933` introduced an optimisation in the prompt rendering
+logic that should decrease the resource usage of IPython when using the
+_default_ configuration but could potentially introduce a regression of
+functionalities if you are using a custom prompt.
+
+We know assume if you haven't changed the default keybindings that the prompt
+**will not change** during the duration of your input – which is for example
+not true when using vi insert mode that switches between `[ins]` and `[nor]`
+for the current mode.
+
+If you are experiencing any issue let us know.
+
+Code autoformatting
+===================
+
+The IPython terminal can now auto format your code just before entering a new
+line or executing a command. To do so use the
+``--TerminalInteractiveShell.autoformatter`` option and set it to ``'black'``;
+if black is installed IPython will use black to format your code when possible.
+
+IPython cannot always properly format your code; in particular it will
+auto formatting with *black* will only work if:
+
+   - Your code does not contains magics or special python syntax.
+
+   - There is no code after your cursor.
+
+The Black API is also still in motion; so this may not work with all versions of
+black.
+
+It should be possible to register custom reformatter, though the API is till in
+flux.
+
+Arbitrary Mimetypes Handing in Terminal
+=======================================
+
+When using IPython terminal it is now possible to register function to handle
+arbitrary mimetypes. While rendering non-text based representation was possible in
+many jupyter frontend; it was not possible in terminal IPython, as usually
+terminal are limited to displaying text. As many terminal these days provide
+escape sequences to display non-text; bringing this loved feature to IPython CLI
+made a lot of sens. This functionality will not only allow inline images; but
+allow opening of external program; for example ``mplayer`` to "display" sound
+files.
+
+So far only the hooks necessary for this are in place, but no default mime
+renderers added; so inline images will only be available via extensions. We will
+progressively enable these features by default in the next few releases, and
+contribution is welcomed.
+
+We welcome any feedback on the API. See :ref:`shell_mimerenderer` for more
+informations.
+
+This is originally based on work form in :ghpull:`10610` from stephanh42
+started over two years ago, and still a lot need to be done.
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 
