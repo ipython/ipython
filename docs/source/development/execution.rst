@@ -23,11 +23,11 @@ Running user ``code``
 =====================
 
 First, the ``code`` cell is transformed to expand ``%magic`` and ``!system``
-by ``IPython.core.inputtransformer2``. Then is being compiled using standard
-Python :func:`compile` function and executed.
+commands by ``IPython.core.inputtransformer2``. Then expanded cell is compiled
+using standard Python :func:`compile` function and executed.
 
-Not specific to IPython, all Python code can be compiled in one of three modes
-(see ``mode`` argument to the standard :func:`compile` function):
+Python :func:`compile` function provides ``mode`` argument to select one
+of three ways of compiling code:
 
 *single*
   Valid for a single interactive statement (though the source can contain
