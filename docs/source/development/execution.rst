@@ -1,13 +1,14 @@
 .. _execution_semantics:
 
-Execution semantics in the IPython kernel
-=========================================
+Execution of cells in the IPython kernel
+========================================
 
-The execution of user code consists of the following phases:
+When IPython kernel receives `execute_request <https://jupyter-client.readthedocs.io/en/latest/messaging.html#execute>`_
+with user code, it processes the message in the following phases:
 
 1. Fire the ``pre_execute`` event.
 2. Fire the ``pre_run_cell`` event unless silent is ``True``.
-3. Execute the ``code`` field, see below for details.
+3. Execute ``run_cell`` method to preprocess ``code``, compile and run it, see below for details.
 4. If execution succeeds, expressions in ``user_expressions`` are computed.
    This ensures that any error in the expressions don't affect the main code execution.
 5. Fire the ``post_execute`` event.
@@ -18,9 +19,15 @@ The execution of user code consists of the following phases:
     :doc:`/config/callbacks`
 
 
-To understand how the ``code`` field is executed, one must know that Python
-code can be compiled in one of three modes (controlled by the ``mode`` argument
-to the :func:`compile` builtin):
+Running user ``code``
+=====================
+
+First, the ``code`` cell is transformed to expand ``%magic`` and ``!system``
+commands by ``IPython.core.inputtransformer2``. Then expanded cell is compiled
+using standard Python :func:`compile` function and executed.
+
+Python :func:`compile` function provides ``mode`` argument to select one
+of three ways of compiling code:
 
 *single*
   Valid for a single interactive statement (though the source can contain
@@ -50,16 +57,16 @@ execution in 'single' mode, and then:
 
 - If there is more than one block:
 
-  * if the last one is a single line long, run all but the last in 'exec' mode
+  * if the last block is a single line long, run all but the last in 'exec' mode
     and the very last one in 'single' mode.  This makes it easy to type simple
     expressions at the end to see computed values.
 
-  * if the last one is no more than two lines long, run all but the last in
+  * if the last block is no more than two lines long, run all but the last in
     'exec' mode and the very last one in 'single' mode.  This makes it easy to
     type simple expressions at the end to see computed values.  - otherwise
     (last one is also multiline), run all in 'exec' mode
 
-  * otherwise (last one is also multiline), run all in 'exec' mode as a single
+  * otherwise (last block is also multiline), run all in 'exec' mode as a single
     unit.
 
 
