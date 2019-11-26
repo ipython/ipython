@@ -25,6 +25,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
 from prompt_toolkit.styles import DynamicStyle, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
+from prompt_toolkit import __version__ as ptk_version
 
 from pygments.styles import get_style_by_name
 from pygments.style import Style
@@ -38,6 +39,7 @@ from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import create_ipython_shortcuts
 
 DISPLAY_BANNER_DEPRECATED = object()
+PTK3 = ptk_version.startswith('3.')
 
 
 class _NoStyle(Style): pass
@@ -415,7 +417,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # work around this.
             get_message = get_message()
 
-        return {
+        options = {
                 'complete_in_thread': False,
                 'lexer':IPythonPTLexer(),
                 'reserve_space_for_menu':self.space_for_menu,
@@ -432,8 +434,11 @@ class TerminalInteractiveShell(InteractiveShell):
                         processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                         filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
                             Condition(lambda: self.highlight_matching_brackets))],
-                'inputhook': self.inputhook,
                 }
+        if not PTK3:
+            options['inputhook'] = self.inputhook
+
+        return options
 
     def prompt_for_code(self):
         if self.rl_next_input:
@@ -558,6 +563,16 @@ class TerminalInteractiveShell(InteractiveShell):
                 get_inputhook_name_and_func(gui)
         else:
             self.active_eventloop = self._inputhook = None
+
+        # For prompt_toolkit 3.0. We have to create an asyncio event loop with
+        # this inputhook.
+        if PTK3:
+            if self._inputhook:
+                from prompt_toolkit.eventloop import set_eventloop_with_inputhook
+                set_eventloop_with_inputhook(self._inputhook)
+            else:
+                import asyncio
+                asyncio.set_event_loop(asyncio.new_event_loop())
 
     # Run !system commands directly, not through pipes, so terminal programs
     # work correctly.
