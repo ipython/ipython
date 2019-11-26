@@ -27,6 +27,14 @@ that were Python-version dependant. If you are on 3.5 or earlier pip should
 automatically give you the latest compatible version of IPython so you do not
 need to pin to a given version.
 
+Support for Prompt Toolkit 3.0
+------------------------------
+
+Prompt Toolkit 3.0 was release a week before IPython 7.10 and introduces a few
+breaking changes. We believe IPython 7.10 should be compatible with both Prompt
+Toolkit 2.x and 3.x, though it has not been extensively tested with 3.x so
+please report any issues.
+
 
 Prompt Rendering Performance improvements
 -----------------------------------------
@@ -61,11 +69,11 @@ auto formatting with *black* will only work if:
 The Black API is also still in motion; so this may not work with all versions of
 black.
 
-It should be possible to register custom reformatter, though the API is till in
+It should be possible to register custom formatter, though the API is till in
 flux.
 
-Arbitrary Mimetypes Handing in Terminal
----------------------------------------
+Arbitrary Mimetypes Handing in Terminal (Aka inline images in terminal)
+-----------------------------------------------------------------------
 
 When using IPython terminal it is now possible to register function to handle
 arbitrary mimetypes. While rendering non-text based representation was possible in
@@ -84,7 +92,7 @@ contribution is welcomed.
 We welcome any feedback on the API. See :ref:`shell_mimerenderer` for more
 informations.
 
-This is originally based on work form in :ghpull:`10610` from stephanh42
+This is originally based on work form in :ghpull:`10610` from @stephanh42
 started over two years ago, and still a lot need to be done.
 
 MISC
@@ -94,6 +102,33 @@ MISC
  - Enable Plotting in the same cell than the one that import matplotlib
    :ghpull:`11916`
  - Allow to store and restore multiple variables at once :ghpull:`11930`
+
+You can see `all pull-requests <https://github.com/ipython/ipython/pulls?q=is%3Apr+milestone%3A7.10+is%3Aclosed>`_ for this release.
+
+API Changes
+-----------
+
+Change of API and exposed objects automatically detected using `frappuccino <https://pypi.org/project/frappuccino/>`_ :
+
+The following items are new in IPython 7.10:
+    + IPython.terminal.shortcuts.reformat_text_before_cursor
+    + IPython.terminal.prompts.RichPromptDisplayHook.write_format_data
+    + IPython.terminal.interactiveshell.black_reformat_handler
+
+The following signatures differ between 7.9 and 7.10:
+
+    - IPython.extensions.storemagic.restore_aliases(ip)
+    + IPython.extensions.storemagic.restore_aliases(ip, alias='None')
+
+Special Thanks
+--------------
+
+ - @stephanh42 who started the work on inline images in terminal 2 years ago
+ - @augustogoulart who spent a lot of time triaging issues and responding to
+   users.
+ - @con-f-use who is my (@Carreau) first sponsor on GitHub, as a reminder if you
+   like IPython, Jupyter and many other library of the SciPy stack you can
+   donate to numfocus.org non profit
 
 .. _version 790:
 
@@ -109,12 +144,12 @@ IPython 7.9 is a small release with a couple of improvement and bug fixes.
    find all objects needing reload. This should avoid large objects traversal
    like pandas dataframes. :ghpull:`11876`
  - Get ready for Python 4. :ghpull:`11874`
- - `%env` Magic nonw has euristic to hide potentially sensitive values :ghpull:`11896`
+ - `%env` Magic now has heuristic to hide potentially sensitive values :ghpull:`11896`
 
 This is a small release despite a number of Pull Request Pending that need to
 be reviewed/worked on. Many of the core developers have been busy outside of
 IPython/Jupyter and we thanks all contributor for their patience; we'll work on
-these as soon as we have time. 
+these as soon as we have time.
 
 
 .. _version780:
