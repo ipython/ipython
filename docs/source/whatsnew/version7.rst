@@ -108,14 +108,20 @@ You can see `all pull-requests <https://github.com/ipython/ipython/pulls?q=is%3A
 API Changes
 -----------
 
-Change of API and exposed objects automatically detected using `frappuccino <https://pypi.org/project/frappuccino/>`_ :
+Change of API and exposed objects automatically detected using `frappuccino <https://pypi.org/project/frappuccino/>`_ (still in beta):
 
-The following items are new in IPython 7.10:
-    + IPython.terminal.shortcuts.reformat_text_before_cursor
-    + IPython.terminal.prompts.RichPromptDisplayHook.write_format_data
-    + IPython.terminal.interactiveshell.black_reformat_handler
+The following items are new in IPython 7.10::
 
-The following signatures differ between 7.9 and 7.10:
+    + IPython.terminal.shortcuts.reformat_text_before_cursor(buffer, document, shell)
+    + IPython.terminal.interactiveshell.PTK3
+    + IPython.terminal.interactiveshell.black_reformat_handler(text_before_cursor)
+    + IPython.terminal.prompts.RichPromptDisplayHook.write_format_data(self, format_dict, md_dict='None')
+
+The following items have been removed in 7.10::
+
+    - IPython.lib.pretty.DICT_IS_ORDERED
+
+The following signatures differ between versions::
 
     - IPython.extensions.storemagic.restore_aliases(ip)
     + IPython.extensions.storemagic.restore_aliases(ip, alias='None')
