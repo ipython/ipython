@@ -1,5 +1,6 @@
 """IPython terminal interface using prompt_toolkit"""
 
+import asyncio
 import os
 import sys
 import warnings
@@ -309,6 +310,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
+        self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(
                             editing_mode=editing_mode,
                             key_bindings=key_bindings,
@@ -448,10 +450,21 @@ class TerminalInteractiveShell(InteractiveShell):
             default = ''
 
         with patch_stdout(raw=True):
-            text = self.pt_app.prompt(
-                default=default,
-#                pre_run=self.pre_prompt,# reset_current_buffer=True,
-                **self._extra_prompt_options())
+            # In order to make sure that asyncio code written in the
+            # interactive shell doesn't interfere with the prompt, we run the
+            # prompt in a different event loop.
+            # If we don't do this, people could spawn coroutine with a
+            # while/true inside which will freeze the prompt.
+
+            old_loop = asyncio.get_event_loop()
+            asyncio.set_event_loop(self.pt_loop)
+            try:
+                text = self.pt_app.prompt(
+                    default=default,
+                    **self._extra_prompt_options())
+            finally:
+                # Restore the original event loop.
+                asyncio.set_event_loop(old_loop)
         return text
 
     def enable_win_unicode_console(self):
@@ -568,11 +581,11 @@ class TerminalInteractiveShell(InteractiveShell):
         # this inputhook.
         if PTK3:
             if self._inputhook:
-                from prompt_toolkit.eventloop import set_eventloop_with_inputhook
-                set_eventloop_with_inputhook(self._inputhook)
+                from prompt_toolkit.eventloop import new_eventloop_with_inputhook
+                self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
             else:
                 import asyncio
-                asyncio.set_event_loop(asyncio.new_event_loop())
+                self.pt_loop = asyncio.new_event_loop()
 
     # Run !system commands directly, not through pipes, so terminal programs
     # work correctly.
