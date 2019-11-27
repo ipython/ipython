@@ -75,8 +75,8 @@ echo $BLUE"Attempting to build package..."$NOR
 tools/build_release
 
 echo
-echo "Let\'s commit : git commit -am \"release $VERSION\" -S"
-echo $GREEN"Press enter to continue"$NOR
+echo "Let's commit : git commit -am \"release $VERSION\" -S"
+echo $GREEN"Press enter to commit"$NOR
 read
 git commit -am "release $VERSION" -S
 
