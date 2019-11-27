@@ -42,7 +42,7 @@ echo $BLUE"here are all the authors that contributed to this release:"$NOR
 git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
 
 echo 
-echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap."$GREEN"Press enter to continue:"$NOR
+echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap.\n"$GREEN"Press enter to continue:"$NOR
 read
 
 echo $BLUE"generating stats"$NOR

@@ -1,6 +1,33 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+Issues closed in 7.10
+---------------------
+
+GitHub stats for 2019/10/25 - 2019/11/27 (tag: 7.9.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 4 issues and merged 22 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.10>`__
+
+The following 15 authors contributed 101 commits.
+
+* anatoly techtonik
+* Ben Lewis
+* Benjamin Ragan-Kelley
+* Gerrit Buss
+* grey275
+* Gökcen Eraslan
+* Jonathan Slenders
+* Joris Van den Bossche
+* kousik
+* Matthias Bussonnier
+* Nicholas Bollweg
+* Paul McCarthy
+* Srinivas Reddy Thatiparthy
+* Timo Kaufmann
+* Tony Fast
 
 Issues closed in 7.9
 --------------------
