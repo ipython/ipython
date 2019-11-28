@@ -81,10 +81,28 @@ read
 git commit -am "release $VERSION" -S
 
 echo
-echo "git push origin \$BRANCH ?"
-echo "Press enter to continue"
+echo $BLUE"git push origin \$BRANCH ($BRANCH)?"$NOR
+echo $GREEN"Make sure you can push"$NOR
+echo $GREEN"Press enter to continue"$NOR
 read
 git push origin $BRANCH
-# git tag -am "release $VERSION" "$VERSION" -s
-# git push origin $VERSION
+
+echo
+echo "Let's tag : git tag -am \"release $VERSION\" \"$VERSION\" -s"
+echo $GREEN"Press enter to wtagcommit"$NOR
+read
+git tag -am "release $VERSION" "$VERSION" -s
+
+echo
+echo $BLUE"And push the tag: git push origin \$VERSION ?"$NOR
+echo $GREEN"Press enter to continue"$NOR
+read
+git push origin $VERSION
+
+echo
+echo $BLUE"let's : git checkout $VERSION"$NOR
+echo $GREEN"Press enter to continue"$NOR
+read
+git checkout $VERSION
+
 
