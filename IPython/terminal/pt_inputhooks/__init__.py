@@ -12,7 +12,8 @@ backends = [
     'tk',
     'wx',
     'pyglet', 'glut',
-    'osx'
+    'osx',
+    'asyncio'
 ]
 
 registered = {}
