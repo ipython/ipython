@@ -44,6 +44,13 @@ def safe_unicode(e):
 def input(prompt=''):
     return builtin_mod.input(prompt)
 
+
+def execfile(fname, glob, loc=None, compiler=None):
+    loc = loc if (loc is not None) else glob
+    with open(fname, 'rb') as f:
+        compiler = compiler or compile
+        exec(compiler(f.read(), fname, 'exec'), glob, loc)
+
 u_format = lambda s:s
 
 PYPY = platform.python_implementation() == "PyPy"
