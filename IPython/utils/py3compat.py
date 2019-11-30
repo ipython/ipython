@@ -101,8 +101,6 @@ buffer_to_bytes_py2 = no_code
 string_types = (str,)
 unicode_type = str
 
-which = shutil.which
-
 
 # Abstract u'abc' syntax:
 @_modify_str_or_docstring
