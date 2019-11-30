@@ -17,6 +17,9 @@ from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.formatted_text import PygmentsTokens
 
+from prompt_toolkit import __version__ as ptk_version
+PTK3 = ptk_version.startswith('3.')
+
 
 class TerminalPdb(Pdb):
     """Standalone IPython debugger."""
@@ -49,19 +52,22 @@ class TerminalPdb(Pdb):
                                   & ~cursor_in_leading_ws
                               ))(display_completions_like_readline)
 
-        self.pt_app = PromptSession(
-                            message=(lambda: PygmentsTokens(get_prompt_tokens())),
-                            editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
-                            key_bindings=kb,
-                            history=self.shell.debugger_history,
-                            completer=self._ptcomp,
-                            enable_history_search=True,
-                            mouse_support=self.shell.mouse_support,
-                            complete_style=self.shell.pt_complete_style,
-                            style=self.shell.style,
-                            inputhook=self.shell.inputhook,
-                            color_depth=self.shell.color_depth,
+        options = dict(
+            message=(lambda: PygmentsTokens(get_prompt_tokens())),
+            editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
+            key_bindings=kb,
+            history=self.shell.debugger_history,
+            completer=self._ptcomp,
+            enable_history_search=True,
+            mouse_support=self.shell.mouse_support,
+            complete_style=self.shell.pt_complete_style,
+            style=self.shell.style,
+            color_depth=self.shell.color_depth,
         )
+
+        if not PTK3:
+            options['inputhook'] = self.inputhook
+        self.pt_app = PromptSession(**options)
 
     def cmdloop(self, intro=None):
         """Repeatedly issue a prompt, accept input, parse an initial prefix
