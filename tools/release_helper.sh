@@ -9,14 +9,6 @@ python -c 'import sphinx'
 python -c 'import sphinx_rtd_theme'
 python -c 'import nose'
 
-echo -n 'PREV_RELEASE (X.y.z):'
-read PREV_RELEASE
-echo -n 'MILESTONE (X.y):'
-read MILESTONE
-echo -n 'VERSION (X.y.z):'
-read VERSION
-echo -n 'branch (master|X.y):'
-read branch
 
 BLACK=$(tput setaf 1)
 RED=$(tput setaf 1)
@@ -28,30 +20,65 @@ CYAN=$(tput setaf 6)
 WHITE=$(tput setaf 7)
 NOR=$(tput sgr0)
 
+
+echo -n "PREV_RELEASE (X.y.z) [$PREV_RELEASE]: "
+read input
+PREV_RELEASE=${input:-$PREV_RELEASE}
+echo -n "MILESTONE (X.y) [$MILESTONE]: "
+read input
+MILESTONE=${input:-$MILESTONE}
+echo -n "VERSION (X.y.z) [$VERSION]:"
+read input
+VERSION=${input:-$VERSION}
+echo -n "branch (master|X.y) [$branch]:"
+read input
+branch=${input:-$branch}
+
+ask_section(){
+    echo
+    echo $BLUE"$1"$NOR 
+    echo -n $GREEN"Press Enter to continue, S to skip: "$GREEN
+    read -n1 value
+    echo 
+    if [ -z $value ] || [ $value = 'y' ]  ; then
+        return 0
+    fi
+    return 1
+}
+
+
+
 echo 
-echo $BLUE"Updating what's new with informations from docs/source/whatsnew/pr"$NOR
-python tools/update_whatsnew.py
+if ask_section "Updating what's new with informations from docs/source/whatsnew/pr"
+then
+    python tools/update_whatsnew.py
 
-echo
-echo $BLUE"please move the contents of "docs/source/whatsnew/development.rst" to version-X.rst"$NOR
-echo $GREEN"Press enter to continue"$NOR
-read
+    echo
+    echo $BLUE"please move the contents of "docs/source/whatsnew/development.rst" to version-X.rst"$NOR
+    echo $GREEN"Press enter to continue"$NOR
+    read
+fi
 
-echo 
-echo $BLUE"here are all the authors that contributed to this release:"$NOR
-git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
+if ask_section "Gen Stats, and authors"
+then
 
-echo 
-echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap.\n"$GREEN"Press enter to continue:"$NOR
-read
+    echo 
+    echo $BLUE"here are all the authors that contributed to this release:"$NOR
+    git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
 
-echo $BLUE"generating stats"$NOR
-python tools/github_stats.py --milestone $MILESTONE > stats.rst
+    echo 
+    echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap.\n"$GREEN"Press enter to continue:"$NOR
+    read
 
-echo $BLUE"stats.rst files generated."$NOR
-echo $GREEN"Please merge it with the right file (github-stats-X.rst) and commit."$NOR
-echo $GREEN"press enter to continue."$NOR
-read
+    echo $BLUE"generating stats"$NOR
+    python tools/github_stats.py --milestone $MILESTONE > stats.rst
+
+    echo $BLUE"stats.rst files generated."$NOR
+    echo $GREEN"Please merge it with the right file (github-stats-X.rst) and commit."$NOR
+    echo $GREEN"press enter to continue."$NOR
+    read
+
+fi
 
 echo "Cleaning repository"
 git clean -xfdi
