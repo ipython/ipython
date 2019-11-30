@@ -38,6 +38,9 @@ def inputhook(context):
     def stop():
         loop.stop()
 
-    loop.add_reader(context.fileno(), stop)
-    context.fileno()
-    loop.run_forever()
+    fileno = context.fileno()
+    loop.add_reader(fileno, stop)
+    try:
+        loop.run_forever()
+    finally:
+        loop.remove_reader(fileno)
