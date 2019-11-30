@@ -82,78 +82,12 @@ def safe_unicode(e):
 
     return u'Unrecoverably corrupt evalue'
 
-# shutil.which from Python 3.4
-def _shutil_which(cmd, mode=os.F_OK | os.X_OK, path=None):
-    """Given a command, mode, and a PATH string, return the path which
-    conforms to the given mode on the PATH, or None if there is no such
-    file.
-
-    `mode` defaults to os.F_OK | os.X_OK. `path` defaults to the result
-    of os.environ.get("PATH"), or can be overridden with a custom search
-    path.
-
-    This is a backport of shutil.which from Python 3.4
-    """
-    # Check that a given file can be accessed with the correct mode.
-    # Additionally check that `file` is not a directory, as on Windows
-    # directories pass the os.access check.
-    def _access_check(fn, mode):
-        return (os.path.exists(fn) and os.access(fn, mode)
-                and not os.path.isdir(fn))
-
-    # If we're given a path with a directory part, look it up directly rather
-    # than referring to PATH directories. This includes checking relative to the
-    # current directory, e.g. ./script
-    if os.path.dirname(cmd):
-        if _access_check(cmd, mode):
-            return cmd
-        return None
-
-    if path is None:
-        path = os.environ.get("PATH", os.defpath)
-    if not path:
-        return None
-    path = path.split(os.pathsep)
-
-    if sys.platform == "win32":
-        # The current directory takes precedence on Windows.
-        if not os.curdir in path:
-            path.insert(0, os.curdir)
-
-        # PATHEXT is necessary to check on Windows.
-        pathext = os.environ.get("PATHEXT", "").split(os.pathsep)
-        # See if the given file matches any of the expected path extensions.
-        # This will allow us to short circuit when given "python.exe".
-        # If it does match, only test that one, otherwise we have to try
-        # others.
-        if any(cmd.lower().endswith(ext.lower()) for ext in pathext):
-            files = [cmd]
-        else:
-            files = [cmd + ext for ext in pathext]
-    else:
-        # On other platforms you don't have things like PATHEXT to tell you
-        # what file suffixes are executable, so just pass on cmd as-is.
-        files = [cmd]
-
-    seen = set()
-    for dir in path:
-        normdir = os.path.normcase(dir)
-        if not normdir in seen:
-            seen.add(normdir)
-            for thefile in files:
-                name = os.path.join(dir, thefile)
-                if _access_check(name, mode):
-                    return name
-    return None
-
-PY3 = True
 
 # keep reference to builtin_mod because the kernel overrides that value
 # to forward requests to a frontend.
 def input(prompt=''):
     return builtin_mod.input(prompt)
 
-builtin_mod_name = "builtins"
 import builtins as builtin_mod
 
 str_to_unicode = no_code
@@ -169,29 +103,6 @@ unicode_type = str
 
 which = shutil.which
 
-def isidentifier(s, dotted=False):
-    if dotted:
-        return all(isidentifier(a) for a in s.split("."))
-    return s.isidentifier()
-
-xrange = range
-def iteritems(d): return iter(d.items())
-def itervalues(d): return iter(d.values())
-getcwd = os.getcwd
-
-MethodType = types.MethodType
-
-def execfile(fname, glob, loc=None, compiler=None):
-    loc = loc if (loc is not None) else glob
-    with open(fname, 'rb') as f:
-        compiler = compiler or compile
-        exec(compiler(f.read(), fname, 'exec'), glob, loc)
-
-# Refactor print statements in doctests.
-_print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)
-def _print_statement_sub(match):
-    expr = match.groups('expr')
-    return "print(%s)" % expr
 
 # Abstract u'abc' syntax:
 @_modify_str_or_docstring
@@ -201,50 +112,6 @@ def u_format(s):
     Accepts a string or a function, so it can be used as a decorator."""
     return s.format(u='')
 
-def get_closure(f):
-    """Get a function's closure attribute"""
-    return f.__closure__
-
-
-PY2 = not PY3
 PYPY = platform.python_implementation() == "PyPy"
 
 
-def annotate(**kwargs):
-    """Python 3 compatible function annotation for Python 2."""
-    if not kwargs:
-        raise ValueError('annotations must be provided as keyword arguments')
-    def dec(f):
-        if hasattr(f, '__annotations__'):
-            for k, v in kwargs.items():
-                f.__annotations__[k] = v
-        else:
-            f.__annotations__ = kwargs
-        return f
-    return dec
-
-
-# Parts below taken from six:
-# Copyright (c) 2010-2013 Benjamin Peterson
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-def with_metaclass(meta, *bases):
-    """Create a base class with a metaclass."""
-    return meta("_NewBase", bases, {})
