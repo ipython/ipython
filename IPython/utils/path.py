@@ -198,12 +198,11 @@ def get_home_dir(require_writable=False) -> str:
         # expanduser failed, use the registry to get the 'My Documents' folder.
         try:
             import winreg as wreg
-            key = wreg.OpenKey(
+            with wreg.OpenKey(
                 wreg.HKEY_CURRENT_USER,
                 r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
-            )
-            homedir = wreg.QueryValueEx(key,'Personal')[0]
-            key.Close()
+            ) as key:
+                homedir = wreg.QueryValueEx(key,'Personal')[0]
         except:
             pass
 
