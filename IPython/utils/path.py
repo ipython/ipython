@@ -169,7 +169,7 @@ class HomeDirError(Exception):
     pass
 
 
-def get_home_dir(require_writable=False):
+def get_home_dir(require_writable=False) -> str:
     """Return the 'home' directory, as a unicode string.
 
     Uses os.path.expanduser('~'), and checks for writability.
@@ -197,21 +197,18 @@ def get_home_dir(require_writable=False):
     if not _writable_dir(homedir) and os.name == 'nt':
         # expanduser failed, use the registry to get the 'My Documents' folder.
         try:
-            try:
-                import winreg as wreg  # Py 3
-            except ImportError:
-                import _winreg as wreg  # Py 2
-            key = wreg.OpenKey(
+            import winreg as wreg
+            with wreg.OpenKey(
                 wreg.HKEY_CURRENT_USER,
                 r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
-            )
-            homedir = wreg.QueryValueEx(key,'Personal')[0]
-            key.Close()
+            ) as key:
+                homedir = wreg.QueryValueEx(key,'Personal')[0]
         except:
             pass
 
     if (not require_writable) or _writable_dir(homedir):
-        return py3compat.cast_unicode(homedir, fs_encoding)
+        assert isinstance(homedir, str), "Homedir shoudl be unicode not bytes"
+        return homedir
     else:
         raise HomeDirError('%s is not a writable dir, '
                 'set $HOME environment variable to override' % homedir)

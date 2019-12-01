@@ -70,7 +70,7 @@ def get_ipython_dir() -> str:
     return ipdir
 
 
-def get_ipython_cache_dir():
+def get_ipython_cache_dir() -> str:
     """Get the cache directory it is created if it does not exist."""
     xdgdir = get_xdg_cache_dir()
     if xdgdir is None:
@@ -81,13 +81,14 @@ def get_ipython_cache_dir():
     elif not _writable_dir(xdgdir):
         return get_ipython_dir()
 
-    return py3compat.cast_unicode(ipdir, fs_encoding)
+    return ipdir
 
 
-def get_ipython_package_dir():
+def get_ipython_package_dir() -> str:
     """Get the base directory where IPython itself is installed."""
     ipdir = os.path.dirname(IPython.__file__)
-    return py3compat.cast_unicode(ipdir, fs_encoding)
+    assert isinstance(ipdir, str)
+    return ipdir
 
 
 def get_ipython_module_path(module_str):
