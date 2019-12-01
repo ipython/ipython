@@ -653,8 +653,10 @@ class ListTB(TBTools):
         -------
         String with formatted exception.
         """
-        # if chained_exc_ids is None:
-        chained_exc_ids = set()
+        if isinstance(etb, tuple):
+            etb, chained_exc_ids = etb
+        else:
+            chained_exc_ids = set()
         if isinstance(etb, list):
             elist = etb
         elif etb is not None:
@@ -683,7 +685,8 @@ class ListTB(TBTools):
             chained_exc_ids.add(id(exception[1])) # trace exception to avoid infinite 'cause' loop
             chained_exceptions_tb_offset = 0
             out_list = (self.structured_traceback(
-                etype, evalue, etb, chained_exceptions_tb_offset, context)
+                etype, evalue, (etb, chained_exc_ids),
+                chained_exceptions_tb_offset, context)
                         + self.prepare_chained_exception_message(
                             evalue.__cause__)[0]
                         + out_list)
