@@ -1,6 +1,21 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+Issues closed in 7.10.1
+-----------------------
+
+GitHub stats for 2019/11/27 - 2019/12/01 (tag: 7.10.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 5 issues and merged 7 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.10.1>`__
+
+The following 2 authors contributed 14 commits.
+
+* Jonathan Slenders
+* Matthias Bussonnier
+
 Issues closed in 7.10
 ---------------------
 
