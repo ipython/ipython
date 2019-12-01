@@ -30,9 +30,9 @@ MILESTONE=${input:-$MILESTONE}
 echo -n "VERSION (X.y.z) [$VERSION]:"
 read input
 VERSION=${input:-$VERSION}
-echo -n "branch (master|X.y) [$branch]:"
+echo -n "BRANCH (master|X.y) [$BRANCH]:"
 read input
-branch=${input:-$branch}
+BRANCH=${input:-$BRANCH}
 
 ask_section(){
     echo
@@ -117,7 +117,7 @@ git push origin $BRANCH
 
 echo
 echo "Let's tag : git tag -am \"release $VERSION\" \"$VERSION\" -s"
-echo $GREEN"Press enter to wtagcommit"$NOR
+echo $GREEN"Press enter to tag commit"$NOR
 read
 git tag -am "release $VERSION" "$VERSION" -s
 
@@ -126,6 +126,22 @@ echo $BLUE"And push the tag: git push origin \$VERSION ?"$NOR
 echo $GREEN"Press enter to continue"$NOR
 read
 git push origin $VERSION
+
+
+echo $GREEN"please update version number and back to .dev in ${RED}IPython/core/release.py"
+echo ${BLUE}"Do not commit yet – we'll do it later."$NOR
+
+echo $GREEN"Press enter to continue"$NOR
+read
+
+echo
+echo "Let's commit : git commit -am \"back to dev\" -S"
+echo $GREEN"Press enter to commit"$NOR
+read
+git commit -am "back to dev" -S
+
+
+
 
 echo
 echo $BLUE"let's : git checkout $VERSION"$NOR
