@@ -2,6 +2,17 @@
  7.x Series
 ============
 
+.. _version 7101:
+
+IPython 7.10.1
+==============
+
+IPython 7.10.1 fix a couple of incompatibilities with Prompt toolkit 3 (please
+update Prompt toolkit to 3.0.2 at least), and fixes some interaction with
+headless IPython.
+
+.. _version 7100:
+
 IPython 7.10.0
 ==============
 
