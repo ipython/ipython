@@ -1,5 +1,5 @@
 # Simple tool to help for release
-# when releasing with bash, simplei source it to get asked questions. 
+# when releasing with bash, simple source it to get asked questions. 
 
 # misc check before starting
 
@@ -104,7 +104,7 @@ echo $BLUE"Attempting to build package..."$NOR
 tools/build_release
 rm dist/*
 
-if ask_section "Shoudl we commit, tag, push... etc ? "
+if ask_section "Should we commit, tag, push... etc ? "
 then
    echo
    echo "Let's commit : git commit -am \"release $VERSION\" -S"
