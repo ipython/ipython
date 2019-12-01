@@ -89,68 +89,81 @@ echo $GREEN"please update version number in ${RED}IPython/core/release.py${NOR} 
 echo $GREEN"Press enter to continue"$NOR
 read
 
-echo 
-echo "Attempting to build the docs.."
-make html -C docs
+if ask_section "Build the documentation ?"
+then
+    make html -C docs
+    echo 
+    echo $GREEN"Check the docs, press enter to continue"$NOR
+    read
 
-echo 
-echo $GREEN"Check the docs, press enter to continue"$NOR
-read
+fi
 
 echo
 echo $BLUE"Attempting to build package..."$NOR
 
 tools/build_release
+rm dist/*
 
-echo
-echo "Let's commit : git commit -am \"release $VERSION\" -S"
-echo $GREEN"Press enter to commit"$NOR
-read
-git commit -am "release $VERSION" -S
+if ask_section "Shoudl we commit, tag, push... etc ? "
+then
+   echo
+   echo "Let's commit : git commit -am \"release $VERSION\" -S"
+   echo $GREEN"Press enter to commit"$NOR
+   read
+   git commit -am "release $VERSION" -S
+   
+   echo
+   echo $BLUE"git push origin \$BRANCH ($BRANCH)?"$NOR
+   echo $GREEN"Make sure you can push"$NOR
+   echo $GREEN"Press enter to continue"$NOR
+   read
+   git push origin $BRANCH
+   
+   echo
+   echo "Let's tag : git tag -am \"release $VERSION\" \"$VERSION\" -s"
+   echo $GREEN"Press enter to tag commit"$NOR
+   read
+   git tag -am "release $VERSION" "$VERSION" -s
+   
+   echo
+   echo $BLUE"And push the tag: git push origin \$VERSION ?"$NOR
+   echo $GREEN"Press enter to continue"$NOR
+   read
+   git push origin $VERSION
+   
+   
+   echo $GREEN"please update version number and back to .dev in ${RED}IPython/core/release.py"
+   echo ${BLUE}"Do not commit yet – we'll do it later."$NOR
+   
+   echo $GREEN"Press enter to continue"$NOR
+   read
+   
+   echo
+   echo "Let's commit : git commit -am \"back to dev\" -S"
+   echo $GREEN"Press enter to commit"$NOR
+   read
+   git commit -am "back to dev" -S
+   
+   echo
+   echo $BLUE"let's : git checkout $VERSION"$NOR
+   echo $GREEN"Press enter to continue"$NOR
+   read
+   git checkout $VERSION
+fi
 
-echo
-echo $BLUE"git push origin \$BRANCH ($BRANCH)?"$NOR
-echo $GREEN"Make sure you can push"$NOR
-echo $GREEN"Press enter to continue"$NOR
-read
-git push origin $BRANCH
+if ask_section "Should we build and release ?"
+then
 
-echo
-echo "Let's tag : git tag -am \"release $VERSION\" \"$VERSION\" -s"
-echo $GREEN"Press enter to tag commit"$NOR
-read
-git tag -am "release $VERSION" "$VERSION" -s
+    echo
+    echo $BLUE"Attempting to build package..."$NOR
 
-echo
-echo $BLUE"And push the tag: git push origin \$VERSION ?"$NOR
-echo $GREEN"Press enter to continue"$NOR
-read
-git push origin $VERSION
+    tools/build_release
 
+    echo '$ shasum -a 256 dist/*'
+    shasum -a 256 dist/*
 
-echo $GREEN"please update version number and back to .dev in ${RED}IPython/core/release.py"
-echo ${BLUE}"Do not commit yet – we'll do it later."$NOR
-
-echo $GREEN"Press enter to continue"$NOR
-read
-
-echo
-echo "Let's commit : git commit -am \"back to dev\" -S"
-echo $GREEN"Press enter to commit"$NOR
-read
-git commit -am "back to dev" -S
-
-
-
-
-echo
-echo $BLUE"let's : git checkout $VERSION"$NOR
-echo $GREEN"Press enter to continue"$NOR
-read
-git checkout $VERSION
-
-# ./tools/release
-# ls ./dist
-# shasum -a 256 dist/*
-
-
+    if ask_section "upload packages ?"
+    then 
+       tools/build_release upload
+    fi
+fi
