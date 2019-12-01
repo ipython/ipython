@@ -530,6 +530,30 @@ class TBTools(colorable.Colorable):
 
     ostream = property(_get_ostream, _set_ostream)
 
+    def get_parts_of_chained_exception(self, evalue):
+        def get_chained_exception(exception_value):
+            cause = getattr(exception_value, '__cause__', None)
+            if cause:
+                return cause
+            if getattr(exception_value, '__suppress_context__', False):
+                return None
+            return getattr(exception_value, '__context__', None)
+
+        chained_evalue = get_chained_exception(evalue)
+
+        if chained_evalue:
+            return chained_evalue.__class__, chained_evalue, chained_evalue.__traceback__
+
+    def prepare_chained_exception_message(self, cause):
+        direct_cause = "\nThe above exception was the direct cause of the following exception:\n"
+        exception_during_handling = "\nDuring handling of the above exception, another exception occurred:\n"
+
+        if cause:
+            message = [[direct_cause]]
+        else:
+            message = [[exception_during_handling]]
+        return message
+
     def set_colors(self, *args, **kw):
         """Shorthand access to the color table scheme selector method."""
 
@@ -603,7 +627,7 @@ class ListTB(TBTools):
         self.ostream.write(self.text(etype, value, elist))
         self.ostream.write('\n')
 
-    def structured_traceback(self, etype, value, elist, tb_offset=None,
+    def structured_traceback(self, etype, evalue, etb=None, tb_offset=None,
                              context=5):
         """Return a color formatted string with the traceback info.
 
@@ -612,15 +636,15 @@ class ListTB(TBTools):
         etype : exception type
           Type of the exception raised.
 
-        value : object
+        evalue : object
           Data stored in the exception
 
-        elist : list
-          List of frames, see class docstring for details.
+        etb : traceback
+          Traceback of the exception.
 
         tb_offset : int, optional
           Number of frames in the traceback to skip.  If not given, the
-          instance value is used (set in constructor).
+          instance evalue is used (set in constructor).
 
         context : int, optional
           Number of lines of context information to print.
@@ -629,6 +653,14 @@ class ListTB(TBTools):
         -------
         String with formatted exception.
         """
+        # if chained_exc_ids is None:
+        chained_exc_ids = set()
+        if isinstance(etb, list):
+            elist = etb
+        elif etb is not None:
+            elist = self._extract_tb(etb)
+        else:
+            elist = []
         tb_offset = self.tb_offset if tb_offset is None else tb_offset
         Colors = self.Colors
         out_list = []
@@ -641,8 +673,20 @@ class ListTB(TBTools):
                             (Colors.normalEm, Colors.Normal) + '\n')
             out_list.extend(self._format_list(elist))
         # The exception info should be a single entry in the list.
-        lines = ''.join(self._format_exception_only(etype, value))
+        lines = ''.join(self._format_exception_only(etype, evalue))
         out_list.append(lines)
+
+        exception = self.get_parts_of_chained_exception(evalue)
+
+        if exception and not id(exception[1]) in chained_exc_ids:
+            etype, evalue, etb = exception
+            chained_exc_ids.add(id(exception[1])) # trace exception to avoid infinite 'cause' loop
+            chained_exceptions_tb_offset = 0
+            out_list = (self.structured_traceback(
+                etype, evalue, etb, chained_exceptions_tb_offset, context)
+                        + self.prepare_chained_exception_message(
+                            evalue.__cause__)[0]
+                        + out_list)
 
         return out_list
 
@@ -763,7 +807,7 @@ class ListTB(TBTools):
         etype : exception type
         value : exception value
         """
-        return ListTB.structured_traceback(self, etype, value, [])
+        return ListTB.structured_traceback(self, etype, value)
 
     def show_exception_only(self, etype, evalue):
         """Only print the exception type and message, without a traceback.
@@ -1013,16 +1057,6 @@ class VerboseTB(TBTools):
                 _format_traceback_lines(lnum, index, lines, Colors, lvals,
                                          _line_format)))
 
-    def prepare_chained_exception_message(self, cause):
-        direct_cause = "\nThe above exception was the direct cause of the following exception:\n"
-        exception_during_handling = "\nDuring handling of the above exception, another exception occurred:\n"
-
-        if cause:
-            message = [[direct_cause]]
-        else:
-            message = [[exception_during_handling]]
-        return message
-
     def prepare_header(self, etype, long_version=False):
         colors = self.Colors  # just a shorthand + quicker name lookup
         colorsnormal = colors.Normal  # used a lot
@@ -1116,20 +1150,6 @@ class VerboseTB(TBTools):
             traceback.print_exc(file=self.ostream)
             info('\nUnfortunately, your original traceback can not be constructed.\n')
             return None
-
-    def get_parts_of_chained_exception(self, evalue):
-        def get_chained_exception(exception_value):
-            cause = getattr(exception_value, '__cause__', None)
-            if cause:
-                return cause
-            if getattr(exception_value, '__suppress_context__', False):
-                return None
-            return getattr(exception_value, '__context__', None)
-
-        chained_evalue = get_chained_exception(evalue)
-
-        if chained_evalue:
-            return chained_evalue.__class__, chained_evalue, chained_evalue.__traceback__
 
     def structured_traceback(self, etype, evalue, etb, tb_offset=None,
                              number_of_lines_of_context=5):
@@ -1294,9 +1314,8 @@ class FormattedTB(VerboseTB, ListTB):
             # out-of-date source code.
             self.check_cache()
             # Now we can extract and format the exception
-            elist = self._extract_tb(tb)
             return ListTB.structured_traceback(
-                self, etype, value, elist, tb_offset, number_of_lines_of_context
+                self, etype, value, tb, tb_offset, number_of_lines_of_context
             )
 
     def stb2text(self, stb):
