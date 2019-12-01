@@ -12,7 +12,7 @@ from IPython.utils.path import (
     ensure_dir_exists, fs_encoding)
 from IPython.utils import py3compat
 
-def get_ipython_dir():
+def get_ipython_dir() -> str:
     """Get the IPython directory for this platform and user.
 
     This uses the logic in `get_home_dir` to find the home directory
@@ -28,10 +28,9 @@ def get_ipython_dir():
     home_dir = get_home_dir()
     xdg_dir = get_xdg_dir()
 
-    # import pdb; pdb.set_trace()  # dbg
     if 'IPYTHON_DIR' in env:
-        warn('The environment variable IPYTHON_DIR is deprecated. '
-                'Please use IPYTHONDIR instead.')
+        warn('The environment variable IPYTHON_DIR is deprecated since IPython 3.0. '
+                'Please use IPYTHONDIR instead.', DeprecationWarning)
     ipdir = env.get('IPYTHONDIR', env.get('IPYTHON_DIR', None))
     if ipdir is None:
         # not set explicitly, use ~/.ipython
@@ -67,8 +66,8 @@ def get_ipython_dir():
             warn("IPython parent '{0}' is not a writable location,"
                     " using a temp directory.".format(parent))
             ipdir = tempfile.mkdtemp()
-
-    return py3compat.cast_unicode(ipdir, fs_encoding)
+    assert isinstance(ipdir, str), "all path manipulation should be str(unicode), but are not."
+    return ipdir
 
 
 def get_ipython_cache_dir():
