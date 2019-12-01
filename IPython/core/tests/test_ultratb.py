@@ -300,6 +300,7 @@ except Exception:
         with tt.AssertPrints(["KeyError", "NameError", "During handling"]):
             ip.run_cell("%xmode Plain")
             ip.run_cell(self.EXCEPTION_DURING_HANDLING_CODE)
+            ip.run_cell("%xmode Verbose")
 
 
 class RecursionTest(unittest.TestCase):
