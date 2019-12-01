@@ -251,31 +251,31 @@ def get_xdg_cache_dir():
 
 @undoc
 def get_ipython_dir():
-    warn("get_ipython_dir has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
+    warn("get_ipython_dir has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
     from IPython.paths import get_ipython_dir
     return get_ipython_dir()
 
 @undoc
 def get_ipython_cache_dir():
-    warn("get_ipython_cache_dir has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
+    warn("get_ipython_cache_dir has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
     from IPython.paths import get_ipython_cache_dir
     return get_ipython_cache_dir()
 
 @undoc
 def get_ipython_package_dir():
-    warn("get_ipython_package_dir has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
+    warn("get_ipython_package_dir has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
     from IPython.paths import get_ipython_package_dir
     return get_ipython_package_dir()
 
 @undoc
 def get_ipython_module_path(module_str):
-    warn("get_ipython_module_path has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
+    warn("get_ipython_module_path has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
     from IPython.paths import get_ipython_module_path
     return get_ipython_module_path(module_str)
 
 @undoc
 def locate_profile(profile='default'):
-    warn("locate_profile has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
+    warn("locate_profile has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
     from IPython.paths import locate_profile
     return locate_profile(profile=profile)
 
