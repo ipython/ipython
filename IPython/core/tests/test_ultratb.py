@@ -296,6 +296,11 @@ except Exception:
              tt.AssertPrints("ValueError", suppress=False):
             ip.run_cell(self.SUPPRESS_CHAINING_CODE)
 
+    def test_plain_exception(self):
+        with tt.AssertPrints(["KeyError", "NameError", "During handling"]):
+            ip.run_cell("%xmode Plain")
+            ip.run_cell(self.EXCEPTION_DURING_HANDLING_CODE)
+
 
 class RecursionTest(unittest.TestCase):
     DEFINITIONS = """
