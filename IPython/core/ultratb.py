@@ -639,8 +639,9 @@ class ListTB(TBTools):
         evalue : object
           Data stored in the exception
 
-        etb : traceback
-          Traceback of the exception.
+        etb : object
+          If list: List of frames, see class docstring for details.
+          If Traceback: Traceback of the exception.
 
         tb_offset : int, optional
           Number of frames in the traceback to skip.  If not given, the
@@ -653,10 +654,13 @@ class ListTB(TBTools):
         -------
         String with formatted exception.
         """
+        # This is a workaround to get chained_exc_ids in recursive calls
+        # etb should not be a tuple if structured_traceback is not recursive
         if isinstance(etb, tuple):
             etb, chained_exc_ids = etb
         else:
             chained_exc_ids = set()
+
         if isinstance(etb, list):
             elist = etb
         elif etb is not None:
