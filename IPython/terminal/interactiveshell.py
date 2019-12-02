@@ -449,22 +449,28 @@ class TerminalInteractiveShell(InteractiveShell):
         else:
             default = ''
 
-        with patch_stdout(raw=True):
-            # In order to make sure that asyncio code written in the
-            # interactive shell doesn't interfere with the prompt, we run the
-            # prompt in a different event loop.
-            # If we don't do this, people could spawn coroutine with a
-            # while/true inside which will freeze the prompt.
+        # In order to make sure that asyncio code written in the
+        # interactive shell doesn't interfere with the prompt, we run the
+        # prompt in a different event loop.
+        # If we don't do this, people could spawn coroutine with a
+        # while/true inside which will freeze the prompt.
 
+        try:
             old_loop = asyncio.get_event_loop()
-            asyncio.set_event_loop(self.pt_loop)
-            try:
+        except RuntimeError:
+            # This happens when the user used `asyncio.run()`.
+            old_loop = None
+
+        asyncio.set_event_loop(self.pt_loop)
+        try:
+            with patch_stdout(raw=True):
                 text = self.pt_app.prompt(
                     default=default,
                     **self._extra_prompt_options())
-            finally:
-                # Restore the original event loop.
-                asyncio.set_event_loop(old_loop)
+        finally:
+            # Restore the original event loop.
+            asyncio.set_event_loop(old_loop)
+
         return text
 
     def enable_win_unicode_console(self):
