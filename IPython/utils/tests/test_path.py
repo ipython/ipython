@@ -171,7 +171,11 @@ def test_get_home_dir_8():
         env.pop(key, None)
 
     class key:
+        def __enter__(self):
+            pass
         def Close(self):
+            pass
+        def __exit__(*args, **kwargs):
             pass
 
     with patch.object(wreg, 'OpenKey', return_value=key()), \
