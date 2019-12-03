@@ -149,4 +149,8 @@ echo $GREEN"Press enter to continue"$NOR
 read
 git checkout $VERSION
 
+# ./tools/release
+# ls ./dist
+# shasum -a 256 dist/*
+
 

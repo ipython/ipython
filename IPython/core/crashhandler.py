@@ -29,6 +29,8 @@ from IPython.core.release import author_email
 from IPython.utils.sysinfo import sys_info
 from IPython.utils.py3compat import input
 
+from IPython.core.release import __version__ as version
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -68,7 +70,7 @@ To ensure accurate tracking of this issue, please file a report about it at:
 """
 
 _lite_message_template = """
-If you suspect this is an IPython bug, please report it at:
+If you suspect this is an IPython {version} bug, please report it at:
     https://github.com/ipython/ipython/issues
 or send an email to the mailing list at {email}
 
@@ -222,5 +224,5 @@ def crash_handler_lite(etype, evalue, tb):
     else:
         # we are not in a shell, show generic config
         config = "c."
-    print(_lite_message_template.format(email=author_email, config=config), file=sys.stderr)
+    print(_lite_message_template.format(email=author_email, config=config, version=version), file=sys.stderr)
 
