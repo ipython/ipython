@@ -296,6 +296,25 @@ except Exception:
              tt.AssertPrints("ValueError", suppress=False):
             ip.run_cell(self.SUPPRESS_CHAINING_CODE)
 
+    def test_plain_direct_cause_error(self):
+        with tt.AssertPrints(["KeyError", "NameError", "direct cause"]):
+            ip.run_cell("%xmode Plain")
+            ip.run_cell(self.DIRECT_CAUSE_ERROR_CODE)
+            ip.run_cell("%xmode Verbose")
+
+    def test_plain_exception_during_handling_error(self):
+        with tt.AssertPrints(["KeyError", "NameError", "During handling"]):
+            ip.run_cell("%xmode Plain")
+            ip.run_cell(self.EXCEPTION_DURING_HANDLING_CODE)
+            ip.run_cell("%xmode Verbose")
+
+    def test_plain_suppress_exception_chaining(self):
+        with tt.AssertNotPrints("ZeroDivisionError"), \
+             tt.AssertPrints("ValueError", suppress=False):
+            ip.run_cell("%xmode Plain")
+            ip.run_cell(self.SUPPRESS_CHAINING_CODE)
+            ip.run_cell("%xmode Verbose")
+
 
 class RecursionTest(unittest.TestCase):
     DEFINITIONS = """
