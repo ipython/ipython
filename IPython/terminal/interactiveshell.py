@@ -449,22 +449,28 @@ class TerminalInteractiveShell(InteractiveShell):
         else:
             default = ''
 
-        with patch_stdout(raw=True):
-            # In order to make sure that asyncio code written in the
-            # interactive shell doesn't interfere with the prompt, we run the
-            # prompt in a different event loop.
-            # If we don't do this, people could spawn coroutine with a
-            # while/true inside which will freeze the prompt.
+        # In order to make sure that asyncio code written in the
+        # interactive shell doesn't interfere with the prompt, we run the
+        # prompt in a different event loop.
+        # If we don't do this, people could spawn coroutine with a
+        # while/true inside which will freeze the prompt.
 
+        try:
             old_loop = asyncio.get_event_loop()
-            asyncio.set_event_loop(self.pt_loop)
-            try:
+        except RuntimeError:
+            # This happens when the user used `asyncio.run()`.
+            old_loop = None
+
+        asyncio.set_event_loop(self.pt_loop)
+        try:
+            with patch_stdout(raw=True):
                 text = self.pt_app.prompt(
                     default=default,
                     **self._extra_prompt_options())
-            finally:
-                # Restore the original event loop.
-                asyncio.set_event_loop(old_loop)
+        finally:
+            # Restore the original event loop.
+            asyncio.set_event_loop(old_loop)
+
         return text
 
     def enable_win_unicode_console(self):
@@ -580,11 +586,22 @@ class TerminalInteractiveShell(InteractiveShell):
         # For prompt_toolkit 3.0. We have to create an asyncio event loop with
         # this inputhook.
         if PTK3:
-            if self._inputhook:
-                from prompt_toolkit.eventloop import new_eventloop_with_inputhook
+            import asyncio
+            from prompt_toolkit.eventloop import new_eventloop_with_inputhook
+
+            if gui == 'asyncio':
+                # When we integrate the asyncio event loop, run the UI in the
+                # same event loop as the rest of the code. don't use an actual
+                # input hook. (Asyncio is not made for nesting event loops.)
+                self.pt_loop = asyncio.get_event_loop()
+
+            elif self._inputhook:
+                # If an inputhook was set, create a new asyncio event loop with
+                # this inputhook for the prompt.
                 self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
             else:
-                import asyncio
+                # When there's no inputhook, run the prompt in a separate
+                # asyncio event loop.
                 self.pt_loop = asyncio.new_event_loop()
 
     # Run !system commands directly, not through pipes, so terminal programs
