@@ -13,8 +13,6 @@ import platform
 
 from .encoding import DEFAULT_ENCODING
 
-def no_code(x, encoding=None):
-    return x
 
 def decode(s, encoding=None):
     encoding = encoding or DEFAULT_ENCODING
@@ -44,7 +42,7 @@ def buffer_to_bytes(buf):
 def _modify_str_or_docstring(str_change_func):
     @functools.wraps(str_change_func)
     def wrapper(func_or_str):
-        if isinstance(func_or_str, string_types):
+        if isinstance(func_or_str, (str,)):
             func = None
             doc = func_or_str
         else:
@@ -66,17 +64,12 @@ def safe_unicode(e):
     safe to call unicode() on.
     """
     try:
-        return unicode_type(e)
+        return str(e)
     except UnicodeError:
         pass
 
     try:
-        return str_to_unicode(str(e))
-    except UnicodeError:
-        pass
-
-    try:
-        return str_to_unicode(repr(e))
+        return repr(e)
     except UnicodeError:
         pass
 
@@ -156,16 +149,6 @@ def input(prompt=''):
 builtin_mod_name = "builtins"
 import builtins as builtin_mod
 
-str_to_unicode = no_code
-unicode_to_str = no_code
-str_to_bytes = encode
-bytes_to_str = decode
-cast_bytes_py2 = no_code
-cast_unicode_py2 = no_code
-buffer_to_bytes_py2 = no_code
-
-string_types = (str,)
-unicode_type = str
 
 which = shutil.which
 
