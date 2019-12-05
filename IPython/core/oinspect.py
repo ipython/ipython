@@ -23,6 +23,7 @@ from textwrap import dedent
 import types
 import io as stdlib_io
 from itertools import zip_longest
+from typing import Union
 
 # IPython's own
 from IPython.core import page
@@ -110,7 +111,7 @@ def get_encoding(obj):
             encoding, lines = openpy.detect_encoding(buffer.readline)
         return encoding
 
-def getdoc(obj):
+def getdoc(obj) -> Union[str,None]:
     """Stable wrapper around inspect.getdoc.
 
     This can't crash because of attribute problems.
@@ -128,11 +129,10 @@ def getdoc(obj):
         if isinstance(ds, str):
             return inspect.cleandoc(ds)
     docstr = inspect.getdoc(obj)
-    encoding = get_encoding(obj)
-    return py3compat.cast_unicode(docstr, encoding=encoding)
+    return docstr
 
 
-def getsource(obj, oname=''):
+def getsource(obj, oname='') -> Union[str,None]:
     """Wrapper around inspect.getsource.
 
     This can be modified by other projects to provide customized source
@@ -158,18 +158,15 @@ def getsource(obj, oname=''):
             if fn is not None:
                 encoding = get_encoding(fn)
                 oname_prefix = ('%s.' % oname) if oname else ''
-                sources.append(cast_unicode(
-                    ''.join(('# ', oname_prefix, attrname)),
-                    encoding=encoding))
+                sources.append(''.join(('# ', oname_prefix, attrname)))
                 if inspect.isfunction(fn):
                     sources.append(dedent(getsource(fn)))
                 else:
                     # Default str/repr only prints function name,
                     # pretty.pretty prints module name too.
-                    sources.append(cast_unicode(
-                        '%s%s = %s\n' % (
-                            oname_prefix, attrname, pretty(fn)),
-                        encoding=encoding))
+                    sources.append(
+                        '%s%s = %s\n' % (oname_prefix, attrname, pretty(fn))
+                    )
         if sources:
             return '\n'.join(sources)
         else:
@@ -191,8 +188,7 @@ def getsource(obj, oname=''):
                 except TypeError:
                     return None
 
-        encoding = get_encoding(obj)
-        return cast_unicode(src, encoding=encoding)
+        return src
 
 
 def is_simple_callable(obj):
@@ -289,7 +285,7 @@ def _get_wrapped(obj):
             return orig_obj
     return obj
 
-def find_file(obj):
+def find_file(obj) -> str:
     """Find the absolute path to the file where an object was defined.
 
     This is essentially a robust wrapper around `inspect.getabsfile`.
@@ -370,18 +366,17 @@ class Inspector(Colorable):
         self.str_detail_level = str_detail_level
         self.set_active_scheme(scheme)
 
-    def _getdef(self,obj,oname=''):
+    def _getdef(self,obj,oname='') -> Union[str,None]:
         """Return the call signature for any callable object.
 
         If any exception is generated, None is returned instead and the
         exception is suppressed."""
         try:
-            hdef = _render_signature(signature(obj), oname)
-            return cast_unicode(hdef)
+            return _render_signature(signature(obj), oname)
         except:
             return None
 
-    def __head(self,h):
+    def __head(self,h) -> str:
         """Return a header string with proper colors."""
         return '%s%s%s' % (self.color_table.active_colors.header,h,
                            self.color_table.active_colors.normal)
@@ -517,7 +512,7 @@ class Inspector(Colorable):
             # 0-offset, so we must adjust.
             page.page(self.format(openpy.read_py_file(ofile, skip_encoding_cookie=False)), lineno - 1)
 
-    def _format_fields(self, fields, title_width=0):
+    def _format_fields(self, fields, title_width=0) -> str:
         """Formats a list of fields for display.
 
         Parameters
@@ -536,7 +531,7 @@ class Inspector(Colorable):
                 title = header(title + ':') + '\n'
             else:
                 title = header((title + ':').ljust(title_width))
-            out.append(cast_unicode(title) + cast_unicode(content))
+            out.append(title + cast_unicode(content))
         return "\n".join(out)
 
     def _mime_format(self, text, formatter=None):
@@ -1015,7 +1010,7 @@ class Inspector(Colorable):
         page.page('\n'.join(sorted(search_result)))
 
 
-def _render_signature(obj_signature, obj_name):
+def _render_signature(obj_signature, obj_name) -> str:
     """
     This was mostly taken from inspect.Signature.__str__.
     Look there for the comments.
