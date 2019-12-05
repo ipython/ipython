@@ -512,28 +512,6 @@ class Inspector(Colorable):
             # 0-offset, so we must adjust.
             page.page(self.format(openpy.read_py_file(ofile, skip_encoding_cookie=False)), lineno - 1)
 
-    def _format_fields(self, fields, title_width=0) -> str:
-        """Formats a list of fields for display.
-
-        Parameters
-        ----------
-        fields : list
-          A list of 2-tuples: (field_title, field_content)
-        title_width : int
-          How many characters to pad titles to. Default to longest title.
-        """
-        out = []
-        header = self.__head
-        if title_width == 0:
-            title_width = max(len(title) + 2 for title, _ in fields)
-        for title, content in fields:
-            if len(content.splitlines()) > 1:
-                title = header(title + ':') + '\n'
-            else:
-                title = header((title + ':').ljust(title_width))
-            out.append(title + cast_unicode(content))
-        return "\n".join(out)
-
     def _mime_format(self, text, formatter=None):
         """Return a mime bundle representation of the input text.
 
