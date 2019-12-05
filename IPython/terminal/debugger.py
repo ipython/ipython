@@ -66,7 +66,7 @@ class TerminalPdb(Pdb):
         )
 
         if not PTK3:
-            options['inputhook'] = self.inputhook
+            options['inputhook'] = self.shell.inputhook
         self.pt_app = PromptSession(**options)
 
     def cmdloop(self, intro=None):
