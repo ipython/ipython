@@ -438,7 +438,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             Condition(lambda: self.highlight_matching_brackets))],
                 }
         if not PTK3:
-            options['inputhook'] = self.shell.inputhook
+            options['inputhook'] = self.inputhook
 
         return options
 
