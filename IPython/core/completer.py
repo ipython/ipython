@@ -126,7 +126,7 @@ import warnings
 
 from contextlib import contextmanager
 from importlib import import_module
-from typing import Iterator, List, Tuple, Iterable, Union
+from typing import Iterator, List, Tuple, Iterable
 from types import SimpleNamespace
 
 from traitlets.config.configurable import Configurable

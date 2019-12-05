@@ -21,9 +21,9 @@ import IPython
 from IPython import paths
 from IPython.testing import decorators as dec
 from IPython.testing.decorators import (skip_if_not_win32, skip_win32,
-                                        onlyif_unicode_paths, skipif,
+                                        onlyif_unicode_paths,
                                         skip_win32_py38,)
-from IPython.testing.tools import make_tempfile, AssertPrints
+from IPython.testing.tools import make_tempfile
 from IPython.utils import path
 from IPython.utils.tempdir import TemporaryDirectory
 

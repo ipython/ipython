@@ -19,7 +19,7 @@ spec.
 import sys
 
 from traitlets.config.configurable import Configurable
-from traitlets import List, Dict
+from traitlets import List
 
 # This used to be defined here - it is imported for backwards compatibility
 from .display import publish_display_data

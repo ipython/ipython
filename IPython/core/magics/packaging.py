@@ -12,7 +12,6 @@ import os
 import re
 import shlex
 import sys
-from subprocess import Popen, PIPE
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
