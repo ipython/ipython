@@ -11,7 +11,7 @@ This document describes in-flight development work.
     `docs/source/whatsnew/pr` folder
 
 
-Released .... ...., 2017
+Released .... ...., 2019
 
 
 Need to be updated:
@@ -21,8 +21,6 @@ Need to be updated:
    :glob:
 
    pr/*
-
-
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 

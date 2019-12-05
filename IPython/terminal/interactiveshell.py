@@ -1,5 +1,6 @@
 """IPython terminal interface using prompt_toolkit"""
 
+import asyncio
 import os
 import sys
 import warnings
@@ -25,6 +26,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
 from prompt_toolkit.styles import DynamicStyle, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
+from prompt_toolkit import __version__ as ptk_version
 
 from pygments.styles import get_style_by_name
 from pygments.style import Style
@@ -38,6 +40,7 @@ from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import create_ipython_shortcuts
 
 DISPLAY_BANNER_DEPRECATED = object()
+PTK3 = ptk_version.startswith('3.')
 
 
 class _NoStyle(Style): pass
@@ -87,7 +90,17 @@ else:
 
 _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
+def black_reformat_handler(text_before_cursor):
+    import black
+    formatted_text = black.format_str(text_before_cursor, mode=black.FileMode())
+    if not text_before_cursor.endswith('\n') and formatted_text.endswith('\n'):
+       formatted_text = formatted_text[:-1]
+    return formatted_text
+
+
 class TerminalInteractiveShell(InteractiveShell):
+    mime_renderers = Dict().tag(config=True)
+
     space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
                                      'to reserve for the completion menu'
                             ).tag(config=True)
@@ -120,6 +133,11 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
     ).tag(config=True)
 
+    autoformatter = Unicode(None,
+        help="Autoformatter to reformat Terminal code. Can be `'black'` or `None`",
+        allow_none=True
+    ).tag(config=True)
+
     mouse_support = Bool(False,
         help="Enable mouse support in the prompt\n(Note: prevents selecting text with the mouse)"
     ).tag(config=True)
@@ -149,6 +167,16 @@ class TerminalInteractiveShell(InteractiveShell):
         u_mode = change.new.upper()
         if self.pt_app:
             self.pt_app.editing_mode = u_mode
+
+    @observe('autoformatter')
+    def _autoformatter_changed(self, change):
+        formatter = change.new
+        if formatter is None:
+            self.reformat_handler = lambda x:x
+        elif formatter == 'black':
+            self.reformat_handler = black_reformat_handler
+        else:
+            raise ValueError
 
     @observe('highlighting_style')
     @observe('colors')
@@ -282,6 +310,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
+        self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(
                             editing_mode=editing_mode,
                             key_bindings=key_bindings,
@@ -390,7 +419,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # work around this.
             get_message = get_message()
 
-        return {
+        options = {
                 'complete_in_thread': False,
                 'lexer':IPythonPTLexer(),
                 'reserve_space_for_menu':self.space_for_menu,
@@ -407,8 +436,11 @@ class TerminalInteractiveShell(InteractiveShell):
                         processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                         filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
                             Condition(lambda: self.highlight_matching_brackets))],
-                'inputhook': self.inputhook,
                 }
+        if not PTK3:
+            options['inputhook'] = self.inputhook
+
+        return options
 
     def prompt_for_code(self):
         if self.rl_next_input:
@@ -417,11 +449,28 @@ class TerminalInteractiveShell(InteractiveShell):
         else:
             default = ''
 
-        with patch_stdout(raw=True):
-            text = self.pt_app.prompt(
-                default=default,
-#                pre_run=self.pre_prompt,# reset_current_buffer=True,
-                **self._extra_prompt_options())
+        # In order to make sure that asyncio code written in the
+        # interactive shell doesn't interfere with the prompt, we run the
+        # prompt in a different event loop.
+        # If we don't do this, people could spawn coroutine with a
+        # while/true inside which will freeze the prompt.
+
+        try:
+            old_loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # This happens when the user used `asyncio.run()`.
+            old_loop = None
+
+        asyncio.set_event_loop(self.pt_loop)
+        try:
+            with patch_stdout(raw=True):
+                text = self.pt_app.prompt(
+                    default=default,
+                    **self._extra_prompt_options())
+        finally:
+            # Restore the original event loop.
+            asyncio.set_event_loop(old_loop)
+
         return text
 
     def enable_win_unicode_console(self):
@@ -528,11 +577,32 @@ class TerminalInteractiveShell(InteractiveShell):
 
     active_eventloop = None
     def enable_gui(self, gui=None):
-        if gui:
+        if gui and (gui != 'inline') :
             self.active_eventloop, self._inputhook =\
                 get_inputhook_name_and_func(gui)
         else:
             self.active_eventloop = self._inputhook = None
+
+        # For prompt_toolkit 3.0. We have to create an asyncio event loop with
+        # this inputhook.
+        if PTK3:
+            import asyncio
+            from prompt_toolkit.eventloop import new_eventloop_with_inputhook
+
+            if gui == 'asyncio':
+                # When we integrate the asyncio event loop, run the UI in the
+                # same event loop as the rest of the code. don't use an actual
+                # input hook. (Asyncio is not made for nesting event loops.)
+                self.pt_loop = asyncio.get_event_loop()
+
+            elif self._inputhook:
+                # If an inputhook was set, create a new asyncio event loop with
+                # this inputhook for the prompt.
+                self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
+            else:
+                # When there's no inputhook, run the prompt in a separate
+                # asyncio event loop.
+                self.pt_loop = asyncio.new_event_loop()
 
     # Run !system commands directly, not through pipes, so terminal programs
     # work correctly.

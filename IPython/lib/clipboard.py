@@ -32,15 +32,15 @@ def win32_clipboard_get():
         win32clipboard.CloseClipboard()
     return text
 
-def osx_clipboard_get():
+def osx_clipboard_get() -> str:
     """ Get the clipboard's text on OS X.
     """
     p = subprocess.Popen(['pbpaste', '-Prefer', 'ascii'],
         stdout=subprocess.PIPE)
-    text, stderr = p.communicate()
+    bytes_, stderr = p.communicate()
     # Text comes in with old Mac \r line endings. Change them to \n.
-    text = text.replace(b'\r', b'\n')
-    text = py3compat.cast_unicode(text, py3compat.DEFAULT_ENCODING)
+    bytes_ = bytes_.replace(b'\r', b'\n')
+    text = py3compat.decode(bytes_)
     return text
 
 def tkinter_clipboard_get():

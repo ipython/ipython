@@ -13,6 +13,7 @@ backends = [
     'wx',
     'pyglet', 'glut',
     'osx',
+    'asyncio'
 ]
 
 registered = {}

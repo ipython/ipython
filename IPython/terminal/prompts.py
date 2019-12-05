@@ -89,3 +89,14 @@ class RichPromptDisplayHook(DisplayHook):
                 )
             else:
                 sys.stdout.write(prompt_txt)
+
+    def write_format_data(self, format_dict, md_dict=None) -> None:
+        if self.shell.mime_renderers:
+
+            for mime, handler in self.shell.mime_renderers.items():
+                if mime in format_dict:
+                    handler(format_dict[mime], None)
+                    return
+                
+        super().write_format_data(format_dict, md_dict)
+

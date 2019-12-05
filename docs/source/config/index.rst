@@ -29,6 +29,7 @@ Extending and integrating with IPython
    extensions/index
    integrating
    custommagics
+   shell_mimerenderer
    inputtransforms
    callbacks
    eventloops
