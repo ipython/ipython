@@ -5,9 +5,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 
-import io as stdlib_io
-import os.path
-import stat
 import sys
 from io import StringIO
 
@@ -16,9 +13,7 @@ import unittest
 
 import nose.tools as nt
 
-from IPython.testing.decorators import skipif, skip_win32
 from IPython.utils.io import IOStream, Tee, capture_output
-from IPython.utils.tempdir import TemporaryDirectory
 
 
 def test_tee_simple():

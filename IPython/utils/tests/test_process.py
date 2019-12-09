@@ -16,7 +16,6 @@ Tests for platutils.py
 
 import sys
 import os
-from unittest import TestCase
 
 import nose.tools as nt
 

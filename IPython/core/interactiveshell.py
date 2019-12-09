@@ -13,7 +13,6 @@
 
 import abc
 import ast
-import asyncio
 import atexit
 import builtins as builtin_mod
 import functools
@@ -87,6 +86,7 @@ from ast import AST
 
 # NoOpContext is deprecated, but ipykernel imports it from here.
 # See https://github.com/ipython/ipykernel/issues/157
+# (2016, let's try to remove than in IPython 8.0)
 from IPython.utils.contexts import NoOpContext
 
 try:

@@ -1,4 +1,3 @@
-from backcall import callback_prototype
 import unittest
 from unittest.mock import Mock
 import nose.tools as nt

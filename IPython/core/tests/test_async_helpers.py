@@ -3,7 +3,6 @@ Test for async helpers.
 
 Should only trigger on python 3.5+ or will have syntax errors.
 """
-import sys
 from itertools import chain, repeat
 import nose.tools as nt
 from textwrap import dedent, indent

@@ -5,7 +5,6 @@ import argparse
 from logging import error
 import io
 from pprint import pformat
-import textwrap
 import sys
 from warnings import warn
 
