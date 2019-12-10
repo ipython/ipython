@@ -55,10 +55,10 @@ def pkg_commit_hash(pkg_path):
         return "installation", _sysinfo.commit
 
     # maybe we are in a repository
-    proc = subprocess.Popen('git rev-parse --short HEAD',
+    proc = subprocess.Popen('git rev-parse --short HEAD'.split(' '),
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
-                            cwd=pkg_path, shell=True)
+                            cwd=pkg_path)
     repo_commit, _ = proc.communicate()
     if repo_commit:
         return 'repository', repo_commit.strip().decode('ascii')
