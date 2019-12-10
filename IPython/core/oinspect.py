@@ -22,7 +22,7 @@ import os
 from textwrap import dedent
 import types
 import io as stdlib_io
-from itertools import zip_longest
+
 from typing import Union
 
 # IPython's own
@@ -83,7 +83,7 @@ info_fields = ['type_name', 'base_class', 'string_form', 'namespace',
 
 def object_info(**kw):
     """Make an object info dict with all fields present."""
-    infodict = dict(zip_longest(info_fields, [None]))
+    infodict = {k:None for k in info_fields}
     infodict.update(kw)
     return infodict
 
@@ -512,7 +512,8 @@ class Inspector(Colorable):
             # 0-offset, so we must adjust.
             page.page(self.format(openpy.read_py_file(ofile, skip_encoding_cookie=False)), lineno - 1)
 
-    def _mime_format(self, text, formatter=None):
+
+    def _mime_format(self, text:str, formatter=None) -> dict:
         """Return a mime bundle representation of the input text.
 
         - if `formatter` is None, the returned mime bundle has
@@ -528,7 +529,6 @@ class Inspector(Colorable):
         Formatters returning strings are supported but this behavior is deprecated.
 
         """
-        text = cast_unicode(text)
         defaults = {
             'text/plain': text,
             'text/html': '<pre>' + text + '</pre>'
@@ -591,7 +591,7 @@ class Inspector(Colorable):
             'text/html': '',
         }
 
-        def append_field(bundle, title, key, formatter=None):
+        def append_field(bundle, title:str, key:str, formatter=None):
             field = info[key]
             if field is not None:
                 formatted_field = self._mime_format(field, formatter)
@@ -711,7 +711,8 @@ class Inspector(Colorable):
         Returns
         =======
 
-        An object info dict with known fields from `info_fields`.
+        An object info dict with known fields from `info_fields`. Keys are
+        strings, values are string or None.
         """
 
         if info is None:
