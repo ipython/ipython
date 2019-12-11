@@ -538,7 +538,7 @@ class FullEvalFormatter(Formatter):
     """
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
-    def vformat(self, format_string, args, kwargs):
+    def vformat(self, format_string:str, args, kwargs)->str:
         result = []
         for literal_text, field_name, format_spec, conversion in \
                 self.parse(format_string):
@@ -566,7 +566,7 @@ class FullEvalFormatter(Formatter):
                 # format the object and append to the result
                 result.append(self.format_field(obj, ''))
 
-        return ''.join(py3compat.cast_unicode(s) for s in result)
+        return ''.join(result)
 
 
 class DollarFormatter(FullEvalFormatter):

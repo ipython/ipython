@@ -386,7 +386,7 @@ class InputSplitter(object):
         finally:
             self.reset()
 
-    def push(self, lines):
+    def push(self, lines:str) -> bool:
         """Push one or more lines of input.
 
         This stores the given lines and returns a status code indicating
@@ -408,6 +408,7 @@ class InputSplitter(object):
           this value is also stored as a private attribute (``_is_complete``), so it
           can be queried at any time.
         """
+        assert isinstance(lines, str)
         self._store(lines)
         source = self.source
 
@@ -677,7 +678,7 @@ class IPythonInputSplitter(InputSplitter):
         finally:
             self.reset()
 
-    def push(self, lines):
+    def push(self, lines:str) -> bool:
         """Push one or more lines of IPython input.
 
         This stores the given lines and returns a status code indicating
@@ -700,9 +701,8 @@ class IPythonInputSplitter(InputSplitter):
           this value is also stored as a private attribute (_is_complete), so it
           can be queried at any time.
         """
-
+        assert isinstance(lines, str)
         # We must ensure all input is pure unicode
-        lines = cast_unicode(lines, self.encoding)
         # ''.splitlines() --> [], but we need to push the empty line to transformers
         lines_list = lines.splitlines()
         if not lines_list:
