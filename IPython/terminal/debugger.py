@@ -1,3 +1,4 @@
+import asyncio
 import signal
 import sys
 
@@ -67,6 +68,7 @@ class TerminalPdb(Pdb):
 
         if not PTK3:
             options['inputhook'] = self.shell.inputhook
+        self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(**options)
 
     def cmdloop(self, intro=None):
@@ -78,6 +80,19 @@ class TerminalPdb(Pdb):
         """
         if not self.use_rawinput:
             raise ValueError('Sorry ipdb does not support use_rawinput=False')
+
+        # In order to make sure that asyncio code written in the
+        # interactive shell doesn't interfere with the prompt, we run the
+        # prompt in a different event loop.
+        # If we don't do this, people could spawn coroutine with a
+        # while/true inside which will freeze the prompt.
+
+        try:
+            old_loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # This happens when the user used `asyncio.run()`.
+            old_loop = None
+
 
         self.preloop()
 
@@ -93,10 +108,16 @@ class TerminalPdb(Pdb):
                 else:
                     self._ptcomp.ipy_completer.namespace = self.curframe_locals
                     self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
+
+                    asyncio.set_event_loop(self.pt_loop)
                     try:
-                        line = self.pt_app.prompt() # reset_current_buffer=True)
+                        line = self.pt_app.prompt()
                     except EOFError:
                         line = 'EOF'
+                    finally:
+                        # Restore the original event loop.
+                        asyncio.set_event_loop(old_loop)
+
                 line = self.precmd(line)
                 stop = self.onecmd(line)
                 stop = self.postcmd(stop, line)
