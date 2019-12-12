@@ -154,6 +154,10 @@ def _format_traceback_lines(lines, Colors, lvals, _line_format):
     res = []
 
     for stack_line in lines:
+        if stack_line is stack_data.LINE_GAP:
+            res.append('%s   (...)%s\n' % (Colors.linenoEm, Colors.Normal))
+            continue
+
         line = stack_line.text.rstrip('\n') + '\n'
 
         new_line, err = _line_format(line, 'str')
