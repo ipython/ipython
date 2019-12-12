@@ -157,9 +157,6 @@ def isidentifier(s, dotted=False):
         return all(isidentifier(a) for a in s.split("."))
     return s.isidentifier()
 
-xrange = range
-def iteritems(d): return iter(d.items())
-def itervalues(d): return iter(d.values())
 getcwd = os.getcwd
 
 MethodType = types.MethodType
