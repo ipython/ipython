@@ -588,6 +588,11 @@ class VerboseTB(TBTools):
         """Format a single stack frame"""
         Colors = self.Colors  # just a shorthand + quicker name lookup
         ColorsNormal = Colors.Normal  # used a lot
+
+        if isinstance(frame_info, stack_data.RepeatedFrames):
+            return '    %s[... skipping similar frames: %s]%s\n' % (
+                Colors.excName, frame_info.description, ColorsNormal)
+
         col_scheme = self.color_scheme_table.active_scheme_name
         indent = ' ' * INDENT_SIZE
         em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
