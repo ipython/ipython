@@ -14,8 +14,6 @@ from IPython.core import inputsplitter as isp
 from IPython.core.inputtransformer import InputTransformer
 from IPython.core.tests.test_inputtransformer import syntax, syntax_ml
 from IPython.testing import tools as tt
-from IPython.utils import py3compat
-from IPython.utils.py3compat  import input
 
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
@@ -568,8 +566,8 @@ class CellMagicsCommon(object):
     def test_whole_cell(self):
         src = "%%cellm line\nbody\n"
         out = self.sp.transform_cell(src)
-        ref = u"get_ipython().run_cell_magic('cellm', 'line', 'body')\n"
-        nt.assert_equal(out, py3compat.u_format(ref))
+        ref = "get_ipython().run_cell_magic('cellm', 'line', 'body')\n"
+        nt.assert_equal(out, ref)
     
     def test_cellmagic_help(self):
         self.sp.push('%%cellm?')
