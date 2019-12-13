@@ -15,7 +15,6 @@ Utilities for working with stack frames.
 #-----------------------------------------------------------------------------
 
 import sys
-from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Code
