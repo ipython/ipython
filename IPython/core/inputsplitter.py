@@ -31,7 +31,6 @@ import sys
 import tokenize
 import warnings
 
-from IPython.utils.py3compat import cast_unicode
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
                                            ipy_prompt,
