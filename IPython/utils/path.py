@@ -15,13 +15,11 @@ import glob
 from warnings import warn
 
 from IPython.utils.process import system
-from IPython.utils import py3compat
 from IPython.utils.decorators import undoc
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
-
 fs_encoding = sys.getfilesystemencoding()
 
 def _writable_dir(path):
@@ -226,7 +224,8 @@ def get_xdg_dir():
         # use ~/.config if empty OR not set
         xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
         if xdg and _writable_dir(xdg):
-            return py3compat.cast_unicode(xdg, fs_encoding)
+            assert isinstance(xdg, str)
+            return xdg
 
     return None
 
@@ -244,7 +243,8 @@ def get_xdg_cache_dir():
         # use ~/.cache if empty OR not set
         xdg = env.get("XDG_CACHE_HOME", None) or os.path.join(get_home_dir(), '.cache')
         if xdg and _writable_dir(xdg):
-            return py3compat.cast_unicode(xdg, fs_encoding)
+            assert isinstance(xdg, str)
+            return xdg
 
     return None
 
