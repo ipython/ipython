@@ -29,7 +29,6 @@ from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import get_py_filename
 from warnings import warn
@@ -214,9 +213,9 @@ class CodeMagics(Magics):
         force = 'f' in opts
         append = 'a' in opts
         mode = 'a' if append else 'w'
-        ext = u'.ipy' if raw else u'.py'
+        ext = '.ipy' if raw else '.py'
         fname, codefrom = args[0], " ".join(args[1:])
-        if not fname.endswith((u'.py',u'.ipy')):
+        if not fname.endswith(('.py','.ipy')):
             fname += ext
         file_exists = os.path.isfile(fname)
         if file_exists and not force and not append:
@@ -233,14 +232,13 @@ class CodeMagics(Magics):
         except (TypeError, ValueError) as e:
             print(e.args[0])
             return
-        out = py3compat.cast_unicode(cmds)
         with io.open(fname, mode, encoding="utf-8") as f:
             if not file_exists or not append:
-                f.write(u"# coding: utf-8\n")
-            f.write(out)
+                f.write("# coding: utf-8\n")
+            f.write(cmds)
             # make sure we end on a newline
-            if not out.endswith(u'\n'):
-                f.write(u'\n')
+            if not cmds.endswith('\n'):
+                f.write('\n')
         print('The following commands were written to file `%s`:' % fname)
         print(cmds)
 
