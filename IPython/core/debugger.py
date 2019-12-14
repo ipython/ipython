@@ -153,10 +153,7 @@ class Tracer(object):
         # at least raise that limit to 80 chars, which should be enough for
         # most interactive uses.
         try:
-            try:
-                from reprlib import aRepr  # Py 3
-            except ImportError:
-                from repr import aRepr  # Py 2
+            from reprlib import aRepr
             aRepr.maxstring = 80
         except:
             # This is only a user-facing convenience, so any error we encounter
