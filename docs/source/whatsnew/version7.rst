@@ -2,6 +2,14 @@
  7.x Series
 ============
 
+.. _version 7102:
+
+IPython 7.10.2
+==============
+
+IPython 7.10.2 fix a couple of extra incompatibility between IPython, ipdb,
+asyncio and Prompt Toolkit 3.
+
 .. _version 7101:
 
 IPython 7.10.1
