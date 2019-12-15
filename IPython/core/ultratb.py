@@ -627,6 +627,12 @@ class ListTB(TBTools):
         self.ostream.write(self.text(etype, value, elist))
         self.ostream.write('\n')
 
+    def _extract_tb(self, tb):
+        if tb:
+            return traceback.extract_tb(tb)
+        else:
+            return None
+
     def structured_traceback(self, etype, evalue, etb=None, tb_offset=None,
                              context=5):
         """Return a color formatted string with the traceback info.
@@ -1303,12 +1309,6 @@ class FormattedTB(VerboseTB, ListTB):
         # set_mode also sets the tb_join_char attribute
         self.set_mode(mode)
 
-    def _extract_tb(self, tb):
-        if tb:
-            return traceback.extract_tb(tb)
-        else:
-            return None
-
     def structured_traceback(self, etype, value, tb, tb_offset=None, number_of_lines_of_context=5):
         tb_offset = self.tb_offset if tb_offset is None else tb_offset
         mode = self.mode
@@ -1409,7 +1409,11 @@ class AutoFormattedTB(FormattedTB):
                              tb_offset=None, number_of_lines_of_context=5):
         if etype is None:
             etype, value, tb = sys.exc_info()
-        self.tb = tb
+        if isinstance(tb, tuple):
+            # tb is a tuple if this is a chained exception.
+            self.tb = tb[0]
+        else:
+            self.tb = tb
         return FormattedTB.structured_traceback(
             self, etype, value, tb, tb_offset, number_of_lines_of_context)
 
