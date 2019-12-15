@@ -1409,9 +1409,10 @@ class AutoFormattedTB(FormattedTB):
                              tb_offset=None, number_of_lines_of_context=5):
         if etype is None:
             etype, value, tb = sys.exc_info()
-        if not isinstance(tb, tuple):
+        if isinstance(tb, tuple):
             # tb is a tuple if this is a chained exception.
-            # We keep first traceback.
+            self.tb = tb[0]
+        else:
             self.tb = tb
         return FormattedTB.structured_traceback(
             self, etype, value, tb, tb_offset, number_of_lines_of_context)
