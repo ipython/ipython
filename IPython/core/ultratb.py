@@ -646,7 +646,7 @@ class VerboseTB(TBTools):
         lvals_list = []
         if self.include_vars:
             for var in frame_info.variables_in_executing_piece:
-                lvals_list.append(tpl_name_val % (var.name, var.value))
+                lvals_list.append(tpl_name_val % (var.name, repr(var.value)))
         if lvals_list:
             lvals = '%s%s' % (indent, em_normal.join(lvals_list))
 
