@@ -405,35 +405,3 @@ def test_handlers():
     except:
         handler(*sys.exc_info())
     buff.write('')
-
-from IPython.testing.decorators import skipif
-
-class TokenizeFailureTest(unittest.TestCase):
-    """Tests related to https://github.com/ipython/ipython/issues/6864."""
-
-    # that appear to test that we are handling an exception that can be thrown
-    # by the tokenizer due to a bug that seem to have been fixed in 3.8, though
-    # I'm unsure if other sequences can make it raise this error. Let's just
-    # skip in 3.8 for now
-    @skipif(sys.version_info > (3,8))
-    def testLogging(self):
-        message = "An unexpected error occurred while tokenizing input"
-        cell = 'raise ValueError("""a\nb""")'
-
-        stream = io.StringIO()
-        handler = logging.StreamHandler(stream)
-        logger = logging.getLogger()
-        loglevel = logger.level
-        logger.addHandler(handler)
-        self.addCleanup(lambda: logger.removeHandler(handler))
-        self.addCleanup(lambda: logger.setLevel(loglevel))
-
-        logger.setLevel(logging.INFO)
-        with tt.AssertNotPrints(message):
-            ip.run_cell(cell)
-        self.assertNotIn(message, stream.getvalue())
-
-        logger.setLevel(logging.DEBUG)
-        with tt.AssertNotPrints(message):
-            ip.run_cell(cell)
-        self.assertIn(message, stream.getvalue())
