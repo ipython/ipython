@@ -94,15 +94,9 @@ import linecache
 import pydoc
 import sys
 import time
-import tokenize
 import traceback
 
 import stack_data
-
-try:  # Python 2
-    generate_tokens = tokenize.generate_tokens
-except AttributeError:  # Python 3
-    generate_tokens = tokenize.tokenize
 
 # IPython's own modules
 from IPython import get_ipython
