@@ -3,6 +3,7 @@
 """
 import io
 import logging
+import re
 import sys
 import os.path
 from textwrap import dedent
@@ -349,17 +350,19 @@ def r3o2():
 
     @recursionlimit(150)
     def test_recursion_one_frame(self):
-        with tt.AssertPrints("[... skipping similar frames: r1 at line 5 (95 times)]"):
+        with tt.AssertPrints(re.compile(
+            r"\[\.\.\. skipping similar frames: r1 at line 5 \(\d{2} times\)\]")
+        ):
             ip.run_cell("r1()")
 
     @recursionlimit(150)
     def test_recursion_three_frames(self):
-        with tt.AssertPrints(
-            "[... skipping similar frames: "
-            "r3a at line 8 (29 times), "
-            "r3b at line 11 (29 times), "
-            "r3c at line 14 (29 times)]"
-        ):
+        with tt.AssertPrints(re.compile(
+            r"\[\.\.\. skipping similar frames: "
+            r"r3a at line 8 \(\d{2} times\), "
+            r"r3b at line 11 \(\d{2} times\), "
+            r"r3c at line 14 \(\d{2} times\)\]"
+        )):
             ip.run_cell("r3o2()")
 
 
