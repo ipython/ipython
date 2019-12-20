@@ -357,12 +357,10 @@ def r3o2():
 
     @recursionlimit(150)
     def test_recursion_three_frames(self):
-        with tt.AssertPrints(re.compile(
-            r"\[\.\.\. skipping similar frames: "
-            r"r3a at line 8 \(\d{2} times\), "
-            r"r3b at line 11 \(\d{2} times\), "
-            r"r3c at line 14 \(\d{2} times\)\]"
-        )):
+        with tt.AssertPrints("[... skipping similar frames: "), \
+                tt.AssertPrints(re.compile(r"r3a at line 8 \(\d{2} times\)"), suppress=False), \
+                tt.AssertPrints(re.compile(r"r3b at line 11 \(\d{2} times\)"), suppress=False), \
+                tt.AssertPrints(re.compile(r"r3c at line 14 \(\d{2} times\)"), suppress=False):
             ip.run_cell("r3o2()")
 
 
