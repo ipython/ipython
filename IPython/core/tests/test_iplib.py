@@ -173,31 +173,25 @@ In [24]: %tb
 SystemExit                                Traceback (most recent call last)
 <BLANKLINE>
 ... in <module>
+     29     except IndexError:
      30         mode = 'div'
-     31 
 ---> 32     bar(mode)
-        global bar = <function bar at ...>
-        global mode = 'exit'
+        mode = 'exit'
 <BLANKLINE>
 ... in bar(mode='exit')
      20         except:
      21             stat = 1
 ---> 22         sysexit(stat, mode)
-        global sysexit = <function sysexit at ...>
-        stat = 2
         mode = 'exit'
+        stat = 2
      23     else:
      24         raise ValueError('Unknown mode')
 <BLANKLINE>
 ... in sysexit(stat=2, mode='exit')
-      9 
      10 def sysexit(stat, mode):
 ---> 11     raise SystemExit(stat, 'Mode = %s' % mode)
-        global SystemExit = undefined
         stat = 2
         mode = 'exit'
-     12 
-     13 def bar(mode):
 <BLANKLINE>
 SystemExit: (2, 'Mode = exit')
     """
