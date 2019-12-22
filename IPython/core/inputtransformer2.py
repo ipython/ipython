@@ -674,8 +674,8 @@ class TransformerManager:
         while tokens_by_line[-1] and tokens_by_line[-1][-1].type in newline_types:
             tokens_by_line[-1].pop()
 
-        if len(tokens_by_line) == 1 and not tokens_by_line[-1]:
-            return 'incomplete', 0
+        if not tokens_by_line[-1]:
+            return 'incomplete', find_last_indent(lines)
 
         if tokens_by_line[-1][-1].string == ':':
             # The last line starts a block (e.g. 'if foo:')
