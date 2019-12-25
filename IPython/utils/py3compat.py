@@ -181,10 +181,6 @@ def u_format(s):
     Accepts a string or a function, so it can be used as a decorator."""
     return s.format(u='')
 
-def get_closure(f):
-    """Get a function's closure attribute"""
-    return f.__closure__
-
 
 PY2 = not PY3
 PYPY = platform.python_implementation() == "PyPy"
