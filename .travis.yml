@@ -24,7 +24,7 @@ before_install:
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       env | sort
       if ! which python$TRAVIS_PYTHON_VERSION; then
-        HOMEBREW_NO_AUTO_UPDATE=1 brew tap minrk/homebrew-python-frameworks
+        HOMEBREW_NO_AUTO_UPDATE=1 brew tap carreau/homebrew-python-frameworks
         HOMEBREW_NO_AUTO_UPDATE=1 brew cask install python-framework-${TRAVIS_PYTHON_VERSION/./}
       fi
       python3 -m pip install virtualenv
