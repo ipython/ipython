@@ -155,7 +155,7 @@ class Doc2UnitTester(object):
                     # failed should contain at most one item.  More than that
                     # is a case we can't handle and should error out on
                     if len(failed) > 1:
-                        err = "Invalid number of test results:" % failed
+                        err = "Invalid number of test results: %s" % failed
                         raise ValueError(err)
                     # Report a normal failure.
                     self.fail('failed doctests: %s' % str(failed[0]))
