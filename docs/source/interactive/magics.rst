@@ -13,9 +13,9 @@ Built-in magic commands
     other languages.
 
 Here is the help auto-generated from the docstrings of all the available Magics
-function that IPython ships with. 
+functions that IPython ships with. 
 
-You can create an register your own Magics with IPython. You can find many user
+You can create and register your own Magics with IPython. You can find many user
 defined Magics on `PyPI <https://pypi.io>`_. Feel free to publish your own and
 use the ``Framework :: IPython`` trove classifier. 
 
