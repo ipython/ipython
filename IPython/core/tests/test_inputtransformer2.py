@@ -265,6 +265,8 @@ def test_check_complete():
         for k in short:
             cc(c+k)
 
+    nt.assert_equal(cc("def f():\n  x=0\n  \\\n  "), ('incomplete', 2))
+
 def test_check_complete_II():
     """
     Test that multiple line strings are properly handled.
