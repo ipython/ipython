@@ -1,6 +1,36 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+Issues closed in 7.11
+---------------------
+
+GitHub stats for 2019/12/01 - 2019/12/27 (tag: 7.10.1)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 4 issues and merged 36 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.11>`__
+
+The following 16 authors contributed 114 commits.
+
+* Augusto
+* Benjamin Ragan-Kelley
+* Chemss Eddine Ben Hassine
+* Danny Hermes
+* Dominik Miedziński
+* Jonathan Feinberg
+* Jonathan Slenders
+* Joseph Kahn
+* kousik
+* Kousik Mitra
+* Marc Hernandez Cabot
+* Matthias Bussonnier
+* Naveen Honest Raj K
+* Pratyay Pandey
+* Quentin Peter
+* takuya fujiwara
+
+
 Issues closed in 7.10.2
 -----------------------
 
