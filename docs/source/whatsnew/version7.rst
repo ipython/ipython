@@ -2,6 +2,36 @@
  7.x Series
 ============
 
+.. _version 711:
+
+IPython 7.11
+============
+
+IPython 7.11 received a couple of compatibility fixes and code cleanup.
+
+A number of function in the ``py3compat`` have been removed; a number of types
+in the IPython code base are now non-ambiguous and now always ``unicode``
+instead of ``Union[Unicode,bytes]``; many of the relevant code path have thus
+been simplified/cleaned and types annotation added.
+
+IPython support several verbosity level from exceptions. ``xmode plain`` now
+support chained exceptions. :ghpull:`11999`
+
+We are starting to remove ``shell=True`` in some usages of subprocess. While not directly
+a security issue (as IPython is made to run arbitrary code anyway) it is not good
+practice and we'd like to show the example. :ghissue:`12023`. This discussion
+was started by ``@mschwager`` thanks to a new auditing tool they are working on
+with duo-labs (`dlint <https://github.com/duo-labs/dlint>`_).
+
+Work around some bugs in Python 3.9 tokenizer :ghpull:`12057`
+
+IPython will now print its version after a crash. :ghpull:`11986`
+
+This is likely the last release from the 7.x series that will see new feature.
+The master branch will soon accept large code changes and thrilling new
+features; the 7.x branch will only start to accept critical bug fixes, and
+update dependencies.
+
 .. _version 7102:
 
 IPython 7.10.2
