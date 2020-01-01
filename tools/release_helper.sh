@@ -37,7 +37,7 @@ BRANCH=${input:-$BRANCH}
 ask_section(){
     echo
     echo $BLUE"$1"$NOR 
-    echo -n $GREEN"Press Enter to continue, S to skip: "$GREEN
+    echo -n $GREEN"Press Enter to continue, S to skip: "$NOR
     read -n1 value
     echo 
     if [ -z $value ] || [ $value = 'y' ]  ; then
