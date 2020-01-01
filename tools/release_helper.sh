@@ -143,6 +143,13 @@ then
    echo $GREEN"Press enter to commit"$NOR
    read
    git commit -am "back to dev"
+
+   echo
+   echo $BLUE"git push origin \$BRANCH ($BRANCH)?"$NOR
+   echo $GREEN"Press enter to continue"$NOR
+   read
+   git push origin $BRANCH
+
    
    echo
    echo $BLUE"let's : git checkout $VERSION"$NOR
@@ -159,8 +166,8 @@ then
 
     tools/release
 
-    echo '$ shasum -a 256 dist/*'
     echo $RED
+    echo '$ shasum -a 256 dist/*'
     shasum -a 256 dist/*
     echo $NOR
 
