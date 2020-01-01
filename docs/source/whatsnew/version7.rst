@@ -2,6 +2,14 @@
  7.x Series
 ============
 
+.. _version 7111:
+
+IPython 7.11.1
+==============
+
+A couple of deprecated functions (no-op) have been reintroduces in py3compat as
+Cython was still relying on them, and will be removed in a couple of versions.
+
 .. _version 711:
 
 IPython 7.11
