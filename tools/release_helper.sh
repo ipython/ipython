@@ -107,7 +107,7 @@ rm dist/*
 if ask_section "Should we commit, tag, push... etc ? "
 then
    echo
-   echo "Let's commit : git commit -am \"release $VERSION\" -S"
+   echo $BLUE"Let's commit : git commit -am \"release $VERSION\" -S"
    echo $GREEN"Press enter to commit"$NOR
    read
    git commit -am "release $VERSION" -S
