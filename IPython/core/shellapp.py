@@ -404,6 +404,9 @@ class InteractiveShellApp(Configurable):
             fname = self.file_to_run
             if os.path.isdir(fname):
                 fname = os.path.join(fname, "__main__.py")
+            if not os.path.exists(fname):
+                self.log.warning("File '%s' doesn't exist", fname)
+                self.exit(2)
             try:
                 self._exec_file(fname, shell_futures=True)
             except:
