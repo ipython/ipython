@@ -169,9 +169,6 @@ def execfile(fname, glob, loc=None, compiler=None):
 
 # Refactor print statements in doctests.
 _print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)
-def _print_statement_sub(match):
-    expr = match.groups('expr')
-    return "print(%s)" % expr
 
 # Abstract u'abc' syntax:
 @_modify_str_or_docstring
