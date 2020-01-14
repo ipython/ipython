@@ -2865,7 +2865,7 @@ class InteractiveShell(SingletonConfigurable):
         # when this is the case, we want to run it using the pseudo_sync_runner
         # so that code can invoke eventloops (for example via the %run , and
         # `%paste` magic.
-        if self.should_run_async(raw_cell):
+        if self.should_run_async(raw_cell) or self.loop_runner is _trio_runner:
             runner = self.loop_runner
         else:
             runner = _pseudo_sync_runner

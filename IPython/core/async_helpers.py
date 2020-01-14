@@ -42,8 +42,43 @@ def _curio_runner(coroutine):
     return curio.run(coroutine)
 
 
+_TRIO_TOKEN = None
+_TRIO_NURSERY = None
+
+
+def _init_trio(trio):
+    global _TRIO_TOKEN
+    import traceback
+    import builtins
+    import threading
+
+    async def trio_entry():
+        global _TRIO_TOKEN, _TRIO_NURSERY
+        _TRIO_TOKEN = trio.hazmat.current_trio_token()
+        async with trio.open_nursery() as nursery:
+            _TRIO_NURSERY = nursery
+            builtins.GLOBAL_NURSERY = nursery
+            await trio.sleep_forever()
+
+    def trio_entry_sync():
+        while True:
+            try:
+                trio.run(trio_entry)
+            except Exception:
+                print("Exception in trio event loop:", traceback.format_exc())
+
+    threading.Thread(target=trio_entry_sync).start()
+    #TODO fix this race condition
+    import time
+    while not _TRIO_TOKEN:
+        time.sleep(0.1)
+
+
 def _trio_runner(async_fn):
     import trio
+
+    if not _TRIO_TOKEN:
+        _init_trio(trio)
 
     async def loc(coro):
         """
@@ -52,7 +87,7 @@ def _trio_runner(async_fn):
         """
         return await coro
 
-    return trio.run(loc, async_fn)
+    return trio.from_thread.run(loc, async_fn, trio_token=_TRIO_TOKEN)
 
 
 def _pseudo_sync_runner(coro):
