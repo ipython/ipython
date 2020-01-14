@@ -72,20 +72,13 @@ matrix:
     - arch: arm64
       python: "3.7"
       dist: xenial
+      env: ARM64=True
       sudo: true
     - arch: amd64
       python: "3.8-dev"
       dist: xenial
       sudo: true
-    - arch: arm64
-      python: "3.8-dev"
-      dist: xenial
-      sudo: true
     - arch: amd64
-      python: "3.7-dev"
-      dist: xenial
-      sudo: true
-    - arch: arm64
       python: "3.7-dev"
       dist: xenial
       sudo: true
@@ -96,6 +89,7 @@ matrix:
     - arch: arm64
       python: "nightly"
       dist: bionic
+      env: ARM64=True
       sudo: true
     - os: osx
       language: generic
