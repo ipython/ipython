@@ -248,3 +248,9 @@ class TestPylabSwitch(object):
 def test_no_gui_backends():
     for k in ['agg', 'svg', 'pdf', 'ps']:
         assert k not in pt.backend2gui
+
+
+def test_figure_no_canvas():
+    fig = Figure()
+    fig.canvas = None
+    pt.print_figure(fig)

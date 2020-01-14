@@ -123,14 +123,18 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     }
     # **kwargs get higher priority
     kw.update(kwargs)
-    
+
     bytes_io = BytesIO()
+    if fig.canvas is None:
+        from matplotlib.backend_bases import FigureCanvasBase
+        FigureCanvasBase(fig)
+
     fig.canvas.print_figure(bytes_io, **kw)
     data = bytes_io.getvalue()
     if fmt == 'svg':
         data = data.decode('utf-8')
     return data
-    
+
 def retina_figure(fig, **kwargs):
     """format a figure as a pixel-doubled (retina) PNG"""
     pngdata = print_figure(fig, fmt='retina', **kwargs)
