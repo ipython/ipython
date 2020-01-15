@@ -43,7 +43,6 @@ def _curio_runner(coroutine):
 
 
 _TRIO_TOKEN = None
-_TRIO_NURSERY = None
 
 
 def _init_trio(trio):
@@ -51,30 +50,36 @@ def _init_trio(trio):
     import traceback
     import builtins
     import threading
+    # We use an Event to avoid a race condition between starting the Trio thread
+    # and running Trio code.
+    thread_start = threading.Event()
+
+    def log_nursery_exc(exc):
+        import logging
+        import traceback
+        exc = '\n'.join(traceback.format_exception(type(exc), exc,
+            exc.__traceback__))
+        logging.error('An exception occurred in a global nursery task.\n%s',
+            exc)
 
     async def trio_entry():
         global _TRIO_TOKEN, _TRIO_NURSERY
         _TRIO_TOKEN = trio.hazmat.current_trio_token()
         async with trio.open_nursery() as nursery:
-            _TRIO_NURSERY = nursery
+            # TODO This hack prevents the nursery from cancelling all child
+            # tasks when but it's ugly.
+            nursery._add_exc = log_nursery_exc
             builtins.GLOBAL_NURSERY = nursery
+            thread_start.set()
             await trio.sleep_forever()
 
-    def trio_entry_sync():
-        while True:
-            try:
-                trio.run(trio_entry)
-            except Exception:
-                print("Exception in trio event loop:", traceback.format_exc())
-
-    threading.Thread(target=trio_entry_sync).start()
-    #TODO fix this race condition
-    import time
-    while not _TRIO_TOKEN:
-        time.sleep(0.1)
+    threading.Thread(target=trio.run, args=(trio_entry,)).start()
+    thread_start.wait()
 
 
 def _trio_runner(async_fn):
+    global _TRIO_TOKEN
+    import logging
     import trio
 
     if not _TRIO_TOKEN:
