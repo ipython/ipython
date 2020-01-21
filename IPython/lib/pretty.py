@@ -263,18 +263,7 @@ class PrettyPrinter(_PrettyPrinterBase):
 
     def begin_group(self, indent=0, open=''):
         """
-        Begin a group.  If you want support for python < 2.5 which doesn't has
-        the with statement this is the preferred way:
-
-            p.begin_group(1, '{')
-            ...
-            p.end_group(1, '}')
-
-        The python 2.5 expression would be this:
-
-            with p.group(1, '{', '}'):
-                ...
-
+        Begin a group.
         The first parameter specifies the indentation for the next line (usually
         the width of the opening text), the second the opening text.  All
         parameters are optional.

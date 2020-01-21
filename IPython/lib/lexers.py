@@ -129,7 +129,7 @@ class IPythonPartialTracebackLexer(RegexLexer):
     """
     Partial lexer for IPython tracebacks.
 
-    Handles all the non-python output. This works for both Python 2.x and 3.x.
+    Handles all the non-python output.
 
     """
     name = 'IPython Partial Traceback'

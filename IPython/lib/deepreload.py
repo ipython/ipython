@@ -7,13 +7,7 @@ passed. The :func:`reload` function in this module also reloads everything
 imported from that module, which is useful when you're changing files deep
 inside a package.
 
-To use this as your default reload function, type this for Python 2::
-
-    import __builtin__
-    from IPython.lib import deepreload
-    __builtin__.reload = deepreload.reload
-
-Or this for Python 3::
+To use this as your default reload function, type this::
 
     import builtins
     from IPython.lib import deepreload
