@@ -276,6 +276,10 @@ class AsyncTest(TestCase):
         """
         )
 
+    def test_memory_error(self):
+        with self.assertRaises(MemoryError):
+            iprc("(" * 200 + ")" * 200)
+
     @skip_without('curio')
     def test_autoawait_curio(self):
         iprc("%autoawait curio")
