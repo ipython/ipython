@@ -129,3 +129,18 @@ project that you might want to use:
 - `mypython <https://www.asmeurer.com/mypython/>`_
 - `ptpython and ptipython <https://pypi.org/project/ptpython/>`
 - `xonsh <https://xon.sh/>`
+
+Ignoring commits with git blame.ignoreRevsFile
+==============================================
+
+As of git 2.23, it is possible to make formatting changes without breaking
+``git blame``. See the `git documentation
+<https://git-scm.com/docs/git-config#Documentation/git-config.txt-blameignoreRevsFile>`_
+for more details.
+
+To use this feature you must:
+
+- Install git >= 2.23
+- Configure your local git repo by running:
+   - POSIX: ``tools\configure-git-blame-ignore-revs.sh``
+   - Windows:  ``tools\configure-git-blame-ignore-revs.bat``
