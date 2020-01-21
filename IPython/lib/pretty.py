@@ -764,12 +764,8 @@ except AttributeError: # Python 3
         _dict_pprinter_factory('mappingproxy({', '})')
     _type_pprinters[slice] = _repr_pprint
 
-try:
-    _type_pprinters[long] = _repr_pprint
-    _type_pprinters[unicode] = _repr_pprint
-except NameError:
-    _type_pprinters[range] = _repr_pprint
-    _type_pprinters[bytes] = _repr_pprint
+_type_pprinters[range] = _repr_pprint
+_type_pprinters[bytes] = _repr_pprint
 
 #: printers for types specified by name
 _deferred_type_pprinters = {
