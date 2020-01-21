@@ -361,10 +361,8 @@ class Pdb(OldPdb):
                 print("Context must be a positive integer", file=self.stdout)
         except (TypeError, ValueError):
                 print("Context must be a positive integer", file=self.stdout)
-        try:
-            import reprlib  # Py 3
-        except ImportError:
-            import repr as reprlib  # Py 2
+
+        import reprlib
 
         ret = []
 
