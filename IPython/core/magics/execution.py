@@ -19,16 +19,8 @@ import math
 import re
 from pdb import Restart
 
-# cProfile was added in Python2.5
-try:
-    import cProfile as profile
-    import pstats
-except ImportError:
-    # profile isn't bundled by default in Debian for license reasons
-    try:
-        import profile, pstats
-    except ImportError:
-        profile = pstats = None
+import cProfile as profile
+import pstats
 
 from IPython.core import oinspect
 from IPython.core import magic_arguments
