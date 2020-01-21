@@ -48,10 +48,7 @@ class PdbTestInput(object):
 #-----------------------------------------------------------------------------
 
 def test_longer_repr():
-    try:
-        from reprlib import repr as trepr  # Py 3
-    except ImportError:
-        from repr import repr as trepr  # Py 2
+    from reprlib import repr as trepr
     
     a = '1234567890'* 7
     ar = "'1234567890123456789012345678901234567890123456789012345678901234567890'"
