@@ -34,7 +34,12 @@ This includes:
 import re
 
 # Third party
-from pygments.lexers import BashLexer, PythonLexer, Python3Lexer
+from pygments.lexers import BashLexer, Python3Lexer
+try:
+    # PythonLexer was renamed to Python2Lexer in pygments 2.5
+    from pygments.lexers import Python2Lexer
+except ImportError:
+    from pygments.lexers import PythonLexer as Python2Lexer
 from pygments.lexer import (
     Lexer, DelegatingLexer, RegexLexer, do_insertions, bygroups, using,
 )
@@ -87,7 +92,7 @@ def build_ipy_lexer(python3):
         aliases = ['ipython3']
         doc = """IPython3 Lexer"""
     else:
-        PyLexer = PythonLexer
+        PyLexer = Python2Lexer
         name = 'IPython'
         aliases = ['ipython2', 'ipython']
         doc = """IPython Lexer"""
