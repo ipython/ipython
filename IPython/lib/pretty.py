@@ -687,7 +687,11 @@ def _repr_pprint(obj, p, cycle):
     """A pprint that just redirects to the normal repr function."""
     # Find newlines and replace them with p.break_()
     output = repr(obj)
-    for idx,output_line in enumerate(output.splitlines()):
+    lines = output.splitlines()
+    # insert a leading newline for multi-line objects that are indented
+    if len(lines) > 1 and p.indentation != p.output_width:
+        p.break_()
+    for idx, output_line in enumerate(lines):
         if idx:
             p.break_()
         p.text(output_line)
