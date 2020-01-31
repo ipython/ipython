@@ -695,6 +695,13 @@ class InteractiveShell(SingletonConfigurable):
         self.events.trigger('shell_initialized', self)
         atexit.register(self.atexit_operations)
 
+        # The trio runner is used for running Trio in the foreground thread. It
+        # is different from `_trio_runner(async_fn)` in `async_helpers.py`
+        # which calls `trio.run()` for every cell. This runner runs all cells
+        # inside a single Trio event loop. If used, it is set from
+        # `ipykernel.kernelapp`.
+        self.trio_runner = None
+
     def get_ipython(self):
         """Return the currently running IPython instance."""
         return self
@@ -714,6 +721,9 @@ class InteractiveShell(SingletonConfigurable):
             self.autoindent = not self.autoindent
         else:
             self.autoindent = value
+
+    def set_trio_runner(self, tr):
+        self.trio_runner = tr
 
     #-------------------------------------------------------------------------
     # init_* methods called by __init__
@@ -2865,7 +2875,9 @@ class InteractiveShell(SingletonConfigurable):
         # when this is the case, we want to run it using the pseudo_sync_runner
         # so that code can invoke eventloops (for example via the %run , and
         # `%paste` magic.
-        if self.should_run_async(raw_cell):
+        if self.trio_runner:
+            runner = self.trio_runner
+        elif self.should_run_async(raw_cell):
             runner = self.loop_runner
         else:
             runner = _pseudo_sync_runner
