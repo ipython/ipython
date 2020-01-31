@@ -45,11 +45,15 @@ from IPython.utils.signatures import signature
 from IPython.utils.colorable import Colorable
 
 from pygments import highlight
-from pygments.lexers import PythonLexer
+try:
+    # PythonLexer was renamed to Python2Lexer in pygments 2.5
+    from pygments.lexers import Python2Lexer
+except ImportError:
+    from pygments.lexers import PythonLexer as Python2Lexer
 from pygments.formatters import HtmlFormatter
 
 def pylight(code):
-    return highlight(code, PythonLexer(), HtmlFormatter(noclasses=True))
+    return highlight(code, Python2Lexer(), HtmlFormatter(noclasses=True))
 
 # builtin docstrings to ignore
 _func_call_docstring = types.FunctionType.__call__.__doc__
