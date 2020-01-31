@@ -77,8 +77,8 @@ prompt. What follows is a list of these.
 Caution for Windows users
 -------------------------
 
-Windows, unfortunately, uses the '\\' character as a path separator. This is a
-terrible choice, because '\\' also represents the escape character in most
+Windows, unfortunately, uses the ``\`` character as a path separator. This is a
+terrible choice, because ``\`` also represents the escape character in most
 modern programming languages, including Python. For this reason, using '/'
 character is recommended if you have problems with ``\``.  However, in Windows
 commands '/' flags options, so you can not use it for the root directory. This
