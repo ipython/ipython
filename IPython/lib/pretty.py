@@ -206,7 +206,7 @@ class PrettyPrinter(_PrettyPrinterBase):
             self.output_width = x.output(self.output, self.output_width)
             self.buffer_width -= x.width
 
-    def _break_outer_groups(self, force=):
+    def _break_outer_groups(self):
         while self.max_width < self.output_width + self.buffer_width:
             group = self.group_queue.deq()
             if not group:
