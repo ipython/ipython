@@ -24,6 +24,8 @@ graft docs
 exclude docs/\#*
 exclude docs/man/*.1.gz
 
+exclude .git-blame-ignore-revs
+
 # Examples
 graft examples
 
