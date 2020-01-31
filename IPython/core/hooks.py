@@ -37,7 +37,6 @@ example, you could use a startup file like this::
 
 import os
 import subprocess
-import warnings
 import sys
 
 from .error import TryNext
@@ -81,44 +80,6 @@ def editor(self, filename, linenum=None, wait=True):
                             shell=True)
     if wait and proc.wait() != 0:
         raise TryNext()
-
-import tempfile
-from ..utils.decorators import undoc
-
-@undoc
-def fix_error_editor(self,filename,linenum,column,msg):
-    """DEPRECATED
-
-    Open the editor at the given filename, linenumber, column and
-    show an error message. This is used for correcting syntax errors.
-    The current implementation only has special support for the VIM editor,
-    and falls back on the 'editor' hook if VIM is not used.
-
-    Call ip.set_hook('fix_error_editor',yourfunc) to use your own function,
-    """
-
-    warnings.warn("""
-`fix_error_editor` is deprecated as of IPython 6.0 and will be removed
-in future versions. It appears to be used only for automatically fixing syntax
-error that has been broken for a few years and has thus been removed. If you
-happened to use this function and still need it please make your voice heard on
-the mailing list ipython-dev@python.org , or on the GitHub Issue tracker:
-https://github.com/ipython/ipython/issues/9649 """, UserWarning)
-
-    def vim_quickfix_file():
-        t = tempfile.NamedTemporaryFile()
-        t.write('%s:%d:%d:%s\n' % (filename,linenum,column,msg))
-        t.flush()
-        return t
-    if os.path.basename(self.editor) != 'vim':
-        self.hooks.editor(filename,linenum)
-        return
-    t = vim_quickfix_file()
-    try:
-        if os.system('vim --cmd "set errorformat=%f:%l:%c:%m" -q ' + t.name):
-            raise TryNext()
-    finally:
-        t.close()
 
 
 def synchronize_with_editor(self, filename, linenum, column):
