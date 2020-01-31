@@ -68,11 +68,6 @@ class BreakingRepr(object):
     def __repr__(self):
         return "Breaking(\n)"
 
-class BreakingReprParent(object):
-    def _repr_pretty_(self, p, cycle):
-        with p.group(4,"TG: ",":"):
-            p.pretty(BreakingRepr())
-
 class BadRepr(object):
     
     def __repr__(self):
@@ -151,8 +146,12 @@ def test_pprint_break_repr():
     """
     Test that p.break_ is used in repr
     """
-    output = pretty.pretty(BreakingReprParent())
-    expected = "TG: Breaking(\n    ):"
+    output = pretty.pretty([[BreakingRepr()]])
+    expected = "[[Breaking(\n  )]]"
+    nt.assert_equal(output, expected)
+
+    output = pretty.pretty([[BreakingRepr()]*2])
+    expected = "[[Breaking(\n  ),\n  Breaking(\n  )]]"
     nt.assert_equal(output, expected)
 
 def test_bad_repr():

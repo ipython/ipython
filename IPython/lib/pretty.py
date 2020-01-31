@@ -196,19 +196,22 @@ class PrettyPrinter(_PrettyPrinterBase):
         self.group_queue = GroupQueue(root_group)
         self.indentation = 0
 
+    def _break_one_group(self, group):
+        while group.breakables:
+            x = self.buffer.popleft()
+            self.output_width = x.output(self.output, self.output_width)
+            self.buffer_width -= x.width
+        while self.buffer and isinstance(self.buffer[0], Text):
+            x = self.buffer.popleft()
+            self.output_width = x.output(self.output, self.output_width)
+            self.buffer_width -= x.width
+
     def _break_outer_groups(self):
         while self.max_width < self.output_width + self.buffer_width:
             group = self.group_queue.deq()
             if not group:
                 return
-            while group.breakables:
-                x = self.buffer.popleft()
-                self.output_width = x.output(self.output, self.output_width)
-                self.buffer_width -= x.width
-            while self.buffer and isinstance(self.buffer[0], Text):
-                x = self.buffer.popleft()
-                self.output_width = x.output(self.output, self.output_width)
-                self.buffer_width -= x.width
+            self._break_one_group(group)
 
     def text(self, obj):
         """Add literal text to the output."""
@@ -248,6 +251,9 @@ class PrettyPrinter(_PrettyPrinterBase):
         """
         Explicitly insert a newline into the output, maintaining correct indentation.
         """
+        group = self.group_queue.deq()
+        if group:
+            self._break_one_group(group)
         self.flush()
         self.output.write(self.newline)
         self.output.write(' ' * self.indentation)
@@ -687,10 +693,12 @@ def _repr_pprint(obj, p, cycle):
     """A pprint that just redirects to the normal repr function."""
     # Find newlines and replace them with p.break_()
     output = repr(obj)
-    for idx,output_line in enumerate(output.splitlines()):
-        if idx:
-            p.break_()
-        p.text(output_line)
+    lines = output.splitlines()
+    with p.group():
+        for idx, output_line in enumerate(lines):
+            if idx:
+                p.break_()
+            p.text(output_line)
 
 
 def _function_pprint(obj, p, cycle):
