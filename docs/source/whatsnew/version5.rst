@@ -2,6 +2,14 @@
  5.x Series
 ============
 
+.. _whatsnew590
+
+IPython 5.9.0
+=============
+
+IPython 5.9 is a release that accumulated fixes for Python 2 over the past 18
+month. Please see source and version control history for more informations.
+
 .. _whatsnew580
 
 IPython 5.8.0
