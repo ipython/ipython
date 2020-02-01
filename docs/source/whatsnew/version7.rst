@@ -2,6 +2,23 @@
  7.x Series
 ============
 
+.. _version 712:
+
+IPython 7.12
+============
+
+IPython 7.12 is a minor update that mostly brings code cleanup, removal of
+longtime deprecated function and a couple update to documentation cleanup as well.
+
+Notable changes are the following:
+
+ - Exit non-zero when ipython is given a file path to run that doesn't exist :ghpull:`12074`
+ - Test PR on ARM64 with Travis-CI :ghpull:`12073`
+ - Update CI to work with latest Pytest :ghpull:`12086`
+ - Add infrastructure to run ipykernel eventloop via trio :ghpull:`12097`
+ - Support git blame ignore revs :ghpull:`12091`
+ - Start multi-line ``__repr__`` s on their own line :ghpull:`12099`
+
 .. _version 7111:
 
 IPython 7.11.1
