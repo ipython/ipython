@@ -101,7 +101,7 @@ import time
 import tokenize
 import traceback
 
-generate_tokens = tokenize.tokenize
+from tokenize import generate_tokens
 
 # For purposes of monkeypatching inspect to fix a bug in it.
 from inspect import getsourcefile, getfile, getmodule, \
