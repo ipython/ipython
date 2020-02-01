@@ -1,6 +1,30 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+Issues closed in 7.12
+---------------------
+
+GitHub stats for 2020/01/01 - 2020/01/31 (tag: 7.11.1)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 2 issues and merged 14 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.12>`__
+
+The following 11 authors contributed 48 commits.
+
+* Augusto
+* Eric Wieser
+* Jeff Potter
+* Mark E. Haase
+* Matthias Bussonnier
+* ossdev07
+* ras44
+* takuya fujiwara
+* Terry Davis
+* Thomas A Caswell
+* yangyang
+
 Issues closed in 7.11
 ---------------------
 
