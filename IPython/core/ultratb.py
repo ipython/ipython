@@ -101,10 +101,7 @@ import time
 import tokenize
 import traceback
 
-try:  # Python 2
-    generate_tokens = tokenize.generate_tokens
-except AttributeError:  # Python 3
-    generate_tokens = tokenize.tokenize
+from tokenize import generate_tokens
 
 # For purposes of monkeypatching inspect to fix a bug in it.
 from inspect import getsourcefile, getfile, getmodule, \

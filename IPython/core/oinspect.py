@@ -198,8 +198,7 @@ def is_simple_callable(obj):
 
 @undoc
 def getargspec(obj):
-    """Wrapper around :func:`inspect.getfullargspec` on Python 3, and
-    :func:inspect.getargspec` on Python 2.
+    """Wrapper around :func:`inspect.getfullargspec`
 
     In addition to functions and methods, this can also handle objects with a
     ``__call__`` attribute.

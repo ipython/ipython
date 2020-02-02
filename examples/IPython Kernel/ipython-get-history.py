@@ -35,5 +35,4 @@ with dest:
     hist = HistoryAccessor()
 
     for session, lineno, cell in hist.get_range(session=session_number, raw=raw):
-      cell = cell.encode('utf-8')  # This line is only needed on Python 2.
       dest.write(cell + '\n')

@@ -44,7 +44,7 @@ def getdefaultencoding(prefer_stream=True):
     Then fall back on locale.getpreferredencoding(),
     which should be a sensible platform default (that respects LANG environment),
     and finally to sys.getdefaultencoding() which is the most conservative option,
-    and usually ASCII on Python 2 or UTF8 on Python 3.
+    and usually UTF8 as of Python 3.
     """
     enc = None
     if prefer_stream:
