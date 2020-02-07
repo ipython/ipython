@@ -1,0 +1,46 @@
+#!/bin/bash
+
+set -ueo pipefail
+FILE=$1
+
+echo "will update $FILE"
+
+echo $LINENO $?
+pyupgrade --py36-plus --exit-zero-even-if-changed $FILE
+
+echo $LINENO $?
+git commit -am"Apply pyupgrade to $FILE
+
+    pyupgrade --py36-plus $FILE
+
+To ignore those changes when using git blame see the content of
+.git-blame-ignore-revs"
+
+HASH=$(git rev-parse HEAD)
+
+echo "$HASH # apply pyupgrade to $FILE" >> .git-blame-ignore-revs
+
+git commit -am'Update .git-blame-ignore-revs with previous commit'
+
+#####
+
+black --target-version py36 $FILE
+
+
+git commit -am"Apply black to $FILE
+
+    black --target-version py36 $FILE
+
+To ignore those changes when using git blame see the content of
+.git-blame-ignore-revs"
+
+HASH=$(git rev-parse HEAD)
+
+echo "$HASH # apply black to $FILE" >> .git-blame-ignore-revs
+
+git commit -am'Update .git-blame-ignore-revs with previous commit'
+
+echo 
+echo "Updating, reformatting and adding to .git-blame-ignore-revs successful"
+
+
