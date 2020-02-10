@@ -1443,6 +1443,9 @@ python-profiler package from non-free.""")
     @magic_arguments.argument('--no-display', action="store_true",
         help="""Don't capture IPython's rich display."""
     )
+    @magic_arguments.argument('--return-result', action="store_true",
+        help="""Return the captured result instead of suppressing it."""
+    )
     @cell_magic
     def capture(self, line, cell):
         """run the cell, capturing stdout, stderr, and IPython's rich display() calls."""
@@ -1451,9 +1454,13 @@ python-profiler package from non-free.""")
         err = not args.no_stderr
         disp = not args.no_display
         with capture_output(out, err, disp) as io:
-            self.shell.run_cell(cell)
+            result = self.shell.run_cell(cell)
         if args.output:
             self.shell.user_ns[args.output] = io
+        if args.return_result:
+            return result
+        else:
+            return None
 
 def parse_breakpoint(text, current_file):
     '''Returns (file, line) for file:line and (current_file, line) for line'''
