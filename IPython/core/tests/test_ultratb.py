@@ -3,15 +3,14 @@
 """
 import io
 import logging
+import re
 import sys
 import os.path
 from textwrap import dedent
 import traceback
 import unittest
-from unittest import mock
 
-import IPython.core.ultratb as ultratb
-from IPython.core.ultratb import ColorTB, VerboseTB, find_recursion
+from IPython.core.ultratb import ColorTB, VerboseTB
 
 
 from IPython.testing import tools as tt
@@ -38,16 +37,12 @@ def recursionlimit(frames):
 
     def inner(test_function):
         def wrapper(*args, **kwargs):
-            _orig_rec_limit = ultratb._FRAME_RECURSION_LIMIT
-            ultratb._FRAME_RECURSION_LIMIT = 50
-
             rl = sys.getrecursionlimit()
             sys.setrecursionlimit(frames)
             try:
                 return test_function(*args, **kwargs)
             finally:
                 sys.setrecursionlimit(rl)
-                ultratb._FRAME_RECURSION_LIMIT = _orig_rec_limit
 
         return wrapper
 
@@ -350,44 +345,23 @@ def r3o2():
         ip.run_cell(self.DEFINITIONS)
 
     def test_no_recursion(self):
-        with tt.AssertNotPrints("frames repeated"):
+        with tt.AssertNotPrints("skipping similar frames"):
             ip.run_cell("non_recurs()")
 
     @recursionlimit(150)
     def test_recursion_one_frame(self):
-        with tt.AssertPrints("1 frames repeated"):
+        with tt.AssertPrints(re.compile(
+            r"\[\.\.\. skipping similar frames: r1 at line 5 \(\d{2} times\)\]")
+        ):
             ip.run_cell("r1()")
 
     @recursionlimit(150)
     def test_recursion_three_frames(self):
-        with tt.AssertPrints("3 frames repeated"):
+        with tt.AssertPrints("[... skipping similar frames: "), \
+                tt.AssertPrints(re.compile(r"r3a at line 8 \(\d{2} times\)"), suppress=False), \
+                tt.AssertPrints(re.compile(r"r3b at line 11 \(\d{2} times\)"), suppress=False), \
+                tt.AssertPrints(re.compile(r"r3c at line 14 \(\d{2} times\)"), suppress=False):
             ip.run_cell("r3o2()")
-
-    @recursionlimit(150)
-    def test_find_recursion(self):
-        captured = []
-        def capture_exc(*args, **kwargs):
-            captured.append(sys.exc_info())
-        with mock.patch.object(ip, 'showtraceback', capture_exc):
-            ip.run_cell("r3o2()")
-
-        self.assertEqual(len(captured), 1)
-        etype, evalue, tb = captured[0]
-        self.assertIn("recursion", str(evalue))
-
-        records = ip.InteractiveTB.get_records(tb, 3, ip.InteractiveTB.tb_offset)
-        for r in records[:10]:
-            print(r[1:4])
-
-        # The outermost frames should be:
-        # 0: the 'cell' that was running when the exception came up
-        # 1: r3o2()
-        # 2: r3o1()
-        # 3: r3a()
-        # Then repeating r3b, r3c, r3a
-        last_unique, repeat_length = find_recursion(etype, evalue, records)
-        self.assertEqual(last_unique, 2)
-        self.assertEqual(repeat_length, 3)
 
 
 #----------------------------------------------------------------------------
@@ -432,35 +406,3 @@ def test_handlers():
     except:
         handler(*sys.exc_info())
     buff.write('')
-
-from IPython.testing.decorators import skipif
-
-class TokenizeFailureTest(unittest.TestCase):
-    """Tests related to https://github.com/ipython/ipython/issues/6864."""
-
-    # that appear to test that we are handling an exception that can be thrown
-    # by the tokenizer due to a bug that seem to have been fixed in 3.8, though
-    # I'm unsure if other sequences can make it raise this error. Let's just
-    # skip in 3.8 for now
-    @skipif(sys.version_info > (3,8))
-    def testLogging(self):
-        message = "An unexpected error occurred while tokenizing input"
-        cell = 'raise ValueError("""a\nb""")'
-
-        stream = io.StringIO()
-        handler = logging.StreamHandler(stream)
-        logger = logging.getLogger()
-        loglevel = logger.level
-        logger.addHandler(handler)
-        self.addCleanup(lambda: logger.removeHandler(handler))
-        self.addCleanup(lambda: logger.setLevel(loglevel))
-
-        logger.setLevel(logging.INFO)
-        with tt.AssertNotPrints(message):
-            ip.run_cell(cell)
-        self.assertNotIn(message, stream.getvalue())
-
-        logger.setLevel(logging.DEBUG)
-        with tt.AssertNotPrints(message):
-            ip.run_cell(cell)
-        self.assertIn(message, stream.getvalue())

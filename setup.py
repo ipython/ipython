@@ -193,6 +193,7 @@ install_requires = [
     'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
     'pygments',
     'backcall',
+    'stack_data',
 ]
 
 # Platform-specific dependencies:
