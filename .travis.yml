@@ -75,11 +75,7 @@ matrix:
       env: ARM64=True
       sudo: true
     - arch: amd64
-      python: "3.8-dev"
-      dist: xenial
-      sudo: true
-    - arch: amd64
-      python: "3.7-dev"
+      python: "3.8"
       dist: xenial
       sudo: true
     - arch: amd64
