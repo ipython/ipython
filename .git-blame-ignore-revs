@@ -2,7 +2,10 @@
 # commit hash here, so git blame can ignore the change.
 # See docs for more details:
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-blameignoreRevsFile
-
+# 
+# You should be able to execute either configure-git-blame-ignore-revs.bat or configure-git-blame-ignore-revs.sh
+# to configure git-blame to ignore the following revisions.
+#
 # Example entries:
 # <full commit hash>  # initial black-format
 # <full commit hash>  # rename something internal
