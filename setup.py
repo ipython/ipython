@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Setup script for IPython.
 
 Under Posix environments it works like a typical setup.py script.
@@ -17,7 +16,6 @@ requires utilities which are not available under Windows."""
 #  The full license is in the file COPYING.rst, distributed with this software.
 #-----------------------------------------------------------------------------
 
-from __future__ import print_function
 
 import os
 import sys
