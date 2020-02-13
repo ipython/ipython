@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 This module defines the things that are used in setup.py for building IPython
 
@@ -303,7 +302,7 @@ class install_lib_symlink(Command):
         if os.path.islink(dest):
             print('removing existing symlink at %s' % dest)
             os.unlink(dest)
-        print('symlinking %s -> %s' % (pkg, dest))
+        print(f'symlinking {pkg} -> {dest}')
         os.symlink(pkg, dest)
 
 class unsymlink(install):
@@ -391,12 +390,12 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
                 # nothing to write, don't clobber
                 return
             
-            print("writing git commit '%s' to %s" % (repo_commit, out_pth))
+            print(f"writing git commit '{repo_commit}' to {out_pth}")
             
             # remove to avoid overwriting original via hard link
             try:
                 os.remove(out_pth)
-            except (IOError, OSError):
+            except OSError:
                 pass
             with open(out_pth, 'w') as out_file:
                 out_file.writelines([
