@@ -1371,18 +1371,18 @@ class IPCompleter(Completer):
         try_jedi = True
 
         try:
-            # should we check the type of the node is Error ?
-            try:
-                # jedi < 0.11
-                from jedi.parser.tree import ErrorLeaf
-            except ImportError:
-                # jedi >= 0.11
-                from parso.tree import ErrorLeaf
-
-            next_to_last_tree = interpreter._get_module().tree_node.children[-2]
+            # find the first token in the current tree -- if it is a ' or " then we are in a string
             completing_string = False
-            if isinstance(next_to_last_tree, ErrorLeaf):
-                completing_string = next_to_last_tree.value.lstrip()[0] in {'"', "'"}
+            try:
+                first_child = next(c for c in interpreter._get_module().tree_node.children if hasattr(c, 'value'))
+            except StopIteration:
+                pass
+            else:
+                # note the value may be ', ", or it may also be ''' or """, or
+                # in some cases, """what/you/typed..., but all of these are
+                # strings.
+                completing_string = len(first_child.value) > 0 and first_child.value[0] in {"'", '"'}
+
             # if we are in a string jedi is likely not the right candidate for
             # now. Skip it.
             try_jedi = not completing_string
