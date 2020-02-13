@@ -5,6 +5,7 @@
 
 import sys
 import unittest
+import os
 
 from IPython.core.inputtransformer import InputTransformer
 from IPython.testing import tools as tt
@@ -19,6 +20,10 @@ class TestElide(unittest.TestCase):
         _elide('concatenate((a1, a2, ...), axis') # do not raise
         _elide('concatenate((a1, a2, ..), . axis') # do not raise
         nt.assert_equal(_elide('aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh'), 'aaaa.b…g.hhhhhh')
+        
+        test_string = os.sep.join(['', 10*'a', 10*'b', 10*'c', ''])
+        expect_stirng = os.sep + 'a' + '\N{HORIZONTAL ELLIPSIS}' + 'b' + os.sep + 10*'c'
+        nt.assert_equal(_elide(test_string), expect_stirng)
 
 
 class TestContextAwareCompletion(unittest.TestCase):
