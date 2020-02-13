@@ -11,3 +11,4 @@
 # <full commit hash>  # rename something internal
 557591a1cd9f0d8264a8ded4b964c64bc03eb38f # apply pyupgrade to setupbase.py
 53d7fe3082213f31c89f2c16b39920fb4c7097ce # apply black to setupbase.py
+4bfc78fb0f881f29183a2699653fad3d7b607ed3 # apply pyupgrade to setup.py
