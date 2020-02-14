@@ -626,6 +626,8 @@ class Completer(Configurable):
         else:
             self.global_namespace = global_namespace
 
+        self.custom_matchers = []
+
         super(Completer, self).__init__(**kwargs)
 
     def complete(self, text, state):
@@ -1122,12 +1124,14 @@ class IPCompleter(Completer):
 
         if self.use_jedi:
             return [
+                *self.custom_matchers,
                 self.file_matches,
                 self.magic_matches,
                 self.dict_key_matches,
             ]
         else:
             return [
+                *self.custom_matchers,
                 self.python_matches,
                 self.file_matches,
                 self.magic_matches,
