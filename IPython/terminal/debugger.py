@@ -6,7 +6,7 @@ from IPython.core.debugger import Pdb
 
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
-from .shortcuts import suspend_to_bg, cursor_in_leading_ws
+from .shortcuts import create_ipython_shortcuts, suspend_to_bg, cursor_in_leading_ws
 
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import (Condition, has_focus, has_selection,
@@ -42,21 +42,10 @@ class TerminalPdb(Pdb):
                                        )
             self._ptcomp = IPythonPTCompleter(compl)
 
-        kb = KeyBindings()
-        supports_suspend = Condition(lambda: hasattr(signal, 'SIGTSTP'))
-        kb.add('c-z', filter=supports_suspend)(suspend_to_bg)
-
-        if self.shell.display_completions == 'readlinelike':
-            kb.add('tab', filter=(has_focus(DEFAULT_BUFFER)
-                                  & ~has_selection
-                                  & vi_insert_mode | emacs_insert_mode
-                                  & ~cursor_in_leading_ws
-                              ))(display_completions_like_readline)
-
         options = dict(
             message=(lambda: PygmentsTokens(get_prompt_tokens())),
             editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
-            key_bindings=kb,
+            key_bindings=create_ipython_shortcuts(self.shell),
             history=self.shell.debugger_history,
             completer=self._ptcomp,
             enable_history_search=True,
