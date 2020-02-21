@@ -36,3 +36,4 @@ install:
   - "%CMD_IN_ENV%  cd results"
 test_script:
   - "%CMD_IN_ENV%  iptest --coverage xml"
+  - "%CMD_IN_ENV%  pytest IPython"
