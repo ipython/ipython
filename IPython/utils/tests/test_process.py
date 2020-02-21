@@ -19,6 +19,7 @@ import os
 import time
 from _thread import interrupt_main  # Py 3
 import threading
+from unittest import SkipTest
 
 import nose.tools as nt
 
@@ -110,10 +111,9 @@ class SubProcessTestCase(tt.TempFileMixin):
         status = system('%s -c "import sys"' % python)
         self.assertEqual(status, 0)
 
-    def test_system_interrupt(self):
+    def assert_interrupts(self, command):
         """
-        When interrupted in the way ipykernel interrupts IPython, the
-        subprocess is interrupted.
+        Interrupt a subprocess after a second.
         """
         if threading.main_thread() != threading.current_thread():
             raise nt.SkipTest("Can't run this test if not in main thread.")
@@ -126,16 +126,27 @@ class SubProcessTestCase(tt.TempFileMixin):
         threading.Thread(target=interrupt).start()
         start = time.time()
         try:
-            status = system('%s -c "import time; time.sleep(5)"' % python)
+            result = command()
         except KeyboardInterrupt:
             # Success!
             return
         end = time.time()
-        self.assertNotEqual(
-            status, 0, "The process wasn't interrupted. Status: %s" % (status,)
-        )
         self.assertTrue(
             end - start < 2, "Process didn't die quickly: %s" % (end - start)
+        )
+        return result
+
+    def test_system_interrupt(self):
+        """
+        When interrupted in the way ipykernel interrupts IPython, the
+        subprocess is interrupted.
+        """
+        def command():
+            return system('%s -c "import time; time.sleep(5)"' % python)
+
+        status = self.assert_interrupts(command)
+        self.assertNotEqual(
+            status, 0, "The process wasn't interrupted. Status: %s" % (status,)
         )
 
     def test_getoutput(self):
@@ -145,6 +156,17 @@ class SubProcessTestCase(tt.TempFileMixin):
             self.assertEqual(out, 'on stderron stdout')
         except AssertionError:
             self.assertEqual(out, 'on stdouton stderr')
+
+    def test_getoutput_interrupt(self):
+        """
+        When interrupted in the way ipykernel interrupts IPython, the
+        subprocess is interrupted.
+        """
+        raise SkipTest("This fails on POSIX too, revisit in future.")
+        def command():
+            return getoutput('%s -c "import time; time.sleep(5)"' % (python, ))
+
+        self.assert_interrupts(command)
 
     def test_getoutput_quoted(self):
         out = getoutput('%s -c "print (1)"' % python)
