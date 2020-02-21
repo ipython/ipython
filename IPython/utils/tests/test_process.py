@@ -116,7 +116,6 @@ class SubProcessTestCase(tt.TempFileMixin):
         subprocess is interrupted.
         """
         if threading.main_thread() != threading.current_thread():
-            raise RuntimeEror("Not in main thread")
             raise nt.SkipTest("Can't run this test if not in main thread.")
 
         def interrupt():
@@ -125,13 +124,18 @@ class SubProcessTestCase(tt.TempFileMixin):
             interrupt_main()
 
         threading.Thread(target=interrupt).start()
+        start = time.time()
         try:
             status = system('%s -c "import time; time.sleep(5)"' % python)
         except KeyboardInterrupt:
             # Success!
             return
+        end = time.time()
         self.assertNotEqual(
             status, 0, "The process wasn't interrupted. Status: %s" % (status,)
+        )
+        self.assertTrue(
+            end - start < 2, "Process didn't die quickly: %s" % (end - start)
         )
 
     def test_getoutput(self):
