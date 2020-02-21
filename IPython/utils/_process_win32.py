@@ -94,6 +94,7 @@ def _find_cmd(cmd):
 def _system_body(p):
     """Callback for _system."""
     enc = DEFAULT_ENCODING
+    print("READING...")
     for line in read_no_interrupt(p.stdout).splitlines():
         line = line.decode(enc, 'replace')
         print(line, file=sys.stdout)
@@ -106,6 +107,7 @@ def _system_body(p):
     # a loop instead of just doing `return p.wait()`.
     while True:
         result = p.poll()
+        print("POLLED")
         if result is None:
             time.sleep(0.01)
         else:
