@@ -18,6 +18,7 @@ This file is only meant to be imported by process.py, not by end-users.
 import os
 import sys
 import ctypes
+import time
 
 from ctypes import c_int, POINTER
 from ctypes.wintypes import LPCWSTR, HLOCAL
@@ -104,10 +105,11 @@ def _system_body(p):
     # wait() isn't interruptible (https://bugs.python.org/issue28168) so poll in
     # a loop instead of just doing `return p.wait()`.
     while True:
-        try:
-            return p.wait(0.01)
-        except TimeoutExpired:
-            pass
+        result = p.poll()
+        if result is None:
+            time.sleep(0.01)
+        else:
+            return result
 
 
 def system(cmd):
