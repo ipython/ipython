@@ -115,8 +115,8 @@ class SubProcessTestCase(tt.TempFileMixin):
         When interrupted in the way ipykernel interrupts IPython, the
         subprocess is interrupted.
         """
-        raise RuntimeError("Is this even being run on Windows?")
         if threading.main_thread() != threading.current_thread():
+            raise RuntimeEror("Not in main thread")
             raise nt.SkipTest("Can't run this test if not in main thread.")
 
         def interrupt():
