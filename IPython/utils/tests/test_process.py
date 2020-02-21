@@ -16,6 +16,9 @@ Tests for platutils.py
 
 import sys
 import os
+import time
+from _thread import interrupt_main  # Py 3
+import threading
 
 import nose.tools as nt
 
@@ -107,6 +110,29 @@ class SubProcessTestCase(tt.TempFileMixin):
         status = system('%s -c "import sys"' % python)
         self.assertEqual(status, 0)
 
+    def test_system_interrupt(self):
+        """
+        When interrupted in the way ipykernel interrupts IPython, the
+        subprocess is interrupted.
+        """
+        if threading.main_thread() != threading.current_thread():
+            raise nt.SkipTest("Can't run this test if not in main thread.")
+
+        def interrupt():
+            # Wait for subprocess to start:
+            time.sleep(0.5)
+            interrupt_main()
+
+        threading.Thread(target=interrupt).start()
+        try:
+            status = system('%s -c "import time; time.sleep(5)"' % python)
+        except KeyboardInterrupt:
+            # Success!
+            return
+        self.assertNotEqual(
+            status, 0, "The process wasn't interrupted. Status: %s" % (status,)
+        )
+
     def test_getoutput(self):
         out = getoutput('%s "%s"' % (python, self.fname))
         # we can't rely on the order the line buffered streams are flushed
@@ -131,7 +157,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         out, err = getoutputerror('%s "%s"' % (python, self.fname))
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
-    
+
     def test_get_output_error_code(self):
         quiet_exit = '%s -c "import sys; sys.exit(1)"' % python
         out, err, code = get_output_error_code(quiet_exit)
@@ -142,3 +168,5 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
         self.assertEqual(code, 0)
+
+        
