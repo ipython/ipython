@@ -21,7 +21,7 @@ import ctypes
 
 from ctypes import c_int, POINTER
 from ctypes.wintypes import LPCWSTR, HLOCAL
-from subprocess import STDOUT
+from subprocess import STDOUT, TimeoutExpired
 
 # our own imports
 from ._process_common import read_no_interrupt, process_handler, arg_split as py_arg_split
@@ -100,8 +100,14 @@ def _system_body(p):
         line = line.decode(enc, 'replace')
         print(line, file=sys.stderr)
 
-    # Wait to finish for returncode
-    return p.wait()
+    # Wait to finish for returncode. Unfortunately, Python has a bug where
+    # wait() isn't interruptible (https://bugs.python.org/issue28168) so poll in
+    # a loop instead of just doing `return p.wait()`.
+    while True:
+        try:
+            return p.wait(0.01)
+        except TimeoutExpired:
+            pass
 
 
 def system(cmd):
