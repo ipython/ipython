@@ -97,7 +97,7 @@ import time
 import traceback
 
 import stack_data
-from pygments.formatters.terminal import TerminalFormatter
+from pygments.formatters.terminal256 import Terminal256Formatter
 
 # IPython's own modules
 from IPython import get_ipython
@@ -129,7 +129,7 @@ DEFAULT_SCHEME = 'NoColor'
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
 
-def _format_traceback_lines(lines, Colors, lvals):
+def _format_traceback_lines(lines, Colors, has_colors, lvals):
     """
     Format tracebacks lines with pointing arrow, leading numbers...
 
@@ -150,7 +150,7 @@ def _format_traceback_lines(lines, Colors, lvals):
             res.append('%s   (...)%s\n' % (Colors.linenoEm, Colors.Normal))
             continue
 
-        line = stack_line.render(pygmented=True).rstrip('\n') + '\n'
+        line = stack_line.render(pygmented=has_colors).rstrip('\n') + '\n'
         lineno = stack_line.lineno
         if stack_line.is_current:
             # This is the line with the error
@@ -245,6 +245,10 @@ class TBTools(colorable.Colorable):
         else:
             message = [[exception_during_handling]]
         return message
+
+    @property
+    def has_colors(self):
+        return self.color_scheme_table.active_scheme_name.lower() != "nocolor"
 
     def set_colors(self, *args, **kw):
         """Shorthand access to the color table scheme selector method."""
@@ -638,7 +642,7 @@ class VerboseTB(TBTools):
 
         result = '%s %s\n' % (link, call)
 
-        result += ''.join(_format_traceback_lines(frame_info.lines, Colors, lvals))
+        result += ''.join(_format_traceback_lines(frame_info.lines, Colors, self.has_colors, lvals))
         return result
 
     def prepare_header(self, etype, long_version=False):
@@ -709,7 +713,15 @@ class VerboseTB(TBTools):
         context = number_of_lines_of_context - 1
         after = context // 2
         before = context - after
-        options = stack_data.Options(before=before, after=after, pygments_formatter=TerminalFormatter())
+        if self.has_colors:
+            formatter = Terminal256Formatter()
+        else:
+            formatter = None
+        options = stack_data.Options(
+            before=before,
+            after=after,
+            pygments_formatter=formatter,
+        )
         return list(stack_data.FrameInfo.stack_data(etb, options=options))[tb_offset:]
 
     def structured_traceback(self, etype, evalue, etb, tb_offset=None,
