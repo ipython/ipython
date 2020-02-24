@@ -157,8 +157,9 @@ class SubProcessTestCase(tt.TempFileMixin):
         there is no deadlock).
         """
         with capture_output(display=False):
-            system(("%s -c 'import sys\nfor i in range(20000): " +
-                    "sys.stderr.write(\" \" * 100 + \"\\n\")'") % (python,))
+            status = system(("%s -c \"import sys\nfor i in range(20000): " +
+                             "sys.stderr.write('b' * 100)\"") % (python,))
+        self.assertEqual(status, 0)
 
     def test_getoutput(self):
         out = getoutput('%s "%s"' % (python, self.fname))
