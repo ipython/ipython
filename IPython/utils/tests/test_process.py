@@ -26,6 +26,7 @@ import nose.tools as nt
 from IPython.utils.process import (find_cmd, FindCmdError, arg_split,
                                    system, getoutput, getoutputerror,
                                    get_output_error_code)
+from IPython.utils.capture import capture_output
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
@@ -148,6 +149,16 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertNotEqual(
             status, 0, "The process wasn't interrupted. Status: %s" % (status,)
         )
+
+    def test_stderr_while_stdout_open(self):
+        """
+        If lots of data is written to stderr while stdout is still open, enough
+        data to fill the pipe buffer in fact, the process still exits (i.e.
+        there is no deadlock).
+        """
+        with capture_output(display=False):
+            system(("%s -c 'import sys\nfor i in range(2000): " +
+                    "sys.stderr.write(\" \" * 100 + \"\\n\")'") % (python,))
 
     def test_getoutput(self):
         out = getoutput('%s "%s"' % (python, self.fname))
