@@ -126,9 +126,7 @@ def system(cmd):
 
     Returns
     -------
-    None : we explicitly do NOT return the subprocess status code, as this
-    utility is meant to be used extensively in IPython, where any return value
-    would trigger :func:`sys.displayhook` calls.
+    int : child process' exit code.
     """
     # The controller provides interactivity with both
     # stdin and stdout
