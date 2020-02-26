@@ -15,6 +15,7 @@ Tests for platutils.py
 #-----------------------------------------------------------------------------
 
 import sys
+import signal
 import os
 import time
 from _thread import interrupt_main  # Py 3
@@ -119,6 +120,11 @@ class SubProcessTestCase(tt.TempFileMixin):
         if threading.main_thread() != threading.current_thread():
             raise nt.SkipTest("Can't run this test if not in main thread.")
 
+        # Some tests can overwrite SIGINT handler (by using pdb for example),
+        # which then breaks this test, so just make sure it's operating
+        # normally.
+        signal.signal(signal.SIGINT, signal.default_int_handler)
+
         def interrupt():
             # Wait for subprocess to start:
             time.sleep(0.5)
@@ -130,7 +136,7 @@ class SubProcessTestCase(tt.TempFileMixin):
             result = command()
         except KeyboardInterrupt:
             # Success!
-            return
+            pass
         end = time.time()
         self.assertTrue(
             end - start < 2, "Process didn't die quickly: %s" % (end - start)
