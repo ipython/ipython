@@ -17,8 +17,6 @@ requires utilities which are not available under Windows."""
 #  The full license is in the file COPYING.rst, distributed with this software.
 #-----------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import os
 import sys
 
