@@ -137,7 +137,7 @@ def test_for(item, min_version=None, callback=extract_version):
 # have available at test run time
 have = {'matplotlib': test_for('matplotlib'),
         'pygments': test_for('pygments'),
-        'sqlite3': test_for('sqlite3')}
+        }
 
 #-----------------------------------------------------------------------------
 # Test suite definitions
@@ -176,9 +176,6 @@ test_sections = {n:TestSection(n, ['IPython.%s' % n]) for n in test_group_names}
 
 # core:
 sec = test_sections['core']
-if not have['sqlite3']:
-    sec.exclude('tests.test_history')
-    sec.exclude('history')
 if not have['matplotlib']:
     sec.exclude('pylabtools'),
     sec.exclude('tests.test_pylabtools')
