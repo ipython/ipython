@@ -187,24 +187,6 @@ def doctest_hist_f():
     """
 
 
-def doctest_hist_r():
-    """Test %hist -r
-
-    XXX - This test is not recording the output correctly.  For some reason, in
-    testing mode the raw history isn't getting populated.  No idea why.
-    Disabling the output checking for now, though at least we do run it.
-
-    In [1]: 'hist' in _ip.lsmagic()
-    Out[1]: True
-
-    In [2]: x=1
-
-    In [3]: %hist -rl 2
-    x=1 # random
-    %hist -r 2
-    """
-
-
 def doctest_hist_op():
     """Test %hist -op
 
