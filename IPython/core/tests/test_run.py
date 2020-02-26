@@ -248,10 +248,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "        print('object A deleted')\n"
                "a = A()\n")
         self.mktmp(src)
-        if dec.module_not_available('sqlite3'):
-            err = 'WARNING: IPython History requires SQLite, your history will not be saved\n'
-        else:
-            err = None
+        err = None
         tt.ipexec_validate(self.fname, 'object A deleted', err)
     
     def test_aggressive_namespace_cleanup(self):
@@ -306,10 +303,7 @@ ARGV 1-: ['C-third']
 tclass.py: deleting object: C-second
 tclass.py: deleting object: C-third
 """
-        if dec.module_not_available('sqlite3'):
-            err = 'WARNING: IPython History requires SQLite, your history will not be saved\n'
-        else:
-            err = None
+        err = None
         tt.ipexec_validate(self.fname, out, err)
 
     def test_run_i_after_reset(self):
