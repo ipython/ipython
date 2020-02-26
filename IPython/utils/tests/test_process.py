@@ -150,17 +150,6 @@ class SubProcessTestCase(tt.TempFileMixin):
             status, 0, "The process wasn't interrupted. Status: %s" % (status,)
         )
 
-    def test_stderr_while_stdout_open(self):
-        """
-        If lots of data is written to stderr while stdout is still open, enough
-        data to fill the pipe buffer in fact, the process still exits (i.e.
-        there is no deadlock).
-        """
-        with capture_output(display=False):
-            status = system(("%s -c \"import sys\nfor i in range(20000): " +
-                             "sys.stderr.write('b' * 100)\"") % (python,))
-        self.assertEqual(status, 0)
-
     def test_getoutput(self):
         out = getoutput('%s "%s"' % (python, self.fname))
         # we can't rely on the order the line buffered streams are flushed
@@ -168,17 +157,6 @@ class SubProcessTestCase(tt.TempFileMixin):
             self.assertEqual(out, 'on stderron stdout')
         except AssertionError:
             self.assertEqual(out, 'on stdouton stderr')
-
-    def test_getoutput_interrupt(self):
-        """
-        When interrupted in the way ipykernel interrupts IPython, the
-        subprocess is interrupted.
-        """
-        raise SkipTest("This fails on POSIX too, revisit in future.")
-        def command():
-            return getoutput('%s -c "import time; time.sleep(5)"' % (python, ))
-
-        self.assert_interrupts(command)
 
     def test_getoutput_quoted(self):
         out = getoutput('%s -c "print (1)"' % python)
