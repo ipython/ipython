@@ -20,9 +20,6 @@ import unittest
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
-sqlite_err_maybe = dec.module_not_available('sqlite3')
-SQLITE_NOT_AVAILABLE_ERROR = ('WARNING: IPython History requires SQLite,'
-                              ' your history will not be saved\n')
 
 class TestFileToRun(tt.TempFileMixin, unittest.TestCase):
     """Test the behavior of the file_to_run parameter."""
@@ -32,7 +29,7 @@ class TestFileToRun(tt.TempFileMixin, unittest.TestCase):
         src = "print(__file__)\n"
         self.mktmp(src)
 
-        err = SQLITE_NOT_AVAILABLE_ERROR if sqlite_err_maybe else None
+        err = None
         tt.ipexec_validate(self.fname, self.fname, err)
 
     def test_ipy_script_file_attribute(self):
@@ -40,7 +37,7 @@ class TestFileToRun(tt.TempFileMixin, unittest.TestCase):
         src = "print(__file__)\n"
         self.mktmp(src, ext='.ipy')
 
-        err = SQLITE_NOT_AVAILABLE_ERROR if sqlite_err_maybe else None
+        err = None
         tt.ipexec_validate(self.fname, self.fname, err)
 
     # The commands option to ipexec_validate doesn't work on Windows, and it
