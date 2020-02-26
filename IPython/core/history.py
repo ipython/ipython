@@ -19,7 +19,6 @@ from traitlets import (
     Any, Bool, Dict, Instance, Integer, List, Unicode, TraitError,
     default, observe,
 )
-from warnings import warn
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -43,8 +42,14 @@ class DummyDB(object):
         pass
 
 
-DatabaseError = sqlite3.DatabaseError
-OperationalError = sqlite3.OperationalError
+@decorator
+def needs_sqlite(f, self, *a, **kw):
+    """Decorator: return an empty list in the absence of sqlite."""
+    if not self.enabled:
+        return []
+    else:
+        return f(self, *a, **kw)
+
 
 # use 16kB as threshold for whether a corrupt history db should be saved
 # that should be at least 100 entries or so
@@ -61,7 +66,7 @@ def catch_corrupt_db(f, self, *a, **kw):
     """
     try:
         return f(self, *a, **kw)
-    except (DatabaseError, OperationalError) as e:
+    except (sqlite3.DatabaseError, sqlite3.OperationalError) as e:
         self._corrupt_db_counter += 1
         self.log.error("Failed to open SQLite history %s (%s).", self.hist_file, e)
         if self.hist_file != ':memory:':
@@ -165,9 +170,7 @@ class HistoryAccessor(HistoryAccessorBase):
     def _db_changed(self, change):
         """validate the db, since it can be an Instance of two different types"""
         new = change['new']
-        connection_types = (DummyDB,)
-        if sqlite3 is not None:
-            connection_types = (DummyDB, sqlite3.Connection)
+        connection_types = (DummyDB, sqlite3.Connection)
         if not isinstance(new, connection_types):
             msg = "%s.db must be sqlite3 Connection or DummyDB, not %r" % \
                     (self.__class__.__name__, new)
@@ -197,10 +200,6 @@ class HistoryAccessor(HistoryAccessorBase):
         if self.hist_file == u'':
             # No one has set the hist_file, yet.
             self.hist_file = self._get_hist_file_name(profile)
-
-        if sqlite3 is None and self.enabled:
-            warn("IPython History requires SQLite, your history will not be saved")
-            self.enabled = False
         
         self.init_db()
     
@@ -278,6 +277,7 @@ class HistoryAccessor(HistoryAccessorBase):
             return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
         return cur
 
+    @needs_sqlite
     @catch_corrupt_db
     def get_session_info(self, session):
         """Get info about a session.
@@ -516,7 +516,7 @@ class HistoryManager(HistoryAccessor):
         
         try:
             self.new_session()
-        except OperationalError:
+        except sqlite3.OperationalError:
             self.log.error("Failed to create history session in %s. History will not be saved.",
                 self.hist_file, exc_info=True)
             self.hist_file = ':memory:'
@@ -533,6 +533,7 @@ class HistoryManager(HistoryAccessor):
         profile_dir = self.shell.profile_dir.location
         return os.path.join(profile_dir, 'history.sqlite')
     
+    @needs_sqlite
     def new_session(self, conn=None):
         """Get a new session number."""
         if conn is None:
@@ -743,6 +744,7 @@ class HistoryManager(HistoryAccessor):
                 conn.execute("INSERT INTO output_history VALUES (?, ?, ?)",
                                 (self.session_number,)+line)
 
+    @needs_sqlite
     def writeout_cache(self, conn=None):
         """Write any entries in the cache to the database."""
         if conn is None:
@@ -791,6 +793,7 @@ class HistorySavingThread(threading.Thread):
         self.enabled = history_manager.enabled
         atexit.register(self.stop)
 
+    @needs_sqlite
     def run(self):
         # We need a separate db connection per thread:
         try:
