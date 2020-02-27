@@ -97,13 +97,13 @@ import time
 import traceback
 
 import stack_data
+from pygments.formatters.terminal256 import Terminal256Formatter
 
 # IPython's own modules
 from IPython import get_ipython
 from IPython.core import debugger
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
-from IPython.utils import PyColorize
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils.terminal import get_terminal_size
@@ -129,7 +129,7 @@ DEFAULT_SCHEME = 'NoColor'
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
 
-def _format_traceback_lines(lines, Colors, lvals, _line_format):
+def _format_traceback_lines(lines, Colors, has_colors, lvals):
     """
     Format tracebacks lines with pointing arrow, leading numbers...
 
@@ -141,8 +141,6 @@ def _format_traceback_lines(lines, Colors, lvals, _line_format):
         ColorScheme used.
     lvals: str
         Values of local variables, already colored, to inject just after the error line.
-    _line_format: f (str) -> (str, bool)
-        return (colorized version of str, failure to do so)
     """
     numbers_width = INDENT_SIZE - 1
     res = []
@@ -152,23 +150,18 @@ def _format_traceback_lines(lines, Colors, lvals, _line_format):
             res.append('%s   (...)%s\n' % (Colors.linenoEm, Colors.Normal))
             continue
 
-        line = stack_line.text.rstrip('\n') + '\n'
-
-        new_line, err = _line_format(line, 'str')
-        if not err:
-            line = new_line
-
+        line = stack_line.render(pygmented=has_colors).rstrip('\n') + '\n'
         lineno = stack_line.lineno
         if stack_line.is_current:
             # This is the line with the error
             pad = numbers_width - len(str(lineno))
             num = '%s%s' % (debugger.make_arrow(pad), str(lineno))
-            line = '%s%s%s %s%s' % (Colors.linenoEm, num,
-                                    Colors.line, line, Colors.Normal)
+            start_color = Colors.linenoEm
         else:
             num = '%*s' % (numbers_width, lineno)
-            line = '%s%s%s %s' % (Colors.lineno, num,
-                                  Colors.Normal, line)
+            start_color = Colors.lineno
+        
+        line = '%s%s%s %s' % (start_color, num, Colors.Normal, line)
 
         res.append(line)
         if lvals and stack_line.is_current:
@@ -252,6 +245,10 @@ class TBTools(colorable.Colorable):
         else:
             message = [[exception_during_handling]]
         return message
+
+    @property
+    def has_colors(self):
+        return self.color_scheme_table.active_scheme_name.lower() != "nocolor"
 
     def set_colors(self, *args, **kw):
         """Shorthand access to the color table scheme selector method."""
@@ -591,7 +588,6 @@ class VerboseTB(TBTools):
             return '    %s[... skipping similar frames: %s]%s\n' % (
                 Colors.excName, frame_info.description, ColorsNormal)
 
-        col_scheme = self.color_scheme_table.active_scheme_name
         indent = ' ' * INDENT_SIZE
         em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
         tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
@@ -646,8 +642,7 @@ class VerboseTB(TBTools):
 
         result = '%s %s\n' % (link, call)
 
-        _line_format = PyColorize.Parser(style=col_scheme, parent=self).format2
-        result += ''.join(_format_traceback_lines(frame_info.lines, Colors, lvals, _line_format))
+        result += ''.join(_format_traceback_lines(frame_info.lines, Colors, self.has_colors, lvals))
         return result
 
     def prepare_header(self, etype, long_version=False):
@@ -718,7 +713,15 @@ class VerboseTB(TBTools):
         context = number_of_lines_of_context - 1
         after = context // 2
         before = context - after
-        options = stack_data.Options(before=before, after=after)
+        if self.has_colors:
+            formatter = Terminal256Formatter()
+        else:
+            formatter = None
+        options = stack_data.Options(
+            before=before,
+            after=after,
+            pygments_formatter=formatter,
+        )
         return list(stack_data.FrameInfo.stack_data(etb, options=options))[tb_offset:]
 
     def structured_traceback(self, etype, evalue, etb, tb_offset=None,

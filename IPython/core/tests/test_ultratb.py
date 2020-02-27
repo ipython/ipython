@@ -348,14 +348,14 @@ def r3o2():
         with tt.AssertNotPrints("skipping similar frames"):
             ip.run_cell("non_recurs()")
 
-    @recursionlimit(150)
+    @recursionlimit(200)
     def test_recursion_one_frame(self):
         with tt.AssertPrints(re.compile(
-            r"\[\.\.\. skipping similar frames: r1 at line 5 \(\d{2} times\)\]")
+            r"\[\.\.\. skipping similar frames: r1 at line 5 \(\d{2,3} times\)\]")
         ):
             ip.run_cell("r1()")
 
-    @recursionlimit(150)
+    @recursionlimit(200)
     def test_recursion_three_frames(self):
         with tt.AssertPrints("[... skipping similar frames: "), \
                 tt.AssertPrints(re.compile(r"r3a at line 8 \(\d{2} times\)"), suppress=False), \
