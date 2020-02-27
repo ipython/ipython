@@ -15,13 +15,19 @@ Tests for platutils.py
 #-----------------------------------------------------------------------------
 
 import sys
+import signal
 import os
+import time
+from _thread import interrupt_main  # Py 3
+import threading
+from unittest import SkipTest
 
 import nose.tools as nt
 
 from IPython.utils.process import (find_cmd, FindCmdError, arg_split,
                                    system, getoutput, getoutputerror,
                                    get_output_error_code)
+from IPython.utils.capture import capture_output
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
@@ -107,6 +113,49 @@ class SubProcessTestCase(tt.TempFileMixin):
         status = system('%s -c "import sys"' % python)
         self.assertEqual(status, 0)
 
+    def assert_interrupts(self, command):
+        """
+        Interrupt a subprocess after a second.
+        """
+        if threading.main_thread() != threading.current_thread():
+            raise nt.SkipTest("Can't run this test if not in main thread.")
+
+        # Some tests can overwrite SIGINT handler (by using pdb for example),
+        # which then breaks this test, so just make sure it's operating
+        # normally.
+        signal.signal(signal.SIGINT, signal.default_int_handler)
+
+        def interrupt():
+            # Wait for subprocess to start:
+            time.sleep(0.5)
+            interrupt_main()
+
+        threading.Thread(target=interrupt).start()
+        start = time.time()
+        try:
+            result = command()
+        except KeyboardInterrupt:
+            # Success!
+            pass
+        end = time.time()
+        self.assertTrue(
+            end - start < 2, "Process didn't die quickly: %s" % (end - start)
+        )
+        return result
+
+    def test_system_interrupt(self):
+        """
+        When interrupted in the way ipykernel interrupts IPython, the
+        subprocess is interrupted.
+        """
+        def command():
+            return system('%s -c "import time; time.sleep(5)"' % python)
+
+        status = self.assert_interrupts(command)
+        self.assertNotEqual(
+            status, 0, "The process wasn't interrupted. Status: %s" % (status,)
+        )
+
     def test_getoutput(self):
         out = getoutput('%s "%s"' % (python, self.fname))
         # we can't rely on the order the line buffered streams are flushed
@@ -131,7 +180,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         out, err = getoutputerror('%s "%s"' % (python, self.fname))
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
-    
+
     def test_get_output_error_code(self):
         quiet_exit = '%s -c "import sys; sys.exit(1)"' % python
         out, err, code = get_output_error_code(quiet_exit)
@@ -142,3 +191,5 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
         self.assertEqual(code, 0)
+
+        
