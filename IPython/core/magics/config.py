@@ -149,7 +149,7 @@ class ConfigMagics(Magics):
         # leave quotes on args when splitting, because we want
         # unquoted args to eval in user_ns
         cfg = Config()
-        exec("cfg."+line, locals(), self.shell.user_ns)
+        exec("cfg."+line, self.shell.user_ns, locals())
 
         for configurable in configurables:
             try:
