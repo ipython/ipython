@@ -509,10 +509,7 @@ class TkInputHook(InputHookBase):
         warn("This function is deprecated since IPython 5.0 and will be removed in future versions.",
                 DeprecationWarning, stacklevel=2)
         if app is None:
-            try:
-                from tkinter import Tk  # Py 3
-            except ImportError:
-                from Tkinter import Tk  # Py 2
+            from tkinter import Tk
             app = Tk()
             app.withdraw()
             self.manager.apps[GUI_TK] = app
