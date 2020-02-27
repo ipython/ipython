@@ -60,6 +60,10 @@ addflag('color-info', 'InteractiveShell.color_info',
     colours.""",
     "Disable using colors for info related things."
 )
+addflag('ignore-cwd', 'InteractiveShellApp.ignore_cwd',
+        "Exclude the current working directory from sys.path",
+        "Include the current working directory in sys.path",
+)
 nosep_config = Config()
 nosep_config.InteractiveShell.separate_in = ''
 nosep_config.InteractiveShell.separate_out = ''
@@ -168,6 +172,12 @@ class InteractiveShellApp(Configurable):
         When False, pylab mode should not import any names into the user namespace.
         """
     ).tag(config=True)
+    ignore_cwd = Bool(
+        False,
+        help="""If True, IPython will not add the current working directory to sys.path.
+        When False, the current working directory is added to sys.path, allowing imports
+        of modules defined in the current directory."""
+    ).tag(config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
                      allow_none=True)
     # whether interact-loop should start
@@ -189,8 +199,10 @@ class InteractiveShellApp(Configurable):
 
         .. versionchanged:: 7.2
             Try to insert after the standard library, instead of first.
+        .. versionchanged:: 8.0
+            Allow optionally not including the current directory in sys.path
         """
-        if '' in sys.path:
+        if '' in sys.path or self.ignore_cwd:
             return
         for idx, path in enumerate(sys.path):
             parent, last_part = os.path.split(path)
