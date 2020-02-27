@@ -98,6 +98,7 @@ import traceback
 
 import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
+from pygments.styles import get_style_by_name
 
 # IPython's own modules
 from IPython import get_ipython
@@ -714,7 +715,9 @@ class VerboseTB(TBTools):
         after = context // 2
         before = context - after
         if self.has_colors:
-            formatter = Terminal256Formatter()
+            style = get_style_by_name('default')
+            style = stack_data.style_with_executing_node(style, 'bg:#00005f')
+            formatter = Terminal256Formatter(style=style)
         else:
             formatter = None
         options = stack_data.Options(
