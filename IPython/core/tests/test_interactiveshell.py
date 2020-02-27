@@ -998,3 +998,21 @@ def test_should_run_async():
     assert not ip.should_run_async("a = 5")
     assert ip.should_run_async("await x")
     assert ip.should_run_async("import asyncio; await asyncio.sleep(1)")
+
+
+def test_set_custom_completer():
+    num_completers = len(ip.Completer.matchers)
+
+    def foo(*args, **kwargs):
+        return "I'm a completer!"
+
+    ip.set_custom_completer(foo, 0)
+
+    # check that we've really added a new completer
+    assert len(ip.Completer.matchers) == num_completers + 1
+
+    # check that the first completer is the function we defined
+    assert ip.Completer.matchers[0]() == "I'm a completer!"
+
+    # clean up
+    ip.Completer.custom_matchers.pop()
