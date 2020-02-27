@@ -1,6 +1,7 @@
 import asyncio
 import signal
 import sys
+import threading
 
 from IPython.core.debugger import Pdb
 
@@ -81,18 +82,11 @@ class TerminalPdb(Pdb):
         if not self.use_rawinput:
             raise ValueError('Sorry ipdb does not support use_rawinput=False')
 
-        # In order to make sure that asyncio code written in the
-        # interactive shell doesn't interfere with the prompt, we run the
-        # prompt in a different event loop.
-        # If we don't do this, people could spawn coroutine with a
-        # while/true inside which will freeze the prompt.
-
-        try:
-            old_loop = asyncio.get_event_loop()
-        except RuntimeError:
-            # This happens when the user used `asyncio.run()`.
-            old_loop = None
-
+        # In order to make sure that prompt, which uses asyncio doesn't
+        # interfere with applications in which it's used, we always run the
+        # prompt itself in a different thread (we can't start an event loop
+        # within an event loop). This new thread won't have any event loop
+        # running, and here we run our prompt-loop.
 
         self.preloop()
 
@@ -109,14 +103,25 @@ class TerminalPdb(Pdb):
                     self._ptcomp.ipy_completer.namespace = self.curframe_locals
                     self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
 
-                    asyncio.set_event_loop(self.pt_loop)
-                    try:
-                        line = self.pt_app.prompt()
-                    except EOFError:
-                        line = 'EOF'
-                    finally:
-                        # Restore the original event loop.
-                        asyncio.set_event_loop(old_loop)
+                    # Run the prompt in a different thread.
+                    line = ''
+                    keyboard_interrupt = False
+
+                    def in_thread():
+                        nonlocal line, keyboard_interrupt
+                        try:
+                            line = self.pt_app.prompt()
+                        except EOFError:
+                            line = 'EOF'
+                        except KeyboardInterrupt:
+                            keyboard_interrupt = True
+
+                    th = threading.Thread(target=in_thread)
+                    th.start()
+                    th.join()
+
+                    if keyboard_interrupt:
+                        raise KeyboardInterrupt
 
                 line = self.precmd(line)
                 stop = self.onecmd(line)
