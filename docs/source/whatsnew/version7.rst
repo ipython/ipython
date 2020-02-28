@@ -2,6 +2,28 @@
  7.x Series
 ============
 
+.. _version 713:
+
+IPython 7.13
+============
+
+IPython 7.13 is the first release of the 7.x branch since master is diverging
+toward an 8.0. Exiting new features have already been merged in 8.0 and will
+not be available on the 7.x branch. All the changes bellow have been backported
+from the master branch.
+
+
+ - Fix inability to run PDB when inside an event loop :ghpull:`12141`
+ - Fix ability to interrupt some processes on windows :ghpull:`12137`
+ - Fix debugger shortcuts :ghpull:`12132`
+ - improve tab completion when inside a string by removing irrelevant elements :ghpull:`12128`
+ - Fix display of filename tab completion when the path is long :ghpull:`12122`
+ - Many removal of Python 2 specific code path :ghpull:`12110`
+ - displaying wav files do not require NumPy anymore, and is 5x to 30x faster :ghpull:`12113`
+
+See the list of all closed issues and pull request on `github
+<https://github.com/ipython/ipython/pulls?q=is%3Aclosed+milestone%3A7.13>`_.
+
 .. _version 712:
 
 IPython 7.12
