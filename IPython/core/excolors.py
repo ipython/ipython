@@ -164,21 +164,3 @@ def exception_colors():
         ex_colors.add_scheme(ex_colors['Linux'].copy('Neutral'))
 
     return ex_colors
-
-class Deprec(object):
-
-    def __init__(self, wrapped_obj):
-        self.wrapped=wrapped_obj
-
-    def __getattr__(self, name):
-        val = getattr(self.wrapped, name)
-        warnings.warn("Using ExceptionColors global is deprecated and will be removed in IPython 6.0",
-                DeprecationWarning, stacklevel=2)
-        # using getattr after warnings break ipydoctest in weird way for 3.5
-        return val
-
-# For backwards compatibility, keep around a single global object.  Note that
-# this should NOT be used, the factory function should be used instead, since
-# these objects are stateful and it's very easy to get strange bugs if any code
-# modifies the module-level object's state.
-ExceptionColors = Deprec(exception_colors())
