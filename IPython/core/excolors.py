@@ -96,7 +96,8 @@ def exception_colors():
         excName = C.LightRed,
         line = C.Yellow,
         caret = C.White,
-        Normal = C.Normal
+        Normal = C.Normal,
+        ExecutingNode = 'bg:#00005f'
         ))
 
     # For light backgrounds, swap dark/light colors
@@ -126,6 +127,7 @@ def exception_colors():
         line = C.Red,
         caret = C.Normal,
         Normal = C.Normal,
+        ExecutingNode = 'bg:#005f00'
         ))
 
     ex_colors.add_scheme(ColorScheme(
@@ -154,6 +156,7 @@ def exception_colors():
         line = C.Red,
         caret = C.Normal,
         Normal = C.Normal,
+        ExecutingNode = 'bg:#dddddd'
         ))
 
     # Hack: the 'neutral' colours are not very visible on a dark background on

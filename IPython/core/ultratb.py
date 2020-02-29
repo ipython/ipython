@@ -716,7 +716,7 @@ class VerboseTB(TBTools):
         before = context - after
         if self.has_colors:
             style = get_style_by_name('default')
-            style = stack_data.style_with_executing_node(style, 'bg:#00005f')
+            style = stack_data.style_with_executing_node(style, self.color_scheme_table.active_colors.ExecutingNode)
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None

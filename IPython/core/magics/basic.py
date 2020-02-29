@@ -313,7 +313,7 @@ Currently the magic system has the following functions:""",
     def colors(self, parameter_s=''):
         """Switch color scheme for prompts, info system and exception handlers.
 
-        Currently implemented schemes: NoColor, Linux, LightBG.
+        Currently implemented schemes: NoColor, Linux, LightBG, Neutral.
 
         Color scheme names are not case-sensitive.
 
