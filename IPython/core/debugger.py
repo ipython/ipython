@@ -290,7 +290,7 @@ class Pdb(OldPdb):
         try:
             OldPdb.interaction(self, frame, traceback)
         except KeyboardInterrupt:
-            self.stdout.write('\n' + self.shell.get_exception_only())
+            raise
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
@@ -627,6 +627,19 @@ class Pdb(OldPdb):
 
     do_w = do_where
 
+    def _cmdloop(self):
+        # Variant that doesn't catch KeyboardInterrupts.
+        while True:
+            try:
+                # keyboard interrupts allow for an easy way to cancel
+                # the current command, so allow them during interactive input
+                self.allow_kbdint = True
+                self.cmdloop()
+                self.allow_kbdint = False
+                break
+            except KeyboardInterrupt:
+                raise
+
 
 def set_trace(frame=None):
     """
@@ -635,3 +648,10 @@ def set_trace(frame=None):
     If frame is not specified, debugging starts from caller's frame.
     """
     Pdb().set_trace(frame or sys._getframe().f_back)
+
+
+# Override built-in Pdb, since that version doesn't allow interrupting:
+import pdb
+pdb.set_trace = set_trace
+pdb.Pdb = Pdb
+del pdb
