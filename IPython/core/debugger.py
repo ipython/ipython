@@ -648,10 +648,3 @@ def set_trace(frame=None):
     If frame is not specified, debugging starts from caller's frame.
     """
     Pdb().set_trace(frame or sys._getframe().f_back)
-
-
-# Override built-in Pdb, since that version doesn't allow interrupting:
-import pdb
-pdb.set_trace = set_trace
-pdb.Pdb = Pdb
-del pdb

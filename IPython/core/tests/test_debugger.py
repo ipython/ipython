@@ -6,6 +6,8 @@
 
 import sys
 import warnings
+from tempfile import NamedTemporaryFile
+from subprocess import check_output
 
 import nose.tools as nt
 
@@ -220,3 +222,44 @@ def can_exit():
 
     >>> sys.settrace(old_trace)
     '''
+
+
+interruptible_debugger = """\
+import threading
+import time
+from os import _exit
+
+from IPython.core.debugger import set_trace
+
+def interrupt():
+    time.sleep(0.1)
+    import os, signal
+    os.kill(os.getpid(), signal.SIGINT)
+threading.Thread(target=interrupt).start()
+
+# Timeout if the interrupt doesn't happen:
+def interrupt():
+    time.sleep(2)
+    _exit(7)
+threading.Thread(target=interrupt, daemon=True).start()
+
+def main():
+    set_trace()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("PASSED")
+"""
+
+
+def test_interruptible_core_debugger():
+    """The debugger can be interrupted."""
+    with NamedTemporaryFile("w") as f:
+        f.write(interruptible_debugger)
+        f.flush()
+        result = check_output([sys.executable, f.name],
+                              encoding=sys.getdefaultencoding())
+        # Wait for it to start:
+        assert "PASSED" in result
