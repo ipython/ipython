@@ -322,6 +322,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             mouse_support=self.mouse_support,
                             enable_open_in_editor=self.extra_open_editor_shortcuts,
                             color_depth=self.color_depth,
+                            tempfile_suffix=".py",
                             **self._extra_prompt_options())
 
     def _make_style_from_name_or_cls(self, name_or_cls):
