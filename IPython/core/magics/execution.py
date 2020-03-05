@@ -692,6 +692,11 @@ class ExecutionMagics(Magics):
                 warn('For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"')
             error(msg)
             return
+        except TypeError:
+            if fpath in sys.meta_path:
+                filename = ""
+            else:
+                raise
 
         if filename.lower().endswith(('.ipy', '.ipynb')):
             with preserve_keys(self.shell.user_ns, '__file__'):
