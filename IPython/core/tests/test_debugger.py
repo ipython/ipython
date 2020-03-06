@@ -225,6 +225,7 @@ def can_exit():
 
 
 interruptible_debugger = """\
+import sys
 import threading
 import time
 from os import _exit
@@ -233,9 +234,14 @@ from bdb import BdbQuit
 from IPython.core.debugger import set_trace
 
 def interrupt():
+    # Try to emulate the way interruption works in ipykernel
     time.sleep(0.1)
-    import os, signal
-    os.kill(os.getpid(), signal.SIGINT)
+    if sys.platform == "win32":
+        from _thread import interrupt_main
+        interrupt_main()
+    else:
+        import os, signal
+        os.kill(os.getpid(), signal.SIGINT)
 threading.Thread(target=interrupt).start()
 
 # Timeout if the interrupt doesn't happen:
