@@ -265,10 +265,10 @@ if __name__ == '__main__':
 
 def test_interruptible_core_debugger():
     """The debugger can be interrupted."""
-    with NamedTemporaryFile("w") as f:
+    with NamedTemporaryFile("w", delete=False) as f:
         f.write(interruptible_debugger)
         f.flush()
-        result = check_output([sys.executable, f.name],
-                              encoding=sys.getdefaultencoding())
-        # Wait for it to start:
-        assert "PASSED" in result
+    result = check_output([sys.executable, f.name],
+                          encoding=sys.getdefaultencoding())
+    # Wait for it to start:
+    assert "PASSED" in result
