@@ -250,7 +250,6 @@ def newline_autoindent_outer(inputsplitter) -> Callable[..., None]:
 
 
 def open_input_in_editor(event):
-    event.app.current_buffer.tempfile_suffix = ".py"
     event.app.current_buffer.open_in_editor()
 
 
