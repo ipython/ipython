@@ -7,7 +7,7 @@
 import sys
 import warnings
 from tempfile import NamedTemporaryFile
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 
 import nose.tools as nt
 
@@ -268,7 +268,12 @@ def test_interruptible_core_debugger():
     with NamedTemporaryFile("w", delete=False) as f:
         f.write(interruptible_debugger)
         f.flush()
-    result = check_output([sys.executable, f.name],
-                          encoding=sys.getdefaultencoding())
+    try:
+        result = check_output([sys.executable, f.name],
+                              encoding=sys.getdefaultencoding())
+    except CalledProcessError as e:
+        print("STDOUT FROM SUBPROCESS:\n{}\n".format(e.stdout),
+              file=sys.stderr)
+        raise
     # Wait for it to start:
     assert "PASSED" in result
