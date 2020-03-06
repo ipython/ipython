@@ -228,6 +228,7 @@ interruptible_debugger = """\
 import threading
 import time
 from os import _exit
+from bdb import BdbQuit
 
 from IPython.core.debugger import set_trace
 
@@ -251,11 +252,11 @@ def main():
 
 if __name__ == '__main__':
     try:
-        print("Starting debugger...")
+        #print("Starting debugger...")
         main()
         print("Debugger exited without error.")
-    except KeyboardInterrupt:
-        print("Caught KeyboardInterrupt, PASSED")
+    except (KeyboardInterrupt, BdbQuit):
+        print("Caught KeyboardInterrupt or BdbQuit, PASSED")
     except Exception as e:
         print("Got wrong exception...")
         raise e
