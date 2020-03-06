@@ -239,7 +239,10 @@ threading.Thread(target=interrupt).start()
 
 # Timeout if the interrupt doesn't happen:
 def interrupt():
-    time.sleep(2)
+    try:
+        time.sleep(2)
+    except KeyboardInterrupt:
+        return
     _exit(7)
 threading.Thread(target=interrupt, daemon=True).start()
 
@@ -248,9 +251,14 @@ def main():
 
 if __name__ == '__main__':
     try:
+        print("Starting debugger...")
         main()
+        print("Debugger exited without error.")
     except KeyboardInterrupt:
-        print("PASSED")
+        print("Caught KeyboardInterrupt, PASSED")
+    except Exception as e:
+        print("Got wrong exception...")
+        raise e
 """
 
 
