@@ -4,7 +4,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from io import BytesIO, open
+from io import open
 import os
 import tempfile
 import shutil
@@ -121,10 +121,10 @@ def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
 
     try:
         mt = mathtext.MathTextParser('bitmap')
-        f = BytesIO()
+        f = tempfile.NamedTemporaryFile("wb+")
         dpi = 120*scale
-        mt.to_png(f, s, fontsize=12, dpi=dpi, color=color)
-        return f.getvalue()
+        mt.to_png(f.name, s, fontsize=12, dpi=dpi, color=color)
+        return f.read()
     except (ValueError, RuntimeError, ParseFatalException):
         return None
 
