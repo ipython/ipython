@@ -182,7 +182,7 @@ extras_require = dict(
     parallel = ['ipyparallel'],
     qtconsole = ['qtconsole'],
     doc = ['Sphinx>=1.3'],
-    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'nbformat', 'ipykernel'],
+    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments<2.6', 'nbformat', 'ipykernel'],
     terminal = [],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
@@ -197,7 +197,7 @@ install_requires = [
     'simplegeneric>0.8',
     'traitlets>=4.2',
     'prompt_toolkit>=1.0.4,<2.0.0',
-    'pygments',
+    'pygments<2.6',
 ]
 
 # Platform-specific dependencies:
