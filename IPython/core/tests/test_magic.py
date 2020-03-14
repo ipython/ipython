@@ -1198,3 +1198,49 @@ def test_timeit_arguments():
         # 3.7 optimize no-op statement like above out, and complain there is
         # nothing in the for loop.
         _ip.magic("timeit -n1 -r1 a=('#')")
+
+
+TEST_MODULE = """
+print('Loaded my_tmp')
+if __name__ == "__main__":
+    print('I just ran a script')
+"""
+
+
+def test_run_module_from_import_hook():
+    "Test that a module can be loaded via an import hook"
+    with TemporaryDirectory() as tmpdir:
+        fullpath = os.path.join(tmpdir, 'my_tmp.py')
+        with open(fullpath, 'w') as f:
+            f.write(TEST_MODULE)
+
+        class MyTempImporter(object):
+            def __init__(self):
+                pass
+
+            def find_module(self, fullname, path=None):
+                if 'my_tmp' in fullname:
+                    return self
+                return None
+
+            def load_module(self, name):
+                import imp
+                return imp.load_source('my_tmp', fullpath)
+
+            def get_code(self, fullname):
+                with open(fullpath, 'r') as f:
+                    return compile(f.read(), 'foo', 'exec')
+
+            def is_package(self, __):
+                return False
+
+        sys.meta_path.insert(0, MyTempImporter())
+
+        with capture_output() as captured:
+            _ip.magic("run -m my_tmp")
+            _ip.run_cell("import my_tmp")
+
+        output = "Loaded my_tmp\nI just ran a script\nLoaded my_tmp\n"
+        nt.assert_equal(output, captured.stdout)
+
+        sys.meta_path.pop(0)
