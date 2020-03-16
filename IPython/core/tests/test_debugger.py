@@ -4,10 +4,13 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import signal
 import sys
+import time
 import warnings
 from tempfile import NamedTemporaryFile
-from subprocess import check_output, CalledProcessError
+from subprocess import check_output, CalledProcessError, PIPE
+import subprocess
 
 import nose.tools as nt
 
@@ -233,32 +236,24 @@ from bdb import BdbQuit
 
 from IPython.core.debugger import set_trace
 
-def interrupt():
-    # Try to emulate the way interruption works in ipykernel
-    time.sleep(0.1)
-    if sys.platform == "win32":
-        from _thread import interrupt_main
-        interrupt_main()
-    else:
-        import os, signal
-        os.kill(os.getpid(), signal.SIGINT)
-threading.Thread(target=interrupt).start()
-
 # Timeout if the interrupt doesn't happen:
-def interrupt():
-    try:
-        time.sleep(2)
-    except KeyboardInterrupt:
-        return
+def timeout():
+    time.sleep(5)
     _exit(7)
-threading.Thread(target=interrupt, daemon=True).start()
+threading.Thread(target=timeout, daemon=True).start()
+
+def break_handler(*args):
+    print("BREAK!")
+    raise KeyboardInterrupt()
 
 def main():
+    import signal
+    signal.signal(signal.SIGBREAK, break_handler)
     set_trace()
 
 if __name__ == '__main__':
     try:
-        #print("Starting debugger...")
+        print("Starting debugger...")
         main()
         print("Debugger exited without error.")
     except (KeyboardInterrupt, BdbQuit):
@@ -270,16 +265,34 @@ if __name__ == '__main__':
 
 
 def test_interruptible_core_debugger():
-    """The debugger can be interrupted."""
+    """The debugger can be interrupted.
+    
+    See https://stackoverflow.com/a/35792192 for details on Windows.
+    """
     with NamedTemporaryFile("w", delete=False) as f:
         f.write(interruptible_debugger)
         f.flush()
-    try:
-        result = check_output([sys.executable, f.name],
-                              encoding=sys.getdefaultencoding())
-    except CalledProcessError as e:
-        print("STDOUT FROM SUBPROCESS:\n{}\n".format(e.stdout),
-              file=sys.stderr)
-        raise
-    # Wait for it to start:
-    assert "PASSED" in result
+    start = time.time()
+    
+    p = subprocess.Popen([sys.executable, "-u", f.name],
+                         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP, # TODO disable on posix
+                         encoding=sys.getdefaultencoding(),
+                         stderr=PIPE, stdout=PIPE)
+    time.sleep(1)  # wait for it to hit pdb
+    if sys.platform == "win32":
+        # Yes, this has to happen once. I have no idea why.
+        p.send_signal(signal.CTRL_BREAK_EVENT)
+        p.send_signal(signal.CTRL_BREAK_EVENT)
+    else:
+        p.send_signal(signal.SIGINT)
+    exit_code = p.wait()
+    stdout = p.stdout.read()
+    stderr = p.stderr.read()
+    print("STDOUT", stdout, file=sys.__stderr__)
+    print("STDERR", stderr, file=sys.__stderr__)
+    assert exit_code == 0
+    print("SUCCESS!", file=sys.__stderr__)
+    # Make sure it exited cleanly, and quickly:
+    end = time.time()
+    assert end - start < 2  # timeout is 5 seconds
+    assert "PASSED" in stdout
