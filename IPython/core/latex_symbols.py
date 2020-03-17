@@ -12,6 +12,7 @@
 latex_symbols = {
 
     "\\euler" : "ℯ",
+    "\\ohm" : "Ω",
     "\\^a" : "ᵃ",
     "\\^b" : "ᵇ",
     "\\^c" : "ᶜ",
@@ -1295,6 +1296,7 @@ latex_symbols = {
     "\\ttnine" : "𝟿",
     "\\underbar" : "̲",
     "\\underleftrightarrow" : "͍",
+    "\hmm" : "ಠ_ಠ",
 }
 
 
