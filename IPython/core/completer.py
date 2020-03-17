@@ -899,22 +899,22 @@ def back_unicode_name_matches(text):
     Used on Python 3 only.
     """
     if len(text)<2:
-        return u'', ()
+        return u'', (), []
     maybe_slash = text[-2]
     if maybe_slash != '\\':
-        return u'', ()
+        return u'', (), []
 
     char = text[-1]
     # no expand on quote for completion in strings.
     # nor backcomplete standard ascii keys
     if char in string.ascii_letters or char in ['"',"'"]:
-        return u'', ()
+        return u'', (), []
     try :
         unic = unicodedata.name(char)
         return '\\'+char,['\\'+unic]
     except KeyError:
         pass
-    return u'', ()
+    return u'', (), []
 
 def back_latex_name_matches(text:str):
     """Match latex characters back to unicode name
@@ -924,24 +924,24 @@ def back_latex_name_matches(text:str):
     Used on Python 3 only.
     """
     if len(text)<2:
-        return u'', ()
+        return u'', (), []
     maybe_slash = text[-2]
     if maybe_slash != '\\':
-        return u'', ()
+        return u'', (), []
 
 
     char = text[-1]
     # no expand on quote for completion in strings.
     # nor backcomplete standard ascii keys
     if char in string.ascii_letters or char in ['"',"'"]:
-        return u'', ()
+        return u'', (), []
     try :
         latex = reverse_latex_symbol[char]
         # '\\' replace the \ as well
         return '\\'+char,[latex]
     except KeyError:
         pass
-    return u'', ()
+    return u'', (), []
 
 
 def _formatparamchildren(parameter) -> str:
@@ -1689,10 +1689,10 @@ class IPCompleter(Completer):
                 unic = unicodedata.lookup(s)
                 # allow combining chars
                 if ('a'+unic).isidentifier():
-                    return '\\'+s,[unic]
+                    return '\\'+s,[unic],[]
             except KeyError:
                 pass
-        return u'', []
+        return u'', [], []
 
 
     def latex_matches(self, text):
@@ -1708,13 +1708,13 @@ class IPCompleter(Completer):
             if s in latex_symbols:
                 # Try to complete a full latex symbol to unicode
                 # \\alpha -> α
-                return s, [latex_symbols[s]]
+                return s, [latex_symbols[s]], []
             else:
                 # If a user has partially typed a latex symbol, give them
                 # a full list of options \al -> [\aleph, \alpha]
                 matches = [k for k in latex_symbols if k.startswith(s)]
-                return s, matches
-        return u'', []
+                return s, matches, [latex_symbols[m] for m in matches]
+        return u'', [], []
 
     def dispatch_custom_completer(self, text):
         if not self.custom_completers:
@@ -1859,7 +1859,7 @@ class IPCompleter(Completer):
         before = full_text[:offset]
         cursor_line, cursor_column = position_to_cursor(full_text, offset)
 
-        matched_text, matches, matches_origin, jedi_matches = self._complete(
+        matched_text, matches, matches_origin, jedi_matches, tips = self._complete(
             full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column)
 
         iter_jm = iter(jedi_matches)
@@ -1891,7 +1891,7 @@ class IPCompleter(Completer):
             yield Completion(start=offset - delta,
                              end=offset,
                              text=jm.name_with_symbols,
-                             type='<unknown>',  # don't compute type for speed
+                             type='<unknown a>',  # don't compute type for speed
                              _origin='jedi',
                              signature='')
 
@@ -1907,8 +1907,10 @@ class IPCompleter(Completer):
         # I'm unsure if this is always true, so let's assert and see if it
         # crash
         assert before.endswith(matched_text)
-        for m, t in zip(matches, matches_origin):
-            yield Completion(start=start_offset, end=offset, text=m, _origin=t, signature='', type='<unknown>')
+        if not tips:
+            tips = ['<unknown x>']*len(matches)
+        for m, t, tip in zip(matches, matches_origin, tips):
+            yield Completion(start=start_offset, end=offset, text=m, _origin=t, signature='', type=tip)
 
 
     def complete(self, text=None, line_buffer=None, cursor_pos=None):
@@ -1989,17 +1991,17 @@ class IPCompleter(Completer):
         if self.backslash_combining_completions:
             # allow deactivation of these on windows.
             base_text = text if not line_buffer else line_buffer[:cursor_pos]
-            latex_text, latex_matches = self.latex_matches(base_text)
+            latex_text, latex_matches, tips = self.latex_matches(base_text)
             if latex_matches:
-                return latex_text, latex_matches, ['latex_matches']*len(latex_matches), ()
+                return latex_text, latex_matches, ['latex_matches']*len(latex_matches), (), tips
             name_text = ''
             name_matches = []
             # need to add self.fwd_unicode_match() function here when done
             for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches, self.fwd_unicode_match):
-                name_text, name_matches = meth(base_text)
+                name_text, name_matches, tips = meth(base_text)
                 if name_text:
                     return name_text, name_matches[:MATCHES_LIMIT], \
-                           [meth.__qualname__]*min(len(name_matches), MATCHES_LIMIT), ()
+                           [meth.__qualname__]*min(len(name_matches), MATCHES_LIMIT), (), tips
 
 
         # If no line buffer is given, assume the input text is all there was
@@ -2014,7 +2016,7 @@ class IPCompleter(Completer):
             matches = list(matcher(line_buffer))[:MATCHES_LIMIT]
             if matches:
                 origins = [matcher.__qualname__] * len(matches)
-                return text, matches, origins, ()
+                return text, matches, origins, (), []
 
         # Start with a clean slate of completions
         matches = []
@@ -2067,9 +2069,9 @@ class IPCompleter(Completer):
 
         self.matches = _matches
 
-        return text, _matches, origins, completions
+        return text, _matches, origins, completions, []
         
-    def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
+    def fwd_unicode_match(self, text:str) -> Tuple[str, list, list]:
         if self._names is None:
             self._names = []
             for c in range(0,0x10FFFF + 1):
@@ -2084,10 +2086,10 @@ class IPCompleter(Completer):
             s = text[slashpos+1:]
             candidates = [x for x in self._names if x.startswith(s)]
             if candidates:
-                return s, candidates
+                return s, candidates, [unicodedata.lookup(k) if unicodedata.lookup(k).isidentifier() else "<non identifier can't display>" for k in candidates ]
             else:
-                return '', ()
+                return '', (), []
 
         # if text does not start with slash
         else:
-            return u'', ()
+            return u'', (), []
