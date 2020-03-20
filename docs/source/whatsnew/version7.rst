@@ -7,7 +7,7 @@
 IPython 7.13
 ============
 
-IPython 7.13 is the first release of the 7.x branch since master is diverging
+IPython 7.13 is the final release of the 7.x branch since master is diverging
 toward an 8.0. Exiting new features have already been merged in 8.0 and will
 not be available on the 7.x branch. All the changes bellow have been backported
 from the master branch.
