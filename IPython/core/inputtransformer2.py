@@ -405,8 +405,8 @@ class EscapedCommand(TokenTransformBase):
         return lines_before + [new_line] + lines_after
 
 _help_end_re = re.compile(r"""(%{0,2}
-                              [a-zA-Z_*][\w*]*        # Variable name
-                              (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
+                              (?!\d)[\w*]+            # Variable name
+                              (\.(?!\d)[\w*]+)*       # .etc.etc
                               )
                               (\?\??)$                # ? or ??
                               """,
