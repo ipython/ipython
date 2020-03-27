@@ -988,7 +988,8 @@ def _make_signature(completion)-> str:
 
     """
 
-    return '(%s)'% ', '.join([f for f in (_formatparamchildren(p) for p in completion.params) if f])
+    return '(%s)'% ', '.join([f for f in (_formatparamchildren(p) for signature in completion.get_signatures()
+                                          for p in signature.defined_names()) if f])
 
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
@@ -1398,7 +1399,7 @@ class IPCompleter(Completer):
         if not try_jedi:
             return []
         try:
-            return filter(completion_filter, interpreter.completions())
+            return filter(completion_filter, interpreter.complete())
         except Exception as e:
             if self.debug:
                 return [_FakeJediCompletion('Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""' % (e))]
