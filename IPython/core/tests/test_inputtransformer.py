@@ -113,6 +113,7 @@ syntax = \
         (u'%hist2??', "get_ipython().run_line_magic('pinfo2', '%hist2')"),
         (u'%%hist3?', "get_ipython().run_line_magic('pinfo', '%%hist3')"),
         (u'%%hist4??', "get_ipython().run_line_magic('pinfo2', '%%hist4')"),
+        (u'π.foo?', "get_ipython().run_line_magic('pinfo', 'π.foo')"),
         (u'f*?', "get_ipython().run_line_magic('psearch', 'f*')"),
         (u'ax.*aspe*?', "get_ipython().run_line_magic('psearch', 'ax.*aspe*')"),
         (u'a = abc?', "get_ipython().set_next_input('a = abc');"

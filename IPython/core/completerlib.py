@@ -52,7 +52,7 @@ TIMEOUT_STORAGE = 2
 TIMEOUT_GIVEUP = 20
 
 # Regular expression for the python import statement
-import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
+import_re = re.compile(r'(?P<name>[^\W\d]\w*?)'
                        r'(?P<package>[/\\]__init__)?'
                        r'(?P<suffix>%s)$' %
                        r'|'.join(re.escape(s) for s in _suffixes))

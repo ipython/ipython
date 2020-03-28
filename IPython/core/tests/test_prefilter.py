@@ -115,3 +115,13 @@ def test_prefilter_attribute_errors():
     finally:
         del ip.user_ns['x']
         ip.magic('autocall 0')
+
+
+def test_autocall_should_support_unicode():
+    ip.magic('autocall 2')
+    ip.user_ns['π'] = lambda x: x
+    try:
+        nt.assert_equal(ip.prefilter('π 3'),'π(3)')
+    finally:
+        ip.magic('autocall 0')
+        del ip.user_ns['π']
