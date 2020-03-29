@@ -37,7 +37,7 @@ class PrefilterError(Exception):
 
 
 # RegExp to identify potential function names
-re_fun_name = re.compile(r'[a-zA-Z_]([a-zA-Z0-9_.]*) *$')
+re_fun_name = re.compile(r'[^\W\d]([\w.]*) *$')
 
 # RegExp to exclude strings with this start from autocalling.  In
 # particular, all binary operators should be excluded, so that if foo is

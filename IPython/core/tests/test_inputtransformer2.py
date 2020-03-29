@@ -119,6 +119,11 @@ b) = zip?
 [r"get_ipython().set_next_input('(a,\nb) = zip');get_ipython().run_line_magic('pinfo', 'zip')" + "\n"]
 )
 
+HELP_UNICODE = (
+    ["π.foo?\n"], (1, 0),
+    ["get_ipython().run_line_magic('pinfo', 'π.foo')\n"]
+)
+
 
 def null_cleanup_transformer(lines):
     """
@@ -222,6 +227,9 @@ def test_transform_help():
 
     tf = ipt2.HelpEnd((1, 0), (2, 8))
     nt.assert_equal(tf.transform(HELP_MULTILINE[0]), HELP_MULTILINE[2])
+
+    tf = ipt2.HelpEnd((1, 0), (1, 0))
+    nt.assert_equal(tf.transform(HELP_UNICODE[0]), HELP_UNICODE[2])
 
 def test_find_assign_op_dedent():
     """

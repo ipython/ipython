@@ -278,8 +278,8 @@ def escaped_commands(line):
 _initial_space_re = re.compile(r'\s*')
 
 _help_end_re = re.compile(r"""(%{0,2}
-                              [a-zA-Z_*][\w*]*        # Variable name
-                              (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
+                              (?!\d)[\w*]+            # Variable name
+                              (\.(?!\d)[\w*]+)*       # .etc.etc
                               )
                               (\?\??)$                # ? or ??
                               """,

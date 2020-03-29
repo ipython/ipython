@@ -625,6 +625,8 @@ def doctest_precision():
 def test_psearch():
     with tt.AssertPrints("dict.fromkeys"):
         _ip.run_cell("dict.fr*?")
+    with tt.AssertPrints("π.is_integer"):
+        _ip.run_cell("π = 3.14;\nπ.is_integ*?")
 
 def test_timeit_shlex():
     """test shlex issues with timeit (#1109)"""

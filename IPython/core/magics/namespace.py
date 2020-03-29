@@ -208,12 +208,6 @@ class NamespaceMagics(Magics):
         
           %psearch -l            list all available object types
         """
-        try:
-            parameter_s.encode('ascii')
-        except UnicodeEncodeError:
-            print('Python identifiers can only contain ascii characters.')
-            return
-
         # default namespaces to be searched
         def_search = ['user_local', 'user_global', 'builtin']
 
