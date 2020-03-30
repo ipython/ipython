@@ -223,7 +223,7 @@ html_additional_pages = {
 htmlhelp_basename = 'ipythondoc'
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3/', None),
-                       'rpy2': ('https://rpy2.readthedocs.io/en/latest/', None),
+                       'rpy2': ('https://rpy2.github.io/doc/latest/html/', None),
                        'jupyterclient': ('https://jupyter-client.readthedocs.io/en/latest/', None),
                        'jupyter': ('https://jupyter.readthedocs.io/en/latest/', None),
                        'jedi': ('https://jedi.readthedocs.io/en/latest/', None),

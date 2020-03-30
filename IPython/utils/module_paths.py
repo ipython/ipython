@@ -20,6 +20,7 @@ Utility functions for finding modules on sys.path.
 # Stdlib imports
 import importlib
 import os
+import sys
 
 # Third-party imports
 
@@ -61,6 +62,8 @@ def find_mod(module_name):
     loader = importlib.util.find_spec(module_name)
     module_path = loader.origin
     if module_path is None:
+        if loader.loader in sys.meta_path:
+            return loader.loader
         return None
     else:
         split_path = module_path.split(".")
