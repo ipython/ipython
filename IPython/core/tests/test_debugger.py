@@ -11,6 +11,8 @@ import warnings
 from tempfile import NamedTemporaryFile
 from subprocess import check_output, CalledProcessError, PIPE
 import subprocess
+from unittest.mock import patch
+import builtins
 
 import nose.tools as nt
 
@@ -227,72 +229,20 @@ def can_exit():
     '''
 
 
-interruptible_debugger = """\
-import sys
-import threading
-import time
-from os import _exit
-from bdb import BdbQuit
-
-from IPython.core.debugger import set_trace
-
-# Timeout if the interrupt doesn't happen:
-def timeout():
-    time.sleep(5)
-    _exit(7)
-threading.Thread(target=timeout, daemon=True).start()
-
-def break_handler(*args):
-    print("BREAK!")
-    raise KeyboardInterrupt()
-
-def main():
-    import signal
-    signal.signal(signal.SIGBREAK, break_handler)
-    set_trace()
-
-if __name__ == '__main__':
-    try:
-        print("Starting debugger...")
-        main()
-        print("Debugger exited without error.")
-    except (KeyboardInterrupt, BdbQuit):
-        print("Caught KeyboardInterrupt or BdbQuit, PASSED")
-    except Exception as e:
-        print("Got wrong exception...")
-        raise e
-"""
-
-
 def test_interruptible_core_debugger():
     """The debugger can be interrupted.
-    
-    See https://stackoverflow.com/a/35792192 for details on Windows.
+
+    The presumption is there is some mechanism that causes a KeyboardInterrupt
+    (this is implemented in ipykernel).  We want to ensure the
+    KeyboardInterrupt cause debugging to cease.
     """
-    with NamedTemporaryFile("w", delete=False) as f:
-        f.write(interruptible_debugger)
-        f.flush()
-    start = time.time()
-    
-    p = subprocess.Popen([sys.executable, "-u", f.name],
-                         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP, # TODO disable on posix
-                         encoding=sys.getdefaultencoding(),
-                         stderr=PIPE, stdout=PIPE)
-    time.sleep(1)  # wait for it to hit pdb
-    if sys.platform == "win32":
-        # Yes, this has to happen once. I have no idea why.
-        p.send_signal(signal.CTRL_BREAK_EVENT)
-        p.send_signal(signal.CTRL_BREAK_EVENT)
-    else:
-        p.send_signal(signal.SIGINT)
-    exit_code = p.wait()
-    stdout = p.stdout.read()
-    stderr = p.stderr.read()
-    print("STDOUT", stdout, file=sys.__stderr__)
-    print("STDERR", stderr, file=sys.__stderr__)
-    assert exit_code == 0
-    print("SUCCESS!", file=sys.__stderr__)
-    # Make sure it exited cleanly, and quickly:
-    end = time.time()
-    assert end - start < 2  # timeout is 5 seconds
-    assert "PASSED" in stdout
+    def raising_input(msg=""):
+        raise KeyboardInterrupt()
+
+    with patch.object(builtins, "input", raising_input):
+        debugger.set_trace()
+        # The way this test will fail is by set_trace() never exiting,
+        # resulting in a timeout by the test runner. The alternative
+        # implementation would involve a subprocess, but that adds issues with
+        # interrupting subprocesses that are rather complex, so it's simpler
+        # just to do it this way.
