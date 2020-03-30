@@ -1348,17 +1348,20 @@ class Video(DisplayObject):
             If not supplied, defaults to the height of the video.
         html_attributes : str
             Attributes for the HTML `<video>` block.
-            Default: "controls" to get video controls.
-            Other examples: "controls muted" for muted video with controls,
-            "loop autoplay" for looping autoplaying video without controls.
+            Default: `"controls"` to get video controls.
+            Other examples: `"controls muted"` for muted video with controls,
+            `"loop autoplay"` for looping autoplaying video without controls.
 
         Examples
         --------
 
-        Video('https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_small.mp4')
-        Video('path/to/video.mp4')
-        Video('path/to/video.mp4', embed=True)
-        Video(b'raw-videodata', embed=True)
+        ::
+
+            Video('https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_small.mp4')
+            Video('path/to/video.mp4')
+            Video('path/to/video.mp4', embed=True)
+            Video('path/to/video.mp4', embed=True, html_attributes="controls muted autoplay")
+            Video(b'raw-videodata', embed=True)
         """
         if isinstance(data, (Path, PurePath)):
             data = str(data)
