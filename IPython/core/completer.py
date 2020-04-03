@@ -1371,7 +1371,7 @@ class IPCompleter(Completer):
                 else:
                     raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
 
-        script = jedi.Script(code=text[:offset])
+        script = jedi.Script(text[:offset])
         try_jedi = True
 
         try:
