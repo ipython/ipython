@@ -1371,15 +1371,14 @@ class IPCompleter(Completer):
                 else:
                     raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
 
-        interpreter = jedi.Interpreter(
-            text[:offset], namespaces, column=cursor_column, line=cursor_line + 1)
+        script = jedi.Script(code=text[:offset])
         try_jedi = True
 
         try:
             # find the first token in the current tree -- if it is a ' or " then we are in a string
             completing_string = False
             try:
-                first_child = next(c for c in interpreter._get_module().tree_node.children if hasattr(c, 'value'))
+                first_child = next(c for c in script._get_module().tree_node.children if hasattr(c, 'value'))
             except StopIteration:
                 pass
             else:
@@ -1399,7 +1398,7 @@ class IPCompleter(Completer):
         if not try_jedi:
             return []
         try:
-            return filter(completion_filter, interpreter.complete())
+            return filter(completion_filter, script.complete(column=cursor_column, line=cursor_line + 1))
         except Exception as e:
             if self.debug:
                 return [_FakeJediCompletion('Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""' % (e))]
