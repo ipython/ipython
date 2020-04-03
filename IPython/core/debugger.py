@@ -620,7 +620,11 @@ class Pdb(OldPdb):
         Take a number as argument as an (optional) number of context line to
         print"""
         if arg:
-            context = int(arg)
+            try:
+                context = int(arg)
+            except ValueError:
+                self.stdout.write('\n' + self.shell.get_exception_only())
+                return
             self.print_stack_trace(context)
         else:
             self.print_stack_trace()
