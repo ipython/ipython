@@ -1371,8 +1371,7 @@ class IPCompleter(Completer):
                 else:
                     raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
 
-        interpreter = jedi.Interpreter(
-            text[:offset], namespaces, column=cursor_column, line=cursor_line + 1)
+        interpreter = jedi.Interpreter(text[:offset], namespaces)
         try_jedi = True
 
         try:
@@ -1399,7 +1398,7 @@ class IPCompleter(Completer):
         if not try_jedi:
             return []
         try:
-            return filter(completion_filter, interpreter.complete())
+            return filter(completion_filter, interpreter.complete(column=cursor_column, line=cursor_line + 1))
         except Exception as e:
             if self.debug:
                 return [_FakeJediCompletion('Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""' % (e))]
