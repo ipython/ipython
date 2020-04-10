@@ -110,26 +110,23 @@ current development version to get better completions.
 # Copyright (C) 2001 Python Software Foundation, www.python.org
 
 
-import __main__
 import builtins as builtin_mod
 import glob
-import time
 import inspect
 import itertools
 import keyword
 import os
 import re
-import sys
-import unicodedata
 import string
+import sys
+import time
+import unicodedata
 import warnings
-
 from contextlib import contextmanager
 from importlib import import_module
-from typing import Iterator, List, Tuple, Iterable
 from types import SimpleNamespace
+from typing import Iterable, Iterator, List, Tuple
 
-from traitlets.config.configurable import Configurable
 from IPython.core.error import TryNext
 from IPython.core.inputtransformer2 import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
@@ -137,7 +134,10 @@ from IPython.core.oinspect import InspectColors
 from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
-from traitlets import Bool, Enum, observe, Int
+from traitlets import Bool, Enum, Int, observe
+from traitlets.config.configurable import Configurable
+
+import __main__
 
 # skip module docstests
 skip_doctest = True
@@ -1371,8 +1371,7 @@ class IPCompleter(Completer):
                 else:
                     raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
 
-        interpreter = jedi.Interpreter(
-            text[:offset], namespaces, column=cursor_column, line=cursor_line + 1)
+        interpreter = jedi.Interpreter(text[:offset], namespaces)
         try_jedi = True
 
         try:
@@ -1399,7 +1398,7 @@ class IPCompleter(Completer):
         if not try_jedi:
             return []
         try:
-            return filter(completion_filter, interpreter.complete())
+            return filter(completion_filter, interpreter.complete(column=cursor_column, line=cursor_line + 1))
         except Exception as e:
             if self.debug:
                 return [_FakeJediCompletion('Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""' % (e))]
