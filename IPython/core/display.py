@@ -335,12 +335,21 @@ class DisplayObject(object):
             data = response.read()
             # extract encoding from header, if there is one:
             encoding = None
-            if "content-type" in response.headers:
+            if 'content-type' in response.headers:
                 for sub in response.headers['content-type'].split(';'):
                     sub = sub.strip()
                     if sub.startswith('charset'):
                         encoding = sub.split('=')[-1].strip()
                         break
+            if 'content-encoding' in response.headers:
+                # TODO: do deflate?
+                if 'gzip' in response.headers['content-encoding']:
+                    import gzip
+                    from io import BytesIO
+                    with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
+                        encoding = None
+                        data = fp.read()
+                    
             # decode data, if an encoding was specified
             # We only touch self.data once since
             # subclasses such as SVG have @data.setter methods
