@@ -72,6 +72,12 @@ def test_retina_png():
     nt.assert_equal(md['width'], 1)
     nt.assert_equal(md['height'], 1)
 
+def test_embed_svg_url():
+    # 6.1kB of data
+    url = "https://upload.wikimedia.org/wikipedia/commons/3/30/Vector-based_example.svg"
+    svg = display.SVG(url=url)
+    nt.assert_true(svg._repr_svg_().startswith('<svg '))
+
 def test_retina_jpeg():
     here = os.path.dirname(__file__)
     img = display.Image(os.path.join(here, "2x2.jpg"), retina=True)
