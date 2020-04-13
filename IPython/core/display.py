@@ -752,6 +752,11 @@ class Latex(TextDisplayObject):
 
 
 class SVG(DisplayObject):
+    """Embed an SVG into the display.
+
+    Note if you just want to view a svg image via a URL use `:class:Image` with
+    a url=URL keyword argument.
+    """
 
     _read_flags = 'rb'
     # wrap data in a property, which extracts the <svg> tag, discarding
