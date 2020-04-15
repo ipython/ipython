@@ -121,6 +121,29 @@ numpydoc_show_class_members = False # Otherwise Sphinx emits thousands of warnin
 numpydoc_class_members_toctree = False
 warning_is_error = True
 
+import logging
+
+class ConfigtraitFilter(logging.Filter):
+    """
+    This is a filter to remove in sphinx 3+ the error about config traits being duplicated. 
+
+    As we autogenerate configuration traits from, subclasses have lots of
+    duplication and we want to silence them. Indeed we build on travis with
+    warnings-as-error set to True, so those duplicate items make the build fail.
+    """
+
+    def filter(self, record):
+        if record.args and record.args[0] == 'configtrait' and 'duplicate' in record.msg:
+            return False
+        return True
+
+ct_filter = ConfigtraitFilter()
+
+import sphinx.util
+logger = sphinx.util.logging.getLogger('sphinx.domains.std').logger
+
+logger.addFilter(ct_filter)
+
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
