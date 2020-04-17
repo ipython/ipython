@@ -69,11 +69,6 @@ matrix:
       python: "3.7"
       dist: xenial
       sudo: true
-    - arch: arm64
-      python: "3.7"
-      dist: xenial
-      env: ARM64=True IPYTHON_TESTING_TIMEOUT_SCALE=2
-      sudo: true
     - arch: amd64
       python: "3.8"
       dist: xenial
