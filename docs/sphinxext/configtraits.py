@@ -8,8 +8,7 @@
 
     Cross reference like this: :configtrait:`Application.log_datefmt`.
 """
-from sphinx.locale import l_
-from sphinx.util.docfields import Field
+
 
 def setup(app):
     app.add_object_type('configtrait', 'configtrait', objname='Config option')
