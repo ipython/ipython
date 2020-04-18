@@ -17,15 +17,37 @@ from pathlib import Path, PurePath
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
-from .display_functions import display, clear_output, publish_display_data, update_display, DisplayHandle
+from . import display_functions
 
-__all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
+
+__all__ = ['display_pretty', 'display_html', 'display_markdown',
            'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
            'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
            'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'ProgressBar', 'JSON',
-           'GeoJSON', 'Javascript', 'Image', 'clear_output', 'set_matplotlib_formats',
-           'set_matplotlib_close', 'publish_display_data', 'update_display', 'DisplayHandle',
+           'GeoJSON', 'Javascript', 'Image', 'set_matplotlib_formats',
+           'set_matplotlib_close',
            'Video']
+
+_deprecated_names = ["display", "clear_output", "publish_display_data", "update_display", "DisplayHandle"]
+
+__all__ = __all__ + _deprecated_names
+
+
+# ----- warn to import from IPython.display -----
+
+from warnings import warn
+
+
+def __getattr__(name):
+    if name in _deprecated_names:
+        warn(f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython display", DeprecationWarning, stacklevel=2)
+        return getattr(display_functions, name)
+
+    if name in globals().keys():
+        return globals()[name]
+    else:
+        raise AttributeError(f"module {__name__} has no attribute {name}")
+
 
 #-----------------------------------------------------------------------------
 # utility functions

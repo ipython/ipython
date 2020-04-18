@@ -57,6 +57,7 @@ warnings.filterwarnings('error', message='.*onlyif_any_cmd_exists.*', category=D
 warnings.filterwarnings('error', message='.*disable_gui.*', category=DeprecationWarning, module='.*')
 
 warnings.filterwarnings('error', message='.*ExceptionColors global is deprecated.*', category=DeprecationWarning, module='.*')
+warnings.filterwarnings('error', message='.*IPython.core.display.*', category=DeprecationWarning, module='.*')
 
 # Jedi older versions
 warnings.filterwarnings(
