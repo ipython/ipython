@@ -615,9 +615,12 @@ class DisplayObject(object):
                 filename = data
                 data = None
 
-        self.data = data
         self.url = url
         self.filename = filename
+        # because of @data.setter methods in
+        # subclasses ensure url and filename are set
+        # before assigning to self.data
+        self.data = data
 
         if metadata is not None:
             self.metadata = metadata
@@ -652,23 +655,36 @@ class DisplayObject(object):
             with open(self.filename, self._read_flags) as f:
                 self.data = f.read()
         elif self.url is not None:
-            try:
-                # Deferred import
-                from urllib.request import urlopen
-                response = urlopen(self.url)
-                self.data = response.read()
-                # extract encoding from header, if there is one:
-                encoding = None
+            # Deferred import
+            from urllib.request import urlopen
+            response = urlopen(self.url)
+            data = response.read()
+            # extract encoding from header, if there is one:
+            encoding = None
+            if 'content-type' in response.headers:
                 for sub in response.headers['content-type'].split(';'):
                     sub = sub.strip()
                     if sub.startswith('charset'):
                         encoding = sub.split('=')[-1].strip()
                         break
-                # decode data, if an encoding was specified
-                if encoding:
-                    self.data = self.data.decode(encoding, 'replace')
-            except:
-                self.data = None
+            if 'content-encoding' in response.headers:
+                # TODO: do deflate?
+                if 'gzip' in response.headers['content-encoding']:
+                    import gzip
+                    from io import BytesIO
+                    with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
+                        encoding = None
+                        data = fp.read()
+                    
+            # decode data, if an encoding was specified
+            # We only touch self.data once since
+            # subclasses such as SVG have @data.setter methods
+            # that transform self.data into ... well svg.
+            if encoding:
+                self.data = data.decode(encoding, 'replace')
+            else:
+                self.data = data
+
 
 class TextDisplayObject(DisplayObject):
     """Validate that display data is text"""
@@ -736,6 +752,11 @@ class Latex(TextDisplayObject):
 
 
 class SVG(DisplayObject):
+    """Embed an SVG into the display.
+
+    Note if you just want to view a svg image via a URL use `:class:Image` with
+    a url=URL keyword argument.
+    """
 
     _read_flags = 'rb'
     # wrap data in a property, which extracts the <svg> tag, discarding
@@ -879,7 +900,7 @@ class JSON(DisplayObject):
             data = str(data)
 
         if isinstance(data, str):
-            if getattr(self, 'filename', None) is None:
+            if self.filename is None and self.url is None:
                 warnings.warn("JSON expects JSONable dict or list, not JSON strings")
             data = json.loads(data)
         self._data = data

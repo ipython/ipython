@@ -72,6 +72,45 @@ def test_retina_png():
     nt.assert_equal(md['width'], 1)
     nt.assert_equal(md['height'], 1)
 
+def test_embed_svg_url():
+    import gzip
+    from io import BytesIO
+    svg_data = b'<svg><circle x="0" y="0" r="1"/></svg>'
+    url = 'http://test.com/circle.svg'
+    
+    gzip_svg = BytesIO()
+    with gzip.open(gzip_svg, 'wb') as fp:
+        fp.write(svg_data)
+    gzip_svg = gzip_svg.getvalue()
+    
+    def mocked_urlopen(*args, **kwargs):
+        class MockResponse:
+            def __init__(self, svg):
+                self._svg_data = svg
+                self.headers = {'content-type': 'image/svg+xml'}
+
+            def read(self):
+                return self._svg_data
+
+        if args[0] == url:
+            return MockResponse(svg_data)
+        elif args[0] == url + 'z':          
+            ret= MockResponse(gzip_svg)
+            ret.headers['content-encoding']= 'gzip'
+            return ret
+        return MockResponse(None)
+
+    with mock.patch('urllib.request.urlopen', side_effect=mocked_urlopen):
+        svg = display.SVG(url=url)
+        nt.assert_true(svg._repr_svg_().startswith('<svg'))
+        svg = display.SVG(url=url + 'z')
+        nt.assert_true(svg._repr_svg_().startswith('<svg'))
+
+    # do it for real: 6.1kB of data
+    url = "https://upload.wikimedia.org/wikipedia/commons/3/30/Vector-based_example.svg"
+    svg = display.SVG(url=url)
+    nt.assert_true(svg._repr_svg_().startswith('<svg'))
+    
 def test_retina_jpeg():
     here = os.path.dirname(__file__)
     img = display.Image(os.path.join(here, "2x2.jpg"), retina=True)
