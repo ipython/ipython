@@ -1308,7 +1308,7 @@ class Image(DisplayObject):
 class Video(DisplayObject):
 
     def __init__(self, data=None, url=None, filename=None, embed=False,
-                 mimetype=None, width=None, height=None):
+                 mimetype=None, width=None, height=None, html_attributes="controls"):
         """Create a video object given raw data or an URL.
 
         When this object is returned by an input cell or passed to the
@@ -1346,14 +1346,22 @@ class Video(DisplayObject):
         height : int
             Height in pixels to which to constrain the video in html.
             If not supplied, defaults to the height of the video.
+        html_attributes : str
+            Attributes for the HTML `<video>` block.
+            Default: `"controls"` to get video controls.
+            Other examples: `"controls muted"` for muted video with controls,
+            `"loop autoplay"` for looping autoplaying video without controls.
 
         Examples
         --------
 
-        Video('https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_small.mp4')
-        Video('path/to/video.mp4')
-        Video('path/to/video.mp4', embed=True)
-        Video(b'raw-videodata', embed=True)
+        ::
+
+            Video('https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_small.mp4')
+            Video('path/to/video.mp4')
+            Video('path/to/video.mp4', embed=True)
+            Video('path/to/video.mp4', embed=True, html_attributes="controls muted autoplay")
+            Video(b'raw-videodata', embed=True)
         """
         if isinstance(data, (Path, PurePath)):
             data = str(data)
@@ -1377,6 +1385,7 @@ class Video(DisplayObject):
         self.embed = embed
         self.width = width
         self.height = height
+        self.html_attributes = html_attributes
         super(Video, self).__init__(data=data, url=url, filename=filename)
 
     def _repr_html_(self):
@@ -1390,9 +1399,9 @@ class Video(DisplayObject):
         # notebook output.
         if not self.embed:
             url = self.url if self.url is not None else self.filename
-            output = """<video src="{0}" controls {1} {2}>
+            output = """<video src="{0}" {1} {2} {3}>
       Your browser does not support the <code>video</code> element.
-    </video>""".format(url, width, height)
+    </video>""".format(url, self.html_attributes, width, height)
             return output
 
         # Embedded videos are base64-encoded.
@@ -1411,10 +1420,10 @@ class Video(DisplayObject):
         else:
             b64_video = b2a_base64(video).decode('ascii').rstrip()
 
-        output = """<video controls {0} {1}>
- <source src="data:{2};base64,{3}" type="{2}">
+        output = """<video {0} {1} {2}>
+ <source src="data:{3};base64,{4}" type="{3}">
  Your browser does not support the video tag.
- </video>""".format(width, height, mimetype, b64_video)
+ </video>""".format(self.html_attributes, width, height, mimetype, b64_video)
         return output
 
     def reload(self):
