@@ -354,7 +354,7 @@ def import_pylab(user_ns, import_all=True):
     
     # IPython symbols to add
     user_ns['figsize'] = figsize
-    from IPython.core.display import display
+    from IPython.display import display
     # Add display and getfigs to the user's namespace
     user_ns['display'] = display
     user_ns['getfigs'] = getfigs
