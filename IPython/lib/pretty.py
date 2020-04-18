@@ -34,6 +34,22 @@ pretty printer passed::
         def _repr_pretty_(self, p, cycle):
             ...
 
+Here's an example for a class with a simple constructor::
+
+    class MySimpleObject:
+
+        def __init__(self, a, b, *, c=None):
+            self.a = a
+            self.b = b
+            self.c = c
+
+        def _repr_pretty_(self, p, cycle):
+            ctor = CallExpression.factory(self.__class__.__name__)
+            if self.c is None:
+                p.pretty(ctor(a, b))
+            else:
+                p.pretty(ctor(a, b, c=c))
+
 Here is an example implementation of a `_repr_pretty_` method for a list
 subclass::
 
@@ -93,7 +109,7 @@ from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
-    'for_type', 'for_type_by_name']
+    'for_type', 'for_type_by_name', 'RawText', 'RawStringLiteral', 'CallExpression']
 
 
 MAX_SEQ_LENGTH = 1000
@@ -500,6 +516,75 @@ class GroupQueue(object):
             pass
 
 
+class RawText:
+    """ Object such that ``p.pretty(RawText(value))`` is the same as ``p.text(value)``.
+
+    An example usage of this would be to show a list as binary numbers, using
+    ``p.pretty([RawText(bin(i)) for i in integers])``.
+    """
+    def __init__(self, value):
+        self.value = value
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(self.value)
+
+
+class CallExpression:
+    """ Object which emits a line-wrapped call expression in the form `__name(*args, **kwargs)` """
+    def __init__(__self, __name, *args, **kwargs):
+        # dunders are to avoid clashes with kwargs, as python's name manging
+        # will kick in.
+        self = __self
+        self.name = __name
+        self.args = args
+        self.kwargs = kwargs
+
+    @classmethod
+    def factory(cls, name):
+        def inner(*args, **kwargs):
+            return cls(name, *args, **kwargs)
+        return inner
+
+    def _repr_pretty_(self, p, cycle):
+        # dunders are to avoid clashes with kwargs, as python's name manging
+        # will kick in.
+
+        started = False
+        def new_item():
+            nonlocal started
+            if started:
+                p.text(",")
+                p.breakable()
+            started = True
+
+        prefix = self.name + "("
+        with p.group(len(prefix), prefix, ")"):
+            for arg in self.args:
+                new_item()
+                p.pretty(arg)
+            for arg_name, arg in self.kwargs.items():
+                new_item()
+                arg_prefix = arg_name + "="
+                with p.group(len(arg_prefix), arg_prefix):
+                    p.pretty(arg)
+
+
+class RawStringLiteral:
+    """ Wrapper that shows a string with a `r` prefix """
+    def __init__(self, value):
+        self.value = value
+
+    def _repr_pretty_(self, p, cycle):
+        base_repr = repr(self.value)
+        if base_repr[:1] in 'uU':
+            base_repr = base_repr[1:]
+            prefix = 'ur'
+        else:
+            prefix = 'r'
+        base_repr = prefix + base_repr.replace('\\\\', '\\')
+        p.text(base_repr)
+
+
 def _default_pprint(obj, p, cycle):
     """
     The default print function.  Used if an object does not provide one and
@@ -623,45 +708,38 @@ def _super_pprint(obj, p, cycle):
     p.end_group(8, '>')
 
 
-def _re_pattern_pprint(obj, p, cycle):
-    """The pprint function for regular expression patterns."""
-    p.text('re.compile(')
-    pattern = repr(obj.pattern)
-    if pattern[:1] in 'uU':
-        pattern = pattern[1:]
-        prefix = 'ur'
-    else:
-        prefix = 'r'
-    pattern = prefix + pattern.replace('\\\\', '\\')
-    p.text(pattern)
-    if obj.flags:
-        p.text(',')
-        p.breakable()
+
+class _ReFlags:
+    def __init__(self, value):
+        self.value = value
+
+    def _repr_pretty_(self, p, cycle):
         done_one = False
         for flag in ('TEMPLATE', 'IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL',
             'UNICODE', 'VERBOSE', 'DEBUG'):
-            if obj.flags & getattr(re, flag):
+            if self.value & getattr(re, flag):
                 if done_one:
                     p.text('|')
                 p.text('re.' + flag)
                 done_one = True
-    p.text(')')
+
+
+def _re_pattern_pprint(obj, p, cycle):
+    """The pprint function for regular expression patterns."""
+    re_compile = CallExpression.factory('re.compile')
+    if obj.flags:
+        p.pretty(re_compile(RawStringLiteral(obj.pattern), _ReFlags(obj.flags)))
+    else:
+        p.pretty(re_compile(RawStringLiteral(obj.pattern)))
 
 
 def _types_simplenamespace_pprint(obj, p, cycle):
     """The pprint function for types.SimpleNamespace."""
-    name = 'namespace'
-    with p.group(len(name) + 1, name + '(', ')'):
-        if cycle:
-            p.text('...')
-        else:
-            for idx, (attr, value) in enumerate(obj.__dict__.items()):
-                if idx:
-                    p.text(',')
-                    p.breakable()
-                attr_kwarg = '{}='.format(attr)
-                with p.group(len(attr_kwarg), attr_kwarg):
-                    p.pretty(value)
+    namespace = CallExpression.factory('namespace')
+    if cycle:
+        p.pretty(namespace(RawText("...")))
+    else:
+        p.pretty(namespace(**obj.__dict__))
 
 
 def _type_pprint(obj, p, cycle):
@@ -724,14 +802,8 @@ def _exception_pprint(obj, p, cycle):
     name = getattr(obj.__class__, '__qualname__', obj.__class__.__name__)
     if obj.__class__.__module__ not in ('exceptions', 'builtins'):
         name = '%s.%s' % (obj.__class__.__module__, name)
-    step = len(name) + 1
-    p.begin_group(step, name + '(')
-    for idx, arg in enumerate(getattr(obj, 'args', ())):
-        if idx:
-            p.text(',')
-            p.breakable()
-        p.pretty(arg)
-    p.end_group(step, ')')
+
+    p.pretty(CallExpression(name, *getattr(obj, 'args', ())))
 
 
 #: the exception base
@@ -817,40 +889,36 @@ _singleton_pprinters = dict.fromkeys(map(id, [None, True, False, Ellipsis,
 
 
 def _defaultdict_pprint(obj, p, cycle):
-    name = obj.__class__.__name__
-    with p.group(len(name) + 1, name + '(', ')'):
-        if cycle:
-            p.text('...')
-        else:
-            p.pretty(obj.default_factory)
-            p.text(',')
-            p.breakable()
-            p.pretty(dict(obj))
+    cls_ctor = CallExpression.factory(obj.__class__.__name__)
+    if cycle:
+        p.pretty(cls_ctor(RawText("...")))
+    else:
+        p.pretty(cls_ctor(obj.default_factory, dict(obj)))
 
 def _ordereddict_pprint(obj, p, cycle):
-    name = obj.__class__.__name__
-    with p.group(len(name) + 1, name + '(', ')'):
-        if cycle:
-            p.text('...')
-        elif len(obj):
-            p.pretty(list(obj.items()))
+    cls_ctor = CallExpression.factory(obj.__class__.__name__)
+    if cycle:
+        p.pretty(cls_ctor(RawText("...")))
+    elif len(obj):
+        p.pretty(cls_ctor(list(obj.items())))
+    else:
+        p.pretty(cls_ctor())
 
 def _deque_pprint(obj, p, cycle):
-    name = obj.__class__.__name__
-    with p.group(len(name) + 1, name + '(', ')'):
-        if cycle:
-            p.text('...')
-        else:
-            p.pretty(list(obj))
-
+    cls_ctor = CallExpression.factory(obj.__class__.__name__)
+    if cycle:
+        p.pretty(cls_ctor(RawText("...")))
+    else:
+        p.pretty(cls_ctor(list(obj)))
 
 def _counter_pprint(obj, p, cycle):
-    name = obj.__class__.__name__
-    with p.group(len(name) + 1, name + '(', ')'):
-        if cycle:
-            p.text('...')
-        elif len(obj):
-            p.pretty(dict(obj))
+    cls_ctor = CallExpression.factory(obj.__class__.__name__)
+    if cycle:
+        p.pretty(cls_ctor(RawText("...")))
+    elif len(obj):
+        p.pretty(cls_ctor(dict(obj)))
+    else:
+        p.pretty(cls_ctor())
 
 for_type_by_name('collections', 'defaultdict', _defaultdict_pprint)
 for_type_by_name('collections', 'OrderedDict', _ordereddict_pprint)
