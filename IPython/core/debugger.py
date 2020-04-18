@@ -622,8 +622,8 @@ class Pdb(OldPdb):
         if arg:
             try:
                 context = int(arg)
-            except ValueError:
-                self.stdout.write('\n' + self.shell.get_exception_only())
+            except ValueError as err:
+                self.error(err)
                 return
             self.print_stack_trace(context)
         else:
