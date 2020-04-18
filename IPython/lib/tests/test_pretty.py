@@ -407,6 +407,26 @@ def test_mappingproxy():
         nt.assert_equal(pretty.pretty(obj), expected)
 
 
+def test_simplenamespace():
+    SN = types.SimpleNamespace
+
+    sn_recursive = SN()
+    sn_recursive.first = sn_recursive
+    sn_recursive.second = sn_recursive
+    cases = [
+        (SN(), "namespace()"),
+        (SN(x=SN()), "namespace(x=namespace())"),
+        (SN(a_long_name=[SN(s=string.ascii_lowercase)]*3, a_short_name=None),
+         "namespace(a_long_name=[namespace(s='abcdefghijklmnopqrstuvwxyz'),\n"
+         "                       namespace(s='abcdefghijklmnopqrstuvwxyz'),\n"
+         "                       namespace(s='abcdefghijklmnopqrstuvwxyz')],\n"
+         "          a_short_name=None)"),
+        (sn_recursive, "namespace(first=namespace(...), second=namespace(...))"),
+    ]
+    for obj, expected in cases:
+        nt.assert_equal(pretty.pretty(obj), expected)
+
+
 def test_pretty_environ():
     dict_repr = pretty.pretty(dict(os.environ))
     # reindent to align with 'environ' prefix
