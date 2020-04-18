@@ -61,7 +61,7 @@ def test_figure_to_jpeg():
     ax = fig.add_subplot(1,1,1)
     ax.plot([1,2,3])
     plt.draw()
-    jpeg = pt.print_figure(fig, 'jpeg', quality=50)[:100].lower()
+    jpeg = pt.print_figure(fig, 'jpeg', pil_kwargs={'optimize': 50})[:100].lower()
     assert jpeg.startswith(_JPEG)
 
 def test_retina_figure():
