@@ -24,6 +24,28 @@ Need to be updated:
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
+As a reminder, IPython master has diverged from the 7.x branch, thus master may
+have more feature and API changes.
+
+Important changes:
+
+ - Fix compatibility with Sphinx 3+ :ghpull:`12235`
+ - Remove deprecated matplotlib parameter usage, compatibility with matplotlib
+   3.3+ :`122250`
+
+Misc Changes
+
+ - set ``.py`` extension when editing current buffer in vi/emacs. :ghpull:`12167`
+ - support for unicode identifiers in ``?``/``??`` :ghpull:`12208`
+ - add extra options to the ``Video`` Rich objects :ghpull:`12212`
+ - add pretty-printing to SimpleNamespace :ghpull:`12230`
+
+New Deprecation Warnings. 
+
+ - Many object present in ``IPython.core.display`` should  be imported from
+   ``IPython.display`` by user and external libraries. Trying to import those
+   from ``IPython.core.display`` will trigger a deprecation warning in IPython
+   7.14+ and _may_ raise an error in IPython 8+
 
 Backwards incompatible changes
 ------------------------------
