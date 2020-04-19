@@ -648,6 +648,22 @@ def _re_pattern_pprint(obj, p, cycle):
     p.text(')')
 
 
+def _types_simplenamespace_pprint(obj, p, cycle):
+    """The pprint function for types.SimpleNamespace."""
+    name = 'namespace'
+    with p.group(len(name) + 1, name + '(', ')'):
+        if cycle:
+            p.text('...')
+        else:
+            for idx, (attr, value) in enumerate(obj.__dict__.items()):
+                if idx:
+                    p.text(',')
+                    p.breakable()
+                attr_kwarg = '{}='.format(attr)
+                with p.group(len(attr_kwarg), attr_kwarg):
+                    p.pretty(value)
+
+
 def _type_pprint(obj, p, cycle):
     """The pprint for classes and types."""
     # Heap allocated types might not have the module attribute,
@@ -741,6 +757,7 @@ _type_pprinters = {
     types.FunctionType:         _function_pprint,
     types.BuiltinFunctionType:  _function_pprint,
     types.MethodType:           _repr_pprint,
+    types.SimpleNamespace:      _types_simplenamespace_pprint,
     datetime.datetime:          _repr_pprint,
     datetime.timedelta:         _repr_pprint,
     _exception_base:            _exception_pprint
