@@ -290,7 +290,7 @@ class Pdb(OldPdb):
         try:
             OldPdb.interaction(self, frame, traceback)
         except KeyboardInterrupt:
-            raise
+            self.stdout.write('\n' + self.shell.get_exception_only())
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
@@ -631,8 +631,22 @@ class Pdb(OldPdb):
 
     do_w = do_where
 
+
+class InterruptiblePdb(Pdb):
+    """Version of debugger where KeyboardInterrupt exits the debugger altogether."""
+
+    def cmdloop(self):
+        """Wrap cmdloop() such that KeyboardInterrupt stops the debugger."""
+        try:
+            return OldPdb.cmdloop(self)
+        except KeyboardInterrupt:
+            self.stop_here = lambda frame: False
+            self.do_quit("")
+            sys.settrace(None)
+            self.quitting = False
+            raise
+
     def _cmdloop(self):
-        # Variant that doesn't catch KeyboardInterrupts.
         while True:
             try:
                 # keyboard interrupts allow for an easy way to cancel
@@ -642,6 +656,7 @@ class Pdb(OldPdb):
                 self.allow_kbdint = False
                 break
             except KeyboardInterrupt:
+                self.message('--KeyboardInterrupt--')
                 raise
 
 

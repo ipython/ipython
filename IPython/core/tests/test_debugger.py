@@ -13,6 +13,7 @@ from subprocess import check_output, CalledProcessError, PIPE
 import subprocess
 from unittest.mock import patch
 import builtins
+import bdb
 
 import nose.tools as nt
 
@@ -236,11 +237,15 @@ def test_interruptible_core_debugger():
     (this is implemented in ipykernel).  We want to ensure the
     KeyboardInterrupt cause debugging to cease.
     """
-    def raising_input(msg=""):
-        raise KeyboardInterrupt()
+    def raising_input(msg="", called=[0]):
+        called[0] += 1
+        if called[0] == 1:
+            raise KeyboardInterrupt()
+        else:
+            raise AssertionError("input() should only be called once!")
 
     with patch.object(builtins, "input", raising_input):
-        debugger.set_trace()
+        debugger.InterruptiblePdb().set_trace()
         # The way this test will fail is by set_trace() never exiting,
         # resulting in a timeout by the test runner. The alternative
         # implementation would involve a subprocess, but that adds issues with
