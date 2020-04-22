@@ -988,6 +988,15 @@ def _make_signature(completion)-> str:
 
     """
 
+    # it looks like this might work on jedi 0.17
+    if hasattr(completion, 'get_signatures'):
+        signatures = completion.get_signatures()
+        if not signatures:
+            return  '(?)'
+
+        c0 = completion.get_signatures()[0]
+        return '('+c0.to_string().split('(', maxsplit=1)[1]
+
     return '(%s)'% ', '.join([f for f in (_formatparamchildren(p) for signature in completion.get_signatures()
                                           for p in signature.defined_names()) if f])
 
