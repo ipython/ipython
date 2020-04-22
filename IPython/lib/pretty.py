@@ -638,7 +638,7 @@ def _seq_pprinter_factory(start, end):
                 p.text(',')
                 p.breakable()
             p.pretty(x)
-        if len(obj) == 1 and type(obj) is tuple:
+        if len(obj) == 1 and isinstance(obj, tuple):
             # Special case for 1-item tuples.
             p.text(',')
         p.end_group(step, end)
