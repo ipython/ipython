@@ -4,8 +4,16 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import signal
 import sys
+import time
 import warnings
+from tempfile import NamedTemporaryFile
+from subprocess import check_output, CalledProcessError, PIPE
+import subprocess
+from unittest.mock import patch
+import builtins
+import bdb
 
 import nose.tools as nt
 
@@ -223,3 +231,26 @@ def can_exit():
 
     >>> sys.settrace(old_trace)
     '''
+
+
+def test_interruptible_core_debugger():
+    """The debugger can be interrupted.
+
+    The presumption is there is some mechanism that causes a KeyboardInterrupt
+    (this is implemented in ipykernel).  We want to ensure the
+    KeyboardInterrupt cause debugging to cease.
+    """
+    def raising_input(msg="", called=[0]):
+        called[0] += 1
+        if called[0] == 1:
+            raise KeyboardInterrupt()
+        else:
+            raise AssertionError("input() should only be called once!")
+
+    with patch.object(builtins, "input", raising_input):
+        debugger.InterruptiblePdb().set_trace()
+        # The way this test will fail is by set_trace() never exiting,
+        # resulting in a timeout by the test runner. The alternative
+        # implementation would involve a subprocess, but that adds issues with
+        # interrupting subprocesses that are rather complex, so it's simpler
+        # just to do it this way.

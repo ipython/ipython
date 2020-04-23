@@ -634,6 +634,34 @@ class Pdb(OldPdb):
     do_w = do_where
 
 
+class InterruptiblePdb(Pdb):
+    """Version of debugger where KeyboardInterrupt exits the debugger altogether."""
+
+    def cmdloop(self):
+        """Wrap cmdloop() such that KeyboardInterrupt stops the debugger."""
+        try:
+            return OldPdb.cmdloop(self)
+        except KeyboardInterrupt:
+            self.stop_here = lambda frame: False
+            self.do_quit("")
+            sys.settrace(None)
+            self.quitting = False
+            raise
+
+    def _cmdloop(self):
+        while True:
+            try:
+                # keyboard interrupts allow for an easy way to cancel
+                # the current command, so allow them during interactive input
+                self.allow_kbdint = True
+                self.cmdloop()
+                self.allow_kbdint = False
+                break
+            except KeyboardInterrupt:
+                self.message('--KeyboardInterrupt--')
+                raise
+
+
 def set_trace(frame=None):
     """
     Start debugging from `frame`.
