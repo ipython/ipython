@@ -37,30 +37,30 @@ def transform_checker(tests, transformer, **kwargs):
 
 syntax = \
   dict(assign_system =
-       [(u'a =! ls', "a = get_ipython().getoutput('ls')"),
-        (u'b = !ls', "b = get_ipython().getoutput('ls')"),
-        (u'c= !ls', "c = get_ipython().getoutput('ls')"),
-        (u'd == !ls', u'd == !ls'), # Invalid syntax, but we leave == alone.
+       [('a =! ls', "a = get_ipython().getoutput('ls')"),
+        ('b = !ls', "b = get_ipython().getoutput('ls')"),
+        ('c= !ls', "c = get_ipython().getoutput('ls')"),
+        ('d == !ls', 'd == !ls'), # Invalid syntax, but we leave == alone.
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
         # Tuple unpacking
-        (u"a, b = !echo 'a\\nb'", u"a, b = get_ipython().getoutput(\"echo 'a\\\\nb'\")"),
-        (u"a,= !echo 'a'", u"a, = get_ipython().getoutput(\"echo 'a'\")"),
-        (u"a, *bc = !echo 'a\\nb\\nc'", u"a, *bc = get_ipython().getoutput(\"echo 'a\\\\nb\\\\nc'\")"),
+        ("a, b = !echo 'a\\nb'", "a, b = get_ipython().getoutput(\"echo 'a\\\\nb'\")"),
+        ("a,= !echo 'a'", "a, = get_ipython().getoutput(\"echo 'a'\")"),
+        ("a, *bc = !echo 'a\\nb\\nc'", "a, *bc = get_ipython().getoutput(\"echo 'a\\\\nb\\\\nc'\")"),
         # Tuple unpacking with regular Python expressions, not our syntax.
-        (u"a, b = range(2)", u"a, b = range(2)"),
-        (u"a, = range(1)", u"a, = range(1)"),
-        (u"a, *bc = range(3)", u"a, *bc = range(3)"),
+        ("a, b = range(2)", "a, b = range(2)"),
+        ("a, = range(1)", "a, = range(1)"),
+        ("a, *bc = range(3)", "a, *bc = range(3)"),
         ],
 
        assign_magic =
-       [(u'a =% who', "a = get_ipython().run_line_magic('who', '')"),
-        (u'b = %who', "b = get_ipython().run_line_magic('who', '')"),
-        (u'c= %ls', "c = get_ipython().run_line_magic('ls', '')"),
-        (u'd == %ls', u'd == %ls'), # Invalid syntax, but we leave == alone.
+       [('a =% who', "a = get_ipython().run_line_magic('who', '')"),
+        ('b = %who', "b = get_ipython().run_line_magic('who', '')"),
+        ('c= %ls', "c = get_ipython().run_line_magic('ls', '')"),
+        ('d == %ls', 'd == %ls'), # Invalid syntax, but we leave == alone.
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
-        (u"a, b = %foo", u"a, b = get_ipython().run_line_magic('foo', '')"),
+        ("a, b = %foo", "a, b = get_ipython().run_line_magic('foo', '')"),
         ],
 
        classic_prompt =
@@ -83,51 +83,51 @@ syntax = \
 
        # System calls
        escaped_shell =
-       [ (u'!ls', "get_ipython().system('ls')"),
+       [ ('!ls', "get_ipython().system('ls')"),
          # Double-escape shell, this means to capture the output of the
          # subprocess and return it
-         (u'!!ls', "get_ipython().getoutput('ls')"),
+         ('!!ls', "get_ipython().getoutput('ls')"),
          ],
 
        # Help/object info
        escaped_help =
-       [ (u'?', 'get_ipython().show_usage()'),
-         (u'?x1', "get_ipython().run_line_magic('pinfo', 'x1')"),
-         (u'??x2', "get_ipython().run_line_magic('pinfo2', 'x2')"),
-         (u'?a.*s', "get_ipython().run_line_magic('psearch', 'a.*s')"),
-         (u'?%hist1', "get_ipython().run_line_magic('pinfo', '%hist1')"),
-         (u'?%%hist2', "get_ipython().run_line_magic('pinfo', '%%hist2')"),
-         (u'?abc = qwe', "get_ipython().run_line_magic('pinfo', 'abc')"),
+       [ ('?', 'get_ipython().show_usage()'),
+         ('?x1', "get_ipython().run_line_magic('pinfo', 'x1')"),
+         ('??x2', "get_ipython().run_line_magic('pinfo2', 'x2')"),
+         ('?a.*s', "get_ipython().run_line_magic('psearch', 'a.*s')"),
+         ('?%hist1', "get_ipython().run_line_magic('pinfo', '%hist1')"),
+         ('?%%hist2', "get_ipython().run_line_magic('pinfo', '%%hist2')"),
+         ('?abc = qwe', "get_ipython().run_line_magic('pinfo', 'abc')"),
          ],
 
       end_help =
-      [ (u'x3?', "get_ipython().run_line_magic('pinfo', 'x3')"),
-        (u'x4??', "get_ipython().run_line_magic('pinfo2', 'x4')"),
-        (u'%hist1?', "get_ipython().run_line_magic('pinfo', '%hist1')"),
-        (u'%hist2??', "get_ipython().run_line_magic('pinfo2', '%hist2')"),
-        (u'%%hist3?', "get_ipython().run_line_magic('pinfo', '%%hist3')"),
-        (u'%%hist4??', "get_ipython().run_line_magic('pinfo2', '%%hist4')"),
-        (u'π.foo?', "get_ipython().run_line_magic('pinfo', 'π.foo')"),
-        (u'f*?', "get_ipython().run_line_magic('psearch', 'f*')"),
-        (u'ax.*aspe*?', "get_ipython().run_line_magic('psearch', 'ax.*aspe*')"),
-        (u'a = abc?', "get_ipython().set_next_input('a = abc');"
+      [ ('x3?', "get_ipython().run_line_magic('pinfo', 'x3')"),
+        ('x4??', "get_ipython().run_line_magic('pinfo2', 'x4')"),
+        ('%hist1?', "get_ipython().run_line_magic('pinfo', '%hist1')"),
+        ('%hist2??', "get_ipython().run_line_magic('pinfo2', '%hist2')"),
+        ('%%hist3?', "get_ipython().run_line_magic('pinfo', '%%hist3')"),
+        ('%%hist4??', "get_ipython().run_line_magic('pinfo2', '%%hist4')"),
+        ('π.foo?', "get_ipython().run_line_magic('pinfo', 'π.foo')"),
+        ('f*?', "get_ipython().run_line_magic('psearch', 'f*')"),
+        ('ax.*aspe*?', "get_ipython().run_line_magic('psearch', 'ax.*aspe*')"),
+        ('a = abc?', "get_ipython().set_next_input('a = abc');"
                       "get_ipython().run_line_magic('pinfo', 'abc')"),
-        (u'a = abc.qe??', "get_ipython().set_next_input('a = abc.qe');"
+        ('a = abc.qe??', "get_ipython().set_next_input('a = abc.qe');"
                           "get_ipython().run_line_magic('pinfo2', 'abc.qe')"),
-        (u'a = *.items?', "get_ipython().set_next_input('a = *.items');"
+        ('a = *.items?', "get_ipython().set_next_input('a = *.items');"
                           "get_ipython().run_line_magic('psearch', '*.items')"),
-        (u'plot(a?', "get_ipython().set_next_input('plot(a');"
+        ('plot(a?', "get_ipython().set_next_input('plot(a');"
                      "get_ipython().run_line_magic('pinfo', 'a')"),
-        (u'a*2 #comment?', 'a*2 #comment?'),
+        ('a*2 #comment?', 'a*2 #comment?'),
         ],
 
        # Explicit magic calls
        escaped_magic =
-       [ (u'%cd', "get_ipython().run_line_magic('cd', '')"),
-         (u'%cd /home', "get_ipython().run_line_magic('cd', '/home')"),
+       [ ('%cd', "get_ipython().run_line_magic('cd', '')"),
+         ('%cd /home', "get_ipython().run_line_magic('cd', '/home')"),
          # Backslashes need to be escaped.
-         (u'%cd C:\\User', "get_ipython().run_line_magic('cd', 'C:\\\\User')"),
-         (u'    %magic', "    get_ipython().run_line_magic('magic', '')"),
+         ('%cd C:\\User', "get_ipython().run_line_magic('cd', 'C:\\\\User')"),
+         ('    %magic', "    get_ipython().run_line_magic('magic', '')"),
          ],
 
        # Quoting with separate arguments
@@ -156,11 +156,11 @@ syntax = \
 
        # Check that we transform prompts before other transforms
        mixed =
-       [ (u'In [1]: %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
-         (u'>>> %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
-         (u'In [2]: !ls', "get_ipython().system('ls')"),
-         (u'In [3]: abs?', "get_ipython().run_line_magic('pinfo', 'abs')"),
-         (u'In [4]: b = %who', "b = get_ipython().run_line_magic('who', '')"),
+       [ ('In [1]: %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
+         ('>>> %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
+         ('In [2]: !ls', "get_ipython().system('ls')"),
+         ('In [3]: abs?', "get_ipython().run_line_magic('pinfo', 'abs')"),
+         ('In [4]: b = %who', "b = get_ipython().run_line_magic('who', '')"),
          ],
        )
 
@@ -275,15 +275,15 @@ syntax_ml = \
        ],
        
        cellmagic =
-       [ [(u'%%foo a', None),
+       [ [('%%foo a', None),
           (None, "get_ipython().run_cell_magic('foo', 'a', '')"),
           ],
-         [(u'%%bar 123', None),
-          (u'hello', None),
+         [('%%bar 123', None),
+          ('hello', None),
           (None , "get_ipython().run_cell_magic('bar', '123', 'hello')"),
           ],
-         [(u'a=5', 'a=5'),
-          (u'%%cellmagic', '%%cellmagic'),
+         [('a=5', 'a=5'),
+          ('%%cellmagic', '%%cellmagic'),
           ],
        ],
        
@@ -298,21 +298,21 @@ syntax_ml = \
        ],
        
        assign_magic =
-       [ [(u'a = %bc de \\', None),
-          (u'fg', "a = get_ipython().run_line_magic('bc', 'de fg')"),
+       [ [('a = %bc de \\', None),
+          ('fg', "a = get_ipython().run_line_magic('bc', 'de fg')"),
           ],
-         [(u'a = %bc de \\', None),
-          (u'fg\\', None),
+         [('a = %bc de \\', None),
+          ('fg\\', None),
           (None, "a = get_ipython().run_line_magic('bc', 'de fg')"),
           ],
        ],
        
        assign_system =
-       [ [(u'a = !bc de \\', None),
-          (u'fg', "a = get_ipython().getoutput('bc de fg')"),
+       [ [('a = !bc de \\', None),
+          ('fg', "a = get_ipython().getoutput('bc de fg')"),
           ],
-         [(u'a = !bc de \\', None),
-          (u'fg\\', None),
+         [('a = !bc de \\', None),
+          ('fg\\', None),
           (None, "a = get_ipython().getoutput('bc de fg')"),
           ],
        ],
@@ -335,8 +335,8 @@ def test_classic_prompt():
     # Check that we don't transform the second line if the first is obviously
     # IPython syntax
     transform_checker([
-        (u'%foo', '%foo'),
-        (u'>>> bar', '>>> bar'),
+        ('%foo', '%foo'),
+        ('>>> bar', '>>> bar'),
     ], ipt.classic_prompt)
 
 
@@ -347,20 +347,20 @@ def test_ipy_prompt():
 
     # Check that we don't transform the second line if we're inside a cell magic
     transform_checker([
-        (u'%%foo', '%%foo'),
-        (u'In [1]: bar', 'In [1]: bar'),
+        ('%%foo', '%%foo'),
+        ('In [1]: bar', 'In [1]: bar'),
     ], ipt.ipy_prompt)
 
 def test_assemble_logical_lines():
     tests = \
-    [ [(u"a = \\", None),
-       (u"123", u"a = 123"),
+    [ [("a = \\", None),
+       ("123", "a = 123"),
       ],
-      [(u"a = \\", None),  # Test resetting when within a multi-line string
-       (u"12 *\\", None),
-       (None, u"a = 12 *"),
+      [("a = \\", None),  # Test resetting when within a multi-line string
+       ("12 *\\", None),
+       (None, "a = 12 *"),
       ],
-      [(u"# foo\\", u"# foo\\"), # Comments can't be continued like this
+      [("# foo\\", "# foo\\"), # Comments can't be continued like this
       ],
     ]
     for example in tests:
@@ -368,24 +368,24 @@ def test_assemble_logical_lines():
 
 def test_assemble_python_lines():
     tests = \
-    [ [(u"a = '''", None),
-       (u"abc'''", u"a = '''\nabc'''"),
+    [ [("a = '''", None),
+       ("abc'''", "a = '''\nabc'''"),
       ],
-      [(u"a = '''", None),  # Test resetting when within a multi-line string
-       (u"def", None),
-       (None, u"a = '''\ndef"),
+      [("a = '''", None),  # Test resetting when within a multi-line string
+       ("def", None),
+       (None, "a = '''\ndef"),
       ],
-      [(u"a = [1,", None),
-       (u"2]", u"a = [1,\n2]"),
+      [("a = [1,", None),
+       ("2]", "a = [1,\n2]"),
       ],
-      [(u"a = [1,", None),  # Test resetting when within a multi-line string
-       (u"2,", None),
-       (None, u"a = [1,\n2,"),
+      [("a = [1,", None),  # Test resetting when within a multi-line string
+       ("2,", None),
+       (None, "a = [1,\n2,"),
       ],
-      [(u"a = '''", None),  # Test line continuation within a multi-line string
-       (u"abc\\", None),
-       (u"def", None),
-       (u"'''", u"a = '''\nabc\\\ndef\n'''"),
+      [("a = '''", None),  # Test line continuation within a multi-line string
+       ("abc\\", None),
+       ("def", None),
+       ("'''", "a = '''\nabc\\\ndef\n'''"),
       ],
     ] + syntax_ml['multiline_datastructure']
     for example in tests:
@@ -427,9 +427,9 @@ def test_cellmagic():
     for example in syntax_ml['cellmagic']:
         transform_checker(example, ipt.cellmagic)
     
-    line_example = [(u'%%bar 123', None),
-                    (u'hello', None),
-                    (u'' , "get_ipython().run_cell_magic('bar', '123', 'hello')"),
+    line_example = [('%%bar 123', None),
+                    ('hello', None),
+                    ('' , "get_ipython().run_cell_magic('bar', '123', 'hello')"),
                    ]
     transform_checker(line_example, ipt.cellmagic, end_on_blank_line=True)
 
@@ -454,33 +454,32 @@ def decistmt(tokens):
     result = []
     for toknum, tokval, _, _, _  in tokens:
         if toknum == tokenize.NUMBER and '.' in tokval:  # replace NUMBER tokens
-            for newtok in [
+            yield from [
                 (tokenize.NAME, 'Decimal'),
                 (tokenize.OP, '('),
                 (tokenize.STRING, repr(tokval)),
                 (tokenize.OP, ')')
-            ]:
-                yield newtok
+            ]
         else:
             yield (toknum, tokval)
 
 
 
 def test_token_input_transformer():
-    tests = [(u'1.2', u"Decimal ('1.2')"),
-             (u'"1.2"', u'"1.2"'),
+    tests = [('1.2', "Decimal ('1.2')"),
+             ('"1.2"', '"1.2"'),
              ]
     tt.check_pairs(transform_and_reset(decistmt), tests)
     ml_tests = \
-    [ [(u"a = 1.2; b = '''x", None),
-       (u"y'''", u"a =Decimal ('1.2');b ='''x\ny'''"),
+    [ [("a = 1.2; b = '''x", None),
+       ("y'''", "a =Decimal ('1.2');b ='''x\ny'''"),
       ],
-      [(u"a = [1.2,", None),
-       (u"3]", u"a =[Decimal ('1.2'),\n3 ]"),
+      [("a = [1.2,", None),
+       ("3]", "a =[Decimal ('1.2'),\n3 ]"),
       ],
-      [(u"a = '''foo", None),  # Test resetting when within a multi-line string
-       (u"bar", None),
-       (None, u"a = '''foo\nbar"),
+      [("a = '''foo", None),  # Test resetting when within a multi-line string
+       ("bar", None),
+       (None, "a = '''foo\nbar"),
       ],
     ]
     for example in ml_tests:
