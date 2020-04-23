@@ -22,7 +22,7 @@ from traitlets.config.configurable import Configurable
 from traitlets import List
 
 # This used to be defined here - it is imported for backwards compatibility
-from .display import publish_display_data
+from .display_functions import publish_display_data
 
 #-----------------------------------------------------------------------------
 # Main payload class
