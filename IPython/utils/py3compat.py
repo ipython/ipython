@@ -39,26 +39,6 @@ def buffer_to_bytes(buf):
         buf = bytes(buf)
     return buf
 
-def _modify_str_or_docstring(str_change_func):
-    @functools.wraps(str_change_func)
-    def wrapper(func_or_str):
-        if isinstance(func_or_str, (str,)):
-            func = None
-            doc = func_or_str
-        else:
-            func = func_or_str
-            doc = func.__doc__
-
-        # PYTHONOPTIMIZE=2 strips docstrings, so they can disappear unexpectedly
-        if doc is not None:
-            doc = str_change_func(doc)
-
-        if func:
-            func.__doc__ = doc
-            return func
-        return doc
-    return wrapper
-
 def safe_unicode(e):
     """unicode(e) with various fallbacks. Used for exceptions, which may not be
     safe to call unicode() on.
@@ -166,18 +146,6 @@ def execfile(fname, glob, loc=None, compiler=None):
     with open(fname, 'rb') as f:
         compiler = compiler or compile
         exec(compiler(f.read(), fname, 'exec'), glob, loc)
-
-# Refactor print statements in doctests.
-_print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)
-
-# Abstract u'abc' syntax:
-@_modify_str_or_docstring
-def u_format(s):
-    """"{u}'abc'" --> "'abc'" (Python 3)
-
-    Accepts a string or a function, so it can be used as a decorator."""
-    return s.format(u='')
-
 
 PY2 = not PY3
 PYPY = platform.python_implementation() == "PyPy"
