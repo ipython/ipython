@@ -1,9 +1,31 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
-Issues closed in 8.12
+Issues closed in 7.14
 ---------------------
 
+GitHub stats for 2020/02/29 - 2020/05/01 (tag: 7.13.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 0 issues and merged 30 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.14>`__
+
+The following 10 authors contributed 47 commits.
+
+* Eric Wieser
+* foobarbyte
+* Ian Castleden
+* Itamar Turner-Trauring
+* Lumir Balhar
+* Markus Wageringel
+* Matthias Bussonnier
+* Matthieu Ancellin
+* Quentin Peter
+* Theo Ouzhinski
+
+Issues closed in 7.13
+---------------------
 
 GitHub stats for 2020/02/01 - 2020/02/28 (tag: 7.12.0)
 
@@ -26,6 +48,7 @@ The following 12 authors contributed 108 commits.
 * Matthias Bussonnier
 * Nathan Goldbaum
 * Terry Davis
+
 
 Issues closed in 7.12
 ---------------------
