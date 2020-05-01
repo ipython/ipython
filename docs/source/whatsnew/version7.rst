@@ -2,6 +2,45 @@
  7.x Series
 ============
 
+.. _version 714:
+
+IPython 7.14
+============
+
+IPython  7.14 is a minor release that fix a couple of bugs and prepare
+compatibility with new or future versions of some libraries. 
+
+Important changes:
+------------------
+
+ - Fix compatibility with Sphinx 3+ :ghpull:`12235`
+ - Remove deprecated matplotlib parameter usage, compatibility with matplotlib
+   3.3+ :`122250`
+
+Misc Changes
+------------
+
+ - set ``.py`` extension when editing current buffer in vi/emacs. :ghpull:`12167`
+ - support for unicode identifiers in ``?``/``??`` :ghpull:`12208`
+ - add extra options to the ``Video`` Rich objects :ghpull:`12212`
+ - add pretty-printing to ``SimpleNamespace`` :ghpull:`12230`
+
+Pending deprecated imports
+--------------------------
+
+Many object present in ``IPython.core.display`` are there for internal use only,
+and should  already been imported from ``IPython.display`` by users and external
+libraries. Trying to import those from ``IPython.core.display`` is still possible
+but will trigger a
+deprecation warning in later versions of IPython and will become errors in the
+future. 
+
+This will simplify compatibility with other Python kernels (like Xeus-Python),
+and simplify code base. 
+
+
+
+
 .. _version 713:
 
 IPython 7.13
