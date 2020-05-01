@@ -2,6 +2,14 @@
  5.x Series
 ============
 
+.. _whatsnew5100
+
+IPython 5.10.0
+==============
+
+IPython 5.10 pins Pygments dependencies to version lower than ``2.6``, as it is
+not compatible Python 2. See :ghpull:`12174`
+
 .. _whatsnew590
 
 IPython 5.9.0
