@@ -1296,7 +1296,7 @@ latex_symbols = {
     "\\ttnine" : "𝟿",
     "\\underbar" : "̲",
     "\\underleftrightarrow" : "͍",
-    "\hmm" : "ಠ_ಠ",
+    "\\hmm" : "ಠ_ಠ",
 }
 
 
