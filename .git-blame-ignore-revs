@@ -12,3 +12,4 @@
 #
 # <full commit hash>  # initial black-format 
 # <full commit hash>  # rename something internal
+6e748726282d1acb9a4f9f264ee679c474c4b8f5  # Apply pygrade --36plus on IPython/core/tests/test_inputtransformer.py.
