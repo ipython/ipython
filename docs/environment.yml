@@ -8,6 +8,7 @@ dependencies:
 - nose
 - testpath
 - matplotlib
+- stack_data
 - pip:
     - docrepr
     - prompt_toolkit
