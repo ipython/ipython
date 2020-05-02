@@ -56,6 +56,7 @@ assert not test_ident('‴')
 
 valid_idents = [line for line in idents if test_ident(line[1])]
 
+valid_idents.append(("\\hmm", "ಠ_ಠ")), # https://twitter.com/jakevdp/status/1239979963920445441
 # Write the `latex_symbols.py` module in the cwd
 
 s = """# encoding: utf-8
