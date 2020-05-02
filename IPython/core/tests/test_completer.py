@@ -212,9 +212,8 @@ class TestCompleter(unittest.TestCase):
         keys = random.sample(latex_symbols.keys(), 10)
         for k in keys:
             text, matches = ip.complete(k)
-            nt.assert_equal(len(matches), 1)
             nt.assert_equal(text, k)
-            nt.assert_equal(matches[0], latex_symbols[k])
+            nt.assert_equal(matches, [latex_symbols[k]])
         # Test a more complex line
         text, matches = ip.complete("print(\\alpha")
         nt.assert_equal(text, "\\alpha")
@@ -250,8 +249,8 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
 
         name, matches = ip.complete("\\ROMAN NUMERAL FIVE")
-        nt.assert_equal(len(matches), 1)
-        nt.assert_equal(matches[0], "Ⅴ")
+        nt.assert_equal(matches, ["Ⅴ"] ) # This is not a V
+        nt.assert_equal(matches, ["\u2164"] ) # same as above but explicit.
 
     @nt.nottest  # now we have a completion for \jmath
     @decorators.knownfailureif(
