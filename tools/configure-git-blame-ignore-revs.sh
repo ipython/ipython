@@ -1,3 +1,4 @@
+#!/bin/sh
 # Other config options for blame are markUnblamables and markIgnoredLines.
 # See docs for more details:
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-blameignoreRevsFile
