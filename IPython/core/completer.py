@@ -1699,8 +1699,6 @@ class IPCompleter(Completer):
         u"""Match Latex syntax for unicode characters.
 
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
-
-        Used on Python 3 only.
         """
         slashpos = text.rfind('\\')
         if slashpos > -1:
@@ -1713,7 +1711,8 @@ class IPCompleter(Completer):
                 # If a user has partially typed a latex symbol, give them
                 # a full list of options \al -> [\aleph, \alpha]
                 matches = [k for k in latex_symbols if k.startswith(s)]
-                return s, matches
+                if matches:
+                    return s, matches
         return u'', []
 
     def dispatch_custom_completer(self, text):

@@ -224,20 +224,27 @@ class TestCompleter(unittest.TestCase):
         nt.assert_in("\\alpha", matches)
         nt.assert_in("\\aleph", matches)
 
+    def test_latex_no_results(self):
+        """
+        forward latex should really return nothing in either field if nothing is found.
+        """
+        ip = get_ipython()
+        text, matches = ip.Completer.latex_matches("\\really_i_should_match_nothing")
+        nt.assert_equal(text, "")
+        nt.assert_equal(matches, [])
+
     def test_back_latex_completion(self):
         ip = get_ipython()
 
         # do not return more than 1 matches fro \beta, only the latex one.
         name, matches = ip.complete("\\β")
-        nt.assert_equal(len(matches), 1)
-        nt.assert_equal(matches[0], "\\beta")
+        nt.assert_equal(matches, ['\\beta'])
 
     def test_back_unicode_completion(self):
         ip = get_ipython()
 
         name, matches = ip.complete("\\Ⅴ")
-        nt.assert_equal(len(matches), 1)
-        nt.assert_equal(matches[0], "\\ROMAN NUMERAL FIVE")
+        nt.assert_equal(matches, ["\\ROMAN NUMERAL FIVE"])
 
     def test_forward_unicode_completion(self):
         ip = get_ipython()
