@@ -23,7 +23,7 @@ import os
 
 _completion_sentinel = object()
 
-def _elide_point(string, *, min_elide=30):
+def _elide_point(string:str, *, min_elide=30)->str:
     """
     If a string is long enough, and has at least 3 dots,
     replace the middle part with ellipses.
@@ -53,7 +53,7 @@ def _elide_point(string, *, min_elide=30):
 
     return string
 
-def _elide_typed(string, typed, *, min_elide=30):
+def _elide_typed(string:str, typed:str, *, min_elide:int=30)->str:
     """
     Elide the middle of a long string if the beginning has already been typed.
     """
@@ -61,11 +61,13 @@ def _elide_typed(string, typed, *, min_elide=30):
     if len(string) < min_elide:
         return string
     cut_how_much = len(typed)-3
+    if cut_how_much < 7:
+        return string
     if string.startswith(typed) and len(string)> len(typed):
         return f"{string[:3]}\N{HORIZONTAL ELLIPSIS}{string[cut_how_much:]}"
     return string
 
-def _elide(string, typed, min_elide=30):
+def _elide(string:str, typed:str, min_elide=30)->str:
     return _elide_typed(
         _elide_point(string, min_elide=min_elide),
         typed, min_elide=min_elide)
