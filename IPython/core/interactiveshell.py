@@ -2217,7 +2217,7 @@ class InteractiveShell(SingletonConfigurable):
         The position argument (defaults to 0) is the index in the completers
         list where you want the completer to be inserted."""
 
-        newcomp = types.MethodType(completer,self.Completer)
+        newcomp = types.MethodType(completer, self.Completer)
         self.Completer.custom_matchers.insert(pos,newcomp)
 
     def set_completer_frame(self, frame=None):
