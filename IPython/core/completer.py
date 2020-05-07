@@ -921,32 +921,31 @@ def back_unicode_name_matches(text:str) -> Tuple[str, Sequence[str]]:
         pass
     return '', ()
 
-def back_latex_name_matches(text:str):
+def back_latex_name_matches(text:str) -> Tuple[str, Sequence[str]] :
     """Match latex characters back to unicode name
 
     This does ``\\ℵ`` -> ``\\aleph``
 
-    Used on Python 3 only.
     """
     if len(text)<2:
-        return u'', ()
+        return '', ()
     maybe_slash = text[-2]
     if maybe_slash != '\\':
-        return u'', ()
+        return '', ()
 
 
     char = text[-1]
     # no expand on quote for completion in strings.
     # nor backcomplete standard ascii keys
-    if char in string.ascii_letters or char in ['"',"'"]:
-        return u'', ()
+    if char in string.ascii_letters or char in ('"',"'"):
+        return '', ()
     try :
         latex = reverse_latex_symbol[char]
         # '\\' replace the \ as well
         return '\\'+char,[latex]
     except KeyError:
         pass
-    return u'', ()
+    return '', ()
 
 
 def _formatparamchildren(parameter) -> str:
@@ -1192,7 +1191,7 @@ class IPCompleter(Completer):
     def _clean_glob(self, text:str):
         return self.glob("%s*" % text)
 
-    def _clean_glob_win32(self,text:str):
+    def _clean_glob_win32(self, text:str):
         return [f.replace("\\","/")
                 for f in self.glob("%s*" % text)]
 
