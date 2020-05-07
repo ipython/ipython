@@ -204,6 +204,8 @@ sec = test_sections['testing']
 if sys.platform == 'win32':
     sec.exclude('plugin.test_exampleip')
     sec.exclude('plugin.dtexample')
+    import tracemalloc
+    tracemalloc.enable()
 
 # don't run jupyter_console tests found via shim
 test_sections['terminal'].exclude('console')
