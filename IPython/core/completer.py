@@ -883,7 +883,7 @@ def _safe_isinstance(obj, module, class_name):
             isinstance(obj, getattr(import_module(module), class_name)))
 
 def back_unicode_name_matches(text:str) -> Tuple[str, Sequence[str]]:
-    """Match unicode characters back to unicode name
+    """Match Unicode characters back to Unicode name
 
     This does  ``☃`` -> ``\\snowman``
 
@@ -895,7 +895,12 @@ def back_unicode_name_matches(text:str) -> Tuple[str, Sequence[str]]:
     Returns
     =======
 
-    Return a tuple of
+    Return a tuple with two elements:
+
+    - The Unicode character that was matched (preceded with a backslash), or
+        empty string,
+    - a sequence (of 1), name for the match Unicode character, preceded by
+        backslash, or empty if no match.
     
     """
     if len(text)<2:
@@ -907,11 +912,11 @@ def back_unicode_name_matches(text:str) -> Tuple[str, Sequence[str]]:
     char = text[-1]
     # no expand on quote for completion in strings.
     # nor backcomplete standard ascii keys
-    if char in string.ascii_letters or char in ['"',"'"]:
+    if char in string.ascii_letters or char in ('"',"'"):
         return '', ()
     try :
         unic = unicodedata.name(char)
-        return '\\'+char,['\\'+unic]
+        return '\\'+char,('\\'+unic,)
     except KeyError:
         pass
     return '', ()
