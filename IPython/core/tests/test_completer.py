@@ -243,7 +243,7 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
 
         name, matches = ip.complete("\\Ⅴ")
-        nt.assert_equal(matches, ["\\ROMAN NUMERAL FIVE"])
+        nt.assert_equal(matches, ("\\ROMAN NUMERAL FIVE",))
 
     def test_forward_unicode_completion(self):
         ip = get_ipython()
