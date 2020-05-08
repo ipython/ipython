@@ -105,11 +105,6 @@ def test_embed_svg_url():
         nt.assert_true(svg._repr_svg_().startswith('<svg'))
         svg = display.SVG(url=url + 'z')
         nt.assert_true(svg._repr_svg_().startswith('<svg'))
-
-    # do it for real: 6.1kB of data
-    url = "https://upload.wikimedia.org/wikipedia/commons/3/30/Vector-based_example.svg"
-    svg = display.SVG(url=url)
-    nt.assert_true(svg._repr_svg_().startswith('<svg'))
     
 def test_retina_jpeg():
     here = os.path.dirname(__file__)
