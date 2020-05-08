@@ -1059,21 +1059,6 @@ class IPCompleter(Completer):
         help="Template for path at which to output profile data for completions."
     ).tag(config=True)
 
-    _unicode_names = ListTrait(
-        Unicode(),
-        help="Lazily-initialized list of unicode code point names.",
-    )
-
-    @default('_unicode_names')
-    def _unicode_names_default_value(self):
-        names = []
-        for c in range(0,0x10FFFF + 1):
-            try:
-                names.append(unicodedata.name(chr(c)))
-            except ValueError:
-                pass
-        return names
-
     @observe('limit_to__all__')
     def _limit_to_all_changed(self, change):
         warnings.warn('`IPython.core.IPCompleter.limit_to__all__` configuration '
@@ -1150,6 +1135,12 @@ class IPCompleter(Completer):
 
         # This is set externally by InteractiveShell
         self.custom_completers = None
+
+        # This is a list of names of unicode characters that can be completed
+        # into their corresponding unicode value. The list is large, so we
+        # laziliy initialize it on first use. Consuming code should access this
+        # attribute through the `@unicode_names` property.
+        self._unicode_names = None
 
     @property
     def matchers(self):
@@ -2127,7 +2118,7 @@ class IPCompleter(Completer):
             # initialize it, so we don't want to initialize it unless we're
             # actually going to use it.
             s = text[slashpos+1:]
-            candidates = [x for x in self._unicode_names if x.startswith(s)]
+            candidates = [x for x in self.unicode_names if x.startswith(s)]
             if candidates:
                 return s, candidates
             else:
@@ -2136,3 +2127,20 @@ class IPCompleter(Completer):
         # if text does not start with slash
         else:
             return u'', ()
+
+    @property
+    def unicode_names(self) -> List[str]:
+        """List of names of unicode code points that can be completed.
+
+        The list is lazily initialized on first access.
+        """
+        if self._unicode_names is None:
+            names = []
+            for c in range(0,0x10FFFF + 1):
+                try:
+                    names.append(unicodedata.name(chr(c)))
+                except ValueError:
+                    pass
+            self._unicode_names = names
+
+        return self._unicode_names
