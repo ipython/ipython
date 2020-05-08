@@ -136,7 +136,7 @@ from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.path import ensure_dir_exists
 from IPython.utils.process import arg_split
-from traitlets import Bool, Enum, Int, Unicode, observe
+from traitlets import Bool, Enum, Int, List as ListTrait, Unicode, default, observe
 from traitlets.config.configurable import Configurable
 
 import __main__
@@ -1005,8 +1005,6 @@ def _make_signature(completion)-> str:
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
-    _names = None
-
     @observe('greedy')
     def _greedy_changed(self, change):
         """update the splitter and readline delims when greedy is changed"""
@@ -1060,6 +1058,22 @@ class IPCompleter(Completer):
         default_value=".completion_profiles",
         help="Template for path at which to output profile data for completions."
     ).tag(config=True)
+
+    _unicode_names = ListTrait(
+        Unicode(),
+        help="Lazily-initialized list of unicode code point names.",
+    )
+
+    @default('_unicode_names')
+    def _unicode_names_default_value(self):
+        names = []
+        for c in range(0,0x10FFFF + 1):
+            try:
+                names.append(unicodedata.name(chr(c)))
+            except ValueError:
+                pass
+        return names
+
     @observe('limit_to__all__')
     def _limit_to_all_changed(self, change):
         warnings.warn('`IPython.core.IPCompleter.limit_to__all__` configuration '
@@ -2103,19 +2117,17 @@ class IPCompleter(Completer):
         return text, _matches, origins, completions
         
     def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
-        if self._names is None:
-            self._names = []
-            for c in range(0,0x10FFFF + 1):
-                try:
-                    self._names.append(unicodedata.name(chr(c)))
-                except ValueError:
-                    pass
 
         slashpos = text.rfind('\\')
         # if text starts with slash
         if slashpos > -1:
+            # PERF: It's important that we don't access self._unicode_names
+            # until we're inside this if-block. _unicode_names is lazily
+            # initialized, and it takes a user-noticeable amount of time to
+            # initialize it, so we don't want to initialize it unless we're
+            # actually going to use it.
             s = text[slashpos+1:]
-            candidates = [x for x in self._names if x.startswith(s)]
+            candidates = [x for x in self._unicode_names if x.startswith(s)]
             if candidates:
                 return s, candidates
             else:
