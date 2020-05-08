@@ -35,7 +35,7 @@ or using unicode completion:
 
 .. code::
 
-    \\greek small letter alpha<tab>
+    \\GREEK SMALL LETTER ALPHA<tab>
     α
 
 
