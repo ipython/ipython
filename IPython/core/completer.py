@@ -121,6 +121,7 @@ import string
 import sys
 import time
 import unicodedata
+import uuid
 import warnings
 from contextlib import contextmanager
 from importlib import import_module
@@ -133,8 +134,9 @@ from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.core.oinspect import InspectColors
 from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
+from IPython.utils.path import ensure_dir_exists
 from IPython.utils.process import arg_split
-from traitlets import Bool, Enum, Int, observe
+from traitlets import Bool, Enum, Int, Unicode, observe
 from traitlets.config.configurable import Configurable
 
 import __main__
@@ -1049,6 +1051,15 @@ class IPCompleter(Completer):
         """,
     ).tag(config=True)
 
+    profile_completions = Bool(
+        default_value=False,
+        help="If True, emit profiling data for completion subsystem using cProfile."
+    ).tag(config=True)
+
+    profiler_output_dir = Unicode(
+        default_value=".completion_profiles",
+        help="Template for path at which to output profile data for completions."
+    ).tag(config=True)
     @observe('limit_to__all__')
     def _limit_to_all_changed(self, change):
         warnings.warn('`IPython.core.IPCompleter.limit_to__all__` configuration '
@@ -1824,6 +1835,13 @@ class IPCompleter(Completer):
 
         seen = set()
         try:
+            if self.profile_completions:
+                import cProfile
+                profiler = cProfile.Profile()
+                profiler.enable()
+            else:
+                profiler = None
+
             for c in self._completions(text, offset, _timeout=self.jedi_compute_type_timeout/1000):
                 if c and (c in seen):
                     continue
@@ -1833,6 +1851,13 @@ class IPCompleter(Completer):
             """if completions take too long and users send keyboard interrupt,
             do not crash and return ASAP. """
             pass
+        finally:
+            if profiler is not None:
+                profiler.disable()
+                ensure_dir_exists(self.profiler_output_dir)
+                output_path = os.path.join(self.profiler_output_dir, str(uuid.uuid4()))
+                print("Writing profiler output to", output_path)
+                profiler.dump_stats(output_path)
 
     def _completions(self, full_text: str, offset: int, *, _timeout)->Iterator[Completion]:
         """
