@@ -17,14 +17,32 @@ import nose.tools as nt
 class TestElide(unittest.TestCase):
 
     def test_elide(self):
-        _elide('concatenate((a1, a2, ...), axis') # do not raise
-        _elide('concatenate((a1, a2, ..), . axis') # do not raise
-        nt.assert_equal(_elide('aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh'), 'aaaa.b…g.hhhhhh')
-        
+        _elide('concatenate((a1, a2, ...), axis', '') # do not raise
+        _elide('concatenate((a1, a2, ..), . axis', '') # do not raise
+        nt.assert_equal(_elide('aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh',''), 'aaaa.b…g.hhhhhh')
+
         test_string = os.sep.join(['', 10*'a', 10*'b', 10*'c', ''])
         expect_stirng = os.sep + 'a' + '\N{HORIZONTAL ELLIPSIS}' + 'b' + os.sep + 10*'c'
-        nt.assert_equal(_elide(test_string), expect_stirng)
+        nt.assert_equal(_elide(test_string, ''), expect_stirng)
 
+    def test_elide_typed_normal(self):
+        nt.assert_equal(_elide('the quick brown fox jumped over the lazy dog', 'the quick brown fox', min_elide=10), 'the…fox jumped over the lazy dog')
+
+
+    def test_elide_typed_short_match(self):
+        """
+        if the match is too short we don't elide.
+        avoid the "the...the"
+        """
+        nt.assert_equal(_elide('the quick brown fox jumped over the lazy dog', 'the', min_elide=10), 'the quick brown fox jumped over the lazy dog')
+
+    def test_elide_typed_no_match(self):
+        """
+        if the match is too short we don't elide.
+        avoid the "the...the"
+        """
+        # here we typed red instead of brown
+        nt.assert_equal(_elide('the quick brown fox jumped over the lazy dog', 'the quick red fox', min_elide=10), 'the quick brown fox jumped over the lazy dog')
 
 class TestContextAwareCompletion(unittest.TestCase):
 

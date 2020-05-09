@@ -23,7 +23,7 @@ import os
 
 _completion_sentinel = object()
 
-def _elide(string, *, min_elide=30):
+def _elide_point(string:str, *, min_elide=30)->str:
     """
     If a string is long enough, and has at least 3 dots,
     replace the middle part with ellipses.
@@ -52,6 +52,26 @@ def _elide(string, *, min_elide=30):
         return ('{}' + os.sep + '{}\N{HORIZONTAL ELLIPSIS}{}' + os.sep + '{}').format(file_parts[0], file_parts[1][0], file_parts[-2][-1], file_parts[-1])
 
     return string
+
+def _elide_typed(string:str, typed:str, *, min_elide:int=30)->str:
+    """
+    Elide the middle of a long string if the beginning has already been typed.
+    """
+
+    if len(string) < min_elide:
+        return string
+    cut_how_much = len(typed)-3
+    if cut_how_much < 7:
+        return string
+    if string.startswith(typed) and len(string)> len(typed):
+        return f"{string[:3]}\N{HORIZONTAL ELLIPSIS}{string[cut_how_much:]}"
+    return string
+
+def _elide(string:str, typed:str, min_elide=30)->str:
+    return _elide_typed(
+        _elide_point(string, min_elide=min_elide),
+        typed, min_elide=min_elide)
+
 
 
 def _adjust_completion_text_based_on_context(text, body, offset):
@@ -89,7 +109,11 @@ class IPythonPTCompleter(Completer):
             cursor_col = document.cursor_position_col
             cursor_position = document.cursor_position
             offset = cursor_to_position(body, cursor_row, cursor_col)
-            yield from self._get_completions(body, offset, cursor_position, self.ipy_completer)
+            try:
+                yield from self._get_completions(body, offset, cursor_position, self.ipy_completer)
+            except Exception as e:
+                from traceback import print_tb
+                print_tb(e)
 
     @staticmethod
     def _get_completions(body, offset, cursor_position, ipyc):
@@ -128,9 +152,9 @@ class IPythonPTCompleter(Completer):
 
             adjusted_text = _adjust_completion_text_based_on_context(c.text, body, offset)
             if c.type == 'function':
-                yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text+'()'), display_meta=c.type+c.signature)
+                yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text+'()', body[c.start:c.end]), display_meta=c.type+c.signature)
             else:
-                yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text), display_meta=c.type)
+                yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text,  body[c.start:c.end]), display_meta=c.type)
 
 class IPythonPTLexer(Lexer):
     """
