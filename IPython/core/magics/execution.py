@@ -701,7 +701,7 @@ class ExecutionMagics(Magics):
         if filename.lower().endswith(('.ipy', '.ipynb')):
             with preserve_keys(self.shell.user_ns, '__file__'):
                 self.shell.user_ns['__file__'] = filename
-                self.shell.safe_execfile_ipy(filename)
+                self.shell.safe_execfile_ipy(filename, raise_exceptions=True)
             return
 
         # Control the response to exit() calls made by the script being run
