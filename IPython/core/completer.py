@@ -35,7 +35,7 @@ or using unicode completion:
 
 .. code::
 
-    \\greek small letter alpha<tab>
+    \\GREEK SMALL LETTER ALPHA<tab>
     α
 
 
@@ -121,6 +121,7 @@ import string
 import sys
 import time
 import unicodedata
+import uuid
 import warnings
 from contextlib import contextmanager
 from importlib import import_module
@@ -133,8 +134,9 @@ from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.core.oinspect import InspectColors
 from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
+from IPython.utils.path import ensure_dir_exists
 from IPython.utils.process import arg_split
-from traitlets import Bool, Enum, Int, observe
+from traitlets import Bool, Enum, Int, List as ListTrait, Unicode, default, observe
 from traitlets.config.configurable import Configurable
 
 import __main__
@@ -1003,8 +1005,6 @@ def _make_signature(completion)-> str:
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
-    _names = None
-
     @observe('greedy')
     def _greedy_changed(self, change):
         """update the splitter and readline delims when greedy is changed"""
@@ -1047,6 +1047,16 @@ class IPCompleter(Completer):
 
         When False [default]: the __all__ attribute is ignored
         """,
+    ).tag(config=True)
+
+    profile_completions = Bool(
+        default_value=False,
+        help="If True, emit profiling data for completion subsystem using cProfile."
+    ).tag(config=True)
+
+    profiler_output_dir = Unicode(
+        default_value=".completion_profiles",
+        help="Template for path at which to output profile data for completions."
     ).tag(config=True)
 
     @observe('limit_to__all__')
@@ -1125,6 +1135,12 @@ class IPCompleter(Completer):
 
         # This is set externally by InteractiveShell
         self.custom_completers = None
+
+        # This is a list of names of unicode characters that can be completed
+        # into their corresponding unicode value. The list is large, so we
+        # laziliy initialize it on first use. Consuming code should access this
+        # attribute through the `@unicode_names` property.
+        self._unicode_names = None
 
     @property
     def matchers(self):
@@ -1824,6 +1840,13 @@ class IPCompleter(Completer):
 
         seen = set()
         try:
+            if self.profile_completions:
+                import cProfile
+                profiler = cProfile.Profile()
+                profiler.enable()
+            else:
+                profiler = None
+
             for c in self._completions(text, offset, _timeout=self.jedi_compute_type_timeout/1000):
                 if c and (c in seen):
                     continue
@@ -1833,6 +1856,13 @@ class IPCompleter(Completer):
             """if completions take too long and users send keyboard interrupt,
             do not crash and return ASAP. """
             pass
+        finally:
+            if profiler is not None:
+                profiler.disable()
+                ensure_dir_exists(self.profiler_output_dir)
+                output_path = os.path.join(self.profiler_output_dir, str(uuid.uuid4()))
+                print("Writing profiler output to", output_path)
+                profiler.dump_stats(output_path)
 
     def _completions(self, full_text: str, offset: int, *, _timeout)->Iterator[Completion]:
         """
@@ -2078,19 +2108,17 @@ class IPCompleter(Completer):
         return text, _matches, origins, completions
         
     def fwd_unicode_match(self, text:str) -> Tuple[str, list]:
-        if self._names is None:
-            self._names = []
-            for c in range(0,0x10FFFF + 1):
-                try:
-                    self._names.append(unicodedata.name(chr(c)))
-                except ValueError:
-                    pass
 
         slashpos = text.rfind('\\')
         # if text starts with slash
         if slashpos > -1:
+            # PERF: It's important that we don't access self._unicode_names
+            # until we're inside this if-block. _unicode_names is lazily
+            # initialized, and it takes a user-noticeable amount of time to
+            # initialize it, so we don't want to initialize it unless we're
+            # actually going to use it.
             s = text[slashpos+1:]
-            candidates = [x for x in self._names if x.startswith(s)]
+            candidates = [x for x in self.unicode_names if x.startswith(s)]
             if candidates:
                 return s, candidates
             else:
@@ -2099,3 +2127,20 @@ class IPCompleter(Completer):
         # if text does not start with slash
         else:
             return u'', ()
+
+    @property
+    def unicode_names(self) -> List[str]:
+        """List of names of unicode code points that can be completed.
+
+        The list is lazily initialized on first access.
+        """
+        if self._unicode_names is None:
+            names = []
+            for c in range(0,0x10FFFF + 1):
+                try:
+                    names.append(unicodedata.name(chr(c)))
+                except ValueError:
+                    pass
+            self._unicode_names = names
+
+        return self._unicode_names
