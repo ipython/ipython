@@ -46,7 +46,7 @@ script:
   - |
     if [[ "$TRAVIS_PYTHON_VERSION" == "nightly" ]]; then
        # on nightly fake parso known the grammar
-       cp /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar37.txt /home/travis/virtualenv/python3.8-dev/lib/python3.8/site-packages/parso/python/grammar38.txt
+       cp /home/travis/virtualenv/python3.9-dev/lib/python3.9/site-packages/parso/python/grammar38.txt /home/travis/virtualenv/python3.9-dev/lib/python3.9/site-packages/parso/python/grammar39.txt
     fi
   - cd /tmp && iptest --coverage xml && cd -
   - pytest IPython
