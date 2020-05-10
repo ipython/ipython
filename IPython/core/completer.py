@@ -1442,7 +1442,7 @@ class IPCompleter(Completer):
             else:
                 return []
 
-    def python_matches(self, text:str)->list[str]:
+    def python_matches(self, text:str)->List[str]:
         """Match attributes or global python names"""
         if "." in text:
             try:
