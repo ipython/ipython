@@ -33,6 +33,19 @@ from nose.tools import assert_in, assert_not_in
 # Test functions
 # -----------------------------------------------------------------------------
 
+def test_unicode_range():
+    """
+    Test that the ranges we test for unicode names give the same number of
+    results than testing the full length.
+    """
+    from IPython.core.completer import  _unicode_name_compute, _UNICODE_RANGES
+
+    expected_list = _unicode_name_compute([(0, 0x110000)])
+    test = _unicode_name_compute(_UNICODE_RANGES)
+
+    assert len(expected_list) == len(test)
+    assert len(expected_list) == 131808
+
 
 @contextmanager
 def greedy_completion():
@@ -230,7 +243,7 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
         text, matches = ip.Completer.latex_matches("\\really_i_should_match_nothing")
         nt.assert_equal(text, "")
-        nt.assert_equal(matches, [])
+        nt.assert_equal(matches, ())
 
     def test_back_latex_completion(self):
         ip = get_ipython()

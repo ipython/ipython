@@ -156,6 +156,14 @@ except ImportError:
 # Globals
 #-----------------------------------------------------------------------------
 
+# ranges where we have most of the valid unicode names. We could be more finer
+# grained but is it worth it for performace  While unicode have character in the
+# rage 0, 0x110000, we seem to have name for about 10% of those. (131808 as I
+# write this). With below range we cover them all, with a density of ~67%
+# biggest next gap we consider only adds up about 1% density and there are 600
+# gaps that would need hard coding.
+_UNICODE_RANGES = [(32, 0x2fa1e), (0xe0001, 0xe01f0)]
+
 # Public API
 __all__ = ['Completer','IPCompleter']
 
@@ -2092,7 +2100,7 @@ class IPCompleter(Completer):
                 full_text = line_buffer
             completions = self._jedi_matches(
                 cursor_pos, cursor_line, full_text)
-                
+
         if self.merge_completions:
             matches = []
             for matcher in self.matchers:
@@ -2195,6 +2203,16 @@ class IPCompleter(Completer):
                     names.append(unicodedata.name(chr(c)))
                 except ValueError:
                     pass
-            self._unicode_names = names
+            self._unicode_names = _unicode_name_compute(_UNICODE_RANGES)
 
         return self._unicode_names
+
+def _unicode_name_compute(ranges:List[Tuple[int,int]]) -> List[str]:
+    names = []
+    for start,stop in ranges:
+        for c in range(start, stop) :
+            try:
+                names.append(unicodedata.name(chr(c)))
+            except ValueError:
+                pass
+    return names
