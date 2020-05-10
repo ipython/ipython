@@ -1594,7 +1594,7 @@ class IPCompleter(Completer):
             # Remove used named arguments from the list, no need to show twice
             for namedArg in set(namedArgs) - usedNamedArgs:
                 if namedArg.startswith(text):
-                    argMatches.append(u"%s=" %namedArg)
+                    argMatches.append("%s=" %namedArg)
         except:
             pass
 
@@ -1734,8 +1734,8 @@ class IPCompleter(Completer):
         return '', []
 
 
-    def latex_matches(self, text):
-        u"""Match Latex syntax for unicode characters.
+    def latex_matches(self, text:str) -> Tuple[str, Sequence[str]]:
+        """Match Latex syntax for unicode characters.
 
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
         """
@@ -1752,7 +1752,7 @@ class IPCompleter(Completer):
                 matches = [k for k in latex_symbols if k.startswith(s)]
                 if matches:
                     return s, matches
-        return u'', []
+        return '', ()
 
     def dispatch_custom_completer(self, text):
         if not self.custom_completers:
@@ -2132,7 +2132,7 @@ class IPCompleter(Completer):
 
         return _CompleteResult(text, _matches, origins, completions)
         
-    def fwd_unicode_match(self, text:str) -> Tuple[str, Iterable[str]]:
+    def fwd_unicode_match(self, text:str) -> Tuple[str, Sequence[str]]:
         """
 
         Forward match a string starting with a backslash with a list of
