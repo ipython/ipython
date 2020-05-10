@@ -42,9 +42,15 @@ def test_unicode_range():
 
     expected_list = _unicode_name_compute([(0, 0x110000)])
     test = _unicode_name_compute(_UNICODE_RANGES)
+    len_exp = len(expected_list)
+    len_test = len(test)
 
-    assert len(expected_list) == len(test)
-    assert len(expected_list) == 131808
+    # do not inline the len() or on error pytest will try to print the 130 000 +
+    # elements.
+    assert len_exp == len_test
+
+    # fail if new unicode symbols have been added. 
+    assert len_exp <= 131808
 
 
 @contextmanager
