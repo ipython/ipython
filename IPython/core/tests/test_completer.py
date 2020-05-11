@@ -33,6 +33,25 @@ from nose.tools import assert_in, assert_not_in
 # Test functions
 # -----------------------------------------------------------------------------
 
+def test_unicode_range():
+    """
+    Test that the ranges we test for unicode names give the same number of
+    results than testing the full length.
+    """
+    from IPython.core.completer import  _unicode_name_compute, _UNICODE_RANGES
+
+    expected_list = _unicode_name_compute([(0, 0x110000)])
+    test = _unicode_name_compute(_UNICODE_RANGES)
+    len_exp = len(expected_list)
+    len_test = len(test)
+
+    # do not inline the len() or on error pytest will try to print the 130 000 +
+    # elements.
+    assert len_exp == len_test
+
+    # fail if new unicode symbols have been added. 
+    assert len_exp <= 131808
+
 
 @contextmanager
 def greedy_completion():
@@ -212,9 +231,8 @@ class TestCompleter(unittest.TestCase):
         keys = random.sample(latex_symbols.keys(), 10)
         for k in keys:
             text, matches = ip.complete(k)
-            nt.assert_equal(len(matches), 1)
             nt.assert_equal(text, k)
-            nt.assert_equal(matches[0], latex_symbols[k])
+            nt.assert_equal(matches, [latex_symbols[k]])
         # Test a more complex line
         text, matches = ip.complete("print(\\alpha")
         nt.assert_equal(text, "\\alpha")
@@ -231,7 +249,7 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
         text, matches = ip.Completer.latex_matches("\\really_i_should_match_nothing")
         nt.assert_equal(text, "")
-        nt.assert_equal(matches, [])
+        nt.assert_equal(matches, ())
 
     def test_back_latex_completion(self):
         ip = get_ipython()
@@ -244,14 +262,14 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
 
         name, matches = ip.complete("\\Ⅴ")
-        nt.assert_equal(matches, ["\\ROMAN NUMERAL FIVE"])
+        nt.assert_equal(matches, ("\\ROMAN NUMERAL FIVE",))
 
     def test_forward_unicode_completion(self):
         ip = get_ipython()
 
         name, matches = ip.complete("\\ROMAN NUMERAL FIVE")
-        nt.assert_equal(len(matches), 1)
-        nt.assert_equal(matches[0], "Ⅴ")
+        nt.assert_equal(matches, ["Ⅴ"] ) # This is not a V
+        nt.assert_equal(matches, ["\u2164"] ) # same as above but explicit.
 
     @nt.nottest  # now we have a completion for \jmath
     @decorators.knownfailureif(

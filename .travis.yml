@@ -40,6 +40,7 @@ install:
   - pip install trio curio --upgrade --upgrade-strategy eager
   - pip install pytest 'matplotlib !=3.2.0' mypy
   - pip install codecov check-manifest --upgrade
+  - pip install mypy
 
 script:
   - check-manifest
@@ -50,7 +51,8 @@ script:
     fi
   - cd /tmp && iptest --coverage xml && cd -
   - pytest IPython
-  - mypy --ignore-missing-imports -m IPython.terminal.ptutils
+  - mypy IPython/terminal/ptutils.py
+  - mypy IPython/core/c*.py
   # On the latest Python (on Linux) only, make sure that the docs build.
   - |
     if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
