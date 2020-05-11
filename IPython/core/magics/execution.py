@@ -672,8 +672,8 @@ class ExecutionMagics(Magics):
             modulename = opts["m"][0]
             modpath = find_mod(modulename)
             if modpath is None:
-                warn('%r is not a valid modulename on sys.path'%modulename)
-                return
+                msg = '%r is not a valid modulename on sys.path'%modulename
+                raise Exception(msg)
             arg_lst = [modpath] + arg_lst
         try:
             fpath = None # initialize to make sure fpath is in scope later
