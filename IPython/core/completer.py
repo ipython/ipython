@@ -2021,8 +2021,8 @@ class IPCompleter(Completer):
         # if text is either None or an empty string, rely on the line buffer
         if (not line_buffer) and full_text:
             line_buffer = full_text.split('\n')[cursor_line]
-        if not text:
-            text = self.splitter.split_line(line_buffer, cursor_pos)
+        if not text: # issue #11508: check line_buffer before calling split_line
+            text = self.splitter.split_line(line_buffer, cursor_pos)  if line_buffer else ''
 
         if self.backslash_combining_completions:
             # allow deactivation of these on windows.
