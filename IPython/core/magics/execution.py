@@ -680,9 +680,8 @@ class ExecutionMagics(Magics):
             fpath = arg_lst[0]
             filename = file_finder(fpath)
         except IndexError:
-            warn('you must provide at least a filename.')
-            print('\n%run:\n', oinspect.getdoc(self.run))
-            return
+            msg = 'you must provide at least a filename.'
+            raise Exception(msg)
         except IOError as e:
             try:
                 msg = str(e)
@@ -690,8 +689,7 @@ class ExecutionMagics(Magics):
                 msg = e.message
             if os.name == 'nt' and re.match(r"^'.*'$",fpath):
                 warn('For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"')
-            error(msg)
-            return
+            raise Exception(msg)
         except TypeError:
             if fpath in sys.meta_path:
                 filename = ""
