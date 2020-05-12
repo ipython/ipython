@@ -120,21 +120,13 @@ class PrefilterManager(Configurable):
     def __init__(self, shell=None, **kwargs):
         super(PrefilterManager, self).__init__(shell=shell, **kwargs)
         self.shell = shell
-        self.init_transformers()
+        self._transformers = []
         self.init_handlers()
         self.init_checkers()
 
     #-------------------------------------------------------------------------
     # API for managing transformers
     #-------------------------------------------------------------------------
-
-    def init_transformers(self):
-        """Create the default transformers."""
-        self._transformers = []
-        for transformer_cls in _default_transformers:
-            transformer_cls(
-                shell=self.shell, prefilter_manager=self, parent=self
-            )
 
     def sort_transformers(self):
         """Sort the transformers by priority.
@@ -686,9 +678,6 @@ class EmacsHandler(PrefilterHandler):
 # Defaults
 #-----------------------------------------------------------------------------
 
-
-_default_transformers = [
-]
 
 _default_checkers = [
     EmacsChecker,
