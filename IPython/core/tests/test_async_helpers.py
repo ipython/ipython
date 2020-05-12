@@ -8,7 +8,7 @@ import nose.tools as nt
 from textwrap import dedent, indent
 from unittest import TestCase
 from IPython.testing.decorators import skip_without
-
+import sys
 
 iprc = lambda x: ip.run_cell(dedent(x)).raise_error()
 iprc_nr = lambda x: ip.run_cell(dedent(x))
@@ -275,10 +275,13 @@ class AsyncTest(TestCase):
         await sleep(0.1)
         """
         )
-
-    def test_memory_error(self):
-        with self.assertRaises(MemoryError):
-            iprc("(" * 200 + ")" * 200)
+    
+    if sys.version_info < (3,9):
+        # new pgen parser in 3.9 does not raise MemoryError on too many nested
+        # parens anymore
+        def test_memory_error(self):
+            with self.assertRaises(MemoryError):
+                iprc("(" * 200 + ")" * 200)
 
     @skip_without('curio')
     def test_autoawait_curio(self):
