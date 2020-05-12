@@ -173,15 +173,121 @@ def real_name(magic_func):
     return getattr(magic_func, 'argcmd_name', magic_name)
 
 
+class MagicArgumentDecoratedFunction:
+    """Proxy function object returned by @magic_arguments.
+    """
+    # XXX: This is just for backwards compat with the tests.
+    has_arguments = True
+
+    def __init__(self, func):
+        self._func = func
+
+        self._decorators = []
+        self._name = None
+
+        # Argparse parser. This is lazily initialized on first use.
+        self._argparse_parser = None
+        self._parser_kwargs = {}
+
+        self._lazy_doc = None
+
+    def __call__(self, *args, **kwargs):
+        return self._func(*args, **kwargs)
+
+    def __get__(self, instance, owner):
+        return MagicArgumentDecoratedMethod(self, instance)
+
+    def __getattr__(self, attr):
+        return getattr(self._func, attr)
+
+    def add_decorator(self, decorator):
+        self._decorators.append(decorator)
+
+    def set_kwds(self, kwds):
+        self._parser_kwargs = kwds
+
+    def set_name(self, name):
+        self._name = name
+
+    @property
+    def __doc__(self):
+        if self._lazy_doc is None:
+            self._lazy_doc = self.parser.format_help()
+        return self._lazy_doc
+
+    @__doc__.setter
+    def __doc__(self, value):
+        self._lazy_doc = value
+
+    @__doc__.deleter
+    def __doc__(self):
+        self._lazy_doc = None
+
+    @property
+    def decorators(self):
+        return self._decorators
+
+    @property
+    def parser(self):
+        if self._argparse_parser is None:
+            self._argparse_parser = self._construct_parser()
+        return self._argparse_parser
+
+    # XXX: This is just for backwards compat with the tests
+    @property
+    def argcmd_name(self):
+        if self._name is None:
+            raise AttributeError('argcmd_name')
+        return self._name
+
+    def _construct_parser(self):
+        kwargs = dict(self._parser_kwargs)
+        kwargs.setdefault('description', getattr(self._func, '__doc__', None))
+
+        # TODO: Clean this up
+        if self._name is not None:
+            name = self._name
+        else:
+            name = self._func.__name__
+            if name.startswith('magic_'):
+                name = name[len('magic_'):]
+
+        parser = MagicArgumentParser(name, **kwargs)
+
+        # Reverse the list of decorators in order to apply them in the
+        # order in which they appear in the source.
+        group = None
+        for deco in reversed(self._decorators):
+            result = deco.add_to_parser(parser, group)
+            if result is not None:
+                group = result
+
+        return parser
+
+
+class MagicArgumentDecoratedMethod:
+
+    def __init__(self, func, instance):
+        self._func = func
+        self._instance = instance
+
+    def __getattr__(self, attr):
+        return getattr(self._func, attr)
+
+    def __call__(self, *args, **kwargs):
+        return self._func(self._instance, *args, **kwargs)
+
+
 class ArgDecorator(object):
     """ Base class for decorators to add ArgumentParser information to a method.
     """
 
     def __call__(self, func):
-        if not getattr(func, 'has_arguments', False):
-            func.has_arguments = True
-            func.decorators = []
-        func.decorators.append(self)
+        if not isinstance(func, MagicArgumentDecoratedFunction):
+            func = MagicArgumentDecoratedFunction(func)
+
+        func.add_decorator(self)
+
         return func
 
     def add_to_parser(self, parser, group):
@@ -199,15 +305,9 @@ class magic_arguments(ArgDecorator):
         self.name = name
 
     def __call__(self, func):
-        if not getattr(func, 'has_arguments', False):
-            func.has_arguments = True
-            func.decorators = []
-        if self.name is not None:
-            func.argcmd_name = self.name
-        # This should be the first decorator in the list of decorators, thus the
-        # last to execute. Build the parser.
-        func.parser = construct_parser(func)
-        return func
+        wrapped = super().__call__(func)
+        wrapped.set_name(self.name)
+        return wrapped
 
 
 class ArgMethodWrapper(ArgDecorator):
@@ -269,8 +369,8 @@ class kwds(ArgDecorator):
         self.kwds = kwds
 
     def __call__(self, func):
-        func = super(kwds, self).__call__(func)
-        func.argcmd_kwds = self.kwds
+        func = super().__call__(func)
+        func.set_kwds(self.kwds)
         return func
 
 

@@ -21,6 +21,7 @@ from . import oinspect
 from .error import UsageError
 from .inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
 from decorator import decorator
+from .magic_arguments import MagicArgumentDecoratedFunction
 from ..utils.ipstruct import Struct
 from ..utils.process import arg_split
 from ..utils.text import dedent
@@ -186,7 +187,10 @@ def _method_magic_marker(magic_kind):
     def magic_deco(arg):
         call = lambda f, *a, **k: f(*a, **k)
 
-        if callable(arg):
+        if isinstance(arg, MagicArgumentDecoratedFunction):
+            record_magic(magics, magic_kind, arg.__name__, arg.__name__)
+            retval = arg
+        elif callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
             name = func.__name__
