@@ -25,6 +25,7 @@ def inputhook(context):
                         'variable. Deactivate Qt5 code.'
                     )
                 return
+        QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
         _appref = app = QtGui.QApplication([" "])
     event_loop = QtCore.QEventLoop(app)
 
