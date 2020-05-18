@@ -421,6 +421,14 @@ def test_render_signature_long():
         long_function.__name__,
     )
     nt.assert_in(sig, [
+        # Python >=3.9
+        '''\
+long_function(
+    a_really_long_parameter: int,
+    and_another_long_one: bool = False,
+    let_us_make_sure_this_is_looong: Optional[str] = None,
+) -> bool\
+''',
         # Python >=3.7
         '''\
 long_function(
