@@ -162,7 +162,7 @@ except ImportError:
 # write this). With below range we cover them all, with a density of ~67%
 # biggest next gap we consider only adds up about 1% density and there are 600
 # gaps that would need hard coding.
-_UNICODE_RANGES = [(32, 0x2fa1e), (0xe0001, 0xe01f0)]
+_UNICODE_RANGES = [(32, 0x3134b), (0xe0001, 0xe01f0)]
 
 # Public API
 __all__ = ['Completer','IPCompleter']
