@@ -247,7 +247,7 @@ VI input mode to ``Normal`` when in insert mode::
 
 For more information on filters and what you can do with the ``event`` object,
 `see the prompt_toolkit docs
-<http://python-prompt-toolkit.readthedocs.io/en/latest/pages/building_prompts.html#adding-custom-key-bindings>`__.
+<https://python-prompt-toolkit.readthedocs.io/en/latest/pages/asking_for_input.html#adding-custom-key-bindings>`__.
 
 
 Enter to execute
