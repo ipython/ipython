@@ -13,7 +13,7 @@ deprecated in 7.0.
 from codeop import compile_command
 import re
 import tokenize
-from typing import List, Tuple, Union
+from typing import List, Tuple, Optional, Any
 import warnings
 
 _indent_re = re.compile(r'^[ \t]+')
@@ -100,7 +100,7 @@ def cell_magic(lines):
             % (magic_name, first_line, body)]
 
 
-def _find_assign_op(token_line) -> Union[int, None]:
+def _find_assign_op(token_line) -> Optional[int]:
     """Get the index of the first assignment in the line ('=' not inside brackets)
 
     Note: We don't try to support multiple special assignment (a = b = %foo)
@@ -115,6 +115,7 @@ def _find_assign_op(token_line) -> Union[int, None]:
         elif s in {')', ']', '}'}:
             if paren_level > 0:
                 paren_level -= 1
+    return None
 
 def find_end_of_continued_line(lines, start_line: int):
     """Find the last line of a line explicitly extended using backslashes.
@@ -475,8 +476,10 @@ def make_tokens_by_line(lines:List[str]):
     # lines or comments. This is intentional - see https://bugs.python.org/issue17061
     # We want to group the former case together but split the latter, so we
     # track parentheses level, similar to the internals of tokenize.
-    NEWLINE, NL = tokenize.NEWLINE, tokenize.NL
-    tokens_by_line = [[]]
+
+    #   reexported from token on 3.7+
+    NEWLINE, NL = tokenize.NEWLINE, tokenize.NL  # type: ignore
+    tokens_by_line:List[List[Any]] = [[]]
     if len(lines) > 1 and not lines[0].endswith(('\n', '\r', '\r\n', '\x0b', '\x0c')):
         warnings.warn("`make_tokens_by_line` received a list of lines which do not have lineending markers ('\\n', '\\r', '\\r\\n', '\\x0b', '\\x0c'), behavior will be unspecified")
     parenlev = 0
@@ -661,7 +664,7 @@ class TransformerManager:
             # We're in a multiline string or expression
             return 'incomplete', find_last_indent(lines)
 
-        newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER}
+        newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER} # type: ignore
 
         # Pop the last line which only contains DEDENTs and ENDMARKER
         last_token_line = None

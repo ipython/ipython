@@ -2,4 +2,6 @@
 This package contains all third-party modules bundled with IPython.
 """
 
-__all__ = []
+from typing import List
+
+__all__: List[str] = []
