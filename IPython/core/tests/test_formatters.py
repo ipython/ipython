@@ -2,6 +2,7 @@
 
 import warnings
 from math import pi
+import unittest
 
 try:
     import numpy
@@ -13,7 +14,7 @@ from IPython import get_ipython
 from traitlets.config import Config
 from IPython.core.formatters import (
     PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key,
-    DisplayFormatter, JSONFormatter,
+    DisplayFormatter, JSONFormatter, BaseFormatter
 )
 from IPython.utils.io import capture_output
 
@@ -531,3 +532,41 @@ def test_repr_mime_failure():
     obj = BadReprMime()
     d, md = f.format(obj)
     nt.assert_in('text/plain', d)
+
+
+def test_nonhashable_type():
+    """Test BaseFormatter for objects of non-hashable type
+
+    See: https://github.com/ipython/ipython/issues/12320
+
+    """
+
+    # Non-hashable by having None hash
+    class Meta1(type):
+        __hash__ = None
+
+    class Case1(metaclass=Meta1):
+        pass
+
+    f = BaseFormatter()
+
+    unittest.TestCase().assertRegex(
+        f(Case1()),
+        r"<IPython.core.tests.test_formatters.test_nonhashable_type.<locals>.Case1 object at 0x\S+>"
+    )
+
+    # Non-hashable because the hash function raises TypeError
+    class Meta2(type):
+
+        def __hash__(self):
+            raise TypeError()
+
+    class Case2(metaclass=Meta2):
+        pass
+
+    unittest.TestCase().assertRegex(
+        f(Case2()),
+        r"<IPython.core.tests.test_formatters.test_nonhashable_type.<locals>.Case2 object at 0x\S+>"
+    )
+
+    return

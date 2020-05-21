@@ -470,3 +470,39 @@ def test_custom_repr():
     nt.assert_in("OrderedCounter(OrderedDict", pretty.pretty(oc))
 
     nt.assert_equal(pretty.pretty(MySet()), 'mine')
+
+
+def test_nonhashable_type():
+    """Test pretty printing of objects of non-hashable type
+
+    See: https://github.com/ipython/ipython/issues/12320
+
+    """
+
+    # Non-hashable by having None hash
+    class Meta1(type):
+        __hash__ = None
+
+    class Case1(metaclass=Meta1):
+        pass
+
+    unittest.TestCase().assertRegex(
+        pretty.pretty(Case1()),
+        r"<IPython.lib.tests.test_pretty.test_nonhashable_type.<locals>.Case1 at 0x\S+>"
+    )
+
+    # Non-hashable because the hash function raises TypeError
+    class Meta2(type):
+
+        def __hash__(self):
+            raise TypeError()
+
+    class Case2(metaclass=Meta2):
+        pass
+
+    unittest.TestCase().assertRegex(
+        pretty.pretty(Case2()),
+        r"<IPython.lib.tests.test_pretty.test_nonhashable_type.<locals>.Case2 at 0x\S+>"
+    )
+
+    return

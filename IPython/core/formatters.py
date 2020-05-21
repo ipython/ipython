@@ -422,9 +422,11 @@ class BaseFormatter(Configurable):
                 return self.deferred_printers[typ_key]
         else:
             for cls in pretty._get_mro(typ):
-                if cls in self.type_printers or self._in_deferred_types(cls):
+                try:
                     return self.type_printers[cls]
-        
+                except (KeyError, TypeError):
+                    pass
+
         # If we have reached here, the lookup failed.
         raise KeyError("No registered printer for {0!r}".format(typ))
 
