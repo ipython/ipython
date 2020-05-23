@@ -20,6 +20,16 @@ requires utilities which are not available under Windows."""
 import os
 import sys
 
+import setuptools
+from setuptools import setup
+from setuptools.command.sdist import sdist
+
+from setupbase import (build_scripts_entrypt, check_package_data_first,
+                       find_data_files, find_entry_points, find_package_data,
+                       find_packages, git_prebuild, install_lib_symlink,
+                       install_scripts_for_symlink, install_symlinked,
+                       setup_args, target_update, unsymlink)
+
 # **Python version check**
 #
 # This check is also made in IPython/__init__, don't forget to update both when
@@ -60,27 +70,11 @@ Python {py} detected.
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
-if os.path.exists('MANIFEST'): os.remove('MANIFEST')
+if os.path.exists('MANIFEST'):
+    os.remove('MANIFEST')
 
-from distutils.core import setup
 
-# Our own imports
-from setupbase import target_update
 
-from setupbase import (
-    setup_args,
-    find_packages,
-    find_package_data,
-    check_package_data_first,
-    find_entry_points,
-    build_scripts_entrypt,
-    find_data_files,
-    git_prebuild,
-    install_symlinked,
-    install_lib_symlink,
-    install_scripts_for_symlink,
-    unsymlink,
-)
 
 isfile = os.path.isfile
 pjoin = os.path.join
@@ -133,11 +127,6 @@ setup_args['packages'] = packages
 setup_args['package_data'] = package_data
 setup_args['data_files'] = data_files
 
-#---------------------------------------------------------------------------
-# custom distutils commands
-#---------------------------------------------------------------------------
-# imports here, so they are after setuptools import if there was one
-from distutils.command.sdist import sdist
 
 setup_args['cmdclass'] = {
     'build_py': \
@@ -154,15 +143,6 @@ setup_args['cmdclass'] = {
 # Handle scripts, dependencies, and setuptools specific things
 #---------------------------------------------------------------------------
 
-# For some commands, use setuptools.  Note that we do NOT list install here!
-# If you want a setuptools-enhanced install, just run 'setupegg.py install'
-needs_setuptools = {'develop', 'release', 'bdist_egg', 'bdist_rpm',
-           'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
-           'egg_info', 'easy_install', 'upload', 'install_egg_info',
-          }
-
-if len(needs_setuptools.intersection(sys.argv)) > 0:
-    import setuptools
 
 # This dict is used for passing extra arguments that are setuptools
 # specific to setup
