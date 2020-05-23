@@ -19,27 +19,29 @@ To create the blank config files, run::
     ipython profile create [profilename]
 
 If you leave out the profile name, the files will be created for the
-``default`` profile (see :ref:`profiles`). These will typically be
-located in :file:`~/.ipython/profile_default/`, and will be named
-:file:`ipython_config.py`, :file:`ipython_notebook_config.py`, etc.
-The settings in :file:`ipython_config.py` apply to all IPython commands.
+``default`` profile (see :ref:`profiles`). These will typically be located in
+:file:`~/.ipython/profile_default/`, and will be named
+:file:`ipython_config.py`, for hitorical reasons you may also find fiels
+named with IPytho nprefix instead of Jupyter:
+:file:`ipython_notebook_config.py`, etc. The settings in
+:file:`ipython_config.py` apply to all IPython commands.
 
-The files typically start by getting the root config object::
-
-    c = get_config()
+by default, configuration files are fully featured Python scripts that can
+execute arbitrary code, the main usage is to set value on the config object
+``c`` which exist in your configuration file.
 
 You can then configure class attributes like this::
 
     c.InteractiveShell.automagic = False
 
 Be careful with spelling--incorrect names will simply be ignored, with
-no error.
+no error. 
 
-To add to a collection which may have already been defined elsewhere,
-you can use methods like those found on lists, dicts and sets: append,
-extend, :meth:`~traitlets.config.LazyConfigValue.prepend` (like
-extend, but at the front), add and update (which works both for dicts
-and sets)::
+To add to a collection which may have already been defined elsewhere or have
+default values, you can use methods like those found on lists, dicts and
+sets: append, extend, :meth:`~traitlets.config.LazyConfigValue.prepend` (like
+extend, but at the front), add and update (which works both for dicts and
+sets)::
 
     c.InteractiveShellApp.extensions.append('Cython')
 
@@ -52,7 +54,6 @@ Example config file
 ::
 
     # sample ipython_config.py
-    c = get_config()
 
     c.TerminalIPythonApp.display_banner = True
     c.InteractiveShellApp.log_level = 20
@@ -78,6 +79,38 @@ Example config file
      ('la', 'ls -al')
     ]
 
+Json Configuration files
+------------------------
+
+in case where executability of configuration can be problematic, or
+configurations need to be modified programatically, IPython also support a
+limited set of functionalities via ``.json`` config files. 
+
+You can defined most of the configuration options via a json object which
+hierarchy represent the value you woudl normally set on the ``c`` object of
+``.py`` configuration files. The following ``ipython_config.json`` file::
+
+    {
+        "InteractiveShell": {
+            "colors": "LightBG",
+            "editor": "nano"
+        },
+        "InteractiveShellApp": {
+            "extensions": [
+                "myextension"
+            ]
+        }
+    }
+
+Is equivalent to the following ``ipython_config.py``::
+
+    c.InteractiveShellApp.extensions = [
+        'myextension'
+    ]
+
+    c.InteractiveShell.colors = 'LightBG'
+    c.InteractiveShell.editor = 'nano'
+
 
 Command line arguments
 ----------------------
@@ -94,7 +127,7 @@ Many frequently used options have short aliases and flags, such as
 To see all of these abbreviated options, run::
 
     ipython --help
-    ipython notebook --help
+    jupyter notebook --help
     # etc.
 
 Options specified at the command line, in either format, override
@@ -163,3 +196,38 @@ the directory :file:`~/.ipython/` by default.
 
 To see where IPython is looking for the IPython directory, use the command
 ``ipython locate``, or the Python function :func:`IPython.paths.get_ipython_dir`.
+
+
+Systemwide configuration
+========================
+
+It can be usefull to deploy systemwide ipython or ipykernel configuration
+when managing environment for many users. At startup time IPython and
+IPykernel will search for configuration file in multiple systemwide
+locations, mainly:
+
+  - ``/etc/ipython/``
+  - ``/usr/local/etc/ipython/``
+
+When the global install is a standalone python distribution it may also
+search in distribution specific location, for example:
+
+  - ``$ANACONDA_LOCATION/etc/ipython/``
+
+In those locations, Terminal IPython will look for a file called
+``ipython_config.py`` and ``ipython_config.json``, ipykernel will look for
+``ipython_kernel_config.py`` and ``ipython_kernel.json``.
+
+Configuration files are loaded in order and merged with configuration on
+later locatoin taking precedence on earlier locations (that is to say a user
+can overwrite a systemwide configuration option).
+
+You can see all locations in which IPython is looking for configuration files
+by starting ipython in debug mode::
+
+    $ ipython --debug -c 'exit()'
+
+Identically with ipykernel though the command is currently blocking until
+this process is killed with ``Ctrl-\``::
+ 
+    $ python -m ipykernel --debug
