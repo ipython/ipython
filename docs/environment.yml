@@ -1,6 +1,6 @@
 name: ipython_docs
 dependencies:
-- python=3.6
+- python=3.8
 - setuptools>=18.5
 - sphinx>=1.8
 - sphinx_rtd_theme
@@ -8,8 +8,8 @@ dependencies:
 - nose
 - testpath
 - matplotlib
-- stack_data
 - pip:
     - docrepr
     - prompt_toolkit
     - ipykernel
+    - stack_data
