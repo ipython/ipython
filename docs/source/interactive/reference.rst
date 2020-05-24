@@ -54,7 +54,7 @@ Indicate that the following::
 
 is equivalent to::
 
-   $ ipython --TerminalIPythonApp.matplotlib='qt'
+   $ ipython --InteractiveShellApp.matplotlib='qt'
 
 Note that in the second form, you *must* use the equal sign, as the expression
 is evaluated as an actual Python assignment.  While in the above example the
