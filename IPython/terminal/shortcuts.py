@@ -130,8 +130,10 @@ def newline_or_execute_outer(shell):
         # if all we have after the cursor is whitespace: reformat current text
         # before cursor
         after_cursor = d.text[d.cursor_position:]
+        reformatted = False
         if not after_cursor.strip():
             reformat_text_before_cursor(b, d, shell)
+            reformatted = True
         if not (d.on_last_line or
                 d.cursor_position_row >= d.line_count - d.empty_line_count_at_the_end()
                 ):
@@ -142,7 +144,8 @@ def newline_or_execute_outer(shell):
             return
 
         if (status != 'incomplete') and b.accept_handler:
-            reformat_text_before_cursor(b, d, shell)
+            if not reformatted:
+                reformat_text_before_cursor(b, d, shell)
             b.validate_and_handle()
         else:
             if shell.autoindent:
