@@ -11,24 +11,24 @@ Many of IPython's classes have configurable attributes (see
 :doc:`options/index` for the list). These can be
 configured in several ways.
 
-Python config files
--------------------
+Python configuration files
+--------------------------
 
-To create the blank config files, run::
+To create the blank configuration files, run::
 
     ipython profile create [profilename]
 
 If you leave out the profile name, the files will be created for the
 ``default`` profile (see :ref:`profiles`). These will typically be located in
 :file:`~/.ipython/profile_default/`, and will be named
-:file:`ipython_config.py`, for hitorical reasons you may also find fiels
-named with IPytho nprefix instead of Jupyter:
+:file:`ipython_config.py`, for historical reasons you may also find files
+named with IPython prefix instead of Jupyter:
 :file:`ipython_notebook_config.py`, etc. The settings in
 :file:`ipython_config.py` apply to all IPython commands.
 
-by default, configuration files are fully featured Python scripts that can
-execute arbitrary code, the main usage is to set value on the config object
-``c`` which exist in your configuration file.
+By default, configuration files are fully featured Python scripts that can
+execute arbitrary code, the main usage is to set value on the configuration
+object ``c`` which exist in your configuration file.
 
 You can then configure class attributes like this::
 
@@ -48,8 +48,8 @@ sets)::
 .. versionadded:: 2.0
    list, dict and set methods for config values
 
-Example config file
-```````````````````
+Example configuration file
+``````````````````````````
 
 ::
 
@@ -79,15 +79,15 @@ Example config file
      ('la', 'ls -al')
     ]
 
-Json Configuration files
+JSON Configuration files
 ------------------------
 
-in case where executability of configuration can be problematic, or
-configurations need to be modified programatically, IPython also support a
-limited set of functionalities via ``.json`` config files. 
+In case where executability of configuration can be problematic, or
+configurations need to be modified programmatically, IPython also support a
+limited set of functionalities via ``.json`` configuration files. 
 
 You can defined most of the configuration options via a json object which
-hierarchy represent the value you woudl normally set on the ``c`` object of
+hierarchy represent the value you would normally set on the ``c`` object of
 ``.py`` configuration files. The following ``ipython_config.json`` file::
 
     {
@@ -201,7 +201,7 @@ To see where IPython is looking for the IPython directory, use the command
 Systemwide configuration
 ========================
 
-It can be usefull to deploy systemwide ipython or ipykernel configuration
+It can be useful to deploy systemwide ipython or ipykernel configuration
 when managing environment for many users. At startup time IPython and
 IPykernel will search for configuration file in multiple systemwide
 locations, mainly:
@@ -219,7 +219,7 @@ In those locations, Terminal IPython will look for a file called
 ``ipython_kernel_config.py`` and ``ipython_kernel.json``.
 
 Configuration files are loaded in order and merged with configuration on
-later locatoin taking precedence on earlier locations (that is to say a user
+later location taking precedence on earlier locations (that is to say a user
 can overwrite a systemwide configuration option).
 
 You can see all locations in which IPython is looking for configuration files
