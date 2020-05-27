@@ -2,6 +2,48 @@
  7.x Series
 ============
 
+.. _version 715:
+
+IPython 7.15
+============
+
+IPython 7.15 brings a number of bug fixes and user facing improvements.
+
+Noticeable changes:
+-------------------
+
+ - Long completion name have better elision in terminal :ghpull:`12284`
+ - We've started to test on Python 3.9 :ghpull:`12307` and fix some errors.
+ - Hi DPI scaling of figures when using qt eventloop :ghpull:`12314`
+ - Document the ability to have systemwide configuration for IPython.
+   :ghpull:`12328`
+ - Fix issues with input autoformatting :ghpull:`12336`
+
+
+Highlighted features
+--------------------
+
+Increase Tab Completion Menu Height
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In terminal IPython it is possible to increase the hight of the tab-completion
+menu. To do so set the value of
+:configtrait:`TerminalInteractiveShell.space_for_menu`, this will reserve more
+space at the bottom of the screen for various kind of menus in IPython including
+tab completion and searching in history. 
+
+Autoformat Code in the terminal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have a preferred code formatter, you can configure IPython to
+reformat your code. Set the value of
+:configtrait:`TerminalInteractiveShell.autoformatter` to for example ``'black'``
+and IPython will auto format your code when possible.
+
+
+
+
+
 .. _version 714:
 
 IPython 7.14
