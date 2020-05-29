@@ -18,6 +18,10 @@ Misc Noticeable changes:
  - Document the ability to have systemwide configuration for IPython.
    :ghpull:`12328`
  - Fix issues with input autoformatting :ghpull:`12336`
+ - ``IPython.core.debugger.Pdb`` is now interruptible (:ghpull:`12168`, in 7.14
+   but forgotten in release notes)
+ - Video HTML attributes (:ghpull:`12212`, in 7.14 but forgotten in release
+   notes)
 
 Reproducible Build
 ------------------
@@ -108,6 +112,17 @@ Misc Changes
  - support for unicode identifiers in ``?``/``??`` :ghpull:`12208`
  - add extra options to the ``Video`` Rich objects :ghpull:`12212`
  - add pretty-printing to ``SimpleNamespace`` :ghpull:`12230`
+
+IPython.core.debugger.Pdb is now interruptible
+----------------------------------------------
+
+A ``KeyboardInterrupt`` will now interrupt IPython's extended debugger, in order to make Jupyter able to interrupt it. (:ghpull:`12168`)
+
+Video HTML attributes
+---------------------
+
+Add an option to `IPython.display.Video` to change the attributes of the HTML display of the video (:ghpull:`12212`)
+
 
 Pending deprecated imports
 --------------------------
