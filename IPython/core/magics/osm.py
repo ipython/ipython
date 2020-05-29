@@ -498,7 +498,7 @@ class OSMagics(Magics):
         if tgt:
             self.cd(parameter_s)
         dir_s.insert(0,cwd)
-        return self.shell.magic('dirs')
+        return self.shell.run_line_magic('dirs', '')
 
     @line_magic
     def popd(self, parameter_s=''):
