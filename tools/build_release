@@ -2,6 +2,7 @@
 """IPython release build script.
 """
 import os
+import sys
 from shutil import rmtree
 
 from toollib import sh, pjoin, get_ipdir, cd, sdists, buildwheels
@@ -12,15 +13,10 @@ def build_release():
     ipdir = get_ipdir()
     cd(ipdir)
 
-    # Cleanup
-    for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
-              pjoin('docs', 'source', 'api', 'generated')]:
-        if os.path.isdir(d):
-            rmtree(d)
-
     # Build source and binary distros
     sh(sdists)
     buildwheels()
+    sh(' '.join([sys.executable, 'tools/retar.py', 'dist/*.gz']))
 
 if __name__ == '__main__':
     build_release()

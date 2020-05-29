@@ -98,12 +98,6 @@ then
 
 fi
 
-echo
-echo $BLUE"Attempting to build package..."$NOR
-
-tools/build_release
-rm dist/*
-
 if ask_section "Should we commit, tag, push... etc ? "
 then
    echo
@@ -160,14 +154,41 @@ fi
 
 if ask_section "Should we build and release ?"
 then
+    
+    echo $BLUE"going to set SOURCE_DATE_EPOCH"$NOR
+    echo $BLUE'export SOURCE_DATE_EPOCH=$(git show -s --format=%ct HEAD)'$NOR
+    echo $GREEN"Press enter to continue"$NOR
+    read
+
+    export SOURCE_DATE_EPOCH=$(git show -s --format=%ct HEAD)
+
+    echo $BLUE"SOURCE_DATE_EPOCH set to $SOURCE_DATE_EPOCH"$NOR
+    echo $GREEN"Press enter to continue"$NOR
+    read
+
+
 
     echo
     echo $BLUE"Attempting to build package..."$NOR
 
     tools/release
 
-    echo $RED
-    echo '$ shasum -a 256 dist/*'
+
+    echo $RED'$ shasum -a 256 dist/*'
+    shasum -a 256 dist/*
+    echo $NOR
+
+    echo $BLUE"We are going to rebuild, node the hash above, and compare them to the rebuild"$NOR
+    echo $GREEN"Press enter to continue"$NOR
+    read
+
+    echo
+    echo $BLUE"Attempting to build package..."$NOR
+
+    tools/release
+
+    echo $RED"Check the shasum for SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
+    echo $RED'$ shasum -a 256 dist/*'
     shasum -a 256 dist/*
     echo $NOR
 
