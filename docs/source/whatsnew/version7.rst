@@ -9,8 +9,8 @@ IPython 7.15
 
 IPython 7.15 brings a number of bug fixes and user facing improvements.
 
-Noticeable changes:
--------------------
+Misc Noticeable changes:
+------------------------
 
  - Long completion name have better elision in terminal :ghpull:`12284`
  - I've started to test on Python 3.9 :ghpull:`12307` and fix some errors.
@@ -22,7 +22,7 @@ Noticeable changes:
 Reproducible Build
 ------------------
 
-Starting with IPython 7.15 I am attempting to provide reproducible builds,
+Starting with IPython 7.15, I am attempting to provide reproducible builds,
 that is to say you should be able from the source tree to generate an sdist
 and wheel that are identical byte for byte with the publish version on PyPI.
 
@@ -52,6 +52,14 @@ cornerstone and recommended reads on this subject.
    to enable by default
    <https://gist.github.com/mbbx6spp/14b86437e794bffb4120>`_.
 
+NEP29: Last version to support Python 3.6
+-----------------------------------------
+
+IPython 7.15 will be the Last IPython version to officially support Python
+3.6, as stated by `NumPy Enhancement Proposal 29
+<https://numpy.org/neps/nep-0029-deprecation_policy.html>`_. Starting with
+next minor version of IPython I may stop testing on Python 3.6 and may stop
+publishing release artifacts that install on Python 3.6
 
 Highlighted features
 --------------------
