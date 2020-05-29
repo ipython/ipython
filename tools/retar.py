@@ -47,10 +47,10 @@ for i, m in enumerate(old):
     m2.type = m.type
     m2.linkname = m.linkname
     if m.isdir():
+        new.addfile(m2)
+    else:
         data = old.extractfile(m)
         new.addfile(m2, data)
-    else:
-        new.addfile(m2)
 new.close()
 old.close()
 
@@ -58,3 +58,7 @@ buf.seek(0)
 with open(sys.argv[1], "wb") as f:
     with gzip.GzipFile('', "wb", fileobj=f, mtime=timestamp) as gzf:
         gzf.write(buf.read())
+
+# checks the archive is valid.
+archive = tarfile.open(sys.argv[1])
+names = archive.getnames()
