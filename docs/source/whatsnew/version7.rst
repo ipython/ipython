@@ -2,6 +2,90 @@
  7.x Series
 ============
 
+.. _version 715:
+
+IPython 7.15
+============
+
+IPython 7.15 brings a number of bug fixes and user facing improvements.
+
+Misc Noticeable changes:
+------------------------
+
+ - Long completion name have better elision in terminal :ghpull:`12284`
+ - I've started to test on Python 3.9 :ghpull:`12307` and fix some errors.
+ - Hi DPI scaling of figures when using qt eventloop :ghpull:`12314`
+ - Document the ability to have systemwide configuration for IPython.
+   :ghpull:`12328`
+ - Fix issues with input autoformatting :ghpull:`12336`
+
+Reproducible Build
+------------------
+
+Starting with IPython 7.15, I am attempting to provide reproducible builds,
+that is to say you should be able from the source tree to generate an sdist
+and wheel that are identical byte for byte with the publish version on PyPI.
+
+I've only tested on a couple of machines so far and the process is relatively
+straightforward, so this mean that IPython not only have a deterministic build
+process, but also I have either removed, or put under control all effects of
+the build environments on the final artifact.  I encourage you to attempt the
+build process on your machine as documented in :ref:`core_developer_guide`
+and let me know if you do not obtain an identical artifact.
+
+While reproducible builds is critical to check that the supply chain of (open
+source) software has not been compromised, it can also help to speedup many
+of the build processes in large environment (conda, apt...) by allowing
+better caching of intermediate build steps.
+
+Learn more on `<https://reproducible-builds.org/>`_. `Reflections on trusting
+trust <https://dl.acm.org/doi/10.1145/358198.358210>`_ is also one of the
+cornerstone and recommended reads on this subject.
+
+.. note::
+
+   The build commit from which the sdist is generated is also `signed
+   <https://en.wikipedia.org/wiki/Digital_signature>`_, so you should be able to
+   check it has not been compromised, and the git repository is a `merkle-tree
+   <https://en.wikipedia.org/wiki/Merkle_tree>`_, you can check the consistency
+   with `git-fsck <https://git-scm.com/docs/git-fsck>`_ which you likely `want
+   to enable by default
+   <https://gist.github.com/mbbx6spp/14b86437e794bffb4120>`_.
+
+NEP29: Last version to support Python 3.6
+-----------------------------------------
+
+IPython 7.15 will be the Last IPython version to officially support Python
+3.6, as stated by `NumPy Enhancement Proposal 29
+<https://numpy.org/neps/nep-0029-deprecation_policy.html>`_. Starting with
+next minor version of IPython I may stop testing on Python 3.6 and may stop
+publishing release artifacts that install on Python 3.6
+
+Highlighted features
+--------------------
+
+Highlighted features are not new, but seem to not be widely known, this
+section will help you discover in more narrative form what you can do with
+IPython.
+
+Increase Tab Completion Menu Height
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In terminal IPython it is possible to increase the hight of the tab-completion
+menu. To do so set the value of
+:configtrait:`TerminalInteractiveShell.space_for_menu`, this will reserve more
+space at the bottom of the screen for various kind of menus in IPython including
+tab completion and searching in history. 
+
+Autoformat Code in the terminal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have a preferred code formatter, you can configure IPython to
+reformat your code. Set the value of
+:configtrait:`TerminalInteractiveShell.autoformatter` to for example ``'black'``
+and IPython will auto format your code when possible.
+
+
 .. _version 714:
 
 IPython 7.14
