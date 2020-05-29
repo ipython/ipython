@@ -13,15 +13,52 @@ Noticeable changes:
 -------------------
 
  - Long completion name have better elision in terminal :ghpull:`12284`
- - We've started to test on Python 3.9 :ghpull:`12307` and fix some errors.
+ - I've started to test on Python 3.9 :ghpull:`12307` and fix some errors.
  - Hi DPI scaling of figures when using qt eventloop :ghpull:`12314`
  - Document the ability to have systemwide configuration for IPython.
    :ghpull:`12328`
  - Fix issues with input autoformatting :ghpull:`12336`
 
+Reproducible Build
+------------------
+
+Starting with IPython 7.15 I am attempting to provide reproducible builds,
+that is to say you should be able from the source tree to generate an sdist
+and wheel that are identical byte for byte with the publish version on PyPI.
+
+I've only tested on a couple of machines so far and the process is relatively
+straightforward, so this mean that IPython not only have a deterministic build
+process, but also I have either removed, or put under control all effects of
+the build environments on the final artifact.  I encourage you to attempt the
+build process on your machine as documented in :ref:`core_developer_guide`
+and let me know if you do not obtain an identical artifact.
+
+While reproducible builds is critical to check that the supply chain of (open
+source) software has not been compromised, it can also help to speedup many
+of the build processes in large environment (conda, apt...) by allowing
+better caching of intermediate build steps.
+
+Learn more on `<https://reproducible-builds.org/>`_. `Reflections on trusting
+trust <https://dl.acm.org/doi/10.1145/358198.358210>`_ is also one of the
+cornerstone and recommended reads on this subject.
+
+.. note::
+
+   The build commit from which the sdist is generated is also `signed
+   <https://en.wikipedia.org/wiki/Digital_signature>`_, so you should be able to
+   check it has not been compromised, and the git repository is a `merkle-tree
+   <https://en.wikipedia.org/wiki/Merkle_tree>`_, you can check the consistency
+   with `git-fsck <https://git-scm.com/docs/git-fsck>`_ which you likely `want
+   to enable by default
+   <https://gist.github.com/mbbx6spp/14b86437e794bffb4120>`_.
+
 
 Highlighted features
 --------------------
+
+Highlighted features are not new, but seem to not be widely known, this
+section will help you discover in more narrative form what you can do with
+IPython.
 
 Increase Tab Completion Menu Height
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,9 +76,6 @@ If you have a preferred code formatter, you can configure IPython to
 reformat your code. Set the value of
 :configtrait:`TerminalInteractiveShell.autoformatter` to for example ``'black'``
 and IPython will auto format your code when possible.
-
-
-
 
 
 .. _version 714:
