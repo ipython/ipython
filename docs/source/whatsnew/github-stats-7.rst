@@ -1,7 +1,26 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
-Issues closed in 8.12
+Issues closed in 7.15
+---------------------
+
+GitHub stats for 2020/05/01 - 2020/05/29 (tag: 7.14.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 1 issues and merged 29 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.15>`__
+
+The following 6 authors contributed 31 commits.
+
+* Blake Griffin
+* Inception95
+* Marcio Mazza
+* Matthias Bussonnier
+* Talley Lambert
+* Thomas
+
+Issues closed in 7.14
 ---------------------
 
 
