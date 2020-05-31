@@ -688,17 +688,16 @@ python-profiler package from non-free.""")
             modulename = opts["m"][0]
             modpath = find_mod(modulename)
             if modpath is None:
-                warn('%r is not a valid modulename on sys.path'%modulename)
-                return
+                msg = '%r is not a valid modulename on sys.path'%modulename
+                raise Exception(msg)
             arg_lst = [modpath] + arg_lst
         try:
             fpath = None # initialize to make sure fpath is in scope later
             fpath = arg_lst[0]
             filename = file_finder(fpath)
         except IndexError:
-            warn('you must provide at least a filename.')
-            print('\n%run:\n', oinspect.getdoc(self.run))
-            return
+            msg = 'you must provide at least a filename.'
+            raise Exception(msg)
         except IOError as e:
             try:
                 msg = str(e)
@@ -706,13 +705,17 @@ python-profiler package from non-free.""")
                 msg = e.message
             if os.name == 'nt' and re.match(r"^'.*'$",fpath):
                 warn('For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"')
-            error(msg)
-            return
+            raise Exception(msg)
+        except TypeError:
+            if fpath in sys.meta_path:
+                filename = ""
+            else:
+                raise
 
         if filename.lower().endswith(('.ipy', '.ipynb')):
             with preserve_keys(self.shell.user_ns, '__file__'):
                 self.shell.user_ns['__file__'] = filename
-                self.shell.safe_execfile_ipy(filename)
+                self.shell.safe_execfile_ipy(filename, raise_exceptions=True)
             return
 
         # Control the response to exit() calls made by the script being run
