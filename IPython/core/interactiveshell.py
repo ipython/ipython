@@ -2211,11 +2211,20 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             return self.Completer.complete(text, line, cursor_pos)
 
-    def set_custom_completer(self, completer, pos=0):
+    def set_custom_completer(self, completer, pos=0) -> None:
         """Adds a new custom completer function.
 
         The position argument (defaults to 0) is the index in the completers
-        list where you want the completer to be inserted."""
+        list where you want the completer to be inserted.
+
+        `completer` should have the following signature::
+
+            def completion(self: Completer, text: string) -> List[str]:
+                raise NotImplementedError
+
+        It will be bound to the current Completer instance and pass some text
+        and return a list with current completions to suggest to the user.
+        """
 
         newcomp = types.MethodType(completer, self.Completer)
         self.Completer.custom_matchers.insert(pos,newcomp)
@@ -3310,6 +3319,9 @@ class InteractiveShell(SingletonConfigurable):
         False : successful execution.
         True : an error occurred.
         """
+        # special value to say that anything above is IPython and should be
+        # hidden.
+        __tracebackhide__ = "__ipython_bottom__"
         # Set our own excepthook in case the user code tries to call it
         # directly, so that the IPython crash handler doesn't get triggered
         old_excepthook, sys.excepthook = sys.excepthook, self.excepthook

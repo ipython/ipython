@@ -41,6 +41,16 @@ class TerminalPdb(Pdb):
                                         global_namespace={},
                                         parent=self.shell,
                                        )
+            # add a completer for all the do_ methods
+            methods_names = [m[3:] for m in dir(self) if m.startswith("do_")]
+
+            def gen_comp(self, text):
+                return [m for m in methods_names if m.startswith(text)]
+            import types
+            newcomp = types.MethodType(gen_comp, compl)
+            compl.custom_matchers.insert(0, newcomp)
+            # end add completer.
+
             self._ptcomp = IPythonPTCompleter(compl)
 
         options = dict(
