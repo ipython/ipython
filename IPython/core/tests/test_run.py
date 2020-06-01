@@ -402,6 +402,25 @@ tclass.py: deleting object: C-third
         
         nt.assert_equal(_ip.user_ns['answer'], 42)
 
+    def test_run_nb_error(self):
+        """Test %run notebook.ipynb error"""
+        from nbformat import v4, writes
+        # %run when a file name isn't provided
+        nt.assert_raises(Exception, _ip.magic, "run")
+
+        # %run when a file doesn't exist
+        nt.assert_raises(Exception, _ip.magic, "run foobar.ipynb")
+
+        # %run on a notebook with an error
+        nb = v4.new_notebook(
+           cells=[
+                v4.new_code_cell("0/0")
+            ]
+        )
+        src = writes(nb, version=4)
+        self.mktmp(src, ext='.ipynb')
+        nt.assert_raises(Exception, _ip.magic, "run %s" % self.fname)
+
     def test_file_options(self):
         src = ('import sys\n'
                'a = " ".join(sys.argv[1:])\n')
