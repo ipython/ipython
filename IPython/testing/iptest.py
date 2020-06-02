@@ -183,7 +183,8 @@ if not have['matplotlib']:
 
 # lib:
 sec = test_sections['lib']
-sec.exclude('kernel')
+sec.exclude('tests.test_latextools')
+#sec.exclude('kernel')
 if not have['pygments']:
     sec.exclude('tests.test_lexers')
 # We do this unconditionally, so that the test suite doesn't import
@@ -210,8 +211,6 @@ test_sections['terminal'].exclude('console')
 
 # extensions:
 sec = test_sections['extensions']
-# This is deprecated in favour of rpy2
-sec.exclude('rmagic')
 # autoreload does some strange stuff, so move it to its own test section
 sec.exclude('autoreload')
 sec.exclude('tests.test_autoreload')
