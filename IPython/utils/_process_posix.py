@@ -59,11 +59,12 @@ class ProcessHandler(object):
 
     @property
     def sh(self):
-        if self._sh is None:        
-            self._sh = pexpect.which('sh')
+        if self._sh is None:
+            shell_name = os.environ.get("SHELL", "sh")
+            self._sh = pexpect.which(shell_name)
             if self._sh is None:
-                raise OSError('"sh" shell not found')
-        
+                raise OSError('"{}" shell not found'.format(shell_name))
+
         return self._sh
 
     def __init__(self, logfile=None, read_timeout=None, terminate_timeout=None):
