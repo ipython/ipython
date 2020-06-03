@@ -81,6 +81,21 @@ then
 
 fi
 
+if ask_section "Generate API difference (using frapuccino)"
+then
+    echo $BLUE"Checking out $PREV_RELEASE"$NOR
+    git checkout $PREV_RELEASE
+    echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
+    frappuccino IPython --save IPython-$PREV_RELEASE.json
+    echo $BLUE"comming back to $BRANCH"$NOR
+    git checkout $BRANCH
+    echo $BLUE"comparing ..."$NOR
+    frappuccino IPython --compare IPython-$PREV_RELEASE.json
+    echo $GREEN"Use the above guideline to write an API changelog ..."$NOR
+    echo $GREEN"Press any keys to continue"$NOR
+    read
+fi
+
 echo "Cleaning repository"
 git clean -xfdi
 
