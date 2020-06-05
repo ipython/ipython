@@ -25,6 +25,7 @@ from IPython.utils.openpy import source_to_unicode
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.terminal import set_term_title
 from traitlets import Bool
+from warnings import warn
 
 
 @magics_class
@@ -48,8 +49,15 @@ class OSMagics(Magics):
                 winext = os.environ['pathext'].replace(';','|').replace('.','')
             except KeyError:
                 winext = 'exe|com|bat|py'
-            
-            self.execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
+            try:
+                self.execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
+            except re.error:
+                warn("Seems like your pathext environmental "
+                     "variable is malformed. Please check it to "
+                     "enable a proper handle of file extensions "
+                     "managed for your system")
+                winext = 'exe|com|bat|py'
+                self.execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
 
         # call up the chain
         super().__init__(shell=shell, **kwargs)
