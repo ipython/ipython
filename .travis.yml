@@ -39,6 +39,11 @@ install:
   - pip install pytest 'matplotlib !=3.2.0' mypy
   - pip install codecov check-manifest --upgrade
   - pip install mypy
+  - |
+    if [[ "$MASTER_DEPENDENCIES" == "True" ]]; then
+       pip install git+https://github.com/ipython/traitlets#egg=traitlets --force
+    fi
+
 
 script:
   - check-manifest
@@ -87,6 +92,9 @@ matrix:
       language: generic
       python: 3.7
       env: TRAVIS_PYTHON_VERSION=3.7
+    - arch: amd64
+      python: "3.8"
+      env: MASTER_DEPENDENCIES=True
   allow_failures:
     - python: nightly
 
