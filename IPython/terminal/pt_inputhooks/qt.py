@@ -45,7 +45,7 @@ def inputhook(context):
                                           QtCore.QSocketNotifier.Read)
         try:
             # connect the callback we care about before we turn it on
-            notifier.activated.connect(event_loop.exit)
+            notifier.activated.connect(lambda: event_loop.exit())
             notifier.setEnabled(True)
             # only start the event loop we are not already flipped
             if not context.input_is_ready():
