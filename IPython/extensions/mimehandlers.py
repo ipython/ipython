@@ -46,7 +46,7 @@ def browser(data, metadata) -> None:
 ITERM2_IMAGE_CODE = "\033]1337;File=name={name};size={size};inline=true;:{data}\a"
 
 
-def inline_image_iterm2_mac(data, metadata, ext='png') -> None:
+def inline_image_iterm2_mac(data, metadata, ext="png") -> None:
     """
     Inline image handler for iterm2 on mac. 
 
