@@ -177,11 +177,13 @@ def inputhook_wxphoenix(context):
 
     # Use a wx.Timer to periodically check whether input is ready - as soon as
     # it is, we exit the main loop
+    timer = wx.Timer()
+
     def poll(ev):
         if context.input_is_ready():
+            timer.Stop()
             app.ExitMainLoop()
 
-    timer = wx.Timer()
     timer.Start(poll_interval)
     timer.Bind(wx.EVT_TIMER, poll)
 
