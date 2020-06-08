@@ -273,7 +273,7 @@ class TerminalInteractiveShell(InteractiveShell):
     def init_display_formatter(self):
         super(TerminalInteractiveShell, self).init_display_formatter()
         # terminal only supports plain text
-        self.display_formatter.active_types = ['text/plain']
+        self.display_formatter.active_types = ["text/plain"]
 
     def init_prompt_toolkit_cli(self):
         if self.simple_prompt:
