@@ -220,8 +220,8 @@ class Pdb(OldPdb):
             self.context = int(context)
             if self.context <= 0:
                 raise ValueError("Context must be a positive integer")
-        except (TypeError, ValueError):
-                raise ValueError("Context must be a positive integer")
+        except (TypeError, ValueError) as e:
+                raise ValueError("Context must be a positive integer") from e
 
         # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
         OldPdb.__init__(self, completekey, stdin, stdout, **kwargs)
@@ -326,8 +326,8 @@ class Pdb(OldPdb):
             context=int(context)
             if context <= 0:
                 raise ValueError("Context must be a positive integer")
-        except (TypeError, ValueError):
-                raise ValueError("Context must be a positive integer")
+        except (TypeError, ValueError) as e:
+                raise ValueError("Context must be a positive integer") from e
         try:
             for frame_lineno in self.stack:
                 self.print_stack_entry(frame_lineno, context=context)
@@ -342,8 +342,8 @@ class Pdb(OldPdb):
             context=int(context)
             if context <= 0:
                 raise ValueError("Context must be a positive integer")
-        except (TypeError, ValueError):
-                raise ValueError("Context must be a positive integer")
+        except (TypeError, ValueError) as e:
+                raise ValueError("Context must be a positive integer") from e
         print(self.format_stack_entry(frame_lineno, '', context), file=self.stdout)
 
         # vds: >>
