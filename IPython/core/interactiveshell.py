@@ -339,6 +339,22 @@ class ExecutionResult(object):
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
 
+    def set_parent(self, parent):
+        """Set the parent header for associating output with its triggering input"""
+        self.parent_header = parent
+        parent#self.displayhook.set_parent(parent)
+        #self.display_pub.set_parent(parent)
+        if hasattr(self, '_data_pub'):
+            self.data_pub.set_parent(parent)
+        try:
+            sys.stdout.set_parent(parent)
+        except AttributeError:
+            pass
+        try:
+            sys.stderr.set_parent(parent)
+        except AttributeError:
+            pass
+
     _instance = None
     
     ast_transformers = List([], help=
