@@ -93,12 +93,14 @@ hierarchy represent the value you would normally set on the ``c`` object of
     {
         "InteractiveShell": {
             "colors": "LightBG",
-            "editor": "nano"
         },
         "InteractiveShellApp": {
             "extensions": [
                 "myextension"
             ]
+        },
+        "TerminalInteractiveShell": {
+            "editor": "nano"
         }
     }
 
@@ -109,7 +111,7 @@ Is equivalent to the following ``ipython_config.py``::
     ]
 
     c.InteractiveShell.colors = 'LightBG'
-    c.InteractiveShell.editor = 'nano'
+    c.TerminalInteractiveShell.editor = 'nano'
 
 
 Command line arguments
