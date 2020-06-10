@@ -630,7 +630,7 @@ class Magics(Configurable):
                 opts,args = getopt(argv, opt_str, long_opts)
             except GetoptError as e:
                 raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str,
-                                        " ".join(long_opts)))
+                                        " ".join(long_opts))) from e
             for o,a in opts:
                 if o.startswith('--'):
                     o = o[2:]

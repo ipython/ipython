@@ -679,9 +679,9 @@ class ExecutionMagics(Magics):
             fpath = None # initialize to make sure fpath is in scope later
             fpath = arg_lst[0]
             filename = file_finder(fpath)
-        except IndexError:
+        except IndexError as e:
             msg = 'you must provide at least a filename.'
-            raise Exception(msg)
+            raise Exception(msg) from e
         except IOError as e:
             try:
                 msg = str(e)
@@ -689,7 +689,7 @@ class ExecutionMagics(Magics):
                 msg = e.message
             if os.name == 'nt' and re.match(r"^'.*'$",fpath):
                 warn('For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"')
-            raise Exception(msg)
+            raise Exception(msg) from e
         except TypeError:
             if fpath in sys.meta_path:
                 filename = ""

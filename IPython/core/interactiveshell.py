@@ -1490,8 +1490,8 @@ class InteractiveShell(SingletonConfigurable):
         else:                         # Delete by object
             try:
                 obj = self.user_ns[varname]
-            except KeyError:
-                raise NameError("name '%s' is not defined" % varname)
+            except KeyError as e:
+                raise NameError("name '%s' is not defined" % varname) from e
             # Also check in output history
             ns_refs.append(self.history_manager.output_hist)
             for ns in ns_refs:
@@ -1521,8 +1521,8 @@ class InteractiveShell(SingletonConfigurable):
         if regex is not None:
             try:
                 m = re.compile(regex)
-            except TypeError:
-                raise TypeError('regex must be a string or compiled pattern')
+            except TypeError as e:
+                raise TypeError('regex must be a string or compiled pattern') from e
             # Search for keys in each namespace that match the given regex
             # If a match is found, delete the key/value pair.
             for ns in self.all_ns_refs:
@@ -3614,13 +3614,13 @@ class InteractiveShell(SingletonConfigurable):
         try:
             if target.startswith(('http://', 'https://')):
                 return openpy.read_py_url(target, skip_encoding_cookie=skip_encoding_cookie)
-        except UnicodeDecodeError:
+        except UnicodeDecodeError as e:
             if not py_only :
                 # Deferred import
                 from urllib.request import urlopen
                 response = urlopen(target)
                 return response.read().decode('latin1')
-            raise ValueError(("'%s' seem to be unreadable.") % target)
+            raise ValueError(("'%s' seem to be unreadable.") % target) from e
 
         potential_target = [target]
         try :
@@ -3632,11 +3632,11 @@ class InteractiveShell(SingletonConfigurable):
             if os.path.isfile(tgt):                        # Read file
                 try :
                     return openpy.read_py_file(tgt, skip_encoding_cookie=skip_encoding_cookie)
-                except UnicodeDecodeError :
+                except UnicodeDecodeError as e:
                     if not py_only :
                         with io_open(tgt,'r', encoding='latin1') as f :
                             return f.read()
-                    raise ValueError(("'%s' seem to be unreadable.") % target)
+                    raise ValueError(("'%s' seem to be unreadable.") % target) from e
             elif os.path.isdir(os.path.expanduser(tgt)):
                 raise ValueError("'%s' is a directory, not a regular file." % target)
 
@@ -3648,9 +3648,9 @@ class InteractiveShell(SingletonConfigurable):
 
         try:                                              # User namespace
             codeobj = eval(target, self.user_ns)
-        except Exception:
+        except Exception as e:
             raise ValueError(("'%s' was not found in history, as a file, url, "
-                                "nor in the user namespace.") % target)
+                                "nor in the user namespace.") % target) from e
 
         if isinstance(codeobj, str):
             return codeobj

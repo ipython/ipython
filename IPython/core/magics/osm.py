@@ -293,8 +293,8 @@ class OSMagics(Magics):
         """
         try:
             return os.getcwd()
-        except FileNotFoundError:
-            raise UsageError("CWD no longer exists - please use %cd to change directory.")
+        except FileNotFoundError as e:
+            raise UsageError("CWD no longer exists - please use %cd to change directory.") from e
 
     @skip_doctest
     @line_magic
@@ -386,8 +386,8 @@ class OSMagics(Magics):
         if ps == '-':
             try:
                 ps = self.shell.user_ns['_dh'][-2]
-            except IndexError:
-                raise UsageError('%cd -: No previous directory to change to.')
+            except IndexError as e:
+                raise UsageError('%cd -: No previous directory to change to.') from e
         # jump to bookmark if needed
         else:
             if not os.path.isdir(ps) or 'b' in opts:
@@ -764,15 +764,15 @@ class OSMagics(Magics):
         if 'd' in opts:
             try:
                 todel = args[0]
-            except IndexError:
+            except IndexError as e:
                 raise UsageError(
-                    "%bookmark -d: must provide a bookmark to delete")
+                    "%bookmark -d: must provide a bookmark to delete") from e
             else:
                 try:
                     del bkms[todel]
-                except KeyError:
+                except KeyError as e:
                     raise UsageError(
-                        "%%bookmark -d: Can't delete bookmark '%s'" % todel)
+                        "%%bookmark -d: Can't delete bookmark '%s'" % todel) from e
 
         elif 'r' in opts:
             bkms = {}
