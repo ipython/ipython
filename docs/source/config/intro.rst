@@ -69,9 +69,9 @@ Example configuration file
         'fancy.ipy'
     ]
     c.InteractiveShell.colors = 'LightBG'
-    c.InteractiveShell.confirm_exit = False
-    c.InteractiveShell.editor = 'nano'
     c.InteractiveShell.xmode = 'Context'
+    c.TerminalInteractiveShell.confirm_exit = False
+    c.TerminalInteractiveShell.editor = 'nano'
 
     c.PrefilterManager.multi_line_specials = True
 
