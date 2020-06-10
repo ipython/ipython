@@ -683,8 +683,8 @@ class NamespaceMagics(Magics):
         else:
             try:
                 m = re.compile(regex)
-            except TypeError:
-                raise TypeError('regex must be a string or compiled pattern')
+            except TypeError as e:
+                raise TypeError('regex must be a string or compiled pattern') from e
             for i in self.who_ls():
                 if m.search(i):
                     del(user_ns[i])

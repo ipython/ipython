@@ -643,17 +643,17 @@ class PlainTextFormatter(BaseFormatter):
             fmt = new
             try:
                 fmt%3.14159
-            except Exception:
-                raise ValueError("Precision must be int or format string, not %r"%new)
+            except Exception as e:
+                raise ValueError("Precision must be int or format string, not %r"%new) from e
         elif new:
             # otherwise, should be an int
             try:
                 i = int(new)
                 assert i >= 0
-            except ValueError:
-                raise ValueError("Precision must be int or format string, not %r"%new)
-            except AssertionError:
-                raise ValueError("int precision must be non-negative, not %r"%i)
+            except ValueError as e:
+                raise ValueError("Precision must be int or format string, not %r"%new) from e
+            except AssertionError as e:
+                raise ValueError("int precision must be non-negative, not %r"%i) from e
 
             fmt = '%%.%if'%i
             if 'numpy' in sys.modules:

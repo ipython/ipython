@@ -440,10 +440,10 @@ class CodeMagics(Magics):
                         return (None, None, None)
                     use_temp = False
 
-                except DataIsObject:
+                except DataIsObject as e:
                     # macros have a special edit function
                     if isinstance(data, Macro):
-                        raise MacroToEdit(data)
+                        raise MacroToEdit(data) from e
 
                     # For objects, try to edit the file where they are defined
                     filename = find_file(data)
@@ -467,8 +467,8 @@ class CodeMagics(Magics):
                         
                         m = ipython_input_pat.match(os.path.basename(filename))
                         if m:
-                            raise InteractivelyDefined(int(m.groups()[0]))
-                        
+                            raise InteractivelyDefined(int(m.groups()[0])) from e
+
                         datafile = 1
                     if filename is None:
                         filename = make_filename(args)
