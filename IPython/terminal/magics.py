@@ -181,8 +181,8 @@ class TerminalMagics(Magics):
             else:
                 error('Could not get text from the clipboard.')
             return
-        except ClipboardEmpty:
-            raise UsageError("The clipboard appears to be empty")
+        except ClipboardEmpty as e:
+            raise UsageError("The clipboard appears to be empty") from e
 
         # By default, echo back to terminal unless quiet mode is requested
         if 'q' not in opts:

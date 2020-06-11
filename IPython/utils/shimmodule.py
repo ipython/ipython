@@ -90,5 +90,5 @@ class ShimModule(types.ModuleType):
         name = "%s.%s" % (self._mirror, key)
         try:
             return import_item(name)
-        except ImportError:
-            raise AttributeError(key)
+        except ImportError as e:
+            raise AttributeError(key) from e

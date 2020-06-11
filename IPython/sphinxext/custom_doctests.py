@@ -107,10 +107,10 @@ def float_doctest(sphinx_shell, args, input_lines, found, submitted):
         try:
             rtol = float(args[2])
             atol = float(args[3])
-        except IndexError:
+        except IndexError as e:
             e = ("Both `rtol` and `atol` must be specified "
                  "if either are specified: {0}".format(args))
-            raise IndexError(e)
+            raise IndexError(e) from e
 
     try:
         submitted = str_to_array(submitted)

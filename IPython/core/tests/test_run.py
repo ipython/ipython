@@ -241,8 +241,8 @@ class TestMagicRunSimple(tt.TempFileMixin):
         if sys.platform == 'win32':
             try:
                 import win32api
-            except ImportError:
-                raise SkipTest("Test requires pywin32")
+            except ImportError as e:
+                raise SkipTest("Test requires pywin32") from e
         src = ("class A(object):\n"
                "    def __del__(self):\n"
                "        print('object A deleted')\n"

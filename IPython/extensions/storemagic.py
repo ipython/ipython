@@ -126,13 +126,13 @@ class StoreMagics(Magics):
         if 'd' in opts:
             try:
                 todel = args[0]
-            except IndexError:
-                raise UsageError('You must provide the variable to forget')
+            except IndexError as e:
+                raise UsageError('You must provide the variable to forget') from e
             else:
                 try:
                     del db['autorestore/' + todel]
-                except:
-                    raise UsageError("Can't delete variable '%s'" % todel)
+                except BaseException as e:
+                    raise UsageError("Can't delete variable '%s'" % todel) from e
         # reset
         elif 'z' in opts:
             for k in db.keys('autorestore/*'):
@@ -203,8 +203,8 @@ class StoreMagics(Magics):
                     name = arg
                     try:
                         cmd = ip.alias_manager.retrieve_alias(name)
-                    except ValueError:
-                        raise UsageError("Unknown variable '%s'" % name)
+                    except ValueError as e:
+                        raise UsageError("Unknown variable '%s'" % name) from e
 
                     staliases = db.get('stored_aliases',{})
                     staliases[name] = cmd

@@ -97,21 +97,21 @@ def get_parent(globals, level):
     for x in range(level, 1, -1):
         try:
             dot = name.rindex('.', 0, dot)
-        except ValueError:
+        except ValueError as e:
             raise ValueError("attempted relative import beyond top-level "
-                             "package")
+                             "package") from e
     name = name[:dot]
 
     try:
         parent = sys.modules[name]
-    except:
+    except BaseException as e:
         if orig_level < 1:
             warn("Parent module '%.200s' not found while handling absolute "
                  "import" % name)
             parent = None
         else:
             raise SystemError("Parent module '%.200s' not loaded, cannot "
-                              "perform relative import" % name)
+                              "perform relative import" % name) from e
 
     # We expect, but can't guarantee, if parent != None, that:
     # - parent.__name__ == name
@@ -292,9 +292,9 @@ def deep_reload_hook(m):
     else:
         try:
             parent = sys.modules[name[:dot]]
-        except KeyError:
+        except KeyError as e:
             modules_reloading.clear()
-            raise ImportError("reload(): parent %.200s not in sys.modules" % name[:dot])
+            raise ImportError("reload(): parent %.200s not in sys.modules" % name[:dot]) from e
         subname = name[dot+1:]
         path = getattr(parent, "__path__", None)
 

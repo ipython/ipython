@@ -51,7 +51,7 @@ def _check_pil_jpeg_bytes():
         img.save(buf, 'jpeg')
     except Exception as e:
         ename = e.__class__.__name__
-        raise SkipTest("PIL can't write JPEG to BytesIO: %s: %s" % (ename, e))
+        raise SkipTest("PIL can't write JPEG to BytesIO: %s: %s" % (ename, e)) from e
 
 @dec.skip_without("PIL.Image")
 def test_figure_to_jpeg():

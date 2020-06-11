@@ -95,8 +95,8 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
                 try:
                     color = "RGB {}".format(" ".join([str(int(x, 16)) for x in
                                                       textwrap.wrap(color[1:], 2)]))
-                except ValueError:
-                    raise ValueError('Invalid color specification {}.'.format(color))
+                except ValueError as e:
+                    raise ValueError('Invalid color specification {}.'.format(color)) from e
             else:
                 raise ValueError('Invalid color specification {}.'.format(color))
     else:

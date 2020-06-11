@@ -39,8 +39,8 @@ if sys.platform == 'win32':
         """
         try:
             import ctypes
-        except ImportError:
-            raise ImportError('you need to have ctypes installed for this to work')
+        except ImportError as e: 
+            raise ImportError('you need to have ctypes installed for this to work') from e
         _GetLongPathName = ctypes.windll.kernel32.GetLongPathNameW
         _GetLongPathName.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p,
             ctypes.c_uint ]
