@@ -63,7 +63,7 @@ if sys.platform == 'darwin':
             )
     except AttributeError:
         raise RuntimeError(
-            '''Your glut implementation does not allow interactive sessions'''
+            '''Your glut implementation does not allow interactive sessions. '''
             '''Consider installing freeglut.''')
     glutMainLoopEvent = glutCheckLoop
 elif glut.HAVE_FREEGLUT:
