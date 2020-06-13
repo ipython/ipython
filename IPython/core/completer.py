@@ -1641,6 +1641,14 @@ class IPCompleter(Completer):
             )
             \[   # open bracket
             \s*  # and optional whitespace
+            ((?:[uUbB]?  # string prefix (r not handled)
+                (?:
+                    '(?:[^']|(?<!\\)\\')*'
+                |
+                    "(?:[^"]|(?<!\\)\\")*"
+                )
+                \s*,\s*
+            )*)
             ([uUbB]?  # string prefix (r not handled)
                 (?:   # unclosed string
                     '(?:[^']|(?<!\\)\\')*
