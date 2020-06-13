@@ -16,9 +16,9 @@ def win32_clipboard_get():
     """
     try:
         import win32clipboard
-    except ImportError:
+    except ImportError as e:
         raise TryNext("Getting text from the clipboard requires the pywin32 "
-                      "extensions: http://sourceforge.net/projects/pywin32/")
+                      "extensions: http://sourceforge.net/projects/pywin32/") from e
     win32clipboard.OpenClipboard()
     try:
         text = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
@@ -26,8 +26,8 @@ def win32_clipboard_get():
         try:
             text = win32clipboard.GetClipboardData(win32clipboard.CF_TEXT)
             text = py3compat.cast_unicode(text, py3compat.DEFAULT_ENCODING)
-        except (TypeError, win32clipboard.error):
-            raise ClipboardEmpty
+        except (TypeError, win32clipboard.error) as e:
+            raise ClipboardEmpty from e
     finally:
         win32clipboard.CloseClipboard()
     return text
@@ -52,15 +52,15 @@ def tkinter_clipboard_get():
     """
     try:
         from tkinter import Tk, TclError 
-    except ImportError:
-        raise TryNext("Getting text from the clipboard on this platform requires tkinter.")
+    except ImportError as e:
+        raise TryNext("Getting text from the clipboard on this platform requires tkinter.") from e
         
     root = Tk()
     root.withdraw()
     try:
         text = root.clipboard_get()
-    except TclError:
-        raise ClipboardEmpty
+    except TclError as e:
+        raise ClipboardEmpty from e
     finally:
         root.destroy()
     text = py3compat.cast_unicode(text, py3compat.DEFAULT_ENCODING)

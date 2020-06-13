@@ -113,7 +113,7 @@ def locate_profile(profile='default'):
     from IPython.core.profiledir import ProfileDir, ProfileDirError
     try:
         pd = ProfileDir.find_profile_dir_by_name(get_ipython_dir(), profile)
-    except ProfileDirError:
+    except ProfileDirError as e:
         # IOError makes more sense when people are expecting a path
-        raise IOError("Couldn't find profile %r" % profile)
+        raise IOError("Couldn't find profile %r" % profile) from e
     return pd.location

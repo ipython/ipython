@@ -200,8 +200,8 @@ def _reshow_nbagg_figure(fig):
     """reshow an nbagg figure"""
     try:
         reshow = fig.canvas.manager.reshow
-    except AttributeError:
-        raise NotImplementedError()
+    except AttributeError as e:
+        raise NotImplementedError() from e
     else:
         reshow()
 

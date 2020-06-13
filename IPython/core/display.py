@@ -987,9 +987,9 @@ class Image(DisplayObject):
         """shortcut for returning metadata with shape information, if defined"""
         try:
             b64_data = b2a_base64(self.data).decode('ascii')
-        except TypeError:
+        except TypeError as e:
             raise FileNotFoundError(
-                "No such file or directory: '%s'" % (self.data))
+                "No such file or directory: '%s'" % (self.data)) from e
         md = {}
         if self.metadata:
             md.update(self.metadata)

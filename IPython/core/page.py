@@ -106,7 +106,7 @@ def _detect_screen_size(screen_lines_def):
         term_flags = termios.tcgetattr(sys.stdout)
     except termios.error as err:
         # can fail on Linux 2.6, pager_page will catch the TypeError
-        raise TypeError('termios error: {0}'.format(err))
+        raise TypeError('termios error: {0}'.format(err)) from err
 
     try:
         scr = curses.initscr()

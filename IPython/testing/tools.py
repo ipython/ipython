@@ -443,8 +443,8 @@ def fake_input(inputs):
     def mock_input(prompt=''):
         try:
             return next(it)
-        except StopIteration:
-            raise EOFError('No more inputs given')
+        except StopIteration as e:
+            raise EOFError('No more inputs given') from e
 
     return patch('builtins.input', mock_input)
 

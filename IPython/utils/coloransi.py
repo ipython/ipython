@@ -176,9 +176,9 @@ class ColorSchemeTable(dict):
             scheme_test = scheme.lower()
         try:
             scheme_idx = valid_schemes.index(scheme_test)
-        except ValueError:
+        except ValueError as e:
             raise ValueError('Unrecognized color scheme: ' + scheme + \
-                  '\nValid schemes: '+str(scheme_names).replace("'', ",''))
+                  '\nValid schemes: '+str(scheme_names).replace("'', ",'')) from e
         else:
             active = scheme_names[scheme_idx]
             self.active_scheme_name = active

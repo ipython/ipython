@@ -281,9 +281,9 @@ class InputHookManager(object):
         
         try:
             gui_hook = self.guihooks[gui]
-        except KeyError:
+        except KeyError as e:
             e = "Invalid GUI request {!r}, valid ones are: {}"
-            raise ValueError(e.format(gui, ', '.join(self.guihooks)))
+            raise ValueError(e.format(gui, ', '.join(self.guihooks))) from e
         self._current_gui = gui
 
         app = gui_hook.enable(app)
