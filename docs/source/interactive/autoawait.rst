@@ -8,7 +8,7 @@ Asynchronous in REPL: Autoawait
    This feature is experimental and behavior can change between python and
    IPython version without prior deprecation.
 
-Starting with IPython 7.0, and when user Python 3.6 and above, IPython offer the
+Starting with IPython 7.0, and when using Python 3.6 and above, IPython offer the
 ability to run asynchronous code from the REPL. Constructs which are
 :exc:`SyntaxError` s in the Python REPL can be used seamlessly in IPython.
 
@@ -19,7 +19,7 @@ will differ between IPython, IPykernel and their versions.
 
 When a supported library is used, IPython will automatically allow Futures and
 Coroutines in the REPL to be ``await`` ed. This will happen if an :ref:`await
-<await>` (or any other async constructs like async-with, async-for) is use at
+<await>` (or any other async constructs like async-with, async-for) is used at
 top level scope, or if any structure valid only in `async def
 <https://docs.python.org/3/reference/compound_stmts.html#async-def>`_ function
 context are present. For example, the following being a syntax error in the
@@ -73,7 +73,7 @@ By default IPython will assume integration with Python's provided
 :mod:`asyncio`, but integration with other libraries is provided. In particular
 we provide experimental integration with the ``curio`` and ``trio`` library.
 
-You can switch current integration by using the
+You can switch the current integration by using the
 ``c.InteractiveShell.loop_runner`` option or the ``autoawait <name
 integration>`` magic.
 
@@ -118,7 +118,7 @@ to your code.
 
 When using command line IPython, the default loop (or runner) does not process
 in the background, so top level asynchronous code must finish for the REPL to
-allow you to enter more code. As with usual Python semantic, the awaitables are
+allow you to enter more code. As with usual Python semantics, the awaitables are
 started only when awaited for the first time. That is to say, in first example,
 no network request is done between ``In[1]`` and ``In[2]``.
 
@@ -131,8 +131,8 @@ a loop to run. By default IPython will use a fake coroutine runner which should
 allow ``IPython.embed()`` to be nested. Though this will prevent usage of the
 :magic:`%autoawait` feature when using IPython embed. 
 
-You can set explicitly a coroutine runner for ``embed()`` if you desire to run
-asynchronous code, the exact behavior is though undefined.
+You can set a coroutine runner explicitly for ``embed()`` if you want to run
+asynchronous code, though the exact behavior is undefined.
 
 Effects on Magics
 -----------------
@@ -140,14 +140,14 @@ Effects on Magics
 A couple of magics (``%%timeit``, ``%timeit``, ``%%time``, ``%%prun``) have not
 yet been updated to work with asynchronous code and will raise syntax errors
 when trying to use top-level ``await``. We welcome any contribution to help fix
-those, and extra cases we haven't caught yet. We hope for better support in Cor
+those, and extra cases we haven't caught yet. We hope for better support in Core
 Python for top-level Async code.
 
 Internals
 ---------
 
 As running asynchronous code is not supported in interactive REPL (as of Python
-3.7) we have to rely to a number of complex workaround and heuristic to allow
+3.7) we have to rely to a number of complex workarounds and heuristics to allow
 this to happen. It is interesting to understand how this works in order to
 comprehend potential bugs, or provide a custom runner.
 
@@ -179,16 +179,16 @@ significant overhead to this kind of code.
 By default the generated coroutine function will be consumed by Asyncio's
 ``loop_runner = asyncio.get_evenloop().run_until_complete()`` method if
 ``async`` mode is deemed necessary, otherwise the coroutine will just be
-exhausted in a simple runner. It is though possible to change the default
+exhausted in a simple runner. It is possible, though, to change the default
 runner.
 
 A loop runner is a *synchronous*  function responsible from running a coroutine
 object.
 
-The runner is responsible from ensuring that ``coroutine`` run to completion,
-and should return the result of executing the coroutine. Let's write a
+The runner is responsible for ensuring that ``coroutine`` runs to completion,
+and it should return the result of executing the coroutine. Let's write a
 runner for ``trio`` that print a message when used as an exercise, ``trio`` is
-special as it usually prefer to run a function object and make a coroutine by
+special as it usually prefers to run a function object and make a coroutine by
 itself, we can get around this limitation by wrapping it in an async-def without
 parameters and passing this value to ``trio``::
 
@@ -246,8 +246,8 @@ Difference between terminal IPython and IPykernel
 The exact asynchronous code running behavior varies between Terminal IPython and
 IPykernel. The root cause of this behavior is due to IPykernel having a
 *persistent* `asyncio` loop running, while Terminal IPython starts and stops a
-loop for each code block. This can lead to surprising behavior in some case if
-you are used to manipulate asyncio loop yourself, see for example
+loop for each code block. This can lead to surprising behavior in some cases if
+you are used to manipulating asyncio loop yourself, see for example
 :ghissue:`11303` for a longer discussion but here are some of the astonishing
 cases.
 
