@@ -718,7 +718,13 @@ class VerboseTB(TBTools):
                 )
                 skipped = 0
             frames.append(self.format_record(r))
-
+        if skipped:
+            Colors = self.Colors  # just a shorthand + quicker name lookup
+            ColorsNormal = Colors.Normal  # used a lot
+            frames.append(
+                "    %s[... skipping hidden %s frame]%s\n"
+                % (Colors.excName, skipped, ColorsNormal)
+            )
 
         formatted_exception = self.format_exception(etype, evalue)
         if records:
