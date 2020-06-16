@@ -2871,7 +2871,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.events.trigger('post_run_cell', result)
         return result
 
-    def _run_cell(self, raw_cell:str, store_history:bool, silent:bool, shell_futures:bool):
+    def _run_cell(self, raw_cell:str, store_history:bool, silent:bool, shell_futures:bool) -> ExecutionResult:
         """Internal method to run a complete IPython cell."""
         coro = self.run_cell_async(
             raw_cell,
@@ -2899,7 +2899,6 @@ class InteractiveShell(SingletonConfigurable):
             result.error_in_exec = e
             self.showtraceback(running_compiled_code=True)
             return result
-        return
 
     def should_run_async(self, raw_cell: str) -> bool:
         """Return whether a cell should be run asynchronously via a coroutine runner
