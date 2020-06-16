@@ -579,11 +579,14 @@ class VerboseTB(TBTools):
         self.check_cache = check_cache
 
         self.debugger_cls = debugger_cls or debugger.Pdb
+        self.skip_hidden = True
 
     def format_record(self, frame_info):
         """Format a single stack frame"""
         Colors = self.Colors  # just a shorthand + quicker name lookup
         ColorsNormal = Colors.Normal  # used a lot
+
+
 
         if isinstance(frame_info, stack_data.RepeatedFrames):
             return '    %s[... skipping similar frames: %s]%s\n' % (
@@ -699,7 +702,23 @@ class VerboseTB(TBTools):
         head = self.prepare_header(etype, self.long_header)
         records = self.get_records(etb, number_of_lines_of_context, tb_offset)
 
-        frames = list(map(self.format_record, records))
+        frames = []
+        skipped = 0
+        for r in records:
+            if not isinstance(r, stack_data.RepeatedFrames) and self.skip_hidden:
+                if r.frame.f_locals.get("__tracebackhide__", 0):
+                    skipped += 1
+                    continue
+            if skipped:
+                Colors = self.Colors  # just a shorthand + quicker name lookup
+                ColorsNormal = Colors.Normal  # used a lot
+                frames.append(
+                    "    %s[... skipping hidden %s frame]%s\n"
+                    % (Colors.excName, skipped, ColorsNormal)
+                )
+                skipped = 0
+            frames.append(self.format_record(r))
+
 
         formatted_exception = self.format_exception(etype, evalue)
         if records:
