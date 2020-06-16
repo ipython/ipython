@@ -879,13 +879,36 @@ class VerboseTB(TBTools):
         self.check_cache = check_cache
 
         self.debugger_cls = debugger_cls or debugger.Pdb
+        self.skip_hidden = True
 
     def format_records(self, records, last_unique, recursion_repeat):
         """Format the stack frames of the traceback"""
         frames = []
+
+        skipped = 0
         for r in records[:last_unique+recursion_repeat+1]:
-            #print '*** record:',file,lnum,func,lines,index  # dbg
+            if self.skip_hidden:
+                if r[0].f_locals.get("__tracebackhide__", 0):
+                    skipped += 1
+                    continue
+            if skipped:
+                Colors = self.Colors  # just a shorthand + quicker name lookup
+                ColorsNormal = Colors.Normal  # used a lot
+                frames.append(
+                    "    %s[... skipping hidden %s frame]%s\n"
+                    % (Colors.excName, skipped, ColorsNormal)
+                )
+                skipped = 0
+
             frames.append(self.format_record(*r))
+            
+        if skipped:
+            Colors = self.Colors  # just a shorthand + quicker name lookup
+            ColorsNormal = Colors.Normal  # used a lot
+            frames.append(
+                "    %s[... skipping hidden %s frame]%s\n"
+                % (Colors.excName, skipped, ColorsNormal)
+            )
 
         if recursion_repeat:
             frames.append('... last %d frames repeated, from the frame below ...\n' % recursion_repeat)
@@ -1123,8 +1146,6 @@ class VerboseTB(TBTools):
         head = self.prepare_header(etype, self.long_header)
         records = self.get_records(etb, number_of_lines_of_context, tb_offset)
 
-        if records is None:
-            return ""
 
         last_unique, recursion_repeat = find_recursion(orig_etype, evalue, records)
 
