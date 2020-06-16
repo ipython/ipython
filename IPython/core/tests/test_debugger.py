@@ -4,20 +4,24 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import bdb
+import builtins
+import os
 import signal
+import subprocess
 import sys
 import time
 import warnings
+from subprocess import PIPE, CalledProcessError, check_output
 from tempfile import NamedTemporaryFile
-from subprocess import check_output, CalledProcessError, PIPE
-import subprocess
+from textwrap import dedent
 from unittest.mock import patch
-import builtins
-import bdb
 
 import nose.tools as nt
 
 from IPython.core import debugger
+from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
+from IPython.testing.decorators import skip_win32
 
 #-----------------------------------------------------------------------------
 # Helper classes, from CPython's Pdb test suite
@@ -254,3 +258,69 @@ def test_interruptible_core_debugger():
         # implementation would involve a subprocess, but that adds issues with
         # interrupting subprocesses that are rather complex, so it's simpler
         # just to do it this way.
+
+@skip_win32
+def test_xmode_skip():
+    """that xmode skip frames
+
+    Not as a doctest as pytest does not run doctests.
+    """
+    import pexpect
+    env = os.environ.copy()
+    env["IPY_TEST_SIMPLE_PROMPT"] = "1"
+
+    child = pexpect.spawn(
+        sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
+    )
+    child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
+
+    child.expect("IPython")
+    child.expect("\n")
+    child.expect_exact("In [1]")
+
+    block = dedent(
+        """
+def f():
+    __tracebackhide__ = True
+    g()
+
+def g():
+    raise ValueError
+
+f()
+    """
+    )
+
+    for line in block.splitlines():
+        child.sendline(line)
+        child.expect_exact(line)
+    child.expect_exact("skipping")
+
+    block = dedent(
+        """
+def f():
+    __tracebackhide__ = True
+    g()
+
+def g():
+    from IPython.core.debugger import set_trace
+    set_trace()
+
+f()
+    """
+    )
+
+    for line in block.splitlines():
+        child.sendline(line)
+        child.expect_exact(line)
+
+    child.expect("ipdb>")
+    child.sendline("w")
+    child.expect("hidden")
+    child.expect("ipdb>")
+    child.sendline("skip_hidden false")
+    child.sendline("w")
+    child.expect("__traceba")
+    child.expect("ipdb>")
+
+    child.close()

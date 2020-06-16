@@ -280,26 +280,31 @@ class Pdb(OldPdb):
 
         # Set the prompt - the default prompt is '(Pdb)'
         self.prompt = prompt
+        self.skip_hidden = True
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
         self.parser.style = scheme
 
+
+    def hidden_frames(self, stack):
+        """
+        Given an index in the stack return wether it should be skipped.
+
+        This is used in up/down and where to skip frames.
+        """
+        ip_hide = [s[0].f_locals.get("__tracebackhide__", False) for s in stack]
+        ip_start = [i for i, s in enumerate(ip_hide) if s == "__ipython_bottom__"]
+        if ip_start:
+            ip_hide = [h if i > ip_start[0] else True for (i, h) in enumerate(ip_hide)]
+        return ip_hide
+
     def interaction(self, frame, traceback):
         try:
             OldPdb.interaction(self, frame, traceback)
         except KeyboardInterrupt:
-            self.stdout.write('\n' + self.shell.get_exception_only())
-
-    def new_do_up(self, arg):
-        OldPdb.do_up(self, arg)
-    do_u = do_up = decorate_fn_with_doc(new_do_up, OldPdb.do_up)
-
-    def new_do_down(self, arg):
-        OldPdb.do_down(self, arg)
-
-    do_d = do_down = decorate_fn_with_doc(new_do_down, OldPdb.do_down)
+            self.stdout.write("\n" + self.shell.get_exception_only())
 
     def new_do_frame(self, arg):
         OldPdb.do_frame(self, arg)
@@ -320,6 +325,8 @@ class Pdb(OldPdb):
         return self.do_quit(arg)
 
     def print_stack_trace(self, context=None):
+        Colors = self.color_scheme_table.active_colors
+        ColorsNormal = Colors.Normal
         if context is None:
             context = self.context
         try:
@@ -329,8 +336,21 @@ class Pdb(OldPdb):
         except (TypeError, ValueError):
                 raise ValueError("Context must be a positive integer")
         try:
-            for frame_lineno in self.stack:
+            skipped = 0
+            for hidden, frame_lineno in zip(self.hidden_frames(self.stack), self.stack):
+                if hidden and self.skip_hidden:
+                    skipped += 1
+                    continue
+                if skipped:
+                    print(
+                        f"{Colors.excName}    [... skipping {skipped} hidden frame(s)]{ColorsNormal}\n"
+                    )
+                    skipped = 0
                 self.print_stack_entry(frame_lineno, context=context)
+            if skipped:
+                print(
+                    f"{Colors.excName}    [... skipping {skipped} hidden frame(s)]{ColorsNormal}\n"
+                )
         except KeyboardInterrupt:
             pass
 
@@ -487,6 +507,16 @@ class Pdb(OldPdb):
         except KeyboardInterrupt:
             pass
 
+    def do_skip_hidden(self, arg):
+        """
+        Change whether or not we should skip frames with the
+        __tracebackhide__ attribute.
+        """
+        if arg.strip().lower() in ("true", "yes"):
+            self.skip_hidden = True
+        elif arg.strip().lower() in ("false", "no"):
+            self.skip_hidden = False
+
     def do_list(self, arg):
         """Print lines of code from the current stack frame
         """
@@ -633,6 +663,109 @@ class Pdb(OldPdb):
 
     do_w = do_where
 
+    def stop_here(self, frame):
+        hidden = False
+        if self.skip_hidden:
+            hidden = frame.f_locals.get("__tracebackhide__", False)
+        if hidden:
+            Colors = self.color_scheme_table.active_colors
+            ColorsNormal = Colors.Normal
+            print(f"{Colors.excName}    [... skipped 1 hidden frame]{ColorsNormal}\n")
+
+        return super().stop_here(frame)
+
+    def do_up(self, arg):
+        """u(p) [count]
+        Move the current frame count (default one) levels up in the
+        stack trace (to an older frame).
+
+        Will skip hidden frames.
+        """
+        ## modified version of upstream that skips
+        # frames with __tracebackide__
+        if self.curindex == 0:
+            self.error("Oldest frame")
+            return
+        try:
+            count = int(arg or 1)
+        except ValueError:
+            self.error("Invalid frame count (%s)" % arg)
+            return
+        skipped = 0
+        if count < 0:
+            _newframe = 0
+        else:
+            _newindex = self.curindex
+            counter = 0
+            hidden_frames = self.hidden_frames(self.stack)
+            for i in range(self.curindex - 1, -1, -1):
+                frame = self.stack[i][0]
+                if hidden_frames[i] and self.skip_hidden:
+                    skipped += 1
+                    continue
+                counter += 1
+                if counter >= count:
+                    break
+            else:
+                # if no break occured.
+                self.error("all frames above hidden")
+                return
+
+            Colors = self.color_scheme_table.active_colors
+            ColorsNormal = Colors.Normal
+            _newframe = i
+        self._select_frame(_newframe)
+        if skipped:
+            print(
+                f"{Colors.excName}    [... skipped {skipped} hidden frame(s)]{ColorsNormal}\n"
+            )
+
+    def do_down(self, arg):
+        """d(own) [count]
+        Move the current frame count (default one) levels down in the
+        stack trace (to a newer frame).
+
+        Will skip hidden frames.
+        """
+        if self.curindex + 1 == len(self.stack):
+            self.error("Newest frame")
+            return
+        try:
+            count = int(arg or 1)
+        except ValueError:
+            self.error("Invalid frame count (%s)" % arg)
+            return
+        if count < 0:
+            _newframe = len(self.stack) - 1
+        else:
+            _newindex = self.curindex
+            counter = 0
+            skipped = 0
+            hidden_frames = self.hidden_frames(self.stack)
+            for i in range(self.curindex + 1, len(self.stack)):
+                frame = self.stack[i][0]
+                if hidden_frames[i] and self.skip_hidden:
+                    skipped += 1
+                    continue
+                counter += 1
+                if counter >= count:
+                    break
+            else:
+                self.error("all frames bellow hidden")
+                return
+
+            Colors = self.color_scheme_table.active_colors
+            ColorsNormal = Colors.Normal
+            if skipped:
+                print(
+                    f"{Colors.excName}    [... skipped {skipped} hidden frame(s)]{ColorsNormal}\n"
+                )
+            _newframe = i
+
+        self._select_frame(_newframe)
+
+    do_d = do_down
+    do_u = do_up
 
 class InterruptiblePdb(Pdb):
     """Version of debugger where KeyboardInterrupt exits the debugger altogether."""

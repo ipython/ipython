@@ -364,13 +364,25 @@ Currently the magic system has the following functions:""",
 
         Valid modes: Plain, Context, Verbose, and Minimal.
 
-        If called without arguments, acts as a toggle."""
+        If called without arguments, acts as a toggle.
+
+        When in verbose mode the value --show (and --hide) 
+        will respectively show (or hide) frames with ``__tracebackhide__ =
+        True`` value set.
+        """
 
         def xmode_switch_err(name):
             warn('Error changing %s exception modes.\n%s' %
                  (name,sys.exc_info()[1]))
 
         shell = self.shell
+        if parameter_s.strip() == "--show":
+            shell.InteractiveTB.skip_hidden = False
+            return
+        if parameter_s.strip() == "--hide":
+            shell.InteractiveTB.skip_hidden = True
+            return
+
         new_mode = parameter_s.strip().capitalize()
         try:
             shell.InteractiveTB.set_mode(mode=new_mode)
