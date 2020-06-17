@@ -754,7 +754,7 @@ def get__all__entries(obj):
 
 
 def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], prefix: str, delims: str,
-                    prefix_tuple: Tuple[str, bytes]=()) -> Tuple[str, int, List[str]]:
+                    extra_prefix: Optional[Tuple[str, bytes]]=None) -> Tuple[str, int, List[str]]:
     """Used by dict_key_matches, matching the prefix to a list of keys
 
     Parameters
@@ -765,7 +765,7 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
         Part of the text already typed by the user. E.g. `mydict[b'fo`
     delims:
         String of delimiters to consider when finding the current key.
-    prefix_tuple: optional
+    extra_prefix: optional
         Part of the text already typed in multi-key index cases. E.g. for 
         `mydict['foo', "bar", 'b`, this would be `('foo', 'bar')`.
 
@@ -778,6 +778,7 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     ``matches`` a list of replacement/completion
 
     """
+    prefix_tuple = extra_prefix if extra_prefix else ()
     Nprefix = len(prefix_tuple)
     def filter_by_prefix_tuple(key):
         if len(key) < Nprefix:
@@ -1708,12 +1709,9 @@ class IPCompleter(Completer):
         if not keys:
             return keys
 
-        if prefix0 != '':
-            tuple_prefix = eval(prefix0)
-        else:
-            tuple_prefix = tuple()
+        extra_prefix = eval(prefix0) if prefix0 != '' else None
 
-        closing_quote, token_offset, matches = match_dict_keys(keys, tuple_prefix, prefix, self.splitter.delims)
+        closing_quote, token_offset, matches = match_dict_keys(keys, prefix, self.splitter.delims, extra_prefix=extra_prefix)
         if not matches:
             return matches
 
