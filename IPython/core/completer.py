@@ -786,19 +786,23 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
         for k, pt in zip(key, prefix_tuple):
             if k != pt:
                 return False
-        return True
+        else:
+            return True
 
-    new_keys = []
+    filtered_keys:List[Union[str,bytes]] = []
+    def _add_to_filtered_keys(key):
+        if isinstance(key, (str, bytes)):
+            filtered_keys.append(key)
+
     for k in keys:
-        if isinstance(k, (str, bytes)):
-            new_keys.append(k)
-        elif isinstance(k, tuple) and filter_by_prefix_tuple(k):
-            new_keys.append(k[Nprefix])
+        if isinstance(k, tuple):
+            if filter_by_prefix_tuple(k):
+                _add_to_filtered_keys(k[Nprefix])
+        else:
+            _add_to_filtered_keys(k)
 
-    keys = new_keys
     if not prefix:
-        return '', 0, [repr(k) for k in keys
-                      if isinstance(k, (str, bytes))]
+        return '', 0, [repr(k) for k in filtered_keys]
     quote_match = re.search('["\']', prefix)
     assert quote_match is not None # silence mypy
     quote = quote_match.group()
@@ -814,7 +818,7 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     token_prefix = token_match.group()
 
     matched:List[str] = []
-    for key in keys:
+    for key in filtered_keys:
         try:
             if not key.startswith(prefix_str):
                 continue
