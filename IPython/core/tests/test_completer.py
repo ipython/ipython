@@ -963,6 +963,74 @@ class TestCompleter(unittest.TestCase):
             _, matches = complete(line_buffer="d['before-af")
             nt.assert_in("before-after", matches)
 
+        # check completion on tuple-of-string keys at different stage - on first key
+        ip.user_ns["d"] = {('foo', 'bar'): None}
+        _, matches = complete(line_buffer="d[")
+        nt.assert_in("'foo'", matches)
+        nt.assert_not_in("'foo']", matches)
+        nt.assert_not_in("'bar'", matches)
+        nt.assert_not_in("foo", matches)
+        nt.assert_not_in("bar", matches)
+
+        # - match the prefix
+        _, matches = complete(line_buffer="d['f")
+        nt.assert_in("foo", matches)
+        nt.assert_not_in("foo']", matches)
+        nt.assert_not_in("foo\"]", matches)
+        _, matches = complete(line_buffer="d['foo")
+        nt.assert_in("foo", matches)
+
+        # - can complete on second key
+        _, matches = complete(line_buffer="d['foo', ")
+        nt.assert_in("'bar'", matches)
+        _, matches = complete(line_buffer="d['foo', 'b")
+        nt.assert_in("bar", matches)
+        nt.assert_not_in("foo", matches)
+
+        # - does not propose missing keys
+        _, matches = complete(line_buffer="d['foo', 'f")
+        nt.assert_not_in("bar", matches)
+        nt.assert_not_in("foo", matches)
+
+        # check sensitivity to following context
+        _, matches = complete(line_buffer="d['foo',]", cursor_pos=8)
+        nt.assert_in("'bar'", matches)
+        nt.assert_not_in("bar", matches)
+        nt.assert_not_in("'foo'", matches)
+        nt.assert_not_in("foo", matches)
+
+        _, matches = complete(line_buffer="d['']", cursor_pos=3)
+        nt.assert_in("foo", matches)
+        assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
+
+        _, matches = complete(line_buffer='d[""]', cursor_pos=3)
+        nt.assert_in("foo", matches)
+        assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
+
+        _, matches = complete(line_buffer='d["foo","]', cursor_pos=9)
+        nt.assert_in("bar", matches)
+        assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
+
+        _, matches = complete(line_buffer='d["foo",]', cursor_pos=8)
+        nt.assert_in("'bar'", matches)
+        nt.assert_not_in("bar", matches)
+
+        # Can complete with longer tuple keys
+        ip.user_ns["d"] = {('foo', 'bar', 'foobar'): None}
+
+        # - can complete second key
+        _, matches = complete(line_buffer="d['foo', 'b")
+        nt.assert_in('bar', matches)
+        nt.assert_not_in('foo', matches)
+        nt.assert_not_in('foobar', matches)
+
+        # - can complete third key
+        _, matches = complete(line_buffer="d['foo', 'bar', 'fo")
+        nt.assert_in('foobar', matches)
+        nt.assert_not_in('foo', matches)
+        nt.assert_not_in('bar', matches)
+
+
     def test_dict_key_completion_contexts(self):
         """Test expression contexts in which dict key completion occurs"""
         ip = get_ipython()
