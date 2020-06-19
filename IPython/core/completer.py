@@ -781,7 +781,7 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     prefix_tuple = extra_prefix if extra_prefix else ()
     Nprefix = len(prefix_tuple)
     def filter_by_prefix_tuple(key):
-        if len(key) < Nprefix:
+        if len(key) <= Nprefix:
             return False
         for k, pt in zip(key, prefix_tuple):
             if k != pt:

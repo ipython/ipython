@@ -846,6 +846,35 @@ class TestCompleter(unittest.TestCase):
 
         match_dict_keys
 
+    def test_match_dict_keys_tuple(self):
+        """
+        Test that match_dict_keys called with extra prefix works on a couple of use case,
+        does return what expected, and does not crash.
+        """
+        delims = " \t\n`!@#$^&*()=+[{]}\\|;:'\",<>?"
+        
+        keys = [("foo", "bar"), ("foo", "oof"), ("foo", b"bar"), ('other', 'test')]
+
+        # Completion on first key == "foo"
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["bar", "oof"])
+        assert match_dict_keys(keys, "\"", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["bar", "oof"])
+        assert match_dict_keys(keys, "'o", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["oof"])
+        assert match_dict_keys(keys, "\"o", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["oof"])
+        assert match_dict_keys(keys, "b'", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
+        assert match_dict_keys(keys, "b\"", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
+        assert match_dict_keys(keys, "b'b", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
+        assert match_dict_keys(keys, "b\"b", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
+
+        # No Completion
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("no_foo",)) == ("'", 1, [])
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("fo",)) == ("'", 1, [])
+
+        keys = [('foo1', 'foo2', 'foo3', 'foo4'), ('foo1', 'foo2', 'bar', 'foo4')]
+        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1',)) == ("'", 1, ["foo2", "foo2"])
+        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2')) == ("'", 1, ["foo3"])
+        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3')) == ("'", 1, ["foo4"])
+        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3', 'foo4')) == ("'", 1, [])
+
     def test_dict_key_completion_string(self):
         """Test dictionary key completion for string keys"""
         ip = get_ipython()
