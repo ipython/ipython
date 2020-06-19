@@ -780,14 +780,20 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     """
     prefix_tuple = extra_prefix if extra_prefix else ()
     Nprefix = len(prefix_tuple)
-    def filter_by_prefix_tuple(key):
+    def filter_prefix_tuple(key):
+        # Reject too short keys
         if len(key) <= Nprefix:
             return False
+        # Reject keys with non str/bytes in it
+        for k in key:
+            if not isinstance(k, (str, bytes)):
+                return False
+        # Reject keys that do not match the prefix
         for k, pt in zip(key, prefix_tuple):
             if k != pt:
                 return False
-        else:
-            return True
+        # All checks passed!
+        return True
 
     filtered_keys:List[Union[str,bytes]] = []
     def _add_to_filtered_keys(key):
@@ -796,7 +802,7 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
 
     for k in keys:
         if isinstance(k, tuple):
-            if filter_by_prefix_tuple(k):
+            if filter_prefix_tuple(k):
                 _add_to_filtered_keys(k[Nprefix])
         else:
             _add_to_filtered_keys(k)

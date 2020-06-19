@@ -920,12 +920,16 @@ class TestCompleter(unittest.TestCase):
             "bad": None,
             object(): None,
             5: None,
+            ("abe", None): None,
+            (None, "abf"): None
         }
 
         _, matches = complete(line_buffer="d['a")
         nt.assert_in("abc", matches)
         nt.assert_in("abd", matches)
         nt.assert_not_in("bad", matches)
+        nt.assert_not_in("abe", matches)
+        nt.assert_not_in("abf", matches)
         assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
 
         # check escaping and whitespace
