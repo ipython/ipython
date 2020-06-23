@@ -753,7 +753,8 @@ def get__all__entries(obj):
     return [w for w in words if isinstance(w, str)]
 
 
-def match_dict_keys(keys: List[Union[str, bytes]], prefix: str, delims: str) -> Tuple[str, int, List[str]]:
+def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], prefix: str, delims: str,
+                    extra_prefix: Optional[Tuple[str, bytes]]=None) -> Tuple[str, int, List[str]]:
     """Used by dict_key_matches, matching the prefix to a list of keys
 
     Parameters
@@ -761,9 +762,12 @@ def match_dict_keys(keys: List[Union[str, bytes]], prefix: str, delims: str) -> 
     keys:
         list of keys in dictionary currently being completed.
     prefix:
-        Part of the text already typed by the user. e.g. `mydict[b'fo`
+        Part of the text already typed by the user. E.g. `mydict[b'fo`
     delims:
         String of delimiters to consider when finding the current key.
+    extra_prefix: optional
+        Part of the text already typed in multi-key index cases. E.g. for 
+        `mydict['foo', "bar", 'b`, this would be `('foo', 'bar')`.
 
     Returns
     =======
@@ -774,10 +778,37 @@ def match_dict_keys(keys: List[Union[str, bytes]], prefix: str, delims: str) -> 
     ``matches`` a list of replacement/completion
 
     """
-    keys = [k for k in keys if isinstance(k, (str, bytes))]
+    prefix_tuple = extra_prefix if extra_prefix else ()
+    Nprefix = len(prefix_tuple)
+    def filter_prefix_tuple(key):
+        # Reject too short keys
+        if len(key) <= Nprefix:
+            return False
+        # Reject keys with non str/bytes in it
+        for k in key:
+            if not isinstance(k, (str, bytes)):
+                return False
+        # Reject keys that do not match the prefix
+        for k, pt in zip(key, prefix_tuple):
+            if k != pt:
+                return False
+        # All checks passed!
+        return True
+
+    filtered_keys:List[Union[str,bytes]] = []
+    def _add_to_filtered_keys(key):
+        if isinstance(key, (str, bytes)):
+            filtered_keys.append(key)
+
+    for k in keys:
+        if isinstance(k, tuple):
+            if filter_prefix_tuple(k):
+                _add_to_filtered_keys(k[Nprefix])
+        else:
+            _add_to_filtered_keys(k)
+
     if not prefix:
-        return '', 0, [repr(k) for k in keys
-                      if isinstance(k, (str, bytes))]
+        return '', 0, [repr(k) for k in filtered_keys]
     quote_match = re.search('["\']', prefix)
     assert quote_match is not None # silence mypy
     quote = quote_match.group()
@@ -793,7 +824,7 @@ def match_dict_keys(keys: List[Union[str, bytes]], prefix: str, delims: str) -> 
     token_prefix = token_match.group()
 
     matched:List[str] = []
-    for key in keys:
+    for key in filtered_keys:
         try:
             if not key.startswith(prefix_str):
                 continue
@@ -1641,6 +1672,15 @@ class IPCompleter(Completer):
             )
             \[   # open bracket
             \s*  # and optional whitespace
+            # Capture any number of str-like objects (e.g. "a", "b", 'c')
+            ((?:[uUbB]?  # string prefix (r not handled)
+                (?:
+                    '(?:[^']|(?<!\\)\\')*'
+                |
+                    "(?:[^"]|(?<!\\)\\")*"
+                )
+                \s*,\s*
+            )*)
             ([uUbB]?  # string prefix (r not handled)
                 (?:   # unclosed string
                     '(?:[^']|(?<!\\)\\')*
@@ -1662,10 +1702,11 @@ class IPCompleter(Completer):
             }
 
         match = regexps[self.greedy].search(self.text_until_cursor)
+
         if match is None:
             return []
 
-        expr, prefix = match.groups()
+        expr, prefix0, prefix = match.groups()
         try:
             obj = eval(expr, self.namespace)
         except Exception:
@@ -1677,7 +1718,10 @@ class IPCompleter(Completer):
         keys = self._get_keys(obj)
         if not keys:
             return keys
-        closing_quote, token_offset, matches = match_dict_keys(keys, prefix, self.splitter.delims)
+
+        extra_prefix = eval(prefix0) if prefix0 != '' else None
+
+        closing_quote, token_offset, matches = match_dict_keys(keys, prefix, self.splitter.delims, extra_prefix=extra_prefix)
         if not matches:
             return matches
 
@@ -1687,7 +1731,7 @@ class IPCompleter(Completer):
         # - the start of the completion
         text_start = len(self.text_until_cursor) - len(text)
         if prefix:
-            key_start = match.start(2)
+            key_start = match.start(3)
             completion_start = key_start + token_offset
         else:
             key_start = completion_start = match.end()
@@ -2089,7 +2133,7 @@ class IPCompleter(Completer):
 
         # Start with a clean slate of completions
         matches = []
-        
+
         # FIXME: we should extend our api to return a dict with completions for
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have

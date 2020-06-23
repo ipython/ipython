@@ -846,6 +846,35 @@ class TestCompleter(unittest.TestCase):
 
         match_dict_keys
 
+    def test_match_dict_keys_tuple(self):
+        """
+        Test that match_dict_keys called with extra prefix works on a couple of use case,
+        does return what expected, and does not crash.
+        """
+        delims = " \t\n`!@#$^&*()=+[{]}\\|;:'\",<>?"
+        
+        keys = [("foo", "bar"), ("foo", "oof"), ("foo", b"bar"), ('other', 'test')]
+
+        # Completion on first key == "foo"
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["bar", "oof"])
+        assert match_dict_keys(keys, "\"", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["bar", "oof"])
+        assert match_dict_keys(keys, "'o", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["oof"])
+        assert match_dict_keys(keys, "\"o", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["oof"])
+        assert match_dict_keys(keys, "b'", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
+        assert match_dict_keys(keys, "b\"", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
+        assert match_dict_keys(keys, "b'b", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
+        assert match_dict_keys(keys, "b\"b", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
+
+        # No Completion
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("no_foo",)) == ("'", 1, [])
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("fo",)) == ("'", 1, [])
+
+        keys = [('foo1', 'foo2', 'foo3', 'foo4'), ('foo1', 'foo2', 'bar', 'foo4')]
+        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1',)) == ("'", 1, ["foo2", "foo2"])
+        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2')) == ("'", 1, ["foo3"])
+        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3')) == ("'", 1, ["foo4"])
+        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3', 'foo4')) == ("'", 1, [])
+
     def test_dict_key_completion_string(self):
         """Test dictionary key completion for string keys"""
         ip = get_ipython()
@@ -891,12 +920,16 @@ class TestCompleter(unittest.TestCase):
             "bad": None,
             object(): None,
             5: None,
+            ("abe", None): None,
+            (None, "abf"): None
         }
 
         _, matches = complete(line_buffer="d['a")
         nt.assert_in("abc", matches)
         nt.assert_in("abd", matches)
         nt.assert_not_in("bad", matches)
+        nt.assert_not_in("abe", matches)
+        nt.assert_not_in("abf", matches)
         assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
 
         # check escaping and whitespace
@@ -929,6 +962,74 @@ class TestCompleter(unittest.TestCase):
             ip.user_ns["d"] = {"before-after": None}
             _, matches = complete(line_buffer="d['before-af")
             nt.assert_in("before-after", matches)
+
+        # check completion on tuple-of-string keys at different stage - on first key
+        ip.user_ns["d"] = {('foo', 'bar'): None}
+        _, matches = complete(line_buffer="d[")
+        nt.assert_in("'foo'", matches)
+        nt.assert_not_in("'foo']", matches)
+        nt.assert_not_in("'bar'", matches)
+        nt.assert_not_in("foo", matches)
+        nt.assert_not_in("bar", matches)
+
+        # - match the prefix
+        _, matches = complete(line_buffer="d['f")
+        nt.assert_in("foo", matches)
+        nt.assert_not_in("foo']", matches)
+        nt.assert_not_in("foo\"]", matches)
+        _, matches = complete(line_buffer="d['foo")
+        nt.assert_in("foo", matches)
+
+        # - can complete on second key
+        _, matches = complete(line_buffer="d['foo', ")
+        nt.assert_in("'bar'", matches)
+        _, matches = complete(line_buffer="d['foo', 'b")
+        nt.assert_in("bar", matches)
+        nt.assert_not_in("foo", matches)
+
+        # - does not propose missing keys
+        _, matches = complete(line_buffer="d['foo', 'f")
+        nt.assert_not_in("bar", matches)
+        nt.assert_not_in("foo", matches)
+
+        # check sensitivity to following context
+        _, matches = complete(line_buffer="d['foo',]", cursor_pos=8)
+        nt.assert_in("'bar'", matches)
+        nt.assert_not_in("bar", matches)
+        nt.assert_not_in("'foo'", matches)
+        nt.assert_not_in("foo", matches)
+
+        _, matches = complete(line_buffer="d['']", cursor_pos=3)
+        nt.assert_in("foo", matches)
+        assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
+
+        _, matches = complete(line_buffer='d[""]', cursor_pos=3)
+        nt.assert_in("foo", matches)
+        assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
+
+        _, matches = complete(line_buffer='d["foo","]', cursor_pos=9)
+        nt.assert_in("bar", matches)
+        assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
+
+        _, matches = complete(line_buffer='d["foo",]', cursor_pos=8)
+        nt.assert_in("'bar'", matches)
+        nt.assert_not_in("bar", matches)
+
+        # Can complete with longer tuple keys
+        ip.user_ns["d"] = {('foo', 'bar', 'foobar'): None}
+
+        # - can complete second key
+        _, matches = complete(line_buffer="d['foo', 'b")
+        nt.assert_in('bar', matches)
+        nt.assert_not_in('foo', matches)
+        nt.assert_not_in('foobar', matches)
+
+        # - can complete third key
+        _, matches = complete(line_buffer="d['foo', 'bar', 'fo")
+        nt.assert_in('foobar', matches)
+        nt.assert_not_in('foo', matches)
+        nt.assert_not_in('bar', matches)
+
 
     def test_dict_key_completion_contexts(self):
         """Test expression contexts in which dict key completion occurs"""
