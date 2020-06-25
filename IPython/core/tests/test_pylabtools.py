@@ -87,15 +87,27 @@ _fmt_mime_map = {
     'svg': 'image/svg+xml',
 }
 
+def assert_mime_by_type(ip, active_mimes, typ):
+    for mime, f in ip.display_formatter.formatters.items():
+        if mime in active_mimes:
+            nt.assert_in(typ, f)
+        else:
+            if mime == 'text/plain' and typ.__repr__ is not object.__repr__:
+                # any object with a repr is always supported by the plaintext formatter
+                nt.assert_is(f.lookup_by_type(typ), f.repr_printer)
+            elif hasattr(typ, f.print_method):
+                # generally, the presence of a hook also means the formatting is always enabled
+                nt.assert_is(f.lookup_by_type(typ), getattr(typ, f.print_method))
+            else:
+                nt.assert_not_in(typ, f)
+
+
 def test_select_figure_formats_str():
     ip = get_ipython()
     for fmt, active_mime in _fmt_mime_map.items():
         pt.select_figure_formats(ip, fmt)
-        for mime, f in ip.display_formatter.formatters.items():
-            if mime == active_mime:
-                nt.assert_in(Figure, f)
-            else:
-                nt.assert_not_in(Figure, f)
+        assert_mime_by_type(ip, {active_mime}, Figure)
+
 
 def test_select_figure_formats_kwargs():
     ip = get_ipython()
@@ -125,11 +137,8 @@ def test_select_figure_formats_set():
     ]:
         active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
         pt.select_figure_formats(ip, fmts)
-        for mime, f in ip.display_formatter.formatters.items():
-            if mime in active_mimes:
-                nt.assert_in(Figure, f)
-            else:
-                nt.assert_not_in(Figure, f)
+        assert_mime_by_type(ip, active_mimes, Figure)
+
 
 def test_select_figure_formats_bad():
     ip = get_ipython()
@@ -228,11 +237,7 @@ class TestPylabSwitch(object):
         gui, backend = ip.enable_matplotlib('inline')
         nt.assert_equal(gui, 'inline')
 
-        for mime, f in ip.display_formatter.formatters.items():
-            if mime in active_mimes:
-                nt.assert_in(Figure, f)
-            else:
-                nt.assert_not_in(Figure, f)
+        assert_mime_by_type(ip, active_mimes, Figure)
 
     def test_qt_gtk(self):
         s = self.Shell()

@@ -155,10 +155,25 @@ _fmt_mime_map = {
     'svg': 'image/svg+xml',
 }
 
+
+def assert_mime_by_type(ip, active_mimes, typ):
+    for mime, f in ip.display_formatter.formatters.items():
+        if mime in active_mimes:
+            nt.assert_in(typ, f)
+        else:
+            if mime == 'text/plain' and typ.__repr__ is not object.__repr__:
+                # any object with a repr is always supported by the plaintext formatter
+                nt.assert_is(f.lookup_by_type(typ), f.repr_printer)
+            elif hasattr(typ, f.print_method):
+                # generally, the presence of a hook also means the formatting is always enabled
+                nt.assert_is(f.lookup_by_type(typ), getattr(typ, f.print_method))
+            else:
+                nt.assert_not_in(typ, f)
+
 @dec.skip_without('matplotlib')
 def test_set_matplotlib_formats():
     from matplotlib.figure import Figure
-    formatters = get_ipython().display_formatter.formatters
+    ip = get_ipython()
     for formats in [
         ('png',),
         ('pdf', 'svg'),
@@ -167,11 +182,7 @@ def test_set_matplotlib_formats():
     ]:
         active_mimes = {_fmt_mime_map[fmt] for fmt in formats}
         display.set_matplotlib_formats(*formats)
-        for mime, f in formatters.items():
-            if mime in active_mimes:
-                nt.assert_in(Figure, f)
-            else:
-                nt.assert_not_in(Figure, f)
+        assert_mime_by_type(ip, active_mimes, Figure)
 
 @dec.skip_without('matplotlib')
 def test_set_matplotlib_formats_kwargs():
