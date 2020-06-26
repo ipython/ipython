@@ -39,6 +39,30 @@ IPython 7.15 reproducible build did not work, so we try again this month
 :ghpull:`12358`.
 
 
+API Changes
+-----------
+
+Change of API and exposed objects automatically detected using `frappuccino
+<https://pypi.org/project/frappuccino/>`_ (still in beta):
+
+
+The following items are new and mostly related to understanding ``__tracebackbhide__``::
+
+    + IPython.core.debugger.Pdb.do_down(self, arg)
+    + IPython.core.debugger.Pdb.do_skip_hidden(self, arg)
+    + IPython.core.debugger.Pdb.do_up(self, arg)
+    + IPython.core.debugger.Pdb.hidden_frames(self, stack)
+    + IPython.core.debugger.Pdb.stop_here(self, frame)
+
+
+The following items have been removed::
+
+    - IPython.core.debugger.Pdb.new_do_down
+    - IPython.core.debugger.Pdb.new_do_up
+
+Those were implementation details.
+
+
 .. _version 715:
 
 IPython 7.15
