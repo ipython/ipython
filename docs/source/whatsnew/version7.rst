@@ -2,6 +2,67 @@
  7.x Series
 ============
 
+.. _version 716:
+
+IPython 7.16
+============
+
+
+The default traceback mode will now skip frames that are marked with
+``__tracebackhide__ = True`` and show how many traceback frames have been
+skipped. This can be toggled by using :magic:`xmode` with the ``--show`` or
+``--hide`` attribute. It will have no effect on non verbose traceback modes.
+
+The ipython debugger also now understands ``__tracebackhide__`` as well and will
+skip hidden frames when displaying. Movement up and down the stack will skip the
+hidden frames and will show how many frames were hidden. Internal IPython frames
+are also now hidden by default. The behavior can be changed with the
+``skip_hidden`` while in the debugger, command and accepts "yes", "no", "true"
+and "false" case insensitive parameters.
+
+
+Misc Noticeable changes:
+------------------------
+
+- Exceptions are now (re)raised when running notebooks via the :magic:`%run`, helping to catch issues in workflows and
+  pipelines. :ghpull:`12301`
+- Fix inputhook for qt 5.15.0 :ghpull:`12355`
+- Fix wx inputhook :ghpull:`12375`
+- Add handling for malformed pathext env var (Windows) :ghpull:`12367`
+- use $SHELL in system_piped :ghpull:`12360` for uniform behavior with
+  ipykernel.
+
+Reproducible Build
+------------------
+
+IPython 7.15 reproducible build did not work, so we try again this month
+:ghpull:`12358`.
+
+
+API Changes
+-----------
+
+Change of API and exposed objects automatically detected using `frappuccino
+<https://pypi.org/project/frappuccino/>`_ (still in beta):
+
+
+The following items are new and mostly related to understanding ``__tracebackbhide__``::
+
+    + IPython.core.debugger.Pdb.do_down(self, arg)
+    + IPython.core.debugger.Pdb.do_skip_hidden(self, arg)
+    + IPython.core.debugger.Pdb.do_up(self, arg)
+    + IPython.core.debugger.Pdb.hidden_frames(self, stack)
+    + IPython.core.debugger.Pdb.stop_here(self, frame)
+
+
+The following items have been removed::
+
+    - IPython.core.debugger.Pdb.new_do_down
+    - IPython.core.debugger.Pdb.new_do_up
+
+Those were implementation details.
+
+
 .. _version 715:
 
 IPython 7.15
