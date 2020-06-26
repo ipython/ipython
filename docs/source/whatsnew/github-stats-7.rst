@@ -1,6 +1,28 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+
+Issues closed in 7.16
+---------------------
+
+GitHub stats for 2020/05/29 - 2020/06/26 (tag: 7.15.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 0 issues and merged 18 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.16>`__
+
+The following 7 authors contributed 22 commits.
+
+* Benjamin Ragan-Kelley
+* dalthviz
+* Frank Tobia
+* Matthias Bussonnier
+* palewire
+* Paul McCarthy
+* Talley Lambert
+
+
 Issues closed in 7.15
 ---------------------
 
