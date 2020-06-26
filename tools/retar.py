@@ -46,6 +46,7 @@ for i, m in enumerate(old):
     m2.size = m.size
     m2.type = m.type
     m2.linkname = m.linkname
+    m2.mode = m.mode
     if m.isdir():
         new.addfile(m2)
     else:
