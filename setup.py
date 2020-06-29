@@ -24,7 +24,7 @@ import sys
 #
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info < (3, 6):
+if sys.version_info < (3, 7):
     pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
     try:
         import pip
@@ -40,10 +40,11 @@ if sys.version_info < (3, 6):
 
 
     error = """
-IPython 7.10+ supports Python 3.6 and above, following NEP 29.
+IPython 7.17+ supports Python 3.7 and above, following NEP 29.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
 Python 3.3 and 3.4 were supported up to IPython 6.x.
 Python 3.5 was supported with IPython 7.0 to 7.9.
+Python 3.6 was supported with IPython up to 7.16.
 
 See IPython `README.rst` file for more information:
 
@@ -227,7 +228,7 @@ for key, deps in extras_require.items():
 extras_require['all'] = list(sorted(everything))
 
 if 'setuptools' in sys.modules:
-    setuptools_extra_args['python_requires'] = '>=3.6'
+    setuptools_extra_args['python_requires'] = '>=3.7'
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': find_entry_points(),
