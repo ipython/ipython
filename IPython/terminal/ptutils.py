@@ -21,6 +21,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 import pygments.lexers as pygments_lexers
 import os
 import sys
+import traceback
 
 _completion_sentinel = object()
 
