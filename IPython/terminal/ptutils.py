@@ -112,8 +112,11 @@ class IPythonPTCompleter(Completer):
             try:
                 yield from self._get_completions(body, offset, cursor_position, self.ipy_completer)
             except Exception as e:
-                from traceback import print_tb
-                print_tb(e)
+                try:
+                    exc_type, exc_value, exc_tb = sys.exc_info()
+                    traceback.print_exception(exc_type, exc_value, exc_tb)
+                except AttributeError:
+                    print('Unrecoverable Error in completions')
 
     @staticmethod
     def _get_completions(body, offset, cursor_position, ipyc):
