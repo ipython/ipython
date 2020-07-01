@@ -77,6 +77,9 @@ after_success:
 matrix:
   include:
     - arch: amd64
+      python: "3.6"
+      dist: xenial
+    - arch: amd64
       python: "3.7"
       dist: xenial
     - arch: amd64
