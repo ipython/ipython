@@ -26,12 +26,21 @@ PTK3 = ptk_version.startswith('3.')
 class TerminalPdb(Pdb):
     """Standalone IPython debugger."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, pt_session_options=None, **kwargs):
         Pdb.__init__(self, *args, **kwargs)
         self._ptcomp = None
-        self.pt_init()
+        self.pt_init(pt_session_options)
 
-    def pt_init(self):
+    def pt_init(self, pt_session_options=None):
+        """Initialize the prompt session and the prompt loop
+        and store them in self.pt_app and self.pt_loop.
+        
+        Additional keyword arguments for the PromptSession class
+        can be specified in pt_session_options.
+        """
+        if pt_session_options is None:
+            pt_session_options = {}
+        
         def get_prompt_tokens():
             return [(Token.Prompt, self.prompt)]
 
@@ -68,6 +77,7 @@ class TerminalPdb(Pdb):
 
         if not PTK3:
             options['inputhook'] = self.shell.inputhook
+        options.update(pt_session_options)
         self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(**options)
 
