@@ -36,6 +36,11 @@ before_install:
 install:
   - pip install pip --upgrade
   - pip install setuptools --upgrade
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
+      echo "for the tiem being still test on 3.6";
+      sed -i bkp s/7/6/g setup.py;
+      git diff;
+    fi
   - pip install -e file://$PWD#egg=ipython[test] --upgrade
   - pip install trio curio --upgrade --upgrade-strategy eager
   - pip install pytest 'matplotlib !=3.2.0' mypy
