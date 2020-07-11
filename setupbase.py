@@ -141,7 +141,7 @@ def check_package_data(package_data):
 
 def check_package_data_first(command):
     """decorator for checking package_data before running a given command
-    
+
     Probably only needs to wrap build_py
     """
     class DecoratedCommand(command):
@@ -351,9 +351,9 @@ class install_scripts_for_symlink(install_scripts):
 
 def git_prebuild(pkg_dir, build_cmd=build_py):
     """Return extended build or sdist command class for recording commit
-    
+
     records git commit in IPython.utils._sysinfo.commit
-    
+
     for use in IPython.utils.sysinfo.sys_info() calls after installation.
     """
     
