@@ -62,7 +62,6 @@ def _pseudo_sync_runner(coro):
     See discussion in https://github.com/python-trio/trio/issues/608,
 
     Credit to Nathaniel Smith
-
     """
     try:
         coro.send(None)

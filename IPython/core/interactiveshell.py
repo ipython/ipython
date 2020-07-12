@@ -173,8 +173,8 @@ def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
     """
     Parse a cell with top-level await and modify the AST to be able to run it later.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
 
     cell: str
         The code cell to asyncronify
@@ -183,28 +183,29 @@ def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
         advised to **not** use a python identifier in order to not pollute the
         global namespace in which the function will be ran.
 
-    Return
-    ------
+    Returns
+    -------
+    
+    ModuleType:
+        A module object AST containing **one** function named `wrapper_name`.
 
-    A module object AST containing **one** function named `wrapper_name`.
+        The given code is wrapped in a async-def function, parsed into an AST, and
+        the resulting function definition AST is modified to return the last
+        expression.
 
-    The given code is wrapped in a async-def function, parsed into an AST, and
-    the resulting function definition AST is modified to return the last
-    expression.
+        The last expression or await node is moved into a return statement at the
+        end of the function, and removed from its original location. If the last
+        node is not Expr or Await nothing is done.
 
-    The last expression or await node is moved into a return statement at the
-    end of the function, and removed from its original location. If the last
-    node is not Expr or Await nothing is done.
+        The function `__code__` will need to be later modified  (by
+        ``removed_co_newlocals``) in a subsequent step to not create new `locals()`
+        meaning that the local and global scope are the same, ie as if the body of
+        the function was at module level.
 
-    The function `__code__` will need to be later modified  (by
-    ``removed_co_newlocals``) in a subsequent step to not create new `locals()`
-    meaning that the local and global scope are the same, ie as if the body of
-    the function was at module level.
-
-    Lastly a call to `locals()` is made just before the last expression of the
-    function, or just after the last assignment or statement to make sure the
-    global dict is updated as python function work with a local fast cache which
-    is updated only on `local()` calls.
+        Lastly a call to `locals()` is made just before the last expression of the
+        function, or just after the last assignment or statement to make sure the
+        global dict is updated as python function work with a local fast cache which
+        is updated only on `local()` calls.
     """
 
     from ast import Expr, Await, Return
