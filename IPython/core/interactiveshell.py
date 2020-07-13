@@ -2322,10 +2322,20 @@ class InteractiveShell(SingletonConfigurable):
             kwargs = {}
             # Grab local namespace if we need it:
             if getattr(fn, "needs_local_scope", False):
-                kwargs['local_ns'] = sys._getframe(stack_depth).f_locals
+                kwargs['local_ns'] = self.get_local_scope(stack_depth)
             with self.builtin_trap:
                 result = fn(*args, **kwargs)
             return result
+
+    def get_local_scope(self, stack_depth):
+        """Get local scope at given stack depth.
+
+        Parameters
+        ----------
+        stack_depth : int
+          Depth relative to calling frame
+        """
+        return sys._getframe(stack_depth + 1).f_locals
 
     def run_cell_magic(self, magic_name, line, cell):
         """Execute the given cell magic.
