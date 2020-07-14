@@ -476,7 +476,8 @@ def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
     completions: Iterator[Completion]
         iterator over the completions to rectify
 
-
+    Notes
+    -----
     :any:`jedi.api.classes.Completion` s returned by Jedi may not have the same start and end, though
     the Jupyter Protocol requires them to behave like so. This will readjust
     the completion to have the same ``start`` and ``end`` by padding both
@@ -1422,8 +1423,8 @@ class IPCompleter(Completer):
         text : str
             text to complete
 
-        Debugging
-        ---------
+        Notes
+        -----
 
         If ``IPCompleter.debug`` is ``True`` may return a :any:`_FakeJediCompletion`
         object containing a string with the Jedi debug information attached.
@@ -1874,8 +1875,11 @@ class IPCompleter(Completer):
 
         Yields
         ------
-            :any:`Completion` object
+        Completion
 
+        
+        Notes
+        -----
 
         The cursor on a text can either be seen as being "in between"
         characters or "On" a character depending on the interface visible to
@@ -2024,19 +2028,19 @@ class IPCompleter(Completer):
 
         Parameters
         ----------
-          text : string, optional
-            Text to perform the completion on.  If not given, the line buffer
-            is split using the instance's CompletionSplitter object.
+        text : string, optional
+          Text to perform the completion on.  If not given, the line buffer
+          is split using the instance's CompletionSplitter object.
 
-          line_buffer : string, optional
-            If not given, the completer attempts to obtain the current line
-            buffer via readline.  This keyword allows clients which are
-            requesting for text completions in non-readline contexts to inform
-            the completer of the entire text.
+        line_buffer : string, optional
+          If not given, the completer attempts to obtain the current line
+          buffer via readline.  This keyword allows clients which are
+          requesting for text completions in non-readline contexts to inform
+          the completer of the entire text.
 
-          cursor_pos : int, optional
-            Index of the cursor in the full line buffer.  Should be provided by
-            remote frontends where kernel has no access to frontend state.
+        cursor_pos : int, optional
+          Index of the cursor in the full line buffer.  Should be provided by
+          remote frontends where kernel has no access to frontend state.
 
         Returns
         -------
@@ -2047,7 +2051,8 @@ class IPCompleter(Completer):
           A list of completion matches.
 
 
-        .. note::
+        Notes
+        -----
 
             This API is likely to be deprecated and replaced by
             :any:`IPCompleter.completions` in the future.
