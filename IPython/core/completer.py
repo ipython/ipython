@@ -193,8 +193,6 @@ warnings.filterwarnings('error', category=ProvisionalCompleterWarning)
 @contextmanager
 def provisionalcompleter(action='ignore'):
     """
-
-
     This context manager has to be used in any place where unstable completer
     behavior and API may be called.
 
@@ -262,17 +260,17 @@ def expand_user(path:str) -> Tuple[str, bool, str]:
     Parameters
     ----------
     path : str
-      String to be expanded.  If no ~ is present, the output is the same as the
-      input.
+        String to be expanded.  If no ~ is present, the output is the same as the
+        input.
 
     Returns
     -------
     newpath : str
-      Result of ~ expansion in the input path.
+        Result of ~ expansion in the input path.
     tilde_expand : bool
-      Whether any expansion was performed or not.
+        Whether any expansion was performed or not.
     tilde_val : str
-      The value that ~ was replaced with.
+        The value that ~ was replaced with.
     """
     # Default values
     tilde_expand = False
@@ -435,12 +433,9 @@ def _deduplicate_completions(text: str, completions: _IC)-> _IC:
     Yields
     ------
     `Completions` objects
-
-
     Completions coming from multiple sources, may be different but end up having
     the same effect when applied to ``text``. If this is the case, this will
     consider completions as equal and only emit the first encountered.
-
     Not folded in `completions()` yet for debugging purpose, and to detect when
     the IPython completer does return things that Jedi does not, but should be
     at some point.
@@ -759,7 +754,7 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     """Used by dict_key_matches, matching the prefix to a list of keys
 
     Parameters
-    ==========
+    ----------
     keys:
         list of keys in dictionary currently being completed.
     prefix:
@@ -767,12 +762,11 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     delims:
         String of delimiters to consider when finding the current key.
     extra_prefix: optional
-        Part of the text already typed in multi-key index cases. E.g. for 
+        Part of the text already typed in multi-key index cases. E.g. for
         `mydict['foo', "bar", 'b`, this would be `('foo', 'bar')`.
 
     Returns
-    =======
-
+    -------
     A tuple of three elements: ``quote``, ``token_start``, ``matched``, with
     ``quote`` being the quote that need to be used to close current string.
     ``token_start`` the position where the replacement should start occurring,
@@ -851,13 +845,11 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
 
 def cursor_to_position(text:str, line:int, column:int)->int:
     """
-
     Convert the (line,column) position of the cursor in text to an offset in a
     string.
 
     Parameters
     ----------
-
     text : str
         The text in which to calculate the cursor offset
     line : int
@@ -865,13 +857,13 @@ def cursor_to_position(text:str, line:int, column:int)->int:
     column : int
         Column of the cursor 0-indexed
 
-    Return
-    ------
-        Position of the cursor in ``text``, 0-indexed.
+    Returns
+    -------
+    Position of the cursor in ``text``, 0-indexed.
 
     See Also
     --------
-    position_to_cursor: reciprocal of this function
+    position_to_cursor : reciprocal of this function
 
     """
     lines = text.split('\n')
@@ -888,22 +880,19 @@ def position_to_cursor(text:str, offset:int)->Tuple[int, int]:
 
     Parameters
     ----------
-
     text : str
         The text in which to calculate the cursor offset
     offset : int
         Position of the cursor in ``text``, 0-indexed.
 
-    Return
-    ------
+    Returns
+    -------
     (line, column) : (int, int)
         Line of the cursor; 0-indexed, column of the cursor 0-indexed
-
 
     See Also
     --------
     cursor_to_position : reciprocal of this function
-
 
     """
 
@@ -994,17 +983,14 @@ def _formatparamchildren(parameter) -> str:
 
     Jedi does not expose a simple way to get `param=value` from its API.
 
-    Parameter
-    =========
-
+    Parameters
+    ----------
     parameter:
         Jedi's function `Param`
 
     Returns
-    =======
-
+    -------
     A string like 'a', 'b=1', '*args', '**kwargs'
-
 
     """
     description = parameter.description
@@ -1017,15 +1003,13 @@ def _make_signature(completion)-> str:
     """
     Make the signature from a jedi completion
 
-    Parameter
-    =========
-
+    Parameters
+    ----------
     completion: jedi.Completion
         object does not complete a function type
 
     Returns
-    =======
-
+    -------
     a string consisting of the function signature, with the parenthesis but
     without the function name. example:
     `(a, *args, b=1, **kwargs)`
@@ -1126,20 +1110,16 @@ class IPCompleter(Completer):
 
         Parameters
         ----------
-
         shell
             a pointer to the ipython shell itself.  This is needed
             because this completer knows about magic functions, and those can
             only be accessed via the ipython instance.
-
         namespace : dict, optional
             an optional dict where completions are performed.
-
         global_namespace : dict, optional
             secondary optional dict for completions, to
             handle cases (such as IPython embedded inside functions) where
             both Python scopes are visible.
-
         use_readline : bool, optional
             DEPRECATED, ignored since IPython 6.0, will have no effects
         """
@@ -1410,7 +1390,6 @@ class IPCompleter(Completer):
 
     def _jedi_matches(self, cursor_column:int, cursor_line:int, text:str) -> Iterable[Any]:
         """
-
         Return a list of :any:`jedi.api.Completions` object from a ``text`` and
         cursor position.
 
@@ -1425,7 +1404,6 @@ class IPCompleter(Completer):
 
         Notes
         -----
-
         If ``IPCompleter.debug`` is ``True`` may return a :any:`_FakeJediCompletion`
         object containing a string with the Jedi debug information attached.
         """
@@ -1866,7 +1844,6 @@ class IPCompleter(Completer):
 
         Parameters
         ----------
-
         text:str
             Full text of the current input, multi line string.
         offset:int
@@ -1877,10 +1854,8 @@ class IPCompleter(Completer):
         ------
         Completion
 
-        
         Notes
         -----
-
         The cursor on a text can either be seen as being "in between"
         characters or "On" a character depending on the interface visible to
         the user. For consistency the cursor being on "in between" characters X
@@ -1889,7 +1864,6 @@ class IPCompleter(Completer):
 
         Combining characters may span more that one position in the
         text.
-
 
         .. note::
 
@@ -1939,7 +1913,6 @@ class IPCompleter(Completer):
         """
         Core completion module.Same signature as :any:`completions`, with the
         extra `timeout` parameter (in seconds).
-
 
         Computing jedi's completion ``.type`` can be quite expensive (it is a
         lazy property) and can require some warm-up, more warm up than just
@@ -2029,34 +2002,29 @@ class IPCompleter(Completer):
         Parameters
         ----------
         text : string, optional
-          Text to perform the completion on.  If not given, the line buffer
-          is split using the instance's CompletionSplitter object.
-
+            Text to perform the completion on.  If not given, the line buffer
+            is split using the instance's CompletionSplitter object.
         line_buffer : string, optional
-          If not given, the completer attempts to obtain the current line
-          buffer via readline.  This keyword allows clients which are
-          requesting for text completions in non-readline contexts to inform
-          the completer of the entire text.
-
+            If not given, the completer attempts to obtain the current line
+            buffer via readline.  This keyword allows clients which are
+            requesting for text completions in non-readline contexts to inform
+            the completer of the entire text.
         cursor_pos : int, optional
-          Index of the cursor in the full line buffer.  Should be provided by
-          remote frontends where kernel has no access to frontend state.
+            Index of the cursor in the full line buffer.  Should be provided by
+            remote frontends where kernel has no access to frontend state.
 
         Returns
         -------
         Tuple of two items:
         text : str
-          Text that was actually used in the completion.
+            Text that was actually used in the completion.
         matches : list
-          A list of completion matches.
-
+            A list of completion matches.
 
         Notes
         -----
-
             This API is likely to be deprecated and replaced by
             :any:`IPCompleter.completions` in the future.
-
 
         """
         warnings.warn('`Completer.complete` is pending deprecation since '
@@ -2069,23 +2037,19 @@ class IPCompleter(Completer):
     def _complete(self, *, cursor_line, cursor_pos, line_buffer=None, text=None,
                   full_text=None) -> _CompleteResult:
         """
-
         Like complete but can also returns raw jedi completions as well as the
         origin of the completion text. This could (and should) be made much
         cleaner but that will be simpler once we drop the old (and stateful)
         :any:`complete` API.
-
 
         With current provisional API, cursor_pos act both (depending on the
         caller) as the offset in the ``text`` or ``line_buffer``, or as the
         ``column`` when passing multiline strings this could/should be renamed
         but would add extra noise.
 
-        Return
-        ======
-
+        Returns
+        -------
         A tuple of N elements which are (likely):
-
             matched_text: ? the text that the complete matched
             matches: list of completions ?
             matches_origin: ? list same lenght as matches, and where each completion came from
@@ -2191,15 +2155,13 @@ class IPCompleter(Completer):
         
     def fwd_unicode_match(self, text:str) -> Tuple[str, Sequence[str]]:
         """
-
         Forward match a string starting with a backslash with a list of
         potential Unicode completions.
 
         Will compute list list of Unicode character names on first call and cache it.
 
-        Return
-        ======
-
+        Returns
+        -------
         At tuple with:
             - matched text (empty if no matches)
             - list of potential completions, empty tuple  otherwise)
