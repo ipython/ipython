@@ -48,17 +48,17 @@ class _NoStyle(Style): pass
 
 
 _style_overrides_light_bg = {
-            Token.Prompt: '#0000ff',
-            Token.PromptNum: '#0000ee bold',
-            Token.OutPrompt: '#cc0000',
-            Token.OutPromptNum: '#bb0000 bold',
+            Token.Prompt: '#ansibrightblue',
+            Token.PromptNum: '#ansiblue bold',
+            Token.OutPrompt: '#ansibrightred',
+            Token.OutPromptNum: '#ansired bold',
 }
 
 _style_overrides_linux = {
-            Token.Prompt: '#00cc00',
-            Token.PromptNum: '#00bb00 bold',
-            Token.OutPrompt: '#cc0000',
-            Token.OutPromptNum: '#bb0000 bold',
+            Token.Prompt: '#ansibrightgreen',
+            Token.PromptNum: '#ansigreen bold',
+            Token.OutPrompt: '#ansibrightred',
+            Token.OutPromptNum: '#ansired bold',
 }
 
 def get_default_editor():
@@ -350,15 +350,15 @@ class TerminalInteractiveShell(InteractiveShell):
                 # looks like. These tweaks to the default theme help with that.
                 style_cls = get_style_by_name('default')
                 style_overrides.update({
-                    Token.Number: '#007700',
+                    Token.Number: '#ansigreen',
                     Token.Operator: 'noinherit',
-                    Token.String: '#BB6622',
-                    Token.Name.Function: '#2080D0',
-                    Token.Name.Class: 'bold #2080D0',
-                    Token.Name.Namespace: 'bold #2080D0',
-                    Token.Prompt: '#009900',
+                    Token.String: '#ansiyellow',
+                    Token.Name.Function: '#ansiblue',
+                    Token.Name.Class: 'bold #ansiblue',
+                    Token.Name.Namespace: 'bold #ansiblue',
+                    Token.Prompt: '#ansigreen',
                     Token.PromptNum: '#ansibrightgreen bold',
-                    Token.OutPrompt: '#990000',
+                    Token.OutPrompt: '#ansired',
                     Token.OutPromptNum: '#ansibrightred bold',
                 })
 
@@ -382,9 +382,9 @@ class TerminalInteractiveShell(InteractiveShell):
             else:
                 style_cls = name_or_cls
             style_overrides = {
-                Token.Prompt: '#009900',
+                Token.Prompt: '#ansigreen',
                 Token.PromptNum: '#ansibrightgreen bold',
-                Token.OutPrompt: '#990000',
+                Token.OutPrompt: '#ansired',
                 Token.OutPromptNum: '#ansibrightred bold',
             }
         style_overrides.update(self.highlighting_style_overrides)
