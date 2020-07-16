@@ -63,33 +63,41 @@ class Audio(DisplayObject):
 
     Examples
     --------
-    ::
 
-        # Generate a sound
-        import numpy as np
-        framerate = 44100
-        t = np.linspace(0,5,framerate*5)
-        data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
-        Audio(data,rate=framerate)
+    Generate a sound
 
-        # Can also do stereo or more channels
-        dataleft = np.sin(2*np.pi*220*t)
-        dataright = np.sin(2*np.pi*224*t)
-        Audio([dataleft, dataright],rate=framerate)
+    >>> import numpy as np
+    ... framerate = 44100
+    ... t = np.linspace(0,5,framerate*5)
+    ... data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
+    ... Audio(data,rate=framerate)
 
-        Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")  # From URL
-        Audio(url="http://www.w3schools.com/html/horse.ogg")
+    Can also do stereo or more channels
 
-        Audio('/path/to/sound.wav')  # From file
-        Audio(filename='/path/to/sound.ogg')
+    >>> dataleft = np.sin(2*np.pi*220*t)
+    ... dataright = np.sin(2*np.pi*224*t)
+    ... Audio([dataleft, dataright],rate=framerate)
 
-        Audio(b'RAW_WAV_DATA..)  # From bytes
-        Audio(data=b'RAW_WAV_DATA..)
+    From URL:
+
+    >>> Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")
+    >>> Audio(url="http://www.w3schools.com/html/horse.ogg")
+
+    From a File:
+
+    >>> Audio('/path/to/sound.wav')
+    >>> Audio(filename='/path/to/sound.ogg')
+
+    From Bytes:
+
+    >>> Audio(b'RAW_WAV_DATA..')
+    >>> Audio(data=b'RAW_WAV_DATA..')
 
     See Also
     --------
+    ipywidget.Audio
     
-    See also the ``Audio`` widgets form the ``ipywidget`` package for more flexibility and options.
+         AUdio widget with more more flexibility and options.
     
     """
     _read_flags = 'rb'
