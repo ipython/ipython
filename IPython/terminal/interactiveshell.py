@@ -356,6 +356,7 @@ class TerminalInteractiveShell(InteractiveShell):
                     Token.Name.Function: '#ansiblue',
                     Token.Name.Class: 'bold #ansiblue',
                     Token.Name.Namespace: 'bold #ansiblue',
+                    Token.Name.Variable.Magic: '#ansiblue',
                     Token.Prompt: '#ansigreen',
                     Token.PromptNum: '#ansibrightgreen bold',
                     Token.OutPrompt: '#ansired',

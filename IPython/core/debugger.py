@@ -294,7 +294,14 @@ class Pdb(OldPdb):
 
         This is used in up/down and where to skip frames.
         """
-        ip_hide = [s[0].f_locals.get("__tracebackhide__", False) for s in stack]
+        # The f_locals dictionary is updated from the actual frame
+        # locals whenever the .f_locals accessor is called, so we
+        # avoid calling it here to preserve self.curframe_locals.
+        # Futhermore, there is no good reason to hide the current frame.
+        ip_hide = [
+            False if s[0] is self.curframe else s[0].f_locals.get(
+                "__tracebackhide__", False)
+            for s in stack]
         ip_start = [i for i, s in enumerate(ip_hide) if s == "__ipython_bottom__"]
         if ip_start:
             ip_hide = [h if i > ip_start[0] else True for (i, h) in enumerate(ip_hide)]
