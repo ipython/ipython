@@ -128,11 +128,11 @@ else:
 #-----------------------------------------------------------------------------
 
 def removed_co_newlocals(function:types.FunctionType) -> types.FunctionType:
-    """Return a function that do not create a new local scope. 
+    """Return a function that do not create a new local scope.
 
     Given a function, create a clone of this function where the co_newlocal flag
     has been removed, making this function code actually run in the sourounding
-    scope. 
+    scope.
 
     We need this in order to run asynchronous code in user level namespace.
     """
@@ -175,7 +175,6 @@ def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
 
     Parameters
     ----------
-
     cell: str
         The code cell to asyncronify
     wrapper_name: str
@@ -185,7 +184,6 @@ def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
 
     Returns
     -------
-    
     ModuleType:
         A module object AST containing **one** function named `wrapper_name`.
 
@@ -896,9 +894,9 @@ class InteractiveShell(SingletonConfigurable):
         virtualenv was built, and it ignores the --no-site-packages option. A
         warning will appear suggesting the user installs IPython in the
         virtualenv, but for many cases, it probably works well enough.
-        
+
         Adapted from code snippets online.
-        
+
         http://blog.ufsoft.org/2009/1/29/ipython-and-virtualenv
         """
         if 'VIRTUAL_ENV' not in os.environ:
@@ -1067,7 +1065,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def register_post_execute(self, func):
         """DEPRECATED: Use ip.events.register('post_run_cell', func)
-        
+
         Register a function for calling after code execution.
         """
         warn("ip.register_post_execute is deprecated, use "
@@ -1087,14 +1085,14 @@ class InteractiveShell(SingletonConfigurable):
 
     def new_main_mod(self, filename, modname):
         """Return a new 'main' module object for user code execution.
-        
+
         ``filename`` should be the path of the script which will be run in the
         module. Requests with the same filename will get the same module, with
         its namespace cleared.
-        
+
         ``modname`` should be the module name - normally either '__main__' or
         the basename of the file without the extension.
-        
+
         When scripts are executed via %run, we must keep a reference to their
         __main__ module around so that Python doesn't
         clear it, rendering references to module globals useless.
@@ -1130,7 +1128,6 @@ class InteractiveShell(SingletonConfigurable):
 
         Examples
         --------
-
         In [15]: import IPython
 
         In [16]: m = _ip.new_main_mod(IPython.__file__, 'IPython')
@@ -1280,10 +1277,10 @@ class InteractiveShell(SingletonConfigurable):
 
     def prepare_user_module(self, user_module=None, user_ns=None):
         """Prepare the module and namespace in which user code will be run.
-        
+
         When IPython is started normally, both parameters are None: a new module
         is created automatically, and its __dict__ used as the namespace.
-        
+
         If only user_module is provided, its __dict__ is used as the namespace.
         If only user_ns is provided, a dummy module is created, and user_ns
         becomes the global namespace. If both are provided (as they may be
@@ -1404,7 +1401,7 @@ class InteractiveShell(SingletonConfigurable):
     def all_ns_refs(self):
         """Get a list of references to all the namespace dictionaries in which
         IPython might store a user-created object.
-        
+
         Note that this does not include the displayhook, which also caches
         objects from the output."""
         return [self.user_ns, self.user_global_ns, self.user_ns_hidden] + \
@@ -1582,15 +1579,15 @@ class InteractiveShell(SingletonConfigurable):
     def drop_by_id(self, variables):
         """Remove a dict of variables from the user namespace, if they are the
         same as the values in the dictionary.
-        
+
         This is intended for use by extensions: variables that they've added can
         be taken back out if they are unloaded, without removing any that the
         user has overwritten.
-        
+
         Parameters
         ----------
         variables : dict
-          A dictionary mapping object names (as strings) to the objects.
+            A dictionary mapping object names (as strings) to the objects.
         """
         for name, obj in variables.items():
             if name in self.user_ns and self.user_ns[name] is obj:
@@ -1884,10 +1881,10 @@ class InteractiveShell(SingletonConfigurable):
         
         def validate_stb(stb):
             """validate structured traceback return type
-            
+
             return type of CustomTB *should* be a list of strings, but allow
             single strings or None, which are harmless.
-            
+
             This function will *always* return a list of strings,
             and will raise a TypeError if stb is inappropriate.
             """
@@ -2289,14 +2286,12 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         magic_name : str
-          Name of the desired magic function, without '%' prefix.
-
+            Name of the desired magic function, without '%' prefix.
         line : str
-          The rest of the input line as a single string.
-          
+            The rest of the input line as a single string.
         _stack_depth : int
-          If run_line_magic() is called from magic() then _stack_depth=2.
-          This is added to ensure backward compatibility for use of 'get_ipython().magic()'
+            If run_line_magic() is called from magic() then _stack_depth=2.
+            This is added to ensure backward compatibility for use of 'get_ipython().magic()'
         """
         fn = self.find_line_magic(magic_name)
         if fn is None:
@@ -2333,7 +2328,7 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         stack_depth : int
-          Depth relative to calling frame
+            Depth relative to calling frame
         """
         return sys._getframe(stack_depth + 1).f_locals
 
@@ -2343,13 +2338,11 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         magic_name : str
-          Name of the desired magic function, without '%' prefix.
-
+            Name of the desired magic function, without '%' prefix.
         line : str
-          The rest of the first input line as a single string.
-
+            The rest of the first input line as a single string.
         cell : str
-          The body of the cell as a (possibly multiline) string.
+            The body of the cell as a (possibly multiline) string.
         """
         fn = self.find_cell_magic(magic_name)
         if fn is None:
