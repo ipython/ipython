@@ -599,6 +599,19 @@ def doctest_precision():
     Out[5]: '3.141593e+00'
     """
 
+def test_debug_magic():
+    """Test debugging a small code with %debug
+    
+    In [1]: %debug print("a b")
+    NOTE: Enter 'c' at the ipdb>  prompt to continue execution.
+    > <string>(1)<module>()
+
+    ipdb> c
+    a b
+
+    In [2]:
+    """
+
 def test_psearch():
     with tt.AssertPrints("dict.fromkeys"):
         _ip.run_cell("dict.fr*?")
