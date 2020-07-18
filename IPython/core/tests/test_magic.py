@@ -604,7 +604,7 @@ def test_debug_magic():
     """Test debugging a small code with %debug
     
     In [1]: with PdbTestInput(['c']):
-       ...:     %debug print("a b")
+       ...:     %debug print("a b") #doctest: +ELLIPSIS
        ...:
     ...
     ipdb> c
