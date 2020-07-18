@@ -607,7 +607,6 @@ def test_debug_magic():
        ...:     %debug print("a b")
        ...:
     NOTE: Enter 'c' at the ipdb>  prompt to continue execution.
-    > <string>(1)<module>()
     ipdb> c
     a b
     In [2]:
