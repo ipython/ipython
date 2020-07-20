@@ -32,6 +32,7 @@ from IPython.utils.io import capture_output
 from IPython.utils.tempdir import (TemporaryDirectory,
                                     TemporaryWorkingDirectory)
 from IPython.utils.process import find_cmd
+from .test_debugger import PdbTestInput
 
 
 @magic.magics_class
@@ -620,6 +621,18 @@ def doctest_precision():
     
     In [5]: f(3.1415927)
     Out[5]: '3.141593e+00'
+    """
+
+def test_debug_magic():
+    """Test debugging a small code with %debug
+    
+    In [1]: with PdbTestInput(['c']):
+       ...:     %debug print("a b") #doctest: +ELLIPSIS
+       ...:
+    ...
+    ipdb> c
+    a b
+    In [2]:
     """
 
 def test_psearch():

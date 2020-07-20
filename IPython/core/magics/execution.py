@@ -467,7 +467,13 @@ python-profiler package from non-free.""")
 
         if not (args.breakpoint or args.statement or cell):
             self._debug_post_mortem()
+        elif not (args.breakpoint or cell):
+            # If there is no breakpoints, the line is just code to execute
+            self._debug_exec(line, None)
         else:
+            # Here we try to reconstruct the code from the output of
+            # parse_argstring. This might not work if the code has spaces
+            # For example this fails for `print("a b")`
             code = "\n".join(args.statement)
             if cell:
                 code += "\n" + cell
