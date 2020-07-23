@@ -81,7 +81,7 @@ from warnings import warn
 from logging import error
 import IPython.core.hooks
 
-from typing import List as ListType, Tuple
+from typing import List as ListType, Tuple, Optional
 from ast import AST
 
 # NoOpContext is deprecated, but ipykernel imports it from here.
@@ -2877,11 +2877,24 @@ class InteractiveShell(SingletonConfigurable):
 
     def _run_cell(self, raw_cell:str, store_history:bool, silent:bool, shell_futures:bool) -> ExecutionResult:
         """Internal method to run a complete IPython cell."""
+
+        # we need to avoid calling self.transform_cell multiple time on the same thing
+        # so we need to store some results:
+        preprocessing_exc_tuple = None
+        try:
+            transformed_cell = self.transform_cell(raw_cell)
+        except Exception:
+            transformed_cell = raw_cell
+            preprocessing_exc_tuple = sys.exc_info()
+
+        assert transformed_cell is not None
         coro = self.run_cell_async(
             raw_cell,
             store_history=store_history,
             silent=silent,
             shell_futures=shell_futures,
+            transformed_cell=transformed_cell,
+            preprocessing_exc_tuple=preprocessing_exc_tuple,
         )
 
         # run_cell_async is async, but may not actually need an eventloop.
@@ -2890,7 +2903,11 @@ class InteractiveShell(SingletonConfigurable):
         # `%paste` magic.
         if self.trio_runner:
             runner = self.trio_runner
-        elif self.should_run_async(raw_cell):
+        elif self.should_run_async(
+            raw_cell,
+            transformed_cell=transformed_cell,
+            preprocessing_exc_tuple=preprocessing_exc_tuple,
+        ):
             runner = self.loop_runner
         else:
             runner = _pseudo_sync_runner
@@ -2904,7 +2921,9 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback(running_compiled_code=True)
             return result
 
-    def should_run_async(self, raw_cell: str) -> bool:
+    def should_run_async(
+        self, raw_cell: str, *, transformed_cell=None, preprocessing_exc_tuple=None
+    ) -> bool:
         """Return whether a cell should be run asynchronously via a coroutine runner
 
         Parameters
@@ -2921,15 +2940,40 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not self.autoawait:
             return False
-        try:
-            cell = self.transform_cell(raw_cell)
-        except Exception:
-            # any exception during transform will be raised
-            # prior to execution
+        if preprocessing_exc_tuple is not None:
             return False
+        assert preprocessing_exc_tuple is None
+        if transformed_cell is None:
+            warnings.warn(
+                "`should_run_async` will not call `transform_cell`"
+                " automatically in the future. Please pass the result to"
+                " `transformed_cell` argument and any exception that happen"
+                " during the"
+                "transform in `preprocessing_exc_tuple` in"
+                " IPython 7.17 and above.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            try:
+                cell = self.transform_cell(raw_cell)
+            except Exception:
+                # any exception during transform will be raised
+                # prior to execution
+                return False
+        else:
+            cell = transformed_cell
         return _should_be_async(cell)
 
-    async def run_cell_async(self, raw_cell: str, store_history=False, silent=False, shell_futures=True) -> ExecutionResult:
+    async def run_cell_async(
+        self,
+        raw_cell: str,
+        store_history=False,
+        silent=False,
+        shell_futures=True,
+        *,
+        transformed_cell: Optional[str] = None,
+        preprocessing_exc_tuple: Optional[Any] = None
+    ) -> ExecutionResult:
         """Run a complete IPython cell asynchronously.
 
         Parameters
@@ -2948,6 +2992,10 @@ class InteractiveShell(SingletonConfigurable):
           shell. It will both be affected by previous __future__ imports, and
           any __future__ imports in the code will affect the shell. If False,
           __future__ imports are not shared in either direction.
+        transformed_cell: str
+          cell that was passed through transformers
+        preprocessing_exc_tuple:
+          trace if the transformation failed.
 
         Returns
         -------
@@ -2982,17 +3030,33 @@ class InteractiveShell(SingletonConfigurable):
         if not silent:
             self.events.trigger('pre_run_cell', info)
 
-        # If any of our input transformation (input_transformer_manager or
-        # prefilter_manager) raises an exception, we store it in this variable
-        # so that we can display the error after logging the input and storing
-        # it in the history.
-        try:
-            cell = self.transform_cell(raw_cell)
-        except Exception:
-            preprocessing_exc_tuple = sys.exc_info()
-            cell = raw_cell  # cell has to exist so it can be stored/logged
+        if transformed_cell is None:
+            warnings.warn(
+                "`run_cell_async` will not call `transform_cell`"
+                " automatically in the future. Please pass the result to"
+                " `transformed_cell` argument and any exception that happen"
+                " during the"
+                "transform in `preprocessing_exc_tuple` in"
+                " IPython 7.17 and above.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            # If any of our input transformation (input_transformer_manager or
+            # prefilter_manager) raises an exception, we store it in this variable
+            # so that we can display the error after logging the input and storing
+            # it in the history.
+            try:
+                cell = self.transform_cell(raw_cell)
+            except Exception:
+                preprocessing_exc_tuple = sys.exc_info()
+                cell = raw_cell  # cell has to exist so it can be stored/logged
+            else:
+                preprocessing_exc_tuple = None
         else:
-            preprocessing_exc_tuple = None
+            if preprocessing_exc_tuple is None:
+                cell = transformed_cell
+            else:
+                cell = raw_cell
 
         # Store raw and processed history
         if store_history:
