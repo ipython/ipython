@@ -289,4 +289,38 @@ def test_check_complete_II():
 def test_null_cleanup_transformer():
     manager = ipt2.TransformerManager()
     manager.cleanup_transforms.insert(0, null_cleanup_transformer)
-    nt.assert_is(manager.transform_cell(""), "")
+    assert  manager.transform_cell("") == ""
+
+
+
+
+def test_side_effects_I():
+    count = 0
+    def counter(lines):
+        nonlocal count
+        count += 1
+        return lines
+
+    counter.has_side_effects = True
+
+    manager = ipt2.TransformerManager()
+    manager.cleanup_transforms.insert(0, counter)
+    assert manager.check_complete("a=1\n") == ('complete', None)
+    assert count == 0
+
+
+
+
+def test_side_effects_II():
+    count = 0
+    def counter(lines):
+        nonlocal count
+        count += 1
+        return lines
+
+    counter.has_side_effects = True
+
+    manager = ipt2.TransformerManager()
+    manager.line_transforms.insert(0, counter)
+    assert manager.check_complete("b=1\n") == ('complete', None)
+    assert count == 0
