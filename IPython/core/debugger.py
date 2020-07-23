@@ -671,15 +671,17 @@ class Pdb(OldPdb):
     do_w = do_where
 
     def stop_here(self, frame):
-        hidden = False
-        if self.skip_hidden:
-            hidden = frame.f_locals.get("__tracebackhide__", False)
-        if hidden:
+        """Check if pdb should stop here"""
+        if not super().stop_here(frame):
+            return False
+        if self.skip_hidden and frame.f_locals.get("__tracebackhide__", False):
+            if self._wait_for_mainpyfile:
+                return False
             Colors = self.color_scheme_table.active_colors
             ColorsNormal = Colors.Normal
             print(f"{Colors.excName}    [... skipped 1 hidden frame]{ColorsNormal}\n")
-
-        return super().stop_here(frame)
+            return False
+        return True
 
     def do_up(self, arg):
         """u(p) [count]
