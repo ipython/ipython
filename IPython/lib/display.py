@@ -95,7 +95,7 @@ class Audio(DisplayObject):
 
     See Also
     --------
-    ipywidget.Audio
+    ipywidgets.Audio
     
          AUdio widget with more more flexibility and options.
     
