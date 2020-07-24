@@ -634,7 +634,8 @@ class TransformerManager:
 
         try:
             for transform in self.cleanup_transforms:
-                lines = transform(lines)
+                if not getattr(transform, 'has_side_effects', False):
+                    lines = transform(lines)
         except SyntaxError:
             return 'invalid', None
 
@@ -647,7 +648,8 @@ class TransformerManager:
 
         try:
             for transform in self.line_transforms:
-                lines = transform(lines)
+                if not getattr(transform, 'has_side_effects', False):
+                    lines = transform(lines)
             lines = self.do_token_transforms(lines)
         except SyntaxError:
             return 'invalid', None

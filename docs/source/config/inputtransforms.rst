@@ -62,6 +62,14 @@ To start using this::
     ip = get_ipython()
     ip.input_transformers_cleanup.append(reverse_line_chars)
 
+.. versionadded:: 7.17
+
+    input_transformers can now have an attribute ``has_side_effects`` set to
+    `True`, which will prevent the transformers from being ran when IPython is
+    trying to guess whether the user input is complete. 
+
+
+
 AST transformations
 ===================
 

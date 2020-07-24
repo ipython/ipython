@@ -689,6 +689,30 @@ class TestAstTransform(unittest.TestCase):
         with tt.AssertPrints("8"):
             ip.run_cell("amacro")
 
+class TestMiscTransform(unittest.TestCase):
+
+
+    def test_transform_only_once(self):
+        cleanup = 0
+        line_t = 0
+        def count_cleanup(lines):
+            nonlocal cleanup
+            cleanup += 1
+            return lines
+
+        def count_line_t(lines):
+            nonlocal line_t
+            line_t += 1
+            return lines
+
+        ip.input_transformer_manager.cleanup_transforms.append(count_cleanup)
+        ip.input_transformer_manager.line_transforms.append(count_line_t)
+
+        ip.run_cell('1')
+
+        assert cleanup == 1
+        assert line_t == 1
+
 class IntegerWrapper(ast.NodeTransformer):
     """Wraps all integers in a call to Integer()"""
 
