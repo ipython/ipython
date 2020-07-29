@@ -432,7 +432,7 @@ class BaseFormatter(Configurable):
         """Add a format function for a given type.
         
         Parameters
-        -----------
+        ----------
         typ : type or '__module__.__name__' string for a type
             The class of the object that will be formatted using `func`.
         func : callable
