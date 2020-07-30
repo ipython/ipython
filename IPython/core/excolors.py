@@ -68,7 +68,7 @@ def exception_colors():
         excName = C.NoColor,
         line = C.NoColor,
         caret = C.NoColor,
-        Normal = C.NoColor
+        Normal = C.NoColor,
         ExecutingNode = '',
         ))
 
