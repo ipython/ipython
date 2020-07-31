@@ -198,7 +198,7 @@ def ipexec(fname, options=None, commands=()):
     ipython_cmd = get_ipython_cmd()
     # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
-    full_cmd = ipython_cmd + cmdargs + [full_fname]
+    full_cmd = ipython_cmd + cmdargs + ['--', full_fname]
     env = os.environ.copy()
     # FIXME: ignore all warnings in ipexec while we have shims
     # should we keep suppressing warnings here, even after removing shims?

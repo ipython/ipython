@@ -43,7 +43,7 @@ install:
     fi
   - pip install -e file://$PWD#egg=ipython[test] --upgrade
   - pip install trio curio --upgrade --upgrade-strategy eager
-  - pip install pytest 'matplotlib !=3.2.0' mypy
+  - pip install 'pytest<6' 'matplotlib !=3.2.0' mypy
   - pip install codecov check-manifest --upgrade
 
 script:
