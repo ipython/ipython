@@ -21,7 +21,7 @@ lots of work on the debugger and hidden frames from ``@impact27`` in
 :ghpull:`12437`, :ghpull:`12445`, :ghpull:`12460` and in particular
 :ghpull:`12453` which make the debug magic more robust at handling spaces.
 
-Biggest API addition is code transformation which is done before code execution; 
+Biggest API addition is code transformation which is done before code execution;
 IPython allows a number of hooks to catch non-valid Python syntax (magic, prompt
 stripping...etc). Transformers are usually called many time; typically:
 
@@ -32,7 +32,7 @@ stripping...etc). Transformers are usually called many time; typically:
 
 This lead to issues when transformer might have had side effects; or do external
 queries. Starting with IPython 7.17 you can expect your transformer to be called
-less time. 
+less time.
 
 Input transformers are now called only once in the execution path of
 `InteractiveShell`, allowing to register transformer that potentially have side
@@ -40,7 +40,7 @@ effects (note that this is not recommended). Internal methods `should_run_async`
 `run_cell_async` now take a recommended optional `transformed_cell`, and
 `preprocessing_exc_tuple` parameters that will become mandatory at some point in
 the future; that is to say cells need to be explicitly transformed to be valid
-Python syntax ahead of trying to run them. :ghpull:`12440`; 
+Python syntax ahead of trying to run them. :ghpull:`12440`;
 
 ``input_transformers`` can now also have an attribute ``has_side_effects`` set
 to `True`, when this attribute is present; this  will prevent the transformers
@@ -49,6 +49,37 @@ complete. Note that this may means you will need to explicitly execute in some
 case where your transformations are now not ran; but will not affect users with
 no custom extensions.
 
+
+API Changes
+-----------
+
+Change of API and exposed objects automatically detected using `frappuccino
+<https://pypi.org/project/frappuccino/>`_
+
+
+ The following items are new since 7.16.0::
+
+     + IPython.core.interactiveshell.InteractiveShell.get_local_scope(self, stack_depth)
+
+ The following signatures differ since 7.16.0::
+
+     - IPython.core.interactiveshell.InteractiveShell.run_cell_async(self, raw_cell, store_history=False, silent=False, shell_futures=True)
+     + IPython.core.interactiveshell.InteractiveShell.run_cell_async(self, raw_cell, store_history=False, silent=False, shell_futures=True, *, transformed_cell=None, preprocessing_exc_tuple=None)
+
+     - IPython.core.interactiveshell.InteractiveShell.should_run_async(self, raw_cell)
+     + IPython.core.interactiveshell.InteractiveShell.should_run_async(self, raw_cell, *, transformed_cell=None, preprocessing_exc_tuple=None)
+
+     - IPython.terminal.debugger.TerminalPdb.pt_init(self)
+     + IPython.terminal.debugger.TerminalPdb.pt_init(self, pt_session_options=None)
+
+This method was added::
+
+     + IPython.core.interactiveshell.InteractiveShell.get_local_scope
+
+Which is now also present on subclasses::
+
+     + IPython.terminal.embed.InteractiveShellEmbed.get_local_scope
+     + IPython.terminal.interactiveshell.TerminalInteractiveShell.get_local_scope
 
 
 .. _version 716:
