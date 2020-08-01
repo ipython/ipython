@@ -2,6 +2,55 @@
  7.x Series
 ============
 
+.. _version 717:
+
+IPython 7.17
+============
+
+IPython 7.17 brings a couple of new improvements to API and a couple of user
+facing changes to make the terminal experience more user friendly. 
+
+:ghpull:`12407` introduces the ability to pass extra argument to the IPython
+debugger class; this is to help a new project from ``kmaork``
+(https://github.com/kmaork/madbg) to feature a fully remote debugger.
+
+:ghpull:`12410` finally remove support for 3.6, while the codebase is still
+technically compatible; IPython will not install on Python 3.6.
+
+lots of work on the debugger and hidden frames from ``@impact27`` in
+:ghpull:`12437`, :ghpull:`12445`, :ghpull:`12460` and in particular
+:ghpull:`12453` which make the debug magic more robust at handling spaces.
+
+Biggest API addition is code transformation which is done before code execution; 
+IPython allows a number of hooks to catch non-valid Python syntax (magic, prompt
+stripping...etc). Transformers are usually called many time; typically:
+
+ - When trying to figure out whether the code is complete and valid (should we
+   insert a new line or execute ?)
+ - During actual code execution pass before giving the code to Python's
+   ``exec``.
+
+This lead to issues when transformer might have had side effects; or do external
+queries. Starting with IPython 7.17 you can expect your transformer to be called
+less time. 
+
+Input transformers are now called only once in the execution path of
+`InteractiveShell`, allowing to register transformer that potentially have side
+effects (note that this is not recommended). Internal methods `should_run_async`, and
+`run_cell_async` now take a recommended optional `transformed_cell`, and
+`preprocessing_exc_tuple` parameters that will become mandatory at some point in
+the future; that is to say cells need to be explicitly transformed to be valid
+Python syntax ahead of trying to run them. :ghpull:`12440`; 
+
+``input_transformers`` can now also have an attribute ``has_side_effects`` set
+to `True`, when this attribute is present; this  will prevent the transformers
+from being ran when IPython is trying to guess whether the user input is
+complete. Note that this may means you will need to explicitly execute in some
+case where your transformations are now not ran; but will not affect users with
+no custom extensions.
+
+
+
 .. _version 716:
 
 IPython 7.16
