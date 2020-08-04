@@ -94,7 +94,7 @@ def cell_magic(lines):
     if re.match(r'%%\w+\?', lines[0]):
         # This case will be handled by help_end
         return lines
-    magic_name, _, first_line = lines[0][2:-1].partition(' ')
+    magic_name, _, first_line = lines[0][2:].rstrip().partition(' ')
     body = ''.join(lines[1:])
     return ['get_ipython().run_cell_magic(%r, %r, %r)\n'
             % (magic_name, first_line, body)]
@@ -152,8 +152,8 @@ def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
     multiple lines.
     """
     parts = [lines[start[0]][start[1]:]] + lines[start[0]+1:end_line+1]
-    return ' '.join([p[:-2] for p in parts[:-1]]  # Strip backslash+newline
-                    + [parts[-1][:-1]])         # Strip newline from last line
+    return ' '.join([p.rstrip()[:-1] for p in parts[:-1]]  # Strip backslash+newline
+                    + [parts[-1].rstrip()])         # Strip newline from last line
 
 class TokenTransformBase:
     """Base class for transformations which examine tokens.
