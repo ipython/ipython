@@ -135,12 +135,11 @@ def _format_traceback_lines(lines, Colors, has_colors, lvals):
     Format tracebacks lines with pointing arrow, leading numbers...
 
     Parameters
-    ==========
-
-    lines: list[Line]
-    Colors:
+    ----------
+    lines : list[Line]
+    Colors
         ColorScheme used.
-    lvals: str
+    lvals : str
         Values of local variables, already colored, to inject just after the error line.
     """
     numbers_width = INDENT_SIZE - 1
@@ -337,21 +336,17 @@ class ListTB(TBTools):
         Parameters
         ----------
         etype : exception type
-          Type of the exception raised.
-
+            Type of the exception raised.
         evalue : object
-          Data stored in the exception
-
+            Data stored in the exception
         etb : object
-          If list: List of frames, see class docstring for details.
-          If Traceback: Traceback of the exception.
-
+            If list: List of frames, see class docstring for details.
+            If Traceback: Traceback of the exception.
         tb_offset : int, optional
-          Number of frames in the traceback to skip.  If not given, the
-          instance evalue is used (set in constructor).
-
+            Number of frames in the traceback to skip.  If not given, the
+            instance evalue is used (set in constructor).
         context : int, optional
-          Number of lines of context information to print.
+            Number of lines of context information to print.
 
         Returns
         -------
@@ -518,7 +513,7 @@ class ListTB(TBTools):
         Parameters
         ----------
         etype : exception type
-        value : exception value
+        evalue : exception value
         """
         return ListTB.structured_traceback(self, etype, value)
 
@@ -528,7 +523,7 @@ class ListTB(TBTools):
         Parameters
         ----------
         etype : exception type
-        value : exception value
+        evalue : exception value
         """
         # This method needs to use __call__ from *this* class, not the one from
         # a subclass whose signature or behavior may be different
@@ -975,7 +970,7 @@ class AutoFormattedTB(FormattedTB):
 
           - tb_offset: the number of frames to skip over in the stack, on a
           per-call basis (this overrides temporarily the instance's tb_offset
-          given at initialization time.  """
+          given at initialization time."""
 
         if out is None:
             out = self.ostream
