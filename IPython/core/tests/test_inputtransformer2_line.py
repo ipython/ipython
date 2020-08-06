@@ -114,3 +114,13 @@ def test_leading_empty_lines():
         nt.assert_equal(
                 ipt2.leading_empty_lines(sample.splitlines(keepends=True)),
                 expected.splitlines(keepends=True))
+
+CRLF_MAGIC = ([
+    "%%ls\r\n"
+], [
+    "get_ipython().run_cell_magic('ls', '', '')\n"
+])
+
+def test_crlf_magic():
+    for sample, expected in [CRLF_MAGIC]:
+        nt.assert_equal(ipt2.cell_magic(sample), expected)

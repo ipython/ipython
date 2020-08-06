@@ -31,6 +31,16 @@ for a in range(5):
     get_ipython().run_line_magic('ls', '')
 """.splitlines(keepends=True))
 
+CRLF_MAGIC = ([
+    "a = f()\n",
+    "%ls\r\n",
+    "g()\n"
+], (2, 0), [
+    "a = f()\n",
+    "get_ipython().run_line_magic('ls', '')\n",
+    "g()\n"
+])
+
 MULTILINE_MAGIC_ASSIGN = ("""\
 a = f()
 b = %foo \\
@@ -190,6 +200,7 @@ def test_find_magic_escape():
 def test_transform_magic_escape():
     check_transform(ipt2.EscapedCommand, MULTILINE_MAGIC)
     check_transform(ipt2.EscapedCommand, INDENTED_MAGIC)
+    check_transform(ipt2.EscapedCommand, CRLF_MAGIC)
 
 def test_find_autocalls():
     for case in [AUTOCALL_QUOTE, AUTOCALL_QUOTE2, AUTOCALL_PAREN]:
