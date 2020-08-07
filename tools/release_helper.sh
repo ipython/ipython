@@ -100,6 +100,10 @@ echo "Cleaning repository"
 git clean -xfdi
 
 echo $GREEN"please update version number in ${RED}IPython/core/release.py${NOR} , Do not commit yet – we'll do it later."$NOR
+echo $GREEN"I tried ${RED}sed -i bkp -e '/Uncomment/s/^# //g' IPython/core/release.py${NOR}"
+sed -i bkp -e '/Uncomment/s/^# //g' IPython/core/release.py
+rm IPython/core/release.pybkp
+git diff
 
 echo $GREEN"Press enter to continue"$NOR
 read
@@ -142,7 +146,13 @@ then
    
    
    echo $GREEN"please update version number and back to .dev in ${RED}IPython/core/release.py"
+   echo $GREEN"I tried ${RED}sed -i bkp -e '/Uncomment/s/^/# /g' IPython/core/release.py${NOR}"
+   sed -i bkp -e '/Uncomment/s/^/# /g' IPython/core/release.py
+   rm IPython/core/release.pybkp
+   git diff
+   echo $GREEN"Please bump ${RED}the minor version number${NOR}"
    echo ${BLUE}"Do not commit yet – we'll do it later."$NOR
+
    
    echo $GREEN"Press enter to continue"$NOR
    read
