@@ -96,9 +96,9 @@ class Audio(DisplayObject):
     See Also
     --------
     ipywidgets.Audio
-    
-         AUdio widget with more more flexibility and options.
-    
+
+         Audio widget with more more flexibility and options.
+
     """
     _read_flags = 'rb'
 
