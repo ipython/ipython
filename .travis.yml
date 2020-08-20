@@ -43,7 +43,7 @@ install:
   - pip install trio curio --upgrade --upgrade-strategy eager
   - pip install 'pytest<6' 'matplotlib !=3.2.0' mypy
   - pip install codecov check-manifest --upgrade
-  - pip install mypy
+  - pip install mypy darker
   - |
     if [[ "$MASTER_DEPENDENCIES" == "True" ]]; then
        pip install git+https://github.com/ipython/traitlets#egg=traitlets --force
@@ -61,6 +61,7 @@ script:
   - pytest IPython
   - mypy IPython/terminal/ptutils.py
   - mypy IPython/core/c*.py
+  - darker -r 60625f241f298b5039cb2debc365db38aa7bb522 --check .
   # On the latest Python (on Linux) only, make sure that the docs build.
   - |
     if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
