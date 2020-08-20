@@ -61,6 +61,9 @@ class PromptStripper:
         Used mainly for plain Python prompts (``>>>``), where the continuation prompt
         ``...`` is a valid Python expression in Python 3, so shouldn't be stripped.
 
+    Notes
+    -----
+
     If initial_re and prompt_re differ,
     only initial_re will be tested against the first line.
     If any prompt is found on the first two lines,
