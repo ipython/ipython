@@ -61,7 +61,10 @@ script:
   - pytest IPython
   - mypy IPython/terminal/ptutils.py
   - mypy IPython/core/c*.py
-  - darker -r 60625f241f298b5039cb2debc365db38aa7bb522 --check --diff .
+  - |
+    if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      darker -r 60625f241f298b5039cb2debc365db38aa7bb522 --check --diff .
+    fi
   # On the latest Python (on Linux) only, make sure that the docs build.
   - |
     if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
