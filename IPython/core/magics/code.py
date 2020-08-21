@@ -176,7 +176,7 @@ class CodeMagics(Magics):
 
     def __init__(self, *args, **kwargs):
         self._knowntemps = set()
-        super(CodeMagics, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @line_magic
     def save(self, parameter_s=''):

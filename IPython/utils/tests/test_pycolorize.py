@@ -44,7 +44,7 @@ def function(arg, *args, kwarg=True, **kwargs):
 class Bar(Super):
 
     def __init__(self):
-        super(Bar, self).__init__(1**2, 3^4, 5 or 6)
+        super().__init__(1**2, 3^4, 5 or 6)
 """
 
 def test_loop_colors():

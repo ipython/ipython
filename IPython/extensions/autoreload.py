@@ -425,7 +425,7 @@ from IPython.core.magic import Magics, magics_class, line_magic
 @magics_class
 class AutoreloadMagics(Magics):
     def __init__(self, *a, **kw):
-        super(AutoreloadMagics, self).__init__(*a, **kw)
+        super().__init__(*a, **kw)
         self._reloader = ModuleReloader()
         self._reloader.check_all = False
         self.loaded_modules = set(sys.modules)

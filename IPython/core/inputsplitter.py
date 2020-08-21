@@ -551,7 +551,7 @@ class IPythonInputSplitter(InputSplitter):
 
     def __init__(self, line_input_checker=True, physical_line_transforms=None,
                     logical_line_transforms=None, python_line_transforms=None):
-        super(IPythonInputSplitter, self).__init__()
+        super().__init__()
         self._buffer_raw = []
         self._validate = True
         
@@ -601,7 +601,7 @@ class IPythonInputSplitter(InputSplitter):
 
     def reset(self):
         """Reset the input buffer and associated state."""
-        super(IPythonInputSplitter, self).reset()
+        super().reset()
         self._buffer_raw[:] = []
         self.source_raw = ''
         self.transformer_accumulating = False
@@ -664,7 +664,7 @@ class IPythonInputSplitter(InputSplitter):
         if self.transformer_accumulating:
             return True
         else:
-            return super(IPythonInputSplitter, self).push_accepts_more()
+            return super().push_accepts_more()
 
     def transform_cell(self, cell):
         """Process and translate a cell of input.
@@ -720,7 +720,7 @@ class IPythonInputSplitter(InputSplitter):
 
         if transformed_lines_list:
             transformed_lines = '\n'.join(transformed_lines_list)
-            return super(IPythonInputSplitter, self).push(transformed_lines)
+            return super().push(transformed_lines)
         else:
             # Got nothing back from transformers - they must be waiting for
             # more input.

@@ -69,7 +69,7 @@ class StoreMagics(Magics):
     ).tag(config=True)
 
     def __init__(self, shell):
-        super(StoreMagics, self).__init__(shell=shell)
+        super().__init__(shell=shell)
         self.shell.configurables.append(self)
         if self.autorestore:
             restore_data(self.shell)

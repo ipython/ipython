@@ -118,7 +118,7 @@ class PrefilterManager(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
-        super(PrefilterManager, self).__init__(shell=shell, **kwargs)
+        super().__init__(shell=shell, **kwargs)
         self.shell = shell
         self._transformers = []
         self.init_handlers()
@@ -344,7 +344,7 @@ class PrefilterTransformer(Configurable):
     enabled = Bool(True).tag(config=True)
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
-        super(PrefilterTransformer, self).__init__(
+        super().__init__(
             shell=shell, prefilter_manager=prefilter_manager, **kwargs
         )
         self.prefilter_manager.register_transformer(self)
@@ -372,7 +372,7 @@ class PrefilterChecker(Configurable):
     enabled = Bool(True).tag(config=True)
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
-        super(PrefilterChecker, self).__init__(
+        super().__init__(
             shell=shell, prefilter_manager=prefilter_manager, **kwargs
         )
         self.prefilter_manager.register_checker(self)
@@ -529,7 +529,7 @@ class PrefilterHandler(Configurable):
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
-        super(PrefilterHandler, self).__init__(
+        super().__init__(
             shell=shell, prefilter_manager=prefilter_manager, **kwargs
         )
         self.prefilter_manager.register_handler(

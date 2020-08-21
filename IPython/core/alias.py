@@ -196,7 +196,7 @@ class AliasManager(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
-        super(AliasManager, self).__init__(shell=shell, **kwargs)
+        super().__init__(shell=shell, **kwargs)
         # For convenient access
         self.linemagics = self.shell.magics_manager.magics['line']
         self.init_aliases()

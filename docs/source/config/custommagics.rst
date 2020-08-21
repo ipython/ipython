@@ -108,7 +108,7 @@ instantiate the class yourself before registration:
 
         def __init__(self, shell, data):
             # You must call the parent constructor
-            super(StatefulMagics, self).__init__(shell)
+            super().__init__(shell)
             self.data = data
         
         # etc...

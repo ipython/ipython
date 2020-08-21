@@ -270,7 +270,7 @@ class SeparateUnicode(Unicode):
     def validate(self, obj, value):
         if value == '0': value = ''
         value = value.replace('\\n','\n')
-        return super(SeparateUnicode, self).validate(obj, value)
+        return super().validate(obj, value)
 
 
 @undoc
@@ -626,7 +626,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # This is where traits with a config_key argument are updated
         # from the values on config.
-        super(InteractiveShell, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         if 'PromptManager' in self.config:
             warn('As of IPython 5.0 `PromptManager` config will have no effect'
                  ' and has been replaced by TerminalInteractiveShell.prompts_class')

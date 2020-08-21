@@ -97,7 +97,7 @@ class ProfileAwareConfigLoader(PyFileConfigLoader):
             except ProfileDirError:
                 return
             path = profile_dir.location
-        return super(ProfileAwareConfigLoader, self).load_subconfig(fname, path=path)
+        return super().load_subconfig(fname, path=path)
 
 class BaseIPythonApplication(Application):
 
@@ -219,7 +219,7 @@ class BaseIPythonApplication(Application):
 
     @catch_config_error
     def __init__(self, **kwargs):
-        super(BaseIPythonApplication, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # ensure current working directory exists
         try:
             os.getcwd()
@@ -240,7 +240,7 @@ class BaseIPythonApplication(Application):
                              "in future versions.".format(sub=subc))
             self.log.warning("You likely want to use `jupyter {sub}` in the "
                              "future".format(sub=subc))
-        return super(BaseIPythonApplication, self).initialize_subcommand(subc, argv)
+        return super().initialize_subcommand(subc, argv)
 
     def init_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""

@@ -172,7 +172,7 @@ class ExecutionMagics(Magics):
     """
 
     def __init__(self, shell):
-        super(ExecutionMagics, self).__init__(shell)
+        super().__init__(shell)
         # Default execution function used to actually run user code.
         self.default_runner = None
 

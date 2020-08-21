@@ -275,7 +275,7 @@ class TerminalInteractiveShell(InteractiveShell):
             restore_term_title()
 
     def init_display_formatter(self):
-        super(TerminalInteractiveShell, self).init_display_formatter()
+        super().init_display_formatter()
         # terminal only supports plain text
         self.display_formatter.active_types = ['text/plain']
         # disable `_ipython_display_`
@@ -505,13 +505,13 @@ class TerminalInteractiveShell(InteractiveShell):
             io.stderr = io.IOStream(sys.stderr)
 
     def init_magics(self):
-        super(TerminalInteractiveShell, self).init_magics()
+        super().init_magics()
         self.register_magics(TerminalMagics)
 
     def init_alias(self):
         # The parent class defines aliases that can be safely used with any
         # frontend.
-        super(TerminalInteractiveShell, self).init_alias()
+        super().init_alias()
 
         # Now define aliases that only make sense on the terminal, because they
         # need direct access to the console in a way that we can't emulate in
@@ -522,7 +522,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
 
     def __init__(self, *args, **kwargs):
-        super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.init_prompt_toolkit_cli()
         self.init_term_title()
         self.keep_running = True

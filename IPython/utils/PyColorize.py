@@ -183,7 +183,7 @@ class Parser(Colorable):
         Call format() to process code.
         """
 
-        super(Parser, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.color_table = color_table if color_table else ANSICodeColors
         self.out = out

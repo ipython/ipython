@@ -156,7 +156,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             clid = '%s:%s' % (frame.f_code.co_filename, frame.f_lineno)
         self._init_location_id = clid
 
-        super(InteractiveShellEmbed,self).__init__(**kw)
+        super().__init__(**kw)
 
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped
@@ -171,7 +171,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         pass
 
     def init_magics(self):
-        super(InteractiveShellEmbed, self).init_magics()
+        super().init_magics()
         self.register_magics(EmbeddedMagics)
 
     def __call__(self, header='', local_ns=None, module=None, dummy=None,

@@ -112,7 +112,7 @@ class ScriptMagics(Magics):
     ).tag(config=True)
     
     def __init__(self, shell=None):
-        super(ScriptMagics, self).__init__(shell=shell)
+        super().__init__(shell=shell)
         self._generate_script_magics()
         self.job_manager = BackgroundJobManager()
         self.bg_processes = []

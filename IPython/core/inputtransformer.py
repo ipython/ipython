@@ -166,7 +166,7 @@ class TokenInputTransformer(InputTransformer):
 
 class assemble_python_lines(TokenInputTransformer):
     def __init__(self):
-        super(assemble_python_lines, self).__init__(None)
+        super().__init__(None)
     
     def output(self, tokens):
         return self.reset()

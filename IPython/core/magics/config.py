@@ -29,7 +29,7 @@ reg = re.compile(r'^\w+\.\w+$')
 class ConfigMagics(Magics):
 
     def __init__(self, shell):
-        super(ConfigMagics, self).__init__(shell)
+        super().__init__(shell)
         self.configurables = []
 
     @line_magic

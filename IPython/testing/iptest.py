@@ -250,7 +250,7 @@ class ExclusionPlugin(Plugin):
           expressions) are excluded from the tests.
         """
         self.exclude_patterns = exclude_patterns or []
-        super(ExclusionPlugin, self).__init__()
+        super().__init__()
 
     def options(self, parser, env=os.environ):
         Plugin.options(self, parser, env)
@@ -279,7 +279,7 @@ class StreamCapturer(Thread):
     daemon = True  # Don't hang if main thread crashes
     started = False
     def __init__(self, echo=False):
-        super(StreamCapturer, self).__init__()
+        super().__init__()
         self.echo = echo
         self.streams = []
         self.buffer = BytesIO()

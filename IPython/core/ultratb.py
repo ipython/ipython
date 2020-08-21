@@ -180,7 +180,7 @@ class TBTools(colorable.Colorable):
     def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None, parent=None, config=None):
         # Whether to call the interactive pdb debugger after printing
         # tracebacks or not
-        super(TBTools, self).__init__(parent=parent, config=config)
+        super().__init__(parent=parent, config=config)
         self.call_pdb = call_pdb
 
         # Output stream to write to.  Note that we store the original value in
@@ -1034,7 +1034,7 @@ class SyntaxTB(ListTB):
             if newtext:
                 value.text = newtext
         self.last_syntax_error = value
-        return super(SyntaxTB, self).structured_traceback(etype, value, elist,
+        return super().structured_traceback(etype, value, elist,
                                                           tb_offset=tb_offset, context=context)
 
     def clear_err_state(self):

@@ -588,7 +588,7 @@ class GlutInputHook(InputHookBase):
 
         glut.glutHideWindow() # This is an event to be processed below
         glutMainLoopEvent()
-        super(GlutInputHook, self).disable()
+        super().disable()
 
 @inputhook_manager.register('pyglet')
 class PygletInputHook(InputHookBase):

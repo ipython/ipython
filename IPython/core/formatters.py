@@ -842,7 +842,7 @@ class JSONFormatter(BaseFormatter):
         if md is not None:
             # put the tuple back together
             r = (r, md)
-        return super(JSONFormatter, self)._check_return(r, obj)
+        return super()._check_return(r, obj)
 
 
 class JavascriptFormatter(BaseFormatter):
@@ -938,7 +938,7 @@ class MimeBundleFormatter(BaseFormatter):
     _return_type = dict
     
     def _check_return(self, r, obj):
-        r = super(MimeBundleFormatter, self)._check_return(r, obj)
+        r = super()._check_return(r, obj)
         # always return (data, metadata):
         if r is None:
             return {}, {}

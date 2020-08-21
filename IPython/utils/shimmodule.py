@@ -57,7 +57,7 @@ class ShimModule(types.ModuleType):
         src = kwargs.pop("src", None)
         if src:
             kwargs['name'] = src.rsplit('.', 1)[-1]
-        super(ShimModule, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # add import hook for descendent modules
         if src:
             sys.meta_path.append(

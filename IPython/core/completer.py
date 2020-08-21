@@ -634,7 +634,7 @@ class Completer(Configurable):
 
         self.custom_matchers = []
 
-        super(Completer, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def complete(self, text, state):
         """Return the next possible completion for 'text'.

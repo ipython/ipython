@@ -190,7 +190,7 @@ class HistoryAccessor(HistoryAccessorBase):
           Config object. hist_file can also be set through this.
         """
         # We need a pointer back to the shell for various tasks.
-        super(HistoryAccessor, self).__init__(**traits)
+        super().__init__(**traits)
         # defer setting hist_file from kwarg until after init,
         # otherwise the default kwarg value would clobber any value
         # set by config
@@ -508,7 +508,7 @@ class HistoryManager(HistoryAccessor):
         """Create a new history manager associated with a shell instance.
         """
         # We need a pointer back to the shell for various tasks.
-        super(HistoryManager, self).__init__(shell=shell, config=config,
+        super().__init__(shell=shell, config=config,
             **traits)
         self.save_flag = threading.Event()
         self.db_input_cache_lock = threading.Lock()
@@ -603,7 +603,7 @@ class HistoryManager(HistoryAccessor):
         if session <= 0:
             session += self.session_number
 
-        return super(HistoryManager, self).get_session_info(session=session)
+        return super().get_session_info(session=session)
 
     def _get_range_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
@@ -657,7 +657,7 @@ class HistoryManager(HistoryAccessor):
             session += self.session_number
         if session==self.session_number:          # Current session
             return self._get_range_session(start, stop, raw, output)
-        return super(HistoryManager, self).get_range(session, start, stop, raw,
+        return super().get_range(session, start, stop, raw,
                                                      output)
 
     ## ----------------------------
@@ -788,7 +788,7 @@ class HistorySavingThread(threading.Thread):
     stop_now = False
     enabled = True
     def __init__(self, history_manager):
-        super(HistorySavingThread, self).__init__(name="IPythonHistorySavingThread")
+        super().__init__(name="IPythonHistorySavingThread")
         self.history_manager = history_manager
         self.enabled = history_manager.enabled
         atexit.register(self.stop)

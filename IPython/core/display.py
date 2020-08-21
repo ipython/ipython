@@ -331,7 +331,7 @@ class DisplayObject(object):
             cls = self.__class__
             r = "<%s.%s object>" % (cls.__module__, cls.__name__)
         else:
-            r = super(DisplayObject, self).__repr__()
+            r = super().__repr__()
         return r
 
     def _check_data(self):
@@ -411,7 +411,7 @@ class HTML(TextDisplayObject):
 
         if warn():
             warnings.warn("Consider using IPython.display.IFrame instead")
-        super(HTML, self).__init__(data=data, url=url, filename=filename, metadata=metadata)
+        super().__init__(data=data, url=url, filename=filename, metadata=metadata)
 
     def _repr_html_(self):
         return self._data_and_metadata()
@@ -580,7 +580,7 @@ class JSON(DisplayObject):
             self.metadata.update(metadata)
         if kwargs:
             self.metadata.update(kwargs)
-        super(JSON, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, (dict, list)):
@@ -683,7 +683,7 @@ class GeoJSON(JSON):
 
         """
 
-        super(GeoJSON, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
     def _ipython_display_(self):
@@ -742,7 +742,7 @@ class Javascript(TextDisplayObject):
             raise TypeError('expected sequence, got: %r' % css)
         self.lib = lib
         self.css = css
-        super(Javascript, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
     def _repr_javascript_(self):
         r = ''
@@ -917,7 +917,7 @@ class Image(DisplayObject):
         self.height = height
         self.retina = retina
         self.unconfined = unconfined
-        super(Image, self).__init__(data=data, url=url, filename=filename,
+        super().__init__(data=data, url=url, filename=filename,
                 metadata=metadata)
 
         if self.width is None and self.metadata.get('width', {}):
@@ -949,7 +949,7 @@ class Image(DisplayObject):
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.embed:
-            super(Image,self).reload()
+            super().reload()
             if self.retina:
                 self._retina_shape()
 
@@ -1103,7 +1103,7 @@ class Video(DisplayObject):
         self.width = width
         self.height = height
         self.html_attributes = html_attributes
-        super(Video, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
     def _repr_html_(self):
         width = height = ''

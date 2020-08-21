@@ -283,7 +283,7 @@ class DocTestCase(doctests.DocTestCase):
             _ip.user_ns['__builtins__'] = builtin_mod
             self._dt_test.globs = _ip.user_ns
 
-        super(DocTestCase, self).setUp()
+        super().setUp()
 
     def tearDown(self):
 
@@ -310,7 +310,7 @@ class DocTestCase(doctests.DocTestCase):
         # attribute error whose message would be the name of self._result_var,
         # and letting any other error propagate.
         try:
-            super(DocTestCase, self).tearDown()
+            super().tearDown()
         except AttributeError as exc:
             if exc.args[0] != self._result_var:
                 raise
@@ -583,8 +583,7 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
 
         # Override terminal size to standardise traceback format
         with modified_env({'COLUMNS': '80', 'LINES': '24'}):
-            return super(IPDocTestRunner,self).run(test,
-                                                   compileflags,out,clear_globs)
+            return super().run(test, compileflags,out,clear_globs)
 
 
 class DocFileCase(doctest.DocFileCase):

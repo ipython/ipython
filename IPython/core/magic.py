@@ -331,8 +331,8 @@ class MagicsManager(Configurable):
 
     def __init__(self, shell=None, config=None, user_magics=None, **traits):
 
-        super(MagicsManager, self).__init__(shell=shell, config=config,
-                                           user_magics=user_magics, **traits)
+        super().__init__(shell=shell, config=config,
+                         user_magics=user_magics, **traits)
         self.magics = dict(line={}, cell={})
         # Let's add the user_magics to the registry for uniformity, so *all*
         # registered magic containers can be found there.
@@ -538,7 +538,7 @@ class Magics(Configurable):
                     tab[magic_name] = meth_name
         # Configurable **needs** to be initiated at the end or the config
         # magics get screwed up.
-        super(Magics, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""

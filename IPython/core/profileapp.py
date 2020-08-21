@@ -123,7 +123,7 @@ class ProfileLocate(BaseIPythonApplication):
     description = """print the path to an IPython profile dir"""
     
     def parse_command_line(self, argv=None):
-        super(ProfileLocate, self).parse_command_line(argv)
+        super().parse_command_line(argv)
         if self.extra_args:
             self.profile = self.extra_args[0]
     
@@ -234,7 +234,7 @@ class ProfileCreate(BaseIPythonApplication):
                     self.config_files.remove(cf)
 
     def parse_command_line(self, argv):
-        super(ProfileCreate, self).parse_command_line(argv)
+        super().parse_command_line(argv)
         # accept positional arg as profile name
         if self.extra_args:
             self.profile = self.extra_args[0]
@@ -256,7 +256,7 @@ class ProfileCreate(BaseIPythonApplication):
         return app
 
     def init_config_files(self):
-        super(ProfileCreate, self).init_config_files()
+        super().init_config_files()
         # use local imports, since these classes may import from here
         from IPython.terminal.ipapp import TerminalIPythonApp
         apps = [TerminalIPythonApp]
