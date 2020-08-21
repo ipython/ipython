@@ -508,8 +508,7 @@ class HistoryManager(HistoryAccessor):
         """Create a new history manager associated with a shell instance.
         """
         # We need a pointer back to the shell for various tasks.
-        super().__init__(shell=shell, config=config,
-            **traits)
+        super().__init__(shell=shell, config=config, **traits)
         self.save_flag = threading.Event()
         self.db_input_cache_lock = threading.Lock()
         self.db_output_cache_lock = threading.Lock()
@@ -657,8 +656,7 @@ class HistoryManager(HistoryAccessor):
             session += self.session_number
         if session==self.session_number:          # Current session
             return self._get_range_session(start, stop, raw, output)
-        return super().get_range(session, start, stop, raw,
-                                                     output)
+        return super().get_range(session, start, stop, raw, output)
 
     ## ----------------------------
     ## Methods for storing history:

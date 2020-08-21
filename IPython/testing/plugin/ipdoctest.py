@@ -583,7 +583,7 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
 
         # Override terminal size to standardise traceback format
         with modified_env({'COLUMNS': '80', 'LINES': '24'}):
-            return super().run(test, compileflags,out,clear_globs)
+            return super().run(test, compileflags, out, clear_globs)
 
 
 class DocFileCase(doctest.DocFileCase):

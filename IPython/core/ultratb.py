@@ -1035,7 +1035,7 @@ class SyntaxTB(ListTB):
                 value.text = newtext
         self.last_syntax_error = value
         return super().structured_traceback(etype, value, elist,
-                                                          tb_offset=tb_offset, context=context)
+                                            tb_offset=tb_offset, context=context)
 
     def clear_err_state(self):
         """Return the current error state and clear it"""
