@@ -199,19 +199,21 @@ install_requires = [
 # This is the correct way to specify these,
 # but requires pip >= 6. pip < 6 ignores these.
 
-extras_require.update({
-    ':sys_platform != "win32"': ['pexpect'],
-    ':sys_platform == "darwin"': ['appnope'],
-    ':sys_platform == "win32"': ['colorama'],
-})
+extras_require.update(
+    {
+        ':sys_platform != "win32"': ["pexpect>4.3"],
+        ':sys_platform == "darwin"': ["appnope"],
+        ':sys_platform == "win32"': ["colorama"],
+    }
+)
 # FIXME: re-specify above platform dependencies for pip < 6
 # These would result in non-portable bdists.
 if not any(arg.startswith('bdist') for arg in sys.argv):
     if sys.platform == 'darwin':
         install_requires.extend(['appnope'])
 
-    if not sys.platform.startswith('win'):
-        install_requires.append('pexpect')
+    if not sys.platform.startswith("win"):
+        install_requires.append("pexpect>4.3")
 
     # workaround pypa/setuptools#147, where setuptools misspells
     # platform_python_implementation as python_implementation
