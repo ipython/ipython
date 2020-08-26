@@ -20,6 +20,8 @@ import os
 import shutil
 import sys
 
+from pathlib import Path
+
 from traitlets.config.application import Application, catch_config_error
 from traitlets.config.loader import ConfigFileNotFound, PyFileConfigLoader
 from IPython.core import release, crashhandler
@@ -31,10 +33,10 @@ from traitlets import (
     default, observe,
 )
 
-if os.name == 'nt':
-    programdata = os.environ.get('PROGRAMDATA', None)
+if os.name == "nt":
+    programdata = Path(os.environ.get("PROGRAMDATA", None))
     if programdata:
-        SYSTEM_CONFIG_DIRS = [os.path.join(programdata, 'ipython')]
+        SYSTEM_CONFIG_DIRS = [programdata / "ipython"]
     else:  # PROGRAMDATA is not defined by default on XP.
         SYSTEM_CONFIG_DIRS = []
 else:
@@ -409,14 +411,15 @@ class BaseIPythonApplication(Application):
         self.config_file_paths.extend(ENV_CONFIG_DIRS)
         self.config_file_paths.extend(SYSTEM_CONFIG_DIRS)
         # copy config files
-        path = self.builtin_profile_dir
+        path = Path(self.builtin_profile_dir)
         if self.copy_config_files:
             src = self.profile
 
             cfg = self.config_file_name
-            if path and os.path.exists(os.path.join(path, cfg)):
-                self.log.warning("Staging %r from %s into %r [overwrite=%s]"%(
-                        cfg, src, self.profile_dir.location, self.overwrite)
+            if path and (path / cfg).exists():
+                self.log.warning(
+                    "Staging %r from %s into %r [overwrite=%s]"
+                    % (cfg, src, self.profile_dir.location, self.overwrite)
                 )
                 self.profile_dir.copy_config_file(cfg, path=path, overwrite=self.overwrite)
             else:
@@ -425,9 +428,9 @@ class BaseIPythonApplication(Application):
             # Still stage *bundled* config files, but not generated ones
             # This is necessary for `ipython profile=sympy` to load the profile
             # on the first go
-            files = glob.glob(os.path.join(path, '*.py'))
+            files = path.glob("*.py")
             for fullpath in files:
-                cfg = os.path.basename(fullpath)
+                cfg = fullpath.name
                 if self.profile_dir.copy_config_file(cfg, path=path, overwrite=False):
                     # file was copied
                     self.log.warning("Staging bundled %s from %s into %r"%(
@@ -438,11 +441,10 @@ class BaseIPythonApplication(Application):
     def stage_default_config_file(self):
         """auto generate default config file, and stage it into the profile."""
         s = self.generate_config_file()
-        fname = os.path.join(self.profile_dir.location, self.config_file_name)
-        if self.overwrite or not os.path.exists(fname):
-            self.log.warning("Generating default config file: %r"%(fname))
-            with open(fname, 'w') as f:
-                f.write(s)
+        config_file = Path(self.profile_dir.location) / self.config_file_name
+        if self.overwrite or not config_file.exists():
+            self.log.warning("Generating default config file: %r" % (config_file))
+            config_file.write_text(s)
 
     @catch_config_error
     def initialize(self, argv=None):
