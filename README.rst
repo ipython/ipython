@@ -29,6 +29,8 @@ contribute to the project.
 
 Starting with IPython 7.10, IPython follows `NEP 29 <https://numpy.org/neps/nep-0029-deprecation_policy.html>`_
 
+**IPython 7.17+** requires Python version 3.7 and above.
+
 **IPython 7.10+** requires Python version 3.6 and above.
 
 **IPython 7.0** requires Python version 3.5 and above.
