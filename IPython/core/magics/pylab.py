@@ -154,8 +154,10 @@ class PylabMagics(Magics):
 
         gui, backend, clobbered = self.shell.enable_pylab(args.gui, import_all=import_all)
         self._show_matplotlib_backend(args.gui, backend)
-        print ("%pylab is deprecated, use %matpltolib inline and import the required libraries.")
-        print ("Populating the interactive namespace from numpy and matplotlib")
+        print(
+            "%pylab is deprecated, use %matpltolib inline and import the required libraries."
+        )
+        print("Populating the interactive namespace from numpy and matplotlib")
         if clobbered:
             warn("pylab import has clobbered these variables: %s"  % clobbered +
             "\n`%matplotlib` prevents importing * from pylab and numpy"

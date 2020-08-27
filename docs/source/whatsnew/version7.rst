@@ -2,6 +2,21 @@
  7.x Series
 ============
 
+.. _version 718:
+
+IPython 7.18
+============
+
+IPython 7.18 is a minor release that mostly contains bugfixes.
+
+ - ``CRLF`` is now handled by magics my default; solving some issues due to copy
+   pasting on windows. :ghpull:`12475`
+
+ - Requirin pexpect ``>=4.3`` as we are Python 3.7+ only and earlier version of
+   pexpect will be incompatible. :ghpull:`12510`
+
+
+
 .. _version 717:
 
 IPython 7.17
