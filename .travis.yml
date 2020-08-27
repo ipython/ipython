@@ -92,10 +92,8 @@ matrix:
     - arch: amd64
       python: "nightly"
       dist: xenial
-    - arch: arm64
-      python: "nightly"
-      dist: bionic
-      env: ARM64=True
+    - arch: amd64
+      python: "3.9-dev"
     - os: osx
       language: generic
       python: 3.6
