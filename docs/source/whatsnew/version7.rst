@@ -12,8 +12,10 @@ IPython 7.18 is a minor release that mostly contains bugfixes.
  - ``CRLF`` is now handled by magics my default; solving some issues due to copy
    pasting on windows. :ghpull:`12475`
 
- - Requirin pexpect ``>=4.3`` as we are Python 3.7+ only and earlier version of
+ - Requiring pexpect ``>=4.3`` as we are Python 3.7+ only and earlier version of
    pexpect will be incompatible. :ghpull:`12510`
+
+ - Minimum jedi version is now 0.16. :ghpull:`12488`
 
 
 
