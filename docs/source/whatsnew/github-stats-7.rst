@@ -1,6 +1,8 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+Stats are not collected after version 7.17, all contribution will show up as part of the 8.0 release.
+
 Issues closed in 7.17
 ---------------------
 
