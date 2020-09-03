@@ -190,7 +190,7 @@ install_requires = [
     'jedi>=0.10',
     'decorator',
     'pickleshare',
-    'traitlets>=4.2',
+    'traitlets<5',
     'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
     'pygments',
     'backcall',
