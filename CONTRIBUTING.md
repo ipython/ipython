@@ -74,7 +74,7 @@ For more detailed information, see our [GitHub Workflow](https://github.com/ipyt
 
 ## Running Tests
 
-All the tests can by running
+All the tests can be run by using
 ```shell
 iptest
 ```
