@@ -1138,6 +1138,11 @@ def test_edit_cell():
     # test
     _run_edit_test("1", exp_contents=ip.user_ns['In'][1], exp_is_temp=True)
 
+def test_edit_fname():
+    """%edit file"""
+    # test
+    _run_edit_test("test file.py", exp_filename="test file.py")
+
 def test_bookmark():
     ip = get_ipython()
     ip.run_line_magic('bookmark', 'bmname')
