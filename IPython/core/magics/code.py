@@ -513,7 +513,7 @@ class CodeMagics(Magics):
         self.shell.hooks.editor(filename)
 
         # and make a new macro object, to replace the old one
-        with open(filename) as mfile:
+        with Path(filename).open() as mfile:
             mvalue = mfile.read()
         self.shell.user_ns[mname] = Macro(mvalue)
 
