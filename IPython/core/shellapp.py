@@ -19,8 +19,10 @@ from IPython.core.application import SYSTEM_CONFIG_DIRS, ENV_CONFIG_DIRS
 from IPython.core import pylabtools
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
+import traitlets
 from traitlets import (
     Unicode, Instance, List, Bool, CaselessStrEnum, observe,
+    DottedObjectName,
 )
 from IPython.terminal import pt_inputhooks
 
@@ -89,12 +91,17 @@ shell_aliases = dict(
     logappend='InteractiveShell.logappend',
     c='InteractiveShellApp.code_to_run',
     m='InteractiveShellApp.module_to_run',
-    ext='InteractiveShellApp.extra_extension',
+    ext="InteractiveShellApp.extra_extensions",
     gui='InteractiveShellApp.gui',
     pylab='InteractiveShellApp.pylab',
     matplotlib='InteractiveShellApp.matplotlib',
 )
 shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
+
+if traitlets.version_info < (5, 0):
+    # traitlets 4 doesn't handle lists on CLI
+    shell_aliases["ext"] = "InteractiveShellApp.extra_extension"
+
 
 #-----------------------------------------------------------------------------
 # Main classes and functions
@@ -118,8 +125,27 @@ class InteractiveShellApp(Configurable):
     extensions = List(Unicode(),
         help="A list of dotted module names of IPython extensions to load."
     ).tag(config=True)
-    extra_extension = Unicode('',
-        help="dotted module name of an IPython extension to load."
+
+    extra_extension = Unicode(
+        "",
+        help="""
+        DEPRECATED. Dotted module name of a single extra IPython extension to load.
+
+        Only one extension can be added this way.
+
+        Only used with traitlets < 5.0, plural extra_extensions list is used in traitlets 5.
+        """,
+    ).tag(config=True)
+
+    extra_extensions = List(
+        DottedObjectName(),
+        help="""
+        Dotted module name(s) of one or more IPython extensions to load.
+
+        For specifying extra extensions to load on the command-line.
+
+        .. versionadded:: 7.10
+        """,
     ).tag(config=True)
 
     reraise_ipython_extension_failures = Bool(False,
@@ -264,7 +290,9 @@ class InteractiveShellApp(Configurable):
         """
         try:
             self.log.debug("Loading IPython extensions...")
-            extensions = self.default_extensions + self.extensions
+            extensions = (
+                self.default_extensions + self.extensions + self.extra_extensions
+            )
             if self.extra_extension:
                 extensions.append(self.extra_extension)
             for ext in extensions:
