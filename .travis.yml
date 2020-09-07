@@ -57,14 +57,24 @@ script:
        # on nightly fake parso known the grammar
        cp /home/travis/virtualenv/python3.9-dev/lib/python3.9/site-packages/parso/python/grammar38.txt /home/travis/virtualenv/python3.9-dev/lib/python3.9/site-packages/parso/python/grammar39.txt
     fi
+  - |
+    # check style on changes
+    # run `darker -r master` and commit changes to fix
+    if [[ "${TRAVIS_PULL_REQUEST:-false}" != "false" ]] \
+    && [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] \
+    && [[ "$TRAVIS_OS_NAME" == "linux" ]];
+    then
+      darker -r ${TRAVIS_COMMIT_RANGE%%.*} --check --diff . || (
+        echo "Changes need auto-formatting. Run:"
+        echo "    darker -r ${TRAVIS_COMMIT_RANGE%%.*}"
+        echo "then commit and push changes to fix."
+        exit 1
+      )
+    fi
   - cd /tmp && iptest --coverage xml && cd -
   - pytest IPython
   - mypy IPython/terminal/ptutils.py
   - mypy IPython/core/c*.py
-  - |
-    if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      darker -r 60625f241f298b5039cb2debc365db38aa7bb522 --check --diff .
-    fi
   # On the latest Python (on Linux) only, make sure that the docs build.
   - |
     if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
