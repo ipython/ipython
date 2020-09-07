@@ -693,17 +693,17 @@ class CodeMagics(Magics):
             # Quote filenames that may have spaces in them when opening
             # the editor
             quoted = filename = str(filepath.absolute())
-            if ' ' in quoted:
+            if " " in quoted:
                 quoted = "'%s'" % quoted
-            self.shell.hooks.editor(quoted,lineno)
+            self.shell.hooks.editor(quoted, lineno)
         except TryNext:
             warn('Could not open editor')
             return
 
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste
-        if args.strip() == 'pasted_block':
-            self.shell.user_ns['pasted_block'] = filepath.read_text()
+        if args.strip() == "pasted_block":
+            self.shell.user_ns["pasted_block"] = filepath.read_text()
 
         if 'x' in opts:  # -x prevents actual execution
             print()
@@ -713,8 +713,7 @@ class CodeMagics(Magics):
                 if not is_temp:
                     self.shell.user_ns['__file__'] = filename
                 if 'r' in opts:    # Untranslated IPython code
-                    with filepath.open('r') as f:
-                        source = f.read()
+                    source = filepath.read_text()
                     self.shell.run_cell(source, store_history=False)
                 else:
                     self.shell.safe_execfile(filename, self.shell.user_ns,
@@ -722,8 +721,7 @@ class CodeMagics(Magics):
 
         if is_temp:
             try:
-                with filepath.open() as f:
-                    return f.read()
+                return filepath.read_text()
             except IOError as msg:
                 if Path(msg.filename) == filepath:
                     warn('File not found. Did you forget to save?')
