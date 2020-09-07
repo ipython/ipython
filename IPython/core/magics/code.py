@@ -22,6 +22,7 @@ import ast
 from itertools import chain
 from urllib.request import urlopen
 from urllib.parse import urlencode
+from pathlib import Path
 
 # Our own packages
 from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
@@ -512,8 +513,7 @@ class CodeMagics(Magics):
         self.shell.hooks.editor(filename)
 
         # and make a new macro object, to replace the old one
-        with open(filename) as mfile:
-            mvalue = mfile.read()
+        mvalue = Path(filename).read_text()
         self.shell.user_ns[mname] = Macro(mvalue)
 
     @skip_doctest
@@ -688,20 +688,22 @@ class CodeMagics(Magics):
         # do actual editing here
         print('Editing...', end=' ')
         sys.stdout.flush()
+        filepath = Path(filename)
         try:
-            # Quote filenames that may have spaces in them
-            if ' ' in filename:
-                filename = "'%s'" % filename
-            self.shell.hooks.editor(filename,lineno)
+            # Quote filenames that may have spaces in them when opening
+            # the editor
+            quoted = filename = str(filepath.absolute())
+            if " " in quoted:
+                quoted = "'%s'" % quoted
+            self.shell.hooks.editor(quoted, lineno)
         except TryNext:
             warn('Could not open editor')
             return
 
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste
-        if args.strip() == 'pasted_block':
-            with open(filename, 'r') as f:
-                self.shell.user_ns['pasted_block'] = f.read()
+        if args.strip() == "pasted_block":
+            self.shell.user_ns["pasted_block"] = filepath.read_text()
 
         if 'x' in opts:  # -x prevents actual execution
             print()
@@ -711,8 +713,7 @@ class CodeMagics(Magics):
                 if not is_temp:
                     self.shell.user_ns['__file__'] = filename
                 if 'r' in opts:    # Untranslated IPython code
-                    with open(filename, 'r') as f:
-                        source = f.read()
+                    source = filepath.read_text()
                     self.shell.run_cell(source, store_history=False)
                 else:
                     self.shell.safe_execfile(filename, self.shell.user_ns,
@@ -720,10 +721,9 @@ class CodeMagics(Magics):
 
         if is_temp:
             try:
-                with open(filename) as f:
-                    return f.read()
+                return filepath.read_text()
             except IOError as msg:
-                if msg.filename == filename:
+                if Path(msg.filename) == filepath:
                     warn('File not found. Did you forget to save?')
                     return
                 else:
