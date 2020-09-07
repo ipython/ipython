@@ -22,14 +22,17 @@ import os
 import gzip
 import io
 
+from pathlib import Path
+
 if len(sys.argv) > 2:
     raise ValueError("Too many arguments")
 
 
 timestamp = int(os.environ["SOURCE_DATE_EPOCH"])
 
+path = Path(sys.argv[1])
 old_buf = io.BytesIO()
-with open(sys.argv[1], "rb") as f:
+with open(path, "rb") as f:
     old_buf.write(f.read())
 old_buf.seek(0)
 old = tarfile.open(fileobj=old_buf, mode="r:gz")
@@ -56,10 +59,10 @@ new.close()
 old.close()
 
 buf.seek(0)
-with open(sys.argv[1], "wb") as f:
+with open(path, "wb") as f:
     with gzip.GzipFile('', "wb", fileobj=f, mtime=timestamp) as gzf:
         gzf.write(buf.read())
 
 # checks the archive is valid.
-archive = tarfile.open(sys.argv[1])
+archive = tarfile.open(path)
 names = archive.getnames()
