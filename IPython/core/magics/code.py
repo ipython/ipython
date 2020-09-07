@@ -513,8 +513,7 @@ class CodeMagics(Magics):
         self.shell.hooks.editor(filename)
 
         # and make a new macro object, to replace the old one
-        with Path(filename).open() as mfile:
-            mvalue = mfile.read()
+        mvalue = Path(filename).read_text()
         self.shell.user_ns[mname] = Macro(mvalue)
 
     @skip_doctest
@@ -704,8 +703,7 @@ class CodeMagics(Magics):
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste
         if args.strip() == 'pasted_block':
-            with filepath.open('r') as f:
-                self.shell.user_ns['pasted_block'] = f.read()
+            self.shell.user_ns['pasted_block'] = filepath.read_text()
 
         if 'x' in opts:  # -x prevents actual execution
             print()
