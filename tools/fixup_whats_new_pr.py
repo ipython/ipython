@@ -11,36 +11,29 @@ time, these title and files will anyway be rewritten into the actual release
 notes.
 """
 
-import glob
-
+from pathlib import Path
 
 def main():
-    folder = 'docs/source/whatsnew/pr/'
-    assert folder.endswith('/')
-    files = glob.glob(folder+'*.rst')
+    folder = Path('docs/source/whatsnew/pr/')
+    files = list(folder.glob('*.rst'))
     print(files)
 
-    for filename in files:
-        print('Adding pseudo-title to:', filename)
-        title = filename[:-4].split('/')[-1].replace('-', ' ').capitalize()
+    for filepath in files:
+        print('Adding pseudo-title to:', filepath.name)
+        title = filepath.name[:-4].split('/')[-1].replace('-', ' ').capitalize()
 
-        with open(filename) as f:
-            data = f.read()
+        data = filepath.read_text()
         try:
             if data and data.splitlines()[1].startswith('='):
                 continue
         except IndexError:
             pass
 
-        with open(filename, 'w') as f:
+        with filepath.open('w') as f:
             f.write(title+'\n')
             f.write('='* len(title)+'\n\n')
             f.write(data)
 
 if __name__ == '__main__':
     main()
-
-
-
-
 
