@@ -14,13 +14,13 @@ notes.
 from pathlib import Path
 
 def main():
-    folder = Path('docs/source/whatsnew/pr/')
-    files = list(folder.glob('*.rst'))
+    folder = Path("docs/source/whatsnew/pr/")
+    files = list(folder.glob("*.rst"))
     print(files)
 
     for filepath in files:
-        print('Adding pseudo-title to:', filepath.name)
-        title = filepath.name[:-4].split('/')[-1].replace('-', ' ').capitalize()
+        print("Adding pseudo-title to:", filepath.name)
+        title = filepath.name[:-4].split("/")[-1].replace("-", " ").capitalize()
 
         data = filepath.read_text()
         try:
@@ -29,9 +29,9 @@ def main():
         except IndexError:
             pass
 
-        with filepath.open('w') as f:
-            f.write(title+'\n')
-            f.write('='* len(title)+'\n\n')
+        with filepath.open("w") as f:
+            f.write(title + "\n")
+            f.write("=" * len(title) + "\n\n")
             f.write(data)
 
 if __name__ == '__main__':
