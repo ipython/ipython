@@ -903,12 +903,12 @@ class InteractiveShell(SingletonConfigurable):
         if 'VIRTUAL_ENV' not in os.environ:
             # Not in a virtualenv
             return
-        elif os.environ['VIRTUAL_ENV'] == '':
+        elif os.environ["VIRTUAL_ENV"] == "":
             warn("Virtual env path set to '', please check if this is intended.")
             return
 
         p = Path(sys.executable)
-        p_venv = Path(os.environ['VIRTUAL_ENV'])
+        p_venv = Path(os.environ["VIRTUAL_ENV"])
 
         # fallback venv detection:
         # stdlib venv may symlink sys.executable, so we can't use realpath.
@@ -920,9 +920,9 @@ class InteractiveShell(SingletonConfigurable):
             paths.append(p.resolve())
 
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
-        if str(p_venv).startswith('\\cygdrive'):
+        if str(p_venv).startswith("\\cygdrive"):
             p_venv = Path(str(p_venv)[11:])
-        elif len(str(p_venv)) >= 2 and str(p_venv)[1] == ':':
+        elif len(str(p_venv)) >= 2 and str(p_venv)[1] == ":":
             p_venv = Path(str(p_venv)[2:])
 
         if any(os.fspath(p_venv) in os.fspath(p) for p in paths):
@@ -932,15 +932,12 @@ class InteractiveShell(SingletonConfigurable):
         warn("Attempting to work in a virtualenv. If you encounter problems, please "
              "install IPython inside the virtualenv.")
         if sys.platform == "win32":
-            virtual_env = Path(os.environ['VIRTUAL_ENV']).joinpath(
-                'Lib',
-                'site-packages'
+            virtual_env = Path(os.environ["VIRTUAL_ENV"]).joinpath(
+                "Lib", "site-packages"
             )
         else:
-            virtual_env = Path(os.environ['VIRTUAL_ENV']).joinpath(
-                'lib',
-                "python{}.{}".format(*sys.version_info[:2]),
-                'site-packages'
+            virtual_env = Path(os.environ["VIRTUAL_ENV"]).joinpath(
+                "lib", "python{}.{}".format(*sys.version_info[:2]), "site-packages"
             )
         
         import site
