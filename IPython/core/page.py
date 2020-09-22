@@ -22,6 +22,7 @@ import tempfile
 import subprocess
 
 from io import UnsupportedOperation
+from pathlib import Path
 
 from IPython import get_ipython
 from IPython.display import display
@@ -195,6 +196,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                 retval = 1
             else:
                 fd, tmpname = tempfile.mkstemp('.txt')
+                tmppath = 
                 try:
                     os.close(fd)
                     with open(tmpname, 'wt') as tmpfile:
