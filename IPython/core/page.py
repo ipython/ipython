@@ -199,7 +199,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                 tmppath = Path(tmpname)
                 try:
                     os.close(fd)
-                    with tmppath.open('wt') as tmpfile:
+                    with tmppath.open("wt") as tmpfile:
                         tmpfile.write(strng)
                         cmd = "%s < %s" % (pager_cmd, tmppath)
                     # tmpfile needs to be closed for windows
