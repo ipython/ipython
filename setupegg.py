@@ -3,5 +3,7 @@
 
 # Import setuptools and call the actual setup
 import setuptools
-with open('setup.py', 'rb') as f:
-    exec(compile(f.read(), 'setup.py', 'exec'))
+from pathlib import Path
+
+f = Path('setup.py')
+exec(compile(f.read_text(), 'setup.py', 'exec'))
