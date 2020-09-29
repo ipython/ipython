@@ -78,7 +78,7 @@ def read_py_file(filename, skip_encoding_cookie=True):
         if skip_encoding_cookie:
             return "".join(strip_encoding_cookie(f))
         else:
-            return filepath.read_text()
+            return f.read()
 
 def read_py_url(url, errors='replace', skip_encoding_cookie=True):
     """Read a Python file from a URL, using the encoding declared inside the file.
