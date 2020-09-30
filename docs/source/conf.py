@@ -125,7 +125,7 @@ import logging
 
 class ConfigtraitFilter(logging.Filter):
     """
-    This is a filter to remove in sphinx 3+ the error about config traits being duplicated. 
+    This is a filter to remove in sphinx 3+ the error about config traits being duplicated.
 
     As we autogenerate configuration traits from, subclasses have lots of
     duplication and we want to silence them. Indeed we build on travis with
@@ -260,9 +260,6 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3/', None),
 
 # Options for LaTeX output
 # ------------------------
-
-# The paper size ('letter' or 'a4').
-latex_paper_size = 'letter'
 
 # The font size ('10pt', '11pt' or '12pt').
 latex_font_size = '11pt'
