@@ -123,7 +123,7 @@ version::
 Alternatives to IPython
 =======================
 
-IPython may not be to your taste; if that's the case there might be similar
+IPython may not be to your taste; if that is the case there might be similar
 project that you might want to use:
 
 - the classic Python REPL.
@@ -132,7 +132,7 @@ project that you might want to use:
 - `ptpython and ptipython <https://pypi.org/project/ptpython/>`
 - `xonsh <https://xon.sh/>`
 
-Ignoring commits with git blame.ignoreRevsFile
+Ignoring commits with the git blame.ignoreRevsFile
 ==============================================
 
 As of git 2.23, it is possible to make formatting changes without breaking
@@ -140,7 +140,7 @@ As of git 2.23, it is possible to make formatting changes without breaking
 <https://git-scm.com/docs/git-config#Documentation/git-config.txt-blameignoreRevsFile>`_
 for more details.
 
-To use this feature you must:
+To use this feature you must do:
 
 - Install git >= 2.23
 - Configure your local git repo by running:
