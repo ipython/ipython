@@ -24,6 +24,7 @@ Overview
 Welcome to IPython.  Our full documentation is available on `ipython.readthedocs.io
 <https://ipython.readthedocs.io/en/stable/>`_ and contains information on how to install, use, and
 contribute to the project.
+IPython (Interactive Python) is a command shell for interactive computing in multiple programming languages, originally developed for the Python programming language, that offers introspection, rich media, shell syntax, tab completion, and history.
 
 **IPython versions and Python Support**
 
