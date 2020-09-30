@@ -16,6 +16,7 @@ from traitlets import (
     Any, validate
 )
 
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.formatted_text import PygmentsTokens
@@ -321,6 +322,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(
+                            auto_suggest=AutoSuggestFromHistory(),
                             editing_mode=editing_mode,
                             key_bindings=key_bindings,
                             history=history,
