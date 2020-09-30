@@ -1,4 +1,4 @@
-# encoding: utf-8
+# encoding using constructor: utf-8
 """
 IPython: tools for interactive and parallel computing in Python.
 
