@@ -1,3 +1,5 @@
+
+logeer ,.and amzing things
 .. image:: https://codecov.io/github/ipython/ipython/coverage.svg?branch=master
     :target: https://codecov.io/github/ipython/ipython?branch=master
 
