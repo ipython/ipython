@@ -10,7 +10,7 @@ Writing code for Python 2 and 3
 IPython 6 requires Python 3, so our compatibility module
 ``IPython.utils.py3compat`` is deprecated and will be removed in a future
 version. In most cases, we recommend you use the `six module
-<https://pythonhosted.org/six/>`__ to support compatible code. This is widely
+<https://six.readthedocs.io/>`__ to support compatible code. This is widely
 used by other projects, so it is familiar to many developers and thoroughly
 battle-tested.
 
@@ -24,9 +24,9 @@ be removed in the future.
    `Porting Python 2 code to Python 3 <https://docs.python.org/3/howto/pyporting.html>`_
      Official information in the Python docs.
 
-   `Python-Modernize <http://python-modernize.readthedocs.io/en/latest/>`_
+   `Python-Modernize <https://python-modernize.readthedocs.io/en/latest/>`_
      A tool which helps make code compatible with Python 3.
 
-   `Python-Future <http://python-future.org/>`_
+   `Python-Future <https://python-future.org/>`_
      Another compatibility tool, which focuses on writing code for Python 3 and
      making it work on Python 2.
