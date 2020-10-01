@@ -2788,7 +2788,7 @@ class InteractiveShell(SingletonConfigurable):
 
         def get_cells():
             """generator for sequence of code blocks to run"""
-            if fname.suffix == '.ipynb':
+            if fname.suffix == ".ipynb":
                 from nbformat import read
                 nb = read(fname, as_version=4)
                 if not nb.cells:
