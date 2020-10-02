@@ -19,7 +19,7 @@ def exception_colors():
     """Return a color table with fields for exception reporting.
 
     The table is an instance of ColorSchemeTable with schemes added for
-    'Neutral', 'Linux', 'LightBG' and 'NoColor' and fields for exception handling filled
+    'Neutral', 'Linux', 'LightBG', 'Monokai', and 'NoColor' and fields for exception handling filled
     in.
 
     Examples:
@@ -152,6 +152,34 @@ def exception_colors():
         excName = C.Red,
         #line = C.Brown,  # brown often is displayed as yellow
         line = C.Red,
+        caret = C.Normal,
+        Normal = C.Normal,
+        ))
+    
+    # For dark background and 256-bit colors
+    ex_colors.add_scheme(ColorScheme(
+        'Monokai',
+        # The color to be used for the top line
+        topline = C.MonokaiRed,
+
+        # The colors to be used in the traceback
+        filename = C.MonokaiCyan,
+        lineno = C.MonokaiGray,
+        name = C.MonokaiPurple,
+        vName = C.MonokaiGreen,
+        val = C.MonokaiGreen,
+        em = C.MonokaiCyan,
+
+        # Emphasized colors for the last frame of the traceback
+        normalEm = C.MonokaiCyan,
+        filenameEm = C.MonokaiGreen,
+        linenoEm = C.MonokaiGray,
+        nameEm = C.MonokaiPurple,
+        valEm = C.MonokaiBlue,
+
+        # Colors for printing the exception
+        excName = C.MonokaiRed,
+        line = C.MonokaiRed,
         caret = C.Normal,
         Normal = C.Normal,
         ))

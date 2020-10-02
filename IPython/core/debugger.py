@@ -271,6 +271,10 @@ class Pdb(OldPdb):
         cst['Neutral'].colors.prompt = C.Blue
         cst['Neutral'].colors.breakpoint_enabled = C.LightRed
         cst['Neutral'].colors.breakpoint_disabled = C.Red
+        
+        cst['Monokai'].colors.prompt = C.MonokaiBlue
+        cst['Monokai'].colors.breakpoint_enabled = C.MonokaiMagenta
+        cst['Monokai'].colors.breakpoint_disabled = C.MonokaiRed
 
 
         # Add a python parser so we can syntax highlight source while

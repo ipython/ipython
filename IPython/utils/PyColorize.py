@@ -110,16 +110,16 @@ LinuxColors = ColorScheme(
 
 MonokaiColors = ColorScheme(
     'Monokai',{
-    'header'         : Colors.MonokaiPurple,
-    token.NUMBER     : Colors.MonokaiCyan,
-    token.OP         : Colors.MonokaiYellow,
-    token.STRING     : Colors.MonokaiBlue,
-    tokenize.COMMENT : Colors.MonokaiMagenta,
-    token.NAME       : Colors.Normal,
+    'header'         : Colors.MonokaiYellow,
+    token.NUMBER     : Colors.MonokaiPurple,
+    token.OP         : Colors.MonokaiRed,
+    token.STRING     : Colors.MonokaiOrange,
+    tokenize.COMMENT : Colors.MonokaiGray,
+    token.NAME       : Colors.MonokaiBlue,
     token.ERRORTOKEN : Colors.MonokaiRed,
 
     _KEYWORD         : Colors.MonokaiGreen,
-    _TEXT            : Colors.MonokaiYellow,
+    _TEXT            : Colors.MonokaiOrange,
 
     'in_prompt'      : InputTermColors.MonokaiGreen,
     'in_number'      : InputTermColors.MonokaiCyan,
@@ -192,7 +192,7 @@ LightBGColors = ColorScheme(
     }  )
 
 # Build table of color schemes (needed by the parser)
-ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors, NeutralColors],
+ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors, NeutralColors, MonokaiColors],
                                   _scheme_default)
 
 Undefined = object()

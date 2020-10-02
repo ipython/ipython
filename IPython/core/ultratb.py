@@ -70,6 +70,9 @@ ColorSchemeTable class. Currently the following exist:
   - Neutral: a neutral color scheme that should be readable on both light and
     dark background
 
+  - Monokai: a color scheme that takes advantage of 256-bit colors. Best on 
+    a dark background.
+
 You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.

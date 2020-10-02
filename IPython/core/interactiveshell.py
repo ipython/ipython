@@ -432,7 +432,7 @@ class InteractiveShell(SingletonConfigurable):
         get confused with color codes, this capability can be turned off.
         """
     ).tag(config=True)
-    colors = CaselessStrEnum(('Neutral', 'NoColor','LightBG','Linux'),
+    colors = CaselessStrEnum(('Neutral', 'NoColor','LightBG','Linux', 'Monokai'),
                              default_value='Neutral',
         help="Set the color scheme (NoColor, Neutral, Linux, or LightBG)."
     ).tag(config=True)

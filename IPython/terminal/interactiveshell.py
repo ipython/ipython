@@ -338,7 +338,7 @@ class TerminalInteractiveShell(InteractiveShell):
         style_overrides = {}
         if name_or_cls == 'legacy':
             legacy = self.colors.lower()
-            if legacy == 'linux':
+            if legacy == 'linux' or legacy == 'monokai':
                 style_cls = get_style_by_name('monokai')
                 style_overrides = _style_overrides_linux
             elif legacy == 'lightbg':

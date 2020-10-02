@@ -15,7 +15,7 @@ from traitlets.config import Configurable
 from traitlets import Unicode
 
 
-available_themes = lambda : [s for s in pygments.styles.get_all_styles()]+['NoColor','LightBG','Linux', 'Neutral']
+available_themes = lambda : [s for s in pygments.styles.get_all_styles()]+['NoColor','LightBG','Linux', 'Neutral', 'Monokai']
 
 class Colorable(Configurable):
     """

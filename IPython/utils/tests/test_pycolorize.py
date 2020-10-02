@@ -49,7 +49,7 @@ class Bar(Super):
 
 def test_loop_colors():
 
-    for style in ('Linux', 'NoColor','LightBG', 'Neutral'):
+    for style in ('Linux', 'NoColor','LightBG', 'Neutral', 'Monokai'):
 
         def test_unicode_colorize():
             p = Parser(style=style)
