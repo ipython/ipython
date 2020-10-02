@@ -54,8 +54,6 @@ color_templates = (
         ("MonokaiCyan"        , "38;5;159"),
         ("MonokaiYellow"      , "38;5;228"),
         )
-        # You could use RGB with the pattern
-        # "38;2;<r>;<g>;<b>"
 
 def make_color_table(in_class):
     """Build a set of color attributes in a class.
