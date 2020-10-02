@@ -53,7 +53,6 @@ color_templates = (
         ("MonokaiMagenta"     , "38;5;207"),
         ("MonokaiCyan"        , "38;5;159"),
         ("MonokaiYellow"      , "38;5;228"),
-        ("MonokaiWhite"       , "38;5;255"),
         )
 
 def make_color_table(in_class):
