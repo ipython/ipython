@@ -21,10 +21,10 @@
 Overview
 ========
 
-Welcome to IPython.  Our full documentation is available on `ipython.readthedocs.io
-<https://ipython.readthedocs.io/en/stable/>`_ and contains information on how to install, use, and
+Welcome to IPython. Our full documentation is available on `ipython.readthedocs.io
+<https://ipython.readthedocs.io/en/stable/>`_ and contains information on how to install, use and
 contribute to the project.
-IPython (Interactive Python) is a command shell for interactive computing in multiple programming languages, originally developed for the Python programming language, that offers introspection, rich media, shell syntax, tab completion, and history.
+IPython (Interactive Python) is a command shell for interactive computing in multiple programming languages (basically developed for the Python programming language) that offers introspection, rich media, shell syntax, tab completion and history.
 
 **IPython versions and Python Support**
 
@@ -43,7 +43,7 @@ If you require Python 2 support, you **must** use IPython 5.x LTS. Please
 update your project configurations and requirements as necessary.
 
 
-The Notebook, Qt console and a number of other pieces are now parts of *Jupyter*.
+The Notebook, Qt console and a number of other pieces are now parts of the *Jupyter*.
 See the `Jupyter installation docs <https://jupyter.readthedocs.io/en/latest/install.html>`__
 if you want to use these.
 
@@ -73,10 +73,10 @@ found on the `IPython website <https://ipython.org/documentation.html>`_
 IPython requires Python version 3 or above
 ==========================================
 
-Starting with version 6.0, IPython does not support Python 2.7, 3.0, 3.1, or
+Starting with version 6.0, IPython does not support Python 2.7, 3.0, 3.1 or
 3.2.
 
-For a version compatible with Python 2.7, please install the 5.x LTS Long Term
+For version compatiblility with Python 2.7, please install the 5.x LTS Long Term
 Support version.
 
 If you are encountering this error message you are likely trying to install or
@@ -87,14 +87,13 @@ using git the following should work::
   $ git checkout 5.x
 
 If you encounter this error message with a regular install of IPython, then you
-likely need to update your package manager, for example if you are using `pip`
+likely need to update your package manager. For example, if you are using `pip`
 check the version of pip with::
 
   $ pip --version
 
 You will need to update pip to the version 9.0.1 or greater. If you are not using
-pip, please inquiry with the maintainers of the package for your package
-manager.
+pip, please inquiry with the package maintainers for your package manager.
 
 For more information see one of our blog posts:
 
@@ -104,10 +103,10 @@ As well as the following Pull-Request for discussion:
 
     https://github.com/ipython/ipython/pull/9900
 
-This error does also occur if you are invoking ``setup.py`` directly – which you
-should not – or are using ``easy_install`` If this is the case, use ``pip
-install .`` instead of ``setup.py install`` , and ``pip install -e .`` instead
-of ``setup.py develop`` If you are depending on IPython as a dependency you may
+This error will also occur if you are invoking ``setup.py`` directly – which you
+should not – or are using ``easy_install``. If this is the case, use ``pip
+install.`` Instead of ``setup.py install``, and ``pip install -e.`` Instead
+of ``setup.py develop``. If you are depending on IPython as a dependency you may
 also want to have a conditional dependency on IPython depending on the Python
 version::
 
@@ -124,8 +123,8 @@ version::
 Alternatives to IPython
 =======================
 
-IPython may not be to your taste; if that's the case there might be similar
-project that you might want to use:
+Incase IPython may not be of your taste; then there might be similar
+project that you would like to use:
 
 - the classic Python REPL.
 - `bpython <https://bpython-interpreter.org/>`_
@@ -141,7 +140,7 @@ As of git 2.23, it is possible to make formatting changes without breaking
 <https://git-scm.com/docs/git-config#Documentation/git-config.txt-blameignoreRevsFile>`_
 for more details.
 
-To use this feature you must:
+To use this feature you must follow some steps:
 
 - Install git >= 2.23
 - Configure your local git repo by running:
