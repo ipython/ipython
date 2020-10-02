@@ -43,6 +43,17 @@ color_templates = (
         ("BlinkPurple" , "5;35"),
         ("BlinkCyan"   , "5;36"),
         ("BlinkLightGray", "5;37"),
+        # Monokai colors
+        ("MonokaiGray"        , "38;5;251"),
+        ("MonokaiRed"         , "38;5;197"),
+        ("MonokaiGreen"       , "38;5;148"),
+        ("MonokaiOrange"      , "38;5;214"),
+        ("MonokaiBlue"        , "38;5;81"),
+        ("MonokaiPurple"      , "38;5;141"),
+        ("MonokaiMagenta"     , "38;5;207"),
+        ("MonokaiCyan"        , "38;5;159"),
+        ("MonokaiYellow"      , "38;5;228"),
+        ("MonokaiWhite"       , "38;5;255"),
         )
 
 def make_color_table(in_class):
@@ -67,6 +78,7 @@ class TermColors:
     NoColor = ''  # for color schemes in color-less terminals.
     Normal = '\033[0m'   # Reset normal coloring
     _base  = '\033[%sm'  # Template for all other colors
+
 
 # Build the actual color table as a set of class attributes:
 make_color_table(TermColors)

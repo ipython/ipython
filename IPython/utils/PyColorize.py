@@ -108,6 +108,30 @@ LinuxColors = ColorScheme(
     'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
     } )
 
+MonokaiColors = ColorScheme(
+    'Monokai',{
+    'header'         : Colors.MonokaiPurple,
+    token.NUMBER     : Colors.MonokaiCyan,
+    token.OP         : Colors.MonokaiYellow,
+    token.STRING     : Colors.MonokaiBlue,
+    tokenize.COMMENT : Colors.MonokaiMagenta,
+    token.NAME       : Colors.Normal,
+    token.ERRORTOKEN : Colors.MonokaiRed,
+
+    _KEYWORD         : Colors.MonokaiGreen,
+    _TEXT            : Colors.MonokaiYellow,
+
+    'in_prompt'      : InputTermColors.MonokaiGreen,
+    'in_number'      : InputTermColors.MonokaiCyan,
+    'in_prompt2'     : InputTermColors.MonokaiGreen,
+    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
+
+    'out_prompt'     : Colors.MonokaiRed,
+    'out_number'     : Colors.MonokaiMagenta,
+
+    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
+    } )
+
 NeutralColors = ColorScheme(
     'Neutral',{
     'header'         : Colors.Red,
