@@ -48,7 +48,7 @@ color_templates = (
         ("MonokaiRed"         , "38;5;197"),
         ("MonokaiGreen"       , "38;5;148"),
         ("MonokaiOrange"      , "38;5;214"),
-        ("MonokaiBlue"        , "38;5;81"),
+        ("MonokaiBlue"        , "38;5;75"),
         ("MonokaiPurple"      , "38;5;141"),
         ("MonokaiMagenta"     , "38;5;207"),
         ("MonokaiCyan"        , "38;5;159"),

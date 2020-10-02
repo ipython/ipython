@@ -180,7 +180,7 @@ def exception_colors():
         # Colors for printing the exception
         excName = C.MonokaiRed,
         line = C.MonokaiRed,
-        caret = C.Normal,
+        caret = C.MonokaiBlue,
         Normal = C.Normal,
         ))
 

@@ -62,8 +62,8 @@ _style_overrides_linux = {
 }
 
 _style_overrides_monokai = {
-            Token.Prompt: '#a9dc76',
-            Token.PromptNum: '#a9dc76 bold',
+            Token.Prompt: '#6c99bb',
+            Token.PromptNum: '#6c99bb bold',
             Token.OutPrompt: '#ff005f',
             Token.OutPromptNum: '#ff005f bold',
 }
@@ -351,9 +351,6 @@ class TerminalInteractiveShell(InteractiveShell):
             elif legacy == 'lightbg':
                 style_overrides = _style_overrides_light_bg
                 style_cls = get_style_by_name('pastie')
-            elif legacy == 'monokai':
-                style_overrides = _style_overrides_monokai
-                style_cls = get_style_by_name('monokai')
             elif legacy == 'neutral':
                 # The default theme needs to be visible on both a dark background
                 # and a light background, because we can't tell what the terminal
@@ -387,6 +384,9 @@ class TerminalInteractiveShell(InteractiveShell):
                 style_overrides = {}
             else :
                 raise ValueError('Got unknown colors: ', legacy)
+        elif name_or_cls == 'monokai':
+            style_overrides = _style_overrides_monokai
+            style_cls = get_style_by_name('monokai')
         else :
             if isinstance(name_or_cls, str):
                 style_cls = get_style_by_name(name_or_cls)

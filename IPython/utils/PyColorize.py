@@ -115,7 +115,7 @@ MonokaiColors = ColorScheme(
     token.OP         : Colors.MonokaiRed,
     token.STRING     : Colors.MonokaiOrange,
     tokenize.COMMENT : Colors.MonokaiGray,
-    token.NAME       : Colors.MonokaiBlue,
+    token.NAME       : Colors.Normal,
     token.ERRORTOKEN : Colors.MonokaiRed,
 
     _KEYWORD         : Colors.MonokaiGreen,
