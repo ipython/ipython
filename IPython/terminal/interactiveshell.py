@@ -61,6 +61,13 @@ _style_overrides_linux = {
             Token.OutPromptNum: '#ansired bold',
 }
 
+_style_overrides_monokai = {
+            Token.Prompt: '#a9dc76',
+            Token.PromptNum: '#a9dc76 bold',
+            Token.OutPrompt: '#ff005f',
+            Token.OutPromptNum: '#ff005f bold',
+}
+
 def get_default_editor():
     try:
         return os.environ['EDITOR']
@@ -338,12 +345,15 @@ class TerminalInteractiveShell(InteractiveShell):
         style_overrides = {}
         if name_or_cls == 'legacy':
             legacy = self.colors.lower()
-            if legacy == 'linux' or legacy == 'monokai':
+            if legacy == 'linux':
                 style_cls = get_style_by_name('monokai')
                 style_overrides = _style_overrides_linux
             elif legacy == 'lightbg':
                 style_overrides = _style_overrides_light_bg
                 style_cls = get_style_by_name('pastie')
+            elif legacy == 'monokai':
+                style_overrides = _style_overrides_monokai
+                style_cls = get_style_by_name('monokai')
             elif legacy == 'neutral':
                 # The default theme needs to be visible on both a dark background
                 # and a light background, because we can't tell what the terminal
