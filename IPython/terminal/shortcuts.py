@@ -85,6 +85,120 @@ def create_ipython_shortcuts(shell):
 
     kb.add('f2', filter=has_focus(DEFAULT_BUFFER))(open_input_in_editor)
 
+    focused_insert = (vi_insert_mode | emacs_insert_mode) & has_focus(DEFAULT_BUFFER)
+    _preceding_text_cache = {}
+    _following_text_cache = {}
+
+
+    def preceding_text(pattern):
+        try:
+            return _preceding_text_cache[pattern]
+        except KeyError:
+            pass
+        m = re.compile(pattern)
+
+        def _preceding_text():
+            app = get_app()
+            return bool(m.match(app.current_buffer.document.current_line_before_cursor))
+
+        condition = Condition(_preceding_text)
+        _preceding_text_cache[pattern] = condition
+        return condition
+
+
+    def following_text(pattern):
+        try:
+            return _following_text_cache[pattern]
+        except KeyError:
+            pass
+        m = re.compile(pattern)
+
+        def _following_text():
+            app = get_app()
+            return bool(m.match(app.current_buffer.document.current_line_after_cursor))
+
+        condition = Condition(_following_text)
+        _following_text_cache[pattern] = condition
+        return condition
+
+
+    # auto match
+    @kb.add('(', filter=focused_insert & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("()")
+        event.current_buffer.cursor_left()
+
+    @kb.add('[', filter=focused_insert & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("[]")
+        event.current_buffer.cursor_left()
+
+    @kb.add('{', filter=focused_insert & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("{}")
+        event.current_buffer.cursor_left()
+
+    @kb.add('"', filter=focused_insert & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text('""')
+        event.current_buffer.cursor_left()
+
+    @kb.add("'", filter=focused_insert & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("''")
+        event.current_buffer.cursor_left()
+
+    # raw string
+    @kb.add('(', filter=focused_insert & preceding_text(r".*(r|R)[\"'](-*)$"))
+    def _(event):
+        matches = re.match(r".*(r|R)[\"'](-*)", event.current_buffer.document.current_line_before_cursor)
+        dashes = matches.group(2) or ""
+        event.current_buffer.insert_text("()" + dashes)
+        event.current_buffer.cursor_left(len(dashes) + 1)
+
+    @kb.add('[', filter=focused_insert & preceding_text(r".*(r|R)[\"'](-*)$"))
+    def _(event):
+        matches = re.match(r".*(r|R)[\"'](-*)", event.current_buffer.document.current_line_before_cursor)
+        dashes = matches.group(2) or ""
+        event.current_buffer.insert_text("[]" + dashes)
+        event.current_buffer.cursor_left(len(dashes) + 1)
+
+    @kb.add('{', filter=focused_insert & preceding_text(r".*(r|R)[\"'](-*)$"))
+    def _(event):
+        matches = re.match(r".*(r|R)[\"'](-*)", event.current_buffer.document.current_line_before_cursor)
+        dashes = matches.group(2) or ""
+        event.current_buffer.insert_text("{}" + dashes)
+        event.current_buffer.cursor_left(len(dashes) + 1)
+
+    @kb.add('"', filter=focused_insert & preceding_text(r".*(r|R)$"))
+    def _(event):
+        event.current_buffer.insert_text('""')
+        event.current_buffer.cursor_left()
+
+    @kb.add("'", filter=focused_insert & preceding_text(r".*(r|R)$"))
+    def _(event):
+        event.current_buffer.insert_text("''")
+        event.current_buffer.cursor_left()
+
+    # just move cursor
+    @kb.add(')', filter=focused_insert & following_text(r"^\)"))
+    @kb.add(']', filter=focused_insert & following_text(r"^\]"))
+    @kb.add('}', filter=focused_insert & following_text(r"^\}"))
+    @kb.add('"', filter=focused_insert & following_text("^\""))
+    @kb.add("'", filter=focused_insert & following_text("^'"))
+    def _(event):
+        event.current_buffer.cursor_right()
+
+    @kb.add('backspace', filter=focused_insert & preceding_text(r".*\($") & following_text(r"^\)"))
+    @kb.add('backspace', filter=focused_insert & preceding_text(r".*\[$") & following_text(r"^\]"))
+    @kb.add('backspace', filter=focused_insert & preceding_text(r".*\{$") & following_text(r"^\}"))
+    @kb.add('backspace', filter=focused_insert & preceding_text('.*"$') & following_text('^"'))
+    @kb.add('backspace', filter=focused_insert & preceding_text(r".*'$") & following_text(r"^'"))
+    def _(event):
+        event.current_buffer.delete()
+        event.current_buffer.delete_before_cursor()
+
+
     if shell.display_completions == 'readlinelike':
         kb.add('c-i', filter=(has_focus(DEFAULT_BUFFER)
                               & ~has_selection
