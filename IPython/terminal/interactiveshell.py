@@ -62,10 +62,10 @@ _style_overrides_linux = {
 }
 
 _style_overrides_monokai = {
-            Token.Prompt: '#6c99bb',
+            Token.Prompt: '#6c99bb', # blue
             Token.PromptNum: '#6c99bb bold',
-            Token.OutPrompt: '#ff005f',
-            Token.OutPromptNum: '#ff005f bold',
+            Token.OutPrompt: '#afd700', # green
+            Token.OutPromptNum: '#afd700 bold',
 }
 
 def get_default_editor():
