@@ -109,28 +109,26 @@ LinuxColors = ColorScheme(
     } )
 
 MonokaiColors = ColorScheme(
-    'Monokai',{
-    'header'         : Colors.MonokaiYellow,
-    token.NUMBER     : Colors.MonokaiPurple,
-    token.OP         : Colors.MonokaiRed,
-    token.STRING     : Colors.MonokaiOrange,
-    tokenize.COMMENT : Colors.MonokaiGray,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.MonokaiRed,
-
-    _KEYWORD         : Colors.MonokaiGreen,
-    _TEXT            : Colors.MonokaiOrange,
-
-    'in_prompt'      : InputTermColors.MonokaiGreen,
-    'in_number'      : InputTermColors.MonokaiCyan,
-    'in_prompt2'     : InputTermColors.MonokaiGreen,
-    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.MonokaiRed,
-    'out_number'     : Colors.MonokaiMagenta,
-
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    } )
+    "Monokai",
+    {
+        "header": Colors.MonokaiYellow,
+        token.NUMBER: Colors.MonokaiPurple,
+        token.OP: Colors.MonokaiRed,
+        token.STRING: Colors.MonokaiOrange,
+        tokenize.COMMENT: Colors.MonokaiGray,
+        token.NAME: Colors.Normal,
+        token.ERRORTOKEN: Colors.MonokaiRed,
+        _KEYWORD: Colors.MonokaiGreen,
+        _TEXT: Colors.MonokaiOrange,
+        "in_prompt": InputTermColors.MonokaiGreen,
+        "in_number": InputTermColors.MonokaiCyan,
+        "in_prompt2": InputTermColors.MonokaiGreen,
+        "in_normal": InputTermColors.Normal,  # color off (usu. Colors.Normal)
+        "out_prompt": Colors.MonokaiRed,
+        "out_number": Colors.MonokaiMagenta,
+        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
+    },
+)
 
 NeutralColors = ColorScheme(
     'Neutral',{
@@ -192,8 +190,9 @@ LightBGColors = ColorScheme(
     }  )
 
 # Build table of color schemes (needed by the parser)
-ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors, NeutralColors, MonokaiColors],
-                                  _scheme_default)
+ANSICodeColors = ColorSchemeTable(
+    [NoColor, LinuxColors, LightBGColors, NeutralColors, MonokaiColors], _scheme_default
+)
 
 Undefined = object()
 

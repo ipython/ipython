@@ -432,9 +432,10 @@ class InteractiveShell(SingletonConfigurable):
         get confused with color codes, this capability can be turned off.
         """
     ).tag(config=True)
-    colors = CaselessStrEnum(('Neutral', 'NoColor','LightBG','Linux', 'Monokai'),
-                             default_value='Neutral',
-        help="Set the color scheme (NoColor, Neutral, Linux, Monokai, or LightBG)."
+    colors = CaselessStrEnum(
+        ("Neutral", "NoColor", "LightBG", "Linux", "Monokai"),
+        default_value="Neutral",
+        help="Set the color scheme (NoColor, Neutral, Linux, Monokai, or LightBG).",
     ).tag(config=True)
     debug = Bool(False).tag(config=True)
     disable_failing_post_execute = Bool(False,

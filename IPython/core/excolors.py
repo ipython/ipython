@@ -6,14 +6,15 @@ Color schemes for exception handling code in IPython.
 import os
 import warnings
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2005-2006 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+# *****************************************************************************
 
 from IPython.utils.coloransi import ColorSchemeTable, TermColors, ColorScheme
+
 
 def exception_colors():
     """Return a color table with fields for exception reporting.
@@ -43,33 +44,32 @@ def exception_colors():
     ex_colors = ColorSchemeTable()
 
     # Populate it with color schemes
-    C = TermColors # shorthand and local lookup
-    ex_colors.add_scheme(ColorScheme(
-        'NoColor',
-        # The color to be used for the top line
-        topline = C.NoColor,
-
-        # The colors to be used in the traceback
-        filename = C.NoColor,
-        lineno = C.NoColor,
-        name = C.NoColor,
-        vName = C.NoColor,
-        val = C.NoColor,
-        em = C.NoColor,
-
-        # Emphasized colors for the last frame of the traceback
-        normalEm = C.NoColor,
-        filenameEm = C.NoColor,
-        linenoEm = C.NoColor,
-        nameEm = C.NoColor,
-        valEm = C.NoColor,
-
-        # Colors for printing the exception
-        excName = C.NoColor,
-        line = C.NoColor,
-        caret = C.NoColor,
-        Normal = C.NoColor
-        ))
+    C = TermColors  # shorthand and local lookup
+    ex_colors.add_scheme(
+        ColorScheme(
+            "NoColor",
+            # The color to be used for the top line
+            topline=C.NoColor,
+            # The colors to be used in the traceback
+            filename=C.NoColor,
+            lineno=C.NoColor,
+            name=C.NoColor,
+            vName=C.NoColor,
+            val=C.NoColor,
+            em=C.NoColor,
+            # Emphasized colors for the last frame of the traceback
+            normalEm=C.NoColor,
+            filenameEm=C.NoColor,
+            linenoEm=C.NoColor,
+            nameEm=C.NoColor,
+            valEm=C.NoColor,
+            # Colors for printing the exception
+            excName=C.NoColor,
+            line=C.NoColor,
+            caret=C.NoColor,
+            Normal=C.NoColor,
+        )
+    )
 
     # make some schemes as instances so we can copy them for modification easily
     ex_colors.add_scheme(ColorScheme(
@@ -100,95 +100,92 @@ def exception_colors():
         ))
 
     # For light backgrounds, swap dark/light colors
-    ex_colors.add_scheme(ColorScheme(
-        'LightBG',
-        # The color to be used for the top line
-        topline = C.Red,
+    ex_colors.add_scheme(
+        ColorScheme(
+            "LightBG",
+            # The color to be used for the top line
+            topline=C.Red,
+            # The colors to be used in the traceback
+            filename=C.LightGreen,
+            lineno=C.LightGreen,
+            name=C.LightPurple,
+            vName=C.Cyan,
+            val=C.LightGreen,
+            em=C.Cyan,
+            # Emphasized colors for the last frame of the traceback
+            normalEm=C.Cyan,
+            filenameEm=C.Green,
+            linenoEm=C.Green,
+            nameEm=C.Purple,
+            valEm=C.Blue,
+            # Colors for printing the exception
+            excName=C.Red,
+            # line = C.Brown,  # brown often is displayed as yellow
+            line=C.Red,
+            caret=C.Normal,
+            Normal=C.Normal,
+        )
+    )
 
-        # The colors to be used in the traceback
-        filename = C.LightGreen,
-        lineno = C.LightGreen,
-        name = C.LightPurple,
-        vName = C.Cyan,
-        val = C.LightGreen,
-        em = C.Cyan,
+    ex_colors.add_scheme(
+        ColorScheme(
+            "Neutral",
+            # The color to be used for the top line
+            topline=C.Red,
+            # The colors to be used in the traceback
+            filename=C.LightGreen,
+            lineno=C.LightGreen,
+            name=C.LightPurple,
+            vName=C.Cyan,
+            val=C.LightGreen,
+            em=C.Cyan,
+            # Emphasized colors for the last frame of the traceback
+            normalEm=C.Cyan,
+            filenameEm=C.Green,
+            linenoEm=C.Green,
+            nameEm=C.Purple,
+            valEm=C.Blue,
+            # Colors for printing the exception
+            excName=C.Red,
+            # line = C.Brown,  # brown often is displayed as yellow
+            line=C.Red,
+            caret=C.Normal,
+            Normal=C.Normal,
+        )
+    )
 
-        # Emphasized colors for the last frame of the traceback
-        normalEm = C.Cyan,
-        filenameEm = C.Green,
-        linenoEm = C.Green,
-        nameEm = C.Purple,
-        valEm = C.Blue,
-
-        # Colors for printing the exception
-        excName = C.Red,
-        #line = C.Brown,  # brown often is displayed as yellow
-        line = C.Red,
-        caret = C.Normal,
-        Normal = C.Normal,
-        ))
-
-    ex_colors.add_scheme(ColorScheme(
-        'Neutral',
-        # The color to be used for the top line
-        topline = C.Red,
-
-        # The colors to be used in the traceback
-        filename = C.LightGreen,
-        lineno = C.LightGreen,
-        name = C.LightPurple,
-        vName = C.Cyan,
-        val = C.LightGreen,
-        em = C.Cyan,
-
-        # Emphasized colors for the last frame of the traceback
-        normalEm = C.Cyan,
-        filenameEm = C.Green,
-        linenoEm = C.Green,
-        nameEm = C.Purple,
-        valEm = C.Blue,
-
-        # Colors for printing the exception
-        excName = C.Red,
-        #line = C.Brown,  # brown often is displayed as yellow
-        line = C.Red,
-        caret = C.Normal,
-        Normal = C.Normal,
-        ))
-    
     # For dark background and 256-bit colors
-    ex_colors.add_scheme(ColorScheme(
-        'Monokai',
-        # The color to be used for the top line
-        topline = C.MonokaiRed,
-
-        # The colors to be used in the traceback
-        filename = C.MonokaiCyan,
-        lineno = C.MonokaiGray,
-        name = C.MonokaiPurple,
-        vName = C.MonokaiGreen,
-        val = C.MonokaiGreen,
-        em = C.MonokaiCyan,
-
-        # Emphasized colors for the last frame of the traceback
-        normalEm = C.MonokaiCyan,
-        filenameEm = C.MonokaiGreen,
-        linenoEm = C.MonokaiGray,
-        nameEm = C.MonokaiPurple,
-        valEm = C.MonokaiBlue,
-
-        # Colors for printing the exception
-        excName = C.MonokaiRed,
-        line = C.MonokaiRed,
-        caret = C.MonokaiBlue,
-        Normal = C.Normal,
-        ))
+    ex_colors.add_scheme(
+        ColorScheme(
+            "Monokai",
+            # The color to be used for the top line
+            topline=C.MonokaiRed,
+            # The colors to be used in the traceback
+            filename=C.MonokaiCyan,
+            lineno=C.MonokaiGray,
+            name=C.MonokaiPurple,
+            vName=C.MonokaiGreen,
+            val=C.MonokaiGreen,
+            em=C.MonokaiCyan,
+            # Emphasized colors for the last frame of the traceback
+            normalEm=C.MonokaiCyan,
+            filenameEm=C.MonokaiGreen,
+            linenoEm=C.MonokaiGray,
+            nameEm=C.MonokaiPurple,
+            valEm=C.MonokaiBlue,
+            # Colors for printing the exception
+            excName=C.MonokaiRed,
+            line=C.MonokaiRed,
+            caret=C.MonokaiBlue,
+            Normal=C.Normal,
+        )
+    )
 
     # Hack: the 'neutral' colours are not very visible on a dark background on
     # Windows. Since Windows command prompts have a dark background by default, and
     # relatively few users are likely to alter that, we will use the 'Linux' colours,
     # designed for a dark background, as the default on Windows.
     if os.name == "nt":
-        ex_colors.add_scheme(ex_colors['Linux'].copy('Neutral'))
+        ex_colors.add_scheme(ex_colors["Linux"].copy("Neutral"))
 
     return ex_colors

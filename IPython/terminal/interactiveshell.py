@@ -62,10 +62,10 @@ _style_overrides_linux = {
 }
 
 _style_overrides_monokai = {
-            Token.Prompt: '#6c99bb', # blue
-            Token.PromptNum: '#6c99bb bold',
-            Token.OutPrompt: '#afd700', # green
-            Token.OutPromptNum: '#afd700 bold',
+    Token.Prompt: "#6c99bb",  # blue
+    Token.PromptNum: "#6c99bb bold",
+    Token.OutPrompt: "#afd700",  # green
+    Token.OutPromptNum: "#afd700 bold",
 }
 
 def get_default_editor():
@@ -382,12 +382,12 @@ class TerminalInteractiveShell(InteractiveShell):
             elif legacy =='nocolor':
                 style_cls=_NoStyle
                 style_overrides = {}
-            else :
-                raise ValueError('Got unknown colors: ', legacy)
-        elif name_or_cls == 'monokai':
+            else:
+                raise ValueError("Got unknown colors: ", legacy)
+        elif name_or_cls == "monokai":
             style_overrides = _style_overrides_monokai
-            style_cls = get_style_by_name('monokai')
-        else :
+            style_cls = get_style_by_name("monokai")
+        else:
             if isinstance(name_or_cls, str):
                 style_cls = get_style_by_name(name_or_cls)
             else:
