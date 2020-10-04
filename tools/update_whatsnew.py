@@ -7,23 +7,22 @@ whatsnew/development.rst (chronologically ordered), and deletes the snippets.
 
 import io
 import sys
-from glob import glob
-from os.path import dirname, basename, abspath, join as pjoin
+from pathlib import Path 
 from subprocess import check_call, check_output
 
-repo_root = dirname(dirname(abspath(__file__)))
-whatsnew_dir = pjoin(repo_root, 'docs', 'source', 'whatsnew')
-pr_dir = pjoin(whatsnew_dir, 'pr')
-target = pjoin(whatsnew_dir, 'development.rst')
+repo_root = Path(__file__).resolve().parent.parent
+whatsnew_dir = repo_root / 'docs' / 'source' / 'whatsnew'
+pr_dir = whatsnew_dir / 'pr'
+target = whatsnew_dir / 'development.rst'
 
 FEATURE_MARK = ".. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT."
 INCOMPAT_MARK = ".. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT."
 
 # 1. Collect the whatsnew snippet files ---------------------------------------
 
-files = set(glob(pjoin(pr_dir, '*.rst')))
+files = set(pr_dir.glob('*.rst'))
 # Ignore explanatory and example files
-files.difference_update({pjoin(pr_dir, f) for f in {
+files.difference_update({pr_dir / f for f in {
                          'incompat-switching-to-perl.rst',
                          'antigravity-feature.rst'}
                          })
@@ -46,7 +45,7 @@ for path in files:
         except Exception as e:
             raise Exception('Error reading "{}"'.format(f)) from e
 
-    if basename(path).startswith('incompat-'):
+    if path.name.startswith('incompat-'):
         incompats.append(content)
     else:
         features.append(content)
