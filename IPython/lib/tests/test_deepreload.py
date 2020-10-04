@@ -4,7 +4,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import os
+from pathlib import Path
 
 import nose.tools as nt
 
@@ -16,9 +16,10 @@ def test_deepreload():
     "Test that dreload does deep reloads and skips excluded modules."
     with TemporaryDirectory() as tmpdir:
         with prepended_to_syspath(tmpdir):
-            with open(os.path.join(tmpdir, 'A.py'), 'w') as f:
+            tmpdirpath = Path(tmpdir)
+            with open( tmpdirpath / 'A.py' , 'w') as f:
                 f.write("class Object(object):\n    pass\n")
-            with open(os.path.join(tmpdir, 'B.py'), 'w') as f:
+            with open( tmpdirpath / 'B.py' , 'w') as f:
                 f.write("import A\n")
             import A
             import B
