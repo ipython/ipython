@@ -4,7 +4,7 @@ IPython Documentation
 This directory contains the majority of the documentation for IPython.
 
 
-Deploy docs
+Deploy documents
 -----------
 
 Documentation is automatically deployed on ReadTheDocs on every push or merged
