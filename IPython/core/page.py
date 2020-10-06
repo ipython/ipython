@@ -22,6 +22,7 @@ import tempfile
 import subprocess
 
 from io import UnsupportedOperation
+from pathlib import Path
 
 from IPython import get_ipython
 from IPython.display import display
@@ -195,18 +196,19 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                 retval = 1
             else:
                 fd, tmpname = tempfile.mkstemp('.txt')
+                tmppath = Path(tmpname)
                 try:
                     os.close(fd)
-                    with open(tmpname, 'wt') as tmpfile:
+                    with tmppath.open("wt") as tmpfile:
                         tmpfile.write(strng)
-                        cmd = "%s < %s" % (pager_cmd, tmpname)
+                        cmd = "%s < %s" % (pager_cmd, tmppath)
                     # tmpfile needs to be closed for windows
                     if os.system(cmd):
                         retval = 1
                     else:
                         retval = None
                 finally:
-                    os.remove(tmpname)
+                    Path.unlink(tmppath)
         else:
             try:
                 retval = None
