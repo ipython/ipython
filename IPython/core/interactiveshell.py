@@ -102,23 +102,33 @@ except ImportError:
     sphinxify = None
 
 
-class Multipleton(Configurable):
+from contextlib import contextmanager
 
-    _instances = []
+class Multipleton(SingletonConfigurable):
+    """
+    Subclass of singleton configurable that allow limited nested of SingletonConfigurable
 
-    def __init__(self, *args, **kwargs):
-        self._instances.append(self)
-
-    @classmethod
-    def initialized(cls):
-        return hasattr(cls, "_instance") and cls._instance
+    """
 
     @classmethod
-    def instance(cls, *args, **kwargs):
-        raise ValueError
-        if not cls._instances:
-            cls(*args, **kwargs)
-        return cls._instances[-1]
+    @contextmanager
+    def nest(cls):
+        save = cls._instance
+        try:
+            cls._instance = None
+            yield
+        except BaseException:
+            cls._instance = save
+
+    # def __init__(self, *args, **kwargs):
+    #    self._instances.append(self)
+
+    # @classmethod
+    # def instance(cls, *args, **kwargs):
+    #    raise ValueError
+    #    if not cls._instances:
+    #        cls(*args, **kwargs)
+    #    return cls._instances[-1]
 
 
 
