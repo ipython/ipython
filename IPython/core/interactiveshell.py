@@ -30,7 +30,7 @@ from io import open as io_open
 
 from pickleshare import PickleShareDB
 
-from traitlets.config.configurable import SingletonConfigurable
+from traitlets.config.configurable import SingletonConfigurable, Configurable
 from traitlets.utils.importstring import import_item
 from IPython.core import oinspect
 from IPython.core import magic
@@ -100,6 +100,25 @@ try:
             }
 except ImportError:
     sphinxify = None
+
+
+class Multipleton(Configurable):
+
+    _instances = []
+
+    def __init__(self, *args, **kwargs):
+        self._instances.append(self)
+
+    @classmethod
+    def initialized(cls):
+        return hasattr(cls, "_instance") and cls._instance
+
+    @classmethod
+    def instance(cls, *args, **kwargs):
+        if not cls._instances:
+            cls(*args, **kwargs)
+        return cls._instances[-1]
+
 
 
 class ProvisionalWarning(DeprecationWarning):
@@ -336,7 +355,7 @@ class ExecutionResult(object):
                 (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
 
 
-class InteractiveShell(SingletonConfigurable):
+class InteractiveShell(Multipleton):
     """An enhanced, interactive shell for Python."""
 
     def set_parent(self, parent):
