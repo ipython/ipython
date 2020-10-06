@@ -115,6 +115,7 @@ class Multipleton(Configurable):
 
     @classmethod
     def instance(cls, *args, **kwargs):
+        raise ValueError
         if not cls._instances:
             cls(*args, **kwargs)
         return cls._instances[-1]
