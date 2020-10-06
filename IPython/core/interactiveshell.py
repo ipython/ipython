@@ -2713,11 +2713,11 @@ class InteractiveShell(SingletonConfigurable):
             __future__ imports are not shared in either direction.
 
         """
-        fname = os.path.abspath(os.path.expanduser(fname))
+        fname = Path(fname).expanduser().resolve()
 
         # Make sure we can open the file
         try:
-            with open(fname):
+            with fname.open():
                 pass
         except:
             warn('Could not open file <%s> for safe execution.' % fname)
@@ -2726,7 +2726,7 @@ class InteractiveShell(SingletonConfigurable):
         # Find things also in current directory.  This is needed to mimic the
         # behavior of running a script from the system command line, where
         # Python inserts the script's directory into sys.path
-        dname = os.path.dirname(fname)
+        dname = str(fname.parent)
 
         with prepended_to_syspath(dname), self.builtin_trap:
             try:
@@ -2771,11 +2771,11 @@ class InteractiveShell(SingletonConfigurable):
         raise_exceptions : bool (False)
             If True raise exceptions everywhere.  Meant for testing.
         """
-        fname = os.path.abspath(os.path.expanduser(fname))
+        fname = Path(fname).expanduser().resolve()
 
         # Make sure we can open the file
         try:
-            with open(fname):
+            with fname.open():
                 pass
         except:
             warn('Could not open file <%s> for safe execution.' % fname)
@@ -2784,11 +2784,11 @@ class InteractiveShell(SingletonConfigurable):
         # Find things also in current directory.  This is needed to mimic the
         # behavior of running a script from the system command line, where
         # Python inserts the script's directory into sys.path
-        dname = os.path.dirname(fname)
-        
+        dname = str(fname.parent)
+
         def get_cells():
             """generator for sequence of code blocks to run"""
-            if fname.endswith('.ipynb'):
+            if fname.suffix == ".ipynb":
                 from nbformat import read
                 nb = read(fname, as_version=4)
                 if not nb.cells:
@@ -2797,8 +2797,7 @@ class InteractiveShell(SingletonConfigurable):
                     if cell.cell_type == 'code':
                         yield cell.source
             else:
-                with open(fname) as f:
-                    yield f.read()
+                yield fname.read_text()
 
         with prepended_to_syspath(dname):
             try:
