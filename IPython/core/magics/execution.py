@@ -18,6 +18,7 @@ import timeit
 import math
 import re
 from pdb import Restart
+from pathlib import Path
 
 import cProfile as profile
 import pstats
@@ -356,13 +357,13 @@ class ExecutionMagics(Magics):
         print(sys_exit, end=' ')
 
         dump_file = opts.D[0]
-        text_file = opts.T[0]
+        text_file = Path(opts.T[0])
         if dump_file:
             prof.dump_stats(dump_file)
             print('\n*** Profile stats marshalled to file',\
                   repr(dump_file)+'.',sys_exit)
         if text_file:
-            with open(text_file, 'w') as pfile:
+            with text_file.open("w") as pfile:
                 pfile.write(output)
             print('\n*** Profile printout saved to text file',\
                   repr(text_file)+'.',sys_exit)
