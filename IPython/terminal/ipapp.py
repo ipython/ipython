@@ -328,7 +328,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         # shell.display_banner should always be False for the terminal
         # based app, because we call shell.show_banner() by hand below
         # so the banner shows *before* all extension loading stuff.
-        self.shell = self.interactive_shell_class(
+        self.shell = self.interactive_shell_class.instance(
             parent=self,
             profile_dir=self.profile_dir,
             ipython_dir=self.ipython_dir,
