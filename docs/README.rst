@@ -16,7 +16,7 @@ Requirements
 
 The documentation must be built using Python 3.
 
-In addition to :ref:``devinstall``,
+In addition to :ref:`devinstall`,
 the following tools are needed to build the documentation:
 
  - sphinx
