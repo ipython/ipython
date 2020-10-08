@@ -699,9 +699,10 @@ class VerboseTB(TBTools):
 
         frames = []
         skipped = 0
-        for r in records:
+        lastrecord = len(records) - 1
+        for i, r in enumerate(records):
             if not isinstance(r, stack_data.RepeatedFrames) and self.skip_hidden:
-                if r.frame.f_locals.get("__tracebackhide__", 0):
+                if r.frame.f_locals.get("__tracebackhide__", 0) and i != lastrecord:
                     skipped += 1
                     continue
             if skipped:
