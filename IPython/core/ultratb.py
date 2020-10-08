@@ -886,9 +886,10 @@ class VerboseTB(TBTools):
         frames = []
 
         skipped = 0
-        for r in records[:last_unique+recursion_repeat+1]:
+        lastrecord = len(records) - 1
+        for i, r in enumerate(records[: last_unique + recursion_repeat + 1]):
             if self.skip_hidden:
-                if r[0].f_locals.get("__tracebackhide__", 0):
+                if r[0].f_locals.get("__tracebackhide__", 0) and i != lastrecord:
                     skipped += 1
                     continue
             if skipped:
