@@ -757,6 +757,7 @@ class InteractiveShell(SingletonConfigurable):
         self.meta = Struct()
 
         # Temporary files used for various purposes.  Deleted at exit.
+        # The files here are stored with Path from Pathlib
         self.tempfiles = []
         self.tempdirs = []
 
@@ -3595,16 +3596,17 @@ class InteractiveShell(SingletonConfigurable):
           - data(None): if data is given, it gets written out to the temp file
             immediately, and the file is closed again."""
 
-        dirname = tempfile.mkdtemp(prefix=prefix)
-        self.tempdirs.append(dirname)
+        dir_path = Path(tempfile.mkdtemp(prefix=prefix))
+        self.tempdirs.append(dir_path)
 
-        handle, filename = tempfile.mkstemp('.py', prefix, dir=dirname)
+        handle, filename = tempfile.mkstemp('.py', prefix, dir=str(dir_path))
         os.close(handle)  # On Windows, there can only be one open handle on a file
-        self.tempfiles.append(filename)
+        
+        file_path = Path(filename)
+        self.tempfiles.append(file_path)
 
         if data:
-            with open(filename, 'w') as tmp_file:
-                tmp_file.write(data)
+            file_path.write_text(data)
         return filename
 
     @undoc
@@ -3761,14 +3763,14 @@ class InteractiveShell(SingletonConfigurable):
         # Cleanup all tempfiles and folders left around
         for tfile in self.tempfiles:
             try:
-                os.unlink(tfile)
-            except OSError:
+                tfile.unlink()
+            except FileNotFoundError:
                 pass
 
         for tdir in self.tempdirs:
             try:
-                os.rmdir(tdir)
-            except OSError:
+                tdir.rmdir()
+            except FileNotFoundError:
                 pass
 
         # Clear all user namespaces to release all references cleanly.
