@@ -11,6 +11,7 @@
 import re
 import shlex
 import sys
+from Pathlib import Path
 
 from pathlib import Path
 from IPython.core.magic import Magics, magics_class, line_magic
