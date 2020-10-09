@@ -3597,10 +3597,10 @@ class InteractiveShell(SingletonConfigurable):
           - data(None): if data is given, it gets written out to the temp file
             immediately, and the file is closed again."""
 
-        dir_path = Path(tempfile.mkdtemp(prefix=prefix))
-        self.tempdirs.append(dir_path)
+        temp_directory = Path(tempfile.mkdtemp(prefix=prefix))
+        self.tempdirs.append(temp_directory)
 
-        handle, filename = tempfile.mkstemp(".py", prefix, dir=str(dir_path))
+        handle, filename = tempfile.mkstemp(".py", prefix, dir=temp_directory)
         os.close(handle)  # On Windows, there can only be one open handle on a file
 
         file_path = Path(filename)
@@ -3608,7 +3608,8 @@ class InteractiveShell(SingletonConfigurable):
 
         if data:
             file_path.write_text(data)
-        return filename
+
+        return file_path
 
     @undoc
     def write(self,data):

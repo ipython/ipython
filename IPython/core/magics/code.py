@@ -492,7 +492,7 @@ class CodeMagics(Magics):
                     use_temp = False
 
         if use_temp:
-            filename = shell.mktempfile(data)
+            filename = str(shell.mktempfile(data))
             print('IPython will make a temporary file named:',filename)
 
         # use last_call to remember the state of the previous call, but don't
@@ -505,16 +505,17 @@ class CodeMagics(Magics):
             pass
 
 
+        # TODO use Path object instead of string
         return filename, lineno, use_temp
 
     def _edit_macro(self,mname,macro):
         """open an editor with the macro data in a file"""
-        filename = self.shell.mktempfile(macro.value)
-        self.shell.hooks.editor(filename)
+        file_path = self.shell.mktempfile(macro.value)
+        # TODO use Path object instead of string
+        self.shell.hooks.editor(str(file_path))
 
         # and make a new macro object, to replace the old one
-        mvalue = Path(filename).read_text()
-        self.shell.user_ns[mname] = Macro(mvalue)
+        self.shell.user_ns[mname] = Macro(file_path.read_text())
 
     @skip_doctest
     @line_magic

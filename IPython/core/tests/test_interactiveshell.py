@@ -9,28 +9,28 @@ recurring bugs we seem to encounter with high-level interaction.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import asyncio
 import ast
+import asyncio
 import os
-import signal
 import shutil
+import signal
 import sys
 import tempfile
 import unittest
-from unittest import mock
-
 from os.path import join
+from unittest import mock
 
 import nose.tools as nt
 
-from IPython.core.error import InputRejected
-from IPython.core.inputtransformer import InputTransformer
 from IPython.core import interactiveshell
+from IPython.core.error import InputRejected
+from IPython.core.history import HistoryManager
+from IPython.testing import tools as tt
 from IPython.testing.decorators import (
     skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
 )
-from IPython.testing import tools as tt
 from IPython.utils.process import find_cmd
+
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -450,14 +450,14 @@ class InteractiveShellTestCase(unittest.TestCase):
             ip.set_custom_exc((), None)
     
     def test_mktempfile(self):
-        filename = ip.mktempfile()
+        file = ip.mktempfile()
         # Check that we can open the file again on Windows
-        with open(filename, 'w') as f:
-            f.write('abc')
+        with file.open("w") as f:
+            f.write("abc")
 
-        filename = ip.mktempfile(data='blah')
-        with open(filename, 'r') as f:
-            self.assertEqual(f.read(), 'blah')
+        file = ip.mktempfile(data="blah")
+        with file.open("r") as f:
+            self.assertEqual(f.read(), "blah")
 
     def test_new_main_mod(self):
         # Smoketest to check that this accepts a unicode module name
@@ -504,6 +504,30 @@ class InteractiveShellTestCase(unittest.TestCase):
             res = ip.run_cell('%' + cmd)
             self.assertEqual(res.success, True)
 
+    # def test_removes_temp_files_and_directories(self):
+    #     original_history_manager = ip.history_manager
+    #     with tempfile.TemporaryDirectory() as db_dir:
+    #         hist_file = os.path.join(db_dir, "history.sqlite")
+    #         ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
+    # 
+    #         # First we ensure that we have created at least a tempfile
+    #         ip.mktempfile()
+    # 
+    #         # Ensure saving thread is shut down before we try to clean up the files
+    #         ip.history_manager.reset(new_session=False)
+    # 
+    #         # Then we run the atexit operations
+    #         ip.atexit_operations()
+    # 
+    #         # Now we check that they are deleted on exit
+    #         for tmpdir in ip.tempdirs:
+    #             self.assertFalse(tmpdir.exists())
+    # 
+    #         for tmpfile in ip.tempfiles:
+    #             self.assertFalse(tmpfile.exists())
+    # 
+    #     # Finnaly restore history manager
+    #     ip.history_manager = original_history_manager
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 

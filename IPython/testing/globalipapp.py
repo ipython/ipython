@@ -13,14 +13,12 @@ import builtins as builtin_mod
 import sys
 import types
 import warnings
-
 from pathlib import Path
 
-from . import tools
-
 from IPython.core import page
-from IPython.utils import io
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
+from IPython.utils import io
+from . import tools
 
 
 class StreamProxy(io.IOStream):
