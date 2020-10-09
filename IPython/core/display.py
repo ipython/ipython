@@ -351,7 +351,7 @@ class DisplayObject(object):
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.filename is not None:
-            with open(self.filename, self._read_flags) as f:
+            with self.filename.open(self._read_flags) as f:
                 self.data = f.read()
         elif self.url is not None:
             # Deferred import
