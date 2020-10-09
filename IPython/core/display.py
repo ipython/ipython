@@ -293,7 +293,7 @@ class DisplayObject(object):
             The raw data or a URL or file to load the data from
         url : unicode
             A URL to download the data from.
-        filename : unicode
+        filename : unicode, str or Path
             Path to a local file to load the data from.
         metadata : dict
             Dict of metadata associated to be the object when displayed
@@ -310,6 +310,9 @@ class DisplayObject(object):
                 url = None
                 filename = data
                 data = None
+
+        if filename is not None:
+            filename = Path(filename)
 
         self.url = url
         self.filename = filename
@@ -563,7 +566,7 @@ class JSON(DisplayObject):
             or list containers.
         url : unicode
             A URL to download the data from.
-        filename : unicode
+        filename : unicode, str or Path
             Path to a local file to load the data from.
         expanded : boolean
             Metadata to control whether a JSON display component is expanded.
@@ -649,7 +652,7 @@ class GeoJSON(JSON):
             Leaflet TileLayer options: http://leafletjs.com/reference.html#tilelayer-options
         url : unicode
             A URL to download the data from.
-        filename : unicode
+        filename : unicode, str or Path
             Path to a local file to load the data from.
         metadata: dict
             Specify extra metadata to attach to the json display object.
@@ -716,7 +719,7 @@ class Javascript(TextDisplayObject):
             The Javascript source code or a URL to download it from.
         url : unicode
             A URL to download the data from.
-        filename : unicode
+        filename : unicode, str or Path
             Path to a local file to load the data from.
         lib : list or str
             A sequence of Javascript library URLs to load asynchronously before
@@ -818,7 +821,7 @@ class Image(DisplayObject):
         url : unicode
             A URL to download the data from. If you specify `url=`,
             the image data will not be embedded unless you also specify `embed=True`.
-        filename : unicode
+        filename : unicode, str or Path
             Path to a local file to load the data from.
             Images from a file are always embedded.
         format : unicode
@@ -1040,7 +1043,7 @@ class Video(DisplayObject):
         url : unicode
             A URL for the video. If you specify `url=`,
             the image data will not be embedded.
-        filename : unicode
+        filename : unicode, str or Path
             Path to a local file containing the video.
             Will be interpreted as a local URL unless `embed=True`.
         embed : bool
@@ -1127,8 +1130,7 @@ class Video(DisplayObject):
             if not mimetype:
                 mimetype, _ = mimetypes.guess_type(self.filename)
 
-            with open(self.filename, 'rb') as f:
-                video = f.read()
+            video = self.filename.read_bytes()
         else:
             video = self.data
         if isinstance(video, str):
