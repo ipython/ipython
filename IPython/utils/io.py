@@ -209,7 +209,7 @@ def temp_pyfile(src, ext='.py'):
     with fname.open('w') as f:
         f.write(src)
         f.flush()
-    return fname
+    return str(fname)
 
 @undoc
 def atomic_writing(*args, **kwargs):
