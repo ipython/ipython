@@ -3599,9 +3599,9 @@ class InteractiveShell(SingletonConfigurable):
         dir_path = Path(tempfile.mkdtemp(prefix=prefix))
         self.tempdirs.append(dir_path)
 
-        handle, filename = tempfile.mkstemp('.py', prefix, dir=str(dir_path))
+        handle, filename = tempfile.mkstemp(".py", prefix, dir=str(dir_path))
         os.close(handle)  # On Windows, there can only be one open handle on a file
-        
+
         file_path = Path(filename)
         self.tempfiles.append(file_path)
 
