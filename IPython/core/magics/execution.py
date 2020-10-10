@@ -40,6 +40,7 @@ from IPython.utils.timing import clock, clock2
 from warnings import warn
 from logging import error
 from io import StringIO
+from pathlib import Path
 
 if sys.version_info > (3,8):
     from ast import Module
@@ -362,8 +363,7 @@ class ExecutionMagics(Magics):
             print('\n*** Profile stats marshalled to file',\
                   repr(dump_file)+'.',sys_exit)
         if text_file:
-            with open(text_file, 'w') as pfile:
-                pfile.write(output)
+            Path(text_file).write_text(output)
             print('\n*** Profile printout saved to text file',\
                   repr(text_file)+'.',sys_exit)
 
@@ -724,7 +724,7 @@ class ExecutionMagics(Magics):
         sys.argv = [filename] + args  # put in the proper filename
 
         if 'n' in opts:
-            name = os.path.splitext(os.path.basename(filename))[0]
+            name = Path(filename).stem
         else:
             name = '__main__'
 
