@@ -129,7 +129,7 @@ def test_image_filename_defaults():
     # check boths paths to allow packages to test at build and install time
     imgfile = os.path.join(tpath, 'core/tests/2x2.png')
     img = display.Image(filename=imgfile)
-    nt.assert_equal('png', img.format)
+    nt.assert_equal("png", img.format)
     nt.assert_is_not_none(img._repr_png_())
     # check it works equally well with a pathlib path
     img = display.Image(filename=pathlib.Path(imgfile))
