@@ -1060,11 +1060,11 @@ def test_save():
         ip.run_line_magic("save", "%s 1-10" % file)
         content = Path(file).read_text()
         nt.assert_equal(content.count(cmds[0]), 1)
-        nt.assert_in('coding: utf-8', content)
+        nt.assert_in("coding: utf-8", content)
         ip.run_line_magic("save", "-a %s 1-10" % file)
         content = Path(file).read_text()
         nt.assert_equal(content.count(cmds[0]), 2)
-        nt.assert_in('coding: utf-8', content)
+        nt.assert_in("coding: utf-8", content)
 
 
 def test_store():
@@ -1240,7 +1240,7 @@ def test_run_module_from_import_hook():
                 return imp.load_source('my_tmp', fullpath)
 
             def get_code(self, fullname):
-                return compile(Path(fullpath).read_text(), 'foo', 'exec')
+                return compile(Path(fullpath).read_text(), "foo", "exec")
 
             def is_package(self, __):
                 return False

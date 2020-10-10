@@ -118,7 +118,7 @@ def write_doc(name, title, app, preamble=None):
 
 if __name__ == '__main__':
     # Touch this file for the make target
-    Path(generated).write_text('')
+    Path(generated).write_text("")
 
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp())
     write_doc('kernel', 'IPython kernel options', IPKernelApp(),

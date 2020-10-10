@@ -63,5 +63,5 @@ for name, func in sorted(magics['cell'].items(), key=sortkey):
                    ""])
 
 here = os.path.dirname(__file__)
-dest = Path(os.path.join(here, 'source', 'interactive', 'magics-generated.txt'))
+dest = Path(os.path.join(here, "source", "interactive", "magics-generated.txt"))
 dest.write_text("\n".join(output))
