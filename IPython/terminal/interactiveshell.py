@@ -12,8 +12,19 @@ from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
-    Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union,
-    Any, validate
+    Bool,
+    Unicode,
+    Dict,
+    Integer,
+    observe,
+    Instance,
+    Type,
+    default,
+    Enum,
+    Union,
+    Any,
+    validate,
+    Float,
 )
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -140,6 +151,25 @@ class TerminalInteractiveShell(InteractiveShell):
     emacs_bindings_in_vi_insert_mode = Bool(
         True,
         help="Add shortcuts from 'emacs' insert mode to 'vi' insert mode.",
+    ).tag(config=True)
+
+    modal_cursor = Bool(
+        True,
+        help="""
+       Cursor shape changes depending on vi mode: beam in vi insert mode,
+       block in nav mode, underscore in replace mode.""",
+    ).tag(config=True)
+
+    ttimeoutlen = Float(
+        0.01,
+        help="""The time in milliseconds that is waited for a key code
+       to complete.""",
+    ).tag(config=True)
+
+    timeoutlen = Float(
+        0.5,
+        help="""The time in milliseconds that is waited for a mapped key
+       sequence to complete.""",
     ).tag(config=True)
 
     autoformatter = Unicode(None,
