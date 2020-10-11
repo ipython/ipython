@@ -19,21 +19,21 @@ from IPython.core.magic import Magics, magics_class, line_magic
 def _is_conda_environment():
     """Return True if the current Python executable is in a conda env"""
     # TODO: does this need to change on windows?
-    return Path(sys.prefix, 'conda-meta', 'history').exists()
+    return Path(sys.prefix, "conda-meta", "history").exists()
 
 
 def _get_conda_executable():
     """Find the path to the conda executable"""
     # Check if there is a conda executable in the same directory as the Python executable.
     # This is the case within conda's root environment.
-    conda = Path(sys.executable).parent / 'conda'
+    conda = Path(sys.executable).parent / "conda"
     if conda.isfile():
         return str(conda)
 
     # Otherwise, attempt to extract the executable from conda history.
     # This applies in any conda environment.
     R = re.compile(r"^#\s*cmd:\s*(?P<command>.*conda)\s[create|install]")
-    with open(Path(sys.prefix, 'conda-meta', 'history')) as f:
+    with open(Path(sys.prefix, "conda-meta", "history")) as f:
         for line in f:
             match = R.match(line)
             if match:
