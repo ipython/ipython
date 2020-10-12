@@ -360,12 +360,14 @@ class ExecutionMagics(Magics):
         text_file = opts.T[0]
         if dump_file:
             prof.dump_stats(dump_file)
-            print('\n*** Profile stats marshalled to file',\
-                  repr(dump_file)+'.',sys_exit)
+            print(
+                f"\n*** Profile stats marshalled to file {repr(dump_file)}.{sys_exit}"
+            )
         if text_file:
             Path(text_file).write_text(output)
-            print('\n*** Profile printout saved to text file',\
-                  repr(text_file)+'.',sys_exit)
+            print(
+                f"\n*** Profile printout saved to text file {repr(text_file)}.{sys_exit}"
+            )
 
         if 'r' in opts:
             return stats
