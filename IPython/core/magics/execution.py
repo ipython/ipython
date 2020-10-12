@@ -369,8 +369,8 @@ class ExecutionMagics(Magics):
 
         if 'r' in opts:
             return stats
-        else:
-            return None
+
+        return None
 
     @line_magic
     def pdb(self, parameter_s=''):
