@@ -138,7 +138,9 @@ def _get_inline_config():
     from ipykernel.pylab.config import InlineBackend
     return InlineBackend.instance()
 
-@dec.skip_without('matplotlib')
+
+@dec.skip_without("ipykernel")
+@dec.skip_without("matplotlib")
 def test_set_matplotlib_close():
     cfg = _get_inline_config()
     cfg.close_figures = False
@@ -173,7 +175,9 @@ def test_set_matplotlib_formats():
             else:
                 nt.assert_not_in(Figure, f)
 
-@dec.skip_without('matplotlib')
+
+@dec.skip_without("ipykernel")
+@dec.skip_without("matplotlib")
 def test_set_matplotlib_formats_kwargs():
     from matplotlib.figure import Figure
     ip = get_ipython()

@@ -103,7 +103,7 @@ matrix:
       python: "nightly"
       dist: xenial
     - arch: amd64
-      python: "3.9-dev"
+      python: "3.9"
     - os: osx
       language: generic
       python: 3.7
