@@ -10,12 +10,15 @@ IPython Sphinx Directive
    The IPython Sphinx Directive is in 'beta' and currently under
    active development. Improvements to the code or documentation are welcome!
 
-The ipython directive is a stateful ipython shell for embedding in
-sphinx documents.  It knows about standard ipython prompts, and
-extracts the input and output lines.  These prompts will be renumbered
-starting at ``1``.  The inputs will be fed to an embedded ipython
-interpreter and the outputs from that interpreter will be inserted as
-well.  For example, code blocks like the following::
+.. |rst| replace:: reStructured text
+
+The :rst:dir:`ipython` directive is a stateful shell that can be used
+in |rst| files.
+
+It knows about standard ipython prompts, and extracts the input and output
+lines.  These prompts will be renumbered starting at ``1``.  The inputs will be
+fed to an embedded ipython interpreter and the outputs from that interpreter
+will be inserted as well.  For example, code blocks like the following::
 
   .. ipython::
 
@@ -40,6 +43,48 @@ will be rendered as
    output and not the code that generated it.  Excepting the example
    above, we will not in general be showing the literal ReST in this
    document that generates the rendered output.
+
+
+Directive and options
+=====================
+
+The IPython directive takes a number of options detailed here.
+
+.. rst:directive:: ipython
+
+   Create an IPython directive.
+
+   .. rst:directive:option:: doctest
+
+      Run a doctest on IPython code blocks in rst.
+
+   .. rst:directive:option:: python
+
+      Used to indicate that the relevant code block does not have IPython prompts.
+
+   .. rst:directive:option:: okexcept
+
+      Allow the code block to raise an exception.
+
+   .. rst:directive:option:: okwarning
+
+      Allow the code block to emit an warning.
+
+   .. rst:directive:option:: suppress
+
+      Silence any warnings or expected errors.
+
+   .. rst:directive:option:: verbatim
+
+      A noop that allows for any text to be syntax highlighted as valid IPython code.
+
+   .. rst:directive:option:: savefig: OUTFILE [IMAGE_OPTIONS]
+
+      Save output from matplotlib to *outfile*.
+
+It's important to note that all of these options can be used for the entire
+directive block or they can decorate individual lines of code as explained
+in :ref:`pseudo-decorators`.
 
 
 Persisting the Python session across IPython directive blocks
@@ -392,6 +437,8 @@ And persist across sessions
 Pretty much anything you can do with the ipython code, you can do with
 with a simple python script. Obviously, though it doesn't make sense
 to use the doctest option.
+
+.. _pseudo-decorators:
 
 Pseudo-Decorators
 =================
