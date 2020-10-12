@@ -90,7 +90,7 @@ grab the latest stable tarball of IPython `from PyPI
     tar -xzf ipython-5.1.0.tar.gz
     cd ipython-5.1.0
     # The [test] extra ensures test dependencies are installed too:
-    pip install .[test]
+    pip install '.[test]'
 
 Do not invoke ``setup.py`` directly as this can have undesirable consequences
 for further upgrades. We do not recommend using ``easy_install`` either.
@@ -123,7 +123,7 @@ Then do:
 
     $ git clone https://github.com/ipython/ipython.git
     $ cd ipython
-    $ pip install -e .[test]
+    $ pip install -e '.[test]'
 
 The :command:`pip install -e .` command allows users and developers to follow
 the development branch as it changes by creating links in the right places and
