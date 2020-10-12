@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from IPython import get_ipython
+
     ip = get_ipython()
 
 
