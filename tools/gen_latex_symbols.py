@@ -80,7 +80,7 @@ s += """
 reverse_latex_symbol = { v:k for k,v in latex_symbols.items()}
 """
 
-fn = Path('..', 'IPython', 'core', 'latex_symbols.py')
+fn = Path("..", "IPython", "core", "latex_symbols.py")
 print("Writing the file: %s" % str(fn))
 fn.write_text(s, encoding="utf-8")
 
