@@ -18,10 +18,8 @@ def test_deepreload():
     with TemporaryDirectory() as tmpdir:
         with prepended_to_syspath(tmpdir):
             tmpdirpath = Path(tmpdir)
-            with open(tmpdirpath / "A.py", "w") as f:
-                f.write("class Object(object):\n    pass\n")
-            with open(tmpdirpath / "B.py", "w") as f:
-                f.write("import A\n")
+            Path(os.path.join(tmpdirpath, "A.py")).write_text("class Object(object):\n    pass\n")
+            Path(os.path.join(tmpdirpath, "B.py")).write_text("import A\n")
             import A
             import B
 
