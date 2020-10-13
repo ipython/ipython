@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from IPython.core.alias import Alias
 from IPython.core.interactiveshell import InteractiveShell
@@ -10,7 +9,7 @@ magics = shell.magics_manager.magics
 
 def _strip_underline(line):
     chars = set(line.strip())
-    if len(chars) == 1 and ('-' in chars or '=' in chars):
+    if len(chars) == 1 and ("-" in chars or "=" in chars):
         return ""
     else:
         return line
@@ -32,7 +31,7 @@ output = [
 # Case insensitive sort by name
 def sortkey(s): return s[0].lower()
 
-for name, func in sorted(magics['line'].items(), key=sortkey):
+for name, func in sorted(magics["line"].items(), key=sortkey):
     if isinstance(func, Alias) or isinstance(func, MagicAlias):
         # Aliases are magics, but shouldn't be documented here
         # Also skip aliases to other magics
@@ -48,11 +47,11 @@ output.extend([
 "",
 ])
 
-for name, func in sorted(magics['cell'].items(), key=sortkey):
+for name, func in sorted(magics["cell"].items(), key=sortkey):
     if name == "!":
         # Special case - don't encourage people to use %%!
         continue
-    if func == magics['line'].get(name, 'QQQP'):
+    if func == magics["line"].get(name, "QQQP"):
         # Don't redocument line magics that double as cell magics
         continue
     if isinstance(func, MagicAlias):
@@ -62,6 +61,6 @@ for name, func in sorted(magics['cell'].items(), key=sortkey):
                    format_docstring(func),
                    ""])
 
-here = os.path.dirname(__file__)
-dest = Path(os.path.join(here, "source", "interactive", "magics-generated.txt"))
+src_path = Path(__file__).parent
+dest = src_path.joinpath("source", "interactive", "magics-generated.txt")
 dest.write_text("\n".join(output))
