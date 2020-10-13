@@ -1,5 +1,5 @@
 """
-Test for async helpers. 
+Test for async helpers.
 
 Should only trigger on python 3.5+ or will have syntax errors.
 """
@@ -9,6 +9,13 @@ from textwrap import dedent, indent
 from unittest import TestCase
 from IPython.testing.decorators import skip_without
 import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from IPython import get_ipython
+
+    ip = get_ipython()
+
 
 iprc = lambda x: ip.run_cell(dedent(x)).raise_error()
 iprc_nr = lambda x: ip.run_cell(dedent(x))
@@ -275,7 +282,7 @@ class AsyncTest(TestCase):
         await sleep(0.1)
         """
         )
-    
+
     if sys.version_info < (3,9):
         # new pgen parser in 3.9 does not raise MemoryError on too many nested
         # parens anymore
