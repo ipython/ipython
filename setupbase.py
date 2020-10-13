@@ -20,6 +20,7 @@ from logging import log
 
 from setuptools import Command
 from setuptools.command.build_py import build_py
+
 # TODO: Replacement for this?
 from distutils.command.build_scripts import build_scripts
 from setuptools.command.install import install
