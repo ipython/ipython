@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from IPython.core.alias import Alias
 from IPython.core.interactiveshell import InteractiveShell
@@ -61,7 +60,6 @@ for name, func in sorted(magics["cell"].items(), key=sortkey):
                    "",
                    format_docstring(func),
                    ""])
-
 
 src_path = Path(__file__).parent
 dest = src_path.joinpath("source", "interactive", "magics-generated.txt")
