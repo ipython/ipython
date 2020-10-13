@@ -7,6 +7,7 @@ Much of the code is taken from the tokenize module in Python 3.2.
 
 import io
 from io import TextIOWrapper, BytesIO
+from pathlib import Path
 import re
 from tokenize import open, detect_encoding
 
@@ -72,7 +73,8 @@ def read_py_file(filename, skip_encoding_cookie=True):
     -------
     A unicode string containing the contents of the file.
     """
-    with open(filename) as f:   # the open function defined in this module.
+    filepath = Path(filename)
+    with open(filepath) as f:  # the open function defined in this module.
         if skip_encoding_cookie:
             return "".join(strip_encoding_cookie(f))
         else:
