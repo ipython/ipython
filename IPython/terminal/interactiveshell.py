@@ -137,7 +137,8 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
     ).tag(config=True)
 
-    emacs_bindings_in_vi_insert_mode = Bool(True,
+    emacs_bindings_in_vi_insert_mode = Bool(
+        True,
         help="Add shortcuts from 'emacs' insert mode to 'vi' insert mode.",
     ).tag(config=True)
 

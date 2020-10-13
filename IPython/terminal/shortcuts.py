@@ -90,9 +90,8 @@ def create_ipython_shortcuts(shell):
                               & ~cursor_in_leading_ws
                         ))(display_completions_like_readline)
 
-    if sys.platform == 'win32':
-        kb.add('c-v', filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
-
+    if sys.platform == "win32":
+        kb.add("c-v", filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
 
     @Condition
     def ebivim():
