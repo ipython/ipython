@@ -18,6 +18,7 @@ from prompt_toolkit.filters import (has_focus, has_selection, Condition,
     vi_insert_mode, emacs_insert_mode, has_completions, vi_mode)
 from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
 from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.key_binding.bindings import named_commands as nc
 
 from IPython.utils.decorators import undoc
 
@@ -89,8 +90,75 @@ def create_ipython_shortcuts(shell):
                               & ~cursor_in_leading_ws
                         ))(display_completions_like_readline)
 
-    if sys.platform == 'win32':
-        kb.add('c-v', filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
+    if sys.platform == "win32":
+        kb.add("c-v", filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
+
+    @Condition
+    def ebivim():
+        return shell.emacs_bindings_in_vi_insert_mode
+
+    focused_insert = has_focus(DEFAULT_BUFFER) & vi_insert_mode
+
+    # Needed for to accept autosuggestions in vi insert mode
+    @kb.add("c-e", filter=focused_insert & ebivim)
+    def _(event):
+        b = event.current_buffer
+        suggestion = b.suggestion
+        if suggestion:
+            b.insert_text(suggestion.text)
+        else:
+            nc.end_of_line(event)
+
+    @kb.add("c-f", filter=focused_insert & ebivim)
+    def _(event):
+        b = event.current_buffer
+        suggestion = b.suggestion
+        if suggestion:
+            b.insert_text(suggestion.text)
+        else:
+            nc.forward_char(event)
+
+    @kb.add("escape", "f", filter=focused_insert & ebivim)
+    def _(event):
+        b = event.current_buffer
+        suggestion = b.suggestion
+        if suggestion:
+            t = re.split(r"(\S+\s+)", suggestion.text)
+            b.insert_text(next((x for x in t if x), ""))
+        else:
+            nc.forward_word(event)
+
+    # Simple Control keybindings
+    key_cmd_dict = {
+        "c-a": nc.beginning_of_line,
+        "c-b": nc.backward_char,
+        "c-k": nc.kill_line,
+        "c-w": nc.backward_kill_word,
+        "c-y": nc.yank,
+        "c-_": nc.undo,
+    }
+
+    for key, cmd in key_cmd_dict.items():
+        kb.add(key, filter=focused_insert & ebivim)(cmd)
+
+    # Alt and Combo Control keybindings
+    keys_cmd_dict = {
+        # Control Combos
+        ("c-x", "c-e"): nc.edit_and_execute,
+        ("c-x", "e"): nc.edit_and_execute,
+        # Alt
+        ("escape", "b"): nc.backward_word,
+        ("escape", "c"): nc.capitalize_word,
+        ("escape", "d"): nc.kill_word,
+        ("escape", "h"): nc.backward_kill_word,
+        ("escape", "l"): nc.downcase_word,
+        ("escape", "u"): nc.uppercase_word,
+        ("escape", "y"): nc.yank_pop,
+        ("escape", "."): nc.yank_last_arg,
+    }
+
+    for keys, cmd in keys_cmd_dict.items():
+        kb.add(*keys, filter=focused_insert & ebivim)(cmd)
 
     return kb
 
