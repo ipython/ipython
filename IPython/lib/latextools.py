@@ -143,7 +143,7 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
         dvifile = workdir.joinpath("tmp.dvi")
         outfile = workdir.joinpath("tmp.png")
 
-        with tmpfile.open("w", encoding='utf8') as f:
+        with tmpfile.open("w", encoding="utf8") as f:
             f.writelines(genelatex(s, wrap))
 
         with open(os.devnull, 'wb') as devnull:
