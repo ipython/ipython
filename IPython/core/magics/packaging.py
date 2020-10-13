@@ -8,37 +8,38 @@
 #  The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-import os
 import re
 import shlex
 import sys
 
+from pathlib import Path
 from IPython.core.magic import Magics, magics_class, line_magic
 
 
 def _is_conda_environment():
     """Return True if the current Python executable is in a conda env"""
     # TODO: does this need to change on windows?
-    conda_history = os.path.join(sys.prefix, 'conda-meta', 'history')
-    return os.path.exists(conda_history)
+    return Path(sys.prefix, "conda-meta", "history").exists()
 
 
 def _get_conda_executable():
     """Find the path to the conda executable"""
     # Check if there is a conda executable in the same directory as the Python executable.
     # This is the case within conda's root environment.
-    conda = os.path.join(os.path.dirname(sys.executable), 'conda')
-    if os.path.isfile(conda):
-        return conda
+    conda = Path(sys.executable).parent / "conda"
+    if conda.isfile():
+        return str(conda)
 
     # Otherwise, attempt to extract the executable from conda history.
     # This applies in any conda environment.
-    R = re.compile(r"^#\s*cmd:\s*(?P<command>.*conda)\s[create|install]")
-    with open(os.path.join(sys.prefix, 'conda-meta', 'history')) as f:
-        for line in f:
-            match = R.match(line)
-            if match:
-                return match.groupdict()['command']
+    history = Path(sys.prefix, "conda-meta", "history").read_text()
+    match = re.search(
+        r"^#\s*cmd:\s*(?P<command>.*conda)\s[create|install]",
+        history,
+        flags=re.MULTILINE,
+    )
+    if match:
+        return match.groupdict()["command"]
     
     # Fallback: assume conda is available on the system path.
     return "conda"

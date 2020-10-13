@@ -16,7 +16,7 @@ Requirements
 
 The documentation must be built using Python 3.
 
-In additions to :ref:`devinstall`,
+In addition to :ref:`devinstall`,
 the following tools are needed to build the documentation:
 
  - sphinx
@@ -40,7 +40,7 @@ html``.
 
 ``make html_noapi`` - same as above, but without running the auto-generated API
 docs. When you are working on the narrative documentation, the most time
-consuming portion  of the build process is the processing and rending of the
+consuming portion  of the build process is the processing and rendering of the
 API documentation. This build target skips that.
 
 ``make pdf`` will compile a pdf from the documentation.
@@ -53,7 +53,7 @@ previous docs build.
 To remove the previous docs build you can use ``make clean``.
 You can also combine ``clean`` with other `make` commands;
 for example,
-``make clean html`` will do a complete rebuild of the docs or `make clean pdf` will do a complete build of the pdf.
+``make clean html`` will do a complete rebuild of the docs or ``make clean pdf`` will do a complete build of the pdf.
 
 
 Continuous Integration

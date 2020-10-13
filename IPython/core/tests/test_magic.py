@@ -14,6 +14,7 @@ from unittest import TestCase
 from unittest import mock
 from importlib import invalidate_caches
 from io import StringIO
+from pathlib import Path
 
 import nose.tools as nt
 
@@ -831,8 +832,7 @@ def test_file():
             'line1',
             'line2',
         ]))
-        with open(fname) as f:
-            s = f.read()
+        s = Path(fname).read_text()
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
 
@@ -846,8 +846,7 @@ def test_file_single_quote():
             'line1',
             'line2',
         ]))
-        with open(fname) as f:
-            s = f.read()
+        s = Path(fname).read_text()
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
 
@@ -861,8 +860,7 @@ def test_file_double_quote():
             'line1',
             'line2',
         ]))
-        with open(fname) as f:
-            s = f.read()
+        s = Path(fname).read_text()
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
 
@@ -876,8 +874,7 @@ def test_file_var_expand():
             'line1',
             'line2',
         ]))
-        with open(fname) as f:
-            s = f.read()
+        s = Path(fname).read_text()
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
 
@@ -908,8 +905,7 @@ def test_file_amend():
             'line3',
             'line4',
         ]))
-        with open(fname) as f:
-            s = f.read()
+        s = Path(fname).read_text()
         nt.assert_in('line1\n', s)
         nt.assert_in('line3\n', s)
 
@@ -922,8 +918,7 @@ def test_file_spaces():
             'line1',
             'line2',
         ]))
-        with open(fname) as f:
-            s = f.read()
+        s = Path(fname).read_text()
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
     
@@ -1063,15 +1058,13 @@ def test_save():
     with TemporaryDirectory() as tmpdir:
         file = os.path.join(tmpdir, "testsave.py")
         ip.run_line_magic("save", "%s 1-10" % file)
-        with open(file) as f:
-            content = f.read()
-            nt.assert_equal(content.count(cmds[0]), 1)
-            nt.assert_in('coding: utf-8', content)
+        content = Path(file).read_text()
+        nt.assert_equal(content.count(cmds[0]), 1)
+        nt.assert_in("coding: utf-8", content)
         ip.run_line_magic("save", "-a %s 1-10" % file)
-        with open(file) as f:
-            content = f.read()
-            nt.assert_equal(content.count(cmds[0]), 2)
-            nt.assert_in('coding: utf-8', content)
+        content = Path(file).read_text()
+        nt.assert_equal(content.count(cmds[0]), 2)
+        nt.assert_in("coding: utf-8", content)
 
 
 def test_store():
@@ -1231,8 +1224,7 @@ def test_run_module_from_import_hook():
     "Test that a module can be loaded via an import hook"
     with TemporaryDirectory() as tmpdir:
         fullpath = os.path.join(tmpdir, 'my_tmp.py')
-        with open(fullpath, 'w') as f:
-            f.write(TEST_MODULE)
+        Path(fullpath).write_text(TEST_MODULE)
 
         class MyTempImporter(object):
             def __init__(self):
@@ -1248,8 +1240,7 @@ def test_run_module_from_import_hook():
                 return imp.load_source('my_tmp', fullpath)
 
             def get_code(self, fullname):
-                with open(fullpath, 'r') as f:
-                    return compile(f.read(), 'foo', 'exec')
+                return compile(Path(fullpath).read_text(), "foo", "exec")
 
             def is_package(self, __):
                 return False
