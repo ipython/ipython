@@ -2,7 +2,7 @@
 
 from os.path import join, dirname, abspath
 import inspect
-
+from pathlib import Path
 from IPython.terminal.ipapp import TerminalIPythonApp
 from ipykernel.kernelapp import IPKernelApp
 from traitlets import Undefined
@@ -118,8 +118,7 @@ def write_doc(name, title, app, preamble=None):
 
 if __name__ == '__main__':
     # Touch this file for the make target
-    with open(generated, 'w'):
-        pass
+    Path(generated).write_text("")
 
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp())
     write_doc('kernel', 'IPython kernel options', IPKernelApp(),
