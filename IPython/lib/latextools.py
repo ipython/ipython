@@ -12,6 +12,8 @@ import subprocess
 from base64 import encodebytes
 import textwrap
 
+from pathlib import Path, PurePath
+
 from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config
 from traitlets.config.configurable import SingletonConfigurable
@@ -136,12 +138,12 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
     except FindCmdError:
         return None
     try:
-        workdir = tempfile.mkdtemp()
-        tmpfile = os.path.join(workdir, "tmp.tex")
-        dvifile = os.path.join(workdir, "tmp.dvi")
-        outfile = os.path.join(workdir, "tmp.png")
+        workdir = PurePath(tempfile.mkdtemp())
+        tmpfile = workdir.joinpath("tmp.tex")
+        dvifile = workdir.joinpath("tmp.dvi")
+        outfile = workdir.joinpath("tmp.png")
 
-        with open(tmpfile, "w", encoding='utf8') as f:
+        with tmpfile.open("w", encoding="utf8") as f:
             f.writelines(genelatex(s, wrap))
 
         with open(os.devnull, 'wb') as devnull:
@@ -155,7 +157,7 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
                  "-bg", "transparent", "-o", outfile, dvifile, "-fg", color],
                  cwd=workdir, stdout=devnull, stderr=devnull)
 
-        with open(outfile, "rb") as f:
+        with outfile.open("rb") as f:
             return f.read()
     except subprocess.CalledProcessError:
         return None
