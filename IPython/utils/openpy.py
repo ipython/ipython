@@ -74,7 +74,7 @@ def read_py_file(filename, skip_encoding_cookie=True):
     A unicode string containing the contents of the file.
     """
     filepath = Path(filename)
-    with open(filepath) as f:   # the open function defined in this module.
+    with open(filepath) as f:  # the open function defined in this module.
         if skip_encoding_cookie:
             return "".join(strip_encoding_cookie(f))
         else:
