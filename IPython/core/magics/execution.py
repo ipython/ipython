@@ -39,6 +39,7 @@ from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from warnings import warn
 from logging import error
+from pathlib import Path
 from io import StringIO
 from pathlib import Path
 
@@ -360,17 +361,22 @@ class ExecutionMagics(Magics):
         text_file = opts.T[0]
         if dump_file:
             prof.dump_stats(dump_file)
-            print('\n*** Profile stats marshalled to file',\
-                  repr(dump_file)+'.',sys_exit)
+            print(
+                f"\n*** Profile stats marshalled to file {repr(dump_file)}.{sys_exit}"
+            )
         if text_file:
-            Path(text_file).write_text(output)
-            print('\n*** Profile printout saved to text file',\
-                  repr(text_file)+'.',sys_exit)
+            pfile = Path(text_file)
+            pfile.touch(exist_ok=True)
+            pfile.write_text(output)
+
+            print(
+                f"\n*** Profile printout saved to text file {repr(text_file)}.{sys_exit}"
+            )
 
         if 'r' in opts:
             return stats
-        else:
-            return None
+
+        return None
 
     @line_magic
     def pdb(self, parameter_s=''):
