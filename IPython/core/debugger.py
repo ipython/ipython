@@ -605,7 +605,7 @@ class Pdb(OldPdb):
         """Print the call signature for any callable object.
 
         The debugger interface to %pdef"""
-        namespaces = [('Locals', self.curframe.f_locals),
+        namespaces = [('Locals', self.curframe_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pdef')(arg, namespaces=namespaces)
 
@@ -613,7 +613,7 @@ class Pdb(OldPdb):
         """Print the docstring for an object.
 
         The debugger interface to %pdoc."""
-        namespaces = [('Locals', self.curframe.f_locals),
+        namespaces = [('Locals', self.curframe_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pdoc')(arg, namespaces=namespaces)
 
@@ -622,7 +622,7 @@ class Pdb(OldPdb):
 
         The debugger interface to %pfile.
         """
-        namespaces = [('Locals', self.curframe.f_locals),
+        namespaces = [('Locals', self.curframe_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pfile')(arg, namespaces=namespaces)
 
@@ -630,7 +630,7 @@ class Pdb(OldPdb):
         """Provide detailed information about an object.
 
         The debugger interface to %pinfo, i.e., obj?."""
-        namespaces = [('Locals', self.curframe.f_locals),
+        namespaces = [('Locals', self.curframe_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pinfo')(arg, namespaces=namespaces)
 
@@ -638,13 +638,13 @@ class Pdb(OldPdb):
         """Provide extra detailed information about an object.
 
         The debugger interface to %pinfo2, i.e., obj??."""
-        namespaces = [('Locals', self.curframe.f_locals),
+        namespaces = [('Locals', self.curframe_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pinfo2')(arg, namespaces=namespaces)
 
     def do_psource(self, arg):
         """Print (or run through pager) the source code for an object."""
-        namespaces = [('Locals', self.curframe.f_locals),
+        namespaces = [('Locals', self.curframe_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('psource')(arg, namespaces=namespaces)
 
