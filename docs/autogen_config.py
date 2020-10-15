@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from os.path import join, dirname, abspath
+import textwrap
 import inspect
 from pathlib import Path
 from IPython.terminal.ipapp import TerminalIPythonApp
@@ -8,12 +8,13 @@ from ipykernel.kernelapp import IPKernelApp
 from traitlets import Undefined
 from collections import defaultdict
 
-here = abspath(dirname(__file__))
-options = join(here, 'source', 'config', 'options')
-generated = join(options, 'config-generated.txt')
+here = Path(__file__).parent
+options = here / 'source' / 'config' / 'options'
+generated = options / 'config-generated.txt'
 
-import textwrap
-indent = lambda text,n: textwrap.indent(text,n*' ')
+
+def indent(text, n):
+    return textwrap.indent(text, n*' ')
 
 
 def interesting_default_value(dv):
@@ -23,12 +24,14 @@ def interesting_default_value(dv):
         return bool(dv)
     return True
 
+
 def format_aliases(aliases):
     fmted = []
     for a in aliases:
         dashes = '-' if len(a) == 1 else '--'
         fmted.append('``%s%s``' % (dashes, a))
     return ', '.join(fmted)
+
 
 def class_config_rst_doc(cls, trait_aliases):
     """Generate rST documentation for this class' config options.
@@ -41,9 +44,7 @@ def class_config_rst_doc(cls, trait_aliases):
         ttype = trait.__class__.__name__
 
         fullname = classname + '.' + trait.name
-        lines += ['.. configtrait:: ' + fullname,
-                  ''
-                 ]
+        lines += ['.. configtrait:: ' + fullname, '']
 
         help = trait.help.rstrip() or 'No description'
         lines.append(indent(inspect.cleandoc(help), 4) + '\n')
@@ -80,6 +81,7 @@ def class_config_rst_doc(cls, trait_aliases):
 
     return '\n'.join(lines)
 
+
 def reverse_aliases(app):
     """Produce a mapping of trait names to lists of command line aliases.
     """
@@ -100,20 +102,21 @@ def reverse_aliases(app):
 
     return res
 
+
 def write_doc(name, title, app, preamble=None):
     trait_aliases = reverse_aliases(app)
-    filename = join(options, name+'.rst')
-    with open(filename, 'w') as f:
-        f.write(title + '\n')
-        f.write(('=' * len(title)) + '\n')
-        f.write('\n')
-        if preamble is not None:
-            f.write(preamble + '\n\n')
-        #f.write(app.document_config_options())
+    filename = options / (name+'.rst')
 
-        for c in app._classes_inc_parents():
-            f.write(class_config_rst_doc(c, trait_aliases))
-            f.write('\n')
+    text = [title, '=' * len(title), '\n']
+    if preamble is not None:
+        text.append(preamble + '\n')
+
+    text.append(app.document_config_options())
+
+    text.extend(class_config_rst_doc(c, trait_aliases)
+                for c in app._classes_inc_parents())
+
+    filename.write_text('\n'.join(text))
 
 
 if __name__ == '__main__':
@@ -122,6 +125,6 @@ if __name__ == '__main__':
 
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp())
     write_doc('kernel', 'IPython kernel options', IPKernelApp(),
-        preamble=("These options can be used in :file:`ipython_kernel_config.py`. "
-                  "The kernel also respects any options in `ipython_config.py`"),
-    )
+              preamble=("These options can be used in :file:`ipython_kernel_config.py`. "
+                        "The kernel also respects any options in `ipython_config.py`"),
+              )
