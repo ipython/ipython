@@ -12,13 +12,12 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-
 import os
 import shutil
 import sys
 import tempfile
 
-from os.path import join, abspath, split
+from pathlib import Path
 
 from IPython.testing.tools import make_tempfile
 
@@ -27,9 +26,9 @@ import IPython.utils.module_paths as mp
 import nose.tools as nt
 
 env = os.environ
-TEST_FILE_PATH = split(abspath(__file__))[0]
+TEST_FILE_PATH = Path(__file__).resolve().parent
 
-TMP_TEST_DIR = tempfile.mkdtemp(suffix='with.dot')
+TMP_TEST_DIR = Path(tempfile.mkdtemp(suffix="with.dot"))
 #
 # Setup/teardown functions/decorators
 #
@@ -46,13 +45,13 @@ def setup_module():
     """
     # Do not mask exceptions here.  In particular, catching WindowsError is a
     # problem because that exception is only defined on Windows...
-    os.makedirs(join(TMP_TEST_DIR, "xmod"))
-    os.makedirs(join(TMP_TEST_DIR, "nomod"))
-    make_empty_file(join(TMP_TEST_DIR, "xmod/__init__.py"))
-    make_empty_file(join(TMP_TEST_DIR, "xmod/sub.py"))
-    make_empty_file(join(TMP_TEST_DIR, "pack.py"))
-    make_empty_file(join(TMP_TEST_DIR, "packpyc.pyc"))
-    sys.path = [TMP_TEST_DIR]
+    Path(TMP_TEST_DIR / "xmod").mkdir(parents=True)
+    Path(TMP_TEST_DIR / "nomod").mkdir(parents=True)
+    make_empty_file(TMP_TEST_DIR / "xmod/__init__.py")
+    make_empty_file(TMP_TEST_DIR / "xmod/sub.py")
+    make_empty_file(TMP_TEST_DIR / "pack.py")
+    make_empty_file(TMP_TEST_DIR / "packpyc.pyc")
+    sys.path = [str(TMP_TEST_DIR)]
 
 def teardown_module():
     """Teardown testenvironment for the module:
@@ -70,7 +69,7 @@ def test_tempdir():
     """
     Ensure the test are done with a temporary file that have a dot somewhere.
     """
-    nt.assert_in('.',TMP_TEST_DIR)
+    nt.assert_in(".", str(TMP_TEST_DIR))
 
 
 def test_find_mod_1():
@@ -78,8 +77,8 @@ def test_find_mod_1():
     Search for a directory's file path.
     Expected output: a path to that directory's __init__.py file.
     """
-    modpath = join(TMP_TEST_DIR, "xmod", "__init__.py")
-    nt.assert_equal(mp.find_mod("xmod"), modpath)
+    modpath = TMP_TEST_DIR / "xmod" / "__init__.py"
+    nt.assert_equal(Path(mp.find_mod("xmod")), modpath)
 
 def test_find_mod_2():
     """
@@ -87,24 +86,24 @@ def test_find_mod_2():
     Expected output: a path to that directory's __init__.py file.
     TODO: Confirm why this is a duplicate test.
     """
-    modpath = join(TMP_TEST_DIR, "xmod", "__init__.py")
-    nt.assert_equal(mp.find_mod("xmod"), modpath)
+    modpath = TMP_TEST_DIR / "xmod" / "__init__.py"
+    nt.assert_equal(Path(mp.find_mod("xmod")), modpath)
 
 def test_find_mod_3():
     """
     Search for a directory + a filename without its .py extension
     Expected output: full path with .py extension.
     """
-    modpath = join(TMP_TEST_DIR, "xmod", "sub.py")
-    nt.assert_equal(mp.find_mod("xmod.sub"), modpath)
+    modpath = TMP_TEST_DIR / "xmod" / "sub.py"
+    nt.assert_equal(Path(mp.find_mod("xmod.sub")), modpath)
 
 def test_find_mod_4():
     """
     Search for a filename without its .py extension
     Expected output: full path with .py extension
     """
-    modpath = join(TMP_TEST_DIR, "pack.py")
-    nt.assert_equal(mp.find_mod("pack"), modpath)
+    modpath = TMP_TEST_DIR / "pack.py"
+    nt.assert_equal(Path(mp.find_mod("pack")), modpath)
 
 def test_find_mod_5():
     """
