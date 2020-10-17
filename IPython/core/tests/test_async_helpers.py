@@ -168,22 +168,22 @@ class AsyncTest(TestCase):
         # detection isn't *too* aggressive, and works inside a function
         func_contexts = []
 
-        func_contexts.append(('func', False, dedent("""
+        func_contexts.append(('func', dedent("""
         def f():""")))
 
-        func_contexts.append(('method', False, dedent("""
+        func_contexts.append(('method', dedent("""
         class MyClass:
             def __init__(self):
         """)))
 
-        func_contexts.append(('async-func', True,  dedent("""
+        func_contexts.append(('async-func',  dedent("""
         async def f():""")))
 
-        func_contexts.append(('async-method', True,  dedent("""
+        func_contexts.append(('async-method',  dedent("""
         class MyClass:
             async def f(self):""")))
 
-        func_contexts.append(('closure', False, dedent("""
+        func_contexts.append(('closure', dedent("""
         def f():
             def g():
         """)))
@@ -205,28 +205,22 @@ class AsyncTest(TestCase):
         # yield is allowed in async functions, starting in Python 3.6,
         # and yield from is not allowed in any version
         vals = ('return', 'yield', 'yield from (_ for _ in range(3))')
-        async_safe = (True,
-                        True,
-                        False)
-        vals = tuple(zip(vals, async_safe))
 
         success_tests = zip(self._get_top_level_cases(), repeat(False))
         failure_tests = zip(self._get_ry_syntax_errors(), repeat(True))
 
         tests = chain(success_tests, failure_tests)
 
-        for context_name, async_func, context in func_contexts:
+        for context_name, context in func_contexts:
             for (test_name, test_case), should_fail in tests:
                 nested_case = nest_case(context, test_case)
 
-                for val, async_safe in vals:
-                    val_should_fail = should_fail
-
+                for val in vals:
                     test_id = (context_name, test_name, val)
                     cell = nested_case.format(val=val)
 
                     with self.subTest(test_id):
-                        if val_should_fail:
+                        if should_fail:
                             msg = ("SyntaxError not raised for %s" %
                                     str(test_id))
                             with self.assertRaises(SyntaxError, msg=msg):
