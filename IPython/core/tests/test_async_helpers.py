@@ -220,8 +220,7 @@ class AsyncTest(TestCase):
                 nested_case = nest_case(context, test_case)
 
                 for val, async_safe in vals:
-                    val_should_fail = (should_fail or
-                                        (async_func and not async_safe))
+                    val_should_fail = should_fail
 
                     test_id = (context_name, test_name, val)
                     cell = nested_case.format(val=val)
