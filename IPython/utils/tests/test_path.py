@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from contextlib import contextmanager
 from unittest.mock import patch
-from os.path import join, abspath
+from pathlib import Path
 from imp import reload
 
 from nose import SkipTest, with_setup
@@ -47,8 +47,8 @@ except ImportError:
 # Globals
 #-----------------------------------------------------------------------------
 env = os.environ
-TMP_TEST_DIR = tempfile.mkdtemp()
-HOME_TEST_DIR = join(TMP_TEST_DIR, "home_test_dir")
+TMP_TEST_DIR = Path(tempfile.mkdtemp())
+HOME_TEST_DIR = TMP_TEST_DIR.joinpath("home_test_dir")
 #
 # Setup/teardown functions/decorators
 #
@@ -60,7 +60,7 @@ def setup_module():
     """
     # Do not mask exceptions here.  In particular, catching WindowsError is a
     # problem because that exception is only defined on Windows...
-    os.makedirs(os.path.join(HOME_TEST_DIR, 'ipython'))
+    Path.mkdir(HOME_TEST_DIR.joinpath('ipython') , parents=True)
 
 
 def teardown_module():
@@ -110,7 +110,7 @@ def test_get_home_dir_1():
     sys.frozen = True
 
     #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
+    IPython.__file__ = Path.resolve(HOME_TEST_DIR.joinpath("Lib/IPython/__init__.py"))
 
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, unfrozen)
@@ -124,7 +124,7 @@ def test_get_home_dir_2():
     unfrozen = path.get_home_dir()
     sys.frozen = True
     #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
+    IPython.__file__ = str(Path.resolve(HOME_TEST_DIR.joinpath("Library.zip/IPython/__init__.py"))).lower()
 
     home_dir = path.get_home_dir(True)
     nt.assert_equal(home_dir, unfrozen)
@@ -134,10 +134,10 @@ def test_get_home_dir_2():
 @with_environment
 def test_get_home_dir_3():
     """get_home_dir() uses $HOME if set"""
-    env["HOME"] = HOME_TEST_DIR
+    env["HOME"] = str(HOME_TEST_DIR)
     home_dir = path.get_home_dir(True)
     # get_home_dir expands symlinks
-    nt.assert_equal(home_dir, os.path.realpath(env["HOME"]))
+    nt.assert_equal(home_dir, str(Path(env["HOME"]).resolve()))
 
 
 @with_environment
@@ -152,7 +152,7 @@ def test_get_home_dir_4():
 @with_environment
 def test_get_home_dir_5():
     """raise HomeDirError if $HOME is specified, but not a writable dir"""
-    env['HOME'] = abspath(HOME_TEST_DIR+'garbage')
+    env['HOME'] = str(HOME_TEST_DIR /'garbage')
     # set os.name = posix, to prevent My Documents fallback on Windows
     os.name = 'posix'
     nt.assert_raises(path.HomeDirError, path.get_home_dir, True)
@@ -179,9 +179,9 @@ def test_get_home_dir_8():
             pass
 
     with patch.object(wreg, 'OpenKey', return_value=key()), \
-         patch.object(wreg, 'QueryValueEx', return_value=[abspath(HOME_TEST_DIR)]):
+         patch.object(wreg, 'QueryValueEx', return_value=[Path.resolve(HOME_TEST_DIR)]):
         home_dir = path.get_home_dir()
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+    nt.assert_equal(home_dir, Path.resolve(HOME_TEST_DIR))
 
 @with_environment
 def test_get_xdg_dir_0():
@@ -195,7 +195,7 @@ def test_get_xdg_dir_0():
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
 
-    nt.assert_equal(path.get_xdg_dir(), os.path.join('somewhere', '.config'))
+    nt.assert_equal(path.get_xdg_dir(), str(Path('somewhere').joinpath('.config')))
 
 
 @with_environment
@@ -220,11 +220,11 @@ def test_get_xdg_dir_2():
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
-    cfgdir=os.path.join(path.get_home_dir(), '.config')
-    if not os.path.exists(cfgdir):
-        os.makedirs(cfgdir)
+    cfgdir=Path(path.get_home_dir()).joinpath('.config')
+    if not Path.exists(cfgdir):
+        Path.mkdir(cfgdir, parents=True)
 
-    nt.assert_equal(path.get_xdg_dir(), cfgdir)
+    nt.assert_equal(path.get_xdg_dir(), str(cfgdir))
 
 @with_environment
 def test_get_xdg_dir_3():
@@ -236,9 +236,9 @@ def test_get_xdg_dir_3():
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
-    cfgdir=os.path.join(path.get_home_dir(), '.config')
-    if not os.path.exists(cfgdir):
-        os.makedirs(cfgdir)
+    cfgdir=Path(path.get_home_dir()).joinpath('.config')
+    if not Path.exists(cfgdir):
+        Path.mkdir(cfgdir, parents=True)
 
     nt.assert_equal(path.get_xdg_dir(), None)
 
@@ -257,11 +257,11 @@ def test_get_long_path_name_win32():
 
         # Make a long path. Expands the path of tmpdir prematurely as it may already have a long
         # path component, so ensure we include the long form of it
-        long_path = os.path.join(path.get_long_path_name(tmpdir), 'this is my long path name')
-        os.makedirs(long_path)
+        long_path = Path(path.get_long_path_name(tmpdir)).joinpath('this is my long path name')
+        Path.mkdir(long_path, parents=True)
 
         # Test to see if the short path evaluates correctly.
-        short_path = os.path.join(tmpdir, 'THISIS~1')
+        short_path = Path(tmpdir, 'THISIS~1')
         evaluated_path = path.get_long_path_name(short_path)
         nt.assert_equal(evaluated_path.lower(), long_path.lower())
 
@@ -283,10 +283,10 @@ class TestRaiseDeprecation(unittest.TestCase):
         env.pop('IPYTHONDIR', None)
         env.pop('XDG_CONFIG_HOME', None)
         env['HOME'] = tmpdir
-        ipdir = os.path.join(tmpdir, '.ipython')
+        ipdir = Path(tmpdir, '.ipython')
         os.mkdir(ipdir, 0o555)
         try:
-            open(os.path.join(ipdir, "_foo_"), 'w').close()
+            open(Path(ipdir, "_foo_"), 'w').close()
         except IOError:
             pass
         else:
@@ -342,7 +342,7 @@ class TestShellGlob(unittest.TestCase):
         with cls.in_tempdir():
             # Create empty files
             for fname in cls.filenames:
-                open(os.path.join(td, fname), 'w').close()
+                open(Path(td, fname), 'w').close()
 
     @classmethod
     def tearDownClass(cls):
@@ -408,11 +408,11 @@ def test_unescape_glob():
 @onlyif_unicode_paths
 def test_ensure_dir_exists():
     with TemporaryDirectory() as td:
-        d = os.path.join(td, '∂ir')
+        d = Path(td, '∂ir')
         path.ensure_dir_exists(d) # create it
-        assert os.path.isdir(d)
+        assert Path.is_dir(d)
         path.ensure_dir_exists(d) # no-op
-        f = os.path.join(td, 'ƒile')
+        f = Path(td, 'ƒile')
         open(f, 'w').close() # touch
         with nt.assert_raises(IOError):
             path.ensure_dir_exists(f)
@@ -428,7 +428,7 @@ class TestLinkOrCopy(unittest.TestCase):
         self.tempdir.cleanup()
 
     def dst(self, *args):
-        return os.path.join(self.tempdir.name, *args)
+        return str(Path(self.tempdir.name, *args))
 
     def assert_inode_not_equal(self, a, b):
         nt.assert_not_equal(os.stat(a).st_ino, os.stat(b).st_ino,
@@ -454,7 +454,7 @@ class TestLinkOrCopy(unittest.TestCase):
         dst = self.dst("some_dir")
         os.mkdir(dst)
         path.link_or_copy(self.src, dst)
-        expected_dst = self.dst("some_dir", os.path.basename(self.src))
+        expected_dst = self.dst("some_dir", Path(self.src).name)
         self.assert_inode_equal(self.src, expected_dst)
 
     @skip_win32
