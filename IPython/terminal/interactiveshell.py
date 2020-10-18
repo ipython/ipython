@@ -142,6 +142,32 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Add shortcuts from 'emacs' insert mode to 'vi' insert mode.",
     ).tag(config=True)
 
+    auto_complete_function_parentheses = Bool(True,
+    help="Add parentheses when autocompleting functions.",
+    ).tag(config=True)
+
+    auto_complete_selected_option_on_tab = Bool(True,
+        help="""When the completion menu is showing
+        and a completion option is selected,
+        apply the currently selected completion option with tab.""",
+    ).tag(config=True)
+
+    auto_complete_top_option_on_enter = Bool(True,
+        help="""When the completion menu is showing,
+        but no completion options are selected,
+        apply the first completion menu option with enter.""",
+    ).tag(config=True)
+
+    auto_complete_top_option_on_tab = Bool(True,
+        help="""When the completion menu is showing
+        and no completion options are selected,
+        apply the first completion menu option with tab.""",
+    ).tag(config=True)
+
+    auto_complete_only_option_on_tab = Bool(True,
+        help="When there is only one completion option, apply it with tab.",
+    ).tag(config=True)
+
     autoformatter = Unicode(None,
         help="Autoformatter to reformat Terminal code. Can be `'black'` or `None`",
         allow_none=True
