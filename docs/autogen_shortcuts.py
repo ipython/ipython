@@ -78,7 +78,12 @@ if __name__ == '__main__':
     here = Path(__file__).parent
     dest = here / 'source' / 'config' / 'shortcuts'
 
+    def sort_key(item):
+        k, v = item
+        shortcut, flt = k
+        return (str(shortcut), str(flt))
+
     for filters, output_filename in [(single_filter, 'single_filtered'), (multi_filter, 'multi_filtered')]:
         with (dest / '{}.csv'.format(output_filename)).open('w') as csv:
-            for (shortcut, flt), v in sorted(filters.items(), key=lambda ((shortcut, flt), v): (str(shortcut), str(flt))):
+            for (shortcut, flt), v in sorted(filters.items(), key=sort_key):
                 csv.write(':kbd:`{}`\t{}\t{}\n'.format(shortcut, flt, v))
