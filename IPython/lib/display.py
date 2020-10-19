@@ -520,10 +520,11 @@ class FileLinks(FileLink):
             # are going to be displayed
             display_fnames = []
             for fname in fnames:
-                if (Path(Path(dirname).joinpath(fname)).is_file() and
-                       (included_suffixes is None or
-                        Path(fname).suffix[1] in included_suffixes)):
-                      display_fnames.append(fname)
+                if Path(Path(dirname).joinpath(fname)).is_file() and (
+                    included_suffixes is None
+                    or Path(fname).suffix[1] in included_suffixes
+                ):
+                    display_fnames.append(fname)
 
             if len(display_fnames) == 0:
                 # if there are no filenames to display, don't print anything
