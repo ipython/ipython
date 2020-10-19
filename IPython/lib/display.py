@@ -3,7 +3,7 @@
 Authors : MinRK, gregcaporaso, dannystaple
 """
 from html import escape as html_escape
-from os.path import exists, isfile, splitext, abspath, join, isdir
+from pathlib import Path
 from os import walk, sep, fsdecode
 
 from IPython.core.display import DisplayObject, TextDisplayObject
@@ -383,7 +383,7 @@ class FileLink(object):
         result_html_suffix : str
             text to append at the end of link [default: '<br>']
         """
-        if isdir(path):
+        if Path.is_dir(path):
             raise ValueError("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
         self.path = fsdecode(path)
@@ -401,7 +401,7 @@ class FileLink(object):
     def _repr_html_(self):
         """return html link to file
         """
-        if not exists(self.path):
+        if not Path.exists(self.path):
             return ("Path (<tt>%s</tt>) doesn't exist. "
                     "It may still be in the process of "
                     "being generated, or you may have the "
@@ -412,7 +412,7 @@ class FileLink(object):
     def __repr__(self):
         """return absolute path to file
         """
-        return abspath(self.path)
+        return Path(self.path).resolve()
 
 class FileLinks(FileLink):
     """Class for embedding local file links in an IPython session, based on path
@@ -473,7 +473,7 @@ class FileLinks(FileLink):
         passed here to support alternative formatting.
 
         """
-        if isfile(path):
+        if Path.is_file(path):
             raise ValueError("Cannot display a file using FileLinks. "
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
@@ -520,9 +520,9 @@ class FileLinks(FileLink):
             # are going to be displayed
             display_fnames = []
             for fname in fnames:
-                if (isfile(join(dirname,fname)) and
+                if (Path.is_file(Path(dirname).joinpath(fname)) and
                        (included_suffixes is None or
-                        splitext(fname)[1] in included_suffixes)):
+                        Path(fname).suffix[1] in included_suffixes)):
                       display_fnames.append(fname)
 
             if len(display_fnames) == 0:
