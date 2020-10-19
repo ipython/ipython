@@ -24,10 +24,12 @@ Authors:
 import os
 
 from traitlets.config.application import Application
+
 from IPython.core.application import (
     BaseIPythonApplication, base_flags
 )
 from IPython.core.profiledir import ProfileDir
+from IPython.core.traitlets import PathObject
 from IPython.utils.importstring import import_item
 from IPython.paths import get_ipython_dir, get_ipython_package_dir
 from traitlets import Unicode, Bool, Dict, observe
@@ -121,12 +123,12 @@ def list_bundled_profiles():
 
 class ProfileLocate(BaseIPythonApplication):
     description = """print the path to an IPython profile dir"""
-    
+
     def parse_command_line(self, argv=None):
         super(ProfileLocate, self).parse_command_line(argv)
         if self.extra_args:
             self.profile = self.extra_args[0]
-    
+
     def start(self):
         print(self.profile_dir.location)
 
@@ -146,7 +148,8 @@ class ProfileList(Application):
         )
     ))
 
-    ipython_dir = Unicode(get_ipython_dir(),
+    ipython_dir = PathObject(
+        get_ipython_dir(),
         help="""
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
@@ -171,19 +174,19 @@ class ProfileList(Application):
             print("    The first request for a bundled profile will copy it")
             print("    into your IPython directory (%s)," % self.ipython_dir)
             print("    where you can customize it.")
-        
+
         profiles = list_profiles_in(self.ipython_dir)
         if profiles:
             print()
             print("Available profiles in %s:" % self.ipython_dir)
             self._print_profiles(profiles)
-        
+
         profiles = list_profiles_in(os.getcwd())
         if profiles:
             print()
             print("Available profiles in current directory (%s):" % os.getcwd())
             self._print_profiles(profiles)
-        
+
         print()
         print("To use any of the above profiles, start IPython with:")
         print("    ipython --profile=<name>")
@@ -242,7 +245,7 @@ class ProfileCreate(BaseIPythonApplication):
     flags = Dict(create_flags)
 
     classes = [ProfileDir]
-    
+
     def _import_app(self, app_path):
         """import an app class"""
         app = None

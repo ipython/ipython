@@ -39,7 +39,7 @@ if sys.platform == 'win32':
         """
         try:
             import ctypes
-        except ImportError as e: 
+        except ImportError as e:
             raise ImportError('you need to have ctypes installed for this to work') from e
         _GetLongPathName = ctypes.windll.kernel32.GetLongPathNameW
         _GetLongPathName.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p,
@@ -85,6 +85,7 @@ def compress_user(path):
     """Reverse of :func:`os.path.expanduser`
     """
     home = os.path.expanduser('~')
+    path = str(path)
     if path.startswith(home):
         path =  "~" + path[len(home):]
     return path

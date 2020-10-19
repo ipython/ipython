@@ -882,15 +882,22 @@ def test_file_unicode():
     """%%writefile with unicode cell"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
-        fname = os.path.join(td, 'file1')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
-            u'liné1',
-            u'liné2',
-        ]))
-        with io.open(fname, encoding='utf-8') as f:
+        fname = os.path.join(td, "file1")
+        ip.run_cell_magic(
+            "writefile",
+            fname,
+            u"\n".join(
+                [
+                    u"liné1",
+                    u"liné2",
+                ]
+            ),
+        )
+        with io.open(fname, encoding="utf-8") as f:
             s = f.read()
-        nt.assert_in(u'liné1\n', s)
-        nt.assert_in(u'liné2', s)
+        nt.assert_in(u"liné1\n", s)
+        nt.assert_in(u"liné2", s)
+
 
 def test_file_amend():
     """%%writefile -a amends files"""
