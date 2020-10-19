@@ -88,7 +88,7 @@ class Test_magic_run_completer(unittest.TestCase):
             {
                 str(self.BASETESTDIR.joinpath(f)).replace("\\", "/")
                 if Path(f).suffix
-                else str(self.BASETESTDIR.joinpath(f)).replace("\\", "/") + os.sep
+                else (str(self.BASETESTDIR.joinpath(f)) + os.sep).replace("\\", "/")
                 for f in (u"a.py", u"aao.py", u"aao.txt", u"adir/")
             },
         )
