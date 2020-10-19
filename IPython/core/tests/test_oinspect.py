@@ -8,6 +8,7 @@
 from inspect import signature, Signature, Parameter
 import os
 import re
+from pathlib import Path
 
 import nose.tools as nt
 
@@ -38,7 +39,7 @@ def setup_module():
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 41  # Put here the actual number of this line
+THIS_LINE_NUMBER = 42  # Put here the actual number of this line
 
 from unittest import TestCase
 
@@ -60,7 +61,7 @@ def match_pyfiles(f1, f2):
 
 
 def test_find_file():
-    match_pyfiles(oinspect.find_file(test_find_file), os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(test_find_file), Path(__file__).resolve())
 
 
 def test_find_file_decorated1():
@@ -75,7 +76,7 @@ def test_find_file_decorated1():
     def f(x):
         "My docstring"
     
-    match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(f), Path(__file__).resolve())
     nt.assert_equal(f.__doc__, "My docstring")
 
 
@@ -91,7 +92,7 @@ def test_find_file_decorated2():
     def f(x):
         "My docstring 2"
     
-    match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(f), Path(__file__).resolve())
     nt.assert_equal(f.__doc__, "My docstring 2")
     
 
@@ -264,7 +265,7 @@ def test_empty_property_has_no_source():
 
 
 def test_property_sources():
-    import posixpath 
+    import posixpath
     # A simple adder whose source and signature stays
     # the same across Python distributions
     def simple_add(a, b):
