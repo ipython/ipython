@@ -173,12 +173,12 @@ def test_info():
     expted_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
     nt.assert_equal(i['base_class'], expted_class)
     nt.assert_regex(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>")
-    fname = __file__
-    if fname.endswith(".pyc"):
-        fname = fname[:-1]
+    fname = Path(__file__)
+    if fname.suffix == ".pyc":
+        fname = fname.with_suffix('.py')
     # case-insensitive comparison needed on some filesystems
     # e.g. Windows:
-    nt.assert_equal(i['file'].lower(), compress_user(fname).lower())
+    nt.assert_equal(i['file'].lower(), compress_user(str(fname)).lower())
     nt.assert_equal(i['definition'], None)
     nt.assert_equal(i['docstring'], Call.__doc__)
     nt.assert_equal(i['source'], None)
