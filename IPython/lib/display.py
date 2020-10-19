@@ -401,7 +401,7 @@ class FileLink(object):
     def _repr_html_(self):
         """return html link to file
         """
-        if not Path.exists(self.path):
+        if not Path(self.path).exists():
             return ("Path (<tt>%s</tt>) doesn't exist. "
                     "It may still be in the process of "
                     "being generated, or you may have the "
