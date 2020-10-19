@@ -17,8 +17,8 @@ from pathlib import Path
 import nose.tools as nt
 
 from IPython.core.completerlib import magic_run_completer, module_completion, try_import
-from IPython.utils.tempdir import TemporaryDirectory
 from IPython.testing.decorators import onlyif_unicode_paths
+from IPython.utils.tempdir import TemporaryDirectory
 
 
 class MockEvent(object):
@@ -83,9 +83,16 @@ class Test_magic_run_completer(unittest.TestCase):
         # We specifically use replace here rather than normpath, because
         # at one point there were duplicates 'adir' and 'adir/', and normpath
         # would hide the failure for that.
-        self.assertEqual(match, {str(self.BASETESTDIR.joinpath(f)) if Path(f).suffix
-                                 else str(self.BASETESTDIR.joinpath(f)) + os.sep
-                            for f in (u"a.py", u"aao.py", u"aao.txt", u"adir/")})
+        self.assertEqual(
+            match,
+            {
+                str(self.BASETESTDIR.joinpath(f))
+                if Path(f).suffix
+                else str(self.BASETESTDIR.joinpath(f)) + os.sep
+                for f in (u"a.py", u"aao.py", u"aao.txt", u"adir/")
+            },
+        )
+
 
 class Test_magic_run_completer_nonascii(unittest.TestCase):
     @onlyif_unicode_paths

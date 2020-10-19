@@ -6,7 +6,6 @@ import tempfile
 from pathlib import Path
 
 import nose.tools as nt
-
 from traitlets import Unicode
 
 from IPython.core.application import BaseIPythonApplication
