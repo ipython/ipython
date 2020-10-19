@@ -119,13 +119,13 @@ class ProfileStartupTest(TestCase):
 def test_list_profiles_in():
     # No need to remove these directories and files, as they will get nuked in
     # the module-level teardown.
-    td = tempfile.mkdtemp(dir=TMP_TEST_DIR)
+    td = Path(tempfile.mkdtemp(dir=TMP_TEST_DIR))
     for name in ('profile_foo', 'profile_hello', 'not_a_profile'):
         Path(td, name).mkdir()
     if dec.unicode_paths:
         Path(td, u'profile_ünicode').mkdir()
 
-    with open(Path(td, 'profile_file'), 'w') as f:
+    with open(td / 'profile_file', 'w') as f:
         f.write("I am not a profile directory")
     profiles = list_profiles_in(td)
     

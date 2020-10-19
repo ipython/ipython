@@ -34,7 +34,7 @@ def test_unicode_cwd():
 @dec.onlyif_unicode_paths
 def test_unicode_ipdir():
     """Check that IPython starts with non-ascii characters in the IP dir."""
-    ipdir = tempfile.mkdtemp(suffix=u"€")
+    ipdir = Path(tempfile.mkdtemp(suffix=u"€"))
     
     # Create the config file, so it tries to load it.
     with open(ipdir / 'ipython_config.py', "w") as f:
