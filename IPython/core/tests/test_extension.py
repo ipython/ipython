@@ -1,4 +1,4 @@
-import os.path
+from pathlib import Path
 
 import nose.tools as nt
 
@@ -28,11 +28,11 @@ def load_ipython_extension(ip):
 def test_extension_loading():
     em = get_ipython().extension_manager
     with TemporaryDirectory() as td:
-        ext1 = os.path.join(td, 'ext1.py')
+        ext1 = Path(td, 'ext1.py')
         with open(ext1, 'w') as f:
             f.write(ext1_content)
         
-        ext2 = os.path.join(td, 'ext2.py')
+        ext2 = Path(td, 'ext2.py')
         with open(ext2, 'w') as f:
             f.write(ext2_content)
         
@@ -78,7 +78,7 @@ def test_extension_loading():
 def test_extension_builtins():
     em = get_ipython().extension_manager
     with TemporaryDirectory() as td:
-        ext3 = os.path.join(td, 'ext3.py')
+        ext3 = Path(td, 'ext3.py')
         with open(ext3, 'w') as f:
             f.write(ext3_content)
         
