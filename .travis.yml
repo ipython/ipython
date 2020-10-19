@@ -42,7 +42,7 @@ install:
   - pip install -e file://$PWD#egg=ipython[test] --upgrade
   - pip install trio curio --upgrade --upgrade-strategy eager
   - pip install 'pytest<6' 'matplotlib !=3.2.0' mypy
-  - pip install codecov check-manifest --upgrade
+  - pip install codecov check-manifest pytest-cov --upgrade
   - pip install mypy
   - |
     if [[ "$MASTER_DEPENDENCIES" == "True" ]]; then
@@ -57,7 +57,10 @@ script:
        # on nightly fake parso known the grammar
        cp /home/travis/virtualenv/python3.9-dev/lib/python3.9/site-packages/parso/python/grammar38.txt /home/travis/virtualenv/python3.9-dev/lib/python3.9/site-packages/parso/python/grammar39.txt
     fi
-  - cd /tmp && iptest --coverage xml && cd -
+  - |
+    if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      cd /tmp && iptest --coverage xml && cd -
+    fi
   - pytest IPython
   - mypy IPython/terminal/ptutils.py
   - mypy IPython/core/c*.py
