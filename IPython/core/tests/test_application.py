@@ -37,12 +37,12 @@ def test_unicode_ipdir():
     ipdir = tempfile.mkdtemp(suffix=u"€")
     
     # Create the config file, so it tries to load it.
-    with open(Path(ipdir, 'ipython_config.py'), "w") as f:
+    with open(ipdir / 'ipython_config.py', "w") as f:
         pass
     
     old_ipdir1 = os.environ.pop("IPYTHONDIR", None)
     old_ipdir2 = os.environ.pop("IPYTHON_DIR", None)
-    os.environ["IPYTHONDIR"] = ipdir
+    os.environ["IPYTHONDIR"] = str(ipdir)
     try:
         app = BaseIPythonApplication()
         # The lines below are copied from Application.initialize()
