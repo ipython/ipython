@@ -19,6 +19,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with: 
+        fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -29,7 +31,6 @@ jobs:
         pip install darker
     - name: Lint with darker
       run: |
-        git fetch
         darker -r 60625f241f298b5039cb2debc365db38aa7bb522 --check --diff . || (
         echo "Changes need auto-formatting. Run:"
         echo "    darker -r 60625f241f298b5039cb2debc365db38aa7bb522"
