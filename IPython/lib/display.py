@@ -383,7 +383,7 @@ class FileLink(object):
         result_html_suffix : str
             text to append at the end of link [default: '<br>']
         """
-        if Path.is_dir(path):
+        if Path(path).is_dir():
             raise ValueError("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
         self.path = fsdecode(path)
@@ -473,7 +473,7 @@ class FileLinks(FileLink):
         passed here to support alternative formatting.
 
         """
-        if Path.is_file(path):
+        if Path(path).is_file():
             raise ValueError("Cannot display a file using FileLinks. "
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
@@ -520,7 +520,7 @@ class FileLinks(FileLink):
             # are going to be displayed
             display_fnames = []
             for fname in fnames:
-                if (Path.is_file(Path(dirname).joinpath(fname)) and
+                if (Path(Path(dirname).joinpath(fname)).is_file() and
                        (included_suffixes is None or
                         Path(fname).suffix[1] in included_suffixes)):
                       display_fnames.append(fname)
