@@ -40,7 +40,7 @@ class Test_magic_run_completer(unittest.TestCase):
         for d in self.dirs:
             os.mkdir(self.BASETESTDIR.joinpath(d))
 
-        self.oldpath = os.getcwd()
+        self.oldpath = Path.cwd()
         os.chdir(self.BASETESTDIR)
 
     def tearDown(self):
@@ -101,7 +101,7 @@ class Test_magic_run_completer_nonascii(unittest.TestCase):
         for fil in [u"aaø.py", u"a.py", u"b.py"]:
             with self.BASETESTDIR.joinpath(fil).open("w") as sfile:
                 sfile.write("pass\n")
-        self.oldpath = os.getcwd()
+        self.oldpath = Path.cwd()
         os.chdir(self.BASETESTDIR)
 
     def tearDown(self):
