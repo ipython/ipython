@@ -230,7 +230,7 @@ class HistoryAccessor(HistoryAccessorBase):
         # use detect_types so that timestamps return datetime objects
         kwargs = dict(detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         kwargs.update(self.connection_options)
-        self.db = sqlite3.connect(self.hist_file, **kwargs)
+        self.db = sqlite3.connect(str(self.hist_file), **kwargs)
         self.db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
                         primary key autoincrement, start timestamp,
                         end timestamp, num_cmds integer, remark text)""")
@@ -801,7 +801,7 @@ class HistorySavingThread(threading.Thread):
     def run(self):
         # We need a separate db connection per thread:
         try:
-            self.db = sqlite3.connect(self.history_manager.hist_file,
+            self.db = sqlite3.connect(str(self.history_manager.hist_file),
                             **self.history_manager.connection_options
             )
             while True:
