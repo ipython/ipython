@@ -31,7 +31,7 @@ def test_history():
     with TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir)
         hist_manager_ori = ip.history_manager
-        hist_file = tmp_path / 'history.sqlite'
+        hist_file = tmp_path / "history.sqlite"
         try:
             ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
             hist = [u'a=1', u'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
@@ -127,7 +127,7 @@ def test_history():
             nt.assert_equal(list(gothist), [(1,3,(hist[2],"spam"))] )
 
             # Cross testing: check that magic %save can get previous session.
-            testfilename = (tmp_path /"test.py").resolve()
+            testfilename = (tmp_path / "test.py").resolve()
             ip.magic("save " + str(testfilename) + " ~1/1-3")
             with io.open(testfilename, encoding='utf-8') as testfile:
                 nt.assert_equal(testfile.read(),
@@ -198,7 +198,7 @@ def test_histmanager_disabled():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
         hist_manager_ori = ip.history_manager
-        hist_file = Path(tmpdir) / 'history.sqlite'
+        hist_file = Path(tmpdir) / "history.sqlite"
         cfg.HistoryManager.hist_file = hist_file
         try:
             ip.history_manager = HistoryManager(shell=ip, config=cfg)

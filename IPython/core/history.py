@@ -16,8 +16,17 @@ from decorator import decorator
 from IPython.utils.decorators import undoc
 from IPython.paths import locate_profile
 from traitlets import (
-    Any, Bool, Dict, Instance, Integer, List, Unicode, Union, TraitError,
-    default, observe
+    Any,
+    Bool,
+    Dict,
+    Instance,
+    Integer,
+    List,
+    Unicode,
+    Union,
+    TraitError,
+    default,
+    observe,
 )
 
 #-----------------------------------------------------------------------------
@@ -100,6 +109,7 @@ def catch_corrupt_db(f, self, *a, **kw):
             # Failed with :memory:, something serious is wrong
             raise
 
+
 class HistoryAccessorBase(LoggingConfigurable):
     """An abstract class for History Accessors """
 
@@ -129,7 +139,8 @@ class HistoryAccessor(HistoryAccessorBase):
     _corrupt_db_limit = 2
 
     # String holding the path to the history file
-    hist_file = Union([Instance(Path), Unicode()],
+    hist_file = Union(
+        [Instance(Path), Unicode()],
         help="""Path to file to use for SQLite history database.
 
         By default, IPython will put the history database in the IPython
@@ -145,7 +156,7 @@ class HistoryAccessor(HistoryAccessorBase):
         you can also use the specific value `:memory:` (including the colon
         at both end but not the back ticks), to avoid creating an history file.
 
-        """
+        """,
     ).tag(config=True)
 
     enabled = Bool(True,
@@ -178,7 +189,7 @@ class HistoryAccessor(HistoryAccessorBase):
                     (self.__class__.__name__, new)
             raise TraitError(msg)
 
-    def __init__(self, profile='default', hist_file="", **traits):
+    def __init__(self, profile="default", hist_file="", **traits):
         """Create a new history accessor.
 
         Parameters
@@ -200,7 +211,7 @@ class HistoryAccessor(HistoryAccessorBase):
             self.hist_file = hist_file
 
         try:
-            self.hist_file 
+            self.hist_file
         except TraitError:
             # No one has set the hist_file, yet.
             self.hist_file = self._get_hist_file_name(profile)
@@ -218,7 +229,7 @@ class HistoryAccessor(HistoryAccessorBase):
         profile : str
           The name of a profile which has a history file.
         """
-        return Path(locate_profile(profile)) / 'history.sqlite'
+        return Path(locate_profile(profile)) / "history.sqlite"
 
     @catch_corrupt_db
     def init_db(self):
@@ -535,7 +546,7 @@ class HistoryManager(HistoryAccessor):
         The profile parameter is ignored, but must exist for compatibility with
         the parent class."""
         profile_dir = self.shell.profile_dir.location
-        return Path(profile_dir)/'history.sqlite'
+        return Path(profile_dir) / "history.sqlite"
 
     @only_when_enabled
     def new_session(self, conn=None):
@@ -801,8 +812,9 @@ class HistorySavingThread(threading.Thread):
     def run(self):
         # We need a separate db connection per thread:
         try:
-            self.db = sqlite3.connect(str(self.history_manager.hist_file),
-                            **self.history_manager.connection_options
+            self.db = sqlite3.connect(
+                str(self.history_manager.hist_file),
+                **self.history_manager.connection_options
             )
             while True:
                 self.history_manager.save_flag.wait()
