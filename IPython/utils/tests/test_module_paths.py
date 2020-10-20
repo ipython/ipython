@@ -12,7 +12,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import shutil
 import sys
 import tempfile
@@ -25,7 +24,6 @@ import IPython.utils.module_paths as mp
 
 import nose.tools as nt
 
-env = os.environ
 TEST_FILE_PATH = Path(__file__).resolve().parent
 
 TMP_TEST_DIR = Path(tempfile.mkdtemp(suffix="with.dot"))
