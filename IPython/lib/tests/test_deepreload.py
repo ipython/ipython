@@ -17,9 +17,10 @@ def test_deepreload():
     "Test that dreload does deep reloads and skips excluded modules."
     with TemporaryDirectory() as tmpdir:
         with prepended_to_syspath(tmpdir):
-            tmpdirpath = Path(tmpdir)
-            Path(os.path.join(tmpdirpath, "A.py")).write_text("class Object(object):\n    pass\n")
-            Path(os.path.join(tmpdirpath, "B.py")).write_text("import A\n")
+            tmpdirpathA = Path(tmpdir + "A.py")
+            tmpdirpathB = Path(tmpdir + "B.py")
+            tmpdirpathA.write_text("class Object(object):\n    pass\n")
+            tmpdirpathB.write_text("import A\n")
             import A
             import B
 
