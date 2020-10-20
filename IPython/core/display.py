@@ -1012,7 +1012,8 @@ class Image(DisplayObject):
             return self._data_and_metadata()
 
     def _find_ext(self, s):
-        base, ext = Path(s).suffix
+        path = Path(s)
+        base, ext = path.name.strip(path.suffix), path.suffix
 
         if not ext:
             return base
