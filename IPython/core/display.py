@@ -1086,7 +1086,10 @@ class Video(DisplayObject):
         if url is None and isinstance(data, str) and data.startswith(('http:', 'https:')):
             url = data
             data = None
-        elif data is not None and Path(data.decode() if isinstance(data, bytes) else data).exists():
+        elif (
+            data is not None
+            and Path(data.decode() if isinstance(data, bytes) else data).exists()
+        ):
             filename = data
             data = None
 
