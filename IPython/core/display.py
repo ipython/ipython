@@ -1126,7 +1126,7 @@ class Video(DisplayObject):
             if not mimetype:
                 mimetype, _ = mimetypes.guess_type(self.filename)
 
-            with Path(self.filename).open('rb') as f:
+            with Path(self.filename).open("rb") as f:
                 video = f.read()
         else:
             video = self.data
