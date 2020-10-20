@@ -202,7 +202,7 @@ class ScriptMagics(Magics):
             asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
         loop = asyncio.get_event_loop()
 
-        argv = arg_split(line, posix=not sys.platform.startswith('win'))
+        argv = arg_split(line, posix=not sys.platform.startswith("win"))
         args, cmd = self.shebang.parser.parse_known_args(argv)
         try:
             p = loop.run_until_complete(
@@ -263,7 +263,6 @@ class ScriptMagics(Magics):
                     % (p.pid, e))
             return
         if args.raise_error and p.returncode!=0:
-            print(p.returncode)
             raise CalledProcessError(p.returncode, cell)
     
     def _run_script(self, p, cell, to_close):
