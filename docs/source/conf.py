@@ -16,6 +16,7 @@
 # serve to show the default value.
 
 import sys, os
+from pathlib import Path
 
 # http://read-the-docs.readthedocs.io/en/latest/faq.html
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
@@ -25,8 +26,8 @@ if ON_RTD:
 
     # RTD doesn't use the Makefile, so re-run autogen_{things}.py here.
     for name in ('config', 'api', 'magics', 'shortcuts'):
-        fname = 'autogen_{}.py'.format(name)
-        fpath = os.path.abspath(os.path.join('..', fname))
+        fname = Path('autogen_{}.py'.format(name))
+        fpath = (Path(__file__).parent).joinpath('..', fname)
         with open(fpath) as f:
             exec(compile(f.read(), fname, 'exec'), {
                 '__file__': fpath,
