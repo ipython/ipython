@@ -25,7 +25,7 @@ session_number = int(sys.argv[1])
 if len(sys.argv) > 2:
     filepath = Path(sys.argv[2])
     dest = open(filepath, "w")
-    raw = not filepath.name.endswith('.py')
+    raw = not filepath.name.endswith(".py")
 else:
     dest = sys.stdout
     raw = True
