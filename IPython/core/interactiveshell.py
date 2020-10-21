@@ -2031,6 +2031,10 @@ class InteractiveShell(SingletonConfigurable):
                 self.showsyntaxerror(filename, running_compiled_code)
             elif etype is UsageError:
                 self.show_usage_error(value)
+            elif etype is SystemExit:
+                elist = traceback.extract_tb(last_traceback) if running_compiled_code else []
+                stb = self.SyntaxTB.structured_traceback(etype, value, elist)
+                self._showtraceback(etype, value, stb)
             else:
                 if exception_only:
                     stb = ['An exception has occurred, use %tb to see '
