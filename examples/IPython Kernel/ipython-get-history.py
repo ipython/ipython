@@ -17,13 +17,15 @@ to build much more flexible and powerful tools to browse and pull from the
 history database.
 """
 import sys
+from pathlib import Path
 
 from IPython.core.history import HistoryAccessor
 
 session_number = int(sys.argv[1])
 if len(sys.argv) > 2:
-    dest = open(sys.argv[2], "w")
-    raw = not sys.argv[2].endswith('.py')
+    filepath = Path(sys.argv[2])
+    dest = open(filepath, "w")
+    raw = not filepath.name.endswith('.py')
 else:
     dest = sys.stdout
     raw = True
