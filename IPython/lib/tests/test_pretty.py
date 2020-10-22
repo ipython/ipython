@@ -12,9 +12,10 @@ import string
 import unittest
 
 import nose.tools as nt
+import pytest
 
 from IPython.lib import pretty
-from IPython.testing.decorators import skip_without
+from IPython.testing.decorators import skip_without, skip_iptest_but_not_pytest
 
 from io import StringIO
 
@@ -105,17 +106,36 @@ def test_callability_checking():
     nt.assert_equal(gotoutput, expectedoutput)
 
 
-def test_sets():
+@pytest.mark.parametrize(
+    "obj,expected_output",
+    zip(
+        [
+            set(),
+            frozenset(),
+            set([1]),
+            frozenset([1]),
+            set([1, 2]),
+            frozenset([1, 2]),
+            set([-1, -2, -3]),
+        ],
+        [
+            "set()",
+            "frozenset()",
+            "{1}",
+            "frozenset({1})",
+            "{1, 2}",
+            "frozenset({1, 2})",
+            "{-3, -2, -1}",
+        ],
+    ),
+)
+@skip_iptest_but_not_pytest
+def test_sets(obj, expected_output):
     """
     Test that set and frozenset use Python 3 formatting.
     """
-    objects = [set(), frozenset(), set([1]), frozenset([1]), set([1, 2]),
-        frozenset([1, 2]), set([-1, -2, -3])]
-    expected = ['set()', 'frozenset()', '{1}', 'frozenset({1})', '{1, 2}',
-        'frozenset({1, 2})', '{-3, -2, -1}']
-    for obj, expected_output in zip(objects, expected):
-        got_output = pretty.pretty(obj)
-        yield nt.assert_equal, got_output, expected_output
+    got_output = pretty.pretty(obj)
+    nt.assert_equal(got_output, expected_output)
 
 
 @skip_without('xxlimited')

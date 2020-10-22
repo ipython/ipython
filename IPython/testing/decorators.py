@@ -154,6 +154,17 @@ def make_label_dec(label, ds=None):
     return decor
 
 
+def skip_iptest_but_not_pytest(f):
+    """
+    Warnign this will make the test invisible to iptest.
+    """
+    import os
+
+    if os.environ.get("IPTEST_WORKING_DIR", None) is not None:
+        f.__test__ = False
+    return f
+
+
 # Inspired by numpy's skipif, but uses the full apply_wrapper utility to
 # preserve function metadata better and allows the skip condition to be a
 # callable.

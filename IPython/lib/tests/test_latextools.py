@@ -9,11 +9,16 @@ import nose.tools as nt
 import pytest
 
 from IPython.lib import latextools
-from IPython.testing.decorators import onlyif_cmds_exist, skipif_not_matplotlib
+from IPython.testing.decorators import (
+    onlyif_cmds_exist,
+    skipif_not_matplotlib,
+    skip_iptest_but_not_pytest,
+)
 from IPython.utils.process import FindCmdError
 
 
 @pytest.mark.parametrize('command', ['latex', 'dvipng'])
+@skip_iptest_but_not_pytest
 def test_check_latex_to_png_dvipng_fails_when_no_cmd(command):
     def mock_find_cmd(arg):
         if arg == command:
@@ -23,8 +28,15 @@ def test_check_latex_to_png_dvipng_fails_when_no_cmd(command):
         assert latextools.latex_to_png_dvipng("whatever", True) == None
 
 
-@onlyif_cmds_exist('latex', 'dvipng')
-def test_latex_to_png_dvipng_runs():
+@contextmanager
+def no_op(*args, **kwargs):
+    yield
+
+
+@onlyif_cmds_exist("latex", "dvipng")
+@pytest.mark.parametrize("s, wrap", [(u"$$x^2$$", False), (u"x^2", True)])
+@skip_iptest_but_not_pytest
+def test_latex_to_png_dvipng_runs(s, wrap):
     """
     Test that latex_to_png_dvipng just runs without error.
     """
@@ -32,36 +44,32 @@ def test_latex_to_png_dvipng_runs():
         assert filename == "breqn.sty"
         return None
 
-    for (s, wrap) in [(u"$$x^2$$", False), (u"x^2", True)]:
-        yield (latextools.latex_to_png_dvipng, s, wrap)
+    latextools.latex_to_png_dvipng(s, wrap)
 
-        with patch.object(latextools, "kpsewhich", mock_kpsewhich):
-            yield (latextools.latex_to_png_dvipng, s, wrap)
+    with patch_latextool(mock_kpsewhich):
+        latextools.latex_to_png_dvipng(s, wrap)
 
-
-@contextmanager
-def no_op(*args, **kwargs):
-    yield
 
 def mock_kpsewhich(filename):
-        assert filename == "breqn.sty"
-        return None
+    assert filename == "breqn.sty"
+    return None
 
 @contextmanager
-def patch_latextool():
-    with patch.object(latextools, "kpsewhich", mock_kpsewhich):
+def patch_latextool(mock=mock_kpsewhich):
+    with patch.object(latextools, "kpsewhich", mock):
         yield
 
 @pytest.mark.parametrize('context', [no_op, patch_latextool])
 @pytest.mark.parametrize('s_wrap', [("$x^2$", False), ("x^2", True)])
+@skip_iptest_but_not_pytest
 def test_latex_to_png_mpl_runs(s_wrap, context):
     """
     Test that latex_to_png_mpl just runs without error.
     """
     try:
-        import matplotbli
+        import matplotlib
     except ImportError:
-        pytest.skip("This needs matplotlib to be availlable")
+        pytest.skip("This needs matplotlib to be available")
         return
     s, wrap = s_wrap
     with context():
@@ -81,7 +89,7 @@ def test_genelatex_no_wrap():
         assert False, ("kpsewhich should not be called "
                        "(called with {0})".format(filename))
 
-    with patch.object(latextools, "kpsewhich", mock_kpsewhich):
+    with patch_latextool(mock_kpsewhich):
         assert '\n'.join(latextools.genelatex("body text", False)) == r'''\documentclass{article}
 \usepackage{amsmath}
 \usepackage{amsthm}
@@ -101,7 +109,7 @@ def test_genelatex_wrap_with_breqn():
         assert filename == "breqn.sty"
         return "path/to/breqn.sty"
 
-    with patch.object(latextools, "kpsewhich", mock_kpsewhich):
+    with patch_latextool(mock_kpsewhich):
         assert '\n'.join(latextools.genelatex("x^2", True)) == r'''\documentclass{article}
 \usepackage{amsmath}
 \usepackage{amsthm}
@@ -124,7 +132,7 @@ def test_genelatex_wrap_without_breqn():
         assert filename == "breqn.sty"
         return None
 
-    with patch.object(latextools, "kpsewhich", mock_kpsewhich):
+    with patch_latextool(mock_kpsewhich):
         assert '\n'.join(latextools.genelatex("x^2", True)) == r'''\documentclass{article}
 \usepackage{amsmath}
 \usepackage{amsthm}
