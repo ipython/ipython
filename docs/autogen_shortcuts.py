@@ -41,12 +41,14 @@ def multi_filter_str(flt):
 log_filters = {'_AndList': 'And', '_OrList': 'Or'}
 log_invert =  {'_Invert'}
 
-class _DummyTerminal(object):
+class _DummyTerminal:
     """Used as a buffer to get prompt_toolkit bindings
     """
     handle_return = None
     input_transformer_manager = None
     display_completions = None
+    editing_mode = "emacs"
+
 
 ipy_bindings = create_ipython_shortcuts(_DummyTerminal()).bindings
 
