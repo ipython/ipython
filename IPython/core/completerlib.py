@@ -23,6 +23,7 @@ import re
 import sys
 from importlib import import_module
 from importlib.machinery import all_suffixes
+from pathlib import Path
 
 
 # Third-party imports
@@ -73,18 +74,17 @@ def module_list(path):
     if path == '':
         path = '.'
 
-    # A few local constants to be used in loops below
-    pjoin = os.path.join
+    path = Path(path)
 
-    if os.path.isdir(path):
+    if path.is_dir():
         # Build a list of all files in the directory and all files
         # in its subdirectories. For performance reasons, do not
         # recurse more than one level into subdirectories.
         files = []
         for root, dirs, nondirs in os.walk(path, followlinks=True):
-            subdir = root[len(path)+1:]
-            if subdir:
-                files.extend(pjoin(subdir, f) for f in nondirs)
+            subdir = Path(root).relative_to(path)
+            if not path.samefile(root):
+                files.extend(str(subdir / f) for f in nondirs)
                 dirs[:] = [] # Do not recurse into additional subdirectories.
             else:
                 files.extend(nondirs)
@@ -319,15 +319,18 @@ def cd_completer(self, event):
         return []
 
     if event.symbol.startswith('--'):
-        return ["--" + os.path.basename(d) for d in ip.user_ns['_dh']]
+        return ["--" + Path(d).name for d in ip.user_ns['_dh']]
 
     # Expand ~ in path and normalize directory separators.
     relpath, tilde_expand, tilde_val = expand_user(relpath)
-    relpath = relpath.replace('\\','/')
+    relpath = Path(relpath)
 
     found = []
-    for d in [f.replace('\\','/') + '/' for f in glob.glob(relpath+'*')
-              if os.path.isdir(f)]:
+    for d in [
+        str(f).replace('\\','/') + '/'
+        for f in relpath.glob('*')
+        if f.is_dir()
+    ]:
         if ' ' in d:
             # we don't want to deal with any of that, complex code
             # for this is elsewhere
@@ -336,8 +339,8 @@ def cd_completer(self, event):
         found.append(d)
 
     if not found:
-        if os.path.isdir(relpath):
-            return [compress_user(relpath, tilde_expand, tilde_val)]
+        if relpath.is_dir():
+            return [compress_user(str(relpath).replace('\\','/'), tilde_expand, tilde_val)]
 
         # if no completions so far, try bookmarks
         bks = self.db.get('bookmarks',{})
