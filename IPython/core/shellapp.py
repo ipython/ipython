@@ -11,6 +11,7 @@ import glob
 from itertools import chain
 import os
 import sys
+from pathlib import Path
 
 from traitlets.config.application import boolean_flag
 from traitlets.config.configurable import Configurable
@@ -231,7 +232,7 @@ class InteractiveShellApp(Configurable):
         if '' in sys.path or self.ignore_cwd:
             return
         for idx, path in enumerate(sys.path):
-            parent, last_part = os.path.split(path)
+            last_part = Path(path).parts[-1]
             if last_part in {'site-packages', 'dist-packages'}:
                 break
         else:
@@ -362,16 +363,18 @@ class InteractiveShellApp(Configurable):
         save_argv = sys.argv
         sys.argv = [full_filename] + self.extra_args[1:]
         try:
-            if os.path.isfile(full_filename):
-                self.log.info("Running file in user namespace: %s" %
-                              full_filename)
+            if Path(full_filename).is_file():
+                self.log.info(
+                    "Running file in user namespace: %s" %
+                    full_filename)
                 # Ensure that __file__ is always defined to match Python
                 # behavior.
                 with preserve_keys(self.shell.user_ns, '__file__'):
                     self.shell.user_ns['__file__'] = fname
-                    if full_filename.endswith('.ipy') or full_filename.endswith('.ipynb'):
-                        self.shell.safe_execfile_ipy(full_filename,
-                                                     shell_futures=shell_futures)
+                    if Path(full_filename).suffix in ('.ipy', '.ipynb'):
+                        self.shell.safe_execfile_ipy(
+                            full_filename, shell_futures=shell_futures
+                        )
                     else:
                         # default to python, even without extension
                         self.shell.safe_execfile(full_filename,
@@ -383,8 +386,8 @@ class InteractiveShellApp(Configurable):
 
     def _run_startup_files(self):
         """Run files from profile startup directory"""
-        startup_dirs = [self.profile_dir.startup_dir] + [
-            os.path.join(p, 'startup') for p in chain(ENV_CONFIG_DIRS, SYSTEM_CONFIG_DIRS)
+        startup_dirs = [Path(self.profile_dir.startup_dir)] + [
+            Path(p, 'startup') for p in chain(ENV_CONFIG_DIRS, SYSTEM_CONFIG_DIRS)
         ]
         startup_files = []
 
@@ -398,15 +401,15 @@ class InteractiveShellApp(Configurable):
                 self.log.warning("Unknown error in handling PYTHONSTARTUP file %s:", python_startup)
                 self.shell.showtraceback()
         for startup_dir in startup_dirs[::-1]:
-            startup_files += glob.glob(os.path.join(startup_dir, '*.py'))
-            startup_files += glob.glob(os.path.join(startup_dir, '*.ipy'))
+            startup_files += list(startup_dir.glob('*.py'))
+            startup_files += list(startup_dir.glob('*.ipy'))
         if not startup_files:
             return
 
         self.log.debug("Running startup files from %s...", startup_dir)
         try:
             for fname in sorted(startup_files):
-                self._exec_file(fname)
+                self._exec_file(str(fname))
         except:
             self.log.warning("Unknown error in handling startup files:")
             self.shell.showtraceback()
@@ -441,15 +444,15 @@ class InteractiveShellApp(Configurable):
 
         # Like Python itself, ignore the second if the first of these is present
         elif self.file_to_run:
-            fname = self.file_to_run
-            if os.path.isdir(fname):
-                fname = os.path.join(fname, "__main__.py")
-            if not os.path.exists(fname):
+            fname = Path(self.file_to_run)
+            if fname.is_dir():
+                fname = fname / "__main__.py"
+            if not fname.exists():
                 self.log.warning("File '%s' doesn't exist", fname)
                 if not self.interact:
                     self.exit(2)
             try:
-                self._exec_file(fname, shell_futures=True)
+                self._exec_file(str(fname), shell_futures=True)
             except:
                 self.shell.showtraceback(tb_offset=4)
                 if not self.interact:
