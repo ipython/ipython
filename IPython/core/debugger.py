@@ -597,6 +597,7 @@ class Pdb(OldPdb):
         argument (which is an arbitrary expression or statement to be
         executed in the current environment).
         """
+        trace_function = sys.gettrace()
         sys.settrace(None)
         globals = self.curframe.f_globals
         locals = self.curframe_locals
@@ -607,7 +608,7 @@ class Pdb(OldPdb):
         self.message("ENTERING RECURSIVE DEBUGGER")
         sys.call_tracing(p.run, (arg, globals, locals))
         self.message("LEAVING RECURSIVE DEBUGGER")
-        sys.settrace(self.trace_dispatch)
+        sys.settrace(trace_function)
         self.lastcmd = p.lastcmd
 
     def do_pdef(self, arg):
