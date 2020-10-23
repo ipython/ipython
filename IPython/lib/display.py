@@ -520,11 +520,11 @@ class FileLinks(FileLink):
             # are going to be displayed
             display_fnames = []
             for fname in fnames:
-                if Path(Path(dirname).joinpath(fname)).is_file() and (
-                    included_suffixes is None
-                    or Path(fname).suffix[1] in included_suffixes
+                fname = Path(fname)
+                if Path(dirname.joinpath(fname)).is_file() and (
+                    included_suffixes is None or fname.suffix in included_suffixes
                 ):
-                    display_fnames.append(fname)
+                    display_fnames.append(fname.name)
 
             if len(display_fnames) == 0:
                 # if there are no filenames to display, don't print anything
@@ -533,10 +533,10 @@ class FileLinks(FileLink):
             else:
                 # otherwise print the formatted directory name followed by
                 # the formatted filenames
-                dirname_output_line = dirname_output_format % dirname
+                dirname_output_line = dirname_output_format % str(dirname)
                 result.append(dirname_output_line)
                 for fname in display_fnames:
-                    fp = fp_format % (dirname,fname)
+                    fp = fp_format % (str(dirname), fname)
                     if fp_cleaner is not None:
                         fp = fp_cleaner(fp)
                     try:
@@ -594,6 +594,7 @@ class FileLinks(FileLink):
             walked_dir = [next(walk(self.path))]
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
+            dirname = Path(dirname)
             result_lines += self.notebook_display_formatter(dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
 
@@ -607,6 +608,7 @@ class FileLinks(FileLink):
             walked_dir = [next(walk(self.path))]
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
+            dirname = Path(dirname)
             result_lines += self.terminal_display_formatter(dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
 

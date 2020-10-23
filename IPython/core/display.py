@@ -55,7 +55,8 @@ def __getattr__(name):
 def _safe_exists(path):
     """Check path, but don't let exceptions raise"""
     try:
-        return Path(path).exists()
+        filepath = Path(path)
+        return filepath.exists() and str(filepath) != "."
     except Exception:
         return False
 
@@ -1013,7 +1014,7 @@ class Image(DisplayObject):
 
     def _find_ext(self, s):
         path = Path(s)
-        base, ext = path.name.strip(path.suffix), path.suffix
+        base, ext = path.stem, path.suffix
 
         if not ext:
             return base
