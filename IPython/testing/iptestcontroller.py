@@ -28,6 +28,7 @@ from IPython.utils.py3compat import decode
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 from pathlib import Path
+from typing import Dict
 
 class TestController:
     """Run tests in a subprocess
@@ -37,7 +38,7 @@ class TestController:
     #: list, command line arguments to be executed
     cmd = None
     #: dict, extra environment variables to set for the subprocess
-    env = None
+    env: Dict[str, str] = {}
     #: list, TemporaryDirectory instances to clear up when the process finishes
     dirs = None
     #: subprocess.Popen instance
@@ -69,6 +70,8 @@ class TestController:
         c.start()
         stdout = c.writefd if capture_output else None
         stderr = subprocess.STDOUT if capture_output else None
+        for k, v in env.items():
+            assert isinstance(v, str), f"env[{repr(k)}] is not a str: {v}"
         self.process = subprocess.Popen(self.cmd, stdout=stdout,
                 stderr=stderr, env=env)
 
@@ -149,7 +152,7 @@ class PyTestController(TestController):
             PATH = noaccess / PATH
         else:
             PATH = noaccess
-        self.env['PATH'] = PATH
+        self.env["PATH"] = str(PATH)
 
         # From options:
         if self.options.xunit:
@@ -190,11 +193,11 @@ class PyTestController(TestController):
             data_file=Path(f".coverage.{self.section}").absolute(),
             source="\n  ".join(sources),
         )
-        config_file = Path(self.workingdir.name) / ".coveragerc"
+        config_file: Path = Path(self.workingdir.name) / ".coveragerc"
         config_file.touch(exist_ok=True)
         config_file.write_text(coverage_rc)
 
-        self.env["COVERAGE_PROCESS_START"] = config_file.resolve()
+        self.env["COVERAGE_PROCESS_START"] = str(config_file.resolve())
         self.pycmd = "import coverage; coverage.process_startup(); " + self.pycmd
 
     def launch(self, buffer_output=False):
