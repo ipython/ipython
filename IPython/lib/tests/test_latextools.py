@@ -33,9 +33,9 @@ def no_op(*args, **kwargs):
     yield
 
 
+@skip_iptest_but_not_pytest
 @onlyif_cmds_exist("latex", "dvipng")
 @pytest.mark.parametrize("s, wrap", [(u"$$x^2$$", False), (u"x^2", True)])
-@skip_iptest_but_not_pytest
 def test_latex_to_png_dvipng_runs(s, wrap):
     """
     Test that latex_to_png_dvipng just runs without error.
