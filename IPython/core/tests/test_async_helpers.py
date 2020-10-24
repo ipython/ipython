@@ -205,10 +205,6 @@ class AsyncTest(TestCase):
         # yield is allowed in async functions, starting in Python 3.6,
         # and yield from is not allowed in any version
         vals = ('return', 'yield', 'yield from (_ for _ in range(3))')
-        async_safe = (True,
-                        True,
-                        False)
-        vals = tuple(zip(vals, async_safe))
 
         success_tests = zip(self._get_top_level_cases(), repeat(False))
         failure_tests = zip(self._get_ry_syntax_errors(), repeat(True))
@@ -219,14 +215,12 @@ class AsyncTest(TestCase):
             for (test_name, test_case), should_fail in tests:
                 nested_case = nest_case(context, test_case)
 
-                for val, async_safe in vals:
-                    val_should_fail = should_fail
-
+                for val in vals:
                     test_id = (context_name, test_name, val)
                     cell = nested_case.format(val=val)
 
                     with self.subTest(test_id):
-                        if val_should_fail:
+                        if should_fail:
                             msg = ("SyntaxError not raised for %s" %
                                     str(test_id))
                             with self.assertRaises(SyntaxError, msg=msg):
