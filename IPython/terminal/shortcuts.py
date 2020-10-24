@@ -19,6 +19,7 @@ from prompt_toolkit.filters import (has_focus, has_selection, Condition,
 from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.bindings import named_commands as nc
+from prompt_toolkit.key_binding.vi_state import InputMode, ViState
 
 from IPython.utils.decorators import undoc
 
@@ -159,6 +160,32 @@ def create_ipython_shortcuts(shell):
 
     for keys, cmd in keys_cmd_dict.items():
         kb.add(*keys, filter=focused_insert & ebivim)(cmd)
+
+    def get_input_mode(self):
+        if sys.version_info[0] == 3:
+            app = get_app()
+            app.ttimeoutlen = shell.ttimeoutlen
+            app.timeoutlen = shell.timeoutlen
+
+        return self._input_mode
+
+    def set_input_mode(self, mode):
+        shape = {InputMode.NAVIGATION: 2, InputMode.REPLACE: 4}.get(mode, 6)
+        cursor = "\x1b[{} q".format(shape)
+
+        if hasattr(sys.stdout, "_cli"):
+            write = sys.stdout._cli.output.write_raw
+        else:
+            write = sys.stdout.write
+
+        write(cursor)
+        sys.stdout.flush()
+
+        self._input_mode = mode
+
+    if shell.editing_mode == "vi" and shell.modal_cursor:
+        ViState._input_mode = InputMode.INSERT
+        ViState.input_mode = property(get_input_mode, set_input_mode)
 
     return kb
 
@@ -341,4 +368,4 @@ if sys.platform == 'win32':
                 return
         except ClipboardEmpty:
             return
-        event.current_buffer.insert_text(text.replace('\t', ' ' * 4))
+        event.current_buffer.insert_text(text.replace("\t", " " * 4))
