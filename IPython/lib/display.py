@@ -386,33 +386,38 @@ class FileLink(object):
         if Path(path).is_dir():
             raise ValueError("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
-        self.path = fsdecode(path)
+        self.path = Path(path)
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
         self.result_html_suffix = result_html_suffix
 
     def _format_path(self):
-        fp = ''.join([self.url_prefix, html_escape(self.path)])
-        return ''.join([self.result_html_prefix,
-                        self.html_link_str % \
-                            (fp, html_escape(self.path, quote=False)),
-                        self.result_html_suffix])
+        fp = "".join([self.url_prefix, html_escape(str(self.path))])
+        return "".join(
+            [
+                self.result_html_prefix,
+                self.html_link_str % (fp, html_escape(str(self.path), quote=False)),
+                self.result_html_suffix,
+            ]
+        )
 
     def _repr_html_(self):
         """return html link to file
         """
-        if not Path(self.path).exists():
-            return ("Path (<tt>%s</tt>) doesn't exist. "
-                    "It may still be in the process of "
-                    "being generated, or you may have the "
-                    "incorrect path." % self.path)
+        if not self.path.exists():
+            return (
+                "Path (<tt>%s</tt>) doesn't exist. "
+                "It may still be in the process of "
+                "being generated, or you may have the "
+                "incorrect path." % str(self.path)
+            )
 
         return self._format_path()
 
     def __repr__(self):
         """return absolute path to file
         """
-        return str(Path(self.path))
+        return str(self.path.resolve())
 
 class FileLinks(FileLink):
     """Class for embedding local file links in an IPython session, based on path
@@ -480,7 +485,7 @@ class FileLinks(FileLink):
         # remove trailing slashes for more consistent output formatting
         path = path.rstrip('/')
 
-        self.path = path
+        self.path = Path(path)
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
         self.result_html_suffix = result_html_suffix
@@ -521,10 +526,10 @@ class FileLinks(FileLink):
             display_fnames = []
             for fname in fnames:
                 fname = Path(fname)
-                if Path(dirname.joinpath(fname)).is_file() and (
+                if (dirname / fname).is_file() and (
                     included_suffixes is None or fname.suffix in included_suffixes
                 ):
-                    display_fnames.append(fname.name)
+                    display_fnames.append(str(fname))
 
             if len(display_fnames) == 0:
                 # if there are no filenames to display, don't print anything

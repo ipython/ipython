@@ -1014,7 +1014,7 @@ class Image(DisplayObject):
 
     def _find_ext(self, s):
         path = Path(s)
-        base, ext = path.stem, path.suffix
+        base, ext = str(path.parent / path.stem), path.suffix
 
         if not ext:
             return base
@@ -1131,8 +1131,7 @@ class Video(DisplayObject):
             if not mimetype:
                 mimetype, _ = mimetypes.guess_type(self.filename)
 
-            with Path(self.filename).open("rb") as f:
-                video = f.read()
+            video = Path(self.filename).read_bytes()
         else:
             video = self.data
         if isinstance(video, str):
