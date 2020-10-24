@@ -386,7 +386,7 @@ class FileLink(object):
         if Path(path).is_dir():
             raise ValueError("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
-        self.path = Path(path)
+        self.path = Path(fsdecode(path))
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
         self.result_html_suffix = result_html_suffix
