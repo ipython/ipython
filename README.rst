@@ -18,7 +18,7 @@
  IPython: Productive Interactive Computing
 ===========================================
 
-Overview
+Overview:
 ========
 
 Welcome to IPython.  Our full documentation is available on `ipython.readthedocs.io
