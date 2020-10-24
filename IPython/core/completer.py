@@ -136,6 +136,7 @@ from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.path import ensure_dir_exists
 from IPython.utils.process import arg_split
+from IPython.utils.version import check_version
 from traitlets import Bool, Enum, Int, List as ListTrait, Unicode, default, observe
 from traitlets.config.configurable import Configurable
 
@@ -590,6 +591,10 @@ class Completer(Configurable):
         Set to 0 to stop computing types. Non-zero value lower than 100ms may hurt
         performance by preventing jedi to build its cache.
         """).tag(config=True)
+
+    jedi_fuzzy = Bool(
+        default_value=False,
+        help='Experimental: enable fuzzy completion in Jedi').tag(config=True)
 
     debug = Bool(default_value=False,
                  help='Enable debug for the Completer. Mostly print extra '
@@ -1453,7 +1458,10 @@ class IPCompleter(Completer):
         if not try_jedi:
             return []
         try:
-            return filter(completion_filter, interpreter.complete(column=cursor_column, line=cursor_line + 1))
+            kwargs = dict(column=cursor_column, line=cursor_line + 1)
+            if self.jedi_fuzzy and check_version(jedi.__version__, '0.17.3'):
+                kwargs['fuzzy'] = True
+            return filter(completion_filter, interpreter.complete(**kwargs))
         except Exception as e:
             if self.debug:
                 return [_FakeJediCompletion('Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""' % (e))]
@@ -1953,12 +1961,11 @@ class IPCompleter(Completer):
                     if self.debug:
                         print("Error in Jedi getting type of ", jm)
                     type_ = None
-                delta = len(jm.name_with_symbols) - len(jm.complete)
                 if type_ == 'function':
                     signature = _make_signature(jm)
                 else:
                     signature = ''
-                yield Completion(start=offset - delta,
+                yield Completion(start=offset - jm.get_completion_prefix_length(),
                                  end=offset,
                                  text=jm.name_with_symbols,
                                  type=type_,
@@ -1969,8 +1976,7 @@ class IPCompleter(Completer):
                     break
 
         for jm in iter_jm:
-            delta = len(jm.name_with_symbols) - len(jm.complete)
-            yield Completion(start=offset - delta,
+            yield Completion(start=offset - jm.get_completion_prefix_length(),
                              end=offset,
                              text=jm.name_with_symbols,
                              type='<unknown>',  # don't compute type for speed
