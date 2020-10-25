@@ -287,6 +287,11 @@ class Pdb(OldPdb):
         self.color_scheme_table.set_active_scheme(scheme)
         self.parser.style = scheme
 
+    def set_trace(self, frame=None):
+        if frame is None:
+            frame = sys._getframe().f_back
+        self.initial_frame = frame
+        return super().set_trace(frame)
 
     def hidden_frames(self, stack):
         """
@@ -299,9 +304,11 @@ class Pdb(OldPdb):
         # avoid calling it here to preserve self.curframe_locals.
         # Futhermore, there is no good reason to hide the current frame.
         ip_hide = [
-            False if s[0] is self.curframe else s[0].f_locals.get(
-                "__tracebackhide__", False)
-            for s in stack]
+            False
+            if s[0] in (self.curframe, getattr(self, "initial_frame", None))
+            else s[0].f_locals.get("__tracebackhide__", False)
+            for s in stack
+        ]
         ip_start = [i for i, s in enumerate(ip_hide) if s == "__ipython_bottom__"]
         if ip_start:
             ip_hide = [h if i > ip_start[0] else True for (i, h) in enumerate(ip_hide)]
@@ -588,6 +595,7 @@ class Pdb(OldPdb):
         argument (which is an arbitrary expression or statement to be
         executed in the current environment).
         """
+        trace_function = sys.gettrace()
         sys.settrace(None)
         globals = self.curframe.f_globals
         locals = self.curframe_locals
@@ -598,7 +606,7 @@ class Pdb(OldPdb):
         self.message("ENTERING RECURSIVE DEBUGGER")
         sys.call_tracing(p.run, (arg, globals, locals))
         self.message("LEAVING RECURSIVE DEBUGGER")
-        sys.settrace(self.trace_dispatch)
+        sys.settrace(trace_function)
         self.lastcmd = p.lastcmd
 
     def do_pdef(self, arg):

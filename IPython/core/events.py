@@ -60,7 +60,8 @@ class EventManager(object):
         if not callable(function):
             raise TypeError('Need a callable, got %r' % function)
         callback_proto = available_events.get(event)
-        self.callbacks[event].append(callback_proto.adapt(function))
+        if function not in self.callbacks[event]:
+            self.callbacks[event].append(callback_proto.adapt(function))
     
     def unregister(self, event, function):
         """Remove a callback from the given event."""

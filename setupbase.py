@@ -12,18 +12,19 @@ This includes:
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-
-import re
 import os
+import re
 import sys
-
-from distutils import log
-from distutils.command.build_py import build_py
-from distutils.command.build_scripts import build_scripts
-from distutils.command.install import install
-from distutils.command.install_scripts import install_scripts
-from distutils.cmd import Command
 from glob import glob
+from logging import log
+
+from setuptools import Command
+from setuptools.command.build_py import build_py
+
+# TODO: Replacement for this?
+from distutils.command.build_scripts import build_scripts
+from setuptools.command.install import install
+from setuptools.command.install_scripts import install_scripts
 
 from setupext import install_data_ext
 
@@ -115,14 +116,14 @@ def find_package_data():
     """
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
-    
+
     package_data = {
         'IPython.core' : ['profile/README*'],
         'IPython.core.tests' : ['*.png', '*.jpg', 'daft_extension/*.py'],
         'IPython.lib.tests' : ['*.wav'],
         'IPython.testing.plugin' : ['*.txt'],
     }
-    
+
     return package_data
 
 
@@ -229,7 +230,7 @@ def find_entry_points():
     command line scripts.
 
     Each of our entry points gets both a plain name, e.g. ipython, and one
-    suffixed with the Python major version number, e.g. ipython3. 
+    suffixed with the Python major version number, e.g. ipython3.
     """
     ep = [
             'ipython%s = IPython:start_ipython',
@@ -247,10 +248,10 @@ if __name__ == '__main__':
 
 class build_scripts_entrypt(build_scripts):
     """Build the command line scripts
-    
+
     Parse setuptools style entry points and write simple scripts to run the
     target functions.
-    
+
     On Windows, this also creates .cmd wrappers for the scripts so that you can
     easily launch them from a command line.
     """
@@ -269,7 +270,7 @@ class build_scripts_entrypt(build_scripts):
             with open(outfile, 'w') as f:
                 f.write(script_src.format(executable=sys.executable,
                                           mod=mod, func=func))
-            
+
             if sys.platform == 'win32':
                 # Write .cmd wrappers for Windows so 'ipython' etc. work at the
                 # command line
@@ -323,7 +324,7 @@ class install_symlinked(install):
         # Run all sub-commands (at least those that need to be run)
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
-    
+
     # 'sub_commands': a list of commands this command might have to run to
     # get its work done.  See cmd.py for more info.
     sub_commands = [('install_lib_symlink', lambda self:True),
@@ -332,7 +333,7 @@ class install_symlinked(install):
 
 class install_scripts_for_symlink(install_scripts):
     """Redefined to get options from 'symlink' instead of 'install'.
-    
+
     I love distutils almost as much as I love setuptools.
     """
     def finalize_options(self):
@@ -356,7 +357,7 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
 
     for use in IPython.utils.sysinfo.sys_info() calls after installation.
     """
-    
+
     class MyBuildPy(build_cmd):
         ''' Subclass to write commit data into installation tree '''
         def run(self):
@@ -371,12 +372,12 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
             # this one will only fire for build commands
             if hasattr(self, 'build_lib'):
                 self._record_commit(self.build_lib)
-        
+
         def make_release_tree(self, base_dir, files):
             # this one will fire for sdist
             build_cmd.make_release_tree(self, base_dir, files)
             self._record_commit(base_dir)
-        
+
         def _record_commit(self, base_dir):
             import subprocess
             proc = subprocess.Popen('git rev-parse --short HEAD',
@@ -385,14 +386,14 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
                                     shell=True)
             repo_commit, _ = proc.communicate()
             repo_commit = repo_commit.strip().decode("ascii")
-            
+
             out_pth = pjoin(base_dir, pkg_dir, 'utils', '_sysinfo.py')
             if os.path.isfile(out_pth) and not repo_commit:
                 # nothing to write, don't clobber
                 return
-            
+
             print("writing git commit '%s' to %s" % (repo_commit, out_pth))
-            
+
             # remove to avoid overwriting original via hard link
             try:
                 os.remove(out_pth)
