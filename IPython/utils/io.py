@@ -13,6 +13,7 @@ import os
 import sys
 import tempfile
 import warnings
+from pathlib import Path
 from warnings import warn
 
 from IPython.utils.decorators import undoc
@@ -205,7 +206,7 @@ def temp_pyfile(src, ext='.py'):
       It is the caller's responsibility to close the open file and unlink it.
     """
     fname = tempfile.mkstemp(ext)[1]
-    with open(fname,'w') as f:
+    with open(Path(fname), "w") as f:
         f.write(src)
         f.flush()
     return fname
