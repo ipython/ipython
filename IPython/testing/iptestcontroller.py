@@ -27,6 +27,8 @@ from IPython.utils.path import compress_user
 from IPython.utils.py3compat import decode
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
+from pathlib import Path
+from typing import Dict
 
 class TestController:
     """Run tests in a subprocess
@@ -36,7 +38,7 @@ class TestController:
     #: list, command line arguments to be executed
     cmd = None
     #: dict, extra environment variables to set for the subprocess
-    env = None
+    env: Dict[str, str] = {}
     #: list, TemporaryDirectory instances to clear up when the process finishes
     dirs = None
     #: subprocess.Popen instance
@@ -68,6 +70,8 @@ class TestController:
         c.start()
         stdout = c.writefd if capture_output else None
         stderr = subprocess.STDOUT if capture_output else None
+        for k, v in env.items():
+            assert isinstance(v, str), f"env[{repr(k)}] is not a str: {v}"
         self.process = subprocess.Popen(self.cmd, stdout=stdout,
                 stderr=stderr, env=env)
 
@@ -138,16 +142,17 @@ class PyTestController(TestController):
         self.env['TMPDIR'] = workingdir.name
 
         # Add a non-accessible directory to PATH (see gh-7053)
-        noaccess = os.path.join(self.workingdir.name, "_no_access_")
-        self.noaccess = noaccess
-        os.mkdir(noaccess, 0)
+        noaccess = Path(self.workingdir.name) / "_no_access_"
+        self.noaccess = noaccess.resolve()
+
+        noaccess.mkdir(0, exist_ok=True)
 
         PATH = os.environ.get('PATH', '')
         if PATH:
-            PATH = noaccess + os.pathsep + PATH
+            PATH = noaccess / PATH
         else:
             PATH = noaccess
-        self.env['PATH'] = PATH
+        self.env["PATH"] = str(PATH)
 
         # From options:
         if self.options.xunit:
@@ -162,7 +167,7 @@ class PyTestController(TestController):
         Make the non-accessible directory created in setup() accessible
         again, otherwise deleting the workingdir will fail.
         """
-        os.chmod(self.noaccess, stat.S_IRWXU)
+        self.noaccess.chmod(stat.S_IRWXU)
         TestController.cleanup(self)
 
     @property
@@ -173,26 +178,26 @@ class PyTestController(TestController):
             return True
 
     def add_xunit(self):
-        xunit_file = os.path.abspath(self.section + '.xunit.xml')
-        self.cmd.extend(['--with-xunit', '--xunit-file', xunit_file])
+        xunit_file = Path(f"{self.section}.xunit.xml")
+        self.cmd.extend(["--with-xunit", "--xunit-file", xunit_file.absolute()])
 
     def add_coverage(self):
         try:
             sources = test_sections[self.section].includes
         except KeyError:
-            sources = ['IPython']
+            sources = ["IPython"]
 
-        coverage_rc = ("[run]\n"
-                       "data_file = {data_file}\n"
-                       "source =\n"
-                       "  {source}\n"
-                      ).format(data_file=os.path.abspath('.coverage.'+self.section),
-                               source="\n  ".join(sources))
-        config_file = os.path.join(self.workingdir.name, '.coveragerc')
-        with open(config_file, 'w') as f:
-            f.write(coverage_rc)
+        coverage_rc = (
+            "[run]\n" "data_file = {data_file}\n" "source =\n" "  {source}\n"
+        ).format(
+            data_file=Path(f".coverage.{self.section}").absolute(),
+            source="\n  ".join(sources),
+        )
+        config_file: Path = Path(self.workingdir.name) / ".coveragerc"
+        config_file.touch(exist_ok=True)
+        config_file.write_text(coverage_rc)
 
-        self.env['COVERAGE_PROCESS_START'] = config_file
+        self.env["COVERAGE_PROCESS_START"] = str(config_file.resolve())
         self.pycmd = "import coverage; coverage.process_startup(); " + self.pycmd
 
     def launch(self, buffer_output=False):
@@ -464,10 +469,10 @@ def main():
     # iptest doesn't work correctly if the working directory is the
     # root of the IPython source tree. Tell the user to avoid
     # frustration.
-    if os.path.exists(os.path.join(os.getcwd(),
-                                   'IPython', 'testing', '__main__.py')):
-        print("Don't run iptest from the IPython source directory",
-              file=sys.stderr)
+    main_file = Path.cwd() / Path("IPython/testing/__main__.py")
+
+    if main_file.exists():
+        print("Don't run iptest from the IPython source directory", file=sys.stderr)
         sys.exit(1)
     # Arguments after -- should be passed through to nose. Argparse treats
     # everything after -- as regular positional arguments, so we separate them
