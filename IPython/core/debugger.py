@@ -605,48 +605,60 @@ class Pdb(OldPdb):
         """Print the call signature for any callable object.
 
         The debugger interface to %pdef"""
-        namespaces = [('Locals', self.curframe_locals),
-                      ('Globals', self.curframe.f_globals)]
-        self.shell.find_line_magic('pdef')(arg, namespaces=namespaces)
+        namespaces = [
+            ("Locals", self.curframe_locals),
+            ("Globals", self.curframe.f_globals),
+        ]
+        self.shell.find_line_magic("pdef")(arg, namespaces=namespaces)
 
     def do_pdoc(self, arg):
         """Print the docstring for an object.
 
         The debugger interface to %pdoc."""
-        namespaces = [('Locals', self.curframe_locals),
-                      ('Globals', self.curframe.f_globals)]
-        self.shell.find_line_magic('pdoc')(arg, namespaces=namespaces)
+        namespaces = [
+            ("Locals", self.curframe_locals),
+            ("Globals", self.curframe.f_globals),
+        ]
+        self.shell.find_line_magic("pdoc")(arg, namespaces=namespaces)
 
     def do_pfile(self, arg):
         """Print (or run through pager) the file where an object is defined.
 
         The debugger interface to %pfile.
         """
-        namespaces = [('Locals', self.curframe_locals),
-                      ('Globals', self.curframe.f_globals)]
-        self.shell.find_line_magic('pfile')(arg, namespaces=namespaces)
+        namespaces = [
+            ("Locals", self.curframe_locals),
+            ("Globals", self.curframe.f_globals),
+        ]
+        self.shell.find_line_magic("pfile")(arg, namespaces=namespaces)
 
     def do_pinfo(self, arg):
         """Provide detailed information about an object.
 
         The debugger interface to %pinfo, i.e., obj?."""
-        namespaces = [('Locals', self.curframe_locals),
-                      ('Globals', self.curframe.f_globals)]
-        self.shell.find_line_magic('pinfo')(arg, namespaces=namespaces)
+        namespaces = [
+            ("Locals", self.curframe_locals),
+            ("Globals", self.curframe.f_globals),
+        ]
+        self.shell.find_line_magic("pinfo")(arg, namespaces=namespaces)
 
     def do_pinfo2(self, arg):
         """Provide extra detailed information about an object.
 
         The debugger interface to %pinfo2, i.e., obj??."""
-        namespaces = [('Locals', self.curframe_locals),
-                      ('Globals', self.curframe.f_globals)]
-        self.shell.find_line_magic('pinfo2')(arg, namespaces=namespaces)
+        namespaces = [
+            ("Locals", self.curframe_locals),
+            ("Globals", self.curframe.f_globals),
+        ]
+        self.shell.find_line_magic("pinfo2")(arg, namespaces=namespaces)
 
     def do_psource(self, arg):
         """Print (or run through pager) the source code for an object."""
-        namespaces = [('Locals', self.curframe_locals),
-                      ('Globals', self.curframe.f_globals)]
-        self.shell.find_line_magic('psource')(arg, namespaces=namespaces)
+        namespaces = [
+            ("Locals", self.curframe_locals),
+            ("Globals", self.curframe.f_globals),
+        ]
+        self.shell.find_line_magic("psource")(arg, namespaces=namespaces)
 
     def do_where(self, arg):
         """w(here)
