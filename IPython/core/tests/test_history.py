@@ -7,7 +7,7 @@
 
 # stdlib
 import io
-import os
+from pathlib import Path
 import sys
 import tempfile
 from datetime import datetime
@@ -29,8 +29,9 @@ def test_proper_default_encoding():
 def test_history():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
         hist_manager_ori = ip.history_manager
-        hist_file = os.path.join(tmpdir, 'history.sqlite')
+        hist_file = tmp_path / "history.sqlite"
         try:
             ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
             hist = [u'a=1', u'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
@@ -55,10 +56,10 @@ def test_history():
             ip.magic('%hist 2-500')
 
             # Check that we can write non-ascii characters to a file
-            ip.magic("%%hist -f %s" % os.path.join(tmpdir, "test1"))
-            ip.magic("%%hist -pf %s" % os.path.join(tmpdir, "test2"))
-            ip.magic("%%hist -nf %s" % os.path.join(tmpdir, "test3"))
-            ip.magic("%%save %s 1-10" % os.path.join(tmpdir, "test4"))
+            ip.magic("%%hist -f %s" % (tmp_path / "test1"))
+            ip.magic("%%hist -pf %s" % (tmp_path / "test2"))
+            ip.magic("%%hist -nf %s" % (tmp_path / "test3"))
+            ip.magic("%%save %s 1-10" % (tmp_path / "test4"))
 
             # New session
             ip.history_manager.reset()
@@ -126,8 +127,8 @@ def test_history():
             nt.assert_equal(list(gothist), [(1,3,(hist[2],"spam"))] )
 
             # Cross testing: check that magic %save can get previous session.
-            testfilename = os.path.realpath(os.path.join(tmpdir, "test.py"))
-            ip.magic("save " + testfilename + " ~1/1-3")
+            testfilename = (tmp_path / "test.py").resolve()
+            ip.magic("save " + str(testfilename) + " ~1/1-3")
             with io.open(testfilename, encoding='utf-8') as testfile:
                 nt.assert_equal(testfile.read(),
                                         u"# coding: utf-8\n" + u"\n".join(hist)+u"\n")
@@ -176,13 +177,13 @@ def test_timestamp_type():
 def test_hist_file_config():
     cfg = Config()
     tfile = tempfile.NamedTemporaryFile(delete=False)
-    cfg.HistoryManager.hist_file = tfile.name
+    cfg.HistoryManager.hist_file = Path(tfile.name)
     try:
         hm = HistoryManager(shell=get_ipython(), config=cfg)
         nt.assert_equal(hm.hist_file, cfg.HistoryManager.hist_file)
     finally:
         try:
-            os.remove(tfile.name)
+            Path(tfile.name).unlink()
         except OSError:
             # same catch as in testing.tools.TempFileMixin
             # On Windows, even though we close the file, we still can't
@@ -197,7 +198,7 @@ def test_histmanager_disabled():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
         hist_manager_ori = ip.history_manager
-        hist_file = os.path.join(tmpdir, 'history.sqlite')
+        hist_file = Path(tmpdir) / "history.sqlite"
         cfg.HistoryManager.hist_file = hist_file
         try:
             ip.history_manager = HistoryManager(shell=ip, config=cfg)
@@ -211,4 +212,4 @@ def test_histmanager_disabled():
             ip.history_manager = hist_manager_ori
 
     # hist_file should not be created
-    nt.assert_false(os.path.exists(hist_file))
+    nt.assert_false(hist_file.exists())
