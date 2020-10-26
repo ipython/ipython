@@ -12,6 +12,7 @@ import sys
 import requests
 import getpass
 import json
+from pathlib import Path
 
 try:
     import requests_cache
@@ -274,7 +275,7 @@ def encode_multipart_formdata(fields, boundary=None):
 def post_download(project, filename, name=None, description=""):
     """Upload a file to the GitHub downloads area"""
     if name is None:
-        name = os.path.basename(filename)
+        name = Path(filename).name
     with open(filename, 'rb') as f:
         filedata = f.read()
 
