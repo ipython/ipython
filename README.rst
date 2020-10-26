@@ -47,7 +47,29 @@ The Notebook, Qt console and a number of other pieces are now parts of *Jupyter*
 See the `Jupyter installation docs <https://jupyter.readthedocs.io/en/latest/install.html>`__
 if you want to use these.
 
+Main features of IPython
+========================
+Comprehensive object introspection.
 
+Input history, persistent across sessions.
+
+Caching of output results during a session with automatically generated references.
+
+Extensible tab completion, with support by default for completion of python variables and keywords, filenames and function keywords.
+
+Extensible system of ‘magic’ commands for controlling the environment and performing many tasks related to IPython or the operating system.
+
+A rich configuration system with easy switching between different setups (simpler than changing $PYTHONSTARTUP environment variables every time).
+
+Session logging and reloading.
+
+Extensible syntax processing for special purpose situations.
+
+Access to the system shell with user-extensible alias system.
+
+Easily embeddable in other Python programs and GUIs.
+
+Integrated access to the pdb debugger and the Python profiler.
 
 
 Development and Instant running
