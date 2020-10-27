@@ -33,6 +33,8 @@ from testpath import modified_env
 
 from inspect import getmodule
 
+from pathlib import Path, PurePath
+
 # We are overriding the default doctest runner, so we need to import a few
 # things from doctest directly
 from doctest import (REPORTING_FLAGS, REPORT_ONLY_FIRST_FAILURE,
@@ -687,9 +689,8 @@ class ExtensionDoctest(doctests.Doctest):
                 yield t
         else:
             if self.extension and anyp(filename.endswith, self.extension):
-                name = os.path.basename(filename)
-                with open(filename) as dh:
-                    doc = dh.read()
+                name = PurePath(filename).name
+                doc = Path(filename).read_text()
                 test = self.parser.get_doctest(
                     doc, globs={'__file__': filename}, name=name,
                     filename=filename, lineno=0)
