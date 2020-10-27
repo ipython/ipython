@@ -138,7 +138,7 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
     except FindCmdError:
         return None
     try:
-        workdir = PurePath(tempfile.mkdtemp())
+        workdir = Path(tempfile.mkdtemp())
         tmpfile = workdir.joinpath("tmp.tex")
         dvifile = workdir.joinpath("tmp.dvi")
         outfile = workdir.joinpath("tmp.png")

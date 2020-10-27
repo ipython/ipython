@@ -20,15 +20,23 @@ Authors
 # third party
 import nose.tools as nt
 
+from IPython.testing.decorators import skip_iptest_but_not_pytest
+
 # our own
 from IPython.utils.PyColorize import Parser
 import io
+import pytest
+
+
+@pytest.fixture(scope="module", params=("Linux", "NoColor", "LightBG", "Neutral"))
+def style(request):
+    yield request.param
 
 #-----------------------------------------------------------------------------
 # Test functions
 #-----------------------------------------------------------------------------
 
-sample = u"""
+sample = """
 def function(arg, *args, kwarg=True, **kwargs):
     '''
     this is docs
@@ -47,32 +55,22 @@ class Bar(Super):
         super(Bar, self).__init__(1**2, 3^4, 5 or 6)
 """
 
-def test_loop_colors():
 
-    for style in ('Linux', 'NoColor','LightBG', 'Neutral'):
+@skip_iptest_but_not_pytest
+def test_parse_sample(style):
+    """and test writing to a buffer"""
+    buf = io.StringIO()
+    p = Parser(style=style)
+    p.format(sample, buf)
+    buf.seek(0)
+    f1 = buf.read()
 
-        def test_unicode_colorize():
-            p = Parser(style=style)
-            f1 = p.format('1/0', 'str')
-            f2 = p.format(u'1/0', 'str')
-            nt.assert_equal(f1, f2)
+    nt.assert_not_in("ERROR", f1)
 
-        def test_parse_sample():
-            """and test writing to a buffer"""
-            buf = io.StringIO()
-            p = Parser(style=style)
-            p.format(sample, buf)
-            buf.seek(0)
-            f1 = buf.read()
 
-            nt.assert_not_in('ERROR', f1)
-
-        def test_parse_error():
-            p = Parser(style=style)
-            f1 = p.format(')', 'str')
-            if style != 'NoColor':
-                nt.assert_in('ERROR', f1)
-
-        yield test_unicode_colorize
-        yield test_parse_sample
-        yield test_parse_error
+@skip_iptest_but_not_pytest
+def test_parse_error(style):
+    p = Parser(style=style)
+    f1 = p.format(")", "str")
+    if style != "NoColor":
+        nt.assert_in("ERROR", f1)

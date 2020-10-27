@@ -8,7 +8,7 @@ addons:
       - graphviz
 
 python:
-    - 3.6
+    - 3.8
 
 env:
   global:
@@ -41,13 +41,8 @@ install:
     fi
   - pip install -e file://$PWD#egg=ipython[test] --upgrade
   - pip install trio curio --upgrade --upgrade-strategy eager
-  - pip install 'pytest<6' 'matplotlib !=3.2.0' mypy
-  - pip install codecov check-manifest --upgrade
-  - pip install mypy darker
-  - |
-    if [[ "$MASTER_DEPENDENCIES" == "True" ]]; then
-       pip install git+https://github.com/ipython/traitlets#egg=traitlets --force
-    fi
+  - pip install 'pytest' 'matplotlib !=3.2.0'
+  - pip install codecov check-manifest pytest-cov --upgrade
 
 
 script:
@@ -58,26 +53,13 @@ script:
        cp /home/travis/virtualenv/python3.9-dev/lib/python3.9/site-packages/parso/python/grammar38.txt /home/travis/virtualenv/python3.9-dev/lib/python3.9/site-packages/parso/python/grammar39.txt
     fi
   - |
-    # check style on changes
-    # run `darker -r master` and commit changes to fix
-    if [[ "${TRAVIS_PULL_REQUEST:-false}" != "false" ]] \
-    && [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] \
-    && [[ "$TRAVIS_OS_NAME" == "linux" ]];
-    then
-      darker -r ${TRAVIS_COMMIT_RANGE%%.*} --check --diff . || (
-        echo "Changes need auto-formatting. Run:"
-        echo "    darker -r ${TRAVIS_COMMIT_RANGE%%.*}"
-        echo "then commit and push changes to fix."
-        exit 1
-      )
+    if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      cd /tmp && iptest --coverage xml && cd -
     fi
-  - cd /tmp && iptest --coverage xml && cd -
-  - pytest IPython
-  - mypy IPython/terminal/ptutils.py
-  - mypy IPython/core/c*.py
+  - pytest --maxfail=10 IPython
   # On the latest Python (on Linux) only, make sure that the docs build.
   - |
-    if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+    if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       pip install -r docs/requirements.txt
       python tools/fixup_whats_new_pr.py
       make -C docs/ html SPHINXOPTS="-W"
@@ -108,9 +90,6 @@ matrix:
       language: generic
       python: 3.7
       env: TRAVIS_PYTHON_VERSION=3.7
-    - arch: amd64
-      python: "3.8"
-      env: MASTER_DEPENDENCIES=True
   allow_failures:
     - python: nightly
 

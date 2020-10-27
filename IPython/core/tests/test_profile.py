@@ -20,12 +20,12 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import shutil
 import sys
 import tempfile
 from pathlib import Path
 
+from pathlib import Path
 from unittest import TestCase
 
 import nose.tools as nt
@@ -41,9 +41,10 @@ from IPython.utils.tempdir import TemporaryDirectory
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
-TMP_TEST_DIR = tempfile.mkdtemp()
-HOME_TEST_DIR = Path(TMP_TEST_DIR, "home_test_dir")
-IP_TEST_DIR = Path(HOME_TEST_DIR,'.ipython')
+
+TMP_TEST_DIR = Path(tempfile.mkdtemp())
+HOME_TEST_DIR = TMP_TEST_DIR / "home_test_dir"
+IP_TEST_DIR = HOME_TEST_DIR / ".ipython"
 
 #
 # Setup/teardown functions/decorators
@@ -87,7 +88,7 @@ class ProfileStartupTest(TestCase):
         # create profile dir
         self.pd = ProfileDir.create_profile_dir_by_name(IP_TEST_DIR, 'test')
         self.options = ['--ipython-dir', IP_TEST_DIR, '--profile', 'test']
-        self.fname = Path(TMP_TEST_DIR, 'test.py')
+        self.fname = TMP_TEST_DIR / 'test.py'
 
     def tearDown(self):
         # We must remove this profile right away so its presence doesn't
@@ -121,7 +122,7 @@ def test_list_profiles_in():
     # the module-level teardown.
     td = Path(tempfile.mkdtemp(dir=TMP_TEST_DIR))
     for name in ('profile_foo', 'profile_hello', 'not_a_profile'):
-        Path(td, name).mkdir()
+        Path(td, name).mkdir(parents=True)
     if dec.unicode_paths:
         Path(td, u'profile_ünicode').mkdir()
 
@@ -153,9 +154,16 @@ def test_list_bundled_profiles():
 def test_profile_create_ipython_dir():
     """ipython profile create respects --ipython-dir"""
     with TemporaryDirectory() as td:
-        getoutput([sys.executable, '-m', 'IPython', 'profile', 'create',
-             'foo', '--ipython-dir=%s' % td])
+        getoutput([
+          sys.executable, 
+          '-m', 
+          'IPython', 
+          'profile', 
+          'create',
+          'foo', 
+          '--ipython-dir=%s' % td
+        ])
         profile_dir = Path(td, 'profile_foo')
         assert profile_dir.exists()
-        ipython_config = Path(profile_dir, 'ipython_config.py')
+        ipython_config = profile_dir / 'ipython_config.py'
         assert ipython_config.exists()
