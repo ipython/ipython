@@ -19,6 +19,7 @@ requires utilities which are not available under Windows."""
 
 import os
 import sys
+from pathlib import Path
 
 # **Python version check**
 #
@@ -61,7 +62,8 @@ Python {py} detected.
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
-if os.path.exists('MANIFEST'): os.remove('MANIFEST')
+if Path("MANIFEST").exists():
+    Path("MANIFEST").unlink()
 
 from distutils.core import setup
 
@@ -82,9 +84,6 @@ from setupbase import (
     install_scripts_for_symlink,
     unsymlink,
 )
-
-isfile = os.path.isfile
-pjoin = os.path.join
 
 #-------------------------------------------------------------------------------
 # Handle OS specific things
