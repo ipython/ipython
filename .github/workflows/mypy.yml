@@ -27,6 +27,18 @@ jobs:
     - name: Lint with mypy
       run: |
         mypy IPython/terminal/ptutils.py
+        mypy IPython/core/magics/*.py
+        mypy IPython/terminal/__init__.py
+        mypy IPython/terminal/console.py
+        #mypy IPython/terminal/debugger.py
+        #mypy IPython/terminal/embed.py
+        mypy IPython/terminal/interactiveshell.py
+        mypy IPython/terminal/ipapp.py
+        mypy IPython/terminal/magics.py
+        mypy IPython/terminal/prompts.py
+        mypy IPython/terminal/ptshell.py
+        mypy IPython/terminal/ptutils.py
+        mypy IPython/terminal/shortcuts.py
         mypy IPython/core/c*.py
     - name: Lint with pyflakes
       run: |
