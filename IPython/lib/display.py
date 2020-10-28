@@ -3,7 +3,6 @@
 Authors : MinRK, gregcaporaso, dannystaple
 """
 from html import escape as html_escape
-from os.path import abspath
 from pathlib import Path
 from os import walk, sep, fsdecode
 
@@ -418,7 +417,7 @@ class FileLink(object):
     def __repr__(self):
         """return absolute path to file
         """
-        return abspath(self.path)
+        return str(Path(self.path).resolve())
 
 class FileLinks(FileLink):
     """Class for embedding local file links in an IPython session, based on path
