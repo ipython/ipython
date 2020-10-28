@@ -2,7 +2,6 @@ import tokenize
 import nose.tools as nt
 
 from IPython.testing import tools as tt
-from IPython.utils import py3compat
 
 from IPython.core import inputtransformer as ipt
 

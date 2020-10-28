@@ -16,7 +16,6 @@ from IPython.core.magic import  (
     Magics, magics_class, line_magic, cell_magic
 )
 from IPython.lib.backgroundjobs import BackgroundJobManager
-from IPython.utils import py3compat
 from IPython.utils.process import arg_split
 from traitlets import List, Dict, default
 

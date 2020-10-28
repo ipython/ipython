@@ -2623,10 +2623,10 @@ class InteractiveShell(SingletonConfigurable):
         stb = self.InteractiveTB.get_exception_only(etype, evalue)
         
         exc_info = {
-            u'status' : 'error',
-            u'traceback' : stb,
-            u'ename' : etype.__name__,
-            u'evalue' : py3compat.safe_unicode(evalue),
+            "status": "error",
+            "traceback": stb,
+            "ename": etype.__name__,
+            "evalue": py3compat.safe_unicode(evalue),
         }
 
         return exc_info
