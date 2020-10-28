@@ -3,6 +3,7 @@
 Authors : MinRK, gregcaporaso, dannystaple
 """
 from html import escape as html_escape
+from os.path import abspath
 from pathlib import Path
 from os import walk, sep, fsdecode
 
@@ -386,17 +387,17 @@ class FileLink(object):
         if Path(path).is_dir():
             raise ValueError("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
-        self.path = Path(fsdecode(path))
+        self.path = fsdecode(path)
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
         self.result_html_suffix = result_html_suffix
 
     def _format_path(self):
-        fp = "".join([self.url_prefix, html_escape(str(self.path))])
+        fp = "".join([self.url_prefix, html_escape(self.path)])
         return "".join(
             [
                 self.result_html_prefix,
-                self.html_link_str % (fp, html_escape(str(self.path), quote=False)),
+                self.html_link_str % (fp, html_escape(self.path, quote=False)),
                 self.result_html_suffix,
             ]
         )
@@ -404,12 +405,12 @@ class FileLink(object):
     def _repr_html_(self):
         """return html link to file
         """
-        if not self.path.exists():
+        if not Path(self.path).exists():
             return (
                 "Path (<tt>%s</tt>) doesn't exist. "
                 "It may still be in the process of "
                 "being generated, or you may have the "
-                "incorrect path." % str(self.path)
+                "incorrect path." % self.path
             )
 
         return self._format_path()
@@ -417,7 +418,7 @@ class FileLink(object):
     def __repr__(self):
         """return absolute path to file
         """
-        return str(self.path.resolve())
+        return abspath(self.path)
 
 class FileLinks(FileLink):
     """Class for embedding local file links in an IPython session, based on path
