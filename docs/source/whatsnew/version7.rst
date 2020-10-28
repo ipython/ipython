@@ -2,6 +2,36 @@
  7.x Series
 ============
 
+.. _version 719:
+
+IPython 7.19
+============
+
+IPython 7.19 accumulative two month of works, bug fixes and improvements, there
+was exceptionally no release last month.
+
+  - Fix to restore the ability to specify more than one extension using command
+    line flags when using traitlets 5.0 :ghpull:`12543`
+  - Docs docs formatting that make the install commands work on zsh
+    :ghpull:`12587`
+  - Always display the last frame in tracebacks even if hidden with
+    ``__traceback_hide__`` :ghpull:`12601`
+  - Avoid an issue where a callback can be registered multiple times.
+    :ghpull:`12625`
+  - Avoid an issue in debugger mode where frames changes could be lost.
+    :ghpull:`12627`
+
+  - Never hide the frames that invoke a debugger, even if marked as hidden by
+    ``__traceback_hide__`` :ghpull:`12631`
+  - Fix calling the debugger in a recursive manner :ghpull:`12659`
+
+
+A number of code changes have landed on master and we are getting close to
+enough new features and codebase improvement that a 8.0 start to make sens.
+For downstream packages, please start working on migrating downstream testing
+away from iptest and using pytest, as nose will not work on Python 3.10 and we
+will likely start removing it as a dependency for testing.
+
 .. _version 718:
 
 IPython 7.18
