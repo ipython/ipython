@@ -948,28 +948,32 @@ def test_script_out_err():
     nt.assert_equal(ip.user_ns['error'], 'hello\n')
 
 @dec.skip_win32
-def test_script_bg_out():
+async def test_script_bg_out():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
-
-    nt.assert_equal(ip.user_ns['output'].read(), b'hi\n')
+    nt.assert_equal((await ip.user_ns["output"].read()), b"hi\n")
     ip.user_ns['output'].close()
 
+
 @dec.skip_win32
-def test_script_bg_err():
+async def test_script_bg_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --err error sh", "echo 'hello' >&2")
-    nt.assert_equal(ip.user_ns['error'].read(), b'hello\n')
-    ip.user_ns['error'].close()
+    nt.assert_equal((await ip.user_ns["error"].read()), b"hello\n")
+    ip.user_ns["error"].close()
+
 
 @dec.skip_win32
-def test_script_bg_out_err():
+async def test_script_bg_out_err():
     ip = get_ipython()
-    ip.run_cell_magic("script", "--bg --out output --err error sh", "echo 'hi'\necho 'hello' >&2")
-    nt.assert_equal(ip.user_ns['output'].read(), b'hi\n')
-    nt.assert_equal(ip.user_ns['error'].read(), b'hello\n')
-    ip.user_ns['output'].close()
-    ip.user_ns['error'].close()
+    ip.run_cell_magic(
+        "script", "--bg --out output --err error sh", "echo 'hi'\necho 'hello' >&2"
+    )
+    nt.assert_equal((await ip.user_ns["output"].read()), b"hi\n")
+    nt.assert_equal((await ip.user_ns["error"].read()), b"hello\n")
+    ip.user_ns["output"].close()
+    ip.user_ns["error"].close()
+
 
 def test_script_defaults():
     ip = get_ipython()

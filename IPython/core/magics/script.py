@@ -8,7 +8,7 @@ import os
 import sys
 import signal
 import time
-from subprocess import Popen, PIPE, CalledProcessError
+import asyncio
 import atexit
 
 from IPython.core import magic_arguments
@@ -175,11 +175,44 @@ class ScriptMagics(Magics):
             2
             3
         """
-        argv = arg_split(line, posix = not sys.platform.startswith('win'))
+
+        async def _handle_stream(stream, stream_arg, file_object):
+            while True:
+                line = (await stream.readline()).decode("utf8")
+                if not line:
+                    break
+                if stream_arg:
+                    self.shell.user_ns[stream_arg] = line
+                else:
+                    file_object.write(line)
+                    file_object.flush()
+
+        async def _stream_communicate(process, cell):
+            process.stdin.write(cell)
+            process.stdin.close()
+            stdout_task = asyncio.create_task(
+                _handle_stream(process.stdout, args.out, sys.stdout)
+            )
+            stderr_task = asyncio.create_task(
+                _handle_stream(process.stderr, args.err, sys.stderr)
+            )
+            await asyncio.wait([stdout_task, stderr_task])
+
+        if sys.platform.startswith("win"):
+            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        loop = asyncio.get_event_loop()
+
+        argv = arg_split(line, posix=not sys.platform.startswith("win"))
         args, cmd = self.shebang.parser.parse_known_args(argv)
-        
         try:
-            p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+            p = loop.run_until_complete(
+                asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    stdin=asyncio.subprocess.PIPE
+                )
+            )
         except OSError as e:
             if e.errno == errno.ENOENT:
                 print("Couldn't find program: %r" % cmd[0])
@@ -208,17 +241,17 @@ class ScriptMagics(Magics):
             return
         
         try:
-            out, err = p.communicate(cell)
+            loop.run_until_complete(_stream_communicate(p, cell))
         except KeyboardInterrupt:
             try:
                 p.send_signal(signal.SIGINT)
                 time.sleep(0.1)
-                if p.poll() is not None:
+                if p.returncode is not None:
                     print("Process is interrupted.")
                     return
                 p.terminate()
                 time.sleep(0.1)
-                if p.poll() is not None:
+                if p.returncode is not None:
                     print("Process is terminated.")
                     return
                 p.kill()
@@ -229,20 +262,8 @@ class ScriptMagics(Magics):
                 print("Error while terminating subprocess (pid=%i): %s" \
                     % (p.pid, e))
             return
-        out = py3compat.decode(out)
-        err = py3compat.decode(err)
-        if args.out:
-            self.shell.user_ns[args.out] = out
-        else:
-            sys.stdout.write(out)
-            sys.stdout.flush()
-        if args.err:
-            self.shell.user_ns[args.err] = err
-        else:
-            sys.stderr.write(err)
-            sys.stderr.flush()
         if args.raise_error and p.returncode!=0:
-            raise CalledProcessError(p.returncode, cell, output=out, stderr=err)
+            raise CalledProcessError(p.returncode, cell)
     
     def _run_script(self, p, cell, to_close):
         """callback for running the script in the background"""
@@ -263,7 +284,7 @@ class ScriptMagics(Magics):
         if not self.bg_processes:
             return
         for p in self.bg_processes:
-            if p.poll() is None:
+            if p.returncode is None:
                 try:
                     p.send_signal(signal.SIGINT)
                 except:
@@ -273,7 +294,7 @@ class ScriptMagics(Magics):
         if not self.bg_processes:
             return
         for p in self.bg_processes:
-            if p.poll() is None:
+            if p.returncode is None:
                 try:
                     p.terminate()
                 except:
@@ -283,7 +304,7 @@ class ScriptMagics(Magics):
         if not self.bg_processes:
             return
         for p in self.bg_processes:
-            if p.poll() is None:
+            if p.returncode is None:
                 try:
                     p.kill()
                 except:
@@ -291,4 +312,4 @@ class ScriptMagics(Magics):
         self._gc_bg_processes()
 
     def _gc_bg_processes(self):
-        self.bg_processes = [p for p in self.bg_processes if p.poll() is None]
+        self.bg_processes = [p for p in self.bg_processes if p.returncode is None]
