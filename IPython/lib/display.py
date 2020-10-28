@@ -417,7 +417,7 @@ class FileLink(object):
     def __repr__(self):
         """return absolute path to file
         """
-        return str(Path(self.path).resolve())
+        return str(Path(self.path).absolute())
 
 class FileLinks(FileLink):
     """Class for embedding local file links in an IPython session, based on path
