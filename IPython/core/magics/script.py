@@ -11,6 +11,8 @@ import time
 import asyncio
 import atexit
 
+from subprocess import CalledProcessError
+
 from IPython.core import magic_arguments
 from IPython.core.magic import  (
     Magics, magics_class, line_magic, cell_magic
@@ -19,6 +21,7 @@ from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils import py3compat
 from IPython.utils.process import arg_split
 from traitlets import List, Dict, default
+
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
