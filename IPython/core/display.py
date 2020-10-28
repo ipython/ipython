@@ -56,7 +56,7 @@ def _safe_exists(path):
     """Check path, but don't let exceptions raise"""
     try:
         filepath = Path(path)
-        return filepath.exists() and str(filepath) != "."
+        return filepath.exists() and str(path) != ""
     except Exception:
         return False
 
