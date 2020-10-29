@@ -11,6 +11,8 @@ import time
 import asyncio
 import atexit
 
+from subprocess import CalledProcessError
+
 from IPython.core import magic_arguments
 from IPython.core.magic import  (
     Magics, magics_class, line_magic, cell_magic
@@ -18,6 +20,7 @@ from IPython.core.magic import  (
 from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.process import arg_split
 from traitlets import List, Dict, default
+
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -135,7 +138,7 @@ class ScriptMagics(Magics):
         def named_script_magic(line, cell):
             # if line, add it as cl-flags
             if line:
-                 line = "%s %s" % (script, line)
+                line = "%s %s" % (script, line)
             else:
                 line = script
             return self.shebang(line, cell)
@@ -258,8 +261,7 @@ class ScriptMagics(Magics):
             except OSError:
                 pass
             except Exception as e:
-                print("Error while terminating subprocess (pid=%i): %s" \
-                    % (p.pid, e))
+                print("Error while terminating subprocess (pid=%i): %s" % (p.pid, e))
             return
         if args.raise_error and p.returncode!=0:
             raise CalledProcessError(p.returncode, cell)
