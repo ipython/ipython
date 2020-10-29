@@ -163,9 +163,8 @@ Testing directive outputs
 =========================
 
 The IPython Sphinx Directive makes it possible to test the outputs that you provide with your code. To do this,
-decorate the contents in your directive block with one of the following:
-
-  * list directives here
+decorate the contents in your directive block with one of the options listed
+above.
 
 If an IPython doctest decorator is found, it will take these steps when your documentation is built:
 
@@ -435,7 +434,7 @@ And persist across sessions
    print(square(-2))
 
 Pretty much anything you can do with the ipython code, you can do with
-with a simple python script. Obviously, though it doesn't make sense
+a simple python script. Obviously, though it doesn't make sense
 to use the doctest option.
 
 .. _pseudo-decorators:

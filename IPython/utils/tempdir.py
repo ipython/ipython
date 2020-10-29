@@ -5,6 +5,7 @@ creating a context manager for the working directory which is also temporary.
 """
 
 import os as _os
+from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
@@ -22,7 +23,7 @@ class NamedFileInTemporaryDirectory(object):
 
         """
         self._tmpdir = TemporaryDirectory(**kwds)
-        path = _os.path.join(self._tmpdir.name, filename)
+        path = Path(self._tmpdir.name) / filename
         self.file = open(path, mode, bufsize)
 
     def cleanup(self):
@@ -48,7 +49,7 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
             ...
     """
     def __enter__(self):
-        self.old_wd = _os.getcwd()
+        self.old_wd = Path.cwd()
         _os.chdir(self.name)
         return super(TemporaryWorkingDirectory, self).__enter__()
 

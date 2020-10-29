@@ -15,7 +15,6 @@ import textwrap
 from string import Formatter
 from pathlib import Path
 
-from IPython.utils import py3compat
 
 # datetime.strftime date format for ipython
 if sys.platform == 'win32':
