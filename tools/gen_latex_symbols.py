@@ -9,7 +9,7 @@
 # 
 # The original mapping of latex symbols to unicode comes from the `latex_symbols.jl` files from Julia.
 
-import os, sys
+from pathlib import Path
 
 # Import the Julia LaTeX symbols
 print('Importing latex_symbols.js from Julia...')
@@ -80,9 +80,8 @@ s += """
 reverse_latex_symbol = { v:k for k,v in latex_symbols.items()}
 """
 
-fn = os.path.join('..','IPython','core','latex_symbols.py')
-print("Writing the file: %s" % fn)
-with open(fn, 'w', encoding='utf-8') as f:
-    f.write(s)
+fn = Path("..", "IPython", "core", "latex_symbols.py")
+print("Writing the file: %s" % str(fn))
+fn.write_text(s, encoding="utf-8")
 
 

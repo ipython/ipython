@@ -1,4 +1,4 @@
-from os.path import abspath, dirname, join
+from pathlib import Path
 
 from IPython.terminal.shortcuts import create_ipython_shortcuts
 
@@ -41,12 +41,14 @@ def multi_filter_str(flt):
 log_filters = {'_AndList': 'And', '_OrList': 'Or'}
 log_invert =  {'_Invert'}
 
-class _DummyTerminal(object):
+class _DummyTerminal:
     """Used as a buffer to get prompt_toolkit bindings
     """
     handle_return = None
     input_transformer_manager = None
     display_completions = None
+    editing_mode = "emacs"
+
 
 ipy_bindings = create_ipython_shortcuts(_DummyTerminal()).bindings
 
@@ -75,16 +77,18 @@ for kb in ipy_bindings:
 
 
 if __name__ == '__main__':
+    here = Path(__file__).parent
+    dest = here / "source" / "config" / "shortcuts"
 
-    sort_key = lambda k:(str(k[0][1]),str(k[0][0]))
+    def sort_key(item):
+        k, v = item
+        shortcut, flt = k
+        return (str(shortcut), str(flt))
 
-    here = abspath(dirname(__file__))
-    dest = join(here, 'source', 'config', 'shortcuts')
-
-    with open(join(dest, 'single_filtered.csv'), 'w') as csv:
-        for k, v in sorted(single_filter.items(), key=sort_key):
-            csv.write(':kbd:`{}`\t{}\t{}\n'.format(k[0], k[1], v))
-
-    with open(join(dest, 'multi_filtered.csv'), 'w') as csv:
-        for k, v in sorted(multi_filter.items(), key=sort_key):
-            csv.write(':kbd:`{}`\t{}\t{}\n'.format(k[0], k[1], v))
+    for filters, output_filename in [
+        (single_filter, "single_filtered"),
+        (multi_filter, "multi_filtered"),
+    ]:
+        with (dest / "{}.csv".format(output_filename)).open("w") as csv:
+            for (shortcut, flt), v in sorted(filters.items(), key=sort_key):
+                csv.write(":kbd:`{}`\t{}\t{}\n".format(shortcut, flt, v))

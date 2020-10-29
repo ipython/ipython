@@ -16,6 +16,9 @@
 import sys
 
 import nose.tools as nt
+import pytest
+
+from IPython.testing.decorators import skip_iptest_but_not_pytest
 
 from IPython.utils import capture
 
@@ -66,38 +69,45 @@ hello_stderr = "hello, stderr"
 #-----------------------------------------------------------------------------
 # Test Functions
 #-----------------------------------------------------------------------------
-
-def test_rich_output_empty():
+@pytest.mark.parametrize("method_mime", _mime_map.items())
+@skip_iptest_but_not_pytest
+def test_rich_output_empty(method_mime):
     """RichOutput with no args"""
     rich = capture.RichOutput()
-    for method, mime in _mime_map.items():
-        yield nt.assert_equal, getattr(rich, method)(), None
+    method, mime = method_mime
+    nt.assert_equal(getattr(rich, method)(), None)
     
 def test_rich_output():
     """test RichOutput basics"""
     data = basic_data
     metadata = basic_metadata
     rich = capture.RichOutput(data=data, metadata=metadata)
-    yield nt.assert_equal, rich._repr_html_(), data['text/html']
-    yield nt.assert_equal, rich._repr_png_(), (data['image/png'], metadata['image/png'])
-    yield nt.assert_equal, rich._repr_latex_(), None
-    yield nt.assert_equal, rich._repr_javascript_(), None
-    yield nt.assert_equal, rich._repr_svg_(), None
+    nt.assert_equal(rich._repr_html_(), data["text/html"])
+    nt.assert_equal(rich._repr_png_(), (data["image/png"], metadata["image/png"]))
+    nt.assert_equal(rich._repr_latex_(), None)
+    nt.assert_equal(rich._repr_javascript_(), None)
+    nt.assert_equal(rich._repr_svg_(), None)
 
-def test_rich_output_no_metadata():
+
+@skip_iptest_but_not_pytest
+@pytest.mark.parametrize("method_mime", _mime_map.items())
+def test_rich_output_no_metadata(method_mime):
     """test RichOutput with no metadata"""
     data = full_data
     rich = capture.RichOutput(data=data)
-    for method, mime in _mime_map.items():
-        yield nt.assert_equal, getattr(rich, method)(), data[mime]
+    method, mime = method_mime
+    nt.assert_equal(getattr(rich, method)(), data[mime])
 
-def test_rich_output_metadata():
+
+@skip_iptest_but_not_pytest
+@pytest.mark.parametrize("method_mime", _mime_map.items())
+def test_rich_output_metadata(method_mime):
     """test RichOutput with metadata"""
     data = full_data
     metadata = full_metadata
     rich = capture.RichOutput(data=data, metadata=metadata)
-    for method, mime in _mime_map.items():
-        yield nt.assert_equal, getattr(rich, method)(), (data[mime], metadata[mime])
+    method, mime = method_mime
+    nt.assert_equal(getattr(rich, method)(), (data[mime], metadata[mime]))
 
 def test_rich_output_display():
     """test RichOutput.display
@@ -109,10 +119,10 @@ def test_rich_output_display():
     rich = capture.RichOutput(data=data)
     with capture.capture_output() as cap:
         rich.display()
-    yield nt.assert_equal, len(cap.outputs), 1
+    nt.assert_equal(len(cap.outputs), 1)
     rich2 = cap.outputs[0]
-    yield nt.assert_equal, rich2.data, rich.data
-    yield nt.assert_equal, rich2.metadata, rich.metadata
+    nt.assert_equal(rich2.data, rich.data)
+    nt.assert_equal(rich2.metadata, rich.metadata)
 
 def test_capture_output():
     """capture_output works"""
@@ -121,8 +131,9 @@ def test_capture_output():
         print(hello_stdout, end="")
         print(hello_stderr, end="", file=sys.stderr)
         rich.display()
-    yield nt.assert_equal, hello_stdout, cap.stdout
-    yield nt.assert_equal, hello_stderr, cap.stderr
+    nt.assert_equal(hello_stdout, cap.stdout)
+    nt.assert_equal(hello_stderr, cap.stderr)
+
 
 def test_capture_output_no_stdout():
     """test capture_output(stdout=False)"""
@@ -131,9 +142,10 @@ def test_capture_output_no_stdout():
         print(hello_stdout, end="")
         print(hello_stderr, end="", file=sys.stderr)
         rich.display()
-    yield nt.assert_equal, "", cap.stdout
-    yield nt.assert_equal, hello_stderr, cap.stderr
-    yield nt.assert_equal, len(cap.outputs), 1
+    nt.assert_equal("", cap.stdout)
+    nt.assert_equal(hello_stderr, cap.stderr)
+    nt.assert_equal(len(cap.outputs), 1)
+
 
 def test_capture_output_no_stderr():
     """test capture_output(stderr=False)"""
@@ -143,9 +155,10 @@ def test_capture_output_no_stderr():
         print(hello_stdout, end="")
         print(hello_stderr, end="", file=sys.stderr)
         rich.display()
-    yield nt.assert_equal, hello_stdout, cap.stdout
-    yield nt.assert_equal, "", cap.stderr
-    yield nt.assert_equal, len(cap.outputs), 1
+    nt.assert_equal(hello_stdout, cap.stdout)
+    nt.assert_equal("", cap.stderr)
+    nt.assert_equal(len(cap.outputs), 1)
+
 
 def test_capture_output_no_display():
     """test capture_output(display=False)"""
@@ -154,6 +167,6 @@ def test_capture_output_no_display():
         print(hello_stdout, end="")
         print(hello_stderr, end="", file=sys.stderr)
         rich.display()
-    yield nt.assert_equal, hello_stdout, cap.stdout
-    yield nt.assert_equal, hello_stderr, cap.stderr
-    yield nt.assert_equal, cap.outputs, []
+    nt.assert_equal(hello_stdout, cap.stdout)
+    nt.assert_equal(hello_stderr, cap.stderr)
+    nt.assert_equal(cap.outputs, [])

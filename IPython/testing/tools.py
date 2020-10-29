@@ -10,6 +10,7 @@ Authors
 # Distributed under the terms of the Modified BSD License.
 
 import os
+from pathlib import Path
 import re
 import sys
 import tempfile
@@ -142,7 +143,7 @@ def default_config():
     config.TerminalTerminalInteractiveShell.term_title = False,
     config.TerminalInteractiveShell.autocall = 0
     f = tempfile.NamedTemporaryFile(suffix=u'test_hist.sqlite', delete=False)
-    config.HistoryManager.hist_file = f.name
+    config.HistoryManager.hist_file = Path(f.name)
     f.close()
     config.HistoryManager.db_cache_size = 10000
     return config
