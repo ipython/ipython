@@ -159,7 +159,7 @@ class CrashHandler(object):
         # write the report filename into the instance dict so it can get
         # properly expanded out in the user message template
         self.crash_report_fname = str(report_name)
-        self.info['crash_report_fname'] = str(report_name)
+        self.info["crash_report_fname"] = str(report_name)
         TBhandler = ultratb.VerboseTB(
             color_scheme=color_scheme,
             long_header=1,

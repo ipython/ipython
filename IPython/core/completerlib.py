@@ -318,20 +318,16 @@ def cd_completer(self, event):
             return ents
         return []
 
-    if event.symbol.startswith('--'):
-        return ["--" + Path(d).name for d in ip.user_ns['_dh']]
+    if event.symbol.startswith("--"):
+        return ["--" + Path(d).name for d in ip.user_ns["_dh"]]
 
     # Expand ~ in path and normalize directory separators.
     relpath, tilde_expand, tilde_val = expand_user(relpath)
     relpath = Path(relpath)
 
     found = []
-    for d in [
-        str(f).replace('\\','/') + '/'
-        for f in relpath.glob('*')
-        if f.is_dir()
-    ]:
-        if ' ' in d:
+    for d in [str(f).replace("\\", "/") + "/" for f in relpath.glob("*") if f.is_dir()]:
+        if " " in d:
             # we don't want to deal with any of that, complex code
             # for this is elsewhere
             raise TryNext
@@ -340,7 +336,9 @@ def cd_completer(self, event):
 
     if not found:
         if relpath.is_dir():
-            return [compress_user(str(relpath).replace('\\','/'), tilde_expand, tilde_val)]
+            return [
+                compress_user(str(relpath).replace("\\", "/"), tilde_expand, tilde_val)
+            ]
 
         # if no completions so far, try bookmarks
         bks = self.db.get('bookmarks',{})
