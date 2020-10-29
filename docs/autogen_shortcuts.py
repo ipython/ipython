@@ -23,7 +23,7 @@ def sentencize(s):
 
 
 def most_common(lst, n=3):
-    """Most common elements occurring more then `n` times
+    """Most common elements occurring more than `n` times
     """
     from collections import Counter
 
