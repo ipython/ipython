@@ -364,14 +364,12 @@ class InteractiveShellApp(Configurable):
         sys.argv = [full_filename] + self.extra_args[1:]
         try:
             if Path(full_filename).is_file():
-                self.log.info(
-                    "Running file in user namespace: %s" %
-                    full_filename)
+                self.log.info("Running file in user namespace: %s" % full_filename)
                 # Ensure that __file__ is always defined to match Python
                 # behavior.
-                with preserve_keys(self.shell.user_ns, '__file__'):
-                    self.shell.user_ns['__file__'] = fname
-                    if Path(full_filename).suffix in ('.ipy', '.ipynb'):
+                with preserve_keys(self.shell.user_ns, "__file__"):
+                    self.shell.user_ns["__file__"] = fname
+                    if Path(full_filename).suffix in (".ipy", ".ipynb"):
                         self.shell.safe_execfile_ipy(
                             full_filename, shell_futures=shell_futures
                         )
@@ -387,7 +385,7 @@ class InteractiveShellApp(Configurable):
     def _run_startup_files(self):
         """Run files from profile startup directory"""
         startup_dirs = [Path(self.profile_dir.startup_dir)] + [
-            Path(p, 'startup') for p in chain(ENV_CONFIG_DIRS, SYSTEM_CONFIG_DIRS)
+            Path(p, "startup") for p in chain(ENV_CONFIG_DIRS, SYSTEM_CONFIG_DIRS)
         ]
         startup_files = []
 
@@ -401,8 +399,8 @@ class InteractiveShellApp(Configurable):
                 self.log.warning("Unknown error in handling PYTHONSTARTUP file %s:", python_startup)
                 self.shell.showtraceback()
         for startup_dir in startup_dirs[::-1]:
-            startup_files += list(startup_dir.glob('*.py'))
-            startup_files += list(startup_dir.glob('*.ipy'))
+            startup_files += list(startup_dir.glob("*.py"))
+            startup_files += list(startup_dir.glob("*.ipy"))
         if not startup_files:
             return
 
