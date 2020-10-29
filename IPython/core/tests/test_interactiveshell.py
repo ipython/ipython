@@ -504,30 +504,30 @@ class InteractiveShellTestCase(unittest.TestCase):
             res = ip.run_cell('%' + cmd)
             self.assertEqual(res.success, True)
 
-    # def test_removes_temp_files_and_directories(self):
-    #     original_history_manager = ip.history_manager
-    #     with tempfile.TemporaryDirectory() as db_dir:
-    #         hist_file = os.path.join(db_dir, "history.sqlite")
-    #         ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
-    # 
-    #         # First we ensure that we have created at least a tempfile
-    #         ip.mktempfile()
-    # 
-    #         # Ensure saving thread is shut down before we try to clean up the files
-    #         ip.history_manager.reset(new_session=False)
-    # 
-    #         # Then we run the atexit operations
-    #         ip.atexit_operations()
-    # 
-    #         # Now we check that they are deleted on exit
-    #         for tmpdir in ip.tempdirs:
-    #             self.assertFalse(tmpdir.exists())
-    # 
-    #         for tmpfile in ip.tempfiles:
-    #             self.assertFalse(tmpfile.exists())
-    # 
-    #     # Finnaly restore history manager
-    #     ip.history_manager = original_history_manager
+    def test_removes_temp_files_and_directories(self):
+        original_history_manager = ip.history_manager
+        with tempfile.TemporaryDirectory() as db_dir:
+            hist_file = os.path.join(db_dir, "history.sqlite")
+            ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
+
+            # First we ensure that we have created at least a tempfile
+            ip.mktempfile()
+
+            # Ensure saving thread is shut down before we try to clean up the files
+            ip.history_manager.reset(new_session=False)
+
+            # Then we run the atexit operations
+            ip.atexit_operations()
+
+            # Now we check that they are deleted on exit
+            for tmpdir in ip.tempdirs:
+                self.assertFalse(tmpdir.exists())
+
+            for tmpfile in ip.tempfiles:
+                self.assertFalse(tmpfile.exists())
+
+        # Finnaly restore history manager
+        ip.history_manager = original_history_manager
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
