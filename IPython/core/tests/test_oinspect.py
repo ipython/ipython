@@ -53,7 +53,7 @@ class Test(TestCase):
 # A couple of utilities to ensure these tests work the same from a source or a
 # binary install
 def pyfile(fname):
-    return os.path.normcase(re.sub('.py[co]$', '.py', str(fname)))
+    return os.path.normcase(re.sub(".py[co]$", ".py", str(fname)))
 
 
 def match_pyfiles(f1, f2):
@@ -175,16 +175,16 @@ def test_info():
     nt.assert_regex(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>")
     fname = Path(__file__)
     if fname.suffix == ".pyc":
-        fname = fname.with_suffix('.py')
+        fname = fname.with_suffix(".py")
     # case-insensitive comparison needed on some filesystems
     # e.g. Windows:
-    nt.assert_equal(i['file'].lower(), compress_user(str(fname)).lower())
-    nt.assert_equal(i['definition'], None)
-    nt.assert_equal(i['docstring'], Call.__doc__)
-    nt.assert_equal(i['source'], None)
-    nt.assert_true(i['isclass'])
-    nt.assert_equal(i['init_definition'], "Call(x, y=1)")
-    nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
+    nt.assert_equal(i["file"].lower(), compress_user(str(fname)).lower())
+    nt.assert_equal(i["definition"], None)
+    nt.assert_equal(i["docstring"], Call.__doc__)
+    nt.assert_equal(i["source"], None)
+    nt.assert_true(i["isclass"])
+    nt.assert_equal(i["init_definition"], "Call(x, y=1)")
+    nt.assert_equal(i["init_docstring"], Call.__init__.__doc__)
 
     i = inspector.info(Call, detail_level=1)
     nt.assert_not_equal(i['source'], None)
