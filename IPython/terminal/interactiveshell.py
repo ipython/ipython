@@ -27,6 +27,7 @@ from traitlets import (
     Float,
 )
 
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.formatted_text import PygmentsTokens
@@ -353,18 +354,20 @@ class TerminalInteractiveShell(InteractiveShell):
 
         self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(
-                            editing_mode=editing_mode,
-                            key_bindings=key_bindings,
-                            history=history,
-                            completer=IPythonPTCompleter(shell=self),
-                            enable_history_search = self.enable_history_search,
-                            style=self.style,
-                            include_default_pygments_style=False,
-                            mouse_support=self.mouse_support,
-                            enable_open_in_editor=self.extra_open_editor_shortcuts,
-                            color_depth=self.color_depth,
-                            tempfile_suffix=".py",
-                            **self._extra_prompt_options())
+            auto_suggest=AutoSuggestFromHistory(),
+            editing_mode=editing_mode,
+            key_bindings=key_bindings,
+            history=history,
+            completer=IPythonPTCompleter(shell=self),
+            enable_history_search=self.enable_history_search,
+            style=self.style,
+            include_default_pygments_style=False,
+            mouse_support=self.mouse_support,
+            enable_open_in_editor=self.extra_open_editor_shortcuts,
+            color_depth=self.color_depth,
+            tempfile_suffix=".py",
+            **self._extra_prompt_options()
+        )
 
     def _make_style_from_name_or_cls(self, name_or_cls):
         """
