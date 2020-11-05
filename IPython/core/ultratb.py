@@ -448,7 +448,7 @@ def find_recursion(etype, value, records):
     # quarter of the traceback (250 frames by default) is repeats, and find the
     # first frame (from in to out) that looks different.
     if not is_recursion_error(etype, value, records):
-        return len(records), 0
+        return None if records is None else len(records), 0
 
     # Select filename, lineno, func_name to track frames with
     records = [r[1:4] for r in records]
