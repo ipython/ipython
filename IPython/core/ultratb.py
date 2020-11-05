@@ -347,6 +347,8 @@ def fix_frame_records_filenames(records):
 def _fixed_getinnerframes(etb, context=1, tb_offset=0):
     LNUM_POS, LINES_POS, INDEX_POS = 2, 4, 5
 
+    if isinstance(etb, (tuple, list)):
+        etb = next(filter(inspect.istraceback, etb))
     records = fix_frame_records_filenames(inspect.getinnerframes(etb, context))
     # If the error is at the console, don't build any context, since it would
     # otherwise produce 5 blank lines printed out (there is no file at the
@@ -601,7 +603,7 @@ class ListTB(TBTools):
 
     Calling requires 3 arguments: (etype, evalue, elist)
     as would be obtained by::
-    
+
       etype, evalue, tb = sys.exc_info()
       if tb:
         elist = traceback.extract_tb(tb)
@@ -885,13 +887,25 @@ class VerboseTB(TBTools):
         """Format the stack frames of the traceback"""
         frames = []
 
-        skipped = 0
-        lastrecord = len(records) - 1
-        for i, r in enumerate(records[: last_unique + recursion_repeat + 1]):
-            if self.skip_hidden:
-                if r[0].f_locals.get("__tracebackhide__", 0) and i != lastrecord:
-                    skipped += 1
-                    continue
+        if records is not None:
+            skipped = 0
+            lastrecord = len(records) - 1
+            for i, r in enumerate(records[: last_unique + recursion_repeat + 1]):
+                if self.skip_hidden:
+                    if r[0].f_locals.get("__tracebackhide__", 0) and i != lastrecord:
+                        skipped += 1
+                        continue
+                if skipped:
+                    Colors = self.Colors  # just a shorthand + quicker name lookup
+                    ColorsNormal = Colors.Normal  # used a lot
+                    frames.append(
+                        "    %s[... skipping hidden %s frame]%s\n"
+                        % (Colors.excName, skipped, ColorsNormal)
+                    )
+                    skipped = 0
+
+                frames.append(self.format_record(*r))
+
             if skipped:
                 Colors = self.Colors  # just a shorthand + quicker name lookup
                 ColorsNormal = Colors.Normal  # used a lot
@@ -899,17 +913,6 @@ class VerboseTB(TBTools):
                     "    %s[... skipping hidden %s frame]%s\n"
                     % (Colors.excName, skipped, ColorsNormal)
                 )
-                skipped = 0
-
-            frames.append(self.format_record(*r))
-            
-        if skipped:
-            Colors = self.Colors  # just a shorthand + quicker name lookup
-            ColorsNormal = Colors.Normal  # used a lot
-            frames.append(
-                "    %s[... skipping hidden %s frame]%s\n"
-                % (Colors.excName, skipped, ColorsNormal)
-            )
 
         if recursion_repeat:
             frames.append('... last %d frames repeated, from the frame below ...\n' % recursion_repeat)
