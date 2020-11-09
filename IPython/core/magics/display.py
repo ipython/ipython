@@ -51,7 +51,7 @@ class DisplayMagics(Magics):
 
         The subset of LaTeX which is supported depends on the implementation in
         the client.  In the Jupyter Notebook, this magic only renders the subset
-        of latex defined by MathJax
+        of LaTeX defined by MathJax
         [here](https://docs.mathjax.org/en/v2.5-latest/tex.html)."""
         display(Latex(cell))
 
