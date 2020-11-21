@@ -618,9 +618,9 @@ class Magics(Configurable):
         posix = kw.get('posix', os.name == 'posix')
         strict = kw.get('strict', True)
 
-        preserve_non_opts = kw.get('preserve_non_opts', False)
+        preserve_non_opts = kw.get("preserve_non_opts", False)
         remainder_arg_str = arg_str
-        
+
         # Check if we have more than one argument to warrant extra processing:
         odict = {}  # Dictionary with options
         args = arg_str.split()
@@ -632,15 +632,18 @@ class Magics(Configurable):
             try:
                 opts,args = getopt(argv, opt_str, long_opts)
             except GetoptError as e:
-                raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str,
-                                                             " ".join(long_opts))) from e
-            for o,a in opts:
-                if mode is 'string' and preserve_non_opts:
+                raise UsageError(
+                    '%s ( allowed: "%s" %s)' % (e.msg, opt_str, " ".join(long_opts))
+                ) from e
+            for o, a in opts:
+                if mode is "string" and preserve_non_opts:
                     # remove option-parts from the original args-string and preserve remaining-part.
-                    # This relies on the arg_split(...) and getopt(...)'s impl spec, that the parsed options are 
-                    # returned in the original order. 
-                    remainder_arg_str = remainder_arg_str.replace(o, '', 1).replace(a, '', 1)
-                if o.startswith('--'):
+                    # This relies on the arg_split(...) and getopt(...)'s impl spec, that the parsed options are
+                    # returned in the original order.
+                    remainder_arg_str = remainder_arg_str.replace(o, "", 1).replace(
+                        a, "", 1
+                    )
+                if o.startswith("--"):
                     o = o[2:]
                 else:
                     o = o[1:]

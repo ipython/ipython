@@ -473,17 +473,19 @@ def test_parse_options():
 def test_parse_options_preserve_non_option_string():
     """Test to assert preservation of non-option part of magic-block, while parsing magic options."""
     m = DummyMagics(_ip)
-    opts, stmt = m.parse_options(' -n1  -r 13 _ = 314 + foo', 'n:r:', preserve_non_opts= True)
-    nt.assert_equal(opts, {'n': '1', 'r': '13'})
-    nt.assert_equal(stmt, '_ = 314 + foo')
+    opts, stmt = m.parse_options(
+        " -n1  -r 13 _ = 314 + foo", "n:r:", preserve_non_opts=True
+    )
+    nt.assert_equal(opts, {"n": "1", "r": "13"})
+    nt.assert_equal(stmt, "_ = 314 + foo")
 
 
 def test_run_magic_preserve_code_block():
     """Test to assert preservation of non-option part of magic-block, while running magic."""
-    _ip.user_ns['spaces'] = []
+    _ip.user_ns["spaces"] = []
     _ip.magic("timeit -n1 -r1 spaces.append([s.count(' ') for s in ['document']])")
-    assert _ip.user_ns['spaces'] == [[0]]
-    
+    assert _ip.user_ns["spaces"] == [[0]]
+
 
 def test_dirops():
     """Test various directory handling operations."""
