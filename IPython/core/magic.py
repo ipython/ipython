@@ -663,7 +663,7 @@ class Magics(Configurable):
             if preserve_non_opts:
                 args = remainder_arg_str.lstrip()
             else:
-                args = ' '.join(args)
+                args = " ".join(args)
 
         return opts,args
 
