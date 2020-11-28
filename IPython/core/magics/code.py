@@ -246,7 +246,7 @@ class CodeMagics(Magics):
 
     @line_magic
     def pastebin(self, parameter_s=''):
-        """Upload code to dpaste's paste bin, returning the URL.
+        """Upload code to dpaste.com, returning the URL.
 
         Usage:\\
           %pastebin [-d "Custom description"] 1-7
