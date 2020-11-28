@@ -267,14 +267,18 @@ class CodeMagics(Magics):
             print(e.args[0])
             return
 
-        post_data = urlencode({
-          "title": opts.get('d', "Pasted from IPython"),
-          "syntax": "python",
-          "content": code
-        }).encode('utf-8')
+        post_data = urlencode(
+            {
+                "title": opts.get("d", "Pasted from IPython"),
+                "syntax": "python",
+                "content": code,
+            }
+        ).encode("utf-8")
 
-        request = Request("http://dpaste.com/api/v2/",
-            headers={"User-Agent": "IPython v{}".format(version)})
+        request = Request(
+            "http://dpaste.com/api/v2/",
+            headers={"User-Agent": "IPython v{}".format(version)},
+        )
         response = urlopen(request, post_data)
         return response.headers.get('Location')
 
