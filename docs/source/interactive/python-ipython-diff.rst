@@ -207,7 +207,7 @@ under the hood python function. The syntax and assignment possibility are
 similar to the one with the bang (``!``) syntax, but with more flexibility and
 power. Magic function start with a percent sign (``%``) or double percent (``%%``).
 
-A magic call with a sign percent will act only one line:
+A magic call with a sign percent will act only on one line:
 
 .. code-block:: ipython
 
