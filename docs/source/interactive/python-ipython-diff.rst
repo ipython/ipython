@@ -224,7 +224,7 @@ And support assignment:
     In [2]: results
     Out[2]: <TimeitResult : 1 loops, best of 1: 21.1 µs per loop>
 
-Magic with two percent sign can spread over multiple lines, but do not support assignment:
+Magic with two percent sign can spread over multiple lines, but does not support assignment:
 
 .. code-block:: ipython
 
