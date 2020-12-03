@@ -9,7 +9,7 @@ Unless expressed otherwise all of the construct you will see here will raise a
 ``SyntaxError`` if run in a pure Python shell, or if executing in a Python
 script.
 
-Each of these features are describe more in details in further part of the documentation.
+Each of these features are described more in detail in further part of the documentation.
 
 
 Quick overview:
