@@ -58,7 +58,7 @@ All the following construct are valid IPython syntax:
        ...: print $months[0];
 
 
-Each of these construct is compile by IPython into valid python code and will
+Each of these construct is compiled by IPython into valid python code and will
 do most of the time what you expect it will do. Let see each of these example
 in more detail.
 
