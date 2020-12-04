@@ -331,6 +331,7 @@ class InteractiveShellApp(Configurable):
         # flush output, so itwon't be attached to the first cell
         sys.stdout.flush()
         sys.stderr.flush()
+        self.shell._sys_modules_keys = set(sys.modules.keys())
 
     def _run_exec_lines(self):
         """Run lines of code in IPythonApp.exec_lines in the user's namespace."""

@@ -491,6 +491,10 @@ class NamespaceMagics(Magics):
             we do a 'hard' reset, giving you a new session and removing all
             references to objects from the current session.
 
+        --aggressive: Try to aggressively remove modules from sys.modules ; this
+            may allow you to reimport Python modules that have been updated and
+            pick up changes, but can have unattended consequences.
+
         in : reset input history
 
         out : reset output history
@@ -533,8 +537,8 @@ class NamespaceMagics(Magics):
         such as the ipython notebook interface, will reset the namespace
         without confirmation.
         """
-        opts, args = self.parse_options(parameter_s,'sf', mode='list')
-        if 'f' in opts:
+        opts, args = self.parse_options(parameter_s, "sf", "aggressive", mode="list")
+        if "f" in opts:
             ans = True
         else:
             try:
@@ -552,7 +556,7 @@ class NamespaceMagics(Magics):
             for i in self.who_ls():
                 del(user_ns[i])
         elif len(args) == 0:                # Hard reset
-            self.shell.reset(new_session = False)
+            self.shell.reset(new_session=False, aggressive=("aggressive" in opts))
 
         # reset in/out/dhist/array: previously extensinions/clearcmd.py
         ip = self.shell
