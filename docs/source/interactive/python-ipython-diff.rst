@@ -9,7 +9,7 @@ Unless expressed otherwise all of the construct you will see here will raise a
 ``SyntaxError`` if run in a pure Python shell, or if executing in a Python
 script.
 
-Each of these features are describe more in details in further part of the documentation.
+Each of these features are described more in detail in further part of the documentation.
 
 
 Quick overview:
@@ -58,7 +58,7 @@ All the following construct are valid IPython syntax:
        ...: print $months[0];
 
 
-Each of these construct is compile by IPython into valid python code and will
+Each of these construct is compiled by IPython into valid python code and will
 do most of the time what you expect it will do. Let see each of these example
 in more detail.
 
@@ -207,7 +207,7 @@ under the hood python function. The syntax and assignment possibility are
 similar to the one with the bang (``!``) syntax, but with more flexibility and
 power. Magic function start with a percent sign (``%``) or double percent (``%%``).
 
-A magic call with a sign percent will act only one line:
+A magic call with a sign percent will act only on one line:
 
 .. code-block:: ipython
 
@@ -224,7 +224,7 @@ And support assignment:
     In [2]: results
     Out[2]: <TimeitResult : 1 loops, best of 1: 21.1 µs per loop>
 
-Magic with two percent sign can spread over multiple lines, but do not support assignment:
+Magic with two percent sign can spread over multiple lines, but does not support assignment:
 
 .. code-block:: ipython
 
