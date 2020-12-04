@@ -155,7 +155,12 @@ def qtapi_version():
     try:
         import sip
     except ImportError:
-        return
+        # as of PyQt5 5.11, sip is no longer available as a top-level
+        # module and needs to be imported from the PyQt5 namespace
+        try:
+            from PyQt5 import sip
+        except ImportError:
+            return
     try:
         return sip.getapi('QString')
     except ValueError:
