@@ -1410,7 +1410,7 @@ class InteractiveShell(SingletonConfigurable):
         return [self.user_ns, self.user_global_ns, self.user_ns_hidden] + \
                [m.__dict__ for m in self._main_mod_cache.values()]
 
-    def reset(self, new_session=True):
+    def reset(self, new_session=True, aggressive=False):
         """Clear all internal namespaces, and attempt to release references to
         user objects.
 
@@ -1447,6 +1447,15 @@ class InteractiveShell(SingletonConfigurable):
 
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
+        if aggressive and not hasattr(self, "_sys_modules_keys"):
+            print("Cannot restore sys.module, no snapshot")
+        elif aggressive:
+            print("culling sys module...")
+            current_keys = set(sys.modules.keys())
+            for k in current_keys - self._sys_modules_keys:
+                if k.startswith("multiprocessing"):
+                    continue
+                del sys.modules[k]
 
         # Restore the default and user aliases
         self.alias_manager.clear_aliases()
