@@ -70,13 +70,13 @@ class Audio(DisplayObject):
     ... framerate = 44100
     ... t = np.linspace(0,5,framerate*5)
     ... data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
-    ... Audio(data,rate=framerate)
+    ... Audio(data, rate=framerate)
 
     Can also do stereo or more channels
 
     >>> dataleft = np.sin(2*np.pi*220*t)
     ... dataright = np.sin(2*np.pi*224*t)
-    ... Audio([dataleft, dataright],rate=framerate)
+    ... Audio([dataleft, dataright], rate=framerate)
 
     From URL:
 
