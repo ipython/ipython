@@ -335,7 +335,6 @@ class TestAutoreload(Fixture):
         self.shell.run_code("t = ExtTest(); assert t.meth() == 'ext'")
         self.shell.run_code("assert ext_int == 2")
 
-
     def _check_smoketest(self, use_aimport=True):
         """
         Functional test for the automatic reloader using either
