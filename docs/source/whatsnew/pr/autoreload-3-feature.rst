@@ -1,5 +1,5 @@
 Autoreload 3 feature
-===================
+====================
 
 Example: When an IPython session is ran with the 'autoreload' extension loaded,
 you will now have the option '3' to select which means the following:
