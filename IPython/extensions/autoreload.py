@@ -48,6 +48,12 @@ The following magic commands are provided:
     Reload all modules (except those excluded by ``%aimport``) every
     time before executing the Python code typed.
 
+``%autoreload 3``
+
+    Reload all modules AND autoload newly added objects
+        (except those excluded by ``%aimport``)
+    every time before executing the Python code typed.
+
 ``%aimport``
 
     List modules which are to be automatically imported or not to be imported.
@@ -131,7 +137,10 @@ class ModuleReloader(object):
     check_all = True
     """Autoreload all modules, not just those listed in 'modules'"""
 
-    def __init__(self):
+    autoload_obj = False
+    """Autoreload all modules AND autoload all new objects"""
+
+    def __init__(self, shell=None):
         # Modules that failed to reload: {module: mtime-on-failed-reload, ...}
         self.failed = {}
         # Modules specially marked as autoreloadable.
@@ -142,6 +151,7 @@ class ModuleReloader(object):
         self.old_objects = {}
         # Module modification timestamps
         self.modules_mtimes = {}
+        self.shell = shell
 
         # Cache module modification times
         self.check(check_all=True, do_reload=False)
@@ -242,7 +252,10 @@ class ModuleReloader(object):
             # If we've reached this point, we should try to reload the module
             if do_reload:
                 try:
-                    superreload(m, reload, self.old_objects)
+                    if self.autoload_obj:
+                        superreload(m, reload, self.old_objects, self.shell)
+                    else:
+                        superreload(m, reload, self.old_objects)
                     if py_filename in self.failed:
                         del self.failed[py_filename]
                 except:
@@ -356,7 +369,25 @@ class StrongRef(object):
         return self.obj
 
 
-def superreload(module, reload=reload, old_objects=None):
+def append_obj(module, d, name, obj, autoload=False):
+    not_in_mod = not hasattr(obj, '__module__') or obj.__module__ != module.__name__
+    if autoload:
+        # check needed for module global built-ins (int, str, dict,..)
+        if name.startswith('__') and not_in_mod:
+            return False
+    else:
+        if not_in_mod:
+            return False
+
+    key = (module.__name__, name)
+    try:
+        d.setdefault(key, []).append(weakref.ref(obj))
+    except TypeError:
+        pass
+    return True
+
+
+def superreload(module, reload=reload, old_objects=None, shell=None):
     """Enhanced version of the builtin reload function.
 
     superreload remembers objects previously in the module, and
@@ -371,13 +402,8 @@ def superreload(module, reload=reload, old_objects=None):
 
     # collect old objects in the module
     for name, obj in list(module.__dict__.items()):
-        if not hasattr(obj, '__module__') or obj.__module__ != module.__name__:
+        if not append_obj(module, old_objects, name, obj):
             continue
-        key = (module.__name__, name)
-        try:
-            old_objects.setdefault(key, []).append(weakref.ref(obj))
-        except TypeError:
-            pass
 
     # reload module
     try:
@@ -400,7 +426,13 @@ def superreload(module, reload=reload, old_objects=None):
     # iterate over all objects and update functions & classes
     for name, new_obj in list(module.__dict__.items()):
         key = (module.__name__, name)
-        if key not in old_objects: continue
+        if key not in old_objects:
+            # here 'shell' acts both as a flag and as an output var
+            if shell is None or \
+               name == 'Enum' or \
+               not append_obj(module, old_objects, name, new_obj, True):
+                continue
+            shell.user_ns[name] = new_obj
 
         new_refs = []
         for old_ref in old_objects[key]:
@@ -413,7 +445,6 @@ def superreload(module, reload=reload, old_objects=None):
             old_objects[key] = new_refs
         else:
             del old_objects[key]
-
     return module
 
 #------------------------------------------------------------------------------
@@ -426,8 +457,9 @@ from IPython.core.magic import Magics, magics_class, line_magic
 class AutoreloadMagics(Magics):
     def __init__(self, *a, **kw):
         super(AutoreloadMagics, self).__init__(*a, **kw)
-        self._reloader = ModuleReloader()
+        self._reloader = ModuleReloader(self.shell)
         self._reloader.check_all = False
+        self._reloader.autoload_obj = False
         self.loaded_modules = set(sys.modules)
 
     @line_magic
@@ -485,6 +517,10 @@ class AutoreloadMagics(Magics):
         elif parameter_s == '2':
             self._reloader.check_all = True
             self._reloader.enabled = True
+        elif parameter_s == '3':
+            self._reloader.check_all = True
+            self._reloader.enabled = True
+            self._reloader.autoload_obj = True
 
     @line_magic
     def aimport(self, parameter_s='', stream=None):
