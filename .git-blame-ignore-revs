@@ -18,3 +18,4 @@ df2317caf5c5c42e2bfba73800445fdcb0ce168f # apply pyupgrade to IPython/extensions
 71063696edd3b9e5c2ee0a6028713cf70aa4e35f # apply pyupgrade to IPython/extensions/tests/test_autoreload.py
 ec5808a6dbd52cbe682c57212d7e16eb50e5c334 # apply black to IPython/extensions/tests/test_autoreload.py
 377e199b34623e16342d7cd07a735cc6887696a2 # apply pyupgrade to IPython/extensions/autoreload.py
+c4db573c0e3c3a3f1a0909a25ecca2627c2cc845 # apply pyupgrade to IPython/extensions/autoreload.py
