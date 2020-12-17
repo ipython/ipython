@@ -392,7 +392,7 @@ mod_attrs = [
     "__spec__",
     "__file__",
     "__cached__",
-    "__builtins__"
+    "__builtins__",
 ]
 
 
