@@ -51,7 +51,6 @@ The following magic commands are provided:
 ``%autoreload 3``
 
     Reload all modules AND autoload newly added objects
-        (except those excluded by ``%aimport``)
     every time before executing the Python code typed.
 
 ``%aimport``
