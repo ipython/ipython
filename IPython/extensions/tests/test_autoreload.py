@@ -252,6 +252,89 @@ class TestAutoreload(Fixture):
             with nt.assert_raises(AttributeError):
                 self.shell.run_code("{object_name}.toto".format(object_name=object_name))
 
+    def test_autoload_newly_added_objects(self):
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"from {mod_name} import *")
+        self.shell.run_code("func1()")
+        with nt.assert_raises(NameError):
+            self.shell.run_code('func2()')
+        with nt.assert_raises(NameError):
+            self.shell.run_code('t = Test()')
+        with nt.assert_raises(NameError):
+            self.shell.run_code('number')
+
+        # ----------- TEST NEW OBJ LOADED --------------------------
+
+        new_code = """
+        def func1(): pass
+        def func2(): pass
+        class Test: pass
+        number = 0
+        from enum import Enum
+        class TestEnum(Enum):
+            A = 'a'
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+
+        # test function now exists in shell's namespace namespace
+        self.shell.run_code("func2()")
+        # test function now exists in module's dict
+        self.shell.run_code(f"import sys; sys.modules['{mod_name}'].func2()")
+        # test class now exists
+        self.shell.run_code("t = Test()")
+        # test global built-in var now exists
+        self.shell.run_code('number')
+        # test the enumerations gets loaded succesfully
+        self.shell.run_code("TestEnum.A")
+
+        # ----------- TEST NEW OBJ CAN BE CHANGED --------------------
+
+        new_code = """
+        def func1(): return 'changed'
+        def func2(): return 'changed'
+        class Test:
+            def new_func(self):
+                return 'changed'
+        number = 1
+        from enum import Enum
+        class TestEnum(Enum):
+            A = 'a'
+            B = 'added'
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+        self.shell.run_code("assert func1() == 'changed'")
+        self.shell.run_code("assert func2() == 'changed'")
+        self.shell.run_code("t = Test(); assert t.new_func() == 'changed'")
+        self.shell.run_code("assert number == 1")
+        self.shell.run_code("assert TestEnum.B.value == 'added'")
+
+        # ----------- TEST IMPORT FROM MODULE --------------------------
+
+        new_mod_code = '''
+        from enum import Enum
+        class Ext(Enum):
+            A = 'ext'
+        def ext_func():
+            return 'ext'
+        class ExtTest:
+            def meth(self):
+                return 'ext'
+        ext_int = 2
+        '''
+        new_mod_name, new_mod_fn = self.new_module(textwrap.dedent(new_mod_code))
+        current_mod_code = f'''
+        from {new_mod_name} import *
+        '''
+        self.write_file(mod_fn, textwrap.dedent(current_mod_code))
+        self.shell.run_code("assert Ext.A.value == 'ext'")
+        self.shell.run_code("assert ext_func() == 'ext'")
+        self.shell.run_code("t = ExtTest(); assert t.meth() == 'ext'")
+        self.shell.run_code("assert ext_int == 2")
+
     def _check_smoketest(self, use_aimport=True):
         """
         Functional test for the automatic reloader using either
