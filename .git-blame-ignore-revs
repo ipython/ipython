@@ -18,3 +18,4 @@ a6a7e4dd7e51b892147895006d3a2a6c34b79ae6 # apply black to IPython/extensions/tes
 c5ca5a8f25432dfd6b9eccbbe446a8348bf37cfa # apply pyupgrade to IPython/extensions/autoreload.py
 50624b84ccdece781750f5eb635a9efbf2fe30d6 # apply black to IPython/extensions/autoreload.py
 b7aaa47412b96379198705955004930c57f9d74a # apply pyupgrade to IPython/extensions/autoreload.py
+9c7476a88af3e567426b412f1b3c778401d8f6aa # apply black to IPython/extensions/autoreload.py
