@@ -124,7 +124,7 @@ from imp import reload
 # Autoreload functionality
 #------------------------------------------------------------------------------
 
-class ModuleReloader(object):
+class ModuleReloader:
     enabled = False
     """Whether this reloader is enabled"""
 
@@ -246,7 +246,7 @@ class ModuleReloader(object):
                     if py_filename in self.failed:
                         del self.failed[py_filename]
                 except:
-                    print("[autoreload of %s failed: %s]" % (
+                    print("[autoreload of {} failed: {}]".format(
                             modname, traceback.format_exc(10)), file=sys.stderr)
                     self.failed[py_filename] = pymtime
 
@@ -349,7 +349,7 @@ def update_generic(a, b):
     return False
 
 
-class StrongRef(object):
+class StrongRef:
     def __init__(self, obj):
         self.obj = obj
     def __call__(self):
@@ -425,7 +425,7 @@ from IPython.core.magic import Magics, magics_class, line_magic
 @magics_class
 class AutoreloadMagics(Magics):
     def __init__(self, *a, **kw):
-        super(AutoreloadMagics, self).__init__(*a, **kw)
+        super().__init__(*a, **kw)
         self._reloader = ModuleReloader()
         self._reloader.check_all = False
         self.loaded_modules = set(sys.modules)
