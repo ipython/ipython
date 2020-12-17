@@ -14,3 +14,4 @@
 # <full commit hash>  # rename something internal
 6e748726282d1acb9a4f9f264ee679c474c4b8f5  # Apply pygrade --36plus on IPython/core/tests/test_inputtransformer.py.
 b3555d39bdfd597564c72691cfc74d06d3c698a1 # apply pyupgrade to IPython/extensions/autoreload.py
+0a27d4efc8ff92be48b43d5d5e48e2a1c2f6e9f1 # apply black to IPython/extensions/autoreload.py
