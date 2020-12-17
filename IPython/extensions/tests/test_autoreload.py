@@ -242,15 +242,15 @@ class TestAutoreload(Fixture):
         self.shell.run_code("second = MyClass(5)")
 
         for object_name in {'first', 'second'}:
-            self.shell.run_code("{object_name}.power(5)".format(object_name=object_name))
+            self.shell.run_code(f"{object_name}.power(5)")
             with nt.assert_raises(AttributeError):
-                self.shell.run_code("{object_name}.cube()".format(object_name=object_name))
+                self.shell.run_code(f"{object_name}.cube()")
             with nt.assert_raises(AttributeError):
-                self.shell.run_code("{object_name}.square()".format(object_name=object_name))
-            self.shell.run_code("{object_name}.b".format(object_name=object_name))
-            self.shell.run_code("{object_name}.a".format(object_name=object_name))
+                self.shell.run_code(f"{object_name}.square()")
+            self.shell.run_code(f"{object_name}.b")
+            self.shell.run_code(f"{object_name}.a")
             with nt.assert_raises(AttributeError):
-                self.shell.run_code("{object_name}.toto".format(object_name=object_name))
+                self.shell.run_code(f"{object_name}.toto")
 
     def test_autoload_newly_added_objects(self):
         self.shell.magic_autoreload("3")
