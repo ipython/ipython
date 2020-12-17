@@ -397,13 +397,13 @@ mod_attrs = [
 
 
 def append_obj(module, d, name, obj, autoload=False):
-    not_in_mod = not hasattr(obj, "__module__") or obj.__module__ != module.__name__
+    in_module = hasattr(obj, "__module__") and obj.__module__ == module.__name__
     if autoload:
         # check needed for module global built-ins
-        if not_in_mod and name in mod_attrs:
+        if not in_module and name in mod_attrs:
             return False
     else:
-        if not_in_mod:
+        if not in_module:
             return False
 
     key = (module.__name__, name)
