@@ -94,21 +94,21 @@ Some of the known remaining caveats are:
 
 skip_doctest = True
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2000 Thomas Heller
 #  Copyright (C) 2008 Pauli Virtanen <pav@iki.fi>
 #  Copyright (C) 2012  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
 # This IPython module is written by Pauli Virtanen, based on the autoreload
 # code by Thomas Heller.
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 import sys
@@ -120,9 +120,10 @@ from importlib import import_module
 from importlib.util import source_from_cache
 from imp import reload
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Autoreload functionality
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
 
 class ModuleReloader:
     enabled = False
@@ -176,22 +177,22 @@ class ModuleReloader:
         self.mark_module_reloadable(module_name)
 
         import_module(module_name)
-        top_name = module_name.split('.')[0]
+        top_name = module_name.split(".")[0]
         top_module = sys.modules[top_name]
         return top_module, top_name
 
     def filename_and_mtime(self, module):
-        if not hasattr(module, '__file__') or module.__file__ is None:
+        if not hasattr(module, "__file__") or module.__file__ is None:
             return None, None
 
-        if getattr(module, '__name__', None) in [None, '__mp_main__', '__main__']:
+        if getattr(module, "__name__", None) in [None, "__mp_main__", "__main__"]:
             # we cannot reload(__main__) or reload(__mp_main__)
             return None, None
 
         filename = module.__file__
         path, ext = os.path.splitext(filename)
 
-        if ext.lower() == '.py':
+        if ext.lower() == ".py":
             py_filename = filename
         else:
             try:
@@ -246,17 +247,28 @@ class ModuleReloader:
                     if py_filename in self.failed:
                         del self.failed[py_filename]
                 except:
-                    print("[autoreload of {} failed: {}]".format(
-                            modname, traceback.format_exc(10)), file=sys.stderr)
+                    print(
+                        "[autoreload of {} failed: {}]".format(
+                            modname, traceback.format_exc(10)
+                        ),
+                        file=sys.stderr,
+                    )
                     self.failed[py_filename] = pymtime
 
-#------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # superreload
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
-func_attrs = ['__code__', '__defaults__', '__doc__',
-              '__closure__', '__globals__', '__dict__']
+func_attrs = [
+    "__code__",
+    "__defaults__",
+    "__doc__",
+    "__closure__",
+    "__globals__",
+    "__dict__",
+]
 
 
 def update_function(old, new):
@@ -272,7 +284,7 @@ def update_instances(old, new):
     """Use garbage collector to find all instances that refer to the old
     class definition and update their __class__ to point to the new class
     definition"""
-    
+
     refs = gc.get_referrers(old)
 
     for ref in refs:
@@ -299,19 +311,20 @@ def update_class(old, new):
                 pass
             continue
 
-        if update_generic(old_obj, new_obj): continue
+        if update_generic(old_obj, new_obj):
+            continue
 
         try:
             setattr(old, key, getattr(new, key))
         except (AttributeError, TypeError):
-            pass # skip non-writable attributes
+            pass  # skip non-writable attributes
 
     for key in list(new.__dict__.keys()):
         if key not in list(old.__dict__.keys()):
             try:
                 setattr(old, key, getattr(new, key))
             except (AttributeError, TypeError):
-                pass # skip non-writable attributes
+                pass  # skip non-writable attributes
 
     # update all instances of class
     update_instances(old, new)
@@ -329,16 +342,18 @@ def isinstance2(a, b, typ):
 
 
 UPDATE_RULES = [
-    (lambda a, b: isinstance2(a, b, type),
-     update_class),
-    (lambda a, b: isinstance2(a, b, types.FunctionType),
-     update_function),
-    (lambda a, b: isinstance2(a, b, property),
-     update_property),
+    (lambda a, b: isinstance2(a, b, type), update_class),
+    (lambda a, b: isinstance2(a, b, types.FunctionType), update_function),
+    (lambda a, b: isinstance2(a, b, property), update_property),
 ]
-UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.MethodType),
-                      lambda a, b: update_function(a.__func__, b.__func__)),
-])
+UPDATE_RULES.extend(
+    [
+        (
+            lambda a, b: isinstance2(a, b, types.MethodType),
+            lambda a, b: update_function(a.__func__, b.__func__),
+        ),
+    ]
+)
 
 
 def update_generic(a, b):
@@ -352,6 +367,7 @@ def update_generic(a, b):
 class StrongRef:
     def __init__(self, obj):
         self.obj = obj
+
     def __call__(self):
         return self.obj
 
@@ -371,7 +387,7 @@ def superreload(module, reload=reload, old_objects=None):
 
     # collect old objects in the module
     for name, obj in list(module.__dict__.items()):
-        if not hasattr(obj, '__module__') or obj.__module__ != module.__name__:
+        if not hasattr(obj, "__module__") or obj.__module__ != module.__name__:
             continue
         key = (module.__name__, name)
         try:
@@ -385,8 +401,8 @@ def superreload(module, reload=reload, old_objects=None):
         old_dict = module.__dict__.copy()
         old_name = module.__name__
         module.__dict__.clear()
-        module.__dict__['__name__'] = old_name
-        module.__dict__['__loader__'] = old_dict['__loader__']
+        module.__dict__["__name__"] = old_name
+        module.__dict__["__loader__"] = old_dict["__loader__"]
     except (TypeError, AttributeError, KeyError):
         pass
 
@@ -400,12 +416,14 @@ def superreload(module, reload=reload, old_objects=None):
     # iterate over all objects and update functions & classes
     for name, new_obj in list(module.__dict__.items()):
         key = (module.__name__, name)
-        if key not in old_objects: continue
+        if key not in old_objects:
+            continue
 
         new_refs = []
         for old_ref in old_objects[key]:
             old_obj = old_ref()
-            if old_obj is None: continue
+            if old_obj is None:
+                continue
             new_refs.append(old_ref)
             update_generic(old_obj, new_obj)
 
@@ -416,11 +434,13 @@ def superreload(module, reload=reload, old_objects=None):
 
     return module
 
-#------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # IPython connectivity
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from IPython.core.magic import Magics, magics_class, line_magic
+
 
 @magics_class
 class AutoreloadMagics(Magics):
@@ -431,7 +451,7 @@ class AutoreloadMagics(Magics):
         self.loaded_modules = set(sys.modules)
 
     @line_magic
-    def autoreload(self, parameter_s=''):
+    def autoreload(self, parameter_s=""):
         r"""%autoreload => Reload modules automatically
 
         %autoreload
@@ -475,19 +495,19 @@ class AutoreloadMagics(Magics):
           autoreloaded.
 
         """
-        if parameter_s == '':
+        if parameter_s == "":
             self._reloader.check(True)
-        elif parameter_s == '0':
+        elif parameter_s == "0":
             self._reloader.enabled = False
-        elif parameter_s == '1':
+        elif parameter_s == "1":
             self._reloader.check_all = False
             self._reloader.enabled = True
-        elif parameter_s == '2':
+        elif parameter_s == "2":
             self._reloader.check_all = True
             self._reloader.enabled = True
 
     @line_magic
-    def aimport(self, parameter_s='', stream=None):
+    def aimport(self, parameter_s="", stream=None):
         """%aimport => Import modules for automatic reloading.
 
         %aimport
@@ -511,13 +531,13 @@ class AutoreloadMagics(Magics):
             if self._reloader.check_all:
                 stream.write("Modules to reload:\nall-except-skipped\n")
             else:
-                stream.write("Modules to reload:\n%s\n" % ' '.join(to_reload))
-            stream.write("\nModules to skip:\n%s\n" % ' '.join(to_skip))
-        elif modname.startswith('-'):
+                stream.write("Modules to reload:\n%s\n" % " ".join(to_reload))
+            stream.write("\nModules to skip:\n%s\n" % " ".join(to_skip))
+        elif modname.startswith("-"):
             modname = modname[1:]
             self._reloader.mark_module_skipped(modname)
         else:
-            for _module in ([_.strip() for _ in modname.split(',')]):
+            for _module in [_.strip() for _ in modname.split(",")]:
                 top_module, top_name = self._reloader.aimport_module(_module)
 
                 # Inject module to user namespace
@@ -531,8 +551,7 @@ class AutoreloadMagics(Magics):
                 pass
 
     def post_execute_hook(self):
-        """Cache the modification times of any modules imported in this execution
-        """
+        """Cache the modification times of any modules imported in this execution"""
         newly_loaded_modules = set(sys.modules) - self.loaded_modules
         for modname in newly_loaded_modules:
             _, pymtime = self._reloader.filename_and_mtime(sys.modules[modname])
@@ -546,5 +565,5 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     auto_reload = AutoreloadMagics(ip)
     ip.register_magics(auto_reload)
-    ip.events.register('pre_run_cell', auto_reload.pre_run_cell)
-    ip.events.register('post_execute', auto_reload.post_execute_hook)
+    ip.events.register("pre_run_cell", auto_reload.pre_run_cell)
+    ip.events.register("post_execute", auto_reload.post_execute_hook)
