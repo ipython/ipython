@@ -885,18 +885,18 @@ class IPythonDirective(Directive):
     optional_arguments = 4 # python, suppress, verbatim, doctest
     final_argumuent_whitespace = True
     option_spec = {
-        'python': directives.unchanged,
-        'suppress': directives.flag,
-        'verbatim': directives.flag,
-        'doctest': directives.flag,
-        'okexcept': directives.flag,
-        'okwarning': directives.flag,
-        'nosuppress': directives.flag,
-        'noverbatim': directives.flag,
-        'nodoctest': directives.flag,
-        'nookexcept': directives.flag,
-        'nookwarning': directives.flag,
-    }
+        "python": directives.unchanged,
+        "suppress": directives.flag,
+        "verbatim": directives.flag,
+        "doctest": directives.flag,
+        "okexcept": directives.flag,
+        "okwarning": directives.flag,
+        "nosuppress": directives.flag,
+        "noverbatim": directives.flag,
+        "nodoctest": directives.flag,
+        "nookexcept": directives.flag,
+        "nookwarning": directives.flag,
+     }
 
     shell = None
 
@@ -926,15 +926,43 @@ class IPythonDirective(Directive):
         okexcept = config.ipython_okexcept
         okwarning = config.ipython_okwarning
 
-        return (savefig_dir, source_dir, rgxin, rgxout, promptin, promptout, mplbackend,
-                exec_lines, hold_count, warning_is_error, suppress, verbatim, doctest,
-                okexcept, okwarning)
+        return (
+            savefig_dir,
+            source_dir,
+            rgxin,
+            rgxout,
+            promptin,
+            promptout,
+            mplbackend,
+            exec_lines,
+            hold_count,
+            warning_is_error,
+            suppress,
+            verbatim,
+            doctest,
+            okexcept,
+            okwarning,
+        )
 
     def setup(self):
         # Get configuration values.
-        (savefig_dir, source_dir, rgxin, rgxout, promptin, promptout,
-         mplbackend, exec_lines, hold_count, warning_is_error, suppress,
-         verbatim, doctest, okexcept, okwarning) = self.get_config_options()
+        (
+            savefig_dir,
+            source_dir,
+            rgxin,
+            rgxout,
+            promptin,
+            promptout,
+            mplbackend,
+            exec_lines,
+            hold_count,
+            warning_is_error,
+            suppress,
+            verbatim,
+            doctest,
+            okexcept,
+            okwarning,
+        ) = self.get_config_options()
 
         try:
             os.makedirs(savefig_dir)
@@ -999,7 +1027,7 @@ class IPythonDirective(Directive):
         if option in options:
             return True
 
-        if 'no' + option in options:
+        if "no" + option in options:
             return False
 
         return getattr(self.shell, option)
@@ -1012,11 +1040,11 @@ class IPythonDirective(Directive):
         rgxin, rgxout, promptin, promptout = self.setup()
 
         options = self.options
-        self.shell.is_suppress = self._get_option('suppress')
-        self.shell.is_doctest = self._get_option('doctest')
-        self.shell.is_verbatim = self._get_option('verbatim')
-        self.shell.is_okwarning = self._get_option('okwarning')
-        self.shell.is_okexcept =  self._get_option('okexcept')
+        self.shell.is_suppress = self._get_option("suppress")
+        self.shell.is_doctest = self._get_option("doctest")
+        self.shell.is_verbatim = self._get_option("verbatim")
+        self.shell.is_okwarning = self._get_option("okwarning")
+        self.shell.is_okexcept = self._get_option("okexcept")
 
         # handle pure python code
         if 'python' in self.arguments:
@@ -1097,12 +1125,12 @@ def setup(app):
         execlines.append('import matplotlib.pyplot as plt')
     app.add_config_value('ipython_execlines', execlines, 'env')
 
-    app.add_config_value('ipython_holdcount', True, 'env')
-    app.add_config_value('ipython_suppress', False, 'env')
-    app.add_config_value('ipython_verbatim', False, 'env')
-    app.add_config_value('ipython_doctest', False, 'env')
-    app.add_config_value('ipython_okexcept', False, 'env')
-    app.add_config_value('ipython_okwarning', False, 'env')
+    app.add_config_value("ipython_holdcount", True, "env")
+    app.add_config_value("ipython_suppress", False, "env")
+    app.add_config_value("ipython_verbatim", False, "env")
+    app.add_config_value("ipython_doctest", False, "env")
+    app.add_config_value("ipython_okexcept", False, "env")
+    app.add_config_value("ipython_okwarning", False, "env")
 
     metadata = {'parallel_read_safe': True, 'parallel_write_safe': True}
     return metadata
