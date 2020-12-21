@@ -896,7 +896,7 @@ class IPythonDirective(Directive):
         "nodoctest": directives.flag,
         "nookexcept": directives.flag,
         "nookwarning": directives.flag,
-     }
+    }
 
     shell = None
 
