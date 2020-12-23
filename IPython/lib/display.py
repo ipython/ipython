@@ -369,7 +369,8 @@ class FileLink(object):
                  path,
                  url_prefix='',
                  result_html_prefix='',
-                 result_html_suffix='<br>'):
+                 result_html_suffix='<br>',
+                 download=False):
         """
         Parameters
         ----------
@@ -382,6 +383,8 @@ class FileLink(object):
             text to append to beginning to link [default: '']
         result_html_suffix : str
             text to append at the end of link [default: '<br>']
+        download : bool
+            whether to append ?download=1 to the link [default: False]
         """
         if isdir(path):
             raise ValueError("Cannot display a directory using FileLink. "
@@ -390,9 +393,11 @@ class FileLink(object):
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
         self.result_html_suffix = result_html_suffix
+        self.download = download
 
     def _format_path(self):
-        fp = ''.join([self.url_prefix, html_escape(self.path)])
+        fp_suffix = '?download=1' if self.download else ''
+        fp = ''.join([self.url_prefix, html_escape(self.path), fp_suffix])
         return ''.join([self.result_html_prefix,
                         self.html_link_str % \
                             (fp, html_escape(self.path, quote=False)),
