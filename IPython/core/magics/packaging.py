@@ -82,8 +82,9 @@ class PackagingMagics(Magics):
 
         conda = _get_conda_executable()
         args = shlex.split(line)
-        command = args[0]
-        args = args[1:]
+        command = args[0] if len(args) > 0 else ""
+        args = args[1:] if len(args) > 1 else [""]
+
         extra_args = []
 
         # When the subprocess does not allow us to respond "yes" during the installation,
