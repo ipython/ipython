@@ -13,7 +13,6 @@ import shlex
 import sys
 from pathlib import Path
 
-from pathlib import Path
 from IPython.core.magic import Magics, magics_class, line_magic
 
 
@@ -28,7 +27,7 @@ def _get_conda_executable():
     # Check if there is a conda executable in the same directory as the Python executable.
     # This is the case within conda's root environment.
     conda = Path(sys.executable).parent / "conda"
-    if conda.isfile():
+    if conda.is_file():
         return str(conda)
 
     # Otherwise, attempt to extract the executable from conda history.
@@ -41,7 +40,7 @@ def _get_conda_executable():
     )
     if match:
         return match.groupdict()["command"]
-    
+
     # Fallback: assume conda is available on the system path.
     return "conda"
 
@@ -73,14 +72,14 @@ class PackagingMagics(Magics):
     @line_magic
     def conda(self, line):
         """Run the conda package manager within the current kernel.
-        
+
         Usage:
           %conda install [pkgs]
         """
         if not _is_conda_environment():
             raise ValueError("The python kernel does not appear to be a conda environment.  "
                              "Please use ``%pip install`` instead.")
-        
+
         conda = _get_conda_executable()
         args = shlex.split(line)
         command = args[0]
