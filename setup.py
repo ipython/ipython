@@ -186,14 +186,14 @@ extras_require = dict(
 )
 
 install_requires = [
-    'setuptools>=18.5',
-    'jedi>=0.10',
-    'decorator',
-    'pickleshare',
-    'traitlets>=4.2',
-    'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
-    'pygments',
-    'backcall',
+    "setuptools>=18.5",
+    "jedi>=0.16,<0.18.0",
+    "decorator",
+    "pickleshare",
+    "traitlets>=4.2",
+    "prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1",
+    "pygments",
+    "backcall",
 ]
 
 # Platform-specific dependencies:
