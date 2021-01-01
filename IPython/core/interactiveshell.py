@@ -931,8 +931,6 @@ class InteractiveShell(SingletonConfigurable):
             # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
 
-        warn("Attempting to work in a virtualenv. If you encounter problems, please "
-             "install IPython inside the virtualenv.")
         if sys.platform == "win32":
             virtual_env = os.path.join(
                 os.environ["VIRTUAL_ENV"], "Lib", "site-packages"
@@ -954,6 +952,8 @@ class InteractiveShell(SingletonConfigurable):
 
             virtual_env = venv_path.format(*p_ver)
 
+        warn("Attempting to work in a virtualenv. If you encounter problems, "
+             "please install IPython inside the virtualenv.")
         import site
         sys.path.insert(0, virtual_env)
         site.addsitedir(virtual_env)
