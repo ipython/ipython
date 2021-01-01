@@ -934,7 +934,9 @@ class InteractiveShell(SingletonConfigurable):
         if sys.platform == "win32":
             virtual_env = Path(os.environ["VIRTUAL_ENV"], "Lib", "site-packages")
         else:
-            virtual_env_path = Path(os.environ["VIRTUAL_ENV"], "lib", "python{}.{}", "site-packages")
+            virtual_env_path = Path(
+                os.environ["VIRTUAL_ENV"], "lib", "python{}.{}", "site-packages"
+            )
             p_ver = sys.version_info[:2]
 
             # Predict version from py[thon]-x.x in the $VIRTUAL_ENV
