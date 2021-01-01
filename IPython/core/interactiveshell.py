@@ -941,9 +941,7 @@ class InteractiveShell(SingletonConfigurable):
             )
 
             # Predict version from py[thon]-x.x in the $VIRTUAL_ENV
-            re_m = re.search(
-                r"\bpy(?:thon)?([23])\.(\d+)\b", os.environ["VIRTUAL_ENV"]
-            )
+            re_m = re.search(r"\bpy(?:thon)?([23])\.(\d+)\b", os.environ["VIRTUAL_ENV"])
             if re_m:
                 p_ver = [int(num) for num in m.groups()]
                 if not os.path.exists(venv_path.format(*p_ver)):
