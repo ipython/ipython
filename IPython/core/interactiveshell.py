@@ -932,24 +932,22 @@ class InteractiveShell(SingletonConfigurable):
             return
 
         if sys.platform == "win32":
-            virtual_env = os.path.join(
-                os.environ["VIRTUAL_ENV"], "Lib", "site-packages"
-            )
+            virtual_env = Path(os.environ["VIRTUAL_ENV"], "Lib", "site-packages")
         else:
-            venv_path = os.path.join(
-                os.environ["VIRTUAL_ENV"], "lib", "python{}.{}", "site-packages"
-            )
+            venv_path_prefix = Path(os.environ["VIRTUAL_ENV"], "lib")
+            venv_path_suffix = Path("site-packages")
 
             # Predict version from py[thon]-x.x in the $VIRTUAL_ENV
             re_m = re.search(r"\bpy(?:thon)?([23])\.(\d+)\b", os.environ["VIRTUAL_ENV"])
             if re_m:
                 p_ver = [int(num) for num in re_m.groups()]
-                if not os.path.exists(venv_path.format(*p_ver)):
+                predicted_path = venv_path_prefix / "python{}.{}".format(*p_ver) / venv_path_suffix
+                if not predicted_path.exists():
                     p_ver = sys.version_info[:2]
             else:
                 p_ver = sys.version_info[:2]
 
-            virtual_env = venv_path.format(*p_ver)
+            virtual_env = venv_path_prefix / "python{}.{}".format(*p_ver) / venv_path_suffix
 
         warn(
             "Attempting to work in a virtualenv. If you encounter problems, "
