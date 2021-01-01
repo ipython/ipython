@@ -949,7 +949,7 @@ class InteractiveShell(SingletonConfigurable):
             else:
                 p_ver = sys.version_info[:2]
 
-            virtual_env = (
+            virtual_env = str(
                 venv_path_prefix / "python{}.{}".format(*p_ver) / venv_path_suffix
             )
 
