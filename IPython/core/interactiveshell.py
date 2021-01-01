@@ -940,12 +940,11 @@ class InteractiveShell(SingletonConfigurable):
             p_ver = sys.version_info[:2]
 
             # Predict version from py[thon]-x.x in the $VIRTUAL_ENV
-            re_m = re.search(r"\bpy(?:thon)?([23])\.(\d+)\b", os.environ["VIRTUAL_ENV"])
-            if re_m:
-                predicted_p_ver = [int(num) for num in re_m.groups()]
-                predicted_path = Path(str(virtual_env_path).format(*predicted_p_ver))
+            predicted_p_ver = re.search(r"\bpy(?:thon)?([23])\.(\d+)\b", os.environ["VIRTUAL_ENV"])
+            if predicted_p_ver:
+                predicted_path = Path(str(virtual_env_path).format(*predicted_p_ver.groups()))
                 if predicted_path.exists():
-                    p_ver = predicted_p_ver
+                    p_ver = predicted_p_ver.groups()
 
             virtual_env = str(virtual_env_path).format(*p_ver)
 
