@@ -934,8 +934,8 @@ class InteractiveShell(SingletonConfigurable):
         warn("Attempting to work in a virtualenv. If you encounter problems, please "
              "install IPython inside the virtualenv.")
         if sys.platform == "win32":
-            virtual_env = Path(os.environ["VIRTUAL_ENV"]).joinpath(
-                "Lib", "site-packages"
+            virtual_env = os.path.join(
+                os.environ["VIRTUAL_ENV"], "Lib", "site-packages"
             )
         else:
             venv_path = os.path.join(
