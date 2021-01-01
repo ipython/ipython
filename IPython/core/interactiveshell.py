@@ -938,10 +938,22 @@ class InteractiveShell(SingletonConfigurable):
                 "Lib", "site-packages"
             )
         else:
-            virtual_env = Path(os.environ["VIRTUAL_ENV"]).joinpath(
-                "lib", "python{}.{}".format(*sys.version_info[:2]), "site-packages"
+            venv_path = os.path.join(
+                os.environ["VIRTUAL_ENV"], "lib", "python{}.{}", "site-packages"
             )
-        
+
+            # Predict version from py[thon]-x.x in the $VIRTUAL_ENV
+            if m := re.search(
+                r"\bpy(?:thon)?([23])\.(\d+)\b", os.environ["VIRTUAL_ENV"]
+            ):
+                p_ver = [int(num) for num in m.groups()]
+                if not os.path.exists(venv_path.format(*p_ver)):
+                    p_ver = sys.version_info[:2]
+            else:
+                p_ver = sys.version_info[:2]
+
+            virtual_env = venv_path.format(*p_ver)
+
         import site
         sys.path.insert(0, virtual_env)
         site.addsitedir(virtual_env)
