@@ -941,13 +941,17 @@ class InteractiveShell(SingletonConfigurable):
             re_m = re.search(r"\bpy(?:thon)?([23])\.(\d+)\b", os.environ["VIRTUAL_ENV"])
             if re_m:
                 p_ver = [int(num) for num in re_m.groups()]
-                predicted_path = venv_path_prefix / "python{}.{}".format(*p_ver) / venv_path_suffix
+                predicted_path = (
+                    venv_path_prefix / "python{}.{}".format(*p_ver) / venv_path_suffix
+                )
                 if not predicted_path.exists():
                     p_ver = sys.version_info[:2]
             else:
                 p_ver = sys.version_info[:2]
 
-            virtual_env = venv_path_prefix / "python{}.{}".format(*p_ver) / venv_path_suffix
+            virtual_env = (
+                venv_path_prefix / "python{}.{}".format(*p_ver) / venv_path_suffix
+            )
 
         warn(
             "Attempting to work in a virtualenv. If you encounter problems, "
