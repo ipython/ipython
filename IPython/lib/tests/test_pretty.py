@@ -6,16 +6,18 @@
 
 
 from collections import Counter, defaultdict, deque, OrderedDict
+from importlib import import_module
 import os
 import types
 import string
+import sys
 import unittest
 
 import nose.tools as nt
 import pytest
 
 from IPython.lib import pretty
-from IPython.testing.decorators import skip_without, skip_iptest_but_not_pytest
+from IPython.testing.decorators import skip_iptest_but_not_pytest
 
 from io import StringIO
 
@@ -138,13 +140,17 @@ def test_sets(obj, expected_output):
     nt.assert_equal(got_output, expected_output)
 
 
-@skip_without('xxlimited')
 def test_pprint_heap_allocated_type():
     """
     Test that pprint works for heap allocated types.
     """
-    import xxlimited
-    output = pretty.pretty(xxlimited.Null)
+    module_name = "xxlimited" if sys.version_info < (3, 10, 0) else "xxlimited_35"
+    try:
+        module = import_module(module_name)
+    except ImportError:
+        pytest.skip(f"Module {module_name} is not available.")
+
+    output = pretty.pretty(getattr(module, "Null"))
     nt.assert_equal(output, 'xxlimited.Null')
 
 def test_pprint_nomod():
