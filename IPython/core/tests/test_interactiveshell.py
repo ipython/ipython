@@ -452,6 +452,7 @@ class InteractiveShellTestCase(unittest.TestCase):
     @mock.patch("builtins.print")
     def test_showtraceback_with_surrogates(self, mocked_print):
         values = []
+
         def mock_print_func(value, sep=" ", end="\n", file=sys.stdout, flush=False):
             values.append(value)
             if value == chr(0xD8FF):
@@ -463,7 +464,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         # ip._showtraceback() is replaced in globalipapp.py.
         # Call original method to test.
         interactiveshell.InteractiveShell._showtraceback(ip, None, None, chr(0xD8FF))
-        
+
         self.assertEqual(mocked_print.call_count, 2)
         self.assertEqual(values, [chr(0xD8FF), "\\ud8ff"])
 

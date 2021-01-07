@@ -2078,7 +2078,7 @@ class InteractiveShell(SingletonConfigurable):
         try:
             print(val)
         except UnicodeEncodeError:
-            print(val.encode('utf-8', 'backslashreplace').decode())
+            print(val.encode("utf-8", "backslashreplace").decode())
 
     def showsyntaxerror(self, filename=None, running_compiled_code=False):
         """Display the syntax error that just occurred.
