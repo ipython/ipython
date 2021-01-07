@@ -2076,9 +2076,9 @@ class InteractiveShell(SingletonConfigurable):
         """
         val = self.InteractiveTB.stb2text(stb)
         try:
-           print(val)
+            print(val)
         except UnicodeEncodeError:
-           print(val.encode('utf-8', 'backslashreplace').decode())
+            print(val.encode('utf-8', 'backslashreplace').decode())
 
     def showsyntaxerror(self, filename=None, running_compiled_code=False):
         """Display the syntax error that just occurred.
