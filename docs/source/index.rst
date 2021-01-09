@@ -17,7 +17,7 @@ interactively.  Its main components are:
 * A powerful interactive Python shell
 
 
-.. image:: /_images/ipython-6-screenshot.png
+.. image:: ./_images/ipython-6-screenshot.png
     :alt: Screenshot of IPython 6.0
     :align: center
 
