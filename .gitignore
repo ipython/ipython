@@ -28,3 +28,4 @@ __pycache__
 .python-version
 venv*/
 .idea/
+.mypy_cache
