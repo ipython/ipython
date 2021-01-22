@@ -851,18 +851,23 @@ class Image(DisplayObject):
 
         Examples
         --------
-        # embedded image data, works in qtconsole and notebook
-        # when passed positionally, the first arg can be any of raw image data,
-        # a URL, or a filename from which to load image data.
-        # The result is always embedding image data for inline images.
-        Image('http://www.google.fr/images/srpr/logo3w.png')
-        Image('/path/to/image.jpg')
-        Image(b'RAW_PNG_DATA...')
 
-        # Specifying Image(url=...) does not embed the image data,
-        # it only generates `<img>` tag with a link to the source.
-        # This will not work in the qtconsole or offline.
-        Image(url='http://www.google.fr/images/srpr/logo3w.png')
+        ::
+
+            from IPython.display import Image
+
+            # embedded image data, works in qtconsole and notebook
+            # when passed positionally, the first arg can be any of raw image data,
+            # a URL, or a filename from which to load image data.
+            # The result is always embedding image data for inline images.
+            Image('http://www.google.fr/images/srpr/logo3w.png')
+            Image('/path/to/image.jpg')
+            Image(b'RAW_PNG_DATA...')
+
+            # Specifying Image(url=...) does not embed the image data,
+            # it only generates `<img>` tag with a link to the source.
+            # This will not work in the qtconsole or offline.
+            Image(url='http://www.google.fr/images/srpr/logo3w.png')
 
         """
         if isinstance(data, (Path, PurePath)):
