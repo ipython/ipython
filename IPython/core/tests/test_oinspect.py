@@ -399,12 +399,14 @@ def test_builtin_init():
 
 
 def test_render_signature_short():
-    def short_fun(a=1): pass
+    def short_fun(a=1):
+        pass
+
     sig = oinspect._render_signature(
         signature(short_fun),
         short_fun.__name__,
     )
-    nt.assert_equal(sig, 'short_fun(a=1)')
+    nt.assert_equal(sig, "short_fun(a=1)")
 
 
 def test_render_signature_long():
@@ -414,42 +416,46 @@ def test_render_signature_long():
         a_really_long_parameter: int,
         and_another_long_one: bool = False,
         let_us_make_sure_this_is_looong: Optional[str] = None,
-    ) -> bool: pass
+    ) -> bool:
+        pass
 
     sig = oinspect._render_signature(
         signature(long_function),
         long_function.__name__,
     )
-    nt.assert_in(sig, [
-        # Python >=3.10 with delayed annotations evaulation
-        '''\
+    nt.assert_in(
+        sig,
+        [
+            # Python >=3.10 with delayed annotations evaulation
+            """\
 long_function(
     a_really_long_parameter: 'int',
     and_another_long_one: 'bool' = False,
     let_us_make_sure_this_is_looong: 'Optional[str]' = None,
 ) -> 'bool'\
-''',
-        # Python >=3.9
-        '''\
+""",
+            # Python >=3.9
+            """\
 long_function(
     a_really_long_parameter: int,
     and_another_long_one: bool = False,
     let_us_make_sure_this_is_looong: Optional[str] = None,
 ) -> bool\
-''',
-        # Python >=3.7
-        '''\
+""",
+            # Python >=3.7
+            """\
 long_function(
     a_really_long_parameter: int,
     and_another_long_one: bool = False,
     let_us_make_sure_this_is_looong: Union[str, NoneType] = None,
 ) -> bool\
-''',  # Python <=3.6
-        '''\
+""",  # Python <=3.6
+            """\
 long_function(
     a_really_long_parameter:int,
     and_another_long_one:bool=False,
     let_us_make_sure_this_is_looong:Union[str, NoneType]=None,
 ) -> bool\
-''',
-    ])
+""",
+        ],
+    )
