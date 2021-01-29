@@ -234,72 +234,6 @@ def findsource(object):
     raise IOError('could not find code object')
 
 
-# This is a patched version of inspect.getargs that applies the (unmerged)
-# patch for http://bugs.python.org/issue14611 by Stefano Taschini.  This fixes
-# https://github.com/ipython/ipython/issues/8205 and
-# https://github.com/ipython/ipython/issues/8293
-def getargs(co):
-    """Get information about the arguments accepted by a code object.
-
-    Three things are returned: (args, varargs, varkw), where 'args' is
-    a list of argument names (possibly containing nested lists), and
-    'varargs' and 'varkw' are the names of the * and ** arguments or None."""
-    if not iscode(co):
-        raise TypeError('{!r} is not a code object'.format(co))
-
-    nargs = co.co_argcount
-    names = co.co_varnames
-    args = list(names[:nargs])
-    step = 0
-
-    # The following acrobatics are for anonymous (tuple) arguments.
-    for i in range(nargs):
-        if args[i][:1] in ('', '.'):
-            stack, remain, count = [], [], []
-            while step < len(co.co_code):
-                op = ord(co.co_code[step])
-                step = step + 1
-                if op >= dis.HAVE_ARGUMENT:
-                    opname = dis.opname[op]
-                    value = ord(co.co_code[step]) + ord(co.co_code[step+1])*256
-                    step = step + 2
-                    if opname in ('UNPACK_TUPLE', 'UNPACK_SEQUENCE'):
-                        remain.append(value)
-                        count.append(value)
-                    elif opname in ('STORE_FAST', 'STORE_DEREF'):
-                        if op in dis.haslocal:
-                            stack.append(co.co_varnames[value])
-                        elif op in dis.hasfree:
-                            stack.append((co.co_cellvars + co.co_freevars)[value])
-                        # Special case for sublists of length 1: def foo((bar))
-                        # doesn't generate the UNPACK_TUPLE bytecode, so if
-                        # `remain` is empty here, we have such a sublist.
-                        if not remain:
-                            stack[0] = [stack[0]]
-                            break
-                        else:
-                            remain[-1] = remain[-1] - 1
-                            while remain[-1] == 0:
-                                remain.pop()
-                                size = count.pop()
-                                stack[-size:] = [stack[-size:]]
-                                if not remain:
-                                    break
-                                remain[-1] = remain[-1] - 1
-                            if not remain:
-                                break
-            args[i] = stack[0]
-
-    varargs = None
-    if co.co_flags & inspect.CO_VARARGS:
-        varargs = co.co_varnames[nargs]
-        nargs = nargs + 1
-    varkw = None
-    if co.co_flags & inspect.CO_VARKEYWORDS:
-        varkw = co.co_varnames[nargs]
-    return inspect.Arguments(args, varargs, varkw)
-
-
 # Monkeypatch inspect to apply our bugfix.
 def with_patch_inspect(f):
     """
@@ -309,14 +243,11 @@ def with_patch_inspect(f):
 
     def wrapped(*args, **kwargs):
         save_findsource = inspect.findsource
-        save_getargs = inspect.getargs
         inspect.findsource = findsource
-        inspect.getargs = getargs
         try:
             return f(*args, **kwargs)
         finally:
             inspect.findsource = save_findsource
-            inspect.getargs = save_getargs
 
     return wrapped
 
