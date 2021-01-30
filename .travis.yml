@@ -37,7 +37,7 @@ install:
   - pip install -e file://$PWD#egg=ipython[test] --upgrade
   - pip install trio curio --upgrade --upgrade-strategy eager
   - pip install 'pytest' 'matplotlib !=3.2.0'
-  - pip install codecov check-manifest pytest-cov --upgrade anyio pytest-asyncio
+  - pip install codecov check-manifest pytest-cov --upgrade anyio pytest-trio
 
 
 script:
