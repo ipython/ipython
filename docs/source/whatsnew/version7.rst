@@ -31,7 +31,7 @@ Here are thus some of the changes for IPython 7.20.
 
   - Support for PyQt5 >= 5.11 :ghpull:`12715`
   - ``%reset`` remove imports more agressively :ghpull:`12718`
-  - fix the ``%conda`` magic :ghull:`12739`
+  - fix the ``%conda`` magic :ghpull:`12739`
   - compatibility with Jedi 0.18, and bump minimum Jedi version. :ghpull:`12793`
 
 
