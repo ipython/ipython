@@ -2,6 +2,39 @@
  7.x Series
 ============
 
+.. _version 720:
+
+IPython 7.20
+============
+
+IPython 7.20 is the accumulation of 3 month of work on IPython, spacing between
+IPython release have been increased from the usual once a month for various
+reason.
+
+   - Mainly as I'm too busy and the effectively sole maintainer, and
+   - Second because not much changes happened before mid December.
+
+The main driver for this release was the new version of Jedi 0.18 breaking API;
+which was taken care of in the master branch early in 2020 but not in 7.x as I
+though that by now 8.0 would be out.
+
+The inclusion of a resolver in pip did not help and actually made things worse.
+If usually I would have simply pinned Jedi to ``<0.18``; this is not a solution
+anymore as now pip is free to install Jedi 0.18, and downgrade IPython.
+
+I'll do my best to keep the regular release, but as the 8.0-dev branch and 7.x
+are starting to diverge this is becoming difficult in particular with my limited
+time, so if you have any cycles to spare I'll appreciate your help to respond to
+issues and pushing 8.0 forward.
+
+Here are thus some of the changes for IPython 7.20.
+
+  - Support for PyQt5 >= 5.11 :ghpull:`12715`
+  - ``%reset`` remove imports more agressively :ghpull:`12718`
+  - fix the ``%conda`` magic :ghpull:`12739`
+  - compatibility with Jedi 0.18, and bump minimum Jedi version. :ghpull:`12793`
+
+
 .. _version 719:
 
 IPython 7.19
@@ -55,7 +88,7 @@ IPython 7.17
 ============
 
 IPython 7.17 brings a couple of new improvements to API and a couple of user
-facing changes to make the terminal experience more user friendly. 
+facing changes to make the terminal experience more user friendly.
 
 :ghpull:`12407` introduces the ability to pass extra argument to the IPython
 debugger class; this is to help a new project from ``kmaork``
