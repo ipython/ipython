@@ -77,11 +77,14 @@ kCFRunLoopCommonModes = void_p.in_dll(CoreFoundation, 'kCFRunLoopCommonModes')
 
 def _NSApp():
     """Return the global NSApplication instance (NSApp)"""
+    objc.objc_msgSend.argtypes = [void_p, void_p]
     return msg(C('NSApplication'), n('sharedApplication'))
 
 
 def _wake(NSApp):
     """Wake the Application"""
+    objc.objc_msgSend.argtypes = [void_p, void_p, void_p, void_p, void_p, void_p,
+                                  void_p, void_p, void_p, void_p, void_p]
     event = msg(C('NSEvent'),
         n('otherEventWithType:location:modifierFlags:'
           'timestamp:windowNumber:context:subtype:data1:data2:'),
@@ -95,6 +98,7 @@ def _wake(NSApp):
         0, # data1
         0, # data2
     )
+    objc.objc_msgSend.argtypes = [void_p, void_p, void_p, void_p]
     msg(NSApp, n('postEvent:atStart:'), void_p(event), True)
 
 
@@ -106,6 +110,7 @@ def _input_callback(fdref, flags, info):
     CFFileDescriptorInvalidate(fdref)
     CFRelease(fdref)
     NSApp = _NSApp()
+    objc.objc_msgSend.argtypes = [void_p, void_p, void_p]
     msg(NSApp, n('stop:'), NSApp)
     _wake(NSApp)
 
@@ -128,6 +133,7 @@ def inputhook(context):
     """Inputhook for Cocoa (NSApp)"""
     NSApp = _NSApp()
     _stop_on_read(context.fileno())
+    objc.objc_msgSend.argtypes = [void_p, void_p]
     msg(NSApp, n('run'))
     if not _triggered.is_set():
         # app closed without firing callback,
