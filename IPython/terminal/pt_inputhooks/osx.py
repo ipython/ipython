@@ -94,7 +94,8 @@ def _wake(NSApp):
         void_p,
         void_p,
         void_p,
-        void_p]
+        void_p,
+    ]
     event = msg(
         C("NSEvent"),
         n(
