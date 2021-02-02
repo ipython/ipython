@@ -276,8 +276,7 @@ def post_download(project, filename, name=None, description=""):
     """Upload a file to the GitHub downloads area"""
     if name is None:
         name = Path(filename).name
-    with open(filename, 'rb') as f:
-        filedata = f.read()
+    filedata = Path(filename).read_bytes()
 
     url = "https://api.github.com/repos/{project}/downloads".format(project=project)
 
