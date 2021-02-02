@@ -83,20 +83,33 @@ def _NSApp():
 
 def _wake(NSApp):
     """Wake the Application"""
-    objc.objc_msgSend.argtypes = [void_p, void_p, void_p, void_p, void_p, void_p,
-                                  void_p, void_p, void_p, void_p, void_p]
-    event = msg(C('NSEvent'),
-        n('otherEventWithType:location:modifierFlags:'
-          'timestamp:windowNumber:context:subtype:data1:data2:'),
-        15, # Type
-        0, # location
-        0, # flags
-        0, # timestamp
-        0, # window
-        None, # context
-        0, # subtype
-        0, # data1
-        0, # data2
+    objc.objc_msgSend.argtypes = [
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p]
+    event = msg(
+        C("NSEvent"),
+        n(
+            "otherEventWithType:location:modifierFlags:"
+            "timestamp:windowNumber:context:subtype:data1:data2:"
+        ),
+        15,  # Type
+        0,  # location
+        0,  # flags
+        0,  # timestamp
+        0,  # window
+        None,  # context
+        0,  # subtype
+        0,  # data1
+        0,  # data2
     )
     objc.objc_msgSend.argtypes = [void_p, void_p, void_p, void_p]
     msg(NSApp, n('postEvent:atStart:'), void_p(event), True)
