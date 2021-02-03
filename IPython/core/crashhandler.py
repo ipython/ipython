@@ -23,6 +23,7 @@ import os
 import sys
 import traceback
 from pprint import pformat
+from pathlib import Path
 
 from IPython.core import ultratb
 from IPython.core.release import author_email
@@ -151,10 +152,10 @@ class CrashHandler(object):
         try:
             rptdir = self.app.ipython_dir
         except:
-            rptdir = os.getcwd()
-        if rptdir is None or not os.path.isdir(rptdir):
-            rptdir = os.getcwd()
-        report_name = os.path.join(rptdir,self.crash_report_fname)
+            rptdir = Path.cwd()
+        if rptdir is None or not Path.is_dir(rptdir):
+            rptdir = Path.cwd()
+        report_name = rptdir / self.crash_report_fname
         # write the report filename into the instance dict so it can get
         # properly expanded out in the user message template
         self.crash_report_fname = report_name
