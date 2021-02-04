@@ -41,7 +41,7 @@ CoreFoundation = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreFoundatio
 
 CFFileDescriptorCreate = CoreFoundation.CFFileDescriptorCreate
 CFFileDescriptorCreate.restype = void_p
-CFFileDescriptorCreate.argtypes = [void_p, ctypes.c_int, ctypes.c_bool, void_p]
+CFFileDescriptorCreate.argtypes = [void_p, ctypes.c_int, ctypes.c_bool, void_p, void_p]
 
 CFFileDescriptorGetNativeDescriptor = CoreFoundation.CFFileDescriptorGetNativeDescriptor
 CFFileDescriptorGetNativeDescriptor.restype = ctypes.c_int
