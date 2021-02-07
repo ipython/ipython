@@ -719,11 +719,9 @@ class Pdb(OldPdb):
         if count < 0:
             _newframe = 0
         else:
-            _newindex = self.curindex
             counter = 0
             hidden_frames = self.hidden_frames(self.stack)
             for i in range(self.curindex - 1, -1, -1):
-                frame = self.stack[i][0]
                 if hidden_frames[i] and self.skip_hidden:
                     skipped += 1
                     continue
@@ -764,12 +762,10 @@ class Pdb(OldPdb):
         if count < 0:
             _newframe = len(self.stack) - 1
         else:
-            _newindex = self.curindex
             counter = 0
             skipped = 0
             hidden_frames = self.hidden_frames(self.stack)
             for i in range(self.curindex + 1, len(self.stack)):
-                frame = self.stack[i][0]
                 if hidden_frames[i] and self.skip_hidden:
                     skipped += 1
                     continue
