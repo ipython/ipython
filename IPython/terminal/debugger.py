@@ -39,10 +39,9 @@ class TerminalPdb(Pdb):
             return [(Token.Prompt, self.prompt)]
 
         if self._ptcomp is None:
-            compl = IPCompleter(shell=self.shell,
-                                namespace={},
-                                global_namespace={},
-                                parent=self.shell)
+            compl = IPCompleter(
+                shell=self.shell, namespace={}, global_namespace={}, parent=self.shell
+            )
             # add a completer for all the do_ methods
             methods_names = [m[3:] for m in dir(self) if m.startswith("do_")]
 

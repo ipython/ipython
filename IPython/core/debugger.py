@@ -238,7 +238,7 @@ class Pdb(OldPdb):
             self.shell = TerminalInteractiveShell.instance()
             # needed by any code which calls __import__("__main__") after
             # the debugger was entered. See also #9941.
-            sys.modules['__main__'] = save_main
+            sys.modules["__main__"] = save_main
 
         if color_scheme is not None:
             warnings.warn(
@@ -323,10 +323,10 @@ class Pdb(OldPdb):
     def precmd(self, line):
         """Perform useful escapes on the command before it is executed."""
 
-        if line.endswith('??'):
-            line = 'pinfo2 ' + line[:-2]
-        elif line.endswith('?'):
-            line = 'pinfo ' + line[:-1]
+        if line.endswith("??"):
+            line = "pinfo2 " + line[:-2]
+        elif line.endswith("?"):
+            line = "pinfo " + line[:-1]
 
         line = super().precmd(line)
 
@@ -414,11 +414,10 @@ class Pdb(OldPdb):
 
         Colors = self.color_scheme_table.active_colors
         ColorsNormal = Colors.Normal
-        tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
-                                             ColorsNormal)
+        tpl_link = "%s%%s%s" % (Colors.filenameEm, ColorsNormal)
+        tpl_call = "%s%%s%s%%s%s" % (Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_line = "%%s%s%%s %s%%s" % (Colors.lineno, ColorsNormal)
+        tpl_line_em = "%%s%s%%s %s%%s%s" % (Colors.linenoEm, Colors.line, ColorsNormal)
 
         frame, lineno = frame_lineno
 
@@ -451,8 +450,8 @@ class Pdb(OldPdb):
         if frame is self.curframe:
             ret.append('> ')
         else:
-            ret.append('  ')
-        ret.append(u'%s(%s)%s\n' % (link, lineno, call))
+            ret.append("  ")
+        ret.append("%s(%s)%s\n" % (link, lineno, call))
 
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
@@ -461,14 +460,14 @@ class Pdb(OldPdb):
         lines = lines[start : start + context]
 
         for i, line in enumerate(lines):
-            show_arrow = (start + 1 + i == lineno)
-            linetpl = (frame is self.curframe or show_arrow) \
-                      and tpl_line_em \
-                      or tpl_line
-            ret.append(self.__format_line(linetpl, filename,
-                                          start + 1 + i, line,
-                                          arrow=show_arrow))
-        return ''.join(ret)
+            show_arrow = start + 1 + i == lineno
+            linetpl = (frame is self.curframe or show_arrow) and tpl_line_em or tpl_line
+            ret.append(
+                self.__format_line(
+                    linetpl, filename, start + 1 + i, line, arrow=show_arrow
+                )
+            )
+        return "".join(ret)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow=False):
         bp_mark = ""
@@ -518,9 +517,13 @@ class Pdb(OldPdb):
                     break
 
                 if lineno == self.curframe.f_lineno:
-                    line = self.__format_line(tpl_line_em, filename, lineno, line, arrow=True)
+                    line = self.__format_line(
+                        tpl_line_em, filename, lineno, line, arrow=True
+                    )
                 else:
-                    line = self.__format_line(tpl_line, filename, lineno, line, arrow=False)
+                    line = self.__format_line(
+                        tpl_line, filename, lineno, line, arrow=False
+                    )
 
                 src.append(line)
                 self.lineno = lineno
