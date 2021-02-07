@@ -28,22 +28,21 @@ class TerminalPdb(Pdb):
     def pt_init(self, pt_session_options=None):
         """Initialize the prompt session and the prompt loop
         and store them in self.pt_app and self.pt_loop.
-        
+
         Additional keyword arguments for the PromptSession class
         can be specified in pt_session_options.
         """
         if pt_session_options is None:
             pt_session_options = {}
-        
+
         def get_prompt_tokens():
             return [(Token.Prompt, self.prompt)]
 
         if self._ptcomp is None:
             compl = IPCompleter(shell=self.shell,
-                                        namespace={},
-                                        global_namespace={},
-                                        parent=self.shell,
-                                       )
+                                namespace={},
+                                global_namespace={},
+                                parent=self.shell)
             # add a completer for all the do_ methods
             methods_names = [m[3:] for m in dir(self) if m.startswith("do_")]
 
