@@ -1,5 +1,4 @@
 import asyncio
-import signal
 import sys
 import threading
 
@@ -7,13 +6,8 @@ from IPython.core.debugger import Pdb
 
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
-from .shortcuts import create_ipython_shortcuts, suspend_to_bg, cursor_in_leading_ws
+from .shortcuts import create_ipython_shortcuts
 
-from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import (Condition, has_focus, has_selection,
-    vi_insert_mode, emacs_insert_mode)
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
 from pygments.token import Token
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.enums import EditingMode
