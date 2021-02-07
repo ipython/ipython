@@ -320,6 +320,18 @@ class Pdb(OldPdb):
         except KeyboardInterrupt:
             self.stdout.write("\n" + self.shell.get_exception_only())
 
+    def precmd(self, line):
+        """Perform useful escapes on the command before it is executed."""
+
+        if line.endswith('??'):
+            line = 'pinfo2 ' + line[:-2]
+        elif line.endswith('?'):
+            line = 'pinfo ' + line[:-1]
+
+        line = super().precmd(line)
+
+        return line
+
     def new_do_frame(self, arg):
         OldPdb.do_frame(self, arg)
 
