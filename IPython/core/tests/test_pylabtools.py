@@ -167,13 +167,10 @@ class TestPylabSwitch(object):
         pt.activate_matplotlib = act_mpl
         self._save_ip = pt.import_pylab
         pt.import_pylab = lambda *a,**kw:None
-        self._save_cis = pt.configure_inline_support
-        pt.configure_inline_support = lambda *a,**kw:None
 
     def teardown(self):
         pt.activate_matplotlib = self._save_am
         pt.import_pylab = self._save_ip
-        pt.configure_inline_support = self._save_cis
         import matplotlib
         matplotlib.rcParams = self._saved_rcParams
         matplotlib.rcParamsOrig = self._saved_rcParamsOrig
