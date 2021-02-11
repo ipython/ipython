@@ -99,7 +99,7 @@ class CachingCompiler(codeop.Compile):
         Arguments are exactly the same as ast.parse (in the standard library),
         and are passed to the built-in compile function."""
         return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
-    
+
     def reset_compiler_flags(self):
         """Reset compiler flags to default state."""
         # This value is copied from codeop.Compile.__init__, so if that ever
@@ -112,25 +112,53 @@ class CachingCompiler(codeop.Compile):
         """
         return self.flags
 
-    def cache(self, code, number=0):
-        """Make a name for a block of code, and cache the code.
+    def get_code_name(self, raw_code, transformed_code, number):
+        """Compute filename given the code, and the cell number.
 
         Parameters
         ----------
-        code : str
-          The Python source code to cache.
+        raw_code : str
+          The raw cell code.
+        transformed_code : str
+          The executable Python source code to cache and compile.
         number : int
           A number which forms part of the code's name. Used for the execution
           counter.
 
         Returns
         -------
+        The computed filename.
+        """
+        return code_name(transformed_code, number)
+
+    def cache(self, transformed_code, number=0, raw_code=None):
+        """Make a name for a block of code, and cache the code.
+
+        Parameters
+        ----------
+        transformed_code : str
+          The executable Python source code to cache and compile.
+        number : int
+          A number which forms part of the code's name. Used for the execution
+          counter.
+        raw_code : str
+          The raw code before transformation, if None, set to `transformed_code`.
+
+        Returns
+        -------
         The name of the cached code (as a string). Pass this as the filename
         argument to compilation, so that tracebacks are correctly hooked up.
         """
-        name = code_name(code, number)
-        entry = (len(code), time.time(),
-                 [line+'\n' for line in code.splitlines()], name)
+        if raw_code is None:
+            raw_code = transformed_code
+
+        name = self.get_code_name(raw_code, transformed_code, number)
+        entry = (
+            len(transformed_code),
+            time.time(),
+            [line + "\n" for line in transformed_code.splitlines()],
+            name,
+        )
         linecache.cache[name] = entry
         linecache._ipython_cache[name] = entry
         return name
@@ -146,7 +174,7 @@ class CachingCompiler(codeop.Compile):
             yield
         finally:
             # turn off only the bits we turned on so that something like
-            # __future__ that set flags stays. 
+            # __future__ that set flags stays.
             self.flags &= ~turn_on_bits
 
 
