@@ -193,7 +193,9 @@ def provisionalcompleter(action='ignore'):
 
     >>> completer.do_experimental_things() # raises.
 
-    .. note:: Unstable
+    .. note::
+
+        Unstable
 
         By using this context manager you agree that the API in use may change
         without warning, and that you won't complain if they do so.
@@ -348,7 +350,9 @@ class Completion:
     """
     Completion object used and return by IPython completers.
 
-    .. warning:: Unstable
+    .. warning::
+
+        Unstable
 
         This function is unstable, API may change without warning.
         It will also raise unless use in proper context manager.
@@ -411,7 +415,9 @@ def _deduplicate_completions(text: str, completions: _IC)-> _IC:
     """
     Deduplicate a set of completions.
 
-    .. warning:: Unstable
+    .. warning::
+
+        Unstable
 
         This function is unstable, API may change without warning.
 
@@ -454,7 +460,9 @@ def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
     """
     Rectify a set of completions to all have the same ``start`` and ``end``
 
-    .. warning:: Unstable
+    .. warning::
+
+        Unstable
 
         This function is unstable, API may change without warning.
         It will also raise unless use in proper context manager.
@@ -1776,7 +1784,9 @@ class IPCompleter(Completer):
         """
         Returns an iterator over the possible completions
 
-        .. warning:: Unstable
+        .. warning::
+
+            Unstable
 
             This function is unstable, API may change without warning.
             It will also raise unless use in proper context manager.
