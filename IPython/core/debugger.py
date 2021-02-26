@@ -796,6 +796,20 @@ class Pdb(OldPdb):
     do_d = do_down
     do_u = do_up
 
+    def do_context(self, context):
+        """context number_of_lines
+        Set the number of lines of source code to show when displaying
+        stacktrace information.
+        """
+        try:
+            new_context = int(context)
+            if new_context <= 0:
+                raise ValueError()
+        except ValueError:
+            self.error("The 'context' command requires a positive integer argument.")
+        self.context = new_context
+
+
 class InterruptiblePdb(Pdb):
     """Version of debugger where KeyboardInterrupt exits the debugger altogether."""
 
