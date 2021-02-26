@@ -1340,19 +1340,19 @@ class Video(DisplayObject):
         ----------
         data : unicode, str or bytes
             The raw video data or a URL or filename to load the data from.
-            Raw data will require passing `embed=True`.
+            Raw data will require passing ``embed=True``.
         url : unicode
-            A URL for the video. If you specify `url=`,
+            A URL for the video. If you specify ``url=``,
             the image data will not be embedded.
         filename : unicode
             Path to a local file containing the video.
-            Will be interpreted as a local URL unless `embed=True`.
+            Will be interpreted as a local URL unless ``embed=True``.
         embed : bool
             Should the video be embedded using a data URI (True) or be
             loaded using a <video> tag (False).
 
             Since videos are large, embedding them should be avoided, if possible.
-            You must confirm embedding as your intention by passing `embed=True`.
+            You must confirm embedding as your intention by passing ``embed=True``.
 
             Local files can be displayed with URLs without embedding the content, via::
 
@@ -1368,10 +1368,10 @@ class Video(DisplayObject):
             Height in pixels to which to constrain the video in html.
             If not supplied, defaults to the height of the video.
         html_attributes : str
-            Attributes for the HTML `<video>` block.
-            Default: `"controls"` to get video controls.
-            Other examples: `"controls muted"` for muted video with controls,
-            `"loop autoplay"` for looping autoplaying video without controls.
+            Attributes for the HTML ``<video>`` block.
+            Default: ``"controls"`` to get video controls.
+            Other examples: ``"controls muted"`` for muted video with controls,
+            ``"loop autoplay"`` for looping autoplaying video without controls.
 
         Examples
         --------
