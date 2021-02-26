@@ -2,6 +2,40 @@
  7.x Series
 ============
 
+.. _version 721:
+
+IPython 7.21
+============
+
+IPython 7.21 is the first release we have back on schedule of one release every
+month; it contains a number of minor fixes and improvements, notably, the new
+context command for ipdb
+
+
+New "context" command in ipdb
+-----------------------------
+
+It is now possible to change the number of lines shown in the backtrace
+information in ipdb using "context" command. :ghpull:`12826`
+
+(thanks @MrMino, there are other improvement from them on master).
+
+Other notable changes in IPython 7.21
+-------------------------------------
+
+- Fix some issues on new osx-arm64 :ghpull:`12804`, :ghpull:`12807`. 
+- Compatibility with Xeus-Python for debugger protocol, :ghpull:`12809`
+- Misc docs fixes for compatibility and uniformity with Numpydoc.
+  :ghpull:`12824`
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contribution to this milestone `on github <https://github.com/ipython/ipython/milestone/83>`_.
+
+
 .. _version 720:
 
 IPython 7.20
