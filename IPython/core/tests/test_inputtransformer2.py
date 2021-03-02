@@ -4,7 +4,6 @@ Line-based transformers are the simpler ones; token-based transformers are
 more complex. See test_inputtransformer2_line for tests for line-based
 transformations.
 """
-import nose.tools as nt
 import string
 
 from IPython.core import inputtransformer2 as ipt2
@@ -147,9 +146,9 @@ def check_make_token_by_line_never_ends_empty():
     """
     from string import printable
     for c in printable:
-        nt.assert_not_equal(make_tokens_by_line(c)[-1], [])
+        assert make_tokens_by_line(c)[-1] != []
         for k in printable:
-            nt.assert_not_equal(make_tokens_by_line(c+k)[-1], [])
+            assert make_tokens_by_line(c+k)[-1] != []
 
 def check_find(transformer, case, match=True):
     sample, expected_start, _  = case
@@ -157,21 +156,21 @@ def check_find(transformer, case, match=True):
     res = transformer.find(tbl)
     if match:
         # start_line is stored 0-indexed, expected values are 1-indexed
-        nt.assert_equal((res.start_line+1, res.start_col), expected_start)
+        assert (res.start_line+1, res.start_col) == expected_start
         return res
     else:
-        nt.assert_is(res, None)
+        assert res is None
 
 def check_transform(transformer_cls, case):
     lines, start, expected = case
     transformer = transformer_cls(start)
-    nt.assert_equal(transformer.transform(lines), expected)
+    assert transformer.transform(lines) == expected
 
 def test_continued_line():
     lines = MULTILINE_MAGIC_ASSIGN[0]
-    nt.assert_equal(ipt2.find_end_of_continued_line(lines, 1), 2)
+    assert ipt2.find_end_of_continued_line(lines, 1) == 2
 
-    nt.assert_equal(ipt2.assemble_continued_line(lines, (1, 5), 2), "foo    bar")
+    assert ipt2.assemble_continued_line(lines, (1, 5), 2) == "foo    bar"
 
 def test_find_assign_magic():
     check_find(ipt2.MagicAssign, MULTILINE_MAGIC_ASSIGN)
@@ -217,12 +216,12 @@ def test_find_help():
         check_find(ipt2.HelpEnd, case)
 
     tf = check_find(ipt2.HelpEnd, HELP_CONTINUED_LINE)
-    nt.assert_equal(tf.q_line, 1)
-    nt.assert_equal(tf.q_col, 3)
+    assert tf.q_line == 1
+    assert tf.q_col == 3
 
     tf = check_find(ipt2.HelpEnd, HELP_MULTILINE)
-    nt.assert_equal(tf.q_line, 1)
-    nt.assert_equal(tf.q_col, 8)
+    assert tf.q_line == 1
+    assert tf.q_col == 8
 
     # ? in a comment does not trigger help
     check_find(ipt2.HelpEnd, (["foo # bar?\n"], None, None), match=False)
@@ -231,16 +230,16 @@ def test_find_help():
 
 def test_transform_help():
     tf = ipt2.HelpEnd((1, 0), (1, 9))
-    nt.assert_equal(tf.transform(HELP_IN_EXPR[0]), HELP_IN_EXPR[2])
+    assert tf.transform(HELP_IN_EXPR[0]) == HELP_IN_EXPR[2]
 
     tf = ipt2.HelpEnd((1, 0), (2, 3))
-    nt.assert_equal(tf.transform(HELP_CONTINUED_LINE[0]), HELP_CONTINUED_LINE[2])
+    assert tf.transform(HELP_CONTINUED_LINE[0]) == HELP_CONTINUED_LINE[2]
 
     tf = ipt2.HelpEnd((1, 0), (2, 8))
-    nt.assert_equal(tf.transform(HELP_MULTILINE[0]), HELP_MULTILINE[2])
+    assert tf.transform(HELP_MULTILINE[0]) == HELP_MULTILINE[2]
 
     tf = ipt2.HelpEnd((1, 0), (1, 0))
-    nt.assert_equal(tf.transform(HELP_UNICODE[0]), HELP_UNICODE[2])
+    assert tf.transform(HELP_UNICODE[0]) == HELP_UNICODE[2]
 
 def test_find_assign_op_dedent():
     """
@@ -250,31 +249,31 @@ def test_find_assign_op_dedent():
         def __init__(self, s):
             self.string = s
 
-    nt.assert_equal(_find_assign_op([Tk(s) for s in ('','a','=','b')]), 2)
-    nt.assert_equal(_find_assign_op([Tk(s) for s in ('','(', 'a','=','b', ')', '=' ,'5')]), 6)
+    assert _find_assign_op([Tk(s) for s in ('','a','=','b')]) == 2
+    assert _find_assign_op([Tk(s) for s in ('','(', 'a','=','b', ')', '=' ,'5')]) == 6
 
 def test_check_complete():
     cc = ipt2.TransformerManager().check_complete
-    nt.assert_equal(cc("a = 1"), ('complete', None))
-    nt.assert_equal(cc("for a in range(5):"), ('incomplete', 4))
-    nt.assert_equal(cc("for a in range(5):\n    if a > 0:"), ('incomplete', 8))
-    nt.assert_equal(cc("raise = 2"), ('invalid', None))
-    nt.assert_equal(cc("a = [1,\n2,"), ('incomplete', 0))
-    nt.assert_equal(cc(")"), ('incomplete', 0))
-    nt.assert_equal(cc("\\\r\n"), ('incomplete', 0))
-    nt.assert_equal(cc("a = '''\n   hi"), ('incomplete', 3))
-    nt.assert_equal(cc("def a():\n x=1\n global x"), ('invalid', None))
-    nt.assert_equal(cc("a \\ "), ('invalid', None))  # Nothing allowed after backslash
-    nt.assert_equal(cc("1\\\n+2"), ('complete', None))
-    nt.assert_equal(cc("exit"), ('complete', None))
+    assert cc("a = 1") == ('complete', None)
+    assert cc("for a in range(5):") == ('incomplete', 4)
+    assert cc("for a in range(5):\n    if a > 0:") == ('incomplete', 8)
+    assert cc("raise = 2") == ('invalid', None)
+    assert cc("a = [1 == \n2,"), ('incomplete', 0)
+    assert cc(")") == ('incomplete', 0)
+    assert cc("\\\r\n") == ('incomplete', 0)
+    assert cc("a = '''\n   hi") == ('incomplete', 3)
+    assert cc("def a():\n x=1\n global x") == ('invalid', None)
+    assert cc("a \\ ") == ('invalid', None)  # Nothing allowed after backslash
+    assert cc("1\\\n+2") == ('complete', None)
+    assert cc("exit") == ('complete', None)
 
     example = dedent("""
         if True:
             a=1""" )
 
-    nt.assert_equal(cc(example), ('incomplete', 4))
-    nt.assert_equal(cc(example+'\n'), ('complete', None))
-    nt.assert_equal(cc(example+'\n    '), ('complete', None))
+    assert cc(example) == ('incomplete', 4)
+    assert cc(example+'\n') == ('complete', None)
+    assert cc(example+'\n    ') == ('complete', None)
 
     # no need to loop on all the letters/numbers.
     short = '12abAB'+string.printable[62:]
@@ -284,7 +283,7 @@ def test_check_complete():
         for k in short:
             cc(c+k)
 
-    nt.assert_equal(cc("def f():\n  x=0\n  \\\n  "), ('incomplete', 2))
+    assert cc("def f():\n  x=0\n  \\\n  ") == ('incomplete', 2)
 
 def test_check_complete_II():
     """
@@ -294,7 +293,7 @@ def test_check_complete_II():
 
     """
     cc = ipt2.TransformerManager().check_complete
-    nt.assert_equal(cc('''def foo():\n    """'''), ('incomplete', 4))
+    assert cc('''def foo():\n    """''') == ('incomplete', 4)
 
 
 def test_null_cleanup_transformer():

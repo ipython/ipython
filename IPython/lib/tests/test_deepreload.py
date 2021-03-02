@@ -6,8 +6,6 @@
 
 import os
 
-import nose.tools as nt
-
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.lib.deepreload import reload as dreload
@@ -26,9 +24,9 @@ def test_deepreload():
             # Test that A is not reloaded.
             obj = A.Object()
             dreload(B, exclude=['A'])
-            nt.assert_true(isinstance(obj, A.Object))
+            assert isinstance(obj, A.Object)
 
             # Test that A is reloaded.
             obj = A.Object()
             dreload(B)
-            nt.assert_false(isinstance(obj, A.Object))
+            assert not isinstance(obj, A.Object)

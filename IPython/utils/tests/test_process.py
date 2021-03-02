@@ -22,7 +22,7 @@ from _thread import interrupt_main  # Py 3
 import threading
 from unittest import SkipTest
 
-import nose.tools as nt
+import pytest
 
 from IPython.utils.process import (find_cmd, FindCmdError, arg_split,
                                    system, getoutput, getoutputerror,
@@ -42,9 +42,9 @@ python = os.path.basename(sys.executable)
 def test_find_cmd_ls():
     """Make sure we can find the full path to ls."""
     path = find_cmd('ls')
-    nt.assert_true(path.endswith('ls'))
+    assert path.endswith('ls')
 
-    
+
 def has_pywin32():
     try:
         import win32api
@@ -64,9 +64,10 @@ def test_find_cmd_pythonw():
             "This test runs on posix or in win32 with win32api installed")
 def test_find_cmd_fail():
     """Make sure that FindCmdError is raised if we can't find the cmd."""
-    nt.assert_raises(FindCmdError,find_cmd,'asdfasdf')
+    with pytest.raises(FindCmdError):
+        find_cmd('asdfasdf')
 
-    
+
 @dec.skip_win32
 def test_arg_split():
     """Ensure that argument lines are correctly split like in a shell."""
@@ -80,8 +81,8 @@ def test_arg_split():
              ['something "with quotes"', ['something', '"with quotes"']],
              ]
     for argstr, argv in tests:
-        nt.assert_equal(arg_split(argstr), argv)
-    
+        assert arg_split(argstr) == argv
+
 @dec.skip_if_not_win32
 def test_arg_split_win32():
     """Ensure that argument lines are correctly split like in a shell."""
@@ -92,7 +93,7 @@ def test_arg_split_win32():
              ['something "with quotes"', ['something', 'with quotes']],
              ]
     for argstr, argv in tests:
-        nt.assert_equal(arg_split(argstr), argv)
+        assert arg_split(argstr) == argv
 
 
 class SubProcessTestCase(tt.TempFileMixin):
@@ -118,7 +119,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         Interrupt a subprocess after a second.
         """
         if threading.main_thread() != threading.current_thread():
-            raise nt.SkipTest("Can't run this test if not in main thread.")
+            raise SkipTest("Can't run this test if not in main thread.")
 
         # Some tests can overwrite SIGINT handler (by using pdb for example),
         # which then breaks this test, so just make sure it's operating
@@ -192,4 +193,4 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertEqual(err, 'on stderr')
         self.assertEqual(code, 0)
 
-        
+

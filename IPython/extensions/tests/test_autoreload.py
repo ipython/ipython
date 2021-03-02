@@ -21,7 +21,7 @@ import random
 import time
 from io import StringIO
 
-import nose.tools as nt
+import pytest
 import IPython.testing.tools as tt
 
 from unittest import TestCase
@@ -200,7 +200,7 @@ class TestAutoreload(Fixture):
 
                                     def __init__(self, a=10):
                                         self.a = a
-                                        self.b = 22 
+                                        self.b = 22
                                         # self.toto = 33
 
                                     def square(self):
@@ -212,12 +212,12 @@ class TestAutoreload(Fixture):
         self.shell.run_code("from %s import MyClass" % mod_name)
         self.shell.run_code("first = MyClass(5)")
         self.shell.run_code("first.square()")
-        with nt.assert_raises(AttributeError):
+        with pytest.raises(AttributeError):
             self.shell.run_code("first.cube()")
-        with nt.assert_raises(AttributeError):
+        with pytest.raises(AttributeError):
             self.shell.run_code("first.power(5)")
         self.shell.run_code("first.b")
-        with nt.assert_raises(AttributeError):
+        with pytest.raises(AttributeError):
             self.shell.run_code("first.toto")
 
         # remove square, add power
@@ -243,13 +243,13 @@ class TestAutoreload(Fixture):
 
         for object_name in {'first', 'second'}:
             self.shell.run_code("{object_name}.power(5)".format(object_name=object_name))
-            with nt.assert_raises(AttributeError):
+            with pytest.raises(AttributeError):
                 self.shell.run_code("{object_name}.cube()".format(object_name=object_name))
-            with nt.assert_raises(AttributeError):
+            with pytest.raises(AttributeError):
                 self.shell.run_code("{object_name}.square()".format(object_name=object_name))
             self.shell.run_code("{object_name}.b".format(object_name=object_name))
             self.shell.run_code("{object_name}.a".format(object_name=object_name))
-            with nt.assert_raises(AttributeError):
+            with pytest.raises(AttributeError):
                 self.shell.run_code("{object_name}.toto".format(object_name=object_name))
 
     def _check_smoketest(self, use_aimport=True):
@@ -291,18 +291,18 @@ class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
             self.shell.magic_aimport(mod_name)
             stream = StringIO()
             self.shell.magic_aimport("", stream=stream)
-            nt.assert_in(("Modules to reload:\n%s" % mod_name), stream.getvalue())
+            assert ("Modules to reload:\n%s" % mod_name) in stream.getvalue()
 
-            with nt.assert_raises(ImportError):
+            with pytest.raises(ImportError):
                 self.shell.magic_aimport("tmpmod_as318989e89ds")
         else:
             self.shell.magic_autoreload("2")
             self.shell.run_code("import %s" % mod_name)
             stream = StringIO()
             self.shell.magic_aimport("", stream=stream)
-            nt.assert_true("Modules to reload:\nall-except-skipped" in
-                           stream.getvalue())
-        nt.assert_in(mod_name, self.shell.ns)
+            assert "Modules to reload:\nall-except-skipped" in \
+                stream.getvalue()
+        assert mod_name in self.shell.ns
 
         mod = sys.modules[mod_name]
 
@@ -314,21 +314,21 @@ class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
         old_obj2 = mod.Bar()
 
         def check_module_contents():
-            nt.assert_equal(mod.x, 9)
-            nt.assert_equal(mod.z, 123)
+            assert mod.x == 9
+            assert mod.z == 123
 
-            nt.assert_equal(old_foo(0), 3)
-            nt.assert_equal(mod.foo(0), 3)
+            assert old_foo(0) == 3
+            assert mod.foo(0) == 3
 
             obj = mod.Baz(9)
-            nt.assert_equal(old_obj.bar(1), 10)
-            nt.assert_equal(obj.bar(1), 10)
-            nt.assert_equal(obj.quux, 42)
-            nt.assert_equal(obj.zzz(), 99)
+            assert old_obj.bar(1) == 10
+            assert obj.bar(1) == 10
+            assert obj.quux == 42
+            assert obj.zzz() == 99
 
             obj2 = mod.Bar()
-            nt.assert_equal(old_obj2.foo(), 1)
-            nt.assert_equal(obj2.foo(), 1)
+            assert old_obj2.foo() == 1
+            assert obj2.foo() == 1
 
         check_module_contents()
 
@@ -370,25 +370,25 @@ class Bar:    # old-style class
 """)
 
         def check_module_contents():
-            nt.assert_equal(mod.x, 10)
-            nt.assert_false(hasattr(mod, 'z'))
+            assert mod.x == 10
+            assert not hasattr(mod, 'z')
 
-            nt.assert_equal(old_foo(0), 4) # superreload magic!
-            nt.assert_equal(mod.foo(0), 4)
+            assert old_foo(0) == 4 # superreload magic!
+            assert mod.foo(0) == 4
 
             obj = mod.Baz(9)
-            nt.assert_equal(old_obj.bar(1), 11) # superreload magic!
-            nt.assert_equal(obj.bar(1), 11)
+            assert old_obj.bar(1) == 11 # superreload magic!
+            assert obj.bar(1) == 11
 
-            nt.assert_equal(old_obj.quux, 43)
-            nt.assert_equal(obj.quux, 43)
+            assert old_obj.quux == 43
+            assert obj.quux == 43
 
-            nt.assert_false(hasattr(old_obj, 'zzz'))
-            nt.assert_false(hasattr(obj, 'zzz'))
+            assert not hasattr(old_obj, 'zzz')
+            assert not hasattr(obj, 'zzz')
 
             obj2 = mod.Bar()
-            nt.assert_equal(old_obj2.foo(), 2)
-            nt.assert_equal(obj2.foo(), 2)
+            assert old_obj2.foo() == 2
+            assert obj2.foo() == 2
 
         self.shell.run_code("pass") # trigger reload
         check_module_contents()
@@ -408,8 +408,7 @@ class Bar:    # old-style class
             self.shell.magic_aimport("-" + mod_name)
             stream = StringIO()
             self.shell.magic_aimport("", stream=stream)
-            nt.assert_true(("Modules to skip:\n%s" % mod_name) in
-                           stream.getvalue())
+            assert ("Modules to skip:\n%s" % mod_name) in stream.getvalue()
 
             # This should succeed, although no such module exists
             self.shell.magic_aimport("-tmpmod_as318989e89ds")
@@ -433,7 +432,7 @@ x = -99
             self.shell.magic_autoreload("")
 
         self.shell.run_code("pass") # trigger reload
-        nt.assert_equal(mod.x, -99)
+        assert mod.x == -99
 
     def test_smoketest_aimport(self):
         self._check_smoketest(use_aimport=True)

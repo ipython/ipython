@@ -6,7 +6,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import nose.tools as nt
 from IPython.core.error import TryNext
 from IPython.core.hooks import CommandChainDispatcher
 
@@ -46,12 +45,12 @@ def test_command_chain_dispatcher_ff():
     try:
         dp()
     except TryNext as e:
-        nt.assert_equal(str(e), u'fail2')
+        assert str(e) == u'fail2'
     else:
         assert False, "Expected exception was not raised."
 
-    nt.assert_true(fail1.called)
-    nt.assert_true(fail2.called)
+    assert fail1.called
+    assert fail2.called
 
 def test_command_chain_dispatcher_fofo():
     """Test a mixture of failing and succeeding hooks."""
@@ -66,12 +65,12 @@ def test_command_chain_dispatcher_fofo():
                                  (15, okay2)])
     dp.add(okay1, 5)
 
-    nt.assert_equal(dp(), u'okay1')
+    assert dp() == u'okay1'
 
-    nt.assert_true(fail1.called)
-    nt.assert_true(okay1.called)
-    nt.assert_false(fail2.called)
-    nt.assert_false(okay2.called)
+    assert fail1.called
+    assert okay1.called
+    assert not fail2.called
+    assert not okay2.called
 
 def test_command_chain_dispatcher_eq_priority():
     okay1 = Okay(u'okay1')

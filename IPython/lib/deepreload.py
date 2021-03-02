@@ -29,6 +29,7 @@ re-implementation of hierarchical module import.
 import builtins as builtin_mod
 from contextlib import contextmanager
 import imp
+import importlib
 import sys
 
 from types import ModuleType
@@ -321,7 +322,7 @@ def deep_reload_hook(m):
     return newm
 
 # Save the original hooks
-original_reload = imp.reload
+original_reload = importlib.reload
 
 # Replacement for reload()
 def reload(module, exclude=('sys', 'os.path', 'builtins', '__main__',

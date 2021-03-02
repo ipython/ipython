@@ -47,7 +47,9 @@ from .ipunittest import ipdoctest, ipdocstring
 # Grab the numpy-specific decorators which we keep in a file that we
 # occasionally update from upstream: decorators.py is a copy of
 # numpy.testing.decorators, we expose all of it here.
-from IPython.external.decorators import knownfailureif
+import pytest
+
+knownfailureif = pytest.mark.xfail
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -64,24 +66,8 @@ def as_unittest(func):
 
     return Tester
 
+
 # Utility functions
-
-def apply_wrapper(wrapper, func):
-    """Apply a wrapper to a function for decoration.
-
-    This mixes Michele Simionato's decorator tool with nose's make_decorator,
-    to apply a wrapper in a decorator so that all nose attributes, as well as
-    function signature and other properties, survive the decoration cleanly.
-    This will ensure that wrapped functions can still be well introspected via
-    IPython, for example.
-    """
-    warnings.warn("The function `apply_wrapper` is deprecated since IPython 4.0",
-            DeprecationWarning, stacklevel=2)
-    import nose.tools
-
-    return decorator(wrapper,nose.tools.make_decorator(func)(wrapper))
-
-
 def make_label_dec(label, ds=None):
     """Factory function to create a decorator that applies one or more labels.
 
@@ -157,109 +143,9 @@ def make_label_dec(label, ds=None):
 # Inspired by numpy's skipif, but uses the full apply_wrapper utility to
 # preserve function metadata better and allows the skip condition to be a
 # callable.
-def skipif(skip_condition, msg=None):
-    ''' Make function raise SkipTest exception if skip_condition is true
-
-    Parameters
-    ----------
-
-    skip_condition : bool or callable
-      Flag to determine whether to skip test. If the condition is a
-      callable, it is used at runtime to dynamically make the decision. This
-      is useful for tests that may require costly imports, to delay the cost
-      until the test suite is actually executed.
-    msg : string
-      Message to give on raising a SkipTest exception.
-
-    Returns
-    -------
-    decorator : function
-      Decorator, which, when applied to a function, causes SkipTest
-      to be raised when the skip_condition was True, and the function
-      to be called normally otherwise.
-
-    Notes
-    -----
-    You will see from the code that we had to further decorate the
-    decorator with the nose.tools.make_decorator function in order to
-    transmit function name, and various other metadata.
-    '''
-
-    def skip_decorator(f):
-        # Local import to avoid a hard nose dependency and only incur the
-        # import time overhead at actual test-time.
-        import nose
-
-        # Allow for both boolean or callable skip conditions.
-        if callable(skip_condition):
-            skip_val = skip_condition
-        else:
-            skip_val = lambda : skip_condition
-
-        def get_msg(func,msg=None):
-            """Skip message with information about function being skipped."""
-            if msg is None: out = 'Test skipped due to test condition.'
-            else: out = msg
-            return "Skipping test: %s. %s" % (func.__name__,out)
-
-        # We need to define *two* skippers because Python doesn't allow both
-        # return with value and yield inside the same function.
-        def skipper_func(*args, **kwargs):
-            """Skipper for normal test functions."""
-            if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
-            else:
-                return f(*args, **kwargs)
-
-        def skipper_gen(*args, **kwargs):
-            """Skipper for test generators."""
-            if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
-            else:
-                for x in f(*args, **kwargs):
-                    yield x
-
-        # Choose the right skipper to use when building the actual generator.
-        if nose.util.isgenerator(f):
-            skipper = skipper_gen
-        else:
-            skipper = skipper_func
-
-        return nose.tools.make_decorator(f)(skipper)
-
-    return skip_decorator
-
-# A version with the condition set to true, common case just to attach a message
-# to a skip decorator
-def skip(msg=None):
-    """Decorator factory - mark a test function for skipping from test suite.
-
-    Parameters
-    ----------
-      msg : string
-        Optional message to be added.
-
-    Returns
-    -------
-       decorator : function
-         Decorator, which, when applied to a function, causes SkipTest
-         to be raised, with the optional message added.
-      """
-    if msg and not isinstance(msg, str):
-        raise ValueError('invalid object passed to `@skip` decorator, did you '
-                         'meant `@skip()` with brackets ?')
-    return skipif(True, msg)
-
-
-def onlyif(condition, msg):
-    """The reverse from skipif, see skipif for details."""
-
-    if callable(condition):
-        skip_condition = lambda : not condition()
-    else:
-        skip_condition = lambda : not condition
-
-    return skipif(skip_condition, msg)
+skipif = unittest.skipIf
+skip = unittest.skip
+onlyif = unittest.skipIf
 
 #-----------------------------------------------------------------------------
 # Utility functions for decorators
@@ -320,7 +206,8 @@ skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
 
 
 # Decorators to skip certain tests on specific platform/python combinations
-skip_win32_py38 = skipif(sys.version_info > (3,8) and os.name == 'nt')
+skip_win32_py38 = skipif(sys.version_info > (3,8) and os.name == 'nt',
+                         "This test does not run on Windows with Python > 3.8")
 
 
 # not a decorator itself, returns a dummy function to be used as setup
@@ -340,7 +227,7 @@ skipif_not_matplotlib = skip_without('matplotlib')
 
 skipif_not_sympy = skip_without('sympy')
 
-skip_known_failure = knownfailureif(True,'This test is known to fail')
+skip_known_failure = pytest.mark.xfail(True, reason='This test is known to fail')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
@@ -357,7 +244,7 @@ else:
     f.close()
 
 onlyif_unicode_paths = onlyif(unicode_paths, ("This test is only applicable "
-                                    "where we can use unicode in filenames."))
+                                              "where we can use unicode in filenames."))
 
 
 def onlyif_cmds_exist(*commands):

@@ -1,10 +1,10 @@
 """
-Test for async helpers. 
+Test for async helpers.
 
 Should only trigger on python 3.5+ or will have syntax errors.
 """
 from itertools import chain, repeat
-import nose.tools as nt
+import pytest
 from textwrap import dedent, indent
 from unittest import TestCase
 from IPython.testing.decorators import skip_without
@@ -17,11 +17,10 @@ from IPython.core.async_helpers import _should_be_async
 
 class AsyncTest(TestCase):
     def test_should_be_async(self):
-        nt.assert_false(_should_be_async("False"))
-        nt.assert_true(_should_be_async("await bar()"))
-        nt.assert_true(_should_be_async("x = await bar()"))
-        nt.assert_false(
-            _should_be_async(
+        assert not _should_be_async("False")
+        assert _should_be_async("await bar()")
+        assert _should_be_async("x = await bar()")
+        assert not _should_be_async(
                 dedent(
                     """
             async def awaitable():
@@ -29,7 +28,6 @@ class AsyncTest(TestCase):
         """
                 )
             )
-        )
 
     def _get_top_level_cases(self):
         # These are test cases that should be valid in a function
@@ -275,7 +273,7 @@ class AsyncTest(TestCase):
         await sleep(0.1)
         """
         )
-    
+
     if sys.version_info < (3,9):
         # new pgen parser in 3.9 does not raise MemoryError on too many nested
         # parens anymore
@@ -298,7 +296,7 @@ class AsyncTest(TestCase):
         import asyncio
         await asyncio.sleep(0)
         """)
-        with nt.assert_raises(TypeError):
+        with pytest.raises(TypeError):
             res.raise_error()
 
     @skip_without('trio')
@@ -308,7 +306,7 @@ class AsyncTest(TestCase):
         import trio
         await trio.sleep(0)
         """)
-        with nt.assert_raises(RuntimeError):
+        with pytest.raises(RuntimeError):
             res.raise_error()
 
 

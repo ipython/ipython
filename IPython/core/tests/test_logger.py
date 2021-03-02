@@ -3,7 +3,6 @@
 
 import os.path
 
-import nose.tools as nt
 from IPython.utils.tempdir import TemporaryDirectory
 
 def test_logstart_inaccessible_file():
@@ -12,8 +11,8 @@ def test_logstart_inaccessible_file():
     except IOError:
         pass
     else:
-        nt.assert_true(False)           # The try block should never pass.
-    
+        assert False           # The try block should never pass.
+
     try:
         _ip.run_cell("a=1")                 # Check it doesn't try to log this
     finally:

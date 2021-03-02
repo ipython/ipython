@@ -14,8 +14,8 @@ from unittest.mock import patch
 from os.path import join, abspath
 from imp import reload
 
-from nose import SkipTest, with_setup
-import nose.tools as nt
+from unittest import SkipTest
+import pytest
 
 import IPython
 from IPython import paths
@@ -98,14 +98,11 @@ def teardown_environment():
     if hasattr(sys, 'frozen'):
         del sys.frozen
 
-# Build decorator that uses the setup_environment/setup_environment
-with_environment = with_setup(setup_environment, teardown_environment)
-
 @skip_if_not_win32
-@with_environment
 def test_get_home_dir_1():
     """Testcase for py2exe logic, un-compressed lib
     """
+    setup_environment()
     unfrozen = path.get_home_dir()
     sys.frozen = True
 
@@ -113,58 +110,64 @@ def test_get_home_dir_1():
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
 
     home_dir = path.get_home_dir()
-    nt.assert_equal(home_dir, unfrozen)
+    assert home_dir == unfrozen
+    teardown_environment()
 
 
 @skip_if_not_win32
-@with_environment
 def test_get_home_dir_2():
     """Testcase for py2exe logic, compressed lib
     """
+    setup_environment()
     unfrozen = path.get_home_dir()
     sys.frozen = True
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
 
     home_dir = path.get_home_dir(True)
-    nt.assert_equal(home_dir, unfrozen)
+    assert home_dir == unfrozen
+    teardown_environment()
 
 
 @skip_win32_py38
-@with_environment
 def test_get_home_dir_3():
     """get_home_dir() uses $HOME if set"""
+    setup_environment()
     env["HOME"] = HOME_TEST_DIR
     home_dir = path.get_home_dir(True)
     # get_home_dir expands symlinks
-    nt.assert_equal(home_dir, os.path.realpath(env["HOME"]))
+    assert home_dir == os.path.realpath(env["HOME"])
+    teardown_environment()
 
 
-@with_environment
 def test_get_home_dir_4():
     """get_home_dir() still works if $HOME is not set"""
 
+    setup_environment()
     if 'HOME' in env: del env['HOME']
     # this should still succeed, but we don't care what the answer is
     home = path.get_home_dir(False)
+    teardown_environment()
 
 @skip_win32_py38
-@with_environment
 def test_get_home_dir_5():
     """raise HomeDirError if $HOME is specified, but not a writable dir"""
+    setup_environment()
     env['HOME'] = abspath(HOME_TEST_DIR+'garbage')
     # set os.name = posix, to prevent My Documents fallback on Windows
     os.name = 'posix'
-    nt.assert_raises(path.HomeDirError, path.get_home_dir, True)
+    with pytest.raises(path.HomeDirError):
+        path.get_home_dir(True)
+    teardown_environment()
 
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
-@with_environment
 def test_get_home_dir_8():
     """Using registry hack for 'My Documents', os=='nt'
 
     HOMESHARE, HOMEDRIVE, HOMEPATH, USERPROFILE and others are missing.
     """
+    setup_environment()
     os.name = 'nt'
     # Remove from stub environment all keys that may be set
     for key in ['HOME', 'HOMESHARE', 'HOMEDRIVE', 'HOMEPATH', 'USERPROFILE']:
@@ -181,11 +184,12 @@ def test_get_home_dir_8():
     with patch.object(wreg, 'OpenKey', return_value=key()), \
          patch.object(wreg, 'QueryValueEx', return_value=[abspath(HOME_TEST_DIR)]):
         home_dir = path.get_home_dir()
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+    assert home_dir == abspath(HOME_TEST_DIR)
+    teardown_environment()
 
-@with_environment
 def test_get_xdg_dir_0():
     """test_get_xdg_dir_0, check xdg_dir"""
+    setup_environment()
     reload(path)
     path._writable_dir = lambda path: True
     path.get_home_dir = lambda : 'somewhere'
@@ -195,12 +199,13 @@ def test_get_xdg_dir_0():
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
 
-    nt.assert_equal(path.get_xdg_dir(), os.path.join('somewhere', '.config'))
+    assert path.get_xdg_dir() == os.path.join('somewhere', '.config')
+    teardown_environment()
 
 
-@with_environment
 def test_get_xdg_dir_1():
     """test_get_xdg_dir_1, check nonexistent xdg_dir"""
+    setup_environment()
     reload(path)
     path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
@@ -208,11 +213,12 @@ def test_get_xdg_dir_1():
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
-    nt.assert_equal(path.get_xdg_dir(), None)
+    assert path.get_xdg_dir() == None
+    teardown_environment()
 
-@with_environment
 def test_get_xdg_dir_2():
     """test_get_xdg_dir_2, check xdg_dir default to ~/.config"""
+    setup_environment()
     reload(path)
     path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
@@ -224,11 +230,12 @@ def test_get_xdg_dir_2():
     if not os.path.exists(cfgdir):
         os.makedirs(cfgdir)
 
-    nt.assert_equal(path.get_xdg_dir(), cfgdir)
+    assert path.get_xdg_dir() == cfgdir
+    teardown_environment()
 
-@with_environment
 def test_get_xdg_dir_3():
     """test_get_xdg_dir_3, check xdg_dir not used on OS X"""
+    setup_environment()
     reload(path)
     path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
@@ -240,7 +247,8 @@ def test_get_xdg_dir_3():
     if not os.path.exists(cfgdir):
         os.makedirs(cfgdir)
 
-    nt.assert_equal(path.get_xdg_dir(), None)
+    assert path.get_xdg_dir() == None
+    teardown_environment()
 
 def test_filefind():
     """Various tests for filefind"""
@@ -263,20 +271,20 @@ def test_get_long_path_name_win32():
         # Test to see if the short path evaluates correctly.
         short_path = os.path.join(tmpdir, 'THISIS~1')
         evaluated_path = path.get_long_path_name(short_path)
-        nt.assert_equal(evaluated_path.lower(), long_path.lower())
+        assert evaluated_path.lower() == long_path.lower()
 
 
 @dec.skip_win32
 def test_get_long_path_name():
     p = path.get_long_path_name('/usr/local')
-    nt.assert_equal(p,'/usr/local')
+    assert p == '/usr/local'
 
 
 class TestRaiseDeprecation(unittest.TestCase):
 
     @dec.skip_win32 # can't create not-user-writable dir on win
-    @with_environment
     def test_not_writable_ipdir(self):
+        setup_environment()
         tmpdir = tempfile.mkdtemp()
         os.name = "posix"
         env.pop('IPYTHON_DIR', None)
@@ -296,24 +304,31 @@ class TestRaiseDeprecation(unittest.TestCase):
         with self.assertWarnsRegex(UserWarning, 'is not a writable location'):
             ipdir = paths.get_ipython_dir()
         env.pop('IPYTHON_DIR', None)
+        teardown_environment()
 
-@with_environment
 def test_get_py_filename():
+    setup_environment()
     os.chdir(TMP_TEST_DIR)
     with make_tempfile('foo.py'):
-        nt.assert_equal(path.get_py_filename('foo.py'), 'foo.py')
-        nt.assert_equal(path.get_py_filename('foo'), 'foo.py')
+        assert path.get_py_filename('foo.py') == 'foo.py'
+        assert path.get_py_filename('foo') == 'foo.py'
     with make_tempfile('foo'):
-        nt.assert_equal(path.get_py_filename('foo'), 'foo')
-        nt.assert_raises(IOError, path.get_py_filename, 'foo.py')
-    nt.assert_raises(IOError, path.get_py_filename, 'foo')
-    nt.assert_raises(IOError, path.get_py_filename, 'foo.py')
+        assert path.get_py_filename('foo') == 'foo'
+        with pytest.raises(IOError):
+            path.get_py_filename('foo.py')
+    with pytest.raises(IOError):
+        path.get_py_filename('foo')
+    with pytest.raises(IOError):
+        path.get_py_filename('foo.py')
     true_fn = 'foo with spaces.py'
     with make_tempfile(true_fn):
-        nt.assert_equal(path.get_py_filename('foo with spaces'), true_fn)
-        nt.assert_equal(path.get_py_filename('foo with spaces.py'), true_fn)
-        nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"')
-        nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'")
+        assert path.get_py_filename('foo with spaces') == true_fn
+        assert path.get_py_filename('foo with spaces.py') == true_fn
+        with pytest.raises(IOError):
+            path.get_py_filename('"foo with spaces.py"')
+        with pytest.raises(IOError):
+            path.get_py_filename("'foo with spaces.py'")
+    teardown_environment()
 
 @onlyif_unicode_paths
 def test_unicode_in_filename():
@@ -361,8 +376,7 @@ class TestShellGlob(unittest.TestCase):
     def check_match(self, patterns, matches):
         with self.in_tempdir():
             # glob returns unordered list. that's why sorted is required.
-            nt.assert_equal(sorted(path.shellglob(patterns)),
-                            sorted(matches))
+            assert sorted(path.shellglob(patterns)) == sorted(matches)
 
     def common_cases(self):
         return [
@@ -398,11 +412,11 @@ class TestShellGlob(unittest.TestCase):
 
 
 def test_unescape_glob():
-    nt.assert_equal(path.unescape_glob(r'\*\[\!\]\?'), '*[!]?')
-    nt.assert_equal(path.unescape_glob(r'\\*'), r'\*')
-    nt.assert_equal(path.unescape_glob(r'\\\*'), r'\*')
-    nt.assert_equal(path.unescape_glob(r'\\a'), r'\a')
-    nt.assert_equal(path.unescape_glob(r'\a'), r'\a')
+    assert path.unescape_glob(r'\*\[\!\]\?') == '*[!]?'
+    assert path.unescape_glob(r'\\*') == r'\*'
+    assert path.unescape_glob(r'\\\*') == r'\*'
+    assert path.unescape_glob(r'\\a') == r'\a'
+    assert path.unescape_glob(r'\a') == r'\a'
 
 
 @onlyif_unicode_paths
@@ -414,7 +428,7 @@ def test_ensure_dir_exists():
         path.ensure_dir_exists(d) # no-op
         f = os.path.join(td, 'ƒile')
         open(f, 'w').close() # touch
-        with nt.assert_raises(IOError):
+        with pytest.raises(IOError):
             path.ensure_dir_exists(f)
 
 class TestLinkOrCopy(unittest.TestCase):
@@ -431,17 +445,17 @@ class TestLinkOrCopy(unittest.TestCase):
         return os.path.join(self.tempdir.name, *args)
 
     def assert_inode_not_equal(self, a, b):
-        nt.assert_not_equal(os.stat(a).st_ino, os.stat(b).st_ino,
-                            "%r and %r do reference the same indoes" %(a, b))
+        assert os.stat(a).st_ino != os.stat(b).st_ino, \
+            "%r and %r do reference the same indoes" % (a, b)
 
     def assert_inode_equal(self, a, b):
-        nt.assert_equal(os.stat(a).st_ino, os.stat(b).st_ino,
-                        "%r and %r do not reference the same indoes" %(a, b))
+        assert os.stat(a).st_ino == os.stat(b).st_ino, \
+            "%r and %r do not reference the same indoes" % (a, b)
 
     def assert_content_equal(self, a, b):
         with open(a) as a_f:
             with open(b) as b_f:
-                nt.assert_equal(a_f.read(), b_f.read())
+                assert a_f.read() == b_f.read()
 
     @skip_win32
     def test_link_successful(self):
@@ -489,4 +503,4 @@ class TestLinkOrCopy(unittest.TestCase):
         path.link_or_copy(self.src, dst)
         path.link_or_copy(self.src, dst)
         self.assert_inode_equal(self.src, dst)
-        nt.assert_equal(sorted(os.listdir(self.tempdir.name)), ['src', 'target'])
+        assert sorted(os.listdir(self.tempdir.name)) == ['src', 'target']

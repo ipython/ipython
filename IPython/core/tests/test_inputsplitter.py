@@ -8,8 +8,6 @@
 import unittest
 import sys
 
-import nose.tools as nt
-
 from IPython.core import inputsplitter as isp
 from IPython.core.inputtransformer import InputTransformer
 from IPython.core.tests.test_inputtransformer import syntax, syntax_ml
@@ -98,10 +96,10 @@ def test_remove_comments():
 
 def test_get_input_encoding():
     encoding = isp.get_input_encoding()
-    nt.assert_true(isinstance(encoding, str))
+    assert isinstance(encoding, str)
     # simple-minded check that at least encoding a simple string works with the
     # encoding we got.
-    nt.assert_equal(u'test'.encode(encoding), b'test')
+    assert u'test'.encode(encoding) == b'test'
 
 
 class NoInputEncodingTestCase(unittest.TestCase):
@@ -419,7 +417,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 for lraw, out_t_part in line_pairs:
                     if out_t_part is not None:
                         out_t_parts.append(out_t_part)
-                    
+
                     if lraw is not None:
                         isp.push(lraw)
                         raw_parts.append(lraw)
@@ -442,7 +440,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 out = isp.transform_cell(raw)
                 # Match ignoring trailing whitespace
                 self.assertEqual(out.rstrip(), out_t.rstrip())
-    
+
     def test_cellmagic_preempt(self):
         isp = self.isp
         for raw, name, line, cell in [
@@ -464,17 +462,17 @@ class IPythonInputTestCase(InputSplitterTestCase):
         class CommentTransformer(InputTransformer):
             def __init__(self):
                 self._lines = []
-            
+
             def push(self, line):
                 self._lines.append(line + '#')
-            
+
             def reset(self):
                 text = '\n'.join(self._lines)
                 self._lines = []
                 return text
-        
+
         isp.physical_line_transforms.insert(0, CommentTransformer())
-        
+
         for raw, expected in [
             ("a=5", "a=5#"),
             ("%ls foo", "get_ipython().run_line_magic(%r, %r)" % (u'ls', u'foo#')),
@@ -527,38 +525,38 @@ if __name__ == '__main__':
 # Tests for cell magics support
 
 def test_last_blank():
-    nt.assert_false(isp.last_blank(''))
-    nt.assert_false(isp.last_blank('abc'))
-    nt.assert_false(isp.last_blank('abc\n'))
-    nt.assert_false(isp.last_blank('abc\na'))
+    assert not isp.last_blank('')
+    assert not isp.last_blank('abc')
+    assert not isp.last_blank('abc\n')
+    assert not isp.last_blank('abc\na')
 
-    nt.assert_true(isp.last_blank('\n'))
-    nt.assert_true(isp.last_blank('\n '))
-    nt.assert_true(isp.last_blank('abc\n '))
-    nt.assert_true(isp.last_blank('abc\n\n'))
-    nt.assert_true(isp.last_blank('abc\nd\n\n'))
-    nt.assert_true(isp.last_blank('abc\nd\ne\n\n'))
-    nt.assert_true(isp.last_blank('abc \n \n \n\n'))
+    assert isp.last_blank('\n')
+    assert isp.last_blank('\n ')
+    assert isp.last_blank('abc\n ')
+    assert isp.last_blank('abc\n\n')
+    assert isp.last_blank('abc\nd\n\n')
+    assert isp.last_blank('abc\nd\ne\n\n')
+    assert isp.last_blank('abc \n \n \n\n')
 
 
 def test_last_two_blanks():
-    nt.assert_false(isp.last_two_blanks(''))
-    nt.assert_false(isp.last_two_blanks('abc'))
-    nt.assert_false(isp.last_two_blanks('abc\n'))
-    nt.assert_false(isp.last_two_blanks('abc\n\na'))
-    nt.assert_false(isp.last_two_blanks('abc\n \n'))
-    nt.assert_false(isp.last_two_blanks('abc\n\n'))
+    assert not isp.last_two_blanks('')
+    assert not isp.last_two_blanks('abc')
+    assert not isp.last_two_blanks('abc\n')
+    assert not isp.last_two_blanks('abc\n\na')
+    assert not isp.last_two_blanks('abc\n \n')
+    assert not isp.last_two_blanks('abc\n\n')
 
-    nt.assert_true(isp.last_two_blanks('\n\n'))
-    nt.assert_true(isp.last_two_blanks('\n\n '))
-    nt.assert_true(isp.last_two_blanks('\n \n'))
-    nt.assert_true(isp.last_two_blanks('abc\n\n '))
-    nt.assert_true(isp.last_two_blanks('abc\n\n\n'))
-    nt.assert_true(isp.last_two_blanks('abc\n\n \n'))
-    nt.assert_true(isp.last_two_blanks('abc\n\n \n '))
-    nt.assert_true(isp.last_two_blanks('abc\n\n \n \n'))
-    nt.assert_true(isp.last_two_blanks('abc\nd\n\n\n'))
-    nt.assert_true(isp.last_two_blanks('abc\nd\ne\nf\n\n\n'))
+    assert isp.last_two_blanks('\n\n')
+    assert isp.last_two_blanks('\n\n ')
+    assert isp.last_two_blanks('\n \n')
+    assert isp.last_two_blanks('abc\n\n ')
+    assert isp.last_two_blanks('abc\n\n\n')
+    assert isp.last_two_blanks('abc\n\n \n')
+    assert isp.last_two_blanks('abc\n\n \n ')
+    assert isp.last_two_blanks('abc\n\n \n \n')
+    assert isp.last_two_blanks('abc\nd\n\n\n')
+    assert isp.last_two_blanks('abc\nd\ne\nf\n\n\n')
 
 
 class CellMagicsCommon(object):
@@ -567,11 +565,11 @@ class CellMagicsCommon(object):
         src = "%%cellm line\nbody\n"
         out = self.sp.transform_cell(src)
         ref = "get_ipython().run_cell_magic('cellm', 'line', 'body')\n"
-        nt.assert_equal(out, ref)
-    
+        assert out == ref
+
     def test_cellmagic_help(self):
         self.sp.push('%%cellm?')
-        nt.assert_false(self.sp.push_accepts_more())
+        assert not self.sp.push_accepts_more()
 
     def tearDown(self):
         self.sp.reset()
@@ -583,13 +581,13 @@ class CellModeCellMagics(CellMagicsCommon, unittest.TestCase):
     def test_incremental(self):
         sp = self.sp
         sp.push('%%cellm firstline\n')
-        nt.assert_true(sp.push_accepts_more()) #1
+        assert sp.push_accepts_more()  # 1
         sp.push('line2\n')
-        nt.assert_true(sp.push_accepts_more()) #2
+        assert sp.push_accepts_more()  # 2
         sp.push('\n')
         # This should accept a blank line and carry on until the cell is reset
-        nt.assert_true(sp.push_accepts_more()) #3
-    
+        assert sp.push_accepts_more()  # 3
+
     def test_no_strip_coding(self):
         src = '\n'.join([
             '%%writefile foo.py',
@@ -597,7 +595,7 @@ class CellModeCellMagics(CellMagicsCommon, unittest.TestCase):
             'print(u"üñîçø∂é")',
         ])
         out = self.sp.transform_cell(src)
-        nt.assert_in('# coding: utf-8', out)
+        assert '# coding: utf-8' in out
 
 
 class LineModeCellMagics(CellMagicsCommon, unittest.TestCase):
@@ -606,10 +604,11 @@ class LineModeCellMagics(CellMagicsCommon, unittest.TestCase):
     def test_incremental(self):
         sp = self.sp
         sp.push('%%cellm line2\n')
-        nt.assert_true(sp.push_accepts_more()) #1
+        assert sp.push_accepts_more()  # 1
         sp.push('\n')
         # In this case, a blank line should end the cell magic
-        nt.assert_false(sp.push_accepts_more()) #2
+        assert not sp.push_accepts_more()  # 2
+
 
 indentation_samples = [
     ('a = 1', 0),

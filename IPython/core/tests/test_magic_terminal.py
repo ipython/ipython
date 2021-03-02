@@ -11,8 +11,6 @@ import sys
 from io import StringIO
 from unittest import TestCase
 
-import nose.tools as nt
-
 from IPython.testing import tools as tt
 
 #-----------------------------------------------------------------------------
@@ -88,20 +86,20 @@ class PasteTestCase(TestCase):
         # Inject fake clipboard hook but save original so we can restore it later
         self.original_clip = ip.hooks.clipboard_get
 
-    def tearDown(self): 
+    def tearDown(self):
         # Restore original hook
         ip.hooks.clipboard_get = self.original_clip
-       
+
     def test_paste(self):
         ip.user_ns.pop('x', None)
         self.paste('x = 1')
-        nt.assert_equal(ip.user_ns['x'], 1)
+        assert ip.user_ns['x'] == 1
         ip.user_ns.pop('x')
 
     def test_paste_pyprompt(self):
         ip.user_ns.pop('x', None)
         self.paste('>>> x=2')
-        nt.assert_equal(ip.user_ns['x'], 2)
+        assert ip.user_ns['x'] == 2
         ip.user_ns.pop('x')
 
     def test_paste_py_multi(self):
@@ -110,20 +108,20 @@ class PasteTestCase(TestCase):
         >>> y = []
         >>> for i in x:
         ...     y.append(i**2)
-        ... 
+        ...
         """)
-        nt.assert_equal(ip.user_ns['x'], [1,2,3])
-        nt.assert_equal(ip.user_ns['y'], [1,4,9])
+        assert ip.user_ns['x'] == [1,2,3]
+        assert ip.user_ns['y'] == [1,4,9]
 
     def test_paste_py_multi_r(self):
         "Now, test that self.paste -r works"
         self.test_paste_py_multi()
-        nt.assert_equal(ip.user_ns.pop('x'), [1,2,3])
-        nt.assert_equal(ip.user_ns.pop('y'), [1,4,9])
-        nt.assert_false('x' in ip.user_ns)
+        assert ip.user_ns.pop('x') == [1,2,3]
+        assert ip.user_ns.pop('y') == [1,4,9]
+        assert not 'x' in ip.user_ns
         ip.magic('paste -r')
-        nt.assert_equal(ip.user_ns['x'], [1,2,3])
-        nt.assert_equal(ip.user_ns['y'], [1,4,9])
+        assert ip.user_ns['x'] == [1,2,3]
+        assert ip.user_ns['y'] == [1,4,9]
 
     def test_paste_email(self):
         "Test pasting of email-quoted contents"
@@ -131,7 +129,7 @@ class PasteTestCase(TestCase):
         >> def foo(x):
         >>     return x + 1
         >> xx = foo(1.1)""")
-        nt.assert_equal(ip.user_ns['xx'], 2.1)
+        assert ip.user_ns['xx'] == 2.1
 
     def test_paste_email2(self):
         "Email again; some programs add a space also at each quoting level"
@@ -139,16 +137,16 @@ class PasteTestCase(TestCase):
         > > def foo(x):
         > >     return x + 1
         > > yy = foo(2.1)     """)
-        nt.assert_equal(ip.user_ns['yy'], 3.1)
+        assert ip.user_ns['yy'] == 3.1
 
     def test_paste_email_py(self):
         "Email quoting of interactive input"
         self.paste("""\
         >> >>> def f(x):
         >> ...   return x+1
-        >> ... 
+        >> ...
         >> >>> zz = f(2.5)      """)
-        nt.assert_equal(ip.user_ns['zz'], 3.5)
+        assert ip.user_ns['zz'] == 3.5
 
     def test_paste_echo(self):
         "Also test self.paste echoing, by temporarily faking the writer"
@@ -163,8 +161,8 @@ class PasteTestCase(TestCase):
             out = w.getvalue()
         finally:
             ip.write = writer
-        nt.assert_equal(ip.user_ns['a'], 100)
-        nt.assert_equal(ip.user_ns['b'], 200)
+        assert ip.user_ns['a'] == 100
+        assert ip.user_ns['b'] == 200
         assert out == code+"\n## -- End pasted text --\n"
 
     def test_paste_leading_commas(self):
@@ -176,7 +174,7 @@ a = """
 """'''
         ip.user_ns.pop('foo', None)
         tm.store_or_execute(s, 'foo')
-        nt.assert_in('foo', ip.user_ns)
+        assert 'foo' in ip.user_ns
 
 
     def test_paste_trailing_question(self):
@@ -189,4 +187,4 @@ def funcfoo():
 '''
         ip.user_ns.pop('funcfoo', None)
         self.paste(s)
-        nt.assert_equal(ip.user_ns['funcfoo'](), 'fooresult')
+        assert ip.user_ns['funcfoo']() == 'fooresult'

@@ -14,8 +14,6 @@ import tempfile
 import unittest
 from os.path import join
 
-import nose.tools as nt
-
 from IPython.core.completerlib import magic_run_completer, module_completion, try_import
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.testing.decorators import onlyif_unicode_paths
@@ -140,7 +138,7 @@ def test_import_invalid_module():
 
         s = set( module_completion('import foo') )
         intersection = s.intersection(invalid_module_names)
-        nt.assert_equal(intersection, set())
+        assert intersection == set()
 
         assert valid_module_names.issubset(s), valid_module_names.intersection(s)
 
@@ -154,9 +152,9 @@ def test_bad_module_all():
     sys.path.insert(0, testsdir)
     try:
         results = module_completion('from bad_all import ')
-        nt.assert_in('puppies', results)
+        assert 'puppies' in results
         for r in results:
-            nt.assert_is_instance(r, str)
+            assert isinstance(r, str)
     finally:
         sys.path.remove(testsdir)
 
@@ -164,7 +162,7 @@ def test_bad_module_all():
 def test_module_without_init():
     """
     Test module without __init__.py.
-    
+
     https://github.com/ipython/ipython/issues/11226
     """
     fake_module_name = "foo"

@@ -4,9 +4,6 @@
 # Module imports
 #-----------------------------------------------------------------------------
 
-# third party
-import nose.tools as nt
-
 # our own packages
 
 #-----------------------------------------------------------------------------
@@ -28,11 +25,11 @@ def test_reset():
     ip.user_ns['x'] = 1
     ip.user_ns['y'] = 1
     ip.reset()
-    
+
     # Finally, check that all namespaces have only as many variables as we
     # expect to find in them:
-    nt.assert_equal(len(ip.user_ns), nvars_user_ns)
-    nt.assert_equal(len(ip.user_ns_hidden), nvars_hidden)
+    assert len(ip.user_ns) == nvars_user_ns
+    assert len(ip.user_ns_hidden) == nvars_hidden
 
 
 # Tests for reporting of exceptions in various modes, handling of SystemExit,
@@ -66,7 +63,7 @@ ZeroDivisionError                         Traceback (most recent call last)
 <BLANKLINE>
 ... in <module>
      30         mode = 'div'
-     31 
+     31
 ---> 32     bar(mode)
 <BLANKLINE>
 ... in bar(mode)
@@ -80,7 +77,7 @@ ZeroDivisionError                         Traceback (most recent call last)
       6     x = 1
       7     y = 0
 ----> 8     x/y
-      9 
+      9
      10 def sysexit(stat, mode):
 <BLANKLINE>
 ZeroDivisionError: ...
@@ -98,7 +95,7 @@ ZeroDivisionError                         Traceback (most recent call last)
 <BLANKLINE>
 ... in <module>
      30         mode = 'div'
-     31 
+     31
 ---> 32     bar(mode)
         global bar = <function bar at ...>
         global mode = 'div'
@@ -117,7 +114,7 @@ ZeroDivisionError                         Traceback (most recent call last)
 ----> 8     x/y
         x = 1
         y = 0
-      9 
+      9
      10 def sysexit(stat, mode):
 <BLANKLINE>
 ZeroDivisionError: ...
@@ -155,7 +152,7 @@ SystemExit                                Traceback (most recent call last)
 <BLANKLINE>
 ...<module>
      30         mode = 'div'
-     31 
+     31
 ---> 32     bar(mode)
 <BLANKLINE>
 ...bar(mode)
@@ -166,10 +163,10 @@ SystemExit                                Traceback (most recent call last)
      24         raise ValueError('Unknown mode')
 <BLANKLINE>
 ...sysexit(stat, mode)
-      9 
+      9
      10 def sysexit(stat, mode):
 ---> 11     raise SystemExit(stat, 'Mode = %s' % mode)
-     12 
+     12
      13 def bar(mode):
 <BLANKLINE>
 SystemExit: (2, 'Mode = exit')
@@ -183,7 +180,7 @@ SystemExit                                Traceback (most recent call last)
 <BLANKLINE>
 ... in <module>
      30         mode = 'div'
-     31 
+     31
 ---> 32     bar(mode)
         global bar = <function bar at ...>
         global mode = 'exit'
@@ -199,13 +196,13 @@ SystemExit                                Traceback (most recent call last)
      24         raise ValueError('Unknown mode')
 <BLANKLINE>
 ... in sysexit(stat=2, mode='exit')
-      9 
+      9
      10 def sysexit(stat, mode):
 ---> 11     raise SystemExit(stat, 'Mode = %s' % mode)
         global SystemExit = undefined
         stat = 2
         mode = 'exit'
-     12 
+     12
      13 def bar(mode):
 <BLANKLINE>
 SystemExit: (2, 'Mode = exit')
@@ -217,13 +214,13 @@ def test_run_cell():
     ip.run_cell('a = 10\na+=1')
     ip.run_cell('assert a == 11\nassert 1')
 
-    nt.assert_equal(ip.user_ns['a'], 11)
+    assert ip.user_ns['a'] == 11
     complex = textwrap.dedent("""
     if 1:
         print "hello"
         if 1:
             print "world"
-        
+
     if 2:
         print "foo"
 
@@ -232,15 +229,15 @@ def test_run_cell():
 
     if 4:
         print "bar"
-    
+
     """)
     # Simply verifies that this kind of input is run
     ip.run_cell(complex)
-    
+
 
 def test_db():
     """Test the internal database used for variable persistence."""
     ip.db['__unittest_'] = 12
-    nt.assert_equal(ip.db['__unittest_'], 12)
+    assert ip.db['__unittest_'] == 12
     del ip.db['__unittest_']
     assert '__unittest_' not in ip.db

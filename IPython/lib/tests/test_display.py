@@ -21,7 +21,7 @@ import wave
 from io import BytesIO
 
 # Third-party imports
-import nose.tools as nt
+import pytest
 
 try:
     import numpy
@@ -51,7 +51,7 @@ def test_warning_on_non_existent_path_FileLink():
     """FileLink: Calling _repr_html_ on non-existent files returns a warning
     """
     fl = display.FileLink('example.txt')
-    nt.assert_true(fl._repr_html_().startswith('Path (<tt>example.txt</tt>)'))
+    assert fl._repr_html_().startswith('Path (<tt>example.txt</tt>)')
 
 def test_existing_path_FileLink():
     """FileLink: Calling _repr_html_ functions as expected on existing filepath
@@ -60,7 +60,7 @@ def test_existing_path_FileLink():
     fl = display.FileLink(tf.name)
     actual = fl._repr_html_()
     expected = "<a href='%s' target='_blank'>%s</a><br>" % (tf.name,tf.name)
-    nt.assert_equal(actual,expected)
+    assert actual == expected
 
 def test_existing_path_FileLink_repr():
     """FileLink: Calling repr() functions as expected on existing filepath
@@ -69,13 +69,14 @@ def test_existing_path_FileLink_repr():
     fl = display.FileLink(tf.name)
     actual = repr(fl)
     expected = tf.name
-    nt.assert_equal(actual,expected)
+    assert actual == expected
 
 def test_error_on_directory_to_FileLink():
     """FileLink: Raises error when passed directory
     """
     td = mkdtemp()
-    nt.assert_raises(ValueError,display.FileLink,td)
+    with pytest.raises(ValueError):
+        display.FileLink(td)
 
 #--------------------------
 # FileLinks tests
@@ -90,7 +91,7 @@ def test_warning_on_non_existent_path_FileLinks():
     """FileLinks: Calling _repr_html_ on non-existent files returns a warning
     """
     fls = display.FileLinks('example')
-    nt.assert_true(fls._repr_html_().startswith('Path (<tt>example</tt>)'))
+    assert fls._repr_html_().startswith('Path (<tt>example</tt>)')
 
 def test_existing_path_FileLinks():
     """FileLinks: Calling _repr_html_ functions as expected on existing dir
@@ -111,7 +112,7 @@ def test_existing_path_FileLinks():
                  (tf1.name.replace("\\","/"),split(tf1.name)[1])]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
-    nt.assert_equal(actual,expected)
+    assert actual == expected
 
 def test_existing_path_FileLinks_alt_formatter():
     """FileLinks: Calling _repr_html_ functions as expected w/ an alt formatter
@@ -128,7 +129,7 @@ def test_existing_path_FileLinks_alt_formatter():
     expected = ["hello","world"]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
-    nt.assert_equal(actual,expected)
+    assert actual == expected
 
 def test_existing_path_FileLinks_repr():
     """FileLinks: Calling repr() functions as expected on existing directory """
@@ -142,8 +143,8 @@ def test_existing_path_FileLinks_repr():
     expected = ['%s/' % td, '  %s' % split(tf1.name)[1],'  %s' % split(tf2.name)[1]]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
-    nt.assert_equal(actual,expected)
-    
+    assert actual == expected
+
 def test_existing_path_FileLinks_repr_alt_formatter():
     """FileLinks: Calling repr() functions as expected w/ alt formatter
     """
@@ -159,14 +160,15 @@ def test_existing_path_FileLinks_repr_alt_formatter():
     expected = ["hello","world"]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
-    nt.assert_equal(actual,expected)
-    
+    assert actual == expected
+
 def test_error_on_file_to_FileLinks():
     """FileLinks: Raises error when passed file
     """
     td = mkdtemp()
     tf1 = NamedTemporaryFile(dir=td)
-    nt.assert_raises(ValueError,display.FileLinks,tf1.name)
+    with pytest.raises(ValueError):
+        display.FileLinks(tf1.name)
 
 def test_recursive_FileLinks():
     """FileLinks: Does not recurse when recursive=False
@@ -178,11 +180,11 @@ def test_recursive_FileLinks():
     fl = display.FileLinks(td)
     actual = str(fl)
     actual = actual.split('\n')
-    nt.assert_equal(len(actual), 4, actual)
+    assert len(actual) == 4, actual
     fl = display.FileLinks(td, recursive=False)
     actual = str(fl)
     actual = actual.split('\n')
-    nt.assert_equal(len(actual), 2, actual)
+    assert len(actual) == 2, actual
 
 def test_audio_from_file():
     path = pjoin(dirname(__file__), 'test.wav')
@@ -194,17 +196,18 @@ class TestAudioDataWithNumpy(TestCase):
     def test_audio_from_numpy_array(self):
         test_tone = get_test_tone()
         audio = display.Audio(test_tone, rate=44100)
-        nt.assert_equal(len(read_wav(audio.data)), len(test_tone))
+        assert len(read_wav(audio.data)) == len(test_tone)
 
     @skipif_not_numpy
     def test_audio_from_list(self):
         test_tone = get_test_tone()
         audio = display.Audio(list(test_tone), rate=44100)
-        nt.assert_equal(len(read_wav(audio.data)), len(test_tone))
+        assert len(read_wav(audio.data)) == len(test_tone)
 
     @skipif_not_numpy
     def test_audio_from_numpy_array_without_rate_raises(self):
-        nt.assert_raises(ValueError, display.Audio, get_test_tone())
+        with pytest.raises(ValueError):
+            display.Audio(get_test_tone())
 
     @skipif_not_numpy
     def test_audio_data_normalization(self):
@@ -212,7 +215,7 @@ class TestAudioDataWithNumpy(TestCase):
         for scale in [1, 0.5, 2]:
             audio = display.Audio(get_test_tone(scale), rate=44100)
             actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
-            nt.assert_equal(actual_max_value, expected_max_value)
+            assert actual_max_value == expected_max_value
 
     @skipif_not_numpy
     def test_audio_data_without_normalization(self):
@@ -223,15 +226,13 @@ class TestAudioDataWithNumpy(TestCase):
             expected_max_value = int(max_int16 * test_tone_max_abs)
             audio = display.Audio(test_tone, rate=44100, normalize=False)
             actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
-            nt.assert_equal(actual_max_value, expected_max_value)
+            assert actual_max_value == expected_max_value
 
     def test_audio_data_without_normalization_raises_for_invalid_data(self):
-        nt.assert_raises(
-            ValueError,
-            lambda: display.Audio([1.001], rate=44100, normalize=False))
-        nt.assert_raises(
-            ValueError,
-            lambda: display.Audio([-1.001], rate=44100, normalize=False))
+        with pytest.raises(ValueError):
+            display.Audio([1.001], rate=44100, normalize=False)
+        with pytest.raises(ValueError):
+            display.Audio([-1.001], rate=44100, normalize=False)
 
 def simulate_numpy_not_installed():
     try:
@@ -247,9 +248,8 @@ class TestAudioDataWithoutNumpy(TestAudioDataWithNumpy):
     @skipif_not_numpy
     def test_audio_raises_for_nested_list(self):
         stereo_signal = [list(get_test_tone())] * 2
-        nt.assert_raises(
-            TypeError,
-            lambda: display.Audio(stereo_signal, rate=44100))
+        with pytest.raises(TypeError):
+            display.Audio(stereo_signal, rate=44100)
 
 @skipif_not_numpy
 def get_test_tone(scale=1):

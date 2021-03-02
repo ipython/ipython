@@ -24,8 +24,6 @@ from IPython.testing.tools import make_tempfile
 
 import IPython.utils.module_paths as mp
 
-import nose.tools as nt
-
 env = os.environ
 TEST_FILE_PATH = split(abspath(__file__))[0]
 
@@ -70,7 +68,7 @@ def test_tempdir():
     """
     Ensure the test are done with a temporary file that have a dot somewhere.
     """
-    nt.assert_in('.',TMP_TEST_DIR)
+    assert '.' in TMP_TEST_DIR
 
 
 def test_find_mod_1():
@@ -79,7 +77,7 @@ def test_find_mod_1():
     Expected output: a path to that directory's __init__.py file.
     """
     modpath = join(TMP_TEST_DIR, "xmod", "__init__.py")
-    nt.assert_equal(mp.find_mod("xmod"), modpath)
+    assert mp.find_mod("xmod") == modpath
 
 def test_find_mod_2():
     """
@@ -88,7 +86,7 @@ def test_find_mod_2():
     TODO: Confirm why this is a duplicate test.
     """
     modpath = join(TMP_TEST_DIR, "xmod", "__init__.py")
-    nt.assert_equal(mp.find_mod("xmod"), modpath)
+    assert mp.find_mod("xmod") == modpath
 
 def test_find_mod_3():
     """
@@ -96,7 +94,7 @@ def test_find_mod_3():
     Expected output: full path with .py extension.
     """
     modpath = join(TMP_TEST_DIR, "xmod", "sub.py")
-    nt.assert_equal(mp.find_mod("xmod.sub"), modpath)
+    assert mp.find_mod("xmod.sub") == modpath
 
 def test_find_mod_4():
     """
@@ -104,11 +102,11 @@ def test_find_mod_4():
     Expected output: full path with .py extension
     """
     modpath = join(TMP_TEST_DIR, "pack.py")
-    nt.assert_equal(mp.find_mod("pack"), modpath)
+    assert mp.find_mod("pack") == modpath
 
 def test_find_mod_5():
     """
     Search for a filename with a .pyc extension
     Expected output: TODO: do we exclude or include .pyc files?
     """
-    nt.assert_equal(mp.find_mod("packpyc"), None)
+    assert mp.find_mod("packpyc") == None

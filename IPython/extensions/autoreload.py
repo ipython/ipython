@@ -116,9 +116,8 @@ import traceback
 import types
 import weakref
 import gc
-from importlib import import_module
+from importlib import import_module, reload
 from importlib.util import source_from_cache
-from imp import reload
 
 #------------------------------------------------------------------------------
 # Autoreload functionality
@@ -272,7 +271,7 @@ def update_instances(old, new):
     """Use garbage collector to find all instances that refer to the old
     class definition and update their __class__ to point to the new class
     definition"""
-    
+
     refs = gc.get_referrers(old)
 
     for ref in refs:

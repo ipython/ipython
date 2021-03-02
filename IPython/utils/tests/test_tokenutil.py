@@ -1,8 +1,7 @@
 """Tests for tokenutil"""
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-
-import nose.tools as nt
+import pytest
 
 from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
 
@@ -16,12 +15,11 @@ def expect_token(expected, cell, cursor_pos):
             offset += len(line)+1
     column = cursor_pos - offset
     line_with_cursor = '%s|%s' % (line[:column], line[column:])
-    nt.assert_equal(token, expected,
+    assert token == expected, \
         "Expected %r, got %r in: %r (pos %i)" % (
         expected, token, line_with_cursor, cursor_pos)
-    )
 
-def test_simple(): 
+def test_simple():
     cell = "foo"
     for i in range(len(cell)):
         expect_token("foo", cell, i)
@@ -105,29 +103,28 @@ def test_attrs():
 def test_line_at_cursor():
     cell = ""
     (line, offset) = line_at_cursor(cell, cursor_pos=11)
-    nt.assert_equal(line, "")
-    nt.assert_equal(offset, 0)
+    assert line == ""
+    assert offset == 0
 
     # The position after a newline should be the start of the following line.
     cell = "One\nTwo\n"
     (line, offset) = line_at_cursor(cell, cursor_pos=4)
-    nt.assert_equal(line, "Two\n")
-    nt.assert_equal(offset, 4)
+    assert line == "Two\n"
+    assert offset == 4
 
     # The end of a cell should be on the last line
     cell = "pri\npri"
     (line, offset) = line_at_cursor(cell, cursor_pos=7)
-    nt.assert_equal(line, "pri")
-    nt.assert_equal(offset, 4)
+    assert line == "pri"
+    assert offset == 4
 
-def test_multiline_statement():
+@pytest.mark.parametrize("c, d", zip(range(16, 22), range(22, 28)))
+def test_multiline_statement(c, d):
     cell = """a = (1,
     3)
 
 int()
 map()
 """
-    for c in range(16, 22):
-        yield lambda cell, c: expect_token("int", cell, c), cell, c
-    for c in range(22, 28):
-        yield lambda cell, c: expect_token("map", cell, c), cell, c
+    expect_token("int", cell, c)
+    expect_token("map", cell, d)

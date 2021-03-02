@@ -1,4 +1,3 @@
-import nose.tools as nt
 from IPython.utils.dir2 import dir2
 
 
@@ -13,8 +12,8 @@ def test_base():
     assert ('z' in res)
     assert ('y' not in res)
     assert ('__class__' in res)
-    nt.assert_equal(res.count('x'), 1)
-    nt.assert_equal(res.count('__class__'), 1)
+    assert res.count('x') == 1
+    assert res.count('__class__') == 1
 
 def test_SubClass():
 
@@ -23,8 +22,8 @@ def test_SubClass():
 
     res = dir2(SubClass())
     assert ('y' in res)
-    nt.assert_equal(res.count('y'), 1)
-    nt.assert_equal(res.count('x'), 1)
+    assert res.count('y') == 1
+    assert res.count('x') == 1
 
 
 def test_SubClass_with_trait_names_attr():

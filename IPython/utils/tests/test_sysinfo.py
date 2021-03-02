@@ -5,13 +5,12 @@
 # Distributed under the terms of the Modified BSD License.
 
 import json
-import nose.tools as nt
 
 from IPython.utils import sysinfo
 
 
 def test_json_getsysinfo():
     """
-    test that it is easily jsonable and don't return bytes somewhere. 
+    test that it is easily jsonable and don't return bytes somewhere.
     """
     json.dumps(sysinfo.get_sys_info())

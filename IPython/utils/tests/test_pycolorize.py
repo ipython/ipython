@@ -17,12 +17,11 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-# third party
-import nose.tools as nt
-
 # our own
 from IPython.utils.PyColorize import Parser
 import io
+
+import pytest
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -47,32 +46,30 @@ class Bar(Super):
         super(Bar, self).__init__(1**2, 3^4, 5 or 6)
 """
 
-def test_loop_colors():
+@pytest.mark.parametrize("style", ('Linux', 'NoColor','LightBG', 'Neutral'))
+def test_loop_colors(style):
+    def test_unicode_colorize():
+        p = Parser(style=style)
+        f1 = p.format('1/0', 'str')
+        f2 = p.format(u'1/0', 'str')
+        assert f1 == f2
 
-    for style in ('Linux', 'NoColor','LightBG', 'Neutral'):
+    def test_parse_sample():
+        """and test writing to a buffer"""
+        buf = io.StringIO()
+        p = Parser(style=style)
+        p.format(sample, buf)
+        buf.seek(0)
+        f1 = buf.read()
 
-        def test_unicode_colorize():
-            p = Parser(style=style)
-            f1 = p.format('1/0', 'str')
-            f2 = p.format(u'1/0', 'str')
-            nt.assert_equal(f1, f2)
+        assert 'ERROR' not in f1
 
-        def test_parse_sample():
-            """and test writing to a buffer"""
-            buf = io.StringIO()
-            p = Parser(style=style)
-            p.format(sample, buf)
-            buf.seek(0)
-            f1 = buf.read()
+    def test_parse_error():
+        p = Parser(style=style)
+        f1 = p.format(')', 'str')
+        if style != 'NoColor':
+            assert 'ERROR' in f1
 
-            nt.assert_not_in('ERROR', f1)
-
-        def test_parse_error():
-            p = Parser(style=style)
-            f1 = p.format(')', 'str')
-            if style != 'NoColor':
-                nt.assert_in('ERROR', f1)
-
-        yield test_unicode_colorize
-        yield test_parse_sample
-        yield test_parse_error
+    test_unicode_colorize()
+    test_parse_sample()
+    test_parse_error()

@@ -17,8 +17,6 @@ Tests for testing.tools
 import os
 import unittest
 
-import nose.tools as nt
-
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
@@ -30,34 +28,34 @@ from IPython.testing import tools as tt
 def test_full_path_posix():
     spath = '/foo/bar.py'
     result = tt.full_path(spath,['a.txt','b.txt'])
-    nt.assert_equal(result, ['/foo/a.txt', '/foo/b.txt'])
+    assert result == ['/foo/a.txt', '/foo/b.txt']
     spath = '/foo'
     result = tt.full_path(spath,['a.txt','b.txt'])
-    nt.assert_equal(result, ['/a.txt', '/b.txt'])
+    assert result == ['/a.txt', '/b.txt']
     result = tt.full_path(spath,'a.txt')
-    nt.assert_equal(result, ['/a.txt'])
+    assert result == ['/a.txt']
 
 
 @dec.skip_if_not_win32
 def test_full_path_win32():
     spath = 'c:\\foo\\bar.py'
     result = tt.full_path(spath,['a.txt','b.txt'])
-    nt.assert_equal(result, ['c:\\foo\\a.txt', 'c:\\foo\\b.txt'])
+    assert result == ['c:\\foo\\a.txt', 'c:\\foo\\b.txt']
     spath = 'c:\\foo'
     result = tt.full_path(spath,['a.txt','b.txt'])
-    nt.assert_equal(result, ['c:\\a.txt', 'c:\\b.txt'])
+    assert result == ['c:\\a.txt', 'c:\\b.txt']
     result = tt.full_path(spath,'a.txt')
-    nt.assert_equal(result, ['c:\\a.txt'])
+    assert result == ['c:\\a.txt']
 
-    
+
 def test_parser():
     err = ("FAILED (errors=1)", 1, 0)
     fail = ("FAILED (failures=1)", 0, 1)
     both = ("FAILED (errors=1, failures=1)", 1, 1)
     for txt, nerr, nfail in [err, fail, both]:
         nerr1, nfail1 = tt.parse_test_output(txt)
-        nt.assert_equal(nerr, nerr1)
-        nt.assert_equal(nfail, nfail1)
+        assert nerr == nerr1
+        assert nfail == nfail1
 
 
 def test_temp_pyfile():
@@ -66,7 +64,7 @@ def test_temp_pyfile():
     assert os.path.isfile(fname)
     with open(fname) as fh2:
         src2 = fh2.read()
-    nt.assert_equal(src2, src)
+    assert src2 == src
 
 class TestAssertPrints(unittest.TestCase):
     def test_passing(self):
@@ -74,14 +72,14 @@ class TestAssertPrints(unittest.TestCase):
             print("abcd")
             print("def")
             print(b"ghi")
-    
+
     def test_failing(self):
         def func():
             with tt.AssertPrints("abc"):
                 print("acd")
                 print("def")
                 print(b"ghi")
-        
+
         self.assertRaises(AssertionError, func)
 
 

@@ -4,8 +4,6 @@
 import os
 import tempfile
 
-import nose.tools as nt
-
 from traitlets import Unicode
 
 from IPython.core.application import BaseIPythonApplication
@@ -17,7 +15,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 def test_unicode_cwd():
     """Check that IPython starts with non-ascii characters in the path."""
     wd = tempfile.mkdtemp(suffix=u"€")
-    
+
     old_wd = os.getcwd()
     os.chdir(wd)
     #raise Exception(repr(os.getcwd()))
@@ -34,11 +32,11 @@ def test_unicode_cwd():
 def test_unicode_ipdir():
     """Check that IPython starts with non-ascii characters in the IP dir."""
     ipdir = tempfile.mkdtemp(suffix=u"€")
-    
+
     # Create the config file, so it tries to load it.
     with open(os.path.join(ipdir, 'ipython_config.py'), "w") as f:
         pass
-    
+
     old_ipdir1 = os.environ.pop("IPYTHONDIR", None)
     old_ipdir2 = os.environ.pop("IPYTHON_DIR", None)
     os.environ["IPYTHONDIR"] = ipdir
@@ -66,8 +64,7 @@ def test_cli_priority():
 
         app = TestApp()
         app.initialize(['--profile-dir', td])
-        nt.assert_equal(app.test, 'config file')
+        assert app.test == 'config file'
         app = TestApp()
         app.initialize(['--profile-dir', td, '--TestApp.test=cli'])
-        nt.assert_equal(app.test, 'cli')
-
+        assert app.test == 'cli'

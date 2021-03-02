@@ -1,5 +1,4 @@
 import tokenize
-import nose.tools as nt
 
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
@@ -14,7 +13,7 @@ def transform_and_reset(transformer):
             return transformer.push(inp)
         finally:
             transformer.reset()
-    
+
     return transform
 
 # Transformer tests
@@ -27,7 +26,7 @@ def transform_checker(tests, transformer, **kwargs):
                 out = transformer.reset()
             else:
                 out = transformer.push(inp)
-            nt.assert_equal(out, tr)
+            assert out == tr
     finally:
         transformer.reset()
 
@@ -254,20 +253,20 @@ syntax_ml = \
           ('... 2]','2]'),
          ],
        ],
-        
+
        multiline_datastructure =
        [ [('b = ("%s"', None),
           ('# comment', None),
           ('%foo )', 'b = ("%s"\n# comment\n%foo )'),
          ],
        ],
-       
+
        multiline_string =
        [ [("'''foo?", None),
           ("bar'''", "'''foo?\nbar'''"),
          ],
        ],
-       
+
        leading_indent =
        [ [('    print "hi"','print "hi"'),
           ],
@@ -281,7 +280,7 @@ syntax_ml = \
           ('    123"""','    123"""'),
           ],
        ],
-       
+
        cellmagic =
        [ [(u'%%foo a', None),
           (None, u_fmt("get_ipython().run_cell_magic('foo', 'a', '')")),
@@ -294,7 +293,7 @@ syntax_ml = \
           (u'%%cellmagic', '%%cellmagic'),
           ],
        ],
-       
+
        escaped =
        [ [('%abc def \\', None),
           ('ghi', u_fmt("get_ipython().run_line_magic('abc', 'def ghi')")),
@@ -304,7 +303,7 @@ syntax_ml = \
           (None, u_fmt("get_ipython().run_line_magic('abc', 'def ghi')")),
           ],
        ],
-       
+
        assign_magic =
        [ [(u'a = %bc de \\', None),
           (u'fg', u_fmt("a = get_ipython().run_line_magic('bc', 'de fg')")),
@@ -314,7 +313,7 @@ syntax_ml = \
           (None, u_fmt("a = get_ipython().run_line_magic('bc', 'de fg')")),
           ],
        ],
-       
+
        assign_system =
        [ [(u'a = !bc de \\', None),
           (u'fg', u_fmt("a = get_ipython().getoutput('bc de fg')")),
@@ -434,7 +433,7 @@ def test_escaped_paren():
 def test_cellmagic():
     for example in syntax_ml['cellmagic']:
         transform_checker(example, ipt.cellmagic)
-    
+
     line_example = [(u'%%bar 123', None),
                     (u'hello', None),
                     (u'' , u_fmt("get_ipython().run_cell_magic('bar', '123', 'hello')")),

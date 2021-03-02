@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import Mock
-import nose.tools as nt
+import pytest
 
 from IPython.core import events
 import IPython.testing.tools as tt
@@ -25,10 +25,10 @@ class CallbackTests(unittest.TestCase):
     def test_register_unregister(self):
         cb = Mock()
 
-        self.em.register('ping_received', cb)        
+        self.em.register('ping_received', cb)
         self.em.trigger('ping_received')
         self.assertEqual(cb.call_count, 1)
-        
+
         self.em.unregister('ping_received', cb)
         self.em.trigger('ping_received')
         self.assertEqual(cb.call_count, 1)
@@ -41,7 +41,8 @@ class CallbackTests(unittest.TestCase):
             ...
 
         self.em.register('ping_received', cb1)
-        nt.assert_raises(ValueError, self.em.unregister, 'ping_received', cb2)
+        with pytest.raises(ValueError):
+            self.em.unregister('ping_received', cb2)
         self.em.unregister('ping_received', cb1)
 
     def test_cb_error(self):
@@ -58,7 +59,7 @@ class CallbackTests(unittest.TestCase):
 
     def test_unregister_during_callback(self):
         invoked = [False] * 3
-        
+
         def func1(*_):
             invoked[0] = True
             self.em.unregister('ping_received', func1)
@@ -70,14 +71,14 @@ class CallbackTests(unittest.TestCase):
 
         def func3(*_):
             invoked[2] = True
-            
+
         self.em.register('ping_received', func1)
         self.em.register('ping_received', func2)
 
         self.em.trigger('ping_received')
         self.assertEqual([True, True, False], invoked)
         self.assertEqual([func3], self.em.callbacks['ping_received'])
-    
+
     def test_ignore_event_arguments_if_no_argument_required(self):
         call_count = [0]
         def event_with_no_argument():
@@ -86,7 +87,7 @@ class CallbackTests(unittest.TestCase):
         self.em.register('event_with_argument', event_with_no_argument)
         self.em.trigger('event_with_argument', 'the argument')
         self.assertEqual(call_count[0], 1)
-        
+
         self.em.unregister('event_with_argument', event_with_no_argument)
         self.em.trigger('ping_received')
         self.assertEqual(call_count[0], 1)

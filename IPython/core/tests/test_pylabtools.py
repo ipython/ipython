@@ -11,8 +11,8 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib.figure import Figure
 
-from nose import SkipTest
-import nose.tools as nt
+from unittest import SkipTest
+import pytest
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -28,7 +28,7 @@ from IPython.testing import decorators as dec
 def test_figure_to_svg():
     # simple empty-figure test
     fig = plt.figure()
-    nt.assert_equal(pt.print_figure(fig, 'svg'), None)
+    assert pt.print_figure(fig, 'svg') is None
 
     plt.close('all')
 
@@ -38,7 +38,7 @@ def test_figure_to_svg():
     ax.plot([1,2,3])
     plt.draw()
     svg = pt.print_figure(fig, 'svg')[:100].lower()
-    nt.assert_in(u'doctype svg', svg)
+    assert u'doctype svg' in svg
 
 def _check_pil_jpeg_bytes():
     """Skip if PIL can't write JPEGs to BytesIO objects"""
@@ -67,7 +67,7 @@ def test_figure_to_jpeg():
 def test_retina_figure():
     # simple empty-figure test
     fig = plt.figure()
-    nt.assert_equal(pt.retina_figure(fig), None)
+    assert pt.retina_figure(fig) == None
     plt.close('all')
 
     fig = plt.figure()
@@ -76,8 +76,8 @@ def test_retina_figure():
     plt.draw()
     png, md = pt.retina_figure(fig)
     assert png.startswith(_PNG)
-    nt.assert_in('width', md)
-    nt.assert_in('height', md)
+    assert 'width' in md
+    assert 'height' in md
 
 _fmt_mime_map = {
     'png': 'image/png',
@@ -93,9 +93,9 @@ def test_select_figure_formats_str():
         pt.select_figure_formats(ip, fmt)
         for mime, f in ip.display_formatter.formatters.items():
             if mime == active_mime:
-                nt.assert_in(Figure, f)
+                assert Figure in f
             else:
-                nt.assert_not_in(Figure, f)
+                assert Figure not in f
 
 def test_select_figure_formats_kwargs():
     ip = get_ipython()
@@ -104,7 +104,7 @@ def test_select_figure_formats_kwargs():
     formatter = ip.display_formatter.formatters['image/png']
     f = formatter.lookup_by_type(Figure)
     cell = f.__closure__[0].cell_contents
-    nt.assert_equal(cell, kwargs)
+    assert cell == kwargs
 
     # check that the formatter doesn't raise
     fig = plt.figure()
@@ -127,24 +127,24 @@ def test_select_figure_formats_set():
         pt.select_figure_formats(ip, fmts)
         for mime, f in ip.display_formatter.formatters.items():
             if mime in active_mimes:
-                nt.assert_in(Figure, f)
+                assert Figure in f
             else:
-                nt.assert_not_in(Figure, f)
+                assert Figure not in f
 
 def test_select_figure_formats_bad():
     ip = get_ipython()
-    with nt.assert_raises(ValueError):
+    with pytest.raises(ValueError):
         pt.select_figure_formats(ip, 'foo')
-    with nt.assert_raises(ValueError):
+    with pytest.raises(ValueError):
         pt.select_figure_formats(ip, {'png', 'foo'})
-    with nt.assert_raises(ValueError):
+    with pytest.raises(ValueError):
         pt.select_figure_formats(ip, ['retina', 'pdf', 'bar', 'bad'])
 
 def test_import_pylab():
     ns = {}
     pt.import_pylab(ns, import_all=False)
-    nt.assert_true('plt' in ns)
-    nt.assert_equal(ns['np'], np)
+    assert 'plt' in ns
+    assert ns['np'] == np
 
 class TestPylabSwitch(object):
     class Shell(InteractiveShell):
@@ -181,68 +181,68 @@ class TestPylabSwitch(object):
     def test_qt(self):
         s = self.Shell()
         gui, backend = s.enable_matplotlib(None)
-        nt.assert_equal(gui, 'qt')
-        nt.assert_equal(s.pylab_gui_select, 'qt')
+        assert gui == 'qt'
+        assert s.pylab_gui_select == 'qt'
 
         gui, backend = s.enable_matplotlib('inline')
-        nt.assert_equal(gui, 'inline')
-        nt.assert_equal(s.pylab_gui_select, 'qt')
+        assert gui == 'inline'
+        assert s.pylab_gui_select == 'qt'
 
         gui, backend = s.enable_matplotlib('qt')
-        nt.assert_equal(gui, 'qt')
-        nt.assert_equal(s.pylab_gui_select, 'qt')
+        assert gui == 'qt'
+        assert s.pylab_gui_select == 'qt'
 
         gui, backend = s.enable_matplotlib('inline')
-        nt.assert_equal(gui, 'inline')
-        nt.assert_equal(s.pylab_gui_select, 'qt')
+        assert gui == 'inline'
+        assert s.pylab_gui_select == 'qt'
 
         gui, backend = s.enable_matplotlib()
-        nt.assert_equal(gui, 'qt')
-        nt.assert_equal(s.pylab_gui_select, 'qt')
+        assert gui == 'qt'
+        assert s.pylab_gui_select == 'qt'
 
     def test_inline(self):
         s = self.Shell()
         gui, backend = s.enable_matplotlib('inline')
-        nt.assert_equal(gui, 'inline')
-        nt.assert_equal(s.pylab_gui_select, None)
+        assert gui == 'inline'
+        assert s.pylab_gui_select == None
 
         gui, backend = s.enable_matplotlib('inline')
-        nt.assert_equal(gui, 'inline')
-        nt.assert_equal(s.pylab_gui_select, None)
+        assert gui == 'inline'
+        assert s.pylab_gui_select == None
 
         gui, backend = s.enable_matplotlib('qt')
-        nt.assert_equal(gui, 'qt')
-        nt.assert_equal(s.pylab_gui_select, 'qt')
+        assert gui == 'qt'
+        assert s.pylab_gui_select == 'qt'
 
     def test_inline_twice(self):
         "Using '%matplotlib inline' twice should not reset formatters"
 
         ip = self.Shell()
         gui, backend = ip.enable_matplotlib('inline')
-        nt.assert_equal(gui, 'inline')
+        assert gui == 'inline'
 
         fmts =  {'png'}
         active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
         pt.select_figure_formats(ip, fmts)
 
         gui, backend = ip.enable_matplotlib('inline')
-        nt.assert_equal(gui, 'inline')
+        assert gui == 'inline'
 
         for mime, f in ip.display_formatter.formatters.items():
             if mime in active_mimes:
-                nt.assert_in(Figure, f)
+                assert Figure in f
             else:
-                nt.assert_not_in(Figure, f)
+                assert Figure not in f
 
     def test_qt_gtk(self):
         s = self.Shell()
         gui, backend = s.enable_matplotlib('qt')
-        nt.assert_equal(gui, 'qt')
-        nt.assert_equal(s.pylab_gui_select, 'qt')
+        assert gui == 'qt'
+        assert s.pylab_gui_select == 'qt'
 
         gui, backend = s.enable_matplotlib('gtk')
-        nt.assert_equal(gui, 'qt')
-        nt.assert_equal(s.pylab_gui_select, 'qt')
+        assert gui == 'qt'
+        assert s.pylab_gui_select == 'qt'
 
 
 def test_no_gui_backends():

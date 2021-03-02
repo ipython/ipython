@@ -12,21 +12,20 @@ from IPython.testing import tools as tt
 from IPython.utils.capture import capture_output
 
 from IPython.terminal.ptutils import _elide, _adjust_completion_text_based_on_context
-import nose.tools as nt
 
 class TestElide(unittest.TestCase):
 
     def test_elide(self):
         _elide('concatenate((a1, a2, ...), axis', '') # do not raise
         _elide('concatenate((a1, a2, ..), . axis', '') # do not raise
-        nt.assert_equal(_elide('aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh',''), 'aaaa.b…g.hhhhhh')
+        assert _elide('aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh', '') == 'aaaa.b…g.hhhhhh'
 
         test_string = os.sep.join(['', 10*'a', 10*'b', 10*'c', ''])
         expect_stirng = os.sep + 'a' + '\N{HORIZONTAL ELLIPSIS}' + 'b' + os.sep + 10*'c'
-        nt.assert_equal(_elide(test_string, ''), expect_stirng)
+        assert _elide(test_string, '') == expect_stirng
 
     def test_elide_typed_normal(self):
-        nt.assert_equal(_elide('the quick brown fox jumped over the lazy dog', 'the quick brown fox', min_elide=10), 'the…fox jumped over the lazy dog')
+        assert _elide('the quick brown fox jumped over the lazy dog', 'the quick brown fox', min_elide=10) == 'the…fox jumped over the lazy dog'
 
 
     def test_elide_typed_short_match(self):
@@ -34,7 +33,7 @@ class TestElide(unittest.TestCase):
         if the match is too short we don't elide.
         avoid the "the...the"
         """
-        nt.assert_equal(_elide('the quick brown fox jumped over the lazy dog', 'the', min_elide=10), 'the quick brown fox jumped over the lazy dog')
+        assert _elide('the quick brown fox jumped over the lazy dog', 'the', min_elide=10) == 'the quick brown fox jumped over the lazy dog'
 
     def test_elide_typed_no_match(self):
         """
@@ -42,19 +41,19 @@ class TestElide(unittest.TestCase):
         avoid the "the...the"
         """
         # here we typed red instead of brown
-        nt.assert_equal(_elide('the quick brown fox jumped over the lazy dog', 'the quick red fox', min_elide=10), 'the quick brown fox jumped over the lazy dog')
+        assert _elide('the quick brown fox jumped over the lazy dog', 'the quick red fox', min_elide=10) == 'the quick brown fox jumped over the lazy dog'
 
 class TestContextAwareCompletion(unittest.TestCase):
 
     def test_adjust_completion_text_based_on_context(self):
         # Adjusted case
-        nt.assert_equal(_adjust_completion_text_based_on_context('arg1=', 'func1(a=)', 7), 'arg1')
+        assert _adjust_completion_text_based_on_context('arg1=', 'func1(a=)', 7) == 'arg1'
 
         # Untouched cases
-        nt.assert_equal(_adjust_completion_text_based_on_context('arg1=', 'func1(a)', 7), 'arg1=')
-        nt.assert_equal(_adjust_completion_text_based_on_context('arg1=', 'func1(a', 7), 'arg1=')
-        nt.assert_equal(_adjust_completion_text_based_on_context('%magic', 'func1(a=)', 7), '%magic')
-        nt.assert_equal(_adjust_completion_text_based_on_context('func2', 'func1(a=)', 7), 'func2')
+        assert _adjust_completion_text_based_on_context('arg1=', 'func1(a)', 7) == 'arg1='
+        assert _adjust_completion_text_based_on_context('arg1=', 'func1(a', 7) == 'arg1='
+        assert _adjust_completion_text_based_on_context('%magic', 'func1(a=)', 7) == '%magic'
+        assert _adjust_completion_text_based_on_context('func2', 'func1(a=)', 7) == 'func2'
 
 # Decorator for interaction loop tests -----------------------------------------
 
@@ -115,7 +114,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         """Get last n readline history entries as a list"""
         return [rl.get_history_item(rl.get_current_history_length() - x)
                 for x in range(n - 1, -1, -1)]
-    
+
     @mock_input
     def test_inputtransformer_syntaxerror(self):
         ip = get_ipython()
@@ -186,8 +185,8 @@ class TerminalMagicsTestCase(unittest.TestCase):
              '    b = a+1\n'
              '\n'
              '    return b')
-        
+
         tm = ip.magics_manager.registry['TerminalMagics']
         tm.store_or_execute(s, name=None)
-        
+
         self.assertEqual(ip.user_ns['pasted_func'](54), 55)
