@@ -805,9 +805,9 @@ class Pdb(OldPdb):
             new_context = int(context)
             if new_context <= 0:
                 raise ValueError()
+            self.context = new_context
         except ValueError:
             self.error("The 'context' command requires a positive integer argument.")
-        self.context = new_context
 
 
 class InterruptiblePdb(Pdb):
