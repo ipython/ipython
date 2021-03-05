@@ -1,11 +1,18 @@
 import sys
 import os
 from IPython.external.qt_for_kernel import QtCore, QtGui
+from IPython import get_ipython
 
 # If we create a QApplication, keep a reference to it so that it doesn't get
 # garbage collected.
 _appref = None
 _already_warned = False
+
+
+def _reclaim_excepthook():
+    shell = get_ipython()
+    if shell is not None:
+        sys.excepthook = shell.excepthook
 
 
 def inputhook(context):
@@ -27,6 +34,13 @@ def inputhook(context):
                 return
         QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
         _appref = app = QtGui.QApplication([" "])
+
+        # "reclaim" IPython sys.excepthook after event loop starts
+        # without this, it defaults back to BaseIPythonApplication.excepthook
+        # and exceptions in the Qt event loop are rendered without traceback
+        # formatting and look like "bug in IPython".
+        QtCore.QTimer.singleShot(0, _reclaim_excepthook)
+
     event_loop = QtCore.QEventLoop(app)
 
     if sys.platform == 'win32':
