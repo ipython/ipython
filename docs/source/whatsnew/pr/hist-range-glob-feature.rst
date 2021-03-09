@@ -10,8 +10,8 @@ a range of sessions and lines, for example:
 Or users could specify ``-g <pattern>`` to glob ALL history for
 the specified pattern.
 
-However users could **\ *not*\ ** specify both.
-If a user did specify both a range, and a glob pattern,
+However users could *not* specify both.
+If a user *did* specify both a range, and a glob pattern,
 then the glob pattern would be used *but the range would be ignored*.
 
 With this enhancment, if a user specifies both a range and a glob pattern,
