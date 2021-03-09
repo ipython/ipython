@@ -171,21 +171,14 @@ class HistoryMagics(Magics):
         pattern = None
         limit = None if args.limit is _unspecified else args.limit
 
-        print('args.pattern=',args.pattern)
-        print('args.limit=',args.limit)
-        print('type(args.limit)=',type(args.limit))
-        print('args.range=',args.range)
-
         range_pattern = False
         if args.pattern is not None and not args.range:
             if args.pattern:
                 pattern = "*" + " ".join(args.pattern) + "*"
             else:
                 pattern = "*"
-            print('pattern=',pattern)
             hist = history_manager.search(pattern, raw=raw, output=get_output,
                                           n=limit, unique=args.unique)
-            print('type(hist)=',type(hist))
             print_nums = True
         elif args.limit is not _unspecified:
             n = 10 if limit is None else limit
@@ -195,10 +188,8 @@ class HistoryMagics(Magics):
                 if args.pattern:
                     range_pattern = "*" + " ".join(args.pattern) + "*"
                     print_nums = True
-                    print('range_pattern=',range_pattern)
                 hist = history_manager.get_range_by_str(" ".join(args.range),
                                                         raw, get_output)
-                print('type(hist)=',type(hist))
             else:               # Just get history for the current session
                 hist = history_manager.get_range(raw=raw, output=get_output)
 
