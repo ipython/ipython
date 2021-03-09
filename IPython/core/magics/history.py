@@ -206,7 +206,8 @@ class HistoryMagics(Magics):
             if get_output:
                 inline, output = inline
             if range_pattern:
-                if not fnmatch.fnmatch(inline,range_pattern): continue;
+                if not fnmatch.fnmatch(inline, range_pattern):
+                    continue
             inline = inline.expandtabs(4).rstrip()
 
             multiline = "\n" in inline
