@@ -16,6 +16,7 @@
 import os
 import sys
 from io import open as io_open
+import fnmatch
 
 # Our own packages
 from IPython.core.error import StdinNotImplementedError
@@ -170,21 +171,34 @@ class HistoryMagics(Magics):
         pattern = None
         limit = None if args.limit is _unspecified else args.limit
 
-        if args.pattern is not None:
+        print('args.pattern=',args.pattern)
+        print('args.limit=',args.limit)
+        print('type(args.limit)=',type(args.limit))
+        print('args.range=',args.range)
+
+        range_pattern = False
+        if args.pattern is not None and not args.range:
             if args.pattern:
                 pattern = "*" + " ".join(args.pattern) + "*"
             else:
                 pattern = "*"
+            print('pattern=',pattern)
             hist = history_manager.search(pattern, raw=raw, output=get_output,
                                           n=limit, unique=args.unique)
+            print('type(hist)=',type(hist))
             print_nums = True
         elif args.limit is not _unspecified:
             n = 10 if limit is None else limit
             hist = history_manager.get_tail(n, raw=raw, output=get_output)
         else:
             if args.range:      # Get history by ranges
+                if args.pattern:
+                    range_pattern = "*" + " ".join(args.pattern) + "*"
+                    print_nums = True
+                    print('range_pattern=',range_pattern)
                 hist = history_manager.get_range_by_str(" ".join(args.range),
                                                         raw, get_output)
+                print('type(hist)=',type(hist))
             else:               # Just get history for the current session
                 hist = history_manager.get_range(raw=raw, output=get_output)
 
@@ -200,6 +214,8 @@ class HistoryMagics(Magics):
             # into an editor.
             if get_output:
                 inline, output = inline
+            if range_pattern:
+                if not fnmatch.fnmatch(inline,range_pattern): continue;
             inline = inline.expandtabs(4).rstrip()
 
             multiline = "\n" in inline
