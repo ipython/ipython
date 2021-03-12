@@ -153,6 +153,14 @@ Here is a full example of a magic package. You can distribute magics using
 setuptools, distutils, or any other distribution tools like `flit
 <http://flit.readthedocs.io>`_ for pure Python packages.
 
+When distributing magics as part of a package, recommended best practice is to
+execute the registration inside the `load_ipython_extension` as demonstrated in
+the example below, instead of directly in the module (as in the initial example
+with the ``@register_*`` decorators). This means a user will need to explicitly
+choose to load your magic with ``%load_ext``. instead implicitly getting it when
+importing the module. This is particularly relevant if loading your magic has 
+side effects, if it is slow to load, or if it might override another magic with
+the same name. 
 
 .. sourcecode:: bash
 
