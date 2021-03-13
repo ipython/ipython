@@ -297,6 +297,24 @@ def test_check_complete_II():
     nt.assert_equal(cc('''def foo():\n    """'''), ('incomplete', 4))
 
 
+def test_check_complete_invalidates_sunken_brackets():
+    """
+    Test that a single line with more closing brackets than the opening ones is
+    interpretted as invalid
+    """
+    cc = ipt2.TransformerManager().check_complete
+    nt.assert_equal(cc(")"), ("invalid", None))
+    nt.assert_equal(cc("]"), ("invalid", None))
+    nt.assert_equal(cc("}"), ("invalid", None))
+    nt.assert_equal(cc(")("), ("invalid", None))
+    nt.assert_equal(cc("]["), ("invalid", None))
+    nt.assert_equal(cc("}{"), ("invalid", None))
+    nt.assert_equal(cc("[()("), ("invalid", None))
+    nt.assert_equal(cc("())("), ("invalid", None))
+    nt.assert_equal(cc(")[]("), ("invalid", None))
+    nt.assert_equal(cc("()]("), ("invalid", None))
+
+
 def test_null_cleanup_transformer():
     manager = ipt2.TransformerManager()
     manager.cleanup_transforms.insert(0, null_cleanup_transformer)
