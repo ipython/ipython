@@ -309,7 +309,7 @@ def test_check_complete_invalidates_sunken_brackets():
     nt.assert_equal(cc(")("), ("invalid", None))
     nt.assert_equal(cc("]["), ("invalid", None))
     nt.assert_equal(cc("}{"), ("invalid", None))
-    nt.assert_equal(cc("[()("), ("invalid", None))
+    nt.assert_equal(cc("]()("), ("invalid", None))
     nt.assert_equal(cc("())("), ("invalid", None))
     nt.assert_equal(cc(")[]("), ("invalid", None))
     nt.assert_equal(cc("()]("), ("invalid", None))
