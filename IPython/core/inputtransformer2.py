@@ -678,7 +678,11 @@ class TransformerManager:
 
         # Bail if we got one line and there are more closing parentheses than
         # the opening ones
-        if len(lines) == 1 and has_sunken_brackets(tokens_by_line[0]):
+        if (
+            len(lines) == 1
+            and tokens_by_line
+            and has_sunken_brackets(tokens_by_line[0])
+        ):
             return "invalid", None
 
         if not tokens_by_line:
