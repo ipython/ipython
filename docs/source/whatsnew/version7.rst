@@ -2,6 +2,26 @@
  7.x Series
 ============
 
+.. _version 7.22:
+=================
+
+
+Thanks
+------
+
+We have a new team member that you should see more often on the IPython
+repository, Błażej Michalik (@MrMino) have been doing regular contributions to
+IPython, and spent time replying to many issues and guiding new users to the
+codebase; they now have triage permissions to the IPython repository and we'll
+work toward giving them more permission in the future.
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/XX>`_.
+
+Thanks as well to organisations, QuantStack for working on debugger
+compatibility for Xeus_python, and the `D. E. Shaw group
+<https://deshaw.com/>` for sponsoring work on IPython and related libraries.
+
 .. _version 721:
 
 IPython 7.21
