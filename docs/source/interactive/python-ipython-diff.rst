@@ -59,7 +59,7 @@ All the following constructs are valid IPython syntax:
 
 
 Each of these constructs is compiled by IPython into valid python code and will
-do most of the time what you expect it will do. Let see each of these examples
+do most of the time what you expect it will do. Let's see each of these examples
 in more detail.
 
 
@@ -90,7 +90,7 @@ shortcut to get help. A question mark alone will bring up the IPython help:
     ...
 
 A single question mark before or after an object available in the current
-name-space will show help relative to this object:
+namespace will show help relative to this object:
 
 .. code-block:: ipython
 
@@ -126,8 +126,8 @@ and if possible display the python source code of this object.
 
 
 
-If you are looking for an object the use of wildcards ``*`` in conjunction
-with a question mark will allow you to search the current name-space for objects with
+If you are looking for an object, the use of wildcards ``*`` in conjunction
+with a question mark will allow you to search the current namespace for objects with
 matching names:
 
 .. code-block:: ipython
@@ -142,7 +142,7 @@ Shell Assignment
 ================
 
 
-When doing interactive computing it is a common need is accessing the underlying shell.
+When doing interactive computing it is a common need to access the underlying shell.
 This is doable through the use of the exclamation mark ``!`` (or bang).
 
 This allows to execute simple commands when present in beginning of the line:
@@ -202,12 +202,12 @@ You can combine the different possibilities in for loops, conditions, functions.
 Magics
 ------
 
-Magics function are often present in the form of shell-like syntax, but they are
+Magic functions (magics) are often present in the form of shell-like syntax, but they are
 python functions under the hood. The syntax and assignment possibilities are
 similar to the one with the bang (``!``) syntax, but with more flexibility and
-power. Magic functions start with a percent sign (``%``) or double percent (``%%``).
+power. Magic functions start with a percent sign (``%``) or double percent signs (``%%``).
 
-A magic call with a percent sign will act only on one line:
+A magic call with a single percent sign will act only on one line:
 
 .. code-block:: ipython
 
