@@ -6,6 +6,7 @@
 
 
 from binascii import b2a_base64, hexlify
+import html
 import json
 import mimetypes
 import os
@@ -371,7 +372,7 @@ class DisplayObject(object):
                     with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
                         encoding = None
                         data = fp.read()
-                    
+
             # decode data, if an encoding was specified
             # We only touch self.data once since
             # subclasses such as SVG have @data.setter methods
@@ -802,7 +803,7 @@ class Image(DisplayObject):
 
     def __init__(self, data=None, url=None, filename=None, format=None,
                  embed=None, width=None, height=None, retina=False,
-                 unconfined=False, metadata=None):
+                 unconfined=False, metadata=None, alt=None):
         """Create a PNG/JPEG/GIF image object given raw data.
 
         When this object is returned by an input cell or passed to the
@@ -847,6 +848,8 @@ class Image(DisplayObject):
             Set unconfined=True to disable max-width confinement of the image.
         metadata : dict
             Specify extra metadata to attach to the image.
+        alt : unicode
+            Alternative text for the image, for use by screen readers.
 
         Examples
         --------
@@ -924,6 +927,7 @@ class Image(DisplayObject):
         self.height = height
         self.retina = retina
         self.unconfined = unconfined
+        self.alt = alt
         super(Image, self).__init__(data=data, url=url, filename=filename,
                 metadata=metadata)
 
@@ -932,6 +936,9 @@ class Image(DisplayObject):
 
         if self.height is None and self.metadata.get('height', {}):
             self.height = metadata['height']
+
+        if self.alt is None and self.metadata.get('alt', {}):
+            self.alt = metadata['alt']
 
         if retina:
             self._retina_shape()
@@ -962,18 +969,21 @@ class Image(DisplayObject):
 
     def _repr_html_(self):
         if not self.embed:
-            width = height = klass = ''
+            width = height = klass = alt = ''
             if self.width:
                 width = ' width="%d"' % self.width
             if self.height:
                 height = ' height="%d"' % self.height
             if self.unconfined:
                 klass = ' class="unconfined"'
-            return u'<img src="{url}"{width}{height}{klass}/>'.format(
+            if self.alt:
+                alt = ' alt="%s"' % html.escape(self.alt)
+            return u'<img src="{url}"{width}{height}{klass}{alt}/>'.format(
                 url=self.url,
                 width=width,
                 height=height,
                 klass=klass,
+                alt=alt,
             )
 
     def _repr_mimebundle_(self, include=None, exclude=None):
@@ -1006,6 +1016,8 @@ class Image(DisplayObject):
             md['height'] = self.height
         if self.unconfined:
             md['unconfined'] = self.unconfined
+        if self.alt:
+            md['alt'] = self.alt
         if md or always_both:
             return b64_data, md
         else:

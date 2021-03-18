@@ -77,12 +77,12 @@ def test_embed_svg_url():
     from io import BytesIO
     svg_data = b'<svg><circle x="0" y="0" r="1"/></svg>'
     url = 'http://test.com/circle.svg'
-    
+
     gzip_svg = BytesIO()
     with gzip.open(gzip_svg, 'wb') as fp:
         fp.write(svg_data)
     gzip_svg = gzip_svg.getvalue()
-    
+
     def mocked_urlopen(*args, **kwargs):
         class MockResponse:
             def __init__(self, svg):
@@ -94,7 +94,7 @@ def test_embed_svg_url():
 
         if args[0] == url:
             return MockResponse(svg_data)
-        elif args[0] == url + 'z':          
+        elif args[0] == url + 'z':
             ret= MockResponse(gzip_svg)
             ret.headers['content-encoding']= 'gzip'
             return ret
@@ -105,7 +105,7 @@ def test_embed_svg_url():
         nt.assert_true(svg._repr_svg_().startswith('<svg'))
         svg = display.SVG(url=url + 'z')
         nt.assert_true(svg._repr_svg_().startswith('<svg'))
-    
+
 def test_retina_jpeg():
     here = os.path.dirname(__file__)
     img = display.Image(os.path.join(here, "2x2.jpg"), retina=True)
@@ -457,3 +457,21 @@ def test_display_handle():
         'update': True,
     })
 
+def test_image_alt_tag():
+    """Simple test for display.Image(args, alt=x,)"""
+    thisurl = 'http://example.com/image.png'
+    img = display.Image(url=thisurl, alt='an image')
+    nt.assert_equal(u'<img src="%s" alt="an image"/>' % (thisurl), img._repr_html_())
+    img = display.Image(url=thisurl, unconfined=True, alt='an image')
+    nt.assert_equal(u'<img src="%s" class="unconfined" alt="an image"/>' % (thisurl), img._repr_html_())
+    img = display.Image(url=thisurl, alt='>"& <')
+    nt.assert_equal(u'<img src="%s" alt="&gt;&quot;&amp; &lt;"/>' % (thisurl), img._repr_html_())
+
+    img = display.Image(url=thisurl, metadata={'alt':'an image'})
+    nt.assert_equal(img.alt, 'an image')
+
+    here = os.path.dirname(__file__)
+    img = display.Image(os.path.join(here, "2x2.png"), alt='an image')
+    nt.assert_equal(img.alt, 'an image')
+    _, md = img._repr_png_()
+    nt.assert_equal(md['alt'], 'an image')
