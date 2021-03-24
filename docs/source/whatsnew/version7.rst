@@ -3,7 +3,9 @@
 ============
 
 .. _version 7.22:
-=================
+
+IPython 7.22
+============
 
 
 Thanks
@@ -16,7 +18,7 @@ codebase; they now have triage permissions to the IPython repository and we'll
 work toward giving them more permission in the future.
 
 Many thanks to all the contributors to this release you can find all individual
-contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/XX>`_.
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/XX>`__.
 
 Thanks as well to organisations, QuantStack for working on debugger
 compatibility for Xeus_python, and the `D. E. Shaw group
@@ -53,7 +55,7 @@ Thanks
 ------
 
 Many thanks to all the contributors to this release you can find all individual
-contribution to this milestone `on github <https://github.com/ipython/ipython/milestone/83>`_.
+contribution to this milestone `on github <https://github.com/ipython/ipython/milestone/83>`__.
 
 
 .. _version 720:
