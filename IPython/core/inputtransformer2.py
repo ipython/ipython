@@ -508,6 +508,20 @@ def make_tokens_by_line(lines:List[str]):
 
     return tokens_by_line
 
+
+def has_sunken_brackets(tokens: List[tokenize.TokenInfo]):
+    """Check if the depth of brackets in the list of tokens drops below 0"""
+    parenlev = 0
+    for token in tokens:
+        if token.string in {"(", "[", "{"}:
+            parenlev += 1
+        elif token.string in {")", "]", "}"}:
+            parenlev -= 1
+            if parenlev < 0:
+                return True
+    return False
+
+
 def show_linewise_tokens(s: str):
     """For investigation and debugging"""
     if not s.endswith('\n'):
@@ -661,6 +675,15 @@ class TransformerManager:
             return 'invalid', None
 
         tokens_by_line = make_tokens_by_line(lines)
+
+        # Bail if we got one line and there are more closing parentheses than
+        # the opening ones
+        if (
+            len(lines) == 1
+            and tokens_by_line
+            and has_sunken_brackets(tokens_by_line[0])
+        ):
+            return "invalid", None
 
         if not tokens_by_line:
             return 'incomplete', find_last_indent(lines)
