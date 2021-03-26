@@ -183,7 +183,7 @@ def test_set_matplotlib_formats_kwargs():
     ip = get_ipython()
     cfg = _get_inline_config()
     cfg.print_figure_kwargs.update(dict(foo='bar'))
-    kwargs = dict(quality=10)
+    kwargs = dict(dpi=150)
     display.set_matplotlib_formats('png', **kwargs)
     formatter = ip.display_formatter.formatters['image/png']
     f = formatter.lookup_by_type(Figure)

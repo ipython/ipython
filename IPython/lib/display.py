@@ -8,6 +8,8 @@ from os import walk, sep, fsdecode
 
 from IPython.core.display import DisplayObject, TextDisplayObject
 
+from typing import Tuple
+
 __all__ = ['Audio', 'IFrame', 'YouTubeVideo', 'VimeoVideo', 'ScribdDocument',
            'FileLink', 'FileLinks', 'Code']
 
@@ -151,7 +153,7 @@ class Audio(DisplayObject):
         return val
 
     @staticmethod
-    def _validate_and_normalize_with_numpy(data, normalize):
+    def _validate_and_normalize_with_numpy(data, normalize) -> Tuple[bytes, int]:
         import numpy as np
 
         data = np.array(data, dtype=float)
@@ -170,8 +172,7 @@ class Audio(DisplayObject):
         max_abs_value = np.max(np.abs(data))
         normalization_factor = Audio._get_normalization_factor(max_abs_value, normalize)
         scaled = data / normalization_factor * 32767
-        return scaled.astype('<h').tostring(), nchan
-
+        return scaled.astype("<h").tobytes(), nchan
 
     @staticmethod
     def _validate_and_normalize_without_numpy(data, normalize):
