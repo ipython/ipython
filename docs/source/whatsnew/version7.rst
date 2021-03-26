@@ -7,6 +7,16 @@
 IPython 7.22
 ============
 
+Second release of IPython for 2021, mostly containing bug fixes. Here is a quick
+rundown of the few changes.
+
+- Fix some ``sys.excepthook`` shenanigan when embedding with qt, recommended if
+  you – for example – use `napari <https://napari.org>`__. :ghpull:`12842`.
+- Fix bug when using the new ipdb ``%context`` magic :ghpull:`12844`
+- Couples of deprecation cleanup :ghpull:`12868`
+- Update for new dpast.com api if you use the ``%pastbin`` magic. :ghpull:`12712`
+- Remove support for numpy before 1.16. :ghpull:`12836`
+
 
 Thanks
 ------
@@ -18,7 +28,7 @@ codebase; they now have triage permissions to the IPython repository and we'll
 work toward giving them more permission in the future.
 
 Many thanks to all the contributors to this release you can find all individual
-contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/XX>`__.
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/84>`__.
 
 Thanks as well to organisations, QuantStack for working on debugger
 compatibility for Xeus_python, and the `D. E. Shaw group
