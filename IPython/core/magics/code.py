@@ -20,7 +20,7 @@ import re
 import sys
 import ast
 from itertools import chain
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 from urllib.parse import urlencode
 
 # Our own packages
@@ -28,6 +28,7 @@ from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
 from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
+from IPython.core.release import version
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import get_py_filename
@@ -244,7 +245,7 @@ class CodeMagics(Magics):
 
     @line_magic
     def pastebin(self, parameter_s=''):
-        """Upload code to dpaste's paste bin, returning the URL.
+        """Upload code to dpaste.com, returning the URL.
 
         Usage:\\
           %pastebin [-d "Custom description"] 1-7
@@ -254,7 +255,7 @@ class CodeMagics(Magics):
 
         Options:
 
-          -d: Pass a custom description for the gist. The default will say
+          -d: Pass a custom description. The default will say
               "Pasted from IPython".
         """
         opts, args = self.parse_options(parameter_s, 'd:')
@@ -265,13 +266,19 @@ class CodeMagics(Magics):
             print(e.args[0])
             return
 
-        post_data = urlencode({
-          "title": opts.get('d', "Pasted from IPython"),
-          "syntax": "python3",
-          "content": code
-        }).encode('utf-8')
+        post_data = urlencode(
+            {
+                "title": opts.get("d", "Pasted from IPython"),
+                "syntax": "python",
+                "content": code,
+            }
+        ).encode("utf-8")
 
-        response = urlopen("http://dpaste.com/api/v2/", post_data)
+        request = Request(
+            "http://dpaste.com/api/v2/",
+            headers={"User-Agent": "IPython v{}".format(version)},
+        )
+        response = urlopen(request, post_data)
         return response.headers.get('Location')
 
     @line_magic
