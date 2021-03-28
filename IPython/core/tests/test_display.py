@@ -94,9 +94,9 @@ def test_embed_svg_url():
 
         if args[0] == url:
             return MockResponse(svg_data)
-        elif args[0] == url + 'z':
-            ret= MockResponse(gzip_svg)
-            ret.headers['content-encoding']= 'gzip'
+        elif args[0] == url + "z":
+            ret = MockResponse(gzip_svg)
+            ret.headers["content-encoding"] = "gzip"
             return ret
         return MockResponse(None)
 
@@ -459,19 +459,24 @@ def test_display_handle():
 
 def test_image_alt_tag():
     """Simple test for display.Image(args, alt=x,)"""
-    thisurl = 'http://example.com/image.png'
-    img = display.Image(url=thisurl, alt='an image')
+    thisurl = "http://example.com/image.png"
+    img = display.Image(url=thisurl, alt="an image")
     nt.assert_equal(u'<img src="%s" alt="an image"/>' % (thisurl), img._repr_html_())
-    img = display.Image(url=thisurl, unconfined=True, alt='an image')
-    nt.assert_equal(u'<img src="%s" class="unconfined" alt="an image"/>' % (thisurl), img._repr_html_())
+    img = display.Image(url=thisurl, unconfined=True, alt="an image")
+    nt.assert_equal(
+        u'<img src="%s" class="unconfined" alt="an image"/>' % (thisurl),
+        img._repr_html_(),
+    )
     img = display.Image(url=thisurl, alt='>"& <')
-    nt.assert_equal(u'<img src="%s" alt="&gt;&quot;&amp; &lt;"/>' % (thisurl), img._repr_html_())
+    nt.assert_equal(
+        u'<img src="%s" alt="&gt;&quot;&amp; &lt;"/>' % (thisurl), img._repr_html_()
+    )
 
-    img = display.Image(url=thisurl, metadata={'alt':'an image'})
-    nt.assert_equal(img.alt, 'an image')
+    img = display.Image(url=thisurl, metadata={"alt": "an image"})
+    nt.assert_equal(img.alt, "an image")
 
     here = os.path.dirname(__file__)
-    img = display.Image(os.path.join(here, "2x2.png"), alt='an image')
-    nt.assert_equal(img.alt, 'an image')
+    img = display.Image(os.path.join(here, "2x2.png"), alt="an image")
+    nt.assert_equal(img.alt, "an image")
     _, md = img._repr_png_()
-    nt.assert_equal(md['alt'], 'an image')
+    nt.assert_equal(md["alt"], "an image")

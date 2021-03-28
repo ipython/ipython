@@ -801,9 +801,20 @@ class Image(DisplayObject):
         _FMT_GIF: 'image/gif',
     }
 
-    def __init__(self, data=None, url=None, filename=None, format=None,
-                 embed=None, width=None, height=None, retina=False,
-                 unconfined=False, metadata=None, alt=None):
+    def __init__(
+        self,
+        data=None,
+        url=None,
+        filename=None,
+        format=None,
+        embed=None,
+        width=None,
+        height=None,
+        retina=False,
+        unconfined=False,
+        metadata=None,
+        alt=None,
+    ):
         """Create a PNG/JPEG/GIF image object given raw data.
 
         When this object is returned by an input cell or passed to the
@@ -937,8 +948,8 @@ class Image(DisplayObject):
         if self.height is None and self.metadata.get('height', {}):
             self.height = metadata['height']
 
-        if self.alt is None and self.metadata.get('alt', {}):
-            self.alt = metadata['alt']
+        if self.alt is None and self.metadata.get("alt", {}):
+            self.alt = metadata["alt"]
 
         if retina:
             self._retina_shape()
@@ -969,7 +980,7 @@ class Image(DisplayObject):
 
     def _repr_html_(self):
         if not self.embed:
-            width = height = klass = alt = ''
+            width = height = klass = alt = ""
             if self.width:
                 width = ' width="%d"' % self.width
             if self.height:
@@ -978,7 +989,7 @@ class Image(DisplayObject):
                 klass = ' class="unconfined"'
             if self.alt:
                 alt = ' alt="%s"' % html.escape(self.alt)
-            return u'<img src="{url}"{width}{height}{klass}{alt}/>'.format(
+            return '<img src="{url}"{width}{height}{klass}{alt}/>'.format(
                 url=self.url,
                 width=width,
                 height=height,
@@ -1017,7 +1028,7 @@ class Image(DisplayObject):
         if self.unconfined:
             md['unconfined'] = self.unconfined
         if self.alt:
-            md['alt'] = self.alt
+            md["alt"] = self.alt
         if md or always_both:
             return b64_data, md
         else:
