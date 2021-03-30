@@ -32,7 +32,7 @@ contributions to this milestone `on github <https://github.com/ipython/ipython/m
 
 Thanks as well to organisations, QuantStack for working on debugger
 compatibility for Xeus_python, and the `D. E. Shaw group
-<https://deshaw.com/>` for sponsoring work on IPython and related libraries.
+<https://deshaw.com/>`__ for sponsoring work on IPython and related libraries.
 
 .. _version 721:
 
