@@ -2,6 +2,105 @@
  7.x Series
 ============
 
+.. _version 7.22:
+
+IPython 7.22
+============
+
+Second release of IPython for 2021, mostly containing bug fixes. Here is a quick
+rundown of the few changes.
+
+- Fix some ``sys.excepthook`` shenanigan when embedding with qt, recommended if
+  you – for example – use `napari <https://napari.org>`__. :ghpull:`12842`.
+- Fix bug when using the new ipdb ``%context`` magic :ghpull:`12844`
+- Couples of deprecation cleanup :ghpull:`12868`
+- Update for new dpast.com api if you use the ``%pastbin`` magic. :ghpull:`12712`
+- Remove support for numpy before 1.16. :ghpull:`12836`
+
+
+Thanks
+------
+
+We have a new team member that you should see more often on the IPython
+repository, Błażej Michalik (@MrMino) have been doing regular contributions to
+IPython, and spent time replying to many issues and guiding new users to the
+codebase; they now have triage permissions to the IPython repository and we'll
+work toward giving them more permission in the future.
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/84>`__.
+
+Thanks as well to organisations, QuantStack for working on debugger
+compatibility for Xeus_python, and the `D. E. Shaw group
+<https://deshaw.com/>`__ for sponsoring work on IPython and related libraries.
+
+.. _version 721:
+
+IPython 7.21
+============
+
+IPython 7.21 is the first release we have back on schedule of one release every
+month; it contains a number of minor fixes and improvements, notably, the new
+context command for ipdb
+
+
+New "context" command in ipdb
+-----------------------------
+
+It is now possible to change the number of lines shown in the backtrace
+information in ipdb using "context" command. :ghpull:`12826`
+
+(thanks @MrMino, there are other improvement from them on master).
+
+Other notable changes in IPython 7.21
+-------------------------------------
+
+- Fix some issues on new osx-arm64 :ghpull:`12804`, :ghpull:`12807`. 
+- Compatibility with Xeus-Python for debugger protocol, :ghpull:`12809`
+- Misc docs fixes for compatibility and uniformity with Numpydoc.
+  :ghpull:`12824`
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contribution to this milestone `on github <https://github.com/ipython/ipython/milestone/83>`__.
+
+
+.. _version 720:
+
+IPython 7.20
+============
+
+IPython 7.20 is the accumulation of 3 month of work on IPython, spacing between
+IPython release have been increased from the usual once a month for various
+reason.
+
+   - Mainly as I'm too busy and the effectively sole maintainer, and
+   - Second because not much changes happened before mid December.
+
+The main driver for this release was the new version of Jedi 0.18 breaking API;
+which was taken care of in the master branch early in 2020 but not in 7.x as I
+though that by now 8.0 would be out.
+
+The inclusion of a resolver in pip did not help and actually made things worse.
+If usually I would have simply pinned Jedi to ``<0.18``; this is not a solution
+anymore as now pip is free to install Jedi 0.18, and downgrade IPython.
+
+I'll do my best to keep the regular release, but as the 8.0-dev branch and 7.x
+are starting to diverge this is becoming difficult in particular with my limited
+time, so if you have any cycles to spare I'll appreciate your help to respond to
+issues and pushing 8.0 forward.
+
+Here are thus some of the changes for IPython 7.20.
+
+  - Support for PyQt5 >= 5.11 :ghpull:`12715`
+  - ``%reset`` remove imports more agressively :ghpull:`12718`
+  - fix the ``%conda`` magic :ghpull:`12739`
+  - compatibility with Jedi 0.18, and bump minimum Jedi version. :ghpull:`12793`
+
+
 .. _version 719:
 
 IPython 7.19
@@ -55,7 +154,7 @@ IPython 7.17
 ============
 
 IPython 7.17 brings a couple of new improvements to API and a couple of user
-facing changes to make the terminal experience more user friendly. 
+facing changes to make the terminal experience more user friendly.
 
 :ghpull:`12407` introduces the ability to pass extra argument to the IPython
 debugger class; this is to help a new project from ``kmaork``

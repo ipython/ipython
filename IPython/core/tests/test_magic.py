@@ -35,6 +35,8 @@ from IPython.utils.tempdir import (TemporaryDirectory,
 from IPython.utils.process import find_cmd
 from .test_debugger import PdbTestInput
 
+import pytest
+
 
 @magic.magics_class
 class DummyMagics(magic.Magics): pass
@@ -953,7 +955,6 @@ async def test_script_bg_out():
     ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
     nt.assert_equal((await ip.user_ns["output"].read()), b"hi\n")
     ip.user_ns['output'].close()
-
 
 @dec.skip_win32
 async def test_script_bg_err():

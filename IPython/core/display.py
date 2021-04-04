@@ -567,7 +567,7 @@ class JSON(DisplayObject):
             Path to a local file to load the data from.
         expanded : boolean
             Metadata to control whether a JSON display component is expanded.
-        metadata: dict
+        metadata : dict
             Specify extra metadata to attach to the json display object.
         root : str
             The name of the root element of the JSON tree
@@ -651,12 +651,11 @@ class GeoJSON(JSON):
             A URL to download the data from.
         filename : unicode
             Path to a local file to load the data from.
-        metadata: dict
+        metadata : dict
             Specify extra metadata to attach to the json display object.
 
         Examples
         --------
-
         The following will display an interactive map of Mars with a point of
         interest on frontend that do support GeoJSON display.
 
@@ -723,7 +722,7 @@ class Javascript(TextDisplayObject):
             running the source code. The full URLs of the libraries should
             be given. A single Javascript library URL can also be given as a
             string.
-        css: : list or str
+        css : list or str
             A sequence of css files to load before running the source code.
             The full URLs of the css files should be given. A single css URL
             can also be given as a string.
@@ -844,25 +843,33 @@ class Image(DisplayObject):
             from image data.
             For non-embedded images, you can just set the desired display width
             and height directly.
-        unconfined: bool
+        unconfined : bool
             Set unconfined=True to disable max-width confinement of the image.
-        metadata: dict
+        metadata : dict
             Specify extra metadata to attach to the image.
 
         Examples
         --------
-        # embedded image data, works in qtconsole and notebook
-        # when passed positionally, the first arg can be any of raw image data,
-        # a URL, or a filename from which to load image data.
-        # The result is always embedding image data for inline images.
-        Image('http://www.google.fr/images/srpr/logo3w.png')
-        Image('/path/to/image.jpg')
-        Image(b'RAW_PNG_DATA...')
+        embedded image data, works in qtconsole and notebook
+        when passed positionally, the first arg can be any of raw image data,
+        a URL, or a filename from which to load image data.
+        The result is always embedding image data for inline images.
 
-        # Specifying Image(url=...) does not embed the image data,
-        # it only generates `<img>` tag with a link to the source.
-        # This will not work in the qtconsole or offline.
-        Image(url='http://www.google.fr/images/srpr/logo3w.png')
+        >>> Image('http://www.google.fr/images/srpr/logo3w.png')
+        <IPython.core.display.Image object>
+
+        >>> Image('/path/to/image.jpg')
+        <IPython.core.display.Image object>
+
+        >>> Image(b'RAW_PNG_DATA...')
+        <IPython.core.display.Image object>
+
+        Specifying Image(url=...) does not embed the image data,
+        it only generates ``<img>`` tag with a link to the source.
+        This will not work in the qtconsole or offline.
+
+        >>> Image(url='http://www.google.fr/images/srpr/logo3w.png')
+        <IPython.core.display.Image object>
 
         """
         if isinstance(data, (Path, PurePath)):
@@ -1036,25 +1043,24 @@ class Video(DisplayObject):
         ----------
         data : unicode, str or bytes
             The raw video data or a URL or filename to load the data from.
-            Raw data will require passing `embed=True`.
+            Raw data will require passing ``embed=True``.
         url : unicode
-            A URL for the video. If you specify `url=`,
+            A URL for the video. If you specify ``url=``,
             the image data will not be embedded.
         filename : unicode
             Path to a local file containing the video.
-            Will be interpreted as a local URL unless `embed=True`.
+            Will be interpreted as a local URL unless ``embed=True``.
         embed : bool
             Should the video be embedded using a data URI (True) or be
             loaded using a <video> tag (False).
 
             Since videos are large, embedding them should be avoided, if possible.
-            You must confirm embedding as your intention by passing `embed=True`.
+            You must confirm embedding as your intention by passing ``embed=True``.
 
             Local files can be displayed with URLs without embedding the content, via::
 
                 Video('./video.mp4')
-
-        mimetype: unicode
+        mimetype : unicode
             Specify the mimetype for embedded videos.
             Default will be guessed from file extension, if available.
         width : int
@@ -1064,14 +1070,13 @@ class Video(DisplayObject):
             Height in pixels to which to constrain the video in html.
             If not supplied, defaults to the height of the video.
         html_attributes : str
-            Attributes for the HTML `<video>` block.
-            Default: `"controls"` to get video controls.
-            Other examples: `"controls muted"` for muted video with controls,
-            `"loop autoplay"` for looping autoplaying video without controls.
+            Attributes for the HTML ``<video>`` block.
+            Default: ``"controls"`` to get video controls.
+            Other examples: ``"controls muted"`` for muted video with controls,
+            ``"loop autoplay"`` for looping autoplaying video without controls.
 
         Examples
         --------
-
         ::
 
             Video('https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_small.mp4')
@@ -1165,7 +1170,7 @@ def set_matplotlib_formats(*formats, **kwargs):
     ----------
     *formats : strs
         One or more figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
-    **kwargs :
+    **kwargs
         Keyword args will be relayed to ``figure.canvas.print_figure``.
     """
     from IPython.core.interactiveshell import InteractiveShell

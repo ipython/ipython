@@ -1,5 +1,4 @@
 import asyncio
-import signal
 import sys
 import threading
 
@@ -7,13 +6,8 @@ from IPython.core.debugger import Pdb
 
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
-from .shortcuts import create_ipython_shortcuts, suspend_to_bg, cursor_in_leading_ws
+from .shortcuts import create_ipython_shortcuts
 
-from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import (Condition, has_focus, has_selection,
-    vi_insert_mode, emacs_insert_mode)
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
 from pygments.token import Token
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.enums import EditingMode
@@ -34,22 +28,20 @@ class TerminalPdb(Pdb):
     def pt_init(self, pt_session_options=None):
         """Initialize the prompt session and the prompt loop
         and store them in self.pt_app and self.pt_loop.
-        
+
         Additional keyword arguments for the PromptSession class
         can be specified in pt_session_options.
         """
         if pt_session_options is None:
             pt_session_options = {}
-        
+
         def get_prompt_tokens():
             return [(Token.Prompt, self.prompt)]
 
         if self._ptcomp is None:
-            compl = IPCompleter(shell=self.shell,
-                                        namespace={},
-                                        global_namespace={},
-                                        parent=self.shell,
-                                       )
+            compl = IPCompleter(
+                shell=self.shell, namespace={}, global_namespace={}, parent=self.shell
+            )
             # add a completer for all the do_ methods
             methods_names = [m[3:] for m in dir(self) if m.startswith("do_")]
 

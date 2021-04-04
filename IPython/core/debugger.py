@@ -43,12 +43,13 @@ from IPython.testing.skipdoctest import skip_doctest
 
 prompt = 'ipdb> '
 
-#We have to check this directly from sys.argv, config struct not yet available
+# We have to check this directly from sys.argv, config struct not yet available
 from pdb import Pdb as OldPdb
 
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
 # the Tracer constructor.
+
 
 def make_arrow(pad):
     """generate the leading arrow in front of traceback or debugger"""
@@ -67,16 +68,16 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     """
     warnings.warn("`BdbQuit_excepthook` is deprecated since version 5.1",
                   DeprecationWarning, stacklevel=2)
-    if et==bdb.BdbQuit:
+    if et == bdb.BdbQuit:
         print('Exiting Debugger.')
     elif excepthook is not None:
         excepthook(et, ev, tb)
     else:
         # Backwards compatibility. Raise deprecation warning?
-        BdbQuit_excepthook.excepthook_ori(et,ev,tb)
+        BdbQuit_excepthook.excepthook_ori(et, ev, tb)
 
 
-def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
+def BdbQuit_IPython_excepthook(self, et, ev, tb, tb_offset=None):
     warnings.warn(
         "`BdbQuit_IPython_excepthook` is deprecated since version 5.1",
         DeprecationWarning, stacklevel=2)
@@ -203,7 +204,7 @@ class Pdb(OldPdb):
     def __init__(self, color_scheme=None, completekey=None,
                  stdin=None, stdout=None, context=5, **kwargs):
         """Create a new IPython debugger.
-        
+
         :param color_scheme: Deprecated, do not use.
         :param completekey: Passed to pdb.Pdb.
         :param stdin: Passed to pdb.Pdb.
@@ -237,7 +238,7 @@ class Pdb(OldPdb):
             self.shell = TerminalInteractiveShell.instance()
             # needed by any code which calls __import__("__main__") after
             # the debugger was entered. See also #9941.
-            sys.modules['__main__'] = save_main 
+            sys.modules["__main__"] = save_main
 
         if color_scheme is not None:
             warnings.warn(
@@ -271,7 +272,6 @@ class Pdb(OldPdb):
         cst['Neutral'].colors.prompt = C.Blue
         cst['Neutral'].colors.breakpoint_enabled = C.LightRed
         cst['Neutral'].colors.breakpoint_disabled = C.Red
-
 
         # Add a python parser so we can syntax highlight source while
         # debugging.
@@ -320,13 +320,25 @@ class Pdb(OldPdb):
         except KeyboardInterrupt:
             self.stdout.write("\n" + self.shell.get_exception_only())
 
+    def precmd(self, line):
+        """Perform useful escapes on the command before it is executed."""
+
+        if line.endswith("??"):
+            line = "pinfo2 " + line[:-2]
+        elif line.endswith("?"):
+            line = "pinfo " + line[:-1]
+
+        line = super().precmd(line)
+
+        return line
+
     def new_do_frame(self, arg):
         OldPdb.do_frame(self, arg)
 
     def new_do_quit(self, arg):
 
         if hasattr(self, 'old_all_completions'):
-            self.shell.Completer.all_completions=self.old_all_completions
+            self.shell.Completer.all_completions = self.old_all_completions
 
         return OldPdb.do_quit(self, arg)
 
@@ -344,7 +356,7 @@ class Pdb(OldPdb):
         if context is None:
             context = self.context
         try:
-            context=int(context)
+            context = int(context)
             if context <= 0:
                 raise ValueError("Context must be a positive integer")
         except (TypeError, ValueError) as e:
@@ -373,7 +385,7 @@ class Pdb(OldPdb):
         if context is None:
             context = self.context
         try:
-            context=int(context)
+            context = int(context)
             if context <= 0:
                 raise ValueError("Context must be a positive integer")
         except (TypeError, ValueError) as e:
@@ -390,7 +402,7 @@ class Pdb(OldPdb):
         if context is None:
             context = self.context
         try:
-            context=int(context)
+            context = int(context)
             if context <= 0:
                 print("Context must be a positive integer", file=self.stdout)
         except (TypeError, ValueError):
@@ -402,11 +414,10 @@ class Pdb(OldPdb):
 
         Colors = self.color_scheme_table.active_colors
         ColorsNormal = Colors.Normal
-        tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
-                                            ColorsNormal)
+        tpl_link = "%s%%s%s" % (Colors.filenameEm, ColorsNormal)
+        tpl_call = "%s%%s%s%%s%s" % (Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_line = "%%s%s%%s %s%%s" % (Colors.lineno, ColorsNormal)
+        tpl_line_em = "%%s%s%%s %s%%s%s" % (Colors.linenoEm, Colors.line, ColorsNormal)
 
         frame, lineno = frame_lineno
 
@@ -439,8 +450,8 @@ class Pdb(OldPdb):
         if frame is self.curframe:
             ret.append('> ')
         else:
-            ret.append('  ')
-        ret.append(u'%s(%s)%s\n' % (link,lineno,call))
+            ret.append("  ")
+        ret.append("%s(%s)%s\n" % (link, lineno, call))
 
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
@@ -448,17 +459,17 @@ class Pdb(OldPdb):
         start = max(start, 0)
         lines = lines[start : start + context]
 
-        for i,line in enumerate(lines):
-            show_arrow = (start + 1 + i == lineno)
-            linetpl = (frame is self.curframe or show_arrow) \
-                      and tpl_line_em \
-                      or tpl_line
-            ret.append(self.__format_line(linetpl, filename,
-                                          start + 1 + i, line,
-                                          arrow = show_arrow) )
-        return ''.join(ret)
+        for i, line in enumerate(lines):
+            show_arrow = start + 1 + i == lineno
+            linetpl = (frame is self.curframe or show_arrow) and tpl_line_em or tpl_line
+            ret.append(
+                self.__format_line(
+                    linetpl, filename, start + 1 + i, line, arrow=show_arrow
+                )
+            )
+        return "".join(ret)
 
-    def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
+    def __format_line(self, tpl_line, filename, lineno, line, arrow=False):
         bp_mark = ""
         bp_mark_color = ""
 
@@ -488,7 +499,6 @@ class Pdb(OldPdb):
 
         return tpl_line % (bp_mark_color + bp_mark, num, line)
 
-
     def print_list_lines(self, filename, first, last):
         """The printing (as opposed to the parsing part of a 'list'
         command."""
@@ -507,9 +517,13 @@ class Pdb(OldPdb):
                     break
 
                 if lineno == self.curframe.f_lineno:
-                    line = self.__format_line(tpl_line_em, filename, lineno, line, arrow = True)
+                    line = self.__format_line(
+                        tpl_line_em, filename, lineno, line, arrow=True
+                    )
                 else:
-                    line = self.__format_line(tpl_line, filename, lineno, line, arrow = False)
+                    line = self.__format_line(
+                        tpl_line, filename, lineno, line, arrow=False
+                    )
 
                 src.append(line)
                 self.lineno = lineno
@@ -706,7 +720,7 @@ class Pdb(OldPdb):
 
         Will skip hidden frames.
         """
-        ## modified version of upstream that skips
+        # modified version of upstream that skips
         # frames with __tracebackide__
         if self.curindex == 0:
             self.error("Oldest frame")
@@ -720,11 +734,9 @@ class Pdb(OldPdb):
         if count < 0:
             _newframe = 0
         else:
-            _newindex = self.curindex
             counter = 0
             hidden_frames = self.hidden_frames(self.stack)
             for i in range(self.curindex - 1, -1, -1):
-                frame = self.stack[i][0]
                 if hidden_frames[i] and self.skip_hidden:
                     skipped += 1
                     continue
@@ -765,12 +777,10 @@ class Pdb(OldPdb):
         if count < 0:
             _newframe = len(self.stack) - 1
         else:
-            _newindex = self.curindex
             counter = 0
             skipped = 0
             hidden_frames = self.hidden_frames(self.stack)
             for i in range(self.curindex + 1, len(self.stack)):
-                frame = self.stack[i][0]
                 if hidden_frames[i] and self.skip_hidden:
                     skipped += 1
                     continue
@@ -795,6 +805,20 @@ class Pdb(OldPdb):
 
     do_d = do_down
     do_u = do_up
+
+    def do_context(self, context):
+        """context number_of_lines
+        Set the number of lines of source code to show when displaying
+        stacktrace information.
+        """
+        try:
+            new_context = int(context)
+            if new_context <= 0:
+                raise ValueError()
+            self.context = new_context
+        except ValueError:
+            self.error("The 'context' command requires a positive integer argument.")
+
 
 class InterruptiblePdb(Pdb):
     """Version of debugger where KeyboardInterrupt exits the debugger altogether."""

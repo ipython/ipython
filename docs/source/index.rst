@@ -9,15 +9,15 @@ IPython Documentation
    :Release: |release|
    :Date: |today|
 
-Welcome to the official IPython documentation
+Welcome to the official IPython documentation.
 
 IPython provides a rich toolkit to help you make the most of using Python
 interactively.  Its main components are:
 
-* A powerful interactive Python shell
+* A powerful interactive Python shell.
 
 
-.. image:: /_images/ipython-6-screenshot.png
+.. image:: ./_images/ipython-6-screenshot.png
     :alt: Screenshot of IPython 6.0
     :align: center
 
@@ -59,7 +59,7 @@ The Command line interface inherits the above functionality and adds
  
 * real multi-line editing thanks to `prompt_toolkit <http://python-prompt-toolkit.readthedocs.io/en/stable/>`_.
  
-* syntax highlighting as you type
+* syntax highlighting as you type.
 
 * integration with command line editor for a better workflow.
 
@@ -82,8 +82,6 @@ sidebar, allowing you to come back to previous sections or skip ahead, if needed
 
 The latest development version is always available from IPython's `GitHub
 repository <http://github.com/ipython/ipython>`_.
-
-
 
 
 .. toctree::

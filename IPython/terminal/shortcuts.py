@@ -9,6 +9,7 @@ Module to define and register Terminal IPython shortcuts with
 import warnings
 import signal
 import sys
+import re
 from typing import Callable
 
 

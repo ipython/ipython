@@ -16,6 +16,7 @@
 import os
 import sys
 from io import open as io_open
+import fnmatch
 
 # Our own packages
 from IPython.core.error import StdinNotImplementedError
@@ -170,7 +171,8 @@ class HistoryMagics(Magics):
         pattern = None
         limit = None if args.limit is _unspecified else args.limit
 
-        if args.pattern is not None:
+        range_pattern = False
+        if args.pattern is not None and not args.range:
             if args.pattern:
                 pattern = "*" + " ".join(args.pattern) + "*"
             else:
@@ -183,6 +185,9 @@ class HistoryMagics(Magics):
             hist = history_manager.get_tail(n, raw=raw, output=get_output)
         else:
             if args.range:      # Get history by ranges
+                if args.pattern:
+                    range_pattern = "*" + " ".join(args.pattern) + "*"
+                    print_nums = True
                 hist = history_manager.get_range_by_str(" ".join(args.range),
                                                         raw, get_output)
             else:               # Just get history for the current session
@@ -200,6 +205,9 @@ class HistoryMagics(Magics):
             # into an editor.
             if get_output:
                 inline, output = inline
+            if range_pattern:
+                if not fnmatch.fnmatch(inline, range_pattern):
+                    continue
             inline = inline.expandtabs(4).rstrip()
 
             multiline = "\n" in inline
