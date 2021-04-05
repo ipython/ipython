@@ -169,6 +169,7 @@ For more information please see unit test -
     extensions/tests/test_autoreload.py : 'test_autoload_newly_added_objects'
 =======
 
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 As a reminder, IPython master has diverged from the 7.x branch, thus master may
