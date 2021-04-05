@@ -167,8 +167,8 @@ Try ``%autoreload 3`` in an IPython session after running ``%load_ext autoreload
 
 For more information please see unit test -
     extensions/tests/test_autoreload.py : 'test_autoload_newly_added_objects'
-=======
 
+=======
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
