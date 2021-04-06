@@ -28,11 +28,9 @@ def extract_vars(*names,**kw):
     *names : str
         One or more variable names which will be extracted from the caller's
         frame.
-
-    depth : integer, optional
+    **kw : integer, optional
         How many frames in the stack to walk when looking for your variables.
         The default is 0, which will use the frame where the call was made.
-
 
     Examples
     --------

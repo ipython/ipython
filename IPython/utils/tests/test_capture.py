@@ -111,7 +111,7 @@ def test_rich_output_metadata(method_mime):
 
 def test_rich_output_display():
     """test RichOutput.display
-    
+
     This is a bit circular, because we are actually using the capture code we are testing
     to test itself.
     """

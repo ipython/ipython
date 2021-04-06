@@ -128,7 +128,7 @@ def system(cmd):
     Parameters
     ----------
     cmd : str or list
-      A command to be executed in the system shell.
+        A command to be executed in the system shell.
 
     Returns
     -------
@@ -152,7 +152,7 @@ def getoutput(cmd):
     Parameters
     ----------
     cmd : str or list
-      A command to be executed in the system shell.
+        A command to be executed in the system shell.
 
     Returns
     -------
@@ -181,7 +181,7 @@ try:
 
         This is a special version for windows that use a ctypes call to CommandLineToArgvW
         to do the argv splitting. The posix parameter is ignored.
-        
+
         If strict=False, process_common.arg_split(...strict=False) is used instead.
         """
         #CommandLineToArgvW returns path to executable if called with empty string.

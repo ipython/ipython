@@ -56,7 +56,7 @@ HOME_TEST_DIR = join(TMP_TEST_DIR, "home_test_dir")
 def setup_module():
     """Setup testenvironment for the module:
 
-            - Adds dummy home dir tree
+    - Adds dummy home dir tree
     """
     # Do not mask exceptions here.  In particular, catching WindowsError is a
     # problem because that exception is only defined on Windows...
@@ -66,7 +66,7 @@ def setup_module():
 def teardown_module():
     """Teardown testenvironment for the module:
 
-            - Remove dummy home dir tree
+    - Remove dummy home dir tree
     """
     # Note: we remove the parent test dir, which is the root of all test
     # subdirs we may have created.  Use shutil instead of os.removedirs, so
