@@ -111,7 +111,8 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
 
 def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
     try:
-        from matplotlib import mathtext
+        from matplotlib import figure, font_manager, mathtext
+        from matplotlib.backends import backend_agg
         from pyparsing import ParseFatalException
     except ImportError:
         return None
@@ -122,11 +123,18 @@ def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
         s = u'${0}$'.format(s)
 
     try:
-        mt = mathtext.MathTextParser('bitmap')
-        f = BytesIO()
-        dpi = 120*scale
-        mt.to_png(f, s, fontsize=12, dpi=dpi, color=color)
-        return f.getvalue()
+        prop = font_manager.FontProperties(size=12)
+        dpi = 120 * scale
+        buffer = BytesIO()
+
+        # Adapted from mathtext.math_to_image
+        parser = mathtext.MathTextParser("path")
+        width, height, depth, _, _ = parser.parse(s, dpi=72, prop=prop)
+        fig = figure.Figure(figsize=(width / 72, height / 72))
+        fig.text(0, depth / height, s, fontproperties=prop, color=color)
+        backend_agg.FigureCanvasAgg(fig)
+        fig.savefig(buffer, dpi=dpi, format="png", transparent=True)
+        return buffer.getvalue()
     except (ValueError, RuntimeError, ParseFatalException):
         return None
 
