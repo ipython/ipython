@@ -3771,6 +3771,22 @@ class InteractiveShell(SingletonConfigurable):
         raise TypeError("%s is neither a string nor a macro." % target,
                         codeobj)
 
+    def _atexit_once(self):
+        """
+        At exist operation that need to be called at most once.
+        Second call to this function per instance will do nothing.
+        """
+
+        if not getattr(self, "_atexit_once_called", False):
+            self._atexit_once_called = True
+            # Clear all user namespaces to release all references cleanly.
+            self.reset(new_session=False)
+            # Close the history session (this stores the end time and line count)
+            # this must be *before* the tempfile cleanup, in case of temporary
+            # history db
+            self.history_manager.end_session()
+            self.history_manager = None
+
     #-------------------------------------------------------------------------
     # Things related to IPython exiting
     #-------------------------------------------------------------------------
@@ -3785,13 +3801,7 @@ class InteractiveShell(SingletonConfigurable):
         code that has the appropriate information, rather than trying to
         clutter
         """
-        # Clear all user namespaces to release all references cleanly.
-        self.reset(new_session=False)
-        # Close the history session (this stores the end time and line count)
-        # this must be *before* the tempfile cleanup, in case of temporary
-        # history db
-        self.history_manager.end_session()
-        del self.history_manager
+        self._atexit_once()
 
         # Cleanup all tempfiles and folders left around
         for tfile in self.tempfiles:

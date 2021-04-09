@@ -615,6 +615,13 @@ class TerminalInteractiveShell(InteractiveShell):
 
                 self.restore_term_title()
 
+        # try to call some at-exit operation optimistically as some things can't
+        # be done during interpreter shutdown. this is technically inaccurate as
+        # this make mainlool not re-callable, but that should be a rare if not
+        # in existent use case.
+
+        self._atexit_once()
+
 
     _inputhook = None
     def inputhook(self, context):
