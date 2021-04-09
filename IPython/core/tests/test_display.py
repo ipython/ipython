@@ -460,4 +460,4 @@ def test_display_handle():
 
 @nt.raises(FileNotFoundError)
 def test_image_bad_filename_raises_proper_exception():
-    display.Image("/this/file/does/not/exist/")
+    display.Image("/this/file/does/not/exist/")._repr_png_()
