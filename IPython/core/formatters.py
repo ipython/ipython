@@ -636,7 +636,6 @@ class PlainTextFormatter(BaseFormatter):
 
         This parameter can be set via the '%precision' magic.
         """
-
         new = change['new']
         if '%' in new:
             # got explicit format string
@@ -678,7 +677,9 @@ class PlainTextFormatter(BaseFormatter):
     def _type_printers_default(self):
         d = pretty._type_pprinters.copy()
         d[float] = lambda obj,p,cycle: p.text(self.float_format%obj)
+        # if NumPy is used, set precision for its float64 type
         if 'numpy' in sys.modules:
+            import numpy
             d[numpy.float64] = lambda obj,p,cycle: p.text(self.float_format%obj)
         return d
 
