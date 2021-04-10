@@ -7,3 +7,4 @@ docrepr
 matplotlib
 stack_data
 pytest
+nose
