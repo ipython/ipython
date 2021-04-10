@@ -23,6 +23,8 @@ jobs:
         python -m pip install --upgrade --upgrade-strategy eager trio curio 
         python -m pip install --upgrade pytest pytest-trio 'matplotlib!=3.2.0'
         python -m pip install --upgrade codecov check-manifest pytest-cov anyio
+    - name: Check manifest
+      run: check-manifest
     - name: iptest
       run: |
         cd /tmp && iptest --coverage xml && cd -
