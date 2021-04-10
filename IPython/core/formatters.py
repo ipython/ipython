@@ -678,9 +678,10 @@ class PlainTextFormatter(BaseFormatter):
         d = pretty._type_pprinters.copy()
         d[float] = lambda obj,p,cycle: p.text(self.float_format%obj)
         # if NumPy is used, set precision for its float64 type
-        if 'numpy' in sys.modules:
+        if "numpy" in sys.modules:
             import numpy
-            d[numpy.float64] = lambda obj,p,cycle: p.text(self.float_format%obj)
+
+            d[numpy.float64] = lambda obj, p, cycle: p.text(self.float_format % obj)
         return d
 
     @default('deferred_printers')
