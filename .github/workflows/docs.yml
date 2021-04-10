@@ -1,4 +1,4 @@
-name: Run tests
+name: Build docs
 
 on: [push, pull_request]
 
