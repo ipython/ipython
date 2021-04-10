@@ -1,4 +1,4 @@
--e .
+-e .[test]
 ipykernel
 setuptools>=18.5
 sphinx
@@ -7,4 +7,3 @@ docrepr
 matplotlib
 stack_data
 pytest
-nose
