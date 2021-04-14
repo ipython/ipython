@@ -146,8 +146,16 @@ def test_import_pylab():
     nt.assert_true('plt' in ns)
     nt.assert_equal(ns['np'], np)
 
+from traitlets.config import Config
+
+
 class TestPylabSwitch(object):
     class Shell(InteractiveShell):
+        def init_history(self):
+            """Sets up the command history, and starts regular autosaves."""
+            self.config.HistoryManager.hist_file = ":memory:"
+            super().init_history()
+
         def enable_gui(self, gui):
             pass
 
@@ -179,6 +187,7 @@ class TestPylabSwitch(object):
         matplotlib.rcParamsOrig = self._saved_rcParamsOrig
 
     def test_qt(self):
+
         s = self.Shell()
         gui, backend = s.enable_matplotlib(None)
         nt.assert_equal(gui, 'qt')
