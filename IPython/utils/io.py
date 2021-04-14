@@ -113,11 +113,9 @@ class Tee(object):
         Parameters
         ----------
         file_or_name : filename or open filehandle (writable)
-          File that will be duplicated
-
+            File that will be duplicated
         mode : optional, valid mode for open().
-          If a filename was give, open with this mode.
-
+            If a filename was give, open with this mode.
         channel : str, one of ['stdout', 'stderr']
         """
         if channel not in ['stdout', 'stderr']:
@@ -195,15 +193,14 @@ def temp_pyfile(src, ext='.py'):
     Parameters
     ----------
     src : string or list of strings (no need for ending newlines if list)
-      Source code to be written to the file.
-
+        Source code to be written to the file.
     ext : optional, string
-      Extension for the generated file.
+        Extension for the generated file.
 
     Returns
     -------
     (filename, open filehandle)
-      It is the caller's responsibility to close the open file and unlink it.
+        It is the caller's responsibility to close the open file and unlink it.
     """
     fname = tempfile.mkstemp(ext)[1]
     with open(Path(fname), "w") as f:

@@ -252,7 +252,6 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
 
     Parameters
     ----------
-
     instr : basestring
         The string to be indented.
     nspaces : int (default: 4)
@@ -266,7 +265,6 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
 
     Returns
     -------
-
     str|unicode : string indented by ntabs and nspaces.
 
     """
@@ -390,7 +388,6 @@ def wrap_paragraphs(text, ncols=80):
 
     Returns
     -------
-
     list of complete paragraphs, wrapped to fill `ncols` columns.
     """
     paragraph_re = re.compile(r'\n(\s*\n)+', re.MULTILINE)
@@ -410,7 +407,7 @@ def wrap_paragraphs(text, ncols=80):
 
 def long_substr(data):
     """Return the longest common substring in a list of strings.
-    
+
     Credit: http://stackoverflow.com/questions/2892931/longest-common-substring-from-more-than-two-strings-python
     """
     substr = ''
@@ -474,7 +471,7 @@ def strip_email_quotes(text):
 def strip_ansi(source):
     """
     Remove ansi escape codes from text.
-    
+
     Parameters
     ----------
     source : str
@@ -651,7 +648,6 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
 
     Parameters
     ----------
-
     items
         list of strings to columize
     row_first : (default False)
@@ -666,14 +662,11 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
 
     Returns
     -------
-
     strings_matrix
-
         nested list of string, the outer most list contains as many list as
         rows, the innermost lists have each as many element as columns. If the
         total number of elements in `items` does not equal the product of
         rows*columns, the last element of some lists are filled with `None`.
-
     dict_info
         some info to make columnize easier:
 
@@ -713,14 +706,11 @@ def columnize(items, row_first=False, separator='  ', displaywidth=80, spread=Fa
     ----------
     items : sequence of strings
         The strings to process.
-
     row_first : (default False)
         Whether to compute columns for a row-first matrix instead of
         column-first (default).
-
     separator : str, optional [default is two spaces]
         The string that separates columns.
-
     displaywidth : int, optional [default is 80]
         Width of the display in number of characters.
 

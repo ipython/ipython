@@ -40,15 +40,15 @@ def pkg_commit_hash(pkg_path):
     Parameters
     ----------
     pkg_path : str
-       directory containing package
-       only used for getting commit from active repo
+        directory containing package
+        only used for getting commit from active repo
 
     Returns
     -------
     hash_from : str
-       Where we got the hash from - description
+        Where we got the hash from - description
     hash_str : str
-       short form of hash
+        short form of hash
     """
     # Try and get commit from written commit text file
     if _sysinfo.commit:
@@ -71,12 +71,12 @@ def pkg_info(pkg_path):
     Parameters
     ----------
     pkg_path : str
-       path containing __init__.py for package
+        path containing __init__.py for package
 
     Returns
     -------
     context : dict
-       with named parameters of interest
+        with named parameters of interest
     """
     src, hsh = pkg_commit_hash(pkg_path)
     return dict(
