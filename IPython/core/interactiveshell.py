@@ -2085,13 +2085,17 @@ class InteractiveShell(SingletonConfigurable):
         except KeyboardInterrupt:
             print('\n' + self.get_exception_only(), file=sys.stderr)
 
-    def _showtraceback(self, etype, evalue, stb):
+    def _showtraceback(self, etype, evalue, stb: str):
         """Actually show a traceback.
 
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        print(self.InteractiveTB.stb2text(stb))
+        val = self.InteractiveTB.stb2text(stb)
+        try:
+            print(val)
+        except UnicodeEncodeError:
+            print(val.encode("utf-8", "backslashreplace").decode())
 
     def showsyntaxerror(self, filename=None, running_compiled_code=False):
         """Display the syntax error that just occurred.

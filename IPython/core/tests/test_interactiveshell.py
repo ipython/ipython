@@ -449,6 +449,25 @@ class InteractiveShellTestCase(unittest.TestCase):
             # Reset the custom exception hook
             ip.set_custom_exc((), None)
     
+    @mock.patch("builtins.print")
+    def test_showtraceback_with_surrogates(self, mocked_print):
+        values = []
+
+        def mock_print_func(value, sep=" ", end="\n", file=sys.stdout, flush=False):
+            values.append(value)
+            if value == chr(0xD8FF):
+                raise UnicodeEncodeError("utf-8", chr(0xD8FF), 0, 1, "")
+
+        # mock builtins.print
+        mocked_print.side_effect = mock_print_func
+
+        # ip._showtraceback() is replaced in globalipapp.py.
+        # Call original method to test.
+        interactiveshell.InteractiveShell._showtraceback(ip, None, None, chr(0xD8FF))
+
+        self.assertEqual(mocked_print.call_count, 2)
+        self.assertEqual(values, [chr(0xD8FF), "\\ud8ff"])
+
     def test_mktempfile(self):
         filename = ip.mktempfile()
         # Check that we can open the file again on Windows
