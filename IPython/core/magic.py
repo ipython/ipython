@@ -636,7 +636,7 @@ class Magics(Configurable):
                     '%s ( allowed: "%s" %s)' % (e.msg, opt_str, " ".join(long_opts))
                 ) from e
             for o, a in opts:
-                if mode is "string" and preserve_non_opts:
+                if mode == "string" and preserve_non_opts:
                     # remove option-parts from the original args-string and preserve remaining-part.
                     # This relies on the arg_split(...) and getopt(...)'s impl spec, that the parsed options are
                     # returned in the original order.

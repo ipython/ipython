@@ -334,7 +334,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         self.compile.flags = orig_compile_flags
 
 
-def embed(**kwargs):
+def embed(*, header="", compile_flags=None, **kwargs):
     """Call this to embed IPython at the current point in your program.
 
     The first invocation of this will create an :class:`InteractiveShellEmbed`
@@ -360,8 +360,6 @@ def embed(**kwargs):
     config argument.
     """
     config = kwargs.get('config')
-    header = kwargs.pop('header', u'')
-    compile_flags = kwargs.pop('compile_flags', None)
     if config is None:
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell

@@ -85,7 +85,17 @@ def _new_id():
     return b2a_hex(os.urandom(16)).decode('ascii')
 
 
-def display(*objs, include=None, exclude=None, metadata=None, transient=None, display_id=None, **kwargs):
+def display(
+    *objs,
+    include=None,
+    exclude=None,
+    metadata=None,
+    transient=None,
+    display_id=None,
+    raw=False,
+    clear=False,
+    **kwargs
+):
     """Display a Python object in all frontends.
 
     By default all representations will be computed and sent to the frontends.
@@ -242,8 +252,6 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         print(*objs)
         return
 
-    raw = kwargs.pop("raw", False)
-    clear = kwargs.pop("clear", False)
     if transient is None:
         transient = {}
     if metadata is None:
