@@ -136,7 +136,7 @@ class TerminalPdb(Pdb):
         ipshell = embed.InteractiveShellEmbed(
             config=self.shell.config,
             banner1="*interactive*",
-            exit_msg="now exiting InteractiveConsole...",
+            exit_msg="*exiting interactive console...*",
         )
         global_ns = self.curframe.f_globals
         ipshell(
