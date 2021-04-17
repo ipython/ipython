@@ -1896,9 +1896,14 @@ class InteractiveShell(SingletonConfigurable):
             exception or returns an invalid result, it will be immediately
             disabled.
 
+        Notes
+        -----
+
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
-        facility should only be used if you really know what you are doing."""
+        facility should only be used if you really know what you are doing.
+        """
+
         if not isinstance(exc_tuple, tuple):
             raise TypeError("The custom exceptions must be given as a tuple.")
 
@@ -2216,12 +2221,15 @@ class InteractiveShell(SingletonConfigurable):
 
         Returns
         -------
-          text : string
-            The actual text that was completed.
+        text : string
+          The actual text that was completed.
 
-          matches : list
-            A sorted list with all possible completions.
+        matches : list
+          A sorted list with all possible completions.
 
+
+        Notes
+        -----
         The optional arguments allow the completion to take more context into
         account, and are part of the low-level completion API.
 
@@ -2230,7 +2238,8 @@ class InteractiveShell(SingletonConfigurable):
         exposing it as a method, it can be used by other non-readline
         environments (such as GUIs) for text completion.
 
-        Simple usage example:
+        Examples
+        --------
 
         In [1]: x = 'hello'
 
