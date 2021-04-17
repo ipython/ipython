@@ -364,7 +364,9 @@ def import_pylab(user_ns, import_all=True):
 
 def configure_inline_support(shell, backend):
     """
-    DEPRECATED
+    .. deprecated: 7.23
+
+        use `matplotlib_inline.backend_inline.configure_inline_support()`
 
     Configure an IPython shell object for matplotlib use.
 
@@ -375,8 +377,8 @@ def configure_inline_support(shell, backend):
     backend : matplotlib backend
     """
     warnings.warn(
-        "`configure_inline_support` is deprecated, directly use "
-        "`matplotlib_inline.backend_inline.configure_inline_support()`",
+        "`configure_inline_support` is deprecated since IPython 7.23, directly "
+        "use `matplotlib_inline.backend_inline.configure_inline_support()`",
         DeprecationWarning,
         stacklevel=2,
     )

@@ -1156,7 +1156,9 @@ class Video(DisplayObject):
 @skip_doctest
 def set_matplotlib_formats(*formats, **kwargs):
     """
-    DEPRECATED
+    .. deprecated:: 7.23
+
+       use `matplotlib_inline.backend_inline.set_matplotlib_formats()`
 
     Select figure formats for the inline backend. Optionally pass quality for JPEG.
 
@@ -1177,8 +1179,8 @@ def set_matplotlib_formats(*formats, **kwargs):
         Keyword args will be relayed to ``figure.canvas.print_figure``.
     """
     warnings.warn(
-        "`set_matplotlib_formats` is deprecated, directly use "
-        "`matplotlib_inline.backend_inline.set_matplotlib_formats()`",
+        "`set_matplotlib_formats` is deprecated since IPython 7.23, directly "
+        "use `matplotlib_inline.backend_inline.set_matplotlib_formats()`",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -1192,7 +1194,10 @@ def set_matplotlib_formats(*formats, **kwargs):
 @skip_doctest
 def set_matplotlib_close(close=True):
     """
-    DEPRECATED
+    .. deprecated:: 7.23
+
+        use `matplotlib_inline.backend_inline.set_matplotlib_close()`
+
 
     Set whether the inline backend closes all figures automatically or not.
 
@@ -1215,8 +1220,8 @@ def set_matplotlib_close(close=True):
         run?
     """
     warnings.warn(
-        "`set_matplotlib_close` is deprecated, directly use "
-        "`matplotlib_inline.backend_inline.set_matplotlib_close()`",
+        "`set_matplotlib_close` is deprecated since IPython 7.23, directly "
+        "use `matplotlib_inline.backend_inline.set_matplotlib_close()`",
         DeprecationWarning,
         stacklevel=2,
     )
