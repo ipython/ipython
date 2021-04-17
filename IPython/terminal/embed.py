@@ -19,6 +19,8 @@ from IPython.terminal.ipapp import load_default_config
 from traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
+from typing import Set
+
 class KillEmbedded(Exception):pass
 
 # kept for backward compatibility as IPython 6 was released with
@@ -123,16 +125,16 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         help="Automatically set the terminal title"
     ).tag(config=True)
 
-    _inactive_locations = set()
+    _inactive_locations: Set[str] = set()
+
+    def _disable_init_location(self):
+        """Disable the current Instance creation location"""
+        InteractiveShellEmbed._inactive_locations.add(self._init_location_id)
 
     @property
     def embedded_active(self):
         return (self._call_location_id not in InteractiveShellEmbed._inactive_locations)\
             and (self._init_location_id not in InteractiveShellEmbed._inactive_locations)
-
-    def _disable_init_location(self):
-        """Disable the current Instance creation location"""
-        InteractiveShellEmbed._inactive_locations.add(self._init_location_id)
 
     @embedded_active.setter
     def embedded_active(self, value):
