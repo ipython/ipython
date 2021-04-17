@@ -163,6 +163,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         Set an id for the display.
         This id can be used for updating this display area later via update_display.
         If given as `True`, generate a new `display_id`
+    clear : bool, optional
+        Should the output area be cleared before displaying anything? If True,
+        this will wait for additional output before clearing. [default: False]
     kwargs: additional keyword-args, optional
         Additional keyword-arguments are passed through to the display publisher.
 
@@ -281,8 +284,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         # Directly print objects.
         print(*objs)
         return
-    
-    raw = kwargs.pop('raw', False)
+
+    raw = kwargs.pop("raw", False)
+    clear = kwargs.pop("clear", False)
     if transient is None:
         transient = {}
     if metadata is None:
@@ -305,6 +309,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
 
     if not raw:
         format = InteractiveShell.instance().display_formatter.format
+
+    if clear:
+        clear_output(wait=True)
 
     for obj in objs:
         if raw:
