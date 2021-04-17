@@ -105,26 +105,20 @@ from inspect import signature
 from io import StringIO
 from warnings import warn
 
+from IPython.core.formatters import (
+    _PRETTY_MAX_SEQ_LENGTH, _get_mro, PrettyPrintFormatDispatcher, _safe_getattr
+)
 from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY
+from traitlets import default, ObjectName
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name', 'RawText', 'RawStringLiteral', 'CallExpression']
 
 
-MAX_SEQ_LENGTH = 1000
+MAX_SEQ_LENGTH = _PRETTY_MAX_SEQ_LENGTH
 _re_pattern_type = type(re.compile(''))
 
-def _safe_getattr(obj, attr, default=None):
-    """Safe version of getattr.
-
-    Same as getattr, but will return ``default`` on any Exception,
-    rather than raising.
-    """
-    try:
-        return getattr(obj, attr, default)
-    except Exception:
-        return default
 
 @undoc
 class CUnicodeIO(StringIO):
@@ -318,25 +312,6 @@ class PrettyPrinter(_PrettyPrinterBase):
         self.buffer_width = 0
 
 
-def _get_mro(obj_class):
-    """ Get a reasonable method resolution order of a class and its superclasses
-    for both old-style and new-style classes.
-    """
-    if not hasattr(obj_class, '__mro__'):
-        # Old-style class. Mix in object to make a fake new-style class.
-        try:
-            obj_class = type(obj_class.__name__, (obj_class, object), {})
-        except TypeError:
-            # Old-style extension type that does not descend from object.
-            # FIXME: try to construct a more thorough MRO.
-            mro = [obj_class]
-        else:
-            mro = obj_class.__mro__[1:-1]
-    else:
-        mro = obj_class.__mro__
-    return mro
-
-
 class RepresentationPrinter(PrettyPrinter):
     """
     Special pretty printer that has a `pretty` method that calls the pretty
@@ -355,82 +330,49 @@ class RepresentationPrinter(PrettyPrinter):
     def __init__(self, output, verbose=False, max_width=79, newline='\n',
         singleton_pprinters=None, type_pprinters=None, deferred_pprinters=None,
         max_seq_length=MAX_SEQ_LENGTH):
-
         PrettyPrinter.__init__(self, output, max_width, newline, max_seq_length=max_seq_length)
         self.verbose = verbose
         self.stack = []
-        if singleton_pprinters is None:
-            singleton_pprinters = _singleton_pprinters.copy()
-        self.singleton_pprinters = singleton_pprinters
-        if type_pprinters is None:
-            type_pprinters = _type_pprinters.copy()
-        self.type_pprinters = type_pprinters
-        if deferred_pprinters is None:
-            deferred_pprinters = _deferred_type_pprinters.copy()
-        self.deferred_pprinters = deferred_pprinters
+
+        # note the kwarg name has one fewer p
+        dispatcher_kws = {}
+        if singleton_pprinters is not None:
+            dispatcher_kws['singleton_printers'] = singleton_pprinters
+        if type_pprinters is not None:
+            dispatcher_kws['type_printers'] = type_pprinters
+        if type_pprinters is not None:
+            dispatcher_kws['deferred_printers'] = deferred_pprinters
+        self._dispatcher = PrettyPrintFormatDispatcher(**dispatcher_kws)
+
+    # alias attributes with an extra `p` for compatibility
+    @property
+    def singleton_pprinters(self):
+        return self._dispatcher.singleton_printers
+
+    @property
+    def type_pprinters(self):
+        return self._dispatcher.type_printers
+
+    @property
+    def deferred_pprinters(self):
+        return self._dispatcher.deferred_printers
 
     def pretty(self, obj):
         """Pretty print the given object."""
+        try:
+            printer = self._dispatcher.lookup(obj)
+        except KeyError:
+            printer = _default_pprint
+
         obj_id = id(obj)
         cycle = obj_id in self.stack
         self.stack.append(obj_id)
         self.begin_group()
         try:
-            obj_class = _safe_getattr(obj, '__class__', None) or type(obj)
-            # First try to find registered singleton printers for the type.
-            try:
-                printer = self.singleton_pprinters[obj_id]
-            except (TypeError, KeyError):
-                pass
-            else:
-                return printer(obj, self, cycle)
-            # Next walk the mro and check for either:
-            #   1) a registered printer
-            #   2) a _repr_pretty_ method
-            for cls in _get_mro(obj_class):
-                if cls in self.type_pprinters:
-                    # printer registered in self.type_pprinters
-                    return self.type_pprinters[cls](obj, self, cycle)
-                else:
-                    # deferred printer
-                    printer = self._in_deferred_types(cls)
-                    if printer is not None:
-                        return printer(obj, self, cycle)
-                    else:
-                        # Finally look for special method names.
-                        # Some objects automatically create any requested
-                        # attribute. Try to ignore most of them by checking for
-                        # callability.
-                        if '_repr_pretty_' in cls.__dict__:
-                            meth = cls._repr_pretty_
-                            if callable(meth):
-                                return meth(obj, self, cycle)
-                        if cls is not object \
-                                and callable(cls.__dict__.get('__repr__')):
-                            return _repr_pprint(obj, self, cycle)
-
-            return _default_pprint(obj, self, cycle)
+            return printer(obj, self, cycle)
         finally:
             self.end_group()
             self.stack.pop()
-
-    def _in_deferred_types(self, cls):
-        """
-        Check if the given class is specified in the deferred type registry.
-
-        Returns the printer from the registry if it exists, and None if the
-        class is not in the registry. Successful matches will be moved to the
-        regular type registry for future use.
-        """
-        mod = _safe_getattr(cls, '__module__', None)
-        name = _safe_getattr(cls, '__name__', None)
-        key = (mod, name)
-        printer = None
-        if key in self.deferred_pprinters:
-            # Move the printer over to the regular registry.
-            printer = self.deferred_pprinters.pop(key)
-            self.type_pprinters[cls] = printer
-        return printer
 
 
 class Printable(object):

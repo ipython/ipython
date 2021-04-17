@@ -17,7 +17,12 @@ from IPython.core.formatters import (
 )
 from IPython.utils.io import capture_output
 
-class A(object):
+
+class ABase(object):
+    pass  # no __repr__
+
+
+class A(ABase):
     def __repr__(self):
         return 'A()'
 
@@ -147,8 +152,11 @@ def test_lookup():
     
     f.for_type(C, foo_printer)
     nt.assert_is(f.lookup(C()), foo_printer)
+
+    nt.assert_is(f.lookup(A()), f.repr_printer)
+
     with nt.assert_raises(KeyError):
-        f.lookup(A())
+        f.lookup(ABase())
 
 def test_lookup_string():
     f = PlainTextFormatter()
@@ -164,8 +172,12 @@ def test_lookup_by_type():
     f = PlainTextFormatter()
     f.for_type(C, foo_printer)
     nt.assert_is(f.lookup_by_type(C), foo_printer)
+
+    # the printer for A will be the default repr printer
+    nt.assert_is(f.lookup_by_type(A), f.repr_printer)
+
     with nt.assert_raises(KeyError):
-        f.lookup_by_type(A)
+        f.lookup_by_type(ABase)
 
 def test_lookup_by_type_string():
     f = PlainTextFormatter()
