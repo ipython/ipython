@@ -61,10 +61,50 @@ for a in range(5):
     print(a ** 2)
 """)
 
+
+IPYTHON_PROMPT_VI_INS = (
+    """\
+[ins] In [11]: def a():
+          ...:     123
+          ...:
+          ...: 123
+""",
+    """\
+def a():
+    123
+
+123
+""",
+)
+
+IPYTHON_PROMPT_VI_NAV = (
+    """\
+[nav] In [11]: def a():
+          ...:     123
+          ...:
+          ...: 123
+""",
+    """\
+def a():
+    123
+
+123
+""",
+)
+
+
 def test_ipython_prompt():
-    for sample, expected in [IPYTHON_PROMPT, IPYTHON_PROMPT_L2]:
-        nt.assert_equal(ipt2.ipython_prompt(sample.splitlines(keepends=True)),
-                        expected.splitlines(keepends=True))
+    for sample, expected in [
+        IPYTHON_PROMPT,
+        IPYTHON_PROMPT_L2,
+        IPYTHON_PROMPT_VI_INS,
+        IPYTHON_PROMPT_VI_NAV,
+    ]:
+        nt.assert_equal(
+            ipt2.ipython_prompt(sample.splitlines(keepends=True)),
+            expected.splitlines(keepends=True),
+        )
+
 
 INDENT_SPACES = ("""\
      if True:
