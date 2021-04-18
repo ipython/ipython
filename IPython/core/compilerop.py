@@ -118,12 +118,12 @@ class CachingCompiler(codeop.Compile):
         Parameters
         ----------
         raw_code : str
-          The raw cell code.
+            The raw cell code.
         transformed_code : str
-          The executable Python source code to cache and compile.
+            The executable Python source code to cache and compile.
         number : int
-          A number which forms part of the code's name. Used for the execution
-          counter.
+            A number which forms part of the code's name. Used for the execution
+            counter.
 
         Returns
         -------
@@ -137,12 +137,12 @@ class CachingCompiler(codeop.Compile):
         Parameters
         ----------
         transformed_code : str
-          The executable Python source code to cache and compile.
+            The executable Python source code to cache and compile.
         number : int
-          A number which forms part of the code's name. Used for the execution
-          counter.
+            A number which forms part of the code's name. Used for the execution
+            counter.
         raw_code : str
-          The raw code before transformation, if None, set to `transformed_code`.
+            The raw code before transformation, if None, set to `transformed_code`.
 
         Returns
         -------
