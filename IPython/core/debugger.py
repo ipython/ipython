@@ -109,7 +109,6 @@ class Tracer(object):
 
         Parameters
         ----------
-
         colors : str, optional
             The name of the color scheme to use, it must be one of IPython's
             valid color schemes.  If not given, the function will default to
