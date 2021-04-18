@@ -92,23 +92,23 @@ classic_prompt = PromptStripper(
 ipython_prompt = PromptStripper(
     re.compile(
         r"""
-    ^(                         # Match from the beginning of a line, either:
+        ^(                         # Match from the beginning of a line, either:
 
-                               # 1. First-line prompt:
-    ((\[nav\]|\[ins\])?\ )?    # Vi editing mode prompt, if it's there
-    In\                        # The 'In' of the prompt, with a space
-    \[\d+\]:                   # Command index, as displayed in the prompt
-    \                          # With a mandatory trailing space
+                                   # 1. First-line prompt:
+        ((\[nav\]|\[ins\])?\ )?    # Vi editing mode prompt, if it's there
+        In\                        # The 'In' of the prompt, with a space
+        \[\d+\]:                   # Command index, as displayed in the prompt
+        \                          # With a mandatory trailing space
 
-    |                          # ... or ...
+        |                          # ... or ...
 
-                               # 2. The three dots of the multiline prompt
-    \s*                        # All leading whitespace characters
-    \.{3,}:                    # The three (or more) dots
-    \ ?                        # With an optional trailing space
+                                   # 2. The three dots of the multiline prompt
+        \s*                        # All leading whitespace characters
+        \.{3,}:                    # The three (or more) dots
+        \ ?                        # With an optional trailing space
 
-    )
-    """,
+        )
+        """,
         re.VERBOSE,
     )
 )
