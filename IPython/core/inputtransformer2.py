@@ -89,8 +89,9 @@ classic_prompt = PromptStripper(
     initial_re=re.compile(r'^>>>( |$)')
 )
 
-ipython_prompt = PromptStripper(re.compile(
-    r'''
+ipython_prompt = PromptStripper(
+    re.compile(
+        r"""
     ^(                         # Match from the beginning of a line, either:
 
                                # 1. First-line prompt:
@@ -107,9 +108,10 @@ ipython_prompt = PromptStripper(re.compile(
     \ ?                        # With an optional trailing space
 
     )
-    ''',
-    re.VERBOSE
-))
+    """,
+        re.VERBOSE,
+    )
+)
 
 
 def cell_magic(lines):
