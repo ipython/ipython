@@ -28,34 +28,34 @@ class EventManager(object):
     """
     def __init__(self, shell, available_events):
         """Initialise the :class:`CallbackManager`.
-        
+
         Parameters
         ----------
         shell
-          The :class:`~IPython.core.interactiveshell.InteractiveShell` instance
-        available_callbacks
-          An iterable of names for callback events.
+            The :class:`~IPython.core.interactiveshell.InteractiveShell` instance
+        available_events
+            An iterable of names for callback events.
         """
         self.shell = shell
         self.callbacks = {n:[] for n in available_events}
     
     def register(self, event, function):
         """Register a new event callback.
-        
+
         Parameters
         ----------
         event : str
-          The event for which to register this callback.
+            The event for which to register this callback.
         function : callable
-          A function to be called on the given event. It should take the same
-          parameters as the appropriate callback prototype.
-        
+            A function to be called on the given event. It should take the same
+            parameters as the appropriate callback prototype.
+
         Raises
         ------
         TypeError
-          If ``function`` is not callable.
+            If ``function`` is not callable.
         KeyError
-          If ``event`` is not one of the known events.
+            If ``event`` is not one of the known events.
         """
         if not callable(function):
             raise TypeError('Need a callable, got %r' % function)
@@ -80,7 +80,7 @@ class EventManager(object):
 
     def trigger(self, event, *args, **kwargs):
         """Call callbacks for ``event``.
-        
+
         Any additional arguments are passed to all callbacks registered for this
         event. Exceptions raised by callbacks are caught, and a message printed.
         """
@@ -109,7 +109,7 @@ def _define_event(callback_function):
 @_define_event
 def pre_execute():
     """Fires before code is executed in response to user/frontend action.
-    
+
     This includes comm and widget messages and silent execution, as well as user
     code cells.
     """
@@ -122,14 +122,14 @@ def pre_run_cell(info):
     Parameters
     ----------
     info : :class:`~IPython.core.interactiveshell.ExecutionInfo`
-      An object containing information used for the code execution.
+        An object containing information used for the code execution.
     """
     pass
 
 @_define_event
 def post_execute():
     """Fires after code is executed in response to user/frontend action.
-    
+
     This includes comm and widget messages and silent execution, as well as user
     code cells.
     """
@@ -142,20 +142,20 @@ def post_run_cell(result):
     Parameters
     ----------
     result : :class:`~IPython.core.interactiveshell.ExecutionResult`
-      The object which will be returned as the execution result.
+        The object which will be returned as the execution result.
     """
     pass
 
 @_define_event
 def shell_initialized(ip):
     """Fires after initialisation of :class:`~IPython.core.interactiveshell.InteractiveShell`.
-    
+
     This is before extensions and startup scripts are loaded, so it can only be
     set by subclassing.
-    
+
     Parameters
     ----------
     ip : :class:`~IPython.core.interactiveshell.InteractiveShell`
-      The newly initialised shell.
+        The newly initialised shell.
     """
     pass
