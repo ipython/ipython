@@ -1,5 +1,11 @@
 .. _ipython_as_shell:
 
+.. note::
+
+   This page has been kept for historical reason. You most likely want to use
+   `Xonsh <https://xon.sh/>`__ instead of this.
+
+
 =========================
 IPython as a system shell
 =========================
@@ -44,6 +50,10 @@ so you should be able to type any normal system command and have it executed.
 See ``%alias?``  and ``%unalias?`` for details on the alias facilities. See also
 ``%rehashx?`` for details on the mechanism used to load $PATH.
 
+.. warning::
+
+   See info at the top of the page. You most likely want to use
+   `Xonsh <https://xon.sh/>`__ instead of this.
 
 Directory management
 ====================
@@ -196,3 +206,9 @@ provide a convenient ways to use contained text in different formats:
 * ``.s`` returns string with lines separated by single space (for
   convenient passing to system commands)
 * ``.p`` returns list of "path" objects from detected file names
+
+.. error::
+
+   You went too far scroll back up. You most likely want to use
+   `Xonsh <https://xon.sh/>`__ instead of this.
+

@@ -254,7 +254,7 @@ class BaseIPythonApplication(Application):
     
     def excepthook(self, etype, evalue, tb):
         """this is sys.excepthook after init_crashhandler
-        
+
         set self.verbose_crash=True to use our full crashhandler, instead of
         a regular traceback with a short message (crash_handler_lite)
         """

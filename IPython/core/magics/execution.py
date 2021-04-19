@@ -1073,8 +1073,9 @@ class ExecutionMagics(Magics):
         does not matter as long as results from timeit.py are not mixed with
         those from %timeit."""
 
-        opts, stmt = self.parse_options(line,'n:r:tcp:qo',
-                                        posix=False, strict=False)
+        opts, stmt = self.parse_options(
+            line, "n:r:tcp:qo", posix=False, strict=False, preserve_non_opts=True
+        )
         if stmt == "" and cell is None:
             return
         

@@ -62,7 +62,7 @@ def publish_display_data(data, metadata=None, source=None, *, transient=None, **
         Unused.
     transient : dict, keyword-only
         A dictionary of transient data, such as display_id.
-        """
+    """
     from IPython.core.interactiveshell import InteractiveShell
 
     display_pub = InteractiveShell.instance().display_pub
@@ -85,7 +85,17 @@ def _new_id():
     return b2a_hex(os.urandom(16)).decode('ascii')
 
 
-def display(*objs, include=None, exclude=None, metadata=None, transient=None, display_id=None, **kwargs):
+def display(
+    *objs,
+    include=None,
+    exclude=None,
+    metadata=None,
+    transient=None,
+    display_id=None,
+    raw=False,
+    clear=False,
+    **kwargs
+):
     """Display a Python object in all frontends.
 
     By default all representations will be computed and sent to the frontends.
@@ -120,12 +130,14 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         Set an id for the display.
         This id can be used for updating this display area later via update_display.
         If given as `True`, generate a new `display_id`
-    kwargs: additional keyword-args, optional
+    clear : bool, optional
+        Should the output area be cleared before displaying anything? If True,
+        this will wait for additional output before clearing. [default: False]
+    **kwargs : additional keyword-args, optional
         Additional keyword-arguments are passed through to the display publisher.
 
     Returns
     -------
-
     handle: DisplayHandle
         Returns a handle on updatable displays for use with :func:`update_display`,
         if `display_id` is given. Returns :any:`None` if no `display_id` is given
@@ -133,7 +145,6 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
 
     Examples
     --------
-
     >>> class Json(object):
     ...     def __init__(self, json):
     ...         self.json = json
@@ -172,12 +183,10 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
 
     See Also
     --------
-
     :func:`update_display`
 
     Notes
     -----
-
     In Python, objects can declare their textual representation using the
     `__repr__` method. IPython expands on this idea and allows objects to declare
     other, rich representations including:
@@ -239,7 +248,6 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         print(*objs)
         return
 
-    raw = kwargs.pop('raw', False)
     if transient is None:
         transient = {}
     if metadata is None:
@@ -263,6 +271,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     if not raw:
         format = InteractiveShell.instance().display_formatter.format
 
+    if clear:
+        clear_output(wait=True)
+
     for obj in objs:
         if raw:
             publish_display_data(data=obj, metadata=metadata, **kwargs)
@@ -285,15 +296,13 @@ def update_display(obj, *, display_id, **kwargs):
 
     Parameters
     ----------
-
-    obj:
+    obj
         The object with which to update the display
-    display_id: keyword-only
+    display_id : keyword-only
         The id of the display to update
 
     See Also
     --------
-
     :func:`display`
     """
     kwargs['update'] = True
@@ -328,10 +337,9 @@ class DisplayHandle(object):
 
         Parameters
         ----------
-
-        obj:
+        obj
             object to display
-        **kwargs:
+        **kwargs
             additional keyword arguments passed to display
         """
         display(obj, display_id=self.display_id, **kwargs)
@@ -341,10 +349,9 @@ class DisplayHandle(object):
 
         Parameters
         ----------
-
-        obj:
+        obj
             object to display
-        **kwargs:
+        **kwargs
             additional keyword arguments passed to update_display
         """
         update_display(obj, display_id=self.display_id, **kwargs)

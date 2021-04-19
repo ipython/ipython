@@ -94,11 +94,11 @@ class DisplayPublisher(Configurable):
             the data itself.
         source : str, deprecated
             Unused.
-        transient: dict, keyword-only
+        transient : dict, keyword-only
             A dictionary for transient data.
             Data in this dictionary should not be persisted as part of saving this output.
             Examples include 'display_id'.
-        update: bool, keyword-only, default: False
+        update : bool, keyword-only, default: False
             If True, only update existing outputs with the same display_id,
             rather than creating a new output.
         """

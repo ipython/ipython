@@ -1896,9 +1896,14 @@ class InteractiveShell(SingletonConfigurable):
             exception or returns an invalid result, it will be immediately
             disabled.
 
+        Notes
+        -----
+
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
-        facility should only be used if you really know what you are doing."""
+        facility should only be used if you really know what you are doing.
+        """
+
         if not isinstance(exc_tuple, tuple):
             raise TypeError("The custom exceptions must be given as a tuple.")
 
@@ -2085,13 +2090,17 @@ class InteractiveShell(SingletonConfigurable):
         except KeyboardInterrupt:
             print('\n' + self.get_exception_only(), file=sys.stderr)
 
-    def _showtraceback(self, etype, evalue, stb):
+    def _showtraceback(self, etype, evalue, stb: str):
         """Actually show a traceback.
 
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        print(self.InteractiveTB.stb2text(stb))
+        val = self.InteractiveTB.stb2text(stb)
+        try:
+            print(val)
+        except UnicodeEncodeError:
+            print(val.encode("utf-8", "backslashreplace").decode())
 
     def showsyntaxerror(self, filename=None, running_compiled_code=False):
         """Display the syntax error that just occurred.
@@ -2212,12 +2221,15 @@ class InteractiveShell(SingletonConfigurable):
 
         Returns
         -------
-          text : string
-            The actual text that was completed.
+        text : string
+          The actual text that was completed.
 
-          matches : list
-            A sorted list with all possible completions.
+        matches : list
+          A sorted list with all possible completions.
 
+
+        Notes
+        -----
         The optional arguments allow the completion to take more context into
         account, and are part of the low-level completion API.
 
@@ -2226,7 +2238,8 @@ class InteractiveShell(SingletonConfigurable):
         exposing it as a method, it can be used by other non-readline
         environments (such as GUIs) for text completion.
 
-        Simple usage example:
+        Examples
+        --------
 
         In [1]: x = 'hello'
 
@@ -3771,6 +3784,22 @@ class InteractiveShell(SingletonConfigurable):
         raise TypeError("%s is neither a string nor a macro." % target,
                         codeobj)
 
+    def _atexit_once(self):
+        """
+        At exist operation that need to be called at most once.
+        Second call to this function per instance will do nothing.
+        """
+
+        if not getattr(self, "_atexit_once_called", False):
+            self._atexit_once_called = True
+            # Clear all user namespaces to release all references cleanly.
+            self.reset(new_session=False)
+            # Close the history session (this stores the end time and line count)
+            # this must be *before* the tempfile cleanup, in case of temporary
+            # history db
+            self.history_manager.end_session()
+            self.history_manager = None
+
     #-------------------------------------------------------------------------
     # Things related to IPython exiting
     #-------------------------------------------------------------------------
@@ -3785,26 +3814,24 @@ class InteractiveShell(SingletonConfigurable):
         code that has the appropriate information, rather than trying to
         clutter
         """
-        # Close the history session (this stores the end time and line count)
-        # this must be *before* the tempfile cleanup, in case of temporary
-        # history db
-        self.history_manager.end_session()
+        self._atexit_once()
 
         # Cleanup all tempfiles and folders left around
         for tfile in self.tempfiles:
             try:
                 tfile.unlink()
+                self.tempfiles.remove(tfile)
             except FileNotFoundError:
                 pass
-
+        del self.tempfiles
         for tdir in self.tempdirs:
             try:
                 tdir.rmdir()
+                self.tempdirs.remove(tdir)
             except FileNotFoundError:
                 pass
+        del self.tempdirs
 
-        # Clear all user namespaces to release all references cleanly.
-        self.reset(new_session=False)
 
         # Run user hooks
         self.hooks.shutdown_hook()
