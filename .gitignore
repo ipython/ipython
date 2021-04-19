@@ -6,6 +6,7 @@ docs/man/*.gz
 docs/source/api/generated
 docs/source/config/options
 docs/source/config/shortcuts/*.csv
+docs/source/savefig
 docs/source/interactive/magics-generated.txt
 docs/gh-pages
 jupyter_notebook/notebook/static/mathjax
