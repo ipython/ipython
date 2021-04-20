@@ -371,7 +371,7 @@ class DisplayObject(object):
                     with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
                         encoding = None
                         data = fp.read()
-                    
+
             # decode data, if an encoding was specified
             # We only touch self.data once since
             # subclasses such as SVG have @data.setter methods
@@ -1155,7 +1155,12 @@ class Video(DisplayObject):
 
 @skip_doctest
 def set_matplotlib_formats(*formats, **kwargs):
-    """Select figure formats for the inline backend. Optionally pass quality for JPEG.
+    """
+    .. deprecated:: 7.23
+
+       use `matplotlib_inline.backend_inline.set_matplotlib_formats()`
+
+    Select figure formats for the inline backend. Optionally pass quality for JPEG.
 
     For example, this enables PNG and JPEG output with a JPEG quality of 90%::
 
@@ -1173,20 +1178,28 @@ def set_matplotlib_formats(*formats, **kwargs):
     **kwargs
         Keyword args will be relayed to ``figure.canvas.print_figure``.
     """
-    from IPython.core.interactiveshell import InteractiveShell
-    from IPython.core.pylabtools import select_figure_formats
-    # build kwargs, starting with InlineBackend config
-    kw = {}
-    from ipykernel.pylab.config import InlineBackend
-    cfg = InlineBackend.instance()
-    kw.update(cfg.print_figure_kwargs)
-    kw.update(**kwargs)
-    shell = InteractiveShell.instance()
-    select_figure_formats(shell, formats, **kw)
+    warnings.warn(
+        "`set_matplotlib_formats` is deprecated since IPython 7.23, directly "
+        "use `matplotlib_inline.backend_inline.set_matplotlib_formats()`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    from matplotlib_inline.backend_inline import (
+        set_matplotlib_formats as set_matplotlib_formats_orig,
+    )
+
+    set_matplotlib_formats_orig(*formats, **kwargs)
 
 @skip_doctest
 def set_matplotlib_close(close=True):
-    """Set whether the inline backend closes all figures automatically or not.
+    """
+    .. deprecated:: 7.23
+
+        use `matplotlib_inline.backend_inline.set_matplotlib_close()`
+
+
+    Set whether the inline backend closes all figures automatically or not.
 
     By default, the inline backend used in the IPython Notebook will close all
     matplotlib figures automatically after each cell is run. This means that
@@ -1206,6 +1219,15 @@ def set_matplotlib_close(close=True):
         Should all matplotlib figures be automatically closed after each cell is
         run?
     """
-    from ipykernel.pylab.config import InlineBackend
-    cfg = InlineBackend.instance()
-    cfg.close_figures = close
+    warnings.warn(
+        "`set_matplotlib_close` is deprecated since IPython 7.23, directly "
+        "use `matplotlib_inline.backend_inline.set_matplotlib_close()`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    from matplotlib_inline.backend_inline import (
+        set_matplotlib_close as set_matplotlib_close_orig,
+    )
+
+    set_matplotlib_close_orig(close)

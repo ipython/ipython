@@ -3527,6 +3527,7 @@ class InteractiveShell(SingletonConfigurable):
           display figures inline.
         """
         from IPython.core import pylabtools as pt
+        from matplotlib_inline.backend_inline import configure_inline_support
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
         if gui != 'inline':
@@ -3540,7 +3541,7 @@ class InteractiveShell(SingletonConfigurable):
                 gui, backend = pt.find_gui_and_backend(self.pylab_gui_select)
 
         pt.activate_matplotlib(backend)
-        pt.configure_inline_support(self, backend)
+        configure_inline_support(self, backend)
 
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
