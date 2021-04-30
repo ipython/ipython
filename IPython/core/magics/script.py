@@ -213,7 +213,7 @@ class ScriptMagics(Magics):
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
-                    stdin=asyncio.subprocess.PIPE
+                    stdin=asyncio.subprocess.PIPE,
                 )
             )
         except OSError as e:
