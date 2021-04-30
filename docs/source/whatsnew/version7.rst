@@ -2,6 +2,50 @@
  7.x Series
 ============
 
+.. _version 7.23:
+
+IPython 7.23
+============
+
+Third release of IPython for 2021, mostly containing bug fixes. A couple of not
+typical updates:
+
+ - We moved to GitHub actions away from Travis-CI, the transition may not be
+   100% complete (not testing on nightly anymore), but as we ran out of
+   Travis-Ci hours on the IPython organisation that was a necessary step.
+   :ghpull:`12900`.
+
+ - We have a new dependency: ``matplotlib-inline``, which try to extract
+   matplotlib inline backend specific behavior. It is available on PyPI and
+   conda-forge thus should not be a problem to upgrade to this version. If you
+   are a package maintainer that might be an extra dependency to package first.
+   :ghpull:`12817`
+
+In the addition/new feature category, ``display()`` now have a ``clear=True``
+option to clear the display if any further outputs arrives, allowing users to
+avoid having to use ``clear_output()`` directly. :ghpull:`12823`.
+
+In bug fixes category, this release fix an issue when printing tracebacks
+containing Unicode characters :ghpull:`12758`.
+
+In code cleanup category :ghpull:`12932` remove usage of some deprecated
+functionality for compatibility with Python 3.10.
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/86>`__.
+In particular MrMino for responding to almost all new issues, and triaging many
+of the old ones, as well as takluyver, minrk, willingc for reacting quikly when
+we ran out of CI Hours.
+
+Thanks as well to organisations, QuantStack (martinRenou and SylvainCorlay) for
+extracting matplotlib inline backend into its own package, and the `D. E. Shaw group
+<https://deshaw.com/>`__ for sponsoring work on IPython and related libraries.
+
+
 .. _version 7.22:
 
 IPython 7.22
