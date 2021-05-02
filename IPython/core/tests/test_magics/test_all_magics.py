@@ -33,7 +33,7 @@ from IPython.utils.io import capture_output
 from IPython.utils.tempdir import (TemporaryDirectory,
                                     TemporaryWorkingDirectory)
 from IPython.utils.process import find_cmd
-from .test_debugger import PdbTestInput
+from ..test_debugger import PdbTestInput
 
 import pytest
 
