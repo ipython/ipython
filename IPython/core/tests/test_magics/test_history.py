@@ -32,8 +32,7 @@ class TestRecall:
         ipython.run_line_magic('recall', '1')
         assert ipython.rl_next_input == history[0]
 
-    @pytest.mark.usefixtures('history')
-    def test_search_in_namespace(self, ipython):
+    def test_search_in_namespace(self, ipython, history):
         with tt.AssertNotPrints("Couldn't evaluate or find in history"):
             ip.run_line_magic('recall', 'a')
         assert ipython.rl_next_input == '1'
@@ -43,8 +42,7 @@ class TestRecall:
             ip.run_line_magic('recall', 'def')
         assert ipython.rl_next_input == history[1]
 
-    @pytest.mark.usefixtures('history')
-    def test_search_failed(self, ipython):
+    def test_search_failed(self, ipython, history):
         with tt.AssertPrints("Couldn't evaluate or find in history"):
             ipython.run_line_magic('recall', 'not_in_ns_or_history')
 
