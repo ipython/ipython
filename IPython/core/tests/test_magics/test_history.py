@@ -18,6 +18,8 @@ def history(ipython):
     yield cmds
 
     ipython.history_manager.reset()
+    ipython.user_ns.pop('a')
+    ipython.user_ns.pop('b')
 
 
 class TestRecall:
@@ -102,12 +104,22 @@ class TestRerun:
         ipython.run_line_magic('rerun', '')
         assert ipython.rl_next_input == history[0]
 
-    def test_can_rerun_reruns(self, ipython):
-        '''Ensure that nothing prevents the user from rerunning
-           other calls to %rerun.'''
+    @staticmethod
+    @pytest.fixture
+    def increment_a(ipython):
+        '''Define a variable `a` and place a statement
+           incrementing that variable in the history.'''
         ipython.history_manager.reset()
         ipython.run_cell('a = 0', store_history=True)
         ipython.run_cell('a += 1', store_history=True)
+
+        yield
+
+        ipython.user_ns.pop('a')
+
+    def test_can_rerun_reruns(self, ipython, increment_a):
+        '''Ensure that nothing prevents the user from rerunning
+           other calls to %rerun.'''
         ipython.run_cell('%rerun -g a', store_history=True)
 
         with tt.AssertNotPrints(self.error_not_found):
