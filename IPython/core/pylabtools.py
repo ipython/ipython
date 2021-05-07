@@ -383,6 +383,8 @@ def configure_inline_support(shell, backend):
         stacklevel=2,
     )
 
-    from matplotlib_inline.backend_inline import configure_inline_support as configure_inline_support_orig
+    from matplotlib_inline.backend_inline import (
+        configure_inline_support as configure_inline_support_orig,
+    )
 
     configure_inline_support_orig(shell, backend)
