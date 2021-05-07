@@ -2526,9 +2526,9 @@ class InteractiveShell(SingletonConfigurable):
         has_magic_alternatives = ("pip", "conda", "cd", "ls")
 
         # had to check if the command was an alias expanded because of `ls`
-        is_alias_expanded = self.alias_manager.is_alias(main_cmd) and \
-                (self.alias_manager.retrieve_alias(main_cmd).strip()
-                                                                == cmd.strip())
+        is_alias_expanded = self.alias_manager.is_alias(main_cmd) and (
+            self.alias_manager.retrieve_alias(main_cmd).strip() == cmd.strip()
+        )
 
         if main_cmd in has_magic_alternatives and not is_alias_expanded:
             warnings.warn(
