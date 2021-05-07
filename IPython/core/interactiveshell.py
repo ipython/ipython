@@ -3122,7 +3122,7 @@ class InteractiveShell(SingletonConfigurable):
         _run_async = False
 
         with self.builtin_trap:
-            cell_name = self.compile.cache(
+            cell_name = compiler.cache(
                 cell, self.execution_count, raw_code=raw_cell
             )
 
