@@ -600,9 +600,16 @@ class TestSystemRaw(ExitCodeChecks):
         try:
             self.system("sleep 1 # wont happen")
         except KeyboardInterrupt:
-            self.fail("system call should intercept "
-                      "keyboard interrupt from subprocess.call")
-        self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGINT)
+            self.fail(
+                "system call should intercept "
+                "keyboard interrupt from subprocess.call"
+            )
+        self.assertEqual(ip.user_ns["_exit_code"], -signal.SIGINT)
+
+    def test_magic_warnings(self):
+        for magic_cmd in ("ls", "pip", "conda", "cd"):
+            with self.assertWarnsRegex(Warning, "You executed the system command"):
+                ip.system_raw(magic_cmd)
 
 # TODO: Exit codes are currently ignored on Windows.
 class TestSystemPipedExitCode(ExitCodeChecks):
