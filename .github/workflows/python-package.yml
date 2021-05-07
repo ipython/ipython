@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install darker
+        pip install darker isort
     - name: Lint with darker
       run: |
         darker -r 60625f241f298b5039cb2debc365db38aa7bb522 --check --diff . || (
