@@ -181,7 +181,7 @@ extras_require = dict(
         "pygments",
         "nbformat",
         "ipykernel",
-        "numpy>=1.16",
+        "numpy>=1.17",
     ],
     terminal=[],
     kernel=["ipykernel"],
