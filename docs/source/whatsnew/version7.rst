@@ -2,6 +2,50 @@
  7.x Series
 ============
 
+
+The debugger (and ``%debug`` magic) have been improved to skip and hide frames
+originating from files that are not writable to the user, as these are less
+likely to be the source of errors, or be part of system files.
+
+In addition to the global ``skip_hidden True|False`` command, the debugger has
+gained finer grained control of predicates as to whether to a frame should be
+considered hidden. So far 3 predicates are available and activated by default:
+
+  - ``tbhide``: frames containing the local variable ``__tracebackhide__`` set to
+    True.
+  - ``readonly``: frames originating from readonly files.
+  - ``ipython_internal``: frames that are likely to be from IPython internal code.
+
+You can toggle individual predicates during a session with
+
+.. code-block::
+
+   ipdb> skip_predicates readonly False
+
+Read-only files will not be considered hidden frames.
+
+
+You can call ``skip_predicates`` without arguments to see the states of current
+predicates:
+
+.. code-block::
+
+    ipdb> skip_predicates
+    current predicates:
+        tbhide : True
+        readonly : True
+        ipython_internal : True
+
+If all predicates are set to ``False``,  ``skip_hidden`` will practically have
+no effect. We attempt to warn you when all predicates are False.
+
+Note that the ``readonly`` predicate may increase disk access as we check for
+file access permission for all frames on many command invocation, but is usually
+cached by operating system. Let us know if you encounter any issues.
+
+
+
+
 .. _version 7.23:
 
 IPython 7.23
