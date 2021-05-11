@@ -580,7 +580,7 @@ class Pdb(OldPdb):
             return
         if value.lower() not in ("true", "yes", "1", "no", "false", "0"):
             print(
-                f"{value} invalid use one of ('true', 'yes', '1', 'no', 'false', '0')"
+                f"{repr(value)} is invalid - use one of ('true', 'yes', '1', 'no', 'false', '0')"
             )
             return
 
