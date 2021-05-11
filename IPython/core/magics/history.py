@@ -282,6 +282,7 @@ class HistoryMagics(Magics):
                 return
         else:
             self.shell.set_next_input(cmd.rstrip())
+            return
         print("Couldn't evaluate or find in history:", arg)
 
     @line_magic
