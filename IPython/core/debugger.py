@@ -571,7 +571,9 @@ class Pdb(OldPdb):
             return
         type_value = args.strip().split(" ")
         if len(type_value) != 2:
-            print("Usage: skip_predicates <type> <value>")
+            print(
+                f"Usage: skip_predicates <type> <value>, with <type> one of {set(self._predicates.keys())}"
+            )
             return
 
         type_, value = type_value
@@ -580,7 +582,7 @@ class Pdb(OldPdb):
             return
         if value.lower() not in ("true", "yes", "1", "no", "false", "0"):
             print(
-                f"{repr(value)} is invalid - use one of ('true', 'yes', '1', 'no', 'false', '0')"
+                f"{value!r} is invalid - use one of ('true', 'yes', '1', 'no', 'false', '0')"
             )
             return
 
