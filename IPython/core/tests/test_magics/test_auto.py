@@ -22,3 +22,16 @@ class TestAutomagic:
         ipython.run_cell('1 + 1')
         res = ipython.run_cell('recall')
         assert isinstance(res.error_in_exec, Exception)
+
+class TestAutocall:
+    def test_invalid_input(self, ipython):
+        ipython.run_line_magic('autocall', 'random')
+    
+    def test_exact_value(self, ipython):
+        pass
+    
+    def test_toggle_already_set(self, ipython):
+        pass
+    
+    def test_toggle_not_set(slef, ipython):
+        pass
