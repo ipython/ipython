@@ -21,7 +21,7 @@ class TestAutomagic:
 
         ipython.run_line_magic('automagic', '')
         ipython.run_cell('1 + 1')
-        res = ipython.run_cell('recall')
+        res = ipython.run_cell('recall')    
         assert isinstance(res.error_in_exec, Exception)
 
 class TestAutocall:
@@ -31,17 +31,17 @@ class TestAutocall:
 
     def test_exact_value(self, ipython):
         ipython.run_line_magic('autocall', '2')
-        out = ipython.run_cell('int "5"')
+        out = ipython.run_cell('int "5"').result
         assert out == 5
     
     def test_toggle_already_set(self, ipython):
         ipython.run_line_magic('autocall', '2')
         ipython.run_line_magic('autocall', '0')
-        ipython.run_line_magic('autocall')
-        out = ipython.run_cell('int "5"')
+        ipython.run_line_magic('autocall', '')
+        out = ipython.run_cell('int "5"').result
         assert out == 5
     
     def test_toggle_not_set(self, ipython):
-        ipython.run_line_magic('autocall')
-        out = ipython.run_cell('print')
-        assert out == '<function print>'
+        ipython.run_line_magic('autocall', '')
+        out = ipython.run_cell('print').result
+        assert out == print
