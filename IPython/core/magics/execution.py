@@ -1326,19 +1326,22 @@ class ExecutionMagics(Magics):
 
         wall_end = wtime()
         # Compute actual times and report
-        wall_time = wall_end-wall_st
-        cpu_user = end[0]-st[0]
-        cpu_sys = end[1]-st[1]
-        cpu_tot = cpu_user+cpu_sys
-        # On windows cpu_sys is always zero, so no new information to the next print 
-        if sys.platform != 'win32':
-            print("CPU times: user %s, sys: %s, total: %s" % \
-                (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot)))
-        print("Wall time: %s" % _format_time(wall_time))
+        wall_time = wall_end - wall_st
+        cpu_user = end[0] - st[0]
+        cpu_sys = end[1] - st[1]
+        cpu_tot = cpu_user + cpu_sys
+        # On windows cpu_sys is always zero, so only total is displayed
+        if sys.platform != "win32":
+            print(
+                f"CPU times: user {_format_time(cpu_user)}, sys: {_format_time(cpu_sys)}, total: {_format_time(cpu_tot)}"
+            )
+        else:
+            print(f"CPU times: total: {_format_time(cpu_tot)}")
+        print(f"Wall time: {_format_time(wall_time)}")
         if tc > tc_min:
-            print("Compiler : %s" % _format_time(tc))
+            print(f"Compiler : {_format_time(tc)}")
         if tp > tp_min:
-            print("Parser   : %s" % _format_time(tp))
+            print(f"Parser   : {_format_time(tp)}")
         return out
 
     @skip_doctest
