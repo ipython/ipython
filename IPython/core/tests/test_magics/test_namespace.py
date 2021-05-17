@@ -52,5 +52,6 @@ class TestWhoLs:
         assert ipython.run_line_magic('who_ls', 'int module') == ints_and_modules
 
     def test_all_vars(self, ipython, variables):
+        '''Variables of different types in the namespace, no filtering.'''
         all_variables = sorted(var[0] for var in variables)
         assert ipython.run_line_magic('who_ls', '') == all_variables

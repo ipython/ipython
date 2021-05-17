@@ -26,25 +26,37 @@ class TestRecall:
     '''Tests for the %recall line magic.'''
 
     def test_no_args(self, ipython):
+        '''Ensure that %recall without arguments recalls the result of the last cell.'''
         ipython.run_cell('1 + 2')
         ipython.run_line_magic('recall', '')
         assert ipython.rl_next_input == '3'
 
     def test_index_in_history(self, ipython, history):
+        '''Ensure that an integer argument is interpreted as an index in cell history
+           and the input of the corresponding cell is recalled.'''
         ipython.run_line_magic('recall', '1')
         assert ipython.rl_next_input == history[0]
 
     def test_search_in_namespace(self, ipython, history):
-        with tt.AssertNotPrints("Couldn't evaluate or find in history"):
-            ip.run_line_magic('recall', 'a')
+        '''Ensure that a non-integer string is interpreted as an item in the namespace.'''
+        ipython.run_line_magic('recall', 'a')
         assert ipython.rl_next_input == '1'
 
-    def test_search_in_history(self, ipython, history):
+    @pytest.mark.regression
+    def test_search_no_error(self, ipython, history):
+        '''Ensure that no error message is printed when a search in the namespace is successful.'''
         with tt.AssertNotPrints("Couldn't evaluate or find in history"):
-            ip.run_line_magic('recall', 'def')
+            ipython.run_line_magic('recall', 'a')
+
+    def test_search_in_history(self, ipython, history):
+        '''Ensure that a non-integer string that wasn't found in the namespace
+           is interpreted as the search query in the history.'''
+        ipython.run_line_magic('recall', 'def')
         assert ipython.rl_next_input == history[1]
 
     def test_search_failed(self, ipython, history):
+        '''Ensure that an error message is printed when a non-integer argument wasn't found
+           neither in the namespace nor the history.'''
         with tt.AssertPrints("Couldn't evaluate or find in history"):
             ipython.run_line_magic('recall', 'not_in_ns_or_history')
 
@@ -101,8 +113,9 @@ class TestRerun:
             history[3],
             '=== Output: ===',
         ))
-        ipython.run_line_magic('rerun', '')
-        assert ipython.rl_next_input == history[0]
+        with tt.AssertPrints(executing_recall):
+            ipython.run_line_magic('rerun', '')
+            assert ipython.rl_next_input == history[0]
 
     @staticmethod
     @pytest.fixture
