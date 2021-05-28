@@ -302,6 +302,14 @@ class HistoryMagics(Magics):
         opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
         if "l" in opts:         # Last n lines
             n = int(opts['l'])
+
+            if n == 0:
+                print("Requested 0 last lines - nothing to run")
+                return
+            elif n < 0:
+                print("Number of lines to rerun cannot be negative")
+                return
+
             hist = self.shell.history_manager.get_tail(n)
         elif "g" in opts:       # Search
             p = "*"+opts['g']+"*"
