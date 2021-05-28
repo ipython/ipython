@@ -283,7 +283,7 @@ class Pdb(OldPdb):
         self.skip_hidden = True
 
         # list of predicates we use to skip frames
-        self._predicates = {"tbhide": True, "readonly": True, "ipython_internal": True}
+        self._predicates = {"tbhide": True, "readonly": False, "ipython_internal": True}
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
