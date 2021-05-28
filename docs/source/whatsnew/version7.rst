@@ -2,27 +2,48 @@
  7.x Series
 ============
 
+.. _version 7.24:
 
-The debugger (and ``%debug`` magic) have been improved to skip and hide frames
+IPython 7.24
+============
+
+Third release of IPython for 2021, mostly containing bug fixes. A couple of not
+typical updates:
+
+Misc
+----
+
+
+ - Fix an issue where ``%recall`` would both succeeded and print an error message
+   it failed. :ghpull:`12952`
+ - Drop support for NumPy 1.16 – practically has no effect beyond indicating in
+   package metadata that we do not support it. :ghpull:`12937`
+
+Debugger improvements
+---------------------
+
+The debugger (and ``%debug`` magic) have been improved and can skip or hide frames
 originating from files that are not writable to the user, as these are less
-likely to be the source of errors, or be part of system files.
+likely to be the source of errors, or be part of system files this can be a useful
+addition when debugging long errors.
 
 In addition to the global ``skip_hidden True|False`` command, the debugger has
 gained finer grained control of predicates as to whether to a frame should be
-considered hidden. So far 3 predicates are available and activated by default:
+considered hidden. So far 3 predicates are available :
 
   - ``tbhide``: frames containing the local variable ``__tracebackhide__`` set to
     True.
-  - ``readonly``: frames originating from readonly files.
-  - ``ipython_internal``: frames that are likely to be from IPython internal code.
+  - ``readonly``: frames originating from readonly files, set to False.
+  - ``ipython_internal``: frames that are likely to be from IPython internal
+    code, set to True.
 
 You can toggle individual predicates during a session with
 
 .. code-block::
 
-   ipdb> skip_predicates readonly False
+   ipdb> skip_predicates readonly True
 
-Read-only files will not be considered hidden frames.
+Read-only files will now be considered hidden frames.
 
 
 You can call ``skip_predicates`` without arguments to see the states of current
@@ -33,7 +54,7 @@ predicates:
     ipdb> skip_predicates
     current predicates:
         tbhide : True
-        readonly : True
+        readonly : False
         ipython_internal : True
 
 If all predicates are set to ``False``,  ``skip_hidden`` will practically have
@@ -41,15 +62,27 @@ no effect. We attempt to warn you when all predicates are False.
 
 Note that the ``readonly`` predicate may increase disk access as we check for
 file access permission for all frames on many command invocation, but is usually
-cached by operating system. Let us know if you encounter any issues.
+cached by operating systems. Let us know if you encounter any issues.
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/87>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries, in particular above mentioned
+improvements to the debugger.
 
 
 
 
 .. _version 7.23:
 
-IPython 7.23
-============
+IPython 7.23 and 7.23.1
+=======================
+
 
 Third release of IPython for 2021, mostly containing bug fixes. A couple of not
 typical updates:
@@ -63,7 +96,7 @@ typical updates:
    matplotlib inline backend specific behavior. It is available on PyPI and
    conda-forge thus should not be a problem to upgrade to this version. If you
    are a package maintainer that might be an extra dependency to package first.
-   :ghpull:`12817`
+   :ghpull:`12817` (IPython 7.23.1 fix a typo that made this change fail)
 
 In the addition/new feature category, ``display()`` now have a ``clear=True``
 option to clear the display if any further outputs arrives, allowing users to
@@ -74,6 +107,7 @@ containing Unicode characters :ghpull:`12758`.
 
 In code cleanup category :ghpull:`12932` remove usage of some deprecated
 functionality for compatibility with Python 3.10.
+
 
 
 Thanks
