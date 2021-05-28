@@ -21,6 +21,7 @@ WHITE=$(tput setaf 7)
 NOR=$(tput sgr0)
 
 
+echo "Will use $EDITOR to edit files when necessary"
 echo -n "PREV_RELEASE (X.y.z) [$PREV_RELEASE]: "
 read input
 PREV_RELEASE=${input:-$PREV_RELEASE}
@@ -44,6 +45,18 @@ ask_section(){
         return 0
     fi
     return 1
+}
+
+
+maybe_edit(){
+    echo
+    echo $BLUE"$1"$NOR 
+    echo -n $GREEN"Press e to Edit $1, any other keys to skip: "$NOR
+    read -n1 value
+    echo 
+    if [ $value = 'e' ]  ; then
+        $EDITOR $1
+    fi
 }
 
 
@@ -104,6 +117,7 @@ echo $GREEN"I tried ${RED}sed -i bkp -e '/Uncomment/s/^# //g' IPython/core/relea
 sed -i bkp -e '/Uncomment/s/^# //g' IPython/core/release.py
 rm IPython/core/release.pybkp
 git diff
+maybe_edit IPython/core/release.py
 
 echo $GREEN"Press enter to continue"$NOR
 read
@@ -151,6 +165,7 @@ then
    rm IPython/core/release.pybkp
    git diff
    echo $GREEN"Please bump ${RED}the minor version number${NOR}"
+   maybe_edit IPython/core/release.py
    echo ${BLUE}"Do not commit yet – we'll do it later."$NOR
 
    
