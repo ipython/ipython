@@ -51,7 +51,7 @@ for more help see
 
 .. seealso::
 
-   `Installing Jupyter <http://jupyter.readthedocs.io/en/latest/install.html>`__
+   `Installing Jupyter <https://jupyter.readthedocs.io/en/latest/install.html>`__
      The Notebook, nbconvert, and many other former pieces of IPython are now
      part of Project Jupyter.
 
