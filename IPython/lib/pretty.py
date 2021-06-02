@@ -626,7 +626,7 @@ def _default_pprint(obj, p, cycle):
 def _seq_pprinter_factory(start, end):
     """
     Factory that returns a pprint function useful for sequences.  Used by
-    the default pprint for tuples, dicts, and lists.
+    the default pprint for tuples and lists.
     """
     def inner(obj, p, cycle):
         if cycle:
