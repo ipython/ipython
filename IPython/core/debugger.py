@@ -299,6 +299,7 @@ class Pdb(OldPdb):
         # Set the prompt - the default prompt is '(Pdb)'
         self.prompt = prompt
         self.skip_hidden = True
+        self.report_skipped = True
 
         # list of predicates we use to skip frames
         self._predicates = self.default_predicates
@@ -796,10 +797,12 @@ class Pdb(OldPdb):
         if self.skip_hidden:
             hidden = self._hidden_predicate(frame)
         if hidden:
-            Colors = self.color_scheme_table.active_colors
-            ColorsNormal = Colors.Normal
-            print(f"{Colors.excName}    [... skipped 1 hidden frame]{ColorsNormal}\n")
-
+            if self.report_skipped:
+                Colors = self.color_scheme_table.active_colors
+                ColorsNormal = Colors.Normal
+                print(
+                    f"{Colors.excName}    [... skipped 1 hidden frame]{ColorsNormal}\n"
+                )
         return super().stop_here(frame)
 
     def do_up(self, arg):
