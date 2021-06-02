@@ -18,7 +18,7 @@
 import sys, os
 from pathlib import Path
 
-# http://read-the-docs.readthedocs.io/en/latest/faq.html
+# https://read-the-docs.readthedocs.io/en/latest/faq.html
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
 if ON_RTD:

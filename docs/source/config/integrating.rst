@@ -103,7 +103,7 @@ Rarely, you might want to display a custom traceback when reporting an
 exception. To do this, define the custom traceback using
 `_render_traceback_(self)` method which returns a list of strings, one string
 for each line of the traceback. For example, the `ipyparallel
-<http://ipyparallel.readthedocs.io/>`__ a parallel computing framework for
+<https://ipyparallel.readthedocs.io/>`__ a parallel computing framework for
 IPython, does this to display errors from multiple engines.
 
 Please be conservative in using this feature; by replacing the default traceback

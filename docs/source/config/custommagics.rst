@@ -151,7 +151,7 @@ Complete Example
 
 Here is a full example of a magic package. You can distribute magics using
 setuptools, distutils, or any other distribution tools like `flit
-<http://flit.readthedocs.io>`_ for pure Python packages.
+<https://flit.readthedocs.io>`_ for pure Python packages.
 
 When distributing magics as part of a package, recommended best practice is to
 execute the registration inside the `load_ipython_extension` as demonstrated in
