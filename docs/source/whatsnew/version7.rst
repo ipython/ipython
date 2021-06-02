@@ -64,6 +64,22 @@ Note that the ``readonly`` predicate may increase disk access as we check for
 file access permission for all frames on many command invocation, but is usually
 cached by operating systems. Let us know if you encounter any issues.
 
+As the IPython debugger does not use the traitlets infrastructure for
+configuration, by editing your ``.pdbrc`` files and appending commands you would
+like to be executed just before entering the interactive prompt. For example:
+
+
+.. code::
+
+    # file : ~/.pdbrc
+    skip_predicates readonly True
+    skip_predicates tbhide False
+
+Will hide read only frames by default and show frames marked with
+``__tracebackhide__``.
+
+
+
 
 Thanks
 ------
@@ -236,14 +252,14 @@ was exceptionally no release last month.
   - Docs docs formatting that make the install commands work on zsh
     :ghpull:`12587`
   - Always display the last frame in tracebacks even if hidden with
-    ``__traceback_hide__`` :ghpull:`12601`
+    ``__tracebackhide__`` :ghpull:`12601`
   - Avoid an issue where a callback can be registered multiple times.
     :ghpull:`12625`
   - Avoid an issue in debugger mode where frames changes could be lost.
     :ghpull:`12627`
 
   - Never hide the frames that invoke a debugger, even if marked as hidden by
-    ``__traceback_hide__`` :ghpull:`12631`
+    ``__tracebackhide__`` :ghpull:`12631`
   - Fix calling the debugger in a recursive manner :ghpull:`12659`
 
 
@@ -394,7 +410,7 @@ Change of API and exposed objects automatically detected using `frappuccino
 <https://pypi.org/project/frappuccino/>`_ (still in beta):
 
 
-The following items are new and mostly related to understanding ``__tracebackbhide__``::
+The following items are new and mostly related to understanding ``__tracebackbide__``::
 
     + IPython.core.debugger.Pdb.do_down(self, arg)
     + IPython.core.debugger.Pdb.do_skip_hidden(self, arg)
