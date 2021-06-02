@@ -765,8 +765,6 @@ class Pdb(OldPdb):
         hidden = False
         if self.skip_hidden:
             hidden = self._hidden_predicate(frame)
-            if self._wait_for_mainpyfile:
-                return False
         if hidden:
             Colors = self.color_scheme_table.active_colors
             ColorsNormal = Colors.Normal
