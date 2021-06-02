@@ -199,21 +199,39 @@ class Pdb(OldPdb):
     for a standalone version that uses prompt_toolkit, see
     `IPython.terminal.debugger.TerminalPdb` and
     `IPython.terminal.debugger.set_trace()`
+
+
+    This debugger can hide and skip frames that are tagged according to some predicates.
+    See the `skip_predicates` commands.
+
     """
+
+    default_predicates = {"tbhide": True, "readonly": False, "ipython_internal": True}
 
     def __init__(self, color_scheme=None, completekey=None,
                  stdin=None, stdout=None, context=5, **kwargs):
         """Create a new IPython debugger.
-        
-        :param color_scheme: Deprecated, do not use.
-        :param completekey: Passed to pdb.Pdb.
-        :param stdin: Passed to pdb.Pdb.
-        :param stdout: Passed to pdb.Pdb.
-        :param context: Number of lines of source code context to show when
+
+        Parameters
+        ----------
+        color_scheme : default None
+            Deprecated, do not use.
+        completekey : default None
+            Passed to pdb.Pdb.
+        stdin : default None
+            Passed to pdb.Pdb.
+        stdout : default None
+            Passed to pdb.Pdb.
+        context : int
+            Number of lines of source code context to show when
             displaying stacktrace information.
-        :param kwargs: Passed to pdb.Pdb.
-            The possibilities are python version dependent, see the python
-            docs for more info.
+        **kwargs
+            Passed to pdb.Pdb.
+
+        Notes
+        -----
+        The possibilities are python version dependent, see the python
+        docs for more info.
         """
 
         # Parent constructor:
@@ -285,7 +303,7 @@ class Pdb(OldPdb):
         self.report_skipped = True
 
         # list of predicates we use to skip frames
-        self._predicates = {"tbhide": True, "readonly": False, "ipython_internal": True}
+        self._predicates = self.default_predicates
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
@@ -553,6 +571,10 @@ class Pdb(OldPdb):
 
         Call without arguments to see the current values.
 
+        To permanently change the value of an option add the corresponding
+        command to your ``~/.pdbrc`` file. If you are programmatically using the
+        Pdb instance you can also change the ``default_predicates`` class
+        attribute.
         """
         if not args.strip():
             print("current predicates:")
