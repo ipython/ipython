@@ -94,7 +94,7 @@ Special methods
 Pretty printing
 """""""""""""""
 
-To customize how your object is pretty-printed, add a `_repr_pretty_` method
+To customize how your object is pretty-printed, add a ``_repr_pretty_`` method
 to the class. 
 The method should accept a pretty printer, and a boolean that indicates whether
 the printer detected a cycle.
