@@ -240,9 +240,10 @@ Magics with double percent signs (``%%``) can spread over multiple lines, but th
     map auto_home    0Bi    0Bi    0Bi   100%        0       0  100%   /hom
 
 
-Combining it all
-----------------
+..
+   Combining it all
+   ----------------
 
-::
+   ::
 
-    find a snippet that combine all that into one thing!
+       find a snippet that combine all that into one thing!
