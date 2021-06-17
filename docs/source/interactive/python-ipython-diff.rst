@@ -46,9 +46,9 @@ All the following constructs are valid IPython syntax:
 .. code-block:: ipython
 
     In [1]: my_files = !ls ~/
-    In [1]: for i,file in enumerate(my_file):
+    In [1]: for i, file in enumerate(my_files):
        ...:     raw = !echo $file
-       ...:     !echo {files[0].upper()} $raw
+       ...:     !echo {file[0].upper()} $raw
 
 
 .. code-block:: ipython
@@ -193,10 +193,9 @@ You can combine the different possibilities in for loops, conditions, functions.
 .. code-block:: ipython
 
     my_files = !ls ~/
-    b = "backup file"
-    for i,file in enumerate(my_file):
+    for i, file in enumerate(my_files):
         raw = !echo $backup $file
-        !cp $file {file.split('.')[0]+'.bak'}
+        !cp $file {file.split('.')[0] + '.bak'}
 
 
 Magics
