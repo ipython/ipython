@@ -104,16 +104,32 @@ class AutoMagics(Magics):
         # all-random (note for auto-testing)
         """
 
+        valid_modes = {
+            0: "Off",
+            1: "Smart",
+            2: "Full",
+        }
+
+        def errorMessage() -> str:
+            error = "Valid modes: "
+            for k, v in valid_modes.items():
+                error += str(k) + "->" + v + ", "
+            error = error[:-2]  # remove tailing `, ` after last element
+            return error
+
         if parameter_s:
+            if not parameter_s in map(str, valid_modes.keys()):
+                error(errorMessage())
+                return
             arg = int(parameter_s)
         else:
             arg = 'toggle'
 
-        if not arg in (0, 1, 2, 'toggle'):
-            error('Valid modes: (0->Off, 1->Smart, 2->Full')
+        if not arg in (*list(valid_modes.keys()), "toggle"):
+            error(errorMessage())
             return
 
-        if arg in (0, 1, 2):
+        if arg in (valid_modes.keys()):
             self.shell.autocall = arg
         else: # toggle
             if self.shell.autocall:
@@ -125,4 +141,4 @@ class AutoMagics(Magics):
                 except AttributeError:
                     self.shell.autocall = self._magic_state.autocall_save = 1
 
-        print("Automatic calling is:",['OFF','Smart','Full'][self.shell.autocall])
+        print("Automatic calling is:", list(valid_modes.values())[self.shell.autocall])
