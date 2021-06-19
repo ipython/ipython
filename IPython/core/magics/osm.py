@@ -439,11 +439,11 @@ class OSMagics(Magics):
 
         Usage:\\
 
-          %env: lists all environment variables/values
-          %env var: get value for var
-          %env var val: set value for var
-          %env var=val: set value for var
-          %env var=$val: set value for var, using python expansion if possible
+          :``%env``: lists all environment variables/values
+          :``%env var``: get value for var
+          :``%env var val``: set value for var
+          :``%env var=val``: set value for var
+          :``%env var=$val``: set value for var, using python expansion if possible
         """
         if parameter_s.strip():
             split = '=' if '=' in parameter_s else ' '
