@@ -323,6 +323,7 @@ def test_xmode_skip():
     child.close()
 
 
+@skip_win32
 def test_where_erase_value():
     """Test that `where` does not access f_locals and erase values."""
     import pexpect
