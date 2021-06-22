@@ -324,7 +324,7 @@ def test_xmode_skip():
 
 
 def test_where_erase_value():
-    """Test that `where` does nto access f_locals and erase values."""
+    """Test that `where` does not access f_locals and erase values."""
     import pexpect
 
     env = os.environ.copy()
