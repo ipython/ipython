@@ -116,3 +116,16 @@ def test_magic_arguments():
     assert_equal(real_name(foo), 'foo')
     assert_equal(foo(None, ''), argparse.Namespace(foo=None))
     assert hasattr(foo, 'has_arguments')
+
+
+@magic_arguments()
+@argument('filepath', type=str, nargs=1, help='An argument with possible spaces')
+def magic_one_arg(args):
+    return parse_argstring(magic_foo1, args)
+
+def test_spaces_and_quotes():
+    "Test for GH-12729"
+    assert_equal(parse_argstring(magic_one_arg, "\"this is one arg\""),
+        argparse.Namespace(filepath=["this is one arg"]))
+    assert_equal(parse_argstring(magic_one_arg, "this\ is\ also\ one\ arg"),
+        argparse.Namespace(filepath=["this is also one arg"]))
