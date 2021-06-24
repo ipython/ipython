@@ -860,11 +860,17 @@ def test_file_single_quote():
     """Basic %%writefile with embedded single quotes"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
-        fname = os.path.join(td, '\'file1\'')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
-            'line1',
-            'line2',
-        ]))
+        fname = os.path.join(td, "'file1'")
+        ip.run_cell_magic(
+            "writefile",
+            '"%s"' % fname,
+            u"\n".join(
+                [
+                    "line1",
+                    "line2",
+                ]
+            ),
+        )
         s = Path(fname).read_text()
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
@@ -875,10 +881,16 @@ def test_file_double_quote():
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, '"file1"')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
-            'line1',
-            'line2',
-        ]))
+        ip.run_cell_magic(
+            "writefile",
+            "'%s'" % fname,
+            u"\n".join(
+                [
+                    "line1",
+                    "line2",
+                ]
+            ),
+        )
         s = Path(fname).read_text()
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
