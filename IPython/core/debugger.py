@@ -332,7 +332,7 @@ class Pdb(OldPdb):
             if frame in (self.curframe, getattr(self, "initial_frame", None)):
                 return False
             else:
-                return frame.f_locals.get("__tracebackhide__", False)
+                return self._get_frame_locals(frame).get("__tracebackhide__", False)
 
         return False
 
@@ -424,6 +424,28 @@ class Pdb(OldPdb):
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds: <<
 
+    def _get_frame_locals(self, frame):
+        """ "
+        Acessing f_local of current frame reset the namespace, so we want to avoid
+        that or the following can happend
+
+        ipdb> foo
+        "old"
+        ipdb> foo = "new"
+        ipdb> foo
+        "new"
+        ipdb> where
+        ipdb> foo
+        "old"
+
+        So if frame is self.current_frame we instead return self.curframe_locals
+
+        """
+        if frame is self.curframe:
+            return self.curframe_locals
+        else:
+            return frame.f_locals
+
     def format_stack_entry(self, frame_lineno, lprefix=': ', context=None):
         if context is None:
             context = self.context
@@ -451,10 +473,11 @@ class Pdb(OldPdb):
         frame, lineno = frame_lineno
 
         return_value = ''
-        if '__return__' in frame.f_locals:
-            rv = frame.f_locals['__return__']
-            #return_value += '->'
-            return_value += reprlib.repr(rv) + '\n'
+        loc_frame = self._get_frame_locals(frame)
+        if "__return__" in loc_frame:
+            rv = loc_frame["__return__"]
+            # return_value += '->'
+            return_value += reprlib.repr(rv) + "\n"
         ret.append(return_value)
 
         #s = filename + '(' + `lineno` + ')'
@@ -466,10 +489,10 @@ class Pdb(OldPdb):
         else:
             func = "<lambda>"
 
-        call = ''
-        if func != '?':
-            if '__args__' in frame.f_locals:
-                args = reprlib.repr(frame.f_locals['__args__'])
+        call = ""
+        if func != "?":
+            if "__args__" in loc_frame:
+                args = reprlib.repr(loc_frame["__args__"])
             else:
                 args = '()'
             call = tpl_call % (func, args)
@@ -660,7 +683,7 @@ class Pdb(OldPdb):
 
     def getsourcelines(self, obj):
         lines, lineno = inspect.findsource(obj)
-        if inspect.isframe(obj) and obj.f_globals is obj.f_locals:
+        if inspect.isframe(obj) and obj.f_globals is self._get_frame_locals(obj):
             # must be a module frame: do not try to cut a block out of it
             return lines, 1
         elif inspect.ismodule(obj):
