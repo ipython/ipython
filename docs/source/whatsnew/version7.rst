@@ -2,6 +2,33 @@
  7.x Series
 ============
 
+.. _version 7.25:
+
+IPython 7.25
+============
+
+IPython 7.21 is a minor release that contains a singe bugfix, which is highly
+recommended for all users of ipdb, ipython debugger %debug magic and similar.
+
+Issuing commands like ``where`` from within the debugger would reset the
+local variables changes made by the user. It is interesting to look at the root
+cause of the issue as accessing an attribute (``frame.f_locals``) would trigger
+this side effects.
+
+Thanks in particular to the patience from the reporters at D.E. Shaw for their
+initial bug report that was due to a similar coding oversight in an extension,
+and who took time to debug and narrow down the problem.
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/89>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 7.24:
 
 IPython 7.24
