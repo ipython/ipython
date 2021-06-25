@@ -121,7 +121,7 @@ def test_magic_arguments():
 @magic_arguments()
 @argument("filepath", type=str, nargs=1, help="An argument with possible spaces")
 def magic_one_arg(args):
-    return parse_argstring(magic_foo1, args)
+    return parse_argstring(magic_one_arg, args)
 
 
 def test_spaces_and_quotes():
