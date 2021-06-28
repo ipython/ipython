@@ -1956,7 +1956,7 @@ class InteractiveShell(SingletonConfigurable):
         sys.excepthook themselves.  I guess this is a feature that
         enables them to keep running after exceptions that would
         otherwise kill their mainloop. This is a bother for IPython
-        which excepts to catch all of the program exceptions with a try:
+        which expects to catch all of the program exceptions with a try:
         except: statement.
 
         Normally, IPython sets sys.excepthook to a CrashHandler instance, so if
