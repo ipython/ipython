@@ -7,7 +7,7 @@
 IPython 7.25
 ============
 
-IPython 7.25 is a minor release that contains a singe bugfix, which is highly
+IPython 7.25 is a minor release that contains a single bugfix, which is highly
 recommended for all users of ipdb, ipython debugger %debug magic and similar.
 
 Issuing commands like ``where`` from within the debugger would reset the
