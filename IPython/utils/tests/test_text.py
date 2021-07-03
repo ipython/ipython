@@ -165,19 +165,6 @@ def test_dollar_formatter():
     nt.assert_equal(s, "$HOME")
 
 
-def test_long_substr():
-    data = ['hi']
-    nt.assert_equal(text.long_substr(data), 'hi')
-
-
-def test_long_substr2():
-    data = ['abc', 'abd', 'abf', 'ab']
-    nt.assert_equal(text.long_substr(data), 'ab')
-
-def test_long_substr_empty():
-    data = []
-    nt.assert_equal(text.long_substr(data), '')
-
 def test_strip_email():
     src = """\
         >> >>> def f(x):
