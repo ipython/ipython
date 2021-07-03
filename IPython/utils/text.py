@@ -445,7 +445,7 @@ def strip_email_quotes(text):
         # Check if all characters in this position are the same
         if len(set(characters)) > 1:
             break
-        prefix_char = characters[0][0]
+        prefix_char = characters[0]
 
         if prefix_char in string.whitespace or prefix_char == ">":
             strip_len += 1
