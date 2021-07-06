@@ -276,7 +276,7 @@ class CodeMagics(Magics):
         ).encode("utf-8")
 
         request = Request(
-            "https://dpaste.com/api/v2/",
+            "http://dpaste.com/api/v2/",
             headers={"User-Agent": "IPython v{}".format(version)},
         )
         response = urlopen(request, post_data)
