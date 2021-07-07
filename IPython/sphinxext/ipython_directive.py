@@ -557,14 +557,16 @@ class EmbeddedSphinxShell(object):
         if self.directive.state:
             filename = self.directive.state.document.current_source
             lineno = self.directive.state.document.current_line
-            
+
         # Use sphinx logger for warnings
         logger = logging.getLogger(__name__)
 
         # output any exceptions raised during execution to stdout
         # unless :okexcept: has been specified.
-        if not is_okexcept and (("Traceback" in processed_output) or ("SyntaxError" in processed_output)):
-            s =  '\n>>>' + ('-' * 73) + '\n'
+        if not is_okexcept and (
+            ("Traceback" in processed_output) or ("SyntaxError" in processed_output)
+        ):
+            s = "\n>>>" + ("-" * 73) + "\n"
             s += "Exception in %s at block ending on line %s\n" % (filename, lineno)
             s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
             s += processed_output + "\n"
@@ -577,13 +579,14 @@ class EmbeddedSphinxShell(object):
         # unless :okwarning: has been specified.
         if not is_okwarning:
             for w in ws:
-                s =  '\n>>>' + ('-' * 73) + '\n'
+                s = "\n>>>" + ("-" * 73) + "\n"
                 s += "Warning in %s at block ending on line %s\n" % (filename, lineno)
                 s += "Specify :okwarning: as an option in the ipython:: block to suppress this message\n"
-                s += ('-' * 76) + '\n'
-                s += warnings.formatwarning(w.message, w.category,
-                                            w.filename, w.lineno, w.line)
-                s += '<<<' + ('-' * 73)
+                s += ("-" * 76) + "\n"
+                s += warnings.formatwarning(
+                    w.message, w.category, w.filename, w.lineno, w.line
+                )
+                s += "<<<" + ("-" * 73)
                 logger.warning(s)
                 if self.warning_is_error:
                     raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
