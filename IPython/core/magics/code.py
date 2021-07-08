@@ -308,6 +308,9 @@ class CodeMagics(Magics):
           where source can be a filename, URL, input history range, macro, or
           element in the user namespace
 
+        If no arguments are given, loads the history of this session up to this
+        point.
+
         Options:
 
           -r <lines>: Specify lines or ranges of lines to load from the source.
@@ -326,6 +329,7 @@ class CodeMagics(Magics):
         confirmation before loading source with more than 200 000 characters, unless
         -y flag is passed or if the frontend does not support raw_input::
 
+        %load
         %load myscript.py
         %load 7-27
         %load myMacro
@@ -337,13 +341,7 @@ class CodeMagics(Magics):
         %load -n my_module.wonder_function
         """
         opts,args = self.parse_options(arg_s,'yns:r:')
-
-        if not args:
-            raise UsageError('Missing filename, URL, input history range, '
-                             'macro, or element in the user namespace.')
-
         search_ns = 'n' in opts
-
         contents = self.shell.find_user_code(args, search_ns=search_ns)
 
         if 's' in opts:
