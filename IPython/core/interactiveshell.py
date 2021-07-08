@@ -3696,7 +3696,7 @@ class InteractiveShell(SingletonConfigurable):
 
         Parameters
         ----------
-        range_str : string
+        range_str : str
             The set of slices is given as a string, like "~5/6-~4/2 4:8 9",
             since this function is for use by magic functions which get their
             arguments as strings. The number before the / is the session
