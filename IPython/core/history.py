@@ -445,8 +445,11 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         rangestr : str
-          A string specifying ranges, e.g. "5 ~2/1-4". See
-          :func:`magic_history` for full details.
+          A string specifying ranges, e.g. "5 ~2/1-4". If empty string is used,
+          this will return everything from current session's history.
+
+          See the documentation of :func:`%history` for the full details.
+
         raw, output : bool
           As :meth:`get_range`
 
@@ -851,11 +854,18 @@ $""", re.VERBOSE)
 def extract_hist_ranges(ranges_str):
     """Turn a string of history ranges into 3-tuples of (session, start, stop).
 
+    Empty string results in a `[(0, 1, None)]`, i.e. "everything from current
+    session".
+
     Examples
     --------
     >>> list(extract_hist_ranges("~8/5-~7/4 2"))
     [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
     """
+    if ranges_str == '':
+        yield (0, 1, None)  # Everything from current session
+        return
+
     for range_str in ranges_str.split():
         rmatch = range_re.match(range_str)
         if not rmatch:
