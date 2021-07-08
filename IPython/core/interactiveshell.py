@@ -3702,6 +3702,9 @@ class InteractiveShell(SingletonConfigurable):
             arguments as strings. The number before the / is the session
             number: ~n goes n back from the current session.
 
+            If empty string is given, returns history of current session
+            without the last input.
+
         raw : bool, optional
             By default, the processed input is used.  If this is true, the raw
             input history is used instead.
@@ -3715,7 +3718,16 @@ class InteractiveShell(SingletonConfigurable):
         * ``N-M`` -> include items N..M (closed endpoint).
         """
         lines = self.history_manager.get_range_by_str(range_str, raw=raw)
-        return "\n".join(x for _, _, x in lines)
+        text = "\n".join(x for _, _, x in lines)
+
+        # Skip the last line, as it's probably the magic that called this
+        if not range_str:
+            if '\n' not in text:
+                text = ''
+            else:
+                text = text[:text.rfind('\n')]
+
+        return text
 
     def find_user_code(self, target, raw=True, py_only=False, skip_encoding_cookie=True, search_ns=False):
         """Get a code string from history, file, url, or a string or macro.
@@ -3724,13 +3736,14 @@ class InteractiveShell(SingletonConfigurable):
 
         Parameters
         ----------
-
         target : str
-
           A string specifying code to retrieve. This will be tried respectively
           as: ranges of input history (see %history for syntax), url,
           corresponding .py file, filename, or an expression evaluating to a
           string or Macro in the user namespace.
+
+          If empty string is given, returns complete history of current
+          session, without the last line.
 
         raw : bool
           If true (default), retrieve raw history. Has no effect on the other
