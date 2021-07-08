@@ -202,6 +202,9 @@ class CodeMagics(Magics):
         This function uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
 
+        If no ranges are specified, saves history of the current session up to
+        this point.
+
         It adds a '.py' extension to the file if you don't do so yourself, and
         it asks for confirmation before overwriting existing files.
 
