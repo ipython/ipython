@@ -3722,10 +3722,10 @@ class InteractiveShell(SingletonConfigurable):
 
         # Skip the last line, as it's probably the magic that called this
         if not range_str:
-            if '\n' not in text:
-                text = ''
+            if "\n" not in text:
+                text = ""
             else:
-                text = text[:text.rfind('\n')]
+                text = text[: text.rfind("\n")]
 
         return text
 

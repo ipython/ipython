@@ -162,7 +162,7 @@ def test_extract_hist_ranges():
 
 
 def test_extract_hist_ranges_empty_str():
-    instr = ''
+    instr = ""
     expected = [(0, 1, None)]  # 0 == current session, None == to end
     actual = list(extract_hist_ranges(instr))
     nt.assert_equal(actual, expected)

@@ -817,8 +817,7 @@ class OSMagics(Magics):
         %pycat http://www.example.com/myscript.py
         """
         try:
-            cont = self.shell.find_user_code(parameter_s,
-                                             skip_encoding_cookie=False)
+            cont = self.shell.find_user_code(parameter_s, skip_encoding_cookie=False)
         except (ValueError, IOError):
             print("Error: no such file, variable, URL, history range or macro")
             return

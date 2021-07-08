@@ -1091,7 +1091,7 @@ def test_save():
 
 def test_save_with_no_args():
     ip = get_ipython()
-    ip.history_manager.reset()   # Clear any existing history.
+    ip.history_manager.reset()  # Clear any existing history.
     cmds = [u"a=1", u"def b():\n    return a**2", u"print(a, b())", "%save"]
     for i, cmd in enumerate(cmds, start=1):
         ip.history_manager.store_inputs(i, cmd)

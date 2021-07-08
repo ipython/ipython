@@ -862,7 +862,7 @@ def extract_hist_ranges(ranges_str):
     >>> list(extract_hist_ranges("~8/5-~7/4 2"))
     [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
     """
-    if ranges_str == '':
+    if ranges_str == "":
         yield (0, 1, None)  # Everything from current session
         return
 

@@ -187,8 +187,9 @@ class HistoryMagics(Magics):
             if args.pattern:
                 range_pattern = "*" + " ".join(args.pattern) + "*"
                 print_nums = True
-            hist = history_manager.get_range_by_str(" ".join(args.range),
-                                                    raw, get_output)
+            hist = history_manager.get_range_by_str(
+                " ".join(args.range), raw, get_output
+            )
 
         # We could be displaying the entire history, so let's not try to pull
         # it into a list in memory. Anything that needs more space will just
