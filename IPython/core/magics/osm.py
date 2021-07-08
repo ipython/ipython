@@ -806,10 +806,10 @@ class OSMagics(Magics):
         to be Python source and will show it with syntax highlighting.
 
         This magic command can either take a local filename, an url,
-        an history range (see %history) or a macro as argument ::
+        an history range (see %history) or a macro as argument.
 
         If no parameter is given, prints out history of current session up to
-        this point.
+        this point. ::
 
         %pycat myscript.py
         %pycat 7-27
