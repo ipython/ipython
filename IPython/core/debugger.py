@@ -304,6 +304,9 @@ class Pdb(OldPdb):
         # list of predicates we use to skip frames
         self._predicates = self.default_predicates
 
+        # To save frame locals so we can restore them on up/down
+        self.frame_locals = []
+
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
@@ -351,6 +354,17 @@ class Pdb(OldPdb):
             ip_hide = [h if i > ip_start[0] else True for (i, h) in enumerate(ip_hide)]
         return ip_hide
 
+    def preloop(self):
+        """
+        Save a copy of all frame locals so changes to them are not lost
+        when going up/down in the stack frame.
+        """
+        self.frame_locals = [
+            stack_entry[0].f_locals.copy() for stack_entry in self.stack
+        ]
+        self.curframe_locals = self.frame_locals[self.curindex]
+        super().preloop()
+
     def interaction(self, frame, traceback):
         try:
             OldPdb.interaction(self, frame, traceback)
@@ -368,6 +382,11 @@ class Pdb(OldPdb):
         line = super().precmd(line)
 
         return line
+
+    def postcmd(self, stop, line):
+        """Set current frame locals using the ones we saved in preloop."""
+        self.curframe_locals = self.frame_locals[self.curindex]
+        return super().postcmd(stop, line)
 
     def new_do_frame(self, arg):
         OldPdb.do_frame(self, arg)
