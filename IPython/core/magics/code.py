@@ -257,6 +257,9 @@ class CodeMagics(Magics):
         The argument can be an input history range, a filename, or the name of a
         string or macro.
 
+        If no arguments are given, uploads the history of this session up to
+        this point.
+
         Options:
 
           -d: Pass a custom description. The default will say
