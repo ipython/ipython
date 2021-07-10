@@ -61,7 +61,7 @@ if resource is not None and hasattr(resource, "getrusage"):
 
         Similar to clock(), but return a tuple of user/system times."""
         return resource.getrusage(resource.RUSAGE_SELF)[:2]
-except ImportError:
+else:
     # There is no distinction of user/system time under windows, so we just use
     # time.perff_counter() for everything...
     clocku = clocks = clock = time.perf_counter
