@@ -27,7 +27,7 @@ except ImportError:
     resource = None
 
 # Some implementations (like jyputerlite) don't have getrusage
-if resource not None and hasattr(resource, "getrusage"):
+if resource is not None and hasattr(resource, "getrusage"):
     def clocku():
         """clocku() -> floating point number
 
