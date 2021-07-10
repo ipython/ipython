@@ -23,6 +23,11 @@ import time
 # If possible (Unix), use the resource module instead of time.clock()
 try:
     import resource
+except ImportError:
+    resource = None
+
+# Some implementations (like jyputerlite) don't have getrusage
+if resource not None and hasattr(resource, "getrusage"):
     def clocku():
         """clocku() -> floating point number
 
