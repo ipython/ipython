@@ -69,7 +69,7 @@ class PackagingMagics(Magics):
         python = shlex.quote(sys.executable)
         args = shlex.split(line)
 
-        self.shell.system(python, "-m", "pip", *args)
+        self.shell.system(" ".join([python, "-m", "pip", *args]))
         print("Note: you may need to restart the kernel to use updated packages.")
 
     @line_magic
