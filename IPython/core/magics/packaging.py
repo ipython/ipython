@@ -8,12 +8,24 @@
 #  The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
+import os
 import re
 import shlex
+import subprocess
 import sys
 from pathlib import Path
 
 from IPython.core.magic import Magics, magics_class, line_magic
+
+
+def _format_command(*args):
+    """Use subprocess.list2cmdline to quote and escape executable path"""
+    return subprocess.list2cmdline(list(args))
+
+
+def _get_full_path(path):
+    """Return a normalised path of the current Python executable"""
+    return Path(sys.executable).expanduser().absolute().resolve()
 
 
 def _is_conda_environment():
@@ -66,7 +78,11 @@ class PackagingMagics(Magics):
         Usage:
           %pip install [pkgs]
         """
-        self.shell.system(' '.join([sys.executable, '-m', 'pip', line]))
+        python = _get_full_path(sys.executable)
+        args = ('-m', 'pip', *shlex.split(line))
+        command = _format_command(python, *args)
+
+        self.shell.system(command)
         print("Note: you may need to restart the kernel to use updated packages.")
 
     @line_magic
