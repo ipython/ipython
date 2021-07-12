@@ -78,7 +78,7 @@ class PackagingMagics(Magics):
           %pip install [pkgs]
         """
         python = _get_full_path(sys.executable)
-        args = ('-m', 'pip', *shlex.split(line))
+        args = ("-m", "pip", *shlex.split(line))
         command = _format_command(python, *args)
 
         self.shell.system(command)
