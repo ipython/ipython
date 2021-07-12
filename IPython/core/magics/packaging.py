@@ -10,16 +10,10 @@
 
 import re
 import shlex
-import subprocess
 import sys
 from pathlib import Path
 
 from IPython.core.magic import Magics, magics_class, line_magic
-
-
-def _format_command(*args):
-    """Use subprocess.list2cmdline to quote and escape executable path"""
-    return subprocess.list2cmdline(list(args))
 
 
 def _is_conda_environment():
@@ -72,11 +66,10 @@ class PackagingMagics(Magics):
         Usage:
           %pip install [pkgs]
         """
-        python = sys.executable
+        python = shlex.quote(sys.executable)
         args = shlex.split(line)
-        command = _format_command(python, "-m", "pip", *args)
 
-        self.shell.system(command)
+        self.shell.system(python, "-m", "pip", *args)
         print("Note: you may need to restart the kernel to use updated packages.")
 
     @line_magic
