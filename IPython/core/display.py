@@ -57,7 +57,7 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
     ----------
     mimetype : str
         The mimetype to be published (e.g. 'image/png')
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw text data to
         display.
     raw : bool
@@ -139,7 +139,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display.
     raw : bool, optional
         Are the objects to be displayed already mimetype-keyed dicts of raw display data,
@@ -405,7 +405,7 @@ def display_pretty(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw text data to
         display.
     raw : bool
@@ -425,7 +425,7 @@ def display_html(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw HTML data to
         display.
     raw : bool
@@ -442,7 +442,7 @@ def display_markdown(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw markdown data to
         display.
     raw : bool
@@ -460,7 +460,7 @@ def display_svg(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw svg data to
         display.
     raw : bool
@@ -477,7 +477,7 @@ def display_png(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw png data to
         display.
     raw : bool
@@ -494,7 +494,7 @@ def display_jpeg(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw JPEG data to
         display.
     raw : bool
@@ -511,7 +511,7 @@ def display_latex(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw latex data to
         display.
     raw : bool
@@ -530,7 +530,7 @@ def display_json(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw json data to
         display.
     raw : bool
@@ -547,7 +547,7 @@ def display_javascript(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw javascript data to
         display.
     raw : bool
@@ -564,7 +564,7 @@ def display_pdf(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw javascript data to
         display.
     raw : bool
