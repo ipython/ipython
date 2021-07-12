@@ -22,11 +22,6 @@ def _format_command(*args):
     return subprocess.list2cmdline(list(args))
 
 
-def _get_full_path(path):
-    """Return a normalised path of the current Python executable"""
-    return Path(sys.executable).expanduser().absolute().resolve()
-
-
 def _is_conda_environment():
     """Return True if the current Python executable is in a conda env"""
     # TODO: does this need to change on windows?
@@ -77,9 +72,9 @@ class PackagingMagics(Magics):
         Usage:
           %pip install [pkgs]
         """
-        python = _get_full_path(sys.executable)
-        args = ("-m", "pip", *shlex.split(line))
-        command = _format_command(python, *args)
+        python = sys.executable
+        args = shlex.split(line)
+        command = _format_command(python, "-m", "pip", *args)
 
         self.shell.system(command)
         print("Note: you may need to restart the kernel to use updated packages.")
