@@ -67,9 +67,8 @@ class PackagingMagics(Magics):
           %pip install [pkgs]
         """
         python = shlex.quote(sys.executable)
-        args = shlex.split(line)
+        self.shell.system(" ".join([python, "-m", "pip", line]))
 
-        self.shell.system(" ".join([python, "-m", "pip", *args]))
         print("Note: you may need to restart the kernel to use updated packages.")
 
     @line_magic
