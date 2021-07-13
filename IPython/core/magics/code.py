@@ -261,7 +261,7 @@ class CodeMagics(Magics):
           -e: Pass number of days for the link to be expired.
               The default will be 7 days.
         """
-        opts, args = self.parse_options(parameter_s, 'd:e:')
+        opts, args = self.parse_options(parameter_s, "d:e:")
 
         try:
             code = self.shell.find_user_code(args)
@@ -285,7 +285,7 @@ class CodeMagics(Magics):
                 "title": opts.get("d", "Pasted from IPython"),
                 "syntax": "python",
                 "content": code,
-                "expiry_days": expiry_days
+                "expiry_days": expiry_days,
             }
         ).encode("utf-8")
 
