@@ -32,7 +32,7 @@ def inputhook(context):
                         'variable. Deactivate Qt5 code.'
                     )
                 return
-        QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+        # QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
         _appref = app = QtGui.QApplication([" "])
 
         # "reclaim" IPython sys.excepthook after event loop starts
@@ -55,8 +55,11 @@ def inputhook(context):
     else:
         # On POSIX platforms, we can use a file descriptor to quit the event
         # loop when there is input ready to read.
-        notifier = QtCore.QSocketNotifier(context.fileno(),
-                                          QtCore.QSocketNotifier.Read)
+        if hasattr(QtCore.QSocketNotifier, "Read"):
+            mode = QtCore.QSocketNotifier.Read
+        else:
+            mode = QtCore.QSocketNotifier.Type.Read
+        notifier = QtCore.QSocketNotifier(context.fileno(), mode)
         try:
             # connect the callback we care about before we turn it on
             # lambda is necessary as PyQT inspect the function signature to know
@@ -65,6 +68,6 @@ def inputhook(context):
             notifier.setEnabled(True)
             # only start the event loop we are not already flipped
             if not context.input_is_ready():
-                event_loop.exec_()
+                event_loop.exec()
         finally:
             notifier.setEnabled(False)
