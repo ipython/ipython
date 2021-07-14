@@ -277,7 +277,7 @@ class CodeMagics(Magics):
                 print(e.args[0].capitalize())
                 return
             if expiry_days < 1 or expiry_days > 365:
-                print("Expiry days should be in range of 1 to 365.")
+                print("Expiry days should be in range of 1 to 365")
                 return
 
         post_data = urlencode(
