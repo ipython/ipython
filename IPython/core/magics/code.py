@@ -274,7 +274,7 @@ class CodeMagics(Magics):
             try:
                 expiry_days = int(opts.get("e", 7))
             except ValueError as e:
-                print(e.args[0])
+                print(e.args[0].capitalize())
                 return
             if expiry_days < 1 or expiry_days > 365:
                 print("Expiry days should be in range of 1 to 365.")
