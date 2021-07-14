@@ -270,15 +270,14 @@ class CodeMagics(Magics):
             return
 
         expiry_days = 7
-        if "e" in opts:
-            try:
-                expiry_days = int(opts.get("e", 7))
-            except ValueError as e:
-                print(e.args[0].capitalize())
-                return
-            if expiry_days < 1 or expiry_days > 365:
-                print("Expiry days should be in range of 1 to 365")
-                return
+        try:
+            expiry_days = int(opts.get("e", 7))
+        except ValueError as e:
+            print(e.args[0].capitalize())
+            return
+        if expiry_days < 1 or expiry_days > 365:
+            print("Expiry days should be in range of 1 to 365")
+            return
 
         post_data = urlencode(
             {
