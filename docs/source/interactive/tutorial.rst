@@ -90,8 +90,8 @@ completion also works on file and directory names.
 Starting with IPython 6.0, if ``jedi`` is installed, IPython will try to pull
 completions from Jedi as well. This allows to not only inspect currently
 existing objects, but also to infer completion statically without executing
-code. There is nothing particular to get this to work, simply use tab completion
-on more complex expressions like the following::
+code. There is nothing particular needed to get this to work, simply use tab
+completion on more complex expressions like the following::
 
     >>> data = ['Number of users', 123456]
     ... data[0].<tab>
