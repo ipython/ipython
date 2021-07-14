@@ -1,5 +1,5 @@
 Pastebin magic expiry days option
-===================
+=================================
 
 The Pastebin magic now has ``-e`` option to determine 
 the number of days for paste expiration. For example
