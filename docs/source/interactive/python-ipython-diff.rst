@@ -238,12 +238,3 @@ Magics with double percent signs (``%%``) can spread over multiple lines, but th
     devfs          190Ki  190Ki    0Bi   100%      656       0  100%   /dev
     map -hosts       0Bi    0Bi    0Bi   100%        0       0  100%   /net
     map auto_home    0Bi    0Bi    0Bi   100%        0       0  100%   /hom
-
-
-..
-   Combining it all
-   ----------------
-
-   ::
-
-       find a snippet that combine all that into one thing!
