@@ -248,7 +248,7 @@ class CodeMagics(Magics):
         """Upload code to dpaste.com, returning the URL.
 
         Usage:\\
-          %pastebin [-d "Custom description"] 1-7
+          %pastebin [-d "Custom description"][-e 24] 1-7
 
         The argument can be an input history range, a filename, or the name of a
         string or macro.
@@ -257,8 +257,10 @@ class CodeMagics(Magics):
 
           -d: Pass a custom description. The default will say
               "Pasted from IPython".
+          -e: Pass number of days for the link to be expired.
+              The default will be 7 days.
         """
-        opts, args = self.parse_options(parameter_s, 'd:')
+        opts, args = self.parse_options(parameter_s, "d:e:")
 
         try:
             code = self.shell.find_user_code(args)
@@ -266,16 +268,27 @@ class CodeMagics(Magics):
             print(e.args[0])
             return
 
+        expiry_days = 7
+        try:
+            expiry_days = int(opts.get("e", 7))
+        except ValueError as e:
+            print(e.args[0].capitalize())
+            return
+        if expiry_days < 1 or expiry_days > 365:
+            print("Expiry days should be in range of 1 to 365")
+            return
+
         post_data = urlencode(
             {
                 "title": opts.get("d", "Pasted from IPython"),
                 "syntax": "python",
                 "content": code,
+                "expiry_days": expiry_days,
             }
         ).encode("utf-8")
 
         request = Request(
-            "http://dpaste.com/api/v2/",
+            "https://dpaste.com/api/v2/",
             headers={"User-Agent": "IPython v{}".format(version)},
         )
         response = urlopen(request, post_data)
