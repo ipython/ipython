@@ -46,9 +46,9 @@ All the following constructs are valid IPython syntax:
 .. code-block:: ipython
 
     In [1]: my_files = !ls ~/
-    In [1]: for i,file in enumerate(my_file):
+    In [1]: for i, file in enumerate(my_files):
        ...:     raw = !echo $file
-       ...:     !echo {files[0].upper()} $raw
+       ...:     !echo {file[0].upper()} $raw
 
 
 .. code-block:: ipython
@@ -193,10 +193,9 @@ You can combine the different possibilities in for loops, conditions, functions.
 .. code-block:: ipython
 
     my_files = !ls ~/
-    b = "backup file"
-    for i,file in enumerate(my_file):
+    for i, file in enumerate(my_files):
         raw = !echo $backup $file
-        !cp $file {file.split('.')[0]+'.bak'}
+        !cp $file {file.split('.')[0] + '.bak'}
 
 
 Magics
@@ -239,11 +238,3 @@ Magics with double percent signs (``%%``) can spread over multiple lines, but th
     devfs          190Ki  190Ki    0Bi   100%      656       0  100%   /dev
     map -hosts       0Bi    0Bi    0Bi   100%        0       0  100%   /net
     map auto_home    0Bi    0Bi    0Bi   100%        0       0  100%   /hom
-
-
-Combining it all
-----------------
-
-::
-
-    find a snippet that combine all that into one thing!
