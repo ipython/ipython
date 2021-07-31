@@ -201,6 +201,9 @@ class CodeMagics(Magics):
         This function uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
 
+        If no ranges are specified, saves history of the current session up to
+        this point.
+
         It adds a '.py' extension to the file if you don't do so yourself, and
         it asks for confirmation before overwriting existing files.
 
@@ -252,6 +255,9 @@ class CodeMagics(Magics):
 
         The argument can be an input history range, a filename, or the name of a
         string or macro.
+
+        If no arguments are given, uploads the history of this session up to
+        this point.
 
         Options:
 
@@ -314,6 +320,9 @@ class CodeMagics(Magics):
           where source can be a filename, URL, input history range, macro, or
           element in the user namespace
 
+        If no arguments are given, loads the history of this session up to this
+        point.
+
         Options:
 
           -r <lines>: Specify lines or ranges of lines to load from the source.
@@ -332,6 +341,7 @@ class CodeMagics(Magics):
         confirmation before loading source with more than 200 000 characters, unless
         -y flag is passed or if the frontend does not support raw_input::
 
+        %load
         %load myscript.py
         %load 7-27
         %load myMacro
@@ -343,13 +353,7 @@ class CodeMagics(Magics):
         %load -n my_module.wonder_function
         """
         opts,args = self.parse_options(arg_s,'yns:r:')
-
-        if not args:
-            raise UsageError('Missing filename, URL, input history range, '
-                             'macro, or element in the user namespace.')
-
         search_ns = 'n' in opts
-
         contents = self.shell.find_user_code(args, search_ns=search_ns)
 
         if 's' in opts:

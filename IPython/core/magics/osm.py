@@ -803,18 +803,17 @@ class OSMagics(Magics):
         to be Python source and will show it with syntax highlighting.
 
         This magic command can either take a local filename, an url,
-        an history range (see %history) or a macro as argument ::
+        an history range (see %history) or a macro as argument.
+
+        If no parameter is given, prints out history of current session up to
+        this point. ::
 
         %pycat myscript.py
         %pycat 7-27
         %pycat myMacro
         %pycat http://www.example.com/myscript.py
         """
-        if not parameter_s:
-            raise UsageError('Missing filename, URL, input history range, '
-                             'or macro.')
-
-        try :
+        try:
             cont = self.shell.find_user_code(parameter_s, skip_encoding_cookie=False)
         except (ValueError, IOError):
             print("Error: no such file, variable, URL, history range or macro")
