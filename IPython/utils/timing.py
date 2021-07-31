@@ -23,6 +23,11 @@ import time
 # If possible (Unix), use the resource module instead of time.clock()
 try:
     import resource
+except ImportError:
+    resource = None
+
+# Some implementations (like jyputerlite) don't have getrusage
+if resource is not None and hasattr(resource, "getrusage"):
     def clocku():
         """clocku() -> floating point number
 
@@ -56,7 +61,9 @@ try:
 
         Similar to clock(), but return a tuple of user/system times."""
         return resource.getrusage(resource.RUSAGE_SELF)[:2]
-except ImportError:
+
+
+else:
     # There is no distinction of user/system time under windows, so we just use
     # time.perff_counter() for everything...
     clocku = clocks = clock = time.perf_counter
