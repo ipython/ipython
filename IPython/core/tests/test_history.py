@@ -160,6 +160,14 @@ def test_extract_hist_ranges():
     actual = list(extract_hist_ranges(instr))
     nt.assert_equal(actual, expected)
 
+
+def test_extract_hist_ranges_empty_str():
+    instr = ""
+    expected = [(0, 1, None)]  # 0 == current session, None == to end
+    actual = list(extract_hist_ranges(instr))
+    nt.assert_equal(actual, expected)
+
+
 def test_magic_rerun():
     """Simple test for %rerun (no args -> rerun last line)"""
     ip = get_ipython()

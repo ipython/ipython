@@ -1089,6 +1089,29 @@ def test_save():
         nt.assert_in("coding: utf-8", content)
 
 
+def test_save_with_no_args():
+    ip = get_ipython()
+    ip.history_manager.reset()  # Clear any existing history.
+    cmds = [u"a=1", u"def b():\n    return a**2", u"print(a, b())", "%save"]
+    for i, cmd in enumerate(cmds, start=1):
+        ip.history_manager.store_inputs(i, cmd)
+
+    with TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "testsave.py")
+        ip.run_line_magic("save", path)
+        content = Path(path).read_text()
+        expected_content = dedent(
+            """\
+            # coding: utf-8
+            a=1
+            def b():
+                return a**2
+            print(a, b())
+            """
+        )
+        nt.assert_equal(content, expected_content)
+
+
 def test_store():
     """Test %store."""
     ip = get_ipython()
