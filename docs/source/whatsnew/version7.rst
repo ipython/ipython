@@ -2,6 +2,44 @@
  7.x Series
 ============
 
+.. _version 7.26:
+
+IPython 7.26
+============
+
+IPython 7.26 is a minor release that fixes a couple of issues, updates in API
+and Copyright/Licenses issues around various part of the codebase.
+
+We'll highlight `this issue <https://github.com/ipython/ipython/issues/13039>`
+pointing out we were including and refereeing to code from Stack Overflow which
+was CC-BY-SA, hence incompatible with the BSD license of IPython. This lead us
+to a rewriting of the corresponding logic which in our case was done in a more
+efficient way (in our case we were searching string prefixes instead of full
+strings).
+
+You will notice also a number of documentation improvements and cleanup.
+
+Of particular interest are the following Pull-requests:
+
+
+ - The IPython directive now uses Sphinx logging for warnings. :ghpull:`13030`.
+ - Add expiry days option to pastebin magic and change http protocol to https.
+   :ghpull:`13056`
+ - Make Ipython.utils.timing work with jupyterlite :ghpull:`13050`.
+
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release and in particular MrMino who
+is doing most of the work those days. You can find all individual contributions
+to this milestone `on github <https://github.com/ipython/ipython/milestone/90>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 7.25:
 
 IPython 7.25
