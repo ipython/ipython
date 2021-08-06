@@ -25,25 +25,25 @@ QT_API_PYQT5 = 'pyqt5'
 QT_API_PYSIDE2 = 'pyside2'
 
 # Qt4
-QT_API_PYQT = 'pyqt'  # Force version 2
-QT_API_PYQTv1 = 'pyqtv1'  # Force version 2
-QT_API_PYSIDE = 'pyside'
+QT_API_PYQT = "pyqt"  # Force version 2
+QT_API_PYQTv1 = "pyqtv1"  # Force version 2
+QT_API_PYSIDE = "pyside"
 
-QT_API_PYQT_DEFAULT = 'pyqtdefault'  # use system default for version 1 vs. 2
+QT_API_PYQT_DEFAULT = "pyqtdefault"  # use system default for version 1 vs. 2
 
 api_to_module = {
     # Qt6
     QT_API_PYQT6: "PyQt6",
     QT_API_PYSIDE6: "PySide6",
     # Qt5
-    QT_API_PYQT5: 'PyQt5',
-    QT_API_PYSIDE2: 'PySide2',
+    QT_API_PYQT5: "PyQt5",
+    QT_API_PYSIDE2: "PySide2",
     # Qt4
-    QT_API_PYSIDE: 'PySide',
-    QT_API_PYQT: 'PyQt4',
-    QT_API_PYQTv1: 'PyQt4',
+    QT_API_PYSIDE: "PySide",
+    QT_API_PYQT: "PyQt4",
+    QT_API_PYQTv1: "PyQt4",
     # default
-    QT_API_PYQT_DEFAULT: 'PyQt6',
+    QT_API_PYQT_DEFAULT: "PyQt6",
 }
 
 
@@ -104,12 +104,12 @@ def loaded_api():
         return QT_API_PYQT5
     elif sys.modules.get("PySide2.QtCore"):
         return QT_API_PYSIDE2
-    elif sys.modules.get('PyQt4.QtCore'):
+    elif sys.modules.get("PyQt4.QtCore"):
         if qtapi_version() == 2:
             return QT_API_PYQT
         else:
             return QT_API_PYQTv1
-    elif sys.modules.get('PySide.QtCore'):
+    elif sys.modules.get("PySide.QtCore"):
         return QT_API_PYSIDE
 
     return None
@@ -246,6 +246,7 @@ def import_pyqt5():
     api = QT_API_PYQT5
     return QtCore, QtGuiCompat, QtSvg, api
 
+
 def import_pyqt6():
     """
     Import PyQt6
@@ -260,7 +261,7 @@ def import_pyqt6():
     QtCore.Slot = QtCore.pyqtSlot
 
     # Join QtGui and QtWidgets for Qt4 compatibility.
-    QtGuiCompat = types.ModuleType('QtGuiCompat')
+    QtGuiCompat = types.ModuleType("QtGuiCompat")
     QtGuiCompat.__dict__.update(QtGui.__dict__)
     QtGuiCompat.__dict__.update(QtWidgets.__dict__)
 
@@ -293,6 +294,7 @@ def import_pyside2():
 
     return QtCore, QtGuiCompat, QtSvg, QT_API_PYSIDE2
 
+
 def import_pyside6():
     """
     Import PySide6
@@ -302,7 +304,7 @@ def import_pyside6():
     from PySide6 import QtGui, QtCore, QtSvg, QtWidgets, QtPrintSupport
 
     # Join QtGui and QtWidgets for Qt4 compatibility.
-    QtGuiCompat = types.ModuleType('QtGuiCompat')
+    QtGuiCompat = types.ModuleType("QtGuiCompat")
     QtGuiCompat.__dict__.update(QtGui.__dict__)
     QtGuiCompat.__dict__.update(QtWidgets.__dict__)
     QtGuiCompat.__dict__.update(QtPrintSupport.__dict__)
@@ -388,6 +390,7 @@ def load_qt(api_options):
 
 def enum_factory(QT_API, QtCore):
     """Construct an enum helper to account for PyQt5 <-> PyQt6 changes."""
+
     @lru_cache(None)
     def _enum(name):
         # foo.bar.Enum.Entry (PyQt6) <=> foo.bar.Entry (non-PyQt6).

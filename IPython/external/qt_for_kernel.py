@@ -33,26 +33,36 @@ import sys
 
 from IPython.utils.version import check_version
 from IPython.external.qt_loaders import (
-    load_qt, loaded_api, enum_factory,
+    load_qt,
+    loaded_api,
+    enum_factory,
     # QT6
-    QT_API_PYQT6, QT_API_PYSIDE6,
+    QT_API_PYQT6,
+    QT_API_PYSIDE6,
     # QT5
-    QT_API_PYQT5, QT_API_PYSIDE2,
+    QT_API_PYQT5,
+    QT_API_PYSIDE2,
     # QT4
-    QT_API_PYQTv1, QT_API_PYQT, QT_API_PYSIDE,
+    QT_API_PYQTv1,
+    QT_API_PYQT,
+    QT_API_PYSIDE,
     # default
-    QT_API_PYQT_DEFAULT
+    QT_API_PYQT_DEFAULT,
 )
 
 _qt_apis = (
     # QT6
-    QT_API_PYQT6, QT_API_PYSIDE6,
+    QT_API_PYQT6,
+    QT_API_PYSIDE6,
     # QT5
-    QT_API_PYQT5, QT_API_PYSIDE2,
+    QT_API_PYQT5,
+    QT_API_PYSIDE2,
     # QT4
-    QT_API_PYQTv1, QT_API_PYQT, QT_API_PYSIDE,
+    QT_API_PYQTv1,
+    QT_API_PYQT,
+    QT_API_PYSIDE,
     # default
-    QT_API_PYQT_DEFAULT
+    QT_API_PYQT_DEFAULT,
 )
 
 
@@ -105,7 +115,7 @@ def get_options():
             QT_API_PYQT5,
             QT_API_PYSIDE2,
             QT_API_PYQT,
-            QT_API_PYSIDE
+            QT_API_PYSIDE,
         ]
     elif qt_api not in _qt_apis:
         raise RuntimeError("Invalid Qt API %r, valid values are: %r" %

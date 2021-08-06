@@ -38,13 +38,13 @@ def inputhook(context):
                     )
                 return
         try:
-            QtCore.QApplication.setAttribute(
-                QtCore.Qt.AA_EnableHighDpiScaling)
+            QtCore.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
         except AttributeError:  # Only for Qt>=5.6, <6.
             pass
         try:
             QtCore.QApplication.setHighDpiScaleFactorRoundingPolicy(
-                QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+                QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+            )
         except AttributeError:  # Only for Qt>=5.14.
             pass
         _appref = app = QtGui.QApplication([" "])
@@ -70,8 +70,7 @@ def inputhook(context):
         # On POSIX platforms, we can use a file descriptor to quit the event
         # loop when there is input ready to read.
         notifier = QtCore.QSocketNotifier(
-            context.fileno(),
-            enum_helper('QtCore.QSocketNotifier.Type').Read
+            context.fileno(), enum_helper("QtCore.QSocketNotifier.Type").Read
         )
         try:
             # connect the callback we care about before we turn it on
