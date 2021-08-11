@@ -160,7 +160,7 @@ def _format_traceback_lines(lines, Colors, has_colors, lvals):
         else:
             num = '%*s' % (numbers_width, lineno)
             start_color = Colors.lineno
-        
+
         line = '%s%s%s %s' % (start_color, num, Colors.Normal, line)
 
         res.append(line)
@@ -300,7 +300,7 @@ class ListTB(TBTools):
 
     Calling requires 3 arguments: (etype, evalue, elist)
     as would be obtained by::
-    
+
       etype, evalue, tb = sys.exc_info()
       if tb:
         elist = traceback.extract_tb(tb)
@@ -581,25 +581,31 @@ class VerboseTB(TBTools):
         Colors = self.Colors  # just a shorthand + quicker name lookup
         ColorsNormal = Colors.Normal  # used a lot
 
-
-
         if isinstance(frame_info, stack_data.RepeatedFrames):
             return '    %s[... skipping similar frames: %s]%s\n' % (
                 Colors.excName, frame_info.description, ColorsNormal)
 
+        file = frame_info.filename
+
+        ipinst = get_ipython()
+        if ipinst is not None and file in ipinst.compile._filename_map:
+            file = "[%s]" % ipinst.compile._filename_map[file]
+            tpl_link = "In %s%%s%s," % (Colors.filenameEm, ColorsNormal)
+        else:
+            file = util_path.compress_user(
+                py3compat.cast_unicode(file, util_path.fs_encoding)
+            )
+            tpl_link = "File %s%%s%s," % (Colors.filenameEm, ColorsNormal)
+
         indent = ' ' * INDENT_SIZE
         em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
-        tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
         tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm,
                                         ColorsNormal)
         tpl_call_fail = 'in %s%%s%s(***failed resolving arguments***)%s' % \
                         (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_local_var = '%s%%s%s' % (Colors.vName, ColorsNormal)
         tpl_name_val = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
 
-        file = frame_info.filename
-        file = py3compat.cast_unicode(file, util_path.fs_encoding)
-        link = tpl_link % util_path.compress_user(file)
+        link = tpl_link % file
         args, varargs, varkw, locals_ = inspect.getargvalues(frame_info.frame)
 
         func = frame_info.executing.code_qualname()
