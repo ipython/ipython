@@ -1,7 +1,7 @@
 Traceback improvements
 ======================
 
-Previously, error tracebacks for errors happening in code cells were showing a hash, the one used for compiling the Python AST.
+Previously, error tracebacks for errors happening in code cells were showing a hash, the one used for compiling the Python AST::
 
     In [1]: def foo():
     ...:     return 3 / 0
@@ -20,7 +20,7 @@ Previously, error tracebacks for errors happening in code cells were showing a h
 
     ZeroDivisionError: division by zero
 
-The error traceback is now correctly formatted, showing the cell number in which the error happened:
+The error traceback is now correctly formatted, showing the cell number in which the error happened::
 
     In [1]: def foo():
     ...:     return 3 / 0
