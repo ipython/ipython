@@ -169,6 +169,31 @@ def _format_traceback_lines(lines, Colors, has_colors, lvals):
     return res
 
 
+def _format_filename(file, Colors, ColorNormal):
+    """
+    Format filename lines with `In [n]` if it's the nth code cell or `File *.py` if it's a module...
+
+    Parameters
+    ----------
+    file : str
+    Colors
+        ColorScheme used.
+    ColorsNormal
+        ColorScheme's normal coloring to be used.
+    """
+    ipinst = get_ipython()
+
+    if ipinst is not None and file in ipinst.compile._filename_map:
+        file = "[%s]" % ipinst.compile._filename_map[file]
+        tpl_link = "In %s%%s%s" % (Colors.filenameEm, ColorNormal)
+    else:
+        file = util_path.compress_user(
+            py3compat.cast_unicode(file, util_path.fs_encoding)
+        )
+        tpl_link = "File %s%%s%s" % (Colors.filenameEm, ColorNormal)
+
+    return tpl_link % file
+
 #---------------------------------------------------------------------------
 # Module classes
 class TBTools(colorable.Colorable):
@@ -414,8 +439,8 @@ class ListTB(TBTools):
         Colors = self.Colors
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
-            item = '  File %s"%s"%s, line %s%d%s, in %s%s%s\n' % \
-                   (Colors.filename, filename, Colors.Normal,
+            item = '  %s, line %s%d%s, in %s%s%s\n' % \
+                   (_format_filename(filename, Colors, Colors.normalEm),
                     Colors.lineno, lineno, Colors.Normal,
                     Colors.name, name, Colors.Normal)
             if line:
@@ -423,9 +448,9 @@ class ListTB(TBTools):
             list.append(item)
         # Emphasize the last entry
         filename, lineno, name, line = extracted_list[-1]
-        item = '%s  File %s"%s"%s, line %s%d%s, in %s%s%s%s\n' % \
+        item = '%s  %s, line %s%d%s, in %s%s%s%s\n' % \
                (Colors.normalEm,
-                Colors.filenameEm, filename, Colors.normalEm,
+                _format_filename(filename, Colors, Colors.normalEm),
                 Colors.linenoEm, lineno, Colors.normalEm,
                 Colors.nameEm, name, Colors.normalEm,
                 Colors.Normal)
@@ -465,10 +490,11 @@ class ListTB(TBTools):
                 else:
                     lineno = 'unknown'
                     textline = ''
-                list.append('%s  File %s"%s"%s, line %s%s%s\n' % \
+                list.append('%s  %s, line %s%s%s\n' %
                             (Colors.normalEm,
-                             Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
-                             Colors.linenoEm, lineno, Colors.Normal  ))
+                             _format_filename(value.filename, Colors, Colors.normalEm),
+                             Colors.linenoEm, lineno, Colors.Normal
+                             ))
                 if textline == '':
                     textline = py3compat.cast_unicode(value.text, "utf-8")
 
@@ -585,18 +611,6 @@ class VerboseTB(TBTools):
             return '    %s[... skipping similar frames: %s]%s\n' % (
                 Colors.excName, frame_info.description, ColorsNormal)
 
-        file = frame_info.filename
-
-        ipinst = get_ipython()
-        if ipinst is not None and file in ipinst.compile._filename_map:
-            file = "[%s]" % ipinst.compile._filename_map[file]
-            tpl_link = "In %s%%s%s," % (Colors.filenameEm, ColorsNormal)
-        else:
-            file = util_path.compress_user(
-                py3compat.cast_unicode(file, util_path.fs_encoding)
-            )
-            tpl_link = "File %s%%s%s," % (Colors.filenameEm, ColorsNormal)
-
         indent = ' ' * INDENT_SIZE
         em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
         tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm,
@@ -605,7 +619,7 @@ class VerboseTB(TBTools):
                         (Colors.vName, Colors.valEm, ColorsNormal)
         tpl_name_val = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
 
-        link = tpl_link % file
+        link = _format_filename(frame_info.filename, Colors, ColorsNormal)
         args, varargs, varkw, locals_ = inspect.getargvalues(frame_info.frame)
 
         func = frame_info.executing.code_qualname()
@@ -645,7 +659,7 @@ class VerboseTB(TBTools):
         if lvals_list:
             lvals = '%s%s' % (indent, em_normal.join(lvals_list))
 
-        result = '%s %s\n' % (link, call)
+        result = '%s, %s\n' % (link, call)
 
         result += ''.join(_format_traceback_lines(frame_info.lines, Colors, self.has_colors, lvals))
         return result
