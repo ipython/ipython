@@ -504,7 +504,9 @@ class ListTB(TBTools):
                     "%s  %s, line %s%s%s\n"
                     % (
                         Colors.normalEm,
-                        _format_filename(value.filename, Colors.filenameEm, Colors.normalEm),
+                        _format_filename(
+                            value.filename, Colors.filenameEm, Colors.normalEm
+                        ),
                         Colors.linenoEm,
                         lineno,
                         Colors.Normal,
