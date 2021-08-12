@@ -439,21 +439,31 @@ class ListTB(TBTools):
         Colors = self.Colors
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
-            item = '  %s, line %s%d%s, in %s%s%s\n' % \
-                   (_format_filename(filename, Colors, Colors.normalEm),
-                    Colors.lineno, lineno, Colors.Normal,
-                    Colors.name, name, Colors.Normal)
+            item = "  %s, line %s%d%s, in %s%s%s\n" % (
+                _format_filename(filename, Colors, Colors.normalEm),
+                Colors.lineno,
+                lineno,
+                Colors.Normal,
+                Colors.name,
+                name,
+                Colors.Normal,
+            )
             if line:
                 item += '    %s\n' % line.strip()
             list.append(item)
         # Emphasize the last entry
         filename, lineno, name, line = extracted_list[-1]
-        item = '%s  %s, line %s%d%s, in %s%s%s%s\n' % \
-               (Colors.normalEm,
-                _format_filename(filename, Colors, Colors.normalEm),
-                Colors.linenoEm, lineno, Colors.normalEm,
-                Colors.nameEm, name, Colors.normalEm,
-                Colors.Normal)
+        item = "%s  %s, line %s%d%s, in %s%s%s%s\n" % (
+            Colors.normalEm,
+            _format_filename(filename, Colors, Colors.normalEm),
+            Colors.linenoEm,
+            lineno,
+            Colors.normalEm,
+            Colors.nameEm,
+            name,
+            Colors.normalEm,
+            Colors.Normal,
+        )
         if line:
             item += '%s    %s%s\n' % (Colors.line, line.strip(),
                                       Colors.Normal)
@@ -488,14 +498,19 @@ class ListTB(TBTools):
                     lineno = value.lineno
                     textline = linecache.getline(value.filename, value.lineno)
                 else:
-                    lineno = 'unknown'
-                    textline = ''
-                list.append('%s  %s, line %s%s%s\n' %
-                            (Colors.normalEm,
-                             _format_filename(value.filename, Colors, Colors.normalEm),
-                             Colors.linenoEm, lineno, Colors.Normal
-                             ))
-                if textline == '':
+                    lineno = "unknown"
+                    textline = ""
+                list.append(
+                    "%s  %s, line %s%s%s\n"
+                    % (
+                        Colors.normalEm,
+                        _format_filename(value.filename, Colors, Colors.normalEm),
+                        Colors.linenoEm,
+                        lineno,
+                        Colors.Normal,
+                    )
+                )
+                if textline == "":
                     textline = py3compat.cast_unicode(value.text, "utf-8")
 
                 if textline is not None:
@@ -659,7 +674,7 @@ class VerboseTB(TBTools):
         if lvals_list:
             lvals = '%s%s' % (indent, em_normal.join(lvals_list))
 
-        result = '%s, %s\n' % (link, call)
+        result = "%s, %s\n" % (link, call)
 
         result += ''.join(_format_traceback_lines(frame_info.lines, Colors, self.has_colors, lvals))
         return result
