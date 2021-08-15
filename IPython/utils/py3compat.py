@@ -14,23 +14,10 @@ import platform
 from .encoding import DEFAULT_ENCODING
 
 
-def decode(s, encoding=None):
-    encoding = encoding or DEFAULT_ENCODING
-    return s.decode(encoding, "replace")
-
-def encode(u, encoding=None):
-    encoding = encoding or DEFAULT_ENCODING
-    return u.encode(encoding, "replace")
-
-
 def cast_unicode(s, encoding=None):
+    encoding = encoding or DEFAULT_ENCODING
     if isinstance(s, bytes):
-        return decode(s, encoding)
-    return s
-
-def cast_bytes(s, encoding=None):
-    if not isinstance(s, bytes):
-        return encode(s, encoding)
+        return s.decode(encoding, errors="replace")
     return s
 
 def buffer_to_bytes(buf):

@@ -11,7 +11,6 @@ import random
 
 # Our own
 from IPython.core.error import UsageError
-from IPython.utils.py3compat import encode
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -65,7 +64,9 @@ def passwd(passphrase=None, algorithm='sha1'):
 
     h = hashlib.new(algorithm)
     salt = ('%0' + str(salt_len) + 'x') % random.getrandbits(4 * salt_len)
-    h.update(encode(passphrase, 'utf-8') + encode(salt, 'ascii'))
+    h.update(
+        passphrase.encode(errors="replace") + salt.encode("ascii", errors="replace")
+    )
 
     return ':'.join((algorithm, salt, h.hexdigest()))
 
@@ -109,6 +110,8 @@ def passwd_check(hashed_passphrase, passphrase):
     if len(pw_digest) == 0:
         return False
 
-    h.update(encode(passphrase, 'utf-8') + encode(salt, 'ascii'))
+    h.update(
+        passphrase.encode(errors="replace") + salt.encode("ascii", errors="replace")
+    )
 
     return h.hexdigest() == pw_digest

@@ -34,7 +34,6 @@ from nose.plugins import Plugin
 from nose.util import safe_str
 
 from IPython import version_info
-from IPython.utils.py3compat import decode
 from IPython.utils.importstring import import_item
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
 from IPython.external.decorators import KnownFailure, knownfailureif
@@ -296,7 +295,7 @@ class StreamCapturer(Thread):
             with self.buffer_lock:
                 self.buffer.write(chunk)
             if self.echo:
-                sys.stdout.write(decode(chunk))
+                sys.stdout.write(chunk.decode(errors="replace"))
 
         os.close(self.readfd)
         os.close(self.writefd)

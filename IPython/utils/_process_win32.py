@@ -166,7 +166,7 @@ def getoutput(cmd):
 
     if out is None:
         out = b''
-    return py3compat.decode(out)
+    return out.decode(errors="replace")
 
 try:
     CommandLineToArgvW = ctypes.windll.shell32.CommandLineToArgvW

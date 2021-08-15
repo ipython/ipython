@@ -24,7 +24,6 @@ from .iptest import (
     have, test_group_names as py_test_group_names, test_sections, StreamCapturer,
 )
 from IPython.utils.path import compress_user
-from IPython.utils.py3compat import decode
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 from pathlib import Path
@@ -358,7 +357,7 @@ def run_iptestall(options):
                 res_string = 'OK' if res == 0 else 'FAILED'
                 print(justify('Test group: ' + controller.section, res_string))
                 if res:
-                    print(decode(controller.stdout))
+                    print(controller.stdout.decode(errors="replace"))
                     failed.append(controller)
                     if res == -signal.SIGINT:
                         print("Interrupted")

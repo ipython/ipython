@@ -19,7 +19,6 @@ import System
 import os
 
 # Import IPython libraries:
-from IPython.utils import py3compat
 from ._process_common import arg_split
 
 def _find_cmd(cmd):
@@ -28,7 +27,7 @@ def _find_cmd(cmd):
     for path in paths:
         filename = os.path.join(path, cmd)
         if System.IO.File.Exists(filename):
-            return py3compat.decode(filename)
+            return filename.decode(errors="replace")
     raise OSError("command %r not found" % cmd)
 
 def system(cmd):
