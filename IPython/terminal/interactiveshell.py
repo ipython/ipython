@@ -203,10 +203,10 @@ class TerminalInteractiveShell(InteractiveShell):
 
 
     @observe('editing_mode')
-    def _editing_mode(self, change):
+    def _editing_mode_changed(self, change):
         u_mode = change.new.upper()
         if self.pt_app:
-            self.pt_app.editing_mode = u_mode
+            self.init_prompt_toolkit_cli()
 
     @observe('autoformatter')
     def _autoformatter_changed(self, change):
