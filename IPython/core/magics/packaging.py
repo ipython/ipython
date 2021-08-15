@@ -12,7 +12,7 @@ import re
 import shlex
 import sys
 from pathlib import Path
-from multiprocessing import list2cmdline
+from subprocess import list2cmdline
 from IPython.core.magic import Magics, magics_class, line_magic
 
 
