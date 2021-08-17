@@ -12,7 +12,7 @@ import re
 import shlex
 import sys
 from pathlib import Path
-from multiprocessing import list2cmdline
+
 from IPython.core.magic import Magics, magics_class, line_magic
 
 
@@ -66,7 +66,8 @@ class PackagingMagics(Magics):
         Usage:
           %pip install [pkgs]
         """
-        self.shell.system(list2cmdline([sys.executable, "-m", "pip"]) + " " + line)
+        python = shlex.quote(sys.executable)
+        self.shell.system(" ".join([python, "-m", "pip", line]))
 
         print("Note: you may need to restart the kernel to use updated packages.")
 
