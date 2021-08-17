@@ -928,7 +928,12 @@ class InteractiveShell(SingletonConfigurable):
         elif len(str(p_venv)) >= 2 and str(p_venv)[1] == ":":
             p_venv = Path(str(p_venv)[2:])
 
-        if any(os.fspath(p_venv).lower() in os.fspath(p).lower() for p in paths):
+        if sys.platform == "win32":
+            # In Windows there might be a mixture of lower-case and mixed-case pathes
+            p_venv = Path(str(p_venv).lower())
+            paths = [Path(str(p).lower()) for p in paths]
+
+        if any(os.fspath(p_venv) in os.fspath(p) for p in paths):
             # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
 
