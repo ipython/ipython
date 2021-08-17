@@ -67,7 +67,7 @@ class PackagingMagics(Magics):
           %pip install [pkgs]
         """
         python = sys.executable
-        if " " in sys.executable:
+        if " " in python:
             if sys.platform == "win32":
                 python = "\"" + python + "\""
             else:
