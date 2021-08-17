@@ -930,6 +930,11 @@ class InteractiveShell(SingletonConfigurable):
         elif len(p_venv) >= 2 and p_venv[1] == ':':
             p_venv = p_venv[2:]
 
+        if sys.platform == "win32":
+            # In Windows there might be a mixture of lower-case and mixed-case pathes
+            p_venv = str(p_venv).lower()
+            paths = [str(p).lower() for p in paths]
+
         if any(p_venv in p for p in paths):
             # Running properly in the virtualenv, don't need to do anything
             return
