@@ -25,7 +25,7 @@ def test_check_latex_to_png_dvipng_fails_when_no_cmd(command):
             raise FindCmdError
 
     with patch.object(latextools, "find_cmd", mock_find_cmd):
-        assert latextools.latex_to_png_dvipng("whatever", True) == None
+        assert latextools.latex_to_png_dvipng("whatever", True) is None
 
 
 @contextmanager

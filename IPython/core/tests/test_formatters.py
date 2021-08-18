@@ -352,7 +352,7 @@ def test_print_method_weird():
     with capture_output() as captured:
         result = f(call_hat)
 
-    assert result == None
+    assert result is None
 
     class BadReprArgs(object):
         def _repr_html_(self, extra, args):
