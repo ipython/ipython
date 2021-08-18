@@ -66,7 +66,8 @@ def test_find_cmd_fail():
     """Make sure that FindCmdError is raised if we can't find the cmd."""
     nt.assert_raises(FindCmdError,find_cmd,'asdfasdf')
 
-    
+
+# TODO: move to pytest.mark.parametrize once nose gone
 @dec.skip_win32
 def test_arg_split():
     """Ensure that argument lines are correctly split like in a shell."""
@@ -80,8 +81,10 @@ def test_arg_split():
              ['something "with quotes"', ['something', '"with quotes"']],
              ]
     for argstr, argv in tests:
-        nt.assert_equal(arg_split(argstr), argv)
-    
+        assert arg_split(argstr) == argv
+
+
+# TODO: move to pytest.mark.parametrize once nose gone
 @dec.skip_if_not_win32
 def test_arg_split_win32():
     """Ensure that argument lines are correctly split like in a shell."""
@@ -92,7 +95,7 @@ def test_arg_split_win32():
              ['something "with quotes"', ['something', 'with quotes']],
              ]
     for argstr, argv in tests:
-        nt.assert_equal(arg_split(argstr), argv)
+        assert arg_split(argstr) == argv
 
 
 class SubProcessTestCase(tt.TempFileMixin):
