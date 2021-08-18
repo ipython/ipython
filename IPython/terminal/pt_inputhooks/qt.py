@@ -1,12 +1,17 @@
 import sys
 import os
-from IPython.external.qt_for_kernel import QtCore, QtGui
+from IPython.external.qt_for_kernel import QtCore, QtGui, enum_helper
 from IPython import get_ipython
 
 # If we create a QApplication, keep a reference to it so that it doesn't get
 # garbage collected.
 _appref = None
 _already_warned = False
+
+
+def _exec(obj):
+    # exec on PyQt6, exec_ elsewhere.
+    obj.exec() if hasattr(obj, "exec") else obj.exec_()
 
 
 def _reclaim_excepthook():
@@ -32,7 +37,16 @@ def inputhook(context):
                         'variable. Deactivate Qt5 code.'
                     )
                 return
-        QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+        try:
+            QtCore.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+        except AttributeError:  # Only for Qt>=5.6, <6.
+            pass
+        try:
+            QtCore.QApplication.setHighDpiScaleFactorRoundingPolicy(
+                QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+            )
+        except AttributeError:  # Only for Qt>=5.14.
+            pass
         _appref = app = QtGui.QApplication([" "])
 
         # "reclaim" IPython sys.excepthook after event loop starts
@@ -55,14 +69,15 @@ def inputhook(context):
     else:
         # On POSIX platforms, we can use a file descriptor to quit the event
         # loop when there is input ready to read.
-        notifier = QtCore.QSocketNotifier(context.fileno(),
-                                          QtCore.QSocketNotifier.Read)
+        notifier = QtCore.QSocketNotifier(
+            context.fileno(), enum_helper("QtCore.QSocketNotifier.Type").Read
+        )
         try:
             # connect the callback we care about before we turn it on
             notifier.activated.connect(lambda: event_loop.exit())
             notifier.setEnabled(True)
             # only start the event loop we are not already flipped
             if not context.input_is_ready():
-                event_loop.exec_()
+                _exec(event_loop)
         finally:
             notifier.setEnabled(False)
