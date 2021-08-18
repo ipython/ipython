@@ -48,16 +48,16 @@ def foo_printer(obj, pp, cycle):
 def test_pretty():
     f = PlainTextFormatter()
     f.for_type(A, foo_printer)
-    nt.assert_equal(f(A()), 'foo')
-    nt.assert_equal(f(B()), 'B()')
-    nt.assert_equal(f(GoodPretty()), 'foo')
+    assert f(A()) == "foo"
+    assert f(B()) == "B()"
+    assert f(GoodPretty()) == "foo"
     # Just don't raise an exception for the following:
     f(BadPretty())
 
     f.pprint = False
-    nt.assert_equal(f(A()), 'A()')
-    nt.assert_equal(f(B()), 'B()')
-    nt.assert_equal(f(GoodPretty()), 'GoodPretty()')
+    assert f(A()) == "A()"
+    assert f(B()) == "B()"
+    assert f(GoodPretty()) == "GoodPretty()"
 
 
 def test_deferred():
@@ -66,29 +66,30 @@ def test_deferred():
 def test_precision():
     """test various values for float_precision."""
     f = PlainTextFormatter()
-    nt.assert_equal(f(pi), repr(pi))
+    assert f(pi) == repr(pi)
     f.float_precision = 0
     if numpy:
         po = numpy.get_printoptions()
-        nt.assert_equal(po['precision'], 0)
-    nt.assert_equal(f(pi), '3')
+        assert po["precision"] == 0
+    assert f(pi) == "3"
     f.float_precision = 2
     if numpy:
         po = numpy.get_printoptions()
-        nt.assert_equal(po['precision'], 2)
-    nt.assert_equal(f(pi), '3.14')
-    f.float_precision = '%g'
+        assert po["precision"] == 2
+    assert f(pi) == "3.14"
+    f.float_precision = "%g"
     if numpy:
         po = numpy.get_printoptions()
-        nt.assert_equal(po['precision'], 2)
-    nt.assert_equal(f(pi), '3.14159')
-    f.float_precision = '%e'
-    nt.assert_equal(f(pi), '3.141593e+00')
-    f.float_precision = ''
+        assert po["precision"] == 2
+    assert f(pi) == "3.14159"
+    f.float_precision = "%e"
+    assert f(pi) == "3.141593e+00"
+    f.float_precision = ""
     if numpy:
         po = numpy.get_printoptions()
-        nt.assert_equal(po['precision'], 8)
-    nt.assert_equal(f(pi), repr(pi))
+        assert po["precision"] == 8
+    assert f(pi) == repr(pi)
+
 
 def test_bad_precision():
     """test various invalid values for float_precision."""
@@ -260,8 +261,9 @@ def test_nowarn_notimplemented():
     with capture_output() as captured:
         result = f(h)
     nt.assert_is(result, None)
-    nt.assert_equal("", captured.stderr)
-    nt.assert_equal("", captured.stdout)
+    assert "" == captured.stderr
+    assert "" == captured.stdout
+
 
 def test_warn_error_for_type():
     f = HTMLFormatter()
@@ -307,7 +309,8 @@ class MakePDF(object):
 def test_pdf_formatter():
     pdf = MakePDF()
     f = PDFFormatter()
-    nt.assert_equal(f(pdf), 'PDF')
+    assert f(pdf) == "PDF"
+
 
 def test_print_method_bound():
     f = HTMLFormatter()
@@ -321,8 +324,9 @@ def test_print_method_bound():
 
     with capture_output() as captured:
         result = f(MyHTML())
-    nt.assert_equal(result, "hello")
-    nt.assert_equal(captured.stderr, "")
+    assert result == "hello"
+    assert captured.stderr == ""
+
 
 def test_print_method_weird():
 
@@ -331,9 +335,9 @@ def test_print_method_weird():
             return key
 
     f = HTMLFormatter()
-    
+
     text_hat = TextMagicHat()
-    nt.assert_equal(text_hat._repr_html_, '_repr_html_')
+    assert text_hat._repr_html_ == "_repr_html_"
     with capture_output() as captured:
         result = f(text_hat)
     
@@ -347,8 +351,8 @@ def test_print_method_weird():
     call_hat = CallableMagicHat()
     with capture_output() as captured:
         result = f(call_hat)
-    
-    nt.assert_equal(result, None)
+
+    assert result == None
 
     class BadReprArgs(object):
         def _repr_html_(self, extra, args):
@@ -369,24 +373,25 @@ def test_format_config():
     with capture_output() as captured:
         result = f(cfg)
     nt.assert_is(result, None)
-    nt.assert_equal(captured.stderr, "")
+    assert captured.stderr == ""
 
     with capture_output() as captured:
         result = f(Config)
     nt.assert_is(result, None)
-    nt.assert_equal(captured.stderr, "")
+    assert captured.stderr == ""
+
 
 def test_pretty_max_seq_length():
     f = PlainTextFormatter(max_seq_length=1)
     lis = list(range(3))
     text = f(lis)
-    nt.assert_equal(text, '[0, ...]')
+    assert text == "[0, ...]"
     f.max_seq_length = 0
     text = f(lis)
-    nt.assert_equal(text, '[0, 1, 2]')
+    assert text == "[0, 1, 2]"
     text = f(list(range(1024)))
     lines = text.splitlines()
-    nt.assert_equal(len(lines), 1024)
+    assert len(lines) == 1024
 
 
 def test_ipython_display_formatter():
@@ -409,16 +414,16 @@ def test_ipython_display_formatter():
     
     yes = SelfDisplaying()
     no = NotSelfDisplaying()
-    
+
     d, md = f.format(no)
-    nt.assert_equal(d, {'text/plain': repr(no)})
-    nt.assert_equal(md, {})
-    nt.assert_equal(catcher, [])
-    
+    assert d == {"text/plain": repr(no)}
+    assert md == {}
+    assert catcher == []
+
     d, md = f.format(yes)
-    nt.assert_equal(d, {})
-    nt.assert_equal(md, {})
-    nt.assert_equal(catcher, [yes])
+    assert d == {}
+    assert md == {}
+    assert catcher == [yes]
 
     f.ipython_display_formatter.enabled = save_enabled
 
@@ -431,8 +436,8 @@ def test_json_as_string_deprecated():
     f = JSONFormatter()
     with warnings.catch_warnings(record=True) as w:
         d = f(JSONString())
-    nt.assert_equal(d, {})
-    nt.assert_equal(len(w), 1)
+    assert d == {}
+    assert len(w) == 1
 
 
 def test_repr_mime():
@@ -458,19 +463,22 @@ def test_repr_mime():
     obj = HasReprMime()
     d, md = f.format(obj)
     html_f.enabled = save_enabled
-    
-    nt.assert_equal(sorted(d), ['application/json+test.v2',
-                                'image/png',
-                                'plain/text',
-                                'text/html',
-                                'text/plain'])
-    nt.assert_equal(md, {})
 
-    d, md = f.format(obj, include={'image/png'})
-    nt.assert_equal(list(d.keys()), ['image/png'],
-                    'Include should filter out even things from repr_mimebundle')
-    nt.assert_equal(d['image/png'], 'i-overwrite', '_repr_mimebundle_ take precedence')
+    assert sorted(d) == [
+        "application/json+test.v2",
+        "image/png",
+        "plain/text",
+        "text/html",
+        "text/plain",
+    ]
+    assert md == {}
 
+    d, md = f.format(obj, include={"image/png"})
+    assert list(d.keys()) == [
+        "image/png"
+    ], "Include should filter out even things from repr_mimebundle"
+
+    assert d["image/png"] == "i-overwrite", "_repr_mimebundle_ take precedence"
 
 
 def test_pass_correct_include_exclude():
@@ -514,13 +522,14 @@ def test_repr_mime_meta():
     f = get_ipython().display_formatter
     obj = HasReprMimeMeta()
     d, md = f.format(obj)
-    nt.assert_equal(sorted(d), ['image/png', 'text/plain'])
-    nt.assert_equal(md, {
-        'image/png': {
-            'width': 5,
-            'height': 10,
+    assert sorted(d) == ["image/png", "text/plain"]
+    assert md == {
+        "image/png": {
+            "width": 5,
+            "height": 10,
         }
-    })
+    }
+
 
 def test_repr_mime_failure():
     class BadReprMime(object):
@@ -530,4 +539,4 @@ def test_repr_mime_failure():
     f = get_ipython().display_formatter
     obj = BadReprMime()
     d, md = f.format(obj)
-    nt.assert_in('text/plain', d)
+    assert "text/plain" in d
