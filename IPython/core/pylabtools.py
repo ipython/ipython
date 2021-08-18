@@ -19,6 +19,7 @@ backends = {
     "wx": "WXAgg",
     "qt4": "Qt4Agg",
     "qt5": "Qt5Agg",
+    "qt6": "QtAgg",
     "qt": "Qt5Agg",
     "osx": "MacOSX",
     "nbagg": "nbAgg",
