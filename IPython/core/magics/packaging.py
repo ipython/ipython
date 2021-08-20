@@ -69,7 +69,7 @@ class PackagingMagics(Magics):
         python = sys.executable
         if " " in python:
             if sys.platform == "win32":
-                python = "\"" + python + "\""
+                python = '"' + python + '"'
             else:
                 python = shlex.quote(python)
 
