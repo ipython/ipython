@@ -67,11 +67,10 @@ class PackagingMagics(Magics):
           %pip install [pkgs]
         """
         python = sys.executable
-        if " " in python:
-            if sys.platform == "win32":
-                python = '"' + python + '"'
-            else:
-                python = shlex.quote(python)
+        if sys.platform == "win32":
+            python = '"' + python + '"'
+        else:
+            python = shlex.quote(python)
 
         self.shell.system(" ".join([python, "-m", "pip", line]))
 
