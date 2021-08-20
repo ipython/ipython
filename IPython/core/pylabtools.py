@@ -16,6 +16,7 @@ backends = {
     "tk": "TkAgg",
     "gtk": "GTKAgg",
     "gtk3": "GTK3Agg",
+    "gtk4": "GTK4Agg",
     "wx": "WXAgg",
     "qt4": "Qt4Agg",
     "qt5": "Qt5Agg",
@@ -44,6 +45,7 @@ backend2gui['Qt4Agg'] = 'qt'
 # map to the same GUI support
 backend2gui['GTK'] = backend2gui['GTKCairo'] = 'gtk'
 backend2gui['GTK3Cairo'] = 'gtk3'
+backend2gui['GTK4Cairo'] = 'gtk4'
 backend2gui['WX'] = 'wx'
 backend2gui['CocoaAgg'] = 'osx'
 # And some backends that don't need GUI integration
