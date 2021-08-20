@@ -65,7 +65,12 @@ class PackagingMagics(Magics):
         Usage:
           %pip install [pkgs]
         """
-        python = shlex.quote(sys.executable)
+        python = sys.executable
+        if sys.platform == "win32":
+            python = '"' + python + '"'
+        else:
+            python = shlex.quote(python)
+
         self.shell.system(" ".join([python, "-m", "pip", line]))
 
         print("Note: you may need to restart the kernel to use updated packages.")
