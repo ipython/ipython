@@ -671,8 +671,16 @@ class VerboseTB(TBTools):
         lvals = ''
         lvals_list = []
         if self.include_vars:
-            for var in frame_info.variables_in_executing_piece:
-                lvals_list.append(tpl_name_val % (var.name, repr(var.value)))
+            try:
+                # we likely want to fix stackdata at some point, but
+                # still need a workaround.
+                fibp = frame_info.variables_in_executing_piece
+                for var in fibp:
+                    lvals_list.append(tpl_name_val % (var.name, repr(var.value)))
+            except Exception:
+                lvals_list.append(
+                    "Exception trying to inspect frame. No more locals available."
+                )
         if lvals_list:
             lvals = '%s%s' % (indent, em_normal.join(lvals_list))
 
