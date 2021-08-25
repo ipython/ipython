@@ -388,10 +388,9 @@ class RepresentationPrinter(PrettyPrinter):
             #   1) a registered printer
             #   2) a _repr_pretty_ method
             for cls in _get_mro(obj_class):
-                if cls in self.type_pprinters:
-                    # printer registered in self.type_pprinters
-                    return self.type_pprinters[cls](obj, self, cycle)
-                else:
+                try:
+                    printer = self.type_pprinters[cls]
+                except (KeyError, TypeError):
                     # deferred printer
                     printer = self._in_deferred_types(cls)
                     if printer is not None:
@@ -408,6 +407,9 @@ class RepresentationPrinter(PrettyPrinter):
                         if cls is not object \
                                 and callable(cls.__dict__.get('__repr__')):
                             return _repr_pprint(obj, self, cycle)
+                else:
+                    # printer registered in self.type_pprinters
+                    return printer(obj, self, cycle)
 
             return _default_pprint(obj, self, cycle)
         finally:
