@@ -8,6 +8,7 @@
 from inspect import signature, Signature, Parameter
 import os
 import re
+from pathlib import Path
 
 import nose.tools as nt
 
@@ -38,7 +39,7 @@ def setup_module():
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 41  # Put here the actual number of this line
+THIS_LINE_NUMBER = 42  # Put here the actual number of this line
 
 from unittest import TestCase
 
@@ -52,7 +53,7 @@ class Test(TestCase):
 # A couple of utilities to ensure these tests work the same from a source or a
 # binary install
 def pyfile(fname):
-    return os.path.normcase(re.sub('.py[co]$', '.py', fname))
+    return os.path.normcase(re.sub(".py[co]$", ".py", str(fname)))
 
 
 def match_pyfiles(f1, f2):
@@ -60,7 +61,7 @@ def match_pyfiles(f1, f2):
 
 
 def test_find_file():
-    match_pyfiles(oinspect.find_file(test_find_file), os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(test_find_file), Path(__file__).resolve())
 
 
 def test_find_file_decorated1():
@@ -75,7 +76,7 @@ def test_find_file_decorated1():
     def f(x):
         "My docstring"
     
-    match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(f), Path(__file__).resolve())
     nt.assert_equal(f.__doc__, "My docstring")
 
 
@@ -91,7 +92,7 @@ def test_find_file_decorated2():
     def f(x):
         "My docstring 2"
     
-    match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(f), Path(__file__).resolve())
     nt.assert_equal(f.__doc__, "My docstring 2")
     
 
@@ -172,18 +173,18 @@ def test_info():
     expted_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
     nt.assert_equal(i['base_class'], expted_class)
     nt.assert_regex(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>")
-    fname = __file__
-    if fname.endswith(".pyc"):
-        fname = fname[:-1]
+    fname = Path(__file__)
+    if fname.suffix == ".pyc":
+        fname = fname.with_suffix(".py")
     # case-insensitive comparison needed on some filesystems
     # e.g. Windows:
-    nt.assert_equal(i['file'].lower(), compress_user(fname).lower())
-    nt.assert_equal(i['definition'], None)
-    nt.assert_equal(i['docstring'], Call.__doc__)
-    nt.assert_equal(i['source'], None)
-    nt.assert_true(i['isclass'])
-    nt.assert_equal(i['init_definition'], "Call(x, y=1)")
-    nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
+    nt.assert_equal(i["file"].lower(), compress_user(str(fname)).lower())
+    nt.assert_equal(i["definition"], None)
+    nt.assert_equal(i["docstring"], Call.__doc__)
+    nt.assert_equal(i["source"], None)
+    nt.assert_true(i["isclass"])
+    nt.assert_equal(i["init_definition"], "Call(x, y=1)")
+    nt.assert_equal(i["init_docstring"], Call.__init__.__doc__)
 
     i = inspector.info(Call, detail_level=1)
     nt.assert_not_equal(i['source'], None)
@@ -264,7 +265,7 @@ def test_empty_property_has_no_source():
 
 
 def test_property_sources():
-    import posixpath 
+    import posixpath
     # A simple adder whose source and signature stays
     # the same across Python distributions
     def simple_add(a, b):

@@ -987,6 +987,7 @@ async def test_script_bg_out_err():
     ip.run_cell_magic(
         "script", "--bg --out output --err error sh", "echo 'hi'\necho 'hello' >&2"
     )
+
     nt.assert_equal((await ip.user_ns["output"].read()), b"hi\n")
     nt.assert_equal((await ip.user_ns["error"].read()), b"hello\n")
     ip.user_ns["output"].close()

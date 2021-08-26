@@ -23,6 +23,7 @@ Authors
 import shutil
 import sys
 import tempfile
+from pathlib import Path
 
 from pathlib import Path
 from unittest import TestCase
@@ -40,6 +41,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
+
 TMP_TEST_DIR = Path(tempfile.mkdtemp())
 HOME_TEST_DIR = TMP_TEST_DIR / "home_test_dir"
 IP_TEST_DIR = HOME_TEST_DIR / ".ipython"
@@ -55,7 +57,7 @@ def setup_module():
     """
     # Do not mask exceptions here.  In particular, catching WindowsError is a
     # problem because that exception is only defined on Windows...
-    (Path.cwd() / IP_TEST_DIR).mkdir(parents=True)
+    IP_TEST_DIR.mkdir(parents=True)
 
 
 def teardown_module():
@@ -95,7 +97,7 @@ class ProfileStartupTest(TestCase):
 
     def init(self, startup_file, startup, test):
         # write startup python file
-        with open(Path(self.pd.startup_dir) / startup_file, "w") as f:
+        with open(Path(self.pd.startup_dir, startup_file), "w") as f:
             f.write(startup)
         # write simple test file, to check that the startup file was run
         with open(self.fname, 'w') as f:
@@ -120,9 +122,9 @@ def test_list_profiles_in():
     # the module-level teardown.
     td = Path(tempfile.mkdtemp(dir=TMP_TEST_DIR))
     for name in ("profile_foo", "profile_hello", "not_a_profile"):
-        Path(td / name).mkdir(parents=True)
+        Path(td, name).mkdir(parents=True)
     if dec.unicode_paths:
-        Path(td / u"profile_ünicode").mkdir(parents=True)
+        Path(td, u"profile_ünicode").mkdir()
 
     with open(td / "profile_file", "w") as f:
         f.write("I am not a profile directory")
@@ -163,8 +165,7 @@ def test_profile_create_ipython_dir():
                 "--ipython-dir=%s" % td,
             ]
         )
-        profile_dir = Path(td) / "profile_foo"
-        assert Path(profile_dir).exists()
+        profile_dir = Path(td, "profile_foo")
+        assert profile_dir.exists()
         ipython_config = profile_dir / "ipython_config.py"
-        assert Path(ipython_config).exists()
-        
+        assert ipython_config.exists()

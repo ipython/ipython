@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test IPython.core.logger"""
 
-import os.path
+from pathlib import Path
 
 import nose.tools as nt
 from IPython.utils.tempdir import TemporaryDirectory
@@ -21,7 +21,7 @@ def test_logstart_inaccessible_file():
 
 def test_logstart_unicode():
     with TemporaryDirectory() as tdir:
-        logfname = os.path.join(tdir, "test_unicode.log")
+        logfname = Path(tdir, "test_unicode.log")
         _ip.run_cell("'abc€'")
         try:
             _ip.magic("logstart -to %s" % logfname)
