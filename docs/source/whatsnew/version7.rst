@@ -2,6 +2,27 @@
  7.x Series
 ============
 
+.. _version 7.27:
+
+IPython 7.27
+============
+
+IPython 7.27 is a minor release that fixes a couple of issues and compatibility.
+
+- Add support for GTK4 :ghpull:`131011`
+- Add support for Qt6 :ghpull:`13085`
+- Fix an issue with pip magic on windows :ghpull:`13093`
+
+Thanks
+------
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/90>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 .. _version 7.26:
 
 IPython 7.26
