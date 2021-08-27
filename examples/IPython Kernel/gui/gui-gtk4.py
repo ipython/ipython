@@ -9,7 +9,8 @@ In [2]: %run gui-gtk4.py
 """
 
 import gi
-gi.require_version('Gtk', '4.0')
+
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, GLib  # noqa
 
 

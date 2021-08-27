@@ -43,11 +43,11 @@ backend2gui = dict(zip(backends.values(), backends.keys()))
 backend2gui['Qt4Agg'] = 'qt'
 # In the reverse mapping, there are a few extra valid matplotlib backends that
 # map to the same GUI support
-backend2gui['GTK'] = backend2gui['GTKCairo'] = 'gtk'
-backend2gui['GTK3Cairo'] = 'gtk3'
-backend2gui['GTK4Cairo'] = 'gtk4'
-backend2gui['WX'] = 'wx'
-backend2gui['CocoaAgg'] = 'osx'
+backend2gui["GTK"] = backend2gui["GTKCairo"] = "gtk"
+backend2gui["GTK3Cairo"] = "gtk3"
+backend2gui["GTK4Cairo"] = "gtk4"
+backend2gui["WX"] = "wx"
+backend2gui["CocoaAgg"] = "osx"
 # And some backends that don't need GUI integration
 del backend2gui["nbAgg"]
 del backend2gui["agg"]
