@@ -14,6 +14,7 @@ backends = [
     "gtk",
     "gtk2",
     "gtk3",
+    "gtk4",
     "tk",
     "wx",
     "pyglet",
