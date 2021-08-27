@@ -32,31 +32,31 @@ def test_columnize():
     items = [l*size for l in 'abcd']
 
     out = text.columnize(items, displaywidth=80)
-    nt.assert_equal(out, 'aaaaa  bbbbb  ccccc  ddddd\n')
+    assert out == "aaaaa  bbbbb  ccccc  ddddd\n"
     out = text.columnize(items, displaywidth=25)
-    nt.assert_equal(out, 'aaaaa  ccccc\nbbbbb  ddddd\n')
+    assert out == "aaaaa  ccccc\nbbbbb  ddddd\n"
     out = text.columnize(items, displaywidth=12)
-    nt.assert_equal(out, 'aaaaa  ccccc\nbbbbb  ddddd\n')
+    assert out == "aaaaa  ccccc\nbbbbb  ddddd\n"
     out = text.columnize(items, displaywidth=10)
-    nt.assert_equal(out, 'aaaaa\nbbbbb\nccccc\nddddd\n')
+    assert out == "aaaaa\nbbbbb\nccccc\nddddd\n"
 
     out = text.columnize(items, row_first=True, displaywidth=80)
-    nt.assert_equal(out, 'aaaaa  bbbbb  ccccc  ddddd\n')
+    assert out == "aaaaa  bbbbb  ccccc  ddddd\n"
     out = text.columnize(items, row_first=True, displaywidth=25)
-    nt.assert_equal(out, 'aaaaa  bbbbb\nccccc  ddddd\n')
+    assert out == "aaaaa  bbbbb\nccccc  ddddd\n"
     out = text.columnize(items, row_first=True, displaywidth=12)
-    nt.assert_equal(out, 'aaaaa  bbbbb\nccccc  ddddd\n')
+    assert out == "aaaaa  bbbbb\nccccc  ddddd\n"
     out = text.columnize(items, row_first=True, displaywidth=10)
-    nt.assert_equal(out, 'aaaaa\nbbbbb\nccccc\nddddd\n')
+    assert out == "aaaaa\nbbbbb\nccccc\nddddd\n"
 
     out = text.columnize(items, displaywidth=40, spread=True)
-    nt.assert_equal(out, 'aaaaa      bbbbb      ccccc      ddddd\n')
+    assert out == "aaaaa      bbbbb      ccccc      ddddd\n"
     out = text.columnize(items, displaywidth=20, spread=True)
-    nt.assert_equal(out, 'aaaaa          ccccc\nbbbbb          ddddd\n')
+    assert out == "aaaaa          ccccc\nbbbbb          ddddd\n"
     out = text.columnize(items, displaywidth=12, spread=True)
-    nt.assert_equal(out, 'aaaaa  ccccc\nbbbbb  ddddd\n')
+    assert out == "aaaaa  ccccc\nbbbbb  ddddd\n"
     out = text.columnize(items, displaywidth=10, spread=True)
-    nt.assert_equal(out, 'aaaaa\nbbbbb\nccccc\nddddd\n')
+    assert out == "aaaaa\nbbbbb\nccccc\nddddd\n"
 
 
 def test_columnize_random():
@@ -77,38 +77,43 @@ def test_columnize_random():
                 print("size of each element :\n %s" % rand_len)
                 assert False, "row_first={0}".format(row_first)
 
+
+# TODO: pytest mark.parametrize once nose removed.
 def test_columnize_medium():
     """Test with inputs than shouldn't be wider than 80"""
     size = 40
     items = [l*size for l in 'abc']
     for row_first in [True, False]:
         out = text.columnize(items, row_first=row_first, displaywidth=80)
-        nt.assert_equal(out, '\n'.join(items+['']), "row_first={0}".format(row_first))
+        assert out == "\n".join(items + [""]), "row_first={0}".format(row_first)
 
+
+# TODO: pytest mark.parametrize once nose removed.
 def test_columnize_long():
     """Test columnize with inputs longer than the display window"""
     size = 11
     items = [l*size for l in 'abc']
     for row_first in [True, False]:
-        out = text.columnize(items, row_first=row_first, displaywidth=size-1)
-        nt.assert_equal(out, '\n'.join(items+['']), "row_first={0}".format(row_first))
+        out = text.columnize(items, row_first=row_first, displaywidth=size - 1)
+        assert out == "\n".join(items + [""]), "row_first={0}".format(row_first)
+
 
 def eval_formatter_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os, u=u"café", b="café")
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
-    nt.assert_equal(s, "12 3 hello")
+    assert s == "12 3 hello"
     s = f.format(' '.join(['{n//%i}'%i for i in range(1,8)]), **ns)
-    nt.assert_equal(s, "12 6 4 3 2 2 1")
+    assert s == "12 6 4 3 2 2 1"
     s = f.format('{[n//i for i in range(1,8)]}', **ns)
-    nt.assert_equal(s, "[12, 6, 4, 3, 2, 2, 1]")
+    assert s == "[12, 6, 4, 3, 2, 2, 1]"
     s = f.format("{stuff!s}", **ns)
-    nt.assert_equal(s, ns['stuff'])
+    assert s == ns["stuff"]
     s = f.format("{stuff!r}", **ns)
-    nt.assert_equal(s, repr(ns['stuff']))
-    
+    assert s == repr(ns["stuff"])
+
     # Check with unicode:
     s = f.format("{u}", **ns)
-    nt.assert_equal(s, ns['u'])
+    assert s == ns["u"]
     # This decodes in a platform dependent manner, but it shouldn't error out
     s = f.format("{b}", **ns)
         
@@ -117,25 +122,25 @@ def eval_formatter_check(f):
 def eval_formatter_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
     s = f.format(" {stuff.split()[:]} ", **ns)
-    nt.assert_equal(s, " ['hello', 'there'] ")
+    assert s == " ['hello', 'there'] "
     s = f.format(" {stuff.split()[::-1]} ", **ns)
-    nt.assert_equal(s, " ['there', 'hello'] ")
+    assert s == " ['there', 'hello'] "
     s = f.format("{stuff[::2]}", **ns)
-    nt.assert_equal(s, ns['stuff'][::2])
-    
+    assert s == ns["stuff"][::2]
+
     nt.assert_raises(SyntaxError, f.format, "{n:x}", **ns)
 
 def eval_formatter_no_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
     
     s = f.format('{n:x} {pi**2:+f}', **ns)
-    nt.assert_equal(s, "c +9.869604")
-    
-    s = f.format('{stuff[slice(1,4)]}', **ns)
-    nt.assert_equal(s, 'ell')
+    assert s == "c +9.869604"
+
+    s = f.format("{stuff[slice(1,4)]}", **ns)
+    assert s == "ell"
 
     s = f.format("{a[:]}", a=[1, 2])
-    nt.assert_equal(s, "[1, 2]")
+    assert s == "[1, 2]"
 
 def test_eval_formatter():
     f = text.EvalFormatter()
@@ -154,15 +159,15 @@ def test_dollar_formatter():
     
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
     s = f.format("$n", **ns)
-    nt.assert_equal(s, "12")
+    assert s == "12"
     s = f.format("$n.real", **ns)
-    nt.assert_equal(s, "12")
+    assert s == "12"
     s = f.format("$n/{stuff[:5]}", **ns)
-    nt.assert_equal(s, "12/hello")
+    assert s == "12/hello"
     s = f.format("$n $$HOME", **ns)
-    nt.assert_equal(s, "12 $HOME")
+    assert s == "12 $HOME"
     s = f.format("${foo}", foo="HOME")
-    nt.assert_equal(s, "$HOME")
+    assert s == "$HOME"
 
 
 def test_strip_email():
@@ -176,25 +181,25 @@ def test_strip_email():
 ...   return x+1
 ... 
 >>> zz = f(2.5)"""
-    nt.assert_equal(text.strip_email_quotes(src), cln)
+    assert text.strip_email_quotes(src) == cln
 
 
 def test_strip_email2():
     src = '> > > list()'
     cln = 'list()'
-    nt.assert_equal(text.strip_email_quotes(src), cln)
+    assert text.strip_email_quotes(src) == cln
 
 def test_LSString():
     lss = text.LSString("abc\ndef")
-    nt.assert_equal(lss.l, ['abc', 'def'])
-    nt.assert_equal(lss.s, 'abc def')
+    assert lss.l == ["abc", "def"]
+    assert lss.s == "abc def"
     lss = text.LSString(os.getcwd())
     nt.assert_is_instance(lss.p[0], Path)
 
 def test_SList():
-    sl = text.SList(['a 11', 'b 1', 'a 2'])
-    nt.assert_equal(sl.n, 'a 11\nb 1\na 2')
-    nt.assert_equal(sl.s, 'a 11 b 1 a 2')
-    nt.assert_equal(sl.grep(lambda x: x.startswith('a')), text.SList(['a 11', 'a 2']))
-    nt.assert_equal(sl.fields(0), text.SList(['a', 'b', 'a']))
-    nt.assert_equal(sl.sort(field=1, nums=True), text.SList(['b 1', 'a 2', 'a 11']))
+    sl = text.SList(["a 11", "b 1", "a 2"])
+    assert sl.n == "a 11\nb 1\na 2"
+    assert sl.s == "a 11 b 1 a 2"
+    assert sl.grep(lambda x: x.startswith("a")) == text.SList(["a 11", "a 2"])
+    assert sl.fields(0) == text.SList(["a", "b", "a"])
+    assert sl.sort(field=1, nums=True) == text.SList(["b 1", "a 2", "a 11"])
