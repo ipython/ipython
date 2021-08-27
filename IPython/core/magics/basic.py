@@ -493,6 +493,7 @@ Currently the magic system has the following functions:""",
             %gui qt5     # enable PyQt5 event loop integration
             %gui gtk     # enable PyGTK event loop integration
             %gui gtk3    # enable Gtk3 event loop integration
+            %gui gtk4    # enable Gtk4 event loop integration
             %gui tk      # enable Tk event loop integration
             %gui osx     # enable Cocoa event loop integration
                          # (requires %matplotlib 1.1)

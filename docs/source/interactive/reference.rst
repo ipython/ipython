@@ -44,7 +44,7 @@ the command-line by passing the full class name and a corresponding value; type
     <...snip...>
     --matplotlib=<CaselessStrEnum> (InteractiveShellApp.matplotlib)
         Default: None
-        Choices: ['auto', 'gtk', 'gtk3', 'inline', 'nbagg', 'notebook', 'osx', 'qt', 'qt4', 'qt5', 'tk', 'wx']
+        Choices: ['auto', 'gtk', 'gtk3', 'gtk4', 'inline', 'nbagg', 'notebook', 'osx', 'qt', 'qt4', 'qt5', 'tk', 'wx']
         Configure matplotlib for interactive use with the default matplotlib
         backend.
     <...snip...>
@@ -902,7 +902,8 @@ For users, enabling GUI event loop integration is simple.  You simple use the
     %gui [GUINAME]
 
 With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
-arguments include ``wx``, ``qt``, ``qt5``, ``gtk``, ``gtk3`` and ``tk``.
+arguments include ``wx``, ``qt``, ``qt5``, ``gtk``, ``gtk3`` ``gtk4``, and
+``tk``.
 
 Thus, to use wxPython interactively and create a running :class:`wx.App`
 object, do::
