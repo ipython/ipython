@@ -201,10 +201,12 @@ class TerminalInteractiveShell(InteractiveShell):
 
         return self.editing_mode
 
-    @observe("editing_mode")
+
+    @observe('editing_mode')
     def _editing_mode_changed(self, change):
+        u_mode = change.new.upper()
         if self.pt_app:
-            self.init_prompt_toolkit_cli()
+            self.pt_app.editing_mode = getattr(EditingMode, u_mode)
 
     @observe('autoformatter')
     def _autoformatter_changed(self, change):
