@@ -203,7 +203,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
 
     @observe('editing_mode')
-    def _editing_mode_changed(self, change):
+    def _editing_mode(self, change):
         u_mode = change.new.upper()
         if self.pt_app:
             self.pt_app.editing_mode = getattr(EditingMode, u_mode)
