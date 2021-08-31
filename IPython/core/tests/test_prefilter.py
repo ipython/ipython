@@ -32,16 +32,16 @@ def test_prefilter_shadowed():
         # These should not be transformed - they are shadowed by other names
         for name in ['if', 'zip', 'get_ipython']: # keyword, builtin, global
             ip.register_magic_function(dummy_magic, magic_name=name)
-            res = ip.prefilter(name+' foo')
-            assert res == name+' foo'
-            del ip.magics_manager.magics['line'][name]
+            res = ip.prefilter(name + " foo")
+            assert res == name + " foo"
+            del ip.magics_manager.magics["line"][name]
 
         # These should be transformed
         for name in ['fi', 'piz', 'nohtypi_teg']:
             ip.register_magic_function(dummy_magic, magic_name=name)
-            res = ip.prefilter(name+' foo')
-            assert res != name+' foo'
-            del ip.magics_manager.magics['line'][name]
+            res = ip.prefilter(name + " foo")
+            assert res != name + " foo"
+            del ip.magics_manager.magics["line"][name]
 
     finally:
         ip.automagic = prev_automagic_state
@@ -52,8 +52,8 @@ def test_autocall_binops():
     f = lambda x: x
     ip.user_ns['f'] = f
     try:
-        assert ip.prefilter('f 1') =='f(1)'
-        for t in ['f +1', 'f -1']:
+        assert ip.prefilter("f 1") == "f(1)"
+        for t in ["f +1", "f -1"]:
             assert ip.prefilter(t) == t
 
         # Run tests again with a more permissive exclude_regexp, which will
@@ -66,8 +66,8 @@ def test_autocall_binops():
             ac.exclude_regexp = r'^[,&^\|\*/]|^is |^not |^in |^and |^or '
             pm.sort_checkers()
 
-            assert ip.prefilter('f -1') == 'f(-1)'
-            assert ip.prefilter('f +1') == 'f(+1)'
+            assert ip.prefilter("f -1") == "f(-1)"
+            assert ip.prefilter("f +1") == "f(+1)"
         finally:
             pm.unregister_checker(ac)
     finally:
@@ -121,7 +121,7 @@ def test_autocall_should_support_unicode():
     ip.magic('autocall 2')
     ip.user_ns['π'] = lambda x: x
     try:
-        assert ip.prefilter('π 3') =='π(3)'
+        assert ip.prefilter("π 3") == "π(3)"
     finally:
         ip.magic('autocall 0')
         del ip.user_ns['π']

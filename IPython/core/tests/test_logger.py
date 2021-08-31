@@ -12,8 +12,8 @@ def test_logstart_inaccessible_file():
     except IOError:
         pass
     else:
-        assert False                    # The try block should never pass.
-    
+        assert False  # The try block should never pass.
+
     try:
         _ip.run_cell("a=1")                 # Check it doesn't try to log this
     finally:

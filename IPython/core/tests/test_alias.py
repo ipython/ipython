@@ -38,7 +38,8 @@ def test_alias_args_error():
     with capture_output() as cap:
         _ip.run_cell('parts 1')
 
-    assert cap.stderr.split(':')[0] == 'UsageError'
+    assert cap.stderr.split(":")[0] == "UsageError"
+
 
 def test_alias_args_commented():
     """Check that alias correctly ignores 'commented out' args"""
