@@ -3,7 +3,7 @@
 Line-based transformers are the simpler ones; token-based transformers are
 more complex. See test_inputtransformer2 for tests for token-based transformers.
 """
-import nose.tools as nt
+import pytest
 
 from IPython.core import inputtransformer2 as ipt2
 
@@ -17,7 +17,7 @@ get_ipython().run_cell_magic('foo', 'arg', 'body 1\\nbody 2\\n')
 
 def test_cell_magic():
     for sample, expected in [CELL_MAGIC]:
-        nt.assert_equal(ipt2.cell_magic(sample.splitlines(keepends=True)),
+        assert (ipt2.cell_magic(sample.splitlines(keepends=True)) ==
                         expected.splitlines(keepends=True))
 
 CLASSIC_PROMPT = ("""\
@@ -40,7 +40,7 @@ for a in range(5):
 
 def test_classic_prompt():
     for sample, expected in [CLASSIC_PROMPT, CLASSIC_PROMPT_L2]:
-        nt.assert_equal(ipt2.classic_prompt(sample.splitlines(keepends=True)),
+        assert (ipt2.classic_prompt(sample.splitlines(keepends=True)) ==
                         expected.splitlines(keepends=True))
 
 IPYTHON_PROMPT = ("""\
@@ -100,10 +100,9 @@ def test_ipython_prompt():
         IPYTHON_PROMPT_VI_INS,
         IPYTHON_PROMPT_VI_NAV,
     ]:
-        nt.assert_equal(
-            ipt2.ipython_prompt(sample.splitlines(keepends=True)),
-            expected.splitlines(keepends=True),
-        )
+        assert (
+            ipt2.ipython_prompt(sample.splitlines(keepends=True)) ==
+            expected.splitlines(keepends=True))
 
 
 INDENT_SPACES = ("""\
@@ -124,7 +123,7 @@ if True:
 
 def test_leading_indent():
     for sample, expected in [INDENT_SPACES, INDENT_TABS]:
-        nt.assert_equal(ipt2.leading_indent(sample.splitlines(keepends=True)),
+        assert (ipt2.leading_indent(sample.splitlines(keepends=True)) ==
                         expected.splitlines(keepends=True))
 
 LEADING_EMPTY_LINES = ("""\
@@ -151,8 +150,8 @@ ONLY_EMPTY_LINES = ("""\
 
 def test_leading_empty_lines():
     for sample, expected in [LEADING_EMPTY_LINES, ONLY_EMPTY_LINES]:
-        nt.assert_equal(
-                ipt2.leading_empty_lines(sample.splitlines(keepends=True)),
+        assert (
+                ipt2.leading_empty_lines(sample.splitlines(keepends=True)) ==
                 expected.splitlines(keepends=True))
 
 CRLF_MAGIC = ([
@@ -163,4 +162,4 @@ CRLF_MAGIC = ([
 
 def test_crlf_magic():
     for sample, expected in [CRLF_MAGIC]:
-        nt.assert_equal(ipt2.cell_magic(sample), expected)
+        assert ipt2.cell_magic(sample) == expected

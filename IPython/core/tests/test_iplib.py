@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------
 
 # third party
-import nose.tools as nt
+import pytest
 
 # our own packages
 
@@ -31,8 +31,8 @@ def test_reset():
     
     # Finally, check that all namespaces have only as many variables as we
     # expect to find in them:
-    nt.assert_equal(len(ip.user_ns), nvars_user_ns)
-    nt.assert_equal(len(ip.user_ns_hidden), nvars_hidden)
+    assert len(ip.user_ns) == nvars_user_ns
+    assert len(ip.user_ns_hidden) == nvars_hidden
 
 
 # Tests for reporting of exceptions in various modes, handling of SystemExit,
@@ -209,7 +209,7 @@ def test_run_cell():
     ip.run_cell('a = 10\na+=1')
     ip.run_cell('assert a == 11\nassert 1')
 
-    nt.assert_equal(ip.user_ns['a'], 11)
+    assert ip.user_ns['a'] == 11
     complex = textwrap.dedent("""
     if 1:
         print "hello"
@@ -233,6 +233,6 @@ def test_run_cell():
 def test_db():
     """Test the internal database used for variable persistence."""
     ip.db['__unittest_'] = 12
-    nt.assert_equal(ip.db['__unittest_'], 12)
+    assert ip.db['__unittest_'] == 12
     del ip.db['__unittest_']
     assert '__unittest_' not in ip.db
