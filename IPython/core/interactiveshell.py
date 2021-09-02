@@ -1886,6 +1886,9 @@ class InteractiveShell(SingletonConfigurable):
             exception or returns an invalid result, it will be immediately
             disabled.
 
+        Notes
+        -----
+
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
         facility should only be used if you really know what you are doing."""
