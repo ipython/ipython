@@ -12,7 +12,7 @@ deprecated in 7.0.
 
 import ast
 import sys
-from codeop import CommandCompiler
+from codeop import CommandCompiler, Compile
 import re
 import tokenize
 from typing import List, Tuple, Optional, Any
@@ -777,14 +777,18 @@ def find_last_indent(lines):
     return len(m.group(0).replace('\t', ' '*4))
 
 
+class MaybeAsyncCompile(Compile):
+    def __init__(self, extra_flags=0):
+        super().__init__()
+        self.flags |= extra_flags
+
+    __call__ = compile
+
+
 class MaybeAsyncCommandCompiler(CommandCompiler):
     def __init__(self, extra_flags=0):
-        self.compiler = self._compiler
-        self.extra_flags = extra_flags
+        self.compiler = MaybeAsyncCompile(extra_flags=extra_flags)
 
-    def _compiler(self, source, filename, symbol, flags, feature):
-        flags |= self.extra_flags
-        return compile(source, filename, symbol, flags, feature)
 
 if (sys.version_info.major, sys.version_info.minor) >= (3, 8):
     _extra_flags = ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
