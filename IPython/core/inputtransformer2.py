@@ -10,7 +10,9 @@ deprecated in 7.0.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from codeop import compile_command
+import ast
+import sys
+from codeop import CommandCompiler, Compile
 import re
 import tokenize
 from typing import List, Tuple, Union
@@ -724,3 +726,25 @@ def find_last_indent(lines):
     if not m:
         return 0
     return len(m.group(0).replace('\t', ' '*4))
+
+
+class MaybeAsyncCompile(Compile):
+    def __init__(self, extra_flags=0):
+        super().__init__()
+        self.flags |= extra_flags
+
+    def __call__(self, *args, **kwds):
+        return compile(*args, **kwds)
+
+
+class MaybeAsyncCommandCompiler(CommandCompiler):
+    def __init__(self, extra_flags=0):
+        self.compiler = MaybeAsyncCompile(extra_flags=extra_flags)
+
+
+if (sys.version_info.major, sys.version_info.minor) >= (3, 8):
+    _extra_flags = ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
+else:
+    _extra_flags = ast.PyCF_ONLY_AST
+
+compile_command = MaybeAsyncCommandCompiler(extra_flags=_extra_flags)
