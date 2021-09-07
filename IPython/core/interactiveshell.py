@@ -929,7 +929,7 @@ class InteractiveShell(SingletonConfigurable):
             p_venv = Path(str(p_venv)[2:])
 
         if sys.platform == "win32":
-            # In Windows there might be a mixture of lower-case and mixed-case pathes
+            # On Windows there might be a mixture of lower-case and mixed-case paths
             p_venv = Path(str(p_venv).lower())
             paths = [Path(str(p).lower()) for p in paths]
 
