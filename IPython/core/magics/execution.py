@@ -1244,22 +1244,25 @@ python-profiler package from non-free.""")
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
 
-          Note that the time needed by Python to compile the given expression
-          will be reported if it is more than 0.1s.  In this example, the
-          actual exponentiation is done by Python at compilation time, so while
-          the expression can take a noticeable amount of time to compute, that
-          time is purely due to the compilation:
 
-          In [5]: %time 3**9999;
-          CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-          Wall time: 0.00 s
+        .. note::
+            The time needed by Python to compile the given expression will be
+            reported if it is more than 0.1s.
 
-          In [6]: %time 3**999999;
-          CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-          Wall time: 0.00 s
-          Compiler : 0.78 s
-          """
+            In the example below, the actual exponentiation is done by Python
+            at compilation time, so while the expression can take a noticeable
+            amount of time to compute, that time is purely due to the
+            compilation::
 
+                In [5]: %time 3**9999;
+                CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+                Wall time: 0.00 s
+
+                In [6]: %time 3**999999;
+                CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+                Wall time: 0.00 s
+                Compiler : 0.78 s
+        """
         # fail immediately if the given expression can't be compiled
         
         if line and cell:
