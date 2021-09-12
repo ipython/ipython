@@ -654,8 +654,7 @@ class Code(TextDisplayObject):
         from pygments import highlight
         from pygments.formatters import HtmlFormatter
         fmt = HtmlFormatter()
-        style = '<style>{}</style>'.format(
-            fmt.get_style_defs(self.css_selectors))
+        style = "<style>{}</style>".format(fmt.get_style_defs(self.css_selectors))
         return style + highlight(self.data, self._get_lexer(), fmt)
 
     def _repr_latex_(self):
