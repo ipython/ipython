@@ -98,9 +98,9 @@ class Audio(DisplayObject):
     See Also
     --------
     ipywidgets.Audio
-    
+
          AUdio widget with more more flexibility and options.
-    
+
     """
     _read_flags = 'rb'
 
@@ -176,7 +176,7 @@ class Audio(DisplayObject):
             data = data.T.ravel()
         else:
             raise ValueError('Array audio input must be a 1D or 2D array')
-        
+
         max_abs_value = np.max(np.abs(data))
         normalization_factor = Audio._get_normalization_factor(max_abs_value, normalize)
         scaled = data / normalization_factor * 32767
@@ -244,7 +244,7 @@ class Audio(DisplayObject):
             return 'autoplay="autoplay"'
         else:
             return ''
-    
+
     def element_id_attr(self):
         if (self.element_id):
             return 'id="{element_id}"'.format(element_id=self.element_id)
@@ -305,7 +305,7 @@ class YouTubeVideo(IFrame):
 
     Other parameters can be provided as documented at
     https://developers.google.com/youtube/player_parameters#Parameters
-    
+
     When converting the notebook using nbconvert, a jpeg representation of the video
     will be inserted in the document.
     """
@@ -314,7 +314,7 @@ class YouTubeVideo(IFrame):
         self.id=id
         src = "https://www.youtube.com/embed/{0}".format(id)
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
-    
+
     def _repr_jpeg_(self):
         # Deferred import
         from urllib.request import urlopen
@@ -524,7 +524,7 @@ class FileLinks(FileLink):
                 if (isfile(join(dirname,fname)) and
                        (included_suffixes is None or
                         splitext(fname)[1] in included_suffixes)):
-                      display_fnames.append(fname)
+                    display_fnames.append(fname)
 
             if len(display_fnames) == 0:
                 # if there are no filenames to display, don't print anything
@@ -629,6 +629,9 @@ class Code(TextDisplayObject):
         If not specified, it will guess the lexer based on the filename
         or the code. Available lexers: http://pygments.org/docs/lexers/
     """
+
+    css_selectors = [".output_html", ".jp-RenderedHTML"]
+
     def __init__(self, data=None, url=None, filename=None, language=None):
         self.language = language
         super().__init__(data=data, url=url, filename=filename)
@@ -651,7 +654,8 @@ class Code(TextDisplayObject):
         from pygments import highlight
         from pygments.formatters import HtmlFormatter
         fmt = HtmlFormatter()
-        style = '<style>{}</style>'.format(fmt.get_style_defs('.output_html'))
+        style = '<style>{}</style>'.format(
+            fmt.get_style_defs(self.css_selectors))
         return style + highlight(self.data, self._get_lexer(), fmt)
 
     def _repr_latex_(self):
