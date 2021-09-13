@@ -263,13 +263,15 @@ class IFrame(object):
             src="{src}{params}"
             frameborder="0"
             allowfullscreen
+            {extra}
         ></iframe>
         """
 
-    def __init__(self, src, width, height, **kwargs):
+    def __init__(self, src, width, height, extra="", **kwargs):
         self.src = src
         self.width = width
         self.height = height
+        self.extra = extra
         self.params = kwargs
 
     def _repr_html_(self):
@@ -282,7 +284,9 @@ class IFrame(object):
         return self.iframe.format(src=self.src,
                                   width=self.width,
                                   height=self.height,
-                                  params=params)
+                                  params=params,
+                                  extra=self.extra)
+
 
 class YouTubeVideo(IFrame):
     """Class for embedding a YouTube Video in an IPython session, based on its video id.
@@ -310,11 +314,13 @@ class YouTubeVideo(IFrame):
     will be inserted in the document.
     """
 
-    def __init__(self, id, width=400, height=300, **kwargs):
+    def __init__(self, id, width=400, height=300, allow_autoplay=False, **kwargs):
         self.id=id
         src = "https://www.youtube.com/embed/{0}".format(id)
+        if allow_autoplay:
+            kwargs.update(autoplay=1, extra='allow="autoplay"')
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
-    
+
     def _repr_jpeg_(self):
         # Deferred import
         from urllib.request import urlopen
