@@ -323,7 +323,8 @@ class YouTubeVideo(IFrame):
         self.id=id
         src = "https://www.youtube.com/embed/{0}".format(id)
         if allow_autoplay:
-            kwargs.update(autoplay=1, extras=['allow="autoplay"'])
+            extras = list(kwargs.get("extras", [])) + ['allow="autoplay"']
+            kwargs.update(autoplay=1, extras=extras)
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
 
     def _repr_jpeg_(self):
