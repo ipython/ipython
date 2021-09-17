@@ -281,11 +281,13 @@ class IFrame(object):
             params = "?" + urlencode(self.params)
         else:
             params = ""
-        return self.iframe.format(src=self.src,
-                                  width=self.width,
-                                  height=self.height,
-                                  params=params,
-                                  extra=self.extra)
+        return self.iframe.format(
+            src=self.src,
+            width=self.width,
+            height=self.height,
+            params=params,
+            extra=self.extra,
+        )
 
 
 class YouTubeVideo(IFrame):
