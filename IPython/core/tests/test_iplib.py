@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------
 
 # third party
-import nose.tools as nt
+import pytest
 
 # our own packages
 
@@ -31,8 +31,8 @@ def test_reset():
     
     # Finally, check that all namespaces have only as many variables as we
     # expect to find in them:
-    nt.assert_equal(len(ip.user_ns), nvars_user_ns)
-    nt.assert_equal(len(ip.user_ns_hidden), nvars_hidden)
+    assert len(ip.user_ns) == nvars_user_ns
+    assert len(ip.user_ns_hidden) == nvars_hidden
 
 
 # Tests for reporting of exceptions in various modes, handling of SystemExit,
@@ -87,35 +87,36 @@ ZeroDivisionError: ...
 
 def doctest_tb_verbose():
     """
-In [5]: xmode verbose
-Exception reporting mode: Verbose
+    In [5]: xmode verbose
+    Exception reporting mode: Verbose
 
-In [6]: run simpleerr.py
----------------------------------------------------------------------------
-ZeroDivisionError                         Traceback (most recent call last)
-<BLANKLINE>
-... in <module>
-     29     except IndexError:
-     30         mode = 'div'
----> 32     bar(mode)
-        mode = 'div'
-<BLANKLINE>
-... in bar(mode='div')
-     14     "bar"
-     15     if mode=='div':
----> 16         div0()
-     17     elif mode=='exit':
-     18         try:
-<BLANKLINE>
-... in div0()
-      6     x = 1
-      7     y = 0
-----> 8     x/y
-        x = 1
-        y = 0
-<BLANKLINE>
-ZeroDivisionError: ...
-      """
+    In [6]: run simpleerr.py
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)
+    <BLANKLINE>
+    ... in <module>
+         29     except IndexError:
+         30         mode = 'div'
+    ---> 32     bar(mode)
+            mode = 'div'
+    <BLANKLINE>
+    ... in bar(mode='div')
+         14     "bar"
+         15     if mode=='div':
+    ---> 16         div0()
+         17     elif mode=='exit':
+         18         try:
+    <BLANKLINE>
+    ... in div0()
+          6     x = 1
+          7     y = 0
+    ----> 8     x/y
+            x = 1
+            y = 0
+    <BLANKLINE>
+    ZeroDivisionError: ...
+    """
+
 
 # TODO : Marc 2021 – this seem to fail due
 # to upstream changes in CI for whatever reason.
@@ -206,11 +207,13 @@ ZeroDivisionError: ...
 
 def test_run_cell():
     import textwrap
-    ip.run_cell('a = 10\na+=1')
-    ip.run_cell('assert a == 11\nassert 1')
 
-    nt.assert_equal(ip.user_ns['a'], 11)
-    complex = textwrap.dedent("""
+    ip.run_cell("a = 10\na+=1")
+    ip.run_cell("assert a == 11\nassert 1")
+
+    assert ip.user_ns["a"] == 11
+    complex = textwrap.dedent(
+        """
     if 1:
         print "hello"
         if 1:
@@ -232,7 +235,7 @@ def test_run_cell():
 
 def test_db():
     """Test the internal database used for variable persistence."""
-    ip.db['__unittest_'] = 12
-    nt.assert_equal(ip.db['__unittest_'], 12)
-    del ip.db['__unittest_']
-    assert '__unittest_' not in ip.db
+    ip.db["__unittest_"] = 12
+    assert ip.db["__unittest_"] == 12
+    del ip.db["__unittest_"]
+    assert "__unittest_" not in ip.db
