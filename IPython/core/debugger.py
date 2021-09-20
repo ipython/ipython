@@ -2,6 +2,71 @@
 """
 Pdb debugger class.
 
+
+This is an extension to PDB which adds a number of new features.
+Note that there is also the `IPython.terminal.debugger` class which provides UI
+improvements.
+
+We also strongly recommend to use this via the `ipdb` package, which provides
+extra configuration options.
+
+Amoung other this subclass of PDB expose here:
+ - support many IPython magics like pdef/psource.
+ - allow to hide some frames in tracebacks
+ - allow to skip some frames.
+
+The skipping and hiding frames are configurable via the `skip_predicates`
+command.
+
+By default, frames from readonly files will be hidden, frames containing
+``__tracebackhide__=True`` will be hidden.
+
+Frames containing ``__debuggerskip__`` will be stepped over, frames who's parent
+frames value of ``__debuggerskip__`` is ``True`` will be skipped.
+
+    >>> def helper_1():
+    ...     print("don't step in me")
+    ...
+    ...
+    ... def helper_2():
+    ...     print("in me neither")
+    ...
+
+One can define a decorator that wrap a function between the two helpers:
+
+    >>> def pdb_skipped_decorator(function):
+    ...
+    ...
+    ...     def wrapped_fn(*args, **kwargs):
+    ...         __debuggerskip__ = True
+    ...         helper_1()
+    ...         __debuggerskip__ = False
+    ...         result = function(*args, **kwargs)
+    ...         __debuggerskip__ = True
+    ...         helper_2()
+    ...         return result
+    ...
+    ...     return wrapped_fn
+
+When decorating a function, ipdb will directly step into ``bar()`` by
+default:
+
+    >>> @foo_decorator
+    ... def bar(x, y):
+    ...     return x * y
+
+
+You can toggle the behavior with
+
+    ipdb> skip_predicates debuggerskip false
+
+or configure it in your ``.pdbrc``
+
+
+
+Licencse
+--------
+
 Modified from the standard pdb.Pdb class to avoid including readline, so that
 the command line completion of other programs which include this isn't
 damaged.
@@ -9,11 +74,16 @@ damaged.
 In the future, this class will be expanded with improvements over the standard
 pdb.
 
-The code in this file is mainly lifted out of cmd.py in Python 2.2, with minor
-changes. Licensing should therefore be under the standard Python terms.  For
-details on the PSF (Python Software Foundation) standard license, see:
+The original code in this file is mainly lifted out of cmd.py in Python 2.2,
+with minor changes. Licensing should therefore be under the standard Python
+terms.  For details on the PSF (Python Software Foundation) standard license,
+see:
 
 https://docs.python.org/2/license.html
+
+
+All the changes since then are under the same license as IPython.
+
 """
 
 #*****************************************************************************
@@ -50,6 +120,8 @@ from pdb import Pdb as OldPdb
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
 # the Tracer constructor.
+
+DEBUGGERSKIP = "__debuggerskip__"
 
 
 def make_arrow(pad):
@@ -206,7 +278,12 @@ class Pdb(OldPdb):
 
     """
 
-    default_predicates = {"tbhide": True, "readonly": False, "ipython_internal": True}
+    default_predicates = {
+        "tbhide": True,
+        "readonly": False,
+        "ipython_internal": True,
+        "debuggerskip": True,
+    }
 
     def __init__(self, color_scheme=None, completekey=None,
                  stdin=None, stdout=None, context=5, **kwargs):
@@ -303,7 +380,9 @@ class Pdb(OldPdb):
 
         # list of predicates we use to skip frames
         self._predicates = self.default_predicates
+        self._skipping = False
 
+    #
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
@@ -815,7 +894,50 @@ class Pdb(OldPdb):
 
     do_w = do_where
 
+    def break_anywhere(self, frame):
+        """
+
+        _stop_in_decorator_internals is overly restrictive, as we may still want
+        to trace function calls, so we need to also update break_anywhere so
+        that is we don't `stop_here`, because of debugger skip, we may still
+        stop at any point inside the function
+
+        """
+        if self._predicates["debuggerskip"]:
+            if DEBUGGERSKIP in frame.f_code.co_varnames:
+                return True
+            if frame.f_back and self._get_frame_locals(frame.f_back).get(DEBUGGERSKIP):
+                return True
+        return super().break_anywhere(frame)
+
+    @skip_doctest
+    def _is_in_decorator_internal_and_should_skip(self, frame):
+        """
+        Utility to tell us whether we are in a decorator internal and should stop.
+
+
+
+        """
+
+        # if we are disable don't skip
+        if not self._predicates["debuggerskip"]:
+            return False
+
+        # if frame is tagged, skip by default.
+        if DEBUGGERSKIP in frame.f_code.co_varnames:
+            return True
+
+        # if parent frame value set to True skip as well.
+        if frame.f_back and self._get_frame_locals(frame.f_back).get(DEBUGGERSKIP):
+            return True
+
+        return False
+
     def stop_here(self, frame):
+
+        if self._is_in_decorator_internal_and_should_skip(frame) is True:
+            return False
+
         hidden = False
         if self.skip_hidden:
             hidden = self._hidden_predicate(frame)
@@ -938,10 +1060,10 @@ class Pdb(OldPdb):
 class InterruptiblePdb(Pdb):
     """Version of debugger where KeyboardInterrupt exits the debugger altogether."""
 
-    def cmdloop(self):
+    def cmdloop(self, intro=None):
         """Wrap cmdloop() such that KeyboardInterrupt stops the debugger."""
         try:
-            return OldPdb.cmdloop(self)
+            return OldPdb.cmdloop(self, intro=intro)
         except KeyboardInterrupt:
             self.stop_here = lambda frame: False
             self.do_quit("")

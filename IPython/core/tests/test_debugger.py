@@ -323,6 +323,118 @@ def test_xmode_skip():
     child.close()
 
 
+skip_decorators_blocks = (
+    """
+    def helper_1():
+        pass # should not stop here
+    """,
+    """
+    def helper_2():
+        pass # should not stop here
+    """,
+    """
+    def pdb_skipped_decorator(function):
+        def wrapped_fn(*args, **kwargs):
+            __debuggerskip__ = True
+            helper_1()
+            __debuggerskip__ = False
+            result = function(*args, **kwargs)
+            __debuggerskip__ = True
+            helper_2()
+            return result
+        return wrapped_fn
+    """,
+    """
+    @pdb_skipped_decorator
+    def bar(x, y):
+        return x * y
+    """,
+    """import IPython.terminal.debugger as ipdb""",
+    """
+    def f():
+        ipdb.set_trace()
+        bar(3, 4)
+    """,
+    """
+    f()
+    """,
+)
+
+
+def _decorator_skip_setup():
+    import pexpect
+
+    env = os.environ.copy()
+    env["IPY_TEST_SIMPLE_PROMPT"] = "1"
+
+    child = pexpect.spawn(
+        sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
+    )
+    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
+
+    child.expect("IPython")
+    child.expect("\n")
+
+    dedented_blocks = [dedent(b).strip() for b in skip_decorators_blocks]
+    in_prompt_number = 1
+    for cblock in dedented_blocks:
+        child.expect_exact(f"In [{in_prompt_number}]:")
+        in_prompt_number += 1
+        for line in cblock.splitlines():
+            child.sendline(line)
+            child.expect_exact(line)
+        child.sendline("")
+    return child
+
+
+@skip_win32
+def test_decorator_skip():
+    """test that decorator frames can be skipped."""
+
+    child = _decorator_skip_setup()
+
+    child.expect_exact("3     bar(3, 4)")
+    child.expect("ipdb>")
+
+    child.expect("ipdb>")
+    child.sendline("step")
+    child.expect_exact("step")
+
+    child.expect_exact("1 @pdb_skipped_decorator")
+
+    child.sendline("s")
+    child.expect_exact("return x * y")
+
+    child.close()
+
+
+@skip_win32
+def test_decorator_skip_disabled():
+    """test that decorator frame skipping can be disabled"""
+
+    child = _decorator_skip_setup()
+
+    child.expect_exact("3     bar(3, 4)")
+
+    for input_, expected in [
+        ("skip_predicates debuggerskip False", ""),
+        ("skip_predicates", "debuggerskip : False"),
+        ("step", "---> 2     def wrapped_fn"),
+        ("step", "----> 3         __debuggerskip__"),
+        ("step", "----> 4         helper_1()"),
+        ("step", "---> 1 def helper_1():"),
+        ("next", "----> 2     pass"),
+        ("next", "--Return--"),
+        ("next", "----> 5         __debuggerskip__ = False"),
+    ]:
+        child.expect("ipdb>")
+        child.sendline(input_)
+        child.expect_exact(input_)
+        child.expect_exact(expected)
+
+    child.close()
+
+
 @skip_win32
 def test_where_erase_value():
     """Test that `where` does not access f_locals and erase values."""
