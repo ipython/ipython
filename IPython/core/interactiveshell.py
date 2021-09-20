@@ -921,7 +921,11 @@ class InteractiveShell(SingletonConfigurable):
         while p.is_symlink():
             p = Path(os.readlink(p))
             paths.append(p.resolve())
-
+        
+        # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
+        if str(p_venv).startswith("\\cygdrive"):
+            p_venv = "C:" / Path(str(p_venv)[11:])
+        
         if any(p_venv == p.parents[1] for p in paths):
             # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
