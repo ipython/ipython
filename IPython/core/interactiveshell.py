@@ -921,19 +921,12 @@ class InteractiveShell(SingletonConfigurable):
         while p.is_symlink():
             p = Path(os.readlink(p))
             paths.append(p.resolve())
-
+        
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if str(p_venv).startswith("\\cygdrive"):
-            p_venv = Path(str(p_venv)[11:])
-        elif len(str(p_venv)) >= 2 and str(p_venv)[1] == ":":
-            p_venv = Path(str(p_venv)[2:])
+            p_venv = "C:" / Path(str(p_venv)[11:])
 
-        if sys.platform == "win32":
-            # On Windows there might be a mixture of lower-case and mixed-case paths
-            p_venv = Path(str(p_venv).lower())
-            paths = [Path(str(p).lower()) for p in paths]
-
-        if any(os.fspath(p_venv) in os.fspath(p) for p in paths):
+        if any(p_venv == p.parents[1] for p in paths):
             # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
 
