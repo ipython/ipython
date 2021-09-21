@@ -25,9 +25,8 @@ Related to the above, the ``YouTubeVideo`` class now takes an
 such that it allows autoplay.
 
 .. note::
-    Whether this works depends on whether the autoplay policy of the browser
-    rendering the HTML allows it. It might not work in every circumstance, and
-    could get blocked by browser extensions.
+    Whether this works depends on the autoplay policy of the browser rendering
+    the HTML allowing it. It also could get blocked by some browser extensions.
 
 Try it out!
 ::
