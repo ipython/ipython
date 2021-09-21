@@ -8,7 +8,7 @@ from os import walk, sep, fsdecode
 
 from IPython.core.display import DisplayObject, TextDisplayObject
 
-from typing import Tuple
+from typing import Tuple, Iterable
 
 __all__ = ['Audio', 'IFrame', 'YouTubeVideo', 'VimeoVideo', 'ScribdDocument',
            'FileLink', 'FileLinks', 'Code']
@@ -255,13 +255,18 @@ class IFrame(object):
             src="{src}{params}"
             frameborder="0"
             allowfullscreen
+            {extras}
         ></iframe>
         """
 
-    def __init__(self, src, width, height, **kwargs):
+    def __init__(self, src, width, height, extras: Iterable[str] = None, **kwargs):
+        if extras is None:
+            extras = []
+
         self.src = src
         self.width = width
         self.height = height
+        self.extras = extras
         self.params = kwargs
 
     def _repr_html_(self):
@@ -274,10 +279,14 @@ class IFrame(object):
             params = "?" + urlencode(self.params)
         else:
             params = ""
-        return self.iframe.format(src=self.src,
-                                  width=self.width,
-                                  height=self.height,
-                                  params=params)
+        return self.iframe.format(
+            src=self.src,
+            width=self.width,
+            height=self.height,
+            params=params,
+            extras=" ".join(self.extras),
+        )
+
 
 class YouTubeVideo(IFrame):
     """Class for embedding a YouTube Video in an IPython session, based on its video id.
@@ -305,11 +314,14 @@ class YouTubeVideo(IFrame):
     will be inserted in the document.
     """
 
-    def __init__(self, id, width=400, height=300, **kwargs):
+    def __init__(self, id, width=400, height=300, allow_autoplay=False, **kwargs):
         self.id=id
         src = "https://www.youtube.com/embed/{0}".format(id)
+        if allow_autoplay:
+            extras = list(kwargs.get("extras", [])) + ['allow="autoplay"']
+            kwargs.update(autoplay=1, extras=extras)
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
-    
+
     def _repr_jpeg_(self):
         # Deferred import
         from urllib.request import urlopen
