@@ -162,7 +162,7 @@ def find_data_files():
         manpages = [f for f in Path('docs', 'man').glob('*.1') if f.is_file()]
 
     # And assemble the entire output list
-    data_files = [ (manpagebase, manpages) ]
+    data_files = [ (str(manpagebase), list(map(str, manpages)))]
 
     return data_files
 
@@ -266,7 +266,8 @@ class build_scripts_entrypt(build_scripts):
                 log.info("Writing %s wrapper script" % cmd_file)
                 cmd_file.write_text(cmd)
 
-        return outfiles, outfiles
+        outfile_strings = list(map(str, outfiles))
+        return outfile_strings, outfile_strings
 
 class install_lib_symlink(Command):
     user_options = [
