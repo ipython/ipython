@@ -924,7 +924,9 @@ class InteractiveShell(SingletonConfigurable):
         
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if str(p_venv).startswith("\\cygdrive"):
-            p_venv = "C:" / Path(str(p_venv)[11:])
+            p_venv = Path(str(p_venv))
+            drive_name = p_venv.parts[2]
+            p_venv = (drive_name + ":/") / Path(*p_venv.parts[3:])
 
         if any(p_venv == p.parents[1] for p in paths):
             # Our exe is inside or has access to the virtualenv, don't need to do anything.
