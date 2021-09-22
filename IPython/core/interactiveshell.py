@@ -948,9 +948,15 @@ class InteractiveShell(SingletonConfigurable):
             virtual_env = str(virtual_env_path).format(*p_ver)
 
         warn(
-            "Attempting to work in a virtualenv. If you encounter problems, "
-            "please install IPython inside the virtualenv."
+            "IPython is running from a different environment than the "
+            "currently active one.\n"
+
+            # Paths in these two f-strings start in the same column to aid in
+            # differentiating between them.
+            f"Active environment: {p_venv}\n"
+            f"This interpretter:  {sys.executable}\n"
         )
+
         import site
         sys.path.insert(0, virtual_env)
         site.addsitedir(virtual_env)
