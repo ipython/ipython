@@ -21,7 +21,7 @@ from logging import log
 from setuptools import Command
 from setuptools.command.build_py import build_py
 
-# TODO: Replacement for this? 
+# TODO: Replacement for this?
 from distutils.command.build_scripts import build_scripts
 from setuptools.command.install import install
 from setuptools.command.install_scripts import install_scripts
@@ -373,7 +373,7 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
             repo_commit = repo_commit.strip().decode("ascii")
 
             out_pth = Path(base_dir, pkg_dir, 'utils', '_sysinfo.py')
-            if out_pth.isfile() and not repo_commit:
+            if out_pth.is_file() and not repo_commit:
                 # nothing to write, don't clobber
                 return
 
