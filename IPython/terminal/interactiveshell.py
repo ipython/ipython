@@ -124,6 +124,10 @@ class TerminalInteractiveShell(InteractiveShell):
     pt_app = None
     debugger_history = None
 
+    debugger_history_file = Unicode(
+        "~/.pdbhistory", help="File in which to store and read history"
+    ).tag(config=True)
+
     simple_prompt = Bool(_use_simple_prompt,
         help="""Use `raw_input` for the REPL, without completion and prompt colors.
 
@@ -566,7 +570,6 @@ class TerminalInteractiveShell(InteractiveShell):
         self.init_term_title()
         self.keep_running = True
 
-        self.debugger_history = InMemoryHistory()
 
     def ask_exit(self):
         self.keep_running = False

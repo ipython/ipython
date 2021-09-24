@@ -1,18 +1,22 @@
 import asyncio
+import os
 import sys
 import threading
 
 from IPython.core.debugger import Pdb
+
 
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
 from .shortcuts import create_ipython_shortcuts
 from . import embed
 
+from pathlib import Path
 from pygments.token import Token
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.formatted_text import PygmentsTokens
+from prompt_toolkit.history import InMemoryHistory, FileHistory
 
 from prompt_toolkit import __version__ as ptk_version
 PTK3 = ptk_version.startswith('3.')
@@ -54,6 +58,17 @@ class TerminalPdb(Pdb):
             # end add completer.
 
             self._ptcomp = IPythonPTCompleter(compl)
+
+        # setup history only when we start pdb
+        if self.shell.debugger_history is None:
+            if self.shell.debugger_history_file is not None:
+
+                p = Path(self.shell.debugger_history_file).expanduser()
+                if not p.exists():
+                    p.touch()
+                self.debugger_history = FileHistory(os.path.expanduser(str(p)))
+            else:
+                self.debugger_history = InMemoryHistory()
 
         options = dict(
             message=(lambda: PygmentsTokens(get_prompt_tokens())),
