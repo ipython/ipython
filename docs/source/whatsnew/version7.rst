@@ -2,6 +2,53 @@
  7.x Series
 ============
 
+.. _version 7.28:
+
+IPython 7.28
+============
+
+
+IPython 7.28 is again a minor release that mostly bring bugfixes, and couple of
+improvement. Many thanks to MrMino, who again did all the work this month, and
+made a number of documentation improvements.
+
+Here is a non-exhaustive list of changes,
+
+Fixes:
+
+ - async with doesn't allow newlines :ghpull:`13090`
+ - Dynamically changing to vi mode via %config magic) :ghpull:`13091`
+
+Virtualenv handling fixes:
+
+ - init_virtualenv now uses Pathlib :ghpull:`12548`
+ - Fix Improper path comparison of virtualenv directories :ghpull:`13140`
+ - Fix virtual environment user warning for lower case pathes :ghpull:`13094`
+ - Adapt to all sorts of drive names for cygwin :ghpull:`13153`
+
+New Features:
+
+ - enable autoplay in embed YouTube player :ghpull:`13133`
+
+ Documentation:
+
+ - Fix formatting for the core.interactiveshell documentation :ghpull:`13118`
+ - Fix broken ipyparallel's refs :ghpull:`13138`
+ - Improve formatting of %time documentation :ghpull:`13125`
+ - Reword the YouTubeVideo autoplay WN :ghpull:`13147`
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/92>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 7.27:
 
 IPython 7.27
@@ -18,7 +65,7 @@ Thanks
 
 Many thanks to all the contributors to this release. You can find all individual
 contributions to this milestone `on github
-<https://github.com/ipython/ipython/milestone/90>`__.
+<https://github.com/ipython/ipython/milestone/91>`__.
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
 work on IPython and related libraries.
