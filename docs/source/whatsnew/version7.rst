@@ -2,6 +2,309 @@
  7.x Series
 ============
 
+.. _version 7.28:
+
+IPython 7.28
+============
+
+
+IPython 7.28 is again a minor release that mostly bring bugfixes, and couple of
+improvement. Many thanks to MrMino, who again did all the work this month, and
+made a number of documentation improvements.
+
+Here is a non-exhaustive list of changes,
+
+Fixes:
+
+ - async with doesn't allow newlines :ghpull:`13090`
+ - Dynamically changing to vi mode via %config magic) :ghpull:`13091`
+
+Virtualenv handling fixes:
+
+ - init_virtualenv now uses Pathlib :ghpull:`12548`
+ - Fix Improper path comparison of virtualenv directories :ghpull:`13140`
+ - Fix virtual environment user warning for lower case pathes :ghpull:`13094`
+ - Adapt to all sorts of drive names for cygwin :ghpull:`13153`
+
+New Features:
+
+ - enable autoplay in embed YouTube player :ghpull:`13133`
+
+ Documentation:
+
+ - Fix formatting for the core.interactiveshell documentation :ghpull:`13118`
+ - Fix broken ipyparallel's refs :ghpull:`13138`
+ - Improve formatting of %time documentation :ghpull:`13125`
+ - Reword the YouTubeVideo autoplay WN :ghpull:`13147`
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/92>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.27:
+
+IPython 7.27
+============
+
+IPython 7.27 is a minor release that fixes a couple of issues and compatibility.
+
+- Add support for GTK4 :ghpull:`131011`
+- Add support for Qt6 :ghpull:`13085`
+- Fix an issue with pip magic on windows :ghpull:`13093`
+
+Thanks
+------
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/91>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 7.26:
+
+IPython 7.26
+============
+
+IPython 7.26 is a minor release that fixes a couple of issues, updates in API
+and Copyright/Licenses issues around various part of the codebase.
+
+We'll highlight `this issue <https://github.com/ipython/ipython/issues/13039>`
+pointing out we were including and refereeing to code from Stack Overflow which
+was CC-BY-SA, hence incompatible with the BSD license of IPython. This lead us
+to a rewriting of the corresponding logic which in our case was done in a more
+efficient way (in our case we were searching string prefixes instead of full
+strings).
+
+You will notice also a number of documentation improvements and cleanup.
+
+Of particular interest are the following Pull-requests:
+
+
+ - The IPython directive now uses Sphinx logging for warnings. :ghpull:`13030`.
+ - Add expiry days option to pastebin magic and change http protocol to https.
+   :ghpull:`13056`
+ - Make Ipython.utils.timing work with jupyterlite :ghpull:`13050`.
+
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release and in particular MrMino who
+is doing most of the work those days. You can find all individual contributions
+to this milestone `on github <https://github.com/ipython/ipython/milestone/90>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.25:
+
+IPython 7.25
+============
+
+IPython 7.25 is a minor release that contains a single bugfix, which is highly
+recommended for all users of ipdb, ipython debugger %debug magic and similar.
+
+Issuing commands like ``where`` from within the debugger would reset the
+local variables changes made by the user. It is interesting to look at the root
+cause of the issue as accessing an attribute (``frame.f_locals``) would trigger
+this side effects.
+
+Thanks in particular to the patience from the reporters at D.E. Shaw for their
+initial bug report that was due to a similar coding oversight in an extension,
+and who took time to debug and narrow down the problem.
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/89>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.24:
+
+IPython 7.24
+============
+
+Third release of IPython for 2021, mostly containing bug fixes. A couple of not
+typical updates:
+
+Misc
+----
+
+
+ - Fix an issue where ``%recall`` would both succeeded and print an error message
+   it failed. :ghpull:`12952`
+ - Drop support for NumPy 1.16 – practically has no effect beyond indicating in
+   package metadata that we do not support it. :ghpull:`12937`
+
+Debugger improvements
+---------------------
+
+The debugger (and ``%debug`` magic) have been improved and can skip or hide frames
+originating from files that are not writable to the user, as these are less
+likely to be the source of errors, or be part of system files this can be a useful
+addition when debugging long errors.
+
+In addition to the global ``skip_hidden True|False`` command, the debugger has
+gained finer grained control of predicates as to whether to a frame should be
+considered hidden. So far 3 predicates are available :
+
+  - ``tbhide``: frames containing the local variable ``__tracebackhide__`` set to
+    True.
+  - ``readonly``: frames originating from readonly files, set to False.
+  - ``ipython_internal``: frames that are likely to be from IPython internal
+    code, set to True.
+
+You can toggle individual predicates during a session with
+
+.. code-block::
+
+   ipdb> skip_predicates readonly True
+
+Read-only files will now be considered hidden frames.
+
+
+You can call ``skip_predicates`` without arguments to see the states of current
+predicates:
+
+.. code-block::
+
+    ipdb> skip_predicates
+    current predicates:
+        tbhide : True
+        readonly : False
+        ipython_internal : True
+
+If all predicates are set to ``False``,  ``skip_hidden`` will practically have
+no effect. We attempt to warn you when all predicates are False.
+
+Note that the ``readonly`` predicate may increase disk access as we check for
+file access permission for all frames on many command invocation, but is usually
+cached by operating systems. Let us know if you encounter any issues.
+
+As the IPython debugger does not use the traitlets infrastructure for
+configuration, by editing your ``.pdbrc`` files and appending commands you would
+like to be executed just before entering the interactive prompt. For example:
+
+
+.. code::
+
+    # file : ~/.pdbrc
+    skip_predicates readonly True
+    skip_predicates tbhide False
+
+Will hide read only frames by default and show frames marked with
+``__tracebackhide__``.
+
+
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/87>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries, in particular above mentioned
+improvements to the debugger.
+
+
+
+
+.. _version 7.23:
+
+IPython 7.23 and 7.23.1
+=======================
+
+
+Third release of IPython for 2021, mostly containing bug fixes. A couple of not
+typical updates:
+
+ - We moved to GitHub actions away from Travis-CI, the transition may not be
+   100% complete (not testing on nightly anymore), but as we ran out of
+   Travis-Ci hours on the IPython organisation that was a necessary step.
+   :ghpull:`12900`.
+
+ - We have a new dependency: ``matplotlib-inline``, which try to extract
+   matplotlib inline backend specific behavior. It is available on PyPI and
+   conda-forge thus should not be a problem to upgrade to this version. If you
+   are a package maintainer that might be an extra dependency to package first.
+   :ghpull:`12817` (IPython 7.23.1 fix a typo that made this change fail)
+
+In the addition/new feature category, ``display()`` now have a ``clear=True``
+option to clear the display if any further outputs arrives, allowing users to
+avoid having to use ``clear_output()`` directly. :ghpull:`12823`.
+
+In bug fixes category, this release fix an issue when printing tracebacks
+containing Unicode characters :ghpull:`12758`.
+
+In code cleanup category :ghpull:`12932` remove usage of some deprecated
+functionality for compatibility with Python 3.10.
+
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/86>`__.
+In particular MrMino for responding to almost all new issues, and triaging many
+of the old ones, as well as takluyver, minrk, willingc for reacting quikly when
+we ran out of CI Hours.
+
+Thanks as well to organisations, QuantStack (martinRenou and SylvainCorlay) for
+extracting matplotlib inline backend into its own package, and the `D. E. Shaw group
+<https://deshaw.com/>`__ for sponsoring work on IPython and related libraries.
+
+
+.. _version 7.22:
+
+IPython 7.22
+============
+
+Second release of IPython for 2021, mostly containing bug fixes. Here is a quick
+rundown of the few changes.
+
+- Fix some ``sys.excepthook`` shenanigan when embedding with qt, recommended if
+  you – for example – use `napari <https://napari.org>`__. :ghpull:`12842`.
+- Fix bug when using the new ipdb ``%context`` magic :ghpull:`12844`
+- Couples of deprecation cleanup :ghpull:`12868`
+- Update for new dpast.com api if you use the ``%pastbin`` magic. :ghpull:`12712`
+- Remove support for numpy before 1.16. :ghpull:`12836`
+
+
+Thanks
+------
+
+We have a new team member that you should see more often on the IPython
+repository, Błażej Michalik (@MrMino) have been doing regular contributions to
+IPython, and spent time replying to many issues and guiding new users to the
+codebase; they now have triage permissions to the IPython repository and we'll
+work toward giving them more permission in the future.
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/84>`__.
+
+Thanks as well to organisations, QuantStack for working on debugger
+compatibility for Xeus_python, and the `D. E. Shaw group
+<https://deshaw.com/>`__ for sponsoring work on IPython and related libraries.
+
 .. _version 721:
 
 IPython 7.21
@@ -33,7 +336,7 @@ Thanks
 ------
 
 Many thanks to all the contributors to this release you can find all individual
-contribution to this milestone `on github <https://github.com/ipython/ipython/milestone/83>`_.
+contribution to this milestone `on github <https://github.com/ipython/ipython/milestone/83>`__.
 
 
 .. _version 720:
@@ -82,14 +385,14 @@ was exceptionally no release last month.
   - Docs docs formatting that make the install commands work on zsh
     :ghpull:`12587`
   - Always display the last frame in tracebacks even if hidden with
-    ``__traceback_hide__`` :ghpull:`12601`
+    ``__tracebackhide__`` :ghpull:`12601`
   - Avoid an issue where a callback can be registered multiple times.
     :ghpull:`12625`
   - Avoid an issue in debugger mode where frames changes could be lost.
     :ghpull:`12627`
 
   - Never hide the frames that invoke a debugger, even if marked as hidden by
-    ``__traceback_hide__`` :ghpull:`12631`
+    ``__tracebackhide__`` :ghpull:`12631`
   - Fix calling the debugger in a recursive manner :ghpull:`12659`
 
 
@@ -240,7 +543,7 @@ Change of API and exposed objects automatically detected using `frappuccino
 <https://pypi.org/project/frappuccino/>`_ (still in beta):
 
 
-The following items are new and mostly related to understanding ``__tracebackbhide__``::
+The following items are new and mostly related to understanding ``__tracebackbide__``::
 
     + IPython.core.debugger.Pdb.do_down(self, arg)
     + IPython.core.debugger.Pdb.do_skip_hidden(self, arg)

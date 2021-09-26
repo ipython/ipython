@@ -135,7 +135,7 @@ def test_image_filename_defaults():
     nt.assert_is_none(img._repr_jpeg_())
 
 def _get_inline_config():
-    from ipykernel.pylab.config import InlineBackend
+    from matplotlib_inline.config import InlineBackend
     return InlineBackend.instance()
 
 
@@ -183,7 +183,7 @@ def test_set_matplotlib_formats_kwargs():
     ip = get_ipython()
     cfg = _get_inline_config()
     cfg.print_figure_kwargs.update(dict(foo='bar'))
-    kwargs = dict(quality=10)
+    kwargs = dict(dpi=150)
     display.set_matplotlib_formats('png', **kwargs)
     formatter = ip.display_formatter.formatters['image/png']
     f = formatter.lookup_by_type(Figure)
@@ -457,6 +457,7 @@ def test_display_handle():
         'update': True,
     })
 
+
 def test_image_alt_tag():
     """Simple test for display.Image(args, alt=x,)"""
     thisurl = "http://example.com/image.png"
@@ -480,3 +481,8 @@ def test_image_alt_tag():
     nt.assert_equal(img.alt, "an image")
     _, md = img._repr_png_()
     nt.assert_equal(md["alt"], "an image")
+
+
+@nt.raises(FileNotFoundError)
+def test_image_bad_filename_raises_proper_exception():
+    display.Image("/this/file/does/not/exist/")._repr_png_()

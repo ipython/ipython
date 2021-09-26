@@ -101,25 +101,19 @@ class CrashHandler(object):
 
         Parameters
         ----------
-        app :  Application
+        app : Application
             A running :class:`Application` instance, which will be queried at
             crash time for internal information.
-
         contact_name : str
             A string with the name of the person to contact.
-
         contact_email : str
             A string with the email address of the contact.
-
         bug_tracker : str
             A string with the URL for your project's bug tracker.
-
         show_crash_traceback : bool
             If false, don't print the crash traceback on stderr, only generate
             the on-disk report
-
-        Non-argument instance attributes:
-
+        Non-argument instance attributes
         These instances contain some non-argument attributes which allow for
         further customization of the crash handler's behavior. Please see the
         source for further details.

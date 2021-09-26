@@ -92,6 +92,10 @@ class CachingCompiler(codeop.Compile):
         # (otherwise we'd lose our tracebacks).
         linecache.checkcache = check_linecache_ipython
 
+        # Caching a dictionary { filename: execution_count } for nicely
+        # rendered tracebacks. The filename corresponds to the filename
+        # argument used for the builtins.compile function.
+        self._filename_map = {}
 
     def ast_parse(self, source, filename='<unknown>', symbol='exec'):
         """Parse code to an AST with the current compiler flags active.
@@ -118,12 +122,12 @@ class CachingCompiler(codeop.Compile):
         Parameters
         ----------
         raw_code : str
-          The raw cell code.
+            The raw cell code.
         transformed_code : str
-          The executable Python source code to cache and compile.
+            The executable Python source code to cache and compile.
         number : int
-          A number which forms part of the code's name. Used for the execution
-          counter.
+            A number which forms part of the code's name. Used for the execution
+            counter.
 
         Returns
         -------
@@ -137,12 +141,12 @@ class CachingCompiler(codeop.Compile):
         Parameters
         ----------
         transformed_code : str
-          The executable Python source code to cache and compile.
+            The executable Python source code to cache and compile.
         number : int
-          A number which forms part of the code's name. Used for the execution
-          counter.
+            A number which forms part of the code's name. Used for the execution
+            counter.
         raw_code : str
-          The raw code before transformation, if None, set to `transformed_code`.
+            The raw code before transformation, if None, set to `transformed_code`.
 
         Returns
         -------
@@ -153,6 +157,10 @@ class CachingCompiler(codeop.Compile):
             raw_code = transformed_code
 
         name = self.get_code_name(raw_code, transformed_code, number)
+
+        # Save the execution count
+        self._filename_map[name] = number
+
         entry = (
             len(transformed_code),
             time.time(),

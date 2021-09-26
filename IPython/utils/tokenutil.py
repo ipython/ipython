@@ -23,20 +23,18 @@ def generate_tokens(readline):
 
 def line_at_cursor(cell, cursor_pos=0):
     """Return the line in a cell at a given cursor position
-    
+
     Used for calling line-based APIs that don't support multi-line input, yet.
-    
+
     Parameters
     ----------
-    
-    cell: str
+    cell : str
         multiline block of text
-    cursor_pos: integer
+    cursor_pos : integer
         the cursor position
-    
+
     Returns
     -------
-    
     (line, offset): (string, integer)
         The line with the current cursor, and the character offset of the start of the line.
     """
@@ -58,15 +56,14 @@ def line_at_cursor(cell, cursor_pos=0):
 
 def token_at_cursor(cell, cursor_pos=0):
     """Get the token at a given cursor
-    
+
     Used for introspection.
-    
+
     Function calls are prioritized, so the token for the callable will be returned
     if the cursor is anywhere inside the call.
-    
+
     Parameters
     ----------
-    
     cell : unicode
         A block of Python code
     cursor_pos : int

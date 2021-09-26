@@ -121,19 +121,17 @@ class DisplayFormatter(Configurable):
         Returns
         -------
         (format_dict, metadata_dict) : tuple of two dicts
-        
             format_dict is a dictionary of key/value pairs, one of each format that was
             generated for the object. The keys are the format types, which
             will usually be MIME type strings and the values and JSON'able
             data structure containing the raw data for the representation in
             that format.
-            
+
             metadata_dict is a dictionary of metadata about each mime-type output.
             Its keys will be a strict subset of the keys in format_dict.
 
         Notes
         -----
-
             If an object implement `_repr_mimebundle_` as well as various
             `_repr_*_`, the data returned by `_repr_mimebundle_` will take
             precedence and the corresponding `_repr_*_` for this mimetype will
@@ -263,7 +261,7 @@ class FormatterABC(metaclass=abc.ABCMeta):
 
 def _mod_name_key(typ):
     """Return a (__module__, __name__) tuple for a type.
-    
+
     Used as key in Formatter.deferred_printers.
     """
     module = getattr(typ, '__module__', None)
@@ -358,7 +356,7 @@ class BaseFormatter(Configurable):
     
     def _check_return(self, r, obj):
         """Check that a return value is appropriate
-        
+
         Return the value if so, None otherwise, warning if invalid.
         """
         if r is None or isinstance(r, self._return_type) or \
@@ -373,10 +371,10 @@ class BaseFormatter(Configurable):
     
     def lookup(self, obj):
         """Look up the formatter for a given instance.
-        
+
         Parameters
         ----------
-        obj  : object instance
+        obj : object instance
 
         Returns
         -------
@@ -399,7 +397,7 @@ class BaseFormatter(Configurable):
 
         Parameters
         ----------
-        typ  : type or '__module__.__name__' string for a type
+        typ : type or '__module__.__name__' string for a type
 
         Returns
         -------
@@ -430,7 +428,7 @@ class BaseFormatter(Configurable):
 
     def for_type(self, typ, func=None):
         """Add a format function for a given type.
-        
+
         Parameters
         ----------
         typ : type or '__module__.__name__' string for a type
@@ -441,10 +439,10 @@ class BaseFormatter(Configurable):
             and will return the raw data in this formatter's format.
             Subclasses may use a different call signature for the
             `func` argument.
-            
+
             If `func` is None or not specified, there will be no change,
             only returning the current value.
-        
+
         Returns
         -------
         oldfunc : callable
@@ -484,10 +482,10 @@ class BaseFormatter(Configurable):
             and will return the raw data in this formatter's format.
             Subclasses may use a different call signature for the
             `func` argument.
-            
+
             If `func` is None or unspecified, there will be no change,
             only returning the current value.
-        
+
         Returns
         -------
         oldfunc : callable
@@ -636,7 +634,6 @@ class PlainTextFormatter(BaseFormatter):
 
         This parameter can be set via the '%precision' magic.
         """
-
         new = change['new']
         if '%' in new:
             # got explicit format string
@@ -678,6 +675,11 @@ class PlainTextFormatter(BaseFormatter):
     def _type_printers_default(self):
         d = pretty._type_pprinters.copy()
         d[float] = lambda obj,p,cycle: p.text(self.float_format%obj)
+        # if NumPy is used, set precision for its float64 type
+        if "numpy" in sys.modules:
+            import numpy
+
+            d[numpy.float64] = lambda obj, p, cycle: p.text(self.float_format % obj)
         return d
 
     @default('deferred_printers')
@@ -823,7 +825,7 @@ class JSONFormatter(BaseFormatter):
     
     def _check_return(self, r, obj):
         """Check that a return value is appropriate
-        
+
         Return the value if so, None otherwise, warning if invalid.
         """
         if r is None:

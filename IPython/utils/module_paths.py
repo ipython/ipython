@@ -43,7 +43,7 @@ def find_mod(module_name):
     """
     Find module `module_name` on sys.path, and return the path to module `module_name`.
 
-      - If `module_name` refers to a module directory, then return path to __init__ file. 
+      - If `module_name` refers to a module directory, then return path to __init__ file.
         - If `module_name` is a directory without an __init__file, return None.
       - If module is missing or does not have a `.py` or `.pyw` extension, return None.
         - Note that we are not interested in running bytecode.
@@ -52,7 +52,7 @@ def find_mod(module_name):
     Parameters
     ----------
     module_name : str
-    
+
     Returns
     -------
     module_path : str

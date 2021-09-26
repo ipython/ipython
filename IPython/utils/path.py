@@ -109,7 +109,7 @@ def get_py_filename(name, force_win32=None):
         raise IOError('File `%r` not found.' % name)
 
 
-def filefind(filename, path_dirs=None):
+def filefind(filename: str, path_dirs=None) -> str:
     """Find a file by looking through a sequence of paths.
 
     This iterates through a sequence of paths looking for a file and returns
@@ -139,7 +139,12 @@ def filefind(filename, path_dirs=None):
 
     Returns
     -------
-    Raises :exc:`IOError` or returns absolute path to file.
+    path : str
+        returns absolute path to file.
+
+    Raises
+    ------
+    IOError
     """
 
     # If paths are quoted, abspath gets confused, strip them...
@@ -178,7 +183,6 @@ def get_home_dir(require_writable=False) -> str:
 
     Parameters
     ----------
-
     require_writable : bool [default: False]
         if True:
             guarantees the return value is a writable directory, otherwise

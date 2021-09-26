@@ -921,14 +921,13 @@ class InteractiveShell(SingletonConfigurable):
         while p.is_symlink():
             p = Path(os.readlink(p))
             paths.append(p.resolve())
-
+        
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
-        if str(p_venv).startswith("\\cygdrive"):
-            p_venv = Path(str(p_venv)[11:])
-        elif len(str(p_venv)) >= 2 and str(p_venv)[1] == ":":
-            p_venv = Path(str(p_venv)[2:])
+        if p_venv.parts[1] == "cygdrive":
+            drive_name = p_venv.parts[2]
+            p_venv = (drive_name + ":/") / Path(*p_venv.parts[3:])
 
-        if any(os.fspath(p_venv) in os.fspath(p) for p in paths):
+        if any(p_venv == p.parents[1] for p in paths):
             # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
 
@@ -1896,9 +1895,14 @@ class InteractiveShell(SingletonConfigurable):
             exception or returns an invalid result, it will be immediately
             disabled.
 
+        Notes
+        -----
+
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
-        facility should only be used if you really know what you are doing."""
+        facility should only be used if you really know what you are doing.
+        """
+
         if not isinstance(exc_tuple, tuple):
             raise TypeError("The custom exceptions must be given as a tuple.")
 
@@ -1966,7 +1970,7 @@ class InteractiveShell(SingletonConfigurable):
         sys.excepthook themselves.  I guess this is a feature that
         enables them to keep running after exceptions that would
         otherwise kill their mainloop. This is a bother for IPython
-        which excepts to catch all of the program exceptions with a try:
+        which expects to catch all of the program exceptions with a try:
         except: statement.
 
         Normally, IPython sets sys.excepthook to a CrashHandler instance, so if
@@ -2085,13 +2089,17 @@ class InteractiveShell(SingletonConfigurable):
         except KeyboardInterrupt:
             print('\n' + self.get_exception_only(), file=sys.stderr)
 
-    def _showtraceback(self, etype, evalue, stb):
+    def _showtraceback(self, etype, evalue, stb: str):
         """Actually show a traceback.
 
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        print(self.InteractiveTB.stb2text(stb))
+        val = self.InteractiveTB.stb2text(stb)
+        try:
+            print(val)
+        except UnicodeEncodeError:
+            print(val.encode("utf-8", "backslashreplace").decode())
 
     def showsyntaxerror(self, filename=None, running_compiled_code=False):
         """Display the syntax error that just occurred.
@@ -2212,12 +2220,15 @@ class InteractiveShell(SingletonConfigurable):
 
         Returns
         -------
-          text : string
-            The actual text that was completed.
+        text : string
+          The actual text that was completed.
 
-          matches : list
-            A sorted list with all possible completions.
+        matches : list
+          A sorted list with all possible completions.
 
+
+        Notes
+        -----
         The optional arguments allow the completion to take more context into
         account, and are part of the low-level completion API.
 
@@ -2226,7 +2237,8 @@ class InteractiveShell(SingletonConfigurable):
         exposing it as a method, it can be used by other non-readline
         environments (such as GUIs) for text completion.
 
-        Simple usage example:
+        Examples
+        --------
 
         In [1]: x = 'hello'
 
@@ -2508,6 +2520,23 @@ class InteractiveShell(SingletonConfigurable):
           Command to execute.
         """
         cmd = self.var_expand(cmd, depth=1)
+        # warn if there is an IPython magic alternative.
+        main_cmd = cmd.split()[0]
+        has_magic_alternatives = ("pip", "conda", "cd", "ls")
+
+        # had to check if the command was an alias expanded because of `ls`
+        is_alias_expanded = self.alias_manager.is_alias(main_cmd) and (
+            self.alias_manager.retrieve_alias(main_cmd).strip() == cmd.strip()
+        )
+
+        if main_cmd in has_magic_alternatives and not is_alias_expanded:
+            warnings.warn(
+                (
+                    "You executed the system command !{0} which may not work "
+                    "as expected. Try the IPython magic %{0} instead."
+                ).format(main_cmd)
+            )
+
         # protect os.system from UNC paths on Windows, which it can't handle:
         if sys.platform == 'win32':
             from IPython.utils._process_win32 import AvoidUNCPath
@@ -3109,9 +3138,7 @@ class InteractiveShell(SingletonConfigurable):
         _run_async = False
 
         with self.builtin_trap:
-            cell_name = self.compile.cache(
-                cell, self.execution_count, raw_code=raw_cell
-            )
+            cell_name = compiler.cache(cell, self.execution_count, raw_code=raw_cell)
 
             with self.display_trap:
                 # Compile to bytecode
@@ -3514,6 +3541,7 @@ class InteractiveShell(SingletonConfigurable):
           display figures inline.
         """
         from IPython.core import pylabtools as pt
+        from matplotlib_inline.backend_inline import configure_inline_support
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
         if gui != 'inline':
@@ -3527,7 +3555,7 @@ class InteractiveShell(SingletonConfigurable):
                 gui, backend = pt.find_gui_and_backend(self.pylab_gui_select)
 
         pt.activate_matplotlib(backend)
-        pt.configure_inline_support(self, backend)
+        configure_inline_support(self, backend)
 
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
@@ -3667,11 +3695,14 @@ class InteractiveShell(SingletonConfigurable):
 
         Parameters
         ----------
-        range_str : string
+        range_str : str
             The set of slices is given as a string, like "~5/6-~4/2 4:8 9",
             since this function is for use by magic functions which get their
             arguments as strings. The number before the / is the session
             number: ~n goes n back from the current session.
+
+            If empty string is given, returns history of current session
+            without the last input.
 
         raw : bool, optional
             By default, the processed input is used.  If this is true, the raw
@@ -3686,7 +3717,16 @@ class InteractiveShell(SingletonConfigurable):
         * ``N-M`` -> include items N..M (closed endpoint).
         """
         lines = self.history_manager.get_range_by_str(range_str, raw=raw)
-        return "\n".join(x for _, _, x in lines)
+        text = "\n".join(x for _, _, x in lines)
+
+        # Skip the last line, as it's probably the magic that called this
+        if not range_str:
+            if "\n" not in text:
+                text = ""
+            else:
+                text = text[: text.rfind("\n")]
+
+        return text
 
     def find_user_code(self, target, raw=True, py_only=False, skip_encoding_cookie=True, search_ns=False):
         """Get a code string from history, file, url, or a string or macro.
@@ -3695,13 +3735,14 @@ class InteractiveShell(SingletonConfigurable):
 
         Parameters
         ----------
-
         target : str
-
           A string specifying code to retrieve. This will be tried respectively
           as: ranges of input history (see %history for syntax), url,
           corresponding .py file, filename, or an expression evaluating to a
           string or Macro in the user namespace.
+
+          If empty string is given, returns complete history of current
+          session, without the last line.
 
         raw : bool
           If true (default), retrieve raw history. Has no effect on the other
@@ -3771,6 +3812,22 @@ class InteractiveShell(SingletonConfigurable):
         raise TypeError("%s is neither a string nor a macro." % target,
                         codeobj)
 
+    def _atexit_once(self):
+        """
+        At exist operation that need to be called at most once.
+        Second call to this function per instance will do nothing.
+        """
+
+        if not getattr(self, "_atexit_once_called", False):
+            self._atexit_once_called = True
+            # Clear all user namespaces to release all references cleanly.
+            self.reset(new_session=False)
+            # Close the history session (this stores the end time and line count)
+            # this must be *before* the tempfile cleanup, in case of temporary
+            # history db
+            self.history_manager.end_session()
+            self.history_manager = None
+
     #-------------------------------------------------------------------------
     # Things related to IPython exiting
     #-------------------------------------------------------------------------
@@ -3785,26 +3842,24 @@ class InteractiveShell(SingletonConfigurable):
         code that has the appropriate information, rather than trying to
         clutter
         """
-        # Close the history session (this stores the end time and line count)
-        # this must be *before* the tempfile cleanup, in case of temporary
-        # history db
-        self.history_manager.end_session()
+        self._atexit_once()
 
         # Cleanup all tempfiles and folders left around
         for tfile in self.tempfiles:
             try:
                 tfile.unlink()
+                self.tempfiles.remove(tfile)
             except FileNotFoundError:
                 pass
-
+        del self.tempfiles
         for tdir in self.tempdirs:
             try:
                 tdir.rmdir()
+                self.tempdirs.remove(tdir)
             except FileNotFoundError:
                 pass
+        del self.tempdirs
 
-        # Clear all user namespaces to release all references cleanly.
-        self.reset(new_session=False)
 
         # Run user hooks
         self.hooks.shutdown_hook()

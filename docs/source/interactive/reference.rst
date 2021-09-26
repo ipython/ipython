@@ -11,8 +11,11 @@ You start IPython with the command::
 
     $ ipython [options] files
 
-If invoked with no options, it executes all the files listed in sequence and
-exits. If you add the ``-i`` flag, it drops you into the interpreter while still
+If invoked with no options, it executes the file and exits, passing the
+remaining arguments to the script, just as if you had specified the same
+command with python. You may need to specify `--` before args to be passed
+to the script, to prevent IPython from attempting to parse them.
+If you add the ``-i`` flag, it drops you into the interpreter while still
 acknowledging any options you may have set in your ``ipython_config.py``. This
 behavior is different from standard Python, which when called as python ``-i``
 will only execute one file and ignore your configuration setup.
@@ -41,7 +44,7 @@ the command-line by passing the full class name and a corresponding value; type
     <...snip...>
     --matplotlib=<CaselessStrEnum> (InteractiveShellApp.matplotlib)
         Default: None
-        Choices: ['auto', 'gtk', 'gtk3', 'inline', 'nbagg', 'notebook', 'osx', 'qt', 'qt4', 'qt5', 'tk', 'wx']
+        Choices: ['auto', 'gtk', 'gtk3', 'gtk4', 'inline', 'nbagg', 'notebook', 'osx', 'qt', 'qt4', 'qt5', 'tk', 'wx']
         Configure matplotlib for interactive use with the default matplotlib
         backend.
     <...snip...>
@@ -899,7 +902,8 @@ For users, enabling GUI event loop integration is simple.  You simple use the
     %gui [GUINAME]
 
 With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
-arguments include ``wx``, ``qt``, ``qt5``, ``gtk``, ``gtk3`` and ``tk``.
+arguments include ``wx``, ``qt``, ``qt5``, ``gtk``, ``gtk3`` ``gtk4``, and
+``tk``.
 
 Thus, to use wxPython interactively and create a running :class:`wx.App`
 object, do::

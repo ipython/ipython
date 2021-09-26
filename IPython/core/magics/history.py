@@ -184,14 +184,12 @@ class HistoryMagics(Magics):
             n = 10 if limit is None else limit
             hist = history_manager.get_tail(n, raw=raw, output=get_output)
         else:
-            if args.range:      # Get history by ranges
-                if args.pattern:
-                    range_pattern = "*" + " ".join(args.pattern) + "*"
-                    print_nums = True
-                hist = history_manager.get_range_by_str(" ".join(args.range),
-                                                        raw, get_output)
-            else:               # Just get history for the current session
-                hist = history_manager.get_range(raw=raw, output=get_output)
+            if args.pattern:
+                range_pattern = "*" + " ".join(args.pattern) + "*"
+                print_nums = True
+            hist = history_manager.get_range_by_str(
+                " ".join(args.range), raw, get_output
+            )
 
         # We could be displaying the entire history, so let's not try to pull
         # it into a list in memory. Anything that needs more space will just
@@ -282,6 +280,7 @@ class HistoryMagics(Magics):
                 return
         else:
             self.shell.set_next_input(cmd.rstrip())
+            return
         print("Couldn't evaluate or find in history:", arg)
 
     @line_magic
@@ -301,6 +300,14 @@ class HistoryMagics(Magics):
         opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
         if "l" in opts:         # Last n lines
             n = int(opts['l'])
+
+            if n == 0:
+                print("Requested 0 last lines - nothing to run")
+                return
+            elif n < 0:
+                print("Number of lines to rerun cannot be negative")
+                return
+
             hist = self.shell.history_manager.get_tail(n)
         elif "g" in opts:       # Search
             p = "*"+opts['g']+"*"

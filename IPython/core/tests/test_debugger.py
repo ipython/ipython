@@ -277,14 +277,14 @@ def test_xmode_skip():
 
     block = dedent(
         """
-def f():
-    __tracebackhide__ = True
-    g()
+    def f():
+        __tracebackhide__ = True
+        g()
 
-def g():
-    raise ValueError
+    def g():
+        raise ValueError
 
-f()
+    f()
     """
     )
 
@@ -295,15 +295,15 @@ f()
 
     block = dedent(
         """
-def f():
-    __tracebackhide__ = True
-    g()
+    def f():
+        __tracebackhide__ = True
+        g()
 
-def g():
-    from IPython.core.debugger import set_trace
-    set_trace()
+    def g():
+        from IPython.core.debugger import set_trace
+        set_trace()
 
-f()
+    f()
     """
     )
 
@@ -318,6 +318,73 @@ f()
     child.sendline("skip_hidden false")
     child.sendline("w")
     child.expect("__traceba")
+    child.expect("ipdb>")
+
+    child.close()
+
+
+@skip_win32
+def test_where_erase_value():
+    """Test that `where` does not access f_locals and erase values."""
+    import pexpect
+
+    env = os.environ.copy()
+    env["IPY_TEST_SIMPLE_PROMPT"] = "1"
+
+    child = pexpect.spawn(
+        sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
+    )
+    child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
+
+    child.expect("IPython")
+    child.expect("\n")
+    child.expect_exact("In [1]")
+
+    block = dedent(
+        """
+    def simple_f():
+         myvar = 1
+         print(myvar)
+         1/0
+         print(myvar)
+    simple_f()    """
+    )
+
+    for line in block.splitlines():
+        child.sendline(line)
+        child.expect_exact(line)
+    child.expect_exact("ZeroDivisionError")
+    child.expect_exact("In [2]:")
+
+    child.sendline("%debug")
+
+    ##
+    child.expect("ipdb>")
+
+    child.sendline("myvar")
+    child.expect("1")
+
+    ##
+    child.expect("ipdb>")
+
+    child.sendline("myvar = 2")
+
+    ##
+    child.expect_exact("ipdb>")
+
+    child.sendline("myvar")
+
+    child.expect_exact("2")
+
+    ##
+    child.expect("ipdb>")
+    child.sendline("where")
+
+    ##
+    child.expect("ipdb>")
+    child.sendline("myvar")
+
+    child.expect_exact("2")
     child.expect("ipdb>")
 
     child.close()

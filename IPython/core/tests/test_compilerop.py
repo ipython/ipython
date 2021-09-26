@@ -18,7 +18,7 @@ import linecache
 import sys
 
 # Third-party imports
-import nose.tools as nt
+import pytest
 
 # Our own imports
 from IPython.core import compilerop
@@ -30,13 +30,13 @@ from IPython.core import compilerop
 def test_code_name():
     code = 'x=1'
     name = compilerop.code_name(code)
-    nt.assert_true(name.startswith('<ipython-input-0'))
+    assert name.startswith("<ipython-input-0")
 
 
 def test_code_name2():
     code = 'x=1'
     name = compilerop.code_name(code, 9)
-    nt.assert_true(name.startswith('<ipython-input-9'))
+    assert name.startswith("<ipython-input-9")
 
 
 def test_cache():
@@ -45,18 +45,18 @@ def test_cache():
     cp = compilerop.CachingCompiler()
     ncache = len(linecache.cache)
     cp.cache('x=1')
-    nt.assert_true(len(linecache.cache) > ncache)
+    assert len(linecache.cache) > ncache
 
 def test_proper_default_encoding():
     # Check we're in a proper Python 2 environment (some imports, such
     # as GTK, can change the default encoding, which can hide bugs.)
-    nt.assert_equal(sys.getdefaultencoding(), "utf-8")
+    assert sys.getdefaultencoding() == "utf-8"
 
 def test_cache_unicode():
     cp = compilerop.CachingCompiler()
     ncache = len(linecache.cache)
     cp.cache(u"t = 'žćčšđ'")
-    nt.assert_true(len(linecache.cache) > ncache)
+    assert len(linecache.cache) > ncache
 
 def test_compiler_check_cache():
     """Test the compiler properly manages the cache.

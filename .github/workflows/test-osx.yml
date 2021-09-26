@@ -1,0 +1,23 @@
+name: Run tests on OSX
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Install and update Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install --upgrade -e file://$PWD#egg=ipython[test]
+        python -m pip install --upgrade --upgrade-strategy eager trio curio
+        python -m pip install --upgrade pytest pytest-trio 'matplotlib!=3.2.0'
+        python -m pip install --upgrade anyio
+    - name: pytest
+      run: pytest

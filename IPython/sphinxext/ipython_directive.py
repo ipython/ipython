@@ -200,6 +200,7 @@ from io import StringIO
 # Third-party
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
+from sphinx.util import logging
 
 # Our own
 from traitlets.config import Config
@@ -557,15 +558,20 @@ class EmbeddedSphinxShell(object):
             filename = self.directive.state.document.current_source
             lineno = self.directive.state.document.current_line
 
+        # Use sphinx logger for warnings
+        logger = logging.getLogger(__name__)
+
         # output any exceptions raised during execution to stdout
         # unless :okexcept: has been specified.
-        if not is_okexcept and (("Traceback" in processed_output) or ("SyntaxError" in processed_output)):
-            s =  "\nException in %s at block ending on line %s\n" % (filename, lineno)
+        if not is_okexcept and (
+            ("Traceback" in processed_output) or ("SyntaxError" in processed_output)
+        ):
+            s = "\n>>>" + ("-" * 73) + "\n"
+            s += "Exception in %s at block ending on line %s\n" % (filename, lineno)
             s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
-            sys.stdout.write('\n\n>>>' + ('-' * 73))
-            sys.stdout.write(s)
-            sys.stdout.write(processed_output)
-            sys.stdout.write('<<<' + ('-' * 73) + '\n\n')
+            s += processed_output + "\n"
+            s += "<<<" + ("-" * 73)
+            logger.warning(s)
             if self.warning_is_error:
                 raise RuntimeError('Non Expected exception in `{}` line {}'.format(filename, lineno))
 
@@ -573,15 +579,15 @@ class EmbeddedSphinxShell(object):
         # unless :okwarning: has been specified.
         if not is_okwarning:
             for w in ws:
-                s =  "\nWarning in %s at block ending on line %s\n" % (filename, lineno)
+                s = "\n>>>" + ("-" * 73) + "\n"
+                s += "Warning in %s at block ending on line %s\n" % (filename, lineno)
                 s += "Specify :okwarning: as an option in the ipython:: block to suppress this message\n"
-                sys.stdout.write('\n\n>>>' + ('-' * 73))
-                sys.stdout.write(s)
-                sys.stdout.write(('-' * 76) + '\n')
-                s=warnings.formatwarning(w.message, w.category,
-                                         w.filename, w.lineno, w.line)
-                sys.stdout.write(s)
-                sys.stdout.write('<<<' + ('-' * 73) + '\n')
+                s += ("-" * 76) + "\n"
+                s += warnings.formatwarning(
+                    w.message, w.category, w.filename, w.lineno, w.line
+                )
+                s += "<<<" + ("-" * 73)
+                logger.warning(s)
                 if self.warning_is_error:
                     raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
 
@@ -1002,6 +1008,9 @@ class IPythonDirective(Directive):
         lines = ['.. code-block:: ipython', '']
         figures = []
 
+        # Use sphinx logger for warnings
+        logger = logging.getLogger(__name__)
+
         for part in parts:
             block = block_parser(part, rgxin, rgxout, promptin, promptout)
             if len(block):
@@ -1020,7 +1029,7 @@ class IPythonDirective(Directive):
                 if self.shell.warning_is_error:
                     raise RuntimeError(message)
                 else:
-                    warnings.warn(message)
+                    logger.warning(message)
 
         for figure in figures:
             lines.append('')

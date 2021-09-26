@@ -255,18 +255,18 @@ def test_find_assign_op_dedent():
 
 def test_check_complete():
     cc = ipt2.TransformerManager().check_complete
-    nt.assert_equal(cc("a = 1"), ('complete', None))
-    nt.assert_equal(cc("for a in range(5):"), ('incomplete', 4))
-    nt.assert_equal(cc("for a in range(5):\n    if a > 0:"), ('incomplete', 8))
-    nt.assert_equal(cc("raise = 2"), ('invalid', None))
-    nt.assert_equal(cc("a = [1,\n2,"), ('incomplete', 0))
-    nt.assert_equal(cc(")"), ('incomplete', 0))
-    nt.assert_equal(cc("\\\r\n"), ('incomplete', 0))
-    nt.assert_equal(cc("a = '''\n   hi"), ('incomplete', 3))
-    nt.assert_equal(cc("def a():\n x=1\n global x"), ('invalid', None))
-    nt.assert_equal(cc("a \\ "), ('invalid', None))  # Nothing allowed after backslash
-    nt.assert_equal(cc("1\\\n+2"), ('complete', None))
-    nt.assert_equal(cc("exit"), ('complete', None))
+    nt.assert_equal(cc("a = 1"), ("complete", None))
+    nt.assert_equal(cc("for a in range(5):"), ("incomplete", 4))
+    nt.assert_equal(cc("for a in range(5):\n    if a > 0:"), ("incomplete", 8))
+    nt.assert_equal(cc("raise = 2"), ("invalid", None))
+    nt.assert_equal(cc("a = [1,\n2,"), ("incomplete", 0))
+    nt.assert_equal(cc("(\n))"), ("incomplete", 0))
+    nt.assert_equal(cc("\\\r\n"), ("incomplete", 0))
+    nt.assert_equal(cc("a = '''\n   hi"), ("incomplete", 3))
+    nt.assert_equal(cc("def a():\n x=1\n global x"), ("invalid", None))
+    nt.assert_equal(cc("a \\ "), ("invalid", None))  # Nothing allowed after backslash
+    nt.assert_equal(cc("1\\\n+2"), ("complete", None))
+    nt.assert_equal(cc("exit"), ("complete", None))
 
     example = dedent("""
         if True:
@@ -295,6 +295,24 @@ def test_check_complete_II():
     """
     cc = ipt2.TransformerManager().check_complete
     nt.assert_equal(cc('''def foo():\n    """'''), ('incomplete', 4))
+
+
+def test_check_complete_invalidates_sunken_brackets():
+    """
+    Test that a single line with more closing brackets than the opening ones is
+    interpretted as invalid
+    """
+    cc = ipt2.TransformerManager().check_complete
+    nt.assert_equal(cc(")"), ("invalid", None))
+    nt.assert_equal(cc("]"), ("invalid", None))
+    nt.assert_equal(cc("}"), ("invalid", None))
+    nt.assert_equal(cc(")("), ("invalid", None))
+    nt.assert_equal(cc("]["), ("invalid", None))
+    nt.assert_equal(cc("}{"), ("invalid", None))
+    nt.assert_equal(cc("]()("), ("invalid", None))
+    nt.assert_equal(cc("())("), ("invalid", None))
+    nt.assert_equal(cc(")[]("), ("invalid", None))
+    nt.assert_equal(cc("()]("), ("invalid", None))
 
 
 def test_null_cleanup_transformer():

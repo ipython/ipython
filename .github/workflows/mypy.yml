@@ -2,9 +2,9 @@ name: Run MyPy
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, 7.x]
   pull_request:
-    branches: [ master ]
+    branches: [ master, 7.x]
 
 jobs:
   build:
@@ -26,8 +26,9 @@ jobs:
         pip install mypy pyflakes flake8
     - name: Lint with mypy
       run: |
-        mypy IPython/terminal/ptutils.py
-        mypy IPython/core/c*.py
+        mypy -p IPython.terminal
+        mypy -p IPython.core.magics
     - name: Lint with pyflakes
       run: |
         flake8  IPython/core/magics/script.py
+        flake8  IPython/core/magics/packaging.py

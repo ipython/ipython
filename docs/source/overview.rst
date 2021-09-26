@@ -219,7 +219,7 @@ different numbers which correspond to the Process ID of the kernel.
 
 You can read more about using `jupyter qtconsole
 <https://jupyter.org/qtconsole/>`_, and
-`jupyter notebook <http://jupyter-notebook.readthedocs.io/en/latest/>`_. There
+`jupyter notebook <https://jupyter-notebook.readthedocs.io/en/latest/>`_. There
 is also a :ref:`message spec <messaging>` which documents the protocol for
 communication between kernels
 and clients.
@@ -234,7 +234,7 @@ Interactive parallel computing
 
 
 This functionality is optional and now part of the `ipyparallel
-<http://ipyparallel.readthedocs.io/>`_ project.
+<https://ipyparallel.readthedocs.io/>`_ project.
 
 Portability and Python requirements
 -----------------------------------

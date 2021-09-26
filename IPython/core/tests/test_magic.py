@@ -472,6 +472,23 @@ def test_parse_options():
     nt.assert_equal(m.parse_options(u'foo', '')[1], u'foo')
 
 
+def test_parse_options_preserve_non_option_string():
+    """Test to assert preservation of non-option part of magic-block, while parsing magic options."""
+    m = DummyMagics(_ip)
+    opts, stmt = m.parse_options(
+        " -n1  -r 13 _ = 314 + foo", "n:r:", preserve_non_opts=True
+    )
+    nt.assert_equal(opts, {"n": "1", "r": "13"})
+    nt.assert_equal(stmt, "_ = 314 + foo")
+
+
+def test_run_magic_preserve_code_block():
+    """Test to assert preservation of non-option part of magic-block, while running magic."""
+    _ip.user_ns["spaces"] = []
+    _ip.magic("timeit -n1 -r1 spaces.append([s.count(' ') for s in ['document']])")
+    assert _ip.user_ns["spaces"] == [[0]]
+
+
 def test_dirops():
     """Test various directory handling operations."""
     # curpath = lambda :os.path.splitdrive(os.getcwd())[1].replace('\\','/')
@@ -1070,6 +1087,29 @@ def test_save():
         content = Path(file).read_text()
         nt.assert_equal(content.count(cmds[0]), 2)
         nt.assert_in("coding: utf-8", content)
+
+
+def test_save_with_no_args():
+    ip = get_ipython()
+    ip.history_manager.reset()  # Clear any existing history.
+    cmds = [u"a=1", u"def b():\n    return a**2", u"print(a, b())", "%save"]
+    for i, cmd in enumerate(cmds, start=1):
+        ip.history_manager.store_inputs(i, cmd)
+
+    with TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "testsave.py")
+        ip.run_line_magic("save", path)
+        content = Path(path).read_text()
+        expected_content = dedent(
+            """\
+            # coding: utf-8
+            a=1
+            def b():
+                return a**2
+            print(a, b())
+            """
+        )
+        nt.assert_equal(content, expected_content)
 
 
 def test_store():

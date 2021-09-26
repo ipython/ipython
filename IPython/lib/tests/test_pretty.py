@@ -81,7 +81,7 @@ def test_indentation():
     gotoutput = pretty.pretty(MyList(range(count)))
     expectedoutput = "MyList(\n" + ",\n".join("   %d" % i for i in range(count)) + ")"
 
-    nt.assert_equal(gotoutput, expectedoutput)
+    assert gotoutput == expectedoutput
 
 
 def test_dispatch():
@@ -92,7 +92,7 @@ def test_dispatch():
     gotoutput = pretty.pretty(MyDict())
     expectedoutput = "MyDict(...)"
 
-    nt.assert_equal(gotoutput, expectedoutput)
+    assert gotoutput == expectedoutput
 
 
 def test_callability_checking():
@@ -103,7 +103,7 @@ def test_callability_checking():
     gotoutput = pretty.pretty(Dummy2())
     expectedoutput = "Dummy1(...)"
 
-    nt.assert_equal(gotoutput, expectedoutput)
+    assert gotoutput == expectedoutput
 
 
 @pytest.mark.parametrize(
@@ -135,7 +135,7 @@ def test_sets(obj, expected_output):
     Test that set and frozenset use Python 3 formatting.
     """
     got_output = pretty.pretty(obj)
-    nt.assert_equal(got_output, expected_output)
+    assert got_output == expected_output
 
 
 @skip_without('xxlimited')
@@ -145,22 +145,24 @@ def test_pprint_heap_allocated_type():
     """
     import xxlimited
     output = pretty.pretty(xxlimited.Null)
-    nt.assert_equal(output, 'xxlimited.Null')
+    assert output == "xxlimited.Null"
+
 
 def test_pprint_nomod():
     """
     Test that pprint works for classes with no __module__.
     """
     output = pretty.pretty(NoModule)
-    nt.assert_equal(output, 'NoModule')
-    
+    assert output == "NoModule"
+
+
 def test_pprint_break():
     """
     Test that p.break_ produces expected output
     """
     output = pretty.pretty(Breaking())
     expected = "TG: Breaking(\n    ):"
-    nt.assert_equal(output, expected)
+    assert output == expected
 
 def test_pprint_break_repr():
     """
@@ -168,11 +170,11 @@ def test_pprint_break_repr():
     """
     output = pretty.pretty([[BreakingRepr()]])
     expected = "[[Breaking(\n  )]]"
-    nt.assert_equal(output, expected)
+    assert output == expected
 
     output = pretty.pretty([[BreakingRepr()]*2])
     expected = "[[Breaking(\n  ),\n  Breaking(\n  )]]"
-    nt.assert_equal(output, expected)
+    assert output == expected
 
 def test_bad_repr():
     """Don't catch bad repr errors"""
@@ -258,7 +260,7 @@ ClassWithMeta = MetaClass('ClassWithMeta')
 
 def test_metaclass_repr():
     output = pretty.pretty(ClassWithMeta)
-    nt.assert_equal(output, "[CUSTOM REPR FOR CLASS ClassWithMeta]")
+    assert output == "[CUSTOM REPR FOR CLASS ClassWithMeta]"
 
 
 def test_unicode_repr():
@@ -271,9 +273,9 @@ def test_unicode_repr():
     
     c = C()
     p = pretty.pretty(c)
-    nt.assert_equal(p, u)
+    assert p == u
     p = pretty.pretty([c])
-    nt.assert_equal(p, u'[%s]' % u)
+    assert p == u"[%s]" % u
 
 
 def test_basic_class():
@@ -290,10 +292,11 @@ def test_basic_class():
     printer.flush()
     output = stream.getvalue()
 
-    nt.assert_equal(output, '%s.MyObj' % __name__)
+    assert output == "%s.MyObj" % __name__
     nt.assert_true(type_pprint_wrapper.called)
 
 
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_collections_defaultdict():
     # Create defaultdicts with cycles
     a = defaultdict()
@@ -311,9 +314,10 @@ def test_collections_defaultdict():
         (b, "defaultdict(list, {'key': defaultdict(...)})"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
 
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_collections_ordereddict():
     # Create OrderedDict with cycle
     a = OrderedDict()
@@ -335,9 +339,10 @@ def test_collections_ordereddict():
         (a, "OrderedDict([('key', OrderedDict(...))])"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
 
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_collections_deque():
     # Create deque with cycle
     a = deque()
@@ -369,8 +374,10 @@ def test_collections_deque():
         (a, 'deque([deque(...)])'),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
+
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_collections_counter():
     class MyCounter(Counter):
         pass
@@ -380,8 +387,9 @@ def test_collections_counter():
         (MyCounter(a=1), "MyCounter({'a': 1})"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_mappingproxy():
     MP = types.MappingProxyType
     underlying_dict = {}
@@ -424,9 +432,10 @@ def test_mappingproxy():
          "{2: mappingproxy({2: {...}, 3: {...}}), 3: {...}}"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
 
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_simplenamespace():
     SN = types.SimpleNamespace
 
@@ -444,7 +453,7 @@ def test_simplenamespace():
         (sn_recursive, "namespace(first=namespace(...), second=namespace(...))"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
 
 def test_pretty_environ():
@@ -452,7 +461,7 @@ def test_pretty_environ():
     # reindent to align with 'environ' prefix
     dict_indented = dict_repr.replace('\n', '\n' + (' ' * len('environ')))
     env_repr = pretty.pretty(os.environ)
-    nt.assert_equal(env_repr, 'environ' + dict_indented)
+    assert env_repr == "environ" + dict_indented
 
 
 def test_function_pretty():
@@ -460,8 +469,9 @@ def test_function_pretty():
     # posixpath is a pure python module, its interface is consistent
     # across Python distributions
     import posixpath
-    nt.assert_equal(pretty.pretty(posixpath.join), '<function posixpath.join(a, *p)>')
- 
+
+    assert pretty.pretty(posixpath.join) == "<function posixpath.join(a, *p)>"
+
     # custom function
     def meaning_of_life(question=None):
         if question:
@@ -489,4 +499,4 @@ def test_custom_repr():
     oc = OrderedCounter("abracadabra")
     nt.assert_in("OrderedCounter(OrderedDict", pretty.pretty(oc))
 
-    nt.assert_equal(pretty.pretty(MySet()), 'mine')
+    assert pretty.pretty(MySet()) == "mine"

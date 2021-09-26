@@ -157,6 +157,11 @@ def test_bad_module_all():
         nt.assert_in('puppies', results)
         for r in results:
             nt.assert_is_instance(r, str)
+
+        # bad_all doesn't contain submodules, but this completion
+        # should finish without raising an exception:
+        results = module_completion("import bad_all.")
+        nt.assert_equal(results, [])
     finally:
         sys.path.remove(testsdir)
 
@@ -176,3 +181,14 @@ def test_module_without_init():
             assert s == []
         finally:
             sys.path.remove(tmpdir)
+
+
+def test_valid_exported_submodules():
+    """
+    Test checking exported (__all__) objects are submodules
+    """
+    results = module_completion("import os.pa")
+    # ensure we get a valid submodule:
+    nt.assert_in("os.path", results)
+    # ensure we don't get objects that aren't submodules:
+    nt.assert_not_in("os.pathconf", results)

@@ -160,7 +160,7 @@ def _format_traceback_lines(lines, Colors, has_colors, lvals):
         else:
             num = '%*s' % (numbers_width, lineno)
             start_color = Colors.lineno
-        
+
         line = '%s%s%s %s' % (start_color, num, Colors.Normal, line)
 
         res.append(line)
@@ -168,6 +168,31 @@ def _format_traceback_lines(lines, Colors, has_colors, lvals):
             res.append(lvals + '\n')
     return res
 
+
+def _format_filename(file, ColorFilename, ColorNormal):
+    """
+    Format filename lines with `In [n]` if it's the nth code cell or `File *.py` if it's a module.
+
+    Parameters
+    ----------
+    file : str
+    ColorFilename
+        ColorScheme's filename coloring to be used.
+    ColorNormal
+        ColorScheme's normal coloring to be used.
+    """
+    ipinst = get_ipython()
+
+    if ipinst is not None and file in ipinst.compile._filename_map:
+        file = "[%s]" % ipinst.compile._filename_map[file]
+        tpl_link = "In %s%%s%s" % (ColorFilename, ColorNormal)
+    else:
+        file = util_path.compress_user(
+            py3compat.cast_unicode(file, util_path.fs_encoding)
+        )
+        tpl_link = "File %s%%s%s" % (ColorFilename, ColorNormal)
+
+    return tpl_link % file
 
 #---------------------------------------------------------------------------
 # Module classes
@@ -300,7 +325,7 @@ class ListTB(TBTools):
 
     Calling requires 3 arguments: (etype, evalue, elist)
     as would be obtained by::
-    
+
       etype, evalue, tb = sys.exc_info()
       if tb:
         elist = traceback.extract_tb(tb)
@@ -414,21 +439,31 @@ class ListTB(TBTools):
         Colors = self.Colors
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
-            item = '  File %s"%s"%s, line %s%d%s, in %s%s%s\n' % \
-                   (Colors.filename, filename, Colors.Normal,
-                    Colors.lineno, lineno, Colors.Normal,
-                    Colors.name, name, Colors.Normal)
+            item = "  %s, line %s%d%s, in %s%s%s\n" % (
+                _format_filename(filename, Colors.filename, Colors.Normal),
+                Colors.lineno,
+                lineno,
+                Colors.Normal,
+                Colors.name,
+                name,
+                Colors.Normal,
+            )
             if line:
                 item += '    %s\n' % line.strip()
             list.append(item)
         # Emphasize the last entry
         filename, lineno, name, line = extracted_list[-1]
-        item = '%s  File %s"%s"%s, line %s%d%s, in %s%s%s%s\n' % \
-               (Colors.normalEm,
-                Colors.filenameEm, filename, Colors.normalEm,
-                Colors.linenoEm, lineno, Colors.normalEm,
-                Colors.nameEm, name, Colors.normalEm,
-                Colors.Normal)
+        item = "%s  %s, line %s%d%s, in %s%s%s%s\n" % (
+            Colors.normalEm,
+            _format_filename(filename, Colors.filenameEm, Colors.normalEm),
+            Colors.linenoEm,
+            lineno,
+            Colors.normalEm,
+            Colors.nameEm,
+            name,
+            Colors.normalEm,
+            Colors.Normal,
+        )
         if line:
             item += '%s    %s%s\n' % (Colors.line, line.strip(),
                                       Colors.Normal)
@@ -463,13 +498,21 @@ class ListTB(TBTools):
                     lineno = value.lineno
                     textline = linecache.getline(value.filename, value.lineno)
                 else:
-                    lineno = 'unknown'
-                    textline = ''
-                list.append('%s  File %s"%s"%s, line %s%s%s\n' % \
-                            (Colors.normalEm,
-                             Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
-                             Colors.linenoEm, lineno, Colors.Normal  ))
-                if textline == '':
+                    lineno = "unknown"
+                    textline = ""
+                list.append(
+                    "%s  %s, line %s%s%s\n"
+                    % (
+                        Colors.normalEm,
+                        _format_filename(
+                            value.filename, Colors.filenameEm, Colors.normalEm
+                        ),
+                        Colors.linenoEm,
+                        lineno,
+                        Colors.Normal,
+                    )
+                )
+                if textline == "":
                     textline = py3compat.cast_unicode(value.text, "utf-8")
 
                 if textline is not None:
@@ -581,25 +624,19 @@ class VerboseTB(TBTools):
         Colors = self.Colors  # just a shorthand + quicker name lookup
         ColorsNormal = Colors.Normal  # used a lot
 
-
-
         if isinstance(frame_info, stack_data.RepeatedFrames):
             return '    %s[... skipping similar frames: %s]%s\n' % (
                 Colors.excName, frame_info.description, ColorsNormal)
 
         indent = ' ' * INDENT_SIZE
         em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
-        tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
         tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm,
                                         ColorsNormal)
         tpl_call_fail = 'in %s%%s%s(***failed resolving arguments***)%s' % \
                         (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_local_var = '%s%%s%s' % (Colors.vName, ColorsNormal)
         tpl_name_val = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
 
-        file = frame_info.filename
-        file = py3compat.cast_unicode(file, util_path.fs_encoding)
-        link = tpl_link % util_path.compress_user(file)
+        link = _format_filename(frame_info.filename, Colors.filenameEm, ColorsNormal)
         args, varargs, varkw, locals_ = inspect.getargvalues(frame_info.frame)
 
         func = frame_info.executing.code_qualname()
@@ -634,12 +671,20 @@ class VerboseTB(TBTools):
         lvals = ''
         lvals_list = []
         if self.include_vars:
-            for var in frame_info.variables_in_executing_piece:
-                lvals_list.append(tpl_name_val % (var.name, repr(var.value)))
+            try:
+                # we likely want to fix stackdata at some point, but
+                # still need a workaround.
+                fibp = frame_info.variables_in_executing_piece
+                for var in fibp:
+                    lvals_list.append(tpl_name_val % (var.name, repr(var.value)))
+            except Exception:
+                lvals_list.append(
+                    "Exception trying to inspect frame. No more locals available."
+                )
         if lvals_list:
             lvals = '%s%s' % (indent, em_normal.join(lvals_list))
 
-        result = '%s %s\n' % (link, call)
+        result = "%s, %s\n" % (link, call)
 
         result += ''.join(_format_traceback_lines(frame_info.lines, Colors, self.has_colors, lvals))
         return result

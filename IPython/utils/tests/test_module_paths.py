@@ -54,8 +54,8 @@ def setup_module():
 def teardown_module():
     """Teardown testenvironment for the module:
 
-            - Remove tempdir
-            - restore sys.path
+    - Remove tempdir
+    - restore sys.path
     """
     # Note: we remove the parent test dir, which is the root of all test
     # subdirs we may have created.  Use shutil instead of os.removedirs, so

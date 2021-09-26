@@ -7,6 +7,7 @@ from IPython.core.debugger import Pdb
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
 from .shortcuts import create_ipython_shortcuts
+from . import embed
 
 from pygments.token import Token
 from prompt_toolkit.shortcuts.prompt import PromptSession
@@ -131,6 +132,18 @@ class TerminalPdb(Pdb):
         except Exception:
             raise
 
+    def do_interact(self, arg):
+        ipshell = embed.InteractiveShellEmbed(
+            config=self.shell.config,
+            banner1="*interactive*",
+            exit_msg="*exiting interactive console...*",
+        )
+        global_ns = self.curframe.f_globals
+        ipshell(
+            module=sys.modules.get(global_ns["__name__"], None),
+            local_ns=self.curframe_locals,
+        )
+
 
 def set_trace(frame=None):
     """
@@ -148,6 +161,6 @@ if __name__ == '__main__':
     # happened after hitting "c", this is needed in order to
     # be able to quit the debugging session (see #9950).
     old_trace_dispatch = pdb.Pdb.trace_dispatch
-    pdb.Pdb = TerminalPdb
-    pdb.Pdb.trace_dispatch = old_trace_dispatch
+    pdb.Pdb = TerminalPdb  # type: ignore
+    pdb.Pdb.trace_dispatch = old_trace_dispatch  # type: ignore
     pdb.main()

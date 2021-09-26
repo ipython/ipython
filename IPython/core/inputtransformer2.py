@@ -10,7 +10,9 @@ deprecated in 7.0.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from codeop import compile_command
+import ast
+import sys
+from codeop import CommandCompiler, Compile
 import re
 import tokenize
 from typing import List, Tuple, Optional, Any
@@ -89,7 +91,30 @@ classic_prompt = PromptStripper(
     initial_re=re.compile(r'^>>>( |$)')
 )
 
-ipython_prompt = PromptStripper(re.compile(r'^(In \[\d+\]: |\s*\.{3,}: ?)'))
+ipython_prompt = PromptStripper(
+    re.compile(
+        r"""
+        ^(                         # Match from the beginning of a line, either:
+
+                                   # 1. First-line prompt:
+        ((\[nav\]|\[ins\])?\ )?    # Vi editing mode prompt, if it's there
+        In\                        # The 'In' of the prompt, with a space
+        \[\d+\]:                   # Command index, as displayed in the prompt
+        \                          # With a mandatory trailing space
+
+        |                          # ... or ...
+
+                                   # 2. The three dots of the multiline prompt
+        \s*                        # All leading whitespace characters
+        \.{3,}:                    # The three (or more) dots
+        \ ?                        # With an optional trailing space
+
+        )
+        """,
+        re.VERBOSE,
+    )
+)
+
 
 def cell_magic(lines):
     if not lines or not lines[0].startswith('%%'):
@@ -508,6 +533,20 @@ def make_tokens_by_line(lines:List[str]):
 
     return tokens_by_line
 
+
+def has_sunken_brackets(tokens: List[tokenize.TokenInfo]):
+    """Check if the depth of brackets in the list of tokens drops below 0"""
+    parenlev = 0
+    for token in tokens:
+        if token.string in {"(", "[", "{"}:
+            parenlev += 1
+        elif token.string in {")", "]", "}"}:
+            parenlev -= 1
+            if parenlev < 0:
+                return True
+    return False
+
+
 def show_linewise_tokens(s: str):
     """For investigation and debugging"""
     if not s.endswith('\n'):
@@ -662,6 +701,15 @@ class TransformerManager:
 
         tokens_by_line = make_tokens_by_line(lines)
 
+        # Bail if we got one line and there are more closing parentheses than
+        # the opening ones
+        if (
+            len(lines) == 1
+            and tokens_by_line
+            and has_sunken_brackets(tokens_by_line[0])
+        ):
+            return "invalid", None
+
         if not tokens_by_line:
             return 'incomplete', find_last_indent(lines)
 
@@ -727,3 +775,25 @@ def find_last_indent(lines):
     if not m:
         return 0
     return len(m.group(0).replace('\t', ' '*4))
+
+
+class MaybeAsyncCompile(Compile):
+    def __init__(self, extra_flags=0):
+        super().__init__()
+        self.flags |= extra_flags
+
+    def __call__(self, *args, **kwds):
+        return compile(*args, **kwds)
+
+
+class MaybeAsyncCommandCompiler(CommandCompiler):
+    def __init__(self, extra_flags=0):
+        self.compiler = MaybeAsyncCompile(extra_flags=extra_flags)
+
+
+if (sys.version_info.major, sys.version_info.minor) >= (3, 8):
+    _extra_flags = ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
+else:
+    _extra_flags = ast.PyCF_ONLY_AST
+
+compile_command = MaybeAsyncCommandCompiler(extra_flags=_extra_flags)

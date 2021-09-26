@@ -5,4 +5,4 @@ Messaging for Parallel Computing
 ================================
 
 IPython parallel has moved to ipyparallel -
-see :ref:`ipyparallel:parallel_messages` for the documentation.
+see :ref:`ipyparallel:/reference/messages.md` for the documentation.

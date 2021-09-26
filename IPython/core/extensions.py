@@ -94,7 +94,7 @@ class ExtensionManager(Configurable):
 
         This function looks up the extension's name in ``sys.modules`` and
         simply calls ``mod.unload_ipython_extension(self)``.
-        
+
         Returns the string "no unload function" if the extension doesn't define
         a function to unload itself, "not loaded" if the extension isn't loaded,
         otherwise None.

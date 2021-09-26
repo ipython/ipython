@@ -1,0 +1,36 @@
+name: Run tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install and update Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install --upgrade -e file://$PWD#egg=ipython[test]
+        python -m pip install --upgrade --upgrade-strategy eager trio curio 
+        python -m pip install --upgrade pytest pytest-trio 'matplotlib!=3.2.0'
+        python -m pip install --upgrade check-manifest pytest-cov anyio
+    - name: Check manifest
+      run: check-manifest
+    - name: iptest
+      run: |
+        cd /tmp && iptest --coverage xml && cd -
+        cp /tmp/ipy_coverage.xml ./
+        cp /tmp/.coverage ./
+    - name: pytest
+      run: |
+        pytest
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1

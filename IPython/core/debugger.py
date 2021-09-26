@@ -33,6 +33,7 @@ import linecache
 import sys
 import warnings
 import re
+import os
 
 from IPython import get_ipython
 from IPython.utils import PyColorize
@@ -109,7 +110,6 @@ class Tracer(object):
 
         Parameters
         ----------
-
         colors : str, optional
             The name of the color scheme to use, it must be one of IPython's
             valid color schemes.  If not given, the function will default to
@@ -199,21 +199,39 @@ class Pdb(OldPdb):
     for a standalone version that uses prompt_toolkit, see
     `IPython.terminal.debugger.TerminalPdb` and
     `IPython.terminal.debugger.set_trace()`
+
+
+    This debugger can hide and skip frames that are tagged according to some predicates.
+    See the `skip_predicates` commands.
+
     """
+
+    default_predicates = {"tbhide": True, "readonly": False, "ipython_internal": True}
 
     def __init__(self, color_scheme=None, completekey=None,
                  stdin=None, stdout=None, context=5, **kwargs):
         """Create a new IPython debugger.
 
-        :param color_scheme: Deprecated, do not use.
-        :param completekey: Passed to pdb.Pdb.
-        :param stdin: Passed to pdb.Pdb.
-        :param stdout: Passed to pdb.Pdb.
-        :param context: Number of lines of source code context to show when
+        Parameters
+        ----------
+        color_scheme : default None
+            Deprecated, do not use.
+        completekey : default None
+            Passed to pdb.Pdb.
+        stdin : default None
+            Passed to pdb.Pdb.
+        stdout : default None
+            Passed to pdb.Pdb.
+        context : int
+            Number of lines of source code context to show when
             displaying stacktrace information.
-        :param kwargs: Passed to pdb.Pdb.
-            The possibilities are python version dependent, see the python
-            docs for more info.
+        **kwargs
+            Passed to pdb.Pdb.
+
+        Notes
+        -----
+        The possibilities are python version dependent, see the python
+        docs for more info.
         """
 
         # Parent constructor:
@@ -281,6 +299,10 @@ class Pdb(OldPdb):
         # Set the prompt - the default prompt is '(Pdb)'
         self.prompt = prompt
         self.skip_hidden = True
+        self.report_skipped = True
+
+        # list of predicates we use to skip frames
+        self._predicates = self.default_predicates
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
@@ -293,6 +315,26 @@ class Pdb(OldPdb):
         self.initial_frame = frame
         return super().set_trace(frame)
 
+    def _hidden_predicate(self, frame):
+        """
+        Given a frame return whether it it should be hidden or not by IPython.
+        """
+
+        if self._predicates["readonly"]:
+            fname = frame.f_code.co_filename
+            # we need to check for file existence and interactively define
+            # function would otherwise appear as RO.
+            if os.path.isfile(fname) and not os.access(fname, os.W_OK):
+                return True
+
+        if self._predicates["tbhide"]:
+            if frame in (self.curframe, getattr(self, "initial_frame", None)):
+                return False
+            else:
+                return self._get_frame_locals(frame).get("__tracebackhide__", False)
+
+        return False
+
     def hidden_frames(self, stack):
         """
         Given an index in the stack return whether it should be skipped.
@@ -303,14 +345,9 @@ class Pdb(OldPdb):
         # locals whenever the .f_locals accessor is called, so we
         # avoid calling it here to preserve self.curframe_locals.
         # Futhermore, there is no good reason to hide the current frame.
-        ip_hide = [
-            False
-            if s[0] in (self.curframe, getattr(self, "initial_frame", None))
-            else s[0].f_locals.get("__tracebackhide__", False)
-            for s in stack
-        ]
+        ip_hide = [self._hidden_predicate(s[0]) for s in stack]
         ip_start = [i for i, s in enumerate(ip_hide) if s == "__ipython_bottom__"]
-        if ip_start:
+        if ip_start and self._predicates["ipython_internal"]:
             ip_hide = [h if i > ip_start[0] else True for (i, h) in enumerate(ip_hide)]
         return ip_hide
 
@@ -398,6 +435,28 @@ class Pdb(OldPdb):
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds: <<
 
+    def _get_frame_locals(self, frame):
+        """ "
+        Acessing f_local of current frame reset the namespace, so we want to avoid
+        that or the following can happend
+
+        ipdb> foo
+        "old"
+        ipdb> foo = "new"
+        ipdb> foo
+        "new"
+        ipdb> where
+        ipdb> foo
+        "old"
+
+        So if frame is self.current_frame we instead return self.curframe_locals
+
+        """
+        if frame is self.curframe:
+            return self.curframe_locals
+        else:
+            return frame.f_locals
+
     def format_stack_entry(self, frame_lineno, lprefix=': ', context=None):
         if context is None:
             context = self.context
@@ -422,10 +481,11 @@ class Pdb(OldPdb):
         frame, lineno = frame_lineno
 
         return_value = ''
-        if '__return__' in frame.f_locals:
-            rv = frame.f_locals['__return__']
-            #return_value += '->'
-            return_value += reprlib.repr(rv) + '\n'
+        loc_frame = self._get_frame_locals(frame)
+        if "__return__" in loc_frame:
+            rv = loc_frame["__return__"]
+            # return_value += '->'
+            return_value += reprlib.repr(rv) + "\n"
         ret.append(return_value)
 
         #s = filename + '(' + `lineno` + ')'
@@ -437,10 +497,10 @@ class Pdb(OldPdb):
         else:
             func = "<lambda>"
 
-        call = ''
-        if func != '?':
-            if '__args__' in frame.f_locals:
-                args = reprlib.repr(frame.f_locals['__args__'])
+        call = ""
+        if func != "?":
+            if "__args__" in loc_frame:
+                args = reprlib.repr(loc_frame["__args__"])
             else:
                 args = '()'
             call = tpl_call % (func, args)
@@ -533,15 +593,68 @@ class Pdb(OldPdb):
         except KeyboardInterrupt:
             pass
 
+    def do_skip_predicates(self, args):
+        """
+        Turn on/off individual predicates as to whether a frame should be hidden/skip.
+
+        The global option to skip (or not) hidden frames is set with skip_hidden
+
+        To change the value of a predicate
+
+            skip_predicates key [true|false]
+
+        Call without arguments to see the current values.
+
+        To permanently change the value of an option add the corresponding
+        command to your ``~/.pdbrc`` file. If you are programmatically using the
+        Pdb instance you can also change the ``default_predicates`` class
+        attribute.
+        """
+        if not args.strip():
+            print("current predicates:")
+            for (p, v) in self._predicates.items():
+                print("   ", p, ":", v)
+            return
+        type_value = args.strip().split(" ")
+        if len(type_value) != 2:
+            print(
+                f"Usage: skip_predicates <type> <value>, with <type> one of {set(self._predicates.keys())}"
+            )
+            return
+
+        type_, value = type_value
+        if type_ not in self._predicates:
+            print(f"{type_!r} not in {set(self._predicates.keys())}")
+            return
+        if value.lower() not in ("true", "yes", "1", "no", "false", "0"):
+            print(
+                f"{value!r} is invalid - use one of ('true', 'yes', '1', 'no', 'false', '0')"
+            )
+            return
+
+        self._predicates[type_] = value.lower() in ("true", "yes", "1")
+        if not any(self._predicates.values()):
+            print(
+                "Warning, all predicates set to False, skip_hidden may not have any effects."
+            )
+
     def do_skip_hidden(self, arg):
         """
         Change whether or not we should skip frames with the
         __tracebackhide__ attribute.
         """
-        if arg.strip().lower() in ("true", "yes"):
+        if not arg.strip():
+            print(
+                f"skip_hidden = {self.skip_hidden}, use 'yes','no', 'true', or 'false' to change."
+            )
+        elif arg.strip().lower() in ("true", "yes"):
             self.skip_hidden = True
         elif arg.strip().lower() in ("false", "no"):
             self.skip_hidden = False
+        if not any(self._predicates.values()):
+            print(
+                "Warning, all predicates set to False, skip_hidden may not have any effects."
+            )
 
     def do_list(self, arg):
         """Print lines of code from the current stack frame
@@ -581,7 +694,7 @@ class Pdb(OldPdb):
 
     def getsourcelines(self, obj):
         lines, lineno = inspect.findsource(obj)
-        if inspect.isframe(obj) and obj.f_globals is obj.f_locals:
+        if inspect.isframe(obj) and obj.f_globals is self._get_frame_locals(obj):
             # must be a module frame: do not try to cut a block out of it
             return lines, 1
         elif inspect.ismodule(obj):
@@ -705,12 +818,14 @@ class Pdb(OldPdb):
     def stop_here(self, frame):
         hidden = False
         if self.skip_hidden:
-            hidden = frame.f_locals.get("__tracebackhide__", False)
+            hidden = self._hidden_predicate(frame)
         if hidden:
-            Colors = self.color_scheme_table.active_colors
-            ColorsNormal = Colors.Normal
-            print(f"{Colors.excName}    [... skipped 1 hidden frame]{ColorsNormal}\n")
-
+            if self.report_skipped:
+                Colors = self.color_scheme_table.active_colors
+                ColorsNormal = Colors.Normal
+                print(
+                    f"{Colors.excName}    [... skipped 1 hidden frame]{ColorsNormal}\n"
+                )
         return super().stop_here(frame)
 
     def do_up(self, arg):
@@ -721,7 +836,7 @@ class Pdb(OldPdb):
         Will skip hidden frames.
         """
         # modified version of upstream that skips
-        # frames with __tracebackide__
+        # frames with __tracebackhide__
         if self.curindex == 0:
             self.error("Oldest frame")
             return

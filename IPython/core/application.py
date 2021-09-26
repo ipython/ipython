@@ -66,26 +66,48 @@ else:
 
 # aliases and flags
 
-base_aliases = {
-    'profile-dir' : 'ProfileDir.location',
-    'profile' : 'BaseIPythonApplication.profile',
-    'ipython-dir' : 'BaseIPythonApplication.ipython_dir',
-    'log-level' : 'Application.log_level',
-    'config' : 'BaseIPythonApplication.extra_config_file',
-}
-
-base_flags = dict(
-    debug = ({'Application' : {'log_level' : logging.DEBUG}},
-            "set log level to logging.DEBUG (maximize logging output)"),
-    quiet = ({'Application' : {'log_level' : logging.CRITICAL}},
-            "set log level to logging.CRITICAL (minimize logging output)"),
-    init = ({'BaseIPythonApplication' : {
-                    'copy_config_files' : True,
-                    'auto_create' : True}
-            }, """Initialize profile with default config files.  This is equivalent
-            to running `ipython profile create <profile>` prior to startup.
-            """)
+base_aliases = {}
+if isinstance(Application.aliases, dict):
+    # traitlets 5
+    base_aliases.update(Application.aliases)
+base_aliases.update(
+    {
+        "profile-dir": "ProfileDir.location",
+        "profile": "BaseIPythonApplication.profile",
+        "ipython-dir": "BaseIPythonApplication.ipython_dir",
+        "log-level": "Application.log_level",
+        "config": "BaseIPythonApplication.extra_config_file",
+    }
 )
+
+base_flags = dict()
+if isinstance(Application.flags, dict):
+    # traitlets 5
+    base_flags.update(Application.flags)
+base_flags.update(
+    dict(
+        debug=(
+            {"Application": {"log_level": logging.DEBUG}},
+            "set log level to logging.DEBUG (maximize logging output)",
+        ),
+        quiet=(
+            {"Application": {"log_level": logging.CRITICAL}},
+            "set log level to logging.CRITICAL (minimize logging output)",
+        ),
+        init=(
+            {
+                "BaseIPythonApplication": {
+                    "copy_config_files": True,
+                    "auto_create": True,
+                }
+            },
+            """Initialize profile with default config files.  This is equivalent
+            to running `ipython profile create <profile>` prior to startup.
+            """,
+        ),
+    )
+)
+
 
 class ProfileAwareConfigLoader(PyFileConfigLoader):
     """A Python file config loader that is aware of IPython profiles."""
@@ -254,7 +276,7 @@ class BaseIPythonApplication(Application):
     
     def excepthook(self, etype, evalue, tb):
         """this is sys.excepthook after init_crashhandler
-        
+
         set self.verbose_crash=True to use our full crashhandler, instead of
         a regular traceback with a short message (crash_handler_lite)
         """

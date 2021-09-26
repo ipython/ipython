@@ -20,7 +20,7 @@ import re
 import sys
 import ast
 from itertools import chain
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 from urllib.parse import urlencode
 from pathlib import Path
 
@@ -29,6 +29,7 @@ from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
 from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
+from IPython.core.release import version
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import get_py_filename
@@ -201,6 +202,9 @@ class CodeMagics(Magics):
         This function uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
 
+        If no ranges are specified, saves history of the current session up to
+        this point.
+
         It adds a '.py' extension to the file if you don't do so yourself, and
         it asks for confirmation before overwriting existing files.
 
@@ -245,20 +249,25 @@ class CodeMagics(Magics):
 
     @line_magic
     def pastebin(self, parameter_s=''):
-        """Upload code to dpaste's paste bin, returning the URL.
+        """Upload code to dpaste.com, returning the URL.
 
         Usage:\\
-          %pastebin [-d "Custom description"] 1-7
+          %pastebin [-d "Custom description"][-e 24] 1-7
 
         The argument can be an input history range, a filename, or the name of a
         string or macro.
 
+        If no arguments are given, uploads the history of this session up to
+        this point.
+
         Options:
 
-          -d: Pass a custom description for the gist. The default will say
+          -d: Pass a custom description. The default will say
               "Pasted from IPython".
+          -e: Pass number of days for the link to be expired.
+              The default will be 7 days.
         """
-        opts, args = self.parse_options(parameter_s, 'd:')
+        opts, args = self.parse_options(parameter_s, "d:e:")
 
         try:
             code = self.shell.find_user_code(args)
@@ -266,13 +275,30 @@ class CodeMagics(Magics):
             print(e.args[0])
             return
 
-        post_data = urlencode({
-          "title": opts.get('d', "Pasted from IPython"),
-          "syntax": "python3",
-          "content": code
-        }).encode('utf-8')
+        expiry_days = 7
+        try:
+            expiry_days = int(opts.get("e", 7))
+        except ValueError as e:
+            print(e.args[0].capitalize())
+            return
+        if expiry_days < 1 or expiry_days > 365:
+            print("Expiry days should be in range of 1 to 365")
+            return
 
-        response = urlopen("http://dpaste.com/api/v2/", post_data)
+        post_data = urlencode(
+            {
+                "title": opts.get("d", "Pasted from IPython"),
+                "syntax": "python",
+                "content": code,
+                "expiry_days": expiry_days,
+            }
+        ).encode("utf-8")
+
+        request = Request(
+            "https://dpaste.com/api/v2/",
+            headers={"User-Agent": "IPython v{}".format(version)},
+        )
+        response = urlopen(request, post_data)
         return response.headers.get('Location')
 
     @line_magic
@@ -295,6 +321,9 @@ class CodeMagics(Magics):
           where source can be a filename, URL, input history range, macro, or
           element in the user namespace
 
+        If no arguments are given, loads the history of this session up to this
+        point.
+
         Options:
 
           -r <lines>: Specify lines or ranges of lines to load from the source.
@@ -313,6 +342,7 @@ class CodeMagics(Magics):
         confirmation before loading source with more than 200 000 characters, unless
         -y flag is passed or if the frontend does not support raw_input::
 
+        %load
         %load myscript.py
         %load 7-27
         %load myMacro
@@ -324,13 +354,7 @@ class CodeMagics(Magics):
         %load -n my_module.wonder_function
         """
         opts,args = self.parse_options(arg_s,'yns:r:')
-
-        if not args:
-            raise UsageError('Missing filename, URL, input history range, '
-                             'macro, or element in the user namespace.')
-
         search_ns = 'n' in opts
-
         contents = self.shell.find_user_code(args, search_ns=search_ns)
 
         if 's' in opts:

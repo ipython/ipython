@@ -449,6 +449,25 @@ class InteractiveShellTestCase(unittest.TestCase):
             # Reset the custom exception hook
             ip.set_custom_exc((), None)
     
+    @mock.patch("builtins.print")
+    def test_showtraceback_with_surrogates(self, mocked_print):
+        values = []
+
+        def mock_print_func(value, sep=" ", end="\n", file=sys.stdout, flush=False):
+            values.append(value)
+            if value == chr(0xD8FF):
+                raise UnicodeEncodeError("utf-8", chr(0xD8FF), 0, 1, "")
+
+        # mock builtins.print
+        mocked_print.side_effect = mock_print_func
+
+        # ip._showtraceback() is replaced in globalipapp.py.
+        # Call original method to test.
+        interactiveshell.InteractiveShell._showtraceback(ip, None, None, chr(0xD8FF))
+
+        self.assertEqual(mocked_print.call_count, 2)
+        self.assertEqual(values, [chr(0xD8FF), "\\ud8ff"])
+
     def test_mktempfile(self):
         filename = ip.mktempfile()
         # Check that we can open the file again on Windows
@@ -581,9 +600,16 @@ class TestSystemRaw(ExitCodeChecks):
         try:
             self.system("sleep 1 # wont happen")
         except KeyboardInterrupt:
-            self.fail("system call should intercept "
-                      "keyboard interrupt from subprocess.call")
-        self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGINT)
+            self.fail(
+                "system call should intercept "
+                "keyboard interrupt from subprocess.call"
+            )
+        self.assertEqual(ip.user_ns["_exit_code"], -signal.SIGINT)
+
+    def test_magic_warnings(self):
+        for magic_cmd in ("ls", "pip", "conda", "cd"):
+            with self.assertWarnsRegex(Warning, "You executed the system command"):
+                ip.system_raw(magic_cmd)
 
 # TODO: Exit codes are currently ignored on Windows.
 class TestSystemPipedExitCode(ExitCodeChecks):

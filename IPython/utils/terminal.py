@@ -45,7 +45,7 @@ def toggle_set_term_title(val):
 
     Parameters
     ----------
-      val : bool
+    val : bool
         If True, set_term_title() actually writes to the terminal (using the
         appropriate platform-specific module).  If False, it is a no-op.
     """

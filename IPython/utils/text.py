@@ -10,6 +10,7 @@ Inheritance diagram:
 
 import os
 import re
+import string
 import sys
 import textwrap
 from string import Formatter
@@ -252,7 +253,6 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
 
     Parameters
     ----------
-
     instr : basestring
         The string to be indented.
     nspaces : int (default: 4)
@@ -266,7 +266,6 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
 
     Returns
     -------
-
     str|unicode : string indented by ntabs and nspaces.
 
     """
@@ -390,7 +389,6 @@ def wrap_paragraphs(text, ncols=80):
 
     Returns
     -------
-
     list of complete paragraphs, wrapped to fill `ncols` columns.
     """
     paragraph_re = re.compile(r'\n(\s*\n)+', re.MULTILINE)
@@ -406,22 +404,6 @@ def wrap_paragraphs(text, ncols=80):
             p = textwrap.fill(p, ncols)
         out_ps.append(p)
     return out_ps
-
-
-def long_substr(data):
-    """Return the longest common substring in a list of strings.
-    
-    Credit: http://stackoverflow.com/questions/2892931/longest-common-substring-from-more-than-two-strings-python
-    """
-    substr = ''
-    if len(data) > 1 and len(data[0]) > 0:
-        for i in range(len(data[0])):
-            for j in range(len(data[0])-i+1):
-                if j > len(substr) and all(data[0][i:i+j] in x for x in data):
-                    substr = data[0][i:i+j]
-    elif len(data) == 1:
-        substr = data[0]
-    return substr
 
 
 def strip_email_quotes(text):
@@ -450,31 +432,34 @@ def strip_email_quotes(text):
         In [4]: strip_email_quotes('> > text\\n> > more\\n> more...')
         Out[4]: '> text\\n> more\\nmore...'
 
-    So if any line has no quote marks ('>') , then none are stripped from any
+    So if any line has no quote marks ('>'), then none are stripped from any
     of them ::
-    
+
         In [5]: strip_email_quotes('> > text\\n> > more\\nlast different')
         Out[5]: '> > text\\n> > more\\nlast different'
     """
     lines = text.splitlines()
-    matches = set()
-    for line in lines:
-        prefix = re.match(r'^(\s*>[ >]*)', line)
-        if prefix:
-            matches.add(prefix.group(1))
+    strip_len = 0
+
+    for characters in zip(*lines):
+        # Check if all characters in this position are the same
+        if len(set(characters)) > 1:
+            break
+        prefix_char = characters[0]
+
+        if prefix_char in string.whitespace or prefix_char == ">":
+            strip_len += 1
         else:
             break
-    else:
-        prefix = long_substr(list(matches))
-        if prefix:
-            strip = len(prefix)
-            text = '\n'.join([ ln[strip:] for ln in lines])
+
+    text = "\n".join([ln[strip_len:] for ln in lines])
     return text
+
 
 def strip_ansi(source):
     """
     Remove ansi escape codes from text.
-    
+
     Parameters
     ----------
     source : str
@@ -651,7 +636,6 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
 
     Parameters
     ----------
-
     items
         list of strings to columize
     row_first : (default False)
@@ -666,14 +650,11 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
 
     Returns
     -------
-
     strings_matrix
-
         nested list of string, the outer most list contains as many list as
         rows, the innermost lists have each as many element as columns. If the
         total number of elements in `items` does not equal the product of
         rows*columns, the last element of some lists are filled with `None`.
-
     dict_info
         some info to make columnize easier:
 
@@ -713,14 +694,11 @@ def columnize(items, row_first=False, separator='  ', displaywidth=80, spread=Fa
     ----------
     items : sequence of strings
         The strings to process.
-
     row_first : (default False)
         Whether to compute columns for a row-first matrix instead of
         column-first (default).
-
     separator : str, optional [default is two spaces]
         The string that separates columns.
-
     displaywidth : int, optional [default is 80]
         Width of the display in number of characters.
 

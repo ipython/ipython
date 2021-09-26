@@ -15,6 +15,7 @@ from nose import SkipTest
 import nose.tools as nt
 
 from matplotlib import pyplot as plt
+import matplotlib_inline
 import numpy as np
 
 from IPython.core.getipython import get_ipython
@@ -146,8 +147,16 @@ def test_import_pylab():
     nt.assert_true('plt' in ns)
     nt.assert_equal(ns['np'], np)
 
+from traitlets.config import Config
+
+
 class TestPylabSwitch(object):
     class Shell(InteractiveShell):
+        def init_history(self):
+            """Sets up the command history, and starts regular autosaves."""
+            self.config.HistoryManager.hist_file = ":memory:"
+            super().init_history()
+
         def enable_gui(self, gui):
             pass
 
@@ -167,18 +176,21 @@ class TestPylabSwitch(object):
         pt.activate_matplotlib = act_mpl
         self._save_ip = pt.import_pylab
         pt.import_pylab = lambda *a,**kw:None
-        self._save_cis = pt.configure_inline_support
-        pt.configure_inline_support = lambda *a,**kw:None
+        self._save_cis = matplotlib_inline.backend_inline.configure_inline_support
+        matplotlib_inline.backend_inline.configure_inline_support = (
+            lambda *a, **kw: None
+        )
 
     def teardown(self):
         pt.activate_matplotlib = self._save_am
         pt.import_pylab = self._save_ip
-        pt.configure_inline_support = self._save_cis
+        matplotlib_inline.backend_inline.configure_inline_support = self._save_cis
         import matplotlib
         matplotlib.rcParams = self._saved_rcParams
         matplotlib.rcParamsOrig = self._saved_rcParamsOrig
 
     def test_qt(self):
+
         s = self.Shell()
         gui, backend = s.enable_matplotlib(None)
         nt.assert_equal(gui, 'qt')

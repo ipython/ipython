@@ -57,7 +57,7 @@ features:
 
 The Command line interface inherits the above functionality and adds 
  
-* real multi-line editing thanks to `prompt_toolkit <http://python-prompt-toolkit.readthedocs.io/en/stable/>`_.
+* real multi-line editing thanks to `prompt_toolkit <https://python-prompt-toolkit.readthedocs.io/en/stable/>`_.
  
 * syntax highlighting as you type.
 
@@ -69,7 +69,7 @@ it allows:
 * the object to create a rich display of Html, Images, Latex, Sound and
   Video.
 
-* interactive widgets with the use of the `ipywidgets <http://ipywidgets.readthedocs.io/en/stable/>`_ package.
+* interactive widgets with the use of the `ipywidgets <https://ipywidgets.readthedocs.io/en/stable/>`_ package.
 
 
 This documentation will walk you through most of the features of the IPython
@@ -102,9 +102,9 @@ repository <http://github.com/ipython/ipython>`_.
 
 .. seealso::
 
-   `Jupyter documentation <http://jupyter.readthedocs.io/en/latest/>`__
+   `Jupyter documentation <https://jupyter.readthedocs.io/en/latest/>`__
      The Jupyter documentation provides information about the Notebook code and other Jupyter sub-projects.
-   `ipyparallel documentation <http://ipyparallel.readthedocs.io/en/latest/>`__
+   `ipyparallel documentation <https://ipyparallel.readthedocs.io/en/latest/>`__
      Formerly ``IPython.parallel``.
 
 

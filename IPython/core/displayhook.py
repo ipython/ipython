@@ -146,7 +146,7 @@ class DisplayHook(Configurable):
             MIME type representation of the object.
             md_dict is a :class:`dict` with the same MIME type keys
             of metadata associated with each output.
-            
+
         """
         return self.shell.display_formatter.format(result)
 

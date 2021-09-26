@@ -171,27 +171,36 @@ setuptools_extra_args = {}
 # setuptools requirements
 
 extras_require = dict(
-    parallel = ['ipyparallel'],
-    qtconsole = ['qtconsole'],
-    doc = ['Sphinx>=1.3'],
-    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'nbformat', 'ipykernel', 'numpy>=1.14'],
-    terminal = [],
-    kernel = ['ipykernel'],
-    nbformat = ['nbformat'],
-    notebook = ['notebook', 'ipywidgets'],
-    nbconvert = ['nbconvert'],
+    parallel=["ipyparallel"],
+    qtconsole=["qtconsole"],
+    doc=["Sphinx>=1.3"],
+    test=[
+        "nose>=0.10.1",
+        "requests",
+        "testpath",
+        "pygments",
+        "nbformat",
+        "ipykernel",
+        "numpy>=1.17",
+    ],
+    terminal=[],
+    kernel=["ipykernel"],
+    nbformat=["nbformat"],
+    notebook=["notebook", "ipywidgets"],
+    nbconvert=["nbconvert"],
 )
 
 install_requires = [
-    'setuptools>=18.5',
-    'jedi>=0.16',
-    'decorator',
-    'pickleshare',
-    'traitlets>=4.2',
-    'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
-    'pygments',
-    'backcall',
-    'stack_data',
+    "setuptools>=18.5",
+    "jedi>=0.16",
+    "decorator",
+    "pickleshare",
+    "traitlets>=4.2",
+    "prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1",
+    "pygments",
+    "backcall",
+    "stack_data",
+    "matplotlib-inline",
 ]
 
 # Platform-specific dependencies:

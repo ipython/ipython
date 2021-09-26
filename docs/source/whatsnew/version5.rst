@@ -307,7 +307,7 @@ and tab completions that don't clutter up your history.
     :target: ../_images/ptshell_features.png
 
 These features are provided by the Python library `prompt_toolkit
-<http://python-prompt-toolkit.readthedocs.io/en/stable/>`__, which replaces
+<https://python-prompt-toolkit.readthedocs.io/en/stable/>`__, which replaces
 ``readline`` throughout our terminal interface.
 
 Relying on this pure-Python, cross platform module also makes it simpler to

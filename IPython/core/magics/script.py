@@ -199,6 +199,7 @@ class ScriptMagics(Magics):
                 _handle_stream(process.stderr, args.err, sys.stderr)
             )
             await asyncio.wait([stdout_task, stderr_task])
+            await process.wait()
 
         if sys.platform.startswith("win"):
             asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
@@ -212,7 +213,7 @@ class ScriptMagics(Magics):
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
-                    stdin=asyncio.subprocess.PIPE
+                    stdin=asyncio.subprocess.PIPE,
                 )
             )
         except OSError as e:
@@ -264,7 +265,11 @@ class ScriptMagics(Magics):
                 print("Error while terminating subprocess (pid=%i): %s" % (p.pid, e))
             return
         if args.raise_error and p.returncode!=0:
-            raise CalledProcessError(p.returncode, cell)
+            # If we get here and p.returncode is still None, we must have
+            # killed it but not yet seen its return code. We don't wait for it,
+            # in case it's stuck in uninterruptible sleep. -9 = SIGKILL
+            rc = p.returncode or -9
+            raise CalledProcessError(rc, cell)
     
     def _run_script(self, p, cell, to_close):
         """callback for running the script in the background"""

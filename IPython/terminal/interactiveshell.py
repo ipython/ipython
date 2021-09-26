@@ -204,9 +204,8 @@ class TerminalInteractiveShell(InteractiveShell):
 
     @observe('editing_mode')
     def _editing_mode(self, change):
-        u_mode = change.new.upper()
         if self.pt_app:
-            self.pt_app.editing_mode = u_mode
+            self.pt_app.editing_mode = getattr(EditingMode, change.new.upper())
 
     @observe('autoformatter')
     def _autoformatter_changed(self, change):
@@ -614,6 +613,13 @@ class TerminalInteractiveShell(InteractiveShell):
                     self._eventloop.stop()
 
                 self.restore_term_title()
+
+        # try to call some at-exit operation optimistically as some things can't
+        # be done during interpreter shutdown. this is technically inaccurate as
+        # this make mainlool not re-callable, but that should be a rare if not
+        # in existent use case.
+
+        self._atexit_once()
 
 
     _inputhook = None

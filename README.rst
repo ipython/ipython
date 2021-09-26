@@ -4,8 +4,8 @@
 .. image:: https://img.shields.io/pypi/v/IPython.svg
     :target: https://pypi.python.org/pypi/ipython
 
-.. image:: https://img.shields.io/travis/ipython/ipython.svg
-    :target: https://travis-ci.org/ipython/ipython
+.. image:: https://github.com/ipython/ipython/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/ipython/ipython/actions/workflows/test.yml)
 
 .. image:: https://www.codetriage.com/ipython/ipython/badges/users.svg
     :target: https://www.codetriage.com/ipython/ipython/

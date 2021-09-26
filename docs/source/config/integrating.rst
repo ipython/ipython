@@ -24,14 +24,59 @@ returns a list of objects which are possible keys in a subscript expression
 Rich display
 ============
 
-The notebook and the Qt console can display richer representations of objects.
-To use this, you can define any of a number of ``_repr_*_()`` methods. Note that
-these are surrounded by single, not double underscores.
+Custom methods
+----------------------
+IPython can display richer representations of objects.
+To do this, you can define ``_ipython_display_()``, or any of a number of 
+``_repr_*_()`` methods. 
+Note that these are surrounded by single, not double underscores.
 
-Both the notebook and the Qt console can display ``svg``, ``png`` and ``jpeg``
-representations. The notebook can also display ``html``, ``javascript``,
-``markdown`` and ``latex``. If the methods don't exist, or return ``None``, it
-falls back to a standard ``repr()``.
+.. list-table:: Supported ``_repr_*_`` methods
+   :widths: 20 15 15 15
+   :header-rows: 1
+   
+   * - Format
+     - REPL
+     - Notebook
+     - Qt Console
+   * - ``_repr_pretty_``
+     - yes
+     - yes
+     - yes
+   * - ``_repr_svg_``
+     - no
+     - yes
+     - yes
+   * - ``_repr_png_``
+     - no
+     - yes
+     - yes
+   * - ``_repr_jpeg_``
+     - no
+     - yes
+     - yes
+   * - ``_repr_html_``
+     - no
+     - yes
+     - no
+   * - ``_repr_javascript_``
+     - no
+     - yes
+     - no
+   * - ``_repr_markdown_``
+     - no
+     - yes
+     - no
+   * - ``_repr_latex_``
+     - no
+     - yes
+     - no
+   * - ``_repr_mimebundle_``
+     - no
+     - ?
+     - ?
+
+If the methods don't exist, or return ``None``, the standard ``repr()`` is used.
 
 For example::
 
@@ -42,33 +87,19 @@ For example::
         def _repr_html_(self):
             return "<h1>" + self.text + "</h1>"
 
-We often want to provide frontends with guidance on how to display the data. To
-support this, ``_repr_*_()`` methods can also return a ``(data, metadata)``
-tuple where ``metadata`` is a dictionary containing arbitrary key-value pairs for
-the frontend to interpret. An example use case is ``_repr_jpeg_()``, which can
-be set to return a jpeg image and a ``{'height': 400, 'width': 600}`` dictionary
-to inform the frontend how to size the image.
 
-There are also two more powerful display methods:
+Special methods
+^^^^^^^^^^^^^^^
 
-.. class:: MyObject
+Pretty printing
+"""""""""""""""
 
-   .. method:: _repr_mimebundle_(include=None, exclude=None)
-
-     Should return a dictionary of multiple formats, keyed by mimetype, or a tuple
-     of two dictionaries: *data, metadata*. If this returns something, other
-     ``_repr_*_`` methods are ignored. The method should take keyword arguments
-     ``include`` and ``exclude``, though it is not required to respect them.
-
-   .. method:: _ipython_display_()
-
-      Displays the object as a side effect; the return value is ignored. If this
-      is defined, all other display methods are ignored.
-
-To customize how the REPL pretty-prints your object, add a `_repr_pretty_`
-method to the class.  The method should accept a pretty printer, and a boolean
-that indicates whether the printer detected a cycle.  The method should act on
-the printer to produce your customized pretty output.  Here is an example::
+To customize how your object is pretty-printed, add a ``_repr_pretty_`` method
+to the class. 
+The method should accept a pretty printer, and a boolean that indicates whether
+the printer detected a cycle.
+The method should act on the printer to produce your customized pretty output.
+Here is an example::
 
     class MyObject(object):
 
@@ -78,7 +109,39 @@ the printer to produce your customized pretty output.  Here is an example::
             else:
                 p.text('MyObject[...]')
 
-For details, see :py:mod:`IPython.lib.pretty`.
+For details on how to use the pretty printer, see :py:mod:`IPython.lib.pretty`.
+
+More powerful methods
+"""""""""""""""""""""
+
+.. class:: MyObject
+
+   .. method:: _repr_mimebundle_(include=None, exclude=None)
+
+     Should return a dictionary of multiple formats, keyed by mimetype, or a tuple
+     of two dictionaries: *data, metadata* (see :ref:`Metadata`).
+     If this returns something, other ``_repr_*_`` methods are ignored.
+     The method should take keyword arguments ``include`` and ``exclude``, though 
+     it is not required to respect them.
+
+   .. method:: _ipython_display_()
+
+      Displays the object as a side effect; the return value is ignored. If this
+      is defined, all other display methods are ignored.
+      This method is ignored in the REPL.
+
+
+Metadata
+^^^^^^^^
+
+We often want to provide frontends with guidance on how to display the data. To
+support this, ``_repr_*_()`` methods (except `_repr_pretty_``?) can also return a ``(data, metadata)``
+tuple where ``metadata`` is a dictionary containing arbitrary key-value pairs for
+the frontend to interpret. An example use case is ``_repr_jpeg_()``, which can
+be set to return a jpeg image and a ``{'height': 400, 'width': 600}`` dictionary
+to inform the frontend how to size the image.
+
+
 
 Formatters for third-party types
 --------------------------------
@@ -103,7 +166,7 @@ Rarely, you might want to display a custom traceback when reporting an
 exception. To do this, define the custom traceback using
 `_render_traceback_(self)` method which returns a list of strings, one string
 for each line of the traceback. For example, the `ipyparallel
-<http://ipyparallel.readthedocs.io/>`__ a parallel computing framework for
+<https://ipyparallel.readthedocs.io/>`__ a parallel computing framework for
 IPython, does this to display errors from multiple engines.
 
 Please be conservative in using this feature; by replacing the default traceback
