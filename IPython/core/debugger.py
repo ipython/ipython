@@ -10,10 +10,10 @@ improvements.
 We also strongly recommend to use this via the `ipdb` package, which provides
 extra configuration options.
 
-Amoung other this subclass of PDB expose here:
- - support many IPython magics like pdef/psource.
- - allow to hide some frames in tracebacks
- - allow to skip some frames.
+Among other things, this subclass of PDB:
+ - supports many IPython magics like pdef/psource
+ - hide frames in tracebacks based on `__tracebackhide__`
+ - allows to skip frames based on `__debuggerskip__`
 
 The skipping and hiding frames are configurable via the `skip_predicates`
 command.
@@ -32,7 +32,7 @@ frames value of ``__debuggerskip__`` is ``True`` will be skipped.
     ...     print("in me neither")
     ...
 
-One can define a decorator that wrap a function between the two helpers:
+One can define a decorator that wraps a function between the two helpers:
 
     >>> def pdb_skipped_decorator(function):
     ...
@@ -380,7 +380,6 @@ class Pdb(OldPdb):
 
         # list of predicates we use to skip frames
         self._predicates = self.default_predicates
-        self._skipping = False
 
     #
     def set_colors(self, scheme):
@@ -919,7 +918,7 @@ class Pdb(OldPdb):
 
         """
 
-        # if we are disable don't skip
+        # if we are disabled don't skip
         if not self._predicates["debuggerskip"]:
             return False
 
