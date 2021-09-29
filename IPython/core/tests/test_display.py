@@ -187,10 +187,12 @@ def test_set_matplotlib_formats_kwargs():
     display.set_matplotlib_formats('png', **kwargs)
     formatter = ip.display_formatter.formatters['image/png']
     f = formatter.lookup_by_type(Figure)
-    cell = f.__closure__[0].cell_contents
+    formatter_kwargs = f.keywords
     expected = kwargs
+    expected["base64"] = True
+    expected["fmt"] = "png"
     expected.update(cfg.print_figure_kwargs)
-    nt.assert_equal(cell, expected)
+    nt.assert_equal(formatter_kwargs, expected)
 
 def test_display_available():
     """
