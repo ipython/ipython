@@ -5,7 +5,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 
-from io import UnsupportedOperation, BytesIO
+from binascii import a2b_base64
+from io import BytesIO
 
 import matplotlib
 matplotlib.use('Agg')
@@ -104,8 +105,11 @@ def test_select_figure_formats_kwargs():
     pt.select_figure_formats(ip, 'png', **kwargs)
     formatter = ip.display_formatter.formatters['image/png']
     f = formatter.lookup_by_type(Figure)
-    cell = f.__closure__[0].cell_contents
-    nt.assert_equal(cell, kwargs)
+    cell = f.keywords
+    expected = kwargs
+    expected["base64"] = True
+    expected["fmt"] = "png"
+    assert cell == expected
 
     # check that the formatter doesn't raise
     fig = plt.figure()
@@ -114,7 +118,9 @@ def test_select_figure_formats_kwargs():
     plt.draw()
     formatter.enabled = True
     png = formatter(fig)
-    assert png.startswith(_PNG)
+    assert isinstance(png, str)
+    png_bytes = a2b_base64(png)
+    assert png_bytes.startswith(_PNG)
 
 def test_select_figure_formats_set():
     ip = get_ipython()
