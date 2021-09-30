@@ -5,6 +5,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 from io import BytesIO
+from binascii import b2a_base64
+from functools import partial
 import warnings
 
 from IPython.core.display import _pngxy
@@ -99,7 +101,7 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
+def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
     """Print a figure to an image, and return the resulting file data
 
     Returned data will be bytes unless ``fmt='svg'``,
@@ -107,6 +109,12 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
 
     Any keyword args are passed to fig.canvas.print_figure,
     such as ``quality`` or ``bbox_inches``.
+
+    If `base64` is True, return base64-encoded str instead of raw bytes
+    for binary-encoded image formats
+
+    .. versionadded: 7.29
+        base64 argument
     """
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
@@ -138,18 +146,30 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     data = bytes_io.getvalue()
     if fmt == 'svg':
         data = data.decode('utf-8')
+    elif base64:
+        data = b2a_base64(data).decode("ascii")
     return data
 
-def retina_figure(fig, **kwargs):
-    """format a figure as a pixel-doubled (retina) PNG"""
-    pngdata = print_figure(fig, fmt='retina', **kwargs)
+def retina_figure(fig, base64=False, **kwargs):
+    """format a figure as a pixel-doubled (retina) PNG
+
+    If `base64` is True, return base64-encoded str instead of raw bytes
+    for binary-encoded image formats
+
+    .. versionadded: 7.29
+        base64 argument
+    """
+    pngdata = print_figure(fig, fmt="retina", base64=False, **kwargs)
     # Make sure that retina_figure acts just like print_figure and returns
     # None when the figure is empty.
     if pngdata is None:
         return
     w, h = _pngxy(pngdata)
     metadata = {"width": w//2, "height":h//2}
+    if base64:
+        pngdata = b2a_base64(pngdata).decode("ascii")
     return pngdata, metadata
+
 
 # We need a little factory function here to create the closure where
 # safe_execfile can live.
@@ -249,16 +269,22 @@ def select_figure_formats(shell, formats, **kwargs):
         gs = "%s" % ','.join([repr(f) for f in supported])
         raise ValueError("supported formats are: %s not %s" % (gs, bs))
 
-    if 'png' in formats:
-        png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png', **kwargs))
-    if 'retina' in formats or 'png2x' in formats:
-        png_formatter.for_type(Figure, lambda fig: retina_figure(fig, **kwargs))
-    if 'jpg' in formats or 'jpeg' in formats:
-        jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', **kwargs))
-    if 'svg' in formats:
-        svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg', **kwargs))
-    if 'pdf' in formats:
-        pdf_formatter.for_type(Figure, lambda fig: print_figure(fig, 'pdf', **kwargs))
+    if "png" in formats:
+        png_formatter.for_type(
+            Figure, partial(print_figure, fmt="png", base64=True, **kwargs)
+        )
+    if "retina" in formats or "png2x" in formats:
+        png_formatter.for_type(Figure, partial(retina_figure, base64=True, **kwargs))
+    if "jpg" in formats or "jpeg" in formats:
+        jpg_formatter.for_type(
+            Figure, partial(print_figure, fmt="jpg", base64=True, **kwargs)
+        )
+    if "svg" in formats:
+        svg_formatter.for_type(Figure, partial(print_figure, fmt="svg", **kwargs))
+    if "pdf" in formats:
+        pdf_formatter.for_type(
+            Figure, partial(print_figure, fmt="pdf", base64=True, **kwargs)
+        )
 
 #-----------------------------------------------------------------------------
 # Code for initializing matplotlib and importing pylab
