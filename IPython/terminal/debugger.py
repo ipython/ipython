@@ -71,7 +71,7 @@ class TerminalPdb(Pdb):
             enable_history_search=True,
             mouse_support=self.shell.mouse_support,
             complete_style=self.shell.pt_complete_style,
-            style=self.shell.style,
+            style=getattr(self.shell, "style", None),
             color_depth=self.shell.color_depth,
         )
 
@@ -96,7 +96,6 @@ class TerminalPdb(Pdb):
         # prompt itself in a different thread (we can't start an event loop
         # within an event loop). This new thread won't have any event loop
         # running, and here we run our prompt-loop.
-
         self.preloop()
 
         try:
@@ -131,7 +130,6 @@ class TerminalPdb(Pdb):
 
                     if keyboard_interrupt:
                         raise KeyboardInterrupt
-
                 line = self.precmd(line)
                 stop = self.onecmd(line)
                 stop = self.postcmd(stop, line)

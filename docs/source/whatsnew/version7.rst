@@ -2,6 +2,7 @@
  7.x Series
 ============
 
+
 .. _version 7.28:
 
 IPython 7.28
@@ -543,7 +544,7 @@ Change of API and exposed objects automatically detected using `frappuccino
 <https://pypi.org/project/frappuccino/>`_ (still in beta):
 
 
-The following items are new and mostly related to understanding ``__tracebackbide__``::
+The following items are new and mostly related to understanding ``__tracebackhide__``::
 
     + IPython.core.debugger.Pdb.do_down(self, arg)
     + IPython.core.debugger.Pdb.do_skip_hidden(self, arg)
