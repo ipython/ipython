@@ -17,6 +17,7 @@ import re
 import sys
 from glob import glob
 from logging import log
+from pathlib import Path
 
 from setuptools import Command
 from setuptools.command.build_py import build_py
@@ -38,6 +39,7 @@ pjoin = os.path.join
 repo_root = os.path.dirname(os.path.abspath(__file__))
 
 def execfile(fname, globs, locs=None):
+    fname = Path(fname)
     locs = locs or globs
     with open(fname) as f:
         exec(compile(f.read(), fname, "exec"), globs, locs)
@@ -262,7 +264,7 @@ class build_scripts_entrypt(build_scripts):
             name, entrypt = script.split('=')
             name = name.strip()
             entrypt = entrypt.strip()
-            outfile = os.path.join(self.build_dir, name)
+            outfile = Path(os.path.join(self.build_dir, name))
             outfiles.append(outfile)
             print('Writing script to', outfile)
 
@@ -388,6 +390,7 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
             repo_commit = repo_commit.strip().decode("ascii")
 
             out_pth = pjoin(base_dir, pkg_dir, 'utils', '_sysinfo.py')
+            out_pth = Path(out_pth)
             if os.path.isfile(out_pth) and not repo_commit:
                 # nothing to write, don't clobber
                 return
