@@ -21,6 +21,7 @@ project."""
 # Stdlib imports
 import ast
 import inspect
+import pathlib
 import os
 import re
 from importlib import import_module
@@ -175,24 +176,24 @@ class ApiDocWriter(object):
         >>> import sphinx
         >>> modpath = sphinx.__path__[0]
         >>> res = docwriter._uri2path('sphinx.builder')
-        >>> res == os.path.join(modpath, 'builder.py')
+        >>> res == pathlib.PurePath(modpath, 'builder.py')
         True
         >>> res = docwriter._uri2path('sphinx')
-        >>> res == os.path.join(modpath, '__init__.py')
+        >>> res == pathlib.PurePath(modpath, '__init__.py')
         True
         >>> docwriter._uri2path('sphinx.does_not_exist')
 
         '''
         if uri == self.package_name:
-            return os.path.join(self.root_path, '__init__.py')
-        path = uri.replace('.', os.path.sep)
-        path = path.replace(self.package_name + os.path.sep, '')
-        path = os.path.join(self.root_path, path)
+            return pathlib.PurePath(self.root_path, '__init__.py')
+        path = uri.replace('.', pathlib.os.sep)
+        path = path.replace(self.package_name + pathlib.os.sep, '')
+        path = pathlib.PurePath(self.root_path, path)
         # XXX maybe check for extensions as well?
-        if os.path.exists(path + '.py'): # file
+        if pathlib.Path(path + '.py').exists(): # file
             path += '.py'
-        elif os.path.exists(os.path.join(path, '__init__.py')):
-            path = os.path.join(path, '__init__.py')
+        elif pathlib.Path(pathlib.PurePath(path, '__init__.py')).exists():
+            path = pathlib.PurePath(path, '__init__.py')
         else:
             return None
         return path
@@ -200,9 +201,9 @@ class ApiDocWriter(object):
     def _path2uri(self, dirpath):
         ''' Convert directory path to uri '''
         relpath = dirpath.replace(self.root_path, self.package_name)
-        if relpath.startswith(os.path.sep):
+        if relpath.startswith(pathlib.os.sep):
             relpath = relpath[1:]
-        return relpath.replace(os.path.sep, '.')
+        return relpath.replace(pathlib.os.sep, '.')
 
     def _parse_module(self, uri):
         ''' Parse module defined in *uri* '''
@@ -364,7 +365,7 @@ class ApiDocWriter(object):
         # raw directory parsing
         for dirpath, dirnames, filenames in os.walk(self.root_path):
             # Check directory names for packages
-            root_uri = self._path2uri(os.path.join(self.root_path,
+            root_uri = self._path2uri(pathlib.PurePath(self.root_path,
                                                    dirpath))
             for dirname in dirnames[:]: # copy list - we modify inplace
                 package_uri = '.'.join((root_uri, dirname))
@@ -390,7 +391,7 @@ class ApiDocWriter(object):
             if not api_str:
                 continue
             # write out to file
-            outfile = os.path.join(outdir,
+            outfile = pathlib.PurePath(outdir,
                                    m + self.rst_extension)
             with open(outfile, 'wt') as fileobj:
                 fileobj.write(api_str)
@@ -414,8 +415,8 @@ class ApiDocWriter(object):
         -----
         Sets self.written_modules to list of written modules
         """
-        if not os.path.exists(outdir):
-            os.mkdir(outdir)
+        if not pathlib.Path(outdir).exists():
+            pathlib.Path(outdir).mkdir()
         # compose list of modules
         modules = self.discover_modules()
         self.write_modules_api(modules,outdir)
@@ -438,10 +439,10 @@ class ApiDocWriter(object):
         if self.written_modules is None:
             raise ValueError('No modules written')
         # Get full filename path
-        path = os.path.join(outdir, path)
+        path = pathlib.PurePath(outdir, path)
         # Path written into index is relative to rootpath
         if relative_to is not None:
-            relpath = outdir.replace(relative_to + os.path.sep, '')
+            relpath = outdir.replace(relative_to + pathlib.os.sep, '')
         else:
             relpath = outdir
         with open(path,'wt') as idx:
