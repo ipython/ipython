@@ -24,8 +24,12 @@ By default, frames from readonly files will be hidden, frames containing
 Frames containing ``__debuggerskip__`` will be stepped over, frames who's parent
 frames value of ``__debuggerskip__`` is ``True`` will be skipped.
 
-    >>> def helper_1():
+    >>> def helpers_helper():
+    ...     pass
+    ...
+    ... def helper_1():
     ...     print("don't step in me")
+    ...     helpers_helpers() # will be stepped over unless breakpoint set.
     ...
     ...
     ... def helper_2():
@@ -44,6 +48,7 @@ One can define a decorator that wraps a function between the two helpers:
     ...         result = function(*args, **kwargs)
     ...         __debuggerskip__ = True
     ...         helper_2()
+    ...         # setting __debuggerskip__ to False again is not necessary
     ...         return result
     ...
     ...     return wrapped_fn
@@ -902,12 +907,16 @@ class Pdb(OldPdb):
         stop at any point inside the function
 
         """
+
+        sup = super().break_anywhere(frame)
+        if sup:
+            return sup
         if self._predicates["debuggerskip"]:
             if DEBUGGERSKIP in frame.f_code.co_varnames:
                 return True
             if frame.f_back and self._get_frame_locals(frame.f_back).get(DEBUGGERSKIP):
                 return True
-        return super().break_anywhere(frame)
+        return False
 
     @skip_doctest
     def _is_in_decorator_internal_and_should_skip(self, frame):
@@ -926,9 +935,13 @@ class Pdb(OldPdb):
         if DEBUGGERSKIP in frame.f_code.co_varnames:
             return True
 
-        # if parent frame value set to True skip as well.
-        if frame.f_back and self._get_frame_locals(frame.f_back).get(DEBUGGERSKIP):
-            return True
+        # if one of the parent frame value set to True skip as well.
+
+        cframe = frame
+        while getattr(cframe, "f_back", None):
+            cframe = cframe.f_back
+            if self._get_frame_locals(cframe).get(DEBUGGERSKIP):
+                return True
 
         return False
 
