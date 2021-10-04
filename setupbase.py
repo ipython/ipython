@@ -389,8 +389,7 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
             repo_commit, _ = proc.communicate()
             repo_commit = repo_commit.strip().decode("ascii")
 
-            out_pth = pjoin(base_dir, pkg_dir, 'utils', '_sysinfo.py')
-            out_pth = Path(out_pth)
+            out_pth = Path(base_dir)/  pkg_dir/ 'utils'/ '_sysinfo.py'
             if os.path.isfile(out_pth) and not repo_commit:
                 # nothing to write, don't clobber
                 return
