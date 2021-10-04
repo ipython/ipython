@@ -264,7 +264,7 @@ class build_scripts_entrypt(build_scripts):
             name, entrypt = script.split('=')
             name = name.strip()
             entrypt = entrypt.strip()
-            outfile = Path(os.path.join(self.build_dir, name))
+            outfile = Path(self.build_dir) / name
             outfiles.append(outfile)
             print('Writing script to', outfile)
 
