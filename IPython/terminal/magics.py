@@ -109,7 +109,7 @@ class TerminalMagics(Magics):
         Just press enter and type -- (and press enter again) and the block
         will be what was just pasted.
 
-        IPython statements (magics, shell escapes) are not supported (yet).
+        Shell escapes are not supported (yet).
 
         See also
         --------
@@ -122,9 +122,19 @@ class TerminalMagics(Magics):
           In [8]: %cpaste
           Pasting code; enter '--' alone on the line to stop.
           :>>> a = ["world!", "Hello"]
-          :>>> print " ".join(sorted(a))
+          :>>> print(" ".join(sorted(a)))
           :--
           Hello world!
+
+        ::
+          In [8]: %cpaste
+          Pasting code; enter '--' alone on the line to stop.
+          :>>> %alias_magic t timeit
+          :>>> %t -n1 pass
+          :--
+          Created `%t` as an alias for `%timeit`.
+          Created `%%t` as an alias for `%%timeit`.
+          354 ns ± 224 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
         """
         opts, name = self.parse_options(parameter_s, 'rqs:', mode='string')
         if 'r' in opts:
