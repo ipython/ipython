@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 import warnings
+
 from subprocess import PIPE, CalledProcessError, check_output
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
@@ -328,12 +329,28 @@ def test_xmode_skip():
 
 skip_decorators_blocks = (
     """
+    def helpers_helper():
+        pass # should not stop here except breakpoint
+    """,
+    """
     def helper_1():
-        pass # should not stop here
+        helpers_helper() # should not stop here
     """,
     """
     def helper_2():
         pass # should not stop here
+    """,
+    """
+    def pdb_skipped_decorator2(function):
+        def wrapped_fn(*args, **kwargs):
+            __debuggerskip__ = True
+            helper_2()
+            __debuggerskip__ = False
+            result = function(*args, **kwargs)
+            __debuggerskip__ = True
+            helper_2()
+            return result
+        return wrapped_fn
     """,
     """
     def pdb_skipped_decorator(function):
@@ -349,6 +366,7 @@ skip_decorators_blocks = (
     """,
     """
     @pdb_skipped_decorator
+    @pdb_skipped_decorator2
     def bar(x, y):
         return x * y
     """,
@@ -426,7 +444,7 @@ def test_decorator_skip_disabled():
         ("step", "----> 3         __debuggerskip__"),
         ("step", "----> 4         helper_1()"),
         ("step", "---> 1 def helper_1():"),
-        ("next", "----> 2     pass"),
+        ("next", "----> 2     helpers_helper()"),
         ("next", "--Return--"),
         ("next", "----> 5         __debuggerskip__ = False"),
     ]:
@@ -434,6 +452,62 @@ def test_decorator_skip_disabled():
         child.sendline(input_)
         child.expect_exact(input_)
         child.expect_exact(expected)
+
+    child.close()
+
+
+@skip_win32
+def test_decorator_skip_with_breakpoint():
+    """test that decorator frame skipping can be disabled"""
+
+    import pexpect
+
+    env = os.environ.copy()
+    env["IPY_TEST_SIMPLE_PROMPT"] = "1"
+
+    child = pexpect.spawn(
+        sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
+    )
+    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
+
+    child.expect("IPython")
+    child.expect("\n")
+
+    ### we need a filename, so we need to exec the full block with a filename
+    with NamedTemporaryFile(suffix=".py", dir=".", delete=True) as tf:
+
+        name = tf.name[:-3].split("/")[-1]
+        tf.write("\n".join([dedent(x) for x in skip_decorators_blocks[:-1]]).encode())
+        tf.flush()
+        codeblock = f"from {name} import f"
+
+        dedented_blocks = [
+            codeblock,
+            "f()",
+        ]
+
+        in_prompt_number = 1
+        for cblock in dedented_blocks:
+            child.expect_exact(f"In [{in_prompt_number}]:")
+            in_prompt_number += 1
+            for line in cblock.splitlines():
+                child.sendline(line)
+                child.expect_exact(line)
+            child.sendline("")
+
+        # as the filename does not exists, we'll rely on the filename prompt
+        child.expect_exact("47     bar(3, 4)")
+
+        for input_, expected in [
+            (f"b {name}.py:3", ""),
+            ("step", "1---> 3     pass # should not stop here except"),
+            ("step", "---> 38 @pdb_skipped_decorator"),
+            ("continue", ""),
+        ]:
+            child.expect("ipdb>")
+            child.sendline(input_)
+            child.expect_exact(input_)
+            child.expect_exact(expected)
 
     child.close()
 
