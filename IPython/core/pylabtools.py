@@ -62,6 +62,7 @@ del backend2gui["svg"]
 del backend2gui["pdf"]
 del backend2gui["ps"]
 del backend2gui["module://matplotlib_inline.backend_inline"]
+del backend2gui["module://ipympl.backend_nbagg"]
 
 #-----------------------------------------------------------------------------
 # Matplotlib utilities
