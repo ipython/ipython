@@ -160,7 +160,7 @@ def test_get_ipython_dir_7():
 @skip_win32
 def test_get_ipython_dir_8():
     """test_get_ipython_dir_8, test / home directory"""
-    if not os.path.isdir('/') or not os.access('/', os.W_OK):
+    if not os.access('/', os.W_OK):
         # test only when HOME directory actually writable
         return
 
