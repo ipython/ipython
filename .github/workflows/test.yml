@@ -1,6 +1,13 @@
 name: Run tests
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  # Run weekly on Monday at 1:23 UTC
+  schedule:
+  - cron:  '23 1 * * 1'
+  workflow_dispatch:
+
 
 jobs:
   test:
