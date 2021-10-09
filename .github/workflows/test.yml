@@ -11,10 +11,17 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        os: [ubuntu-latest]
+        python-version: ["3.7", "3.8", "3.9"]
+        # Test all on ubuntu, test ends on macos
+        include:
+          - os: macos-latest
+            python-version: "3.7"
+          - os: macos-latest
+            python-version: "3.9"
 
     steps:
     - uses: actions/checkout@v2
@@ -40,4 +47,5 @@ jobs:
       run: |
         pytest
     - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest'
       uses: codecov/codecov-action@v1
