@@ -64,7 +64,7 @@ def inputhook(context):
         timer.timeout.connect(event_loop.quit)
         while not context.input_is_ready():
             timer.start(50)  # 50 ms
-            event_loop.exec_()
+            _exec(event_loop)
             timer.stop()
     else:
         # On POSIX platforms, we can use a file descriptor to quit the event
