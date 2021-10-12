@@ -1,13 +1,27 @@
 name: Run tests
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  # Run weekly on Monday at 1:23 UTC
+  schedule:
+  - cron:  '23 1 * * 1'
+  workflow_dispatch:
+
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        os: [ubuntu-latest]
+        python-version: ["3.7", "3.8", "3.9"]
+        # Test all on ubuntu, test ends on macos
+        include:
+          - os: macos-latest
+            python-version: "3.7"
+          - os: macos-latest
+            python-version: "3.9"
 
     steps:
     - uses: actions/checkout@v2
