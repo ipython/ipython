@@ -41,8 +41,6 @@ backends = {
 # most part it's just a reverse of the above dict, but we also need to add a
 # few others that map to the same GUI manually:
 backend2gui = dict(zip(backends.values(), backends.keys()))
-# Our tests expect backend2gui to just return 'qt'
-backend2gui['Qt4Agg'] = 'qt'
 # In the reverse mapping, there are a few extra valid matplotlib backends that
 # map to the same GUI support
 backend2gui["GTK"] = backend2gui["GTKCairo"] = "gtk"
@@ -50,6 +48,13 @@ backend2gui["GTK3Cairo"] = "gtk3"
 backend2gui["GTK4Cairo"] = "gtk4"
 backend2gui["WX"] = "wx"
 backend2gui["CocoaAgg"] = "osx"
+# There needs to be a hysteresis here as the new QtAgg Matplotlib backend
+# supports either Qt5 or Qt6 and the IPython qt event loop support Qt4, Qt5,
+# and Qt6.
+backend2gui["QtAgg"] = "qt"
+backend2gui["Qt4Agg"] = "qt"
+backend2gui["Qt5Agg"] = "qt"
+
 # And some backends that don't need GUI integration
 del backend2gui["nbAgg"]
 del backend2gui["agg"]
@@ -57,6 +62,7 @@ del backend2gui["svg"]
 del backend2gui["pdf"]
 del backend2gui["ps"]
 del backend2gui["module://matplotlib_inline.backend_inline"]
+del backend2gui["module://ipympl.backend_nbagg"]
 
 #-----------------------------------------------------------------------------
 # Matplotlib utilities
