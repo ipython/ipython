@@ -4,6 +4,30 @@ This module now support a wide variety of completion mechanism both available
 for normal classic Python code, as well as completer for IPython specific
 Syntax like magics.
 
+Starting with IPython 8.0, this module make use of the Jedi library to
+generate completions both using static analysis of the code, and dynamically
+inspecting multiple namespaces. Jedi is an autocompletion and static analysis
+for Python.
+
+We welcome any feedback on these new API, and we also encourage you to try this
+module in debug mode (start IPython with ``--Completer.debug=True``) in order
+to have extra logging information if :any:`jedi` is crashing, or if current
+IPython completer pending deprecations are returning results not yet handled
+by :any:`jedi`
+
+Using Jedi for tab completion allow snippets like the following to work without
+having to execute any code:
+
+   >>> myvar = ['hello', 42]
+   ... myvar[1].bi<tab>
+
+Tab completion will be able to infer that ``myvar[1]`` is a real number without
+executing any code unlike the previously available ``IPCompleter.greedy``
+option.
+
+Be sure to update :any:`jedi` to the latest stable version or to try the
+current development version to get better completions.
+
 Latex and Unicode completion
 ============================
 
@@ -56,45 +80,6 @@ and press `<tab>` to expand it to its latex form.
 
 Both forward and backward completions can be deactivated by setting the
 ``Completer.backslash_combining_completions`` option to ``False``.
-
-
-Experimental
-============
-
-Starting with IPython 6.0, this module can make use of the Jedi library to
-generate completions both using static analysis of the code, and dynamically
-inspecting multiple namespaces. Jedi is an autocompletion and static analysis
-for Python. The APIs attached to this new mechanism is unstable and will
-raise unless use in an :any:`provisionalcompleter` context manager.
-
-You will find that the following are experimental:
-
-    - :any:`provisionalcompleter`
-    - :any:`IPCompleter.completions`
-    - :any:`Completion`
-
-.. note::
-
-    better name for :any:`rectify_completions` ?
-
-We welcome any feedback on these new API, and we also encourage you to try this
-module in debug mode (start IPython with ``--Completer.debug=True``) in order
-to have extra logging information if :any:`jedi` is crashing, or if current
-IPython completer pending deprecations are returning results not yet handled
-by :any:`jedi`
-
-Using Jedi for tab completion allow snippets like the following to work without
-having to execute any code:
-
-   >>> myvar = ['hello', 42]
-   ... myvar[1].bi<tab>
-
-Tab completion will be able to infer that ``myvar[1]`` is a real number without
-executing any code unlike the previously available ``IPCompleter.greedy``
-option.
-
-Be sure to update :any:`jedi` to the latest stable version or to try the
-current development version to get better completions.
 """
 
 
@@ -172,46 +157,6 @@ else:
 MATCHES_LIMIT = 500
 
 _deprecation_readline_sentinel = object()
-
-
-class ProvisionalCompleterWarning(FutureWarning):
-    """
-    Exception raise by an experimental feature in this module.
-
-    Wrap code in :any:`provisionalcompleter` context manager if you
-    are certain you want to use an unstable feature.
-    """
-    pass
-
-warnings.filterwarnings('error', category=ProvisionalCompleterWarning)
-
-@contextmanager
-def provisionalcompleter(action='ignore'):
-    """
-    This context manager has to be used in any place where unstable completer
-    behavior and API may be called.
-
-    >>> with provisionalcompleter():
-    ...     completer.do_experimental_things() # works
-
-    >>> completer.do_experimental_things() # raises.
-
-    .. note::
-
-        Unstable
-
-        By using this context manager you agree that the API in use may change
-        without warning, and that you won't complain if they do so.
-
-        You also understand that, if the API is not to your liking, you should report
-        a bug to explain your use case upstream.
-
-        We'll be happy to get your feedback, feature requests, and improvements on
-        any of the unstable APIs!
-    """
-    with warnings.catch_warnings():
-        warnings.filterwarnings(action, category=ProvisionalCompleterWarning)
-        yield
 
 
 def has_open_quotes(s):
@@ -377,11 +322,6 @@ class Completion:
     __slots__ = ['start', 'end', 'text', 'type', 'signature', '_origin']
 
     def __init__(self, start: int, end: int, text: str, *, type: str=None, _origin='', signature='') -> None:
-        warnings.warn("``Completion`` is a provisional API (as of IPython 6.0). "
-                      "It may change without warnings. "
-                      "Use in corresponding context manager.",
-                      category=ProvisionalCompleterWarning, stacklevel=2)
-
         self.start = start
         self.end = end
         self.text = text
@@ -914,11 +854,10 @@ class IPCompleter(Completer):
         Wrapper around the completion methods for the benefit of emacs.
         """
         prefix = text.rpartition('.')[0]
-        with provisionalcompleter():
-            return [
-                ".".join([prefix, c.text]) if prefix else c.text
-                for c in self.completions(text, len(text))
-            ]
+        return [
+            ".".join([prefix, c.text]) if prefix else c.text
+            for c in self.completions(text, len(text))
+        ]
 
     def unicode_matches(self, text: str):
         res = []

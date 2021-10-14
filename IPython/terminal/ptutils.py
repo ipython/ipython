@@ -10,7 +10,7 @@ not to be used outside IPython.
 import unicodedata
 from wcwidth import wcwidth
 
-from IPython.core.completer import provisionalcompleter, cursor_to_position
+from IPython.core.completer import cursor_to_position
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.lexers import Lexer
 from prompt_toolkit.lexers import PygmentsLexer
@@ -103,7 +103,7 @@ class IPythonPTCompleter(Completer):
         # is imported). This context manager ensures that doesn't interfere with
         # the prompt.
 
-        with patch_stdout(), provisionalcompleter():
+        with patch_stdout():
             body = document.text
             cursor_row = document.cursor_position_row
             cursor_col = document.cursor_position_col
