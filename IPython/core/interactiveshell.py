@@ -953,7 +953,7 @@ class InteractiveShell(SingletonConfigurable):
             "please install IPython inside the virtualenv."
         )
         import site
-        sys.path.insert(0, virtual_env)
+        sys.path.insert(0, str(virtual_env))
         site.addsitedir(virtual_env)
 
     #-------------------------------------------------------------------------
