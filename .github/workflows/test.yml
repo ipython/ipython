@@ -45,6 +45,6 @@ jobs:
         cp /tmp/.coverage ./
     - name: pytest
       run: |
-        pytest
+        pytest -v
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
