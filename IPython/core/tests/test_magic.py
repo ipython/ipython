@@ -19,6 +19,8 @@ from unittest import TestCase, mock
 
 import nose.tools as nt
 
+import pytest
+
 from IPython import get_ipython
 from IPython.core import magic
 from IPython.core.error import UsageError
@@ -951,6 +953,9 @@ def test_script_config():
 
 @dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 def test_script_out():
     assert asyncio.get_event_loop().is_running() is False
 
@@ -961,6 +966,9 @@ def test_script_out():
 
 @dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 def test_script_err():
     ip = get_ipython()
     assert asyncio.get_event_loop().is_running() is False
@@ -971,6 +979,9 @@ def test_script_err():
 
 @dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 def test_script_out_err():
 
     ip = get_ipython()
@@ -983,6 +994,9 @@ def test_script_out_err():
 
 @dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 async def test_script_bg_out():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
@@ -992,6 +1006,9 @@ async def test_script_bg_out():
 
 @dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 async def test_script_bg_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --err error sh", "echo 'hello' >&2")
@@ -1001,6 +1018,9 @@ async def test_script_bg_err():
 
 @dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 async def test_script_bg_out_err():
     ip = get_ipython()
     ip.run_cell_magic(
