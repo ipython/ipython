@@ -4,38 +4,42 @@
 Needs to be run by nose (to make ipython session available).
 """
 
+import asyncio
 import io
 import os
 import re
+import shlex
 import sys
 import warnings
-from textwrap import dedent
-from unittest import TestCase
-from unittest import mock
 from importlib import invalidate_caches
 from io import StringIO
 from pathlib import Path
+from textwrap import dedent
+from unittest import TestCase, mock
 
 import nose.tools as nt
 
-import shlex
+import pytest
 
 from IPython import get_ipython
 from IPython.core import magic
 from IPython.core.error import UsageError
-from IPython.core.magic import (Magics, magics_class, line_magic,
-                                cell_magic,
-                                register_line_magic, register_cell_magic)
-from IPython.core.magics import execution, script, code, logging, osm
+from IPython.core.magic import (
+    Magics,
+    cell_magic,
+    line_magic,
+    magics_class,
+    register_cell_magic,
+    register_line_magic,
+)
+from IPython.core.magics import code, execution, logging, osm, script
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils.io import capture_output
-from IPython.utils.tempdir import (TemporaryDirectory,
-                                    TemporaryWorkingDirectory)
 from IPython.utils.process import find_cmd
-from .test_debugger import PdbTestInput
+from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 
-import pytest
+from .test_debugger import PdbTestInput
 
 
 @magic.magics_class
@@ -947,33 +951,64 @@ def test_script_config():
     sm = script.ScriptMagics(shell=ip)
     nt.assert_in('whoda', sm.magics['cell'])
 
+@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 def test_script_out():
+    assert asyncio.get_event_loop().is_running() is False
+
     ip = get_ipython()
     ip.run_cell_magic("script", "--out output sh", "echo 'hi'")
+    assert asyncio.get_event_loop().is_running() is False
     nt.assert_equal(ip.user_ns['output'], 'hi\n')
 
+@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 def test_script_err():
     ip = get_ipython()
+    assert asyncio.get_event_loop().is_running() is False
     ip.run_cell_magic("script", "--err error sh", "echo 'hello' >&2")
+    assert asyncio.get_event_loop().is_running() is False
     nt.assert_equal(ip.user_ns['error'], 'hello\n')
 
+
+@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 def test_script_out_err():
-    ip = get_ipython()
-    ip.run_cell_magic("script", "--out output --err error sh", "echo 'hi'\necho 'hello' >&2")
-    nt.assert_equal(ip.user_ns['output'], 'hi\n')
-    nt.assert_equal(ip.user_ns['error'], 'hello\n')
 
+    ip = get_ipython()
+    ip.run_cell_magic(
+        "script", "--out output --err error sh", "echo 'hi'\necho 'hello' >&2"
+    )
+    nt.assert_equal(ip.user_ns["output"], "hi\n")
+    nt.assert_equal(ip.user_ns["error"], "hello\n")
+
+
+@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 async def test_script_bg_out():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
     nt.assert_equal((await ip.user_ns["output"].read()), b"hi\n")
-    ip.user_ns['output'].close()
+    ip.user_ns["output"].close()
+    asyncio.get_event_loop().stop()
 
+@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 async def test_script_bg_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --err error sh", "echo 'hello' >&2")
@@ -981,7 +1016,11 @@ async def test_script_bg_err():
     ip.user_ns["error"].close()
 
 
+@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
 async def test_script_bg_out_err():
     ip = get_ipython()
     ip.run_cell_magic(

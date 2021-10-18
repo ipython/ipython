@@ -3,24 +3,23 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import errno
-import os
-import sys
-import signal
-import time
 import asyncio
 import atexit
-
+import errno
+import functools
+import os
+import signal
+import sys
+import time
+from contextlib import contextmanager
 from subprocess import CalledProcessError
 
+from traitlets import Dict, List, default
+
 from IPython.core import magic_arguments
-from IPython.core.magic import  (
-    Magics, magics_class, line_magic, cell_magic
-)
+from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.process import arg_split
-from traitlets import List, Dict, default
-
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -66,6 +65,41 @@ def script_args(f):
     for arg in args:
         f = arg(f)
     return f
+
+
+@contextmanager
+def safe_watcher():
+    if sys.platform == "win32":
+        yield
+        return
+
+    from asyncio import SafeChildWatcher
+
+    policy = asyncio.get_event_loop_policy()
+    old_watcher = policy.get_child_watcher()
+    if isinstance(old_watcher, SafeChildWatcher):
+        yield
+        return
+
+    loop = asyncio.get_event_loop()
+    try:
+        watcher = asyncio.SafeChildWatcher()
+        watcher.attach_loop(loop)
+        policy.set_child_watcher(watcher)
+        yield
+    finally:
+        watcher.close()
+        policy.set_child_watcher(old_watcher)
+
+
+def dec_safe_watcher(fun):
+    @functools.wraps(fun)
+    def _inner(*args, **kwargs):
+        with safe_watcher():
+            return fun(*args, **kwargs)
+
+    return _inner
+
 
 @magics_class
 class ScriptMagics(Magics):
@@ -157,6 +191,7 @@ class ScriptMagics(Magics):
     @magic_arguments.magic_arguments()
     @script_args
     @cell_magic("script")
+    @dec_safe_watcher
     def shebang(self, line, cell):
         """Run a cell via a shell command
         
@@ -204,7 +239,6 @@ class ScriptMagics(Magics):
         if sys.platform.startswith("win"):
             asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
         loop = asyncio.get_event_loop()
-
         argv = arg_split(line, posix=not sys.platform.startswith("win"))
         args, cmd = self.shebang.parser.parse_known_args(argv)
         try:
