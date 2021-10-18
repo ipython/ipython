@@ -66,6 +66,8 @@ def get_ipython_dir() -> str:
             warn("IPython parent '{0}' is not a writable location,"
                     " using a temp directory.".format(parent))
             ipdir = tempfile.mkdtemp()
+        else:
+            os.makedirs(ipdir)
     assert isinstance(ipdir, str), "all path manipulation should be str(unicode), but are not."
     return ipdir
 
