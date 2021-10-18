@@ -19,6 +19,9 @@ from traitlets import Instance
 # Main class
 #-----------------------------------------------------------------------------
 
+BUILTINS_EXTS = {"storemagic": False, "autoreload": False}
+
+
 class ExtensionManager(Configurable):
     """A class to manage IPython extensions.
 
@@ -62,13 +65,22 @@ class ExtensionManager(Configurable):
     def _on_ipython_dir_changed(self, change):
         ensure_dir_exists(self.ipython_extension_dir)
 
-    def load_extension(self, module_str):
+    def load_extension(self, module_str: str):
         """Load an IPython extension by its module name.
 
         Returns the string "already loaded" if the extension is already loaded,
         "no load function" if the module doesn't have a load_ipython_extension
         function, or None if it succeeded.
         """
+        try:
+            return self._load_extension(module_str)
+        except ModuleNotFoundError:
+            if module_str in BUILTINS_EXTS:
+                BUILTINS_EXTS[module_str] = True
+                return self._load_extension("IPython.extensions." + module_str)
+            raise
+
+    def _load_extension(self, module_str: str):
         if module_str in self.loaded:
             return "already loaded"
 
@@ -89,7 +101,7 @@ class ExtensionManager(Configurable):
             else:
                 return "no load function"
 
-    def unload_extension(self, module_str):
+    def unload_extension(self, module_str: str):
         """Unload an IPython extension by its module name.
 
         This function looks up the extension's name in ``sys.modules`` and
@@ -99,9 +111,11 @@ class ExtensionManager(Configurable):
         a function to unload itself, "not loaded" if the extension isn't loaded,
         otherwise None.
         """
+        if BUILTINS_EXTS.get(module_str, False) is True:
+            module_str = "IPython.extensions." + module_str
         if module_str not in self.loaded:
             return "not loaded"
-        
+
         if module_str in sys.modules:
             mod = sys.modules[module_str]
             if self._call_unload_ipython_extension(mod):
@@ -109,7 +123,7 @@ class ExtensionManager(Configurable):
             else:
                 return "no unload function"
 
-    def reload_extension(self, module_str):
+    def reload_extension(self, module_str: str):
         """Reload an IPython extension by calling reload.
 
         If the module has not been loaded before,
@@ -118,6 +132,9 @@ class ExtensionManager(Configurable):
         function of the module, if it exists is called.
         """
         from IPython.utils.syspathcontext import prepended_to_syspath
+
+        if BUILTINS_EXTS.get(module_str, False) is True:
+            module_str = "IPython.extensions." + module_str
 
         if (module_str in self.loaded) and (module_str in sys.modules):
             self.unload_extension(module_str)
