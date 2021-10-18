@@ -11,7 +11,6 @@ import os
 import signal
 import sys
 import time
-from asyncio import SafeChildWatcher
 from contextlib import contextmanager
 from subprocess import CalledProcessError
 
@@ -73,6 +72,8 @@ def safe_watcher():
     if sys.platform == "win32":
         yield
         return
+
+    from asyncio import SafeChildWatcher
 
     policy = asyncio.get_event_loop_policy()
     old_watcher = policy.get_child_watcher()
