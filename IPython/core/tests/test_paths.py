@@ -160,6 +160,10 @@ def test_get_ipython_dir_7():
 @skip_win32
 def test_get_ipython_dir_8():
     """test_get_ipython_dir_8, test / home directory"""
+    if not os.access("/", os.W_OK):
+        # test only when HOME directory actually writable
+        return
+
     with patch.object(paths, '_writable_dir', lambda path: bool(path)), \
             patch.object(paths, 'get_xdg_dir', return_value=None), \
             modified_env({
