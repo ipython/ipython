@@ -1496,7 +1496,7 @@ class IPCompleter(Completer):
                   inspect.Parameter.POSITIONAL_OR_KEYWORD)
 
         try:
-            sig = inspect.signature(call_obj)
+            sig = inspect.signature(obj)
             ret.extend(k for k, v in sig.parameters.items() if
                        v.kind in _keeps)
         except ValueError:
