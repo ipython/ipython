@@ -374,7 +374,7 @@ class BaseIPythonApplication(Application):
                     self.log.fatal("Profile %r not found."%self.profile)
                     self.exit(1)
             else:
-                self.log.debug("Using existing profile dir: %r"%p.location)
+                self.log.debug(f"Using existing profile dir: {p.location!r}")
         else:
             location = self.config.ProfileDir.location
             # location is fully specified
@@ -394,7 +394,7 @@ class BaseIPythonApplication(Application):
                     self.log.fatal("Profile directory %r not found."%location)
                     self.exit(1)
             else:
-                self.log.info("Using existing profile dir: %r"%location)
+                self.log.debug(f"Using existing profile dir: {p.location!r}")
             # if profile_dir is specified explicitly, set profile name
             dir_name = os.path.basename(p.location)
             if dir_name.startswith('profile_'):
