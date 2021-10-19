@@ -125,7 +125,7 @@ class DocTestFinder(doctest.DocTestFinder):
         add them to `tests`.
         """
         print('_find for:', obj, name, module)  # dbg
-        if hasattr(obj,"skip_doctest"):
+        if bool(getattr(obj, "__skip_doctest__", False)):
             #print 'SKIPPING DOCTEST FOR:',obj  # dbg
             obj = DocTestSkip(obj)
         

@@ -142,7 +142,7 @@ from traitlets.config.configurable import Configurable
 import __main__
 
 # skip module docstests
-skip_doctest = True
+__skip_doctest__ = True
 
 try:
     import jedi

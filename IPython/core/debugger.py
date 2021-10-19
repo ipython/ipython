@@ -116,6 +116,8 @@ from IPython.utils import coloransi, py3compat
 from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 
+# skip module docstests
+__skip_doctest__ = True
 
 prompt = 'ipdb> '
 
