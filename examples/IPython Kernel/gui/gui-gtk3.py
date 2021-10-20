@@ -11,7 +11,7 @@ In [2]: %run gui-gtk3.py
 from gi.repository import Gtk
 
 
-def hello_world(wigdet, data=None):
+def hello_world(widget, data=None):
     print("Hello World")
 
 def delete_event(widget, event, data=None):

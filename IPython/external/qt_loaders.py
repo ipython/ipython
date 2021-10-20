@@ -198,7 +198,7 @@ def import_pyqt4(version=2):
       Which QString/QVariant API to use. Set to None to use the system
       default
 
-    ImportErrors rasied within this function are non-recoverable
+    ImportErrors raised within this function are non-recoverable
     """
     # The new-style string API (version=2) automatically
     # converts QStrings to Unicode Python strings. Also, automatically unpacks
@@ -229,7 +229,7 @@ def import_pyqt5():
     """
     Import PyQt5
 
-    ImportErrors rasied within this function are non-recoverable
+    ImportErrors raised within this function are non-recoverable
     """
 
     from PyQt5 import QtCore, QtSvg, QtWidgets, QtGui
@@ -251,7 +251,7 @@ def import_pyqt6():
     """
     Import PyQt6
 
-    ImportErrors rasied within this function are non-recoverable
+    ImportErrors raised within this function are non-recoverable
     """
 
     from PyQt6 import QtCore, QtSvg, QtWidgets, QtGui

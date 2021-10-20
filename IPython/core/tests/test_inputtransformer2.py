@@ -300,7 +300,7 @@ def test_check_complete_II():
 def test_check_complete_invalidates_sunken_brackets():
     """
     Test that a single line with more closing brackets than the opening ones is
-    interpretted as invalid
+    interpreted as invalid
     """
     cc = ipt2.TransformerManager().check_complete
     nt.assert_equal(cc(")"), ("invalid", None))

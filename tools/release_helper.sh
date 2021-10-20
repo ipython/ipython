@@ -62,7 +62,7 @@ maybe_edit(){
 
 
 echo 
-if ask_section "Updating what's new with informations from docs/source/whatsnew/pr"
+if ask_section "Updating what's new with information from docs/source/whatsnew/pr"
 then
     python tools/update_whatsnew.py
 
@@ -100,7 +100,7 @@ then
     git checkout $PREV_RELEASE
     echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
     frappuccino IPython --save IPython-$PREV_RELEASE.json
-    echo $BLUE"comming back to $BRANCH"$NOR
+    echo $BLUE"coming back to $BRANCH"$NOR
     git checkout $BRANCH
     echo $BLUE"comparing ..."$NOR
     frappuccino IPython --compare IPython-$PREV_RELEASE.json

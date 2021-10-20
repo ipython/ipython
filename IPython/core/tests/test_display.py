@@ -125,7 +125,7 @@ def test_image_filename_defaults():
                      embed=True)
     nt.assert_raises(ValueError, display.Image)
     nt.assert_raises(ValueError, display.Image, data='this is not an image', format='badformat', embed=True)
-    # check boths paths to allow packages to test at build and install time
+    # check both paths to allow packages to test at build and install time
     imgfile = os.path.join(tpath, 'core/tests/2x2.png')
     img = display.Image(filename=imgfile)
     nt.assert_equal('png', img.format)

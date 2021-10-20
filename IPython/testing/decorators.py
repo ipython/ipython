@@ -156,7 +156,7 @@ def make_label_dec(label, ds=None):
 
 def skip_iptest_but_not_pytest(f):
     """
-    Warnign this will make the test invisible to iptest.
+    Warning this will make the test invisible to iptest.
     """
     import os
 

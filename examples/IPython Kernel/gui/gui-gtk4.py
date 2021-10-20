@@ -14,7 +14,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, GLib  # noqa
 
 
-def hello_world(wigdet, data=None):
+def hello_world(widget, data=None):
     print("Hello World")
 
 

@@ -13,7 +13,7 @@ pygtk.require('2.0')
 import gtk
 
 
-def hello_world(wigdet, data=None):
+def hello_world(widget, data=None):
     print("Hello World")
 
 def delete_event(widget, event, data=None):

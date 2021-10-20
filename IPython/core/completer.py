@@ -157,8 +157,8 @@ except ImportError:
 #-----------------------------------------------------------------------------
 
 # ranges where we have most of the valid unicode names. We could be more finer
-# grained but is it worth it for performace  While unicode have character in the
-# rage 0, 0x110000, we seem to have name for about 10% of those. (131808 as I
+# grained but is it worth it for performance  While unicode have character in the
+# range 0, 0x110000, we seem to have name for about 10% of those. (131808 as I
 # write this). With below range we cover them all, with a density of ~67%
 # biggest next gap we consider only adds up about 1% density and there are 600
 # gaps that would need hard coding.
@@ -2062,7 +2062,7 @@ class IPCompleter(Completer):
         A tuple of N elements which are (likely):
             matched_text: ? the text that the complete matched
             matches: list of completions ?
-            matches_origin: ? list same lenght as matches, and where each completion came from
+            matches_origin: ? list same length as matches, and where each completion came from
             jedi_matches: list of Jedi matches, have it's own structure.
         """
 
@@ -2179,7 +2179,7 @@ class IPCompleter(Completer):
         # TODO: self.unicode_names is here a list we traverse each time with ~100k elements.
         # We could do a faster match using a Trie.
 
-        # Using pygtrie the follwing seem to work:
+        # Using pygtrie the following seem to work:
 
         #     s = PrefixSet()
 

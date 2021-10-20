@@ -209,7 +209,7 @@ def get_home_dir(require_writable=False) -> str:
             pass
 
     if (not require_writable) or _writable_dir(homedir):
-        assert isinstance(homedir, str), "Homedir shoudl be unicode not bytes"
+        assert isinstance(homedir, str), "Homedir should be unicode not bytes"
         return homedir
     else:
         raise HomeDirError('%s is not a writable dir, '

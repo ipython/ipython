@@ -532,7 +532,7 @@ class Demo(object):
                 elif token[0] == Token.Comment.Single:
                     toks.append((Token.Comment.Single, token[1][0]))
                     # parse comment content by rst lexer
-                    # remove the extrat newline added by rst lexer
+                    # remove the extra newline added by rst lexer
                     toks += list(pygments.lex(token[1][1:], self.rst_lexer))[:-1]
                 else:
                     toks.append(token)

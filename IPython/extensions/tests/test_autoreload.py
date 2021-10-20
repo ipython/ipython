@@ -303,7 +303,7 @@ class TestAutoreload(Fixture):
         self.shell.run_code("t = Test()")
         # test global built-in var now exists
         self.shell.run_code("number")
-        # test the enumerations gets loaded succesfully
+        # test the enumerations gets loaded successfully
         self.shell.run_code("TestEnum.A")
 
         # ----------- TEST NEW OBJ CAN BE CHANGED --------------------

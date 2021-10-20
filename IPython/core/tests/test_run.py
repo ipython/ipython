@@ -557,7 +557,7 @@ def test_multiprocessing_run():
     """Set we can run mutiprocesgin without messing up up main namespace
 
     Note that import `nose.tools as nt` mdify the value s
-    sys.module['__mp_main__'] so wee need to temporarily set it to None to test
+    sys.module['__mp_main__'] so we need to temporarily set it to None to test
     the issue.
     """
     with TemporaryDirectory() as td:
