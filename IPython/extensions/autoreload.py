@@ -97,7 +97,7 @@ Some of the known remaining caveats are:
 - C extension modules cannot be reloaded, and so cannot be autoreloaded.
 """
 
-skip_doctest = True
+__skip_doctest__ = True
 
 # -----------------------------------------------------------------------------
 #  Copyright (C) 2000 Thomas Heller
