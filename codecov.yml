@@ -3,7 +3,5 @@ coverage:
     project:
       default:
         target: auto
-        threshold: 10
-    patch:
-      default:
-        target: 0%
+codecov:
+  require_ci_to_pass: false
