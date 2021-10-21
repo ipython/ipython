@@ -49,7 +49,7 @@ def test_alias_args_commented():
         _ip.run_cell('commetarg')
     
     # strip() is for pytest compat; testing via iptest patch IPython shell
-    # in testin.globalipapp and replace the system call which messed up the
+    # in testing.globalipapp and replace the system call which messed up the
     # \r\n
     assert cap.stdout.strip() ==  'this is %s a commented out arg'
 

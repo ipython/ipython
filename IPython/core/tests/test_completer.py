@@ -86,7 +86,7 @@ def test_unicode_range():
         size, start, stop, prct = recompute_unicode_ranges()
         message = f"""_UNICODE_RANGES likely wrong and need updating. This is
         likely due to a new release of Python. We've find that the biggest gap
-        in unicode characters has reduces in size to be {size} charaters
+        in unicode characters has reduces in size to be {size} characters
         ({prct}), from {start}, to {stop}. In completer.py likely update to
 
             _UNICODE_RANGES = [(32, {start}), ({stop}, 0xe01f0)]
@@ -302,7 +302,7 @@ class TestCompleter(unittest.TestCase):
     def test_back_latex_completion(self):
         ip = get_ipython()
 
-        # do not return more than 1 matches fro \beta, only the latex one.
+        # do not return more than 1 matches for \beta, only the latex one.
         name, matches = ip.complete("\\β")
         nt.assert_equal(matches, ['\\beta'])
 

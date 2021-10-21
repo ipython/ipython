@@ -135,7 +135,7 @@ class BackgroundJobManager(object):
 
           job_manager.new(myfunc, x, y, kw=dict(z=1))
 
-        The reason for this assymmetry is that the new() method needs to
+        The reason for this asymmetry is that the new() method needs to
         maintain access to its own keywords, and this prevents name collisions
         between arguments to new() and arguments to your own functions.
 

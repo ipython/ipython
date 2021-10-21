@@ -69,8 +69,8 @@ or configure it in your ``.pdbrc``
 
 
 
-Licencse
---------
+License
+-------
 
 Modified from the standard pdb.Pdb class to avoid including readline, so that
 the command line completion of other programs which include this isn't
@@ -429,7 +429,7 @@ class Pdb(OldPdb):
         # The f_locals dictionary is updated from the actual frame
         # locals whenever the .f_locals accessor is called, so we
         # avoid calling it here to preserve self.curframe_locals.
-        # Futhermore, there is no good reason to hide the current frame.
+        # Furthermore, there is no good reason to hide the current frame.
         ip_hide = [self._hidden_predicate(s[0]) for s in stack]
         ip_start = [i for i, s in enumerate(ip_hide) if s == "__ipython_bottom__"]
         if ip_start and self._predicates["ipython_internal"]:
@@ -522,8 +522,8 @@ class Pdb(OldPdb):
 
     def _get_frame_locals(self, frame):
         """ "
-        Acessing f_local of current frame reset the namespace, so we want to avoid
-        that or the following can happend
+        Accessing f_local of current frame reset the namespace, so we want to avoid
+        that or the following can happen
 
         ipdb> foo
         "old"
@@ -995,7 +995,7 @@ class Pdb(OldPdb):
                 if counter >= count:
                     break
             else:
-                # if no break occured.
+                # if no break occurred.
                 self.error(
                     "all frames above hidden, use `skip_hidden False` to get get into those."
                 )
@@ -1040,7 +1040,7 @@ class Pdb(OldPdb):
                     break
             else:
                 self.error(
-                    "all frames bellow hidden, use `skip_hidden False` to get get into those."
+                    "all frames below hidden, use `skip_hidden False` to get get into those."
                 )
                 return
 
