@@ -11,8 +11,6 @@ import unittest
 
 from contextlib import contextmanager
 
-import nose.tools as nt
-
 from traitlets.config.loader import Config
 from IPython import get_ipython
 from IPython.core import completer
@@ -27,7 +25,6 @@ from IPython.core.completer import (
     match_dict_keys,
     _deduplicate_completions,
 )
-from nose.tools import assert_in, assert_not_in
 
 # -----------------------------------------------------------------------------
 # Test functions
@@ -150,7 +147,7 @@ def test_protect_filename():
     # run the actual tests
     for s1, s2 in pairs:
         s1p = completer.protect_filename(s1)
-        nt.assert_equal(s1p, s2)
+        assert s1p == s2
 
 
 def check_line_split(splitter, test_specs):
@@ -158,7 +155,7 @@ def check_line_split(splitter, test_specs):
         cursor_pos = len(part1)
         line = part1 + part2
         out = splitter.split_line(line, cursor_pos)
-        nt.assert_equal(out, split)
+        assert out == split
 
 
 def test_line_split():
@@ -267,8 +264,8 @@ class TestCompleter(unittest.TestCase):
             # should be thrown and the return value should be a pair of text, list
             # values.
             text, matches = ip.complete(t)
-            nt.assert_true(isinstance(text, str))
-            nt.assert_true(isinstance(matches, list))
+            self.assertIsInstance(text, str)
+            self.assertIsInstance(matches, list)
 
     def test_latex_completions(self):
         from IPython.core.latex_symbols import latex_symbols
@@ -279,16 +276,16 @@ class TestCompleter(unittest.TestCase):
         keys = random.sample(latex_symbols.keys(), 10)
         for k in keys:
             text, matches = ip.complete(k)
-            nt.assert_equal(text, k)
-            nt.assert_equal(matches, [latex_symbols[k]])
+            self.assertEqual(text, k)
+            self.assertEqual(matches, [latex_symbols[k]])
         # Test a more complex line
         text, matches = ip.complete("print(\\alpha")
-        nt.assert_equal(text, "\\alpha")
-        nt.assert_equal(matches[0], latex_symbols["\\alpha"])
+        self.assertEqual(text, "\\alpha")
+        self.assertEqual(matches[0], latex_symbols["\\alpha"])
         # Test multiple matching latex symbols
         text, matches = ip.complete("\\al")
-        nt.assert_in("\\alpha", matches)
-        nt.assert_in("\\aleph", matches)
+        self.assertIn("\\alpha", matches)
+        self.assertIn("\\aleph", matches)
 
     def test_latex_no_results(self):
         """
@@ -296,30 +293,30 @@ class TestCompleter(unittest.TestCase):
         """
         ip = get_ipython()
         text, matches = ip.Completer.latex_matches("\\really_i_should_match_nothing")
-        nt.assert_equal(text, "")
-        nt.assert_equal(matches, ())
+        self.assertEqual(text, "")
+        self.assertEqual(matches, ())
 
     def test_back_latex_completion(self):
         ip = get_ipython()
 
         # do not return more than 1 matches for \beta, only the latex one.
         name, matches = ip.complete("\\β")
-        nt.assert_equal(matches, ['\\beta'])
+        self.assertEqual(matches, ["\\beta"])
 
     def test_back_unicode_completion(self):
         ip = get_ipython()
 
         name, matches = ip.complete("\\Ⅴ")
-        nt.assert_equal(matches, ("\\ROMAN NUMERAL FIVE",))
+        self.assertEqual(matches, ("\\ROMAN NUMERAL FIVE",))
 
     def test_forward_unicode_completion(self):
         ip = get_ipython()
 
         name, matches = ip.complete("\\ROMAN NUMERAL FIVE")
-        nt.assert_equal(matches, ["Ⅴ"] ) # This is not a V
-        nt.assert_equal(matches, ["\u2164"] ) # same as above but explicit.
+        self.assertEqual(matches, ["Ⅴ"])  # This is not a V
+        self.assertEqual(matches, ["\u2164"])  # same as above but explicit.
 
-    @nt.nottest  # now we have a completion for \jmath
+    @unittest.skip("now we have a completion for \jmath")
     @decorators.knownfailureif(
         sys.platform == "win32", "Fails if there is a C:\\j... path"
     )
@@ -329,7 +326,7 @@ class TestCompleter(unittest.TestCase):
             # single ascii letter that don't have yet completions
             for letter in "jJ":
                 name, matches = ip.complete("\\" + letter)
-                nt.assert_equal(matches, [])
+                self.assertEqual(matches, [])
 
     class CompletionSplitterTestCase(unittest.TestCase):
         def setUp(self):
@@ -337,8 +334,8 @@ class TestCompleter(unittest.TestCase):
 
         def test_delim_setting(self):
             self.sp.delims = " "
-            nt.assert_equal(self.sp.delims, " ")
-            nt.assert_equal(self.sp._delim_expr, r"[\ ]")
+            self.assertEqual(self.sp.delims, " ")
+            self.assertEqual(self.sp._delim_expr, r"[\ ]")
 
         def test_spaces(self):
             """Test with only spaces as split chars."""
@@ -348,19 +345,19 @@ class TestCompleter(unittest.TestCase):
 
     def test_has_open_quotes1(self):
         for s in ["'", "'''", "'hi' '"]:
-            nt.assert_equal(completer.has_open_quotes(s), "'")
+            self.assertEqual(completer.has_open_quotes(s), "'")
 
     def test_has_open_quotes2(self):
         for s in ['"', '"""', '"hi" "']:
-            nt.assert_equal(completer.has_open_quotes(s), '"')
+            self.assertEqual(completer.has_open_quotes(s), '"')
 
     def test_has_open_quotes3(self):
         for s in ["''", "''' '''", "'hi' 'ipython'"]:
-            nt.assert_false(completer.has_open_quotes(s))
+            self.assertFalse(completer.has_open_quotes(s))
 
     def test_has_open_quotes4(self):
         for s in ['""', '""" """', '"hi" "ipython"']:
-            nt.assert_false(completer.has_open_quotes(s))
+            self.assertFalse(completer.has_open_quotes(s))
 
     @decorators.knownfailureif(
         sys.platform == "win32", "abspath completions fail on Windows"
@@ -376,13 +373,13 @@ class TestCompleter(unittest.TestCase):
 
             # Check simple completion
             c = ip.complete(prefix)[1]
-            nt.assert_equal(c, names)
+            self.assertEqual(c, names)
 
             # Now check with a function call
             cmd = 'a = f("%s' % prefix
             c = ip.complete(prefix, cmd)[1]
             comp = [prefix + s for s in suffixes]
-            nt.assert_equal(c, comp)
+            self.assertEqual(c, comp)
 
     def test_local_file_completions(self):
         ip = get_ipython()
@@ -395,13 +392,13 @@ class TestCompleter(unittest.TestCase):
 
             # Check simple completion
             c = ip.complete(prefix)[1]
-            nt.assert_equal(c, names)
+            self.assertEqual(c, names)
 
             # Now check with a function call
             cmd = 'a = f("%s' % prefix
             c = ip.complete(prefix, cmd)[1]
             comp = {prefix + s for s in suffixes}
-            nt.assert_true(comp.issubset(set(c)))
+            self.assertTrue(comp.issubset(set(c)))
 
     def test_quoted_file_completions(self):
         ip = get_ipython()
@@ -417,21 +414,21 @@ class TestCompleter(unittest.TestCase):
             c = ip.Completer._complete(
                 cursor_line=0, cursor_pos=len(text), full_text=text
             )[1]
-            nt.assert_equal(c, [escaped])
+            self.assertEqual(c, [escaped])
 
             # Double quote requires no escape
             text = 'open("foo'
             c = ip.Completer._complete(
                 cursor_line=0, cursor_pos=len(text), full_text=text
             )[1]
-            nt.assert_equal(c, [name])
+            self.assertEqual(c, [name])
 
             # No quote requires an escape
             text = "%ls foo"
             c = ip.Completer._complete(
                 cursor_line=0, cursor_pos=len(text), full_text=text
             )[1]
-            nt.assert_equal(c, [escaped])
+            self.assertEqual(c, [escaped])
 
     def test_all_completions_dups(self):
         """
@@ -537,18 +534,18 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
         ip.ex("a=list(range(5))")
         _, c = ip.complete(".", line="a[0].")
-        nt.assert_false(".real" in c, "Shouldn't have completed on a[0]: %s" % c)
+        self.assertFalse(".real" in c, "Shouldn't have completed on a[0]: %s" % c)
 
         def _(line, cursor_pos, expect, message, completion):
             with greedy_completion(), provisionalcompleter():
                 ip.Completer.use_jedi = False
                 _, c = ip.complete(".", line=line, cursor_pos=cursor_pos)
-                nt.assert_in(expect, c, message % c)
+                self.assertIn(expect, c, message % c)
 
                 ip.Completer.use_jedi = True
                 with provisionalcompleter():
                     completions = ip.Completer.completions(line, cursor_pos)
-                nt.assert_in(completion, completions)
+                self.assertIn(completion, completions)
 
         with provisionalcompleter():
             yield _, "a[0].", 5, "a[0].real", "Should have completed on a[0].: %s", Completion(
@@ -575,13 +572,13 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip.")
-            nt.assert_in("ip.__str__", matches)
-            nt.assert_in("ip._hidden_attr", matches)
+            self.assertIn("ip.__str__", matches)
+            self.assertIn("ip._hidden_attr", matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip.', 3))
-            # nt.assert_in(Completion(3, 3, '__str__'), completions)
-            # nt.assert_in(Completion(3,3, "_hidden_attr"), completions)
+            # self.assertIn(Completion(3, 3, '__str__'), completions)
+            # self.assertIn(Completion(3,3, "_hidden_attr"), completions)
 
         cfg = Config()
         cfg.IPCompleter.omit__names = 1
@@ -589,13 +586,13 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip.")
-            nt.assert_not_in("ip.__str__", matches)
-            # nt.assert_in('ip._hidden_attr', matches)
+            self.assertNotIn("ip.__str__", matches)
+            # self.assertIn('ip._hidden_attr', matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip.', 3))
-            # nt.assert_not_in(Completion(3,3,'__str__'), completions)
-            # nt.assert_in(Completion(3,3, "_hidden_attr"), completions)
+            # self.assertNotIn(Completion(3,3,'__str__'), completions)
+            # self.assertIn(Completion(3,3, "_hidden_attr"), completions)
 
         cfg = Config()
         cfg.IPCompleter.omit__names = 2
@@ -603,22 +600,22 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip.")
-            nt.assert_not_in("ip.__str__", matches)
-            nt.assert_not_in("ip._hidden_attr", matches)
+            self.assertNotIn("ip.__str__", matches)
+            self.assertNotIn("ip._hidden_attr", matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip.', 3))
-            # nt.assert_not_in(Completion(3,3,'__str__'), completions)
-            # nt.assert_not_in(Completion(3,3, "_hidden_attr"), completions)
+            # self.assertNotIn(Completion(3,3,'__str__'), completions)
+            # self.assertNotIn(Completion(3,3, "_hidden_attr"), completions)
 
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip._x.")
-            nt.assert_in("ip._x.keys", matches)
+            self.assertIn("ip._x.keys", matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip._x.', 6))
-            # nt.assert_in(Completion(6,6, "keys"), completions)
+            # self.assertIn(Completion(6,6, "keys"), completions)
 
         del ip._hidden_attr
         del ip._x
@@ -636,21 +633,21 @@ class TestCompleter(unittest.TestCase):
         cfg.IPCompleter.limit_to__all__ = False
         c.update_config(cfg)
         s, matches = c.complete("d.")
-        nt.assert_in("d.x", matches)
+        self.assertIn("d.x", matches)
 
     def test_get__all__entries_ok(self):
         class A:
             __all__ = ["x", 1]
 
         words = completer.get__all__entries(A())
-        nt.assert_equal(words, ["x"])
+        self.assertEqual(words, ["x"])
 
     def test_get__all__entries_no__all__ok(self):
         class A:
             pass
 
         words = completer.get__all__entries(A())
-        nt.assert_equal(words, [])
+        self.assertEqual(words, [])
 
     def test_func_kw_completions(self):
         ip = get_ipython()
@@ -658,39 +655,39 @@ class TestCompleter(unittest.TestCase):
         c.use_jedi = False
         ip.ex("def myfunc(a=1,b=2): return a+b")
         s, matches = c.complete(None, "myfunc(1,b")
-        nt.assert_in("b=", matches)
+        self.assertIn("b=", matches)
         # Simulate completing with cursor right after b (pos==10):
         s, matches = c.complete(None, "myfunc(1,b)", 10)
-        nt.assert_in("b=", matches)
+        self.assertIn("b=", matches)
         s, matches = c.complete(None, 'myfunc(a="escaped\\")string",b')
-        nt.assert_in("b=", matches)
+        self.assertIn("b=", matches)
         # builtin function
         s, matches = c.complete(None, "min(k, k")
-        nt.assert_in("key=", matches)
+        self.assertIn("key=", matches)
 
     def test_default_arguments_from_docstring(self):
         ip = get_ipython()
         c = ip.Completer
         kwd = c._default_arguments_from_docstring("min(iterable[, key=func]) -> value")
-        nt.assert_equal(kwd, ["key"])
+        self.assertEqual(kwd, ["key"])
         # with cython type etc
         kwd = c._default_arguments_from_docstring(
             "Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)\n"
         )
-        nt.assert_equal(kwd, ["ncall", "resume", "nsplit"])
+        self.assertEqual(kwd, ["ncall", "resume", "nsplit"])
         # white spaces
         kwd = c._default_arguments_from_docstring(
             "\n Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)\n"
         )
-        nt.assert_equal(kwd, ["ncall", "resume", "nsplit"])
+        self.assertEqual(kwd, ["ncall", "resume", "nsplit"])
 
     def test_line_magics(self):
         ip = get_ipython()
         c = ip.Completer
         s, matches = c.complete(None, "lsmag")
-        nt.assert_in("%lsmagic", matches)
+        self.assertIn("%lsmagic", matches)
         s, matches = c.complete(None, "%lsmag")
-        nt.assert_in("%lsmagic", matches)
+        self.assertIn("%lsmagic", matches)
 
     def test_cell_magics(self):
         from IPython.core.magic import register_cell_magic
@@ -703,9 +700,9 @@ class TestCompleter(unittest.TestCase):
         c = ip.Completer
 
         s, matches = c.complete(None, "_foo_ce")
-        nt.assert_in("%%_foo_cellm", matches)
+        self.assertIn("%%_foo_cellm", matches)
         s, matches = c.complete(None, "%%_foo_ce")
-        nt.assert_in("%%_foo_cellm", matches)
+        self.assertIn("%%_foo_cellm", matches)
 
     def test_line_cell_magics(self):
         from IPython.core.magic import register_line_cell_magic
@@ -722,14 +719,14 @@ class TestCompleter(unittest.TestCase):
         # and this will show a difference if the same name is both a line and cell
         # magic.
         s, matches = c.complete(None, "_bar_ce")
-        nt.assert_in("%_bar_cellm", matches)
-        nt.assert_in("%%_bar_cellm", matches)
+        self.assertIn("%_bar_cellm", matches)
+        self.assertIn("%%_bar_cellm", matches)
         s, matches = c.complete(None, "%_bar_ce")
-        nt.assert_in("%_bar_cellm", matches)
-        nt.assert_in("%%_bar_cellm", matches)
+        self.assertIn("%_bar_cellm", matches)
+        self.assertIn("%%_bar_cellm", matches)
         s, matches = c.complete(None, "%%_bar_ce")
-        nt.assert_not_in("%_bar_cellm", matches)
-        nt.assert_in("%%_bar_cellm", matches)
+        self.assertNotIn("%_bar_cellm", matches)
+        self.assertIn("%%_bar_cellm", matches)
 
     def test_magic_completion_order(self):
         ip = get_ipython()
@@ -737,7 +734,7 @@ class TestCompleter(unittest.TestCase):
 
         # Test ordering of line and cell magics.
         text, matches = c.complete("timeit")
-        nt.assert_equal(matches, ["%timeit", "%%timeit"])
+        self.assertEqual(matches, ["%timeit", "%%timeit"])
 
     def test_magic_completion_shadowing(self):
         ip = get_ipython()
@@ -746,18 +743,18 @@ class TestCompleter(unittest.TestCase):
 
         # Before importing matplotlib, %matplotlib magic should be the only option.
         text, matches = c.complete("mat")
-        nt.assert_equal(matches, ["%matplotlib"])
+        self.assertEqual(matches, ["%matplotlib"])
 
         # The newly introduced name should shadow the magic.
         ip.run_cell("matplotlib = 1")
         text, matches = c.complete("mat")
-        nt.assert_equal(matches, ["matplotlib"])
+        self.assertEqual(matches, ["matplotlib"])
 
         # After removing matplotlib from namespace, the magic should again be
         # the only option.
         del ip.user_ns["matplotlib"]
         text, matches = c.complete("mat")
-        nt.assert_equal(matches, ["%matplotlib"])
+        self.assertEqual(matches, ["%matplotlib"])
 
     def test_magic_completion_shadowing_explicit(self):
         """
@@ -769,62 +766,62 @@ class TestCompleter(unittest.TestCase):
 
         # Before importing matplotlib, %matplotlib magic should be the only option.
         text, matches = c.complete("%mat")
-        nt.assert_equal(matches, ["%matplotlib"])
+        self.assertEqual(matches, ["%matplotlib"])
 
         ip.run_cell("matplotlib = 1")
 
         # After removing matplotlib from namespace, the magic should still be
         # the only option.
         text, matches = c.complete("%mat")
-        nt.assert_equal(matches, ["%matplotlib"])
+        self.assertEqual(matches, ["%matplotlib"])
 
     def test_magic_config(self):
         ip = get_ipython()
         c = ip.Completer
 
         s, matches = c.complete(None, "conf")
-        nt.assert_in("%config", matches)
+        self.assertIn("%config", matches)
         s, matches = c.complete(None, "conf")
-        nt.assert_not_in("AliasManager", matches)
+        self.assertNotIn("AliasManager", matches)
         s, matches = c.complete(None, "config ")
-        nt.assert_in("AliasManager", matches)
+        self.assertIn("AliasManager", matches)
         s, matches = c.complete(None, "%config ")
-        nt.assert_in("AliasManager", matches)
+        self.assertIn("AliasManager", matches)
         s, matches = c.complete(None, "config Ali")
-        nt.assert_list_equal(["AliasManager"], matches)
+        self.assertListEqual(["AliasManager"], matches)
         s, matches = c.complete(None, "%config Ali")
-        nt.assert_list_equal(["AliasManager"], matches)
+        self.assertListEqual(["AliasManager"], matches)
         s, matches = c.complete(None, "config AliasManager")
-        nt.assert_list_equal(["AliasManager"], matches)
+        self.assertListEqual(["AliasManager"], matches)
         s, matches = c.complete(None, "%config AliasManager")
-        nt.assert_list_equal(["AliasManager"], matches)
+        self.assertListEqual(["AliasManager"], matches)
         s, matches = c.complete(None, "config AliasManager.")
-        nt.assert_in("AliasManager.default_aliases", matches)
+        self.assertIn("AliasManager.default_aliases", matches)
         s, matches = c.complete(None, "%config AliasManager.")
-        nt.assert_in("AliasManager.default_aliases", matches)
+        self.assertIn("AliasManager.default_aliases", matches)
         s, matches = c.complete(None, "config AliasManager.de")
-        nt.assert_list_equal(["AliasManager.default_aliases"], matches)
+        self.assertListEqual(["AliasManager.default_aliases"], matches)
         s, matches = c.complete(None, "config AliasManager.de")
-        nt.assert_list_equal(["AliasManager.default_aliases"], matches)
+        self.assertListEqual(["AliasManager.default_aliases"], matches)
 
     def test_magic_color(self):
         ip = get_ipython()
         c = ip.Completer
 
         s, matches = c.complete(None, "colo")
-        nt.assert_in("%colors", matches)
+        self.assertIn("%colors", matches)
         s, matches = c.complete(None, "colo")
-        nt.assert_not_in("NoColor", matches)
+        self.assertNotIn("NoColor", matches)
         s, matches = c.complete(None, "%colors")  # No trailing space
-        nt.assert_not_in("NoColor", matches)
+        self.assertNotIn("NoColor", matches)
         s, matches = c.complete(None, "colors ")
-        nt.assert_in("NoColor", matches)
+        self.assertIn("NoColor", matches)
         s, matches = c.complete(None, "%colors ")
-        nt.assert_in("NoColor", matches)
+        self.assertIn("NoColor", matches)
         s, matches = c.complete(None, "colors NoCo")
-        nt.assert_list_equal(["NoColor"], matches)
+        self.assertListEqual(["NoColor"], matches)
         s, matches = c.complete(None, "%colors NoCo")
-        nt.assert_list_equal(["NoColor"], matches)
+        self.assertListEqual(["NoColor"], matches)
 
     def test_match_dict_keys(self):
         """
@@ -884,34 +881,34 @@ class TestCompleter(unittest.TestCase):
 
         # check completion at different stages
         _, matches = complete(line_buffer="d[")
-        nt.assert_in("'abc'", matches)
-        nt.assert_not_in("'abc']", matches)
+        self.assertIn("'abc'", matches)
+        self.assertNotIn("'abc']", matches)
 
         _, matches = complete(line_buffer="d['")
-        nt.assert_in("abc", matches)
-        nt.assert_not_in("abc']", matches)
+        self.assertIn("abc", matches)
+        self.assertNotIn("abc']", matches)
 
         _, matches = complete(line_buffer="d['a")
-        nt.assert_in("abc", matches)
-        nt.assert_not_in("abc']", matches)
+        self.assertIn("abc", matches)
+        self.assertNotIn("abc']", matches)
 
         # check use of different quoting
         _, matches = complete(line_buffer='d["')
-        nt.assert_in("abc", matches)
-        nt.assert_not_in('abc"]', matches)
+        self.assertIn("abc", matches)
+        self.assertNotIn('abc"]', matches)
 
         _, matches = complete(line_buffer='d["a')
-        nt.assert_in("abc", matches)
-        nt.assert_not_in('abc"]', matches)
+        self.assertIn("abc", matches)
+        self.assertNotIn('abc"]', matches)
 
         # check sensitivity to following context
         _, matches = complete(line_buffer="d[]", cursor_pos=2)
-        nt.assert_in("'abc'", matches)
+        self.assertIn("'abc'", matches)
 
         _, matches = complete(line_buffer="d['']", cursor_pos=3)
-        nt.assert_in("abc", matches)
-        nt.assert_not_in("abc'", matches)
-        nt.assert_not_in("abc']", matches)
+        self.assertIn("abc", matches)
+        self.assertNotIn("abc'", matches)
+        self.assertNotIn("abc']", matches)
 
         # check multiple solutions are correctly returned and that noise is not
         ip.user_ns["d"] = {
@@ -925,111 +922,110 @@ class TestCompleter(unittest.TestCase):
         }
 
         _, matches = complete(line_buffer="d['a")
-        nt.assert_in("abc", matches)
-        nt.assert_in("abd", matches)
-        nt.assert_not_in("bad", matches)
-        nt.assert_not_in("abe", matches)
-        nt.assert_not_in("abf", matches)
+        self.assertIn("abc", matches)
+        self.assertIn("abd", matches)
+        self.assertNotIn("bad", matches)
+        self.assertNotIn("abe", matches)
+        self.assertNotIn("abf", matches)
         assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
 
         # check escaping and whitespace
         ip.user_ns["d"] = {"a\nb": None, "a'b": None, 'a"b': None, "a word": None}
         _, matches = complete(line_buffer="d['a")
-        nt.assert_in("a\\nb", matches)
-        nt.assert_in("a\\'b", matches)
-        nt.assert_in('a"b', matches)
-        nt.assert_in("a word", matches)
+        self.assertIn("a\\nb", matches)
+        self.assertIn("a\\'b", matches)
+        self.assertIn('a"b', matches)
+        self.assertIn("a word", matches)
         assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
 
         # - can complete on non-initial word of the string
         _, matches = complete(line_buffer="d['a w")
-        nt.assert_in("word", matches)
+        self.assertIn("word", matches)
 
         # - understands quote escaping
         _, matches = complete(line_buffer="d['a\\'")
-        nt.assert_in("b", matches)
+        self.assertIn("b", matches)
 
         # - default quoting should work like repr
         _, matches = complete(line_buffer="d[")
-        nt.assert_in('"a\'b"', matches)
+        self.assertIn('"a\'b"', matches)
 
         # - when opening quote with ", possible to match with unescaped apostrophe
         _, matches = complete(line_buffer="d[\"a'")
-        nt.assert_in("b", matches)
+        self.assertIn("b", matches)
 
         # need to not split at delims that readline won't split at
         if "-" not in ip.Completer.splitter.delims:
             ip.user_ns["d"] = {"before-after": None}
             _, matches = complete(line_buffer="d['before-af")
-            nt.assert_in("before-after", matches)
+            self.assertIn("before-after", matches)
 
         # check completion on tuple-of-string keys at different stage - on first key
         ip.user_ns["d"] = {('foo', 'bar'): None}
         _, matches = complete(line_buffer="d[")
-        nt.assert_in("'foo'", matches)
-        nt.assert_not_in("'foo']", matches)
-        nt.assert_not_in("'bar'", matches)
-        nt.assert_not_in("foo", matches)
-        nt.assert_not_in("bar", matches)
+        self.assertIn("'foo'", matches)
+        self.assertNotIn("'foo']", matches)
+        self.assertNotIn("'bar'", matches)
+        self.assertNotIn("foo", matches)
+        self.assertNotIn("bar", matches)
 
         # - match the prefix
         _, matches = complete(line_buffer="d['f")
-        nt.assert_in("foo", matches)
-        nt.assert_not_in("foo']", matches)
-        nt.assert_not_in("foo\"]", matches)
+        self.assertIn("foo", matches)
+        self.assertNotIn("foo']", matches)
+        self.assertNotIn('foo"]', matches)
         _, matches = complete(line_buffer="d['foo")
-        nt.assert_in("foo", matches)
+        self.assertIn("foo", matches)
 
         # - can complete on second key
         _, matches = complete(line_buffer="d['foo', ")
-        nt.assert_in("'bar'", matches)
+        self.assertIn("'bar'", matches)
         _, matches = complete(line_buffer="d['foo', 'b")
-        nt.assert_in("bar", matches)
-        nt.assert_not_in("foo", matches)
+        self.assertIn("bar", matches)
+        self.assertNotIn("foo", matches)
 
         # - does not propose missing keys
         _, matches = complete(line_buffer="d['foo', 'f")
-        nt.assert_not_in("bar", matches)
-        nt.assert_not_in("foo", matches)
+        self.assertNotIn("bar", matches)
+        self.assertNotIn("foo", matches)
 
         # check sensitivity to following context
         _, matches = complete(line_buffer="d['foo',]", cursor_pos=8)
-        nt.assert_in("'bar'", matches)
-        nt.assert_not_in("bar", matches)
-        nt.assert_not_in("'foo'", matches)
-        nt.assert_not_in("foo", matches)
+        self.assertIn("'bar'", matches)
+        self.assertNotIn("bar", matches)
+        self.assertNotIn("'foo'", matches)
+        self.assertNotIn("foo", matches)
 
         _, matches = complete(line_buffer="d['']", cursor_pos=3)
-        nt.assert_in("foo", matches)
+        self.assertIn("foo", matches)
         assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
 
         _, matches = complete(line_buffer='d[""]', cursor_pos=3)
-        nt.assert_in("foo", matches)
+        self.assertIn("foo", matches)
         assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
 
         _, matches = complete(line_buffer='d["foo","]', cursor_pos=9)
-        nt.assert_in("bar", matches)
+        self.assertIn("bar", matches)
         assert not any(m.endswith(("]", '"', "'")) for m in matches), matches
 
         _, matches = complete(line_buffer='d["foo",]', cursor_pos=8)
-        nt.assert_in("'bar'", matches)
-        nt.assert_not_in("bar", matches)
+        self.assertIn("'bar'", matches)
+        self.assertNotIn("bar", matches)
 
         # Can complete with longer tuple keys
         ip.user_ns["d"] = {('foo', 'bar', 'foobar'): None}
 
         # - can complete second key
         _, matches = complete(line_buffer="d['foo', 'b")
-        nt.assert_in('bar', matches)
-        nt.assert_not_in('foo', matches)
-        nt.assert_not_in('foobar', matches)
+        self.assertIn("bar", matches)
+        self.assertNotIn("foo", matches)
+        self.assertNotIn("foobar", matches)
 
         # - can complete third key
         _, matches = complete(line_buffer="d['foo', 'bar', 'fo")
-        nt.assert_in('foobar', matches)
-        nt.assert_not_in('foo', matches)
-        nt.assert_not_in('bar', matches)
-
+        self.assertIn("foobar", matches)
+        self.assertNotIn("foo", matches)
+        self.assertNotIn("bar", matches)
 
     def test_dict_key_completion_contexts(self):
         """Test expression contexts in which dict key completion occurs"""
@@ -1046,16 +1042,16 @@ class TestCompleter(unittest.TestCase):
 
         def assert_no_completion(**kwargs):
             _, matches = complete(**kwargs)
-            nt.assert_not_in("abc", matches)
-            nt.assert_not_in("abc'", matches)
-            nt.assert_not_in("abc']", matches)
-            nt.assert_not_in("'abc'", matches)
-            nt.assert_not_in("'abc']", matches)
+            self.assertNotIn("abc", matches)
+            self.assertNotIn("abc'", matches)
+            self.assertNotIn("abc']", matches)
+            self.assertNotIn("'abc'", matches)
+            self.assertNotIn("'abc']", matches)
 
         def assert_completion(**kwargs):
             _, matches = complete(**kwargs)
-            nt.assert_in("'abc'", matches)
-            nt.assert_not_in("'abc']", matches)
+            self.assertIn("'abc'", matches)
+            self.assertNotIn("'abc']", matches)
 
         # no completion after string closed, even if reopened
         assert_no_completion(line_buffer="d['a'")
@@ -1071,7 +1067,7 @@ class TestCompleter(unittest.TestCase):
         # greedy flag
         def assert_completion(**kwargs):
             _, matches = complete(**kwargs)
-            nt.assert_in("get()['abc']", matches)
+            self.assertIn("get()['abc']", matches)
 
         assert_no_completion(line_buffer="get()[")
         with greedy_completion():
@@ -1089,25 +1085,25 @@ class TestCompleter(unittest.TestCase):
         ip.user_ns["d"] = {"abc": None, b"abd": None}
 
         _, matches = complete(line_buffer="d[")
-        nt.assert_in("'abc'", matches)
-        nt.assert_in("b'abd'", matches)
+        self.assertIn("'abc'", matches)
+        self.assertIn("b'abd'", matches)
 
         if False:  # not currently implemented
             _, matches = complete(line_buffer="d[b")
-            nt.assert_in("b'abd'", matches)
-            nt.assert_not_in("b'abc'", matches)
+            self.assertIn("b'abd'", matches)
+            self.assertNotIn("b'abc'", matches)
 
             _, matches = complete(line_buffer="d[b'")
-            nt.assert_in("abd", matches)
-            nt.assert_not_in("abc", matches)
+            self.assertIn("abd", matches)
+            self.assertNotIn("abc", matches)
 
             _, matches = complete(line_buffer="d[B'")
-            nt.assert_in("abd", matches)
-            nt.assert_not_in("abc", matches)
+            self.assertIn("abd", matches)
+            self.assertNotIn("abc", matches)
 
             _, matches = complete(line_buffer="d['")
-            nt.assert_in("abc", matches)
-            nt.assert_not_in("abd", matches)
+            self.assertIn("abc", matches)
+            self.assertNotIn("abd", matches)
 
     def test_dict_key_completion_unicode_py3(self):
         """Test handling of unicode in dict key completion"""
@@ -1120,20 +1116,20 @@ class TestCompleter(unittest.TestCase):
         if sys.platform != "win32":
             # Known failure on Windows
             _, matches = complete(line_buffer="d['a\\u05d0")
-            nt.assert_in("u05d0", matches)  # tokenized after \\
+            self.assertIn("u05d0", matches)  # tokenized after \\
 
         # query using character
         _, matches = complete(line_buffer="d['a\u05d0")
-        nt.assert_in("a\u05d0", matches)
+        self.assertIn("a\u05d0", matches)
 
         with greedy_completion():
             # query using escape
             _, matches = complete(line_buffer="d['a\\u05d0")
-            nt.assert_in("d['a\\u05d0']", matches)  # tokenized after \\
+            self.assertIn("d['a\\u05d0']", matches)  # tokenized after \\
 
             # query using character
             _, matches = complete(line_buffer="d['a\u05d0")
-            nt.assert_in("d['a\u05d0']", matches)
+            self.assertIn("d['a\u05d0']", matches)
 
     @dec.skip_without("numpy")
     def test_struct_array_key_completion(self):
@@ -1144,8 +1140,8 @@ class TestCompleter(unittest.TestCase):
         complete = ip.Completer.complete
         ip.user_ns["d"] = numpy.array([], dtype=[("hello", "f"), ("world", "f")])
         _, matches = complete(line_buffer="d['")
-        nt.assert_in("hello", matches)
-        nt.assert_in("world", matches)
+        self.assertIn("hello", matches)
+        self.assertIn("world", matches)
         # complete on the numpy struct itself
         dt = numpy.dtype(
             [("my_head", [("my_dt", ">u4"), ("my_df", ">u4")]), ("my_data", ">f4", 5)]
@@ -1153,14 +1149,14 @@ class TestCompleter(unittest.TestCase):
         x = numpy.zeros(2, dtype=dt)
         ip.user_ns["d"] = x[1]
         _, matches = complete(line_buffer="d['")
-        nt.assert_in("my_head", matches)
-        nt.assert_in("my_data", matches)
+        self.assertIn("my_head", matches)
+        self.assertIn("my_data", matches)
         # complete on a nested level
         with greedy_completion():
             ip.user_ns["d"] = numpy.zeros(2, dtype=dt)
             _, matches = complete(line_buffer="d[1]['my_head']['")
-            nt.assert_true(any(["my_dt" in m for m in matches]))
-            nt.assert_true(any(["my_df" in m for m in matches]))
+            self.assertTrue(any(["my_dt" in m for m in matches]))
+            self.assertTrue(any(["my_df" in m for m in matches]))
 
     @dec.skip_without("pandas")
     def test_dataframe_key_completion(self):
@@ -1171,8 +1167,8 @@ class TestCompleter(unittest.TestCase):
         complete = ip.Completer.complete
         ip.user_ns["d"] = pandas.DataFrame({"hello": [1], "world": [2]})
         _, matches = complete(line_buffer="d['")
-        nt.assert_in("hello", matches)
-        nt.assert_in("world", matches)
+        self.assertIn("hello", matches)
+        self.assertIn("world", matches)
 
     def test_dict_key_completion_invalids(self):
         """Smoke test cases dict key completion can't handle"""
@@ -1197,8 +1193,8 @@ class TestCompleter(unittest.TestCase):
         ip.user_ns["key_completable"] = KeyCompletable(["qwerty", "qwick"])
 
         _, matches = ip.Completer.complete(line_buffer="key_completable['qw")
-        nt.assert_in("qwerty", matches)
-        nt.assert_in("qwick", matches)
+        self.assertIn("qwerty", matches)
+        self.assertIn("qwick", matches)
 
     def test_class_key_completion(self):
         ip = get_ipython()
@@ -1207,8 +1203,8 @@ class TestCompleter(unittest.TestCase):
         ip.user_ns["named_instance_class"] = NamedInstanceClass
 
         _, matches = ip.Completer.complete(line_buffer="named_instance_class['qw")
-        nt.assert_in("qwerty", matches)
-        nt.assert_in("qwick", matches)
+        self.assertIn("qwerty", matches)
+        self.assertIn("qwick", matches)
 
     def test_tryimport(self):
         """
@@ -1221,27 +1217,27 @@ class TestCompleter(unittest.TestCase):
     def test_aimport_module_completer(self):
         ip = get_ipython()
         _, matches = ip.complete("i", "%aimport i")
-        nt.assert_in("io", matches)
-        nt.assert_not_in("int", matches)
+        self.assertIn("io", matches)
+        self.assertNotIn("int", matches)
 
     def test_nested_import_module_completer(self):
         ip = get_ipython()
         _, matches = ip.complete(None, "import IPython.co", 17)
-        nt.assert_in("IPython.core", matches)
-        nt.assert_not_in("import IPython.core", matches)
-        nt.assert_not_in("IPython.display", matches)
+        self.assertIn("IPython.core", matches)
+        self.assertNotIn("import IPython.core", matches)
+        self.assertNotIn("IPython.display", matches)
 
     def test_import_module_completer(self):
         ip = get_ipython()
         _, matches = ip.complete("i", "import i")
-        nt.assert_in("io", matches)
-        nt.assert_not_in("int", matches)
+        self.assertIn("io", matches)
+        self.assertNotIn("int", matches)
 
     def test_from_module_completer(self):
         ip = get_ipython()
         _, matches = ip.complete("B", "from io import B", 16)
-        nt.assert_in("BytesIO", matches)
-        nt.assert_not_in("BaseException", matches)
+        self.assertIn("BytesIO", matches)
+        self.assertNotIn("BaseException", matches)
 
     def test_snake_case_completion(self):
         ip = get_ipython()
@@ -1249,8 +1245,8 @@ class TestCompleter(unittest.TestCase):
         ip.user_ns["some_three"] = 3
         ip.user_ns["some_four"] = 4
         _, matches = ip.complete("s_", "print(s_f")
-        nt.assert_in("some_three", matches)
-        nt.assert_in("some_four", matches)
+        self.assertIn("some_three", matches)
+        self.assertIn("some_four", matches)
 
     def test_mix_terms(self):
         ip = get_ipython()
@@ -1274,5 +1270,5 @@ class TestCompleter(unittest.TestCase):
             )
         )
         _, matches = ip.complete(None, "test.meth(")
-        nt.assert_in("meth_arg1=", matches)
-        nt.assert_not_in("meth2_arg1=", matches)
+        self.assertIn("meth_arg1=", matches)
+        self.assertNotIn("meth2_arg1=", matches)
