@@ -6,9 +6,6 @@
 import inspect
 import sys
 
-# Third party
-import nose.tools as nt
-
 # Our own
 from IPython.testing import decorators as dec
 
@@ -93,7 +90,7 @@ def test_skip_dt_decorator():
     # Fetch the docstring from doctest_bad after decoration.
     val = doctest_bad.__doc__
     
-    nt.assert_equal(check,val,"doctest_bad docstrings don't match")
+    assert check == val, "doctest_bad docstrings don't match"
 
 
 # Doctest skipping should work for class methods too
@@ -152,13 +149,14 @@ def test_skip_dt_decorator2():
 
 @dec.skip_linux
 def test_linux():
-    nt.assert_false(sys.platform.startswith('linux'),"This test can't run under linux")
+    assert sys.platform.startswith("linux") is False, "This test can't run under linux"
+
 
 @dec.skip_win32
 def test_win32():
-    nt.assert_not_equal(sys.platform,'win32',"This test can't run under windows")
+    assert sys.platform != "win32", "This test can't run under windows"
+
 
 @dec.skip_osx
 def test_osx():
-    nt.assert_not_equal(sys.platform,'darwin',"This test can't run under osx")
-
+    assert sys.platform != "darwin", "This test can't run under osx"
