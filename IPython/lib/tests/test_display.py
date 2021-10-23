@@ -21,7 +21,7 @@ import wave
 from io import BytesIO
 
 # Third-party imports
-import nose.tools as nt
+import pytest
 
 try:
     import numpy
@@ -48,10 +48,10 @@ def test_instantiation_FileLink():
     fl = display.FileLink(pathlib.PurePath('example.txt'))
 
 def test_warning_on_non_existent_path_FileLink():
-    """FileLink: Calling _repr_html_ on non-existent files returns a warning
-    """
-    fl = display.FileLink('example.txt')
-    nt.assert_true(fl._repr_html_().startswith('Path (<tt>example.txt</tt>)'))
+    """FileLink: Calling _repr_html_ on non-existent files returns a warning"""
+    fl = display.FileLink("example.txt")
+    assert fl._repr_html_().startswith("Path (<tt>example.txt</tt>)")
+
 
 def test_existing_path_FileLink():
     """FileLink: Calling _repr_html_ functions as expected on existing filepath
@@ -77,7 +77,7 @@ def test_error_on_directory_to_FileLink():
     """FileLink: Raises error when passed directory
     """
     td = mkdtemp()
-    nt.assert_raises(ValueError,display.FileLink,td)
+    pytest.raises(ValueError, display.FileLink, td)
 
 #--------------------------
 # FileLinks tests
@@ -89,10 +89,10 @@ def test_instantiation_FileLinks():
     fls = display.FileLinks('example')
 
 def test_warning_on_non_existent_path_FileLinks():
-    """FileLinks: Calling _repr_html_ on non-existent files returns a warning
-    """
-    fls = display.FileLinks('example')
-    nt.assert_true(fls._repr_html_().startswith('Path (<tt>example</tt>)'))
+    """FileLinks: Calling _repr_html_ on non-existent files returns a warning"""
+    fls = display.FileLinks("example")
+    assert fls._repr_html_().startswith("Path (<tt>example</tt>)")
+
 
 def test_existing_path_FileLinks():
     """FileLinks: Calling _repr_html_ functions as expected on existing dir
@@ -172,7 +172,8 @@ def test_error_on_file_to_FileLinks():
     """
     td = mkdtemp()
     tf1 = NamedTemporaryFile(dir=td)
-    nt.assert_raises(ValueError,display.FileLinks,tf1.name)
+    pytest.raises(ValueError, display.FileLinks, tf1.name)
+
 
 def test_recursive_FileLinks():
     """FileLinks: Does not recurse when recursive=False
@@ -210,7 +211,7 @@ class TestAudioDataWithNumpy(TestCase):
 
     @skipif_not_numpy
     def test_audio_from_numpy_array_without_rate_raises(self):
-        nt.assert_raises(ValueError, display.Audio, get_test_tone())
+        self.assertRaises(ValueError, display.Audio, get_test_tone())
 
     @skipif_not_numpy
     def test_audio_data_normalization(self):
@@ -232,10 +233,10 @@ class TestAudioDataWithNumpy(TestCase):
             assert actual_max_value == expected_max_value
 
     def test_audio_data_without_normalization_raises_for_invalid_data(self):
-        nt.assert_raises(
+        self.assertRaises(
             ValueError,
             lambda: display.Audio([1.001], rate=44100, normalize=False))
-        nt.assert_raises(
+        self.assertRaises(
             ValueError,
             lambda: display.Audio([-1.001], rate=44100, normalize=False))
 
@@ -253,9 +254,8 @@ class TestAudioDataWithoutNumpy(TestAudioDataWithNumpy):
     @skipif_not_numpy
     def test_audio_raises_for_nested_list(self):
         stereo_signal = [list(get_test_tone())] * 2
-        nt.assert_raises(
-            TypeError,
-            lambda: display.Audio(stereo_signal, rate=44100))
+        self.assertRaises(TypeError, lambda: display.Audio(stereo_signal, rate=44100))
+
 
 @skipif_not_numpy
 def get_test_tone(scale=1):
