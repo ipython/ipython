@@ -11,7 +11,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import nose.tools as nt
+import pytest
 
 from IPython.utils.importstring import import_item
 
@@ -22,18 +22,19 @@ from IPython.utils.importstring import import_item
 def test_import_plain():
     "Test simple imports"
     import os
-    os2 = import_item('os')
-    nt.assert_true(os is os2)
+
+    os2 = import_item("os")
+    assert os is os2
 
 
 def test_import_nested():
     "Test nested imports from the stdlib"
     from os import path
-    path2 = import_item('os.path')
-    nt.assert_true(path is path2)
+
+    path2 = import_item("os.path")
+    assert path is path2
 
 
 def test_import_raises():
     "Test that failing imports raise the right exception"
-    nt.assert_raises(ImportError, import_item, 'IPython.foobar')
-    
+    pytest.raises(ImportError, import_item, "IPython.foobar")
