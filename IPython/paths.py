@@ -28,15 +28,15 @@ def get_ipython_dir() -> str:
     env = os.environ
 
 
-    ipdir_def = '.ipython'
+    ipdir_def = ".ipython"
 
     home_dir = get_home_dir()
     xdg_dir = get_xdg_dir()
 
-    if 'IPYTHON_DIR' in env:
-        warn('The environment variable IPYTHON_DIR is deprecated since IPython 3.0. '
-                'Please use IPYTHONDIR instead.', DeprecationWarning)
-    ipdir = env.get('IPYTHONDIR', env.get('IPYTHON_DIR', None))
+    if "IPYTHON_DIR" in env:
+        warn("The environment variable IPYTHON_DIR is deprecated since IPython 3.0. "
+                "Please use IPYTHONDIR instead.", DeprecationWarning)
+    ipdir = env.get("IPYTHONDIR", env.get("IPYTHON_DIR", None))
     if ipdir is None:
         # not set explicitly, use ~/.ipython
         ipdir = Path(home_dir) / ipdir_def
@@ -48,13 +48,13 @@ def get_ipython_dir() -> str:
             if _writable_dir(xdg_ipdir):
                 cu = lambda x: compress_user(str(x))
                 if ipdir.exists():
-                    warn(('Ignoring {0} in favour of {1}. Remove {0} to '
-                        'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
+                    warn(("Ignoring {0} in favour of {1}. Remove {0} to "
+                        "get rid of this message").format(cu(xdg_ipdir), cu(ipdir)))
                 elif xdg_ipdir.is_symlink():
-                    warn(('{0} is deprecated. Move link to {1} to '
-                        'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
+                    warn(("{0} is deprecated. Move link to {1} to "
+                        "get rid of this message").format(cu(xdg_ipdir), cu(ipdir)))
                 else:
-                    warn('Moving {0} to {1}'.format(cu(xdg_ipdir), cu(ipdir)))
+                    warn("Moving {0} to {1}".format(cu(xdg_ipdir), cu(ipdir)))
                     shutil.move(xdg_ipdir, ipdir)
     else:
         ipdir = Path(ipdir)
@@ -69,7 +69,7 @@ def get_ipython_dir() -> str:
     elif not ipdir.exists():
         parent = ipdir.parent
         if not _writable_dir(parent):
-            # ipdir does not exist and parent isn't writable
+            # ipdir does not exist and parent isn"t writable
             warn("IPython parent '{0}' is not a writable location,"
                     " using a temp directory.".format(parent))
             ipdir = tempfile.mkdtemp()
@@ -112,12 +112,12 @@ def get_ipython_module_path(module_str):
     if module_str == "IPython":
         return str(Path(get_ipython_package_dir()) / "__init__.py")
     mod = import_item(module_str)
-    the_path = mod.__file__.replace('.pyc', '.py')
-    the_path = the_path.replace('.pyo', '.py')
+    the_path = mod.__file__.replace(".pyc", ".py")
+    the_path = the_path.replace(".pyo", ".py")
     return the_path
 
 
-def locate_profile(profile='default'):
+def locate_profile(profile="default"):
     """Find the path to the folder associated with a given profile.
 
     I.e. find $IPYTHONDIR/profile_whatever.
