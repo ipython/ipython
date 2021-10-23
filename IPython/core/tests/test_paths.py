@@ -1,5 +1,6 @@
 import errno
 import os
+from pathlib import Path
 import shutil
 import sys
 import tempfile
@@ -13,11 +14,12 @@ from IPython import paths
 from IPython.testing.decorators import skip_win32
 from IPython.utils.tempdir import TemporaryDirectory
 
-TMP_TEST_DIR = os.path.realpath(tempfile.mkdtemp())
-HOME_TEST_DIR = os.path.join(TMP_TEST_DIR, "home_test_dir")
-XDG_TEST_DIR = os.path.join(HOME_TEST_DIR, "xdg_test_dir")
-XDG_CACHE_DIR = os.path.join(HOME_TEST_DIR, "xdg_cache_dir")
-IP_TEST_DIR = os.path.join(HOME_TEST_DIR,'.ipython')
+TMP_TEST_DIR = str(Path(tempfile.mkdtemp()).resolve())
+HOME_TEST_DIR = str(Path(TMP_TEST_DIR) / "home_test_dir")
+XDG_TEST_DIR = str(Path(HOME_TEST_DIR) / "xdg_test_dir")
+XDG_CACHE_DIR = str(Path(HOME_TEST_DIR) / "xdg_cache_dir")
+IP_TEST_DIR = str(Path(HOME_TEST_DIR) / ".ipython")
+
 
 def setup_module():
     """Setup testenvironment for the module:
@@ -27,8 +29,8 @@ def setup_module():
     # Do not mask exceptions here.  In particular, catching WindowsError is a
     # problem because that exception is only defined on Windows...
     os.makedirs(IP_TEST_DIR)
-    os.makedirs(os.path.join(XDG_TEST_DIR, 'ipython'))
-    os.makedirs(os.path.join(XDG_CACHE_DIR, 'ipython'))
+    os.makedirs(Path(XDG_TEST_DIR) / "ipython")
+    os.makedirs(Path(XDG_CACHE_DIR) / "ipython")
 
 
 def teardown_module():
@@ -47,12 +49,12 @@ def patch_get_home_dir(dirpath):
 
 def test_get_ipython_dir_1():
     """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
-    env_ipdir = os.path.join("someplace", ".ipython")
+    env_ipdir = str(Path("someplace") / ".ipython")
     with patch.object(paths, '_writable_dir', return_value=True), \
             modified_env({'IPYTHONDIR': env_ipdir}):
         ipdir = paths.get_ipython_dir()
 
-    nt.assert_equal(ipdir, env_ipdir)
+    nt.assert_equal(ipdir, str(Path(env_ipdir).resolve()))
 
 def test_get_ipython_dir_2():
     """test_get_ipython_dir_2, Testcase to see if we can call get_ipython_dir without Exceptions."""
@@ -66,7 +68,8 @@ def test_get_ipython_dir_2():
                          }):
         ipdir = paths.get_ipython_dir()
 
-    nt.assert_equal(ipdir, os.path.join("someplace", ".ipython"))
+    nt.assert_equal(ipdir, str((Path("someplace") / ".ipython").resolve()))
+
 
 def test_get_ipython_dir_3():
     """test_get_ipython_dir_3, move XDG if defined, and .ipython doesn't exist."""
@@ -81,7 +84,7 @@ def test_get_ipython_dir_3():
                 }), warnings.catch_warnings(record=True) as w:
             ipdir = paths.get_ipython_dir()
 
-        nt.assert_equal(ipdir, os.path.join(tmphome.name, ".ipython"))
+        nt.assert_equal(ipdir, str(Path(tmphome.name) / ".ipython"))
         if sys.platform != 'darwin':
             nt.assert_equal(len(w), 1)
             nt.assert_in('Moving', str(w[0]))
@@ -93,7 +96,7 @@ def test_get_ipython_dir_4():
     with patch_get_home_dir(HOME_TEST_DIR), \
             patch('os.name', 'posix'):
         try:
-            os.mkdir(os.path.join(XDG_TEST_DIR, 'ipython'))
+            os.mkdir(Path(XDG_TEST_DIR) / "ipython")
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
@@ -106,7 +109,7 @@ def test_get_ipython_dir_4():
         }), warnings.catch_warnings(record=True) as w:
             ipdir = paths.get_ipython_dir()
 
-        nt.assert_equal(ipdir, os.path.join(HOME_TEST_DIR, ".ipython"))
+        nt.assert_equal(ipdir, str(Path(HOME_TEST_DIR) / ".ipython"))
         if sys.platform != 'darwin':
             nt.assert_equal(len(w), 1)
             nt.assert_in('Ignoring', str(w[0]))
@@ -116,7 +119,7 @@ def test_get_ipython_dir_5():
     with patch_get_home_dir(HOME_TEST_DIR), \
             patch('os.name', 'posix'):
         try:
-            os.rmdir(os.path.join(XDG_TEST_DIR, 'ipython'))
+            os.rmdir(Path(XDG_TEST_DIR) / "ipython")
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
@@ -132,9 +135,9 @@ def test_get_ipython_dir_5():
 
 def test_get_ipython_dir_6():
     """test_get_ipython_dir_6, use home over XDG if defined and neither exist."""
-    xdg = os.path.join(HOME_TEST_DIR, 'somexdg')
+    xdg = Path(HOME_TEST_DIR) / "somexdg"
     os.mkdir(xdg)
-    shutil.rmtree(os.path.join(HOME_TEST_DIR, '.ipython'))
+    shutil.rmtree(Path(HOME_TEST_DIR) / ".ipython")
     print(paths._writable_dir)
     with patch_get_home_dir(HOME_TEST_DIR), \
             patch.object(paths, 'get_xdg_dir', return_value=xdg), \
@@ -146,16 +149,18 @@ def test_get_ipython_dir_6():
             }), warnings.catch_warnings(record=True) as w:
         ipdir = paths.get_ipython_dir()
 
-    nt.assert_equal(ipdir, os.path.join(HOME_TEST_DIR, '.ipython'))
+    nt.assert_equal(ipdir, str(Path(HOME_TEST_DIR) / ".ipython"))
     nt.assert_equal(len(w), 0)
 
 def test_get_ipython_dir_7():
     """test_get_ipython_dir_7, test home directory expansion on IPYTHONDIR"""
-    home_dir = os.path.normpath(os.path.expanduser('~'))
-    with modified_env({'IPYTHONDIR': os.path.join('~', 'somewhere')}), \
-            patch.object(paths, '_writable_dir', return_value=True):
+    home_dir = Path("~").resolve()
+    with modified_env({"IPYTHONDIR": str(Path("~") / "somewhere")}), patch.object(
+        paths, "_writable_dir", return_value=True
+    ):
         ipdir = paths.get_ipython_dir()
-    nt.assert_equal(ipdir, os.path.join(home_dir, 'somewhere'))
+    nt.assert_equal(ipdir, str(home_dir / "somewhere"))
+
 
 @skip_win32
 def test_get_ipython_dir_8():
@@ -178,18 +183,17 @@ def test_get_ipython_cache_dir():
     with modified_env({'HOME': HOME_TEST_DIR}):
         if os.name == 'posix' and sys.platform != 'darwin':
             # test default
-            os.makedirs(os.path.join(HOME_TEST_DIR, ".cache"))
+            os.makedirs(Path(HOME_TEST_DIR) / ".cache")
             with modified_env({'XDG_CACHE_HOME': None}):
                 ipdir = paths.get_ipython_cache_dir()
-            nt.assert_equal(os.path.join(HOME_TEST_DIR, ".cache", "ipython"),
-                            ipdir)
+            nt.assert_equal(str(Path(HOME_TEST_DIR) / ".cache" / "ipython"), ipdir)
             assert_isdir(ipdir)
 
             # test env override
             with modified_env({"XDG_CACHE_HOME": XDG_CACHE_DIR}):
                 ipdir = paths.get_ipython_cache_dir()
             assert_isdir(ipdir)
-            nt.assert_equal(ipdir, os.path.join(XDG_CACHE_DIR, "ipython"))
+            nt.assert_equal(ipdir, str(Path(XDG_CACHE_DIR) / "ipython"))
         else:
             nt.assert_equal(paths.get_ipython_cache_dir(),
                             paths.get_ipython_dir())
