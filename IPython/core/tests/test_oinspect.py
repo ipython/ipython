@@ -9,8 +9,6 @@ from inspect import signature, Signature, Parameter
 import os
 import re
 
-import nose.tools as nt
-
 from .. import oinspect
 
 from decorator import decorator
@@ -38,7 +36,7 @@ def setup_module():
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 41  # Put here the actual number of this line
+THIS_LINE_NUMBER = 39  # Put here the actual number of this line
 
 from unittest import TestCase
 
@@ -74,7 +72,7 @@ def test_find_file_decorated1():
     @noop1
     def f(x):
         "My docstring"
-    
+
     match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
     assert f.__doc__ == "My docstring"
 
@@ -90,14 +88,14 @@ def test_find_file_decorated2():
     @noop2
     def f(x):
         "My docstring 2"
-    
+
     match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
     assert f.__doc__ == "My docstring 2"
-    
+
 
 def test_find_file_magic():
     run = ip.find_line_magic('run')
-    nt.assert_not_equal(oinspect.find_file(run), None)
+    assert oinspect.find_file(run) is not None
 
 
 # A few generic objects we can then inspect in the tests below
@@ -169,11 +167,11 @@ def test_info():
     "Check that Inspector.info fills out various fields as expected."
     i = inspector.info(Call, oname="Call")
     assert i["type_name"] == "type"
-    expted_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
-    assert i["base_class"] == expted_class
-    nt.assert_regex(
-        i["string_form"],
+    expected_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
+    assert i["base_class"] == expected_class
+    assert re.search(
         "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>",
+        i["string_form"],
     )
     fname = __file__
     if fname.endswith(".pyc"):
@@ -184,12 +182,12 @@ def test_info():
     assert i["definition"] == None
     assert i["docstring"] == Call.__doc__
     assert i["source"] == None
-    nt.assert_true(i["isclass"])
+    assert i["isclass"] is True
     assert i["init_definition"] == "Call(x, y=1)"
     assert i["init_docstring"] == Call.__init__.__doc__
 
     i = inspector.info(Call, detail_level=1)
-    nt.assert_not_equal(i["source"], None)
+    assert i["source"] is not None
     assert i["docstring"] == None
 
     c = Call(1)
@@ -221,7 +219,7 @@ def test_info_serialliar():
 
     # Nested attribute access should be cut off at 100 levels deep to avoid
     # infinite loops: https://github.com/ipython/ipython/issues/9122
-    nt.assert_less(fib_tracker[0], 9000)
+    assert fib_tracker[0] < 9000
 
 def support_function_one(x, y=2, *a, **kw):
     """A simple function."""
@@ -230,7 +228,8 @@ def test_calldef_none():
     # We should ignore __call__ for all of these.
     for obj in [support_function_one, SimpleClass().method, any, str.upper]:
         i = inspector.info(obj)
-        nt.assert_is(i['call_def'], None)
+        assert i["call_def"] is None
+
 
 def f_kwarg(pos, *, kwonly):
     pass
@@ -249,16 +248,16 @@ def test_getdoc():
         """standard docstring"""
         def getdoc(self):
             return "custom docstring"
-    
+
     class C(object):
         """standard docstring"""
         def getdoc(self):
             return None
-    
+
     a = A()
     b = B()
     c = C()
-    
+
     assert oinspect.getdoc(a) == "standard docstring"
     assert oinspect.getdoc(b) == "custom docstring"
     assert oinspect.getdoc(c) == "standard docstring"
@@ -266,17 +265,17 @@ def test_getdoc():
 
 def test_empty_property_has_no_source():
     i = inspector.info(property(), detail_level=1)
-    nt.assert_is(i['source'], None)
+    assert i["source"] is None
 
 
 def test_property_sources():
-    import posixpath 
+    import posixpath
     # A simple adder whose source and signature stays
     # the same across Python distributions
     def simple_add(a, b):
         "Adds two numbers"
         return a + b
-    
+
     class A(object):
         @property
         def foo(self):
@@ -285,17 +284,17 @@ def test_property_sources():
         foo = foo.setter(lambda self, v: setattr(self, 'bar', v))
 
         dname = property(posixpath.dirname)
-        adder = property(simple_add) 
+        adder = property(simple_add)
 
     i = inspector.info(A.foo, detail_level=1)
-    nt.assert_in('def foo(self):', i['source'])
-    nt.assert_in('lambda self, v:', i['source'])
+    assert "def foo(self):" in i["source"]
+    assert "lambda self, v:" in i["source"]
 
     i = inspector.info(A.dname, detail_level=1)
-    nt.assert_in('def dirname(p)', i['source'])
-    
+    assert "def dirname(p)" in i["source"]
+
     i = inspector.info(A.adder, detail_level=1)
-    nt.assert_in('def simple_add(a, b)', i['source'])
+    assert "def simple_add(a, b)" in i["source"]
 
 
 def test_property_docstring_is_in_info_for_detail_level_0():
@@ -367,11 +366,11 @@ def test_pinfo_docstring_if_detail_and_no_source():
                   def bar(self):
                       """ This is a docstring for Foo.bar """
                       pass
-              ''' 
-    
+              '''
+
     ip.run_cell(obj_def)
     ip.run_cell('foo = Foo()')
-    
+
     with AssertNotPrints("Source:"):
         with AssertPrints('Docstring:'):
             ip._inspect('pinfo', 'foo', detail_level=0)
@@ -396,14 +395,14 @@ def test_pinfo_magic():
 def test_init_colors():
     # ensure colors are not present in signature info
     info = inspector.info(HasSignature)
-    init_def = info['init_definition']
-    nt.assert_not_in('[0m', init_def)
+    init_def = info["init_definition"]
+    assert "[0m" not in init_def
 
 
 def test_builtin_init():
     info = inspector.info(list)
     init_def = info['init_definition']
-    nt.assert_is_not_none(init_def)
+    assert init_def is not None
 
 
 def test_render_signature_short():
@@ -428,7 +427,7 @@ def test_render_signature_long():
         signature(long_function),
         long_function.__name__,
     )
-    nt.assert_in(sig, [
+    assert sig in [
         # Python >=3.9
         '''\
 long_function(
@@ -452,4 +451,4 @@ long_function(
     let_us_make_sure_this_is_looong:Union[str, NoneType]=None,
 ) -> bool\
 ''',
-    ])
+    ]
