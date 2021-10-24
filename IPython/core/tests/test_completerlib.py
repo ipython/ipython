@@ -12,13 +12,13 @@ import shutil
 import sys
 import tempfile
 import unittest
-from os.path import join
+from pathlib import Path
 
 import nose.tools as nt
 
 from IPython.core.completerlib import magic_run_completer, module_completion, try_import
-from IPython.utils.tempdir import TemporaryDirectory
 from IPython.testing.decorators import onlyif_unicode_paths
+from IPython.utils.tempdir import TemporaryDirectory
 
 
 class MockEvent(object):
@@ -33,14 +33,14 @@ class Test_magic_run_completer(unittest.TestCase):
     dirs = [u"adir/", "bdir/"]
 
     def setUp(self):
-        self.BASETESTDIR = tempfile.mkdtemp()
+        self.BASETESTDIR = Path(tempfile.mkdtemp())
         for fil in self.files:
-            with open(join(self.BASETESTDIR, fil), "w") as sfile:
+            with self.BASETESTDIR.joinpath(fil).open("w") as sfile:
                 sfile.write("pass\n")
         for d in self.dirs:
-            os.mkdir(join(self.BASETESTDIR, d))
+            os.mkdir(self.BASETESTDIR.joinpath(d))
 
-        self.oldpath = os.getcwd()
+        self.oldpath = Path.cwd()
         os.chdir(self.BASETESTDIR)
 
     def tearDown(self):
@@ -77,23 +77,31 @@ class Test_magic_run_completer(unittest.TestCase):
 
     def test_completion_in_dir(self):
         # Github issue #3459
-        event = MockEvent(u'%run a.py {}'.format(join(self.BASETESTDIR, 'a')))
+        event = MockEvent(u"%run a.py {}".format(self.BASETESTDIR.joinpath("a")))
         print(repr(event.line))
         match = set(magic_run_completer(None, event))
         # We specifically use replace here rather than normpath, because
         # at one point there were duplicates 'adir' and 'adir/', and normpath
         # would hide the failure for that.
-        self.assertEqual(match, {join(self.BASETESTDIR, f).replace('\\','/')
-                            for f in (u'a.py', u'aao.py', u'aao.txt', u'adir/')})
+        self.assertEqual(
+            match,
+            {
+                str(self.BASETESTDIR.joinpath(f)).replace("\\", "/")
+                if Path(f).suffix
+                else (str(self.BASETESTDIR.joinpath(f)) + os.sep).replace("\\", "/")
+                for f in (u"a.py", u"aao.py", u"aao.txt", u"adir/")
+            },
+        )
+
 
 class Test_magic_run_completer_nonascii(unittest.TestCase):
     @onlyif_unicode_paths
     def setUp(self):
-        self.BASETESTDIR = tempfile.mkdtemp()
+        self.BASETESTDIR = Path(tempfile.mkdtemp())
         for fil in [u"aaø.py", u"a.py", u"b.py"]:
-            with open(join(self.BASETESTDIR, fil), "w") as sfile:
+            with self.BASETESTDIR.joinpath(fil).open("w") as sfile:
                 sfile.write("pass\n")
-        self.oldpath = os.getcwd()
+        self.oldpath = Path.cwd()
         os.chdir(self.BASETESTDIR)
 
     def tearDown(self):
@@ -135,8 +143,8 @@ def test_import_invalid_module():
     with TemporaryDirectory() as tmpdir:
         sys.path.insert( 0, tmpdir )
         for name in invalid_module_names | valid_module_names:
-            filename = os.path.join(tmpdir, name + '.py')
-            open(filename, 'w').close()
+            filename = Path(tmpdir).joinpath(name + ".py")
+            filename.open("w").close()
 
         s = set( module_completion('import foo') )
         intersection = s.intersection(invalid_module_names)
@@ -150,8 +158,8 @@ def test_bad_module_all():
 
     https://github.com/ipython/ipython/issues/9678
     """
-    testsdir = os.path.dirname(__file__)
-    sys.path.insert(0, testsdir)
+    testsdir = Path(__file__).parent
+    sys.path.insert(0, str(testsdir))
     try:
         results = module_completion('from bad_all import ')
         nt.assert_in('puppies', results)
@@ -163,7 +171,7 @@ def test_bad_module_all():
         results = module_completion("import bad_all.")
         nt.assert_equal(results, [])
     finally:
-        sys.path.remove(testsdir)
+        sys.path.remove(str(testsdir))
 
 
 def test_module_without_init():
@@ -176,7 +184,7 @@ def test_module_without_init():
     with TemporaryDirectory() as tmpdir:
         sys.path.insert(0, tmpdir)
         try:
-            os.makedirs(os.path.join(tmpdir, fake_module_name))
+            Path(tmpdir).joinpath(fake_module_name).mkdir()
             s = try_import(mod=fake_module_name)
             assert s == []
         finally:
