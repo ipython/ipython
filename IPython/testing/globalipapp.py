@@ -13,14 +13,12 @@ import builtins as builtin_mod
 import sys
 import types
 import warnings
-
 from pathlib import Path
 
-from . import tools
-
 from IPython.core import page
-from IPython.utils import io
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
+from IPython.utils import io
+from . import tools
 
 
 class StreamProxy(io.IOStream):
@@ -97,7 +95,7 @@ def start_ipython():
     # A few more tweaks needed for playing nicely with doctests...
 
     # remove history file
-    shell.tempfiles.append(Path(config.HistoryManager.hist_file))
+#    shell.tempfiles.append(Path(config.HistoryManager.hist_file))
 
     # These traps are normally only active for interactive use, set them
     # permanently since we'll be mocking interactive sessions.

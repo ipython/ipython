@@ -403,9 +403,11 @@ class Demo(object):
         if index>0:
             index -= 1
 
-        filename = self.shell.mktempfile(self.src_blocks[index])
-        self.shell.hooks.editor(filename, 1)
-        with open(Path(filename), "r") as f:
+        file_path = self.shell.mktempfile(self.src_blocks[index])
+
+        # TODO use the Path object instead of the string
+        self.shell.hooks.editor(str(file_path), 1)
+        with file_path.open("r") as f:
             new_block = f.read()
         # update the source and colored block
         self.src_blocks[index] = new_block
