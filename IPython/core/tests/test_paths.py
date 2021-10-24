@@ -54,16 +54,13 @@ def test_get_ipython_dir_1():
         {"IPYTHONDIR": env_ipdir}
     ):
         ipdir = paths.get_ipython_dir()
-
-    nt.assert_equal(ipdir, str(Path(env_ipdir).resolve()))
+        nt.assert_equal(ipdir, str(Path(env_ipdir).resolve()))
 
 def test_get_ipython_dir_2():
     """test_get_ipython_dir_2, Testcase to see if we can call get_ipython_dir without Exceptions."""
     with patch_get_home_dir("someplace"), patch.object(
         paths, "get_xdg_dir", return_value=None
-    ), patch.object(paths, "_writable_dir", return_value=True), patch(
-        "os.name", "posix"
-    ), modified_env(
+    ), patch.object(paths, "_writable_dir", return_value=True), modified_env(
         {"IPYTHON_DIR": None, "IPYTHONDIR": None, "XDG_CONFIG_HOME": None}
     ):
         ipdir = paths.get_ipython_dir()
@@ -71,11 +68,12 @@ def test_get_ipython_dir_2():
     nt.assert_equal(ipdir, str((Path("someplace") / ".ipython").resolve()))
 
 
+@skip_win32
 def test_get_ipython_dir_3():
     """test_get_ipython_dir_3, move XDG if defined, and .ipython doesn't exist."""
     tmphome = TemporaryDirectory()
     try:
-        with patch_get_home_dir(tmphome.name), patch("os.name", "posix"), modified_env(
+        with patch_get_home_dir(tmphome.name), modified_env(
             {
                 "IPYTHON_DIR": None,
                 "IPYTHONDIR": None,
@@ -91,9 +89,11 @@ def test_get_ipython_dir_3():
     finally:
         tmphome.cleanup()
 
+
+@skip_win32
 def test_get_ipython_dir_4():
     """test_get_ipython_dir_4, warn if XDG and home both exist."""
-    with patch_get_home_dir(HOME_TEST_DIR), patch("os.name", "posix"):
+    with patch_get_home_dir(HOME_TEST_DIR):
         try:
             os.mkdir(Path(XDG_TEST_DIR) / "ipython")
         except OSError as e:
@@ -116,7 +116,7 @@ def test_get_ipython_dir_4():
 
 def test_get_ipython_dir_5():
     """test_get_ipython_dir_5, use .ipython if exists and XDG defined, but doesn't exist."""
-    with patch_get_home_dir(HOME_TEST_DIR), patch("os.name", "posix"):
+    with patch_get_home_dir(HOME_TEST_DIR):
         try:
             os.rmdir(Path(XDG_TEST_DIR) / "ipython")
         except OSError as e:
@@ -142,7 +142,7 @@ def test_get_ipython_dir_6():
     print(paths._writable_dir)
     with patch_get_home_dir(HOME_TEST_DIR), patch.object(
         paths, "get_xdg_dir", return_value=xdg
-    ), patch("os.name", "posix"), modified_env(
+    ), modified_env(
         {
             "IPYTHON_DIR": None,
             "IPYTHONDIR": None,
@@ -156,6 +156,7 @@ def test_get_ipython_dir_6():
     nt.assert_equal(ipdir, str(Path(HOME_TEST_DIR) / ".ipython"))
     nt.assert_equal(len(w), 0)
 
+@skip_win32
 def test_get_ipython_dir_7():
     """test_get_ipython_dir_7, test home directory expansion on IPYTHONDIR"""
     home_dir = Path("~").resolve()

@@ -70,7 +70,10 @@ def get_ipython_dir() -> str:
     else:
         ipdir = Path(ipdir)
 
+
     ipdir = ipdir.resolve(strict=False)
+    if not ipdir.is_absolute():
+        ipdir = (Path.cwd() / ipdir).resolve(strict=False)
 
     if ipdir.exists() and not _writable_dir(ipdir):
         # ipdir exists, but is not writable

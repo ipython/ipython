@@ -43,8 +43,8 @@ def test_store_restore():
     nt.assert_equal(ip.user_ns['foobar'], 79)
     nt.assert_equal(ip.user_ns['foobaz'], '80')
 
-    ip.magic('store -r') # restores _dh too
-    nt.assert_in(os.path.realpath(tmpd), ip.user_ns['_dh'])
+    ip.magic("store -r")  # restores _dh too
+    nt.assert_in(tmpd, ip.user_ns["_dh"])
 
     os.rmdir(tmpd)
 
