@@ -2,6 +2,7 @@ import tempfile, os
 
 from traitlets.config.loader import Config
 import nose.tools as nt
+from pathlib import Path
 
 
 def setup_module():
@@ -44,7 +45,10 @@ def test_store_restore():
     nt.assert_equal(ip.user_ns['foobaz'], '80')
 
     ip.magic("store -r")  # restores _dh too
-    nt.assert_in(tmpd, ip.user_ns["_dh"])
+
+    # Check against resolved paths, different strings can lead to same path
+    _user_ns = list(map(lambda x: str(Path(x).resolve()), ip.user_ns["_dh"]))
+    nt.assert_in(str(Path(tmpd).resolve()), _user_ns)
 
     os.rmdir(tmpd)
 
