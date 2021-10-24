@@ -24,6 +24,6 @@ def test_temporary_working_directory():
     with TemporaryWorkingDirectory() as directory:
         directory_path = Path(directory)
         assert directory_path.exists()
-        assert Path.cwd() == directory_path.resolve()
+        assert Path.cwd().resolve() == directory_path.resolve()
     assert not directory_path.exists()
-    assert Path.cwd() != directory_path.resolve()
+    assert Path.cwd().resolve() != directory_path.resolve()
