@@ -84,7 +84,7 @@ def test_get_ipython_dir_3():
         ), warnings.catch_warnings(record=True) as w:
             ipdir = paths.get_ipython_dir()
 
-        nt.assert_equal(ipdir, str(Path(tmphome.name) / ".ipython"))
+        nt.assert_equal(ipdir, str((Path(tmphome.name) / ".ipython").resolve()))
         if sys.platform != "darwin":
             nt.assert_equal(len(w), 1)
             nt.assert_in("Moving", str(w[0]))
