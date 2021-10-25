@@ -205,6 +205,8 @@ def ipexec(fname, options=None, commands=()):
     # should we keep suppressing warnings here, even after removing shims?
     env['PYTHONWARNINGS'] = 'ignore'
     # env.pop('PYTHONWARNINGS', None)  # Avoid extraneous warnings appearing on stderr
+    # Prevent coloring under PyCharm ("\x1b[0m" at the end of the stdout)
+    env.pop("PYCHARM_HOSTED", None)
     for k, v in env.items():
         # Debug a bizarre failure we've seen on Windows:
         # TypeError: environment can only contain strings
