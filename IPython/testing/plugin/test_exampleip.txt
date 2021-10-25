@@ -21,7 +21,7 @@ Another example::
 
 Just like in IPython docstrings, you can use all IPython syntax and features::
 
-    In [9]: !echo "hello"
+    In [9]: !echo hello
     hello
 
     In [10]: a='hi'
