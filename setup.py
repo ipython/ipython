@@ -19,7 +19,6 @@ requires utilities which are not available under Windows."""
 
 import os
 import sys
-from pathlib import Path
 
 # **Python version check**
 #
@@ -61,12 +60,7 @@ Python {py} detected.
 
 # At least we're on the python version we need, move on.
 
-# BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
-# update it when the contents of directories change.
-if Path("MANIFEST").exists():
-    Path("MANIFEST").unlink()
-
-from distutils.core import setup
+from setuptools import setup
 
 # Our own imports
 from setupbase import target_update
@@ -137,7 +131,7 @@ setup_args['data_files'] = data_files
 # custom distutils commands
 #---------------------------------------------------------------------------
 # imports here, so they are after setuptools import if there was one
-from distutils.command.sdist import sdist
+from setuptools.command.sdist import sdist
 
 setup_args['cmdclass'] = {
     'build_py': \
@@ -153,16 +147,6 @@ setup_args['cmdclass'] = {
 #---------------------------------------------------------------------------
 # Handle scripts, dependencies, and setuptools specific things
 #---------------------------------------------------------------------------
-
-# For some commands, use setuptools.  Note that we do NOT list install here!
-# If you want a setuptools-enhanced install, just run 'setupegg.py install'
-needs_setuptools = {'develop', 'release', 'bdist_egg', 'bdist_rpm',
-           'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
-           'egg_info', 'easy_install', 'upload', 'install_egg_info',
-          }
-
-if len(needs_setuptools.intersection(sys.argv)) > 0:
-    import setuptools
 
 # This dict is used for passing extra arguments that are setuptools
 # specific to setup
@@ -244,25 +228,18 @@ for key, deps in extras_require.items():
         everything.update(deps)
 extras_require['all'] = list(sorted(everything))
 
-if "setuptools" in sys.modules:
-    setuptools_extra_args["python_requires"] = ">=3.8"
-    setuptools_extra_args["zip_safe"] = False
-    setuptools_extra_args["entry_points"] = {
-        "console_scripts": find_entry_points(),
-        "pygments.lexers": [
-            "ipythonconsole = IPython.lib.lexers:IPythonConsoleLexer",
-            "ipython = IPython.lib.lexers:IPythonLexer",
-            "ipython3 = IPython.lib.lexers:IPython3Lexer",
-        ],
-    }
-    setup_args['extras_require'] = extras_require
-    setup_args['install_requires'] = install_requires
-
-else:
-    # scripts has to be a non-empty list, or install_scripts isn't called
-    setup_args['scripts'] = [e.split('=')[0].strip() for e in find_entry_points()]
-
-    setup_args['cmdclass']['build_scripts'] = build_scripts_entrypt
+setuptools_extra_args["python_requires"] = ">=3.8"
+setuptools_extra_args["zip_safe"] = False
+setuptools_extra_args["entry_points"] = {
+    "console_scripts": find_entry_points(),
+    "pygments.lexers": [
+        "ipythonconsole = IPython.lib.lexers:IPythonConsoleLexer",
+        "ipython = IPython.lib.lexers:IPythonLexer",
+        "ipython3 = IPython.lib.lexers:IPython3Lexer",
+    ],
+}
+setup_args["extras_require"] = extras_require
+setup_args["install_requires"] = install_requires
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
