@@ -185,7 +185,7 @@ class CodeMagics(Magics):
         """Save a set of lines or a macro to a given filename.
 
         Usage:\\
-          %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
+          %save [options] filename [history]
 
         Options:
 
@@ -199,7 +199,7 @@ class CodeMagics(Magics):
 
           -a: append to the file instead of overwriting it.
 
-        This function uses the same syntax as %history for input ranges,
+        The history argument uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
 
         If no ranges are specified, saves history of the current session up to
