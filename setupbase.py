@@ -95,8 +95,8 @@ def find_packages():
     """
     excludes = ['deathrow', 'quarantine']
     packages = []
-    for dir,subdirs,files in os.walk('IPython'):
-        package = dir.replace(os.path.sep, '.')
+    for directory, subdirs,files in os.walk('IPython'):
+        package = directory.replace(os.path.sep, '.')
         if any(package.startswith('IPython.'+exc) for exc in excludes):
             # package is to be excluded (e.g. deathrow)
             continue
