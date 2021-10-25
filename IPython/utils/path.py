@@ -33,7 +33,7 @@ if sys.platform == 'win32':
         Examples
         --------
 
-        >>> get_long_path_name('c:\\docume~1')
+        >>> get_long_path_name('c:\\\\docume~1')
         'c:\\\\Documents and Settings'
 
         """
