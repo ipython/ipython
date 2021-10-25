@@ -217,12 +217,9 @@ def newline_or_execute_outer(shell):
 
         # If there's only one line, treat it as if the cursor is at the end.
         # See https://github.com/ipython/ipython/issues/10425
-        if d.line_count == 1:
-            check_text = d.text
-        else:
-            check_text = d.text[:d.cursor_position]
+        check_text = d.text if d.line_count == 1 else d.text[:d.cursor_position]
         status, indent = shell.check_complete(check_text)
-       
+
         # if all we have after the cursor is whitespace: reformat current text
         # before cursor
         after_cursor = d.text[d.cursor_position:]
@@ -230,9 +227,11 @@ def newline_or_execute_outer(shell):
         if not after_cursor.strip():
             reformat_text_before_cursor(b, d, shell)
             reformatted = True
-        if not (d.on_last_line or
-                d.cursor_position_row >= d.line_count - d.empty_line_count_at_the_end()
-                ):
+        if (
+            not d.on_last_line
+            and d.cursor_position_row
+            < d.line_count - d.empty_line_count_at_the_end()
+        ):
             if shell.autoindent:
                 b.insert_text('\n' + indent)
             else:
@@ -243,11 +242,10 @@ def newline_or_execute_outer(shell):
             if not reformatted:
                 reformat_text_before_cursor(b, d, shell)
             b.validate_and_handle()
+        elif shell.autoindent:
+            b.insert_text('\n' + indent)
         else:
-            if shell.autoindent:
-                b.insert_text('\n' + indent)
-            else:
-                b.insert_text('\n')
+            b.insert_text('\n')
     return newline_or_execute
 
 

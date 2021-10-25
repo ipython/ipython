@@ -13,8 +13,7 @@ def setup(app):
     # But if somebody knows what the right API usage should be to do that via
     # sphinx, by all means fix it here.  At least having this setup.py
     # suppresses the sphinx warning we'd get without it.
-    metadata = {'parallel_read_safe': True, 'parallel_write_safe': True}
-    return metadata
+    return {'parallel_read_safe': True, 'parallel_write_safe': True}
 
 # Register the extension as a valid pygments lexer.
 # Alternatively, we could register the lexer with pygments instead. This would

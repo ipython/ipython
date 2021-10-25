@@ -15,8 +15,7 @@ Token = namedtuple('Token', ['token', 'text', 'start', 'end', 'line'])
 def generate_tokens(readline):
     """wrap generate_tokens to catch EOF errors"""
     try:
-        for token in tokenize.generate_tokens(readline):
-            yield token
+        yield from tokenize.generate_tokens(readline)
     except tokenize.TokenError:
         # catch EOF error
         return

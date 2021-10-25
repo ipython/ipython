@@ -53,9 +53,8 @@ class DisplayPublisher(Configurable):
 
         if not isinstance(data, dict):
             raise TypeError('data must be a dict, got: %r' % data)
-        if metadata is not None:
-            if not isinstance(metadata, dict):
-                raise TypeError('metadata must be a dict, got: %r' % data)
+        if metadata is not None and not isinstance(metadata, dict):
+            raise TypeError('metadata must be a dict, got: %r' % data)
 
     # use * to indicate transient, update are keyword-only
     def publish(self, data, metadata=None, source=None, *, transient=None, update=False, **kwargs) -> None:

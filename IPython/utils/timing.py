@@ -89,16 +89,12 @@ def timings_out(reps,func,*args,**kw):
 
     reps = int(reps)
     assert reps >=1, 'reps must be >= 1'
-    if reps==1:
-        start = clock()
-        out = func(*args,**kw)
-        tot_time = clock()-start
-    else:
+    start = clock()
+    if reps != 1:
         rng = range(reps-1) # the last time is executed separately to store output
-        start = clock()
-        for dummy in rng: func(*args,**kw)
-        out = func(*args,**kw)  # one last time
-        tot_time = clock()-start
+        for _ in rng: func(*args,**kw)
+    out = func(*args,**kw)
+    tot_time = clock()-start
     av_time = tot_time / reps
     return tot_time,av_time,out
 

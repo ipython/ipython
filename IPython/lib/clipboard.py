@@ -40,8 +40,7 @@ def osx_clipboard_get() -> str:
     bytes_, stderr = p.communicate()
     # Text comes in with old Mac \r line endings. Change them to \n.
     bytes_ = bytes_.replace(b'\r', b'\n')
-    text = py3compat.decode(bytes_)
-    return text
+    return py3compat.decode(bytes_)
 
 def tkinter_clipboard_get():
     """ Get the clipboard's text using Tkinter.

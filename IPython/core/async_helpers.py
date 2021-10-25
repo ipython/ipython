@@ -79,7 +79,7 @@ def _asyncify(code: str) -> str:
 
     And setup a bit of context to run it later.
     """
-    res = dedent(
+    return dedent(
         """
     async def __wrapper__():
         try:
@@ -88,7 +88,6 @@ def _asyncify(code: str) -> str:
             locals()
     """
     ).format(usercode=indent(code, " " * 8))
-    return res
 
 
 class _AsyncSyntaxErrorVisitor(ast.NodeVisitor):
@@ -129,12 +128,12 @@ def _async_parse_cell(cell: str) -> ast.AST:
     It will return an abstract syntax tree parsed as if async and await outside
     of a function were not a syntax error.
     """
-    if sys.version_info < (3, 7):
-        # Prior to 3.7 you need to asyncify before parse
-        wrapped_parse_tree = ast.parse(_asyncify(cell))
-        return wrapped_parse_tree.body[0].body[0]
-    else:
+    if sys.version_info >= (3, 7):
         return ast.parse(cell)
+
+    # Prior to 3.7 you need to asyncify before parse
+    wrapped_parse_tree = ast.parse(_asyncify(cell))
+    return wrapped_parse_tree.body[0].body[0]
 
 
 def _should_be_async(cell: str) -> bool:

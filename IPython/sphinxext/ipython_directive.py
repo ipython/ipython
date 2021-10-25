@@ -455,10 +455,9 @@ class EmbeddedSphinxShell(object):
                      decorator.startswith('@savefig')
 
         input_lines = input.split('\n')
-        if len(input_lines) > 1:
-            if input_lines[-1] != "":
-                input_lines.append('') # make sure there's a blank line
-                                       # so splitter buffer gets reset
+        if len(input_lines) > 1 and input_lines[-1] != "":
+            input_lines.append('') # make sure there's a blank line
+                                   # so splitter buffer gets reset
 
         continuation = '   %s:'%''.join(['.']*(len(str(lineno))+2))
 
@@ -620,7 +619,7 @@ class EmbeddedSphinxShell(object):
                 source = self.directive.state.document.current_source
                 content = self.directive.content
                 # Add tabs and join into a single string.
-                content = '\n'.join([TAB + line for line in content])
+                content = '\n'.join(TAB + line for line in content)
 
             # Make sure the output contains the output prompt.
             ind = found.find(output_prompt)
@@ -730,7 +729,7 @@ class EmbeddedSphinxShell(object):
                         source = self.directive.state.document.current_source
                         content = self.directive.content
                         # Add tabs and join into a single string.
-                        content = '\n'.join([TAB + line for line in content])
+                        content = '\n'.join(TAB + line for line in content)
 
                     e = ('\n\nInvalid block: Block contains an output prompt '
                          'without an input prompt.\n\n'
@@ -954,7 +953,7 @@ class IPythonDirective(Directive):
         # reset the execution count if we haven't processed this doc
         #NOTE: this may be borked if there are multiple seen_doc tmp files
         #check time stamp?
-        if not self.state.document.current_source in self.seen_docs:
+        if self.state.document.current_source not in self.seen_docs:
             self.shell.IP.history_manager.reset()
             self.shell.IP.execution_count = 1
             self.seen_docs.add(self.state.document.current_source)
@@ -983,8 +982,6 @@ class IPythonDirective(Directive):
         self.shell.clear_cout()
 
     def run(self):
-        debug = False
-
         #TODO, any reason block_parser can't be a method of embeddable shell
         # then we wouldn't have to carry these around
         rgxin, rgxout, promptin, promptout = self.setup()
@@ -1037,6 +1034,8 @@ class IPythonDirective(Directive):
             lines.append('')
 
         if len(lines) > 2:
+            debug = False
+
             if debug:
                 print('\n'.join(lines))
             else:
@@ -1080,8 +1079,7 @@ def setup(app):
 
     app.add_config_value('ipython_holdcount', True, 'env')
 
-    metadata = {'parallel_read_safe': True, 'parallel_write_safe': True}
-    return metadata
+    return {'parallel_read_safe': True, 'parallel_write_safe': True}
 
 # Simple smoke test, needs to be converted to a proper automatic test.
 def test():

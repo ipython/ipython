@@ -67,7 +67,7 @@ def test_columnize_random():
             rand_len = [random.randint(2,displaywidth) for i in range(nitems)]
             items = ['x'*l for l in rand_len]
             out = text.columnize(items, row_first=row_first, displaywidth=displaywidth)
-            longer_line = max([len(x) for x in out.split('\n')])
+            longer_line = max(len(x) for x in out.split('\n'))
             longer_element = max(rand_len)
             if longer_line > displaywidth:
                 print("Columnize displayed something lager than displaywidth : %s " % longer_line)
@@ -102,7 +102,7 @@ def eval_formatter_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os, u=u"café", b="café")
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     assert s == "12 3 hello"
-    s = f.format(' '.join(['{n//%i}'%i for i in range(1,8)]), **ns)
+    s = f.format(' '.join('{n//%i}'%i for i in range(1,8)), **ns)
     assert s == "12 6 4 3 2 2 1"
     s = f.format('{[n//i for i in range(1,8)]}', **ns)
     assert s == "[12, 6, 4, 3, 2, 2, 1]"
@@ -116,7 +116,7 @@ def eval_formatter_check(f):
     assert s == ns["u"]
     # This decodes in a platform dependent manner, but it shouldn't error out
     s = f.format("{b}", **ns)
-        
+
     nt.assert_raises(NameError, f.format, '{dne}', **ns)
 
 def eval_formatter_slicing_check(f):

@@ -96,27 +96,25 @@ ipython locate profile foo # print the path to the directory for profile 'foo'
 
 def list_profiles_in(path):
     """list profiles in a given root directory"""
-    profiles = []
-
     # for python 3.6+ rewrite to: with os.scandir(path) as dirlist:
     files = os.scandir(path)
-    for f in files:
-        if f.is_dir() and f.name.startswith('profile_'):
-            profiles.append(f.name.split('_', 1)[-1])
-    return profiles
+    return [
+        f.name.split('_', 1)[-1]
+        for f in files
+        if f.is_dir() and f.name.startswith('profile_')
+    ]
 
 
 def list_bundled_profiles():
     """list profiles that are bundled with IPython."""
     path = os.path.join(get_ipython_package_dir(), u'core', u'profile')
-    profiles = []
-
     # for python 3.6+ rewrite to: with os.scandir(path) as dirlist:
     files =  os.scandir(path)
-    for profile in files:
-        if profile.is_dir() and profile.name != "__pycache__":
-            profiles.append(profile.name)
-    return profiles
+    return [
+        profile.name
+        for profile in files
+        if profile.is_dir() and profile.name != "__pycache__"
+    ]
 
 
 class ProfileLocate(BaseIPythonApplication):
@@ -225,13 +223,11 @@ class ProfileCreate(BaseIPythonApplication):
                             'ipengine_config.py',
                             'ipcluster_config.py'
                         ]
-        if change['new']:
-            for cf in parallel_files:
+        for cf in parallel_files:
+            if change['new']:
                 self.config_files.append(cf)
-        else:
-            for cf in parallel_files:
-                if cf in self.config_files:
-                    self.config_files.remove(cf)
+            elif cf in self.config_files:
+                self.config_files.remove(cf)
 
     def parse_command_line(self, argv):
         super(ProfileCreate, self).parse_command_line(argv)
@@ -301,11 +297,11 @@ class ProfileApp(Application):
     ))
 
     def start(self):
-        if self.subapp is None:
-            print("No subcommand specified. Must specify one of: %s"%(self.subcommands.keys()))
-            print()
-            self.print_description()
-            self.print_subcommands()
-            self.exit(1)
-        else:
+        if self.subapp is not None:
             return self.subapp.start()
+
+        print("No subcommand specified. Must specify one of: %s"%(self.subcommands.keys()))
+        print()
+        self.print_description()
+        self.print_subcommands()
+        self.exit(1)

@@ -40,9 +40,8 @@ def flag_calls(func):
 
     def wrapper(*args,**kw):
         wrapper.called = False
-        out = func(*args,**kw)
         wrapper.called = True
-        return out
+        return func(*args,**kw)
 
     wrapper.called = False
     wrapper.__doc__ = func.__doc__

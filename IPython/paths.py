@@ -28,8 +28,6 @@ def get_ipython_dir() -> str:
     pjoin = os.path.join
 
 
-    ipdir_def = '.ipython'
-
     home_dir = get_home_dir()
     xdg_dir = get_xdg_dir()
 
@@ -38,6 +36,8 @@ def get_ipython_dir() -> str:
                 'Please use IPYTHONDIR instead.', DeprecationWarning)
     ipdir = env.get('IPYTHONDIR', env.get('IPYTHON_DIR', None))
     if ipdir is None:
+        ipdir_def = '.ipython'
+
         # not set explicitly, use ~/.ipython
         ipdir = pjoin(home_dir, ipdir_def)
         if xdg_dir:

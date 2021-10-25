@@ -52,7 +52,7 @@ def passwd(passphrase=None, algorithm='sha1'):
 
     """
     if passphrase is None:
-        for i in range(3):
+        for _ in range(3):
             p0 = getpass.getpass('Enter password: ')
             p1 = getpass.getpass('Verify password: ')
             if p0 == p1:

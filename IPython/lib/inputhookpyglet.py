@@ -35,10 +35,7 @@ if os.name == 'posix':
 
     def stdin_ready():
         infds, outfds, erfds = select.select([sys.stdin],[],[],0)
-        if infds:
-            return True
-        else:
-            return False
+        return bool(infds)
 
 elif sys.platform == 'win32':
     import msvcrt

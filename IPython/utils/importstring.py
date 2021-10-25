@@ -25,15 +25,15 @@ def import_item(name):
     """
     
     parts = name.rsplit('.', 1)
-    if len(parts) == 2:
-        # called with 'foo.bar....'
-        package, obj = parts
-        module = __import__(package, fromlist=[obj])
-        try:
-            pak = getattr(module, obj)
-        except AttributeError as e:
-            raise ImportError('No module named %s' % obj) from e
-        return pak
-    else:
+    if len(parts) != 2:
         # called with un-dotted string
         return __import__(parts[0])
+
+    # called with 'foo.bar....'
+    package, obj = parts
+    module = __import__(package, fromlist=[obj])
+    try:
+        pak = getattr(module, obj)
+    except AttributeError as e:
+        raise ImportError('No module named %s' % obj) from e
+    return pak

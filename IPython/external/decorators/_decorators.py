@@ -66,11 +66,7 @@ def skipif(skip_condition, msg=None):
 
         def get_msg(func,msg=None):
             """Skip message with information about function being skipped."""
-            if msg is None:
-                out = 'Test skipped due to test condition'
-            else:
-                out = '\n'+msg
-
+            out = 'Test skipped due to test condition' if msg is None else '\n'+msg
             return "Skipping test: %s%s" % (func.__name__,out)
 
         # We need to define *two* skippers because Python doesn't allow both
@@ -87,8 +83,7 @@ def skipif(skip_condition, msg=None):
             if skip_val():
                 raise nose.SkipTest(get_msg(f,msg))
             else:
-                for x in f(*args, **kwargs):
-                    yield x
+                yield from f(*args, **kwargs)
 
         # Choose the right skipper to use when building the actual decorator.
         if nose.util.isgenerator(f):

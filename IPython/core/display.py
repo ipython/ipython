@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Top-level display functions for displaying object in different formats."""
 
+
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
@@ -31,7 +32,7 @@ __all__ = ['display_pretty', 'display_html', 'display_markdown',
 
 _deprecated_names = ["display", "clear_output", "publish_display_data", "update_display", "DisplayHandle"]
 
-__all__ = __all__ + _deprecated_names
+__all__ += _deprecated_names
 
 
 # ----- warn to import from IPython.display -----
@@ -328,12 +329,10 @@ class DisplayObject(object):
         self._check_data()
 
     def __repr__(self):
-        if not self._show_mem_addr:
-            cls = self.__class__
-            r = "<%s.%s object>" % (cls.__module__, cls.__name__)
-        else:
-            r = super(DisplayObject, self).__repr__()
-        return r
+        if self._show_mem_addr:
+            return super(DisplayObject, self).__repr__()
+        cls = self.__class__
+        return "<%s.%s object>" % (cls.__module__, cls.__name__)
 
     def _check_data(self):
         """Override in subclasses if there's something to check."""
@@ -364,23 +363,21 @@ class DisplayObject(object):
                     if sub.startswith('charset'):
                         encoding = sub.split('=')[-1].strip()
                         break
-            if 'content-encoding' in response.headers:
-                # TODO: do deflate?
-                if 'gzip' in response.headers['content-encoding']:
-                    import gzip
-                    from io import BytesIO
-                    with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
-                        encoding = None
-                        data = fp.read()
+            if (
+                'content-encoding' in response.headers
+                and 'gzip' in response.headers['content-encoding']
+            ):
+                import gzip
+                from io import BytesIO
+                with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
+                    encoding = None
+                    data = fp.read()
 
             # decode data, if an encoding was specified
             # We only touch self.data once since
             # subclasses such as SVG have @data.setter methods
             # that transform self.data into ... well svg.
-            if encoding:
-                self.data = data.decode(encoding, 'replace')
-            else:
-                self.data = data
+            self.data = data.decode(encoding, 'replace') if encoding else data
 
 
 class TextDisplayObject(DisplayObject):
@@ -476,11 +473,9 @@ class SVG(DisplayObject):
         found_svg = x.getElementsByTagName('svg')
         if found_svg:
             svg = found_svg[0].toxml()
-        else:
-            # fallback on the input, trust the user
-            # but this is probably an error.
-            pass
         svg = cast_unicode(svg)
+        # fallback on the input, trust the user
+        # but this is probably an error.
         self._data = svg
 
     def _repr_svg_(self):
@@ -745,9 +740,7 @@ class Javascript(TextDisplayObject):
         super(Javascript, self).__init__(data=data, url=url, filename=filename)
 
     def _repr_javascript_(self):
-        r = ''
-        for c in self.css:
-            r += _css_t % c
+        r = ''.join(_css_t % c for c in self.css)
         for l in self.lib:
             r += _lib_t1 % l
         r += self.data
@@ -771,7 +764,7 @@ def _jpegxy(data):
     idx = 4
     while True:
         block_size = struct.unpack('>H', data[idx:idx+2])[0]
-        idx = idx + block_size
+        idx += block_size
         if data[idx:idx+2] == b'\xFF\xC0':
             # found Start of Frame
             iSOF = idx
@@ -903,21 +896,20 @@ class Image(DisplayObject):
             ext = None
 
         if format is None:
-            if ext is not None:
-                if ext == u'jpg' or ext == u'jpeg':
-                    format = self._FMT_JPEG
-                elif ext == u'png':
-                    format = self._FMT_PNG
-                elif ext == u'gif':
-                    format = self._FMT_GIF
-                else:
-                    format = ext.lower()
-            elif isinstance(data, bytes):
-                # infer image type from image data header,
-                # only if format has not been specified.
-                if data[:2] == _JPEG:
-                    format = self._FMT_JPEG
-
+            if (
+                ext is not None
+                and ext in [u'jpg', u'jpeg']
+                or ext is None
+                and isinstance(data, bytes)
+                and data[:2] == _JPEG
+            ):
+                format = self._FMT_JPEG
+            elif ext is not None and ext == u'png':
+                format = self._FMT_PNG
+            elif ext is not None and ext == u'gif':
+                format = self._FMT_GIF
+            elif ext is not None:
+                format = ext.lower()
         # failed to detect format, default png
         if format is None:
             format = self._FMT_PNG
@@ -979,37 +971,39 @@ class Image(DisplayObject):
                 self._retina_shape()
 
     def _repr_html_(self):
-        if not self.embed:
-            width = height = klass = alt = ""
-            if self.width:
-                width = ' width="%d"' % self.width
-            if self.height:
-                height = ' height="%d"' % self.height
-            if self.unconfined:
-                klass = ' class="unconfined"'
-            if self.alt:
-                alt = ' alt="%s"' % html.escape(self.alt)
-            return '<img src="{url}"{width}{height}{klass}{alt}/>'.format(
-                url=self.url,
-                width=width,
-                height=height,
-                klass=klass,
-                alt=alt,
-            )
+        if self.embed:
+            return
+
+        width = height = klass = alt = ""
+        if self.width:
+            width = ' width="%d"' % self.width
+        if self.height:
+            height = ' height="%d"' % self.height
+        if self.unconfined:
+            klass = ' class="unconfined"'
+        if self.alt:
+            alt = ' alt="%s"' % html.escape(self.alt)
+        return '<img src="{url}"{width}{height}{klass}{alt}/>'.format(
+            url=self.url,
+            width=width,
+            height=height,
+            klass=klass,
+            alt=alt,
+        )
 
     def _repr_mimebundle_(self, include=None, exclude=None):
         """Return the image as a mimebundle
 
         Any new mimetype support should be implemented here.
         """
-        if self.embed:
-            mimetype = self._mimetype
-            data, metadata = self._data_and_metadata(always_both=True)
-            if metadata:
-                metadata = {mimetype: metadata}
-            return {mimetype: data}, metadata
-        else:
+        if not self.embed:
             return {'text/html': self._repr_html_()}
+
+        mimetype = self._mimetype
+        data, metadata = self._data_and_metadata(always_both=True)
+        if metadata:
+            metadata = {mimetype: metadata}
+        return {mimetype: data}, metadata
 
     def _data_and_metadata(self, always_both=False):
         """shortcut for returning metadata with shape information, if defined"""

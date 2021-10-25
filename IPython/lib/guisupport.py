@@ -80,9 +80,8 @@ def is_event_loop_running_wx(app=None):
     """Is the wx event loop running."""
     # New way: check attribute on shell instance
     ip = get_ipython()
-    if ip is not None:
-        if ip.active_eventloop and ip.active_eventloop == 'wx':
-            return True
+    if ip is not None and ip.active_eventloop and ip.active_eventloop == 'wx':
+        return True
         # Fall through to checking the application, because Wx has a native way
         # to check if the event loop is running, unlike Qt.
 

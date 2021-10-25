@@ -46,9 +46,7 @@ def getdefaultencoding(prefer_stream=True):
     and finally to sys.getdefaultencoding() which is the most conservative option,
     and usually UTF8 as of Python 3.
     """
-    enc = None
-    if prefer_stream:
-        enc = get_stream_enc(sys.stdin)
+    enc = get_stream_enc(sys.stdin) if prefer_stream else None
     if not enc or enc=='ascii':
         try:
             # There are reports of getpreferredencoding raising errors

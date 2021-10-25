@@ -18,8 +18,7 @@ def get_ipython():
     config.TerminalInteractiveShell.simple_prompt = True
 
     # Create and initialize our test-friendly IPython instance.
-    shell = TerminalInteractiveShell.instance(config=config)
-    return shell
+    return TerminalInteractiveShell.instance(config=config)
 
 
 @pytest.fixture(scope='session', autouse=True)

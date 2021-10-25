@@ -209,8 +209,7 @@ def skipif(skip_condition, msg=None):
 
         def get_msg(func,msg=None):
             """Skip message with information about function being skipped."""
-            if msg is None: out = 'Test skipped due to test condition.'
-            else: out = msg
+            out = 'Test skipped due to test condition.' if msg is None else msg
             return "Skipping test: %s. %s" % (func.__name__,out)
 
         # We need to define *two* skippers because Python doesn't allow both
@@ -227,8 +226,7 @@ def skipif(skip_condition, msg=None):
             if skip_val():
                 raise nose.SkipTest(get_msg(f,msg))
             else:
-                for x in f(*args, **kwargs):
-                    yield x
+                yield from f(*args, **kwargs)
 
         # Choose the right skipper to use when building the actual generator.
         if nose.util.isgenerator(f):
@@ -375,15 +373,14 @@ def onlyif_cmds_exist(*commands):
     """
     Decorator to skip test when at least one of `commands` is not found.
     """
+    reason = "This test runs only if command '{cmd}' is installed"
     for cmd in commands:
-        reason = "This test runs only if command '{cmd}' is installed"
         if not shutil.which(cmd):
             if os.environ.get("IPTEST_WORKING_DIR", None) is not None:
                 return skip(reason)
-            else:
-                import pytest
+            import pytest
 
-                return pytest.mark.skip(reason=reason)
+            return pytest.mark.skip(reason=reason)
     return null_deco
 
 def onlyif_any_cmd_exists(*commands):

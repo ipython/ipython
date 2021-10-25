@@ -112,10 +112,7 @@ class ColorScheme:
     """Generic color scheme class. Just a name and a Struct."""
     def __init__(self,__scheme_name_,colordict=None,**colormap):
         self.name = __scheme_name_
-        if colordict is None:
-            self.colors = Struct(**colormap)
-        else:
-            self.colors = Struct(colordict)
+        self.colors = Struct(**colormap) if colordict is None else Struct(colordict)
 
     def copy(self,name=None):
         """Return a full copy of the object, optionally renaming it."""

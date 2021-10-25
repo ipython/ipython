@@ -178,12 +178,11 @@ def ask_yes_no(prompt, default=None, interrupt=None):
                 ans = interrupt
             print("\r")
         except EOFError:
-            if default in answers.keys():
-                ans = default
-                print()
-            else:
+            if default not in answers:
                 raise
 
+            ans = default
+            print()
     return answers[ans]
 
 
