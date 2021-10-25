@@ -49,10 +49,7 @@ def file_doesnt_endwith(test,endings):
     of the strings listed in endings."""
     if not isfile(test):
         return False
-    for e in endings:
-        if test.endswith(e):
-            return False
-    return True
+    return not any(test.endswith(e) for e in endings)
 
 #---------------------------------------------------------------------------
 # Basic project information
@@ -117,14 +114,12 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
 
-    package_data = {
+    return {
         'IPython.core' : ['profile/README*'],
         'IPython.core.tests' : ['*.png', '*.jpg', 'daft_extension/*.py'],
         'IPython.lib.tests' : ['*.wav'],
         'IPython.testing.plugin' : ['*.txt'],
     }
-
-    return package_data
 
 
 def check_package_data(package_data):
@@ -175,9 +170,7 @@ def find_data_files():
         manpages = [f for f in glob(pjoin('docs','man','*.1')) if isfile(f)]
 
     # And assemble the entire output list
-    data_files = [ (manpagebase, manpages) ]
-
-    return data_files
+    return [ (manpagebase, manpages) ]
 
 
 # The two functions below are copied from IPython.utils.path, so we don't need
