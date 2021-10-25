@@ -32,7 +32,7 @@ output = [
 def sortkey(s): return s[0].lower()
 
 for name, func in sorted(magics["line"].items(), key=sortkey):
-    if isinstance(func, Alias) or isinstance(func, MagicAlias):
+    if isinstance(func, (Alias, MagicAlias)):
         # Aliases are magics, but shouldn't be documented here
         # Also skip aliases to other magics
         continue

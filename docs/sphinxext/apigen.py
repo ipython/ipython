@@ -57,13 +57,19 @@ class FuncClsScanner(ast.NodeVisitor):
         self.generic_visit(node)
     
     def visit_FunctionDef(self, node):
-        if not (node.name.startswith('_') or self.has_undoc_decorator(node)) \
-                and node.name not in self.functions:
+        if (
+            not node.name.startswith('_')
+            and not self.has_undoc_decorator(node)
+            and node.name not in self.functions
+        ):
             self.functions.append(node.name)
     
     def visit_ClassDef(self, node):
-        if not (node.name.startswith('_') or self.has_undoc_decorator(node)) \
-                and node.name not in self.classes_seen:
+        if (
+            not node.name.startswith('_')
+            and not self.has_undoc_decorator(node)
+            and node.name not in self.classes_seen
+        ):
             cls = Obj(name=node.name)
             cls.has_init = any(isinstance(n, ast.FunctionDef) and \
                                 n.name=='__init__' for n in node.body)
