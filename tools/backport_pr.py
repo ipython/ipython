@@ -121,7 +121,7 @@ def already_backported(branch, since_tag=None):
         since_tag = check_output(['git','describe', branch, '--abbrev=0']).decode('utf8').strip()
     cmd = ['git', 'log', '%s..%s' % (since_tag, branch), '--oneline']
     lines = check_output(cmd).decode('utf8')
-    return set(int(num) for num in backport_re.findall(lines))
+    return {int(num) for num in backport_re.findall(lines)}
 
 def should_backport(labels=None, milestone=None, project='ipython/ipython'):
     """return set of PRs marked for backport"""
@@ -165,10 +165,9 @@ if __name__ == '__main__':
           "to install `ghpro` from PyPI.", file=sys.stderr)
 
     args = list(sys.argv)
-    if len(args) >= 2:
-        if '/' in args[1]:
-            project = args[1]
-            del args[1]
+    if len(args) >= 2 and '/' in args[1]:
+        project = args[1]
+        del args[1]
 
     if len(args) < 2:
         print(__doc__)
@@ -183,7 +182,7 @@ if __name__ == '__main__':
         for pr in sorted(should.difference(already)):
             print (pr)
         sys.exit(0)
-    
+
     for prno in map(int, args[2:]):
         print("Backporting PR #%i" % prno)
         rc = backport_pr(args[1], prno, project=project)
