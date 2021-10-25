@@ -69,31 +69,33 @@ class Audio(DisplayObject):
     Generate a sound
 
     >>> import numpy as np
-    ... framerate = 44100
-    ... t = np.linspace(0,5,framerate*5)
-    ... data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
-    ... Audio(data, rate=framerate)
+    >>> framerate = 44100
+    >>> t = np.linspace(0,5,framerate*5)
+    >>> data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
+    >>> Audio(data, rate=framerate)
+    <IPython.lib.display.Audio object>
 
     Can also do stereo or more channels
 
     >>> dataleft = np.sin(2*np.pi*220*t)
-    ... dataright = np.sin(2*np.pi*224*t)
-    ... Audio([dataleft, dataright], rate=framerate)
+    >>> dataright = np.sin(2*np.pi*224*t)
+    >>> Audio([dataleft, dataright], rate=framerate)
+    <IPython.lib.display.Audio object>
 
     From URL:
 
-    >>> Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")
-    >>> Audio(url="http://www.w3schools.com/html/horse.ogg")
+    >>> Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")  # doctest: +SKIP
+    >>> Audio(url="http://www.w3schools.com/html/horse.ogg")  # doctest: +SKIP
 
     From a File:
 
-    >>> Audio('/path/to/sound.wav')
-    >>> Audio(filename='/path/to/sound.ogg')
+    >>> Audio('/path/to/sound.wav')  # doctest: +SKIP
+    >>> Audio(filename='/path/to/sound.ogg')  # doctest: +SKIP
 
     From Bytes:
 
-    >>> Audio(b'RAW_WAV_DATA..')
-    >>> Audio(data=b'RAW_WAV_DATA..')
+    >>> Audio(b'RAW_WAV_DATA..')  # doctest: +SKIP
+    >>> Audio(data=b'RAW_WAV_DATA..')  # doctest: +SKIP
 
     See Also
     --------
