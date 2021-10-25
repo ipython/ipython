@@ -74,12 +74,6 @@ setup_args = dict(
       keywords         = keywords,
       classifiers      = classifiers,
       cmdclass         = {'install_data': install_data_ext},
-      project_urls={
-          'Documentation': 'https://ipython.readthedocs.io/',
-          'Funding'      : 'https://numfocus.org/',
-          'Source'       : 'https://github.com/ipython/ipython',
-          'Tracker'      : 'https://github.com/ipython/ipython/issues',
-      }
       )
 
 
