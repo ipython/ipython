@@ -48,7 +48,7 @@ def passwd(passphrase=None, algorithm='sha1'):
     Examples
     --------
     >>> passwd('mypassword')
-    'sha1:7cf3:b7d6da294ea9592a9480c8f52e63cd42cfb9dd12'
+    'sha1:7cf3:b7d6da294ea9592a9480c8f52e63cd42cfb9dd12'  # random
 
     """
     if passphrase is None:
