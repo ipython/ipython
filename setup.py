@@ -77,7 +77,6 @@ from setupbase import (
     find_package_data,
     check_package_data_first,
     find_entry_points,
-    build_scripts_entrypt,
     find_data_files,
     git_prebuild,
     install_symlinked,
