@@ -67,7 +67,6 @@ from setupbase import target_update
 
 from setupbase import (
     setup_args,
-    find_package_data,
     check_package_data_first,
     find_data_files,
     git_prebuild,
@@ -116,11 +115,8 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
 # Find all the packages, package data, and data_files
 #---------------------------------------------------------------------------
 
-package_data = find_package_data()
-
 data_files = find_data_files()
 
-setup_args['package_data'] = package_data
 setup_args['data_files'] = data_files
 
 #---------------------------------------------------------------------------
