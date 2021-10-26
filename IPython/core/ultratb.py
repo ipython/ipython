@@ -630,7 +630,7 @@ class VerboseTB(TBTools):
 
         indent = ' ' * INDENT_SIZE
         em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
-        tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm,
+        tpl_call = 'in %s%%s%s%%s%s in Line %%s' % (Colors.vName, Colors.valEm,
                                         ColorsNormal)
         tpl_call_fail = 'in %s%%s%s(***failed resolving arguments***)%s' % \
                         (Colors.vName, Colors.valEm, ColorsNormal)
@@ -641,14 +641,14 @@ class VerboseTB(TBTools):
 
         func = frame_info.executing.code_qualname()
         if func == '<module>':
-            call = tpl_call % (func, '')
+            call = tpl_call % (func, '', frame_info.lineno)
         else:
             # Decide whether to include variable details or not
             var_repr = eqrepr if self.include_vars else nullrepr
             try:
                 call = tpl_call % (func, inspect.formatargvalues(args,
                                                                  varargs, varkw,
-                                                                 locals_, formatvalue=var_repr))
+                                                                 locals_, formatvalue=var_repr), frame_info.lineno)
             except KeyError:
                 # This happens in situations like errors inside generator
                 # expressions, where local variables are listed in the
