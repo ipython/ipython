@@ -70,7 +70,6 @@ from setupbase import (
     find_packages,
     find_package_data,
     check_package_data_first,
-    find_entry_points,
     find_data_files,
     git_prebuild,
     install_symlinked,
@@ -188,7 +187,6 @@ for key, deps in extras_require.items():
         everything.update(deps)
 extras_require['all'] = list(sorted(everything))
 
-setuptools_extra_args["entry_points"] = {"console_scripts": find_entry_points()}
 setup_args["extras_require"] = extras_require
 
 #---------------------------------------------------------------------------
