@@ -63,7 +63,6 @@ execfile(pjoin(repo_root, 'IPython','core','release.py'), globals())
 # This dict is eventually passed to setup after additional keys are added.
 setup_args = dict(
       name             = name,
-      version          = version,
       description      = description,
       long_description = long_description,
       author           = author,
