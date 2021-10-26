@@ -17,9 +17,6 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-# third party
-import nose.tools as nt
-
 from IPython.testing.decorators import skip_iptest_but_not_pytest
 
 # our own
@@ -65,7 +62,7 @@ def test_parse_sample(style):
     buf.seek(0)
     f1 = buf.read()
 
-    nt.assert_not_in("ERROR", f1)
+    assert "ERROR" not in f1
 
 
 @skip_iptest_but_not_pytest
@@ -73,4 +70,4 @@ def test_parse_error(style):
     p = Parser(style=style)
     f1 = p.format(")", "str")
     if style != "NoColor":
-        nt.assert_in("ERROR", f1)
+        assert "ERROR" in f1

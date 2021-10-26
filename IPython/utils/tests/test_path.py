@@ -15,7 +15,7 @@ from os.path import join, abspath
 from imp import reload
 
 from nose import SkipTest, with_setup
-import nose.tools as nt
+import pytest
 
 import IPython
 from IPython import paths
@@ -155,7 +155,7 @@ def test_get_home_dir_5():
     env['HOME'] = abspath(HOME_TEST_DIR+'garbage')
     # set os.name = posix, to prevent My Documents fallback on Windows
     os.name = 'posix'
-    nt.assert_raises(path.HomeDirError, path.get_home_dir, True)
+    pytest.raises(path.HomeDirError, path.get_home_dir, True)
 
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
@@ -237,8 +237,7 @@ def test_get_xdg_dir_3():
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
     cfgdir=os.path.join(path.get_home_dir(), '.config')
-    if not os.path.exists(cfgdir):
-        os.makedirs(cfgdir)
+    os.makedirs(cfgdir, exist_ok=True)
 
     assert path.get_xdg_dir() is None
 
@@ -305,15 +304,15 @@ def test_get_py_filename():
         assert path.get_py_filename("foo") == "foo.py"
     with make_tempfile("foo"):
         assert path.get_py_filename("foo") == "foo"
-        nt.assert_raises(IOError, path.get_py_filename, "foo.py")
-    nt.assert_raises(IOError, path.get_py_filename, "foo")
-    nt.assert_raises(IOError, path.get_py_filename, "foo.py")
+        pytest.raises(IOError, path.get_py_filename, "foo.py")
+    pytest.raises(IOError, path.get_py_filename, "foo")
+    pytest.raises(IOError, path.get_py_filename, "foo.py")
     true_fn = "foo with spaces.py"
     with make_tempfile(true_fn):
         assert path.get_py_filename("foo with spaces") == true_fn
         assert path.get_py_filename("foo with spaces.py") == true_fn
-        nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"')
-        nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'")
+        pytest.raises(IOError, path.get_py_filename, '"foo with spaces.py"')
+        pytest.raises(IOError, path.get_py_filename, "'foo with spaces.py'")
 
 @onlyif_unicode_paths
 def test_unicode_in_filename():
@@ -414,7 +413,7 @@ def test_ensure_dir_exists():
         path.ensure_dir_exists(d) # no-op
         f = os.path.join(td, 'ƒile')
         open(f, 'w').close() # touch
-        with nt.assert_raises(IOError):
+        with pytest.raises(IOError):
             path.ensure_dir_exists(f)
 
 class TestLinkOrCopy(unittest.TestCase):

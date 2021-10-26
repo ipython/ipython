@@ -17,8 +17,9 @@ import math
 import random
 import sys
 
-import nose.tools as nt
 from pathlib import Path
+
+import pytest
 
 from IPython.utils import text
 
@@ -116,8 +117,9 @@ def eval_formatter_check(f):
     assert s == ns["u"]
     # This decodes in a platform dependent manner, but it shouldn't error out
     s = f.format("{b}", **ns)
-        
-    nt.assert_raises(NameError, f.format, '{dne}', **ns)
+
+    pytest.raises(NameError, f.format, "{dne}", **ns)
+
 
 def eval_formatter_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
@@ -128,7 +130,7 @@ def eval_formatter_slicing_check(f):
     s = f.format("{stuff[::2]}", **ns)
     assert s == ns["stuff"][::2]
 
-    nt.assert_raises(SyntaxError, f.format, "{n:x}", **ns)
+    pytest.raises(SyntaxError, f.format, "{n:x}", **ns)
 
 def eval_formatter_no_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
@@ -194,7 +196,7 @@ def test_LSString():
     assert lss.l == ["abc", "def"]
     assert lss.s == "abc def"
     lss = text.LSString(os.getcwd())
-    nt.assert_is_instance(lss.p[0], Path)
+    assert isinstance(lss.p[0], Path)
 
 def test_SList():
     sl = text.SList(["a 11", "b 1", "a 2"])

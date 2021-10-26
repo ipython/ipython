@@ -21,8 +21,6 @@ from unittest import mock
 
 from os.path import join
 
-import nose.tools as nt
-
 from IPython.core.error import InputRejected
 from IPython.core.inputtransformer import InputTransformer
 from IPython.core import interactiveshell
@@ -220,33 +218,39 @@ class InteractiveShellTestCase(unittest.TestCase):
     def test_var_expand_local(self):
         """Test local variable expansion in !system and %magic calls"""
         # !system
-        ip.run_cell('def test():\n'
-                    '    lvar = "ttt"\n'
-                    '    ret = !echo {lvar}\n'
-                    '    return ret[0]\n')
-        res = ip.user_ns['test']()
-        nt.assert_in('ttt', res)
-        
+        ip.run_cell(
+            "def test():\n"
+            '    lvar = "ttt"\n'
+            "    ret = !echo {lvar}\n"
+            "    return ret[0]\n"
+        )
+        res = ip.user_ns["test"]()
+        self.assertIn("ttt", res)
+
         # %magic
-        ip.run_cell('def makemacro():\n'
-                    '    macroname = "macro_var_expand_locals"\n'
-                    '    %macro {macroname} codestr\n')
-        ip.user_ns['codestr'] = "str(12)"
-        ip.run_cell('makemacro()')
-        nt.assert_in('macro_var_expand_locals', ip.user_ns)
-    
+        ip.run_cell(
+            "def makemacro():\n"
+            '    macroname = "macro_var_expand_locals"\n'
+            "    %macro {macroname} codestr\n"
+        )
+        ip.user_ns["codestr"] = "str(12)"
+        ip.run_cell("makemacro()")
+        self.assertIn("macro_var_expand_locals", ip.user_ns)
+
     def test_var_expand_self(self):
         """Test variable expansion with the name 'self', which was failing.
         
         See https://github.com/ipython/ipython/issues/1878#issuecomment-7698218
         """
-        ip.run_cell('class cTest:\n'
-                    '  classvar="see me"\n'
-                    '  def test(self):\n'
-                    '    res = !echo Variable: {self.classvar}\n'
-                    '    return res[0]\n')
-        nt.assert_in('see me', ip.user_ns['cTest']().test())
-    
+        ip.run_cell(
+            "class cTest:\n"
+            '  classvar="see me"\n'
+            "  def test(self):\n"
+            "    res = !echo Variable: {self.classvar}\n"
+            "    return res[0]\n"
+        )
+        self.assertIn("see me", ip.user_ns["cTest"]().test())
+
     def test_bad_var_expand(self):
         """var_expand on invalid formats shouldn't raise"""
         # SyntaxError
@@ -346,7 +350,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         info = dict(found=True, isalias=False, ismagic=True,
                     namespace = 'IPython internal', obj= lmagic.__wrapped__,
                     parent = None)
-        nt.assert_equal(lfind, info)
+        self.assertEqual(lfind, info)
         
     def test_ofind_cell_magic(self):
         from IPython.core.magic import register_cell_magic
@@ -360,7 +364,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         info = dict(found=True, isalias=False, ismagic=True,
                     namespace = 'IPython internal', obj= cmagic.__wrapped__,
                     parent = None)
-        nt.assert_equal(find, info)
+        self.assertEqual(find, info)
 
     def test_ofind_property_with_error(self):
         class A(object):
@@ -372,7 +376,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         found = ip._ofind('a.foo', [('locals', locals())])
         info = dict(found=True, isalias=False, ismagic=False,
                     namespace='locals', obj=A.foo, parent=a)
-        nt.assert_equal(found, info)
+        self.assertEqual(found, info)
 
     def test_ofind_multiple_attribute_lookups(self):
         class A(object):
@@ -387,7 +391,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         found = ip._ofind('a.a.a.foo', [('locals', locals())])
         info = dict(found=True, isalias=False, ismagic=False,
                     namespace='locals', obj=A.foo, parent=a.a.a)
-        nt.assert_equal(found, info)
+        self.assertEqual(found, info)
 
     def test_ofind_slotted_attributes(self):
         class A(object):
@@ -399,12 +403,12 @@ class InteractiveShellTestCase(unittest.TestCase):
         found = ip._ofind('a.foo', [('locals', locals())])
         info = dict(found=True, isalias=False, ismagic=False,
                     namespace='locals', obj=a.foo, parent=a)
-        nt.assert_equal(found, info)
+        self.assertEqual(found, info)
 
         found = ip._ofind('a.bar', [('locals', locals())])
         info = dict(found=False, isalias=False, ismagic=False,
                     namespace=None, obj=None, parent=a)
-        nt.assert_equal(found, info)
+        self.assertEqual(found, info)
 
     def test_ofind_prefers_property_to_instance_level_attribute(self):
         class A(object):
@@ -412,10 +416,10 @@ class InteractiveShellTestCase(unittest.TestCase):
             def foo(self):
                 return 'bar'
         a = A()
-        a.__dict__['foo'] = 'baz'
-        nt.assert_equal(a.foo, 'bar')
-        found = ip._ofind('a.foo', [('locals', locals())])
-        nt.assert_is(found['obj'], A.foo)
+        a.__dict__["foo"] = "baz"
+        self.assertEqual(a.foo, "bar")
+        found = ip._ofind("a.foo", [("locals", locals())])
+        self.assertIs(found["obj"], A.foo)
 
     def test_custom_syntaxerror_exception(self):
         called = []
@@ -819,7 +823,7 @@ class TestAstTransformError(unittest.TestCase):
             ip.run_cell("1 + 2")
         
         # This should have been removed.
-        nt.assert_not_in(err_transformer, ip.ast_transformers)
+        self.assertNotIn(err_transformer, ip.ast_transformers)
 
 
 class StringRejector(ast.NodeTransformer):
@@ -889,21 +893,21 @@ def test_user_variables():
     keys = {'dummy', 'doesnotexist'}
     r = ip.user_expressions({ key:key for key in keys})
 
-    nt.assert_equal(keys, set(r.keys()))
-    dummy = r['dummy']
-    nt.assert_equal({'status', 'data', 'metadata'}, set(dummy.keys()))
-    nt.assert_equal(dummy['status'], 'ok')
-    data = dummy['data']
-    metadata = dummy['metadata']
-    nt.assert_equal(data.get('text/html'), d._repr_html_())
+    assert keys == set(r.keys())
+    dummy = r["dummy"]
+    assert {"status", "data", "metadata"} == set(dummy.keys())
+    assert dummy["status"] == "ok"
+    data = dummy["data"]
+    metadata = dummy["metadata"]
+    assert data.get("text/html") == d._repr_html_()
     js, jsmd = d._repr_javascript_()
-    nt.assert_equal(data.get('application/javascript'), js)
-    nt.assert_equal(metadata.get('application/javascript'), jsmd)
-    
-    dne = r['doesnotexist']
-    nt.assert_equal(dne['status'], 'error')
-    nt.assert_equal(dne['ename'], 'NameError')
-    
+    assert data.get("application/javascript") == js
+    assert metadata.get("application/javascript") == jsmd
+
+    dne = r["doesnotexist"]
+    assert dne["status"] == "error"
+    assert dne["ename"] == "NameError"
+
     # back to text only
     ip.display_formatter.active_types = ['text/plain']
     
@@ -917,18 +921,18 @@ def test_user_expression():
     r = ip.user_expressions(query)
     import pprint
     pprint.pprint(r)
-    nt.assert_equal(set(r.keys()), set(query.keys()))
-    a = r['a']
-    nt.assert_equal({'status', 'data', 'metadata'}, set(a.keys()))
-    nt.assert_equal(a['status'], 'ok')
-    data = a['data']
-    metadata = a['metadata']
-    nt.assert_equal(data.get('text/plain'), '3')
-    
-    b = r['b']
-    nt.assert_equal(b['status'], 'error')
-    nt.assert_equal(b['ename'], 'ZeroDivisionError')
-    
+    assert set(r.keys()) == set(query.keys())
+    a = r["a"]
+    assert {"status", "data", "metadata"} == set(a.keys())
+    assert a["status"] == "ok"
+    data = a["data"]
+    metadata = a["metadata"]
+    assert data.get("text/plain") == "3"
+
+    b = r["b"]
+    assert b["status"] == "error"
+    assert b["ename"] == "ZeroDivisionError"
+
     # back to text only
     ip.display_formatter.active_types = ['text/plain']
 
@@ -1030,8 +1034,8 @@ def test_custom_exc_count():
     ip.run_cell("def foo()", store_history=True)
     # restore default excepthook
     ip.set_custom_exc((), None)
-    nt.assert_equal(hook.call_count, 1)
-    nt.assert_equal(ip.execution_count, before + 1)
+    assert hook.call_count == 1
+    assert ip.execution_count == before + 1
 
 
 def test_run_cell_async():

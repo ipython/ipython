@@ -8,6 +8,7 @@ include pytest.ini
 include mypy.ini
 include .mailmap
 include .flake8
+include .pre-commit-config.yaml
 
 recursive-exclude tools *
 exclude tools

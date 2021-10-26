@@ -1,7 +1,5 @@
 import os.path
 
-import nose.tools as nt
-
 import IPython.testing.tools as tt
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.tempdir import TemporaryDirectory
@@ -93,4 +91,4 @@ def test_extension_builtins():
 
 def test_non_extension():
     em = get_ipython().extension_manager
-    nt.assert_equal(em.load_extension('sys'), "no load function")
+    assert em.load_extension("sys") == "no load function"

@@ -27,8 +27,6 @@ import tempfile
 from pathlib import Path
 from unittest import TestCase
 
-import nose.tools as nt
-
 from IPython.core.profileapp import list_profiles_in, list_bundled_profiles
 from IPython.core.profiledir import ProfileDir
 
@@ -79,7 +77,7 @@ def win32_without_pywin32():
         except ImportError:
             return True
     return False
-    
+
 
 class ProfileStartupTest(TestCase):
     def setUp(self):
@@ -114,7 +112,7 @@ class ProfileStartupTest(TestCase):
         self.init('00-start.ipy', '%xmode plain\n', '')
         self.validate('Exception reporting mode: Plain')
 
-    
+
 def test_list_profiles_in():
     # No need to remove these directories and files, as they will get nuked in
     # the module-level teardown.
@@ -127,7 +125,7 @@ def test_list_profiles_in():
     with open(td / "profile_file", "w") as f:
         f.write("I am not a profile directory")
     profiles = list_profiles_in(td)
-    
+
     # unicode normalization can turn u'ünicode' into u'u\0308nicode',
     # so only check for *nicode, and that creating a ProfileDir from the
     # name remains valid
@@ -139,14 +137,14 @@ def test_list_profiles_in():
             found_unicode = True
             break
     if dec.unicode_paths:
-        nt.assert_true(found_unicode)
-    nt.assert_equal(set(profiles), {'foo', 'hello'})
+        assert found_unicode is True
+    assert set(profiles) == {"foo", "hello"}
 
 
 def test_list_bundled_profiles():
     # This variable will need to be updated when a new profile gets bundled
     bundled = sorted(list_bundled_profiles())
-    nt.assert_equal(bundled, [])
+    assert bundled == []
 
 
 def test_profile_create_ipython_dir():
@@ -167,4 +165,3 @@ def test_profile_create_ipython_dir():
         assert Path(profile_dir).exists()
         ipython_config = profile_dir / "ipython_config.py"
         assert Path(ipython_config).exists()
-        

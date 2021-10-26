@@ -4,9 +4,6 @@
 # Module imports
 #-----------------------------------------------------------------------------
 
-# third party
-import nose.tools as nt
-
 # our own packages
 from IPython.core import autocall
 from IPython.testing import tools as tt
@@ -91,4 +88,4 @@ def test_handlers():
         ])
     ip.magic('autocall 1')
 
-    nt.assert_equal(failures, [])
+    assert failures == []

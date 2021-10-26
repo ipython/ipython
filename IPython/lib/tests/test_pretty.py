@@ -11,7 +11,6 @@ import types
 import string
 import unittest
 
-import nose.tools as nt
 import pytest
 
 from IPython.lib import pretty
@@ -70,7 +69,6 @@ class BreakingRepr(object):
         return "Breaking(\n)"
 
 class BadRepr(object):
-    
     def __repr__(self):
         return 1/0
 
@@ -178,7 +176,7 @@ def test_pprint_break_repr():
 
 def test_bad_repr():
     """Don't catch bad repr errors"""
-    with nt.assert_raises(ZeroDivisionError):
+    with pytest.raises(ZeroDivisionError):
         pretty.pretty(BadRepr())
 
 class BadException(Exception):
@@ -190,12 +188,12 @@ class ReallyBadRepr(object):
     @property
     def __class__(self):
         raise ValueError("I am horrible")
-    
+
     def __repr__(self):
         raise BadException()
 
 def test_really_bad_repr():
-    with nt.assert_raises(BadException):
+    with pytest.raises(BadException):
         pretty.pretty(ReallyBadRepr())
 
 
@@ -266,11 +264,11 @@ def test_metaclass_repr():
 def test_unicode_repr():
     u = u"üniçodé"
     ustr = u
-    
+
     class C(object):
         def __repr__(self):
             return ustr
-    
+
     c = C()
     p = pretty.pretty(c)
     assert p == u
@@ -293,7 +291,7 @@ def test_basic_class():
     output = stream.getvalue()
 
     assert output == "%s.MyObj" % __name__
-    nt.assert_true(type_pprint_wrapper.called)
+    assert type_pprint_wrapper.called is True
 
 
 # TODO : pytest.mark.parametrise once nose is gone.
@@ -478,7 +476,7 @@ def test_function_pretty():
             return 42
         return "Don't panic"
 
-    nt.assert_in('meaning_of_life(question=None)', pretty.pretty(meaning_of_life))
+    assert "meaning_of_life(question=None)" in pretty.pretty(meaning_of_life)
 
 
 class OrderedCounter(Counter, OrderedDict):
@@ -497,6 +495,6 @@ class MySet(set):  # Override repr of a basic type
 def test_custom_repr():
     """A custom repr should override a pretty printer for a parent type"""
     oc = OrderedCounter("abracadabra")
-    nt.assert_in("OrderedCounter(OrderedDict", pretty.pretty(oc))
+    assert "OrderedCounter(OrderedDict" in pretty.pretty(oc)
 
     assert pretty.pretty(MySet()) == "mine"
