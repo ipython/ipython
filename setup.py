@@ -188,10 +188,7 @@ for key, deps in extras_require.items():
         everything.update(deps)
 extras_require['all'] = list(sorted(everything))
 
-setuptools_extra_args["python_requires"] = ">=3.8"
-setuptools_extra_args["zip_safe"] = False
 setuptools_extra_args["entry_points"] = {"console_scripts": find_entry_points()}
-
 setup_args["extras_require"] = extras_require
 
 #---------------------------------------------------------------------------
