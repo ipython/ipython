@@ -190,14 +190,7 @@ extras_require['all'] = list(sorted(everything))
 
 setuptools_extra_args["python_requires"] = ">=3.8"
 setuptools_extra_args["zip_safe"] = False
-setuptools_extra_args["entry_points"] = {
-    "console_scripts": find_entry_points(),
-    "pygments.lexers": [
-        "ipythonconsole = IPython.lib.lexers:IPythonConsoleLexer",
-        "ipython = IPython.lib.lexers:IPythonLexer",
-        "ipython3 = IPython.lib.lexers:IPython3Lexer",
-    ],
-}
+setuptools_extra_args["entry_points"] = {"console_scripts": find_entry_points()}
 
 setup_args["extras_require"] = extras_require
 
