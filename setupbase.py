@@ -62,16 +62,9 @@ execfile(pjoin(repo_root, 'IPython','core','release.py'), globals())
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
 setup_args = dict(
-      name             = name,
-      description      = description,
-      long_description = long_description,
       author           = author,
       author_email     = author_email,
-      url              = url,
       license          = license,
-      platforms        = platforms,
-      keywords         = keywords,
-      classifiers      = classifiers,
       cmdclass         = {'install_data': install_data_ext},
       )
 
