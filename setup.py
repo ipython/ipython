@@ -140,10 +140,6 @@ setup_args['cmdclass'] = {
 # Handle scripts, dependencies, and setuptools specific things
 #---------------------------------------------------------------------------
 
-# This dict is used for passing extra arguments that are setuptools
-# specific to setup
-setuptools_extra_args = {}
-
 # setuptools requirements
 
 extras_require = dict(
@@ -185,10 +181,6 @@ setup_args["extras_require"] = extras_require
 #---------------------------------------------------------------------------
 # Do the actual setup now
 #---------------------------------------------------------------------------
-
-setup_args.update(setuptools_extra_args)
-
-
 
 def main():
     setup(**setup_args)
