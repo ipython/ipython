@@ -181,46 +181,6 @@ extras_require = dict(
     nbconvert=["nbconvert"],
 )
 
-install_requires = [
-    "setuptools>=18.5",
-    "jedi>=0.16",
-    "decorator",
-    "pickleshare",
-    "traitlets>=4.2",
-    "prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1",
-    "pygments",
-    "backcall",
-    "stack_data",
-    "matplotlib-inline",
-]
-
-# Platform-specific dependencies:
-# This is the correct way to specify these,
-# but requires pip >= 6. pip < 6 ignores these.
-
-extras_require.update(
-    {
-        ':sys_platform != "win32"': ["pexpect>4.3"],
-        ':sys_platform == "darwin"': ["appnope"],
-        ':sys_platform == "win32"': ["colorama"],
-    }
-)
-# FIXME: re-specify above platform dependencies for pip < 6
-# These would result in non-portable bdists.
-if not any(arg.startswith('bdist') for arg in sys.argv):
-    if sys.platform == 'darwin':
-        install_requires.extend(['appnope'])
-
-    if not sys.platform.startswith("win"):
-        install_requires.append("pexpect>4.3")
-
-    # workaround pypa/setuptools#147, where setuptools misspells
-    # platform_python_implementation as python_implementation
-    if 'setuptools' in sys.modules:
-        for key in list(extras_require):
-            if 'platform_python_implementation' in key:
-                new_key = key.replace('platform_python_implementation', 'python_implementation')
-                extras_require[new_key] = extras_require.pop(key)
 
 everything = set()
 for key, deps in extras_require.items():
@@ -238,8 +198,8 @@ setuptools_extra_args["entry_points"] = {
         "ipython3 = IPython.lib.lexers:IPython3Lexer",
     ],
 }
+
 setup_args["extras_require"] = extras_require
-setup_args["install_requires"] = install_requires
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
