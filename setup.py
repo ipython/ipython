@@ -19,6 +19,7 @@ requires utilities which are not available under Windows."""
 
 import os
 import sys
+from itertools import chain
 
 # **Python version check**
 #
@@ -170,10 +171,7 @@ extras_require = dict(
 )
 
 
-everything = set()
-for key, deps in extras_require.items():
-    if ':' not in key:
-        everything.update(deps)
+everything = set(chain.from_iterable(extras_require.values()))
 extras_require['all'] = list(sorted(everything))
 
 setup_args["extras_require"] = extras_require
