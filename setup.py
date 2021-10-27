@@ -105,7 +105,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     to_update = [
                  ('docs/man/ipython.1.gz',
                   ['docs/man/ipython.1'],
-                  'cd docs/man && gzip -9c ipython.1 > ipython.1.gz'),
+                  'cd docs/man && python -m gzip --best ipython.1'),
                  ]
 
 
