@@ -247,13 +247,19 @@ def test_interruptible_core_debugger():
         else:
             raise AssertionError("input() should only be called once!")
 
-    with patch.object(builtins, "input", raising_input):
-        debugger.InterruptiblePdb().set_trace()
-        # The way this test will fail is by set_trace() never exiting,
-        # resulting in a timeout by the test runner. The alternative
-        # implementation would involve a subprocess, but that adds issues with
-        # interrupting subprocesses that are rather complex, so it's simpler
-        # just to do it this way.
+    tracer_orig = sys.gettrace()
+    try:
+        with patch.object(builtins, "input", raising_input):
+            debugger.InterruptiblePdb().set_trace()
+            # The way this test will fail is by set_trace() never exiting,
+            # resulting in a timeout by the test runner. The alternative
+            # implementation would involve a subprocess, but that adds issues
+            # with interrupting subprocesses that are rather complex, so it's
+            # simpler just to do it this way.
+    finally:
+        # restore the original trace function
+        sys.settrace(tracer_orig)
+
 
 @skip_win32
 def test_xmode_skip():
