@@ -68,7 +68,7 @@ def test_get_ipython_dir_2():
     assert ipdir == os.path.join("someplace", ".ipython")
 
 def test_get_ipython_dir_3():
-    """test_get_ipython_dir_3, move XDG if defined, and .ipython doesn't exist."""
+    """test_get_ipython_dir_3, use XDG if defined and exists, and .ipython doesn't exist."""
     tmphome = TemporaryDirectory()
     try:
         with patch_get_home_dir(tmphome.name), \
@@ -80,10 +80,8 @@ def test_get_ipython_dir_3():
                 }), warnings.catch_warnings(record=True) as w:
             ipdir = paths.get_ipython_dir()
 
-        assert ipdir == os.path.join(tmphome.name, ".ipython")
-        if sys.platform != 'darwin':
-            assert len(w) == 1
-            assert "Moving" in str(w[0])
+        assert ipdir == os.path.join(tmphome.name, XDG_TEST_DIR, "ipython")
+        assert len(w) == 0
     finally:
         tmphome.cleanup()
 
@@ -105,10 +103,8 @@ def test_get_ipython_dir_4():
         }), warnings.catch_warnings(record=True) as w:
             ipdir = paths.get_ipython_dir()
 
-        assert ipdir == os.path.join(HOME_TEST_DIR, ".ipython")
-        if sys.platform != 'darwin':
-            assert len(w) == 1
-            assert "Ignoring" in str(w[0])
+        assert len(w) == 1
+        assert "Ignoring" in str(w[0])
 
 
 def test_get_ipython_dir_5():
@@ -179,7 +175,7 @@ def test_get_ipython_dir_8():
 
 def test_get_ipython_cache_dir():
     with modified_env({'HOME': HOME_TEST_DIR}):
-        if os.name == 'posix' and sys.platform != 'darwin':
+        if os.name == "posix":
             # test default
             os.makedirs(os.path.join(HOME_TEST_DIR, ".cache"))
             with modified_env({'XDG_CACHE_HOME': None}):
