@@ -43,7 +43,7 @@ from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.events import EventManager, available_events
 from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
-from IPython.core.debugger import Pdb
+from IPython.core.debugger import InterruptiblePdb
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
@@ -1823,7 +1823,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to exception handling and tracebacks (not debugging)
     #-------------------------------------------------------------------------
 
-    debugger_cls = Pdb
+    debugger_cls = InterruptiblePdb
 
     def init_traceback_handlers(self, custom_exceptions):
         # Syntax error handler.
