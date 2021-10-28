@@ -54,8 +54,7 @@ def get_ipython_dir() -> str:
                     warn(('{0} is deprecated. Move link to {1} to '
                         'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
                 else:
-                    warn('Moving {0} to {1}'.format(cu(xdg_ipdir), cu(ipdir)))
-                    shutil.move(xdg_ipdir, ipdir)
+                    ipdir = xdg_ipdir
 
     ipdir = os.path.normpath(os.path.expanduser(ipdir))
 

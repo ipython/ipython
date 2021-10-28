@@ -223,7 +223,7 @@ def get_xdg_dir():
 
     env = os.environ
 
-    if os.name == 'posix' and sys.platform != 'darwin':
+    if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.config if empty OR not set
         xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
@@ -242,7 +242,7 @@ def get_xdg_cache_dir():
 
     env = os.environ
 
-    if os.name == 'posix' and sys.platform != 'darwin':
+    if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.cache if empty OR not set
         xdg = env.get("XDG_CACHE_HOME", None) or os.path.join(get_home_dir(), '.cache')
