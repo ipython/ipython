@@ -30,5 +30,5 @@ install:
 test_script:
   - iptest --coverage xml
 on_finish:
-  - pip install codecov
-  - codecov -e PYTHON_VERSION PYTHON_ARCH
+  - curl -Os https://uploader.codecov.io/latest/windows/codecov.exe
+  - codecov -e PYTHON_VERSION,PYTHON_ARCH
