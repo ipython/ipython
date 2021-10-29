@@ -7,9 +7,15 @@ import os
 
 from nose.plugins.errorclass import ErrorClass, ErrorClassPlugin
 
-class KnownFailureTest(Exception):
-    '''Raise this exception to mark a test as a known failing test.'''
-    pass
+
+try:
+    import pytest
+
+    KnownFailureTest = pytest.xfail.Exception
+except ImportError:
+
+    class KnownFailureTest(Exception):
+        """Raise this exception to mark a test as a known failing test."""
 
 
 class KnownFailure(ErrorClassPlugin):

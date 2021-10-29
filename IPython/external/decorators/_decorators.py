@@ -133,9 +133,16 @@ def knownfailureif(fail_condition, msg=None):
         # import time overhead at actual test-time.
         import nose
 
+        try:
+            from pytest import xfail
+        except ImportError:
+
+            def xfail():
+                raise KnownFailureTest(msg)
+
         def knownfailer(*args, **kwargs):
             if fail_condition:
-                raise KnownFailureTest(msg)
+                xfail(msg)
             else:
                 return f(*args, **kwargs)
         return nose.tools.make_decorator(f)(knownfailer)
