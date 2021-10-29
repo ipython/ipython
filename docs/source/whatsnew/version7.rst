@@ -2,6 +2,47 @@
  7.x Series
 ============
 
+.. _version 7.29:
+
+IPython 7.29
+============
+
+
+IPython 7.29 brings a couple of new functionalities to IPython and a number of bugfixes.
+It is one of the largest recent release, relatively speaking, with close to 15 Pull Requests.
+
+
+- fix an issue where base64 was returned instead of bytes when showing figures :ghpull:`13162`
+- fix compatibility with PyQt6, PySide 6 :ghpull:`13172`. This may be of
+  interest if you are running on Apple Silicon as only qt6.2+ is natively
+  compatible.
+- fix matplotlib qtagg eventloop :ghpull:`13179`
+- Multiple docs fixes, typos, ... etc.
+- Debugger will now exit by default on SigInt :ghpull:`13218`, this will be
+  useful in notebook/lab if you forgot to exit the debugger. "Interrupt Kernel"
+  will now exist the debugger.
+
+It give Pdb the ability to skip code in decorators. If functions contain a
+special value names ``__debuggerskip__ = True|False``, the function will not be
+stepped into, and Pdb will step into lower frames only if the value is set to
+``False``. The exact behavior is still likely to have corner cases and will be
+refined in subsequent releases. Feedback welcome. See the debugger module
+documentation for more info. Thanks to the `D. E. Shaw
+group <https://deshaw.com/>`__ for funding this feature.
+
+The main branch of IPython is receiving a number of changes as we received a
+`NumFOCUS SDG <https://numfocus.org/programs/small-development-grants>`__
+($4800), to help us finish replacing ``nose`` by ``pytest``, and make IPython
+future proof with an 8.0 release.
+
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/92>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 
 .. _version 7.28:
 
