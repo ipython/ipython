@@ -23,12 +23,14 @@ init:
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - python -m pip install --upgrade setuptools pip
-  - pip install nose coverage pytest
+  - pip install nose coverage pytest pytest-cov pytest-trio pywin32 matplotlib
   - pip install .[test]
   - mkdir results
   - cd results
 test_script:
   - iptest --coverage xml
+  - cd ..
+  - pytest -ra --cov --cov-report=xml
 on_finish:
   - curl -Os https://uploader.codecov.io/latest/windows/codecov.exe
   - codecov -e PYTHON_VERSION,PYTHON_ARCH
