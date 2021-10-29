@@ -376,7 +376,7 @@ def onlyif_cmds_exist(*commands):
     Decorator to skip test when at least one of `commands` is not found.
     """
     for cmd in commands:
-        reason = "This test runs only if command '{cmd}' is installed"
+        reason = f"This test runs only if command '{cmd}' is installed"
         if not shutil.which(cmd):
             if os.environ.get("IPTEST_WORKING_DIR", None) is not None:
                 return skip(reason)
