@@ -121,9 +121,8 @@ import traceback
 import types
 import weakref
 import gc
-from importlib import import_module
+from importlib import import_module, reload
 from importlib.util import source_from_cache
-from imp import reload
 
 # ------------------------------------------------------------------------------
 # Autoreload functionality
