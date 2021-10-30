@@ -38,9 +38,13 @@ ask_section(){
     echo
     echo $BLUE"$1"$NOR 
     echo -n $GREEN"Press Enter to continue, S to skip: "$NOR
-    read -n1 value
-    echo 
-    if [ -z $value ] || [ $value = 'y' ]  ; then
+    if [ "$ZSH_NAME" = "zsh" ] ; then
+        read -k1 value
+        value=${value%$'\n'}
+    else
+       read -n1 value
+    fi
+    if [ -z "$value" ] || [ $value = 'y' ]; then
         return 0
     fi
     return 1
