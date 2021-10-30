@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Setup script for IPython.
 
@@ -180,8 +179,4 @@ setup_args["extras_require"] = extras_require
 # Do the actual setup now
 #---------------------------------------------------------------------------
 
-def main():
-    setup(**setup_args)
-
-if __name__ == '__main__':
-    main()
+setup(**setup_args)
