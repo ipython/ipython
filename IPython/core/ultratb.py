@@ -630,10 +630,10 @@ class VerboseTB(TBTools):
 
         indent = ' ' * INDENT_SIZE
         em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
-        tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm,
+        tpl_call = 'line %s, in %s%%s%s%%s%s' % (frame_info.lineno, Colors.vName, Colors.valEm,
                                         ColorsNormal)
-        tpl_call_fail = 'in %s%%s%s(***failed resolving arguments***)%s' % \
-                        (Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_call_fail = 'line %s, in %s%%s%s(***failed resolving arguments***)%s' % \
+                        (frame_info.lineno, Colors.vName, Colors.valEm, ColorsNormal)
         tpl_name_val = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
 
         link = _format_filename(frame_info.filename, Colors.filenameEm, ColorsNormal)
