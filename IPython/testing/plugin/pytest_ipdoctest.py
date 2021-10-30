@@ -1,6 +1,13 @@
-"""Discover and run doctests in modules and test files."""
+# Based on Pytest doctest.py
+# Original license:
+# The MIT License (MIT)
+#
+# Copyright (c) 2004-2021 Holger Krekel and others
+"""Discover and run ipdoctests in modules and test files."""
+import builtins
 import bdb
 import inspect
+import os
 import platform
 import sys
 import traceback
@@ -59,56 +66,56 @@ DOCTEST_REPORT_CHOICES = (
 # Lazy definition of runner class
 RUNNER_CLASS = None
 # Lazy definition of output checker class
-CHECKER_CLASS: Optional[Type["doctest.OutputChecker"]] = None
+CHECKER_CLASS: Optional[Type["IPDoctestOutputChecker"]] = None
 
 
 def pytest_addoption(parser: Parser) -> None:
     parser.addini(
-        "doctest_optionflags",
-        "option flags for doctests",
+        "ipdoctest_optionflags",
+        "option flags for ipdoctests",
         type="args",
         default=["ELLIPSIS"],
     )
     parser.addini(
-        "doctest_encoding", "encoding used for doctest files", default="utf-8"
+        "ipdoctest_encoding", "encoding used for ipdoctest files", default="utf-8"
     )
     group = parser.getgroup("collect")
     group.addoption(
-        "--doctest-modules",
+        "--ipdoctest-modules",
         action="store_true",
         default=False,
-        help="run doctests in all .py modules",
-        dest="doctestmodules",
+        help="run ipdoctests in all .py modules",
+        dest="ipdoctestmodules",
     )
     group.addoption(
-        "--doctest-report",
+        "--ipdoctest-report",
         type=str.lower,
         default="udiff",
-        help="choose another output format for diffs on doctest failure",
+        help="choose another output format for diffs on ipdoctest failure",
         choices=DOCTEST_REPORT_CHOICES,
-        dest="doctestreport",
+        dest="ipdoctestreport",
     )
     group.addoption(
-        "--doctest-glob",
+        "--ipdoctest-glob",
         action="append",
         default=[],
         metavar="pat",
-        help="doctests file matching pattern, default: test*.txt",
-        dest="doctestglob",
+        help="ipdoctests file matching pattern, default: test*.txt",
+        dest="ipdoctestglob",
     )
     group.addoption(
-        "--doctest-ignore-import-errors",
+        "--ipdoctest-ignore-import-errors",
         action="store_true",
         default=False,
-        help="ignore doctest ImportErrors",
-        dest="doctest_ignore_import_errors",
+        help="ignore ipdoctest ImportErrors",
+        dest="ipdoctest_ignore_import_errors",
     )
     group.addoption(
-        "--doctest-continue-on-failure",
+        "--ipdoctest-continue-on-failure",
         action="store_true",
         default=False,
-        help="for a given doctest, continue to run after the first failure",
-        dest="doctest_continue_on_failure",
+        help="for a given ipdoctest, continue to run after the first failure",
+        dest="ipdoctest_continue_on_failure",
     )
 
 
@@ -119,15 +126,16 @@ def pytest_unconfigure() -> None:
 
 
 def pytest_collect_file(
-    path: py.path.local, parent: Collector,
-) -> Optional[Union["DoctestModule", "DoctestTextfile"]]:
+    path: py.path.local,
+    parent: Collector,
+) -> Optional[Union["IPDoctestModule", "IPDoctestTextfile"]]:
     config = parent.config
     if path.ext == ".py":
-        if config.option.doctestmodules and not _is_setup_py(path):
-            mod: DoctestModule = DoctestModule.from_parent(parent, fspath=path)
+        if config.option.ipdoctestmodules and not _is_setup_py(path):
+            mod: IPDoctestModule = IPDoctestModule.from_parent(parent, fspath=path)
             return mod
-    elif _is_doctest(config, path, parent):
-        txt: DoctestTextfile = DoctestTextfile.from_parent(parent, fspath=path)
+    elif _is_ipdoctest(config, path, parent):
+        txt: IPDoctestTextfile = IPDoctestTextfile.from_parent(parent, fspath=path)
         return txt
     return None
 
@@ -139,10 +147,10 @@ def _is_setup_py(path: py.path.local) -> bool:
     return b"setuptools" in contents or b"distutils" in contents
 
 
-def _is_doctest(config: Config, path: py.path.local, parent) -> bool:
+def _is_ipdoctest(config: Config, path: py.path.local, parent) -> bool:
     if path.ext in (".txt", ".rst") and parent.session.isinitpath(path):
         return True
-    globs = config.getoption("doctestglob") or ["test*.txt"]
+    globs = config.getoption("ipdoctestglob") or ["test*.txt"]
     for glob in globs:
         if path.check(fnmatch=glob):
             return True
@@ -168,10 +176,11 @@ class MultipleDoctestFailures(Exception):
         self.failures = failures
 
 
-def _init_runner_class() -> Type["doctest.DocTestRunner"]:
+def _init_runner_class() -> Type["IPDocTestRunner"]:
     import doctest
+    from .ipdoctest import IPDocTestRunner
 
-    class PytestDoctestRunner(doctest.DebugRunner):
+    class PytestDoctestRunner(IPDocTestRunner):
         """Runner to collect failures.
 
         Note that the out variable in this case is a list instead of a
@@ -180,18 +189,20 @@ def _init_runner_class() -> Type["doctest.DocTestRunner"]:
 
         def __init__(
             self,
-            checker: Optional["doctest.OutputChecker"] = None,
+            checker: Optional["IPDoctestOutputChecker"] = None,
             verbose: Optional[bool] = None,
             optionflags: int = 0,
             continue_on_failure: bool = True,
         ) -> None:
-            doctest.DebugRunner.__init__(
-                self, checker=checker, verbose=verbose, optionflags=optionflags
-            )
+            super().__init__(checker=checker, verbose=verbose, optionflags=optionflags)
             self.continue_on_failure = continue_on_failure
 
         def report_failure(
-            self, out, test: "doctest.DocTest", example: "doctest.Example", got: str,
+            self,
+            out,
+            test: "doctest.DocTest",
+            example: "doctest.Example",
+            got: str,
         ) -> None:
             failure = doctest.DocTestFailure(test, example, got)
             if self.continue_on_failure:
@@ -220,11 +231,11 @@ def _init_runner_class() -> Type["doctest.DocTestRunner"]:
 
 
 def _get_runner(
-    checker: Optional["doctest.OutputChecker"] = None,
+    checker: Optional["IPDoctestOutputChecker"] = None,
     verbose: Optional[bool] = None,
     optionflags: int = 0,
     continue_on_failure: bool = True,
-) -> "doctest.DocTestRunner":
+) -> "IPDocTestRunner":
     # We need this in order to do a lazy import on doctest
     global RUNNER_CLASS
     if RUNNER_CLASS is None:
@@ -239,12 +250,12 @@ def _get_runner(
     )
 
 
-class DoctestItem(pytest.Item):
+class IPDoctestItem(pytest.Item):
     def __init__(
         self,
         name: str,
-        parent: "Union[DoctestTextfile, DoctestModule]",
-        runner: Optional["doctest.DocTestRunner"] = None,
+        parent: "Union[IPDoctestTextfile, IPDoctestModule]",
+        runner: Optional["IPDocTestRunner"] = None,
         dtest: Optional["doctest.DocTest"] = None,
     ) -> None:
         super().__init__(name, parent)
@@ -256,10 +267,10 @@ class DoctestItem(pytest.Item):
     @classmethod
     def from_parent(  # type: ignore
         cls,
-        parent: "Union[DoctestTextfile, DoctestModule]",
+        parent: "Union[IPDoctestTextfile, IPDoctestModule]",
         *,
         name: str,
-        runner: "doctest.DocTestRunner",
+        runner: "IPDocTestRunner",
         dtest: "doctest.DocTest",
     ):
         # incompatible signature due to to imposed limits on sublcass
@@ -271,10 +282,37 @@ class DoctestItem(pytest.Item):
             self.fixture_request = _setup_fixtures(self)
             globs = dict(getfixture=self.fixture_request.getfixturevalue)
             for name, value in self.fixture_request.getfixturevalue(
-                "doctest_namespace"
+                "ipdoctest_namespace"
             ).items():
                 globs[name] = value
             self.dtest.globs.update(globs)
+
+            from .ipdoctest import IPExample
+
+            if isinstance(self.dtest.examples[0], IPExample):
+                # for IPython examples *only*, we swap the globals with the ipython
+                # namespace, after updating it with the globals (which doctest
+                # fills with the necessary info from the module being tested).
+                self._user_ns_orig = {}
+                self._user_ns_orig.update(_ip.user_ns)
+                _ip.user_ns.update(self.dtest.globs)
+                # We must remove the _ key in the namespace, so that Python's
+                # doctest code sets it naturally
+                _ip.user_ns.pop("_", None)
+                _ip.user_ns["__builtins__"] = builtins
+                self.dtest.globs = _ip.user_ns
+
+    def teardown(self) -> None:
+        from .ipdoctest import IPExample
+
+        # Undo the test.globs reassignment we made
+        if isinstance(self.dtest.examples[0], IPExample):
+            self.dtest.globs = {}
+            _ip.user_ns.clear()
+            _ip.user_ns.update(self._user_ns_orig)
+            del self._user_ns_orig
+
+        self.dtest.globs.clear()
 
     def runtest(self) -> None:
         assert self.dtest is not None
@@ -282,14 +320,32 @@ class DoctestItem(pytest.Item):
         _check_all_skipped(self.dtest)
         self._disable_output_capturing_for_darwin()
         failures: List["doctest.DocTestFailure"] = []
-        # Type ignored because we change the type of `out` from what
-        # doctest expects.
-        self.runner.run(self.dtest, out=failures)  # type: ignore[arg-type]
+
+        # exec(compile(..., "single", ...), ...) puts result in builtins._
+        had_underscore_value = hasattr(builtins, "_")
+        underscore_original_value = getattr(builtins, "_", None)
+
+        # Save our current directory and switch out to the one where the
+        # test was originally created, in case another doctest did a
+        # directory change.  We'll restore this in the finally clause.
+        curdir = os.getcwd()
+        os.chdir(self.fspath.dirname)
+        try:
+            # Type ignored because we change the type of `out` from what
+            # ipdoctest expects.
+            self.runner.run(self.dtest, out=failures, clear_globs=False)  # type: ignore[arg-type]
+        finally:
+            os.chdir(curdir)
+            if had_underscore_value:
+                setattr(builtins, "_", underscore_original_value)
+            elif hasattr(builtins, "_"):
+                delattr(builtins, "_")
+
         if failures:
             raise MultipleDoctestFailures(failures)
 
     def _disable_output_capturing_for_darwin(self) -> None:
-        """Disable output capturing. Otherwise, stdout is lost to doctest (#985)."""
+        """Disable output capturing. Otherwise, stdout is lost to ipdoctest (pytest#985)."""
         if platform.system() != "Darwin":
             return
         capman = self.config.pluginmanager.getplugin("capturemanager")
@@ -301,13 +357,14 @@ class DoctestItem(pytest.Item):
 
     # TODO: Type ignored -- breaks Liskov Substitution.
     def repr_failure(  # type: ignore[override]
-        self, excinfo: ExceptionInfo[BaseException],
+        self,
+        excinfo: ExceptionInfo[BaseException],
     ) -> Union[str, TerminalRepr]:
         import doctest
 
         failures: Optional[
             Sequence[Union[doctest.DocTestFailure, doctest.UnexpectedException]]
-        ] = (None)
+        ] = None
         if isinstance(
             excinfo.value, (doctest.DocTestFailure, doctest.UnexpectedException)
         ):
@@ -330,7 +387,7 @@ class DoctestItem(pytest.Item):
                 reprlocation = ReprFileLocation(filename, lineno, message)  # type: ignore[arg-type]
                 checker = _get_checker()
                 report_choice = _get_report_choice(
-                    self.config.getoption("doctestreport")
+                    self.config.getoption("ipdoctestreport")
                 )
                 if lineno is not None:
                     assert failure.test.docstring is not None
@@ -369,7 +426,7 @@ class DoctestItem(pytest.Item):
 
     def reportinfo(self):
         assert self.dtest is not None
-        return self.fspath, self.dtest.lineno, "[doctest] %s" % self.name
+        return self.fspath, self.dtest.lineno, "[ipdoctest] %s" % self.name
 
 
 def _get_flag_lookup() -> Dict[str, int]:
@@ -389,7 +446,7 @@ def _get_flag_lookup() -> Dict[str, int]:
 
 
 def get_optionflags(parent):
-    optionflags_str = parent.config.getini("doctest_optionflags")
+    optionflags_str = parent.config.getini("ipdoctest_optionflags")
     flag_lookup_table = _get_flag_lookup()
     flag_acc = 0
     for flag in optionflags_str:
@@ -398,7 +455,7 @@ def get_optionflags(parent):
 
 
 def _get_continue_on_failure(config):
-    continue_on_failure = config.getvalue("doctest_continue_on_failure")
+    continue_on_failure = config.getvalue("ipdoctest_continue_on_failure")
     if continue_on_failure:
         # We need to turn off this if we use pdb since we should stop at
         # the first failure.
@@ -407,15 +464,16 @@ def _get_continue_on_failure(config):
     return continue_on_failure
 
 
-class DoctestTextfile(pytest.Module):
+class IPDoctestTextfile(pytest.Module):
     obj = None
 
-    def collect(self) -> Iterable[DoctestItem]:
+    def collect(self) -> Iterable[IPDoctestItem]:
         import doctest
+        from .ipdoctest import IPDocTestParser
 
         # Inspired by doctest.testfile; ideally we would use it directly,
         # but it doesn't support passing a custom checker.
-        encoding = self.config.getini("doctest_encoding")
+        encoding = self.config.getini("ipdoctest_encoding")
         text = self.fspath.read_text(encoding)
         filename = str(self.fspath)
         name = self.fspath.basename
@@ -430,10 +488,10 @@ class DoctestTextfile(pytest.Module):
             continue_on_failure=_get_continue_on_failure(self.config),
         )
 
-        parser = doctest.DocTestParser()
+        parser = IPDocTestParser()
         test = parser.get_doctest(text, globs, name, filename, 0)
         if test.examples:
-            yield DoctestItem.from_parent(
+            yield IPDoctestItem.from_parent(
                 self, name=test.name, runner=runner, dtest=test
             )
 
@@ -487,12 +545,13 @@ def _patch_unwrap_mock_aware() -> Generator[None, None, None]:
         inspect.unwrap = real_unwrap
 
 
-class DoctestModule(pytest.Module):
-    def collect(self) -> Iterable[DoctestItem]:
+class IPDoctestModule(pytest.Module):
+    def collect(self) -> Iterable[IPDoctestItem]:
         import doctest
+        from .ipdoctest import DocTestFinder, IPDocTestParser
 
-        class MockAwareDocTestFinder(doctest.DocTestFinder):
-            """A hackish doctest finder that overrides stdlib internals to fix a stdlib bug.
+        class MockAwareDocTestFinder(DocTestFinder):
+            """A hackish ipdoctest finder that overrides stdlib internals to fix a stdlib bug.
 
             https://github.com/pytest-dev/pytest/issues/3456
             https://bugs.python.org/issue25532
@@ -507,8 +566,10 @@ class DoctestModule(pytest.Module):
                 if isinstance(obj, property):
                     obj = getattr(obj, "fget", obj)
                 # Type ignored because this is a private function.
-                return doctest.DocTestFinder._find_lineno(  # type: ignore
-                    self, obj, source_lines,
+                return DocTestFinder._find_lineno(  # type: ignore
+                    self,
+                    obj,
+                    source_lines,
                 )
 
             def _find(
@@ -519,7 +580,7 @@ class DoctestModule(pytest.Module):
                 with _patch_unwrap_mock_aware():
 
                     # Type ignored because this is a private function.
-                    doctest.DocTestFinder._find(  # type: ignore
+                    DocTestFinder._find(  # type: ignore
                         self, tests, obj, name, module, source_lines, globs, seen
                     )
 
@@ -531,12 +592,12 @@ class DoctestModule(pytest.Module):
             try:
                 module = import_path(self.fspath)
             except ImportError:
-                if self.config.getvalue("doctest_ignore_import_errors"):
+                if self.config.getvalue("ipdoctest_ignore_import_errors"):
                     pytest.skip("unable to import module %r" % self.fspath)
                 else:
                     raise
         # Uses internal doctest module parsing mechanism.
-        finder = MockAwareDocTestFinder()
+        finder = MockAwareDocTestFinder(parser=IPDocTestParser())
         optionflags = get_optionflags(self)
         runner = _get_runner(
             verbose=False,
@@ -546,14 +607,14 @@ class DoctestModule(pytest.Module):
         )
 
         for test in finder.find(module, module.__name__):
-            if test.examples:  # skip empty doctests
-                yield DoctestItem.from_parent(
+            if test.examples:  # skip empty ipdoctests
+                yield IPDoctestItem.from_parent(
                     self, name=test.name, runner=runner, dtest=test
                 )
 
 
-def _setup_fixtures(doctest_item: DoctestItem) -> FixtureRequest:
-    """Used by DoctestTextfile and DoctestItem to setup fixture information."""
+def _setup_fixtures(doctest_item: IPDoctestItem) -> FixtureRequest:
+    """Used by IPDoctestTextfile and IPDoctestItem to setup fixture information."""
 
     def func() -> None:
         pass
@@ -568,11 +629,12 @@ def _setup_fixtures(doctest_item: DoctestItem) -> FixtureRequest:
     return fixture_request
 
 
-def _init_checker_class() -> Type["doctest.OutputChecker"]:
+def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
     import doctest
     import re
+    from .ipdoctest import IPDoctestOutputChecker
 
-    class LiteralsOutputChecker(doctest.OutputChecker):
+    class LiteralsOutputChecker(IPDoctestOutputChecker):
         # Based on doctest_nose_plugin.py from the nltk project
         # (https://github.com/nltk/nltk) and on the "numtest" doctest extension
         # by Sebastien Boisgerault (https://github.com/boisgera/numtest).
@@ -603,7 +665,7 @@ def _init_checker_class() -> Type["doctest.OutputChecker"]:
         )
 
         def check_output(self, want: str, got: str, optionflags: int) -> bool:
-            if doctest.OutputChecker.check_output(self, want, got, optionflags):
+            if IPDoctestOutputChecker.check_output(self, want, got, optionflags):
                 return True
 
             allow_unicode = optionflags & _get_allow_unicode_flag()
@@ -627,7 +689,7 @@ def _init_checker_class() -> Type["doctest.OutputChecker"]:
             if allow_number:
                 got = self._remove_unwanted_precision(want, got)
 
-            return doctest.OutputChecker.check_output(self, want, got, optionflags)
+            return IPDoctestOutputChecker.check_output(self, want, got, optionflags)
 
         def _remove_unwanted_precision(self, want: str, got: str) -> str:
             wants = list(self._number_re.finditer(want))
@@ -659,18 +721,18 @@ def _init_checker_class() -> Type["doctest.OutputChecker"]:
     return LiteralsOutputChecker
 
 
-def _get_checker() -> "doctest.OutputChecker":
-    """Return a doctest.OutputChecker subclass that supports some
+def _get_checker() -> "IPDoctestOutputChecker":
+    """Return a IPDoctestOutputChecker subclass that supports some
     additional options:
 
     * ALLOW_UNICODE and ALLOW_BYTES options to ignore u'' and b''
       prefixes (respectively) in string literals. Useful when the same
-      doctest should run in Python 2 and Python 3.
+      ipdoctest should run in Python 2 and Python 3.
 
     * NUMBER to ignore floating-point differences smaller than the
-      precision of the literal number in the doctest.
+      precision of the literal number in the ipdoctest.
 
-    An inner class is used to avoid importing "doctest" at the module
+    An inner class is used to avoid importing "ipdoctest" at the module
     level.
     """
     global CHECKER_CLASS
@@ -701,9 +763,9 @@ def _get_number_flag() -> int:
 
 
 def _get_report_choice(key: str) -> int:
-    """Return the actual `doctest` module flag value.
+    """Return the actual `ipdoctest` module flag value.
 
-    We want to do it as late as possible to avoid importing `doctest` and all
+    We want to do it as late as possible to avoid importing `ipdoctest` and all
     its dependencies when parsing options, as it adds overhead and breaks tests.
     """
     import doctest
@@ -718,7 +780,7 @@ def _get_report_choice(key: str) -> int:
 
 
 @pytest.fixture(scope="session")
-def doctest_namespace() -> Dict[str, Any]:
+def ipdoctest_namespace() -> Dict[str, Any]:
     """Fixture that returns a :py:class:`dict` that will be injected into the
-    namespace of doctests."""
+    namespace of ipdoctests."""
     return dict()
