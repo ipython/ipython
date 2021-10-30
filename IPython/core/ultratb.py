@@ -628,13 +628,21 @@ class VerboseTB(TBTools):
             return '    %s[... skipping similar frames: %s]%s\n' % (
                 Colors.excName, frame_info.description, ColorsNormal)
 
-        indent = ' ' * INDENT_SIZE
-        em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
-        tpl_call = 'line %s, in %s%%s%s%%s%s' % (frame_info.lineno, Colors.vName, Colors.valEm,
-                                        ColorsNormal)
-        tpl_call_fail = 'line %s, in %s%%s%s(***failed resolving arguments***)%s' % \
-                        (frame_info.lineno, Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_name_val = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
+        indent = " " * INDENT_SIZE
+        em_normal = "%s\n%s%s" % (Colors.valEm, indent, ColorsNormal)
+        tpl_call = "line %s, in %s%%s%s%%s%s" % (
+            frame_info.lineno,
+            Colors.vName,
+            Colors.valEm,
+            ColorsNormal,
+        )
+        tpl_call_fail = "line %s, in %s%%s%s(***failed resolving arguments***)%s" % (
+            frame_info.lineno,
+            Colors.vName,
+            Colors.valEm,
+            ColorsNormal,
+        )
+        tpl_name_val = "%%s %s= %%s%s" % (Colors.valEm, ColorsNormal)
 
         link = _format_filename(frame_info.filename, Colors.filenameEm, ColorsNormal)
         args, varargs, varkw, locals_ = inspect.getargvalues(frame_info.frame)
