@@ -137,7 +137,7 @@ def knownfailureif(fail_condition, msg=None):
             from pytest import xfail
         except ImportError:
 
-            def xfail():
+            def xfail(msg):
                 raise KnownFailureTest(msg)
 
         def knownfailer(*args, **kwargs):
