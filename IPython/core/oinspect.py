@@ -31,7 +31,6 @@ from IPython.lib.pretty import pretty
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import openpy
-from IPython.utils import py3compat
 from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.path import compress_user
 from IPython.utils.text import indent

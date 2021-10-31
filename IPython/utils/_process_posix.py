@@ -24,7 +24,6 @@ import pexpect
 
 # Our own
 from ._process_common import getoutput, arg_split
-from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
 
 #-----------------------------------------------------------------------------
@@ -34,9 +33,10 @@ from IPython.utils.encoding import DEFAULT_ENCODING
 def _find_cmd(cmd):
     """Find the full path to a command using which."""
 
-    path = sp.Popen(['/usr/bin/env', 'which', cmd],
-                    stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
-    return py3compat.decode(path)
+    path = sp.Popen(
+        ["/usr/bin/env", "which", cmd], text=True, stdout=sp.PIPE, stderr=sp.PIPE
+    ).communicate()[0]
+    return path
 
 
 class ProcessHandler(object):

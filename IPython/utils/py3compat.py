@@ -3,41 +3,18 @@
 
 This file is deprecated and will be removed in a future version.
 """
-import functools
-import os
-import sys
-import re
-import shutil
 import types
 import platform
 
 from .encoding import DEFAULT_ENCODING
 
 
-def decode(s, encoding=None):
-    encoding = encoding or DEFAULT_ENCODING
-    return s.decode(encoding, "replace")
-
-def encode(u, encoding=None):
-    encoding = encoding or DEFAULT_ENCODING
-    return u.encode(encoding, "replace")
-
-
 def cast_unicode(s, encoding=None):
+    encoding = encoding or DEFAULT_ENCODING
     if isinstance(s, bytes):
-        return decode(s, encoding)
+        return s.decode(encoding, errors="replace")
     return s
 
-def cast_bytes(s, encoding=None):
-    if not isinstance(s, bytes):
-        return encode(s, encoding)
-    return s
-
-def buffer_to_bytes(buf):
-    """Cast a buffer object to bytes"""
-    if not isinstance(buf, bytes):
-        buf = bytes(buf)
-    return buf
 
 def safe_unicode(e):
     """unicode(e) with various fallbacks. Used for exceptions, which may not be
@@ -79,4 +56,3 @@ PYPY = platform.python_implementation() == "PyPy"
 def no_code(x, encoding=None):
         return x
 unicode_to_str = cast_bytes_py2 = no_code
-
