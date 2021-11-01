@@ -328,20 +328,18 @@ class TestCompleter(unittest.TestCase):
                 name, matches = ip.complete("\\" + letter)
                 self.assertEqual(matches, [])
 
-    class CompletionSplitterTestCase(unittest.TestCase):
-        def setUp(self):
-            self.sp = completer.CompletionSplitter()
+    def test_delim_setting(self):
+        sp = completer.CompletionSplitter()
+        sp.delims = " "
+        self.assertEqual(sp.delims, " ")
+        self.assertEqual(sp._delim_expr, r"[\ ]")
 
-        def test_delim_setting(self):
-            self.sp.delims = " "
-            self.assertEqual(self.sp.delims, " ")
-            self.assertEqual(self.sp._delim_expr, r"[\ ]")
-
-        def test_spaces(self):
-            """Test with only spaces as split chars."""
-            self.sp.delims = " "
-            t = [("foo", "", "foo"), ("run foo", "", "foo"), ("run foo", "bar", "foo")]
-            check_line_split(self.sp, t)
+    def test_spaces(self):
+        """Test with only spaces as split chars."""
+        sp = completer.CompletionSplitter()
+        sp.delims = " "
+        t = [("foo", "", "foo"), ("run foo", "", "foo"), ("run foo", "bar", "foo")]
+        check_line_split(sp, t)
 
     def test_has_open_quotes1(self):
         for s in ["'", "'''", "'hi' '"]:
@@ -462,7 +460,7 @@ class TestCompleter(unittest.TestCase):
                 ip.Completer.use_jedi = True
                 completions = set(ip.Completer.completions(s, l))
                 ip.Completer.use_jedi = False
-                assert_in(Completion(start, end, comp), completions, reason)
+                assert Completion(start, end, comp) in completions, reason
 
         def _test_not_complete(reason, s, comp):
             l = len(s)
@@ -470,18 +468,18 @@ class TestCompleter(unittest.TestCase):
                 ip.Completer.use_jedi = True
                 completions = set(ip.Completer.completions(s, l))
                 ip.Completer.use_jedi = False
-                assert_not_in(Completion(l, l, comp), completions, reason)
+                assert Completion(l, l, comp) not in completions, reason
 
         import jedi
 
         jedi_version = tuple(int(i) for i in jedi.__version__.split(".")[:3])
         if jedi_version > (0, 10):
-            yield _test_complete, "jedi >0.9 should complete and not crash", "a=1;a.", "real"
-        yield _test_complete, "can infer first argument", 'a=(1,"foo");a[0].', "real"
-        yield _test_complete, "can infer second argument", 'a=(1,"foo");a[1].', "capitalize"
-        yield _test_complete, "cover duplicate completions", "im", "import", 0, 2
+            _test_complete("jedi >0.9 should complete and not crash", "a=1;a.", "real")
+        _test_complete("can infer first argument", 'a=(1,"foo");a[0].', "real")
+        _test_complete("can infer second argument", 'a=(1,"foo");a[1].', "capitalize")
+        _test_complete("cover duplicate completions", "im", "import", 0, 2)
 
-        yield _test_not_complete, "does not mix types", 'a=(1,"foo");a[0].', "capitalize"
+        _test_not_complete("does not mix types", 'a=(1,"foo");a[0].', "capitalize")
 
     def test_completion_have_signature(self):
         """
@@ -548,15 +546,27 @@ class TestCompleter(unittest.TestCase):
                 self.assertIn(completion, completions)
 
         with provisionalcompleter():
-            yield _, "a[0].", 5, "a[0].real", "Should have completed on a[0].: %s", Completion(
-                5, 5, "real"
+            _(
+                "a[0].",
+                5,
+                "a[0].real",
+                "Should have completed on a[0].: %s",
+                Completion(5, 5, "real"),
             )
-            yield _, "a[0].r", 6, "a[0].real", "Should have completed on a[0].r: %s", Completion(
-                5, 6, "real"
+            _(
+                "a[0].r",
+                6,
+                "a[0].real",
+                "Should have completed on a[0].r: %s",
+                Completion(5, 6, "real"),
             )
 
-            yield _, "a[0].from_", 10, "a[0].from_bytes", "Should have completed on a[0].from_: %s", Completion(
-                5, 10, "from_bytes"
+            _(
+                "a[0].from_",
+                10,
+                "a[0].from_bytes",
+                "Should have completed on a[0].from_: %s",
+                Completion(5, 10, "from_bytes"),
             )
 
     def test_omit__names(self):

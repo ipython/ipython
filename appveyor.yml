@@ -23,7 +23,7 @@ init:
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - python -m pip install --upgrade setuptools pip
-  - pip install nose coverage pytest pytest-cov pytest-trio pywin32 matplotlib
+  - pip install nose coverage pytest pytest-cov pytest-trio pywin32 matplotlib pandas
   - pip install .[test]
   - mkdir results
   - cd results
