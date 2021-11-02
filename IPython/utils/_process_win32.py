@@ -71,27 +71,6 @@ class AvoidUNCPath(object):
             os.chdir(self.path)
 
 
-def _find_cmd(cmd):
-    """Find the full path to a .bat or .exe using the win32api module."""
-    try:
-        from win32api import SearchPath
-    except ImportError as e:
-        raise ImportError('you need to have pywin32 installed for this to work') from e
-    else:
-        PATH = os.environ['PATH']
-        extensions = ['.exe', '.com', '.bat', '.py']
-        path = None
-        for ext in extensions:
-            try:
-                path = SearchPath(PATH, cmd, ext)[0]
-            except:
-                pass
-        if path is None:
-            raise OSError("command %r not found" % cmd)
-        else:
-            return path
-
-
 def _system_body(p):
     """Callback for _system."""
     enc = DEFAULT_ENCODING
