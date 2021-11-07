@@ -8,7 +8,8 @@ def div0():
     x/y
 
 def sysexit(stat, mode):
-    raise SystemExit(stat, f'Mode = {mode}')
+    raise SystemExit(stat, f"Mode = {mode}")
+
 
 def bar(mode):
     "bar"
