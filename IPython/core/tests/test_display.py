@@ -161,9 +161,11 @@ def _get_inline_config():
 def test_set_matplotlib_close():
     cfg = _get_inline_config()
     cfg.close_figures = False
-    display.set_matplotlib_close()
+    with pytest.deprecated_call():
+        display.set_matplotlib_close()
     assert cfg.close_figures
-    display.set_matplotlib_close(False)
+    with pytest.deprecated_call():
+        display.set_matplotlib_close(False)
     assert not cfg.close_figures
 
 _fmt_mime_map = {
@@ -185,7 +187,8 @@ def test_set_matplotlib_formats():
         (),
     ]:
         active_mimes = {_fmt_mime_map[fmt] for fmt in formats}
-        display.set_matplotlib_formats(*formats)
+        with pytest.deprecated_call():
+            display.set_matplotlib_formats(*formats)
         for mime, f in formatters.items():
             if mime in active_mimes:
                 assert Figure in f
@@ -201,8 +204,9 @@ def test_set_matplotlib_formats_kwargs():
     cfg = _get_inline_config()
     cfg.print_figure_kwargs.update(dict(foo='bar'))
     kwargs = dict(dpi=150)
-    display.set_matplotlib_formats('png', **kwargs)
-    formatter = ip.display_formatter.formatters['image/png']
+    with pytest.deprecated_call():
+        display.set_matplotlib_formats("png", **kwargs)
+    formatter = ip.display_formatter.formatters["image/png"]
     f = formatter.lookup_by_type(Figure)
     formatter_kwargs = f.keywords
     expected = kwargs

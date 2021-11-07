@@ -102,9 +102,9 @@ def test_select_figure_formats_str():
 
 def test_select_figure_formats_kwargs():
     ip = get_ipython()
-    kwargs = dict(quality=10, bbox_inches='tight')
-    pt.select_figure_formats(ip, 'png', **kwargs)
-    formatter = ip.display_formatter.formatters['image/png']
+    kwargs = dict(bbox_inches="tight")
+    pt.select_figure_formats(ip, "png", **kwargs)
+    formatter = ip.display_formatter.formatters["image/png"]
     f = formatter.lookup_by_type(Figure)
     cell = f.keywords
     expected = kwargs
