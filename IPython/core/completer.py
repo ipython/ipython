@@ -177,7 +177,13 @@ else:
 # may have trouble processing.
 MATCHES_LIMIT = 500
 
-_deprecation_readline_sentinel = object()
+
+class Sentinel:
+    def __repr__(self):
+        return "<deprecated sentinel>"
+
+
+_deprecation_readline_sentinel = Sentinel()
 
 
 class ProvisionalCompleterWarning(FutureWarning):
