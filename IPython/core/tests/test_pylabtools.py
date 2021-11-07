@@ -8,14 +8,15 @@
 from binascii import a2b_base64
 from io import BytesIO
 
-import matplotlib
+import pytest
+
+matplotlib = pytest.importorskip("matplotlib")
 matplotlib.use('Agg')
 from matplotlib.figure import Figure
 
 from matplotlib import pyplot as plt
 from matplotlib_inline import backend_inline
 import numpy as np
-import pytest
 
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
