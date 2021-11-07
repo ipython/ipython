@@ -44,7 +44,9 @@ jobs:
         cp /tmp/ipy_coverage.xml ./
         cp /tmp/.coverage ./
     - name: pytest
+      env:
+        COLUMNS: 120
       run: |
-        pytest -v --cov --cov-report=xml
+        pytest --color=yes -v --cov --cov-report=xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2

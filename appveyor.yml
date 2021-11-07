@@ -3,6 +3,9 @@ matrix:
   fast_finish: true     # immediately finish build once one of the jobs fails.
 
 environment:
+  global:
+    COLUMNS: 120  # Appveyor web viwer window width is 130 chars
+
   matrix:
 
    - PYTHON: "C:\\Python37-x64"
@@ -24,13 +27,13 @@ install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - python -m pip install --upgrade setuptools pip
   - pip install nose coverage pytest pytest-cov pytest-trio pywin32 matplotlib pandas
-  - pip install .[test]
+  - pip install -e .[test]
   - mkdir results
   - cd results
 test_script:
   - iptest --coverage xml
   - cd ..
-  - pytest -ra --cov --cov-report=xml
+  - pytest --color=yes -ra --cov --cov-report=xml
 on_finish:
   - curl -Os https://uploader.codecov.io/latest/windows/codecov.exe
   - codecov -e PYTHON_VERSION,PYTHON_ARCH

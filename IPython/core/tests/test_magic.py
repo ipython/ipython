@@ -584,7 +584,7 @@ class TestXdel(tt.TempFileMixin):
 def doctest_who():
     """doctest for %who
 
-    In [1]: %reset -f
+    In [1]: %reset -sf
 
     In [2]: alpha = 123
 
