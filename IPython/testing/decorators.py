@@ -44,11 +44,6 @@ from decorator import decorator
 # Expose the unittest-driven decorators
 from .ipunittest import ipdoctest, ipdocstring
 
-# Grab the numpy-specific decorators which we keep in a file that we
-# occasionally update from upstream: decorators.py is a copy of
-# numpy.testing.decorators, we expose all of it here.
-from IPython.external.decorators import knownfailureif
-
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
@@ -165,11 +160,8 @@ def skip_iptest_but_not_pytest(f):
     return f
 
 
-# Inspired by numpy's skipif, but uses the full apply_wrapper utility to
-# preserve function metadata better and allows the skip condition to be a
-# callable.
 def skipif(skip_condition, msg=None):
-    ''' Make function raise SkipTest exception if skip_condition is true
+    """Make function raise SkipTest exception if skip_condition is true
 
     Parameters
     ----------
@@ -188,57 +180,15 @@ def skipif(skip_condition, msg=None):
       Decorator, which, when applied to a function, causes SkipTest
       to be raised when the skip_condition was True, and the function
       to be called normally otherwise.
+    """
+    if msg is None:
+        msg = "Test skipped due to test condition."
 
-    Notes
-    -----
-    You will see from the code that we had to further decorate the
-    decorator with the nose.tools.make_decorator function in order to
-    transmit function name, and various other metadata.
-    '''
+    import pytest
 
-    def skip_decorator(f):
-        # Local import to avoid a hard nose dependency and only incur the
-        # import time overhead at actual test-time.
-        import nose
+    assert isinstance(skip_condition, bool)
+    return pytest.mark.skipif(skip_condition, reason=msg)
 
-        # Allow for both boolean or callable skip conditions.
-        if callable(skip_condition):
-            skip_val = skip_condition
-        else:
-            skip_val = lambda : skip_condition
-
-        def get_msg(func,msg=None):
-            """Skip message with information about function being skipped."""
-            if msg is None: out = 'Test skipped due to test condition.'
-            else: out = msg
-            return "Skipping test: %s. %s" % (func.__name__,out)
-
-        # We need to define *two* skippers because Python doesn't allow both
-        # return with value and yield inside the same function.
-        def skipper_func(*args, **kwargs):
-            """Skipper for normal test functions."""
-            if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
-            else:
-                return f(*args, **kwargs)
-
-        def skipper_gen(*args, **kwargs):
-            """Skipper for test generators."""
-            if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
-            else:
-                for x in f(*args, **kwargs):
-                    yield x
-
-        # Choose the right skipper to use when building the actual generator.
-        if nose.util.isgenerator(f):
-            skipper = skipper_gen
-        else:
-            skipper = skipper_func
-
-        return nose.tools.make_decorator(f)(skipper)
-
-    return skip_decorator
 
 # A version with the condition set to true, common case just to attach a message
 # to a skip decorator
@@ -265,12 +215,7 @@ def skip(msg=None):
 def onlyif(condition, msg):
     """The reverse from skipif, see skipif for details."""
 
-    if callable(condition):
-        skip_condition = lambda : not condition()
-    else:
-        skip_condition = lambda : not condition
-
-    return skipif(skip_condition, msg)
+    return skipif(not condition, msg)
 
 #-----------------------------------------------------------------------------
 # Utility functions for decorators
@@ -350,8 +295,6 @@ skipif_not_numpy = skip_without('numpy')
 skipif_not_matplotlib = skip_without('matplotlib')
 
 skipif_not_sympy = skip_without('sympy')
-
-skip_known_failure = knownfailureif(True,'This test is known to fail')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions

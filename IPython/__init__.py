@@ -51,7 +51,6 @@ from .core.application import Application
 from .terminal.embed import embed
 
 from .core.interactiveshell import InteractiveShell
-from .testing import test
 from .utils.sysinfo import sys_info
 from .utils.frame import extract_module_locals
 

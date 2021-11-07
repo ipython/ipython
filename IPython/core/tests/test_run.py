@@ -125,6 +125,9 @@ def doctest_run_option_parser_for_posix():
     """
 
 
+doctest_run_option_parser_for_posix.__skip_doctest__ = sys.platform == "win32"
+
+
 @dec.skip_if_not_win32
 def doctest_run_option_parser_for_windows():
     r"""Test option parser in %run (Windows specific).
@@ -132,14 +135,17 @@ def doctest_run_option_parser_for_windows():
     In Windows, you can't escape ``*` `by backslash:
 
     In [1]: %run print_argv.py print\\*.py
-    ['print\\*.py']
+    ['print\\\\*.py']
 
     You can use quote to escape glob:
 
     In [2]: %run print_argv.py 'print*.py'
-    ['print*.py']
+    ["'print*.py'"]
 
     """
+
+
+doctest_run_option_parser_for_windows.__skip_doctest__ = sys.platform != "win32"
 
 
 def doctest_reset_del():
@@ -556,7 +562,6 @@ def test_multiprocessing_run():
     """
     with TemporaryDirectory() as td:
         mpm = sys.modules.get('__mp_main__')
-        assert mpm is not None
         sys.modules['__mp_main__'] = None
         try:
             path = pjoin(td, 'test.py')
@@ -575,7 +580,7 @@ def test_multiprocessing_run():
         finally:
             sys.modules['__mp_main__'] = mpm
 
-@dec.knownfailureif(sys.platform == 'win32', "writes to io.stdout aren't captured on Windows")
+
 def test_script_tb():
     """Test traceback offset in `ipython script.py`"""
     with TemporaryDirectory() as td:

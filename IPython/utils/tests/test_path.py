@@ -14,7 +14,6 @@ from unittest.mock import patch
 from os.path import join, abspath
 from imp import reload
 
-from nose import SkipTest, with_setup
 import pytest
 
 import IPython
@@ -98,8 +97,17 @@ def teardown_environment():
     if hasattr(sys, 'frozen'):
         del sys.frozen
 
+
 # Build decorator that uses the setup_environment/setup_environment
-with_environment = with_setup(setup_environment, teardown_environment)
+@pytest.fixture
+def environment():
+    setup_environment()
+    yield
+    teardown_environment()
+
+
+with_environment = pytest.mark.usefixtures("environment")
+
 
 @skip_if_not_win32
 @with_environment
@@ -291,7 +299,8 @@ class TestRaiseDeprecation(unittest.TestCase):
         else:
             # I can still write to an unwritable dir,
             # assume I'm root and skip the test
-            raise SkipTest("I can't create directories that I can't write to")
+            pytest.skip("I can't create directories that I can't write to")
+
         with self.assertWarnsRegex(UserWarning, 'is not a writable location'):
             ipdir = paths.get_ipython_dir()
         env.pop('IPYTHON_DIR', None)

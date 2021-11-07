@@ -7,7 +7,7 @@ python -c 'import keyring'
 python -c 'import twine'
 python -c 'import sphinx'
 python -c 'import sphinx_rtd_theme'
-python -c 'import nose'
+python -c 'import pytest'
 
 
 BLACK=$(tput setaf 1)

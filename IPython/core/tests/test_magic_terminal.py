@@ -1,7 +1,4 @@
-"""Tests for various magic functions specific to the terminal frontend.
-
-Needs to be run by nose (to make ipython session available).
-"""
+"""Tests for various magic functions specific to the terminal frontend."""
 
 #-----------------------------------------------------------------------------
 # Imports

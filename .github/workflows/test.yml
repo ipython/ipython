@@ -38,11 +38,6 @@ jobs:
         python -m pip install --upgrade check-manifest pytest-cov anyio
     - name: Check manifest
       run: check-manifest
-    - name: iptest
-      run: |
-        cd /tmp && iptest --coverage xml && cd -
-        cp /tmp/ipy_coverage.xml ./
-        cp /tmp/.coverage ./
     - name: pytest
       env:
         COLUMNS: 120

@@ -5,6 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 import os
+import pytest
 import sys
 import textwrap
 import unittest
@@ -14,7 +15,6 @@ from contextlib import contextmanager
 from traitlets.config.loader import Config
 from IPython import get_ipython
 from IPython.core import completer
-from IPython.external import decorators
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
 from IPython.testing import decorators as dec
@@ -317,8 +317,8 @@ class TestCompleter(unittest.TestCase):
         self.assertEqual(matches, ["\u2164"])  # same as above but explicit.
 
     @unittest.skip("now we have a completion for \jmath")
-    @decorators.knownfailureif(
-        sys.platform == "win32", "Fails if there is a C:\\j... path"
+    @pytest.mark.xfail(
+        sys.platform == "win32", reason="Fails if there is a C:\\j... path"
     )
     def test_no_ascii_back_completion(self):
         ip = get_ipython()
@@ -357,8 +357,8 @@ class TestCompleter(unittest.TestCase):
         for s in ['""', '""" """', '"hi" "ipython"']:
             self.assertFalse(completer.has_open_quotes(s))
 
-    @decorators.knownfailureif(
-        sys.platform == "win32", "abspath completions fail on Windows"
+    @pytest.mark.xfail(
+        sys.platform == "win32", reason="abspath completions fail on Windows"
     )
     def test_abspath_file_completions(self):
         ip = get_ipython()

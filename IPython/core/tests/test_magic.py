@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Tests for various magic functions.
-
-Needs to be run by nose (to make ipython session available).
-"""
+"""Tests for various magic functions."""
 
 import asyncio
 import io
