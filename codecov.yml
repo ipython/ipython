@@ -2,7 +2,12 @@ coverage:
   status:
     patch: off
     project:
-      default:
+      default: false
+      library:
         target: auto
+        paths: '!.*/tests/.*'
+      tests:
+        target: auto
+        paths: '.*/tests/.*'
 codecov:
   require_ci_to_pass: false
