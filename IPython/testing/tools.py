@@ -177,7 +177,7 @@ def ipexec(fname, options=None, commands=()):
 
     Parameters
     ----------
-    fname : str
+    fname : str, Path
       Name of file to be executed (should have .py or .ipy extension).
 
     options : optional, list
@@ -200,6 +200,9 @@ def ipexec(fname, options=None, commands=()):
     # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
     full_cmd = ipython_cmd + cmdargs + ['--', full_fname]
+    if sys.platform == "win32" and sys.version_info < (3, 8):
+        # subprocess.Popen does not support Path objects yet
+        full_cmd = list(map(str, full_cmd))
     env = os.environ.copy()
     # FIXME: ignore all warnings in ipexec while we have shims
     # should we keep suppressing warnings here, even after removing shims?
@@ -232,7 +235,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
 
     Parameters
     ----------
-    fname : str
+    fname : str, Path
       Name of the file to be executed (should have .py or .ipy extension).
 
     expected_out : str

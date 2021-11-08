@@ -91,7 +91,7 @@ class ProfileStartupTest(TestCase):
             f.write(test)
 
     def validate(self, output):
-        tt.ipexec_validate(self.fname, output, '', options=self.options)
+        tt.ipexec_validate(self.fname, output, "", options=self.options)
 
     def test_startup_py(self):
         self.init('00-start.py', 'zzz=123\n', 'print(zzz)\n')
