@@ -72,7 +72,7 @@ def get_ipython_dir() -> str:
                     " using a temp directory.".format(parent))
             ipdir = tempfile.mkdtemp()
         else:
-            os.makedirs(ipdir)
+            ensure_dir_exists(ipdir)
     assert isinstance(ipdir, str), "all path manipulation should be str(unicode), but are not."
     return ipdir
 
