@@ -44,23 +44,13 @@ def test_find_cmd_ls():
     assert path.endswith("ls")
 
     
-def has_pywin32():
-    try:
-        import win32api
-    except ImportError:
-        return False
-    return True
-
-
-@dec.onlyif(has_pywin32, "This test requires win32api to run")
+@dec.skip_if_not_win32
 def test_find_cmd_pythonw():
     """Try to find pythonw on Windows."""
     path = find_cmd('pythonw')
     assert path.lower().endswith('pythonw.exe'), path
 
 
-@dec.onlyif(lambda : sys.platform != 'win32' or has_pywin32(),
-            "This test runs on posix or in win32 with win32api installed")
 def test_find_cmd_fail():
     """Make sure that FindCmdError is raised if we can't find the cmd."""
     pytest.raises(FindCmdError, find_cmd, "asdfasdf")
