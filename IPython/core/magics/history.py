@@ -296,8 +296,12 @@ class HistoryMagics(Magics):
           current command.
 
           -g foo : Repeat the most recent line which contains foo
+
+          -q     : Quiet mode: do not add the code being executed or any headings
+          to the output, output only what the original cell would have.
+
         """
-        opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
+        opts, args = self.parse_options(parameter_s, 'l:g:q', mode='string')
         if "l" in opts:         # Last n lines
             n = int(opts['l'])
 
@@ -327,7 +331,8 @@ class HistoryMagics(Magics):
             print("No lines in history match specification")
             return
         histlines = "\n".join(hist)
-        print("=== Executing: ===")
-        print(histlines)
-        print("=== Output: ===")
+        if 'q' not in opts:
+            print("=== Executing: ===")
+            print(histlines)
+            print("=== Output: ===")
         self.shell.run_cell("\n".join(hist), store_history=False)
