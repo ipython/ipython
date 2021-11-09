@@ -5,10 +5,10 @@ coverage:
       default: false
       library:
         target: auto
-        paths: '!.*/tests/.*'
+        paths: ['!.*/tests/.*']
       tests:
         target: auto
-        paths: '.*/tests/.*'
+        paths: ['.*/tests/.*']
 codecov:
   require_ci_to_pass: false
 
