@@ -522,7 +522,15 @@ class ExecutionMagics(Magics):
         
           %run [-n -i -e -G]
                [( -t [-N<N>] | -d [-b<N>] | -p [profile options] )]
-               ( -m mod | file ) [args]
+               ( -m mod | filename ) [args]
+
+        The filename argument should be either a pure Python script (with
+        extension `.py`), or a file with custom IPython syntax (such as
+        magics). If the latter, the file can be either a script with `.ipy`
+        extension, or a Jupyter notebook with `.ipynb` extension. When running
+        a Jupyter notebook, the output from print statements and other
+        displayed objects will appear in the terminal (even matplotlib figures
+        will open, if a terminal-compliant backend is being used).
 
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
