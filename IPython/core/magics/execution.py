@@ -530,7 +530,10 @@ class ExecutionMagics(Magics):
         extension, or a Jupyter notebook with `.ipynb` extension. When running
         a Jupyter notebook, the output from print statements and other
         displayed objects will appear in the terminal (even matplotlib figures
-        will open, if a terminal-compliant backend is being used).
+        will open, if a terminal-compliant backend is being used). Note that,
+        at the system command line, the `jupyter run` command offers similar
+        functionality for executing notebooks (albeit currently with some
+        differences in supported options).
 
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
