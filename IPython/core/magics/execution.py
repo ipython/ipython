@@ -525,13 +525,13 @@ class ExecutionMagics(Magics):
                ( -m mod | filename ) [args]
 
         The filename argument should be either a pure Python script (with
-        extension `.py`), or a file with custom IPython syntax (such as
-        magics). If the latter, the file can be either a script with `.ipy`
-        extension, or a Jupyter notebook with `.ipynb` extension. When running
+        extension ``.py``), or a file with custom IPython syntax (such as
+        magics). If the latter, the file can be either a script with ``.ipy``
+        extension, or a Jupyter notebook with ``.ipynb`` extension. When running
         a Jupyter notebook, the output from print statements and other
         displayed objects will appear in the terminal (even matplotlib figures
         will open, if a terminal-compliant backend is being used). Note that,
-        at the system command line, the `jupyter run` command offers similar
+        at the system command line, the ``jupyter run`` command offers similar
         functionality for executing notebooks (albeit currently with some
         differences in supported options).
 
