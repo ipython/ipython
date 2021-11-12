@@ -415,9 +415,10 @@ class Pdb(OldPdb):
         if self._predicates["tbhide"]:
             if frame in (self.curframe, getattr(self, "initial_frame", None)):
                 return False
-            else:
-                return self._get_frame_locals(frame).get("__tracebackhide__", False)
-
+            frame_locals = self._get_frame_locals(frame)
+            if "__tracebackhide__" not in frame_locals:
+                return False
+            return frame_locals["__tracebackhide__"]
         return False
 
     def hidden_frames(self, stack):
