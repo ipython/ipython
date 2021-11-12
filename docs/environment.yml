@@ -2,8 +2,8 @@ name: ipython_docs
 dependencies:
 - python=3.8
 - setuptools>=18.5
-- sphinx>=4.2.0
-- sphinx_rtd_theme>=1.0.0
+- sphinx>=4.2
+- sphinx_rtd_theme>=1.0
 - numpy
 - testpath
 - matplotlib
