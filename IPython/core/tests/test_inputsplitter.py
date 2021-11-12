@@ -14,6 +14,7 @@ from IPython.core import inputsplitter as isp
 from IPython.core.inputtransformer import InputTransformer
 from IPython.core.tests.test_inputtransformer import syntax, syntax_ml
 from IPython.testing import tools as tt
+from IPython.testing.decorators import skipif
 
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
@@ -323,6 +324,7 @@ class InputSplitterTestCase(unittest.TestCase):
         self.isp.push(u'\xc3\xa9')
         self.isp.push(u"u'\xc3\xa9'")
 
+    @skipif(sys.version_info[:3] == (3, 9, 8))
     def test_line_continuation(self):
         """ Test issue #2108."""
         isp = self.isp
