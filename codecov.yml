@@ -6,6 +6,7 @@ coverage:
       library:
         target: auto
         paths: ['!.*/tests/.*']
+        threshold: 0.1%
       tests:
         target: auto
         paths: ['.*/tests/.*']
