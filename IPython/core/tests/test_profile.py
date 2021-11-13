@@ -70,15 +70,6 @@ def teardown_module():
 #-----------------------------------------------------------------------------
 # Test functions
 #-----------------------------------------------------------------------------
-def win32_without_pywin32():
-    if sys.platform == 'win32':
-        try:
-            import pywin32
-        except ImportError:
-            return True
-    return False
-
-
 class ProfileStartupTest(TestCase):
     def setUp(self):
         # create profile dir
@@ -100,14 +91,12 @@ class ProfileStartupTest(TestCase):
             f.write(test)
 
     def validate(self, output):
-        tt.ipexec_validate(self.fname, output, '', options=self.options)
+        tt.ipexec_validate(self.fname, output, "", options=self.options)
 
-    @dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
     def test_startup_py(self):
         self.init('00-start.py', 'zzz=123\n', 'print(zzz)\n')
         self.validate('123')
 
-    @dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
     def test_startup_ipy(self):
         self.init('00-start.ipy', '%xmode plain\n', '')
         self.validate('Exception reporting mode: Plain')

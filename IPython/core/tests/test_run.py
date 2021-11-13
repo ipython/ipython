@@ -237,11 +237,6 @@ class TestMagicRunSimple(tt.TempFileMixin):
 
     def test_obj_del(self):
         """Test that object's __del__ methods are called on exit."""
-        if sys.platform == 'win32':
-            try:
-                import win32api
-            except ImportError as e:
-                raise unittest.SkipTest("Test requires pywin32") from e
         src = ("class A(object):\n"
                "    def __del__(self):\n"
                "        print('object A deleted')\n"
