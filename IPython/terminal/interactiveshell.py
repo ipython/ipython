@@ -505,7 +505,7 @@ class TerminalInteractiveShell(InteractiveShell):
         # while/true inside which will freeze the prompt.
 
         try:
-            old_loop = asyncio.get_event_loop()
+            old_loop = asyncio.get_running_loop()
         except RuntimeError:
             # This happens when the user used `asyncio.run()`.
             old_loop = None
