@@ -265,7 +265,7 @@ class HistoryAccessor(HistoryAccessorBase):
     ## -------------------------------
     ## Methods for retrieving history:
     ## -------------------------------
-    def _run_sql(self, sql, params, raw=True, output=False):
+    def _run_sql(self, sql, params, raw=True, output=False, latest=False):
         """Prepares and runs an SQL query for the history database.
 
         Parameters
@@ -276,6 +276,8 @@ class HistoryAccessor(HistoryAccessorBase):
           Parameters passed to the SQL query (to replace "?")
         raw, output : bool
           See :meth:`get_range`
+        latest : bool
+          Select rows with max (session, line)
 
         Returns
         -------
@@ -286,8 +288,12 @@ class HistoryAccessor(HistoryAccessorBase):
         if output:
             sqlfrom = "history LEFT JOIN output_history USING (session, line)"
             toget = "history.%s, output_history.output" % toget
+        if latest:
+            toget += ", MAX(session * 128 * 1024 + line)"
         cur = self.db.execute("SELECT session, line, %s FROM %s " %\
                                 (toget, sqlfrom) + sql, params)
+        if latest:
+            cur = (row[:-1] for row in cur)
         if output:    # Regroup into 3-tuples, and parse JSON
             return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
         return cur
@@ -395,7 +401,7 @@ class HistoryAccessor(HistoryAccessorBase):
             params += (n,)
         elif unique:
             sqlform += " ORDER BY session, line"
-        cur = self._run_sql(sqlform, params, raw=raw, output=output)
+        cur = self._run_sql(sqlform, params, raw=raw, output=output, latest=unique)
         if n is not None:
             return reversed(list(cur))
         return cur
@@ -817,7 +823,7 @@ class HistorySavingThread(threading.Thread):
         try:
             self.db = sqlite3.connect(
                 str(self.history_manager.hist_file),
-                **self.history_manager.connection_options
+                **self.history_manager.connection_options,
             )
             while True:
                 self.history_manager.save_flag.wait()
