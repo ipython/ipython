@@ -305,13 +305,13 @@ def find_file(obj) -> str:
     fname = None
     try:
         fname = inspect.getabsfile(obj)
-    except TypeError:
+    except (OSError, TypeError):
         # For an instance, the file that matters is where its class was
         # declared.
         if hasattr(obj, '__class__'):
             try:
                 fname = inspect.getabsfile(obj.__class__)
-            except TypeError:
+            except (OSError, TypeError):
                 # Can happen for builtins
                 pass
     except:

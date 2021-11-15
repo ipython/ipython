@@ -4,9 +4,14 @@ matrix:
 
 environment:
   global:
+    APPVEYOR_BUILD_WORKER_IMAGE: 'Visual Studio 2022'
     COLUMNS: 120  # Appveyor web viwer window width is 130 chars
 
   matrix:
+
+   - PYTHON: "C:\\Python310-x64"
+     PYTHON_VERSION: "3.10.x"
+     PYTHON_ARCH: "64"
 
    - PYTHON: "C:\\Python37-x64"
      PYTHON_VERSION: "3.7.x"

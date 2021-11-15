@@ -7,14 +7,16 @@
 
 from collections import Counter, defaultdict, deque, OrderedDict
 import os
+import pytest
 import types
 import string
+import sys
 import unittest
 
 import pytest
 
 from IPython.lib import pretty
-from IPython.testing.decorators import skip_without, skip_iptest_but_not_pytest
+from IPython.testing.decorators import skip_iptest_but_not_pytest
 
 from io import StringIO
 
@@ -136,12 +138,12 @@ def test_sets(obj, expected_output):
     assert got_output == expected_output
 
 
-@skip_without('xxlimited')
 def test_pprint_heap_allocated_type():
     """
     Test that pprint works for heap allocated types.
     """
-    import xxlimited
+    module_name = "xxlimited" if sys.version_info < (3, 10) else "xxlimited_35"
+    xxlimited = pytest.importorskip(module_name)
     output = pretty.pretty(xxlimited.Null)
     assert output == "xxlimited.Null"
 
