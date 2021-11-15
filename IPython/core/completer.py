@@ -2057,6 +2057,24 @@ class IPCompleter(Completer):
         ``column`` when passing multiline strings this could/should be renamed
         but would add extra noise.
 
+        Parameters
+        ----------
+        cursor_line :
+            Index of the line the cursor is on. 0 indexed.
+        cursor_pos :
+            Position of the cursor in the current line/line_buffer/text. 0
+            indexed.
+        line_buffer : optional, str
+            The current line the cursor is in, this is mostly due to legacy
+            reason that readline coudl only give a us the single current line.
+            Prefer `full_text`.
+        text : str
+            The current "token" the cursor is in, mostly also for historical
+            reasons. as the completer would trigger only after the current line
+            was parsed.
+        full_text : str
+            Full text of the current cell.
+
         Returns
         -------
         A tuple of N elements which are (likely):
