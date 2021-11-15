@@ -325,18 +325,6 @@ class TestCompleter(unittest.TestCase):
         self.assertEqual(matches, ["Ⅴ"])  # This is not a V
         self.assertEqual(matches, ["\u2164"])  # same as above but explicit.
 
-    @unittest.skip("now we have a completion for \jmath")
-    @pytest.mark.xfail(
-        sys.platform == "win32", reason="Fails if there is a C:\\j... path"
-    )
-    def test_no_ascii_back_completion(self):
-        ip = get_ipython()
-        with TemporaryWorkingDirectory():  # Avoid any filename completions
-            # single ascii letter that don't have yet completions
-            for letter in "jJ":
-                name, matches = ip.complete("\\" + letter)
-                self.assertEqual(matches, [])
-
     def test_delim_setting(self):
         sp = completer.CompletionSplitter()
         sp.delims = " "
