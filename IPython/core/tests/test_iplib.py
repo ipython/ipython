@@ -40,48 +40,48 @@ def test_reset():
 
 def doctest_tb_plain():
     """
-In [18]: xmode plain
-Exception reporting mode: Plain
+    In [18]: xmode plain
+    Exception reporting mode: Plain
 
-        In [19]: run simpleerr.py
-        Traceback (most recent call last):
-          ...line ..., in <module>
-            bar(mode)
-          ...line ..., in bar
-            div0()
-          ...line ..., in div0
-            x/y
-        ZeroDivisionError: ...
+    In [19]: run simpleerr.py
+    Traceback (most recent call last):
+      ...line ..., in <module>
+        bar(mode)
+      ...line ..., in bar
+        div0()
+      ...line ..., in div0
+        x/y
+    ZeroDivisionError: ...
     """
 
 
 def doctest_tb_context():
     """
-In [3]: xmode context
-Exception reporting mode: Context
+    In [3]: xmode context
+    Exception reporting mode: Context
 
-        In [4]: run simpleerr.py
-        ---------------------------------------------------------------------------
-        ZeroDivisionError                         Traceback (most recent call last)
-        <BLANKLINE>
-        ... in <module>
-             30     except IndexError:
-             31         mode = 'div'
-        ---> 33     bar(mode)
-        <BLANKLINE>
-        ... in bar(mode)
-             15     "bar"
-             16     if mode=='div':
-        ---> 17         div0()
-             18     elif mode=='exit':
-             19         try:
-        <BLANKLINE>
-        ... in div0()
-              6     x = 1
-              7     y = 0
-        ----> 8     x/y
-        <BLANKLINE>
-        ZeroDivisionError: ..."""
+    In [4]: run simpleerr.py
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)
+    <BLANKLINE>
+    ... in <module>
+         30     except IndexError:
+         31         mode = 'div'
+    ---> 33     bar(mode)
+    <BLANKLINE>
+    ... in bar(mode)
+         15     "bar"
+         16     if mode=='div':
+    ---> 17         div0()
+         18     elif mode=='exit':
+         19         try:
+    <BLANKLINE>
+    ... in div0()
+          6     x = 1
+          7     y = 0
+    ----> 8     x/y
+    <BLANKLINE>
+    ZeroDivisionError: ..."""
 
 
 def doctest_tb_verbose():
