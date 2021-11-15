@@ -17,12 +17,10 @@ import sqlite3
 from traitlets.config.loader import Config
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core.history import HistoryManager, extract_hist_ranges
-from IPython.testing.decorators import skipif
 
 def test_proper_default_encoding():
     assert sys.getdefaultencoding() == "utf-8"
 
-@skipif(sqlite3.sqlite_version_info > (3,24,0))
 def test_history():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
@@ -133,6 +131,17 @@ def test_history():
             ip.history_manager.store_inputs(1, "rogue")
             ip.history_manager.writeout_cache()
             assert ip.history_manager.session_number == 3
+
+            # Check that session and line values are not just max values
+            sessid, lineno, entry = newhist[-1]
+            assert lineno > 1
+            ip.history_manager.reset()
+            lineno = 1
+            ip.history_manager.store_inputs(lineno, entry)
+            gothist = ip.history_manager.search("*=*", unique=True)
+            hist = list(gothist)[-1]
+            assert sessid < hist[0]
+            assert hist[1:] == (lineno, entry)
         finally:
             # Ensure saving thread is shut down before we try to clean up the files
             ip.history_manager.save_thread.stop()
