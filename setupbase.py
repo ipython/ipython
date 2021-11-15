@@ -234,7 +234,6 @@ def find_entry_points():
     """
     ep = [
             'ipython%s = IPython:start_ipython',
-            'iptest%s = IPython.testing.iptestcontroller:main',
         ]
     suffix = str(sys.version_info[0])
     return [e % '' for e in ep] + [e % suffix for e in ep]

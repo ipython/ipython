@@ -100,12 +100,11 @@ permissions, you may need to run the last command with :command:`sudo`. You can
 also install in user specific location by using the ``--user`` flag in
 conjunction with pip.
 
-To run IPython's test suite, use the :command:`iptest` command from outside of
-the IPython source tree:
+To run IPython's test suite, use the :command:`pytest` command:
 
 .. code-block:: bash
 
-    $ iptest
+    $ pytest
 
 .. _devinstall:
 
