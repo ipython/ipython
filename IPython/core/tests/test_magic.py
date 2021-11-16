@@ -1332,24 +1332,23 @@ def test_run_module_from_import_hook():
         fullpath = os.path.join(tmpdir, 'my_tmp.py')
         Path(fullpath).write_text(TEST_MODULE)
 
-        class MyTempImporter(object):
-            def __init__(self):
-                pass
+        import importlib.abc
+        import importlib.util
 
-            def find_module(self, fullname, path=None):
-                if 'my_tmp' in fullname:
-                    return self
-                return None
+        class MyTempImporter(importlib.abc.MetaPathFinder, importlib.abc.SourceLoader):
+            def find_spec(self, fullname, path, target=None):
+                if fullname == "my_tmp":
+                    return importlib.util.spec_from_loader(fullname, self)
 
-            def load_module(self, name):
-                import imp
-                return imp.load_source('my_tmp', fullpath)
+            def get_filename(self, fullname):
+                if fullname != "my_tmp":
+                    raise ImportError(f"unexpected module name '{fullname}'")
+                return fullpath
 
-            def get_code(self, fullname):
-                return compile(Path(fullpath).read_text(), "foo", "exec")
-
-            def is_package(self, __):
-                return False
+            def get_data(self, path):
+                if not Path(path).samefile(fullpath):
+                    raise OSError(f"expected path '{fullpath}', got '{path}'")
+                return Path(fullpath).read_text()
 
         sys.meta_path.insert(0, MyTempImporter())
 
