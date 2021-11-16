@@ -35,7 +35,7 @@ PTK3 = ptk_version.startswith('3.')
 
 # Keep reference to the original asyncio loop, because getting the event loop
 # within the input hook would return the other loop.
-loop = asyncio.get_event_loop()
+loop = asyncio.get_event_loop_policy().get_event_loop()
 
 
 def inputhook(context):

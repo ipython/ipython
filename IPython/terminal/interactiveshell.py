@@ -648,7 +648,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 # When we integrate the asyncio event loop, run the UI in the
                 # same event loop as the rest of the code. don't use an actual
                 # input hook. (Asyncio is not made for nesting event loops.)
-                self.pt_loop = asyncio.get_event_loop()
+                self.pt_loop = asyncio.get_event_loop_policy().get_event_loop()
 
             elif self._inputhook:
                 # If an inputhook was set, create a new asyncio event loop with

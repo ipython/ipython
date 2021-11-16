@@ -967,17 +967,22 @@ def test_script_config():
     assert "whoda" in sm.magics["cell"]
 
 
+@pytest.fixture
+def event_loop():
+    yield asyncio.get_event_loop_policy().get_event_loop()
+
+
 @dec.skip_iptest_but_not_pytest
 @dec.skip_win32
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
 )
-def test_script_out():
-    assert asyncio.get_event_loop().is_running() is False
+def test_script_out(event_loop):
+    assert event_loop.is_running() is False
 
     ip = get_ipython()
     ip.run_cell_magic("script", "--out output sh", "echo 'hi'")
-    assert asyncio.get_event_loop().is_running() is False
+    assert event_loop.is_running() is False
     assert ip.user_ns["output"] == "hi\n"
 
 
@@ -986,11 +991,11 @@ def test_script_out():
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
 )
-def test_script_err():
+def test_script_err(event_loop):
     ip = get_ipython()
-    assert asyncio.get_event_loop().is_running() is False
+    assert event_loop.is_running() is False
     ip.run_cell_magic("script", "--err error sh", "echo 'hello' >&2")
-    assert asyncio.get_event_loop().is_running() is False
+    assert event_loop.is_running() is False
     assert ip.user_ns["error"] == "hello\n"
 
 
@@ -1014,12 +1019,12 @@ def test_script_out_err():
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
 )
-async def test_script_bg_out():
+async def test_script_bg_out(event_loop):
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
     assert (await ip.user_ns["output"].read()) == b"hi\n"
     ip.user_ns["output"].close()
-    asyncio.get_event_loop().stop()
+    event_loop.stop()
 
 
 @dec.skip_iptest_but_not_pytest

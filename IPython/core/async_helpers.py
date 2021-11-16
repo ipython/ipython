@@ -25,7 +25,7 @@ class _AsyncIORunner:
         """
         import asyncio
 
-        return asyncio.get_event_loop().run_until_complete(coro)
+        return asyncio.get_event_loop_policy().get_event_loop().run_until_complete(coro)
 
     def __str__(self):
         return 'asyncio'
