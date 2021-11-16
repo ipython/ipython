@@ -8,3 +8,7 @@ def test_shim_warning():
     sys.modules.pop('IPython.config', None)
     with pytest.warns(ShimWarning):
         import IPython.config
+
+    import traitlets.config
+
+    assert IPython.config.Config is traitlets.config.Config
