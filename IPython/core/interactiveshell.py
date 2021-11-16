@@ -841,10 +841,15 @@ class InteractiveShell(SingletonConfigurable):
     @observe('colors')
     def init_inspector(self, changes=None):
         # Object inspector
-        self.inspector = oinspect.Inspector(oinspect.InspectColors,
-                                            PyColorize.ANSICodeColors,
-                                            self.colors,
-                                            self.object_info_string_level)
+        self.inspector = oinspect.Inspector(
+            oinspect.InspectColors,
+            PyColorize.ANSICodeColors,
+            self.colors,
+            self.object_info_string_level,
+            parent=self,
+        )
+        if hasattr(self, "configurables") and self.inspector not in self.configurables:
+            self.configurables.append(self.inspector)
 
     def init_io(self):
         # This will just use sys.stdout and sys.stderr. If you want to
