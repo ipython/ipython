@@ -1814,8 +1814,12 @@ class InteractiveShell(SingletonConfigurable):
             info = self._object_find(oname)
             if info.found:
                 docformat = sphinxify if self.sphinxify_docstring else None
-                return self.inspector._get_info(info.obj, oname, info=info,
-                            detail_level=detail_level, formatter=docformat
+                return self.inspector._get_info(
+                    info.obj,
+                    oname,
+                    info=info,
+                    detail_level=detail_level,
+                    formatter=docformat,
                 )
             else:
                 raise KeyError(oname)
