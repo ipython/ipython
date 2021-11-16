@@ -61,22 +61,6 @@ def as_unittest(func):
 
 # Utility functions
 
-def apply_wrapper(wrapper, func):
-    """Apply a wrapper to a function for decoration.
-
-    This mixes Michele Simionato's decorator tool with nose's make_decorator,
-    to apply a wrapper in a decorator so that all nose attributes, as well as
-    function signature and other properties, survive the decoration cleanly.
-    This will ensure that wrapped functions can still be well introspected via
-    IPython, for example.
-    """
-    warnings.warn("The function `apply_wrapper` is deprecated since IPython 4.0",
-            DeprecationWarning, stacklevel=2)
-    import nose.tools
-
-    return decorator(wrapper,nose.tools.make_decorator(func)(wrapper))
-
-
 def make_label_dec(label, ds=None):
     """Factory function to create a decorator that applies one or more labels.
 
