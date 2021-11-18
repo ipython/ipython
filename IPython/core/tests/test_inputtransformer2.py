@@ -143,7 +143,8 @@ def null_cleanup_transformer(lines):
     """
     return []
 
-def check_make_token_by_line_never_ends_empty():
+
+def test_check_make_token_by_line_never_ends_empty():
     """
     Check that not sequence of single or double characters ends up leading to en empty list of tokens
     """
