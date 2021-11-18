@@ -38,14 +38,6 @@ log = logging.getLogger(__name__)
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-def is_extension_module(filename):
-    """Return whether the given filename is an extension module.
-
-    This simply checks that the extension is either .so or .pyd.
-    """
-    return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
-
-
 class DocTestSkip(object):
     """Object wrapper for doctests to be skipped."""
 
@@ -443,10 +435,3 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
         with modified_env({'COLUMNS': '80', 'LINES': '24'}):
             return super(IPDocTestRunner,self).run(test,
                                                    compileflags,out,clear_globs)
-
-
-class DocFileCase(doctest.DocFileCase):
-    """Overrides to provide filename
-    """
-    def address(self):
-        return (self._dt_test.filename, None, None)
