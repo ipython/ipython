@@ -7,12 +7,8 @@ import pytest
 from IPython.utils.tempdir import TemporaryDirectory
 
 def test_logstart_inaccessible_file():
-    try:
+    with pytest.raises(IOError):
         _ip.logger.logstart(logfname="/")   # Opening that filename will fail.
-    except IOError:
-        pass
-    else:
-        assert False  # The try block should never pass.
 
     try:
         _ip.run_cell("a=1")                 # Check it doesn't try to log this

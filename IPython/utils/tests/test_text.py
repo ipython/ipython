@@ -70,13 +70,14 @@ def test_columnize_random():
             out = text.columnize(items, row_first=row_first, displaywidth=displaywidth)
             longer_line = max([len(x) for x in out.split('\n')])
             longer_element = max(rand_len)
-            if longer_line > displaywidth:
-                print("Columnize displayed something lager than displaywidth : %s " % longer_line)
-                print("longer element : %s " % longer_element)
-                print("displaywidth : %s " % displaywidth)
-                print("number of element : %s " % nitems)
-                print("size of each element :\n %s" % rand_len)
-                assert False, "row_first={0}".format(row_first)
+            assert longer_line <= displaywidth, (
+                f"Columnize displayed something lager than displaywidth : {longer_line}\n"
+                f"longer element : {longer_element}\n"
+                f"displaywidth : {displaywidth}\n"
+                f"number of element : {nitems}\n"
+                f"size of each element : {rand_len}\n"
+                f"row_first={row_first}\n"
+            )
 
 
 # TODO: pytest mark.parametrize once nose removed.
@@ -103,9 +104,9 @@ def eval_formatter_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os, u=u"café", b="café")
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     assert s == "12 3 hello"
-    s = f.format(' '.join(['{n//%i}'%i for i in range(1,8)]), **ns)
+    s = f.format(" ".join(["{n//%i}" % i for i in range(1, 8)]), **ns)
     assert s == "12 6 4 3 2 2 1"
-    s = f.format('{[n//i for i in range(1,8)]}', **ns)
+    s = f.format("{[n//i for i in range(1,8)]}", **ns)
     assert s == "[12, 6, 4, 3, 2, 2, 1]"
     s = f.format("{stuff!s}", **ns)
     assert s == ns["stuff"]
@@ -133,9 +134,9 @@ def eval_formatter_slicing_check(f):
     pytest.raises(SyntaxError, f.format, "{n:x}", **ns)
 
 def eval_formatter_no_slicing_check(f):
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
-    
-    s = f.format('{n:x} {pi**2:+f}', **ns)
+    ns = dict(n=12, pi=math.pi, stuff="hello there", os=os)
+
+    s = f.format("{n:x} {pi**2:+f}", **ns)
     assert s == "c +9.869604"
 
     s = f.format("{stuff[slice(1,4)]}", **ns)
@@ -187,9 +188,10 @@ def test_strip_email():
 
 
 def test_strip_email2():
-    src = '> > > list()'
-    cln = 'list()'
+    src = "> > > list()"
+    cln = "list()"
     assert text.strip_email_quotes(src) == cln
+
 
 def test_LSString():
     lss = text.LSString("abc\ndef")
@@ -197,6 +199,7 @@ def test_LSString():
     assert lss.s == "abc def"
     lss = text.LSString(os.getcwd())
     assert isinstance(lss.p[0], Path)
+
 
 def test_SList():
     sl = text.SList(["a 11", "b 1", "a 2"])

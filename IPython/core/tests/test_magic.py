@@ -132,10 +132,10 @@ def test_config_print_class():
         _ip.magic('config TerminalInteractiveShell')
 
     stdout = captured.stdout
-    if not re.match("TerminalInteractiveShell.* options", stdout.splitlines()[0]):
-        print(stdout)
-        raise AssertionError("1st line of stdout not like "
-                             "'TerminalInteractiveShell.* options'")
+    assert re.match(
+        "TerminalInteractiveShell.* options", stdout.splitlines()[0]
+    ), f"{stdout}\n\n1st line of stdout not like 'TerminalInteractiveShell.* options'"
+
 
 def test_rehashx():
     # clear up everything
@@ -1219,12 +1219,9 @@ def test_edit_interactive():
     n = ip.execution_count
     ip.run_cell("def foo(): return 1", store_history=True)
 
-    try:
+    with pytest.raises(code.InteractivelyDefined) as e:
         _run_edit_test("foo")
-    except code.InteractivelyDefined as e:
-        assert e.index == n
-    else:
-        raise AssertionError("Should have raised InteractivelyDefined")
+    assert e.value.index == n
 
 
 def test_edit_cell():

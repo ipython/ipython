@@ -242,10 +242,8 @@ def test_interruptible_core_debugger():
     """
     def raising_input(msg="", called=[0]):
         called[0] += 1
-        if called[0] == 1:
-            raise KeyboardInterrupt()
-        else:
-            raise AssertionError("input() should only be called once!")
+        assert called[0] == 1, "input() should only be called once!"
+        raise KeyboardInterrupt()
 
     tracer_orig = sys.gettrace()
     try:
