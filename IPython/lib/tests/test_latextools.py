@@ -11,13 +11,11 @@ from IPython.lib import latextools
 from IPython.testing.decorators import (
     onlyif_cmds_exist,
     skipif_not_matplotlib,
-    skip_iptest_but_not_pytest,
 )
 from IPython.utils.process import FindCmdError
 
 
 @pytest.mark.parametrize('command', ['latex', 'dvipng'])
-@skip_iptest_but_not_pytest
 def test_check_latex_to_png_dvipng_fails_when_no_cmd(command):
     def mock_find_cmd(arg):
         if arg == command:
@@ -32,7 +30,6 @@ def no_op(*args, **kwargs):
     yield
 
 
-@skip_iptest_but_not_pytest
 @onlyif_cmds_exist("latex", "dvipng")
 @pytest.mark.parametrize("s, wrap", [(u"$$x^2$$", False), (u"x^2", True)])
 def test_latex_to_png_dvipng_runs(s, wrap):
@@ -60,7 +57,6 @@ def patch_latextool(mock=mock_kpsewhich):
 
 @pytest.mark.parametrize('context', [no_op, patch_latextool])
 @pytest.mark.parametrize('s_wrap', [("$x^2$", False), ("x^2", True)])
-@skip_iptest_but_not_pytest
 def test_latex_to_png_mpl_runs(s_wrap, context):
     """
     Test that latex_to_png_mpl just runs without error.

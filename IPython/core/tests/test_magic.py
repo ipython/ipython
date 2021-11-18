@@ -972,7 +972,6 @@ def event_loop():
     yield asyncio.get_event_loop_policy().get_event_loop()
 
 
-@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
@@ -986,7 +985,6 @@ def test_script_out(event_loop):
     assert ip.user_ns["output"] == "hi\n"
 
 
-@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
@@ -999,7 +997,6 @@ def test_script_err(event_loop):
     assert ip.user_ns["error"] == "hello\n"
 
 
-@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
@@ -1014,7 +1011,6 @@ def test_script_out_err():
     assert ip.user_ns["error"] == "hello\n"
 
 
-@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
@@ -1027,7 +1023,6 @@ async def test_script_bg_out(event_loop):
     event_loop.stop()
 
 
-@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
@@ -1039,7 +1034,6 @@ async def test_script_bg_err():
     ip.user_ns["error"].close()
 
 
-@dec.skip_iptest_but_not_pytest
 @dec.skip_win32
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
