@@ -49,10 +49,6 @@ def mini_interactive_loop(input_func):
 # Test utilities, just for local use
 #-----------------------------------------------------------------------------
 
-def assemble(block):
-    """Assemble a block into multi-line sub-blocks."""
-    return ['\n'.join(sub_block)+'\n' for sub_block in block]
-
 
 def pseudo_input(lines):
     """Return a function that acts like raw_input but feeds the input list."""
