@@ -29,6 +29,9 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install latex
+      if: runner.os == 'Linux'
+      run: sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
     - name: Install and update Python dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
