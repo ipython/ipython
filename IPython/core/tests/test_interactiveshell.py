@@ -1039,7 +1039,7 @@ def test_custom_exc_count():
 
 
 def test_run_cell_async():
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_event_loop_policy().get_event_loop()
     ip.run_cell("import asyncio")
     coro = ip.run_cell_async("await asyncio.sleep(0.01)\n5")
     assert asyncio.iscoroutine(coro)

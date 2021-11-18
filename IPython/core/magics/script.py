@@ -81,7 +81,7 @@ def safe_watcher():
         yield
         return
 
-    loop = asyncio.get_event_loop()
+    loop = policy.get_event_loop()
     try:
         watcher = asyncio.SafeChildWatcher()
         watcher.attach_loop(loop)
@@ -238,7 +238,7 @@ class ScriptMagics(Magics):
 
         if sys.platform.startswith("win"):
             asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop_policy().get_event_loop()
         argv = arg_split(line, posix=not sys.platform.startswith("win"))
         args, cmd = self.shebang.parser.parse_known_args(argv)
         try:
