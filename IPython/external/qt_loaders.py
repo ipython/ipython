@@ -8,6 +8,7 @@ bindings, which is unstable and likely to crash
 This is used primarily by qt and qt_for_kernel, and shouldn't
 be accessed directly from the outside
 """
+import importlib.abc
 import sys
 import types
 from functools import partial, lru_cache
@@ -47,7 +48,7 @@ api_to_module = {
 }
 
 
-class ImportDenier(object):
+class ImportDenier(importlib.abc.MetaPathFinder):
     """Import Hook that will guard against bad Qt imports
     once IPython commits to a specific binding
     """
@@ -59,14 +60,12 @@ class ImportDenier(object):
         sys.modules.pop(module_name, None)
         self.__forbidden.add(module_name)
 
-    def find_module(self, fullname, path=None):
+    def find_spec(self, fullname, path, target=None):
         if path:
             return
         if fullname in self.__forbidden:
-            return self
-
-    def load_module(self, fullname):
-        raise ImportError("""
+            raise ImportError(
+                """
     Importing %s disabled by IPython, which has
     already imported an Incompatible QT Binding: %s
     """ % (fullname, loaded_api()))
