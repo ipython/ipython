@@ -50,8 +50,4 @@ class TestFileToRun(tt.TempFileMixin, unittest.TestCase):
 
         out, err = tt.ipexec(self.fname, options=['-i'],
                            commands=['"__file__" in globals()', 'print(123)', 'exit()'])
-        if 'False' not in out:
-            print("Subprocess stderr:")
-            print(err)
-            print('-----')
-            raise AssertionError("'False' not found in %r" % out)
+        assert "False" in out, f"Subprocess stderr:\n{err}\n-----"
