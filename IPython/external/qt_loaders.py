@@ -14,8 +14,6 @@ import types
 from functools import partial, lru_cache
 import operator
 
-from IPython.utils.version import check_version
-
 # ### Available APIs.
 # Qt6
 QT_API_PYQT6 = "pyqt6"
@@ -148,7 +146,8 @@ def has_binding(api):
     if api == QT_API_PYSIDE:
         # We can also safely check PySide version
         import PySide
-        return check_version(PySide.__version__, '1.0.3')
+
+        return PySide.__version_info__ >= (1, 0, 3)
 
     return True
 
@@ -210,7 +209,7 @@ def import_pyqt4(version=2):
 
     from PyQt4 import QtGui, QtCore, QtSvg
 
-    if not check_version(QtCore.PYQT_VERSION_STR, '4.7'):
+    if QtCore.PYQT_VERSION < 0x040700:
         raise ImportError("IPython requires PyQt4 >= 4.7, found %s" %
                           QtCore.PYQT_VERSION_STR)
 
