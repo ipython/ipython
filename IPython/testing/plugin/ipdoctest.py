@@ -37,35 +37,16 @@ log = logging.getLogger(__name__)
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class DocTestSkip(object):
-    """Object wrapper for doctests to be skipped."""
-
-    ds_skip = """Doctest to skip.
-    >>> 1 #doctest: +SKIP
-    """
-
-    def __init__(self,obj):
-        self.obj = obj
-
-    def __getattribute__(self,key):
-        if key == '__doc__':
-            return DocTestSkip.ds_skip
-        else:
-            return getattr(object.__getattribute__(self,'obj'),key)
-
 
 class DocTestFinder(doctest.DocTestFinder):
-    def _find(self, tests, obj, name, module, source_lines, globs, seen):
-        """
-        Find tests for the given object and any contained objects, and
-        add them to `tests`.
-        """
-        print('_find for:', obj, name, module)  # dbg
-        if bool(getattr(obj, "__skip_doctest__", False)):
-            #print 'SKIPPING DOCTEST FOR:',obj  # dbg
-            obj = DocTestSkip(obj)
+    def _get_test(self, obj, name, module, globs, source_lines):
+        test = super()._get_test(obj, name, module, globs, source_lines)
 
-        super()._find(tests, obj, name, module, source_lines, globs, seen)
+        if bool(getattr(obj, "__skip_doctest__", False)) and test is not None:
+            for example in test.examples:
+                example.options[doctest.SKIP] = True
+
+        return test
 
 
 class IPDoctestOutputChecker(doctest.OutputChecker):
