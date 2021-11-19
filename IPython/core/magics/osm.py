@@ -63,7 +63,6 @@ class OSMagics(Magics):
         super().__init__(shell=shell, **kwargs)
 
 
-    @skip_doctest
     def _isexec_POSIX(self, file):
         """
             Test for executable on a POSIX system
@@ -75,14 +74,12 @@ class OSMagics(Magics):
 
 
     
-    @skip_doctest
     def _isexec_WIN(self, file):
         """
             Test for executable file on non POSIX system
         """
         return file.is_file() and self.execre.match(file.name) is not None
 
-    @skip_doctest
     def isexec(self, file):
         """
             Test for executable file on non POSIX system
@@ -633,8 +630,8 @@ class OSMagics(Magics):
 
             # while the list form is useful to loop over:
             In [6]: for f in a.l:
-              ...:      !wc -l $f
-              ...:
+               ...:      !wc -l $f
+               ...:
             146 setup.py
             130 win32_manual_post_install.py
 

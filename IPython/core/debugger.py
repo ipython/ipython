@@ -114,7 +114,6 @@ from IPython import get_ipython
 from IPython.utils import PyColorize
 from IPython.utils import coloransi, py3compat
 from IPython.core.excolors import exception_colors
-from IPython.testing.skipdoctest import skip_doctest
 
 # skip module docstests
 __skip_doctest__ = True
@@ -180,7 +179,6 @@ class Tracer(object):
     while functioning acceptably (though with limitations) if outside of it.
     """
 
-    @skip_doctest
     def __init__(self, colors=None):
         """
         DEPRECATED
@@ -921,7 +919,6 @@ class Pdb(OldPdb):
                 return True
         return False
 
-    @skip_doctest
     def _is_in_decorator_internal_and_should_skip(self, frame):
         """
         Utility to tell us whether we are in a decorator internal and should stop.
