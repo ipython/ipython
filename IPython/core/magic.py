@@ -20,7 +20,6 @@ from traitlets.config.configurable import Configurable
 from . import oinspect
 from .error import UsageError
 from .inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
-from decorator import decorator
 from ..utils.ipstruct import Struct
 from ..utils.process import arg_split
 from ..utils.text import dedent
@@ -184,20 +183,18 @@ def _method_magic_marker(magic_kind):
     # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg):
-        call = lambda f, *a, **k: f(*a, **k)
-
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
             name = func.__name__
-            retval = decorator(call, func)
+            retval = arg
             record_magic(magics, magic_kind, name, name)
         elif isinstance(arg, str):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
                 record_magic(magics, magic_kind, name, func.__name__)
-                return decorator(call, func)
+                return func
             retval = mark
         else:
             raise TypeError("Decorator can only be called with "
@@ -217,8 +214,6 @@ def _function_magic_marker(magic_kind):
     # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg):
-        call = lambda f, *a, **k: f(*a, **k)
-
         # Find get_ipython() in the caller's namespace
         caller = sys._getframe(1)
         for ns in ['f_locals', 'f_globals', 'f_builtins']:
@@ -236,13 +231,13 @@ def _function_magic_marker(magic_kind):
             func = arg
             name = func.__name__
             ip.register_magic_function(func, magic_kind, name)
-            retval = decorator(call, func)
+            retval = arg
         elif isinstance(arg, str):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
                 ip.register_magic_function(func, magic_kind, name)
-                return decorator(call, func)
+                return func
             retval = mark
         else:
             raise TypeError("Decorator can only be called with "
