@@ -20,7 +20,6 @@ Limitations:
 
 # From the standard library
 import doctest
-import inspect
 import logging
 import os
 import re
@@ -54,42 +53,8 @@ class DocTestSkip(object):
         else:
             return getattr(object.__getattribute__(self,'obj'),key)
 
-# Modified version of the one in the stdlib, that fixes a python bug (doctests
-# not found in extension modules, http://bugs.python.org/issue3158)
+
 class DocTestFinder(doctest.DocTestFinder):
-
-    def _from_module(self, module, object):
-        """
-        Return true if the given object is defined in the given
-        module.
-        """
-        if module is None:
-            return True
-        elif inspect.isfunction(object):
-            return module.__dict__ is object.__globals__
-        elif inspect.isbuiltin(object):
-            return module.__name__ == object.__module__
-        elif inspect.isclass(object):
-            return module.__name__ == object.__module__
-        elif inspect.ismethod(object):
-            # This one may be a bug in cython that fails to correctly set the
-            # __module__ attribute of methods, but since the same error is easy
-            # to make by extension code writers, having this safety in place
-            # isn't such a bad idea
-            return module.__name__ == object.__self__.__class__.__module__
-        elif inspect.getmodule(object) is not None:
-            return module is inspect.getmodule(object)
-        elif hasattr(object, '__module__'):
-            return module.__name__ == object.__module__
-        elif isinstance(object, property):
-            return True # [XX] no way not be sure.
-        elif inspect.ismethoddescriptor(object):
-            # Unbound PyQt signals reach this point in Python 3.4b3, and we want
-            # to avoid throwing an error. See also http://bugs.python.org/issue3158
-            return False
-        else:
-            raise ValueError("object must be a class or function, got %r" % object)
-
     def _find(self, tests, obj, name, module, source_lines, globs, seen):
         """
         Find tests for the given object and any contained objects, and
@@ -99,45 +64,8 @@ class DocTestFinder(doctest.DocTestFinder):
         if bool(getattr(obj, "__skip_doctest__", False)):
             #print 'SKIPPING DOCTEST FOR:',obj  # dbg
             obj = DocTestSkip(obj)
-        
-        doctest.DocTestFinder._find(self,tests, obj, name, module,
-                                    source_lines, globs, seen)
 
-        # Below we re-run pieces of the above method with manual modifications,
-        # because the original code is buggy and fails to correctly identify
-        # doctests in extension modules.
-
-        # Local shorthands
-        from inspect import isroutine, isclass
-
-        # Look for tests in a module's contained objects.
-        if inspect.ismodule(obj) and self._recurse:
-            for valname, val in obj.__dict__.items():
-                valname1 = '%s.%s' % (name, valname)
-                if ( (isroutine(val) or isclass(val))
-                     and self._from_module(module, val) ):
-
-                    self._find(tests, val, valname1, module, source_lines,
-                               globs, seen)
-
-        # Look for tests in a class's contained objects.
-        if inspect.isclass(obj) and self._recurse:
-            #print 'RECURSE into class:',obj  # dbg
-            for valname, val in obj.__dict__.items():
-                # Special handling for staticmethod/classmethod.
-                if isinstance(val, staticmethod):
-                    val = getattr(obj, valname)
-                if isinstance(val, classmethod):
-                    val = getattr(obj, valname).__func__
-
-                # Recurse to methods, properties, and nested classes.
-                if ((inspect.isfunction(val) or inspect.isclass(val) or
-                     inspect.ismethod(val) or
-                      isinstance(val, property)) and
-                      self._from_module(module, val)):
-                    valname = '%s.%s' % (name, valname)
-                    self._find(tests, val, valname, module, source_lines,
-                               globs, seen)
+        super()._find(tests, obj, name, module, source_lines, globs, seen)
 
 
 class IPDoctestOutputChecker(doctest.OutputChecker):
