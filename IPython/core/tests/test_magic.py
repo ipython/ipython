@@ -742,6 +742,7 @@ def test_extension():
 
 
 def test_notebook_export_json():
+    pytest.importorskip("nbformat")
     _ip = get_ipython()
     _ip.history_manager.reset()   # Clear any existing history.
     cmds = ["a=1", "def b():\n  return a**2", "print('noël, été', b())"]

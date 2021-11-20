@@ -31,8 +31,8 @@ init:
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - python -m pip install --upgrade setuptools pip
-  - pip install pytest pytest-cov pytest-trio matplotlib pandas
-  - pip install -e .[test]
+  - pip install pytest-cov
+  - pip install -e .[test_extra]
 test_script:
   - pytest --color=yes -ra --cov --cov-report=xml
 on_finish:

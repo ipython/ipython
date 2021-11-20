@@ -381,6 +381,7 @@ tclass.py: deleting object: C-third
 
     def test_run_nb(self):
         """Test %run notebook.ipynb"""
+        pytest.importorskip("nbformat")
         from nbformat import v4, writes
         nb = v4.new_notebook(
            cells=[
@@ -397,6 +398,7 @@ tclass.py: deleting object: C-third
 
     def test_run_nb_error(self):
         """Test %run notebook.ipynb error"""
+        pytest.importorskip("nbformat")
         from nbformat import v4, writes
         # %run when a file name isn't provided
         pytest.raises(Exception, _ip.magic, "run")
