@@ -176,7 +176,6 @@ extras_require = dict(
     doc=["Sphinx>=1.3"],
     test=[
         "pytest",
-        "requests",
         "testpath",
         "pygments",
         "nbformat",
