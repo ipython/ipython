@@ -185,7 +185,6 @@ extras_require = dict(
         "curio",
         "matplotlib!=3.2.0",
         "nbformat",
-        "ipykernel",
         "numpy>=1.17",
         "pandas",
         "pygments",
