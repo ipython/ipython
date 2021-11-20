@@ -104,7 +104,7 @@ def test_unicode_range():
     assert len_exp == len_test, message
 
     # fail if new unicode symbols have been added. 
-    assert len_exp <= 137714, message
+    assert len_exp <= 138552, message
 
 
 @contextmanager
@@ -219,6 +219,11 @@ class KeyCompletable:
         return list(self.things)
 
 
+@pytest.mark.xfail(
+    sys.version_info >= (3, 11),
+    reason="parso does not support 3.11 yet",
+    raises=NotImplementedError,
+)
 class TestCompleter(unittest.TestCase):
     def setUp(self):
         """
@@ -282,7 +287,7 @@ class TestCompleter(unittest.TestCase):
 
         ip = get_ipython()
         # Test some random unicode symbols
-        keys = random.sample(latex_symbols.keys(), 10)
+        keys = random.sample(sorted(latex_symbols), 10)
         for k in keys:
             text, matches = ip.complete(k)
             self.assertEqual(text, k)

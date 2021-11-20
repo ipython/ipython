@@ -6,13 +6,13 @@
 # Distributed under the terms of the Modified BSD License.
 
 import unittest
+import pytest
 import sys
 
 from IPython.core import inputsplitter as isp
 from IPython.core.inputtransformer import InputTransformer
 from IPython.core.tests.test_inputtransformer import syntax, syntax_ml
 from IPython.testing import tools as tt
-from IPython.testing.decorators import skipif
 
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
@@ -318,7 +318,12 @@ class InputSplitterTestCase(unittest.TestCase):
         self.isp.push(u'\xc3\xa9')
         self.isp.push(u"u'\xc3\xa9'")
 
-    @skipif(sys.version_info[:3] == (3, 9, 8))
+    @pytest.mark.xfail(
+        reason="Bug in python 3.9.8 – bpo 45738",
+        condition=sys.version_info in [(3, 9, 8, "final", 0), (3, 11, 0, "alpha", 2)],
+        raises=SystemError,
+        strict=True,
+    )
     def test_line_continuation(self):
         """ Test issue #2108."""
         isp = self.isp

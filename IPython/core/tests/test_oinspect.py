@@ -269,7 +269,6 @@ def test_empty_property_has_no_source():
 
 
 def test_property_sources():
-    import posixpath
     # A simple adder whose source and signature stays
     # the same across Python distributions
     def simple_add(a, b):
@@ -283,7 +282,7 @@ def test_property_sources():
 
         foo = foo.setter(lambda self, v: setattr(self, 'bar', v))
 
-        dname = property(posixpath.dirname)
+        dname = property(oinspect.getdoc)
         adder = property(simple_add)
 
     i = inspector.info(A.foo, detail_level=1)
@@ -291,7 +290,7 @@ def test_property_sources():
     assert "lambda self, v:" in i["source"]
 
     i = inspector.info(A.dname, detail_level=1)
-    assert "def dirname(p)" in i["source"]
+    assert "def getdoc(obj)" in i["source"]
 
     i = inspector.info(A.adder, detail_level=1)
     assert "def simple_add(a, b)" in i["source"]

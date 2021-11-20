@@ -276,7 +276,8 @@ examples = [
         None,
         marks=pytest.mark.xfail(
             reason="Bug in python 3.9.8 – bpo 45738",
-            condition=sys.version_info[:3] == (3, 9, 8),
+            condition=sys.version_info
+            in [(3, 9, 8, "final", 0), (3, 11, 0, "alpha", 2)],
             raises=SystemError,
             strict=True,
         ),
@@ -295,7 +296,9 @@ def test_check_complete_param(code, expected, number):
 @skip_iptest_but_not_pytest
 @pytest.mark.xfail(
     reason="Bug in python 3.9.8 – bpo 45738",
-    condition=sys.version_info[:3] == (3, 9, 8),
+    condition=sys.version_info in [(3, 9, 8, "final", 0), (3, 11, 0, "alpha", 2)],
+    raises=SystemError,
+    strict=True,
 )
 def test_check_complete():
     cc = ipt2.TransformerManager().check_complete
