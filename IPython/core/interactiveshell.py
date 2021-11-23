@@ -117,12 +117,8 @@ else :
     from ast import Module as OriginalModule
     Module = lambda nodelist, type_ignores: OriginalModule(nodelist)
 
-if sys.version_info > (3,6):
-    _assign_nodes         = (ast.AugAssign, ast.AnnAssign, ast.Assign)
-    _single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
-else:
-    _assign_nodes         = (ast.AugAssign, ast.Assign )
-    _single_targets_nodes = (ast.AugAssign, )
+_assign_nodes = (ast.AugAssign, ast.AnnAssign, ast.Assign)
+_single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
 
 #-----------------------------------------------------------------------------
 # Await Helpers
