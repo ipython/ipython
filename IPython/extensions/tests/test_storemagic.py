@@ -1,4 +1,5 @@
 import tempfile, os
+from pathlib import Path
 
 from traitlets.config.loader import Config
 
@@ -43,7 +44,7 @@ def test_store_restore():
     assert ip.user_ns["foobaz"] == "80"
 
     ip.magic("store -r")  # restores _dh too
-    assert os.path.realpath(tmpd) in ip.user_ns["_dh"]
+    assert any(Path(tmpd).samefile(p) for p in ip.user_ns["_dh"])
 
     os.rmdir(tmpd)
 
