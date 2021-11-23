@@ -132,6 +132,7 @@ from IPython.core.error import TryNext
 from IPython.core.inputtransformer2 import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.core.oinspect import InspectColors
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.path import ensure_dir_exists
@@ -190,6 +191,8 @@ class ProvisionalCompleterWarning(FutureWarning):
 
 warnings.filterwarnings('error', category=ProvisionalCompleterWarning)
 
+
+@skip_doctest
 @contextmanager
 def provisionalcompleter(action='ignore'):
     """
