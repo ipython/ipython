@@ -9,7 +9,8 @@ import unittest
 import pytest
 import sys
 
-from IPython.core import inputsplitter as isp
+with pytest.warns(DeprecationWarning, match="inputsplitter"):
+    from IPython.core import inputsplitter as isp
 from IPython.core.inputtransformer import InputTransformer
 from IPython.core.tests.test_inputtransformer import syntax, syntax_ml
 from IPython.testing import tools as tt
