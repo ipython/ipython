@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 IPython: tools for interactive and parallel computing in Python.
 
@@ -27,13 +26,15 @@ import sys
 #-----------------------------------------------------------------------------
 
 # Don't forget to also update setup.py when this changes!
-if sys.version_info < (3, 6):
+if sys.version_info < (3, 8):
     raise ImportError(
 """
-IPython 7.10+ supports Python 3.6 and above.
+IPython 8+ supports Python 3.8 and above, following NEP 29.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
 Python 3.3 and 3.4 were supported up to IPython 6.x.
 Python 3.5 was supported with IPython 7.0 to 7.9.
+Python 3.6 was supported with IPython up to 7.16.
+Python 3.7 was still supported with the 7.x branch.
 
 See IPython `README.rst` file for more information:
 
