@@ -8,7 +8,6 @@ environment:
     COLUMNS: 120  # Appveyor web viwer window width is 130 chars
 
   matrix:
-
    - PYTHON: "C:\\Python38"
      PYTHON_VERSION: "3.8.x"
      PYTHON_ARCH: "32"
