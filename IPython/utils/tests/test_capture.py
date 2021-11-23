@@ -17,8 +17,6 @@ import sys
 
 import pytest
 
-from IPython.testing.decorators import skip_iptest_but_not_pytest
-
 from IPython.utils import capture
 
 #-----------------------------------------------------------------------------
@@ -69,7 +67,6 @@ hello_stderr = "hello, stderr"
 # Test Functions
 #-----------------------------------------------------------------------------
 @pytest.mark.parametrize("method_mime", _mime_map.items())
-@skip_iptest_but_not_pytest
 def test_rich_output_empty(method_mime):
     """RichOutput with no args"""
     rich = capture.RichOutput()
@@ -88,7 +85,6 @@ def test_rich_output():
     assert rich._repr_svg_() is None
 
 
-@skip_iptest_but_not_pytest
 @pytest.mark.parametrize("method_mime", _mime_map.items())
 def test_rich_output_no_metadata(method_mime):
     """test RichOutput with no metadata"""
@@ -98,7 +94,6 @@ def test_rich_output_no_metadata(method_mime):
     assert getattr(rich, method)() == data[mime]
 
 
-@skip_iptest_but_not_pytest
 @pytest.mark.parametrize("method_mime", _mime_map.items())
 def test_rich_output_metadata(method_mime):
     """test RichOutput with metadata"""

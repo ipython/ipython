@@ -12,7 +12,6 @@ import pytest
 
 from IPython.core import inputtransformer2 as ipt2
 from IPython.core.inputtransformer2 import _find_assign_op, make_tokens_by_line
-from IPython.testing.decorators import skip_iptest_but_not_pytest
 
 MULTILINE_MAGIC = ("""\
 a = f()
@@ -285,14 +284,12 @@ examples = [
 ]
 
 
-@skip_iptest_but_not_pytest
 @pytest.mark.parametrize("code, expected, number", examples)
 def test_check_complete_param(code, expected, number):
     cc = ipt2.TransformerManager().check_complete
     assert cc(code) == (expected, number)
 
 
-@skip_iptest_but_not_pytest
 @pytest.mark.xfail(
     reason="Bug in python 3.9.8 – bpo 45738",
     condition=sys.version_info[:3] == (3, 9, 8),

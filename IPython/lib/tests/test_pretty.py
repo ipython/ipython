@@ -16,7 +16,6 @@ import unittest
 import pytest
 
 from IPython.lib import pretty
-from IPython.testing.decorators import skip_iptest_but_not_pytest
 
 from io import StringIO
 
@@ -129,7 +128,6 @@ def test_callability_checking():
         ],
     ),
 )
-@skip_iptest_but_not_pytest
 def test_sets(obj, expected_output):
     """
     Test that set and frozenset use Python 3 formatting.

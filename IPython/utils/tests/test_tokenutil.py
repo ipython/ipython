@@ -3,7 +3,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 import pytest
-from IPython.testing.decorators import skip_iptest_but_not_pytest
 
 from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
 
@@ -132,7 +131,6 @@ def test_line_at_cursor():
         ["int"] * (22 - 16) + ["map"] * (28 - 22),
     ),
 )
-@skip_iptest_but_not_pytest
 def test_multiline_statement(c, token):
     cell = """a = (1,
     3)
