@@ -304,6 +304,8 @@ class ScriptMagics(Magics):
             # in case it's stuck in uninterruptible sleep. -9 = SIGKILL
             rc = p.returncode or -9
             raise CalledProcessError(rc, cell)
+
+    shebang.__skip_doctest__ = os.name != "posix"
     
     def _run_script(self, p, cell, to_close):
         """callback for running the script in the background"""

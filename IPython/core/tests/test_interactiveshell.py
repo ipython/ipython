@@ -346,10 +346,15 @@ class InteractiveShellTestCase(unittest.TestCase):
             "A line magic"
 
         # Get info on line magic
-        lfind = ip._ofind('lmagic')
-        info = dict(found=True, isalias=False, ismagic=True,
-                    namespace = 'IPython internal', obj= lmagic.__wrapped__,
-                    parent = None)
+        lfind = ip._ofind("lmagic")
+        info = dict(
+            found=True,
+            isalias=False,
+            ismagic=True,
+            namespace="IPython internal",
+            obj=lmagic,
+            parent=None,
+        )
         self.assertEqual(lfind, info)
         
     def test_ofind_cell_magic(self):
@@ -360,10 +365,15 @@ class InteractiveShellTestCase(unittest.TestCase):
             "A cell magic"
 
         # Get info on cell magic
-        find = ip._ofind('cmagic')
-        info = dict(found=True, isalias=False, ismagic=True,
-                    namespace = 'IPython internal', obj= cmagic.__wrapped__,
-                    parent = None)
+        find = ip._ofind("cmagic")
+        info = dict(
+            found=True,
+            isalias=False,
+            ismagic=True,
+            namespace="IPython internal",
+            obj=cmagic,
+            parent=None,
+        )
         self.assertEqual(find, info)
 
     def test_ofind_property_with_error(self):

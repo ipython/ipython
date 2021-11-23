@@ -11,6 +11,7 @@ import sys
 from IPython.core.error import TryNext, UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.lib.clipboard import ClipboardEmpty
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.text import SList, strip_email_quotes
 from IPython.utils import py3compat
 
@@ -83,6 +84,7 @@ class TerminalMagics(Magics):
         self.shell.set_autoindent()
         print("Automatic indentation is:",['OFF','ON'][self.shell.autoindent])
 
+    @skip_doctest
     @line_magic
     def cpaste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
