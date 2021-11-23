@@ -82,13 +82,16 @@ from warnings import warn
 from logging import error
 import IPython.core.hooks
 
-from typing import List as ListType, Tuple, Optional
-from ast import AST
+from typing import List as ListType, Tuple, Optional, Callable
+from ast import AST, stmt
+
 
 # NoOpContext is deprecated, but ipykernel imports it from here.
 # See https://github.com/ipython/ipykernel/issues/157
 # (2016, let's try to remove than in IPython 8.0)
 from IPython.utils.contexts import NoOpContext
+
+sphinxify: Optional[Callable]
 
 try:
     import docrepr.sphinxify as sphx
@@ -207,14 +210,20 @@ def _ast_asyncify(cell:str, wrapper_name:str) -> ast.Module:
         is updated only on `local()` calls.
     """
 
-    from ast import Expr, Await, Return
+    from ast import Expr, Await, Return, stmt, FunctionDef, Try, AsyncFunctionDef
     if sys.version_info >= (3,8):
         return ast.parse(cell)
     tree = ast.parse(_asyncify(cell))
 
     function_def = tree.body[0]
+    if sys.version_info > (3, 8):
+        assert isinstance(function_def, FunctionDef), function_def
+    else:
+        assert isinstance(function_def, (FunctionDef, AsyncFunctionDef)), function_def
+
     function_def.name = wrapper_name
     try_block = function_def.body[0]
+    assert isinstance(try_block, Try)
     lastexpr = try_block.body[-1]
     if isinstance(lastexpr, (Expr, Await)):
         try_block.body[-1] = Return(lastexpr.value)
@@ -312,7 +321,7 @@ class ExecutionResult(object):
     """
     execution_count = None
     error_before_exec = None
-    error_in_exec = None
+    error_in_exec: Optional[BaseException] = None
     info = None
     result = None
 
@@ -3278,8 +3287,14 @@ class InteractiveShell(SingletonConfigurable):
             ast.fix_missing_locations(node)
         return node
 
-    async def run_ast_nodes(self, nodelist:ListType[AST], cell_name:str, interactivity='last_expr',
-                        compiler=compile, result=None):
+    async def run_ast_nodes(
+        self,
+        nodelist: ListType[stmt],
+        cell_name: str,
+        interactivity="last_expr",
+        compiler=compile,
+        result=None,
+    ):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
 
@@ -3317,6 +3332,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not nodelist:
             return
+
 
         if interactivity == 'last_expr_or_assign':
             if isinstance(nodelist[-1], _assign_nodes):
