@@ -1,10 +1,8 @@
 import asyncio
 import signal
 import sys
-import threading
 
 from IPython.core.debugger import Pdb
-
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
 from .shortcuts import create_ipython_shortcuts, suspend_to_bg, cursor_in_leading_ws
@@ -18,6 +16,7 @@ from pygments.token import Token
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.formatted_text import PygmentsTokens
+from concurrent.futures import ThreadPoolExecutor
 
 from prompt_toolkit import __version__ as ptk_version
 PTK3 = ptk_version.startswith('3.')
@@ -30,6 +29,7 @@ class TerminalPdb(Pdb):
         Pdb.__init__(self, *args, **kwargs)
         self._ptcomp = None
         self.pt_init(pt_session_options)
+        self.thread_executor = ThreadPoolExecutor(1)
 
     def pt_init(self, pt_session_options=None):
         """Initialize the prompt session and the prompt loop
@@ -102,7 +102,7 @@ class TerminalPdb(Pdb):
             if intro is not None:
                 self.intro = intro
             if self.intro:
-                self.stdout.write(str(self.intro)+"\n")
+                print(self.intro, file=self.stdout)
             stop = None
             while not stop:
                 if self.cmdqueue:
@@ -112,24 +112,11 @@ class TerminalPdb(Pdb):
                     self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
 
                     # Run the prompt in a different thread.
-                    line = ''
-                    keyboard_interrupt = False
+                    try:
+                        line = self.thread_executor.submit(self.pt_app.prompt).result()
+                    except EOFError:
+                        line = "EOF"
 
-                    def in_thread():
-                        nonlocal line, keyboard_interrupt
-                        try:
-                            line = self.pt_app.prompt()
-                        except EOFError:
-                            line = 'EOF'
-                        except KeyboardInterrupt:
-                            keyboard_interrupt = True
-
-                    th = threading.Thread(target=in_thread)
-                    th.start()
-                    th.join()
-
-                    if keyboard_interrupt:
-                        raise KeyboardInterrupt
                 line = self.precmd(line)
                 stop = self.onecmd(line)
                 stop = self.postcmd(stop, line)
