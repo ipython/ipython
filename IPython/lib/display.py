@@ -66,6 +66,9 @@ class Audio(DisplayObject):
     Examples
     --------
 
+    >>> import pytest
+    >>> np = pytest.importorskip("numpy")
+
     Generate a sound
 
     >>> import numpy as np

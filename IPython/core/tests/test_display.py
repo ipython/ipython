@@ -156,7 +156,6 @@ def _get_inline_config():
     return InlineBackend.instance()
 
 
-@dec.skip_without("ipykernel")
 @dec.skip_without("matplotlib")
 def test_set_matplotlib_close():
     cfg = _get_inline_config()
@@ -196,7 +195,6 @@ def test_set_matplotlib_formats():
                 assert Figure not in f
 
 
-@dec.skip_without("ipykernel")
 @dec.skip_without("matplotlib")
 def test_set_matplotlib_formats_kwargs():
     from matplotlib.figure import Figure
