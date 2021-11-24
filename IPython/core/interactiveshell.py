@@ -112,13 +112,7 @@ class ProvisionalWarning(DeprecationWarning):
     """
     pass
 
-if sys.version_info > (3,8):
-    from ast import Module
-else :
-    # mock the new API, ignore second argument
-    # see https://github.com/ipython/ipython/issues/11590
-    from ast import Module as OriginalModule
-    Module = lambda nodelist, type_ignores: OriginalModule(nodelist)
+from ast import Module
 
 _assign_nodes = (ast.AugAssign, ast.AnnAssign, ast.Assign)
 _single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
