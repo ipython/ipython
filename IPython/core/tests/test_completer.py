@@ -191,24 +191,15 @@ def test_line_split():
     check_line_split(sp, [map(str, p) for p in t])
 
 
-class NamedInstanceMetaclass(type):
-    def __getitem__(cls, item):
-        return cls.get_instance(item)
+class NamedInstanceClass:
+    instances = {}
 
-
-class NamedInstanceClass(metaclass=NamedInstanceMetaclass):
     def __init__(self, name):
-        if not hasattr(self.__class__, "instances"):
-            self.__class__.instances = {}
-        self.__class__.instances[name] = self
+        self.instances[name] = self
 
     @classmethod
     def _ipython_key_completions_(cls):
         return cls.instances.keys()
-
-    @classmethod
-    def get_instance(cls, name):
-        return cls.instances[name]
 
 
 class KeyCompletable:
