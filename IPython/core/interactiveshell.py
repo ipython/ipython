@@ -123,7 +123,7 @@ _single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
 
 # we still need to run things using the asyncio eventloop, but there is no
 # async integration
-from .async_helpers import (_asyncio_runner, _pseudo_sync_runner)
+from .async_helpers import _asyncio_runner, _pseudo_sync_runner
 from .async_helpers import _curio_runner, _trio_runner, _should_be_async
 
 #-----------------------------------------------------------------------------
@@ -3224,27 +3224,32 @@ class InteractiveShell(SingletonConfigurable):
             raise ValueError("Interactivity was %r" % interactivity)
 
         try:
+
             def compare(code):
-                is_async = (inspect.CO_COROUTINE & code.co_flags == inspect.CO_COROUTINE)
+                is_async = inspect.CO_COROUTINE & code.co_flags == inspect.CO_COROUTINE
                 return is_async
 
             # refactor that to just change the mod constructor.
             to_run = []
             for node in to_run_exec:
-                to_run.append((node, 'exec'))
+                to_run.append((node, "exec"))
 
             for node in to_run_interactive:
-                to_run.append((node, 'single'))
+                to_run.append((node, "single"))
 
-            for node,mode in to_run:
-                if mode == 'exec':
+            for node, mode in to_run:
+                if mode == "exec":
                     mod = Module([node], [])
-                elif mode == 'single':
+                elif mode == "single":
                     mod = ast.Interactive([node])
-                with compiler.extra_flags(getattr(ast, 'PyCF_ALLOW_TOP_LEVEL_AWAIT', 0x0) if self.autoawait else 0x0):
+                with compiler.extra_flags(
+                    getattr(ast, "PyCF_ALLOW_TOP_LEVEL_AWAIT", 0x0)
+                    if self.autoawait
+                    else 0x0
+                ):
                     code = compiler(mod, cell_name, mode)
                     asy = compare(code)
-                if (await self.run_code(code, result,  async_=asy)):
+                if await self.run_code(code, result, async_=asy):
                     return True
 
             # Flush softspace
@@ -3302,7 +3307,7 @@ class InteractiveShell(SingletonConfigurable):
         try:
             try:
                 self.hooks.pre_run_code_hook()
-                if async_ :
+                if async_:
                     await eval(code_obj, self.user_global_ns, self.user_ns)
                 else:
                     exec(code_obj, self.user_global_ns, self.user_ns)
