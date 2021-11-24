@@ -690,7 +690,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_pdb()
         self.init_extension_manager()
         self.init_payload()
-        self.init_deprecation_warnings()
         self.hooks.late_startup_hook()
         self.events.trigger('shell_initialized', self)
         atexit.register(self.atexit_operations)
@@ -815,16 +814,6 @@ class InteractiveShell(SingletonConfigurable):
             self.magic('logstart %s' % self.logfile)
         elif self.logstart:
             self.magic('logstart')
-
-    def init_deprecation_warnings(self):
-        """
-        register default filter for deprecation warning.
-
-        This will allow deprecation warning of function used interactively to show
-        warning to users, and still hide deprecation warning from libraries import.
-        """
-        if sys.version_info < (3,7):
-            warnings.filterwarnings("default", category=DeprecationWarning, module=self.user_ns.get("__name__"))
 
 
     def init_builtins(self):
