@@ -55,7 +55,7 @@ if __name__ == '__main__':
                                         r'\.parallel',
                                         r'\.qt',
                                         # this is deprecated.
-                                        r'\.utils\.warn',
+                                        r'\.utils\.version',
                                         # Private APIs (there should be a lot more here)
                                         r'\.terminal\.ptutils',
                                         ]
