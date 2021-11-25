@@ -2894,7 +2894,7 @@ class InteractiveShell(SingletonConfigurable):
         result: bool
             Whether the code needs to be run with a coroutine runner or not
 
-        .. versionadded: 7.0
+        .. versionadded:: 7.0
         """
         if not self.autoawait:
             return False
@@ -2959,7 +2959,7 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
 
-        .. versionadded: 7.0
+        .. versionadded:: 7.0
         """
         info = ExecutionInfo(
             raw_cell, store_history, silent, shell_futures)
