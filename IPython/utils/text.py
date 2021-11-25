@@ -597,6 +597,9 @@ class DollarFormatter(FullEvalFormatter):
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
 
+    def __repr__(self):
+        return "<DollarFormatter>"
+
 #-----------------------------------------------------------------------------
 # Utils to columnize a list of string
 #-----------------------------------------------------------------------------
