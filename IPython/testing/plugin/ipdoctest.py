@@ -80,18 +80,6 @@ class IPDoctestOutputChecker(doctest.OutputChecker):
 class IPExample(doctest.Example): pass
 
 
-class IPExternalExample(doctest.Example):
-    """Doctest examples to be run in an external process."""
-
-    def __init__(self, source, want, exc_msg=None, lineno=0, indent=0,
-                 options=None):
-        # Parent constructor
-        doctest.Example.__init__(self,source,want,exc_msg,lineno,indent,options)
-
-        # An EXTRA newline is needed to prevent pexpect hangs
-        self.source += '\n'
-
-
 class IPDocTestParser(doctest.DocTestParser):
     """
     A class used to parse strings containing doctest examples.
@@ -137,9 +125,6 @@ class IPDocTestParser(doctest.DocTestParser):
     # we don't need to modify any other code.
     _RANDOM_TEST = re.compile(r'#\s*all-random\s+')
 
-    # Mark tests to be executed in an external process - currently unsupported.
-    _EXTERNAL_IP = re.compile(r'#\s*ipdoctest:\s*EXTERNAL')
-
     def ip2py(self,source):
         """Convert input IPython source into valid Python."""
         block = _ip.input_transformer_manager.transform_cell(source)
@@ -182,27 +167,12 @@ class IPDocTestParser(doctest.DocTestParser):
         terms = list(self._EXAMPLE_RE_PY.finditer(string))
         if terms:
             # Normal Python example
-            #print '-'*70  # dbg
-            #print 'PyExample, Source:\n',string  # dbg
-            #print '-'*70  # dbg
             Example = doctest.Example
         else:
-            # It's an ipython example.  Note that IPExamples are run
-            # in-process, so their syntax must be turned into valid python.
-            # IPExternalExamples are run out-of-process (via pexpect) so they
-            # don't need any filtering (a real ipython will be executing them).
+            # It's an ipython example.
             terms = list(self._EXAMPLE_RE_IP.finditer(string))
-            if self._EXTERNAL_IP.search(string):
-                #print '-'*70  # dbg
-                #print 'IPExternalExample, Source:\n',string  # dbg
-                #print '-'*70  # dbg
-                Example = IPExternalExample
-            else:
-                #print '-'*70  # dbg
-                #print 'IPExample, Source:\n',string  # dbg
-                #print '-'*70  # dbg
-                Example = IPExample
-                ip2py = True
+            Example = IPExample
+            ip2py = True
 
         for m in terms:
             # Add the pre-example text to `output`.
@@ -216,10 +186,6 @@ class IPDocTestParser(doctest.DocTestParser):
             # Append the random-output marker (it defaults to empty in most
             # cases, it's only non-empty for 'all-random' tests):
             want += random_marker
-
-            if Example is IPExternalExample:
-                options[doctest.NORMALIZE_WHITESPACE] = True
-                want += '\n'
 
             # Create an Example, and add it to the list.
             if not self._IS_BLANK_OR_COMMENT(source):
@@ -328,18 +294,6 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
     """
 
     def run(self, test, compileflags=None, out=None, clear_globs=True):
-
-        # Hack: ipython needs access to the execution context of the example,
-        # so that it can propagate user variables loaded by %run into
-        # test.globs.  We put them here into our modified %run as a function
-        # attribute.  Our new %run will then only make the namespace update
-        # when called (rather than unconditionally updating test.globs here
-        # for all examples, most of which won't be calling %run anyway).
-        #_ip._ipdoctest_test_globs = test.globs
-        #_ip._ipdoctest_test_filename = test.filename
-
-        test.globs.update(_ip.user_ns)
-
         # Override terminal size to standardise traceback format
         with modified_env({'COLUMNS': '80', 'LINES': '24'}):
             return super(IPDocTestRunner,self).run(test,
