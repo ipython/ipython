@@ -566,7 +566,9 @@ class Inspector(Colorable):
         bundle['text/plain'] = text
         return bundle
 
-    def _get_info(self, obj, oname='', formatter=None, info=None, detail_level=0):
+    def _get_info(
+        self, obj, oname="", formatter=None, info=None, detail_level=0, omit_sections=()
+    ):
         """Retrieve an info dict and format it.
 
         Parameters
@@ -581,6 +583,8 @@ class Inspector(Colorable):
             already computed information
         detail_level: integer
             Granularity of detail level, if set to 1, give more information.
+        omit_sections: container[str]
+            Titles or keys to omit from output (can be set, tuple, etc., anything supporting `in`)
         """
 
         info = self._info(obj, oname=oname, info=info, detail_level=detail_level)
@@ -591,6 +595,8 @@ class Inspector(Colorable):
         }
 
         def append_field(bundle, title:str, key:str, formatter=None):
+            if title in omit_sections or key in omit_sections:
+                return
             field = info[key]
             if field is not None:
                 formatted_field = self._mime_format(field, formatter)
@@ -655,7 +661,16 @@ class Inspector(Colorable):
 
         return self.format_mime(_mime)
 
-    def pinfo(self, obj, oname='', formatter=None, info=None, detail_level=0, enable_html_pager=True):
+    def pinfo(
+        self,
+        obj,
+        oname="",
+        formatter=None,
+        info=None,
+        detail_level=0,
+        enable_html_pager=True,
+        omit_sections=(),
+    ):
         """Show detailed information about an object.
 
         Optional arguments:
@@ -676,8 +691,12 @@ class Inspector(Colorable):
           precomputed already.
 
         - detail_level: if set to 1, more information is given.
+
+        - omit_sections: set of section keys and titles to omit
         """
-        info = self._get_info(obj, oname, formatter, info, detail_level)
+        info = self._get_info(
+            obj, oname, formatter, info, detail_level, omit_sections=omit_sections
+        )
         if not enable_html_pager:
             del info['text/html']
         page.page(info)
