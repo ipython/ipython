@@ -21,7 +21,7 @@ WHITE=$(tput setaf 7)
 NOR=$(tput sgr0)
 
 
-echo "Will use $EDITOR to edit files when necessary"
+echo "Will use '$EDITOR' to edit files when necessary"
 echo -n "PREV_RELEASE (X.y.z) [$PREV_RELEASE]: "
 read input
 PREV_RELEASE=${input:-$PREV_RELEASE}
@@ -65,7 +65,7 @@ maybe_edit(){
 
     echo 
     if [ $value = 'e' ]  ; then
-        $EDITOR $1
+        $=EDITOR $1
     fi
 }
 
