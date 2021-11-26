@@ -163,10 +163,9 @@ def create_ipython_shortcuts(shell):
         kb.add(*keys, filter=focused_insert & ebivim)(cmd)
 
     def get_input_mode(self):
-        if sys.version_info[0] == 3:
-            app = get_app()
-            app.ttimeoutlen = shell.ttimeoutlen
-            app.timeoutlen = shell.timeoutlen
+        app = get_app()
+        app.ttimeoutlen = shell.ttimeoutlen
+        app.timeoutlen = shell.timeoutlen
 
         return self._input_mode
 
