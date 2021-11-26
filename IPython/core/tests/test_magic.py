@@ -1308,12 +1308,7 @@ def test_time_no_var_expand():
 # this is slow, put at the end for local testing.
 def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
-    if sys.version_info < (3,7):
-        _ip.magic("timeit -n1 -r1 ('#')")
-    else:
-        # 3.7 optimize no-op statement like above out, and complain there is
-        # nothing in the for loop.
-        _ip.magic("timeit -n1 -r1 a=('#')")
+    _ip.magic("timeit -n1 -r1 a=('#')")
 
 
 TEST_MODULE = """

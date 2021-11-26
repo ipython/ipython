@@ -8,49 +8,44 @@
 import ast
 import bdb
 import builtins as builtin_mod
+import cProfile as profile
 import gc
 import itertools
+import math
 import os
+import pstats
+import re
 import shlex
 import sys
 import time
 import timeit
-import math
-import re
+from ast import Module
+from io import StringIO
+from logging import error
+from pathlib import Path
 from pdb import Restart
+from warnings import warn
 
-import cProfile as profile
-import pstats
-
-from IPython.core import oinspect
-from IPython.core import magic_arguments
-from IPython.core import page
+from IPython.core import magic_arguments, oinspect, page
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro
-from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
-                                line_cell_magic, on_off, needs_local_scope,
-                                no_var_expand)
+from IPython.core.magic import (
+    Magics,
+    cell_magic,
+    line_cell_magic,
+    line_magic,
+    magics_class,
+    needs_local_scope,
+    no_var_expand,
+    on_off,
+)
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.contexts import preserve_keys
 from IPython.utils.capture import capture_output
+from IPython.utils.contexts import preserve_keys
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.timing import clock, clock2
-from warnings import warn
-from logging import error
-from pathlib import Path
-from io import StringIO
-from pathlib import Path
-
-if sys.version_info > (3,8):
-    from ast import Module
-else :
-    # mock the new API, ignore second argument
-    # see https://github.com/ipython/ipython/issues/11590
-    from ast import Module as OriginalModule
-    Module = lambda nodelist, type_ignores: OriginalModule(nodelist)
-
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes

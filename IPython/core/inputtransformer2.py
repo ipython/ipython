@@ -791,9 +791,6 @@ class MaybeAsyncCommandCompiler(CommandCompiler):
         self.compiler = MaybeAsyncCompile(extra_flags=extra_flags)
 
 
-if (sys.version_info.major, sys.version_info.minor) >= (3, 8):
-    _extra_flags = ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
-else:
-    _extra_flags = ast.PyCF_ONLY_AST
+_extra_flags = ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
 
 compile_command = MaybeAsyncCommandCompiler(extra_flags=_extra_flags)
