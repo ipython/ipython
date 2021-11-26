@@ -328,18 +328,6 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
     """
 
     def run(self, test, compileflags=None, out=None, clear_globs=True):
-
-        # Hack: ipython needs access to the execution context of the example,
-        # so that it can propagate user variables loaded by %run into
-        # test.globs.  We put them here into our modified %run as a function
-        # attribute.  Our new %run will then only make the namespace update
-        # when called (rather than unconditionally updating test.globs here
-        # for all examples, most of which won't be calling %run anyway).
-        #_ip._ipdoctest_test_globs = test.globs
-        #_ip._ipdoctest_test_filename = test.filename
-
-        test.globs.update(_ip.user_ns)
-
         # Override terminal size to standardise traceback format
         with modified_env({'COLUMNS': '80', 'LINES': '24'}):
             return super(IPDocTestRunner,self).run(test,
