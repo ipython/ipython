@@ -19,9 +19,11 @@ import pytest
 import IPython
 from IPython import paths
 from IPython.testing import decorators as dec
-from IPython.testing.decorators import (skip_if_not_win32, skip_win32,
-                                        onlyif_unicode_paths,
-                                        skip_win32_py38,)
+from IPython.testing.decorators import (
+    skip_if_not_win32,
+    skip_win32,
+    onlyif_unicode_paths,
+)
 from IPython.testing.tools import make_tempfile
 from IPython.utils import path
 from IPython.utils.tempdir import TemporaryDirectory
@@ -138,7 +140,7 @@ def test_get_home_dir_2():
     assert home_dir == unfrozen
 
 
-@skip_win32_py38
+@skip_win32
 @with_environment
 def test_get_home_dir_3():
     """get_home_dir() uses $HOME if set"""
@@ -156,7 +158,7 @@ def test_get_home_dir_4():
     # this should still succeed, but we don't care what the answer is
     home = path.get_home_dir(False)
 
-@skip_win32_py38
+@skip_win32
 @with_environment
 def test_get_home_dir_5():
     """raise HomeDirError if $HOME is specified, but not a writable dir"""

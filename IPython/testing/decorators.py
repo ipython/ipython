@@ -162,11 +162,6 @@ _x11_skip_msg = "Skipped under *nix when X11/XOrg not available"
 
 skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
 
-
-# Decorators to skip certain tests on specific platform/python combinations
-skip_win32_py38 = skipif(sys.version_info > (3,8) and os.name == 'nt')
-
-
 # Other skip decorators
 
 # generic skip without module
