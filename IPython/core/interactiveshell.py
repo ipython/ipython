@@ -1804,7 +1804,7 @@ class InteractiveShell(SingletonConfigurable):
         """Get object info as formatted text"""
         return self.object_inspect_mime(oname, detail_level)['text/plain']
 
-    def object_inspect_mime(self, oname, detail_level=0, omit_sections={}):
+    def object_inspect_mime(self, oname, detail_level=0, omit_sections=()):
         """Get object info as a mimebundle of formatted representations.
 
         A mimebundle is a dictionary, keyed by mime-type.

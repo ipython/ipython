@@ -567,7 +567,7 @@ class Inspector(Colorable):
         return bundle
 
     def _get_info(
-        self, obj, oname="", formatter=None, info=None, detail_level=0, omit_sections={}
+        self, obj, oname="", formatter=None, info=None, detail_level=0, omit_sections=()
     ):
         """Retrieve an info dict and format it.
 
@@ -583,8 +583,8 @@ class Inspector(Colorable):
             already computed information
         detail_level: integer
             Granularity of detail level, if set to 1, give more information.
-        omit_sections: set[str]
-            Titles or keys to omit from output
+        omit_sections: container[str]
+            Titles or keys to omit from output (can be set, tuple, etc., anything supporting `in`)
         """
 
         info = self._info(obj, oname=oname, info=info, detail_level=detail_level)
@@ -669,7 +669,7 @@ class Inspector(Colorable):
         info=None,
         detail_level=0,
         enable_html_pager=True,
-        omit_sections={},
+        omit_sections=(),
     ):
         """Show detailed information about an object.
 
