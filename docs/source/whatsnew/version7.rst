@@ -2,6 +2,51 @@
  7.x Series
 ============
 
+.. _version 7.30:
+
+IPython 7.30
+============
+
+IPython 7.30 fixes a couple of bugs introduce in previous releases (in
+particular with respect to path handling), and introduce a few features and
+improvements:
+
+Notably we will highlight :ghpull:`13267` "Document that ``%run`` can execute
+notebooks and ipy scripts.", which is the first commit of Fernando Pérez since
+mid 2016 (IPython 5.1). If you are new to IPython, Fernando created IPython in
+2001. The other most recent contribution of Fernando to IPython itself was
+May 2018, by reviewing and merging PRs. I want to note that Fernando is still
+active but mostly as a mentor and leader of the whole Jupyter organisation, but
+we're still happy to see him contribute code !
+
+:ghpull:`13290` "Use sphinxify (if available) in object_inspect_mime path"
+should allow richer Repr of docstrings when using jupyterlab inspector.
+
+:ghpull:`13311` make the debugger use ``ThreadPoolExecutor`` for debugger cmdloop.
+This should fix some issues/infinite loop, but let us know if you come across
+any regressions. In particular this fixes issues with `kmaork/madbg <https://github.com/kmaork/madbg>`_,
+a remote debugger for IPython.
+
+Note that this is likely the ante-penultimate release of IPython 7.x as a stable
+branch, as I hope to release IPython 8.0 as well as IPython 7.31 next
+month/early 2022.
+
+IPython 8.0 will drop support for Python 3.7, removed nose as a dependency, and
+7.x will only get critical bug fixes with 8.x becoming the new stable. This will
+not be possible without `NumFOCUS Small Development Grants
+<https://numfocus.org/programs/small-development-grants>`_ Which allowed us to
+hire `Nikita Kniazev <https://github.com/Kojoley>`_ who provide Python and C++
+help and contracting work.
+
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/94?closed=1>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 7.29:
 
 IPython 7.29
