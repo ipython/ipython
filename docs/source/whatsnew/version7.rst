@@ -4,6 +4,19 @@
 
 .. _version 716:
 
+IPython 7.16.1, 7.16.2
+======================
+
+IPython 7.16.1 was release immediately after 7.16.0 to fix a conda packaging issue.
+The source is identical to 7.16.0 but the file permissions in the tar are different.
+
+IPython 7.16.2 pins jedi dependency to "<=0.17.2" which should prevent some
+issues for users still on python 3.6. This may not be sufficient as pip may
+still allow to downgrade IPython.
+
+Compatibility with Jedi > 0.17.2 was not added as this would have meant bumping
+the minimal version to >0.16.
+
 IPython 7.16
 ============
 
