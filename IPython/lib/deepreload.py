@@ -282,11 +282,22 @@ def deep_reload_hook(m):
 original_reload = importlib.reload
 
 # Replacement for reload()
-def reload(module, exclude=('sys', 'os.path', 'builtins', '__main__',
-                            'numpy', 'numpy._globals')):
+def reload(
+    module,
+    exclude=(
+        *sys.builtin_module_names,
+        "sys",
+        "os.path",
+        "builtins",
+        "__main__",
+        "numpy",
+        "numpy._globals",
+    ),
+):
     """Recursively reload all modules used in the given module.  Optionally
     takes a list of modules to exclude from reloading.  The default exclude
-    list contains sys, __main__, and __builtin__, to prevent, e.g., resetting
+    list contains modules listed in sys.builtin_module_names with additional
+    sys, os.path, builtins and __main__, to prevent, e.g., resetting
     display, exception, and io hooks.
     """
     global found_now
