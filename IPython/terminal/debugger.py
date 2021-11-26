@@ -66,7 +66,7 @@ class TerminalPdb(Pdb):
             message=(lambda: PygmentsTokens(get_prompt_tokens())),
             editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
             key_bindings=create_ipython_shortcuts(self.shell),
-            history=self.shell.debugger_history,
+            history=self.debugger_history,
             completer=self._ptcomp,
             enable_history_search=True,
             mouse_support=self.shell.mouse_support,
