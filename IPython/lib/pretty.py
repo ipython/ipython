@@ -926,7 +926,7 @@ def _userlist_pprint(obj, p, cycle):
     if cycle:
         p.pretty(cls_ctor(RawText("...")))
     else:
-        p.pretty(cls_ctor(list(obj)))
+        p.pretty(cls_ctor(obj.data))
 
 
 for_type_by_name('collections', 'defaultdict', _defaultdict_pprint)
