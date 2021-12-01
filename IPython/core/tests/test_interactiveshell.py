@@ -1049,10 +1049,10 @@ def test_custom_exc_count():
 
 
 def test_run_cell_async():
-    loop = asyncio.get_event_loop_policy().get_event_loop()
     ip.run_cell("import asyncio")
     coro = ip.run_cell_async("await asyncio.sleep(0.01)\n5")
     assert asyncio.iscoroutine(coro)
+    loop = asyncio.new_event_loop()
     result = loop.run_until_complete(coro)
     assert isinstance(result, interactiveshell.ExecutionResult)
     assert result.result == 5

@@ -988,7 +988,7 @@ def test_script_out(event_loop):
 
     ip = get_ipython()
     ip.run_cell_magic("script", "--out output sh", "echo 'hi'")
-    assert event_loop.is_running() is False
+    assert not event_loop.is_running()
     assert ip.user_ns["output"] == "hi\n"
 
 
@@ -998,9 +998,9 @@ def test_script_out(event_loop):
 )
 def test_script_err(event_loop):
     ip = get_ipython()
-    assert event_loop.is_running() is False
+    assert not event_loop.is_running()
     ip.run_cell_magic("script", "--err error sh", "echo 'hello' >&2")
-    assert event_loop.is_running() is False
+    assert not event_loop.is_running()
     assert ip.user_ns["error"] == "hello\n"
 
 
@@ -1022,13 +1022,11 @@ def test_script_out_err():
 @pytest.mark.skipif(
     sys.platform == "win32", reason="This test does not run under Windows"
 )
-async def test_script_bg_out(event_loop):
+async def test_script_bg_out():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
     assert (await ip.user_ns["output"].read()) == b"hi\n"
-    ip.user_ns["output"].close()
-    event_loop.stop()
-
+    assert ip.user_ns["output"].at_eof()
 
 @dec.skip_win32
 @pytest.mark.skipif(
@@ -1038,7 +1036,7 @@ async def test_script_bg_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --err error sh", "echo 'hello' >&2")
     assert (await ip.user_ns["error"].read()) == b"hello\n"
-    ip.user_ns["error"].close()
+    assert ip.user_ns["error"].at_eof()
 
 
 @dec.skip_win32
@@ -1052,8 +1050,27 @@ async def test_script_bg_out_err():
     )
     assert (await ip.user_ns["output"].read()) == b"hi\n"
     assert (await ip.user_ns["error"].read()) == b"hello\n"
-    ip.user_ns["output"].close()
-    ip.user_ns["error"].close()
+    assert ip.user_ns["output"].at_eof()
+    assert ip.user_ns["error"].at_eof()
+
+
+@dec.skip_win32
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="This test does not run under Windows"
+)
+async def test_script_bg_proc():
+    ip = get_ipython()
+    ip.run_cell_magic(
+        "script", "--bg --proc p sh --out out", "echo 'hi'\necho 'hello' >&2"
+    )
+    p = ip.user_ns["p"]
+    await p.wait()
+    assert p.returncode == 0
+    assert (await p.stdout.read()) == b"hi\n"
+    # not captured, so empty
+    assert (await p.stderr.read()) == b""
+    assert p.stdout.at_eof()
+    assert p.stderr.at_eof()
 
 
 def test_script_defaults():

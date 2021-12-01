@@ -6,19 +6,18 @@
 import asyncio
 import atexit
 import errno
-import functools
 import os
 import signal
 import sys
 import time
-from contextlib import contextmanager
 from subprocess import CalledProcessError
+from threading import Thread
 
-from traitlets import Dict, List, default
+from traitlets import Any, Dict, List, default
 
 from IPython.core import magic_arguments
+from IPython.core.async_helpers import _AsyncIOProxy
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
-from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.process import arg_split
 
 #-----------------------------------------------------------------------------
@@ -57,7 +56,7 @@ def script_args(f):
         ),
         magic_arguments.argument(
             '--no-raise-error', action="store_false", dest='raise_error',
-            help="""Whether you should raise an error message in addition to 
+            help="""Whether you should raise an error message in addition to
             a stream on stderr if you get a nonzero exit code.
             """
         )
@@ -65,48 +64,6 @@ def script_args(f):
     for arg in args:
         f = arg(f)
     return f
-
-
-@contextmanager
-def safe_watcher():
-    if sys.platform == "win32":
-        yield
-        return
-
-    from asyncio import SafeChildWatcher
-
-    policy = asyncio.get_event_loop_policy()
-    old_watcher = policy.get_child_watcher()
-    if isinstance(old_watcher, SafeChildWatcher):
-        yield
-        return
-
-    try:
-        loop = policy.get_event_loop()
-        if loop.is_closed():
-            raise RuntimeError("open a new one")
-    except RuntimeError:
-        # closed loop, make a new one
-        loop = policy.new_event_loop()
-        policy.set_event_loop(loop)
-
-    try:
-        watcher = asyncio.SafeChildWatcher()
-        watcher.attach_loop(loop)
-        policy.set_child_watcher(watcher)
-        yield
-    finally:
-        watcher.close()
-        policy.set_child_watcher(old_watcher)
-
-
-def dec_safe_watcher(fun):
-    @functools.wraps(fun)
-    def _inner(*args, **kwargs):
-        with safe_watcher():
-            return fun(*args, **kwargs)
-
-    return _inner
 
 
 @magics_class
@@ -117,6 +74,17 @@ class ScriptMagics(Magics):
     with a program in a subprocess, and registers a few top-level
     magics that call %%script with common interpreters.
     """
+
+    event_loop = Any(
+        help="""
+        The event loop on which to run subprocesses
+
+        Not the main event loop,
+        because we want to be able to make blocking calls
+        and have certain requirements we don't want to impose on the main loop.
+        """
+    )
+
     script_magics = List(
         help="""Extra script cell magics to define
         
@@ -158,7 +126,6 @@ class ScriptMagics(Magics):
     def __init__(self, shell=None):
         super(ScriptMagics, self).__init__(shell=shell)
         self._generate_script_magics()
-        self.job_manager = BackgroundJobManager()
         self.bg_processes = []
         atexit.register(self.kill_bg_processes)
 
@@ -199,7 +166,6 @@ class ScriptMagics(Magics):
     @magic_arguments.magic_arguments()
     @script_args
     @cell_magic("script")
-    @dec_safe_watcher
     def shebang(self, line, cell):
         """Run a cell via a shell command
 
@@ -220,6 +186,27 @@ class ScriptMagics(Magics):
             2
             3
         """
+
+        # Create the event loop in which to run script magics
+        # this operates on a background thread
+        if self.event_loop is None:
+            if sys.platform == "win32":
+                # don't override the current policy,
+                # just create an event loop
+                event_loop = asyncio.WindowsProactorEventLoopPolicy().new_event_loop()
+            else:
+                event_loop = asyncio.new_event_loop()
+            self.event_loop = event_loop
+
+            # start the loop in a background thread
+            asyncio_thread = Thread(target=event_loop.run_forever, daemon=True)
+            asyncio_thread.start()
+        else:
+            event_loop = self.event_loop
+
+        def in_thread(coro):
+            """Call a coroutine on the asyncio thread"""
+            return asyncio.run_coroutine_threadsafe(coro, event_loop).result()
 
         async def _handle_stream(stream, stream_arg, file_object):
             while True:
@@ -244,23 +231,11 @@ class ScriptMagics(Magics):
             await asyncio.wait([stdout_task, stderr_task])
             await process.wait()
 
-        policy = asyncio.get_event_loop_policy()
-        if sys.platform.startswith("win") and not isinstance(
-            policy, asyncio.WindowsProactorEventLoopPolicy
-        ):
-            # _do not_ overwrite the current policy
-            policy = asyncio.WindowsProactorEventLoopPolicy()
-
-        try:
-            loop = policy.get_event_loop()
-        except RuntimeError:
-            # closed loop, make a new one
-            loop = policy.new_event_loop()
-            policy.set_event_loop(loop)
         argv = arg_split(line, posix=not sys.platform.startswith("win"))
         args, cmd = self.shebang.parser.parse_known_args(argv)
+
         try:
-            p = loop.run_until_complete(
+            p = in_thread(
                 asyncio.create_subprocess_exec(
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
@@ -274,7 +249,7 @@ class ScriptMagics(Magics):
                 return
             else:
                 raise
-        
+
         if not cell.endswith('\n'):
             cell += '\n'
         cell = cell.encode('utf8', 'replace')
@@ -283,29 +258,34 @@ class ScriptMagics(Magics):
             self._gc_bg_processes()
             to_close = []
             if args.out:
-                self.shell.user_ns[args.out] = p.stdout
+                self.shell.user_ns[args.out] = _AsyncIOProxy(p.stdout, event_loop)
             else:
                 to_close.append(p.stdout)
             if args.err:
-                self.shell.user_ns[args.err] = p.stderr
+                self.shell.user_ns[args.err] = _AsyncIOProxy(p.stderr, event_loop)
             else:
                 to_close.append(p.stderr)
-            self.job_manager.new(self._run_script, p, cell, to_close, daemon=True)
+            event_loop.call_soon_threadsafe(
+                lambda: asyncio.Task(self._run_script(p, cell, to_close))
+            )
             if args.proc:
-                self.shell.user_ns[args.proc] = p
+                proc_proxy = _AsyncIOProxy(p, event_loop)
+                proc_proxy.stdout = _AsyncIOProxy(p.stdout, event_loop)
+                proc_proxy.stderr = _AsyncIOProxy(p.stderr, event_loop)
+                self.shell.user_ns[args.proc] = proc_proxy
             return
-        
+
         try:
-            loop.run_until_complete(_stream_communicate(p, cell))
+            in_thread(_stream_communicate(p, cell))
         except KeyboardInterrupt:
             try:
                 p.send_signal(signal.SIGINT)
-                time.sleep(0.1)
+                in_thread(asyncio.wait_for(p.wait(), timeout=0.1))
                 if p.returncode is not None:
                     print("Process is interrupted.")
                     return
                 p.terminate()
-                time.sleep(0.1)
+                in_thread(asyncio.wait_for(p.wait(), timeout=0.1))
                 if p.returncode is not None:
                     print("Process is terminated.")
                     return
@@ -316,7 +296,8 @@ class ScriptMagics(Magics):
             except Exception as e:
                 print("Error while terminating subprocess (pid=%i): %s" % (p.pid, e))
             return
-        if args.raise_error and p.returncode!=0:
+
+        if args.raise_error and p.returncode != 0:
             # If we get here and p.returncode is still None, we must have
             # killed it but not yet seen its return code. We don't wait for it,
             # in case it's stuck in uninterruptible sleep. -9 = SIGKILL
@@ -324,14 +305,20 @@ class ScriptMagics(Magics):
             raise CalledProcessError(rc, cell)
 
     shebang.__skip_doctest__ = os.name != "posix"
-    
-    def _run_script(self, p, cell, to_close):
+
+    async def _run_script(self, p, cell, to_close):
         """callback for running the script in the background"""
+
         p.stdin.write(cell)
+        await p.stdin.drain()
         p.stdin.close()
+        await p.stdin.wait_closed()
+        await p.wait()
+        # asyncio read pipes have no close
+        # but we should drain the data anyway
         for s in to_close:
-            s.close()
-        p.wait()
+            await s.read()
+        self._gc_bg_processes()
 
     @line_magic("killbgscripts")
     def killbgscripts(self, _nouse_=''):
