@@ -150,6 +150,7 @@ extras_require = dict(
     doc=["Sphinx>=1.3"],
     test=[
         "pytest",
+        "pytest-asyncio",
         "testpath",
         "pygments",
     ],
