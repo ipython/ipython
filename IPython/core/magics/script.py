@@ -81,7 +81,15 @@ def safe_watcher():
         yield
         return
 
-    loop = policy.get_event_loop()
+    try:
+        loop = policy.get_event_loop()
+        if loop.is_closed():
+            raise RuntimeError("open a new one")
+    except RuntimeError:
+        # closed loop, make a new one
+        loop = policy.new_event_loop()
+        policy.set_event_loop(loop)
+
     try:
         watcher = asyncio.SafeChildWatcher()
         watcher.attach_loop(loop)
@@ -236,9 +244,19 @@ class ScriptMagics(Magics):
             await asyncio.wait([stdout_task, stderr_task])
             await process.wait()
 
-        if sys.platform.startswith("win"):
-            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-        loop = asyncio.get_event_loop_policy().get_event_loop()
+        policy = asyncio.get_event_loop_policy()
+        if sys.platform.startswith("win") and not isinstance(
+            policy, asyncio.WindowsProactorEventLoopPolicy
+        ):
+            # _do not_ overwrite the current policy
+            policy = asyncio.WindowsProactorEventLoopPolicy()
+
+        try:
+            loop = policy.get_event_loop()
+        except RuntimeError:
+            # closed loop, make a new one
+            loop = policy.new_event_loop()
+            policy.set_event_loop(loop)
         argv = arg_split(line, posix=not sys.platform.startswith("win"))
         args, cmd = self.shebang.parser.parse_known_args(argv)
         try:
