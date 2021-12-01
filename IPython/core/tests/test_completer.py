@@ -26,15 +26,6 @@ from IPython.core.completer import (
     _deduplicate_completions,
 )
 
-if sys.version_info >= (3, 10):
-    import jedi
-    from pkg_resources import parse_version
-
-    # Requires https://github.com/davidhalter/jedi/pull/1795
-    jedi_issue = parse_version(jedi.__version__) <= parse_version("0.18.0")
-else:
-    jedi_issue = False
-
 # -----------------------------------------------------------------------------
 # Test functions
 # -----------------------------------------------------------------------------
@@ -210,11 +201,6 @@ class KeyCompletable:
         return list(self.things)
 
 
-@pytest.mark.xfail(
-    sys.version_info >= (3, 11),
-    reason="parso does not support 3.11 yet",
-    raises=NotImplementedError,
-)
 class TestCompleter(unittest.TestCase):
     def setUp(self):
         """
@@ -435,8 +421,6 @@ class TestCompleter(unittest.TestCase):
                 matches = c.all_completions("TestCl")
                 assert matches == ['TestClass'], jedi_status
                 matches = c.all_completions("TestClass.")
-                if jedi_status and jedi_issue:
-                    continue
                 assert len(matches) > 2, jedi_status
                 matches = c.all_completions("TestClass.a")
                 assert matches == ['TestClass.a', 'TestClass.a1'], jedi_status
@@ -491,7 +475,6 @@ class TestCompleter(unittest.TestCase):
             "encoding" in c.signature
         ), "Signature of function was not found by completer"
 
-    @pytest.mark.xfail(jedi_issue, reason="Known failure on jedi<=0.18.0")
     def test_deduplicate_completions(self):
         """
         Test that completions are correctly deduplicated (even if ranges are not the same)
