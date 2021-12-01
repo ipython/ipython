@@ -23,30 +23,6 @@ from IPython.utils import io
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 
-class StreamProxy(io.IOStream):
-    """Proxy for sys.stdout/err.  This will request the stream *at call time*
-    allowing for nose's Capture plugin's redirection of sys.stdout/err.
-
-    Parameters
-    ----------
-    name : str
-        The name of the stream. This will be requested anew at every call
-    """
-
-    def __init__(self, name):
-        warnings.warn("StreamProxy is deprecated and unused as of IPython 5", DeprecationWarning,
-            stacklevel=2,
-        )
-        self.name=name
-
-    @property
-    def stream(self):
-        return getattr(sys, self.name)
-
-    def flush(self):
-        self.stream.flush()
-
-
 def get_ipython():
     # This will get replaced by the real thing once we start IPython below
     return start_ipython()

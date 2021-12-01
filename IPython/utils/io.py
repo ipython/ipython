@@ -19,82 +19,10 @@ from warnings import warn
 from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
 
-@undoc
-class IOStream:
-
-    def __init__(self, stream, fallback=None):
-        warn('IOStream is deprecated since IPython 5.0, use sys.{stdin,stdout,stderr} instead',
-             DeprecationWarning, stacklevel=2)
-        if not hasattr(stream,'write') or not hasattr(stream,'flush'):
-            if fallback is not None:
-                stream = fallback
-            else:
-                raise ValueError("fallback required, but not specified")
-        self.stream = stream
-        self._swrite = stream.write
-
-        # clone all methods not overridden:
-        def clone(meth):
-            return not hasattr(self, meth) and not meth.startswith('_')
-        for meth in filter(clone, dir(stream)):
-            try:
-                val = getattr(stream, meth)
-            except AttributeError:
-                pass
-            else:
-                setattr(self, meth, val)
-
-    def __repr__(self):
-        cls = self.__class__
-        tpl = '{mod}.{cls}({args})'
-        return tpl.format(mod=cls.__module__, cls=cls.__name__, args=self.stream)
-
-    def write(self,data):
-        warn('IOStream is deprecated since IPython 5.0, use sys.{stdin,stdout,stderr} instead',
-             DeprecationWarning, stacklevel=2)
-        try:
-            self._swrite(data)
-        except:
-            try:
-                # print handles some unicode issues which may trip a plain
-                # write() call.  Emulate write() by using an empty end
-                # argument.
-                print(data, end='', file=self.stream)
-            except:
-                # if we get here, something is seriously broken.
-                print('ERROR - failed to write data to stream:', self.stream,
-                      file=sys.stderr)
-
-    def writelines(self, lines):
-        warn('IOStream is deprecated since IPython 5.0, use sys.{stdin,stdout,stderr} instead',
-             DeprecationWarning, stacklevel=2)
-        if isinstance(lines, str):
-            lines = [lines]
-        for line in lines:
-            self.write(line)
-
-    # This class used to have a writeln method, but regular files and streams
-    # in Python don't have this method. We need to keep this completely
-    # compatible so we removed it.
-
-    @property
-    def closed(self):
-        return self.stream.closed
-
-    def close(self):
-        pass
-
 # setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
 devnull = open(os.devnull, 'w')
 atexit.register(devnull.close)
 
-# io.std* are deprecated, but don't show our own deprecation warnings
-# during initialization of the deprecated API.
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore', DeprecationWarning)
-    stdin = IOStream(sys.stdin, fallback=devnull)
-    stdout = IOStream(sys.stdout, fallback=devnull)
-    stderr = IOStream(sys.stderr, fallback=devnull)
 
 class Tee(object):
     """A class to duplicate an output stream to stdout/err.
@@ -208,12 +136,6 @@ def temp_pyfile(src, ext='.py'):
         f.flush()
     return fname
 
-@undoc
-def atomic_writing(*args, **kwargs):
-    """DEPRECATED: moved to notebook.services.contents.fileio"""
-    warn("IPython.utils.io.atomic_writing has moved to notebook.services.contents.fileio since IPython 4.0", DeprecationWarning, stacklevel=2)
-    from notebook.services.contents.fileio import atomic_writing
-    return atomic_writing(*args, **kwargs)
 
 @undoc
 def raw_print(*args, **kw):
@@ -232,10 +154,3 @@ def raw_print_err(*args, **kw):
     print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
           file=sys.__stderr__)
     sys.__stderr__.flush()
-
-@undoc
-def unicode_std_stream(stream='stdout'):
-    """DEPRECATED, moved to nbconvert.utils.io"""
-    warn("IPython.utils.io.unicode_std_stream has moved to nbconvert.utils.io since IPython 4.0", DeprecationWarning, stacklevel=2)
-    from nbconvert.utils.io import unicode_std_stream
-    return unicode_std_stream(stream)
