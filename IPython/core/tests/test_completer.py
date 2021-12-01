@@ -210,11 +210,6 @@ class KeyCompletable:
         return list(self.things)
 
 
-@pytest.mark.xfail(
-    sys.version_info >= (3, 11),
-    reason="parso does not support 3.11 yet",
-    raises=NotImplementedError,
-)
 class TestCompleter(unittest.TestCase):
     def setUp(self):
         """
