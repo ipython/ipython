@@ -198,11 +198,10 @@ class TerminalMagics(Magics):
 
         # By default, echo back to terminal unless quiet mode is requested
         if 'q' not in opts:
-            write = self.shell.write
-            write(self.shell.pycolorize(block))
-            if not block.endswith('\n'):
-                write('\n')
-            write("## -- End pasted text --\n")
+            sys.stdout.write(self.shell.pycolorize(block))
+            if not block.endswith("\n"):
+                sys.stdout.write("\n")
+            sys.stdout.write("## -- End pasted text --\n")
 
         self.store_or_execute(block, name)
 
