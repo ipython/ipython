@@ -504,13 +504,15 @@ class TerminalInteractiveShell(InteractiveShell):
         # If we don't do this, people could spawn coroutine with a
         # while/true inside which will freeze the prompt.
 
+        policy = asyncio.get_event_loop_policy()
         try:
-            old_loop = asyncio.get_running_loop()
+            old_loop = policy.get_event_loop()
         except RuntimeError:
-            # This happens when the user used `asyncio.run()`.
+            # This happens when the the event loop is closed,
+            # e.g. by calling `asyncio.run()`.
             old_loop = None
 
-        asyncio.set_event_loop(self.pt_loop)
+        policy.set_event_loop(self.pt_loop)
         try:
             with patch_stdout(raw=True):
                 text = self.pt_app.prompt(
@@ -518,7 +520,8 @@ class TerminalInteractiveShell(InteractiveShell):
                     **self._extra_prompt_options())
         finally:
             # Restore the original event loop.
-            asyncio.set_event_loop(old_loop)
+            if old_loop is not None:
+                policy.set_event_loop(old_loop)
 
         return text
 
