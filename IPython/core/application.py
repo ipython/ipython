@@ -185,14 +185,16 @@ class BaseIPythonApplication(Application):
                 get_ipython_package_dir(), u'config', u'profile', change['new']
         )
 
-    add_ipython_dir_to_sys_path = Bool(False,
+    add_ipython_dir_to_sys_path = Bool(
+        False,
         """Should the IPython profile directory be added to sys path ?
 
         This option was non-existing before IPython 8.0, and ipython_dir was added to
         sys path to allow import of extensions present there. This was historical
         baggage from when pip did not exist. This now default to false,
         but can be set to true for legacy reasons.
-        """).tag(config=True)
+        """,
+    ).tag(config=True)
 
     ipython_dir = Unicode(
         help="""
@@ -307,11 +309,13 @@ class BaseIPythonApplication(Application):
             str_path = os.path.abspath(new)
             sys.path.append(str_path)
             ensure_dir_exists(new)
-            readme = os.path.join(new, 'README')
-            readme_src = os.path.join(get_ipython_package_dir(), u'config', u'profile', 'README')
+            readme = os.path.join(new, "README")
+            readme_src = os.path.join(
+                get_ipython_package_dir(), "config", "profile", "README"
+            )
             if not os.path.exists(readme) and os.path.exists(readme_src):
                 shutil.copy(readme_src, readme)
-            for d in ('extensions', 'nbextensions'):
+            for d in ("extensions", "nbextensions"):
                 path = os.path.join(new, d)
                 try:
                     ensure_dir_exists(path)
