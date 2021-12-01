@@ -55,6 +55,6 @@ jobs:
       env:
         COLUMNS: 120
       run: |
-        pytest --color=yes -ra -v --cov --cov-report=xml
+        pytest --color=yes -raXxs --cov --cov-report=xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2

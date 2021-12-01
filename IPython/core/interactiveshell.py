@@ -161,13 +161,6 @@ def no_op(*a, **kw):
 class SpaceInInput(Exception): pass
 
 
-def get_default_colors():
-    "DEPRECATED"
-    warn('get_default_color is deprecated since IPython 5.0, and returns `Neutral` on all platforms.',
-        DeprecationWarning, stacklevel=2)
-    return 'Neutral'
-
-
 class SeparateUnicode(Unicode):
     r"""A Unicode subclass to validate separate_in, separate_out, etc.
 
@@ -440,29 +433,6 @@ class InteractiveShell(SingletonConfigurable):
         will be displayed as regular output instead."""
     ).tag(config=True)
 
-    # deprecated prompt traits:
-
-    prompt_in1 = Unicode('In [\\#]: ',
-        help="Deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly."
-    ).tag(config=True)
-    prompt_in2 = Unicode('   .\\D.: ',
-        help="Deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly."
-    ).tag(config=True)
-    prompt_out = Unicode('Out[\\#]: ',
-        help="Deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly."
-    ).tag(config=True)
-    prompts_pad_left = Bool(True,
-        help="Deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly."
-    ).tag(config=True)
-
-    @observe('prompt_in1', 'prompt_in2', 'prompt_out', 'prompt_pad_left')
-    def _prompt_trait_changed(self, change):
-        name = change['name']
-        warn("InteractiveShell.{name} is deprecated since IPython 4.0"
-             " and ignored since 5.0, set TerminalInteractiveShell.prompts"
-             " object directly.".format(name=name))
-
-        # protect against weird cases where self.config may not exist:
 
     show_rewritten_input = Bool(True,
         help="Show rewritten input, e.g. for autocall."
@@ -2038,19 +2008,6 @@ class InteractiveShell(SingletonConfigurable):
         the %paste magic."""
         self.showsyntaxerror()
 
-    #-------------------------------------------------------------------------
-    # Things related to readline
-    #-------------------------------------------------------------------------
-
-    def init_readline(self):
-        """DEPRECATED
-
-        Moved to terminal subclass, here only to simplify the init logic."""
-        # Set a number of methods that depend on readline to be no-op
-        warnings.warn('`init_readline` is no-op since IPython 5.0 and is Deprecated',
-                DeprecationWarning, stacklevel=2)
-        self.set_custom_completer = no_op
-
     @skip_doctest
     def set_next_input(self, s, replace=False):
         """ Sets the 'default' input string for the next command line.
@@ -3512,20 +3469,6 @@ class InteractiveShell(SingletonConfigurable):
         if data:
             file_path.write_text(data)
         return filename
-
-    @undoc
-    def write(self,data):
-        """DEPRECATED: Write a string to the default output"""
-        warn('InteractiveShell.write() is deprecated, use sys.stdout instead',
-             DeprecationWarning, stacklevel=2)
-        sys.stdout.write(data)
-
-    @undoc
-    def write_err(self,data):
-        """DEPRECATED: Write a string to the default error output"""
-        warn('InteractiveShell.write_err() is deprecated, use sys.stderr instead',
-             DeprecationWarning, stacklevel=2)
-        sys.stderr.write(data)
 
     def ask_yes_no(self, prompt, default=None, interrupt=None):
         if self.quiet:

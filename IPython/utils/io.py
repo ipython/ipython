@@ -233,11 +233,6 @@ def raw_print_err(*args, **kw):
           file=sys.__stderr__)
     sys.__stderr__.flush()
 
-# used by IPykernel <- 4.9. Removed during IPython 7-dev period and re-added 
-# Keep for a version or two then should remove
-rprint = raw_print
-rprinte = raw_print_err
-
 @undoc
 def unicode_std_stream(stream='stdout'):
     """DEPRECATED, moved to nbconvert.utils.io"""

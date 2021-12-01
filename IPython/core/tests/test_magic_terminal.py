@@ -149,8 +149,8 @@ class PasteTestCase(TestCase):
     def test_paste_echo(self):
         "Also test self.paste echoing, by temporarily faking the writer"
         w = StringIO()
-        writer = ip.write
-        ip.write = w.write
+        old_write = sys.stdout.write
+        sys.stdout.write = w.write
         code = """
         a = 100
         b = 200"""
@@ -158,7 +158,7 @@ class PasteTestCase(TestCase):
             self.paste(code,'')
             out = w.getvalue()
         finally:
-            ip.write = writer
+            sys.stdout.write = old_write
         self.assertEqual(ip.user_ns["a"], 100)
         self.assertEqual(ip.user_ns["b"], 200)
         assert out == code + "\n## -- End pasted text --\n"
