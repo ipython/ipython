@@ -13,19 +13,29 @@ Python semantics.
 
 import ast
 import sys
+import asyncio
 import inspect
 from textwrap import dedent, indent
 
 
 class _AsyncIORunner:
+    def __init__(self):
+        self._loop = None
+
+    @property
+    def loop(self):
+        """Always returns a non-closed event loop"""
+        if self._loop is None or self._loop.is_closed():
+            policy = asyncio.get_event_loop_policy()
+            self._loop = policy.new_event_loop()
+            policy.set_event_loop(self._loop)
+        return self._loop
 
     def __call__(self, coro):
         """
         Handler for asyncio autoawait
         """
-        import asyncio
-
-        return asyncio.get_event_loop().run_until_complete(coro)
+        return self.loop.run_until_complete(coro)
 
     def __str__(self):
         return 'asyncio'
