@@ -1037,6 +1037,22 @@ def test_run_cell_async():
     assert result.result == 5
 
 
+def test_run_cell_await():
+    ip.run_cell("import asyncio")
+    result = ip.run_cell("await asyncio.sleep(0.01); 10")
+    assert ip.user_ns["_"] == 10
+
+
+def test_run_cell_asyncio_run():
+    ip.run_cell("import asyncio")
+    result = ip.run_cell("await asyncio.sleep(0.01); 1")
+    assert ip.user_ns["_"] == 1
+    result = ip.run_cell("asyncio.run(asyncio.sleep(0.01)); 2")
+    assert ip.user_ns["_"] == 2
+    result = ip.run_cell("await asyncio.sleep(0.01); 3")
+    assert ip.user_ns["_"] == 3
+
+
 def test_should_run_async():
     assert not ip.should_run_async("a = 5")
     assert ip.should_run_async("await x")
