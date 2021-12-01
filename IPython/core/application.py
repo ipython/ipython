@@ -191,7 +191,7 @@ class BaseIPythonApplication(Application):
         This option was non-existing before IPython 8.0, and ipython_dir was added to
         sys path to allow import of extensions present there. This was historical
         baggage from when pip did not exist. This now default to false,
-        but can bet to true for legacy reasons
+        but can be set to true for legacy reasons.
         """).tag(config=True)
 
     ipython_dir = Unicode(
@@ -305,7 +305,7 @@ class BaseIPythonApplication(Application):
                 sys.path.remove(str_old)
         if self.add_ipython_dir_to_sys_path:
             str_path = os.path.abspath(new)
-            #sys.path.append(str_path)
+            sys.path.append(str_path)
             ensure_dir_exists(new)
             readme = os.path.join(new, 'README')
             readme_src = os.path.join(get_ipython_package_dir(), u'config', u'profile', 'README')
