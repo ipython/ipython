@@ -85,12 +85,6 @@ import IPython.core.hooks
 from typing import List as ListType, Tuple, Optional, Callable
 from ast import stmt
 
-
-# NoOpContext is deprecated, but ipykernel imports it from here.
-# See https://github.com/ipython/ipykernel/issues/157
-# (2016, let's try to remove than in IPython 8.0)
-from IPython.utils.contexts import NoOpContext
-
 sphinxify: Optional[Callable]
 
 try:
