@@ -10,6 +10,7 @@ coverage:
       tests:
         target: auto
         paths: ['.*/tests/.*']
+        threshold: 0.1%
 codecov:
   require_ci_to_pass: false
 
