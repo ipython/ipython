@@ -19,7 +19,6 @@ import System
 import os
 
 # Import IPython libraries:
-from IPython.utils import py3compat
 from ._process_common import arg_split
 
 

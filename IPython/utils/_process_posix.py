@@ -24,7 +24,6 @@ import pexpect
 
 # Our own
 from ._process_common import getoutput, arg_split
-from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
 
 #-----------------------------------------------------------------------------
