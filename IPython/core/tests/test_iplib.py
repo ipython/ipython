@@ -133,7 +133,7 @@ def doctest_tb_sysexit():
     In [20]: %tb
     Traceback (most recent call last):
       File ..., in execfile
-        exec(compiler(f.read(), fname, 'exec'), glob, loc)
+        exec(compiler(f.read(), fname, "exec"), glob, loc)
       File ..., in <module>
         bar(mode)
       File ..., in bar
@@ -149,9 +149,9 @@ def doctest_tb_sysexit():
     ---------------------------------------------------------------------------
     SystemExit                                Traceback (most recent call last)
     File ..., in execfile(fname, glob, loc, compiler)
-         70 with open(fname, 'rb') as f:
-         71     compiler = compiler or compile
-    ---> 72     exec(compiler(f.read(), fname, 'exec'), glob, loc)
+         ... with open(fname, "rb") as f:
+         ...     compiler = compiler or compile
+    ---> ...     exec(compiler(f.read(), fname, "exec"), glob, loc)
     ...<module>
          30     except IndexError:
          31         mode = 'div'

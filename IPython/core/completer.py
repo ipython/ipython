@@ -178,14 +178,6 @@ else:
 MATCHES_LIMIT = 500
 
 
-class Sentinel:
-    def __repr__(self):
-        return "<deprecated sentinel>"
-
-
-_deprecation_readline_sentinel = Sentinel()
-
-
 class ProvisionalCompleterWarning(FutureWarning):
     """
     Exception raise by an experimental feature in this module.
@@ -617,8 +609,6 @@ class Completer(Configurable):
         help="Enable unicode completions, e.g. \\alpha<tab> . "
              "Includes completion of latex commands, unicode names, and expanding "
              "unicode characters back to latex commands.").tag(config=True)
-
-
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
         """Create a new completer for the command line.
@@ -1119,8 +1109,9 @@ class IPCompleter(Completer):
             'no effects and then removed in future version of IPython.',
             UserWarning)
 
-    def __init__(self, shell=None, namespace=None, global_namespace=None,
-                 use_readline=_deprecation_readline_sentinel, config=None, **kwargs):
+    def __init__(
+        self, shell=None, namespace=None, global_namespace=None, config=None, **kwargs
+    ):
         """IPCompleter() -> completer
 
         Return a completer object.
@@ -1143,10 +1134,6 @@ class IPCompleter(Completer):
 
         self.magic_escape = ESC_MAGIC
         self.splitter = CompletionSplitter()
-
-        if use_readline is not _deprecation_readline_sentinel:
-            warnings.warn('The `use_readline` parameter is deprecated and ignored since IPython 6.0.',
-                          DeprecationWarning, stacklevel=2)
 
         # _greedy_changed() depends on splitter and readline being defined:
         Completer.__init__(self, namespace=namespace, global_namespace=global_namespace,
