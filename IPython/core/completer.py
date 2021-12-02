@@ -591,7 +591,7 @@ class Completer(Configurable):
 
     greedy = Bool(False,
         help="""Activate greedy completion
-        PENDING DEPRECTION. this is now mostly taken care of with Jedi.
+        PENDING DEPRECATION. this is now mostly taken care of with Jedi.
 
         This will enable completion on elements of lists, results of function calls, etc.,
         but can be unsafe because the code is actually evaluated on TAB.
