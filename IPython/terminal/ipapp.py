@@ -208,26 +208,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             StoreMagics,
         ]
 
-    deprecated_subcommands = dict(
-        qtconsole=('qtconsole.qtconsoleapp.JupyterQtConsoleApp',
-            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter Qt Console."""
-        ),
-        notebook=('notebook.notebookapp.NotebookApp',
-            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter HTML Notebook Server."""
-        ),
-        console=('jupyter_console.app.ZMQTerminalIPythonApp',
-            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter terminal-based Console."""
-        ),
-        nbconvert=('nbconvert.nbconvertapp.NbConvertApp',
-            "DEPRECATED, Will be removed in IPython 6.0 : Convert notebooks to/from other formats."
-        ),
-        trust=('nbformat.sign.TrustNotebookApp',
-            "DEPRECATED, Will be removed in IPython 6.0 : Sign notebooks to trust their potentially unsafe contents at load."
-        ),
-        kernelspec=('jupyter_client.kernelspecapp.KernelSpecApp',
-            "DEPRECATED, Will be removed in IPython 6.0 : Manage Jupyter kernel specifications."
-        ),
-    )
     subcommands = dict(
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles."
@@ -242,11 +222,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             "Manage the IPython history database."
         ),
     )
-    deprecated_subcommands['install-nbextension'] = (
-        "notebook.nbextensions.InstallNBExtensionApp",
-        "DEPRECATED, Will be removed in IPython 6.0 : Install Jupyter notebook extension files"
-    )
-    subcommands.update(deprecated_subcommands)
+
 
     # *do* autocreate requested profile, but don't create the config file.
     auto_create=Bool(True)

@@ -750,7 +750,7 @@ def test_notebook_export_json():
         _ip.history_manager.store_inputs(i, cmd)
     with TemporaryDirectory() as td:
         outfile = os.path.join(td, "nb.ipynb")
-        _ip.magic("notebook -e %s" % outfile)
+        _ip.magic("notebook %s" % outfile)
 
 
 class TestEnv(TestCase):
