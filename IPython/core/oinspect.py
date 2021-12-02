@@ -221,7 +221,7 @@ def format_argspec(argspec):
     This takes a dict instead of ordered arguments and calls
     inspect.format_argspec with the arguments in the necessary order.
 
-    DEPRECATED: Do not use; will be removed in future versions.
+    DEPRECATED (since 7.10): Do not use; will be removed in future versions.
     """
     
     warnings.warn('`format_argspec` function is deprecated as of IPython 7.10'
@@ -233,10 +233,13 @@ def format_argspec(argspec):
 
 @undoc
 def call_tip(oinfo, format_call=True):
-    """DEPRECATED. Extract call tip data from an oinfo dict.
-    """
-    warnings.warn('`call_tip` function is deprecated as of IPython 6.0'
-                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
+    """DEPRECATED since 6.0. Extract call tip data from an oinfo dict."""
+    warnings.warn(
+        "`call_tip` function is deprecated as of IPython 6.0"
+        "and will be removed in future versions.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     # Get call definition
     argspec = oinfo.get('argspec')
     if argspec is None:
@@ -701,9 +704,8 @@ class Inspector(Colorable):
             del info['text/html']
         page.page(info)
 
-    def info(self, obj, oname='', formatter=None, info=None, detail_level=0):
-        """DEPRECATED. Compute a dict with detailed information about an object.
-        """
+    def info(self, obj, oname="", formatter=None, info=None, detail_level=0):
+        """DEPRECATED since 5.0. Compute a dict with detailed information about an object."""
         if formatter is not None:
             warnings.warn('The `formatter` keyword argument to `Inspector.info`'
                      'is deprecated as of IPython 5.0 and will have no effects.',
