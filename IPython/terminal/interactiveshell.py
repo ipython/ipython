@@ -51,7 +51,6 @@ from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import create_ipython_shortcuts
 
-DISPLAY_BANNER_DEPRECATED = object()
 PTK3 = ptk_version.startswith('3.')
 
 
@@ -569,11 +568,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     rl_next_input = None
 
-    def interact(self, display_banner=DISPLAY_BANNER_DEPRECATED):
-
-        if display_banner is not DISPLAY_BANNER_DEPRECATED:
-            warn('interact `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
-
+    def interact(self):
         self.keep_running = True
         while self.keep_running:
             print(self.separate_in, end='')
@@ -589,11 +584,9 @@ class TerminalInteractiveShell(InteractiveShell):
                 if code:
                     self.run_cell(code, store_history=True)
 
-    def mainloop(self, display_banner=DISPLAY_BANNER_DEPRECATED):
+    def mainloop(self):
         # An extra layer of protection in case someone mashing Ctrl-C breaks
         # out of our internal code.
-        if display_banner is not DISPLAY_BANNER_DEPRECATED:
-            warn('mainloop `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
         while True:
             try:
                 self.interact()
