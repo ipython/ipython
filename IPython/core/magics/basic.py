@@ -561,10 +561,6 @@ Currently the magic system has the following functions:""",
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
-        '-e', '--export', action='store_true', default=False,
-        help=argparse.SUPPRESS
-    )
-    @magic_arguments.argument(
         'filename', type=str,
         help='Notebook name or filename'
     )
@@ -574,9 +570,6 @@ Currently the magic system has the following functions:""",
 
         This function can export the current IPython history to a notebook file.
         For example, to export the history to "foo.ipynb" do "%notebook foo.ipynb".
-
-        The -e or --export flag is deprecated in IPython 5.2, and will be
-        removed in the future.
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
 
