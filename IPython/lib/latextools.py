@@ -161,9 +161,26 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
 
             resolution = round(150*scale)
             subprocess.check_call(
-                ["dvipng", "-T", "tight", "-D", str(resolution), "-z", "9",
-                 "-bg", "transparent", "-o", outfile, dvifile, "-fg", color],
-                 cwd=workdir, stdout=devnull, stderr=devnull)
+                [
+                    "dvipng",
+                    "-T",
+                    "tight",
+                    "-D",
+                    str(resolution),
+                    "-z",
+                    "9",
+                    "-bg",
+                    "Transparent",
+                    "-o",
+                    outfile,
+                    dvifile,
+                    "-fg",
+                    color,
+                ],
+                cwd=workdir,
+                stdout=devnull,
+                stderr=devnull,
+            )
 
         with outfile.open("rb") as f:
             return f.read()
