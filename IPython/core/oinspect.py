@@ -184,8 +184,10 @@ def getsource(obj, oname='') -> Union[str,None]:
             # its class definition instead.
             try:
                 src = inspect.getsource(obj.__class__)
-            except TypeError:
+            except (OSError, TypeError):
                 return None
+        except OSError:
+            return None
 
         return src
 
@@ -315,8 +317,9 @@ def find_file(obj) -> str:
         except (OSError, TypeError):
             # Can happen for builtins
             pass
-    except:
+    except OSError:
         pass
+
     return cast_unicode(fname)
 
 
@@ -339,12 +342,14 @@ def find_source_lines(obj):
     obj = _get_wrapped(obj)
 
     try:
+        lineno = inspect.getsourcelines(obj)[1]
+    except TypeError:
+        # For instances, try the class object like getsource() does
         try:
-            lineno = inspect.getsourcelines(obj)[1]
-        except TypeError:
-            # For instances, try the class object like getsource() does
             lineno = inspect.getsourcelines(obj.__class__)[1]
-    except:
+        except (OSError, TypeError):
+            return None
+    except OSError:
         return None
 
     return lineno
