@@ -74,8 +74,9 @@ def test_nest_embed():
 
     child = pexpect.spawn(sys.executable, ['-m', 'IPython', '--colors=nocolor'],
                           env=env)
-    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
+    child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
     child.expect(ipy_prompt)
+    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
     child.sendline("import IPython")
     child.expect(ipy_prompt)
     child.sendline("ip0 = get_ipython()")

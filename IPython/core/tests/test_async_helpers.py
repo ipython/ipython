@@ -3,6 +3,7 @@ Test for async helpers.
 
 Should only trigger on python 3.5+ or will have syntax errors.
 """
+import platform
 from itertools import chain, repeat
 from textwrap import dedent, indent
 from unittest import TestCase
@@ -275,7 +276,7 @@ class AsyncTest(TestCase):
         """
         )
 
-    if sys.version_info < (3,9):
+    if sys.version_info < (3, 9) and platform.python_implementation() != "PyPy":
         # new pgen parser in 3.9 does not raise MemoryError on too many nested
         # parens anymore
         def test_memory_error(self):

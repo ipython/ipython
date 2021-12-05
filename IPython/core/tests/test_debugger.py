@@ -371,10 +371,12 @@ def _decorator_skip_setup():
     child = pexpect.spawn(
         sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
     )
-    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
+    child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
 
     child.expect("IPython")
     child.expect("\n")
+
+    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
 
     dedented_blocks = [dedent(b).strip() for b in skip_decorators_blocks]
     in_prompt_number = 1
@@ -448,10 +450,12 @@ def test_decorator_skip_with_breakpoint():
     child = pexpect.spawn(
         sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
     )
-    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
+    child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
 
     child.expect("IPython")
     child.expect("\n")
+
+    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
 
     ### we need a filename, so we need to exec the full block with a filename
     with NamedTemporaryFile(suffix=".py", dir=".", delete=True) as tf:

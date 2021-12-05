@@ -13,6 +13,8 @@
 # -----------------------------------------------------------------------------
 
 import os
+import platform
+import pytest
 import sys
 import tempfile
 import textwrap
@@ -27,6 +29,12 @@ from unittest import TestCase
 
 from IPython.extensions.autoreload import AutoreloadMagics
 from IPython.core.events import EventManager, pre_run_cell
+
+if platform.python_implementation() == "PyPy":
+    pytest.skip(
+        "Current autoreload implementation is extremly slow on PyPy",
+        allow_module_level=True,
+    )
 
 # -----------------------------------------------------------------------------
 # Test fixture

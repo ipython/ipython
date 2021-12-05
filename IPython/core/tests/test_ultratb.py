@@ -3,6 +3,7 @@
 """
 import io
 import logging
+import platform
 import re
 import sys
 import os.path
@@ -248,7 +249,8 @@ bar()
                 ip.showsyntaxerror()
 
 import sys
-if sys.version_info < (3,9):
+
+if sys.version_info < (3, 9) and platform.python_implementation() != "PyPy":
     """
     New 3.9 Pgen Parser does not raise Memory error, except on failed malloc.
     """
@@ -359,7 +361,7 @@ def r3o2():
         ):
             ip.run_cell("r1()")
 
-    @recursionlimit(200)
+    @recursionlimit(160)
     def test_recursion_three_frames(self):
         with tt.AssertPrints("[... skipping similar frames: "), \
                 tt.AssertPrints(re.compile(r"r3a at line 8 \(\d{2} times\)"), suppress=False), \

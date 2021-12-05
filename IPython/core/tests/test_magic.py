@@ -2,6 +2,7 @@
 """Tests for various magic functions."""
 
 import asyncio
+import gc
 import io
 import os
 import re
@@ -576,6 +577,7 @@ class TestXdel(tt.TempFileMixin):
         _ip.magic("xdel a")
 
         # Check that a's __del__ method has been called.
+        gc.collect(0)
         assert monitor == [1]
 
 def doctest_who():

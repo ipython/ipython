@@ -33,6 +33,16 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.11-dev"
             deps: test
+          # Installing optional dependencies stuff takes ages on PyPy
+          - os: ubuntu-latest
+            python-version: "pypy-3.8"
+            deps: test
+          - os: windows-latest
+            python-version: "pypy-3.8"
+            deps: test
+          - os: macos-latest
+            python-version: "pypy-3.8"
+            deps: test
 
     steps:
     - uses: actions/checkout@v2
