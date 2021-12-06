@@ -18,6 +18,7 @@ as otherwise it may influence later tests.
 
 import functools
 import os
+import platform
 from os.path import join as pjoin
 import random
 import string
@@ -158,7 +159,7 @@ def doctest_reset_del():
 
     In [3]: a = A()
 
-    In [4]: get_ipython().reset()
+    In [4]: get_ipython().reset(); import gc; x = gc.collect(0)
     Hi
 
     In [5]: 1+1
@@ -241,6 +242,10 @@ class TestMagicRunSimple(tt.TempFileMixin):
         _ip.run_cell("t = isinstance(f(), foo)")
         assert _ip.user_ns["t"] is True
 
+    @pytest.mark.xfail(
+        platform.python_implementation() == "PyPy",
+        reason="expecting __del__ call on exit is unreliable and doesn't happen on PyPy",
+    )
     def test_obj_del(self):
         """Test that object's __del__ methods are called on exit."""
         src = ("class A(object):\n"
@@ -286,14 +291,20 @@ class TestMagicRunSimple(tt.TempFileMixin):
             _ip.magic("run %s" % empty.fname)
             assert _ip.user_ns["afunc"]() == 1
 
-    @dec.skip_win32
     def test_tclass(self):
         mydir = os.path.dirname(__file__)
-        tc = os.path.join(mydir, 'tclass')
-        src = ("%%run '%s' C-first\n"
-               "%%run '%s' C-second\n"
-               "%%run '%s' C-third\n") % (tc, tc, tc)
-        self.mktmp(src, '.ipy')
+        tc = os.path.join(mydir, "tclass")
+        src = f"""\
+import gc
+%run "{tc}" C-first
+gc.collect(0)
+%run "{tc}" C-second
+gc.collect(0)
+%run "{tc}" C-third
+gc.collect(0)
+%reset -f
+"""
+        self.mktmp(src, ".ipy")
         out = """\
 ARGV 1-: ['C-first']
 ARGV 1-: ['C-second']
