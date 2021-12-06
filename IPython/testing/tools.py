@@ -181,7 +181,10 @@ def ipexec(fname, options=None, commands=()):
     -------
     ``(stdout, stderr)`` of ipython subprocess.
     """
-    if options is None: options = []
+    __tracebackhide__ = True
+
+    if options is None:
+        options = []
 
     cmdargs = default_argv() + options
 
@@ -239,6 +242,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
     -------
     None
     """
+    __tracebackhide__ = True
 
     out, err = ipexec(fname, options, commands)
     #print 'OUT', out  # dbg
@@ -247,12 +251,16 @@ def ipexec_validate(fname, expected_out, expected_err='',
     # more informative than simply having an empty stdout.
     if err:
         if expected_err:
-            assert err.strip().splitlines() == expected_err.strip().splitlines()
+            assert "\n".join(err.strip().splitlines()) == "\n".join(
+                expected_err.strip().splitlines()
+            )
         else:
             raise ValueError('Running file %r produced error: %r' %
                              (fname, err))
     # If no errors or output on stderr was expected, match stdout
-    assert out.strip().splitlines() == expected_out.strip().splitlines()
+    assert "\n".join(out.strip().splitlines()) == "\n".join(
+        expected_out.strip().splitlines()
+    )
 
 
 class TempFileMixin(unittest.TestCase):
@@ -312,6 +320,8 @@ def check_pairs(func, pairs):
     None. Raises an AssertionError if any output does not match the expected
     value.
     """
+    __tracebackhide__ = True
+
     name = getattr(func, "func_name", getattr(func, "__name__", "<unknown>"))
     for inp, expected in pairs:
         out = func(inp)
@@ -354,6 +364,8 @@ class AssertPrints(object):
         setattr(sys, self.channel, self.buffer if self.suppress else self.tee)
 
     def __exit__(self, etype, value, traceback):
+        __tracebackhide__ = True
+
         try:
             if value is not None:
                 # If an error was raised, don't check anything else
@@ -381,6 +393,8 @@ class AssertNotPrints(AssertPrints):
 
     Counterpart of AssertPrints"""
     def __exit__(self, etype, value, traceback):
+        __tracebackhide__ = True
+
         try:
             if value is not None:
                 # If an error was raised, don't check anything else
