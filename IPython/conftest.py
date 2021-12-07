@@ -6,6 +6,9 @@ import pytest
 import pathlib
 import shutil
 
+# Must register before it gets imported
+pytest.register_assert_rewrite("IPython.testing.tools")
+
 from .testing import tools
 
 
