@@ -299,7 +299,11 @@ class HistoryMagics(Magics):
         """
         opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
         if "l" in opts:         # Last n lines
-            n = int(opts['l'])
+            try:
+                n = int(opts["l"])
+            except ValueError:
+                print("Number of lines must be an integer")
+                return
 
             if n == 0:
                 print("Requested 0 last lines - nothing to run")
