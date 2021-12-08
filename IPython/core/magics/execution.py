@@ -92,17 +92,15 @@ class TimeitResult(object):
                 pm = u'\xb1'
             except:
                 pass
-        return (
-            u"{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops} loop{loop_plural} each)"
-                .format(
-                    pm = pm,
-                    runs = self.repeat,
-                    loops = self.loops,
-                    loop_plural = "" if self.loops == 1 else "s",
-                    run_plural = "" if self.repeat == 1 else "s",
-                    mean = _format_time(self.average, self._precision),
-                    std = _format_time(self.stdev, self._precision))
-                )
+        return "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops:,} loop{loop_plural} each)".format(
+            pm=pm,
+            runs=self.repeat,
+            loops=self.loops,
+            loop_plural="" if self.loops == 1 else "s",
+            run_plural="" if self.repeat == 1 else "s",
+            mean=_format_time(self.average, self._precision),
+            std=_format_time(self.stdev, self._precision),
+        )
 
     def _repr_pretty_(self, p , cycle):
         unic = self.__str__()
