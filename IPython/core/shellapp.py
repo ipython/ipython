@@ -98,11 +98,6 @@ shell_aliases = dict(
 )
 shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
 
-if traitlets.version_info < (5, 0):
-    # traitlets 4 doesn't handle lists on CLI
-    shell_aliases["ext"] = "InteractiveShellApp.extra_extension"
-
-
 #-----------------------------------------------------------------------------
 # Main classes and functions
 #-----------------------------------------------------------------------------
@@ -124,17 +119,6 @@ class InteractiveShellApp(Configurable):
     """
     extensions = List(Unicode(),
         help="A list of dotted module names of IPython extensions to load."
-    ).tag(config=True)
-
-    extra_extension = Unicode(
-        "",
-        help="""
-        DEPRECATED. Dotted module name of a single extra IPython extension to load.
-
-        Only one extension can be added this way.
-
-        Only used with traitlets < 5.0, plural extra_extensions list is used in traitlets 5.
-        """,
     ).tag(config=True)
 
     extra_extensions = List(
@@ -293,8 +277,6 @@ class InteractiveShellApp(Configurable):
             extensions = (
                 self.default_extensions + self.extensions + self.extra_extensions
             )
-            if self.extra_extension:
-                extensions.append(self.extra_extension)
             for ext in extensions:
                 try:
                     self.log.info("Loading IPython extension: %s" % ext)

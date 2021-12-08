@@ -834,13 +834,11 @@ class JSONFormatter(BaseFormatter):
         if isinstance(r, tuple):
             # unpack data, metadata tuple for type checking on first element
             r, md = r
-        
-        # handle deprecated JSON-as-string form from IPython < 3
-        if isinstance(r, str):
-            warnings.warn("JSON expects JSONable list/dict containers, not JSON strings",
-            FormatterWarning)
-            r = json.loads(r)
-        
+
+        assert not isinstance(
+            r, str
+        ), "JSON-as-string has been deprecated since IPython < 3"
+
         if md is not None:
             # put the tuple back together
             r = (r, md)

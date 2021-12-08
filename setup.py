@@ -171,7 +171,6 @@ extras_require = dict(
     nbconvert=["nbconvert"],
 )
 
-
 everything = set(chain.from_iterable(extras_require.values()))
 extras_require['all'] = list(sorted(everything))
 

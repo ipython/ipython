@@ -430,18 +430,6 @@ def test_ipython_display_formatter():
     f.ipython_display_formatter.enabled = save_enabled
 
 
-def test_json_as_string_deprecated():
-    class JSONString(object):
-        def _repr_json_(self):
-            return '{}'
-    
-    f = JSONFormatter()
-    with warnings.catch_warnings(record=True) as w:
-        d = f(JSONString())
-    assert d == {}
-    assert len(w) == 1
-
-
 def test_repr_mime():
     class HasReprMime(object):
         def _repr_mimebundle_(self, include=None, exclude=None):

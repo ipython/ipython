@@ -256,16 +256,6 @@ class BaseIPythonApplication(Application):
     # Various stages of Application creation
     #-------------------------------------------------------------------------
     
-    deprecated_subcommands = {}
-    
-    def initialize_subcommand(self, subc, argv=None):
-        if subc in self.deprecated_subcommands:
-            self.log.warning("Subcommand `ipython {sub}` is deprecated and will be removed "
-                             "in future versions.".format(sub=subc))
-            self.log.warning("You likely want to use `jupyter {sub}` in the "
-                             "future".format(sub=subc))
-        return super(BaseIPythonApplication, self).initialize_subcommand(subc, argv)
-
     def init_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""
         self.crash_handler = self.crash_handler_class(self)
