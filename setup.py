@@ -179,4 +179,5 @@ setup_args["extras_require"] = extras_require
 # Do the actual setup now
 #---------------------------------------------------------------------------
 
-setup(**setup_args)
+if __name__ == "__main__":
+    setup(**setup_args)
