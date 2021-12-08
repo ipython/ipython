@@ -103,10 +103,12 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     # List of things to be updated. Each entry is a triplet of args for
     # target_update()
     to_update = [
-                 ('docs/man/ipython.1.gz',
-                  ['docs/man/ipython.1'],
-                  'cd docs/man && python -m gzip --best ipython.1'),
-                 ]
+        (
+            "docs/man/ipython.1.gz",
+            ["docs/man/ipython.1"],
+            "cd docs/man && python -m gzip --best ipython.1",
+        ),
+    ]
 
 
     [ target_update(*t) for t in to_update ]
