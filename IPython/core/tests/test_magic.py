@@ -1339,13 +1339,11 @@ def test_run_module_from_import_hook():
                     return importlib.util.spec_from_loader(fullname, self)
 
             def get_filename(self, fullname):
-                if fullname != "my_tmp":
-                    raise ImportError(f"unexpected module name '{fullname}'")
+                assert fullname == "my_tmp"
                 return fullpath
 
             def get_data(self, path):
-                if not Path(path).samefile(fullpath):
-                    raise OSError(f"expected path '{fullpath}', got '{path}'")
+                assert Path(path).samefile(fullpath)
                 return Path(fullpath).read_text()
 
         sys.meta_path.insert(0, MyTempImporter())
