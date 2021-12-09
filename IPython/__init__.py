@@ -140,5 +140,12 @@ def start_kernel(argv=None, **kwargs):
         Any other kwargs will be passed to the Application constructor,
         such as `config`.
     """
-    from IPython.kernel.zmq.kernelapp import launch_new_instance
+    import warnings
+
+    warnings.warn(
+        "start_kernel is deprecated since IPython 8.0, use from `ipykernel.kernelapp.launch_new_instance`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    from ipykernel.kernelapp import launch_new_instance
     return launch_new_instance(argv=argv, **kwargs)
