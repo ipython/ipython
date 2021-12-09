@@ -2057,16 +2057,14 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
 
-           text : string
-             A string of text to be completed on.  It can be given as empty and
-             instead a line/position pair are given.  In this case, the
-             completer itself will split the line like readline does.
-
-           line : string, optional
-             The complete line that text is part of.
-
-           cursor_pos : int, optional
-             The position of the cursor on the input line.
+        text : string
+          A string of text to be completed on.  It can be given as empty and
+          instead a line/position pair are given.  In this case, the
+          completer itself will split the line like readline does.
+        line : string, optional
+          The complete line that text is part of.
+        cursor_pos : int, optional
+          The position of the cursor on the input line.
 
         Returns
         -------
@@ -2606,7 +2604,7 @@ class InteractiveShell(SingletonConfigurable):
         ----------
         fname : string
             The name of the file to be executed.
-        where : tuple
+        *where : tuple
             One or two namespaces, passed to execfile() as (globals,locals).
             If only one is given, it is passed as both.
         exit_ignore : bool (False)
