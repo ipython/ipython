@@ -77,7 +77,6 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
         format, e.g. '#AA20FA'.
     scale : float
         Scale factor for the resulting PNG.
-
     None is returned when the backend cannot be used.
 
     """
