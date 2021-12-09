@@ -66,6 +66,7 @@ else:
     # There is no distinction of user/system time under windows, so we just use
     # time.perff_counter() for everything...
     clocku = clocks = clock = time.perf_counter
+
     def clock2():
         """Under windows, system CPU time can't be measured.
 
