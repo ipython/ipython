@@ -65,7 +65,7 @@ class OSMagics(Magics):
 
     def _isexec_POSIX(self, file):
         """
-            Test for executable on a POSIX system
+        Test for executable on a POSIX system
         """
         if os.access(file.path, os.X_OK):
             # will fail on maxOS if access is not X_OK
@@ -76,13 +76,13 @@ class OSMagics(Magics):
     
     def _isexec_WIN(self, file):
         """
-            Test for executable file on non POSIX system
+        Test for executable file on non POSIX system
         """
         return file.is_file() and self.execre.match(file.name) is not None
 
     def isexec(self, file):
         """
-            Test for executable file on non POSIX system
+        Test for executable file on non POSIX system
         """
         if self.is_posix:
             return self._isexec_POSIX(file)
@@ -316,7 +316,6 @@ class OSMagics(Magics):
             ``cd <bookmark_name>`` is enough if there is no directory
             ``<bookmark_name>``, but a bookmark with the name exists.
 
-
         Options:
 
         -q               Be quiet. Do not print the working directory after the
@@ -328,7 +327,6 @@ class OSMagics(Magics):
            Note that ``!cd`` doesn't work for this purpose because the shell
            where ``!command`` runs is immediately discarded after executing
            'command'.
-
 
         Examples
         --------
@@ -834,7 +832,7 @@ class OSMagics(Magics):
     @cell_magic
     def writefile(self, line, cell):
         """Write the contents of the cell to a file.
-        
+
         The file will be overwritten unless the -a (--append) flag is specified.
         """
         args = magic_arguments.parse_argstring(self.writefile, line)

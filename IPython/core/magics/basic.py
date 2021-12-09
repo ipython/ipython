@@ -45,7 +45,7 @@ class MagicsDisplay(object):
     
     def _jsonable(self):
         """turn magics dict into jsonable dict of the same structure
-        
+
         replaces object instances with their class names as strings
         """
         magic_dict = {}
@@ -123,7 +123,7 @@ class BasicMagics(Magics):
 
           In [6]: %whereami
           Out[6]: u'/home/testuser'
-          
+
           In [7]: %alias_magic h history "-p -l 30" --line
           Created `%h` as an alias for `%history -l 30`.
         """
@@ -367,7 +367,7 @@ Currently the magic system has the following functions:""",
 
         If called without arguments, acts as a toggle.
 
-        When in verbose mode the value --show (and --hide) 
+        When in verbose mode the value --show (and --hide)
         will respectively show (or hide) frames with ``__tracebackhide__ =
         True`` value set.
         """
@@ -616,12 +616,11 @@ class AsyncMagics(BasicMagics):
 
         If the passed parameter does not match any of the above and is a python
         identifier, get said object from user namespace and set it as the
-        runner, and activate autoawait. 
+        runner, and activate autoawait.
 
         If the object is a fully qualified object name, attempt to import it and
         set it as the runner, and activate autoawait.
-        
-        
+
         The exact behavior of autoawait is experimental and subject to change
         across version of IPython and Python.
         """

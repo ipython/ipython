@@ -202,16 +202,16 @@ class ScriptMagics(Magics):
     @dec_safe_watcher
     def shebang(self, line, cell):
         """Run a cell via a shell command
-        
+
         The `%%script` line is like the #! line of script,
         specifying a program (bash, perl, ruby, etc.) with which to run.
-        
+
         The rest of the cell is run by that program.
-        
+
         Examples
         --------
         ::
-        
+
             In [1]: %%script bash
                ...: for i in 1 2 3; do
                ...:   echo $i
