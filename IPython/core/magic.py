@@ -114,16 +114,13 @@ def record_magic(dct, magic_kind, magic_name, func):
     Parameters
     ----------
     dct : dict
-      A dictionary with 'line' and 'cell' subdicts.
-
+        A dictionary with 'line' and 'cell' subdicts.
     magic_kind : str
-      Kind of magic to be stored.
-
+        Kind of magic to be stored.
     magic_name : str
-      Key to store the magic as.
-
+        Key to store the magic as.
     func : function
-      Callable object to store.
+        Callable object to store.
     """
     if magic_kind == 'line_cell':
         dct['line'][magic_name] = dct['cell'][magic_name] = func
@@ -372,7 +369,7 @@ class MagicsManager(Configurable):
     def register(self, *magic_objects):
         """Register one or more instances of Magics.
 
-        Take one or more classes or instances of classes that subclass the main 
+        Take one or more classes or instances of classes that subclass the main
         `core.Magic` class, and register them with IPython to use the magic
         functions they provide.  The registration process will then ensure that
         any methods that have decorated to provide line and/or cell magics will
@@ -387,7 +384,7 @@ class MagicsManager(Configurable):
 
         Parameters
         ----------
-        magic_objects : one or more classes or instances
+        *magic_objects : one or more classes or instances
         """
         # Start by validating them to ensure they have all had their magic
         # methods registered at the instance level
@@ -410,7 +407,7 @@ class MagicsManager(Configurable):
 
         This will create an IPython magic (line, cell or both) from a
         standalone function.  The functions should have the following
-        signatures: 
+        signatures:
 
         * For line magics: `def f(line)`
         * For cell magics: `def f(line, cell)`
@@ -422,14 +419,12 @@ class MagicsManager(Configurable):
         Parameters
         ----------
         func : callable
-          Function to be registered as a magic.
-
+            Function to be registered as a magic.
         magic_kind : str
-          Kind of magic, one of 'line', 'cell' or 'line_cell'
-
+            Kind of magic, one of 'line', 'cell' or 'line_cell'
         magic_name : optional str
-          If given, the name the magic will have in the IPython namespace.  By
-          default, the name of the function itself is used.
+            If given, the name the magic will have in the IPython namespace.  By
+            default, the name of the function itself is used.
         """
 
         # Create the new method in the user_magics and register it in the
@@ -450,13 +445,11 @@ class MagicsManager(Configurable):
         Parameters
         ----------
         alias_name : str
-          The name of the magic to be registered.
-
+            The name of the magic to be registered.
         magic_name : str
-          The name of an existing magic.
-
+            The name of an existing magic.
         magic_kind : str
-          Kind of magic, one of 'line' or 'cell'
+            Kind of magic, one of 'line' or 'cell'
         """
 
         # `validate_type` is too permissive, as it allows 'line_cell'
@@ -580,25 +573,20 @@ class Magics(Configurable):
 
         Parameters
         ----------
-
         arg_str : str
-          The arguments to parse.
-
+            The arguments to parse.
         opt_str : str
-          The options specification.
-
+            The options specification.
         mode : str, default 'string'
-          If given as 'list', the argument string is returned as a list (split
-          on whitespace) instead of a string.
-
+            If given as 'list', the argument string is returned as a list (split
+            on whitespace) instead of a string.
         list_all : bool, default False
-          Put all option values in lists. Normally only options
-          appearing more than once are put in a list.
-
+            Put all option values in lists. Normally only options
+            appearing more than once are put in a list.
         posix : bool, default True
-          Whether to split the input line in POSIX mode or not, as per the
-          conventions outlined in the :mod:`shlex` module from the standard
-          library.
+            Whether to split the input line in POSIX mode or not, as per the
+            conventions outlined in the :mod:`shlex` module from the standard
+            library.
         """
 
         # inject default options at the beginning of the input line

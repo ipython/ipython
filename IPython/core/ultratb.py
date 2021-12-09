@@ -556,7 +556,7 @@ class ListTB(TBTools):
         Parameters
         ----------
         etype : exception type
-        evalue : exception value
+        value : exception value
         """
         return ListTB.structured_traceback(self, etype, value)
 

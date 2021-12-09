@@ -185,8 +185,8 @@ def mpl_runner(safe_execfile):
     Parameters
     ----------
     safe_execfile : function
-      This must be a function with the same interface as the
-      :meth:`safe_execfile` method of IPython.
+        This must be a function with the same interface as the
+        :meth:`safe_execfile` method of IPython.
 
     Returns
     -------
@@ -241,7 +241,7 @@ def select_figure_formats(shell, formats, **kwargs):
     """Select figure formats for the inline backend.
 
     Parameters
-    ==========
+    ----------
     shell : InteractiveShell
         The main IPython instance.
     formats : str or set
@@ -408,7 +408,6 @@ def configure_inline_support(shell, backend):
     Parameters
     ----------
     shell : InteractiveShell instance
-
     backend : matplotlib backend
     """
     warnings.warn(
