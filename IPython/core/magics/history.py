@@ -151,6 +151,7 @@ class HistoryMagics(Magics):
             # We don't want to close stdout at the end!
             close_at_end = False
         else:
+            outfname = os.path.expanduser(outfname)
             if os.path.exists(outfname):
                 try:
                     ans = io.ask_yes_no("File %r exists. Overwrite?" % outfname)
