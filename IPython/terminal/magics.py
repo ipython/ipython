@@ -113,9 +113,9 @@ class TerminalMagics(Magics):
 
         Shell escapes are not supported (yet).
 
-        See also
+        See Also
         --------
-        paste: automatically pull code from clipboard.
+        paste : automatically pull code from clipboard.
 
         Examples
         --------
@@ -176,9 +176,9 @@ class TerminalMagics(Magics):
 
         IPython statements (magics, shell escapes) are not supported (yet).
 
-        See also
+        See Also
         --------
-        cpaste: manually paste code into terminal until you mark its end.
+        cpaste : manually paste code into terminal until you mark its end.
         """
         opts, name = self.parse_options(parameter_s, 'rq', mode='string')
         if 'r' in opts:
