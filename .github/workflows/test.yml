@@ -50,14 +50,20 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
     - name: Install latex
       if: runner.os == 'Linux' && matrix.deps == 'test_extra'
       run: sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
     - name: Install and update Python dependencies
       run: |
-        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install --upgrade pip setuptools wheel build
         python -m pip install --upgrade -e .[${{ matrix.deps }}]
         python -m pip install --upgrade check-manifest pytest-cov
+    - name: Try building with Python build
+      if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
+      run: |
+        python -m build
+        shasum -a 256 dist/*
     - name: Check manifest
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: check-manifest

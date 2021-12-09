@@ -12,10 +12,6 @@
 #  The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-# Name of the package for release purposes.  This is the name which labels
-# the tarballs and RPMs made by distutils, so it's best to lowercase it.
-name = 'ipython'
-
 # IPython version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development
 # version
@@ -40,49 +36,6 @@ version_info = (_version_major, _version_minor, _version_patch, _version_extra)
 kernel_protocol_version_info = (5, 0)
 kernel_protocol_version = "%i.%i" % kernel_protocol_version_info
 
-description = "IPython: Productive Interactive Computing"
-
-long_description = \
-"""
-IPython provides a rich toolkit to help you make the most out of using Python
-interactively.  Its main components are:
-
-* A powerful interactive Python shell
-* A `Jupyter <https://jupyter.org/>`_ kernel to work with Python code in Jupyter
-  notebooks and other interactive frontends.
-
-The enhanced interactive Python shells have the following main features:
-
-* Comprehensive object introspection.
-
-* Input history, persistent across sessions.
-
-* Caching of output results during a session with automatically generated
-  references.
-
-* Extensible tab completion, with support by default for completion of python
-  variables and keywords, filenames and function keywords.
-
-* Extensible system of 'magic' commands for controlling the environment and
-  performing many tasks related either to IPython or the operating system.
-
-* A rich configuration system with easy switching between different setups
-  (simpler than changing $PYTHONSTARTUP environment variables every time).
-
-* Session logging and reloading.
-
-* Extensible syntax processing for special purpose situations.
-
-* Access to the system shell with user-extensible alias system.
-
-* Easily embeddable in other Python programs and GUIs.
-
-* Integrated access to the pdb debugger and the Python profiler.
-
-The latest development version is always available from IPython's `GitHub
-site <http://github.com/ipython>`_.
-"""
-
 license = 'BSD'
 
 authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
@@ -99,21 +52,3 @@ authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
 author = 'The IPython Development Team'
 
 author_email = 'ipython-dev@python.org'
-
-url = 'https://ipython.org'
-
-
-platforms = ['Linux','Mac OSX','Windows']
-
-keywords = ['Interactive','Interpreter','Shell', 'Embedding']
-
-classifiers = [
-    'Framework :: IPython',
-    'Intended Audience :: Developers',
-    'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: BSD License',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3 :: Only',
-    'Topic :: System :: Shells'
-    ]
