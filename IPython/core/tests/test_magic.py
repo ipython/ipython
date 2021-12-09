@@ -1339,11 +1339,11 @@ def test_run_module_from_import_hook():
                     return importlib.util.spec_from_loader(fullname, self)
 
             def get_filename(self, fullname):
-                assert fullname == "my_tmp":
+                assert fullname == "my_tmp"
                 return fullpath
 
             def get_data(self, path):
-                assert Path(path).samefile(fullpath):
+                assert Path(path).samefile(fullpath)
                 return Path(fullpath).read_text()
 
         sys.meta_path.insert(0, MyTempImporter())
