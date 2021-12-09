@@ -22,12 +22,24 @@ Need to be updated:
 
    pr/*
 
-IPython 8.0 is bringing a number of new features and improvements to both the
+IPython 8.0 is bringing a large number of new features and improvements to both the
 user of the terminal and of the kernel via Jupyter. The removal of compatibility
 with older version of Python is also the opportunity to do a couple of
 performance improvement in particular with respect to startup time.
 
-The main change in IPython 8.0 is the integration of the ``stack_data`` package;
+This release contains 250+ Pull requests, in addition to many of the features
+and backports that have made it to the 7.x branch.
+
+We removed almost all features, arguments, functions, and modules that were
+marked as deprecated between IPython 1.0 and 5.0 and before. As reminder 5.0 was
+released in 2016, and 1.0 in 2013. Last release of the 5 branch was 5.10.0, in
+may 2020. The few remaining deprecated features have better deprecation warnings
+or errors.
+
+There are many change in IPython 8.0 will will try to describe subsequently, 
+
+
+The first on is the integration of the ``stack_data`` package;
 which provide smarter information in traceback; in particular it will highlight
 the AST node where an error occurs which can help to quickly narrow down errors.
 
@@ -50,12 +62,33 @@ IPython 8.0 is capable of telling you, where the index error occurs::
     return x[0][i][0]
                 ^
 
+
+Numfocus Small Developer Grant
+------------------------------
+
 To prepare for Python 3.10 we have also started working on removing reliance and
 any dependency that is not Python 3.10 compatible; that include migrating our
-test suite to Pytest, and starting to remove nose.
+test suite to pytest, and starting to remove nose. This also mean that the
+``iptest`` command is now gone, and all testing is via pytest. 
 
-We are also removing support for Python 3.6 allowing internal code to use more
+This was in bog part thanks the NumFOCUS Small Developer grant, we were able to
+allocate 4000 to hire `Nikita Kniazev @Kojoley <https://github.com/Kojoley>`__
+who did a fantastic job at updating our code base, migrating to pytest, pushing
+our coverage, and fixing a large number of bugs. I highly recommend contacting
+them if you need help with C++ and Python projects
+
+You can find all relevant issues and PRs with the SDG 2021 tag:
+
+https://github.com/ipython/ipython/issues?q=label%3A%22Numfocus+SDG+2021%22+
+
+Removing support for Older Python
+---------------------------------
+
+
+We are also removing support for Python up to 3.7 allowing internal code to use more
 efficient ``pathlib``, and make better use of type annotations.
+
+IMAGE : Pathlib, pathlib everywhere.
 
 The completer has also seen significant updates and make use of newer Jedi API
 offering faster and more reliable tab completion.
@@ -167,6 +200,12 @@ Try ``%autoreload 3`` in an IPython session after running ``%load_ext autoreload
 
 For more information please see unit test -
     extensions/tests/test_autoreload.py : 'test_autoload_newly_added_objects'
+
+
+Miscelanious
+------------
+
+Minimum supported
 
 =======
 
