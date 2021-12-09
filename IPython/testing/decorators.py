@@ -152,9 +152,6 @@ skip_if_not_win32 = skipif(sys.platform != 'win32',
                            "This test only runs under Windows")
 skip_if_not_linux = skipif(not sys.platform.startswith('linux'),
                            "This test only runs under Linux")
-skip_if_not_osx = skipif(sys.platform != 'darwin',
-                         "This test only runs under OSX")
-
 
 _x11_skip_cond = (sys.platform not in ('darwin', 'win32') and
                   os.environ.get('DISPLAY', '') == '')
@@ -170,8 +167,6 @@ skip_without = lambda mod: skipif(module_not_available(mod), "This test requires
 skipif_not_numpy = skip_without('numpy')
 
 skipif_not_matplotlib = skip_without('matplotlib')
-
-skipif_not_sympy = skip_without('sympy')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions

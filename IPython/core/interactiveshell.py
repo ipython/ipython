@@ -906,7 +906,11 @@ class InteractiveShell(SingletonConfigurable):
 
         if _warn_deprecated and (name in IPython.core.hooks.deprecated):
             alternative = IPython.core.hooks.deprecated[name]
-            warn("Hook {} is deprecated. Use {} instead.".format(name, alternative), stacklevel=2)
+            raise ValueError(
+                "Hook {} has been deprecated since IPython 5.0. Use {} instead.".format(
+                    name, alternative
+                )
+            )
 
         if not dp:
             dp = IPython.core.hooks.CommandChainDispatcher()
@@ -933,9 +937,10 @@ class InteractiveShell(SingletonConfigurable):
 
         Register a function for calling after code execution.
         """
-        warn("ip.register_post_execute is deprecated, use "
-             "ip.events.register('post_run_cell', func) instead.", stacklevel=2)
-        self.events.register('post_run_cell', func)
+        raise ValueError(
+            "ip.register_post_execute is deprecated since IPython 1.0, use "
+            "ip.events.register('post_run_cell', func) instead."
+        )
 
     def _clear_warning_registry(self):
         # clear the warning registry, so that different code blocks with

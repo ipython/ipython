@@ -144,22 +144,15 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     All other exceptions are processed using the `excepthook`
     parameter.
     """
-    warnings.warn("`BdbQuit_excepthook` is deprecated since version 5.1",
-                  DeprecationWarning, stacklevel=2)
-    if et == bdb.BdbQuit:
-        print('Exiting Debugger.')
-    elif excepthook is not None:
-        excepthook(et, ev, tb)
-    else:
-        # Backwards compatibility. Raise deprecation warning?
-        BdbQuit_excepthook.excepthook_ori(et, ev, tb)
+    raise ValueError(
+        "`BdbQuit_excepthook` is deprecated since version 5.1",
+    )
 
 
 def BdbQuit_IPython_excepthook(self, et, ev, tb, tb_offset=None):
-    warnings.warn(
+    raise ValueError(
         "`BdbQuit_IPython_excepthook` is deprecated since version 5.1",
         DeprecationWarning, stacklevel=2)
-    print('Exiting Debugger.')
 
 
 RGX_EXTRA_INDENT = re.compile(r'(?<=\n)\s+')

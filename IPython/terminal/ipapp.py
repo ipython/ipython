@@ -262,22 +262,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     # internal, not-configurable
     something_to_run=Bool(False)
 
-    def parse_command_line(self, argv=None):
-        """override to allow old '-pylab' flag with deprecation warning"""
-
-        argv = sys.argv[1:] if argv is None else argv
-
-        if '-pylab' in argv:
-            # deprecated `-pylab` given,
-            # warn and transform into current syntax
-            argv = argv[:] # copy, don't clobber
-            idx = argv.index('-pylab')
-            warnings.warn("`-pylab` flag has been deprecated.\n"
-            "    Use `--matplotlib <backend>` and import pylab manually.")
-            argv[idx] = '--pylab'
-
-        return super(TerminalIPythonApp, self).parse_command_line(argv)
-    
     @catch_config_error
     def initialize(self, argv=None):
         """Do actions after construct, but before starting the app."""
