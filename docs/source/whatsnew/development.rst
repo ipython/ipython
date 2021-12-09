@@ -92,6 +92,13 @@ Majority of our docstrings have now been reformatted and automatically fixed by
 the experimental `Vélin <https://pypi.org/project/velin/>`_ project, to conform
 to numpydoc.
 
+Type annotations
+----------------
+
+While IPython itself is highly dynamic and can't be completely typed, many of
+the function now have type annotation, and part of the codebase and now checked
+by mypy.
+
 
 Featured changes
 ----------------
@@ -355,13 +362,13 @@ The error traceback is now correctly formatted, showing the cell number in which
     ...:     return 3 / 0
     ...:
 
-    In [2]: foo()
+    Input In [2]: foo()
     ---------------------------------------------------------------------------
     ZeroDivisionError                         Traceback (most recent call last)
-    In [2], in <module>
+    input In [2], in <module>
     ----> 1 foo()
 
-    In [1], in foo()
+    Input In [1], in foo()
         1 def foo():
     ----> 2     return 3 / 0
 

@@ -185,7 +185,7 @@ def _format_filename(file, ColorFilename, ColorNormal):
 
     if ipinst is not None and file in ipinst.compile._filename_map:
         file = "[%s]" % ipinst.compile._filename_map[file]
-        tpl_link = "In %s%%s%s" % (ColorFilename, ColorNormal)
+        tpl_link = "Input %sIn %%s%s" % (ColorFilename, ColorNormal)
     else:
         file = util_path.compress_user(
             py3compat.cast_unicode(file, util_path.fs_encoding)
