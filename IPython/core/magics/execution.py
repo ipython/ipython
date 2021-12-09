@@ -1067,7 +1067,6 @@ class ExecutionMagics(Magics):
 
           In [6]: %timeit -n1 time.sleep(2)
 
-
         The times reported by %timeit will be slightly higher than those
         reported by the timeit.py script when variables are accessed. This is
         due to the fact that %timeit executes the statement in the namespace
@@ -1201,7 +1200,7 @@ class ExecutionMagics(Magics):
         The CPU and wall clock times are printed, and the value of the
         expression (if any) is returned.  Note that under Win32, system time
         is always reported as 0, since it can not be measured.
-        
+
         This function can be used both as a line and cell magic:
 
         - In line mode you can time a single-line statement (though multiple
@@ -1237,7 +1236,6 @@ class ExecutionMagics(Magics):
           hello world
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
-
 
         .. note::
             The time needed by Python to compile the given expression will be

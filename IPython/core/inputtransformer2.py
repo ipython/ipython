@@ -640,17 +640,17 @@ class TransformerManager:
 
         Parameters
         ----------
-        source : string
-          Python input code, which can be multiline.
+        cell : string
+            Python input code, which can be multiline.
 
         Returns
         -------
         status : str
-          One of 'complete', 'incomplete', or 'invalid' if source is not a
-          prefix of valid code.
+            One of 'complete', 'incomplete', or 'invalid' if source is not a
+            prefix of valid code.
         indent_spaces : int or None
-          The number of spaces by which to indent the next line of code. If
-          status is not 'incomplete', this is None.
+            The number of spaces by which to indent the next line of code. If
+            status is not 'incomplete', this is None.
         """
         # Remember if the lines ends in a new line.
         ends_with_newline = False

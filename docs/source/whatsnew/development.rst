@@ -22,12 +22,24 @@ Need to be updated:
 
    pr/*
 
-IPython 8.0 is bringing a number of new features and improvements to both the
+IPython 8.0 is bringing a large number of new features and improvements to both the
 user of the terminal and of the kernel via Jupyter. The removal of compatibility
 with older version of Python is also the opportunity to do a couple of
 performance improvement in particular with respect to startup time.
 
-The main change in IPython 8.0 is the integration of the ``stack_data`` package;
+This release contains 250+ Pull requests, in addition to many of the features
+and backports that have made it to the 7.x branch.
+
+We removed almost all features, arguments, functions, and modules that were
+marked as deprecated between IPython 1.0 and 5.0 and before. As reminder 5.0 was
+released in 2016, and 1.0 in 2013. Last release of the 5 branch was 5.10.0, in
+may 2020. The few remaining deprecated features have better deprecation warnings
+or errors.
+
+There are many change in IPython 8.0 will will try to describe subsequently,
+
+
+The first on is the integration of the ``stack_data`` package;
 which provide smarter information in traceback; in particular it will highlight
 the AST node where an error occurs which can help to quickly narrow down errors.
 
@@ -50,12 +62,33 @@ IPython 8.0 is capable of telling you, where the index error occurs::
     return x[0][i][0]
                 ^
 
+
+Numfocus Small Developer Grant
+------------------------------
+
 To prepare for Python 3.10 we have also started working on removing reliance and
 any dependency that is not Python 3.10 compatible; that include migrating our
-test suite to Pytest, and starting to remove nose.
+test suite to pytest, and starting to remove nose. This also mean that the
+``iptest`` command is now gone, and all testing is via pytest.
 
-We are also removing support for Python 3.6 allowing internal code to use more
+This was in bog part thanks the NumFOCUS Small Developer grant, we were able to
+allocate 4000 to hire `Nikita Kniazev @Kojoley <https://github.com/Kojoley>`__
+who did a fantastic job at updating our code base, migrating to pytest, pushing
+our coverage, and fixing a large number of bugs. I highly recommend contacting
+them if you need help with C++ and Python projects
+
+You can find all relevant issues and PRs with the SDG 2021 tag:
+
+https://github.com/ipython/ipython/issues?q=label%3A%22Numfocus+SDG+2021%22+
+
+Removing support for Older Python
+---------------------------------
+
+
+We are also removing support for Python up to 3.7 allowing internal code to use more
 efficient ``pathlib``, and make better use of type annotations.
+
+IMAGE : Pathlib, pathlib everywhere.
 
 The completer has also seen significant updates and make use of newer Jedi API
 offering faster and more reliable tab completion.
@@ -168,7 +201,154 @@ Try ``%autoreload 3`` in an IPython session after running ``%load_ext autoreload
 For more information please see unit test -
     extensions/tests/test_autoreload.py : 'test_autoload_newly_added_objects'
 
-=======
+
+Miscelanious
+------------
+
+Minimum supported
+
+
+History Range Glob feature
+==========================
+
+Previously, when using ``%history``, users could specify either
+a range of sessions and lines, for example:
+
+.. code-block:: python
+
+   ~8/1-~6/5   # see history from the first line of 8 sessions ago,
+               # to the fifth line of 6 sessions ago.``
+
+Or users could specify a glob pattern:
+
+.. code-block:: python
+
+   -g <pattern>  # glob ALL history for the specified pattern.
+
+However users could *not* specify both.
+
+If a user *did* specify both a range and a glob pattern,
+then the glob pattern would be used (globbing *all* history) *and the range would be ignored*.
+
+---
+
+With this enhancement, if a user specifies both a range and a glob pattern, then the glob pattern will be applied to the specified range of history.
+
+Don't start a multi line cell with sunken parenthesis
+-----------------------------------------------------
+
+From now on IPython will not ask for the next line of input when given a single
+line with more closing than opening brackets. For example, this means that if
+you (mis)type ']]' instead of '[]', a ``SyntaxError`` will show up, instead of
+the ``...:`` prompt continuation.
+
+IPython shell for ipdb interact
+-------------------------------
+
+The ipdb ``interact`` starts an IPython shell instead of Python's built-in ``code.interact()``.
+
+Automatic Vi prompt stripping
+=============================
+
+When pasting code into IPython, it will strip the leading prompt characters if
+there are any. For example, you can paste the following code into the console -
+it will still work, even though each line is prefixed with prompts (`In`,
+`Out`)::
+
+    In [1]: 2 * 2 == 4
+    Out[1]: True
+
+    In [2]: print("This still works as pasted")
+
+
+Previously, this was not the case for the Vi-mode prompts::
+
+    In [1]: [ins] In [13]: 2 * 2 == 4
+       ...: Out[13]: True
+       ...:
+      File "<ipython-input-1-727bb88eaf33>", line 1
+        [ins] In [13]: 2 * 2 == 4
+              ^
+    SyntaxError: invalid syntax
+
+This is now fixed, and Vi prompt prefixes - ``[ins]`` and ``[nav]`` -  are
+skipped just as the normal ``In`` would be.
+
+IPython shell can be started in the Vi mode using ``ipython
+--TerminalInteractiveShell.editing_mode=vi``
+
+Empty History Ranges
+====================
+
+A number of magics that take history ranges can now be used with an empty
+range. These magics are:
+
+ * ``%save``
+ * ``%load``
+ * ``%pastebin``
+ * ``%pycat``
+
+Using them this way will make them take the history of the current session up
+to the point of the magic call (such that the magic itself will not be
+included).
+
+Therefore it is now possible to save the whole history to a file using simple
+``%save <filename>``, load and edit it using ``%load`` (makes for a nice usage
+when followed with :kbd:`F2`), send it to dpaste.org using ``%pastebin``, or
+view the whole thing syntax-highlighted with a single ``%pycat``.
+
+Traceback improvements
+======================
+
+
+UPDATE THIS IN INPUT.
+
+Previously, error tracebacks for errors happening in code cells were showing a hash, the one used for compiling the Python AST::
+
+    In [1]: def foo():
+    ...:     return 3 / 0
+    ...:
+
+    In [2]: foo()
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)
+    <ipython-input-2-c19b6d9633cf> in <module>
+    ----> 1 foo()
+
+    <ipython-input-1-1595a74c32d5> in foo()
+        1 def foo():
+    ----> 2     return 3 / 0
+        3
+
+    ZeroDivisionError: division by zero
+
+The error traceback is now correctly formatted, showing the cell number in which the error happened::
+
+    In [1]: def foo():
+    ...:     return 3 / 0
+    ...:
+
+    In [2]: foo()
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)
+    In [2], in <module>
+    ----> 1 foo()
+
+    In [1], in foo()
+        1 def foo():
+    ----> 2     return 3 / 0
+
+    ZeroDivisionError: division by zero
+
+Remove Deprecated Stuff
+=======================
+
+
+We no longer need to add `extensions` to the PYTHONPATH because that is being
+handled by `load_extension`.
+
+We are also removing Cythonmagic, sympyprinting and rmagic as they are now in
+other packages and no longer need to be inside IPython.
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 

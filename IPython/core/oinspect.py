@@ -302,7 +302,7 @@ def find_file(obj) -> str:
     Returns
     -------
     fname : str
-      The absolute path to the file where the object was defined.
+        The absolute path to the file where the object was defined.
     """
     obj = _get_wrapped(obj)
 
@@ -337,7 +337,7 @@ def find_source_lines(obj):
     Returns
     -------
     lineno : int
-      The line number where the object definition starts.
+        The line number where the object definition starts.
     """
     obj = _get_wrapped(obj)
 
@@ -428,7 +428,6 @@ class Inspector(Colorable):
 
         Examples
         --------
-
         In [1]: class NoInit:
            ...:     pass
 
@@ -575,18 +574,17 @@ class Inspector(Colorable):
         """Retrieve an info dict and format it.
 
         Parameters
-        ==========
-
-        obj: any
+        ----------
+        obj : any
             Object to inspect and return info from
         oname: str (default: ''):
             Name of the variable pointing to `obj`.
-        formatter: callable
+        formatter : callable
         info:
             already computed information
-        detail_level: integer
+        detail_level : integer
             Granularity of detail level, if set to 1, give more information.
-        omit_sections: container[str]
+        omit_sections : container[str]
             Titles or keys to omit from output (can be set, tuple, etc., anything supporting `in`)
         """
 
@@ -716,21 +714,19 @@ class Inspector(Colorable):
         """Compute a dict with detailed information about an object.
 
         Parameters
-        ==========
-
-        obj: any
+        ----------
+        obj : any
             An object to find information about
-        oname: str (default: ''):
+        oname : str (default: '')
             Name of the variable pointing to `obj`.
-        info: (default: None)
+        info : (default: None)
             A struct (dict like with attr access) with some information fields
             which may have been precomputed already.
-        detail_level: int (default:0)
+        detail_level : int (default:0)
             If set to 1, more information is given.
 
         Returns
-        =======
-
+        -------
         An object info dict with known fields from `info_fields`. Keys are
         strings, values are string or None.
         """
@@ -962,7 +958,7 @@ class Inspector(Colorable):
 
           - show_all(False): show all names, including those starting with
             underscores.
-            
+
           - list_types(False): list all available object types for object matching.
         """
         #print 'ps pattern:<%r>' % pattern # dbg

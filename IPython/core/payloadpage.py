@@ -17,10 +17,9 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     Parameters
     ----------
     strng : str or mime-dict
-      Text to page, or a mime-type keyed dict of already formatted data.
-
+        Text to page, or a mime-type keyed dict of already formatted data.
     start : int
-      Starting line at which to place the display.
+        Starting line at which to place the display.
     """
 
     # Some routines may auto-compute start offsets incorrectly and pass a
@@ -42,7 +41,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
 
 def install_payload_page():
     """DEPRECATED, use show_in_pager hook
-    
+
     Install this version of page as IPython.core.page.page.
     """
     warnings.warn("""install_payload_page is deprecated.

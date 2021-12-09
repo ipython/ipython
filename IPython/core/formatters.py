@@ -433,6 +433,7 @@ class BaseFormatter(Configurable):
         ----------
         typ : type or '__module__.__name__' string for a type
             The class of the object that will be formatted using `func`.
+
         func : callable
             A callable for computing the format data.
             `func` will be called with the object to be formatted,
@@ -474,8 +475,10 @@ class BaseFormatter(Configurable):
         type_module : str
             The full dotted name of the module the type is defined in, like
             ``numpy``.
+
         type_name : str
             The name of the type (the class name), like ``dtype``
+
         func : callable
             A callable for computing the format data.
             `func` will be called with the object to be formatted,

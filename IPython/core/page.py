@@ -46,7 +46,7 @@ def display_page(strng, start=0, screen_lines=25):
 
 def as_hook(page_func):
     """Wrap a pager func to strip the `self` arg
-    
+
     so it can be called as a hook.
     """
     return lambda self, *args, **kwargs: page_func(*args, **kwargs)
@@ -127,7 +127,7 @@ def _detect_screen_size(screen_lines_def):
 
 def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
     """Display a string, piping through a pager after a certain length.
-    
+
     strng can be a mime-bundle dict, supplying multiple representations,
     keyed by mime-type.
 
@@ -238,10 +238,10 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
 
 def page(data, start=0, screen_lines=0, pager_cmd=None):
     """Display content in a pager, piping through a pager after a certain length.
-    
+
     data can be a mime-bundle dict, supplying multiple representations,
     keyed by mime-type, or text.
-    
+
     Pager is dispatched via the `show_in_pager` IPython hook.
     If no hook is registered, `pager_page` will be used.
     """

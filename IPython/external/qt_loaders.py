@@ -75,7 +75,7 @@ sys.meta_path.insert(0, ID)
 
 def commit_api(api):
     """Commit to a particular API, and trigger ImportErrors on subsequent
-       dangerous imports"""
+    dangerous imports"""
     modules = set(api_to_module.values())
 
     modules.remove(api_to_module[api])
@@ -115,15 +115,15 @@ def loaded_api():
 def has_binding(api):
     """Safely check for PyQt4/5, PySide or PySide2, without importing submodules
 
-        Parameters
-        ----------
-        api : str [ 'pyqtv1' | 'pyqt' | 'pyqt5' | 'pyside' | 'pyside2' | 'pyqtdefault']
-             Which module to check for
+    Parameters
+    ----------
+    api : str [ 'pyqtv1' | 'pyqt' | 'pyqt5' | 'pyside' | 'pyside2' | 'pyqtdefault']
+        Which module to check for
 
-        Returns
-        -------
-        True if the relevant module appears to be importable
-     """
+    Returns
+    -------
+    True if the relevant module appears to be importable
+    """
     module_name = api_to_module[api]
     from importlib.util import find_spec
 
@@ -193,9 +193,8 @@ def import_pyqt4(version=2):
     Parameters
     ----------
     version : 1, 2, or None
-      Which QString/QVariant API to use. Set to None to use the system
-      default
-
+        Which QString/QVariant API to use. Set to None to use the system
+        default
     ImportErrors raised within this function are non-recoverable
     """
     # The new-style string API (version=2) automatically
@@ -319,13 +318,12 @@ def load_qt(api_options):
 
     Parameters
     ----------
-    api_options: List of strings
+    api_options : List of strings
         The order of APIs to try. Valid items are 'pyside', 'pyside2',
         'pyqt', 'pyqt5', 'pyqtv1' and 'pyqtdefault'
 
     Returns
     -------
-
     A tuple of QtCore, QtGui, QtSvg, QT_API
     The first three are the Qt modules. The last is the
     string indicating which module was loaded.

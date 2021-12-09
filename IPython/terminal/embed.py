@@ -49,7 +49,6 @@ class EmbeddedMagics(Magics):
         you may then kill it and the program will then continue to run without
         the interactive shell interfering again.
 
-
         Kill Instance Option:
 
             If for some reasons you need to kill the location where the instance
@@ -266,25 +265,21 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         Parameters
         ----------
-
-
         local_ns, module
-          Working local namespace (a dict) and module (a module or similar
-          object). If given as None, they are automatically taken from the scope
-          where the shell was called, so that program variables become visible.
-
+            Working local namespace (a dict) and module (a module or similar
+            object). If given as None, they are automatically taken from the scope
+            where the shell was called, so that program variables become visible.
         stack_depth : int
-          How many levels in the stack to go to looking for namespaces (when
-          local_ns or module is None). This allows an intermediate caller to
-          make sure that this function gets the namespace from the intended
-          level in the stack. By default (0) it will get its locals and globals
-          from the immediate caller.
-
+            How many levels in the stack to go to looking for namespaces (when
+            local_ns or module is None). This allows an intermediate caller to
+            make sure that this function gets the namespace from the intended
+            level in the stack. By default (0) it will get its locals and globals
+            from the immediate caller.
         compile_flags
-          A bit field identifying the __future__ features
-          that are enabled, as passed to the builtin :func:`compile` function.
-          If given as None, they are automatically taken from the scope where
-          the shell was called.
+            A bit field identifying the __future__ features
+            that are enabled, as passed to the builtin :func:`compile` function.
+            If given as None, they are automatically taken from the scope where
+            the shell was called.
 
         """
         

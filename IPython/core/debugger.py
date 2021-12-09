@@ -798,7 +798,6 @@ class Pdb(OldPdb):
 
     def break_anywhere(self, frame):
         """
-
         _stop_in_decorator_internals is overly restrictive, as we may still want
         to trace function calls, so we need to also update break_anywhere so
         that is we don't `stop_here`, because of debugger skip, we may still
@@ -819,8 +818,6 @@ class Pdb(OldPdb):
     def _is_in_decorator_internal_and_should_skip(self, frame):
         """
         Utility to tell us whether we are in a decorator internal and should stop.
-
-
 
         """
 

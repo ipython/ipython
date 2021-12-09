@@ -239,7 +239,7 @@ class Demo(object):
             terminal16m
 
           - style('default'): a string of pygments style name to be used.
-          """
+        """
         if hasattr(src, "read"):
              # It seems to be a file or a file-like object
             self.fname = "from a file-like object"

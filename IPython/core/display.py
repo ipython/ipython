@@ -826,15 +826,19 @@ class Image(DisplayObject):
         data : unicode, str or bytes
             The raw image data or a URL or filename to load the data from.
             This always results in embedded image data.
+
         url : unicode
             A URL to download the data from. If you specify `url=`,
             the image data will not be embedded unless you also specify `embed=True`.
+
         filename : unicode
             Path to a local file to load the data from.
             Images from a file are always embedded.
+
         format : unicode
             The format of the image data (png/jpeg/jpg/gif). If a filename or URL is given
             for format will be inferred from the filename extension.
+
         embed : bool
             Should the image data be embedded using a data URI (True) or be
             loaded using an <img> tag. Set this to True if you want the image
@@ -844,10 +848,13 @@ class Image(DisplayObject):
             default value is `False`.
 
             Note that QtConsole is not able to display images if `embed` is set to `False`
+
         width : int
             Width in pixels to which to constrain the image in html
+
         height : int
             Height in pixels to which to constrain the image in html
+
         retina : bool
             Automatically set the width and height to half of the measured
             width and height.
@@ -855,10 +862,13 @@ class Image(DisplayObject):
             from image data.
             For non-embedded images, you can just set the desired display width
             and height directly.
+
         unconfined : bool
             Set unconfined=True to disable max-width confinement of the image.
+
         metadata : dict
             Specify extra metadata to attach to the image.
+
         alt : unicode
             Alternative text for the image, for use by screen readers.
 
@@ -1067,12 +1077,15 @@ class Video(DisplayObject):
         data : unicode, str or bytes
             The raw video data or a URL or filename to load the data from.
             Raw data will require passing ``embed=True``.
+
         url : unicode
             A URL for the video. If you specify ``url=``,
             the image data will not be embedded.
+
         filename : unicode
             Path to a local file containing the video.
             Will be interpreted as a local URL unless ``embed=True``.
+
         embed : bool
             Should the video be embedded using a data URI (True) or be
             loaded using a <video> tag (False).
@@ -1083,15 +1096,19 @@ class Video(DisplayObject):
             Local files can be displayed with URLs without embedding the content, via::
 
                 Video('./video.mp4')
+
         mimetype : unicode
             Specify the mimetype for embedded videos.
             Default will be guessed from file extension, if available.
+
         width : int
             Width in pixels to which to constrain the video in HTML.
             If not supplied, defaults to the width of the video.
+
         height : int
             Height in pixels to which to constrain the video in html.
             If not supplied, defaults to the height of the video.
+
         html_attributes : str
             Attributes for the HTML ``<video>`` block.
             Default: ``"controls"`` to get video controls.
@@ -1220,7 +1237,6 @@ def set_matplotlib_close(close=True):
     .. deprecated:: 7.23
 
         use `matplotlib_inline.backend_inline.set_matplotlib_close()`
-
 
     Set whether the inline backend closes all figures automatically or not.
 
