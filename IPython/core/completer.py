@@ -462,7 +462,7 @@ def _deduplicate_completions(text: str, completions: _IC)-> _IC:
             seen.add(new_text)
 
 
-def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
+def rectify_completions(text: str, completions: _IC, *, _debug: bool = False) -> _IC:
     """
     Rectify a set of completions to all have the same ``start`` and ``end``
 
@@ -479,6 +479,8 @@ def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
         text that should be completed.
     completions : Iterator[Completion]
         iterator over the completions to rectify
+    _debug : bool
+        Log failed completion
 
     Notes
     -----
@@ -1128,16 +1130,23 @@ class IPCompleter(Completer):
             secondary optional dict for completions, to
             handle cases (such as IPython embedded inside functions) where
             both Python scopes are visible.
-        use_readline : bool, optional
-            DEPRECATED, ignored since IPython 6.0, will have no effects
+        config : Config
+            traitlet's config object
+        **kwargs
+            passed to super class unmodified.
         """
 
         self.magic_escape = ESC_MAGIC
         self.splitter = CompletionSplitter()
 
         # _greedy_changed() depends on splitter and readline being defined:
-        Completer.__init__(self, namespace=namespace, global_namespace=global_namespace,
-                            config=config, **kwargs)
+        super().__init__(
+            self,
+            namespace=namespace,
+            global_namespace=global_namespace,
+            config=config,
+            **kwargs
+        )
 
         # List where completion matches will be stored
         self.matches = []
@@ -2055,9 +2064,9 @@ class IPCompleter(Completer):
 
         Parameters
         ----------
-        cursor_line :
+        cursor_line
             Index of the line the cursor is on. 0 indexed.
-        cursor_pos :
+        cursor_pos
             Position of the cursor in the current line/line_buffer/text. 0
             indexed.
         line_buffer : optional, str
