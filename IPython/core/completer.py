@@ -1141,7 +1141,6 @@ class IPCompleter(Completer):
 
         # _greedy_changed() depends on splitter and readline being defined:
         super().__init__(
-            self,
             namespace=namespace,
             global_namespace=global_namespace,
             config=config,
