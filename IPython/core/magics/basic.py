@@ -4,6 +4,7 @@
 import argparse
 from logging import error
 import io
+import os
 from pprint import pformat
 import sys
 from warnings import warn
@@ -572,6 +573,7 @@ Currently the magic system has the following functions:""",
         For example, to export the history to "foo.ipynb" do "%notebook foo.ipynb".
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
+        outfname = os.path.expanduser(args.filename)
 
         from nbformat import write, v4
 
@@ -585,7 +587,7 @@ Currently the magic system has the following functions:""",
                 source=source
             ))
         nb = v4.new_notebook(cells=cells)
-        with io.open(args.filename, 'w', encoding='utf-8') as f:
+        with io.open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
 
 @magics_class

@@ -222,6 +222,7 @@ class CodeMagics(Magics):
         fname, codefrom = args[0], " ".join(args[1:])
         if not fname.endswith(('.py','.ipy')):
             fname += ext
+        fname = os.path.expanduser(fname)
         file_exists = os.path.isfile(fname)
         if file_exists and not force and not append:
             try:
