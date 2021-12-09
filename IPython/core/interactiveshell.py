@@ -1730,7 +1730,6 @@ class InteractiveShell(SingletonConfigurable):
 
         Parameters
         ----------
-
         exc_tuple : tuple of exception classes
             A *tuple* of exception classes, for which to call the defined
             handler.  It is very important that you use a tuple, and NOT A
@@ -1760,7 +1759,6 @@ class InteractiveShell(SingletonConfigurable):
 
         Notes
         -----
-
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
         facility should only be used if you really know what you are doing.
@@ -1975,7 +1973,7 @@ class InteractiveShell(SingletonConfigurable):
 
         If the syntax error occurred when running a compiled code (i.e. running_compile_code=True),
         longer stack trace will be displayed.
-         """
+        """
         etype, value, last_traceback = self._get_exc_info()
 
         if filename and issubclass(etype, SyntaxError):
@@ -2056,24 +2054,21 @@ class InteractiveShell(SingletonConfigurable):
 
         Parameters
         ----------
-
         text : string
-          A string of text to be completed on.  It can be given as empty and
-          instead a line/position pair are given.  In this case, the
-          completer itself will split the line like readline does.
+            A string of text to be completed on.  It can be given as empty and
+            instead a line/position pair are given.  In this case, the
+            completer itself will split the line like readline does.
         line : string, optional
-          The complete line that text is part of.
+            The complete line that text is part of.
         cursor_pos : int, optional
-          The position of the cursor on the input line.
+            The position of the cursor on the input line.
 
         Returns
         -------
         text : string
-          The actual text that was completed.
-
+            The actual text that was completed.
         matches : list
-          A sorted list with all possible completions.
-
+            A sorted list with all possible completions.
 
         Notes
         -----
@@ -2087,7 +2082,6 @@ class InteractiveShell(SingletonConfigurable):
 
         Examples
         --------
-
         In [1]: x = 'hello'
 
         In [2]: _ip.complete('x.l')
@@ -2341,9 +2335,9 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         cmd : str
-          Command to execute (can not end in '&', as background processes are
-          not supported.  Should not be a command that expects input
-          other than simple text.
+            Command to execute (can not end in '&', as background processes are
+            not supported.  Should not be a command that expects input
+            other than simple text.
         """
         if cmd.rstrip().endswith('&'):
             # this is *far* from a rigorous test
@@ -2365,7 +2359,7 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         cmd : str
-          Command to execute.
+            Command to execute.
         """
         cmd = self.var_expand(cmd, depth=1)
         # warn if there is an IPython magic alternative.
@@ -2433,18 +2427,18 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         cmd : str
-          Command to execute (can not end in '&', as background processes are
-          not supported.
+            Command to execute (can not end in '&', as background processes are
+            not supported.
         split : bool, optional
-          If True, split the output into an IPython SList.  Otherwise, an
-          IPython LSString is returned.  These are objects similar to normal
-          lists and strings, with a few convenience attributes for easier
-          manipulation of line-based output.  You can use '?' on them for
-          details.
+            If True, split the output into an IPython SList.  Otherwise, an
+            IPython LSString is returned.  These are objects similar to normal
+            lists and strings, with a few convenience attributes for easier
+            manipulation of line-based output.  You can use '?' on them for
+            details.
         depth : int, optional
-          How many frames above the caller are the local variables which should
-          be expanded in the command string? The default (0) assumes that the
-          expansion variables are in the stack frame calling this function.
+            How many frames above the caller are the local variables which should
+            be expanded in the command string? The default (0) assumes that the
+            expansion variables are in the stack frame calling this function.
         """
         if cmd.rstrip().endswith('&'):
             # this is *far* from a rigorous test
@@ -2555,9 +2549,9 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         expressions : dict
-          A dict with string keys and string values.  The expression values
-          should be valid Python expressions, each of which will be evaluated
-          in the user namespace.
+            A dict with string keys and string values.  The expression values
+            should be valid Python expressions, each of which will be evaluated
+            in the user namespace.
 
         Returns
         -------
@@ -2753,19 +2747,19 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         raw_cell : str
-          The code (including IPython code such as %magic functions) to run.
+            The code (including IPython code such as %magic functions) to run.
         store_history : bool
-          If True, the raw and translated cell will be stored in IPython's
-          history. For user code calling back into IPython's machinery, this
-          should be set to False.
+            If True, the raw and translated cell will be stored in IPython's
+            history. For user code calling back into IPython's machinery, this
+            should be set to False.
         silent : bool
-          If True, avoid side-effects, such as implicit displayhooks and
-          and logging.  silent=True forces store_history=False.
+            If True, avoid side-effects, such as implicit displayhooks and
+            and logging.  silent=True forces store_history=False.
         shell_futures : bool
-          If True, the code will share future statements with the interactive
-          shell. It will both be affected by previous __future__ imports, and
-          any __future__ imports in the code will affect the shell. If False,
-          __future__ imports are not shared in either direction.
+            If True, the code will share future statements with the interactive
+            shell. It will both be affected by previous __future__ imports, and
+            any __future__ imports in the code will affect the shell. If False,
+            __future__ imports are not shared in either direction.
 
         Returns
         -------
@@ -2834,14 +2828,13 @@ class InteractiveShell(SingletonConfigurable):
 
         Parameters
         ----------
-        raw_cell: str
+        raw_cell : str
             The code to be executed
 
         Returns
         -------
         result: bool
             Whether the code needs to be run with a coroutine runner or not
-
         .. versionadded:: 7.0
         """
         if not self.autoawait:
@@ -3073,8 +3066,8 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         node : ast.Node
-          The root node to be transformed. Typically called with the ast.Module
-          produced by parsing user input.
+            The root node to be transformed. Typically called with the ast.Module
+            produced by parsing user input.
 
         Returns
         -------
@@ -3288,17 +3281,17 @@ class InteractiveShell(SingletonConfigurable):
 
         Parameters
         ----------
-        source : string
-          Python input code, which can be multiline.
+        code : string
+            Python input code, which can be multiline.
 
         Returns
         -------
         status : str
-          One of 'complete', 'incomplete', or 'invalid' if source is not a
-          prefix of valid code.
+            One of 'complete', 'incomplete', or 'invalid' if source is not a
+            prefix of valid code.
         indent : str
-          When status is 'incomplete', this is some whitespace to insert on
-          the next line of the prompt.
+            When status is 'incomplete', this is some whitespace to insert on
+            the next line of the prompt.
         """
         status, nspaces = self.input_transformer_manager.check_complete(code)
         return status, ' ' * (nspaces or 0)
@@ -3325,13 +3318,13 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         gui : optional, string
-          If given, dictates the choice of matplotlib GUI backend to use
-          (should be one of IPython's supported backends, 'qt', 'osx', 'tk',
-          'gtk', 'wx' or 'inline'), otherwise we use the default chosen by
-          matplotlib (as dictated by the matplotlib build-time options plus the
-          user's matplotlibrc configuration file).  Note that not all backends
-          make sense in all contexts, for example a terminal ipython can't
-          display figures inline.
+            If given, dictates the choice of matplotlib GUI backend to use
+            (should be one of IPython's supported backends, 'qt', 'osx', 'tk',
+            'gtk', 'wx' or 'inline'), otherwise we use the default chosen by
+            matplotlib (as dictated by the matplotlib build-time options plus the
+            user's matplotlibrc configuration file).  Note that not all backends
+            make sense in all contexts, for example a terminal ipython can't
+            display figures inline.
         """
         from IPython.core import pylabtools as pt
         from matplotlib_inline.backend_inline import configure_inline_support
@@ -3371,18 +3364,18 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         gui : optional, string
-          If given, dictates the choice of matplotlib GUI backend to use
-          (should be one of IPython's supported backends, 'qt', 'osx', 'tk',
-          'gtk', 'wx' or 'inline'), otherwise we use the default chosen by
-          matplotlib (as dictated by the matplotlib build-time options plus the
-          user's matplotlibrc configuration file).  Note that not all backends
-          make sense in all contexts, for example a terminal ipython can't
-          display figures inline.
+            If given, dictates the choice of matplotlib GUI backend to use
+            (should be one of IPython's supported backends, 'qt', 'osx', 'tk',
+            'gtk', 'wx' or 'inline'), otherwise we use the default chosen by
+            matplotlib (as dictated by the matplotlib build-time options plus the
+            user's matplotlibrc configuration file).  Note that not all backends
+            make sense in all contexts, for example a terminal ipython can't
+            display figures inline.
         import_all : optional, bool, default: True
-          Whether to do `from numpy import *` and `from pylab import *`
-          in addition to module imports.
+            Whether to do `from numpy import *` and `from pylab import *`
+            in addition to module imports.
         welcome_message : deprecated
-          This argument is ignored, no welcome message will be displayed.
+            This argument is ignored, no welcome message will be displayed.
         """
         from IPython.core.pylabtools import import_pylab
 
@@ -3489,7 +3482,6 @@ class InteractiveShell(SingletonConfigurable):
 
         Notes
         -----
-
         Slices can be described with two notations:
 
         * ``N:M`` -> standard python form, means including items N...(M-1).
@@ -3515,26 +3507,25 @@ class InteractiveShell(SingletonConfigurable):
         Parameters
         ----------
         target : str
-          A string specifying code to retrieve. This will be tried respectively
-          as: ranges of input history (see %history for syntax), url,
-          corresponding .py file, filename, or an expression evaluating to a
-          string or Macro in the user namespace.
+            A string specifying code to retrieve. This will be tried respectively
+            as: ranges of input history (see %history for syntax), url,
+            corresponding .py file, filename, or an expression evaluating to a
+            string or Macro in the user namespace.
 
-          If empty string is given, returns complete history of current
-          session, without the last line.
+            If empty string is given, returns complete history of current
+            session, without the last line.
 
         raw : bool
-          If true (default), retrieve raw history. Has no effect on the other
-          retrieval mechanisms.
+            If true (default), retrieve raw history. Has no effect on the other
+            retrieval mechanisms.
 
         py_only : bool (default False)
-          Only try to fetch python code, do not try alternative methods to decode file
-          if unicode fails.
+            Only try to fetch python code, do not try alternative methods to decode file
+            if unicode fails.
 
         Returns
         -------
         A string of code.
-
         ValueError is raised if nothing is found, and TypeError if it evaluates
         to an object of another type. In each case, .args[0] is a printable
         message.

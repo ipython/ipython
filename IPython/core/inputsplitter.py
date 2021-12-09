@@ -210,7 +210,7 @@ def last_blank(src):
     Parameters
     ----------
     src : string
-      A single or multiline string.
+        A single or multiline string.
     """
     if not src: return False
     ll  = src.splitlines()[-1]
@@ -228,7 +228,7 @@ def last_two_blanks(src):
     Parameters
     ----------
     src : string
-      A single or multiline string.
+        A single or multiline string.
     """
     if not src: return False
     # The logic here is tricky: I couldn't get a regexp to work and pass all
@@ -251,7 +251,7 @@ def remove_comments(src):
     Parameters
     ----------
     src : string
-      A single or multiline input string.
+        A single or multiline input string.
 
     Returns
     -------
@@ -351,22 +351,22 @@ class InputSplitter(object):
 
     def check_complete(self, source):
         """Return whether a block of code is ready to execute, or should be continued
-        
+
         This is a non-stateful API, and will reset the state of this InputSplitter.
-        
+
         Parameters
         ----------
         source : string
-          Python input code, which can be multiline.
-        
+            Python input code, which can be multiline.
+
         Returns
         -------
         status : str
-          One of 'complete', 'incomplete', or 'invalid' if source is not a
-          prefix of valid code.
+            One of 'complete', 'incomplete', or 'invalid' if source is not a
+            prefix of valid code.
         indent_spaces : int or None
-          The number of spaces by which to indent the next line of code. If
-          status is not 'incomplete', this is None.
+            The number of spaces by which to indent the next line of code. If
+            status is not 'incomplete', this is None.
         """
         self.reset()
         try:
@@ -397,15 +397,15 @@ class InputSplitter(object):
         Parameters
         ----------
         lines : string
-          One or more lines of Python input.
+            One or more lines of Python input.
 
         Returns
         -------
         is_complete : boolean
-          True if the current input source (the result of the current input
-          plus prior inputs) forms a complete Python execution block.  Note that
-          this value is also stored as a private attribute (``_is_complete``), so it
-          can be queried at any time.
+            True if the current input source (the result of the current input
+            plus prior inputs) forms a complete Python execution block.  Note that
+            this value is also stored as a private attribute (``_is_complete``), so it
+            can be queried at any time.
         """
         assert isinstance(lines, str)
         self._store(lines)
@@ -448,7 +448,7 @@ class InputSplitter(object):
         guess whether a block is complete or not based solely on prior and
         current input lines.  The InputSplitter considers it has a complete
         interactive block and will not accept more input when either:
-        
+
         * A SyntaxError is raised
 
         * The code is complete and consists of a single line or a single
@@ -618,9 +618,9 @@ class IPythonInputSplitter(InputSplitter):
     def flush_transformers(self):
         def _flush(transform, outs):
             """yield transformed lines
-            
+
             always strings, never None
-            
+
             transform: the current transform
             outs: an iterable of previously transformed inputs.
                  Each may be multiline, which will be passed
@@ -690,15 +690,15 @@ class IPythonInputSplitter(InputSplitter):
         Parameters
         ----------
         lines : string
-          One or more lines of Python input.
+            One or more lines of Python input.
 
         Returns
         -------
         is_complete : boolean
-          True if the current input source (the result of the current input
-          plus prior inputs) forms a complete Python execution block.  Note that
-          this value is also stored as a private attribute (_is_complete), so it
-          can be queried at any time.
+            True if the current input source (the result of the current input
+            plus prior inputs) forms a complete Python execution block.  Note that
+            this value is also stored as a private attribute (_is_complete), so it
+            can be queried at any time.
         """
         assert isinstance(lines, str)
         # We must ensure all input is pure unicode
@@ -728,10 +728,10 @@ class IPythonInputSplitter(InputSplitter):
 
     def _transform_line(self, line):
         """Push a line of input code through the various transformers.
-        
+
         Returns any output from the transformers, or None if a transformer
         is accumulating lines.
-        
+
         Sets self.transformer_accumulating as a side effect.
         """
         def _accumulating(dbg):

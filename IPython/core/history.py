@@ -195,12 +195,12 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         profile : str
-          The name of the profile from which to open history.
+            The name of the profile from which to open history.
         hist_file : str
-          Path to an SQLite history database stored by IPython. If specified,
-          hist_file overrides profile.
+            Path to an SQLite history database stored by IPython. If specified,
+            hist_file overrides profile.
         config : :class:`~traitlets.config.loader.Config`
-          Config object. hist_file can also be set through this.
+            Config object. hist_file can also be set through this.
         """
         # We need a pointer back to the shell for various tasks.
         super(HistoryAccessor, self).__init__(**traits)
@@ -227,7 +227,7 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         profile : str
-          The name of a profile which has a history file.
+            The name of a profile which has a history file.
         """
         return Path(locate_profile(profile)) / "history.sqlite"
 
@@ -271,13 +271,13 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         sql : str
-          Any filtering expressions to go after SELECT ... FROM ...
+            Any filtering expressions to go after SELECT ... FROM ...
         params : tuple
-          Parameters passed to the SQL query (to replace "?")
+            Parameters passed to the SQL query (to replace "?")
         raw, output : bool
-          See :meth:`get_range`
+            See :meth:`get_range`
         latest : bool
-          Select rows with max (session, line)
+            Select rows with max (session, line)
 
         Returns
         -------
@@ -305,23 +305,21 @@ class HistoryAccessor(HistoryAccessorBase):
 
         Parameters
         ----------
-
         session : int
             Session number to retrieve.
 
         Returns
         -------
-
         session_id : int
-           Session ID number
+            Session ID number
         start : datetime
-           Timestamp for the start of the session.
+            Timestamp for the start of the session.
         end : datetime
-           Timestamp for the end of the session, or None if IPython crashed.
+            Timestamp for the end of the session, or None if IPython crashed.
         num_cmds : int
-           Number of commands run, or None if IPython crashed.
+            Number of commands run, or None if IPython crashed.
         remark : unicode
-           A manually set description.
+            A manually set description.
         """
         query = "SELECT * from sessions where session == ?"
         return self.db.execute(query, (session,)).fetchone()
@@ -343,13 +341,13 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         n : int
-          The number of lines to get
+            The number of lines to get
         raw, output : bool
-          See :meth:`get_range`
+            See :meth:`get_range`
         include_latest : bool
-          If False (default), n+1 lines are fetched, and the latest one
-          is discarded. This is intended to be used where the function
-          is called by a user command, which it should not return.
+            If False (default), n+1 lines are fetched, and the latest one
+            is discarded. This is intended to be used where the function
+            is called by a user command, which it should not return.
 
         Returns
         -------
@@ -373,16 +371,16 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         pattern : str
-          The wildcarded pattern to match when searching
+            The wildcarded pattern to match when searching
         search_raw : bool
-          If True, search the raw input, otherwise, the parsed input
+            If True, search the raw input, otherwise, the parsed input
         raw, output : bool
-          See :meth:`get_range`
+            See :meth:`get_range`
         n : None or int
-          If an integer is given, it defines the limit of
-          returned entries.
+            If an integer is given, it defines the limit of
+            returned entries.
         unique : bool
-          When it is true, return only unique entries.
+            When it is true, return only unique entries.
 
         Returns
         -------
@@ -430,9 +428,9 @@ class HistoryAccessor(HistoryAccessorBase):
         Returns
         -------
         entries
-          An iterator over the desired lines. Each line is a 3-tuple, either
-          (session, line, input) if output is False, or
-          (session, line, (input, output)) if output is True.
+            An iterator over the desired lines. Each line is a 3-tuple, either
+            (session, line, input) if output is False, or
+            (session, line, (input, output)) if output is True.
         """
         if stop:
             lineclause = "line >= ? AND line < ?"
@@ -451,13 +449,13 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         rangestr : str
-          A string specifying ranges, e.g. "5 ~2/1-4". If empty string is used,
-          this will return everything from current session's history.
+            A string specifying ranges, e.g. "5 ~2/1-4". If empty string is used,
+            this will return everything from current session's history.
 
-          See the documentation of :func:`%history` for the full details.
+            See the documentation of :func:`%history` for the full details.
 
         raw, output : bool
-          As :meth:`get_range`
+            As :meth:`get_range`
 
         Returns
         -------
@@ -605,24 +603,22 @@ class HistoryManager(HistoryAccessor):
 
         Parameters
         ----------
-
         session : int
             Session number to retrieve. The current session is 0, and negative
             numbers count back from current session, so -1 is the previous session.
 
         Returns
         -------
-
         session_id : int
-           Session ID number
+            Session ID number
         start : datetime
-           Timestamp for the start of the session.
+            Timestamp for the start of the session.
         end : datetime
-           Timestamp for the end of the session, or None if IPython crashed.
+            Timestamp for the end of the session, or None if IPython crashed.
         num_cmds : int
-           Number of commands run, or None if IPython crashed.
+            Number of commands run, or None if IPython crashed.
         remark : unicode
-           A manually set description.
+            A manually set description.
         """
         if session <= 0:
             session += self.session_number
@@ -673,9 +669,9 @@ class HistoryManager(HistoryAccessor):
         Returns
         -------
         entries
-          An iterator over the desired lines. Each line is a 3-tuple, either
-          (session, line, input) if output is False, or
-          (session, line, (input, output)) if output is True.
+            An iterator over the desired lines. Each line is a 3-tuple, either
+            (session, line, input) if output is False, or
+            (session, line, (input, output)) if output is True.
         """
         if session <= 0:
             session += self.session_number
@@ -694,14 +690,12 @@ class HistoryManager(HistoryAccessor):
         Parameters
         ----------
         line_num : int
-          The prompt number of this input.
-
+            The prompt number of this input.
         source : str
-          Python input.
-
+            Python input.
         source_raw : str, optional
-          If given, this is the raw input without any IPython transformations
-          applied to it.  If not given, ``source`` is used.
+            If given, this is the raw input without any IPython transformations
+            applied to it.  If not given, ``source`` is used.
         """
         if source_raw is None:
             source_raw = source
@@ -745,7 +739,7 @@ class HistoryManager(HistoryAccessor):
         Parameters
         ----------
         line_num : int
-          The line number from which to save outputs
+            The line number from which to save outputs
         """
         if (not self.db_log_output) or (line_num not in self.output_hist_reprs):
             return
