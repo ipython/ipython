@@ -50,6 +50,7 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
     - name: Install latex
       if: runner.os == 'Linux' && matrix.deps == 'test_extra'
       run: sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
