@@ -133,8 +133,31 @@ For example in the following snippet::
 Calling ``bar()`` would raise an ``IndexError`` on the return line of ``foo``,
 IPython 8.0 is capable of telling you, where the index error occurs::
 
-    return x[0][i][0]
-                ^
+
+    IndexError
+    Input In [2], in <module>
+    ----> 1 bar()
+            ^^^^^
+
+    Input In [1], in bar()
+          6 def bar():
+    ----> 7     return foo(0) + foo(
+                                ^^^^
+          8         1
+             ^^^^^^^^
+          9     ) + foo(2)
+             ^^^^
+
+    Input In [1], in foo(i)
+          1 def foo(i):
+          2     x = [[[0]]]
+    ----> 3     return x[0][i][0]
+                       ^^^^^^^
+
+Corresponding location marked here with ``^`` will show up highlighted in 
+terminal and notebooks.
+
+
 Autosuggestons
 ~~~~~~~~~~~~~~
 
@@ -180,7 +203,7 @@ Importantly, this feature does not interfere with tab completion:
 
 1. After running ``def say_hello(): print("hello")``, press d
 
-.. image:: ../_images/8.0/audo_suggest_d_phantom.png
+.. image:: ../_images/8.0/auto_suggest_d_phantom.png
 
 2. Press Tab to start tab completion
 
