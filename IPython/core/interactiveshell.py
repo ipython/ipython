@@ -561,7 +561,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_pdb()
         self.init_extension_manager()
         self.init_payload()
-        self.hooks.late_startup_hook()
         self.events.trigger('shell_initialized', self)
         atexit.register(self.atexit_operations)
 
@@ -868,13 +867,12 @@ class InteractiveShell(SingletonConfigurable):
         for hook_name in hooks.__all__:
             # default hooks have priority 100, i.e. low; user hooks should have
             # 0-100 priority
-            self.set_hook(hook_name,getattr(hooks,hook_name), 100, _warn_deprecated=False)
+            self.set_hook(hook_name, getattr(hooks, hook_name), 100)
 
         if self.display_page:
             self.set_hook('show_in_pager', page.as_hook(page.display_page), 90)
 
-    def set_hook(self,name,hook, priority=50, str_key=None, re_key=None,
-                 _warn_deprecated=True):
+    def set_hook(self, name, hook, priority=50, str_key=None, re_key=None):
         """set_hook(name,hook) -> sets an internal IPython hook.
 
         IPython exposes some of its internal API as user-modifiable hooks.  By
@@ -904,7 +902,7 @@ class InteractiveShell(SingletonConfigurable):
             print("Warning! Hook '%s' is not one of %s" % \
                   (name, IPython.core.hooks.__all__ ))
 
-        if _warn_deprecated and (name in IPython.core.hooks.deprecated):
+        if name in IPython.core.hooks.deprecated:
             alternative = IPython.core.hooks.deprecated[name]
             raise ValueError(
                 "Hook {} has been deprecated since IPython 5.0. Use {} instead.".format(
@@ -3247,7 +3245,6 @@ class InteractiveShell(SingletonConfigurable):
         outflag = True  # happens in more places, so it's easier as default
         try:
             try:
-                self.hooks.pre_run_code_hook()
                 if async_:
                     await eval(code_obj, self.user_global_ns, self.user_ns)
                 else:
@@ -3630,9 +3627,6 @@ class InteractiveShell(SingletonConfigurable):
                 pass
         del self.tempdirs
 
-
-        # Run user hooks
-        self.hooks.shutdown_hook()
 
     def cleanup(self):
         self.restore_sys_module_state()
