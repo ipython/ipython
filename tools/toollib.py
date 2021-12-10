@@ -18,10 +18,7 @@ archive = '%s:%s' % (archive_user, archive_dir)
 
 # Build commands
 # Source dists
-sdists = "{python} -m build".format(python=sys.executable)
-# Binary dists
-def buildwheels():
-    sh("{python} -m build".format(python=sys.executable))
+build_command = "{python} -m build".format(python=sys.executable)
 
 
 # Utility functions
