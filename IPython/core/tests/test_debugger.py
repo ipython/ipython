@@ -8,6 +8,7 @@ import bdb
 import builtins
 import os
 import sys
+import platform
 
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
@@ -16,6 +17,7 @@ from unittest.mock import patch
 from IPython.core import debugger
 from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
 from IPython.testing.decorators import skip_win32
+import pytest
 
 #-----------------------------------------------------------------------------
 # Helper classes, from CPython's Pdb test suite
@@ -411,6 +413,7 @@ def test_decorator_skip():
     child.close()
 
 
+@pytest.mark.skip(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32
 def test_decorator_skip_disabled():
     """test that decorator frame skipping can be disabled"""
@@ -438,6 +441,7 @@ def test_decorator_skip_disabled():
     child.close()
 
 
+@pytest.mark.skip(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32
 def test_decorator_skip_with_breakpoint():
     """test that decorator frame skipping can be disabled"""
