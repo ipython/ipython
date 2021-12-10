@@ -12,7 +12,6 @@ import sys
 
 from toollib import (get_ipdir, pjoin, cd, execfile, sh, archive,
          archive_user, archive_dir)
-from gh_api import post_download
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
 ipdir = get_ipdir()
@@ -53,12 +52,6 @@ if 'upload' in sys.argv:
 
     # do not upload OS specific files like .DS_Store
     to_upload = glob('*.whl')+glob('*.tar.gz')
-    for fname in to_upload:
-        # TODO: update to GitHub releases API
-        continue
-        print('uploading %s to GitHub' % fname)
-        desc = "IPython %s source distribution" % version
-        post_download("ipython/ipython", fname, description=desc)
 
     # Make target dir if it doesn't exist
     print('1. Uploading IPython to archive.ipython.org')
