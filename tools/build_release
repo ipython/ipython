@@ -17,6 +17,7 @@ def build_release():
     sh(sdists)
     buildwheels()
     sh(' '.join([sys.executable, 'tools/retar.py', 'dist/*.gz']))
+    sh(' '.join([sys.executable, 'tools/retar.py', 'dist/*.xz']))
 
 if __name__ == '__main__':
     build_release()

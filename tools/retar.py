@@ -35,7 +35,11 @@ old_buf = io.BytesIO()
 with open(path, "rb") as f:
     old_buf.write(f.read())
 old_buf.seek(0)
-old = tarfile.open(fileobj=old_buf, mode="r:gz")
+if path.name.endswith("gz"):
+    r_mode = "r:gz"
+if path.name.endswith(("xz", "xz2")):
+    r_mode = "r:xz"
+old = tarfile.open(fileobj=old_buf, mode=r_mode)
 
 buf = io.BytesIO()
 new = tarfile.open(fileobj=buf, mode="w", format=tarfile.GNU_FORMAT)
@@ -46,6 +50,7 @@ for i, m in enumerate(old):
         continue
     m2 = tarfile.TarInfo(m.name)
     m2.mtime = min(timestamp, m.mtime)
+    m2.pax_headers["mtime"] = m2.mtime
     m2.size = m.size
     m2.type = m.type
     m2.linkname = m.linkname
@@ -59,9 +64,19 @@ new.close()
 old.close()
 
 buf.seek(0)
-with open(path, "wb") as f:
-    with gzip.GzipFile('', "wb", fileobj=f, mtime=timestamp) as gzf:
-        gzf.write(buf.read())
+
+if r_mode == "r:gz":
+    with open(path, "wb") as f:
+        with gzip.GzipFile("", "wb", fileobj=f, mtime=timestamp) as gzf:
+            gzf.write(buf.read())
+elif r_mode == "r:xz":
+    import lzma
+
+    with lzma.open(path, "wb") as f:
+        f.write(buf.read())
+
+else:
+    assert False
 
 # checks the archive is valid.
 archive = tarfile.open(path)
