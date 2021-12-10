@@ -71,7 +71,7 @@ if 'upload' in sys.argv:
 
     print('3. Uploading to PyPI using twine')
     cd(distdir)
-    call(['twine', 'upload'] + to_upload)
+    call(['twine', 'upload', '--verbose'] + to_upload)
 
 else:
     # Build, but don't upload

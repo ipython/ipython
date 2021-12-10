@@ -37,8 +37,10 @@ with open(path, "rb") as f:
 old_buf.seek(0)
 if path.name.endswith("gz"):
     r_mode = "r:gz"
-if path.name.endswith(("xz", "xz2")):
-    r_mode = "r:xz"
+if path.name.endswith("bz2"):
+    r_mode = "r:bz2"
+if path.name.endswith("xz"):
+    raise ValueError("XZ is deprecated but it's written nowhere")
 old = tarfile.open(fileobj=old_buf, mode=r_mode)
 
 buf = io.BytesIO()
@@ -69,10 +71,10 @@ if r_mode == "r:gz":
     with open(path, "wb") as f:
         with gzip.GzipFile("", "wb", fileobj=f, mtime=timestamp) as gzf:
             gzf.write(buf.read())
-elif r_mode == "r:xz":
-    import lzma
+elif r_mode == "r:bz2":
+    import bz2
 
-    with lzma.open(path, "wb") as f:
+    with bz2.open(path, "wb") as f:
         f.write(buf.read())
 
 else:

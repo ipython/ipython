@@ -16,8 +16,8 @@ def build_release():
     # Build source and binary distros
     sh(sdists)
     buildwheels()
+    # don't try to change, xz, bz2 deprecated.
     sh(' '.join([sys.executable, 'tools/retar.py', 'dist/*.gz']))
-    sh(' '.join([sys.executable, 'tools/retar.py', 'dist/*.xz']))
 
 if __name__ == '__main__':
     build_release()
