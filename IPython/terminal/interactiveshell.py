@@ -102,10 +102,16 @@ else:
 _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
 def black_reformat_handler(text_before_cursor):
+    """
+    We do not need to protect against error,
+    this is taken care at a higher level where any reformat error is ignored.
+    Indeed we may call reformatting on incomplete code.
+    """
     import black
+
     formatted_text = black.format_str(text_before_cursor, mode=black.FileMode())
-    if not text_before_cursor.endswith('\n') and formatted_text.endswith('\n'):
-       formatted_text = formatted_text[:-1]
+    if not text_before_cursor.endswith("\n") and formatted_text.endswith("\n"):
+        formatted_text = formatted_text[:-1]
     return formatted_text
 
 
@@ -176,7 +182,8 @@ class TerminalInteractiveShell(InteractiveShell):
        sequence to complete.""",
     ).tag(config=True)
 
-    autoformatter = Unicode(None,
+    autoformatter = Unicode(
+        "black",
         help="Autoformatter to reformat Terminal code. Can be `'black'` or `None`",
         allow_none=True
     ).tag(config=True)
@@ -210,15 +217,18 @@ class TerminalInteractiveShell(InteractiveShell):
         if self.pt_app:
             self.pt_app.editing_mode = getattr(EditingMode, change.new.upper())
 
-    @observe('autoformatter')
-    def _autoformatter_changed(self, change):
-        formatter = change.new
+    def _set_formatter(self, formatter):
         if formatter is None:
             self.reformat_handler = lambda x:x
         elif formatter == 'black':
             self.reformat_handler = black_reformat_handler
         else:
             raise ValueError
+
+    @observe("autoformatter")
+    def _autoformatter_changed(self, change):
+        formatter = change.new
+        self._set_formatter(formatter)
 
     @observe('highlighting_style')
     @observe('colors')
@@ -561,6 +571,7 @@ class TerminalInteractiveShell(InteractiveShell):
         self.init_prompt_toolkit_cli()
         self.init_term_title()
         self.keep_running = True
+        self._set_formatter(self.autoformatter)
 
 
     def ask_exit(self):
