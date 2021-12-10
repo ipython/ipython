@@ -171,19 +171,19 @@ or right arrow as described below.
 
 1. Start ipython
 
-.. image:: ../_images/8.0/auto_suggest_prompt_no_text.png
+.. image:: ../_images/8.0/auto_suggest_1_prompt_no_text.png
 
 2. Run ``print("hello")``
 
-.. image:: ../_images/8.0/auto_suggest_print_hello_suggest.png
+.. image:: ../_images/8.0/auto_suggest_2_print_hello_suggest.png
 
-3. Press p to see the autosuggestion
+3. start typing ``print`` again to see the autosuggestion
 
-.. image:: ../_images/8.0/auto_suggest_print_hello_suggest.png
+.. image:: ../_images/8.0/auto_suggest_3_print_hello_suggest.png
 
-4. Press ctrl f, or ctrl e, or right arrow to accept the suggestion
+4. Press ``ctrl-f``, or ``ctrl-e``, or ``right-arrow`` to accept the suggestion
 
-.. image:: ../_images/8.0/auto_suggest_print_hello.png
+.. image:: ../_images/8.0/auto_suggest_4_print_hello.png
 
 You can also complete word by word:
 
@@ -191,11 +191,11 @@ You can also complete word by word:
 
 .. image:: ../_images/8.0/auto_suggest_second_prompt.png
 
-2. Press d to see the autosuggestion
+2. Start typing  the first letter if ``def`` to see the autosuggestion
 
 .. image:: ../_images/8.0/auto_suggest_d_phantom.png
 
-3. Press alt f to accept the first word of the suggestion
+3. Press ``alt-f`` (or ``escape`` followed by ``f``), to accept the first word of the suggestion
 
 .. image:: ../_images/8.0/auto_suggest_def_phantom.png
 
@@ -213,17 +213,14 @@ Importantly, this feature does not interfere with tab completion:
 
 .. image:: ../_images/8.0/auto_suggest_def_completions.png
 
-3B. Press alt f to accept to accept the first word of the suggestion
+3B. Press ``alt f`` (``escape``, ``f``) to accept to accept the first word of the suggestion
 
 .. image:: ../_images/8.0/auto_suggest_def_phantom.png
 
-3C. Press ctrl f or ctrl e to accept the entire suggestion
+3C. Press ``ctrl-f`` or ``ctrl-e`` to accept the entire suggestion
 
 .. image:: ../_images/8.0/auto_suggest_match_parens.png
 
-To install a version of ipython with autosuggestions enabled, run:
-
-``pip install git+https://github.com/mskar/ipython@auto_suggest``
 
 Currently, autosuggestions are only shown in the emacs or vi insert editing modes:
 
@@ -246,7 +243,7 @@ and "??", in much the same way it can be done when using the IPython prompt::
     Type:           type
     Subclasses:
 
-Previously, "pinfo" or "pinfo2" command had to be used for this purpose.
+Previously, ``pinfo`` or ``pinfo2`` command had to be used for this purpose.
 
 
 Autoreload 3 feature
@@ -256,13 +253,12 @@ Example: When an IPython session is ran with the 'autoreload' extension loaded,
 you will now have the option '3' to select which means the following:
 
     1. replicate all functionality from option 2
-    2. autoload all new funcs/classes/enums/globals from the module when they're added
+    2. autoload all new funcs/classes/enums/globals from the module when they are added
     3. autoload all newly imported funcs/classes/enums/globals from external modules
 
 Try ``%autoreload 3`` in an IPython session after running ``%load_ext autoreload``
 
-For more information please see unit test -
-    extensions/tests/test_autoreload.py : 'test_autoload_newly_added_objects'
+For more information please see the following unit test : ``extensions/tests/test_autoreload.py:test_autoload_newly_added_objects``
 
 
 
@@ -296,7 +292,7 @@ Don't start a multi line cell with sunken parenthesis
 
 From now on IPython will not ask for the next line of input when given a single
 line with more closing than opening brackets. For example, this means that if
-you (mis)type ']]' instead of '[]', a ``SyntaxError`` will show up, instead of
+you (mis)type ``]]`` instead of ``[]``, a ``SyntaxError`` will show up, instead of
 the ``...:`` prompt continuation.
 
 IPython shell for ipdb interact
@@ -331,8 +327,8 @@ Previously, this was not the case for the Vi-mode prompts::
 This is now fixed, and Vi prompt prefixes - ``[ins]`` and ``[nav]`` -  are
 skipped just as the normal ``In`` would be.
 
-IPython shell can be started in the Vi mode using ``ipython
---TerminalInteractiveShell.editing_mode=vi``
+IPython shell can be started in the Vi mode using ``ipython --TerminalInteractiveShell.editing_mode=vi``, 
+You should be able to change mode dynamically with ``%config TerminalInteractiveShell.editing_mode='vi'``
 
 Empty History Ranges
 ~~~~~~~~~~~~~~~~~~~~
@@ -357,8 +353,6 @@ view the whole thing syntax-highlighted with a single ``%pycat``.
 Traceback improvements
 ~~~~~~~~~~~~~~~~~~~~~~
 
-
-UPDATE THIS IN INPUT.
 
 Previously, error tracebacks for errors happening in code cells were showing a hash, the one used for compiling the Python AST::
 
@@ -422,14 +416,12 @@ test suite to pytest, and starting to remove nose. This also mean that the
 ``iptest`` command is now gone, and all testing is via pytest.
 
 This was in bog part thanks the NumFOCUS Small Developer grant, we were able to
-allocate 4000 to hire `Nikita Kniazev @Kojoley <https://github.com/Kojoley>`__
+allocate 4000 to hire `Nikita Kniazev (@Kojoley) <https://github.com/Kojoley>`__
 who did a fantastic job at updating our code base, migrating to pytest, pushing
 our coverage, and fixing a large number of bugs. I highly recommend contacting
 them if you need help with C++ and Python projects
 
-You can find all relevant issues and PRs with the SDG 2021 tag:
-
-https://github.com/ipython/ipython/issues?q=label%3A%22Numfocus+SDG+2021%22+
+You can find all relevant issues and PRs with the SDG 2021 tag `<https://github.com/ipython/ipython/issues?q=label%3A%22Numfocus+SDG+2021%22+>`__
 
 Removing support for Older Python
 ---------------------------------
@@ -439,21 +431,14 @@ We are also removing support for Python up to 3.7 allowing internal code to use 
 efficient ``pathlib``, and make better use of type annotations. 
 
 .. image:: ../_images/8.0/pathlib_pathlib_everywhere.jpg
-   :alt: "Meme image of Toy story with Woody and Buzz, with the text 'pathlib, pathlib everywhere'"
+   :alt: "Meme image of Toy Story with Woody and Buzz, with the text 'pathlib, pathlib everywhere'"
 
-
-IMAGE : Pathlib, pathlib everywhere.
 
 We have about 34 PRs only to update some logic tu update some function from managing strings to
 using Pathlib.
 
 The completer has also seen significant updates and make use of newer Jedi API
 offering faster and more reliable tab completion.
-
-For the terminal users this also enable the auto-suggestion feature, described
-below, which show "ghost text" ahead of your cursor you can accept without
-having to press the tab key or ask the completer to suggest completions.
-
 
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
