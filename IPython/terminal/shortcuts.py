@@ -99,10 +99,10 @@ def create_ipython_shortcuts(shell):
     def ebivim():
         return shell.emacs_bindings_in_vi_insert_mode
 
-    focused_insert = has_focus(DEFAULT_BUFFER) & vi_insert_mode
+    focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
 
     # Needed for to accept autosuggestions in vi insert mode
-    @kb.add("c-e", filter=focused_insert & ebivim)
+    @kb.add("c-e", filter=focused_insert_vi & ebivim)
     def _(event):
         b = event.current_buffer
         suggestion = b.suggestion
@@ -111,7 +111,7 @@ def create_ipython_shortcuts(shell):
         else:
             nc.end_of_line(event)
 
-    @kb.add("c-f", filter=focused_insert & ebivim)
+    @kb.add("c-f", filter=focused_insert_vi)
     def _(event):
         b = event.current_buffer
         suggestion = b.suggestion
@@ -120,7 +120,7 @@ def create_ipython_shortcuts(shell):
         else:
             nc.forward_char(event)
 
-    @kb.add("escape", "f", filter=focused_insert & ebivim)
+    @kb.add("escape", "f", filter=focused_insert_vi & ebivim)
     def _(event):
         b = event.current_buffer
         suggestion = b.suggestion
@@ -141,7 +141,7 @@ def create_ipython_shortcuts(shell):
     }
 
     for key, cmd in key_cmd_dict.items():
-        kb.add(key, filter=focused_insert & ebivim)(cmd)
+        kb.add(key, filter=focused_insert_vi & ebivim)(cmd)
 
     # Alt and Combo Control keybindings
     keys_cmd_dict = {
@@ -160,7 +160,7 @@ def create_ipython_shortcuts(shell):
     }
 
     for keys, cmd in keys_cmd_dict.items():
-        kb.add(*keys, filter=focused_insert & ebivim)(cmd)
+        kb.add(*keys, filter=focused_insert_vi & ebivim)(cmd)
 
     def get_input_mode(self):
         app = get_app()
