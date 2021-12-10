@@ -108,12 +108,14 @@ if ask_section "Generate API difference (using frapuccino)"
 then
     echo $BLUE"Checking out $PREV_RELEASE"$NOR
     git checkout $PREV_RELEASE
+    sleep 1
     echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
-    frappuccino IPython --save IPython-$PREV_RELEASE.json
+    frappuccino IPython IPython.kernel IPython.lib IPython.qt IPython.lib.kernel IPython.html IPython.frontend IPython.external --save IPython-$PREV_RELEASE.json
     echo $BLUE"comming back to $BRANCH"$NOR
     git checkout $BRANCH
+    sleep 1
     echo $BLUE"comparing ..."$NOR
-    frappuccino IPython --compare IPython-$PREV_RELEASE.json
+    frappuccino IPython IPython.kernel IPython.lib --compare IPython-$PREV_RELEASE.json
     echo $GREEN"Use the above guideline to write an API changelog ..."$NOR
     echo $GREEN"Press any keys to continue"$NOR
     read
