@@ -2,13 +2,13 @@ include README.rst
 include COPYING.rst
 include LICENSE
 include setupbase.py
-include setupegg.py
 include MANIFEST.in
 include pytest.ini
 include mypy.ini
 include .mailmap
 include .flake8
 include .pre-commit-config.yaml
+include long_description.rst
 
 recursive-exclude tools *
 exclude tools

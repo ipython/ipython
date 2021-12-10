@@ -11,7 +11,7 @@ from subprocess import call
 import sys
 
 from toollib import (get_ipdir, pjoin, cd, execfile, sh, archive,
-        sdists, archive_user, archive_dir, buildwheels)
+         archive_user, archive_dir)
 from gh_api import post_download
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
@@ -63,7 +63,7 @@ if 'upload' in sys.argv:
     # Make target dir if it doesn't exist
     print('1. Uploading IPython to archive.ipython.org')
     sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
-    sh('scp *.tar.gz *.whl %s' % release_site)
+    sh('scp *.tar.gz *.tar.xz *.whl %s' % release_site)
 
     print('2. Uploading backup files...')
     cd(ipbackupdir)
@@ -71,7 +71,7 @@ if 'upload' in sys.argv:
 
     print('3. Uploading to PyPI using twine')
     cd(distdir)
-    call(['twine', 'upload'] + to_upload)
+    call(['twine', 'upload', '--verbose'] + to_upload)
 
 else:
     # Build, but don't upload
@@ -85,7 +85,6 @@ else:
 
     cd(ipdir)
 
-    buildwheels()
     print("`./release upload` to upload source distribution on PyPI and ipython archive")
     sys.exit(0)
 
