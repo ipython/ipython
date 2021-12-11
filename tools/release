@@ -70,7 +70,7 @@ else:
     # Build, but don't upload
 
     # Make backup tarball
-    sh('./make_tarball.py')
+    sh('python make_tarball.py')
     sh('mv ipython-*.tgz %s' % ipbackupdir)
 
     # Build release files
