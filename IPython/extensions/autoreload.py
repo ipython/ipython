@@ -321,6 +321,10 @@ def update_class(old, new):
             except (AttributeError, TypeError):
                 pass
             continue
+        except ValueError:
+            # can't compare nested structures containing
+            # numpy arrays using `==`
+            pass
 
         if update_generic(old_obj, new_obj):
             continue
