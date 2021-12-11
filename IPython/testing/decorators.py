@@ -32,6 +32,7 @@ we've copied verbatim from numpy.
 # Distributed under the terms of the Modified BSD License.
 
 import os
+import platform
 import shutil
 import sys
 import tempfile
@@ -43,6 +44,8 @@ from decorator import decorator
 
 # Expose the unittest-driven decorators
 from .ipunittest import ipdoctest, ipdocstring
+
+import pytest
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -171,6 +174,10 @@ skipif_not_matplotlib = skip_without('matplotlib')
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
 null_deco = lambda f: f
+
+slow_skip_pypy = pytest.mark.skip(
+    platform.python_implementation() == "PyPy", reason="too slow on pypy"
+)
 
 # Some tests only run where we can use unicode paths. Note that we can't just
 # check os.path.supports_unicode_filenames, which is always False on Linux.

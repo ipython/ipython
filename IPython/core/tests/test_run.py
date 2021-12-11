@@ -291,6 +291,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
             _ip.magic("run %s" % empty.fname)
             assert _ip.user_ns["afunc"]() == 1
 
+    @dec.slow_skip_pypy
     def test_tclass(self):
         mydir = os.path.dirname(__file__)
         tc = os.path.join(mydir, "tclass")
@@ -593,7 +594,7 @@ def test_multiprocessing_run():
         finally:
             sys.modules['__mp_main__'] = mpm
 
-
+@dec.slow_skip_pypy
 def test_script_tb():
     """Test traceback offset in `ipython script.py`"""
     with TemporaryDirectory() as td:

@@ -336,6 +336,7 @@ class TestCompleter(unittest.TestCase):
         for s in ['""', '""" """', '"hi" "ipython"']:
             self.assertFalse(completer.has_open_quotes(s))
 
+    @dec.slow_skip_pypy
     @pytest.mark.xfail(
         sys.platform == "win32", reason="abspath completions fail on Windows"
     )
