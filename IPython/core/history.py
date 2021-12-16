@@ -242,18 +242,24 @@ class HistoryAccessor(HistoryAccessorBase):
         kwargs = dict(detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         kwargs.update(self.connection_options)
         self.db = sqlite3.connect(str(self.hist_file), **kwargs)
-        self.db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
-                        primary key autoincrement, start timestamp,
-                        end timestamp, num_cmds integer, remark text)""")
-        self.db.execute("""CREATE TABLE IF NOT EXISTS history
-                (session integer, line integer, source text, source_raw text,
-                PRIMARY KEY (session, line))""")
-        # Output history is optional, but ensure the table's there so it can be
-        # enabled later.
-        self.db.execute("""CREATE TABLE IF NOT EXISTS output_history
-                        (session integer, line integer, output text,
-                        PRIMARY KEY (session, line))""")
-        self.db.commit()
+        with self.db:
+            self.db.execute(
+                """CREATE TABLE IF NOT EXISTS sessions (session integer
+                            primary key autoincrement, start timestamp,
+                            end timestamp, num_cmds integer, remark text)"""
+            )
+            self.db.execute(
+                """CREATE TABLE IF NOT EXISTS history
+                    (session integer, line integer, source text, source_raw text,
+                    PRIMARY KEY (session, line))"""
+            )
+            # Output history is optional, but ensure the table's there so it can be
+            # enabled later.
+            self.db.execute(
+                """CREATE TABLE IF NOT EXISTS output_history
+                            (session integer, line integer, output text,
+                            PRIMARY KEY (session, line))"""
+            )
         # success! reset corrupt db count
         self._corrupt_db_counter = 0
 
