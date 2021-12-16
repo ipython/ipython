@@ -29,6 +29,7 @@ from unittest import TestCase
 
 from IPython.extensions.autoreload import AutoreloadMagics
 from IPython.core.events import EventManager, pre_run_cell
+from IPython.testing.decorators import skipif_not_numpy
 
 if platform.python_implementation() == "PyPy":
     pytest.skip(
@@ -273,6 +274,40 @@ class TestAutoreload(Fixture):
             self.shell.run_code(f"{object_name}.a")
             with self.assertRaises(AttributeError):
                 self.shell.run_code(f"{object_name}.toto")
+
+    @skipif_not_numpy
+    def test_comparing_numpy_structures(self):
+        self.shell.magic_autoreload("2")
+        mod_name, mod_fn = self.new_module(
+            textwrap.dedent(
+                """
+                                import numpy as np
+                                class MyClass:
+                                    a = (np.array((.1, .2)),
+                                         np.array((.2, .3)))
+                            """
+            )
+        )
+        self.shell.run_code("from %s import MyClass" % mod_name)
+        self.shell.run_code("first = MyClass()")
+
+        # change property `a`
+        self.write_file(
+            mod_fn,
+            textwrap.dedent(
+                """
+                                import numpy as np
+                                class MyClass:
+                                    a = (np.array((.3, .4)),
+                                         np.array((.5, .6)))
+                            """
+            ),
+        )
+
+        with tt.AssertNotPrints(
+            ("[autoreload of %s failed:" % mod_name), channel="stderr"
+        ):
+            self.shell.run_code("pass")  # trigger another reload
 
     def test_autoload_newly_added_objects(self):
         self.shell.magic_autoreload("3")
