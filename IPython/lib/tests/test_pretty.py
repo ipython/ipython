@@ -127,7 +127,7 @@ def test_pprint_heap_allocated_type():
     if sys.version_info < (3, 10):
         import xxlimited
     else:
-        import xxlimited_35
+        import xxlimited_35 as xxlimited
     output = pretty.pretty(xxlimited.Null)
     nt.assert_equal(output, 'xxlimited.Null')
 
