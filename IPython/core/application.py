@@ -34,9 +34,9 @@ from traitlets import (
 )
 
 if os.name == "nt":
-    programdata = Path(os.environ.get("PROGRAMDATA", None))
-    if programdata:
-        SYSTEM_CONFIG_DIRS = [str(programdata / "ipython")]
+    programdata = os.environ.get("PROGRAMDATA", None)
+    if programdata is not None:
+        SYSTEM_CONFIG_DIRS = [str(Path(programdata) / "ipython")]
     else:  # PROGRAMDATA is not defined by default on XP.
         SYSTEM_CONFIG_DIRS = []
 else:
