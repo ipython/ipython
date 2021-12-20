@@ -21,7 +21,7 @@ jobs:
           - os: macos-latest
             python-version: "3.7"
           - os: macos-latest
-            python-version: "3.10"
+            python-version: "3.9"
 
     steps:
     - uses: actions/checkout@v2
@@ -39,6 +39,7 @@ jobs:
     - name: Check manifest
       run: check-manifest
     - name: iptest
+      if: matrix.python-version != '3.10'
       run: |
         cd /tmp && iptest --coverage xml && cd -
         cp /tmp/ipy_coverage.xml ./
