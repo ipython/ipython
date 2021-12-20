@@ -7,7 +7,6 @@
 
 from collections import Counter, defaultdict, deque, OrderedDict
 import os
-import pytest
 import types
 import string
 import sys
@@ -16,6 +15,7 @@ import unittest
 import nose.tools as nt
 
 from IPython.lib import pretty
+from IPython.testing.decorators import skip_without
 
 from io import StringIO
 
@@ -119,12 +119,15 @@ def test_sets():
         yield nt.assert_equal, got_output, expected_output
 
 
+@skip_without("xxlimited" if sys.version_info < (3, 10) else "xxlimited_35")
 def test_pprint_heap_allocated_type():
     """
     Test that pprint works for heap allocated types.
     """
-    module_name = "xxlimited" if sys.version_info < (3, 10) else "xxlimited_35"
-    xxlimited = pytest.importorskip(module_name)
+    if sys.version_info < (3, 10):
+        import xxlimited
+    else:
+        import xxlimited_35
     output = pretty.pretty(xxlimited.Null)
     nt.assert_equal(output, 'xxlimited.Null')
 
