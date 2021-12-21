@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.7", "3.8", "3.9"]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
         # Test all on ubuntu, test ends on macos
         include:
           - os: macos-latest
@@ -39,6 +39,7 @@ jobs:
     - name: Check manifest
       run: check-manifest
     - name: iptest
+      if: matrix.python-version != '3.10'
       run: |
         cd /tmp && iptest --coverage xml && cd -
         cp /tmp/ipy_coverage.xml ./

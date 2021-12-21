@@ -182,11 +182,12 @@ def getsource(obj, oname='') -> Union[str,None]:
         except TypeError:
             # The object itself provided no meaningful source, try looking for
             # its class definition instead.
-            if hasattr(obj, '__class__'):
-                try:
-                    src = inspect.getsource(obj.__class__)
-                except TypeError:
-                    return None
+            try:
+                src = inspect.getsource(obj.__class__)
+            except (OSError, TypeError):
+                return None
+        except OSError:
+            return None
 
         return src
 
@@ -308,14 +309,14 @@ def find_file(obj) -> str:
     except TypeError:
         # For an instance, the file that matters is where its class was
         # declared.
-        if hasattr(obj, '__class__'):
-            try:
-                fname = inspect.getabsfile(obj.__class__)
-            except TypeError:
-                # Can happen for builtins
-                pass
-    except:
+        try:
+            fname = inspect.getabsfile(obj.__class__)
+        except (OSError, TypeError):
+            # Can happen for builtins
+            pass
+    except OSError:
         pass
+
     return cast_unicode(fname)
 
 
@@ -338,15 +339,14 @@ def find_source_lines(obj):
     obj = _get_wrapped(obj)
 
     try:
+        lineno = inspect.getsourcelines(obj)[1]
+    except TypeError:
+        # For instances, try the class object like getsource() does
         try:
-            lineno = inspect.getsourcelines(obj)[1]
-        except TypeError:
-            # For instances, try the class object like getsource() does
-            if hasattr(obj, '__class__'):
-                lineno = inspect.getsourcelines(obj.__class__)[1]
-            else:
-                lineno = None
-    except:
+            lineno = inspect.getsourcelines(obj.__class__)[1]
+        except (OSError, TypeError):
+            return None
+    except OSError:
         return None
 
     return lineno

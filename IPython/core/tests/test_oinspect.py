@@ -6,10 +6,11 @@
 
 
 from inspect import signature, Signature, Parameter
+import inspect
 import os
+import pytest
 import re
-
-import nose.tools as nt
+import sys
 
 from .. import oinspect
 
@@ -30,6 +31,10 @@ def setup_module():
     inspector = oinspect.Inspector()
 
 
+class SourceModuleMainTest:
+    __module__ = "__main__"
+
+
 #-----------------------------------------------------------------------------
 # Local utilities
 #-----------------------------------------------------------------------------
@@ -38,15 +43,28 @@ def setup_module():
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 41  # Put here the actual number of this line
+THIS_LINE_NUMBER = 46  # Put here the actual number of this line
 
-from unittest import TestCase
 
-class Test(TestCase):
+def test_find_source_lines():
+    assert oinspect.find_source_lines(test_find_source_lines) == THIS_LINE_NUMBER + 3
+    assert oinspect.find_source_lines(type) is None
+    assert oinspect.find_source_lines(SourceModuleMainTest) is None
+    assert oinspect.find_source_lines(SourceModuleMainTest()) is None
 
-    def test_find_source_lines(self):
-        self.assertEqual(oinspect.find_source_lines(Test.test_find_source_lines),
-                    THIS_LINE_NUMBER+6)
+
+def test_getsource():
+    assert oinspect.getsource(type) is None
+    assert oinspect.getsource(SourceModuleMainTest) is None
+    assert oinspect.getsource(SourceModuleMainTest()) is None
+
+
+def test_inspect_getfile_raises_exception():
+    """Check oinspect.find_file/getsource/find_source_lines expectations"""
+    with pytest.raises(TypeError):
+        inspect.getfile(type)
+    with pytest.raises(OSError if sys.version_info >= (3, 10) else TypeError):
+        inspect.getfile(SourceModuleMainTest)
 
 
 # A couple of utilities to ensure these tests work the same from a source or a
@@ -56,11 +74,14 @@ def pyfile(fname):
 
 
 def match_pyfiles(f1, f2):
-    nt.assert_equal(pyfile(f1), pyfile(f2))
+    assert pyfile(f1) == pyfile(f2)
 
 
 def test_find_file():
     match_pyfiles(oinspect.find_file(test_find_file), os.path.abspath(__file__))
+    assert oinspect.find_file(type) is None
+    assert oinspect.find_file(SourceModuleMainTest) is None
+    assert oinspect.find_file(SourceModuleMainTest()) is None
 
 
 def test_find_file_decorated1():
@@ -74,9 +95,9 @@ def test_find_file_decorated1():
     @noop1
     def f(x):
         "My docstring"
-    
+
     match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
-    nt.assert_equal(f.__doc__, "My docstring")
+    assert f.__doc__ == "My docstring"
 
 
 def test_find_file_decorated2():
@@ -90,14 +111,14 @@ def test_find_file_decorated2():
     @noop2
     def f(x):
         "My docstring 2"
-    
+
     match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
-    nt.assert_equal(f.__doc__, "My docstring 2")
-    
+    assert f.__doc__ == "My docstring 2"
+
 
 def test_find_file_magic():
     run = ip.find_line_magic('run')
-    nt.assert_not_equal(oinspect.find_file(run), None)
+    assert oinspect.find_file(run) is not None
 
 
 # A few generic objects we can then inspect in the tests below
@@ -167,41 +188,46 @@ class SerialLiar(object):
 
 def test_info():
     "Check that Inspector.info fills out various fields as expected."
-    i = inspector.info(Call, oname='Call')
-    nt.assert_equal(i['type_name'], 'type')
-    expted_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
-    nt.assert_equal(i['base_class'], expted_class)
-    nt.assert_regex(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>")
+    i = inspector.info(Call, oname="Call")
+    assert i["type_name"] == "type"
+    expected_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
+    assert i["base_class"] == expected_class
+    assert re.search(
+        "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>",
+        i["string_form"],
+    )
     fname = __file__
     if fname.endswith(".pyc"):
         fname = fname[:-1]
     # case-insensitive comparison needed on some filesystems
     # e.g. Windows:
-    nt.assert_equal(i['file'].lower(), compress_user(fname).lower())
-    nt.assert_equal(i['definition'], None)
-    nt.assert_equal(i['docstring'], Call.__doc__)
-    nt.assert_equal(i['source'], None)
-    nt.assert_true(i['isclass'])
-    nt.assert_equal(i['init_definition'], "Call(x, y=1)")
-    nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
+    assert i["file"].lower() == compress_user(fname).lower()
+    assert i["definition"] == None
+    assert i["docstring"] == Call.__doc__
+    assert i["source"] == None
+    assert i["isclass"] is True
+    assert i["init_definition"] == "Call(x, y=1)"
+    assert i["init_docstring"] == Call.__init__.__doc__
 
     i = inspector.info(Call, detail_level=1)
-    nt.assert_not_equal(i['source'], None)
-    nt.assert_equal(i['docstring'], None)
+    assert i["source"] is not None
+    assert i["docstring"] == None
 
     c = Call(1)
     c.__doc__ = "Modified instance docstring"
     i = inspector.info(c)
-    nt.assert_equal(i['type_name'], 'Call')
-    nt.assert_equal(i['docstring'], "Modified instance docstring")
-    nt.assert_equal(i['class_docstring'], Call.__doc__)
-    nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
-    nt.assert_equal(i['call_docstring'], Call.__call__.__doc__)
+    assert i["type_name"] == "Call"
+    assert i["docstring"] == "Modified instance docstring"
+    assert i["class_docstring"] == Call.__doc__
+    assert i["init_docstring"] == Call.__init__.__doc__
+    assert i["call_docstring"] == Call.__call__.__doc__
+
 
 def test_class_signature():
-    info = inspector.info(HasSignature, 'HasSignature')
-    nt.assert_equal(info['init_definition'], "HasSignature(test)")
-    nt.assert_equal(info['init_docstring'], HasSignature.__init__.__doc__)
+    info = inspector.info(HasSignature, "HasSignature")
+    assert info["init_definition"] == "HasSignature(test)"
+    assert info["init_docstring"] == HasSignature.__init__.__doc__
+
 
 def test_info_awkward():
     # Just test that this doesn't throw an error.
@@ -216,7 +242,7 @@ def test_info_serialliar():
 
     # Nested attribute access should be cut off at 100 levels deep to avoid
     # infinite loops: https://github.com/ipython/ipython/issues/9122
-    nt.assert_less(fib_tracker[0], 9000)
+    assert fib_tracker[0] < 9000
 
 def support_function_one(x, y=2, *a, **kw):
     """A simple function."""
@@ -225,14 +251,16 @@ def test_calldef_none():
     # We should ignore __call__ for all of these.
     for obj in [support_function_one, SimpleClass().method, any, str.upper]:
         i = inspector.info(obj)
-        nt.assert_is(i['call_def'], None)
+        assert i["call_def"] is None
+
 
 def f_kwarg(pos, *, kwonly):
     pass
 
 def test_definition_kwonlyargs():
-    i = inspector.info(f_kwarg, oname='f_kwarg')  # analysis:ignore
-    nt.assert_equal(i['definition'], "f_kwarg(pos, *, kwonly)")
+    i = inspector.info(f_kwarg, oname="f_kwarg")  # analysis:ignore
+    assert i["definition"] == "f_kwarg(pos, *, kwonly)"
+
 
 def test_getdoc():
     class A(object):
@@ -243,34 +271,33 @@ def test_getdoc():
         """standard docstring"""
         def getdoc(self):
             return "custom docstring"
-    
+
     class C(object):
         """standard docstring"""
         def getdoc(self):
             return None
-    
+
     a = A()
     b = B()
     c = C()
-    
-    nt.assert_equal(oinspect.getdoc(a), "standard docstring")
-    nt.assert_equal(oinspect.getdoc(b), "custom docstring")
-    nt.assert_equal(oinspect.getdoc(c), "standard docstring")
+
+    assert oinspect.getdoc(a) == "standard docstring"
+    assert oinspect.getdoc(b) == "custom docstring"
+    assert oinspect.getdoc(c) == "standard docstring"
 
 
 def test_empty_property_has_no_source():
     i = inspector.info(property(), detail_level=1)
-    nt.assert_is(i['source'], None)
+    assert i["source"] is None
 
 
 def test_property_sources():
-    import posixpath 
     # A simple adder whose source and signature stays
     # the same across Python distributions
     def simple_add(a, b):
         "Adds two numbers"
         return a + b
-    
+
     class A(object):
         @property
         def foo(self):
@@ -278,18 +305,18 @@ def test_property_sources():
 
         foo = foo.setter(lambda self, v: setattr(self, 'bar', v))
 
-        dname = property(posixpath.dirname)
-        adder = property(simple_add) 
+        dname = property(oinspect.getdoc)
+        adder = property(simple_add)
 
     i = inspector.info(A.foo, detail_level=1)
-    nt.assert_in('def foo(self):', i['source'])
-    nt.assert_in('lambda self, v:', i['source'])
+    assert "def foo(self):" in i["source"]
+    assert "lambda self, v:" in i["source"]
 
     i = inspector.info(A.dname, detail_level=1)
-    nt.assert_in('def dirname(p)', i['source'])
-    
+    assert "def getdoc(obj)" in i["source"]
+
     i = inspector.info(A.adder, detail_level=1)
-    nt.assert_in('def simple_add(a, b)', i['source'])
+    assert "def simple_add(a, b)" in i["source"]
 
 
 def test_property_docstring_is_in_info_for_detail_level_0():
@@ -299,15 +326,17 @@ def test_property_docstring_is_in_info_for_detail_level_0():
             """This is `foobar` property."""
             pass
 
-    ip.user_ns['a_obj'] = A()
-    nt.assert_equal(
-        'This is `foobar` property.',
-        ip.object_inspect('a_obj.foobar', detail_level=0)['docstring'])
+    ip.user_ns["a_obj"] = A()
+    assert (
+        "This is `foobar` property."
+        == ip.object_inspect("a_obj.foobar", detail_level=0)["docstring"]
+    )
 
-    ip.user_ns['a_cls'] = A
-    nt.assert_equal(
-        'This is `foobar` property.',
-        ip.object_inspect('a_cls.foobar', detail_level=0)['docstring'])
+    ip.user_ns["a_cls"] = A
+    assert (
+        "This is `foobar` property."
+        == ip.object_inspect("a_cls.foobar", detail_level=0)["docstring"]
+    )
 
 
 def test_pdef():
@@ -359,11 +388,11 @@ def test_pinfo_docstring_if_detail_and_no_source():
                   def bar(self):
                       """ This is a docstring for Foo.bar """
                       pass
-              ''' 
-    
+              '''
+
     ip.run_cell(obj_def)
     ip.run_cell('foo = Foo()')
-    
+
     with AssertNotPrints("Source:"):
         with AssertPrints('Docstring:'):
             ip._inspect('pinfo', 'foo', detail_level=0)
@@ -388,14 +417,14 @@ def test_pinfo_magic():
 def test_init_colors():
     # ensure colors are not present in signature info
     info = inspector.info(HasSignature)
-    init_def = info['init_definition']
-    nt.assert_not_in('[0m', init_def)
+    init_def = info["init_definition"]
+    assert "[0m" not in init_def
 
 
 def test_builtin_init():
     info = inspector.info(list)
     init_def = info['init_definition']
-    nt.assert_is_not_none(init_def)
+    assert init_def is not None
 
 
 def test_render_signature_short():
@@ -404,7 +433,7 @@ def test_render_signature_short():
         signature(short_fun),
         short_fun.__name__,
     )
-    nt.assert_equal(sig, 'short_fun(a=1)')
+    assert sig == "short_fun(a=1)"
 
 
 def test_render_signature_long():
@@ -420,7 +449,7 @@ def test_render_signature_long():
         signature(long_function),
         long_function.__name__,
     )
-    nt.assert_in(sig, [
+    assert sig in [
         # Python >=3.9
         '''\
 long_function(
@@ -444,4 +473,4 @@ long_function(
     let_us_make_sure_this_is_looong:Union[str, NoneType]=None,
 ) -> bool\
 ''',
-    ])
+    ]
