@@ -704,14 +704,14 @@ class Inspector(Colorable):
 
     def _info(self, obj, oname="", info=None, detail_level=0):
         """
-        Inspector.info() was likely unproperly marked as deprecated
+        Inspector.info() was likely improperly marked as deprecated
         while only a parameter was deprecated. We "un-deprecate" it.
         """
 
         warnings.warn(
-            "The `Inspector.info()` has been un-deprecated as of 8.0 and the"
-            " `formatter=` keyword removed. `Inspector._info` is now an alias."
-            " You can always call `.info()` directly.",
+            "The `Inspector.info()` method has been un-deprecated as of 8.0 "
+            "and the `formatter=` keyword removed. `Inspector._info` is now "
+            "an alias, and you can just call `.info()` directly.",
             DeprecationWarning,
             stacklevel=2,
         )
