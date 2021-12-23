@@ -741,6 +741,7 @@ class VerboseTB(TBTools):
         This may be called multiple times by Python 3 exception chaining
         (PEP 3134).
         """
+        assert etb is not None
         # some locals
         orig_etype = etype
         try:
@@ -801,12 +802,13 @@ class VerboseTB(TBTools):
             after=after,
             pygments_formatter=formatter,
         )
+        assert etb is not None
         return list(stack_data.FrameInfo.stack_data(etb, options=options))[tb_offset:]
 
     def structured_traceback(self, etype, evalue, etb, tb_offset=None,
                              number_of_lines_of_context=5):
         """Return a nice text document describing the traceback."""
-
+        assert etb is not None
         formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
                                                                tb_offset)
 
