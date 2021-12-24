@@ -402,7 +402,7 @@ test suite to pytest, and starting to remove nose. This also mean that the
 ``iptest`` command is now gone, and all testing is via pytest.
 
 This was in large part thanks to the NumFOCUS Small Developer grant, which enabled us to
-allocate \$4000 to hire `Nikita Kniazev (@Kojoley) <https://github.com/Kojoley>`,
+allocate \$4000 to hire `Nikita Kniazev (@Kojoley) <https://github.com/Kojoley>`_,
 who did a fantastic job at updating our code base, migrating to pytest, pushing
 our coverage, and fixing a large number of bugs. I highly recommend contacting
 them if you need help with C++ and Python projects
