@@ -407,8 +407,11 @@ def _strip_prompts(prompt_re, initial_re=None, turnoff_re=None):
         If no initial expression is given, prompt_re will be used everywhere.
         Used mainly for plain Python prompts, where the continuation prompt
         ``...`` is a valid Python expression in Python 3, so shouldn't be stripped.
-    If initial_re and prompt_re differ,
-    only initial_re will be tested against the first line.
+
+    Notes
+    -----
+    If `initial_re` and `prompt_re differ`,
+    only `initial_re` will be tested against the first line.
     If any prompt is found on the first two lines,
     prompts will be stripped from the rest of the block.
     """

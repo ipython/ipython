@@ -483,9 +483,9 @@ class NamespaceMagics(Magics):
         Parameters
         ----------
         -f
-           force reset without asking for confirmation.
+            force reset without asking for confirmation.
         -s
-           'Soft' reset: Only clears your namespace, leaving history intact.
+            'Soft' reset: Only clears your namespace, leaving history intact.
             References to objects may be kept. By default (without this option),
             we do a 'hard' reset, giving you a new session and removing all
             references to objects from the current session.
@@ -494,10 +494,14 @@ class NamespaceMagics(Magics):
             may allow you to reimport Python modules that have been updated and
             pick up changes, but can have unattended consequences.
 
-        in : reset input history
-        out : reset output history
-        dhist : reset directory history
-        array : reset only variables that are NumPy arrays
+        in
+            reset input history
+        out
+            reset output history
+        dhist
+            reset directory history
+        array
+            reset only variables that are NumPy arrays
 
         See Also
         --------

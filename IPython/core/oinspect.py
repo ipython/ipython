@@ -577,10 +577,10 @@ class Inspector(Colorable):
         ----------
         obj : any
             Object to inspect and return info from
-        oname: str (default: ''):
+        oname : str (default: ''):
             Name of the variable pointing to `obj`.
         formatter : callable
-        info:
+        info
             already computed information
         detail_level : integer
             Granularity of detail level, if set to 1, give more information.
