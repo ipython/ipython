@@ -169,7 +169,7 @@ def _format_traceback_lines(lines, Colors, has_colors, lvals):
     return res
 
 
-def _format_filename(file, ColorFilename, ColorNormal):
+def _format_filename(file, ColorFilename, ColorNormal, *, lineno=None):
     """
     Format filename lines with `In [n]` if it's the nth code cell or `File *.py` if it's a module.
 
@@ -185,14 +185,17 @@ def _format_filename(file, ColorFilename, ColorNormal):
 
     if ipinst is not None and file in ipinst.compile._filename_map:
         file = "[%s]" % ipinst.compile._filename_map[file]
-        tpl_link = "Input %sIn %%s%s" % (ColorFilename, ColorNormal)
+        tpl_link = f"Input {ColorFilename}In {{file}}{ColorNormal}"
     else:
         file = util_path.compress_user(
             py3compat.cast_unicode(file, util_path.fs_encoding)
         )
-        tpl_link = "File %s%%s%s" % (ColorFilename, ColorNormal)
+        if lineno is None:
+            tpl_link = f"File {ColorFilename}{{file}}{ColorNormal}"
+        else:
+            tpl_link = f"File {ColorFilename}{{file}}:{{lineno}}{ColorNormal}"
 
-    return tpl_link % file
+    return tpl_link.format(file=file, lineno=lineno)
 
 #---------------------------------------------------------------------------
 # Module classes
@@ -439,11 +442,10 @@ class ListTB(TBTools):
         Colors = self.Colors
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
-            item = "  %s, line %s%d%s, in %s%s%s\n" % (
-                _format_filename(filename, Colors.filename, Colors.Normal),
-                Colors.lineno,
-                lineno,
-                Colors.Normal,
+            item = "  %s in %s%s%s\n" % (
+                _format_filename(
+                    filename, Colors.filename, Colors.Normal, lineno=lineno
+                ),
                 Colors.name,
                 name,
                 Colors.Normal,
@@ -453,12 +455,11 @@ class ListTB(TBTools):
             list.append(item)
         # Emphasize the last entry
         filename, lineno, name, line = extracted_list[-1]
-        item = "%s  %s, line %s%d%s, in %s%s%s%s\n" % (
+        item = "%s  %s in %s%s%s%s\n" % (
             Colors.normalEm,
-            _format_filename(filename, Colors.filenameEm, Colors.normalEm),
-            Colors.linenoEm,
-            lineno,
-            Colors.normalEm,
+            _format_filename(
+                filename, Colors.filenameEm, Colors.normalEm, lineno=lineno
+            ),
             Colors.nameEm,
             name,
             Colors.normalEm,
@@ -501,14 +502,15 @@ class ListTB(TBTools):
                     lineno = "unknown"
                     textline = ""
                 list.append(
-                    "%s  %s, line %s%s%s\n"
+                    "%s  %s%s\n"
                     % (
                         Colors.normalEm,
                         _format_filename(
-                            value.filename, Colors.filenameEm, Colors.normalEm
+                            value.filename,
+                            Colors.filenameEm,
+                            Colors.normalEm,
+                            lineno=(None if lineno == "unknown" else lineno),
                         ),
-                        Colors.linenoEm,
-                        lineno,
                         Colors.Normal,
                     )
                 )
@@ -628,27 +630,35 @@ class VerboseTB(TBTools):
             return '    %s[... skipping similar frames: %s]%s\n' % (
                 Colors.excName, frame_info.description, ColorsNormal)
 
-        indent = ' ' * INDENT_SIZE
-        em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
-        tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm,
-                                        ColorsNormal)
-        tpl_call_fail = 'in %s%%s%s(***failed resolving arguments***)%s' % \
-                        (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_name_val = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
+        indent = " " * INDENT_SIZE
+        em_normal = "%s\n%s%s" % (Colors.valEm, indent, ColorsNormal)
+        tpl_call = f"in {Colors.vName}{{file}}{Colors.valEm}{{scope}}{ColorsNormal}"
+        tpl_call_fail = "in %s%%s%s(***failed resolving arguments***)%s" % (
+            Colors.vName,
+            Colors.valEm,
+            ColorsNormal,
+        )
+        tpl_name_val = "%%s %s= %%s%s" % (Colors.valEm, ColorsNormal)
 
-        link = _format_filename(frame_info.filename, Colors.filenameEm, ColorsNormal)
+        link = _format_filename(
+            frame_info.filename,
+            Colors.filenameEm,
+            ColorsNormal,
+            lineno=frame_info.lineno,
+        )
         args, varargs, varkw, locals_ = inspect.getargvalues(frame_info.frame)
 
         func = frame_info.executing.code_qualname()
-        if func == '<module>':
-            call = tpl_call % (func, '')
+        if func == "<module>":
+            call = tpl_call.format(file=func, scope="")
         else:
             # Decide whether to include variable details or not
             var_repr = eqrepr if self.include_vars else nullrepr
             try:
-                call = tpl_call % (func, inspect.formatargvalues(args,
-                                                                 varargs, varkw,
-                                                                 locals_, formatvalue=var_repr))
+                scope = inspect.formatargvalues(
+                    args, varargs, varkw, locals_, formatvalue=var_repr
+                )
+                call = tpl_call.format(file=func, scope=scope)
             except KeyError:
                 # This happens in situations like errors inside generator
                 # expressions, where local variables are listed in the

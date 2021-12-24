@@ -419,9 +419,9 @@ class TestCompleter(unittest.TestCase):
             with provisionalcompleter():
                 ip.Completer.use_jedi = jedi_status
                 matches = c.all_completions("TestCl")
-                assert matches == ['TestClass'], jedi_status
+                assert matches == ["TestClass"], (jedi_status, matches)
                 matches = c.all_completions("TestClass.")
-                assert len(matches) > 2, jedi_status
+                assert len(matches) > 2, (jedi_status, matches)
                 matches = c.all_completions("TestClass.a")
                 assert matches == ['TestClass.a', 'TestClass.a1'], jedi_status
 
