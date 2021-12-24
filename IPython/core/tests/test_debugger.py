@@ -413,7 +413,7 @@ def test_decorator_skip():
     child.close()
 
 
-@pytest.mark.skip(platform.python_implementation() == "PyPy", reason="issues on PyPy")
+@pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32
 def test_decorator_skip_disabled():
     """test that decorator frame skipping can be disabled"""
@@ -441,7 +441,7 @@ def test_decorator_skip_disabled():
     child.close()
 
 
-@pytest.mark.skip(platform.python_implementation() == "PyPy", reason="issues on PyPy")
+@pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32
 def test_decorator_skip_with_breakpoint():
     """test that decorator frame skipping can be disabled"""

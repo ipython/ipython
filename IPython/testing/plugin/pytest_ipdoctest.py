@@ -503,7 +503,7 @@ def _check_all_skipped(test: "doctest.DocTest") -> None:
 
     all_skipped = all(x.options.get(doctest.SKIP, False) for x in test.examples)
     if all_skipped:
-        pytest.skip("all tests skipped by +SKIP option")
+        pytest.skip("all docstests skipped by +SKIP option")
 
 
 def _is_mocked(obj: object) -> bool:

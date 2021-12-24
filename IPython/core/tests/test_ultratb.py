@@ -188,10 +188,6 @@ se_file_2 = """7/
 """
 
 class SyntaxErrorTest(unittest.TestCase):
-    def test_syntaxerror_without_lineno(self):
-        with tt.AssertNotPrints("TypeError"):
-            with tt.AssertPrints("line unknown"):
-                ip.run_cell("raise SyntaxError()")
 
     def test_syntaxerror_no_stacktrace_at_compile_time(self):
         syntax_error_at_compile_time = """

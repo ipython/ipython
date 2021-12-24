@@ -190,13 +190,13 @@ def onlyif_cmds_exist(*commands):
     """
     Decorator to skip test when at least one of `commands` is not found.
     """
+    assert (
+        os.environ.get("IPTEST_WORKING_DIR", None) is None
+    ), "iptest deprecated since IPython 8.0"
     for cmd in commands:
         reason = f"This test runs only if command '{cmd}' is installed"
         if not shutil.which(cmd):
-            if os.environ.get("IPTEST_WORKING_DIR", None) is not None:
-                return skip(reason)
-            else:
-                import pytest
+            import pytest
 
-                return pytest.mark.skip(reason=reason)
+            return pytest.mark.skip(reason=reason)
     return null_deco

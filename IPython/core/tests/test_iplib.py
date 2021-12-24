@@ -45,11 +45,11 @@ def doctest_tb_plain():
 
     In [19]: run simpleerr.py
     Traceback (most recent call last):
-      ...line ..., in <module>
+      File ...:... in <module>
         bar(mode)
-      ...line ..., in bar
+      File ...:... in bar
         div0()
-      ...line ..., in div0
+      File ...:... in div0
         x/y
     ZeroDivisionError: ...
     """
@@ -132,13 +132,13 @@ def doctest_tb_sysexit():
 
     In [20]: %tb
     Traceback (most recent call last):
-      File ..., in execfile
+      File ...:... in execfile
         exec(compiler(f.read(), fname, "exec"), glob, loc)
-      File ..., in <module>
+      File ...:... in <module>
         bar(mode)
-      File ..., in bar
+      File ...:... in bar
         sysexit(stat, mode)
-      File ..., in sysexit
+      File ...:... in sysexit
         raise SystemExit(stat, f"Mode = {mode}")
     SystemExit: (2, 'Mode = exit')
 
