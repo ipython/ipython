@@ -205,9 +205,12 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.display_formatter.active_types.append("text/html")
         ip.display_formatter.formatters["text/html"].enabled = True
         ip.mime_renderers["text/html"] = handler
-
-        obj = Test()
-        display(obj)
+        try:
+            obj = Test()
+            display(obj)
+        finally:
+            ip.display_formatter.formatters["text/html"].enabled = False
+            del ip.mime_renderers["text/html"]
 
         assert called == True
 
