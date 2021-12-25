@@ -191,26 +191,29 @@ class InteractiveShellTestCase(unittest.TestCase):
         class Test2(Test):
             def _ipython_display_(self):
                 from IPython.display import display, HTML
-                display(HTML('<custom>'))
+
+                display(HTML("<custom>"))
 
         # verify that mimehandlers are called
         called = False
 
         def handler(data, metadata):
-            print('Handler called')
+            print("Handler called")
             nonlocal called
             called = True
 
         ip.display_formatter.active_types.append("text/html")
         ip.display_formatter.formatters["text/html"].enabled = True
         ip.mime_renderers["text/html"] = handler
-
-
-        obj = Test()
-        display(obj)
+        try:
+            obj = Test()
+            display(obj)
+        finally:
+            ip.display_formatter.formatters["text/html"].enabled = False
+            del ip.mime_renderers["text/html"]
 
         assert called == True
-        
+
 
 def syntax_error_transformer(lines):
     """Transformer that throws SyntaxError if 'syntaxerror' is in the code."""

@@ -8,6 +8,7 @@
 from binascii import b2a_hex
 import os
 import sys
+import warnings
 
 __all__ = ['display', 'clear_output', 'publish_display_data', 'update_display', 'DisplayHandle']
 
@@ -33,9 +34,17 @@ def _merge(d1, d2):
 # Main functions
 #-----------------------------------------------------------------------------
 
+class _Sentinel:
+    def __repr__(self):
+        return "<deprecated>"
+
+
+_sentinel = _Sentinel()
 
 # use * to indicate transient is keyword-only
-def publish_display_data(data, metadata=None, source=None, *, transient=None, **kwargs):
+def publish_display_data(
+    data, metadata=None, source=_sentinel, *, transient=None, **kwargs
+):
     """Publish data and metadata to all frontends.
 
     See the ``display_data`` message in the messaging documentation for
@@ -65,6 +74,14 @@ def publish_display_data(data, metadata=None, source=None, *, transient=None, **
     """
     from IPython.core.interactiveshell import InteractiveShell
 
+    if source is not _sentinel:
+        warnings.warn(
+            "The `source` parameter emit a  deprecation warning since"
+            " IPython 8.0, it had no effects for a long time and will "
+            " be removed in future versions.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     display_pub = InteractiveShell.instance().display_pub
 
     # only pass transient if supplied,
