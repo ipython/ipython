@@ -36,12 +36,23 @@ class DisplayMagics(Magics):
         """Run the cell block of Javascript code
 
         Alias of `%%javascript`
+
+        Starting with IPython 8.0 %%javascript is pending deprecation to be replaced
+        by a more flexible system
+
+        Please See https://github.com/ipython/ipython/issues/13376
         """
         self.javascript(line, cell)
 
     @cell_magic
     def javascript(self, line, cell):
-        """Run the cell block of Javascript code"""
+        """Run the cell block of Javascript code
+
+        Starting with IPython 8.0 %%javascript is pending deprecation to be replaced
+        by a more flexible system
+
+        Please See https://github.com/ipython/ipython/issues/13376
+        """
         display(Javascript(cell))
 
 
