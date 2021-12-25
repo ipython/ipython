@@ -238,11 +238,11 @@ def test_get_xdg_dir_2():
 
 @with_environment
 def test_get_xdg_dir_3():
-    """test_get_xdg_dir_3, check xdg_dir not used on OS X"""
+    """test_get_xdg_dir_3, check xdg_dir not used on non-posix systems"""
     reload(path)
     path.get_home_dir = lambda : HOME_TEST_DIR
-    os.name = "posix"
-    sys.platform = "darwin"
+    os.name = "nt"
+    sys.platform = "win32"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
