@@ -188,6 +188,15 @@ class TerminalInteractiveShell(InteractiveShell):
         allow_none=True
     ).tag(config=True)
 
+    auto_match = Bool(
+        False,
+        help="""
+        Automatically add/delete closing bracket or quote when opening bracket or quote is entered/deleted.
+        Brackets: (), [], {}
+        Quotes: '', \"\"
+        """,
+    ).tag(config=True)
+
     mouse_support = Bool(False,
         help="Enable mouse support in the prompt\n(Note: prevents selecting text with the mouse)"
     ).tag(config=True)
