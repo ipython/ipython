@@ -96,10 +96,48 @@ features contributed by QuantStack (with respect to debugger protocol, and Xeus
 Python), as well as many debugger features that I was please to implement as
 part of my work at QuanSight and Sponsored by DE Shaw.
 
-Better Tracebacks
-~~~~~~~~~~~~~~~~~
+Traceback improvements
+~~~~~~~~~~~~~~~~~~~~~~
 
-The first on is the integration of the ``stack_data`` package;
+Previously, error tracebacks for errors happening in code cells were showing a
+hash, the one used for compiling the Python AST::
+
+    In [1]: def foo():
+    ...:     return 3 / 0
+    ...:
+
+    In [2]: foo()
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)
+    <ipython-input-2-c19b6d9633cf> in <module>
+    ----> 1 foo()
+
+    <ipython-input-1-1595a74c32d5> in foo()
+        1 def foo():
+    ----> 2     return 3 / 0
+        3
+
+    ZeroDivisionError: division by zero
+
+The error traceback is now correctly formatted, showing the cell number in which the error happened::
+
+    In [1]: def foo():
+    ...:     return 3 / 0
+    ...:
+
+    Input In [2]: foo()
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)
+    input In [2], in <module>
+    ----> 1 foo()
+
+    Input In [1], in foo()
+        1 def foo():
+    ----> 2     return 3 / 0
+
+    ZeroDivisionError: division by zero
+
+The Second on is the integration of the ``stack_data`` package;
 which provide smarter informations in traceback; in particular it will highlight
 the AST node where an error occurs which can help to quickly narrow down errors.
 
@@ -142,6 +180,24 @@ IPython 8.0 is capable of telling you, where the index error occurs::
 
 Corresponding location marked here with ``^`` will show up highlighted in 
 terminal and notebooks.
+
+The Third, which is the most discreet but can have a high impact on
+productivity, a colon ``::`` and line number is appended after a filename in
+traceback::
+
+
+    ZeroDivisionError               Traceback (most recent call last)
+    File ~/error.py:4, in <module>
+          1 def f():
+          2     1/0
+    ----> 4 f()
+
+    File ~/error.py:2, in f()
+          1 def f():
+    ----> 2     1/0
+
+Many terminal and editor have integrations allow to directly jump to the
+relevant file/line when this syntax is used.
 
 
 Autosuggestons
@@ -246,7 +302,14 @@ Try ``%autoreload 3`` in an IPython session after running ``%load_ext autoreload
 
 For more information please see the following unit test : ``extensions/tests/test_autoreload.py:test_autoload_newly_added_objects``
 
+Auto formatting with black in the CLI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+If ``black`` is installed in the same environment as IPython, terminal IPython
+will now *by default*  reformat the code in the CLI when possible. You can
+disable this with ``--TerminalInteractiveShell.autoformatter=None``.
+
+This feature was present in 7.x but disabled by default.
 
 
 History Range Glob feature
@@ -333,53 +396,29 @@ included).
 
 Therefore it is now possible to save the whole history to a file using simple
 ``%save <filename>``, load and edit it using ``%load`` (makes for a nice usage
-when followed with :kbd:`F2`), send it to dpaste.org using ``%pastebin``, or
-view the whole thing syntax-highlighted with a single ``%pycat``.
-
-Traceback improvements
-~~~~~~~~~~~~~~~~~~~~~~
+when followed with :kbd:`F2`), send it to `dpaste.org <http://dpast.org>`_ using
+``%pastebin``, or view the whole thing syntax-highlighted with a single
+``%pycat``.
 
 
-Previously, error tracebacks for errors happening in code cells were showing a hash, the one used for compiling the Python AST::
+Windows time-implementation: Switch to process_time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Timing for example with ``%%time`` on windows is based on ``time.perf_counter``.
+This is at the end the same as W-All.
+To be a bit tighter to linux one could change to ``time.process_time`` instead.
+Thus for example one would no longer count periods of sleep and further.
 
-    In [1]: def foo():
-    ...:     return 3 / 0
-    ...:
-
-    In [2]: foo()
-    ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)
-    <ipython-input-2-c19b6d9633cf> in <module>
-    ----> 1 foo()
-
-    <ipython-input-1-1595a74c32d5> in foo()
-        1 def foo():
-    ----> 2     return 3 / 0
-        3
-
-    ZeroDivisionError: division by zero
-
-The error traceback is now correctly formatted, showing the cell number in which the error happened::
-
-    In [1]: def foo():
-    ...:     return 3 / 0
-    ...:
-
-    Input In [2]: foo()
-    ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)
-    input In [2], in <module>
-    ----> 1 foo()
-
-    Input In [1], in foo()
-        1 def foo():
-    ----> 2     return 3 / 0
-
-    ZeroDivisionError: division by zero
 
 Miscellaneous
 ~~~~~~~~~~~~~
-
+ - Non-text formatters are not disabled in terminal which should simplify
+   writing extension displaying images or other mimetypes supporting terminals.
+   :ghpull:`12315`
+ -
+ - It is now possible to automatically insert matching brackets in Terminal IPython using the
+   ``TerminalInteractiveShell.auto_match=True`` option. :ghpull:`12586`
+ - We are thinking of deprecating the current ``%%javascript`` magic in favor of a better replacement. See :ghpull:`13376`
+ - ``%time`` uses ``process_time`` instead of  ``perf_counter``, see :ghpull:`12984`
  - ``~`` is now expanded when part of a path in most magics :ghpull:`13385`
  - ``%/%%timeit`` magic now adds comma every thousands to make reading long number easier :ghpull:`13379`
  - ``"info"`` messages can now be customised to hide some fields :ghpull:`13343`
@@ -390,7 +429,15 @@ Miscellaneous
    now warn users if they use it. :ghpull:`12954`
  - make ``%precision`` work for ``numpy.float64`` type :ghpull:`12902`
 
+Re-added support for XDG config directories
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+XDG support through the years did come an go, there is a tension between having
+identical location in all platforms to have simple instructions. After initial
+failure a couple of years ago IPython was modified to automatically migrate XDG
+config files back into ``~/.ipython``, the migration code has now been removed.
+And IPython now check the XDG locations, so if you _manually_ move your config
+files to your preferred location, IPython will not move them back.
 
 
 Numfocus Small Developer Grant
