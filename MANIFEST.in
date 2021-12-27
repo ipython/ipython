@@ -15,8 +15,6 @@ exclude tools
 exclude CONTRIBUTING.md
 exclude .editorconfig
 
-graft setupext
-
 graft scripts
 
 # Load main dir but exclude things we don't want in the distro
