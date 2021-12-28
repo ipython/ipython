@@ -24,7 +24,6 @@ from setuptools.command.build_py import build_py
 from setuptools.command.install import install
 from setuptools.command.install_scripts import install_scripts
 
-from setupext import install_data_ext
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions
@@ -65,7 +64,6 @@ setup_args = dict(
       author           = author,
       author_email     = author_email,
       license          = license,
-      cmdclass         = {'install_data': install_data_ext},
       )
 
 
