@@ -6,6 +6,7 @@ import sys
 import warnings
 from warnings import warn
 
+from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
 from IPython.utils.py3compat import input
@@ -521,14 +522,14 @@ class TerminalInteractiveShell(InteractiveShell):
         # while/true inside which will freeze the prompt.
 
         policy = asyncio.get_event_loop_policy()
-        try:
-            old_loop = policy.get_event_loop()
-        except RuntimeError:
-            # This happens when the the event loop is closed,
-            # e.g. by calling `asyncio.run()`.
-            old_loop = None
+        old_loop = get_asyncio_loop()
 
-        policy.set_event_loop(self.pt_loop)
+        # FIXME: prompt_toolkit is using the deprecated `asyncio.get_event_loop`
+        # to get the current event loop.
+        # This will probably be replaced by an attribute or input argument,
+        # at which point we can stop calling the soon-to-be-deprecated `set_event_loop` here.
+        if old_loop is not self.pt_loop:
+            policy.set_event_loop(self.pt_loop)
         try:
             with patch_stdout(raw=True):
                 text = self.pt_app.prompt(
@@ -536,7 +537,7 @@ class TerminalInteractiveShell(InteractiveShell):
                     **self._extra_prompt_options())
         finally:
             # Restore the original event loop.
-            if old_loop is not None:
+            if old_loop is not None and old_loop is not self.pt_loop:
                 policy.set_event_loop(old_loop)
 
         return text
@@ -652,7 +653,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 # When we integrate the asyncio event loop, run the UI in the
                 # same event loop as the rest of the code. don't use an actual
                 # input hook. (Asyncio is not made for nesting event loops.)
-                self.pt_loop = asyncio.get_event_loop_policy().get_event_loop()
+                self.pt_loop = get_asyncio_loop()
 
             elif self._inputhook:
                 # If an inputhook was set, create a new asyncio event loop with

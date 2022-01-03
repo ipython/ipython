@@ -970,90 +970,98 @@ def test_script_config():
     assert "whoda" in sm.magics["cell"]
 
 
-@pytest.fixture
-def event_loop():
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    policy.set_event_loop(loop)
-    yield loop
-    loop.close()
-
-
-@dec.skip_win32
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="This test does not run under Windows"
-)
-def test_script_out(event_loop):
-    assert event_loop.is_running() is False
-
+def test_script_out():
     ip = get_ipython()
-    ip.run_cell_magic("script", "--out output sh", "echo 'hi'")
-    assert event_loop.is_running() is False
-    assert ip.user_ns["output"] == "hi\n"
+    ip.run_cell_magic("script", f"--out output {sys.executable}", "print('hi')")
+    assert ip.user_ns["output"].strip() == "hi"
 
 
-@dec.skip_win32
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="This test does not run under Windows"
-)
-def test_script_err(event_loop):
+def test_script_err():
     ip = get_ipython()
-    assert event_loop.is_running() is False
-    ip.run_cell_magic("script", "--err error sh", "echo 'hello' >&2")
-    assert event_loop.is_running() is False
-    assert ip.user_ns["error"] == "hello\n"
+    ip.run_cell_magic(
+        "script",
+        f"--err error {sys.executable}",
+        "import sys; print('hello', file=sys.stderr)",
+    )
+    assert ip.user_ns["error"].strip() == "hello"
 
 
-@dec.skip_win32
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="This test does not run under Windows"
-)
 def test_script_out_err():
 
     ip = get_ipython()
     ip.run_cell_magic(
-        "script", "--out output --err error sh", "echo 'hi'\necho 'hello' >&2"
+        "script",
+        f"--out output --err error {sys.executable}",
+        "\n".join(
+            [
+                "import sys",
+                "print('hi')",
+                "print('hello', file=sys.stderr)",
+            ]
+        ),
     )
-    assert ip.user_ns["output"] == "hi\n"
-    assert ip.user_ns["error"] == "hello\n"
+    assert ip.user_ns["output"].strip() == "hi"
+    assert ip.user_ns["error"].strip() == "hello"
 
 
-@dec.skip_win32
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="This test does not run under Windows"
-)
-async def test_script_bg_out(event_loop):
+async def test_script_bg_out():
     ip = get_ipython()
-    ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
-    assert (await ip.user_ns["output"].read()) == b"hi\n"
-    ip.user_ns["output"].close()
-    event_loop.stop()
+    ip.run_cell_magic("script", f"--bg --out output {sys.executable}", "print('hi')")
+    assert (await ip.user_ns["output"].read()).strip() == b"hi"
+    assert ip.user_ns["output"].at_eof()
 
 
-@dec.skip_win32
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="This test does not run under Windows"
-)
 async def test_script_bg_err():
     ip = get_ipython()
-    ip.run_cell_magic("script", "--bg --err error sh", "echo 'hello' >&2")
-    assert (await ip.user_ns["error"].read()) == b"hello\n"
-    ip.user_ns["error"].close()
+    ip.run_cell_magic(
+        "script",
+        f"--bg --err error {sys.executable}",
+        "import sys; print('hello', file=sys.stderr)",
+    )
+    assert (await ip.user_ns["error"].read()).strip() == b"hello"
+    assert ip.user_ns["error"].at_eof()
 
 
-@dec.skip_win32
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="This test does not run under Windows"
-)
 async def test_script_bg_out_err():
     ip = get_ipython()
     ip.run_cell_magic(
-        "script", "--bg --out output --err error sh", "echo 'hi'\necho 'hello' >&2"
+        "script",
+        f"--bg --out output --err error {sys.executable}",
+        "\n".join(
+            [
+                "import sys",
+                "print('hi')",
+                "print('hello', file=sys.stderr)",
+            ]
+        ),
     )
-    assert (await ip.user_ns["output"].read()) == b"hi\n"
-    assert (await ip.user_ns["error"].read()) == b"hello\n"
-    ip.user_ns["output"].close()
-    ip.user_ns["error"].close()
+    assert (await ip.user_ns["output"].read()).strip() == b"hi"
+    assert (await ip.user_ns["error"].read()).strip() == b"hello"
+    assert ip.user_ns["output"].at_eof()
+    assert ip.user_ns["error"].at_eof()
+
+
+async def test_script_bg_proc():
+    ip = get_ipython()
+    ip.run_cell_magic(
+        "script",
+        f"--bg --out output --proc p {sys.executable}",
+        "\n".join(
+            [
+                "import sys",
+                "print('hi')",
+                "print('hello', file=sys.stderr)",
+            ]
+        ),
+    )
+    p = ip.user_ns["p"]
+    await p.wait()
+    assert p.returncode == 0
+    assert (await p.stdout.read()).strip() == b"hi"
+    # not captured, so empty
+    assert (await p.stderr.read()) == b""
+    assert p.stdout.at_eof()
+    assert p.stderr.at_eof()
 
 
 def test_script_defaults():

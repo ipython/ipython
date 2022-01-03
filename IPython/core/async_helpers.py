@@ -14,32 +14,85 @@ Python semantics.
 import ast
 import asyncio
 import inspect
+from functools import wraps
+
+_asyncio_event_loop = None
+
+
+def get_asyncio_loop():
+    """asyncio has deprecated get_event_loop
+
+    Replicate it here, with our desired semantics:
+
+    - always returns a valid, not-closed loop
+    - not thread-local like asyncio's,
+      because we only want one loop for IPython
+    - if called from inside a coroutine (e.g. in ipykernel),
+      return the running loop
+
+    .. versionadded:: 8.0
+    """
+    try:
+        return asyncio.get_running_loop()
+    except RuntimeError:
+        # not inside a coroutine,
+        # track our own global
+        pass
+
+    # not thread-local like asyncio's,
+    # because we only track one event loop to run for IPython itself,
+    # always in the main thread.
+    global _asyncio_event_loop
+    if _asyncio_event_loop is None or _asyncio_event_loop.is_closed():
+        _asyncio_event_loop = asyncio.new_event_loop()
+    return _asyncio_event_loop
 
 
 class _AsyncIORunner:
-    def __init__(self):
-        self._loop = None
-
-    @property
-    def loop(self):
-        """Always returns a non-closed event loop"""
-        if self._loop is None or self._loop.is_closed():
-            policy = asyncio.get_event_loop_policy()
-            self._loop = policy.new_event_loop()
-            policy.set_event_loop(self._loop)
-        return self._loop
-
     def __call__(self, coro):
         """
         Handler for asyncio autoawait
         """
-        return self.loop.run_until_complete(coro)
+        return get_asyncio_loop().run_until_complete(coro)
 
     def __str__(self):
         return "asyncio"
 
 
 _asyncio_runner = _AsyncIORunner()
+
+
+class _AsyncIOProxy:
+    """Proxy-object for an asyncio
+
+    Any coroutine methods will be wrapped in event_loop.run_
+    """
+
+    def __init__(self, obj, event_loop):
+        self._obj = obj
+        self._event_loop = event_loop
+
+    def __repr__(self):
+        return f"<_AsyncIOProxy({self._obj!r})>"
+
+    def __getattr__(self, key):
+        attr = getattr(self._obj, key)
+        if inspect.iscoroutinefunction(attr):
+            # if it's a coroutine method,
+            # return a threadsafe wrapper onto the _current_ asyncio loop
+            @wraps(attr)
+            def _wrapped(*args, **kwargs):
+                concurrent_future = asyncio.run_coroutine_threadsafe(
+                    attr(*args, **kwargs), self._event_loop
+                )
+                return asyncio.wrap_future(concurrent_future)
+
+            return _wrapped
+        else:
+            return attr
+
+    def __dir__(self):
+        return dir(self._obj)
 
 
 def _curio_runner(coroutine):
