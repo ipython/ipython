@@ -467,9 +467,440 @@ efficient ``pathlib``, and make better use of type annotations.
    :alt: "Meme image of Toy Story with Woody and Buzz, with the text 'pathlib, pathlib everywhere'"
 
 
-We have about 34 PRs only to update some logic tu update some function from managing strings to
+We have about 34 PRs only to update some logic to update some functions from managing strings to
 using Pathlib.
 
 The completer has also seen significant updates and make use of newer Jedi API
 offering faster and more reliable tab completion.
 
+Misc Statistics
+---------------
+
+Here are some numbers:
+
+    7.x: 296 files, 12561 blank lines, 20282 comments, 35142 line of code.
+    8.0: 252 files, 12053 blank lines, 19232 comments, 34505 line of code.
+
+    $ git diff --stat 7.x...master  | tail -1
+    340 files changed, 13399 insertions(+), 12421 deletions(-)
+
+We have commits from 162 authors, who contributed 1916 commits in 23 month, excluding merges to not bias toward
+maintainers pushing buttons.::
+
+   $ git shortlog  -s --no-merges  7.x...master | sort -nr
+   535	Matthias Bussonnier
+    86	Nikita Kniazev
+    69	Blazej Michalik
+    49	Samuel Gaist
+    27	Itamar Turner-Trauring
+    18	Spas Kalaydzhisyki
+    17	Thomas Kluyver
+    17	Quentin Peter
+    17	James Morris
+    17	Artur Svistunov
+    15	Bart Skowron
+    14	Alex Hall
+    13	rushabh-v
+    13	Terry Davis
+    13	Benjamin Ragan-Kelley
+     8	martinRenou
+     8	farisachugthai
+     7	dswij
+     7	Gal B
+     7	Corentin Cadiou
+     6	yuji96
+     6	Martin Skarzynski
+     6	Justin Palmer
+     6	Daniel Goldfarb
+     6	Ben Greiner
+     5	Sammy Al Hashemi
+     5	Paul Ivanov
+     5	Inception95
+     5	Eyenpi
+     5	Douglas Blank
+     5	Coco Mishra
+     5	Bibo Hao
+     5	André A. Gomes
+     5	Ahmed Fasih
+     4	takuya fujiwara
+     4	palewire
+     4	Thomas A Caswell
+     4	Talley Lambert
+     4	Scott Sanderson
+     4	Ram Rachum
+     4	Nick Muoh
+     4	Nathan Goldbaum
+     4	Mithil Poojary
+     4	Michael T
+     4	Jakub Klus
+     4	Ian Castleden
+     4	Eli Rykoff
+     4	Ashwin Vishnu
+     3	谭九鼎
+     3	sleeping
+     3	Sylvain Corlay
+     3	Peter Corke
+     3	Paul Bissex
+     3	Matthew Feickert
+     3	Fernando Perez
+     3	Eric Wieser
+     3	Daniel Mietchen
+     3	Aditya Sathe
+     3	007vedant
+     2	rchiodo
+     2	nicolaslazo
+     2	luttik
+     2	gorogoroumaru
+     2	foobarbyte
+     2	bar-hen
+     2	Theo Ouzhinski
+     2	Strawkage
+     2	Samreen Zarroug
+     2	Pete Blois
+     2	Meysam Azad
+     2	Matthieu Ancellin
+     2	Mark Schmitz
+     2	Maor Kleinberger
+     2	MRCWirtz
+     2	Lumir Balhar
+     2	Julien Rabinow
+     2	Juan Luis Cano Rodríguez
+     2	Joyce Er
+     2	Jakub
+     2	Faris A Chugthai
+     2	Ethan Madden
+     2	Dimitri Papadopoulos
+     2	Diego Fernandez
+     2	Daniel Shimon
+     2	Coco Bennett
+     2	Carlos Cordoba
+     2	Boyuan Liu
+     2	BaoGiang HoangVu
+     2	Augusto
+     2	Arthur Svistunov
+     2	Arthur Moreira
+     2	Ali Nabipour
+     2	Adam Hackbarth
+     1	richard
+     1	linar-jether
+     1	lbennett
+     1	juacrumar
+     1	gpotter2
+     1	digitalvirtuoso
+     1	dalthviz
+     1	Yonatan Goldschmidt
+     1	Tomasz Kłoczko
+     1	Tobias Bengfort
+     1	Timur Kushukov
+     1	Thomas
+     1	Snir Broshi
+     1	Shao Yang Hong
+     1	Sanjana-03
+     1	Romulo Filho
+     1	Rodolfo Carvalho
+     1	Richard Shadrach
+     1	Reilly Tucker Siemens
+     1	Rakessh Roshan
+     1	Piers Titus van der Torren
+     1	PhanatosZou
+     1	Pavel Safronov
+     1	Paulo S. Costa
+     1	Paul McCarthy
+     1	NotWearingPants
+     1	Naelson Douglas
+     1	Michael Tiemann
+     1	Matt Wozniski
+     1	Markus Wageringel
+     1	Marcus Wirtz
+     1	Marcio Mazza
+     1	Lumír 'Frenzy' Balhar
+     1	Lightyagami1
+     1	Leon Anavi
+     1	LeafyLi
+     1	L0uisJ0shua
+     1	Kyle Cutler
+     1	Krzysztof Cybulski
+     1	Kevin Kirsche
+     1	KIU Shueng Chuan
+     1	Jonathan Slenders
+     1	Jay Qi
+     1	Jake VanderPlas
+     1	Iwan Briquemont
+     1	Hussaina Begum Nandyala
+     1	Gordon Ball
+     1	Gabriel Simonetto
+     1	Frank Tobia
+     1	Erik
+     1	Elliott Sales de Andrade
+     1	Daniel Hahler
+     1	Dan Green-Leipciger
+     1	Dan Green
+     1	Damian Yurzola
+     1	Coon, Ethan T
+     1	Carol Willing
+     1	Brian Lee
+     1	Brendan Gerrity
+     1	Blake Griffin
+     1	Bastian Ebeling
+     1	Bartosz Telenczuk
+     1	Ankitsingh6299
+     1	Andrew Port
+     1	Andrew J. Hesford
+     1	Albert Zhang
+     1	Adam Johnson
+
+This does not of course represent non-code contributions.
+
+
+API Changes using Frappuccino
+-----------------------------
+
+This is an experimental exhaustive API difference using `Frappuccino <https://pypi.org/project/frappuccino/>`_
+
+
+The following items are new in IPython 8.0 ::
+
+    + IPython.core.async_helpers.get_asyncio_loop()
+    + IPython.core.completer.Dict
+    + IPython.core.completer.Pattern
+    + IPython.core.completer.Sequence
+    + IPython.core.completer.__skip_doctest__
+    + IPython.core.debugger.Pdb.precmd(self, line)
+    + IPython.core.debugger.__skip_doctest__
+    + IPython.core.display.__getattr__(name)
+    + IPython.core.display.warn
+    + IPython.core.display_functions
+    + IPython.core.display_functions.DisplayHandle
+    + IPython.core.display_functions.DisplayHandle.display(self, obj, **kwargs)
+    + IPython.core.display_functions.DisplayHandle.update(self, obj, **kwargs)
+    + IPython.core.display_functions.__all__
+    + IPython.core.display_functions.__builtins__
+    + IPython.core.display_functions.__cached__
+    + IPython.core.display_functions.__doc__
+    + IPython.core.display_functions.__file__
+    + IPython.core.display_functions.__loader__
+    + IPython.core.display_functions.__name__
+    + IPython.core.display_functions.__package__
+    + IPython.core.display_functions.__spec__
+    + IPython.core.display_functions.b2a_hex
+    + IPython.core.display_functions.clear_output(wait=False)
+    + IPython.core.display_functions.display(*objs, include='None', exclude='None', metadata='None', transient='None', display_id='None', raw=False, clear=False, **kwargs)
+    + IPython.core.display_functions.publish_display_data(data, metadata='None', source='<deprecated>', *, transient='None', **kwargs)
+    + IPython.core.display_functions.update_display(obj, *, display_id, **kwargs)
+    + IPython.core.extensions.BUILTINS_EXTS
+    + IPython.core.inputtransformer2.has_sunken_brackets(tokens)
+    + IPython.core.interactiveshell.Callable
+    + IPython.core.interactiveshell.__annotations__
+    + IPython.core.ultratb.List
+    + IPython.core.ultratb.Tuple
+    + IPython.lib.pretty.CallExpression
+    + IPython.lib.pretty.CallExpression.factory(name)
+    + IPython.lib.pretty.RawStringLiteral
+    + IPython.lib.pretty.RawText
+    + IPython.terminal.debugger.TerminalPdb.do_interact(self, arg)
+    + IPython.terminal.embed.Set
+
+The following items have been removed (or moved to superclass)::
+
+    - IPython.core.application.BaseIPythonApplication.initialize_subcommand
+    - IPython.core.completer.Sentinel
+    - IPython.core.completer.skip_doctest
+    - IPython.core.debugger.Tracer
+    - IPython.core.display.DisplayHandle
+    - IPython.core.display.DisplayHandle.display
+    - IPython.core.display.DisplayHandle.update
+    - IPython.core.display.b2a_hex
+    - IPython.core.display.clear_output
+    - IPython.core.display.display
+    - IPython.core.display.publish_display_data
+    - IPython.core.display.update_display
+    - IPython.core.excolors.Deprec
+    - IPython.core.excolors.ExceptionColors
+    - IPython.core.history.warn
+    - IPython.core.hooks.late_startup_hook
+    - IPython.core.hooks.pre_run_code_hook
+    - IPython.core.hooks.shutdown_hook
+    - IPython.core.interactiveshell.InteractiveShell.init_deprecation_warnings
+    - IPython.core.interactiveshell.InteractiveShell.init_readline
+    - IPython.core.interactiveshell.InteractiveShell.write
+    - IPython.core.interactiveshell.InteractiveShell.write_err
+    - IPython.core.interactiveshell.get_default_colors
+    - IPython.core.interactiveshell.removed_co_newlocals
+    - IPython.core.magics.execution.ExecutionMagics.profile_missing_notice
+    - IPython.core.magics.script.PIPE
+    - IPython.core.prefilter.PrefilterManager.init_transformers
+    - IPython.core.release.classifiers
+    - IPython.core.release.description
+    - IPython.core.release.keywords
+    - IPython.core.release.long_description
+    - IPython.core.release.name
+    - IPython.core.release.platforms
+    - IPython.core.release.url
+    - IPython.core.ultratb.VerboseTB.format_records
+    - IPython.core.ultratb.find_recursion
+    - IPython.core.ultratb.findsource
+    - IPython.core.ultratb.fix_frame_records_filenames
+    - IPython.core.ultratb.inspect_error
+    - IPython.core.ultratb.is_recursion_error
+    - IPython.core.ultratb.with_patch_inspect
+    - IPython.external.__all__
+    - IPython.external.__builtins__
+    - IPython.external.__cached__
+    - IPython.external.__doc__
+    - IPython.external.__file__
+    - IPython.external.__loader__
+    - IPython.external.__name__
+    - IPython.external.__package__
+    - IPython.external.__path__
+    - IPython.external.__spec__
+    - IPython.kernel.KernelConnectionInfo
+    - IPython.kernel.__builtins__
+    - IPython.kernel.__cached__
+    - IPython.kernel.__warningregistry__
+    - IPython.kernel.pkg
+    - IPython.kernel.protocol_version
+    - IPython.kernel.protocol_version_info
+    - IPython.kernel.src
+    - IPython.kernel.version_info
+    - IPython.kernel.warn
+    - IPython.lib.backgroundjobs
+    - IPython.lib.backgroundjobs.BackgroundJobBase
+    - IPython.lib.backgroundjobs.BackgroundJobBase.run
+    - IPython.lib.backgroundjobs.BackgroundJobBase.traceback
+    - IPython.lib.backgroundjobs.BackgroundJobExpr
+    - IPython.lib.backgroundjobs.BackgroundJobExpr.call
+    - IPython.lib.backgroundjobs.BackgroundJobFunc
+    - IPython.lib.backgroundjobs.BackgroundJobFunc.call
+    - IPython.lib.backgroundjobs.BackgroundJobManager
+    - IPython.lib.backgroundjobs.BackgroundJobManager.flush
+    - IPython.lib.backgroundjobs.BackgroundJobManager.new
+    - IPython.lib.backgroundjobs.BackgroundJobManager.remove
+    - IPython.lib.backgroundjobs.BackgroundJobManager.result
+    - IPython.lib.backgroundjobs.BackgroundJobManager.status
+    - IPython.lib.backgroundjobs.BackgroundJobManager.traceback
+    - IPython.lib.backgroundjobs.__builtins__
+    - IPython.lib.backgroundjobs.__cached__
+    - IPython.lib.backgroundjobs.__doc__
+    - IPython.lib.backgroundjobs.__file__
+    - IPython.lib.backgroundjobs.__loader__
+    - IPython.lib.backgroundjobs.__name__
+    - IPython.lib.backgroundjobs.__package__
+    - IPython.lib.backgroundjobs.__spec__
+    - IPython.lib.kernel.__builtins__
+    - IPython.lib.kernel.__cached__
+    - IPython.lib.kernel.__doc__
+    - IPython.lib.kernel.__file__
+    - IPython.lib.kernel.__loader__
+    - IPython.lib.kernel.__name__
+    - IPython.lib.kernel.__package__
+    - IPython.lib.kernel.__spec__
+    - IPython.lib.kernel.__warningregistry__
+    - IPython.paths.fs_encoding
+    - IPython.terminal.debugger.DEFAULT_BUFFER
+    - IPython.terminal.debugger.cursor_in_leading_ws
+    - IPython.terminal.debugger.emacs_insert_mode
+    - IPython.terminal.debugger.has_selection
+    - IPython.terminal.debugger.vi_insert_mode
+    - IPython.terminal.interactiveshell.DISPLAY_BANNER_DEPRECATED
+    - IPython.terminal.ipapp.TerminalIPythonApp.parse_command_line
+    - IPython.testing.test
+    - IPython.utils.contexts.NoOpContext
+    - IPython.utils.io.IOStream
+    - IPython.utils.io.IOStream.close
+    - IPython.utils.io.IOStream.write
+    - IPython.utils.io.IOStream.writelines
+    - IPython.utils.io.__warningregistry__
+    - IPython.utils.io.atomic_writing
+    - IPython.utils.io.stderr
+    - IPython.utils.io.stdin
+    - IPython.utils.io.stdout
+    - IPython.utils.io.unicode_std_stream
+    - IPython.utils.path.get_ipython_cache_dir
+    - IPython.utils.path.get_ipython_dir
+    - IPython.utils.path.get_ipython_module_path
+    - IPython.utils.path.get_ipython_package_dir
+    - IPython.utils.path.locate_profile
+    - IPython.utils.path.unquote_filename
+    - IPython.utils.py3compat.PY2
+    - IPython.utils.py3compat.PY3
+    - IPython.utils.py3compat.buffer_to_bytes
+    - IPython.utils.py3compat.builtin_mod_name
+    - IPython.utils.py3compat.cast_bytes
+    - IPython.utils.py3compat.getcwd
+    - IPython.utils.py3compat.isidentifier
+    - IPython.utils.py3compat.u_format
+
+The following signatures differ between 7.x and 8.0::
+
+    - IPython.core.completer.IPCompleter.unicode_name_matches(self, text)
+    + IPython.core.completer.IPCompleter.unicode_name_matches(text)
+
+    - IPython.core.completer.match_dict_keys(keys, prefix, delims)
+    + IPython.core.completer.match_dict_keys(keys, prefix, delims, extra_prefix='None')
+
+    - IPython.core.interactiveshell.InteractiveShell.object_inspect_mime(self, oname, detail_level=0)
+    + IPython.core.interactiveshell.InteractiveShell.object_inspect_mime(self, oname, detail_level=0, omit_sections='()')
+
+    - IPython.core.interactiveshell.InteractiveShell.set_hook(self, name, hook, priority=50, str_key='None', re_key='None', _warn_deprecated=True)
+    + IPython.core.interactiveshell.InteractiveShell.set_hook(self, name, hook, priority=50, str_key='None', re_key='None')
+
+    - IPython.core.oinspect.Inspector.info(self, obj, oname='', formatter='None', info='None', detail_level=0)
+    + IPython.core.oinspect.Inspector.info(self, obj, oname='', info='None', detail_level=0)
+
+    - IPython.core.oinspect.Inspector.pinfo(self, obj, oname='', formatter='None', info='None', detail_level=0, enable_html_pager=True)
+    + IPython.core.oinspect.Inspector.pinfo(self, obj, oname='', formatter='None', info='None', detail_level=0, enable_html_pager=True, omit_sections='()')
+
+    - IPython.core.profiledir.ProfileDir.copy_config_file(self, config_file, path='None', overwrite=False)
+    + IPython.core.profiledir.ProfileDir.copy_config_file(self, config_file, path, overwrite=False)
+
+    - IPython.core.ultratb.VerboseTB.format_record(self, frame, file, lnum, func, lines, index)
+    + IPython.core.ultratb.VerboseTB.format_record(self, frame_info)
+
+    - IPython.terminal.embed.InteractiveShellEmbed.mainloop(self, local_ns='None', module='None', stack_depth=0, display_banner='None', global_ns='None', compile_flags='None')
+    + IPython.terminal.embed.InteractiveShellEmbed.mainloop(self, local_ns='None', module='None', stack_depth=0, compile_flags='None')
+
+    - IPython.terminal.embed.embed(**kwargs)
+    + IPython.terminal.embed.embed(*, header='', compile_flags='None', **kwargs)
+
+    - IPython.terminal.interactiveshell.TerminalInteractiveShell.interact(self, display_banner='<object object at 0xffffff>')
+    + IPython.terminal.interactiveshell.TerminalInteractiveShell.interact(self)
+
+    - IPython.terminal.interactiveshell.TerminalInteractiveShell.mainloop(self, display_banner='<object object at 0xffffff>')
+    + IPython.terminal.interactiveshell.TerminalInteractiveShell.mainloop(self)
+
+    - IPython.utils.path.get_py_filename(name, force_win32='None')
+    + IPython.utils.path.get_py_filename(name)
+
+The following are new attributes (that might be inherited)::
+
+    + IPython.core.completer.IPCompleter.unicode_names
+    + IPython.core.debugger.InterruptiblePdb.precmd
+    + IPython.core.debugger.Pdb.precmd
+    + IPython.core.ultratb.AutoFormattedTB.has_colors
+    + IPython.core.ultratb.ColorTB.has_colors
+    + IPython.core.ultratb.FormattedTB.has_colors
+    + IPython.core.ultratb.ListTB.has_colors
+    + IPython.core.ultratb.SyntaxTB.has_colors
+    + IPython.core.ultratb.TBTools.has_colors
+    + IPython.core.ultratb.VerboseTB.has_colors
+    + IPython.terminal.debugger.TerminalPdb.do_interact
+    + IPython.terminal.debugger.TerminalPdb.precmd
+
+The following attribute/methods have been removed::
+
+    - IPython.core.application.BaseIPythonApplication.deprecated_subcommands
+    - IPython.core.ultratb.AutoFormattedTB.format_records
+    - IPython.core.ultratb.ColorTB.format_records
+    - IPython.core.ultratb.FormattedTB.format_records
+    - IPython.terminal.embed.InteractiveShellEmbed.init_deprecation_warnings
+    - IPython.terminal.embed.InteractiveShellEmbed.init_readline
+    - IPython.terminal.embed.InteractiveShellEmbed.write
+    - IPython.terminal.embed.InteractiveShellEmbed.write_err
+    - IPython.terminal.interactiveshell.TerminalInteractiveShell.init_deprecation_warnings
+    - IPython.terminal.interactiveshell.TerminalInteractiveShell.init_readline
+    - IPython.terminal.interactiveshell.TerminalInteractiveShell.write
+    - IPython.terminal.interactiveshell.TerminalInteractiveShell.write_err
+    - IPython.terminal.ipapp.LocateIPythonApp.deprecated_subcommands
+    - IPython.terminal.ipapp.LocateIPythonApp.initialize_subcommand
+    - IPython.terminal.ipapp.TerminalIPythonApp.deprecated_subcommands
+    - IPython.terminal.ipapp.TerminalIPythonApp.initialize_subcommand
