@@ -38,7 +38,9 @@ way we don't block the UI of for instance ``turtle`` and other Tk libraries.
 in readline. ``prompt-toolkit`` doesn't understand that input hook, but this
 will fix it for Tk.)
 """
+import sys
 import time
+import select
 
 import _tkinter
 import tkinter
@@ -51,30 +53,21 @@ def inputhook(inputhook_context):
     # Get the current TK application.
     root = tkinter._default_root
 
-    def wait_using_filehandler():
+    def wait_using_select():
         """
-        Run the TK eventloop until the file handler that we got from the
-        inputhook becomes readable.
+        Run the Tk eventloop until the file that we got from the
+        inputhook context becomes readable.
         """
-        # Add a handler that sets the stop flag when `prompt-toolkit` has input
-        # to process.
-        stop = [False]
-        def done(*a):
-            stop[0] = True
-
-        root.createfilehandler(inputhook_context.fileno(), _tkinter.READABLE, done)
-
         # Run the TK event loop as long as we don't receive input.
-        while root.dooneevent(_tkinter.ALL_EVENTS):
-            if stop[0]:
+        while True:
+            while root.dooneevent(_tkinter.ALL_EVENTS | _tkinter.DONT_WAIT):
+                pass
+            if select.select([inputhook_context.fileno()], [], [], 0):
                 break
-
-        root.deletefilehandler(inputhook_context.fileno())
 
     def wait_using_polling():
         """
-        Windows TK doesn't support 'createfilehandler'.
-        So, run the TK eventloop and poll until input is ready.
+        For Windows, run the Tk eventloop and poll until input is ready.
         """
         while not inputhook_context.input_is_ready():
             while root.dooneevent(_tkinter.ALL_EVENTS | _tkinter.DONT_WAIT):
@@ -84,7 +77,7 @@ def inputhook(inputhook_context):
             time.sleep(.01)
 
     if root is not None:
-        if hasattr(root, 'createfilehandler'):
-            wait_using_filehandler()
-        else:
+        if sys.platform == "win32":
             wait_using_polling()
+        else:
+            wait_using_select()
