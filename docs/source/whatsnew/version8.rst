@@ -467,9 +467,187 @@ efficient ``pathlib``, and make better use of type annotations.
    :alt: "Meme image of Toy Story with Woody and Buzz, with the text 'pathlib, pathlib everywhere'"
 
 
-We have about 34 PRs only to update some logic tu update some function from managing strings to
+We have about 34 PRs only to update some logic to update some functions from managing strings to
 using Pathlib.
 
 The completer has also seen significant updates and make use of newer Jedi API
 offering faster and more reliable tab completion.
+
+Misc Statistics
+---------------
+
+Here are some numbers:
+
+    7.x: 296 files, 12561 blank lines, 20282 comments, 35142 line of code.
+    8.0: 252 files, 12053 blank lines, 19232 comments, 34505 line of code.
+
+    $ git diff --stat 7.x...master  | tail -1
+    340 files changed, 13399 insertions(+), 12421 deletions(-)
+
+We have commits from 162 authors, who contributed 1916 commits in 23 month, excluding merges to not bias toward
+maintainers pushing buttons.::
+
+   $ git shortlog  -s --no-merges  7.x...master | sort -nr
+   535	Matthias Bussonnier
+    86	Nikita Kniazev
+    69	Blazej Michalik
+    49	Samuel Gaist
+    27	Itamar Turner-Trauring
+    18	Spas Kalaydzhisyki
+    17	Thomas Kluyver
+    17	Quentin Peter
+    17	James Morris
+    17	Artur Svistunov
+    15	Bart Skowron
+    14	Alex Hall
+    13	rushabh-v
+    13	Terry Davis
+    13	Benjamin Ragan-Kelley
+     8	martinRenou
+     8	farisachugthai
+     7	dswij
+     7	Gal B
+     7	Corentin Cadiou
+     6	yuji96
+     6	Martin Skarzynski
+     6	Justin Palmer
+     6	Daniel Goldfarb
+     6	Ben Greiner
+     5	Sammy Al Hashemi
+     5	Paul Ivanov
+     5	Inception95
+     5	Eyenpi
+     5	Douglas Blank
+     5	Coco Mishra
+     5	Bibo Hao
+     5	André A. Gomes
+     5	Ahmed Fasih
+     4	takuya fujiwara
+     4	palewire
+     4	Thomas A Caswell
+     4	Talley Lambert
+     4	Scott Sanderson
+     4	Ram Rachum
+     4	Nick Muoh
+     4	Nathan Goldbaum
+     4	Mithil Poojary
+     4	Michael T
+     4	Jakub Klus
+     4	Ian Castleden
+     4	Eli Rykoff
+     4	Ashwin Vishnu
+     3	谭九鼎
+     3	sleeping
+     3	Sylvain Corlay
+     3	Peter Corke
+     3	Paul Bissex
+     3	Matthew Feickert
+     3	Fernando Perez
+     3	Eric Wieser
+     3	Daniel Mietchen
+     3	Aditya Sathe
+     3	007vedant
+     2	rchiodo
+     2	nicolaslazo
+     2	luttik
+     2	gorogoroumaru
+     2	foobarbyte
+     2	bar-hen
+     2	Theo Ouzhinski
+     2	Strawkage
+     2	Samreen Zarroug
+     2	Pete Blois
+     2	Meysam Azad
+     2	Matthieu Ancellin
+     2	Mark Schmitz
+     2	Maor Kleinberger
+     2	MRCWirtz
+     2	Lumir Balhar
+     2	Julien Rabinow
+     2	Juan Luis Cano Rodríguez
+     2	Joyce Er
+     2	Jakub
+     2	Faris A Chugthai
+     2	Ethan Madden
+     2	Dimitri Papadopoulos
+     2	Diego Fernandez
+     2	Daniel Shimon
+     2	Coco Bennett
+     2	Carlos Cordoba
+     2	Boyuan Liu
+     2	BaoGiang HoangVu
+     2	Augusto
+     2	Arthur Svistunov
+     2	Arthur Moreira
+     2	Ali Nabipour
+     2	Adam Hackbarth
+     1	richard
+     1	linar-jether
+     1	lbennett
+     1	juacrumar
+     1	gpotter2
+     1	digitalvirtuoso
+     1	dalthviz
+     1	Yonatan Goldschmidt
+     1	Tomasz Kłoczko
+     1	Tobias Bengfort
+     1	Timur Kushukov
+     1	Thomas
+     1	Snir Broshi
+     1	Shao Yang Hong
+     1	Sanjana-03
+     1	Romulo Filho
+     1	Rodolfo Carvalho
+     1	Richard Shadrach
+     1	Reilly Tucker Siemens
+     1	Rakessh Roshan
+     1	Piers Titus van der Torren
+     1	PhanatosZou
+     1	Pavel Safronov
+     1	Paulo S. Costa
+     1	Paul McCarthy
+     1	NotWearingPants
+     1	Naelson Douglas
+     1	Michael Tiemann
+     1	Matt Wozniski
+     1	Markus Wageringel
+     1	Marcus Wirtz
+     1	Marcio Mazza
+     1	Lumír 'Frenzy' Balhar
+     1	Lightyagami1
+     1	Leon Anavi
+     1	LeafyLi
+     1	L0uisJ0shua
+     1	Kyle Cutler
+     1	Krzysztof Cybulski
+     1	Kevin Kirsche
+     1	KIU Shueng Chuan
+     1	Jonathan Slenders
+     1	Jay Qi
+     1	Jake VanderPlas
+     1	Iwan Briquemont
+     1	Hussaina Begum Nandyala
+     1	Gordon Ball
+     1	Gabriel Simonetto
+     1	Frank Tobia
+     1	Erik
+     1	Elliott Sales de Andrade
+     1	Daniel Hahler
+     1	Dan Green-Leipciger
+     1	Dan Green
+     1	Damian Yurzola
+     1	Coon, Ethan T
+     1	Carol Willing
+     1	Brian Lee
+     1	Brendan Gerrity
+     1	Blake Griffin
+     1	Bastian Ebeling
+     1	Bartosz Telenczuk
+     1	Ankitsingh6299
+     1	Andrew Port
+     1	Andrew J. Hesford
+     1	Albert Zhang
+     1	Adam Johnson
+
+This does not of course represent non-code contributions.
 
