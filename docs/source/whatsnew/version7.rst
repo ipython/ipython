@@ -2,6 +2,30 @@
  7.x Series
 ============
 
+
+.. _version 7.31:
+
+IPython 7.31
+============
+
+IPython 7.31 brings a couple of backports and fixes from the 8.0 branches,
+it is likely one of the last releases of the 7.x series, as 8.0 will probably be released
+between this release and what would have been 7.32.
+
+Please test 8.0 beta/rc releases in addition to this release.
+
+This Releases:
+ - Backport some fixes for Python 3.10 (:ghpull:`13412`)
+ - use full-alpha transparency on dvipng rendered LaTeX (:ghpull:`13372`)
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/95>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 7.30:
 
 IPython 7.30
