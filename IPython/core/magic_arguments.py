@@ -37,7 +37,6 @@ arguments::
           -o OPTION, --option OPTION
                                 An optional argument.
 
-
 Here is an elaborated example that uses default parameters in `argument` and calls the `args` in the cell magic::
 
     from IPython.core.magic import register_cell_magic
@@ -69,7 +68,6 @@ In a jupyter notebook, this cell magic can be executed like this::
     %%my_cell_magic -o Hello
     print("bar")
     i = 42
-
 
 Inheritance diagram:
 
