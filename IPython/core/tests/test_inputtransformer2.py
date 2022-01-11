@@ -292,6 +292,7 @@ def test_check_complete_param(code, expected, number):
     assert cc(code) == (expected, number)
 
 
+@pytest.mark.xfail(platform.python_implementation() == "PyPy", reason="fail on pypy")
 @pytest.mark.xfail(
     reason="Bug in python 3.9.8 – bpo 45738",
     condition=sys.version_info in [(3, 9, 8, "final", 0), (3, 11, 0, "alpha", 2)],
@@ -320,7 +321,7 @@ def test_check_complete():
     assert cc("def f():\n  x=0\n  \\\n  ") == ("incomplete", 2)
 
 
-@pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="fail on pypy")
+@pytest.mark.xfail(platform.python_implementation() == "PyPy", reason="fail on pypy")
 @pytest.mark.parametrize(
     "value, expected",
     [
