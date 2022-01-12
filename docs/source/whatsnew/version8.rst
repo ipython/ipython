@@ -64,7 +64,7 @@ which was just a shim module around ``ipykernel`` for the past 8 years have been
 remove, and so many other similar things that pre-date the name **Jupyter**
 itself.
 
-We no longer need to add ``IPyhton.extensions`` to the PYTHONPATH because that is being
+We no longer need to add ``IPython.extensions`` to the PYTHONPATH because that is being
 handled by ``load_extension``.
 
 We are also removing ``Cythonmagic``, ``sympyprinting`` and ``rmagic`` as they are now in
