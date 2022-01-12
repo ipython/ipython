@@ -80,7 +80,7 @@ def test_columnize_random():
             )
 
 
-@pytest.mark.parametrize('row_first', [True, False])
+@pytest.mark.parametrize("row_first", [True, False])
 def test_columnize_medium(row_first):
     """Test with inputs than shouldn't be wider than 80"""
     size = 40
@@ -89,7 +89,7 @@ def test_columnize_medium(row_first):
     assert out == "\n".join(items + [""]), "row_first={0}".format(row_first)
 
 
-@pytest.mark.parametrize('row_first', [True, False])
+@pytest.mark.parametrize("row_first", [True, False])
 def test_columnize_long(row_first):
     """Test columnize with inputs longer than the display window"""
     size = 11
