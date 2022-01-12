@@ -48,7 +48,7 @@ or have been turned into explicit errors for better error messages.
 I will use this occasion to add the following requests to anyone emitting a
 deprecation warning:
 
- - Please use at least ``stacklevel=2`` so that the warning is emitted into the
+ - Please add at least ``stacklevel=2`` so that the warning is emitted into the
    caller context, and not the callee one.
  - Please add **since which version** something is deprecated.
 
