@@ -47,33 +47,11 @@ def get_auth_token():
     if token is not None:
         return token
 
-    print("Please enter your github username and password. These are not "
-          "stored, only used to get an oAuth token. You can revoke this at "
-          "any time on Github.\n"
-          "Username: ", file=sys.stderr, end='')
-    user = input('')
-    pw = getpass.getpass("Password: ", stream=sys.stderr)
+    print(
+        "Get a token fom https://github.com/settings/tokens with public repo and gist."
+    )
+    token = getpass.getpass("Token: ", stream=sys.stderr)
 
-    auth_request = {
-      "scopes": [
-        "public_repo",
-        "gist"
-      ],
-      "note": "IPython tools %s" % socket.gethostname(),
-      "note_url": "https://github.com/ipython/ipython/tree/master/tools",
-    }
-    response = requests.post('https://api.github.com/authorizations',
-                            auth=(user, pw), data=json.dumps(auth_request))
-    if response.status_code == 401 and \
-            'required;' in response.headers.get('X-GitHub-OTP', ''):
-        print("Your login API requested a one time password", file=sys.stderr)
-        otp = getpass.getpass("One Time Password: ", stream=sys.stderr)
-        response = requests.post('https://api.github.com/authorizations',
-                            auth=(user, pw), 
-                            data=json.dumps(auth_request),
-                            headers={'X-GitHub-OTP':otp})
-    response.raise_for_status()
-    token = json.loads(response.text)['token']
     keyring.set_password('github', fake_username, token)
     return token
 
