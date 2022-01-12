@@ -406,13 +406,15 @@ class TestShellGlob(unittest.TestCase):
             self.check_match(patterns, matches)
 
 
-# TODO : pytest.mark.parametrise once nose is gone.
-def test_unescape_glob():
-    assert path.unescape_glob(r"\*\[\!\]\?") == "*[!]?"
-    assert path.unescape_glob(r"\\*") == r"\*"
-    assert path.unescape_glob(r"\\\*") == r"\*"
-    assert path.unescape_glob(r"\\a") == r"\a"
-    assert path.unescape_glob(r"\a") == r"\a"
+@pytest.mark.parametrize('globstr, unescaped_globstr', [
+    (r"\*\[\!\]\?", "*[!]?"),
+    (r"\\*", r"\*"),
+    (r"\\\*", r"\*"),
+    (r"\\a", r"\a"),
+    (r"\a", r"\a")
+])
+def test_unescape_glob(globstr, unescaped_globstr):
+    assert path.unescape_glob(globstr) == unescaped_globstr
 
 
 @onlyif_unicode_paths
