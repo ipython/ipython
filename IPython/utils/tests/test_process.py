@@ -56,35 +56,33 @@ def test_find_cmd_fail():
     pytest.raises(FindCmdError, find_cmd, "asdfasdf")
 
 
-# TODO: move to pytest.mark.parametrize once nose gone
 @dec.skip_win32
-def test_arg_split():
+@pytest.mark.parametrize('argstr, argv', [
+    ('hi', ['hi']),
+    (u'hi', [u'hi']),
+    ('hello there', ['hello', 'there']),
+    # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
+    # Do not use \N because the tests crash with syntax error in
+    # some cases, for example windows python2.6.
+    (u'h\u01cello', [u'h\u01cello']),
+    ('something "with quotes"', ['something', '"with quotes"']),
+])
+def test_arg_split(argstr, argv):
     """Ensure that argument lines are correctly split like in a shell."""
-    tests = [['hi', ['hi']],
-             [u'hi', [u'hi']],
-             ['hello there', ['hello', 'there']],
-             # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
-             # Do not use \N because the tests crash with syntax error in
-             # some cases, for example windows python2.6.
-             [u'h\u01cello', [u'h\u01cello']],
-             ['something "with quotes"', ['something', '"with quotes"']],
-             ]
-    for argstr, argv in tests:
-        assert arg_split(argstr) == argv
+    assert arg_split(argstr) == argv
 
 
-# TODO: move to pytest.mark.parametrize once nose gone
 @dec.skip_if_not_win32
-def test_arg_split_win32():
+@pytest.mark.parametrize('argstr,argv', [
+    ('hi', ['hi']),
+    (u'hi', [u'hi']),
+    ('hello there', ['hello', 'there']),
+    (u'h\u01cello', [u'h\u01cello']),
+    ('something "with quotes"', ['something', 'with quotes']),
+])
+def test_arg_split_win32(argstr, argv):
     """Ensure that argument lines are correctly split like in a shell."""
-    tests = [['hi', ['hi']],
-             [u'hi', [u'hi']],
-             ['hello there', ['hello', 'there']],
-             [u'h\u01cello', [u'h\u01cello']],
-             ['something "with quotes"', ['something', 'with quotes']],
-             ]
-    for argstr, argv in tests:
-        assert arg_split(argstr) == argv
+    assert arg_split(argstr) == argv
 
 
 class SubProcessTestCase(tt.TempFileMixin):
