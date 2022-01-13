@@ -266,8 +266,8 @@ collections.defaultdict1
 """
 
 nameerror_file = """
-foo = 1
-print(fooa)
+myfoo = 1
+print(myfooa)
 """
 
 
@@ -290,7 +290,7 @@ class ErrorSuggestionTest(unittest.TestCase):
 
     def test_name_error_suggestion(self):
         suggestion = (
-            "NameError: NameError: name 'fooa' is not defined. Did you mean: 'foo'?"
+            "NameError: NameError: name 'myfooa' is not defined. Did you mean: 'myfoo'?"
         )
         with tt.AssertPrints("NameError"):
             with tt.AssertPrints(suggestion, suppress=False):
