@@ -11,6 +11,8 @@ from textwrap import dedent
 import traceback
 import unittest
 
+import pytest
+
 from IPython.core.ultratb import ColorTB, VerboseTB
 
 
@@ -53,24 +55,24 @@ def recursionlimit(frames):
 class ChangedPyFileTest(unittest.TestCase):
     def test_changing_py_file(self):
         """Traceback produced if the line where the error occurred is missing?
-        
+
         https://github.com/ipython/ipython/issues/1456
         """
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
             with open(fname, "w") as f:
                 f.write(file_1)
-            
+
             with prepended_to_syspath(td):
                 ip.run_cell("import foo")
-            
+
             with tt.AssertPrints("ZeroDivisionError"):
                 ip.run_cell("foo.f()")
-            
+
             # Make the file shorter, so the line of the error is missing.
             with open(fname, "w") as f:
                 f.write(file_2)
-            
+
             # For some reason, this was failing on the *second* call after
             # changing the file, so we call f() twice.
             with tt.AssertNotPrints("Internal Python error", channel='stderr'):
@@ -94,27 +96,27 @@ class NonAsciiTest(unittest.TestCase):
             fname = os.path.join(td, u"fooé.py")
             with open(fname, "w") as f:
                 f.write(file_1)
-            
+
             with prepended_to_syspath(td):
                 ip.run_cell("import foo")
-            
+
             with tt.AssertPrints("ZeroDivisionError"):
                 ip.run_cell("foo.f()")
-    
+
     def test_iso8859_5(self):
         with TemporaryDirectory() as td:
             fname = os.path.join(td, 'dfghjkl.py')
 
             with io.open(fname, 'w', encoding='iso-8859-5') as f:
                 f.write(iso_8859_5_file)
-            
+
             with prepended_to_syspath(td):
                 ip.run_cell("from dfghjkl import fail")
-            
+
             with tt.AssertPrints("ZeroDivisionError"):
                 with tt.AssertPrints(u'дбИЖ', suppress=False):
                     ip.run_cell('fail()')
-    
+
     def test_nonascii_msg(self):
         cell = u"raise Exception('é')"
         expected = u"Exception('é')"
@@ -169,12 +171,12 @@ class IndentationErrorTest(unittest.TestCase):
         with tt.AssertPrints("IndentationError"):
             with tt.AssertPrints("zoon()", suppress=False):
                 ip.run_cell(indentationerror_file)
-        
+
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
             with open(fname, "w") as f:
                 f.write(indentationerror_file)
-            
+
             with tt.AssertPrints("IndentationError"):
                 with tt.AssertPrints("zoon()", suppress=False):
                     ip.magic('run %s' % fname)
@@ -255,6 +257,53 @@ if sys.version_info < (3, 9) and platform.python_implementation() != "PyPy":
             memoryerror_code = "(" * 200 + ")" * 200
             with tt.AssertPrints("MemoryError"):
                 ip.run_cell(memoryerror_code)
+
+
+attributeerror_file = """
+import collections
+
+collections.defaultdict1
+"""
+
+nameerror_file = """
+foo = 1
+print(fooa)
+"""
+
+
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10")
+class ErrorSuggestionTest(unittest.TestCase):
+    def test_attribute_error_suggestion(self):
+        suggestion = "AttributeError: AttributeError: module 'collections' has no attribute 'defaultdict1'. Did you mean: 'defaultdict'"
+        with tt.AssertPrints("AttributeError"):
+            with tt.AssertPrints(suggestion, suppress=False):
+                ip.run_cell(attributeerror_file)
+
+        with TemporaryDirectory() as td:
+            fname = os.path.join(td, "foo.py")
+            with open(fname, "w") as f:
+                f.write(attributeerror_file)
+
+            with tt.AssertPrints("AttributeError"):
+                with tt.AssertPrints(suggestion, suppress=False):
+                    ip.magic("run %s" % fname)
+
+    def test_name_error_suggestion(self):
+        suggestion = (
+            "NameError: NameError: name 'fooa' is not defined. Did you mean: 'foo'?"
+        )
+        with tt.AssertPrints("NameError"):
+            with tt.AssertPrints(suggestion, suppress=False):
+                ip.run_cell(nameerror_file)
+
+        with TemporaryDirectory() as td:
+            fname = os.path.join(td, "foo.py")
+            with open(fname, "w") as f:
+                f.write(nameerror_file)
+
+            with tt.AssertPrints("NameError"):
+                with tt.AssertPrints(suggestion, suppress=False):
+                    ip.magic("run %s" % fname)
 
 
 class Python3ChainedExceptionsTest(unittest.TestCase):

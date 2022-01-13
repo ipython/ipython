@@ -89,7 +89,9 @@ Inheritance diagram:
 #*****************************************************************************
 
 
+import contextlib
 import inspect
+import io
 import linecache
 import pydoc
 import sys
@@ -759,6 +761,22 @@ class VerboseTB(TBTools):
         return ['%s%s%s: %s' % (colors.excName, etype_str,
                                 colorsnormal, py3compat.cast_unicode(evalue_str))]
 
+
+    def _get_suggestions(
+        self, typ: type, exc: BaseException, tb: TracebackType
+    ) -> List[str]:
+        """Return suggestions for exception in Python 3.10"""
+        if sys.version_info < (3, 10):
+            return []
+
+        if typ in (AttributeError, NameError):
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                sys.__excepthook__(typ, exc, tb)
+            return [err.getvalue().split("\n")[-2] + "\n"]
+        else:
+            return []
+
     def format_exception_as_a_whole(
         self,
         etype: type,
@@ -780,6 +798,7 @@ class VerboseTB(TBTools):
         except AttributeError:
             pass
 
+        suggestions = self._get_suggestions(orig_etype, evalue, etb)
         tb_offset = self.tb_offset if tb_offset is None else tb_offset
         assert isinstance(tb_offset, int)
         head = self.prepare_header(etype, self.long_header)
@@ -810,7 +829,10 @@ class VerboseTB(TBTools):
                 % (Colors.excName, skipped, ColorsNormal)
             )
 
-        formatted_exception = self.format_exception(etype, evalue)
+        if suggestions:
+            formatted_exception = self.format_exception(etype, suggestions[0])
+        else:
+            formatted_exception = self.format_exception(etype, evalue)
         if records:
             frame_info = records[-1]
             ipinst = get_ipython()
