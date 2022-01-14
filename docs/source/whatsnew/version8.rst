@@ -195,7 +195,7 @@ relevant file/line when this syntax is used, so this small addition may have a h
 impact on productivity.
 
 
-Autosuggestons
+Autosuggestions
 ~~~~~~~~~~~~~~
 
 Autosuggestion is a very useful feature available in `fish <https://fishshell.com/>`__, `zsh <https://en.wikipedia.org/wiki/Z_shell>`__, and `prompt-toolkit <https://python-prompt-toolkit.readthedocs.io/en/master/pages/asking_for_input.html#auto-suggestion>`__.
