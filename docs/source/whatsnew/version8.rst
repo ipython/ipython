@@ -13,9 +13,8 @@ The 8.x branch started diverging from its predecessor around IPython 7.12
 (January 2020).
 
 This release contains 250+ pull requests, in addition to many of the features
-and backports that have made it to the 7.x branch. All PRs that went into this
-released are properly tagged with the 8.0 milestone if you wish to have a more
-in depth look at the changes.
+and backports that have made it to the 7.x branch. Please see the 
+`8.0 milestone <https://github.com/ipython/ipython/milestone/73?closed=1>`__ for the full list of pull requests.
 
 Please fell free to send pull requests to updates those notes after release, 
 I have likely forgotten a few things reviewing 250+ PRs.
@@ -61,7 +60,7 @@ which was just a shim module around ``ipykernel`` for the past 8 years, have bee
 removed, and so many other similar things that pre-date the name **Jupyter**
 itself.
 
-We no longer need to add ``IPyhton.extensions`` to the PYTHONPATH because that is being
+We no longer need to add ``IPython.extensions`` to the PYTHONPATH because that is being
 handled by ``load_extension``.
 
 We are also removing ``Cythonmagic``, ``sympyprinting`` and ``rmagic`` as they are now in
