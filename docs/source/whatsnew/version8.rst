@@ -5,9 +5,6 @@
 IPython 8.0
 -----------
 
-IPython 8.0 is still in alpha/beta stage. Please help us improve those release notes
-by sending PRs that modify docs/source/whatsnew/version8.rst
-
 IPython 8.0 is bringing a large number of new features and improvements to both the
 user of the terminal and of the kernel via Jupyter. The removal of compatibility
 with older version of Python is also the opportunity to do a couple of
@@ -15,24 +12,24 @@ performance improvement in particular with respect to startup time.
 The 8.x branch started diverging from its predecessor around IPython 7.12
 (January 2020).
 
-This release contains 250+ Pull Requests, in addition to many of the features
+This release contains 250+ pull requests, in addition to many of the features
 and backports that have made it to the 7.x branch. All PRs that went into this
 released are properly tagged with the 8.0 milestone if you wish to have a more
 in depth look at the changes.
 
-Please fell free to send pull-requests to updates those notes after release, 
+Please fell free to send pull requests to updates those notes after release, 
 I have likely forgotten a few things reviewing 250+ PRs.
 
 Dependencies changes/downstream packaging
 -----------------------------------------
 
-Note that most of our building step have been changes to be (mostly) declarative
-and follow PEP 517, we are trying to completely remove ``setup.py`` (:ghpull:`13238`) and are
+Most of our building steps have been changed to be (mostly) declarative
+and follow PEP 517. We are trying to completely remove ``setup.py`` (:ghpull:`13238`) and are
 looking for help to do so.
 
- - Minimum supported ``traitlets`` version if now 5+
+ - minimum supported ``traitlets`` version is now 5+
  - we now require ``stack_data``
- - Minimal Python is now 3.8
+ - minimal Python is now 3.8
  - ``nose`` is not a testing requirement anymore
  - ``pytest`` replaces nose.
  - ``iptest``/``iptest3`` cli entrypoints do not exists anymore. 
@@ -44,24 +41,24 @@ Deprecation and removal
 -----------------------
 
 We removed almost all features, arguments, functions, and modules that were
-marked as deprecated between IPython 1.0 and 5.0. As reminder 5.0 was released
-in 2016, and 1.0 in 2013. Last release of the 5 branch was 5.10.0, in may 2020.
+marked as deprecated between IPython 1.0 and 5.0. As a reminder, 5.0 was released
+in 2016, and 1.0 in 2013. Last release of the 5 branch was 5.10.0, in May 2020.
 The few remaining deprecated features we left have better deprecation warnings
 or have been turned into explicit errors for better error messages.
 
 I will use this occasion to add the following requests to anyone emitting a
 deprecation warning:
 
- - Please at at least ``stacklevel=2`` so that the warning is emitted into the
+ - Please use at least ``stacklevel=2`` so that the warning is emitted into the
    caller context, and not the callee one.
  - Please add **since which version** something is deprecated.
 
-As a side note it is much easier to deal with conditional comparing to versions
-numbers than ``try/except`` when a functionality change with version. 
+As a side note, it is much easier to conditionally compare version
+numbers rather than using ``try/except`` when functionality changes with a version. 
 
 I won't list all the removed features here, but modules like ``IPython.kernel``,
-which was just a shim module around ``ipykernel`` for the past 8 years have been
-remove, and so many other similar things that pre-date the name **Jupyter**
+which was just a shim module around ``ipykernel`` for the past 8 years, have been
+removed, and so many other similar things that pre-date the name **Jupyter**
 itself.
 
 We no longer need to add ``IPyhton.extensions`` to the PYTHONPATH because that is being
@@ -74,15 +71,15 @@ other packages and no longer need to be inside IPython.
 Documentation
 -------------
 
-Majority of our docstrings have now been reformatted and automatically fixed by
-the experimental `Vélin <https://pypi.org/project/velin/>`_ project, to conform
+The majority of our docstrings have now been reformatted and automatically fixed by
+the experimental `Vélin <https://pypi.org/project/velin/>`_ project to conform
 to numpydoc.
 
 Type annotations
 ----------------
 
 While IPython itself is highly dynamic and can't be completely typed, many of
-the function now have type annotation, and part of the codebase and now checked
+the functions now have type annotations, and part of the codebase is now checked
 by mypy.
 
 
@@ -92,9 +89,9 @@ Featured changes
 Here is a features list of changes in IPython 8.0. This is of course non-exhaustive. 
 Please note as well that many features have been added in the 7.x branch as well
 (and hence why you want to read the 7.x what's new notes), in particular
-features contributed by QuantStack (with respect to debugger protocol, and Xeus
-Python), as well as many debugger features that I was please to implement as
-part of my work at QuanSight and Sponsored by DE Shaw.
+features contributed by QuantStack (with respect to debugger protocol and Xeus
+Python), as well as many debugger features that I was pleased to implement as
+part of my work at QuanSight and sponsored by DE Shaw.
 
 Traceback improvements
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -137,9 +134,8 @@ The error traceback is now correctly formatted, showing the cell number in which
 
     ZeroDivisionError: division by zero
 
-The Second on is the integration of the ``stack_data`` package;
-which provide smarter informations in traceback; in particular it will highlight
-the AST node where an error occurs which can help to quickly narrow down errors.
+The ``stack_data`` package has been integrated, which provides smarter information in the traceback; 
+in particular it will highlight the AST node where an error occurs which can help to quickly narrow down errors.
 
 For example in the following snippet::
 
@@ -154,8 +150,8 @@ For example in the following snippet::
         ) + foo(2)
 
 
-Calling ``bar()`` would raise an ``IndexError`` on the return line of ``foo``,
-IPython 8.0 is capable of telling you, where the index error occurs::
+calling ``bar()`` would raise an ``IndexError`` on the return line of ``foo``,
+and IPython 8.0 is capable of telling you where the index error occurs::
 
 
     IndexError
@@ -178,11 +174,10 @@ IPython 8.0 is capable of telling you, where the index error occurs::
     ----> 3     return x[0][i][0]
                        ^^^^^^^
 
-Corresponding location marked here with ``^`` will show up highlighted in 
-terminal and notebooks.
+The corresponding locations marked here with ``^`` will show up highlighted in 
+the terminal and notebooks.
 
-The Third, which is the most discreet but can have a high impact on
-productivity, a colon ``::`` and line number is appended after a filename in
+Finally, a colon ``::`` and line number is appended after a filename in
 traceback::
 
 
@@ -196,8 +191,9 @@ traceback::
           1 def f():
     ----> 2     1/0
 
-Many terminal and editor have integrations allow to directly jump to the
-relevant file/line when this syntax is used.
+Many terminals and editors have integrations enabling you to directly jump to the
+relevant file/line when this syntax is used, so this small addition may have a high
+impact on productivity.
 
 
 Autosuggestons
@@ -274,7 +270,7 @@ Show pinfo information in ipdb using "?" and "??"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In IPDB, it is now possible to show the information about an object using "?"
-and "??", in much the same way it can be done when using the IPython prompt::
+and "??", in much the same way that it can be done when using the IPython prompt::
 
     ipdb> partial?
     Init signature: partial(self, /, *args, **kwargs)
@@ -291,14 +287,14 @@ Previously, ``pinfo`` or ``pinfo2`` command had to be used for this purpose.
 Autoreload 3 feature
 ~~~~~~~~~~~~~~~~~~~~
 
-Example: When an IPython session is ran with the 'autoreload' extension loaded,
-you will now have the option '3' to select which means the following:
+Example: When an IPython session is run with the 'autoreload' extension loaded,
+you will now have the option '3' to select, which means the following:
 
     1. replicate all functionality from option 2
     2. autoload all new funcs/classes/enums/globals from the module when they are added
     3. autoload all newly imported funcs/classes/enums/globals from external modules
 
-Try ``%autoreload 3`` in an IPython session after running ``%load_ext autoreload``
+Try ``%autoreload 3`` in an IPython session after running ``%load_ext autoreload``.
 
 For more information please see the following unit test : ``extensions/tests/test_autoreload.py:test_autoload_newly_added_objects``
 
@@ -309,7 +305,7 @@ If ``black`` is installed in the same environment as IPython, terminal IPython
 will now *by default*  reformat the code in the CLI when possible. You can
 disable this with ``--TerminalInteractiveShell.autoformatter=None``.
 
-This feature was present in 7.x but disabled by default.
+This feature was present in 7.x, but disabled by default.
 
 
 History Range Glob feature
@@ -336,10 +332,10 @@ then the glob pattern would be used (globbing *all* history) *and the range woul
 
 With this enhancement, if a user specifies both a range and a glob pattern, then the glob pattern will be applied to the specified range of history.
 
-Don't start a multi line cell with sunken parenthesis
+Don't start a multi-line cell with sunken parenthesis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-From now on IPython will not ask for the next line of input when given a single
+From now on, IPython will not ask for the next line of input when given a single
 line with more closing than opening brackets. For example, this means that if
 you (mis)type ``]]`` instead of ``[]``, a ``SyntaxError`` will show up, instead of
 the ``...:`` prompt continuation.
@@ -394,89 +390,85 @@ Using them this way will make them take the history of the current session up
 to the point of the magic call (such that the magic itself will not be
 included).
 
-Therefore it is now possible to save the whole history to a file using simple
+Therefore it is now possible to save the whole history to a file using
 ``%save <filename>``, load and edit it using ``%load`` (makes for a nice usage
 when followed with :kbd:`F2`), send it to `dpaste.org <http://dpast.org>`_ using
 ``%pastebin``, or view the whole thing syntax-highlighted with a single
 ``%pycat``.
 
 
-Windows time-implementation: Switch to process_time
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Timing for example with ``%%time`` on windows is based on ``time.perf_counter``.
-This is at the end the same as W-All.
-To be a bit tighter to linux one could change to ``time.process_time`` instead.
-Thus for example one would no longer count periods of sleep and further.
-
+Windows timing implementation: Switch to process_time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Timing on Windows, for example with ``%%time``,  was changed from being based on ``time.perf_counter`` 
+(which counted time even when the process was sleeping) to being based on ``time.process_time`` instead 
+(which only counts CPU time). This brings it closer to the behavior on Linux. See :ghpull:`12984`.
 
 Miscellaneous
 ~~~~~~~~~~~~~
- - Non-text formatters are not disabled in terminal which should simplify
-   writing extension displaying images or other mimetypes supporting terminals.
+ - Non-text formatters are not disabled in the terminal, which should simplify
+   writing extensions displaying images or other mimetypes in supporting terminals.
    :ghpull:`12315`
- -
  - It is now possible to automatically insert matching brackets in Terminal IPython using the
    ``TerminalInteractiveShell.auto_match=True`` option. :ghpull:`12586`
- - We are thinking of deprecating the current ``%%javascript`` magic in favor of a better replacement. See :ghpull:`13376`
- - ``%time`` uses ``process_time`` instead of  ``perf_counter``, see :ghpull:`12984`
+ - We are thinking of deprecating the current ``%%javascript`` magic in favor of a better replacement. See :ghpull:`13376`.
  - ``~`` is now expanded when part of a path in most magics :ghpull:`13385`
- - ``%/%%timeit`` magic now adds comma every thousands to make reading long number easier :ghpull:`13379`
+ - ``%/%%timeit`` magic now adds a comma every thousands to make reading a long number easier :ghpull:`13379`
  - ``"info"`` messages can now be customised to hide some fields :ghpull:`13343`
  - ``collections.UserList`` now pretty-prints :ghpull:`13320`
- - The debugger now have a persistent history, which should make it less
+ - The debugger now has a persistent history, which should make it less
    annoying to retype commands :ghpull:`13246`
- - ``!pip`` ``!conda`` ``!cd`` or ``!ls`` are likely doing the wrong thing, we
-   now warn users if they use it. :ghpull:`12954`
- - make ``%precision`` work for ``numpy.float64`` type :ghpull:`12902`
+ - ``!pip`` ``!conda`` ``!cd`` or ``!ls`` are likely doing the wrong thing. We
+   now warn users if they use one of those commands. :ghpull:`12954`
+ - Make ``%precision`` work for ``numpy.float64`` type :ghpull:`12902`
 
 Re-added support for XDG config directories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-XDG support through the years did come an go, there is a tension between having
-identical location in all platforms to have simple instructions. After initial
-failure a couple of years ago IPython was modified to automatically migrate XDG
-config files back into ``~/.ipython``, the migration code has now been removed.
-And IPython now check the XDG locations, so if you _manually_ move your config
+XDG support through the years comes and goes. There is a tension between having
+an identical location for configuration in all platforms versus having simple instructions. 
+After initial failures a couple of years ago, IPython was modified to automatically migrate XDG
+config files back into ``~/.ipython``. That migration code has now been removed.
+IPython now checks the XDG locations, so if you _manually_ move your config
 files to your preferred location, IPython will not move them back.
 
 
-Numfocus Small Developer Grant
-------------------------------
+Preparing for Python 3.10
+-------------------------
 
-To prepare for Python 3.10 we have also started working on removing reliance and
-any dependency that is not Python 3.10 compatible; that include migrating our
-test suite to pytest, and starting to remove nose. This also mean that the
-``iptest`` command is now gone, and all testing is via pytest.
+To prepare for Python 3.10, we have started working on removing reliance and
+any dependency that is not compatible with Python 3.10. This includes migrating our
+test suite to pytest and starting to remove nose. This also means that the
+``iptest`` command is now gone and all testing is via pytest.
 
 This was in large part thanks to the NumFOCUS Small Developer grant, which enabled us to
 allocate \$4000 to hire `Nikita Kniazev (@Kojoley) <https://github.com/Kojoley>`_,
 who did a fantastic job at updating our code base, migrating to pytest, pushing
 our coverage, and fixing a large number of bugs. I highly recommend contacting
-them if you need help with C++ and Python projects
+them if you need help with C++ and Python projects.
 
 You can find all relevant issues and PRs with the SDG 2021 tag `<https://github.com/ipython/ipython/issues?q=label%3A%22Numfocus+SDG+2021%22+>`__
 
-Removing support for Older Python
----------------------------------
+Removing support for older Python versions
+------------------------------------------
 
 
-We are also removing support for Python up to 3.7 allowing internal code to use more
-efficient ``pathlib``, and make better use of type annotations. 
+We are removing support for Python up through 3.7, allowing internal code to use the more
+efficient ``pathlib`` and to make better use of type annotations. 
 
 .. image:: ../_images/8.0/pathlib_pathlib_everywhere.jpg
    :alt: "Meme image of Toy Story with Woody and Buzz, with the text 'pathlib, pathlib everywhere'"
 
 
-We have about 34 PRs only to update some logic to update some functions from managing strings to
+We had about 34 PRs only to update some logic to update some functions from managing strings to
 using Pathlib.
 
-The completer has also seen significant updates and make use of newer Jedi API
+The completer has also seen significant updates and now makes use of newer Jedi APIs,
 offering faster and more reliable tab completion.
 
 Misc Statistics
 ---------------
 
-Here are some numbers:
+Here are some numbers::
 
     7.x: 296 files, 12561 blank lines, 20282 comments, 35142 line of code.
     8.0: 252 files, 12053 blank lines, 19232 comments, 34505 line of code.
@@ -484,8 +476,8 @@ Here are some numbers:
     $ git diff --stat 7.x...master  | tail -1
     340 files changed, 13399 insertions(+), 12421 deletions(-)
 
-We have commits from 162 authors, who contributed 1916 commits in 23 month, excluding merges to not bias toward
-maintainers pushing buttons.::
+We have commits from 162 authors, who contributed 1916 commits in 23 month, excluding merges (to not bias toward
+maintainers pushing buttons).::
 
    $ git shortlog  -s --no-merges  7.x...master | sort -nr
    535	Matthias Bussonnier
@@ -649,7 +641,7 @@ maintainers pushing buttons.::
      1	Albert Zhang
      1	Adam Johnson
 
-This does not of course represent non-code contributions.
+This does not, of course, represent non-code contributions, for which we are also grateful.
 
 
 API Changes using Frappuccino
