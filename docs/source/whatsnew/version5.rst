@@ -2,6 +2,14 @@
  5.x Series
 ============
 
+
+.. _whatsnew5101
+
+IPython 5.10.1 (CVE-2022-21699)
+===============================
+
+Fix CVE-2022-21699, see IPython 8.0.1 release notes.
+
 .. _whatsnew5100
 
 IPython 5.10.0
