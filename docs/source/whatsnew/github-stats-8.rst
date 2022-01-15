@@ -1,4 +1,5 @@
-Get a token fom https://github.com/settings/tokens with public repo and gist.
+Issues closed in the 8.x development cycle
+==========================================
 
 GitHub stats for 2022/01/05 - 2022/01/12 (tag: 8.0.0rc1)
 
