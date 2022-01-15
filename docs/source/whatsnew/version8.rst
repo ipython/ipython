@@ -344,12 +344,11 @@ For more information please see the following unit test : ``extensions/tests/tes
 Auto formatting with black in the CLI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If ``black`` is installed in the same environment as IPython, terminal IPython
-will now *by default*  reformat the code in the CLI when possible. You can
-disable this with ``--TerminalInteractiveShell.autoformatter=None``.
-
 This feature was present in 7.x, but disabled by default.
 
+In 8.0, input was automatically reformatted with Black when black was installed.
+This feature has been reverted for the time being.
+You can re-enable it by setting ``TerminalInteractiveShell.autoformatter`` to ``"black"``
 
 History Range Glob feature
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
