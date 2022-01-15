@@ -2,6 +2,48 @@
  8.x Series
 ============
 
+
+IPython 8.0.1 (CVE-2022-21699)
+------------------------------
+
+IPython 8.0.1, 7.31.1 and 5.11 are security releases that change some default
+values in order to prevent potential Execution with Unnecessary Privileges.
+
+Almost all version of IPython looks for configuration and profiles in current
+working directory. Since IPython was developed before pip and environments
+existed it was used a convenient way to load code/packages in a project
+dependant way.
+
+In 2022, it is not necessary anymore, and can lead to confusing behavior where
+for example cloning a repository and starting IPython or loading a notebook from
+any Jupyter-Compatible interface that has ipython set as a kernel can lead to
+code execution.
+
+
+I did not find any standard way for packaged to advertise CVEs they fix, I'm
+thus trying to add a ``__patched_cves__`` attribute to the IPython module that
+list the CVEs that should have been fixed. This attribute is informational only
+as if a executable has a flaw, this value can always be changed by an attacker.
+
+.. code::
+
+    In [1]: import IPython
+
+    In [2]: IPython.__patched_cves__
+    Out[2]: {'CVE-2022-21699'}
+
+    In [3]: 'CVE-2022-21699' in IPython.__patched_cves__
+    Out[3]: True
+
+Thus starting with this version:
+
+ - The current working directory is not searched anymore for profiles or
+   configurations files.
+ - Added a ``__patched_cves__`` attribute (set of strings) to IPython module that contain
+   the list of fixed CVE. This is informational only.
+
+
+
 IPython 8.0
 -----------
 
