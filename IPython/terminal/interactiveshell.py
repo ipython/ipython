@@ -317,6 +317,11 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Allows to enable/disable the prompt toolkit history search"
     ).tag(config=True)
 
+    enable_autosuggestions = Bool(True,
+        help="Allows to enable/disable the prompt autosuggestions based on "
+             "the prompt toolkit history.",
+    ).tag(config=True)
+
     prompt_includes_vi_mode = Bool(True,
         help="Display the current vi mode (when using vi editing mode)."
     ).tag(config=True)
@@ -370,11 +375,16 @@ class TerminalInteractiveShell(InteractiveShell):
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
         self.style = DynamicStyle(lambda: self._style)
 
+        if self.enable_autosuggestions:
+            auto_suggest = AutoSuggestFromHistory()
+        else:
+            auto_suggest = None
+
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
         self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(
-            auto_suggest=AutoSuggestFromHistory(),
+            auto_suggest=auto_suggest,
             editing_mode=editing_mode,
             key_bindings=key_bindings,
             history=history,
