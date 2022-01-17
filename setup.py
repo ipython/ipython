@@ -152,7 +152,7 @@ extras_require = dict(
         "pytest",
         "pytest-asyncio",
         "testpath",
-        "pygments",
+        "pygments>=2.4.0",
     ],
     test_extra=[
         "pytest",
@@ -162,7 +162,7 @@ extras_require = dict(
         "nbformat",
         "numpy>=1.19",
         "pandas",
-        "pygments",
+        "pygments>=2.4.0",
         "trio",
     ],
     terminal=[],
