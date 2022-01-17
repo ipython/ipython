@@ -407,14 +407,14 @@ class TestShellGlob(unittest.TestCase):
 
 
 @pytest.mark.parametrize(
-    'globstr, unescaped_globstr', 
+    "globstr, unescaped_globstr",
     [
         (r"\*\[\!\]\?", "*[!]?"),
         (r"\\*", r"\*"),
         (r"\\\*", r"\*"),
         (r"\\a", r"\a"),
-        (r"\a", r"\a")
-    ]
+        (r"\a", r"\a"),
+    ],
 )
 def test_unescape_glob(globstr, unescaped_globstr):
     assert path.unescape_glob(globstr) == unescaped_globstr

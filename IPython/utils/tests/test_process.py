@@ -58,17 +58,17 @@ def test_find_cmd_fail():
 
 @dec.skip_win32
 @pytest.mark.parametrize(
-    'argstr, argv', 
+    "argstr, argv",
     [
-        ('hi', ['hi']),
-        (u'hi', [u'hi']),
-        ('hello there', ['hello', 'there']),
+        ("hi", ["hi"]),
+        (u"hi", [u"hi"]),
+        ("hello there", ["hello", "there"]),
         # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
         # Do not use \N because the tests crash with syntax error in
         # some cases, for example windows python2.6.
-        (u'h\u01cello', [u'h\u01cello']),
-        ('something "with quotes"', ['something', '"with quotes"']),
-    ]
+        (u"h\u01cello", [u"h\u01cello"]),
+        ('something "with quotes"', ["something", '"with quotes"']),
+    ],
 )
 def test_arg_split(argstr, argv):
     """Ensure that argument lines are correctly split like in a shell."""
@@ -77,14 +77,14 @@ def test_arg_split(argstr, argv):
 
 @dec.skip_if_not_win32
 @pytest.mark.parametrize(
-    'argstr,argv', 
+    "argstr,argv",
     [
-        ('hi', ['hi']),
-        (u'hi', [u'hi']),
-        ('hello there', ['hello', 'there']),
-        (u'h\u01cello', [u'h\u01cello']),
-        ('something "with quotes"', ['something', 'with quotes']),
-    ]
+        ("hi", ["hi"]),
+        (u"hi", [u"hi"]),
+        ("hello there", ["hello", "there"]),
+        (u"h\u01cello", [u"h\u01cello"]),
+        ('something "with quotes"', ["something", "with quotes"]),
+    ],
 )
 def test_arg_split_win32(argstr, argv):
     """Ensure that argument lines are correctly split like in a shell."""
