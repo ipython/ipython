@@ -4,6 +4,7 @@ Line-based transformers are the simpler ones; token-based transformers are
 more complex. See test_inputtransformer2_line for tests for line-based
 transformations.
 """
+import platform
 import string
 import sys
 from textwrap import dedent
@@ -291,6 +292,7 @@ def test_check_complete_param(code, expected, number):
     assert cc(code) == (expected, number)
 
 
+@pytest.mark.xfail(platform.python_implementation() == "PyPy", reason="fail on pypy")
 @pytest.mark.xfail(
     reason="Bug in python 3.9.8 – bpo 45738",
     condition=sys.version_info in [(3, 9, 8, "final", 0), (3, 11, 0, "alpha", 2)],
@@ -319,7 +321,16 @@ def test_check_complete():
     assert cc("def f():\n  x=0\n  \\\n  ") == ("incomplete", 2)
 
 
-def test_check_complete_II():
+@pytest.mark.xfail(platform.python_implementation() == "PyPy", reason="fail on pypy")
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ('''def foo():\n    """''', ("incomplete", 4)),
+        ("""async with example:\n    pass""", ("incomplete", 4)),
+        ("""async with example:\n    pass\n    """, ("complete", None)),
+    ],
+)
+def test_check_complete_II(value, expected):
     """
     Test that multiple line strings are properly handled.
 
@@ -327,25 +338,31 @@ def test_check_complete_II():
 
     """
     cc = ipt2.TransformerManager().check_complete
-    assert cc('''def foo():\n    """''') == ("incomplete", 4)
+    assert cc(value) == expected
 
 
-def test_check_complete_invalidates_sunken_brackets():
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (")", ("invalid", None)),
+        ("]", ("invalid", None)),
+        ("}", ("invalid", None)),
+        (")(", ("invalid", None)),
+        ("][", ("invalid", None)),
+        ("}{", ("invalid", None)),
+        ("]()(", ("invalid", None)),
+        ("())(", ("invalid", None)),
+        (")[](", ("invalid", None)),
+        ("()](", ("invalid", None)),
+    ],
+)
+def test_check_complete_invalidates_sunken_brackets(value, expected):
     """
     Test that a single line with more closing brackets than the opening ones is
     interpreted as invalid
     """
     cc = ipt2.TransformerManager().check_complete
-    assert cc(")") == ("invalid", None)
-    assert cc("]") == ("invalid", None)
-    assert cc("}") == ("invalid", None)
-    assert cc(")(") == ("invalid", None)
-    assert cc("][") == ("invalid", None)
-    assert cc("}{") == ("invalid", None)
-    assert cc("]()(") == ("invalid", None)
-    assert cc("())(") == ("invalid", None)
-    assert cc(")[](") == ("invalid", None)
-    assert cc("()](") == ("invalid", None)
+    assert cc(value) == expected
 
 
 def test_null_cleanup_transformer():

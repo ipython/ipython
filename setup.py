@@ -137,46 +137,6 @@ setup_args['cmdclass'] = {
     'unsymlink': unsymlink,
 }
 
-
-#---------------------------------------------------------------------------
-# Handle scripts, dependencies, and setuptools specific things
-#---------------------------------------------------------------------------
-
-# setuptools requirements
-
-extras_require = dict(
-    parallel=["ipyparallel"],
-    qtconsole=["qtconsole"],
-    doc=["Sphinx>=1.3"],
-    test=[
-        "pytest",
-        "pytest-asyncio",
-        "testpath",
-        "pygments>=2.4.0",
-    ],
-    test_extra=[
-        "pytest",
-        "testpath",
-        "curio",
-        "matplotlib!=3.2.0",
-        "nbformat",
-        "numpy>=1.19",
-        "pandas",
-        "pygments>=2.4.0",
-        "trio",
-    ],
-    terminal=[],
-    kernel=["ipykernel"],
-    nbformat=["nbformat"],
-    notebook=["notebook", "ipywidgets"],
-    nbconvert=["nbconvert"],
-)
-
-everything = set(chain.from_iterable(extras_require.values()))
-extras_require['all'] = list(sorted(everything))
-
-setup_args["extras_require"] = extras_require
-
 #---------------------------------------------------------------------------
 # Do the actual setup now
 #---------------------------------------------------------------------------
