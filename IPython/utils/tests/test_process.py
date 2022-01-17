@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Tests for platutils.py
 """
@@ -56,35 +55,37 @@ def test_find_cmd_fail():
     pytest.raises(FindCmdError, find_cmd, "asdfasdf")
 
 
-# TODO: move to pytest.mark.parametrize once nose gone
 @dec.skip_win32
-def test_arg_split():
+@pytest.mark.parametrize(
+    "argstr, argv",
+    [
+        ("hi", ["hi"]),
+        ("hello there", ["hello", "there"]),
+        # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
+        # Do not use \N because the tests crash with syntax error in
+        # some cases, for example windows python2.6.
+        ("h\u01cello", ["h\u01cello"]),
+        ('something "with quotes"', ["something", '"with quotes"']),
+    ],
+)
+def test_arg_split(argstr, argv):
     """Ensure that argument lines are correctly split like in a shell."""
-    tests = [['hi', ['hi']],
-             [u'hi', [u'hi']],
-             ['hello there', ['hello', 'there']],
-             # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
-             # Do not use \N because the tests crash with syntax error in
-             # some cases, for example windows python2.6.
-             [u'h\u01cello', [u'h\u01cello']],
-             ['something "with quotes"', ['something', '"with quotes"']],
-             ]
-    for argstr, argv in tests:
-        assert arg_split(argstr) == argv
+    assert arg_split(argstr) == argv
 
 
-# TODO: move to pytest.mark.parametrize once nose gone
 @dec.skip_if_not_win32
-def test_arg_split_win32():
+@pytest.mark.parametrize(
+    "argstr,argv",
+    [
+        ("hi", ["hi"]),
+        ("hello there", ["hello", "there"]),
+        ("h\u01cello", ["h\u01cello"]),
+        ('something "with quotes"', ["something", "with quotes"]),
+    ],
+)
+def test_arg_split_win32(argstr, argv):
     """Ensure that argument lines are correctly split like in a shell."""
-    tests = [['hi', ['hi']],
-             [u'hi', [u'hi']],
-             ['hello there', ['hello', 'there']],
-             [u'h\u01cello', [u'h\u01cello']],
-             ['something "with quotes"', ['something', 'with quotes']],
-             ]
-    for argstr, argv in tests:
-        assert arg_split(argstr) == argv
+    assert arg_split(argstr) == argv
 
 
 class SubProcessTestCase(tt.TempFileMixin):
@@ -98,7 +99,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.mktmp('\n'.join(lines))
 
     def test_system(self):
-        status = system('%s "%s"' % (python, self.fname))
+        status = system(f'{python} "{self.fname}"')
         self.assertEqual(status, 0)
 
     def test_system_quotes(self):
@@ -145,11 +146,11 @@ class SubProcessTestCase(tt.TempFileMixin):
 
         status = self.assert_interrupts(command)
         self.assertNotEqual(
-            status, 0, "The process wasn't interrupted. Status: %s" % (status,)
+            status, 0, f"The process wasn't interrupted. Status: {status}"
         )
 
     def test_getoutput(self):
-        out = getoutput('%s "%s"' % (python, self.fname))
+        out = getoutput(f'{python} "{self.fname}"')
         # we can't rely on the order the line buffered streams are flushed
         try:
             self.assertEqual(out, 'on stderron stdout')
@@ -169,7 +170,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertEqual(out.strip(), '1')
 
     def test_getoutput_error(self):
-        out, err = getoutputerror('%s "%s"' % (python, self.fname))
+        out, err = getoutputerror(f'{python} "{self.fname}"')
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
 
@@ -179,7 +180,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertEqual(out, '')
         self.assertEqual(err, '')
         self.assertEqual(code, 1)
-        out, err, code = get_output_error_code('%s "%s"' % (python, self.fname))
+        out, err, code = get_output_error_code(f'{python} "{self.fname}"')
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
         self.assertEqual(code, 0)

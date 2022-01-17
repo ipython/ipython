@@ -80,24 +80,22 @@ def test_columnize_random():
             )
 
 
-# TODO: pytest mark.parametrize once nose removed.
-def test_columnize_medium():
+@pytest.mark.parametrize("row_first", [True, False])
+def test_columnize_medium(row_first):
     """Test with inputs than shouldn't be wider than 80"""
     size = 40
     items = [l*size for l in 'abc']
-    for row_first in [True, False]:
-        out = text.columnize(items, row_first=row_first, displaywidth=80)
-        assert out == "\n".join(items + [""]), "row_first={0}".format(row_first)
+    out = text.columnize(items, row_first=row_first, displaywidth=80)
+    assert out == "\n".join(items + [""]), "row_first={0}".format(row_first)
 
 
-# TODO: pytest mark.parametrize once nose removed.
-def test_columnize_long():
+@pytest.mark.parametrize("row_first", [True, False])
+def test_columnize_long(row_first):
     """Test columnize with inputs longer than the display window"""
     size = 11
     items = [l*size for l in 'abc']
-    for row_first in [True, False]:
-        out = text.columnize(items, row_first=row_first, displaywidth=size - 1)
-        assert out == "\n".join(items + [""]), "row_first={0}".format(row_first)
+    out = text.columnize(items, row_first=row_first, displaywidth=size - 1)
+    assert out == "\n".join(items + [""]), "row_first={0}".format(row_first)
 
 
 def eval_formatter_check(f):
