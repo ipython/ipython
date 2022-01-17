@@ -83,7 +83,7 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
     if raw:
         # turn list of pngdata into list of { 'image/png': pngdata }
         objs = [ {mimetype: obj} for obj in objs ]
-    display(*objs, raw=raw, metadata=metadata, include=[mimetype])
+    display_functions.display(*objs, raw=raw, metadata=metadata, include=[mimetype])
 
 #-----------------------------------------------------------------------------
 # Main functions
@@ -517,10 +517,10 @@ class ProgressBar(DisplayObject):
             self.html_width, self.total, self.progress)
 
     def display(self):
-        display(self, display_id=self._display_id)
+        display_functions.display(self, display_id=self._display_id)
 
     def update(self):
-        display(self, display_id=self._display_id, update=True)
+        display_functions.display(self, display_id=self._display_id, update=True)
 
     @property
     def progress(self):
@@ -694,7 +694,7 @@ class GeoJSON(JSON):
         metadata = {
             'application/geo+json': self.metadata
         }
-        display(bundle, metadata=metadata, raw=True)
+        display_functions.display(bundle, metadata=metadata, raw=True)
 
 class Javascript(TextDisplayObject):
 
