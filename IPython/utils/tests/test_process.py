@@ -61,12 +61,11 @@ def test_find_cmd_fail():
     "argstr, argv",
     [
         ("hi", ["hi"]),
-        (u"hi", [u"hi"]),
         ("hello there", ["hello", "there"]),
         # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
         # Do not use \N because the tests crash with syntax error in
         # some cases, for example windows python2.6.
-        (u"h\u01cello", [u"h\u01cello"]),
+        ("h\u01cello", ["h\u01cello"]),
         ('something "with quotes"', ["something", '"with quotes"']),
     ],
 )
@@ -80,9 +79,8 @@ def test_arg_split(argstr, argv):
     "argstr,argv",
     [
         ("hi", ["hi"]),
-        (u"hi", [u"hi"]),
         ("hello there", ["hello", "there"]),
-        (u"h\u01cello", [u"h\u01cello"]),
+        ("h\u01cello", ["h\u01cello"]),
         ('something "with quotes"', ["something", "with quotes"]),
     ],
 )
