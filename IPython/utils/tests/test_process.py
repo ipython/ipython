@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Tests for platutils.py
 """
@@ -100,7 +99,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.mktmp('\n'.join(lines))
 
     def test_system(self):
-        status = system('%s "%s"' % (python, self.fname))
+        status = system(f'{python} "{self.fname}"')
         self.assertEqual(status, 0)
 
     def test_system_quotes(self):
@@ -147,11 +146,11 @@ class SubProcessTestCase(tt.TempFileMixin):
 
         status = self.assert_interrupts(command)
         self.assertNotEqual(
-            status, 0, "The process wasn't interrupted. Status: %s" % (status,)
+            status, 0, f"The process wasn't interrupted. Status: {status}"
         )
 
     def test_getoutput(self):
-        out = getoutput('%s "%s"' % (python, self.fname))
+        out = getoutput(f'{python} "{self.fname}"')
         # we can't rely on the order the line buffered streams are flushed
         try:
             self.assertEqual(out, 'on stderron stdout')
@@ -171,7 +170,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertEqual(out.strip(), '1')
 
     def test_getoutput_error(self):
-        out, err = getoutputerror('%s "%s"' % (python, self.fname))
+        out, err = getoutputerror(f'{python} "{self.fname}"')
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
 
@@ -181,7 +180,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertEqual(out, '')
         self.assertEqual(err, '')
         self.assertEqual(code, 1)
-        out, err, code = get_output_error_code('%s "%s"' % (python, self.fname))
+        out, err, code = get_output_error_code(f'{python} "{self.fname}"')
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
         self.assertEqual(code, 0)
