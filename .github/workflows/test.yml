@@ -53,7 +53,7 @@ jobs:
         cache: pip
     - name: Install latex
       if: runner.os == 'Linux' && matrix.deps == 'test_extra'
-      run: sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
+      run: echo "disable latex for now, issues in mirros" #sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
     - name: Install and update Python dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel build
