@@ -79,3 +79,11 @@ class ShimModule(types.ModuleType):
             return import_item(name)
         except ImportError as e:
             raise AttributeError(key) from e
+
+    def __repr__(self):
+        # repr on a module can be called during error handling; make sure
+        # it does not fail, even if the import fails
+        try:
+            return self.__getattr__("__repr__")()
+        except AttributeError:
+            return f"<ShimModule for {self._mirror!r}>"
