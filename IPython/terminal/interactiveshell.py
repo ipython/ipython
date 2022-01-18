@@ -317,6 +317,29 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Allows to enable/disable the prompt toolkit history search"
     ).tag(config=True)
 
+    autosuggestions_provider = Unicode(
+        "AutoSuggestFromHistory",
+        help="Specifies from which source automatic suggestions are provided. "
+        "Can be set to `'AutoSuggestFromHistory`' or `None` to disable"
+        "automatic suggestions. Default is `'AutoSuggestFromHistory`'.",
+        allow_none=True,
+    ).tag(config=True)
+
+    def _set_autosuggestions(self, provider):
+        if provider is None:
+            self.auto_suggest = None
+        elif provider == "AutoSuggestFromHistory":
+            self.auto_suggest = AutoSuggestFromHistory()
+        else:
+            raise ValueError("No valid provider.")
+        if self.pt_app:
+            self.pt_app.auto_suggest = self.auto_suggest
+
+    @observe("autosuggestions_provider")
+    def _autosuggestions_provider_changed(self, change):
+        provider = change.new
+        self._set_autosuggestions(provider)
+
     prompt_includes_vi_mode = Bool(True,
         help="Display the current vi mode (when using vi editing mode)."
     ).tag(config=True)
@@ -374,7 +397,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(
-            auto_suggest=AutoSuggestFromHistory(),
+            auto_suggest=self.auto_suggest,
             editing_mode=editing_mode,
             key_bindings=key_bindings,
             history=history,
@@ -576,6 +599,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def __init__(self, *args, **kwargs):
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
+        self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()
         self.keep_running = True
