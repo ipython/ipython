@@ -325,7 +325,6 @@ class TerminalInteractiveShell(InteractiveShell):
         allow_none=True,
     ).tag(config=True)
 
-
     def _set_autosuggestions(self, provider):
         if provider is None:
             self.auto_suggest = None
