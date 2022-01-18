@@ -8,7 +8,7 @@ IPython 8.0
 IPython 8.0 is bringing a large number of new features and improvements to both the
 user of the terminal and of the kernel via Jupyter. The removal of compatibility
 with older version of Python is also the opportunity to do a couple of
-performance improvement in particular with respect to startup time.
+performance improvements in particular with respect to startup time.
 The 8.x branch started diverging from its predecessor around IPython 7.12
 (January 2020).
 
@@ -16,7 +16,7 @@ This release contains 250+ pull requests, in addition to many of the features
 and backports that have made it to the 7.x branch. Please see the 
 `8.0 milestone <https://github.com/ipython/ipython/milestone/73?closed=1>`__ for the full list of pull requests.
 
-Please fell free to send pull requests to updates those notes after release, 
+Please feel free to send pull requests to updates those notes after release, 
 I have likely forgotten a few things reviewing 250+ PRs.
 
 Dependencies changes/downstream packaging
