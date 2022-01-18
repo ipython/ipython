@@ -325,9 +325,6 @@ class TerminalInteractiveShell(InteractiveShell):
         allow_none=True,
     ).tag(config=True)
 
-    prompt_includes_vi_mode = Bool(
-        True, help="Display the current vi mode (when using vi editing mode)."
-    ).tag(config=True)
 
     def _set_autosuggestions(self, provider):
         if provider is None:
