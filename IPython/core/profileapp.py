@@ -181,9 +181,10 @@ class ProfileList(Application):
         profiles = list_profiles_in(os.getcwd())
         if profiles:
             print()
-            print("Available profiles in current directory (%s):" % os.getcwd())
-            self._print_profiles(profiles)
-        
+            print(
+                "Profiles from CWD have been removed for security reason, see CVE-2022-21699:"
+            )
+
         print()
         print("To use any of the above profiles, start IPython with:")
         print("    ipython --profile=<name>")

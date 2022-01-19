@@ -2,6 +2,14 @@
  7.x Series
 ============
 
+=======
+.. _version 7.16.3:
+
+IPython 7.16.3 (CVE-2022-21699)
+===============================
+
+Fixed CVE-2022-21699, see IPython 8.0.1 release notes for informations.
+
 .. _version 716:
 
 IPython 7.16.1, 7.16.2
