@@ -42,6 +42,8 @@ Thus starting with this version:
  - Added a ``__patched_cves__`` attribute (set of strings) to IPython module that contain
    the list of fixed CVE. This is informational only.
 
+Further details can be read on the `GitHub Advisory <https://github.com/ipython/ipython/security/advisories/GHSA-pq7m-3gw7-gq5x>`__
+
 
 
 IPython 8.0
