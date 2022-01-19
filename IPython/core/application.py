@@ -133,7 +133,7 @@ class BaseIPythonApplication(Application):
     config_file_paths = List(Unicode())
     @default('config_file_paths')
     def _config_file_paths_default(self):
-        return [os.getcwd()]
+        return []
 
     extra_config_file = Unicode(
     help="""Path to an extra config file to load.
