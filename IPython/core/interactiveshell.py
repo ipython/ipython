@@ -90,12 +90,17 @@ sphinxify: Optional[Callable]
 try:
     import docrepr.sphinxify as sphx
 
-    def sphinxify(doc):
-        with TemporaryDirectory() as dirname:
-            return {
-                'text/html': sphx.sphinxify(doc, dirname),
-                'text/plain': doc
-            }
+    def sphinxify(oinfo):
+        wrapped_docstring = sphx.wrap_main_docstring(oinfo)
+
+        def sphinxify_docstring(docstring):
+            with TemporaryDirectory() as dirname:
+                return {
+                    'text/html': sphx.sphinxify(wrapped_docstring, dirname),
+                    'text/plain': docstring
+                }
+
+        return sphinxify_docstring
 except ImportError:
     sphinxify = None
 
@@ -772,7 +777,7 @@ class InteractiveShell(SingletonConfigurable):
         while p.is_symlink():
             p = Path(os.readlink(p))
             paths.append(p.resolve())
-        
+
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if p_venv.parts[1] == "cygdrive":
             drive_name = p_venv.parts[2]
@@ -1621,7 +1626,7 @@ class InteractiveShell(SingletonConfigurable):
         This function is meant to be called by pdef, pdoc & friends.
         """
         info = self._object_find(oname, namespaces)
-        docformat = sphinxify if self.sphinxify_docstring else None
+        docformat = sphinxify(self.object_inspect(oname)) if self.sphinxify_docstring else None
         if info.found:
             pmethod = getattr(self.inspector, meth)
             # TODO: only apply format_screen to the plain/text repr of the mime
@@ -1668,7 +1673,7 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                docformat = sphinxify if self.sphinxify_docstring else None
+                docformat = sphinxify(self.object_inspect(oname)) if self.sphinxify_docstring else None
                 return self.inspector._get_info(
                     info.obj,
                     oname,
