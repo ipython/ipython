@@ -907,7 +907,7 @@ class VerboseTB(TBTools):
         fix that by hand after invoking the exception handler."""
 
         if force or self.call_pdb:
-            if self.pdb is None:
+            if self.debugger_cls:
                 self.pdb = self.debugger_cls()
             # the system displayhook may have changed, restore the original
             # for pdb
