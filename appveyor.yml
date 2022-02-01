@@ -22,7 +22,7 @@ init:
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - "%CMD_IN_ENV%  python -m pip install --upgrade setuptools pip"
+  - "%CMD_IN_ENV%  python -m pip install --upgrade setuptools pip<22"
   - "%CMD_IN_ENV%  pip install nose coverage pytest"
   - "%CMD_IN_ENV%  pip install .[test]"
   - "%CMD_IN_ENV%  mkdir results"
