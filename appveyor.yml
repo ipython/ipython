@@ -17,7 +17,7 @@ init:
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - python -m pip install --upgrade setuptools pip
+  - python -m pip install --upgrade setuptools 'pip<22'
   - pip install pytest-cov
   - pip install -e .[test_extra]
 test_script:
