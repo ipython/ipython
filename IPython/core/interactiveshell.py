@@ -1675,7 +1675,9 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                docformat = sphinxify(self.object_inspect(oname)) if self.sphinxify_docstring else None
+        docformat = (
+            sphinxify(self.object_inspect(oname)) if self.sphinxify_docstring else None
+        )
                 return self.inspector._get_info(
                     info.obj,
                     oname,
