@@ -150,7 +150,9 @@ def create_ipython_shortcuts(shell):
         event.current_buffer.cursor_left()
 
     # raw string
-    @kb.add("(", filter=focused_insert & preceding_text(r".*(r|R)[\"'](-*)$"))
+    @kb.add(
+        "(", filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$")
+    )
     def _(event):
         matches = re.match(
             r".*(r|R)[\"'](-*)",
@@ -160,7 +162,9 @@ def create_ipython_shortcuts(shell):
         event.current_buffer.insert_text("()" + dashes)
         event.current_buffer.cursor_left(len(dashes) + 1)
 
-    @kb.add("[", filter=focused_insert & preceding_text(r".*(r|R)[\"'](-*)$"))
+    @kb.add(
+        "[", filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$")
+    )
     def _(event):
         matches = re.match(
             r".*(r|R)[\"'](-*)",
@@ -170,7 +174,9 @@ def create_ipython_shortcuts(shell):
         event.current_buffer.insert_text("[]" + dashes)
         event.current_buffer.cursor_left(len(dashes) + 1)
 
-    @kb.add("{", filter=focused_insert & preceding_text(r".*(r|R)[\"'](-*)$"))
+    @kb.add(
+        "{", filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$")
+    )
     def _(event):
         matches = re.match(
             r".*(r|R)[\"'](-*)",
@@ -180,12 +186,12 @@ def create_ipython_shortcuts(shell):
         event.current_buffer.insert_text("{}" + dashes)
         event.current_buffer.cursor_left(len(dashes) + 1)
 
-    @kb.add('"', filter=focused_insert & preceding_text(r".*(r|R)$"))
+    @kb.add('"', filter=focused_insert & auto_match & preceding_text(r".*(r|R)$"))
     def _(event):
         event.current_buffer.insert_text('""')
         event.current_buffer.cursor_left()
 
-    @kb.add("'", filter=focused_insert & preceding_text(r".*(r|R)$"))
+    @kb.add("'", filter=focused_insert & auto_match & preceding_text(r".*(r|R)$"))
     def _(event):
         event.current_buffer.insert_text("''")
         event.current_buffer.cursor_left()
