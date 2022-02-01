@@ -3,6 +3,24 @@
 ============
 
 
+.. _version 7.32:
+
+IPython 7.32
+============
+
+
+The ability to configure magics to be lazily loaded has been added to IPython.
+See the ``ipython --help-all`` section on ``MagicsManager.lazy_magic``.
+One can now use::
+
+    c.MagicsManger.lazy_magics = {
+              "my_magic": "slow.to.import",
+              "my_other_magic": "also.slow",
+    }
+
+And on first use of ``%my_magic``, or corresponding cell magic, or other line magic,
+the corresponding ``load_ext`` will be called just before trying to invoke the magic.
+
 .. _version 7.31:
 
 IPython 7.31

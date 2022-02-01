@@ -9,10 +9,34 @@ from io import StringIO
 from unittest import TestCase
 
 from IPython.testing import tools as tt
-
 #-----------------------------------------------------------------------------
 # Test functions begin
 #-----------------------------------------------------------------------------
+
+
+MINIMAL_LAZY_MAGIC = """
+from IPython.core.magic import (
+    Magics,
+    magics_class,
+    line_magic,
+    cell_magic,
+)
+
+
+@magics_class
+class LazyMagics(Magics):
+    @line_magic
+    def lazy_line(self, line):
+        print("Lazy Line")
+
+    @cell_magic
+    def lazy_cell(self, line, cell):
+        print("Lazy Cell")
+
+
+def load_ipython_extension(ipython):
+    ipython.register_magics(LazyMagics)
+"""
 
 def check_cpaste(code, should_fail=False):
     """Execute code via 'cpaste' and ensure it was executed, unless
@@ -31,7 +55,7 @@ def check_cpaste(code, should_fail=False):
     try:
         context = tt.AssertPrints if should_fail else tt.AssertNotPrints
         with context("Traceback (most recent call last)"):
-                ip.magic('cpaste')
+            ip.run_line_magic("cpaste", "")
 
         if not should_fail:
             assert ip.user_ns['code_ran'], "%r failed" % code
@@ -68,13 +92,14 @@ def test_cpaste():
         check_cpaste(code, should_fail=True)
 
 
+
 class PasteTestCase(TestCase):
     """Multiple tests for clipboard pasting"""
 
     def paste(self, txt, flags='-q'):
         """Paste input text, by default in quiet mode"""
-        ip.hooks.clipboard_get = lambda : txt
-        ip.magic('paste '+flags)
+        ip.hooks.clipboard_get = lambda: txt
+        ip.run_line_magic("paste", flags)
 
     def setUp(self):
         # Inject fake clipboard hook but save original so we can restore it later
@@ -114,7 +139,7 @@ class PasteTestCase(TestCase):
         self.assertEqual(ip.user_ns.pop("x"), [1, 2, 3])
         self.assertEqual(ip.user_ns.pop("y"), [1, 4, 9])
         self.assertFalse("x" in ip.user_ns)
-        ip.magic("paste -r")
+        ip.run_line_magic("paste", "-r")
         self.assertEqual(ip.user_ns["x"], [1, 2, 3])
         self.assertEqual(ip.user_ns["y"], [1, 4, 9])
 

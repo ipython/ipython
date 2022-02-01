@@ -34,9 +34,11 @@ from IPython.testing import tools as tt
 from IPython.utils.io import capture_output
 from IPython.utils.process import find_cmd
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
+from IPython.utils.syspathcontext import prepended_to_syspath
 
 from .test_debugger import PdbTestInput
 
+from tempfile import NamedTemporaryFile
 
 @magic.magics_class
 class DummyMagics(magic.Magics): pass
@@ -1325,12 +1327,52 @@ def test_timeit_arguments():
     _ip.magic("timeit -n1 -r1 a=('#')")
 
 
+MINIMAL_LAZY_MAGIC = """
+from IPython.core.magic import (
+    Magics,
+    magics_class,
+    line_magic,
+    cell_magic,
+)
+
+
+@magics_class
+class LazyMagics(Magics):
+    @line_magic
+    def lazy_line(self, line):
+        print("Lazy Line")
+
+    @cell_magic
+    def lazy_cell(self, line, cell):
+        print("Lazy Cell")
+
+
+def load_ipython_extension(ipython):
+    ipython.register_magics(LazyMagics)
+"""
+
+
+def test_lazy_magics():
+    with pytest.raises(UsageError):
+        ip.run_line_magic("lazy_line", "")
+
+    startdir = os.getcwd()
+
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            ptempdir = Path(tmpdir)
+            tf = ptempdir / "lazy_magic_module.py"
+            tf.write_text(MINIMAL_LAZY_MAGIC)
+            ip.magics_manager.register_lazy("lazy_line", Path(tf.name).name[:-3])
+            with tt.AssertPrints("Lazy Line"):
+                ip.run_line_magic("lazy_line", "")
+
+
 TEST_MODULE = """
 print('Loaded my_tmp')
 if __name__ == "__main__":
     print('I just ran a script')
 """
-
 
 def test_run_module_from_import_hook():
     "Test that a module can be loaded via an import hook"
