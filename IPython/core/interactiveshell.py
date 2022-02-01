@@ -96,8 +96,8 @@ try:
         def sphinxify_docstring(docstring):
             with TemporaryDirectory() as dirname:
                 return {
-                    'text/html': sphx.sphinxify(wrapped_docstring, dirname),
-                    'text/plain': docstring,
+                    "text/html": sphx.sphinxify(wrapped_docstring, dirname),
+                    "text/plain": docstring,
                 }
 
         return sphinxify_docstring
@@ -1675,9 +1675,11 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-        docformat = (
-            sphinxify(self.object_inspect(oname)) if self.sphinxify_docstring else None
-        )
+                docformat = (
+                    sphinxify(self.object_inspect(oname))
+                    if self.sphinxify_docstring
+                    else None
+                )
                 return self.inspector._get_info(
                     info.obj,
                     oname,
