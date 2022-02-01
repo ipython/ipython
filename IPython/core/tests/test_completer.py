@@ -475,6 +475,7 @@ class TestCompleter(unittest.TestCase):
             "encoding" in c.signature
         ), "Signature of function was not found by completer"
 
+    @pytest.mark.xfail(reason="Known failure on jedi<=0.18.0")
     def test_deduplicate_completions(self):
         """
         Test that completions are correctly deduplicated (even if ranges are not the same)
