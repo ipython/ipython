@@ -97,7 +97,7 @@ try:
             with TemporaryDirectory() as dirname:
                 return {
                     'text/html': sphx.sphinxify(wrapped_docstring, dirname),
-                    'text/plain': docstring
+                    'text/plain': docstring,
                 }
 
         return sphinxify_docstring
