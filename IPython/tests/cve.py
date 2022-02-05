@@ -33,7 +33,9 @@ def test_cve_2022_21699():
 
     with TemporaryWorkingDirectory() as t:
         dangerous_startup_dir.mkdir(parents=True)
-        (dangerous_startup_dir / "foo.py").write_text(f'print("{dangerous_expected}")', encoding='utf-8')
+        (dangerous_startup_dir / "foo.py").write_text(
+            f'print("{dangerous_expected}")', encoding="utf-8"
+        )
         # 1 sec to make sure FS is flushed.
         # time.sleep(1)
         cmd = [sys.executable, "-m", "IPython"]

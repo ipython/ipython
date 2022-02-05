@@ -45,4 +45,4 @@ def get_ipdir():
 
 def execfile(fname, globs, locs=None):
     locs = locs or globs
-    exec(compile(open(fname, encoding='utf-8').read(), fname, "exec"), globs, locs)
+    exec(compile(open(fname, encoding="utf-8").read(), fname, "exec"), globs, locs)

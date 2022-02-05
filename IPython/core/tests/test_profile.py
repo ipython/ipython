@@ -84,10 +84,10 @@ class ProfileStartupTest(TestCase):
 
     def init(self, startup_file, startup, test):
         # write startup python file
-        with open(Path(self.pd.startup_dir) / startup_file, "w", encoding='utf-8') as f:
+        with open(Path(self.pd.startup_dir) / startup_file, "w", encoding="utf-8") as f:
             f.write(startup)
         # write simple test file, to check that the startup file was run
-        with open(self.fname, 'w', encoding='utf-8') as f:
+        with open(self.fname, "w", encoding="utf-8") as f:
             f.write(test)
 
     def validate(self, output):
@@ -111,7 +111,7 @@ def test_list_profiles_in():
     if dec.unicode_paths:
         Path(td / u"profile_ünicode").mkdir(parents=True)
 
-    with open(td / "profile_file", "w", encoding='utf-8') as f:
+    with open(td / "profile_file", "w", encoding="utf-8") as f:
         f.write("I am not a profile directory")
     profiles = list_profiles_in(td)
 

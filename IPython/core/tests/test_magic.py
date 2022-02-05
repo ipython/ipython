@@ -861,12 +861,18 @@ def test_file():
     """Basic %%writefile"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
-        fname = os.path.join(td, 'file1')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
-            'line1',
-            'line2',
-        ]))
-        s = Path(fname).read_text(encoding='utf-8')
+        fname = os.path.join(td, "file1")
+        ip.run_cell_magic(
+            "writefile",
+            fname,
+            "\n".join(
+                [
+                    "line1",
+                    "line2",
+                ]
+            ),
+        )
+        s = Path(fname).read_text(encoding="utf-8")
         assert "line1\n" in s
         assert "line2" in s
 
@@ -876,12 +882,18 @@ def test_file_single_quote():
     """Basic %%writefile with embedded single quotes"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
-        fname = os.path.join(td, '\'file1\'')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
-            'line1',
-            'line2',
-        ]))
-        s = Path(fname).read_text(encoding='utf-8')
+        fname = os.path.join(td, "'file1'")
+        ip.run_cell_magic(
+            "writefile",
+            fname,
+            "\n".join(
+                [
+                    "line1",
+                    "line2",
+                ]
+            ),
+        )
+        s = Path(fname).read_text(encoding="utf-8")
         assert "line1\n" in s
         assert "line2" in s
 
@@ -892,11 +904,17 @@ def test_file_double_quote():
     ip = get_ipython()
     with TemporaryDirectory() as td:
         fname = os.path.join(td, '"file1"')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
-            'line1',
-            'line2',
-        ]))
-        s = Path(fname).read_text(encoding='utf-8')
+        ip.run_cell_magic(
+            "writefile",
+            fname,
+            "\n".join(
+                [
+                    "line1",
+                    "line2",
+                ]
+            ),
+        )
+        s = Path(fname).read_text(encoding="utf-8")
         assert "line1\n" in s
         assert "line2" in s
 
@@ -905,13 +923,19 @@ def test_file_var_expand():
     """%%writefile $filename"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
-        fname = os.path.join(td, 'file1')
-        ip.user_ns['filename'] = fname
-        ip.run_cell_magic("writefile", '$filename', u'\n'.join([
-            'line1',
-            'line2',
-        ]))
-        s = Path(fname).read_text(encoding='utf-8')
+        fname = os.path.join(td, "file1")
+        ip.user_ns["filename"] = fname
+        ip.run_cell_magic(
+            "writefile",
+            "$filename",
+            "\n".join(
+                [
+                    "line1",
+                    "line2",
+                ]
+            ),
+        )
+        s = Path(fname).read_text(encoding="utf-8")
         assert "line1\n" in s
         assert "line2" in s
 
@@ -935,16 +959,28 @@ def test_file_amend():
     """%%writefile -a amends files"""
     ip = get_ipython()
     with TemporaryDirectory() as td:
-        fname = os.path.join(td, 'file2')
-        ip.run_cell_magic("writefile", fname, u'\n'.join([
-            'line1',
-            'line2',
-        ]))
-        ip.run_cell_magic("writefile", "-a %s" % fname, u'\n'.join([
-            'line3',
-            'line4',
-        ]))
-        s = Path(fname).read_text(encoding='utf-8')
+        fname = os.path.join(td, "file2")
+        ip.run_cell_magic(
+            "writefile",
+            fname,
+            "\n".join(
+                [
+                    "line1",
+                    "line2",
+                ]
+            ),
+        )
+        ip.run_cell_magic(
+            "writefile",
+            "-a %s" % fname,
+            "\n".join(
+                [
+                    "line3",
+                    "line4",
+                ]
+            ),
+        )
+        s = Path(fname).read_text(encoding="utf-8")
         assert "line1\n" in s
         assert "line3\n" in s
 
@@ -954,11 +990,17 @@ def test_file_spaces():
     ip = get_ipython()
     with TemporaryWorkingDirectory() as td:
         fname = "file name"
-        ip.run_cell_magic("file", '"%s"'%fname, u'\n'.join([
-            'line1',
-            'line2',
-        ]))
-        s = Path(fname).read_text(encoding='utf-8')
+        ip.run_cell_magic(
+            "file",
+            '"%s"' % fname,
+            "\n".join(
+                [
+                    "line1",
+                    "line2",
+                ]
+            ),
+        )
+        s = Path(fname).read_text(encoding="utf-8")
         assert "line1\n" in s
         assert "line2" in s
 
@@ -1154,11 +1196,11 @@ def test_save():
     with TemporaryDirectory() as tmpdir:
         file = os.path.join(tmpdir, "testsave.py")
         ip.run_line_magic("save", "%s 1-10" % file)
-        content = Path(file).read_text(encoding='utf-8')
+        content = Path(file).read_text(encoding="utf-8")
         assert content.count(cmds[0]) == 1
         assert "coding: utf-8" in content
         ip.run_line_magic("save", "-a %s 1-10" % file)
-        content = Path(file).read_text(encoding='utf-8')
+        content = Path(file).read_text(encoding="utf-8")
         assert content.count(cmds[0]) == 2
         assert "coding: utf-8" in content
 
@@ -1173,7 +1215,7 @@ def test_save_with_no_args():
     with TemporaryDirectory() as tmpdir:
         path = os.path.join(tmpdir, "testsave.py")
         ip.run_line_magic("save", path)
-        content = Path(path).read_text(encoding='utf-8')
+        content = Path(path).read_text(encoding="utf-8")
         expected_content = dedent(
             """\
             # coding: utf-8
@@ -1335,8 +1377,8 @@ if __name__ == "__main__":
 def test_run_module_from_import_hook():
     "Test that a module can be loaded via an import hook"
     with TemporaryDirectory() as tmpdir:
-        fullpath = os.path.join(tmpdir, 'my_tmp.py')
-        Path(fullpath).write_text(TEST_MODULE, encoding='utf-8')
+        fullpath = os.path.join(tmpdir, "my_tmp.py")
+        Path(fullpath).write_text(TEST_MODULE, encoding="utf-8")
 
         import importlib.abc
         import importlib.util
@@ -1352,7 +1394,7 @@ def test_run_module_from_import_hook():
 
             def get_data(self, path):
                 assert Path(path).samefile(fullpath)
-                return Path(fullpath).read_text(encoding='utf-8')
+                return Path(fullpath).read_text(encoding="utf-8")
 
         sys.meta_path.insert(0, MyTempImporter())
 

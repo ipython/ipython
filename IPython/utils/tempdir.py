@@ -24,7 +24,7 @@ class NamedFileInTemporaryDirectory(object):
         """
         self._tmpdir = TemporaryDirectory(**kwds)
         path = Path(self._tmpdir.name) / filename
-        encoding = None if 'b' in mode else 'utf-8'
+        encoding = None if "b" in mode else "utf-8"
         self.file = open(path, mode, bufsize, encoding=encoding)
 
     def cleanup(self):

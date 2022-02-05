@@ -443,7 +443,7 @@ class TestMagicRunWithPackage(unittest.TestCase):
         d = os.path.dirname(path)
         if not os.path.isdir(d):
             os.makedirs(d)
-        with open(path, 'w', encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(textwrap.dedent(content))
 
     def setUp(self):
@@ -526,8 +526,8 @@ class TestMagicRunWithPackage(unittest.TestCase):
 
 def test_run__name__():
     with TemporaryDirectory() as td:
-        path = pjoin(td, 'foo.py')
-        with open(path, 'w', encoding='utf-8') as f:
+        path = pjoin(td, "foo.py")
+        with open(path, "w", encoding="utf-8") as f:
             f.write("q = __name__")
 
         _ip.user_ns.pop("q", None)
@@ -547,15 +547,19 @@ def test_run__name__():
 def test_run_tb():
     """Test traceback offset in %run"""
     with TemporaryDirectory() as td:
-        path = pjoin(td, 'foo.py')
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join([
-                "def foo():",
-                "    return bar()",
-                "def bar():",
-                "    raise RuntimeError('hello!')",
-                "foo()",
-            ]))
+        path = pjoin(td, "foo.py")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(
+                "\n".join(
+                    [
+                        "def foo():",
+                        "    return bar()",
+                        "def bar():",
+                        "    raise RuntimeError('hello!')",
+                        "foo()",
+                    ]
+                )
+            )
         with capture_output() as io:
             _ip.magic('run {}'.format(path))
         out = io.stdout
@@ -577,8 +581,8 @@ def test_multiprocessing_run():
         mpm = sys.modules.get('__mp_main__')
         sys.modules['__mp_main__'] = None
         try:
-            path = pjoin(td, 'test.py')
-            with open(path, 'w', encoding='utf-8') as f:
+            path = pjoin(td, "test.py")
+            with open(path, "w", encoding="utf-8") as f:
                 f.write("import multiprocessing\nprint('hoy')")
             with capture_output() as io:
                 _ip.run_line_magic('run', path)
@@ -597,15 +601,19 @@ def test_multiprocessing_run():
 def test_script_tb():
     """Test traceback offset in `ipython script.py`"""
     with TemporaryDirectory() as td:
-        path = pjoin(td, 'foo.py')
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join([
-                "def foo():",
-                "    return bar()",
-                "def bar():",
-                "    raise RuntimeError('hello!')",
-                "foo()",
-            ]))
+        path = pjoin(td, "foo.py")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(
+                "\n".join(
+                    [
+                        "def foo():",
+                        "    return bar()",
+                        "def bar():",
+                        "    raise RuntimeError('hello!')",
+                        "foo()",
+                    ]
+                )
+            )
         out, err = tt.ipexec(path)
         assert "execfile" not in out
         assert "RuntimeError" in out

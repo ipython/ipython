@@ -349,7 +349,7 @@ class DisplayObject(object):
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.filename is not None:
-            encoding = None if 'b' in self._read_flags else 'utf-8'
+            encoding = None if "b" in self._read_flags else "utf-8"
             with open(self.filename, self._read_flags, encoding=encoding) as f:
                 self.data = f.read()
         elif self.url is not None:
@@ -370,8 +370,11 @@ class DisplayObject(object):
                 if 'gzip' in response.headers['content-encoding']:
                     import gzip
                     from io import BytesIO
+
                     # assume utf-8 if encoding is not specified
-                    with gzip.open(BytesIO(data), 'rt', encoding=encoding or 'utf-8') as fp:
+                    with gzip.open(
+                        BytesIO(data), "rt", encoding=encoding or "utf-8"
+                    ) as fp:
                         encoding = None
                         data = fp.read()
 

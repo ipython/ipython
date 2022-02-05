@@ -26,12 +26,12 @@ def load_ipython_extension(ip):
 def test_extension_loading():
     em = get_ipython().extension_manager
     with TemporaryDirectory() as td:
-        ext1 = os.path.join(td, 'ext1.py')
-        with open(ext1, 'w', encoding='utf-8') as f:
+        ext1 = os.path.join(td, "ext1.py")
+        with open(ext1, "w", encoding="utf-8") as f:
             f.write(ext1_content)
-        
-        ext2 = os.path.join(td, 'ext2.py')
-        with open(ext2, 'w', encoding='utf-8') as f:
+
+        ext2 = os.path.join(td, "ext2.py")
+        with open(ext2, "w", encoding="utf-8") as f:
             f.write(ext2_content)
         
         with prepended_to_syspath(td):
@@ -76,8 +76,8 @@ def test_extension_loading():
 def test_extension_builtins():
     em = get_ipython().extension_manager
     with TemporaryDirectory() as td:
-        ext3 = os.path.join(td, 'ext3.py')
-        with open(ext3, 'w', encoding='utf-8') as f:
+        ext3 = os.path.join(td, "ext3.py")
+        with open(ext3, "w", encoding="utf-8") as f:
             f.write(ext3_content)
         
         assert 'ext3' not in em.loaded
