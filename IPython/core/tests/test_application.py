@@ -34,7 +34,7 @@ def test_unicode_ipdir():
     ipdir = tempfile.mkdtemp(suffix=u"€")
     
     # Create the config file, so it tries to load it.
-    with open(os.path.join(ipdir, 'ipython_config.py'), "w") as f:
+    with open(os.path.join(ipdir, 'ipython_config.py'), "w", encoding='utf-8') as f:
         pass
     
     old_ipdir1 = os.environ.pop("IPYTHONDIR", None)
@@ -59,7 +59,7 @@ def test_cli_priority():
             test = Unicode().tag(config=True)
 
         # Create the config file, so it tries to load it.
-        with open(os.path.join(td, 'ipython_config.py'), "w") as f:
+        with open(os.path.join(td, 'ipython_config.py'), "w", encoding='utf-8') as f:
             f.write("c.TestApp.test = 'config file'")
 
         app = TestApp()

@@ -866,7 +866,7 @@ def test_file():
             'line1',
             'line2',
         ]))
-        s = Path(fname).read_text()
+        s = Path(fname).read_text(encoding='utf-8')
         assert "line1\n" in s
         assert "line2" in s
 
@@ -881,7 +881,7 @@ def test_file_single_quote():
             'line1',
             'line2',
         ]))
-        s = Path(fname).read_text()
+        s = Path(fname).read_text(encoding='utf-8')
         assert "line1\n" in s
         assert "line2" in s
 
@@ -896,7 +896,7 @@ def test_file_double_quote():
             'line1',
             'line2',
         ]))
-        s = Path(fname).read_text()
+        s = Path(fname).read_text(encoding='utf-8')
         assert "line1\n" in s
         assert "line2" in s
 
@@ -911,7 +911,7 @@ def test_file_var_expand():
             'line1',
             'line2',
         ]))
-        s = Path(fname).read_text()
+        s = Path(fname).read_text(encoding='utf-8')
         assert "line1\n" in s
         assert "line2" in s
 
@@ -944,7 +944,7 @@ def test_file_amend():
             'line3',
             'line4',
         ]))
-        s = Path(fname).read_text()
+        s = Path(fname).read_text(encoding='utf-8')
         assert "line1\n" in s
         assert "line3\n" in s
 
@@ -958,7 +958,7 @@ def test_file_spaces():
             'line1',
             'line2',
         ]))
-        s = Path(fname).read_text()
+        s = Path(fname).read_text(encoding='utf-8')
         assert "line1\n" in s
         assert "line2" in s
 
@@ -1154,11 +1154,11 @@ def test_save():
     with TemporaryDirectory() as tmpdir:
         file = os.path.join(tmpdir, "testsave.py")
         ip.run_line_magic("save", "%s 1-10" % file)
-        content = Path(file).read_text()
+        content = Path(file).read_text(encoding='utf-8')
         assert content.count(cmds[0]) == 1
         assert "coding: utf-8" in content
         ip.run_line_magic("save", "-a %s 1-10" % file)
-        content = Path(file).read_text()
+        content = Path(file).read_text(encoding='utf-8')
         assert content.count(cmds[0]) == 2
         assert "coding: utf-8" in content
 
@@ -1173,7 +1173,7 @@ def test_save_with_no_args():
     with TemporaryDirectory() as tmpdir:
         path = os.path.join(tmpdir, "testsave.py")
         ip.run_line_magic("save", path)
-        content = Path(path).read_text()
+        content = Path(path).read_text(encoding='utf-8')
         expected_content = dedent(
             """\
             # coding: utf-8
@@ -1336,7 +1336,7 @@ def test_run_module_from_import_hook():
     "Test that a module can be loaded via an import hook"
     with TemporaryDirectory() as tmpdir:
         fullpath = os.path.join(tmpdir, 'my_tmp.py')
-        Path(fullpath).write_text(TEST_MODULE)
+        Path(fullpath).write_text(TEST_MODULE, encoding='utf-8')
 
         import importlib.abc
         import importlib.util
@@ -1352,7 +1352,7 @@ def test_run_module_from_import_hook():
 
             def get_data(self, path):
                 assert Path(path).samefile(fullpath)
-                return Path(fullpath).read_text()
+                return Path(fullpath).read_text(encoding='utf-8')
 
         sys.meta_path.insert(0, MyTempImporter())
 

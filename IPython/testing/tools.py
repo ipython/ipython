@@ -428,7 +428,7 @@ def mute_warn():
 def make_tempfile(name):
     """ Create an empty, named, temporary file for the duration of the context.
     """
-    open(name, 'w').close()
+    open(name, 'w', encoding='utf-8').close()
     try:
         yield
     finally:

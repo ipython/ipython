@@ -58,7 +58,7 @@ class ChangedPyFileTest(unittest.TestCase):
         """
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding='utf-8') as f:
                 f.write(file_1)
             
             with prepended_to_syspath(td):
@@ -68,7 +68,7 @@ class ChangedPyFileTest(unittest.TestCase):
                 ip.run_cell("foo.f()")
             
             # Make the file shorter, so the line of the error is missing.
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding='utf-8') as f:
                 f.write(file_2)
             
             # For some reason, this was failing on the *second* call after
@@ -92,7 +92,7 @@ class NonAsciiTest(unittest.TestCase):
         # Non-ascii directory name as well.
         with TemporaryDirectory(suffix=u'é') as td:
             fname = os.path.join(td, u"fooé.py")
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding='utf-8') as f:
                 f.write(file_1)
             
             with prepended_to_syspath(td):
@@ -172,7 +172,7 @@ class IndentationErrorTest(unittest.TestCase):
         
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding='utf-8') as f:
                 f.write(indentationerror_file)
             
             with tt.AssertPrints("IndentationError"):
@@ -221,14 +221,14 @@ bar()
     def test_changing_py_file(self):
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
-            with open(fname, 'w') as f:
+            with open(fname, 'w', encoding='utf-8') as f:
                 f.write(se_file_1)
 
             with tt.AssertPrints(["7/", "SyntaxError"]):
                 ip.magic("run " + fname)
 
             # Modify the file
-            with open(fname, 'w') as f:
+            with open(fname, 'w', encoding='utf-8') as f:
                 f.write(se_file_2)
 
             # The SyntaxError should point to the correct line

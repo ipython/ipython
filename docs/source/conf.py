@@ -28,7 +28,7 @@ if ON_RTD:
     for name in ("config", "api", "magics", "shortcuts"):
         fname = Path("autogen_{}.py".format(name))
         fpath = (Path(__file__).parent).joinpath("..", fname)
-        with open(fpath) as f:
+        with open(fpath, encoding='utf-8') as f:
             exec(compile(f.read(), fname, 'exec'), {
                 '__file__': fpath,
                 '__name__': '__main__',
@@ -45,7 +45,7 @@ sys.path.insert(0, os.path.abspath('../sphinxext'))
 
 # We load the ipython release info into a dict by explicit execution
 iprelease = {}
-exec(compile(open('../../IPython/core/release.py').read(), '../../IPython/core/release.py', 'exec'),iprelease)
+exec(compile(open('../../IPython/core/release.py', encoding='utf-8').read(), '../../IPython/core/release.py', 'exec'),iprelease)
 
 # General configuration
 # ---------------------
