@@ -2287,7 +2287,11 @@ class InteractiveShell(SingletonConfigurable):
         return self.magics_manager.magics[magic_kind].get(magic_name)
 
     def magic(self, arg_s):
-        """DEPRECATED. Use run_line_magic() instead.
+        """
+        DEPRECATED
+
+        Deprecated since IPython 0.13 (warning added in
+        8.1), use run_line_magic(magic_name, parameter_s).
 
         Call a magic function by name.
 
@@ -2305,6 +2309,12 @@ class InteractiveShell(SingletonConfigurable):
         valid Python code you can type at the interpreter, including loops and
         compound statements.
         """
+        warnings.warn(
+            "`magic(...)` is deprecated since IPython 0.13 (warning added in "
+            "8.1), use run_line_magic(magic_name, parameter_s).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         # TODO: should we issue a loud deprecation warning here?
         magic_name, _, magic_arg_s = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
