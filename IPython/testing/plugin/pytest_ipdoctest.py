@@ -142,6 +142,23 @@ def pytest_collect_file(
     return None
 
 
+if int(pytest.__version__.split(".")[0]) < 7:
+    _collect_file = pytest_collect_file
+
+    def pytest_collect_file(
+        path,
+        parent: Collector,
+    ) -> Optional[Union["IPDoctestModule", "IPDoctestTextfile"]]:
+        return _collect_file(Path(path), parent)
+
+    _import_path = import_path
+
+    def import_path(path, root):
+        import py.path
+
+        return _import_path(py.path.local(path))
+
+
 def _is_setup_py(path: Path) -> bool:
     if path.name != "setup.py":
         return False
@@ -427,6 +444,12 @@ class IPDoctestItem(pytest.Item):
         assert self.dtest is not None
         return self.path, self.dtest.lineno, "[ipdoctest] %s" % self.name
 
+    if int(pytest.__version__.split(".")[0]) < 7:
+
+        @property
+        def path(self) -> Path:
+            return Path(self.fspath)
+
 
 def _get_flag_lookup() -> Dict[str, int]:
     import doctest
@@ -493,6 +516,27 @@ class IPDoctestTextfile(pytest.Module):
             yield IPDoctestItem.from_parent(
                 self, name=test.name, runner=runner, dtest=test
             )
+
+    if int(pytest.__version__.split(".")[0]) < 7:
+
+        @property
+        def path(self) -> Path:
+            return Path(self.fspath)
+
+        @classmethod
+        def from_parent(
+            cls,
+            parent,
+            *,
+            fspath=None,
+            path: Optional[Path] = None,
+            **kw,
+        ):
+            if path is not None:
+                import py.path
+
+                fspath = py.path.local(path)
+            return super().from_parent(parent=parent, fspath=fspath, **kw)
 
 
 def _check_all_skipped(test: "doctest.DocTest") -> None:
@@ -589,11 +633,17 @@ class IPDoctestModule(pytest.Module):
                     )
 
         if self.path.name == "conftest.py":
-            module = self.config.pluginmanager._importconftest(
-                self.path,
-                self.config.getoption("importmode"),
-                rootpath=self.config.rootpath,
-            )
+            if int(pytest.__version__.split(".")[0]) < 7:
+                module = self.config.pluginmanager._importconftest(
+                    self.path,
+                    self.config.getoption("importmode"),
+                )
+            else:
+                module = self.config.pluginmanager._importconftest(
+                    self.path,
+                    self.config.getoption("importmode"),
+                    rootpath=self.config.rootpath,
+                )
         else:
             try:
                 module = import_path(self.path, root=self.config.rootpath)
@@ -617,6 +667,27 @@ class IPDoctestModule(pytest.Module):
                 yield IPDoctestItem.from_parent(
                     self, name=test.name, runner=runner, dtest=test
                 )
+
+    if int(pytest.__version__.split(".")[0]) < 7:
+
+        @property
+        def path(self) -> Path:
+            return Path(self.fspath)
+
+        @classmethod
+        def from_parent(
+            cls,
+            parent,
+            *,
+            fspath=None,
+            path: Optional[Path] = None,
+            **kw,
+        ):
+            if path is not None:
+                import py.path
+
+                fspath = py.path.local(path)
+            return super().from_parent(parent=parent, fspath=fspath, **kw)
 
 
 def _setup_fixtures(doctest_item: IPDoctestItem) -> FixtureRequest:
@@ -711,7 +782,7 @@ def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
                 precision = 0 if fraction is None else len(fraction)
                 if exponent is not None:
                     precision -= int(exponent)
-                if float(w.group()) == approx(float(g.group()), abs=10**-precision):
+                if float(w.group()) == approx(float(g.group()), abs=10 ** -precision):
                     # They're close enough. Replace the text we actually
                     # got with the text we want, so that it will match when we
                     # check the string literally.
