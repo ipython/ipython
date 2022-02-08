@@ -310,6 +310,34 @@ class MagicsManager(Configurable):
     # holding the actual callable object as value.  This is the dict used for
     # magic function dispatch
     magics = Dict()
+    lazy_magics = Dict(
+        help="""
+    Mapping from magic names to modules to load.
+
+    This can be used in IPython/IPykernel configuration to declare lazy magics
+    that will only be imported/registered on first use.
+
+    For example::
+
+        c.MagicsManger.lazy_magics = {
+          "my_magic": "slow.to.import",
+          "my_other_magic": "also.slow",
+        }
+
+    On first invocation of `%my_magic`, `%%my_magic`, `%%my_other_magic` or
+    `%%my_other_magic`, the corresponding module will be loaded as an ipython
+    extensions as if you had previously done `%load_ext ipython`.
+
+    Magics names should be without percent(s) as magics can be both cell
+    and line magics.
+
+    Lazy loading happen relatively late in execution process, and
+    complex extensions that manipulate Python/IPython internal state or global state
+    might not support lazy loading.
+    """
+    ).tag(
+        config=True,
+    )
 
     # A registry of the original objects that we've been given holding magics.
     registry = Dict()
@@ -373,6 +401,24 @@ class MagicsManager(Configurable):
                     m_docs[m_name] = missing
             docs[m_type] = m_docs
         return docs
+
+    def register_lazy(self, name: str, fully_qualified_name: str):
+        """
+        Lazily register a magic via an extension.
+
+
+        Parameters
+        ----------
+        name : str
+            Name of the magic you wish to register.
+        fully_qualified_name :
+            Fully qualified name of the module/submodule that should be loaded
+            as an extensions when the magic is first called.
+            It is assumed that loading this extensions will register the given
+            magic.
+        """
+
+        self.lazy_magics[name] = fully_qualified_name
 
     def register(self, *magic_objects):
         """Register one or more instances of Magics.
