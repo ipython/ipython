@@ -32,8 +32,15 @@ from IPython.utils.io import capture_output
 from IPython.utils.tempdir import (TemporaryDirectory,
                                     TemporaryWorkingDirectory)
 from IPython.utils.process import find_cmd
+from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
+from IPython.utils.syspathcontext import prepended_to_syspath
+
 from .test_debugger import PdbTestInput
 
+from tempfile import NamedTemporaryFile
+
+import pytest
+from pathlib import Path
 
 @magic.magics_class
 class DummyMagics(magic.Magics): pass
@@ -1236,3 +1243,44 @@ def test_timeit_arguments():
         # 3.7 optimize no-op statement like above out, and complain there is
         # nothing in the for loop.
         _ip.magic("timeit -n1 -r1 a=('#')")
+
+
+MINIMAL_LAZY_MAGIC = """
+from IPython.core.magic import (
+    Magics,
+    magics_class,
+    line_magic,
+    cell_magic,
+)
+
+
+@magics_class
+class LazyMagics(Magics):
+    @line_magic
+    def lazy_line(self, line):
+        print("Lazy Line")
+
+    @cell_magic
+    def lazy_cell(self, line, cell):
+        print("Lazy Cell")
+
+
+def load_ipython_extension(ipython):
+    ipython.register_magics(LazyMagics)
+"""
+
+
+def test_lazy_magics():
+    with pytest.raises(UsageError):
+        ip.run_line_magic("lazy_line", "")
+
+    startdir = os.getcwd()
+
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            ptempdir = Path(tmpdir)
+            tf = ptempdir / "lazy_magic_module.py"
+            tf.write_text(MINIMAL_LAZY_MAGIC)
+            ip.magics_manager.register_lazy("lazy_line", Path(tf.name).name[:-3])
+            with tt.AssertPrints("Lazy Line"):
+                ip.run_line_magic("lazy_line", "")
