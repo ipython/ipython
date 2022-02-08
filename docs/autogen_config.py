@@ -102,7 +102,7 @@ def reverse_aliases(app):
 def write_doc(name, title, app, preamble=None):
     trait_aliases = reverse_aliases(app)
     filename = options / (name + ".rst")
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(title + "\n")
         f.write(("=" * len(title)) + "\n")
         f.write("\n")
@@ -117,7 +117,7 @@ def write_doc(name, title, app, preamble=None):
 
 if __name__ == '__main__':
     # Touch this file for the make target
-    Path(generated).write_text("")
+    Path(generated).write_text("", encoding="utf-8")
 
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp())
     write_doc('kernel', 'IPython kernel options', IPKernelApp(),

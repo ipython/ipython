@@ -199,7 +199,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                 tmppath = Path(tmpname)
                 try:
                     os.close(fd)
-                    with tmppath.open("wt") as tmpfile:
+                    with tmppath.open("wt", encoding="utf-8") as tmpfile:
                         tmpfile.write(strng)
                         cmd = "%s < %s" % (pager_cmd, tmppath)
                     # tmpfile needs to be closed for windows
@@ -213,12 +213,15 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
             try:
                 retval = None
                 # Emulate os.popen, but redirect stderr
-                proc = subprocess.Popen(pager_cmd,
-                                shell=True,
-                                stdin=subprocess.PIPE,
-                                stderr=subprocess.DEVNULL
-                                )
-                pager = os._wrap_close(io.TextIOWrapper(proc.stdin), proc)
+                proc = subprocess.Popen(
+                    pager_cmd,
+                    shell=True,
+                    stdin=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                )
+                pager = os._wrap_close(
+                    io.TextIOWrapper(proc.stdin, encoding="utf-8"), proc
+                )
                 try:
                     pager_encoding = pager.encoding or sys.stdout.encoding
                     pager.write(strng)
@@ -277,7 +280,7 @@ def page_file(fname, start=0, pager_cmd=None):
         try:
             if start > 0:
                 start -= 1
-            page(open(fname).read(),start)
+            page(open(fname, encoding="utf-8").read(), start)
         except:
             print('Unable to show file',repr(fname))
 

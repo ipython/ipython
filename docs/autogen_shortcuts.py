@@ -89,6 +89,8 @@ if __name__ == '__main__':
         (single_filter, "single_filtered"),
         (multi_filter, "multi_filtered"),
     ]:
-        with (dest / "{}.csv".format(output_filename)).open("w") as csv:
+        with (dest / "{}.csv".format(output_filename)).open(
+            "w", encoding="utf-8"
+        ) as csv:
             for (shortcut, flt), v in sorted(filters.items(), key=sort_key):
                 csv.write(":kbd:`{}`\t{}\t{}\n".format(shortcut, flt, v))

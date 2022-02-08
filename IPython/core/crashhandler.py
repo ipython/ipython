@@ -185,7 +185,7 @@ class CrashHandler(object):
 
         # and generate a complete report on disk
         try:
-            report = open(report_name,'w')
+            report = open(report_name, "w", encoding="utf-8")
         except:
             print('Could not create crash report on disk.', file=sys.stderr)
             return

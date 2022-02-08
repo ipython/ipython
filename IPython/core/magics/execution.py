@@ -360,7 +360,7 @@ class ExecutionMagics(Magics):
         if text_file:
             pfile = Path(text_file)
             pfile.touch(exist_ok=True)
-            pfile.write_text(output)
+            pfile.write_text(output, encoding="utf-8")
 
             print(
                 f"\n*** Profile printout saved to text file {repr(text_file)}.{sys_exit}"

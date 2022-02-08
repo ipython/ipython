@@ -20,7 +20,7 @@ from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
 
 # setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
-devnull = open(os.devnull, 'w')
+devnull = open(os.devnull, "w", encoding="utf-8")
 atexit.register(devnull.close)
 
 
@@ -52,7 +52,8 @@ class Tee(object):
         if hasattr(file_or_name, 'write') and hasattr(file_or_name, 'seek'):
             self.file = file_or_name
         else:
-            self.file = open(file_or_name, mode)
+            encoding = None if "b" in mode else "utf-8"
+            self.file = open(file_or_name, mode, encoding=encoding)
         self.channel = channel
         self.ostream = getattr(sys, channel)
         setattr(sys, channel, self)
@@ -131,7 +132,7 @@ def temp_pyfile(src, ext='.py'):
         It is the caller's responsibility to close the open file and unlink it.
     """
     fname = tempfile.mkstemp(ext)[1]
-    with open(Path(fname), "w") as f:
+    with open(Path(fname), "w", encoding="utf-8") as f:
         f.write(src)
         f.flush()
     return fname

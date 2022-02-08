@@ -485,12 +485,12 @@ class InteractiveShellTestCase(unittest.TestCase):
     def test_mktempfile(self):
         filename = ip.mktempfile()
         # Check that we can open the file again on Windows
-        with open(filename, 'w') as f:
-            f.write('abc')
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("abc")
 
-        filename = ip.mktempfile(data='blah')
-        with open(filename, 'r') as f:
-            self.assertEqual(f.read(), 'blah')
+        filename = ip.mktempfile(data="blah")
+        with open(filename, "r", encoding="utf-8") as f:
+            self.assertEqual(f.read(), "blah")
 
     def test_new_main_mod(self):
         # Smoketest to check that this accepts a unicode module name
@@ -545,7 +545,9 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
         self.BASETESTDIR = tempfile.mkdtemp()
         self.TESTDIR = join(self.BASETESTDIR, u"åäö")
         os.mkdir(self.TESTDIR)
-        with open(join(self.TESTDIR, u"åäötestscript.py"), "w") as sfile:
+        with open(
+            join(self.TESTDIR, u"åäötestscript.py"), "w", encoding="utf-8"
+        ) as sfile:
             sfile.write("pass\n")
         self.oldpath = os.getcwd()
         os.chdir(self.TESTDIR)

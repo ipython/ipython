@@ -33,7 +33,7 @@ class Test_magic_run_completer(unittest.TestCase):
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
         for fil in self.files:
-            with open(join(self.BASETESTDIR, fil), "w") as sfile:
+            with open(join(self.BASETESTDIR, fil), "w", encoding="utf-8") as sfile:
                 sfile.write("pass\n")
         for d in self.dirs:
             os.mkdir(join(self.BASETESTDIR, d))
@@ -89,7 +89,7 @@ class Test_magic_run_completer_nonascii(unittest.TestCase):
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
         for fil in [u"aaø.py", u"a.py", u"b.py"]:
-            with open(join(self.BASETESTDIR, fil), "w") as sfile:
+            with open(join(self.BASETESTDIR, fil), "w", encoding="utf-8") as sfile:
                 sfile.write("pass\n")
         self.oldpath = os.getcwd()
         os.chdir(self.BASETESTDIR)
@@ -133,8 +133,8 @@ def test_import_invalid_module():
     with TemporaryDirectory() as tmpdir:
         sys.path.insert( 0, tmpdir )
         for name in invalid_module_names | valid_module_names:
-            filename = os.path.join(tmpdir, name + '.py')
-            open(filename, 'w').close()
+            filename = os.path.join(tmpdir, name + ".py")
+            open(filename, "w", encoding="utf-8").close()
 
         s = set( module_completion('import foo') )
         intersection = s.intersection(invalid_module_names)

@@ -176,12 +176,12 @@ class StoreMagics(Magics):
         # default action - store the variable
         else:
             # %store foo >file.txt or >>file.txt
-            if len(args) > 1 and args[1].startswith('>'):
-                fnam = os.path.expanduser(args[1].lstrip('>').lstrip())
-                if args[1].startswith('>>'):
-                    fil = open(fnam, 'a')
+            if len(args) > 1 and args[1].startswith(">"):
+                fnam = os.path.expanduser(args[1].lstrip(">").lstrip())
+                if args[1].startswith(">>"):
+                    fil = open(fnam, "a", encoding="utf-8")
                 else:
-                    fil = open(fnam, 'w')
+                    fil = open(fnam, "w", encoding="utf-8")
                 with fil:
                     obj = ip.ev(args[0])
                     print("Writing '%s' (%s) to file '%s'." % (args[0],

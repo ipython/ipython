@@ -2667,7 +2667,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Make sure we can open the file
         try:
-            with fname.open():
+            with fname.open("rb"):
                 pass
         except:
             warn('Could not open file <%s> for safe execution.' % fname)
@@ -2725,7 +2725,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Make sure we can open the file
         try:
-            with fname.open():
+            with fname.open("rb"):
                 pass
         except:
             warn('Could not open file <%s> for safe execution.' % fname)
@@ -2747,7 +2747,7 @@ class InteractiveShell(SingletonConfigurable):
                     if cell.cell_type == 'code':
                         yield cell.source
             else:
-                yield fname.read_text()
+                yield fname.read_text(encoding="utf-8")
 
         with prepended_to_syspath(dname):
             try:
@@ -3499,7 +3499,7 @@ class InteractiveShell(SingletonConfigurable):
         self.tempfiles.append(file_path)
 
         if data:
-            file_path.write_text(data)
+            file_path.write_text(data, encoding="utf-8")
         return filename
 
     def ask_yes_no(self, prompt, default=None, interrupt=None):

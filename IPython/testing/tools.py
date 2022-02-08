@@ -426,9 +426,8 @@ def mute_warn():
 
 @contextmanager
 def make_tempfile(name):
-    """ Create an empty, named, temporary file for the duration of the context.
-    """
-    open(name, 'w').close()
+    """Create an empty, named, temporary file for the duration of the context."""
+    open(name, "w", encoding="utf-8").close()
     try:
         yield
     finally:

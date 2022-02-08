@@ -470,7 +470,7 @@ class BaseIPythonApplication(Application):
         config_file = Path(self.profile_dir.location) / self.config_file_name
         if self.overwrite or not config_file.exists():
             self.log.warning("Generating default config file: %r" % (config_file))
-            config_file.write_text(s)
+            config_file.write_text(s, encoding="utf-8")
 
     @catch_config_error
     def initialize(self, argv=None):

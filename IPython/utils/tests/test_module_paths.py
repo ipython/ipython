@@ -32,7 +32,7 @@ TMP_TEST_DIR = Path(tempfile.mkdtemp(suffix="with.dot"))
 old_syspath = sys.path
 
 def make_empty_file(fname):
-    open(fname, 'w').close()
+    open(fname, "w", encoding="utf-8").close()
 
 
 def setup_module():

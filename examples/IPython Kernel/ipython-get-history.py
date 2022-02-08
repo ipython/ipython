@@ -24,7 +24,7 @@ from IPython.core.history import HistoryAccessor
 session_number = int(sys.argv[1])
 if len(sys.argv) > 2:
     filepath = Path(sys.argv[2])
-    dest = open(filepath, "w")
+    dest = open(filepath, "w", encoding="utf-8")
     raw = not filepath.name.endswith(".py")
 else:
     dest = sys.stdout

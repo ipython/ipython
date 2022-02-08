@@ -346,7 +346,7 @@ class TestCompleter(unittest.TestCase):
             suffixes = ["1", "2"]
             names = [prefix + s for s in suffixes]
             for n in names:
-                open(n, "w").close()
+                open(n, "w", encoding="utf-8").close()
 
             # Check simple completion
             c = ip.complete(prefix)[1]
@@ -365,7 +365,7 @@ class TestCompleter(unittest.TestCase):
             suffixes = ["1", "2"]
             names = [prefix + s for s in suffixes]
             for n in names:
-                open(n, "w").close()
+                open(n, "w", encoding="utf-8").close()
 
             # Check simple completion
             c = ip.complete(prefix)[1]
@@ -381,7 +381,7 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
         with TemporaryWorkingDirectory():
             name = "foo'bar"
-            open(name, "w").close()
+            open(name, "w", encoding="utf-8").close()
 
             # Don't escape Windows
             escaped = name if sys.platform == "win32" else "foo\\'bar"
