@@ -10,24 +10,23 @@ import sys
 import tempfile
 import unittest
 from contextlib import contextmanager
-from unittest.mock import patch
-from os.path import join, abspath
 from importlib import reload
+from os.path import abspath, join
+from unittest.mock import patch
 
 import pytest
+from tempfile import TemporaryDirectory
 
 import IPython
 from IPython import paths
 from IPython.testing import decorators as dec
 from IPython.testing.decorators import (
+    onlyif_unicode_paths,
     skip_if_not_win32,
     skip_win32,
-    onlyif_unicode_paths,
 )
 from IPython.testing.tools import make_tempfile
 from IPython.utils import path
-from IPython.utils.tempdir import TemporaryDirectory
-
 
 # Platform-dependent imports
 try:
@@ -41,6 +40,7 @@ except ImportError:
         import winreg as wreg
     except ImportError:
         import _winreg as wreg
+
         #Add entries that needs to be stubbed by the testing code
         (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
 

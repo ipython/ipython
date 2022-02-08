@@ -7,16 +7,18 @@
 
 # stdlib
 import io
-from pathlib import Path
+import sqlite3
 import sys
 import tempfile
 from datetime import datetime
-import sqlite3
+from pathlib import Path
 
+from tempfile import TemporaryDirectory
 # our own packages
 from traitlets.config.loader import Config
-from IPython.utils.tempdir import TemporaryDirectory
+
 from IPython.core.history import HistoryManager, extract_hist_ranges
+
 
 def test_proper_default_encoding():
     assert sys.getdefaultencoding() == "utf-8"

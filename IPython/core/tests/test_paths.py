@@ -6,11 +6,11 @@ import tempfile
 import warnings
 from unittest.mock import patch
 
-from testpath import modified_env, assert_isdir, assert_isfile
+from tempfile import TemporaryDirectory
+from testpath import assert_isdir, assert_isfile, modified_env
 
 from IPython import paths
 from IPython.testing.decorators import skip_win32
-from IPython.utils.tempdir import TemporaryDirectory
 
 TMP_TEST_DIR = os.path.realpath(tempfile.mkdtemp())
 HOME_TEST_DIR = os.path.join(TMP_TEST_DIR, "home_test_dir")

@@ -4,11 +4,11 @@
 import os
 import tempfile
 
+from tempfile import TemporaryDirectory
 from traitlets import Unicode
 
 from IPython.core.application import BaseIPythonApplication
 from IPython.testing import decorators as dec
-from IPython.utils.tempdir import TemporaryDirectory
 
 
 @dec.onlyif_unicode_paths

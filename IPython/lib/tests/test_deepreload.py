@@ -4,14 +4,15 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import pytest
 import types
-
 from pathlib import Path
 
+import pytest
+from tempfile import TemporaryDirectory
+
+from IPython.lib.deepreload import modules_reloading
+from IPython.lib.deepreload import reload as dreload
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.tempdir import TemporaryDirectory
-from IPython.lib.deepreload import reload as dreload, modules_reloading
 
 
 def test_deepreload():
