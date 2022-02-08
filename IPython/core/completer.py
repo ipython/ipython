@@ -2222,12 +2222,22 @@ class IPCompleter(Completer):
             # initialized, and it takes a user-noticeable amount of time to
             # initialize it, so we don't want to initialize it unless we're
             # actually going to use it.
-            s = text[slashpos+1:]
-            candidates = [x for x in self.unicode_names if x.startswith(s)]
+            s = text[slashpos + 1 :]
+            sup = s.upper()
+            candidates = [x for x in self.unicode_names if x.startswith(sup)]
             if candidates:
                 return s, candidates
-            else:
-                return '', ()
+            candidates = [x for x in self.unicode_names if sup in x]
+            if candidates:
+                return s, candidates
+            splitsup = sup.split(" ")
+            candidates = [
+                x for x in self.unicode_names if all(u in x for u in splitsup)
+            ]
+            if candidates:
+                return s, candidates
+
+            return "", ()
 
         # if text does not start with slash
         else:

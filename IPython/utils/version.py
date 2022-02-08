@@ -14,7 +14,10 @@ It is a bit ridiculous that we need these.
 
 from warnings import warn
 
-warn("The `IPython.utils.version` module has been deprecated since IPython 8.0.")
+warn(
+    "The `IPython.utils.version` module has been deprecated since IPython 8.0.",
+    DeprecationWarning,
+)
 
 
 def check_version(v, check):
