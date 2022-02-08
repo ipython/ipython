@@ -500,7 +500,6 @@ class InteractiveShell(SingletonConfigurable):
     def __init__(self, ipython_dir=None, profile_dir=None,
                  user_module=None, user_ns=None,
                  custom_exceptions=((), None), **kwargs):
-
         # This is where traits with a config_key argument are updated
         # from the values on config.
         super(InteractiveShell, self).__init__(**kwargs)
@@ -1643,7 +1642,7 @@ class InteractiveShell(SingletonConfigurable):
                     formatter,
                     info,
                     enable_html_pager=self.enable_html_pager,
-                    **kw
+                    **kw,
                 )
             else:
                 pmethod(info.obj, oname)
@@ -2173,7 +2172,34 @@ class InteractiveShell(SingletonConfigurable):
             func, magic_kind=magic_kind, magic_name=magic_name
         )
 
-    def run_line_magic(self, magic_name, line, _stack_depth=1):
+    def _find_with_lazy_load(self, /, type_, magic_name: str):
+        """
+        Try to find a magic potentially lazy-loading it.
+
+        Parameters
+        ----------
+
+        type_: "line"|"cell"
+            the type of magics we are trying to find/lazy load.
+        magic_name: str
+            The name of the magic we are trying to find/lazy load
+
+
+        Note that this may have any side effects
+        """
+        finder = {"line": self.find_line_magic, "cell": self.find_cell_magic}[type_]
+        fn = finder(magic_name)
+        if fn is not None:
+            return fn
+        lazy = self.magics_manager.lazy_magics.get(magic_name)
+        if lazy is None:
+            return None
+
+        self.run_line_magic("load_ext", lazy)
+        res = finder(magic_name)
+        return res
+
+    def run_line_magic(self, magic_name: str, line, _stack_depth=1):
         """Execute the given line magic.
 
         Parameters
@@ -2186,7 +2212,12 @@ class InteractiveShell(SingletonConfigurable):
             If run_line_magic() is called from magic() then _stack_depth=2.
             This is added to ensure backward compatibility for use of 'get_ipython().magic()'
         """
-        fn = self.find_line_magic(magic_name)
+        fn = self._find_with_lazy_load("line", magic_name)
+        if fn is None:
+            lazy = self.magics_manager.lazy_magics.get(magic_name)
+            if lazy:
+                self.run_line_magic("load_ext", lazy)
+                fn = self.find_line_magic(magic_name)
         if fn is None:
             cm = self.find_cell_magic(magic_name)
             etpl = "Line magic function `%%%s` not found%s."
@@ -2237,7 +2268,7 @@ class InteractiveShell(SingletonConfigurable):
         cell : str
             The body of the cell as a (possibly multiline) string.
         """
-        fn = self.find_cell_magic(magic_name)
+        fn = self._find_with_lazy_load("cell", magic_name)
         if fn is None:
             lm = self.find_line_magic(magic_name)
             etpl = "Cell magic `%%{0}` not found{1}."

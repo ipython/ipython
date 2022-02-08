@@ -25,6 +25,7 @@ from IPython.core.history import HistoryManager
 from IPython.core.application import (
     ProfileDir, BaseIPythonApplication, base_flags, base_aliases
 )
+from IPython.core.magic import MagicsManager
 from IPython.core.magics import (
     ScriptMagics, LoggingMagics
 )
@@ -200,6 +201,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.__class__,      # it will also affect subclasses (e.g. QtConsole)
             TerminalInteractiveShell,
             HistoryManager,
+            MagicsManager,
             ProfileDir,
             PlainTextFormatter,
             IPCompleter,
