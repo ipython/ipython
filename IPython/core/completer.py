@@ -1182,7 +1182,7 @@ class IPCompleter(Completer):
 
         # This is a list of names of unicode characters that can be completed
         # into their corresponding unicode value. The list is large, so we
-        # laziliy initialize it on first use. Consuming code should access this
+        # lazily initialize it on first use. Consuming code should access this
         # attribute through the `@unicode_names` property.
         self._unicode_names = None
 
@@ -2070,7 +2070,7 @@ class IPCompleter(Completer):
             indexed.
         line_buffer : optional, str
             The current line the cursor is in, this is mostly due to legacy
-            reason that readline coudl only give a us the single current line.
+            reason that readline could only give a us the single current line.
             Prefer `full_text`.
         text : str
             The current "token" the cursor is in, mostly also for historical

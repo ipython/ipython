@@ -39,7 +39,7 @@ jobs:
     - name: Install and update Python dependencies
       run: |
         python -m pip install --upgrade -e file://$PWD#egg=ipython[test]
-        # we must instal IPython after ipykernel to get the right versions.
+        # we must install IPython after ipykernel to get the right versions.
         python -m pip install --upgrade --upgrade-strategy eager flaky ipyparallel
         python -m pip install --upgrade 'pytest<7' 
     - name: pytest
