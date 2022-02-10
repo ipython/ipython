@@ -31,7 +31,7 @@ from io import open as io_open
 from pathlib import Path
 from pickleshare import PickleShareDB
 
-from traitlets.config.configurable import SingletonConfigurable
+from traitlets.config.configurable import SingletonConfigurable, Configurable
 from traitlets.utils.importstring import import_item
 from IPython.core import oinspect
 from IPython.core import magic
@@ -103,6 +103,36 @@ try:
         return sphinxify_docstring
 except ImportError:
     sphinxify = None
+
+
+from contextlib import contextmanager
+
+class Multipleton(SingletonConfigurable):
+    """
+    Subclass of singleton configurable that allow limited nested of SingletonConfigurable
+
+    """
+
+    @classmethod
+    @contextmanager
+    def nest(cls):
+        save = cls._instance
+        try:
+            cls._instance = None
+            yield
+        except BaseException:
+            cls._instance = save
+
+    # def __init__(self, *args, **kwargs):
+    #    self._instances.append(self)
+
+    # @classmethod
+    # def instance(cls, *args, **kwargs):
+    #    raise ValueError
+    #    if not cls._instances:
+    #        cls(*args, **kwargs)
+    #    return cls._instances[-1]
+
 
 
 class ProvisionalWarning(DeprecationWarning):
@@ -234,8 +264,24 @@ class ExecutionResult(object):
                 (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
 
 
-class InteractiveShell(SingletonConfigurable):
+class InteractiveShell(Multipleton):
     """An enhanced, interactive shell for Python."""
+
+    def set_parent(self, parent):
+        """Set the parent header for associating output with its triggering input"""
+        self.parent_header = parent
+        parent#self.displayhook.set_parent(parent)
+        #self.display_pub.set_parent(parent)
+        if hasattr(self, '_data_pub'):
+            self.data_pub.set_parent(parent)
+        try:
+            sys.stdout.set_parent(parent)
+        except AttributeError:
+            pass
+        try:
+            sys.stderr.set_parent(parent)
+        except AttributeError:
+            pass
 
     _instance = None
 

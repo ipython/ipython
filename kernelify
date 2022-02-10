@@ -1,0 +1,5 @@
+from ipykernel.kernelapp import IPKernelApp
+from ipykernel.kernelapp import IPythonKernel
+app = IPKernelApp(shell=shell)
+app.initialize()
+app.start()
