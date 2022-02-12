@@ -121,7 +121,9 @@ def yapf_reformat_handler(text_before_cursor):
     from yapf.yapflib import yapf_api
 
     style_config = file_resources.GetDefaultStyleForDir(os.getcwd())
-    formatted_text, was_formatted = yapf_api.FormatCode(text_before_cursor, style_config=style_config)
+    formatted_text, was_formatted = yapf_api.FormatCode(
+        text_before_cursor, style_config=style_config
+    )
     if was_formatted:
         if not text_before_cursor.endswith("\n") and formatted_text.endswith("\n"):
             formatted_text = formatted_text[:-1]
