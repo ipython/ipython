@@ -116,6 +116,20 @@ def black_reformat_handler(text_before_cursor):
     return formatted_text
 
 
+def yapf_reformat_handler(text_before_cursor):
+    from yapf.yapflib import file_resources
+    from yapf.yapflib import yapf_api
+
+    style_config = file_resources.GetDefaultStyleForDir(os.getcwd())
+    formatted_text, was_formatted = yapf_api.FormatCode(text_before_cursor, style_config=style_config)
+    if was_formatted:
+        if not text_before_cursor.endswith("\n") and formatted_text.endswith("\n"):
+            formatted_text = formatted_text[:-1]
+        return formatted_text
+    else:
+        return text_before_cursor
+
+
 class TerminalInteractiveShell(InteractiveShell):
     mime_renderers = Dict().tag(config=True)
 
@@ -185,7 +199,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     autoformatter = Unicode(
         "black",
-        help="Autoformatter to reformat Terminal code. Can be `'black'` or `None`",
+        help="Autoformatter to reformat Terminal code. Can be `'black'`, `'yapf'` or `None`",
         allow_none=True
     ).tag(config=True)
 
@@ -232,6 +246,8 @@ class TerminalInteractiveShell(InteractiveShell):
             self.reformat_handler = lambda x:x
         elif formatter == 'black':
             self.reformat_handler = black_reformat_handler
+        elif formatter == 'yapf':
+            self.reformat_handler = yapf_reformat_handler
         else:
             raise ValueError
 
