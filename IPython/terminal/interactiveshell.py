@@ -248,7 +248,7 @@ class TerminalInteractiveShell(InteractiveShell):
             self.reformat_handler = lambda x:x
         elif formatter == 'black':
             self.reformat_handler = black_reformat_handler
-        elif formatter == 'yapf':
+        elif formatter == "yapf":
             self.reformat_handler = yapf_reformat_handler
         else:
             raise ValueError
