@@ -2414,14 +2414,9 @@ class InteractiveShell(SingletonConfigurable):
         cmd = self.var_expand(cmd, depth=1)
         # warn if there is an IPython magic alternative.
         main_cmd = cmd.split()[0]
-        has_magic_alternatives = ("pip", "conda", "cd", "ls")
+        has_magic_alternatives = ("pip", "conda", "cd")
 
-        # had to check if the command was an alias expanded because of `ls`
-        is_alias_expanded = self.alias_manager.is_alias(main_cmd) and (
-            self.alias_manager.retrieve_alias(main_cmd).strip() == cmd.strip()
-        )
-
-        if main_cmd in has_magic_alternatives and not is_alias_expanded:
+        if main_cmd in has_magic_alternatives:
             warnings.warn(
                 (
                     "You executed the system command !{0} which may not work "
