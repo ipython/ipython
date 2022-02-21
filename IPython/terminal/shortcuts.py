@@ -139,12 +139,24 @@ def create_ipython_shortcuts(shell):
         event.current_buffer.insert_text("{}")
         event.current_buffer.cursor_left()
 
-    @kb.add('"', filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
+    @kb.add(
+        '"',
+        filter=focused_insert
+        & auto_match
+        & preceding_text(r'^([^"]+|"[^"]*")*$')
+        & following_text(r"[,)}\]]|$")
+    )
     def _(event):
         event.current_buffer.insert_text('""')
         event.current_buffer.cursor_left()
 
-    @kb.add("'", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
+    @kb.add(
+        "'",
+        filter=focused_insert
+        & auto_match
+        & preceding_text(r"^([^']+|'[^']*')*$")
+        & following_text(r"[,)}\]]|$")
+    )
     def _(event):
         event.current_buffer.insert_text("''")
         event.current_buffer.cursor_left()
@@ -185,16 +197,6 @@ def create_ipython_shortcuts(shell):
         dashes = matches.group(2) or ""
         event.current_buffer.insert_text("{}" + dashes)
         event.current_buffer.cursor_left(len(dashes) + 1)
-
-    @kb.add('"', filter=focused_insert & auto_match & preceding_text(r".*(r|R)$"))
-    def _(event):
-        event.current_buffer.insert_text('""')
-        event.current_buffer.cursor_left()
-
-    @kb.add("'", filter=focused_insert & auto_match & preceding_text(r".*(r|R)$"))
-    def _(event):
-        event.current_buffer.insert_text("''")
-        event.current_buffer.cursor_left()
 
     # just move cursor
     @kb.add(")", filter=focused_insert & auto_match & following_text(r"^\)"))
