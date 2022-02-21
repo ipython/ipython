@@ -772,13 +772,13 @@ class InteractiveShell(SingletonConfigurable):
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
-        current_dir = Path(os.curdir).absolute()
         paths = [p]
         while p.is_symlink():
-            os.chdir(p.parent)
-            p = Path(os.readlink(p)).absolute()
+            new_path = p.readlink()
+            if not new_path.is_absolute():
+                new_path = p.parent / new_path
+            p = new_path
             paths.append(p)
-        os.chdir(current_dir)
 
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if p_venv.parts[1] == "cygdrive":
