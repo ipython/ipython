@@ -15,6 +15,7 @@ import abc
 import ast
 import atexit
 import builtins as builtin_mod
+import dis
 import functools
 import inspect
 import os
@@ -3139,6 +3140,29 @@ class InteractiveShell(SingletonConfigurable):
             ast.fix_missing_locations(node)
         return node
 
+    def _update_code_co_name(self, code):
+        """Python 3.10 changed the behaviour so that whenever a code object
+        is assembled in the compile(ast) the co_firstlineno would be == 1.
+
+        This makes pydevd/debugpy think that all cells invoked are the same
+        since it caches information based on (co_firstlineno, co_name, co_filename).
+
+        Given that, this function changes the code 'co_name' to be unique
+        based on the first real lineno of the code (which also has a nice
+        side effect of customizing the name so that it's not always <module>).
+
+        See: https://github.com/ipython/ipykernel/issues/841
+        """
+        if not hasattr(code, "replace"):
+            # It may not be available on older versions of Python (only
+            # available for 3.8 onwards).
+            return code
+        try:
+            first_real_line = next(dis.findlinestarts(code))[1]
+        except StopIteration:
+            return code
+        return code.replace(co_name="<cell line: %s>" % (first_real_line,))
+
     async def run_ast_nodes(
         self,
         nodelist: ListType[stmt],
@@ -3237,6 +3261,7 @@ class InteractiveShell(SingletonConfigurable):
                     else 0x0
                 ):
                     code = compiler(mod, cell_name, mode)
+                    code = self._update_code_co_name(code)
                     asy = compare(code)
                 if await self.run_code(code, result, async_=asy):
                     return True
