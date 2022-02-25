@@ -137,7 +137,7 @@ def create_ipython_shortcuts(shell):
         if parso_loaded:
             parser = g.parse(preceding_text)
             for e in g.iter_errors(parser):
-                if e.message == "SyntaxError: EOL while scanning string literal":
+                if "string literal" in e.message:
                     return False
         else:
             pattern = re.compile(r"""^([^"']+|"[^"]*"|'[^']*')*$""")
@@ -181,6 +181,28 @@ def create_ipython_shortcuts(shell):
     def _(event):
         event.current_buffer.insert_text("''")
         event.current_buffer.cursor_left()
+
+    @kb.add(
+        '"',
+        filter=focused_insert
+        & auto_match
+        & not_inside_unclosed_string
+        & preceding_text(r'^.*""$'),
+    )
+    def _(event):
+        event.current_buffer.insert_text('""""')
+        event.current_buffer.cursor_left(3)
+
+    @kb.add(
+        "'",
+        filter=focused_insert
+        & auto_match
+        & not_inside_unclosed_string
+        & preceding_text(r"^.*''$"),
+    )
+    def _(event):
+        event.current_buffer.insert_text("''''")
+        event.current_buffer.cursor_left(3)
 
     # raw string
     @kb.add(
