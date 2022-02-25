@@ -623,7 +623,7 @@ class TestSystemRaw(ExitCodeChecks):
         self.assertEqual(ip.user_ns["_exit_code"], -signal.SIGINT)
 
     def test_magic_warnings(self):
-        for magic_cmd in ("ls", "pip", "conda", "cd"):
+        for magic_cmd in ("pip", "conda", "cd"):
             with self.assertWarnsRegex(Warning, "You executed the system command"):
                 ip.system_raw(magic_cmd)
 
