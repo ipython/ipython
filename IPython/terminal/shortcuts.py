@@ -338,12 +338,7 @@ def create_ipython_shortcuts(shell):
         shape = {InputMode.NAVIGATION: 2, InputMode.REPLACE: 4}.get(mode, 6)
         cursor = "\x1b[{} q".format(shape)
 
-        if hasattr(sys.stdout, "_cli"):
-            write = sys.stdout._cli.output.write_raw
-        else:
-            write = sys.stdout.write
-
-        write(cursor)
+        sys.stdout.write(cursor)
         sys.stdout.flush()
 
         self._input_mode = mode
