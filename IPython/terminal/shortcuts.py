@@ -127,12 +127,17 @@ def create_ipython_shortcuts(shell):
     @Condition
     def not_inside_unclosed_string():
         app = get_app()
-        g = parso.load_grammar()
-        parser = g.parse(app.current_buffer.document.current_line_before_cursor)
-        for e in g.iter_errors(parser):
-            if e.message == "SyntaxError: EOL while scanning string literal":
-                return False
-        return True
+        preceding_text = app.current_buffer.document.current_line_before_cursor
+        try:
+            g = parso.load_grammar()
+            parser = g.parse(preceding_text)
+            for e in g.iter_errors(parser):
+                if e.message == "SyntaxError: EOL while scanning string literal":
+                    return False
+                return True
+        except:
+            pattern = re.compile(r"""^([^"']+|"[^"]*"|'[^']*')*$""")
+            return bool(pattern.match(preceding_text))
 
     # auto match
     @kb.add("(", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
