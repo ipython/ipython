@@ -3680,7 +3680,7 @@ class InteractiveShell(SingletonConfigurable):
         del self.tempdirs
 
         # Restore user's cursor
-        if hasattr(self, "editing_mode") and self.editing_mode == 'vi':
+        if hasattr(self, "editing_mode") and self.editing_mode == "vi":
             sys.stdout.write("\x1b[0 q")
             sys.stdout.flush()
 
