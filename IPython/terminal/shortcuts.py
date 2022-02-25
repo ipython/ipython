@@ -130,8 +130,7 @@ def create_ipython_shortcuts(shell):
         g = parso.load_grammar()
         parser = g.parse(app.current_buffer.document.current_line_before_cursor)
         for e in g.iter_errors(parser):
-            # check for error scanning string literal
-            if e.code == 901:
+            if e.message == "SyntaxError: EOL while scanning string literal":
                 return False
         return True
 
