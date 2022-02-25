@@ -200,7 +200,7 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     autoformatter = Unicode(
-        "black",
+        None,
         help="Autoformatter to reformat Terminal code. Can be `'black'`, `'yapf'` or `None`",
         allow_none=True
     ).tag(config=True)
