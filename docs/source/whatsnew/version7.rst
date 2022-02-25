@@ -16,6 +16,10 @@ IPython 7.32
 ============
 
 
+
+Autoload magic lazily
+---------------------
+
 The ability to configure magics to be lazily loaded has been added to IPython.
 See the ``ipython --help-all`` section on ``MagicsManager.lazy_magic``.
 One can now use::
@@ -27,6 +31,21 @@ One can now use::
 
 And on first use of ``%my_magic``, or corresponding cell magic, or other line magic,
 the corresponding ``load_ext`` will be called just before trying to invoke the magic.
+
+Misc
+----
+
+ - Update sphinxify  for Docrepr 0.2.0  :ghpull:`13503`.
+ - Set co_name for cells run line by line (to fix debugging with Python 3.10)
+   :ghpull:`13535`
+
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/99>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 .. _version 7.31:
 
