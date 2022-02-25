@@ -127,8 +127,7 @@ def create_ipython_shortcuts(shell):
     @Condition
     def not_inside_unclosed_string():
         app = get_app()
-        ver = f"{sys.version_info.major}.{sys.version_info.minor}"
-        g = parso.load_grammar(version=ver)
+        g = parso.load_grammar()
         parser = g.parse(app.current_buffer.document.current_line_before_cursor)
         for e in g.iter_errors(parser):
             # check for error scanning string literal
