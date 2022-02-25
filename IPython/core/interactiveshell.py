@@ -21,34 +21,53 @@ import inspect
 import os
 import re
 import runpy
+import subprocess
 import sys
 import tempfile
 import traceback
 import types
-import subprocess
 import warnings
+from ast import stmt
 from io import open as io_open
-
+from logging import error
 from pathlib import Path
-from pickleshare import PickleShareDB
+from typing import Callable
+from typing import List as ListType
+from typing import Optional, Tuple
+from warnings import warn
 
+from pickleshare import PickleShareDB
+from tempfile import TemporaryDirectory
+from traitlets import (
+    Any,
+    Bool,
+    CaselessStrEnum,
+    Dict,
+    Enum,
+    Instance,
+    Integer,
+    List,
+    Type,
+    Unicode,
+    default,
+    observe,
+    validate,
+)
 from traitlets.config.configurable import SingletonConfigurable
 from traitlets.utils.importstring import import_item
-from IPython.core import oinspect
-from IPython.core import magic
-from IPython.core import page
-from IPython.core import prefilter
-from IPython.core import ultratb
+
+import IPython.core.hooks
+from IPython.core import magic, oinspect, page, prefilter, ultratb
 from IPython.core.alias import Alias, AliasManager
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
-from IPython.core.events import EventManager, available_events
 from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
 from IPython.core.debugger import InterruptiblePdb
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import InputRejected, UsageError
+from IPython.core.events import EventManager, available_events
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
@@ -60,31 +79,17 @@ from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.usage import default_banner
 from IPython.display import display
+from IPython.paths import get_ipython_dir
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import PyColorize
-from IPython.utils import io
-from IPython.utils import py3compat
-from IPython.utils import openpy
+from IPython.utils import PyColorize, io, openpy, py3compat
 from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
-from IPython.paths import get_ipython_dir
-from IPython.utils.path import get_home_dir, get_py_filename, ensure_dir_exists
-from IPython.utils.process import system, getoutput
+from IPython.utils.path import ensure_dir_exists, get_home_dir, get_py_filename
+from IPython.utils.process import getoutput, system
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
-from IPython.utils.tempdir import TemporaryDirectory
-from traitlets import (
-    Integer, Bool, CaselessStrEnum, Enum, List, Dict, Unicode, Instance, Type,
-    observe, default, validate, Any
-)
-from warnings import warn
-from logging import error
-import IPython.core.hooks
-
-from typing import List as ListType, Tuple, Optional, Callable
-from ast import stmt
+from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 
 sphinxify: Optional[Callable]
 
@@ -123,8 +128,13 @@ _single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
 
 # we still need to run things using the asyncio eventloop, but there is no
 # async integration
-from .async_helpers import _asyncio_runner, _pseudo_sync_runner
-from .async_helpers import _curio_runner, _trio_runner, _should_be_async
+from .async_helpers import (
+    _asyncio_runner,
+    _curio_runner,
+    _pseudo_sync_runner,
+    _should_be_async,
+    _trio_runner,
+)
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -2038,8 +2048,12 @@ class InteractiveShell(SingletonConfigurable):
         (typically over the network by remote frontends).
         """
         from IPython.core.completer import IPCompleter
-        from IPython.core.completerlib import (module_completer,
-                magic_run_completer, cd_completer, reset_completer)
+        from IPython.core.completerlib import (
+            cd_completer,
+            magic_run_completer,
+            module_completer,
+            reset_completer,
+        )
 
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
@@ -3398,8 +3412,9 @@ class InteractiveShell(SingletonConfigurable):
             make sense in all contexts, for example a terminal ipython can't
             display figures inline.
         """
-        from IPython.core import pylabtools as pt
         from matplotlib_inline.backend_inline import configure_inline_support
+
+        from IPython.core import pylabtools as pt
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
         if gui != 'inline':

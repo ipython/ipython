@@ -2,9 +2,10 @@
 """Test IPython.core.logger"""
 
 import os.path
-import pytest
 
-from IPython.utils.tempdir import TemporaryDirectory
+import pytest
+from tempfile import TemporaryDirectory
+
 
 def test_logstart_inaccessible_file():
     with pytest.raises(IOError):

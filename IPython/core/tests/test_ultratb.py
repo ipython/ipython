@@ -3,21 +3,20 @@
 """
 import io
 import logging
+import os.path
 import platform
 import re
 import sys
-import os.path
-from textwrap import dedent
 import traceback
 import unittest
+from textwrap import dedent
+
+from tempfile import TemporaryDirectory
 
 from IPython.core.ultratb import ColorTB, VerboseTB
-
-
 from IPython.testing import tools as tt
 from IPython.testing.decorators import onlyif_unicode_paths
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.tempdir import TemporaryDirectory
 
 file_1 = """1
 2
