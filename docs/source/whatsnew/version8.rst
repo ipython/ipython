@@ -3,6 +3,76 @@
 ============
 
 
+.. _version 8.1:
+
+IPython 8.1.0
+-------------
+
+IPython 8.1 is the first minor release after 8.0 and fixes a number of bugs and
+Update a few behavior that were problematic with the 8.0 as with many new major
+release.
+
+Note that beyond the changes listed here, IPython 8.1.0 also contains all the
+features listed in :ref:`version 7.32`.
+
+ - Misc and multiple fixes around quotation auto-closing. It is now disabled by
+   default. Run with ``TerminalInteractiveShell.auto_match=True`` to re-enabled
+ - Require pygments>=2.4.0 :ghpull:`13459`, this was implicit in the code, but
+   is now explicit in ``setup.cfg``/``setup.py``
+ - Docs improvement of ``core.magic_arguments`` examples. :ghpull:`13433`
+ - Multi-line edit executes too early with await. :ghpull:`13424`
+
+ - ``black``  is back as an optional dependency, and autoformatting disabled by
+   default until some fixes are implemented (black improperly reformat magics).
+   :ghpull:`13471` Additionally the ability to use ``yapf`` as a code
+   reformatter has been added :ghpull:`13528` . You can use
+   ``TerminalInteractiveShell.autoformatter="black"``,
+   ``TerminalInteractiveShell.autoformatter="yapf"`` to re-enable auto formating
+   with black, or switch to yapf.
+
+ - Fix and issue where ``display`` was not defined.
+
+ - Auto suggestions are now configurable. Currently only
+   ``AutoSuggestFromHistory`` (default) and ``None``. new provider contribution
+   welcomed. :ghpull:`13475`
+
+ - multiple packaging/testing improvement to simplify downstream packaging
+   (xfail with reasons, try to not access network...).
+
+ - Update deprecation. ``InteractiveShell.magic`` internal method has been
+   deprecated for many years but did not emit a warning until now.
+
+ - internal ``appended_to_syspath`` context manager has been deprecated.
+
+ - fix an issue with symlinks in virtualenv :ghpull:`13537`
+
+ - Fix an issue with vim mode, where cursor would not be reset on exit :ghpull:`13472`
+
+ - ipython directive now remove only known pseudo-decorators :ghpull:`13532`
+
+ - ``IPython/lib/security`` which used to be used for jupyter notebook has been
+   removed.
+
+ - Fix an issue where ``async with`` would execute on new lines. :ghpull:`13436`
+
+
+We want to remind users that IPython is part of the Jupyter organisations, and
+thus governed by a Code of Conduct. Some of the behavior we have seen on GitHub is not acceptable.
+Abuse and non-respectful comments on discussion will not be tolerated.
+
+Many thanks to all the contributors to this release, many of the above fixed issue and
+new features where done by first time contributors, showing there is still
+plenty of easy contribution possible in IPython
+. You can find all individual contributions
+to this milestone `on github <https://github.com/ipython/ipython/milestone/91>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries. In particular the Lazy autoloading of
+magics that you will find described in the 7.32 release notes.
+
+
+.. _version 8.0.1:
+
 IPython 8.0.1 (CVE-2022-21699)
 ------------------------------
 
@@ -45,6 +115,7 @@ Thus starting with this version:
 Further details can be read on the `GitHub Advisory <https://github.com/ipython/ipython/security/advisories/GHSA-pq7m-3gw7-gq5x>`__
 
 
+.. _version 8.0:
 
 IPython 8.0
 -----------
