@@ -266,10 +266,13 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
             continue
 
         if any(
-            line_stripped.startswith('@' + pseudo_decorator) for pseudo_decorator in PSEUDO_DECORATORS
-        ):                
+            line_stripped.startswith("@" + pseudo_decorator)
+            for pseudo_decorator in PSEUDO_DECORATORS
+        ):
             if decorator:
-                raise RuntimeError("Applying multiple pseudo-decorators on one line is not supported")
+                raise RuntimeError(
+                    "Applying multiple pseudo-decorators on one line is not supported"
+                )
             else:
                 decorator = line_stripped
                 continue
