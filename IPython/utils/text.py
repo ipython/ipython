@@ -471,7 +471,7 @@ def strip_ansi(source):
 class EvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
     
-    Note that this version interprets a : as specifying a format string (as per
+    Note that this version interprets a `:`  as specifying a format string (as per
     standard string formatting), so if slicing is required, you must explicitly
     create a slice.
     
