@@ -2139,8 +2139,9 @@ class IPCompleter(Completer):
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other environments.
-        completions:Iterable[Any] = []
-        if self.use_jedi:
+        is_magic_prefix = len(text) > 0 and text[0] == "%"
+        completions: Iterable[Any] = []
+        if self.use_jedi and not is_magic_prefix:
             if not full_text:
                 full_text = line_buffer
             completions = self._jedi_matches(

@@ -1262,3 +1262,14 @@ class TestCompleter(unittest.TestCase):
         _, matches = ip.complete(None, "test.meth(")
         self.assertIn("meth_arg1=", matches)
         self.assertNotIn("meth2_arg1=", matches)
+
+    def test_percent_symbol_restrict_to_magic_completions(self):
+        ip = get_ipython()
+        completer = ip.Completer
+        text = "%a"
+
+        with provisionalcompleter():
+            completer.use_jedi = True
+            completions = completer.completions(text, len(text))
+            for c in completions:
+                self.assertEqual(c.text[0], "%")
