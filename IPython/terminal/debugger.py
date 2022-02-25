@@ -68,6 +68,8 @@ class TerminalPdb(Pdb):
                 self.debugger_history = FileHistory(os.path.expanduser(str(p)))
             else:
                 self.debugger_history = InMemoryHistory()
+        else:
+            self.debugger_history = self.shell.debugger_history
 
         options = dict(
             message=(lambda: PygmentsTokens(get_prompt_tokens())),
