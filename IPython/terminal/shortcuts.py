@@ -48,6 +48,12 @@ def create_ipython_shortcuts(shell):
                             & insert_mode
                         ))(return_handler)
 
+    try:
+        g = parso.load_grammar()
+        parso_loaded = True
+    except:
+        parso_loaded = False
+
     def reformat_and_execute(event):
         reformat_text_before_cursor(event.current_buffer, event.current_buffer.document, shell)
         event.current_buffer.validate_and_handle()
@@ -128,16 +134,15 @@ def create_ipython_shortcuts(shell):
     def not_inside_unclosed_string():
         app = get_app()
         preceding_text = app.current_buffer.document.current_line_before_cursor
-        try:
-            g = parso.load_grammar()
+        if parso_loaded:
             parser = g.parse(preceding_text)
             for e in g.iter_errors(parser):
                 if e.message == "SyntaxError: EOL while scanning string literal":
                     return False
-                return True
-        except:
+        else:
             pattern = re.compile(r"""^([^"']+|"[^"]*"|'[^']*')*$""")
             return bool(pattern.match(preceding_text))
+        return True
 
     # auto match
     @kb.add("(", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
