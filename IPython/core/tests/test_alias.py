@@ -43,11 +43,11 @@ def test_alias_args_error():
 
 def test_alias_args_commented():
     """Check that alias correctly ignores 'commented out' args"""
-    _ip.magic('alias commetarg echo this is %%s a commented out arg')
-    
+    _ip.run_line_magic("alias", "commentarg echo this is %%s a commented out arg")
+
     with capture_output() as cap:
-        _ip.run_cell('commetarg')
-    
+        _ip.run_cell("commentarg")
+
     # strip() is for pytest compat; testing via iptest patch IPython shell
     # in testing.globalipapp and replace the system call which messed up the
     # \r\n
