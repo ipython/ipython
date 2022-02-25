@@ -13,6 +13,7 @@ import re
 from typing import Callable
 
 
+import parso
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import (has_focus, has_selection, Condition,
@@ -123,6 +124,18 @@ def create_ipython_shortcuts(shell):
         _following_text_cache[pattern] = condition
         return condition
 
+    @Condition
+    def not_inside_unclosed_string():
+        app = get_app()
+        ver = f"{sys.version_info.major}.{sys.version_info.minor}"
+        g = parso.load_grammar(version=ver)
+        parser = g.parse(app.current_buffer.document.current_line_before_cursor)
+        for e in g.iter_errors(parser):
+            # check for error scanning string literal
+            if e.code == 901:
+                return False
+        return True
+
     # auto match
     @kb.add("(", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
     def _(event):
@@ -143,7 +156,7 @@ def create_ipython_shortcuts(shell):
         '"',
         filter=focused_insert
         & auto_match
-        & preceding_text(r'^([^"]+|"[^"]*")*$')
+        & not_inside_unclosed_string
         & following_text(r"[,)}\]]|$"),
     )
     def _(event):
@@ -154,7 +167,7 @@ def create_ipython_shortcuts(shell):
         "'",
         filter=focused_insert
         & auto_match
-        & preceding_text(r"^([^']+|'[^']*')*$")
+        & not_inside_unclosed_string
         & following_text(r"[,)}\]]|$"),
     )
     def _(event):
