@@ -785,11 +785,8 @@ class InteractiveShell(SingletonConfigurable):
         # So we just check every item in the symlink tree (generally <= 3)
         paths = [p]
         while p.is_symlink():
-            new_path = p.readlink()
-            if not new_path.is_absolute():
-                new_path = p.parent / new_path
-            p = new_path
-            paths.append(p)
+            p = Path(os.readlink(p))
+            paths.append(p.resolve())
 
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if p_venv.parts[1] == "cygdrive":
