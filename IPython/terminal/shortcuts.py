@@ -13,7 +13,6 @@ import re
 from typing import Callable
 
 
-import parso
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import (has_focus, has_selection, Condition,
@@ -47,11 +46,6 @@ def create_ipython_shortcuts(shell):
                             & ~has_selection
                             & insert_mode
                         ))(return_handler)
-
-    try:
-        g = parso.load_grammar()
-    except:
-        pass
 
     def reformat_and_execute(event):
         reformat_text_before_cursor(event.current_buffer, event.current_buffer.document, shell)
@@ -133,15 +127,14 @@ def create_ipython_shortcuts(shell):
     def not_inside_unclosed_string():
         app = get_app()
         preceding_text = app.current_buffer.document.current_line_before_cursor
-        try:
-            parser = g.parse(preceding_text)
-            for e in g.iter_errors(parser):
-                if "string literal" in e.message:
-                    return False
-        except:
-            pattern = re.compile(r"""^([^"']+|"[^"]*"|'[^']*')*$""")
-            return bool(pattern.match(preceding_text))
-        return True
+        without_escaped = preceding_text.replace('\\"', "").replace("\\'", "")
+        triple_string_pattern = re.compile(
+            r"(?:\"\"\"[^\"]?.*?[^\"]?\"\"\"|'''[^']?.*?[^']?'''*)"
+        )
+        without_triple_strings = triple_string_pattern.sub("", without_escaped)
+        single_string_pattern = re.compile(r"""(?:"[^"]*"|'[^']*')""")
+        without_strings = single_string_pattern.sub("", without_triple_strings)
+        return not ('"' in without_strings or "'" in without_strings)
 
     # auto match
     @kb.add("(", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
