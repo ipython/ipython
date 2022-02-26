@@ -758,6 +758,33 @@ class InteractiveShell(SingletonConfigurable):
         # the appropriate time.
         self.display_trap = DisplayTrap(hook=self.displayhook)
 
+    @staticmethod
+    def get_python_link_paths(p: Path):
+        """Gets python paths including symlinks
+
+        Examples
+        --------
+        In [1]: from IPython.core.interactiveshell import InteractiveShell
+
+        In [2]: import sys, pathlib
+
+        In [3]: paths = InteractiveShell.get_python_link_paths(pathlib.Path(sys.executable))
+
+        In [4]: len(paths) == len(set(paths))
+        Out[4]: True
+
+        In [5]: bool(paths)
+        Out[5]: True
+        """
+        paths = [p]
+        while p.is_symlink():
+            new_path = Path(os.readlink(p))
+            if not new_path.is_absolute():
+                new_path = p.parent / new_path
+            p = new_path
+            paths.append(p)
+        return paths
+
     def init_virtualenv(self):
         """Add the current virtualenv to sys.path so the user can import modules from it.
         This isn't perfect: it doesn't use the Python interpreter with which the
@@ -783,10 +810,7 @@ class InteractiveShell(SingletonConfigurable):
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
-        paths = [p]
-        while p.is_symlink():
-            p = Path(os.readlink(p))
-            paths.append(p.resolve())
+        paths = self.get_python_link_paths(p)
 
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if p_venv.parts[1] == "cygdrive":
