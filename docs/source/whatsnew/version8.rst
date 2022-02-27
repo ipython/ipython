@@ -3,6 +3,13 @@
 ============
 
 
+.. _version 8.1.1:
+   
+IPython 8.1.1
+-------------
+
+Revert :ghpull:`13537` (fix an issue with symlinks in virtualenv) that raises an error in Python 3.8.
+
 .. _version 8.1:
 
 IPython 8.1.0
@@ -44,7 +51,7 @@ features listed in :ref:`version 7.32`.
 
  - internal ``appended_to_syspath`` context manager has been deprecated.
 
- - fix an issue with symlinks in virtualenv :ghpull:`13537`
+ - fix an issue with symlinks in virtualenv :ghpull:`13537` (Reverted in 8.1.1)
 
  - Fix an issue with vim mode, where cursor would not be reset on exit :ghpull:`13472`
 
