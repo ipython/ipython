@@ -759,8 +759,8 @@ class InteractiveShell(SingletonConfigurable):
         self.display_trap = DisplayTrap(hook=self.displayhook)
 
     @staticmethod
-    def get_python_link_paths(p: Path):
-        """Gets python paths including symlinks
+    def get_path_links(p: Path):
+        """Gets path links including all symlinks
 
         Examples
         --------
@@ -768,7 +768,7 @@ class InteractiveShell(SingletonConfigurable):
 
         In [2]: import sys, pathlib
 
-        In [3]: paths = InteractiveShell.get_python_link_paths(pathlib.Path(sys.executable))
+        In [3]: paths = InteractiveShell.get_path_links(pathlib.Path(sys.executable))
 
         In [4]: len(paths) == len(set(paths))
         Out[4]: True
@@ -810,7 +810,7 @@ class InteractiveShell(SingletonConfigurable):
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
-        paths = self.get_python_link_paths(p)
+        paths = self.get_path_links(p)
 
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if p_venv.parts[1] == "cygdrive":
