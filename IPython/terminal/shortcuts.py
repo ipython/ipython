@@ -278,7 +278,7 @@ def create_ipython_shortcuts(shell):
     @kb.add("end", filter=has_focus(DEFAULT_BUFFER) & ebivim)
     def _(event):
         _apply_autosuggest(event)
-      
+
     @kb.add("c-e", filter=focused_insert_vi & ebivim)
     def _(event):
         _apply_autosuggest(event)
