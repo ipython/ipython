@@ -267,14 +267,21 @@ def create_ipython_shortcuts(shell):
     focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
 
     # Needed for to accept autosuggestions in vi insert mode
-    @kb.add("c-e", filter=focused_insert_vi & ebivim)
-    def _(event):
+    def _apply_autosuggest(event):
         b = event.current_buffer
         suggestion = b.suggestion
         if suggestion:
             b.insert_text(suggestion.text)
         else:
             nc.end_of_line(event)
+
+    @kb.add("end", filter=has_focus(DEFAULT_BUFFER) & ebivim)
+    def _(event):
+        _apply_autosuggest(event)
+      
+    @kb.add("c-e", filter=focused_insert_vi & ebivim)
+    def _(event):
+        _apply_autosuggest(event)
 
     @kb.add("c-f", filter=focused_insert_vi)
     def _(event):
