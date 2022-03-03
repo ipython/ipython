@@ -8,7 +8,10 @@
 IPython 8.1.1
 -------------
 
-Revert :ghpull:`13537` (fix an issue with symlinks in virtualenv) that raises an error in Python 3.8.
+Fix an issue with virtualenv and Python 3.8 introduced in 8.1
+
+Revert :ghpull:`13537` (fix an issue with symlinks in virtualenv) that raises an
+error in Python 3.8, and fixed in a different way in :ghpull:`13559`.
 
 .. _version 8.1:
 
