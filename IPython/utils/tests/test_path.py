@@ -113,11 +113,11 @@ with_environment = pytest.mark.usefixtures("environment")
 
 @skip_if_not_win32
 @with_environment
-def test_get_home_dir_1():
+def test_get_home_dir_1(monkeypatch):
     """Testcase for py2exe logic, un-compressed lib
     """
     unfrozen = path.get_home_dir()
-    sys.frozen = True
+    monkeypatch.setattr(sys, "frozen", True)
 
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
@@ -128,13 +128,15 @@ def test_get_home_dir_1():
 
 @skip_if_not_win32
 @with_environment
-def test_get_home_dir_2():
+def test_get_home_dir_2(monkeypatch):
     """Testcase for py2exe logic, compressed lib
     """
     unfrozen = path.get_home_dir()
-    sys.frozen = True
-    #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
+    monkeypatch.setattr(sys, "frozen", True)
+    # fake filename for IPython.__init__
+    IPython.__file__ = abspath(
+        join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")
+    ).lower()
 
     home_dir = path.get_home_dir(True)
     assert home_dir == unfrozen
@@ -160,22 +162,22 @@ def test_get_home_dir_4():
 
 @skip_win32
 @with_environment
-def test_get_home_dir_5():
+def test_get_home_dir_5(monkeypatch):
     """raise HomeDirError if $HOME is specified, but not a writable dir"""
     env['HOME'] = abspath(HOME_TEST_DIR+'garbage')
     # set os.name = posix, to prevent My Documents fallback on Windows
-    os.name = 'posix'
+    monkeypatch.setattr(os, "name", "posix")
     pytest.raises(path.HomeDirError, path.get_home_dir, True)
 
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
 @with_environment
-def test_get_home_dir_8():
+def test_get_home_dir_8(monkeypatch):
     """Using registry hack for 'My Documents', os=='nt'
 
     HOMESHARE, HOMEDRIVE, HOMEPATH, USERPROFILE and others are missing.
     """
-    os.name = 'nt'
+    monkeypatch.setattr(os, "name", "nt")
     # Remove from stub environment all keys that may be set
     for key in ['HOME', 'HOMESHARE', 'HOMEDRIVE', 'HOMEPATH', 'USERPROFILE']:
         env.pop(key, None)
@@ -194,13 +196,12 @@ def test_get_home_dir_8():
     assert home_dir == abspath(HOME_TEST_DIR)
 
 @with_environment
-def test_get_xdg_dir_0():
+def test_get_xdg_dir_0(monkeypatch):
     """test_get_xdg_dir_0, check xdg_dir"""
-    reload(path)
-    path._writable_dir = lambda path: True
-    path.get_home_dir = lambda : 'somewhere'
-    os.name = "posix"
-    sys.platform = "linux2"
+    monkeypatch.setattr(path, "_writable_dir", lambda path: True)
+    monkeypatch.setattr(path, "get_home_dir", lambda: "somewhere")
+    monkeypatch.setattr(os, "name", "posix")
+    monkeypatch.setattr(sys, "platform", "linux2")
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
@@ -209,44 +210,41 @@ def test_get_xdg_dir_0():
 
 
 @with_environment
-def test_get_xdg_dir_1():
+def test_get_xdg_dir_1(monkeypatch):
     """test_get_xdg_dir_1, check nonexistent xdg_dir"""
-    reload(path)
-    path.get_home_dir = lambda : HOME_TEST_DIR
-    os.name = "posix"
-    sys.platform = "linux2"
-    env.pop('IPYTHON_DIR', None)
-    env.pop('IPYTHONDIR', None)
-    env.pop('XDG_CONFIG_HOME', None)
+    monkeypatch.setattr(path, "get_home_dir", lambda: HOME_TEST_DIR)
+    monkeypatch.setattr(os, "name", "posix")
+    monkeypatch.setattr(sys, "platform", "linux2")
+    env.pop("IPYTHON_DIR", None)
+    env.pop("IPYTHONDIR", None)
+    env.pop("XDG_CONFIG_HOME", None)
     assert path.get_xdg_dir() is None
 
 @with_environment
-def test_get_xdg_dir_2():
+def test_get_xdg_dir_2(monkeypatch):
     """test_get_xdg_dir_2, check xdg_dir default to ~/.config"""
-    reload(path)
-    path.get_home_dir = lambda : HOME_TEST_DIR
-    os.name = "posix"
-    sys.platform = "linux2"
-    env.pop('IPYTHON_DIR', None)
-    env.pop('IPYTHONDIR', None)
-    env.pop('XDG_CONFIG_HOME', None)
-    cfgdir=os.path.join(path.get_home_dir(), '.config')
+    monkeypatch.setattr(path, "get_home_dir", lambda: HOME_TEST_DIR)
+    monkeypatch.setattr(os, "name", "posix")
+    monkeypatch.setattr(sys, "platform", "linux2")
+    env.pop("IPYTHON_DIR", None)
+    env.pop("IPYTHONDIR", None)
+    env.pop("XDG_CONFIG_HOME", None)
+    cfgdir = os.path.join(path.get_home_dir(), ".config")
     if not os.path.exists(cfgdir):
         os.makedirs(cfgdir)
 
     assert path.get_xdg_dir() == cfgdir
 
 @with_environment
-def test_get_xdg_dir_3():
+def test_get_xdg_dir_3(monkeypatch):
     """test_get_xdg_dir_3, check xdg_dir not used on non-posix systems"""
-    reload(path)
-    path.get_home_dir = lambda : HOME_TEST_DIR
-    os.name = "nt"
-    sys.platform = "win32"
-    env.pop('IPYTHON_DIR', None)
-    env.pop('IPYTHONDIR', None)
-    env.pop('XDG_CONFIG_HOME', None)
-    cfgdir=os.path.join(path.get_home_dir(), '.config')
+    monkeypatch.setattr(path, "get_home_dir", lambda: HOME_TEST_DIR)
+    monkeypatch.setattr(os, "name", "nt")
+    monkeypatch.setattr(sys, "platform", "win32")
+    env.pop("IPYTHON_DIR", None)
+    env.pop("IPYTHONDIR", None)
+    env.pop("XDG_CONFIG_HOME", None)
+    cfgdir = os.path.join(path.get_home_dir(), ".config")
     os.makedirs(cfgdir, exist_ok=True)
 
     assert path.get_xdg_dir() is None
