@@ -59,7 +59,7 @@ while some other do not. We'll come to this later.
 Depending on the exact command you are typing you might realize that sometimes
 :kbd:`Enter` will add a new line, and sometimes it will execute the current
 statement. IPython tries to guess what you are doing, so most of the time you
-should not have to care. Though if by any chance IPython does not the right
+should not have to care. Though if by any chance IPython does not do the right
 thing you can force execution of the current code block by pressing in sequence
 :kbd:`Esc` and :kbd:`Enter`. You can also force the insertion of a new line at
 the position of the cursor by using :kbd:`Ctrl-o`.
