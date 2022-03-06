@@ -121,6 +121,8 @@ import traceback
 import types
 import weakref
 import gc
+import fnmatch
+import re
 from importlib import import_module, reload
 from importlib.util import source_from_cache
 
@@ -144,6 +146,7 @@ class ModuleReloader:
         self.failed = {}
         # Modules specially marked as autoreloadable.
         self.modules = {}
+        self.module_pats = {}
         # Modules specially marked as not autoreloadable.
         self.skip_modules = {}
         # (module-name, name) -> weakref, for replacing old code objects
@@ -170,6 +173,9 @@ class ModuleReloader:
         except KeyError:
             pass
         self.modules[module_name] = True
+
+    def add_module_pattern(self, pattern: str) -> None:
+        self.module_pats[pattern] = re.compile(fnmatch.translate(pattern))
 
     def aimport_module(self, module_name):
         """Import a module, and mark it reloadable
@@ -215,6 +221,18 @@ class ModuleReloader:
 
         return py_filename, pymtime
 
+    def _our_modules_to_check(self):
+        result = list(self.modules.keys())
+
+        if self.module_pats:
+            result.extend(
+                name
+                for name in sys.modules.keys()
+                if any(pat.match(name) for pat in self.module_pats.values())
+            )
+
+        return result
+
     def check(self, check_all=False, do_reload=True):
         """Check whether some modules need to be reloaded."""
 
@@ -224,7 +242,7 @@ class ModuleReloader:
         if check_all or self.check_all:
             modules = list(sys.modules.keys())
         else:
-            modules = list(self.modules.keys())
+            modules = self._our_modules_to_check()
 
         for modname in modules:
             m = sys.modules.get(modname, None)
@@ -563,6 +581,8 @@ class AutoreloadMagics(Magics):
             self._reloader.check_all = True
             self._reloader.enabled = True
             self._reloader.autoload_obj = True
+        else:
+            self._reloader.add_module_pattern(parameter_s)
 
     @line_magic
     def aimport(self, parameter_s="", stream=None):
