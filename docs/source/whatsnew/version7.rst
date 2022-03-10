@@ -17,7 +17,7 @@ The ability to configure magics to be lazily loaded has been added to IPython.
 See the ``ipython --help-all`` section on ``MagicsManager.lazy_magic``.
 One can now use::
 
-    c.MagicsManger.lazy_magics = {
+    c.MagicsManager.lazy_magics = {
               "my_magic": "slow.to.import",
               "my_other_magic": "also.slow",
     }
