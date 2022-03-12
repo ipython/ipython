@@ -763,7 +763,7 @@ class VerboseTB(TBTools):
         self,
         etype: type,
         evalue: BaseException,
-        etb: TracebackType,
+        etb: Optional[TracebackType],
         number_of_lines_of_context,
         tb_offset: Optional[int],
     ):
@@ -772,7 +772,6 @@ class VerboseTB(TBTools):
         This may be called multiple times by Python 3 exception chaining
         (PEP 3134).
         """
-        assert etb is not None
         # some locals
         orig_etype = etype
         try:
@@ -783,7 +782,9 @@ class VerboseTB(TBTools):
         tb_offset = self.tb_offset if tb_offset is None else tb_offset
         assert isinstance(tb_offset, int)
         head = self.prepare_header(etype, self.long_header)
-        records = self.get_records(etb, number_of_lines_of_context, tb_offset)
+        records = (
+            self.get_records(etb, number_of_lines_of_context, tb_offset) if etb else []
+        )
 
         frames = []
         skipped = 0
@@ -822,6 +823,7 @@ class VerboseTB(TBTools):
     def get_records(
         self, etb: TracebackType, number_of_lines_of_context: int, tb_offset: int
     ):
+        assert etb is not None
         context = number_of_lines_of_context - 1
         after = context // 2
         before = context - after
@@ -836,19 +838,17 @@ class VerboseTB(TBTools):
             after=after,
             pygments_formatter=formatter,
         )
-        assert etb is not None
         return list(stack_data.FrameInfo.stack_data(etb, options=options))[tb_offset:]
 
     def structured_traceback(
         self,
         etype: type,
         evalue: Optional[BaseException],
-        etb: TracebackType,
+        etb: Optional[TracebackType],
         tb_offset: Optional[int] = None,
         number_of_lines_of_context: int = 5,
     ):
         """Return a nice text document describing the traceback."""
-        assert etb is not None
         formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
                                                                tb_offset)
 
