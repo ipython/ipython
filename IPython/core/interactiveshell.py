@@ -3042,9 +3042,8 @@ class InteractiveShell(SingletonConfigurable):
                 cell = raw_cell
 
         # Store raw and processed history
-        if store_history:
-            self.history_manager.store_inputs(self.execution_count,
-                                              cell, raw_cell)
+        if store_history and raw_cell.strip(" %") != "paste":
+            self.history_manager.store_inputs(self.execution_count, cell, raw_cell)
         if not silent:
             self.logger.log(cell, raw_cell)
 
