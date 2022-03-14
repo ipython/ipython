@@ -37,9 +37,8 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel build
         python -m pip install --upgrade -e .[${{ matrix.deps }}]
-        python -m pip install --upgrade check-manifest pytest-cov
     - name: pytest
       env:
         COLUMNS: 120
       run: |
-        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }}
+        pytest --color=yes -raXxs
