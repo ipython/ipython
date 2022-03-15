@@ -3,16 +3,16 @@
 This file is only meant to be imported by process.py, not by end-users.
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # stdlib
 import os
@@ -26,13 +26,18 @@ from subprocess import STDOUT, TimeoutExpired
 from threading import Thread
 
 # our own imports
-from ._process_common import read_no_interrupt, process_handler, arg_split as py_arg_split
+from ._process_common import (
+    read_no_interrupt,
+    process_handler,
+    arg_split as py_arg_split,
+)
 from . import py3compat
 from .encoding import DEFAULT_ENCODING
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Function definitions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class AvoidUNCPath(object):
     """A context manager to protect command execution from UNC paths.
@@ -54,6 +59,7 @@ class AvoidUNCPath(object):
                 cmd = '"pushd %s &&"%s' % (path, cmd)
             os.system(cmd)
     """
+
     def __enter__(self):
         self.path = os.getcwd()
         self.is_unc_path = self.path.startswith(r"\\")
@@ -77,12 +83,12 @@ def _system_body(p):
 
     def stdout_read():
         for line in read_no_interrupt(p.stdout).splitlines():
-            line = line.decode(enc, 'replace')
+            line = line.decode(enc, "replace")
             print(line, file=sys.stdout)
 
     def stderr_read():
         for line in read_no_interrupt(p.stderr).splitlines():
-            line = line.decode(enc, 'replace')
+            line = line.decode(enc, "replace")
             print(line, file=sys.stderr)
 
     Thread(target=stdout_read).start()
@@ -115,13 +121,14 @@ def system(cmd):
     """
     # The controller provides interactivity with both
     # stdin and stdout
-    #import _process_win32_controller
-    #_process_win32_controller.system(cmd)
+    # import _process_win32_controller
+    # _process_win32_controller.system(cmd)
 
     with AvoidUNCPath() as path:
         if path is not None:
             cmd = '"pushd %s &&"%s' % (path, cmd)
         return process_handler(cmd, _system_body)
+
 
 def getoutput(cmd):
     """Return standard output of executing cmd in a shell.
@@ -144,8 +151,9 @@ def getoutput(cmd):
         out = process_handler(cmd, lambda p: p.communicate()[0], STDOUT)
 
     if out is None:
-        out = b''
+        out = b""
     return py3compat.decode(out)
+
 
 try:
     CommandLineToArgvW = ctypes.windll.shell32.CommandLineToArgvW
@@ -154,7 +162,7 @@ try:
     LocalFree = ctypes.windll.kernel32.LocalFree
     LocalFree.res_type = HLOCAL
     LocalFree.arg_types = [HLOCAL]
-    
+
     def arg_split(commandline, posix=False, strict=True):
         """Split a command line's arguments in a shell-like manner.
 
@@ -163,22 +171,32 @@ try:
 
         If strict=False, process_common.arg_split(...strict=False) is used instead.
         """
-        #CommandLineToArgvW returns path to executable if called with empty string.
+        # CommandLineToArgvW returns path to executable if called with empty string.
         if commandline.strip() == "":
             return []
         if not strict:
             # not really a cl-arg, fallback on _process_common
             return py_arg_split(commandline, posix=posix, strict=strict)
         argvn = c_int()
-        result_pointer = CommandLineToArgvW(py3compat.cast_unicode(commandline.lstrip()), ctypes.byref(argvn))
+        result_pointer = CommandLineToArgvW(
+            py3compat.cast_unicode(commandline.lstrip()), ctypes.byref(argvn)
+        )
         result_array_type = LPCWSTR * argvn.value
-        result = [arg for arg in result_array_type.from_address(ctypes.addressof(result_pointer.contents))]
+        result = [
+            arg
+            for arg in result_array_type.from_address(
+                ctypes.addressof(result_pointer.contents)
+            )
+        ]
         retval = LocalFree(result_pointer)
         return result
+
+
 except AttributeError:
     arg_split = py_arg_split
+
 
 def check_pid(pid):
     # OpenProcess returns 0 if no such process (of ours) exists
     # positive int otherwise
-    return bool(ctypes.windll.kernel32.OpenProcess(1,0,pid))
+    return bool(ctypes.windll.kernel32.OpenProcess(1, 0, pid))

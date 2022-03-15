@@ -20,11 +20,12 @@ from IPython.testing.tools import AssertPrints, AssertNotPrints
 from IPython.utils.path import compress_user
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Globals and constants
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 inspector = None
+
 
 def setup_module():
     global inspector
@@ -35,9 +36,9 @@ class SourceModuleMainTest:
     __module__ = "__main__"
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Local utilities
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # WARNING: since this test checks the line number where a function is
 # defined, if any code is inserted above, the following line will need to be
@@ -70,7 +71,7 @@ def test_inspect_getfile_raises_exception():
 # A couple of utilities to ensure these tests work the same from a source or a
 # binary install
 def pyfile(fname):
-    return os.path.normcase(re.sub('.py[co]$', '.py', fname))
+    return os.path.normcase(re.sub(".py[co]$", ".py", fname))
 
 
 def match_pyfiles(f1, f2):
@@ -85,11 +86,11 @@ def test_find_file():
 
 
 def test_find_file_decorated1():
-
     @decorator
     def noop1(f):
         def wrapper(*a, **kw):
             return f(*a, **kw)
+
         return wrapper
 
     @noop1
@@ -101,7 +102,6 @@ def test_find_file_decorated1():
 
 
 def test_find_file_decorated2():
-
     @decorator
     def noop2(f, *a, **kw):
         return f(*a, **kw)
@@ -117,11 +117,12 @@ def test_find_file_decorated2():
 
 
 def test_find_file_magic():
-    run = ip.find_line_magic('run')
+    run = ip.find_line_magic("run")
     assert oinspect.find_file(run) is not None
 
 
 # A few generic objects we can then inspect in the tests below
+
 
 class Call(object):
     """This is the class docstring."""
@@ -135,9 +136,11 @@ class Call(object):
     def method(self, x, z=2):
         """Some method's docstring"""
 
+
 class HasSignature(object):
     """This is the class docstring."""
-    __signature__ = Signature([Parameter('test', Parameter.POSITIONAL_OR_KEYWORD)])
+
+    __signature__ = Signature([Parameter("test", Parameter.POSITIONAL_OR_KEYWORD)])
 
     def __init__(self, *args):
         """This is the init docstring"""
@@ -152,6 +155,7 @@ class Awkward(object):
     def __getattr__(self, name):
         raise Exception(name)
 
+
 class NoBoolCall:
     """
     callable with `__bool__` raising should still be inspect-able.
@@ -163,7 +167,7 @@ class NoBoolCall:
 
     def __bool__(self):
         """just raise NotImplemented"""
-        raise NotImplementedError('Must be implemented')
+        raise NotImplementedError("Must be implemented")
 
 
 class SerialLiar(object):
@@ -172,9 +176,10 @@ class SerialLiar(object):
     unittest.mock.call does something similar, but it's not ideal for testing
     as the failure mode is to eat all your RAM. This gives up after 10k levels.
     """
+
     def __init__(self, max_fibbing_twig, lies_told=0):
         if lies_told > 10000:
-            raise RuntimeError('Nose too long, honesty is the best policy')
+            raise RuntimeError("Nose too long, honesty is the best policy")
         self.max_fibbing_twig = max_fibbing_twig
         self.lies_told = lies_told
         max_fibbing_twig[0] = max(max_fibbing_twig[0], lies_told)
@@ -182,9 +187,11 @@ class SerialLiar(object):
     def __getattr__(self, item):
         return SerialLiar(self.max_fibbing_twig, self.lies_told + 1)
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Tests
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def test_info():
     "Check that Inspector.info fills out various fields as expected."
@@ -233,8 +240,10 @@ def test_info_awkward():
     # Just test that this doesn't throw an error.
     inspector.info(Awkward())
 
+
 def test_bool_raise():
     inspector.info(NoBoolCall())
+
 
 def test_info_serialliar():
     fib_tracker = [0]
@@ -244,8 +253,10 @@ def test_info_serialliar():
     # infinite loops: https://github.com/ipython/ipython/issues/9122
     assert fib_tracker[0] < 9000
 
+
 def support_function_one(x, y=2, *a, **kw):
     """A simple function."""
+
 
 def test_calldef_none():
     # We should ignore __call__ for all of these.
@@ -257,6 +268,7 @@ def test_calldef_none():
 def f_kwarg(pos, *, kwonly):
     pass
 
+
 def test_definition_kwonlyargs():
     i = inspector.info(f_kwarg, oname="f_kwarg")  # analysis:ignore
     assert i["definition"] == "f_kwarg(pos, *, kwonly)"
@@ -265,15 +277,18 @@ def test_definition_kwonlyargs():
 def test_getdoc():
     class A(object):
         """standard docstring"""
+
         pass
 
     class B(object):
         """standard docstring"""
+
         def getdoc(self):
             return "custom docstring"
 
     class C(object):
         """standard docstring"""
+
         def getdoc(self):
             return None
 
@@ -301,9 +316,9 @@ def test_property_sources():
     class A(object):
         @property
         def foo(self):
-            return 'bar'
+            return "bar"
 
-        foo = foo.setter(lambda self, v: setattr(self, 'bar', v))
+        foo = foo.setter(lambda self, v: setattr(self, "bar", v))
 
         dname = property(oinspect.getdoc)
         adder = property(simple_add)
@@ -341,48 +356,53 @@ def test_property_docstring_is_in_info_for_detail_level_0():
 
 def test_pdef():
     # See gh-1914
-    def foo(): pass
-    inspector.pdef(foo, 'foo')
+    def foo():
+        pass
+
+    inspector.pdef(foo, "foo")
 
 
 def test_pinfo_nonascii():
     # See gh-1177
     from . import nonascii2
-    ip.user_ns['nonascii2'] = nonascii2
-    ip._inspect('pinfo', 'nonascii2', detail_level=1)
+
+    ip.user_ns["nonascii2"] = nonascii2
+    ip._inspect("pinfo", "nonascii2", detail_level=1)
+
 
 def test_pinfo_type():
     """
     type can fail in various edge case, for example `type.__subclass__()`
     """
-    ip._inspect('pinfo', 'type')
+    ip._inspect("pinfo", "type")
 
 
 def test_pinfo_docstring_no_source():
     """Docstring should be included with detail_level=1 if there is no source"""
-    with AssertPrints('Docstring:'):
-        ip._inspect('pinfo', 'str.format', detail_level=0)
-    with AssertPrints('Docstring:'):
-        ip._inspect('pinfo', 'str.format', detail_level=1)
+    with AssertPrints("Docstring:"):
+        ip._inspect("pinfo", "str.format", detail_level=0)
+    with AssertPrints("Docstring:"):
+        ip._inspect("pinfo", "str.format", detail_level=1)
 
 
 def test_pinfo_no_docstring_if_source():
     """Docstring should not be included with detail_level=1 if source is found"""
+
     def foo():
         """foo has a docstring"""
 
-    ip.user_ns['foo'] = foo
+    ip.user_ns["foo"] = foo
 
-    with AssertPrints('Docstring:'):
-        ip._inspect('pinfo', 'foo', detail_level=0)
-    with AssertPrints('Source:'):
-        ip._inspect('pinfo', 'foo', detail_level=1)
-    with AssertNotPrints('Docstring:'):
-        ip._inspect('pinfo', 'foo', detail_level=1)
+    with AssertPrints("Docstring:"):
+        ip._inspect("pinfo", "foo", detail_level=0)
+    with AssertPrints("Source:"):
+        ip._inspect("pinfo", "foo", detail_level=1)
+    with AssertNotPrints("Docstring:"):
+        ip._inspect("pinfo", "foo", detail_level=1)
 
 
 def test_pinfo_docstring_if_detail_and_no_source():
-    """ Docstring should be displayed if source info not available """
+    """Docstring should be displayed if source info not available"""
     obj_def = '''class Foo(object):
                   """ This is a docstring for Foo """
                   def bar(self):
@@ -391,27 +411,27 @@ def test_pinfo_docstring_if_detail_and_no_source():
               '''
 
     ip.run_cell(obj_def)
-    ip.run_cell('foo = Foo()')
+    ip.run_cell("foo = Foo()")
 
     with AssertNotPrints("Source:"):
-        with AssertPrints('Docstring:'):
-            ip._inspect('pinfo', 'foo', detail_level=0)
-        with AssertPrints('Docstring:'):
-            ip._inspect('pinfo', 'foo', detail_level=1)
-        with AssertPrints('Docstring:'):
-            ip._inspect('pinfo', 'foo.bar', detail_level=0)
+        with AssertPrints("Docstring:"):
+            ip._inspect("pinfo", "foo", detail_level=0)
+        with AssertPrints("Docstring:"):
+            ip._inspect("pinfo", "foo", detail_level=1)
+        with AssertPrints("Docstring:"):
+            ip._inspect("pinfo", "foo.bar", detail_level=0)
 
-    with AssertNotPrints('Docstring:'):
-        with AssertPrints('Source:'):
-            ip._inspect('pinfo', 'foo.bar', detail_level=1)
+    with AssertNotPrints("Docstring:"):
+        with AssertPrints("Source:"):
+            ip._inspect("pinfo", "foo.bar", detail_level=1)
 
 
 def test_pinfo_magic():
-    with AssertPrints('Docstring:'):
-        ip._inspect('pinfo', 'lsmagic', detail_level=0)
+    with AssertPrints("Docstring:"):
+        ip._inspect("pinfo", "lsmagic", detail_level=0)
 
-    with AssertPrints('Source:'):
-        ip._inspect('pinfo', 'lsmagic', detail_level=1)
+    with AssertPrints("Source:"):
+        ip._inspect("pinfo", "lsmagic", detail_level=1)
 
 
 def test_init_colors():
@@ -423,12 +443,14 @@ def test_init_colors():
 
 def test_builtin_init():
     info = inspector.info(list)
-    init_def = info['init_definition']
+    init_def = info["init_definition"]
     assert init_def is not None
 
 
 def test_render_signature_short():
-    def short_fun(a=1): pass
+    def short_fun(a=1):
+        pass
+
     sig = oinspect._render_signature(
         signature(short_fun),
         short_fun.__name__,
@@ -443,7 +465,8 @@ def test_render_signature_long():
         a_really_long_parameter: int,
         and_another_long_one: bool = False,
         let_us_make_sure_this_is_looong: Optional[str] = None,
-    ) -> bool: pass
+    ) -> bool:
+        pass
 
     sig = oinspect._render_signature(
         signature(long_function),
@@ -451,26 +474,26 @@ def test_render_signature_long():
     )
     assert sig in [
         # Python >=3.9
-        '''\
+        """\
 long_function(
     a_really_long_parameter: int,
     and_another_long_one: bool = False,
     let_us_make_sure_this_is_looong: Optional[str] = None,
 ) -> bool\
-''',
+""",
         # Python >=3.7
-        '''\
+        """\
 long_function(
     a_really_long_parameter: int,
     and_another_long_one: bool = False,
     let_us_make_sure_this_is_looong: Union[str, NoneType] = None,
 ) -> bool\
-''',  # Python <=3.6
-        '''\
+""",  # Python <=3.6
+        """\
 long_function(
     a_really_long_parameter:int,
     and_another_long_one:bool=False,
     let_us_make_sure_this_is_looong:Union[str, NoneType]=None,
 ) -> bool\
-''',
+""",
     ]

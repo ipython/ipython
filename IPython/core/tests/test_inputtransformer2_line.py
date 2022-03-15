@@ -7,13 +7,17 @@ import pytest
 
 from IPython.core import inputtransformer2 as ipt2
 
-CELL_MAGIC = ("""\
+CELL_MAGIC = (
+    """\
 %%foo arg
 body 1
 body 2
-""", """\
+""",
+    """\
 get_ipython().run_cell_magic('foo', 'arg', 'body 1\\nbody 2\\n')
-""")
+""",
+)
+
 
 def test_cell_magic():
     for sample, expected in [CELL_MAGIC]:
@@ -21,23 +25,31 @@ def test_cell_magic():
             keepends=True
         )
 
-CLASSIC_PROMPT = ("""\
+
+CLASSIC_PROMPT = (
+    """\
 >>> for a in range(5):
 ...     print(a)
-""", """\
+""",
+    """\
 for a in range(5):
     print(a)
-""")
+""",
+)
 
-CLASSIC_PROMPT_L2 = ("""\
+CLASSIC_PROMPT_L2 = (
+    """\
 for a in range(5):
 ...     print(a)
 ...     print(a ** 2)
-""", """\
+""",
+    """\
 for a in range(5):
     print(a)
     print(a ** 2)
-""")
+""",
+)
+
 
 def test_classic_prompt():
     for sample, expected in [CLASSIC_PROMPT, CLASSIC_PROMPT_L2]:
@@ -45,23 +57,30 @@ def test_classic_prompt():
             sample.splitlines(keepends=True)
         ) == expected.splitlines(keepends=True)
 
-IPYTHON_PROMPT = ("""\
+
+IPYTHON_PROMPT = (
+    """\
 In [1]: for a in range(5):
    ...:     print(a)
-""", """\
+""",
+    """\
 for a in range(5):
     print(a)
-""")
+""",
+)
 
-IPYTHON_PROMPT_L2 = ("""\
+IPYTHON_PROMPT_L2 = (
+    """\
 for a in range(5):
    ...:     print(a)
    ...:     print(a ** 2)
-""", """\
+""",
+    """\
 for a in range(5):
     print(a)
     print(a ** 2)
-""")
+""",
+)
 
 
 IPYTHON_PROMPT_VI_INS = (
@@ -107,21 +126,28 @@ def test_ipython_prompt():
         ) == expected.splitlines(keepends=True)
 
 
-INDENT_SPACES = ("""\
+INDENT_SPACES = (
+    """\
      if True:
         a = 3
-""", """\
+""",
+    """\
 if True:
    a = 3
-""")
+""",
+)
 
-INDENT_TABS = ("""\
+INDENT_TABS = (
+    """\
 \tif True:
 \t\tb = 4
-""", """\
+""",
+    """\
 if True:
 \tb = 4
-""")
+""",
+)
+
 
 def test_leading_indent():
     for sample, expected in [INDENT_SPACES, INDENT_TABS]:
@@ -129,27 +155,35 @@ def test_leading_indent():
             sample.splitlines(keepends=True)
         ) == expected.splitlines(keepends=True)
 
-LEADING_EMPTY_LINES = ("""\
+
+LEADING_EMPTY_LINES = (
+    """\
     \t
 
 if True:
     a = 3
 
 b = 4
-""", """\
+""",
+    """\
 if True:
     a = 3
 
 b = 4
-""")
+""",
+)
 
-ONLY_EMPTY_LINES = ("""\
+ONLY_EMPTY_LINES = (
+    """\
     \t
 
-""", """\
+""",
+    """\
     \t
 
-""")
+""",
+)
+
 
 def test_leading_empty_lines():
     for sample, expected in [LEADING_EMPTY_LINES, ONLY_EMPTY_LINES]:
@@ -157,11 +191,9 @@ def test_leading_empty_lines():
             sample.splitlines(keepends=True)
         ) == expected.splitlines(keepends=True)
 
-CRLF_MAGIC = ([
-    "%%ls\r\n"
-], [
-    "get_ipython().run_cell_magic('ls', '', '')\n"
-])
+
+CRLF_MAGIC = (["%%ls\r\n"], ["get_ipython().run_cell_magic('ls', '', '')\n"])
+
 
 def test_crlf_magic():
     for sample, expected in [CRLF_MAGIC]:

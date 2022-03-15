@@ -7,23 +7,24 @@ Authors:
 * Brian Granger
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #       Copyright (C) 2008-2011 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from traitlets.config.configurable import Configurable
 from traitlets import List
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Main payload class
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class PayloadManager(Configurable):
 
@@ -37,12 +38,12 @@ class PayloadManager(Configurable):
         """
 
         if not isinstance(data, dict):
-            raise TypeError('Each payload write must be a dict, got: %r' % data)
+            raise TypeError("Each payload write must be a dict, got: %r" % data)
 
-        if single and 'source' in data:
-            source = data['source']
+        if single and "source" in data:
+            source = data["source"]
             for i, pl in enumerate(self._payload):
-                if 'source' in pl and pl['source'] == source:
+                if "source" in pl and pl["source"] == source:
                     self._payload[i] = data
                     return
 

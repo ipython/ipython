@@ -15,12 +15,14 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.text import SList, strip_email_quotes
 from IPython.utils import py3compat
 
+
 def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
-    """ Yield pasted lines until the user enters the given sentinel value.
-    """
+    """Yield pasted lines until the user enters the given sentinel value."""
     if not quiet:
-        print("Pasting code; enter '%s' alone on the line to stop or use Ctrl-D." \
-              % sentinel)
+        print(
+            "Pasting code; enter '%s' alone on the line to stop or use Ctrl-D."
+            % sentinel
+        )
         prompt = ":"
     else:
         prompt = ""
@@ -32,7 +34,7 @@ def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
             else:
                 yield l
         except EOFError:
-            print('<EOF>')
+            print("<EOF>")
             return
 
 
@@ -42,15 +44,14 @@ class TerminalMagics(Magics):
         super(TerminalMagics, self).__init__(shell)
 
     def store_or_execute(self, block, name):
-        """ Execute a block, or store it in a variable, per the user's request.
-        """
+        """Execute a block, or store it in a variable, per the user's request."""
         if name:
             # If storing it for further editing
             self.shell.user_ns[name] = SList(block.splitlines())
             print("Block assigned to '%s'" % name)
         else:
             b = self.preclean_input(block)
-            self.shell.user_ns['pasted_block'] = b
+            self.shell.user_ns["pasted_block"] = b
             self.shell.using_paste_magics = True
             try:
                 self.shell.run_cell(b, store_history=True)
@@ -61,32 +62,30 @@ class TerminalMagics(Magics):
         lines = block.splitlines()
         while lines and not lines[0].strip():
             lines = lines[1:]
-        return strip_email_quotes('\n'.join(lines))
+        return strip_email_quotes("\n".join(lines))
 
-    def rerun_pasted(self, name='pasted_block'):
-        """ Rerun a previously pasted command.
-        """
+    def rerun_pasted(self, name="pasted_block"):
+        """Rerun a previously pasted command."""
         b = self.shell.user_ns.get(name)
 
         # Sanity checks
         if b is None:
-            raise UsageError('No previous pasted block available')
+            raise UsageError("No previous pasted block available")
         if not isinstance(b, str):
-            raise UsageError(
-                "Variable 'pasted_block' is not a string, can't execute")
+            raise UsageError("Variable 'pasted_block' is not a string, can't execute")
 
-        print("Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b)))
+        print("Re-executing '%s...' (%d chars)" % (b.split("\n", 1)[0], len(b)))
         self.shell.run_cell(b)
 
     @line_magic
-    def autoindent(self, parameter_s = ''):
+    def autoindent(self, parameter_s=""):
         """Toggle autoindent on/off (deprecated)"""
         self.shell.set_autoindent()
-        print("Automatic indentation is:",['OFF','ON'][self.shell.autoindent])
+        print("Automatic indentation is:", ["OFF", "ON"][self.shell.autoindent])
 
     @skip_doctest
     @line_magic
-    def cpaste(self, parameter_s=''):
+    def cpaste(self, parameter_s=""):
         """Paste & execute a pre-formatted code block from clipboard.
 
         You must terminate the block with '--' (two minus-signs) or Ctrl-D
@@ -138,19 +137,19 @@ class TerminalMagics(Magics):
           Created `%%t` as an alias for `%%timeit`.
           354 ns ± 224 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
         """
-        opts, name = self.parse_options(parameter_s, 'rqs:', mode='string')
-        if 'r' in opts:
+        opts, name = self.parse_options(parameter_s, "rqs:", mode="string")
+        if "r" in opts:
             self.rerun_pasted()
             return
 
-        quiet = ('q' in opts)
+        quiet = "q" in opts
 
-        sentinel = opts.get('s', u'--')
-        block = '\n'.join(get_pasted_lines(sentinel, quiet=quiet))
+        sentinel = opts.get("s", u"--")
+        block = "\n".join(get_pasted_lines(sentinel, quiet=quiet))
         self.store_or_execute(block, name)
 
     @line_magic
-    def paste(self, parameter_s=''):
+    def paste(self, parameter_s=""):
         """Paste & execute a pre-formatted code block from clipboard.
 
         The text is pulled directly from the clipboard without user
@@ -180,24 +179,24 @@ class TerminalMagics(Magics):
         --------
         cpaste : manually paste code into terminal until you mark its end.
         """
-        opts, name = self.parse_options(parameter_s, 'rq', mode='string')
-        if 'r' in opts:
+        opts, name = self.parse_options(parameter_s, "rq", mode="string")
+        if "r" in opts:
             self.rerun_pasted()
             return
         try:
             block = self.shell.hooks.clipboard_get()
         except TryNext as clipboard_exc:
-            message = getattr(clipboard_exc, 'args')
+            message = getattr(clipboard_exc, "args")
             if message:
                 error(message[0])
             else:
-                error('Could not get text from the clipboard.')
+                error("Could not get text from the clipboard.")
             return
         except ClipboardEmpty as e:
             raise UsageError("The clipboard appears to be empty") from e
 
         # By default, echo back to terminal unless quiet mode is requested
-        if 'q' not in opts:
+        if "q" not in opts:
             sys.stdout.write(self.shell.pycolorize(block))
             if not block.endswith("\n"):
                 sys.stdout.write("\n")
@@ -206,9 +205,9 @@ class TerminalMagics(Magics):
         self.store_or_execute(block, name)
 
     # Class-level: add a '%cls' magic only on Windows
-    if sys.platform == 'win32':
+    if sys.platform == "win32":
+
         @line_magic
         def cls(self, s):
-            """Clear screen.
-            """
+            """Clear screen."""
             os.system("cls")

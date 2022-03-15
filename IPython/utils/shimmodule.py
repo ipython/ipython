@@ -22,6 +22,7 @@ class ShimImporter(importlib.abc.MetaPathFinder):
     This ensures that submodule imports return the real target module,
     not a clone that will confuse `is` and `isinstance` checks.
     """
+
     def __init__(self, src, mirror):
         self.src = src
         self.mirror = mirror
@@ -38,31 +39,28 @@ class ShimImporter(importlib.abc.MetaPathFinder):
 
 
 class ShimModule(types.ModuleType):
-
     def __init__(self, *args, **kwargs):
         self._mirror = kwargs.pop("mirror")
         src = kwargs.pop("src", None)
         if src:
-            kwargs['name'] = src.rsplit('.', 1)[-1]
+            kwargs["name"] = src.rsplit(".", 1)[-1]
         super(ShimModule, self).__init__(*args, **kwargs)
         # add import hook for descendent modules
         if src:
-            sys.meta_path.append(
-                ShimImporter(src=src, mirror=self._mirror)
-            )
-    
+            sys.meta_path.append(ShimImporter(src=src, mirror=self._mirror))
+
     @property
     def __path__(self):
         return []
-    
+
     @property
     def __spec__(self):
         """Don't produce __spec__ until requested"""
         return import_module(self._mirror).__spec__
-    
+
     def __dir__(self):
         return dir(import_module(self._mirror))
-    
+
     @property
     def __all__(self):
         """Ensure __all__ is always defined"""
@@ -70,7 +68,7 @@ class ShimModule(types.ModuleType):
         try:
             return mod.__all__
         except AttributeError:
-            return [name for name in dir(mod) if not name.startswith('_')]
+            return [name for name in dir(mod) if not name.startswith("_")]
 
     def __getattr__(self, key):
         # Use the equivalent of import_item(name), see below

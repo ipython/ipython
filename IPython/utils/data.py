@@ -2,12 +2,12 @@
 """Utilities for working with data structures like lists, dicts and tuples.
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def uniq_stable(elems):
@@ -25,6 +25,4 @@ def uniq_stable(elems):
 
 def chop(seq, size):
     """Chop a sequence into chunks of the given size."""
-    return [seq[i:i+size] for i in range(0,len(seq),size)]
-
-
+    return [seq[i : i + size] for i in range(0, len(seq), size)]

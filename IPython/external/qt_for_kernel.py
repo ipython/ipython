@@ -69,44 +69,43 @@ def matplotlib_options(mpl):
     """Constraints placed on an imported matplotlib."""
     if mpl is None:
         return
-    backend = mpl.rcParams.get('backend', None)
-    if backend == 'Qt4Agg':
-        mpqt = mpl.rcParams.get('backend.qt4', None)
+    backend = mpl.rcParams.get("backend", None)
+    if backend == "Qt4Agg":
+        mpqt = mpl.rcParams.get("backend.qt4", None)
         if mpqt is None:
             return None
-        if mpqt.lower() == 'pyside':
+        if mpqt.lower() == "pyside":
             return [QT_API_PYSIDE]
-        elif mpqt.lower() == 'pyqt4':
+        elif mpqt.lower() == "pyqt4":
             return [QT_API_PYQT_DEFAULT]
-        elif mpqt.lower() == 'pyqt4v2':
+        elif mpqt.lower() == "pyqt4v2":
             return [QT_API_PYQT]
-        raise ImportError("unhandled value for backend.qt4 from matplotlib: %r" %
-                          mpqt)
-    elif backend == 'Qt5Agg':
-        mpqt = mpl.rcParams.get('backend.qt5', None)
+        raise ImportError("unhandled value for backend.qt4 from matplotlib: %r" % mpqt)
+    elif backend == "Qt5Agg":
+        mpqt = mpl.rcParams.get("backend.qt5", None)
         if mpqt is None:
             return None
-        if mpqt.lower() == 'pyqt5':
+        if mpqt.lower() == "pyqt5":
             return [QT_API_PYQT5]
-        raise ImportError("unhandled value for backend.qt5 from matplotlib: %r" %
-                          mpqt)
+        raise ImportError("unhandled value for backend.qt5 from matplotlib: %r" % mpqt)
+
 
 def get_options():
     """Return a list of acceptable QT APIs, in decreasing order of preference."""
-    #already imported Qt somewhere. Use that
+    # already imported Qt somewhere. Use that
     loaded = loaded_api()
     if loaded is not None:
         return [loaded]
 
-    mpl = sys.modules.get('matplotlib', None)
+    mpl = sys.modules.get("matplotlib", None)
 
     if mpl is not None and tuple(mpl.__version__.split(".")) < ("1", "0", "2"):
         # 1.0.1 only supports PyQt4 v1
         return [QT_API_PYQT_DEFAULT]
 
-    qt_api = os.environ.get('QT_API', None)
+    qt_api = os.environ.get("QT_API", None)
     if qt_api is None:
-        #no ETS variable. Ask mpl, then use default fallback path
+        # no ETS variable. Ask mpl, then use default fallback path
         return matplotlib_options(mpl) or [
             QT_API_PYQT_DEFAULT,
             QT_API_PYQT6,
@@ -117,8 +116,9 @@ def get_options():
             QT_API_PYSIDE,
         ]
     elif qt_api not in _qt_apis:
-        raise RuntimeError("Invalid Qt API %r, valid values are: %r" %
-                           (qt_api, ', '.join(_qt_apis)))
+        raise RuntimeError(
+            "Invalid Qt API %r, valid values are: %r" % (qt_api, ", ".join(_qt_apis))
+        )
     else:
         return [qt_api]
 

@@ -12,20 +12,21 @@ Notes
 -----
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Exception classes
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class IPythonCoreError(Exception):
     pass
@@ -38,6 +39,7 @@ class TryNext(IPythonCoreError):
     should be used to handle the operation.
     """
 
+
 class UsageError(IPythonCoreError):
     """Error in magic function arguments, etc.
 
@@ -45,12 +47,14 @@ class UsageError(IPythonCoreError):
     nevertheless interrupt a macro / batch file.
     """
 
+
 class StdinNotImplementedError(IPythonCoreError, NotImplementedError):
     """raw_input was requested in a context where it is not supported
 
     For use in IPython kernels, where only some frontends may support
     stdin requests.
     """
+
 
 class InputRejected(Exception):
     """Input rejected by ast transformer.

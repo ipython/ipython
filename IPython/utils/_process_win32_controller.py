@@ -3,12 +3,12 @@
 This file is meant to be used by process.py
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 # stdlib
@@ -17,41 +17,59 @@ import ctypes, msvcrt
 
 # Win32 API types needed for the API calls
 from ctypes import POINTER
-from ctypes.wintypes import HANDLE, HLOCAL, LPVOID, WORD, DWORD, BOOL, \
-        ULONG, LPCWSTR
+from ctypes.wintypes import HANDLE, HLOCAL, LPVOID, WORD, DWORD, BOOL, ULONG, LPCWSTR
+
 LPDWORD = POINTER(DWORD)
 LPHANDLE = POINTER(HANDLE)
 ULONG_PTR = POINTER(ULONG)
+
+
 class SECURITY_ATTRIBUTES(ctypes.Structure):
-    _fields_ = [("nLength", DWORD),
-                ("lpSecurityDescriptor", LPVOID),
-                ("bInheritHandle", BOOL)]
+    _fields_ = [
+        ("nLength", DWORD),
+        ("lpSecurityDescriptor", LPVOID),
+        ("bInheritHandle", BOOL),
+    ]
+
+
 LPSECURITY_ATTRIBUTES = POINTER(SECURITY_ATTRIBUTES)
+
+
 class STARTUPINFO(ctypes.Structure):
-    _fields_ = [("cb", DWORD),
-                ("lpReserved", LPCWSTR),
-                ("lpDesktop", LPCWSTR),
-                ("lpTitle", LPCWSTR),
-                ("dwX", DWORD),
-                ("dwY", DWORD),
-                ("dwXSize", DWORD),
-                ("dwYSize", DWORD),
-                ("dwXCountChars", DWORD),
-                ("dwYCountChars", DWORD),
-                ("dwFillAttribute", DWORD),
-                ("dwFlags", DWORD),
-                ("wShowWindow", WORD),
-                ("cbReserved2", WORD),
-                ("lpReserved2", LPVOID),
-                ("hStdInput", HANDLE),
-                ("hStdOutput", HANDLE),
-                ("hStdError", HANDLE)]
+    _fields_ = [
+        ("cb", DWORD),
+        ("lpReserved", LPCWSTR),
+        ("lpDesktop", LPCWSTR),
+        ("lpTitle", LPCWSTR),
+        ("dwX", DWORD),
+        ("dwY", DWORD),
+        ("dwXSize", DWORD),
+        ("dwYSize", DWORD),
+        ("dwXCountChars", DWORD),
+        ("dwYCountChars", DWORD),
+        ("dwFillAttribute", DWORD),
+        ("dwFlags", DWORD),
+        ("wShowWindow", WORD),
+        ("cbReserved2", WORD),
+        ("lpReserved2", LPVOID),
+        ("hStdInput", HANDLE),
+        ("hStdOutput", HANDLE),
+        ("hStdError", HANDLE),
+    ]
+
+
 LPSTARTUPINFO = POINTER(STARTUPINFO)
+
+
 class PROCESS_INFORMATION(ctypes.Structure):
-    _fields_ = [("hProcess", HANDLE),
-                ("hThread", HANDLE),
-                ("dwProcessId", DWORD),
-                ("dwThreadId", DWORD)]
+    _fields_ = [
+        ("hProcess", HANDLE),
+        ("hThread", HANDLE),
+        ("dwProcessId", DWORD),
+        ("dwThreadId", DWORD),
+    ]
+
+
 LPPROCESS_INFORMATION = POINTER(PROCESS_INFORMATION)
 
 # Win32 API constants needed
@@ -82,14 +100,22 @@ CreateFile.argtypes = [LPCWSTR, DWORD, DWORD, LPVOID, DWORD, DWORD, HANDLE]
 CreateFile.restype = HANDLE
 
 CreatePipe = ctypes.windll.kernel32.CreatePipe
-CreatePipe.argtypes = [POINTER(HANDLE), POINTER(HANDLE),
-        LPSECURITY_ATTRIBUTES, DWORD]
+CreatePipe.argtypes = [POINTER(HANDLE), POINTER(HANDLE), LPSECURITY_ATTRIBUTES, DWORD]
 CreatePipe.restype = BOOL
 
 CreateProcess = ctypes.windll.kernel32.CreateProcessW
-CreateProcess.argtypes = [LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES,
-        LPSECURITY_ATTRIBUTES, BOOL, DWORD, LPVOID, LPCWSTR, LPSTARTUPINFO,
-        LPPROCESS_INFORMATION]
+CreateProcess.argtypes = [
+    LPCWSTR,
+    LPCWSTR,
+    LPSECURITY_ATTRIBUTES,
+    LPSECURITY_ATTRIBUTES,
+    BOOL,
+    DWORD,
+    LPVOID,
+    LPCWSTR,
+    LPSTARTUPINFO,
+    LPPROCESS_INFORMATION,
+]
 CreateProcess.restype = BOOL
 
 GetExitCodeProcess = ctypes.windll.kernel32.GetExitCodeProcess
@@ -129,8 +155,7 @@ WaitForSingleObject.argtypes = [HANDLE, DWORD]
 WaitForSingleObject.restype = DWORD
 
 DuplicateHandle = ctypes.windll.kernel32.DuplicateHandle
-DuplicateHandle.argtypes = [HANDLE, HANDLE, HANDLE, LPHANDLE,
-        DWORD, BOOL, DWORD]
+DuplicateHandle.argtypes = [HANDLE, HANDLE, HANDLE, LPHANDLE, DWORD, BOOL, DWORD]
 DuplicateHandle.restype = BOOL
 
 SetHandleInformation = ctypes.windll.kernel32.SetHandleInformation
@@ -148,6 +173,7 @@ CommandLineToArgvW.restype = POINTER(LPCWSTR)
 LocalFree = ctypes.windll.kernel32.LocalFree
 LocalFree.argtypes = [HLOCAL]
 LocalFree.restype = HLOCAL
+
 
 class AvoidUNCPath(object):
     """A context manager to protect command execution from UNC paths.
@@ -169,6 +195,7 @@ class AvoidUNCPath(object):
                 cmd = '"pushd %s &&"%s' % (path, cmd)
             os.system(cmd)
     """
+
     def __enter__(self):
         self.path = os.getcwd()
         self.is_unc_path = self.path.startswith(r"\\")
@@ -209,12 +236,12 @@ class Win32ShellCommandController(object):
             else:
                 time.sleep(0.01)
                 return None
-      
+
         with ShellCommandController('python -i') as scc:
             scc.run(my_stdout_func, my_stdin_func)
     """
 
-    def __init__(self, cmd, mergeout = True):
+    def __init__(self, cmd, mergeout=True):
         """Initializes the shell command controller.
 
         The cmd is the program to execute, and mergeout is
@@ -233,8 +260,7 @@ class Win32ShellCommandController(object):
         self.hstdout, self.hstdin, self.hstderr = None, None, None
         self.piProcInfo = None
         try:
-            p_hstdout, c_hstdout, p_hstderr, \
-                    c_hstderr, p_hstdin, c_hstdin = [None]*6
+            p_hstdout, c_hstdout, p_hstderr, c_hstderr, p_hstdin, c_hstdin = [None] * 6
 
             # SECURITY_ATTRIBUTES with inherit handle set to True
             saAttr = SECURITY_ATTRIBUTES()
@@ -249,11 +275,14 @@ class Win32ShellCommandController(object):
                 inherited by the child process.
                 """
                 handles = HANDLE(), HANDLE()
-                if not CreatePipe(ctypes.byref(handles[0]),
-                            ctypes.byref(handles[1]), ctypes.byref(saAttr), 0):
+                if not CreatePipe(
+                    ctypes.byref(handles[0]),
+                    ctypes.byref(handles[1]),
+                    ctypes.byref(saAttr),
+                    0,
+                ):
                     raise ctypes.WinError()
-                if not SetHandleInformation(handles[uninherit],
-                            HANDLE_FLAG_INHERIT, 0):
+                if not SetHandleInformation(handles[uninherit], HANDLE_FLAG_INHERIT, 0):
                     raise ctypes.WinError()
                 return handles[0].value, handles[1].value
 
@@ -262,13 +291,19 @@ class Win32ShellCommandController(object):
             # We do that by using one pipe for both of them.
             if mergeout:
                 c_hstderr = HANDLE()
-                if not DuplicateHandle(GetCurrentProcess(), c_hstdout,
-                                GetCurrentProcess(), ctypes.byref(c_hstderr),
-                                0, True, DUPLICATE_SAME_ACCESS):
+                if not DuplicateHandle(
+                    GetCurrentProcess(),
+                    c_hstdout,
+                    GetCurrentProcess(),
+                    ctypes.byref(c_hstderr),
+                    0,
+                    True,
+                    DUPLICATE_SAME_ACCESS,
+                ):
                     raise ctypes.WinError()
             else:
                 p_hstderr, c_hstderr = create_pipe(uninherit=0)
-            c_hstdin,  p_hstdin  = create_pipe(uninherit=1)
+            c_hstdin, p_hstdin = create_pipe(uninherit=1)
 
             # Create the process object
             piProcInfo = PROCESS_INFORMATION()
@@ -278,13 +313,22 @@ class Win32ShellCommandController(object):
             siStartInfo.hStdOutput = c_hstdout
             siStartInfo.hStdError = c_hstderr
             siStartInfo.dwFlags = STARTF_USESTDHANDLES
-            dwCreationFlags = CREATE_SUSPENDED | CREATE_NO_WINDOW # | CREATE_NEW_CONSOLE
+            dwCreationFlags = (
+                CREATE_SUSPENDED | CREATE_NO_WINDOW
+            )  # | CREATE_NEW_CONSOLE
 
-            if not CreateProcess(None,
-                    u"cmd.exe /c " + cmd,
-                    None, None, True, dwCreationFlags,
-                    None, None, ctypes.byref(siStartInfo),
-                    ctypes.byref(piProcInfo)):
+            if not CreateProcess(
+                None,
+                u"cmd.exe /c " + cmd,
+                None,
+                None,
+                True,
+                dwCreationFlags,
+                None,
+                None,
+                ctypes.byref(siStartInfo),
+                ctypes.byref(piProcInfo),
+            ):
                 raise ctypes.WinError()
 
             # Close this process's versions of the child handles
@@ -326,30 +370,29 @@ class Win32ShellCommandController(object):
         exitCode = DWORD()
         bytesWritten = DWORD(0)
         while True:
-            #print("stdin thread loop start")
+            # print("stdin thread loop start")
             # Get the input string (may be bytes or unicode)
             data = func()
 
             # None signals to poll whether the process has exited
             if data is None:
-                #print("checking for process completion")
+                # print("checking for process completion")
                 if not GetExitCodeProcess(hprocess, ctypes.byref(exitCode)):
                     raise ctypes.WinError()
                 if exitCode.value != STILL_ACTIVE:
                     return
                 # TESTING: Does zero-sized writefile help?
-                if not WriteFile(handle, "", 0,
-                        ctypes.byref(bytesWritten), None):
+                if not WriteFile(handle, "", 0, ctypes.byref(bytesWritten), None):
                     raise ctypes.WinError()
                 continue
-            #print("\nGot str %s\n" % repr(data), file=sys.stderr)
+            # print("\nGot str %s\n" % repr(data), file=sys.stderr)
 
             # Encode the string to the console encoding
-            if isinstance(data, unicode): #FIXME: Python3
-                data = data.encode('utf_8')
+            if isinstance(data, unicode):  # FIXME: Python3
+                data = data.encode("utf_8")
 
             # What we have now must be a string of bytes
-            if not isinstance(data, str): #FIXME: Python3
+            if not isinstance(data, str):  # FIXME: Python3
                 raise RuntimeError("internal stdin function string error")
 
             # An empty string signals EOF
@@ -362,34 +405,34 @@ class Win32ShellCommandController(object):
             # WriteFile may not accept all the data at once.
             # Loop until everything is processed
             while len(data) != 0:
-                #print("Calling writefile")
-                if not WriteFile(handle, data, len(data),
-                        ctypes.byref(bytesWritten), None):
+                # print("Calling writefile")
+                if not WriteFile(
+                    handle, data, len(data), ctypes.byref(bytesWritten), None
+                ):
                     # This occurs at exit
                     if GetLastError() == ERROR_NO_DATA:
                         return
                     raise ctypes.WinError()
-                #print("Called writefile")
-                data = data[bytesWritten.value:]
+                # print("Called writefile")
+                data = data[bytesWritten.value :]
 
     def _stdout_thread(self, handle, func):
         # Allocate the output buffer
         data = ctypes.create_string_buffer(4096)
         while True:
             bytesRead = DWORD(0)
-            if not ReadFile(handle, data, 4096,
-                        ctypes.byref(bytesRead), None):
+            if not ReadFile(handle, data, 4096, ctypes.byref(bytesRead), None):
                 le = GetLastError()
                 if le == ERROR_BROKEN_PIPE:
                     return
                 else:
                     raise ctypes.WinError()
             # FIXME: Python3
-            s = data.value[0:bytesRead.value]
-            #print("\nv: %s" % repr(s), file=sys.stderr)
-            func(s.decode('utf_8', 'replace'))
+            s = data.value[0 : bytesRead.value]
+            # print("\nv: %s" % repr(s), file=sys.stderr)
+            func(s.decode("utf_8", "replace"))
 
-    def run(self, stdout_func = None, stdin_func = None, stderr_func = None):
+    def run(self, stdout_func=None, stdin_func=None, stderr_func=None):
         """Runs the process, using the provided functions for I/O.
 
         The function stdin_func should return strings whenever a
@@ -403,24 +446,33 @@ class Win32ShellCommandController(object):
             return self._run_stdio()
 
         if stderr_func is not None and self.mergeout:
-            raise RuntimeError("Shell command was initiated with "
-                    "merged stdin/stdout, but a separate stderr_func "
-                    "was provided to the run() method")
+            raise RuntimeError(
+                "Shell command was initiated with "
+                "merged stdin/stdout, but a separate stderr_func "
+                "was provided to the run() method"
+            )
 
         # Create a thread for each input/output handle
         stdin_thread = None
         threads = []
         if stdin_func:
-            stdin_thread = threading.Thread(target=self._stdin_thread,
-                                args=(self.hstdin, self.piProcInfo.hProcess,
-                                stdin_func, stdout_func))
-        threads.append(threading.Thread(target=self._stdout_thread,
-                                    args=(self.hstdout, stdout_func)))
+            stdin_thread = threading.Thread(
+                target=self._stdin_thread,
+                args=(self.hstdin, self.piProcInfo.hProcess, stdin_func, stdout_func),
+            )
+        threads.append(
+            threading.Thread(
+                target=self._stdout_thread, args=(self.hstdout, stdout_func)
+            )
+        )
         if not self.mergeout:
             if stderr_func is None:
                 stderr_func = stdout_func
-            threads.append(threading.Thread(target=self._stdout_thread,
-                                        args=(self.hstderr, stderr_func)))
+            threads.append(
+                threading.Thread(
+                    target=self._stdout_thread, args=(self.hstderr, stderr_func)
+                )
+            )
         # Start the I/O threads and the process
         if ResumeThread(self.piProcInfo.hThread) == 0xFFFFFFFF:
             raise ctypes.WinError()
@@ -429,8 +481,7 @@ class Win32ShellCommandController(object):
         for thread in threads:
             thread.start()
         # Wait for the process to complete
-        if WaitForSingleObject(self.piProcInfo.hProcess, INFINITE) == \
-                    WAIT_FAILED:
+        if WaitForSingleObject(self.piProcInfo.hProcess, INFINITE) == WAIT_FAILED:
             raise ctypes.WinError()
         # Wait for the I/O threads to complete
         for thread in threads:
@@ -450,15 +501,14 @@ class Win32ShellCommandController(object):
         if result == WAIT_FAILED:
             raise ctypes.WinError()
         elif result == WAIT_TIMEOUT:
-            print(".", end='')
+            print(".", end="")
             return None
         else:
             data = ctypes.create_string_buffer(256)
             bytesRead = DWORD(0)
-            print('?', end='')
+            print("?", end="")
 
-            if not ReadFile(handle, data, 256,
-                        ctypes.byref(bytesRead), None):
+            if not ReadFile(handle, data, 256, ctypes.byref(bytesRead), None):
                 raise ctypes.WinError()
             # This ensures the non-blocking works with an actual console
             # Not checking the error, so the processing will still work with
@@ -466,9 +516,9 @@ class Win32ShellCommandController(object):
             FlushConsoleInputBuffer(handle)
 
             data = data.value
-            data = data.replace('\r\n', '\n')
-            data = data.replace('\r', '\n')
-            print(repr(data) + " ", end='')
+            data = data.replace("\r\n", "\n")
+            data = data.replace("\r", "\n")
+            print(repr(data) + " ", end="")
             return data
 
     def _stdin_raw_block(self):
@@ -478,7 +528,7 @@ class Win32ShellCommandController(object):
         # key-press may be required to trigger the exit.
         try:
             data = sys.stdin.read(1)
-            data = data.replace('\r', '\n')
+            data = data.replace("\r", "\n")
             return data
         except WindowsError as we:
             if we.winerror == ERROR_NO_DATA:
@@ -490,12 +540,12 @@ class Win32ShellCommandController(object):
 
     def _stdout_raw(self, s):
         """Writes the string to stdout"""
-        print(s, end='', file=sys.stdout)
+        print(s, end="", file=sys.stdout)
         sys.stdout.flush()
 
     def _stderr_raw(self, s):
         """Writes the string to stdout"""
-        print(s, end='', file=sys.stderr)
+        print(s, end="", file=sys.stderr)
         sys.stderr.flush()
 
     def _run_stdio(self):
@@ -506,24 +556,27 @@ class Win32ShellCommandController(object):
                    msvcrt.kbhit/getwch are used asynchronously.
         """
         # Disable Line and Echo mode
-        #lpMode = DWORD()
-        #handle = msvcrt.get_osfhandle(sys.stdin.fileno())
-        #if GetConsoleMode(handle, ctypes.byref(lpMode)):
+        # lpMode = DWORD()
+        # handle = msvcrt.get_osfhandle(sys.stdin.fileno())
+        # if GetConsoleMode(handle, ctypes.byref(lpMode)):
         #    set_console_mode = True
         #    if not SetConsoleMode(handle, lpMode.value &
         #            ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT)):
         #        raise ctypes.WinError()
 
         if self.mergeout:
-            return self.run(stdout_func = self._stdout_raw,
-                    stdin_func = self._stdin_raw_block)
+            return self.run(
+                stdout_func=self._stdout_raw, stdin_func=self._stdin_raw_block
+            )
         else:
-            return self.run(stdout_func = self._stdout_raw,
-                    stdin_func = self._stdin_raw_block,
-                    stderr_func = self._stderr_raw)
+            return self.run(
+                stdout_func=self._stdout_raw,
+                stdin_func=self._stdin_raw_block,
+                stderr_func=self._stderr_raw,
+            )
 
         # Restore the previous console mode
-        #if set_console_mode:
+        # if set_console_mode:
         #    if not SetConsoleMode(handle, lpMode.value):
         #        raise ctypes.WinError()
 
@@ -568,6 +621,6 @@ def system(cmd):
 
 if __name__ == "__main__":
     print("Test starting!")
-    #system("cmd")
+    # system("cmd")
     system("python -i")
     print("Test finished!")

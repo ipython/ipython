@@ -26,16 +26,13 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     # negative value.  Offset to 0 for robustness.
     start = max(0, start)
     shell = get_ipython()
-    
-    if isinstance(strng, dict):
-        data = strng
-    else:
-        data = {'text/plain' : strng}
+
+    data = strng if isinstance(strng, dict) else {"text/plain": strng}
     payload = dict(
-        source='page',
+        source="page",
         data=data,
         start=start,
-        )
+    )
     shell.payload_manager.write_payload(payload)
 
 
@@ -44,8 +41,11 @@ def install_payload_page():
 
     Install this version of page as IPython.core.page.page.
     """
-    warnings.warn("""install_payload_page is deprecated.
+    warnings.warn(
+        """install_payload_page is deprecated.
     Use `ip.set_hook('show_in_pager, page.as_hook(payloadpage.page))`
-    """)
+    """
+    )
     from IPython.core import page as corepage
+
     corepage.page = page

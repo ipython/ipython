@@ -10,11 +10,17 @@ import os
 import sys
 import warnings
 
-__all__ = ['display', 'clear_output', 'publish_display_data', 'update_display', 'DisplayHandle']
+__all__ = [
+    "display",
+    "clear_output",
+    "publish_display_data",
+    "update_display",
+    "DisplayHandle",
+]
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # utility functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def _merge(d1, d2):
@@ -30,9 +36,10 @@ def _merge(d1, d2):
     return d1
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Main functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class _Sentinel:
     def __repr__(self):
@@ -88,18 +95,14 @@ def publish_display_data(
     # to avoid errors with older ipykernel.
     # TODO: We could check for ipykernel version and provide a detailed upgrade message.
     if transient:
-        kwargs['transient'] = transient
+        kwargs["transient"] = transient
 
-    display_pub.publish(
-        data=data,
-        metadata=metadata,
-        **kwargs
-    )
+    display_pub.publish(data=data, metadata=metadata, **kwargs)
 
 
 def _new_id():
     """Generate a new random text id with urandom"""
-    return b2a_hex(os.urandom(16)).decode('ascii')
+    return b2a_hex(os.urandom(16)).decode("ascii")
 
 
 def display(
@@ -268,15 +271,15 @@ def display(
     if transient is None:
         transient = {}
     if metadata is None:
-        metadata={}
+        metadata = {}
     if display_id:
         if display_id is True:
             display_id = _new_id()
-        transient['display_id'] = display_id
-    if kwargs.get('update') and 'display_id' not in transient:
-        raise TypeError('display_id required for update_display')
+        transient["display_id"] = display_id
+    if kwargs.get("update") and "display_id" not in transient:
+        raise TypeError("display_id required for update_display")
     if transient:
-        kwargs['transient'] = transient
+        kwargs["transient"] = transient
 
     if not objs and display_id:
         # if given no objects, but still a request for a display_id,
@@ -322,7 +325,7 @@ def update_display(obj, *, display_id, **kwargs):
     --------
     :func:`display`
     """
-    kwargs['update'] = True
+    kwargs["update"] = True
     display(obj, display_id=display_id, **kwargs)
 
 
@@ -382,10 +385,11 @@ def clear_output(wait=False):
     wait : bool [default: false]
         Wait to clear the output until new output is available to replace it."""
     from IPython.core.interactiveshell import InteractiveShell
+
     if InteractiveShell.initialized():
         InteractiveShell.instance().display_pub.clear_output(wait)
     else:
-        print('\033[2K\r', end='')
+        print("\033[2K\r", end="")
         sys.stdout.flush()
-        print('\033[2K\r', end='')
+        print("\033[2K\r", end="")
         sys.stderr.flush()

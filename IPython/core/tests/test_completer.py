@@ -30,6 +30,7 @@ from IPython.core.completer import (
 # Test functions
 # -----------------------------------------------------------------------------
 
+
 def recompute_unicode_ranges():
     """
     utility to recompute the largest unicode range without any characters
@@ -38,8 +39,9 @@ def recompute_unicode_ranges():
     """
     import itertools
     import unicodedata
+
     valid = []
-    for c in range(0,0x10FFFF + 1):
+    for c in range(0, 0x10FFFF + 1):
         try:
             unicodedata.name(chr(c))
         except ValueError:
@@ -54,14 +56,20 @@ def recompute_unicode_ranges():
     rg = list(ranges(valid))
     lens = []
     gap_lens = []
-    pstart, pstop = 0,0
+    pstart, pstop = 0, 0
     for start, stop in rg:
-        lens.append(stop-start)
-        gap_lens.append((start - pstop, hex(pstop), hex(start), f'{round((start - pstop)/0xe01f0*100)}%'))
+        lens.append(stop - start)
+        gap_lens.append(
+            (
+                start - pstop,
+                hex(pstop),
+                hex(start),
+                f"{round((start - pstop)/0xe01f0*100)}%",
+            )
+        )
         pstart, pstop = start, stop
 
     return sorted(gap_lens)[-1]
-
 
 
 def test_unicode_range():
@@ -69,7 +77,7 @@ def test_unicode_range():
     Test that the ranges we test for unicode names give the same number of
     results than testing the full length.
     """
-    from IPython.core.completer import  _unicode_name_compute, _UNICODE_RANGES
+    from IPython.core.completer import _unicode_name_compute, _UNICODE_RANGES
 
     expected_list = _unicode_name_compute([(0, 0x110000)])
     test = _unicode_name_compute(_UNICODE_RANGES)
@@ -94,7 +102,7 @@ def test_unicode_range():
         """
     assert len_exp == len_test, message
 
-    # fail if new unicode symbols have been added. 
+    # fail if new unicode symbols have been added.
     assert len_exp <= 138552, message
 
 
@@ -234,15 +242,15 @@ class TestCompleter(unittest.TestCase):
         """Test that errors from custom attribute completers are silenced."""
         ip = get_ipython()
 
-        _, matches = ip.complete('in')
-        assert matches.index('input') < matches.index('int')
+        _, matches = ip.complete("in")
+        assert matches.index("input") < matches.index("int")
 
         def complete_example(a):
-            return ['example2', 'example1']
+            return ["example2", "example1"]
 
-        ip.Completer.custom_completers.add_re('ex*', complete_example)
-        _, matches = ip.complete('ex')
-        assert matches.index('example2') < matches.index('example1')
+        ip.Completer.custom_completers.add_re("ex*", complete_example)
+        _, matches = ip.complete("ex")
+        assert matches.index("example2") < matches.index("example1")
 
     def test_unicode_completions(self):
         ip = get_ipython()
@@ -423,7 +431,7 @@ class TestCompleter(unittest.TestCase):
                 matches = c.all_completions("TestClass.")
                 assert len(matches) > 2, (jedi_status, matches)
                 matches = c.all_completions("TestClass.a")
-                assert matches == ['TestClass.a', 'TestClass.a1'], jedi_status
+                assert matches == ["TestClass.a", "TestClass.a1"], jedi_status
 
     def test_jedi(self):
         """
@@ -501,10 +509,10 @@ class TestCompleter(unittest.TestCase):
 
     def test_greedy_completions(self):
         """
-        Test the capability of the Greedy completer. 
+        Test the capability of the Greedy completer.
 
         Most of the test here does not really show off the greedy completer, for proof
-        each of the text below now pass with Jedi. The greedy completer is capable of more. 
+        each of the text below now pass with Jedi. The greedy completer is capable of more.
 
         See the :any:`test_dict_key_completion_contexts`
 
@@ -612,7 +620,7 @@ class TestCompleter(unittest.TestCase):
 
     def test_limit_to__all__False_ok(self):
         """
-        Limit to all is deprecated, once we remove it this test can go away. 
+        Limit to all is deprecated, once we remove it this test can go away.
         """
         ip = get_ipython()
         c = ip.Completer
@@ -839,28 +847,78 @@ class TestCompleter(unittest.TestCase):
         does return what expected, and does not crash.
         """
         delims = " \t\n`!@#$^&*()=+[{]}\\|;:'\",<>?"
-        
-        keys = [("foo", "bar"), ("foo", "oof"), ("foo", b"bar"), ('other', 'test')]
+
+        keys = [("foo", "bar"), ("foo", "oof"), ("foo", b"bar"), ("other", "test")]
 
         # Completion on first key == "foo"
-        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["bar", "oof"])
-        assert match_dict_keys(keys, "\"", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["bar", "oof"])
-        assert match_dict_keys(keys, "'o", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["oof"])
-        assert match_dict_keys(keys, "\"o", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["oof"])
-        assert match_dict_keys(keys, "b'", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
-        assert match_dict_keys(keys, "b\"", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
-        assert match_dict_keys(keys, "b'b", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
-        assert match_dict_keys(keys, "b\"b", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("foo",)) == (
+            "'",
+            1,
+            ["bar", "oof"],
+        )
+        assert match_dict_keys(keys, '"', delims=delims, extra_prefix=("foo",)) == (
+            '"',
+            1,
+            ["bar", "oof"],
+        )
+        assert match_dict_keys(keys, "'o", delims=delims, extra_prefix=("foo",)) == (
+            "'",
+            1,
+            ["oof"],
+        )
+        assert match_dict_keys(keys, '"o', delims=delims, extra_prefix=("foo",)) == (
+            '"',
+            1,
+            ["oof"],
+        )
+        assert match_dict_keys(keys, "b'", delims=delims, extra_prefix=("foo",)) == (
+            "'",
+            2,
+            ["bar"],
+        )
+        assert match_dict_keys(keys, 'b"', delims=delims, extra_prefix=("foo",)) == (
+            '"',
+            2,
+            ["bar"],
+        )
+        assert match_dict_keys(keys, "b'b", delims=delims, extra_prefix=("foo",)) == (
+            "'",
+            2,
+            ["bar"],
+        )
+        assert match_dict_keys(keys, 'b"b', delims=delims, extra_prefix=("foo",)) == (
+            '"',
+            2,
+            ["bar"],
+        )
 
         # No Completion
-        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("no_foo",)) == ("'", 1, [])
-        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("fo",)) == ("'", 1, [])
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("no_foo",)) == (
+            "'",
+            1,
+            [],
+        )
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("fo",)) == (
+            "'",
+            1,
+            [],
+        )
 
-        keys = [('foo1', 'foo2', 'foo3', 'foo4'), ('foo1', 'foo2', 'bar', 'foo4')]
-        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1',)) == ("'", 1, ["foo2", "foo2"])
-        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2')) == ("'", 1, ["foo3"])
-        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3')) == ("'", 1, ["foo4"])
-        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3', 'foo4')) == ("'", 1, [])
+        keys = [("foo1", "foo2", "foo3", "foo4"), ("foo1", "foo2", "bar", "foo4")]
+        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=("foo1",)) == (
+            "'",
+            1,
+            ["foo2", "foo2"],
+        )
+        assert match_dict_keys(
+            keys, "'foo", delims=delims, extra_prefix=("foo1", "foo2")
+        ) == ("'", 1, ["foo3"])
+        assert match_dict_keys(
+            keys, "'foo", delims=delims, extra_prefix=("foo1", "foo2", "foo3")
+        ) == ("'", 1, ["foo4"])
+        assert match_dict_keys(
+            keys, "'foo", delims=delims, extra_prefix=("foo1", "foo2", "foo3", "foo4")
+        ) == ("'", 1, [])
 
     def test_dict_key_completion_string(self):
         """Test dictionary key completion for string keys"""
@@ -908,7 +966,7 @@ class TestCompleter(unittest.TestCase):
             object(): None,
             5: None,
             ("abe", None): None,
-            (None, "abf"): None
+            (None, "abf"): None,
         }
 
         _, matches = complete(line_buffer="d['a")
@@ -951,7 +1009,7 @@ class TestCompleter(unittest.TestCase):
             self.assertIn("before-after", matches)
 
         # check completion on tuple-of-string keys at different stage - on first key
-        ip.user_ns["d"] = {('foo', 'bar'): None}
+        ip.user_ns["d"] = {("foo", "bar"): None}
         _, matches = complete(line_buffer="d[")
         self.assertIn("'foo'", matches)
         self.assertNotIn("'foo']", matches)
@@ -1003,7 +1061,7 @@ class TestCompleter(unittest.TestCase):
         self.assertNotIn("bar", matches)
 
         # Can complete with longer tuple keys
-        ip.user_ns["d"] = {('foo', 'bar', 'foobar'): None}
+        ip.user_ns["d"] = {("foo", "bar", "foobar"): None}
 
         # - can complete second key
         _, matches = complete(line_buffer="d['foo', 'b")

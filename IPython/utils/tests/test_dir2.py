@@ -19,7 +19,6 @@ def test_base():
 
 
 def test_SubClass():
-
     class SubClass(Base):
         y = 2
 
@@ -53,7 +52,7 @@ def test_misbehaving_object_without_trait_names():
 
     class SillierWithDir(MisbehavingGetattr):
         def __dir__(self):
-            return ['some_method']
+            return ["some_method"]
 
     for bad_klass in (MisbehavingGetattr, SillierWithDir):
         obj = bad_klass()

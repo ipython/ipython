@@ -29,9 +29,9 @@ scan Python source code and re-emit it with no changes to its original
 formatting (which is the hard part).
 """
 
-__all__ = ['ANSICodeColors', 'Parser']
+__all__ = ["ANSICodeColors", "Parser"]
 
-_scheme_default = 'Linux'
+_scheme_default = "Linux"
 
 
 # Imports
@@ -43,7 +43,12 @@ import tokenize
 
 generate_tokens = tokenize.generate_tokens
 
-from IPython.utils.coloransi import TermColors, InputTermColors,ColorScheme, ColorSchemeTable
+from IPython.utils.coloransi import (
+    TermColors,
+    InputTermColors,
+    ColorScheme,
+    ColorSchemeTable,
+)
 from .colorable import Colorable
 from io import StringIO
 
@@ -52,85 +57,79 @@ from io import StringIO
 #############################################################################
 
 _KEYWORD = token.NT_OFFSET + 1
-_TEXT    = token.NT_OFFSET + 2
+_TEXT = token.NT_OFFSET + 2
 
-#****************************************************************************
+# ****************************************************************************
 # Builtin color schemes
 
 Colors = TermColors  # just a shorthand
 
 # Build a few color schemes
 NoColor = ColorScheme(
-    'NoColor',{
-    'header'         : Colors.NoColor,
-    token.NUMBER     : Colors.NoColor,
-    token.OP         : Colors.NoColor,
-    token.STRING     : Colors.NoColor,
-    tokenize.COMMENT : Colors.NoColor,
-    token.NAME       : Colors.NoColor,
-    token.ERRORTOKEN : Colors.NoColor,
-
-    _KEYWORD         : Colors.NoColor,
-    _TEXT            : Colors.NoColor,
-
-    'in_prompt'      : InputTermColors.NoColor,  # Input prompt
-    'in_number'      : InputTermColors.NoColor,  # Input prompt number
-    'in_prompt2'     : InputTermColors.NoColor, # Continuation prompt
-    'in_normal'      : InputTermColors.NoColor,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.NoColor, # Output prompt
-    'out_number'     : Colors.NoColor, # Output prompt number
-
-    'normal'         : Colors.NoColor  # color off (usu. Colors.Normal)
-    }  )
+    "NoColor",
+    {
+        "header": Colors.NoColor,
+        token.NUMBER: Colors.NoColor,
+        token.OP: Colors.NoColor,
+        token.STRING: Colors.NoColor,
+        tokenize.COMMENT: Colors.NoColor,
+        token.NAME: Colors.NoColor,
+        token.ERRORTOKEN: Colors.NoColor,
+        _KEYWORD: Colors.NoColor,
+        _TEXT: Colors.NoColor,
+        "in_prompt": InputTermColors.NoColor,  # Input prompt
+        "in_number": InputTermColors.NoColor,  # Input prompt number
+        "in_prompt2": InputTermColors.NoColor,  # Continuation prompt
+        "in_normal": InputTermColors.NoColor,  # color off (usu. Colors.Normal)
+        "out_prompt": Colors.NoColor,  # Output prompt
+        "out_number": Colors.NoColor,  # Output prompt number
+        "normal": Colors.NoColor,  # color off (usu. Colors.Normal)
+    },
+)
 
 LinuxColors = ColorScheme(
-    'Linux',{
-    'header'         : Colors.LightRed,
-    token.NUMBER     : Colors.LightCyan,
-    token.OP         : Colors.Yellow,
-    token.STRING     : Colors.LightBlue,
-    tokenize.COMMENT : Colors.LightRed,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
-
-    _KEYWORD         : Colors.LightGreen,
-    _TEXT            : Colors.Yellow,
-
-    'in_prompt'      : InputTermColors.Green,
-    'in_number'      : InputTermColors.LightGreen,
-    'in_prompt2'     : InputTermColors.Green,
-    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.Red,
-    'out_number'     : Colors.LightRed,
-
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    } )
+    "Linux",
+    {
+        "header": Colors.LightRed,
+        token.NUMBER: Colors.LightCyan,
+        token.OP: Colors.Yellow,
+        token.STRING: Colors.LightBlue,
+        tokenize.COMMENT: Colors.LightRed,
+        token.NAME: Colors.Normal,
+        token.ERRORTOKEN: Colors.Red,
+        _KEYWORD: Colors.LightGreen,
+        _TEXT: Colors.Yellow,
+        "in_prompt": InputTermColors.Green,
+        "in_number": InputTermColors.LightGreen,
+        "in_prompt2": InputTermColors.Green,
+        "in_normal": InputTermColors.Normal,  # color off (usu. Colors.Normal)
+        "out_prompt": Colors.Red,
+        "out_number": Colors.LightRed,
+        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
+    },
+)
 
 NeutralColors = ColorScheme(
-    'Neutral',{
-    'header'         : Colors.Red,
-    token.NUMBER     : Colors.Cyan,
-    token.OP         : Colors.Blue,
-    token.STRING     : Colors.Blue,
-    tokenize.COMMENT : Colors.Red,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
-
-    _KEYWORD         : Colors.Green,
-    _TEXT            : Colors.Blue,
-
-    'in_prompt'      : InputTermColors.Blue,
-    'in_number'      : InputTermColors.LightBlue,
-    'in_prompt2'     : InputTermColors.Blue,
-    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.Red,
-    'out_number'     : Colors.LightRed,
-
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    }  )
+    "Neutral",
+    {
+        "header": Colors.Red,
+        token.NUMBER: Colors.Cyan,
+        token.OP: Colors.Blue,
+        token.STRING: Colors.Blue,
+        tokenize.COMMENT: Colors.Red,
+        token.NAME: Colors.Normal,
+        token.ERRORTOKEN: Colors.Red,
+        _KEYWORD: Colors.Green,
+        _TEXT: Colors.Blue,
+        "in_prompt": InputTermColors.Blue,
+        "in_number": InputTermColors.LightBlue,
+        "in_prompt2": InputTermColors.Blue,
+        "in_normal": InputTermColors.Normal,  # color off (usu. Colors.Normal)
+        "out_prompt": Colors.Red,
+        "out_number": Colors.LightRed,
+        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
+    },
+)
 
 # Hack: the 'neutral' colours are not very visible on a dark background on
 # Windows. Since Windows command prompts have a dark background by default, and
@@ -139,46 +138,44 @@ NeutralColors = ColorScheme(
 # avoids affecting the prompt colours rendered by prompt_toolkit, where the
 # neutral defaults do work OK.
 
-if os.name == 'nt':
-    NeutralColors = LinuxColors.copy(name='Neutral')
+if os.name == "nt":
+    NeutralColors = LinuxColors.copy(name="Neutral")
 
 LightBGColors = ColorScheme(
-    'LightBG',{
-    'header'         : Colors.Red,
-    token.NUMBER     : Colors.Cyan,
-    token.OP         : Colors.Blue,
-    token.STRING     : Colors.Blue,
-    tokenize.COMMENT : Colors.Red,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
-
-
-    _KEYWORD         : Colors.Green,
-    _TEXT            : Colors.Blue,
-
-    'in_prompt'      : InputTermColors.Blue,
-    'in_number'      : InputTermColors.LightBlue,
-    'in_prompt2'     : InputTermColors.Blue,
-    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.Red,
-    'out_number'     : Colors.LightRed,
-
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    }  )
+    "LightBG",
+    {
+        "header": Colors.Red,
+        token.NUMBER: Colors.Cyan,
+        token.OP: Colors.Blue,
+        token.STRING: Colors.Blue,
+        tokenize.COMMENT: Colors.Red,
+        token.NAME: Colors.Normal,
+        token.ERRORTOKEN: Colors.Red,
+        _KEYWORD: Colors.Green,
+        _TEXT: Colors.Blue,
+        "in_prompt": InputTermColors.Blue,
+        "in_number": InputTermColors.LightBlue,
+        "in_prompt2": InputTermColors.Blue,
+        "in_normal": InputTermColors.Normal,  # color off (usu. Colors.Normal)
+        "out_prompt": Colors.Red,
+        "out_number": Colors.LightRed,
+        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
+    },
+)
 
 # Build table of color schemes (needed by the parser)
-ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors, NeutralColors],
-                                  _scheme_default)
+ANSICodeColors = ColorSchemeTable(
+    [NoColor, LinuxColors, LightBGColors, NeutralColors], _scheme_default
+)
 
 Undefined = object()
 
-class Parser(Colorable):
-    """ Format colored Python source.
-    """
 
-    def __init__(self, color_table=None, out = sys.stdout, parent=None, style=None):
-        """ Create a parser with a specified color table and output channel.
+class Parser(Colorable):
+    """Format colored Python source."""
+
+    def __init__(self, color_table=None, out=sys.stdout, parent=None, style=None):
+        """Create a parser with a specified color table and output channel.
 
         Call format() to process code.
         """
@@ -195,17 +192,19 @@ class Parser(Colorable):
         else:
             self.style = style
 
-
     def format(self, raw, out=None, scheme=Undefined):
         import warnings
+
         if scheme is not Undefined:
-            warnings.warn('The `scheme` argument of IPython.utils.PyColorize:Parser.format is deprecated since IPython 6.0.'
-                          'It will have no effect. Set the parser `style` directly.',
-                          stacklevel=2)
+            warnings.warn(
+                "The `scheme` argument of IPython.utils.PyColorize:Parser.format is deprecated since IPython 6.0."
+                "It will have no effect. Set the parser `style` directly.",
+                stacklevel=2,
+            )
         return self.format2(raw, out)[0]
 
-    def format2(self, raw, out = None):
-        """ Parse and send the colored source.
+    def format2(self, raw, out=None):
+        """Parse and send the colored source.
 
         If out and scheme are not specified, the defaults (given to
         constructor) are used.
@@ -215,8 +214,7 @@ class Parser(Colorable):
         string."""
 
         string_output = 0
-        if out == 'str' or self.out == 'str' or \
-           isinstance(self.out, StringIO):
+        if out == "str" or self.out == "str" or isinstance(self.out, StringIO):
             # XXX - I don't really like this state handling logic, but at this
             # point I don't want to make major changes, so adding the
             # isinstance() check is the simplest I can do to ensure correct
@@ -227,10 +225,12 @@ class Parser(Colorable):
         elif out is not None:
             self.out = out
         else:
-            raise ValueError('`out` or `self.out` should be file-like or the value `"str"`')
+            raise ValueError(
+                '`out` or `self.out` should be file-like or the value `"str"`'
+            )
 
         # Fast return of the unmodified input for NoColor scheme
-        if self.style == 'NoColor':
+        if self.style == "NoColor":
             error = False
             self.out.write(raw)
             if string_output:
@@ -239,7 +239,7 @@ class Parser(Colorable):
 
         # local shorthands
         colors = self.color_table[self.style].colors
-        self.colors = colors # put in object so __call__ sees it
+        self.colors = colors  # put in object so __call__ sees it
 
         # Remove trailing whitespace and normalize tabs
         self.raw = raw.expandtabs().rstrip()
@@ -250,7 +250,7 @@ class Parser(Colorable):
         raw_find = self.raw.find
         lines_append = self.lines.append
         while True:
-            pos = raw_find('\n', pos) + 1
+            pos = raw_find("\n", pos) + 1
             if not pos:
                 break
             lines_append(pos)
@@ -267,19 +267,22 @@ class Parser(Colorable):
         except tokenize.TokenError as ex:
             msg = ex.args[0]
             line = ex.args[1][0]
-            self.out.write("%s\n\n*** ERROR: %s%s%s\n" %
-                           (colors[token.ERRORTOKEN],
-                            msg, self.raw[self.lines[line]:],
-                            colors.normal)
-                           )
+            self.out.write(
+                "%s\n\n*** ERROR: %s%s%s\n"
+                % (
+                    colors[token.ERRORTOKEN],
+                    msg,
+                    self.raw[self.lines[line] :],
+                    colors.normal,
+                )
+            )
             error = True
-        self.out.write(colors.normal+'\n')
+        self.out.write(colors.normal + "\n")
         if string_output:
             output = self.out.getvalue()
             self.out = out_old
             return (output, error)
         return (None, error)
-
 
     def _inner_call_(self, toktype, toktext, start_pos):
         """like call but write to a temporary buffer"""
@@ -316,16 +319,15 @@ class Parser(Colorable):
         # Triple quoted strings must be handled carefully so that backtracking
         # in pagers works correctly. We need color terminators on _each_ line.
         if linesep in toktext:
-            toktext = toktext.replace(linesep, '%s%s%s' %
-                                      (colors.normal,linesep,color))
+            toktext = toktext.replace(
+                linesep, "%s%s%s" % (colors.normal, linesep, color)
+            )
 
         # send text
-        owrite('%s%s%s' % (color,toktext,colors.normal))
+        owrite("%s%s%s" % (color, toktext, colors.normal))
         buff.seek(0)
         return buff.read()
 
-
     def __call__(self, toktype, toktext, start_pos, end_pos, line):
-        """ Token handler, with syntax highlighting."""
-        self.out.write(
-            self._inner_call_(toktype, toktext, start_pos))
+        """Token handler, with syntax highlighting."""
+        self.out.write(self._inner_call_(toktype, toktext, start_pos))

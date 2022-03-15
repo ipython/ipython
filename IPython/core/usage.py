@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """Usage information for the main IPython applications.
 """
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #  Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import sys
 from IPython.core import release
@@ -257,7 +257,7 @@ MAIN FEATURES
           In [4]: x = ,my_function /home/me    # syntax error
 """
 
-interactive_usage_min =  """\
+interactive_usage_min = """\
 An enhanced console for Python.
 Some of its features are:
 - Tab completion in the local namespace.
@@ -333,9 +333,12 @@ The following magic functions are currently available:
 
 """
 
-default_banner_parts = ["Python %s\n"%sys.version.split("\n")[0],
-    "Type 'copyright', 'credits' or 'license' for more information\n" ,
-    "IPython {version} -- An enhanced Interactive Python. Type '?' for help.\n".format(version=release.version),
+default_banner_parts = [
+    "Python %s\n" % sys.version.split("\n")[0],
+    "Type 'copyright', 'credits' or 'license' for more information\n",
+    "IPython {version} -- An enhanced Interactive Python. Type '?' for help.\n".format(
+        version=release.version
+    ),
 ]
 
-default_banner = ''.join(default_banner_parts)
+default_banner = "".join(default_banner_parts)

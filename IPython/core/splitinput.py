@@ -9,16 +9,16 @@ Authors:
 * Fernando Perez
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import re
 import sys
@@ -26,9 +26,9 @@ import sys
 from IPython.utils import py3compat
 from IPython.utils.encoding import get_stream_enc
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Main function
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # RegExp for splitting line contents into pre-char//first word-method//rest.
 # For clarity, each group in on one line.
@@ -41,13 +41,16 @@ from IPython.utils.encoding import get_stream_enc
 # ! and !! trigger if they are first char(s) *or* follow an indent
 # ? triggers as first or last char.
 
-line_split = re.compile(r"""
+line_split = re.compile(
+    r"""
              ^(\s*)               # any leading space
              ([,;/%]|!!?|\?\??)?  # escape character or characters
              \s*(%{0,2}[\w\.\*]*)     # function/method, possibly with leading %
                                   # to correctly treat things like '?%magic'
              (.*?$|$)             # rest of line
-             """, re.VERBOSE)
+             """,
+    re.VERBOSE,
+)
 
 
 def split_user_input(line, pattern=None):
@@ -55,7 +58,7 @@ def split_user_input(line, pattern=None):
     and the rest.
     """
     # We need to ensure that the rest of this routine deals only with unicode
-    encoding = get_stream_enc(sys.stdin, 'utf-8')
+    encoding = get_stream_enc(sys.stdin, "utf-8")
     line = py3compat.cast_unicode(line, encoding)
 
     if pattern is None:
@@ -64,18 +67,18 @@ def split_user_input(line, pattern=None):
     if not match:
         # print "match failed for line '%s'" % line
         try:
-            ifun, the_rest = line.split(None,1)
+            ifun, the_rest = line.split(None, 1)
         except ValueError:
             # print "split failed for line '%s'" % line
-            ifun, the_rest = line, u''
-        pre = re.match(r'^(\s*)(.*)',line).groups()[0]
+            ifun, the_rest = line, u""
+        pre = re.match(r"^(\s*)(.*)", line).groups()[0]
         esc = ""
     else:
         pre, esc, ifun, the_rest = match.groups()
 
-    #print 'line:<%s>' % line # dbg
-    #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest) # dbg
-    return pre, esc or '', ifun.strip(), the_rest.lstrip()
+    # print 'line:<%s>' % line # dbg
+    # print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest) # dbg
+    return pre, esc or "", ifun.strip(), the_rest.lstrip()
 
 
 class LineInfo(object):
@@ -107,14 +110,15 @@ class LineInfo(object):
     the_rest
       Everything else on the line.
     """
+
     def __init__(self, line, continue_prompt=False):
-        self.line            = line
+        self.line = line
         self.continue_prompt = continue_prompt
         self.pre, self.esc, self.ifun, self.the_rest = split_user_input(line)
 
-        self.pre_char       = self.pre.strip()
+        self.pre_char = self.pre.strip()
         if self.pre_char:
-            self.pre_whitespace = '' # No whitespace allowed before esc chars
+            self.pre_whitespace = ""  # No whitespace allowed before esc chars
         else:
             self.pre_whitespace = self.pre
 
@@ -134,4 +138,4 @@ class LineInfo(object):
         return ip._ofind(self.ifun)
 
     def __str__(self):
-        return "LineInfo [%s|%s|%s|%s]" %(self.pre, self.esc, self.ifun, self.the_rest)
+        return "LineInfo [%s|%s|%s|%s]" % (self.pre, self.esc, self.ifun, self.the_rest)

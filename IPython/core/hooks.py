@@ -28,12 +28,12 @@ example, you could use a startup file like this::
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+# *****************************************************************************
 
 import os
 import subprocess
@@ -52,10 +52,12 @@ __all__ = [
     "clipboard_get",
 ]
 
-deprecated = {'pre_run_code_hook': "a callback for the 'pre_execute' or 'pre_run_cell' event",
-              'late_startup_hook': "a callback for the 'shell_initialized' event",
-              'shutdown_hook': "the atexit module",
-             }
+deprecated = {
+    "pre_run_code_hook": "a callback for the 'pre_execute' or 'pre_run_cell' event",
+    "late_startup_hook": "a callback for the 'shell_initialized' event",
+    "shutdown_hook": "the atexit module",
+}
+
 
 def editor(self, filename, linenum=None, wait=True):
     """Open the default editor at the given filename and linenumber.
@@ -69,49 +71,48 @@ def editor(self, filename, linenum=None, wait=True):
     editor = self.editor
 
     # marker for at which line to open the file (for existing objects)
-    if linenum is None or editor=='notepad':
-        linemark = ''
+    if linenum is None or editor == "notepad":
+        linemark = ""
     else:
-        linemark = '+%d' % int(linenum)
+        linemark = "+%d" % int(linenum)
 
     # Enclose in quotes if necessary and legal
-    if ' ' in editor and os.path.isfile(editor) and editor[0] != '"':
+    if " " in editor and os.path.isfile(editor) and editor[0] != '"':
         editor = '"%s"' % editor
 
     # Call the actual editor
-    proc = subprocess.Popen('%s %s %s' % (editor, linemark, filename),
-                            shell=True)
+    proc = subprocess.Popen("%s %s %s" % (editor, linemark, filename), shell=True)
     if wait and proc.wait() != 0:
         raise TryNext()
 
 
 def synchronize_with_editor(self, filename, linenum, column):
-        pass
+    pass
 
 
 class CommandChainDispatcher:
-    """ Dispatch calls to a chain of commands until some func can handle it
+    """Dispatch calls to a chain of commands until some func can handle it
 
     Usage: instantiate, execute "add" to add commands (with optional
     priority), execute normally via f() calling mechanism.
 
     """
-    def __init__(self,commands=None):
+
+    def __init__(self, commands=None):
         if commands is None:
             self.chain = []
         else:
             self.chain = commands
 
-
-    def __call__(self,*args, **kw):
-        """ Command chain is called just like normal func.
+    def __call__(self, *args, **kw):
+        """Command chain is called just like normal func.
 
         This will call all funcs in chain with the same args as were given to
         this function, and return the result of first func that didn't raise
         TryNext"""
         last_exc = TryNext()
-        for prio,cmd in self.chain:
-            #print "prio",prio,"cmd",cmd #dbg
+        for prio, cmd in self.chain:
+            # print "prio",prio,"cmd",cmd #dbg
             try:
                 return cmd(*args, **kw)
             except TryNext as exc:
@@ -123,12 +124,12 @@ class CommandChainDispatcher:
         return str(self.chain)
 
     def add(self, func, priority=0):
-        """ Add a func to the cmd chain with given priority """
+        """Add a func to the cmd chain with given priority"""
         self.chain.append((priority, func))
         self.chain.sort(key=lambda x: x[0])
 
     def __iter__(self):
-        """ Return all objects in chain.
+        """Return all objects in chain.
 
         Handy if the objects are not callable.
         """
@@ -136,13 +137,13 @@ class CommandChainDispatcher:
 
 
 def show_in_pager(self, data, start, screen_lines):
-    """ Run a string through pager """
+    """Run a string through pager"""
     # raising TryNext here will use the default paging functionality
     raise TryNext
 
 
 def pre_prompt_hook(self):
-    """ Run before displaying the next prompt
+    """Run before displaying the next prompt
 
     Use this e.g. to display output from asynchronous operations (in order
     to not mess up text entry)
@@ -152,15 +153,16 @@ def pre_prompt_hook(self):
 
 
 def clipboard_get(self):
-    """ Get text from the clipboard.
-    """
+    """Get text from the clipboard."""
     from ..lib.clipboard import (
-        osx_clipboard_get, tkinter_clipboard_get,
-        win32_clipboard_get
+        osx_clipboard_get,
+        tkinter_clipboard_get,
+        win32_clipboard_get,
     )
-    if sys.platform == 'win32':
+
+    if sys.platform == "win32":
         chain = [win32_clipboard_get, tkinter_clipboard_get]
-    elif sys.platform == 'darwin':
+    elif sys.platform == "darwin":
         chain = [osx_clipboard_get, tkinter_clipboard_get]
     else:
         chain = [tkinter_clipboard_get]

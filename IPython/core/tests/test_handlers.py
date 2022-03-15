@@ -1,29 +1,33 @@
 """Tests for input handlers.
 """
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Module imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # our own packages
 from IPython.core import autocall
 from IPython.testing import tools as tt
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Globals
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Get the public instance of IPython
 
 failures = []
 num_tests = 0
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Test functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class CallableIndexable(object):
-    def __getitem__(self, idx): return True
-    def __call__(self, *args, **kws): return True
+    def __getitem__(self, idx):
+        return True
+
+    def __call__(self, *args, **kws):
+        return True
 
 
 class Autocallable(autocall.IPyAutocall):
@@ -40,20 +44,22 @@ def run(tests):
 
 def test_handlers():
     call_idx = CallableIndexable()
-    ip.user_ns['call_idx'] = call_idx
+    ip.user_ns["call_idx"] = call_idx
 
     # For many of the below, we're also checking that leading whitespace
     # turns off the esc char, which it should unless there is a continuation
     # line.
     run(
-        [('"no change"', '"no change"'),             # normal
-         (u"lsmagic",     "get_ipython().run_line_magic('lsmagic', '')"),   # magic
-         #("a = b # PYTHON-MODE", '_i'),          # emacs -- avoids _in cache
-         ])
+        [
+            ('"no change"', '"no change"'),  # normal
+            (u"lsmagic", "get_ipython().run_line_magic('lsmagic', '')"),  # magic
+            # ("a = b # PYTHON-MODE", '_i'),          # emacs -- avoids _in cache
+        ]
+    )
 
     # Objects which are instances of IPyAutocall are *always* autocalled
     autocallable = Autocallable()
-    ip.user_ns['autocallable'] = autocallable
+    ip.user_ns["autocallable"] = autocallable
 
     # auto
     ip.run_line_magic("autocall", "0")

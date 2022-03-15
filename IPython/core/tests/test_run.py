@@ -15,7 +15,6 @@ as otherwise it may influence later tests.
 # Distributed under the terms of the Modified BSD License.
 
 
-
 import functools
 import os
 import platform
@@ -167,11 +166,12 @@ def doctest_reset_del():
     Out[5]: 2
     """
 
+
 # For some tests, it will be handy to organize them in a class with a common
 # setup that makes a temp file
 
-class TestMagicRunPass(tt.TempFileMixin):
 
+class TestMagicRunPass(tt.TempFileMixin):
     def setUp(self):
         content = "a = [1,2,3]\nb = 1"
         self.mktmp(content)
@@ -180,21 +180,21 @@ class TestMagicRunPass(tt.TempFileMixin):
         _ip = get_ipython()
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.magic('run %s' % self.fname)
+        _ip.magic("run %s" % self.fname)
 
     def run_tmpfile_p(self):
         _ip = get_ipython()
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.magic('run -p %s' % self.fname)
+        _ip.magic("run -p %s" % self.fname)
 
     def test_builtins_id(self):
-        """Check that %run doesn't damage __builtins__ """
+        """Check that %run doesn't damage __builtins__"""
         _ip = get_ipython()
         # Test that the id of __builtins__ is not modified by %run
-        bid1 = id(_ip.user_ns['__builtins__'])
+        bid1 = id(_ip.user_ns["__builtins__"])
         self.run_tmpfile()
-        bid2 = id(_ip.user_ns['__builtins__'])
+        bid2 = id(_ip.user_ns["__builtins__"])
         assert bid1 == bid2
 
     def test_builtins_type(self):
@@ -216,28 +216,26 @@ class TestMagicRunPass(tt.TempFileMixin):
     def test_run_debug_twice(self):
         # https://github.com/ipython/ipython/issues/10028
         _ip = get_ipython()
-        with tt.fake_input(['c']):
-            _ip.magic('run -d %s' % self.fname)
-        with tt.fake_input(['c']):
-            _ip.magic('run -d %s' % self.fname)
+        with tt.fake_input(["c"]):
+            _ip.magic("run -d %s" % self.fname)
+        with tt.fake_input(["c"]):
+            _ip.magic("run -d %s" % self.fname)
 
     def test_run_debug_twice_with_breakpoint(self):
         """Make a valid python temp file."""
         _ip = get_ipython()
-        with tt.fake_input(['b 2', 'c', 'c']):
-            _ip.magic('run -d %s' % self.fname)
+        with tt.fake_input(["b 2", "c", "c"]):
+            _ip.magic("run -d %s" % self.fname)
 
-        with tt.fake_input(['c']):
-            with tt.AssertNotPrints('KeyError'):
-                _ip.magic('run -d %s' % self.fname)
+        with tt.fake_input(["c"]):
+            with tt.AssertNotPrints("KeyError"):
+                _ip.magic("run -d %s" % self.fname)
 
 
 class TestMagicRunSimple(tt.TempFileMixin):
-
     def test_simpledef(self):
         """Test that simple class definitions work."""
-        src = ("class foo: pass\n"
-               "def f(): return foo()")
+        src = "class foo: pass\n" "def f(): return foo()"
         self.mktmp(src)
         _ip.magic("run %s" % self.fname)
         _ip.run_cell("t = isinstance(f(), foo)")
@@ -249,13 +247,15 @@ class TestMagicRunSimple(tt.TempFileMixin):
     )
     def test_obj_del(self):
         """Test that object's __del__ methods are called on exit."""
-        src = ("class A(object):\n"
-               "    def __del__(self):\n"
-               "        print('object A deleted')\n"
-               "a = A()\n")
+        src = (
+            "class A(object):\n"
+            "    def __del__(self):\n"
+            "        print('object A deleted')\n"
+            "a = A()\n"
+        )
         self.mktmp(src)
         err = None
-        tt.ipexec_validate(self.fname, 'object A deleted', err)
+        tt.ipexec_validate(self.fname, "object A deleted", err)
 
     def test_aggressive_namespace_cleanup(self):
         """Test that namespace cleanup is not too aggressive GH-238
@@ -326,19 +326,19 @@ tclass.py: deleting object: C-third
             _ip.magic("run -i %s" % self.fname)
             assert _ip.user_ns["yy"] == 23
         finally:
-            _ip.magic('reset -f')
+            _ip.magic("reset -f")
 
         _ip.run_cell("zz = 23")
         try:
             _ip.magic("run -i %s" % self.fname)
             assert _ip.user_ns["yy"] == 23
         finally:
-            _ip.magic('reset -f')
+            _ip.magic("reset -f")
 
     def test_unicode(self):
         """Check that files in odd encodings are accepted."""
         mydir = os.path.dirname(__file__)
-        na = os.path.join(mydir, 'nonascii.py')
+        na = os.path.join(mydir, "nonascii.py")
         _ip.magic('run "%s"' % na)
         assert _ip.user_ns["u"] == "Ўт№Ф"
 
@@ -347,9 +347,9 @@ tclass.py: deleting object: C-third
         src = "t = __file__\n"
         self.mktmp(src)
         _missing = object()
-        file1 = _ip.user_ns.get('__file__', _missing)
-        _ip.magic('run %s' % self.fname)
-        file2 = _ip.user_ns.get('__file__', _missing)
+        file1 = _ip.user_ns.get("__file__", _missing)
+        _ip.magic("run %s" % self.fname)
+        file2 = _ip.user_ns.get("__file__", _missing)
 
         # Check that __file__ was equal to the filename in the script's
         # namespace.
@@ -361,11 +361,11 @@ tclass.py: deleting object: C-third
     def test_run_ipy_file_attribute(self):
         """Test handling of `__file__` attribute in `%run <file.ipy>`."""
         src = "t = __file__\n"
-        self.mktmp(src, ext='.ipy')
+        self.mktmp(src, ext=".ipy")
         _missing = object()
-        file1 = _ip.user_ns.get('__file__', _missing)
-        _ip.magic('run %s' % self.fname)
-        file2 = _ip.user_ns.get('__file__', _missing)
+        file1 = _ip.user_ns.get("__file__", _missing)
+        _ip.magic("run %s" % self.fname)
+        file2 = _ip.user_ns.get("__file__", _missing)
 
         # Check that __file__ was equal to the filename in the script's
         # namespace.
@@ -375,34 +375,35 @@ tclass.py: deleting object: C-third
         assert file1 == file2
 
     def test_run_formatting(self):
-        """ Test that %run -t -N<N> does not raise a TypeError for N > 1."""
+        """Test that %run -t -N<N> does not raise a TypeError for N > 1."""
         src = "pass"
         self.mktmp(src)
-        _ip.magic('run -t -N 1 %s' % self.fname)
-        _ip.magic('run -t -N 10 %s' % self.fname)
+        _ip.magic("run -t -N 1 %s" % self.fname)
+        _ip.magic("run -t -N 10 %s" % self.fname)
 
     def test_ignore_sys_exit(self):
         """Test the -e option to ignore sys.exit()"""
         src = "import sys; sys.exit(1)"
         self.mktmp(src)
-        with tt.AssertPrints('SystemExit'):
-            _ip.magic('run %s' % self.fname)
+        with tt.AssertPrints("SystemExit"):
+            _ip.magic("run %s" % self.fname)
 
-        with tt.AssertNotPrints('SystemExit'):
-            _ip.magic('run -e %s' % self.fname)
+        with tt.AssertNotPrints("SystemExit"):
+            _ip.magic("run -e %s" % self.fname)
 
     def test_run_nb(self):
         """Test %run notebook.ipynb"""
         pytest.importorskip("nbformat")
         from nbformat import v4, writes
+
         nb = v4.new_notebook(
-           cells=[
+            cells=[
                 v4.new_markdown_cell("The Ultimate Question of Everything"),
-                v4.new_code_cell("answer=42")
+                v4.new_code_cell("answer=42"),
             ]
         )
         src = writes(nb, version=4)
-        self.mktmp(src, ext='.ipynb')
+        self.mktmp(src, ext=".ipynb")
 
         _ip.magic("run %s" % self.fname)
 
@@ -420,18 +421,13 @@ tclass.py: deleting object: C-third
         pytest.raises(Exception, _ip.magic, "run foobar.ipynb")
 
         # %run on a notebook with an error
-        nb = v4.new_notebook(
-           cells=[
-                v4.new_code_cell("0/0")
-            ]
-        )
+        nb = v4.new_notebook(cells=[v4.new_code_cell("0/0")])
         src = writes(nb, version=4)
-        self.mktmp(src, ext='.ipynb')
+        self.mktmp(src, ext=".ipynb")
         pytest.raises(Exception, _ip.magic, "run %s" % self.fname)
 
     def test_file_options(self):
-        src = ('import sys\n'
-               'a = " ".join(sys.argv[1:])\n')
+        src = "import sys\n" 'a = " ".join(sys.argv[1:])\n'
         self.mktmp(src)
         test_opts = "-x 3 --verbose"
         _ip.run_line_magic("run", "{0} {1}".format(self.fname, test_opts))
@@ -439,7 +435,6 @@ tclass.py: deleting object: C-third
 
 
 class TestMagicRunWithPackage(unittest.TestCase):
-
     def writefile(self, name, content):
         path = os.path.join(self.tempdir.name, name)
         d = os.path.dirname(path)
@@ -449,7 +444,9 @@ class TestMagicRunWithPackage(unittest.TestCase):
             f.write(textwrap.dedent(content))
 
     def setUp(self):
-        self.package = package = 'tmp{0}'.format(''.join([random.choice(string.ascii_letters) for i in range(10)]))
+        self.package = package = "tmp{0}".format(
+            "".join([random.choice(string.ascii_letters) for i in range(10)])
+        )
         """Temporary  (probably) valid python package name."""
 
         self.value = int(random.random() * 10000)
@@ -458,60 +455,81 @@ class TestMagicRunWithPackage(unittest.TestCase):
         self.__orig_cwd = os.getcwd()
         sys.path.insert(0, self.tempdir.name)
 
-        self.writefile(os.path.join(package, '__init__.py'), '')
-        self.writefile(os.path.join(package, 'sub.py'), """
+        self.writefile(os.path.join(package, "__init__.py"), "")
+        self.writefile(
+            os.path.join(package, "sub.py"),
+            """
         x = {0!r}
-        """.format(self.value))
-        self.writefile(os.path.join(package, 'relative.py'), """
+        """.format(
+                self.value
+            ),
+        )
+        self.writefile(
+            os.path.join(package, "relative.py"),
+            """
         from .sub import x
-        """)
-        self.writefile(os.path.join(package, 'absolute.py'), """
+        """,
+        )
+        self.writefile(
+            os.path.join(package, "absolute.py"),
+            """
         from {0}.sub import x
-        """.format(package))
-        self.writefile(os.path.join(package, 'args.py'), """
+        """.format(
+                package
+            ),
+        )
+        self.writefile(
+            os.path.join(package, "args.py"),
+            """
         import sys
         a = " ".join(sys.argv[1:])
-        """.format(package))
+        """.format(
+                package
+            ),
+        )
 
     def tearDown(self):
         os.chdir(self.__orig_cwd)
         sys.path[:] = [p for p in sys.path if p != self.tempdir.name]
         self.tempdir.cleanup()
 
-    def check_run_submodule(self, submodule, opts=''):
-        _ip.user_ns.pop('x', None)
-        _ip.magic('run {2} -m {0}.{1}'.format(self.package, submodule, opts))
-        self.assertEqual(_ip.user_ns['x'], self.value,
-                         'Variable `x` is not loaded from module `{0}`.'
-                         .format(submodule))
+    def check_run_submodule(self, submodule, opts=""):
+        _ip.user_ns.pop("x", None)
+        _ip.magic("run {2} -m {0}.{1}".format(self.package, submodule, opts))
+        self.assertEqual(
+            _ip.user_ns["x"],
+            self.value,
+            "Variable `x` is not loaded from module `{0}`.".format(submodule),
+        )
 
     def test_run_submodule_with_absolute_import(self):
-        self.check_run_submodule('absolute')
+        self.check_run_submodule("absolute")
 
     def test_run_submodule_with_relative_import(self):
         """Run submodule that has a relative import statement (#2727)."""
-        self.check_run_submodule('relative')
+        self.check_run_submodule("relative")
 
     def test_prun_submodule_with_absolute_import(self):
-        self.check_run_submodule('absolute', '-p')
+        self.check_run_submodule("absolute", "-p")
 
     def test_prun_submodule_with_relative_import(self):
-        self.check_run_submodule('relative', '-p')
+        self.check_run_submodule("relative", "-p")
 
     def with_fake_debugger(func):
         @functools.wraps(func)
         def wrapper(*args, **kwds):
-            with patch.object(debugger.Pdb, 'run', staticmethod(eval)):
+            with patch.object(debugger.Pdb, "run", staticmethod(eval)):
                 return func(*args, **kwds)
+
         return wrapper
 
     @with_fake_debugger
     def test_debug_run_submodule_with_absolute_import(self):
-        self.check_run_submodule('absolute', '-d')
+        self.check_run_submodule("absolute", "-d")
 
     @with_fake_debugger
     def test_debug_run_submodule_with_relative_import(self):
-        self.check_run_submodule('relative', '-d')
+        self.check_run_submodule("relative", "-d")
 
     def test_module_options(self):
         _ip.user_ns.pop("a", None)
@@ -543,7 +561,7 @@ def test_run__name__():
             _ip.magic("run -i -n {}".format(path))
             assert _ip.user_ns.pop("q") == "foo"
         finally:
-            _ip.magic('reset -f')
+            _ip.magic("reset -f")
 
 
 def test_run_tb():
@@ -563,13 +581,13 @@ def test_run_tb():
                 )
             )
         with capture_output() as io:
-            _ip.magic('run {}'.format(path))
+            _ip.magic("run {}".format(path))
         out = io.stdout
         assert "execfile" not in out
         assert "RuntimeError" in out
         assert out.count("---->") == 3
-        del ip.user_ns['bar']
-        del ip.user_ns['foo']
+        del ip.user_ns["bar"]
+        del ip.user_ns["foo"]
 
 
 def test_multiprocessing_run():
@@ -580,14 +598,14 @@ def test_multiprocessing_run():
     the issue.
     """
     with TemporaryDirectory() as td:
-        mpm = sys.modules.get('__mp_main__')
-        sys.modules['__mp_main__'] = None
+        mpm = sys.modules.get("__mp_main__")
+        sys.modules["__mp_main__"] = None
         try:
             path = pjoin(td, "test.py")
             with open(path, "w", encoding="utf-8") as f:
                 f.write("import multiprocessing\nprint('hoy')")
             with capture_output() as io:
-                _ip.run_line_magic('run', path)
+                _ip.run_line_magic("run", path)
                 _ip.run_cell("i_m_undefined")
             out = io.stdout
             assert "hoy" in out
@@ -597,7 +615,7 @@ def test_multiprocessing_run():
         except:
             raise
         finally:
-            sys.modules['__mp_main__'] = mpm
+            sys.modules["__mp_main__"] = mpm
 
 
 def test_script_tb():

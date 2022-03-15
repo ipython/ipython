@@ -8,9 +8,9 @@
 import sys
 from io import StringIO
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Classes and functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class RichOutput(object):
@@ -22,8 +22,13 @@ class RichOutput(object):
 
     def display(self):
         from IPython.display import publish_display_data
-        publish_display_data(data=self.data, metadata=self.metadata,
-                             transient=self.transient, update=self.update)
+
+        publish_display_data(
+            data=self.data,
+            metadata=self.metadata,
+            transient=self.transient,
+            update=self.update,
+        )
 
     def _repr_mime_(self, mime):
         if mime not in self.data:
@@ -86,14 +91,14 @@ class CapturedIO(object):
     def stdout(self):
         "Captured standard output"
         if not self._stdout:
-            return ''
+            return ""
         return self._stdout.getvalue()
 
     @property
     def stderr(self):
         "Captured standard error"
         if not self._stderr:
-            return ''
+            return ""
         return self._stderr.getvalue()
 
     @property
@@ -107,7 +112,7 @@ class CapturedIO(object):
             for o in c.outputs:
                 display(o)
         """
-        return [ RichOutput(**kargs) for kargs in self._outputs ]
+        return [RichOutput(**kargs) for kargs in self._outputs]
 
     def show(self):
         """write my output to sys.stdout/err as appropriate"""
@@ -123,6 +128,7 @@ class CapturedIO(object):
 
 class capture_output(object):
     """context manager for capturing stdout/err"""
+
     stdout = True
     stderr = True
     display = True
@@ -157,8 +163,7 @@ class capture_output(object):
             self.shell.display_pub = CapturingDisplayPublisher()
             outputs = self.shell.display_pub.outputs
             self.save_display_hook = sys.displayhook
-            sys.displayhook = CapturingDisplayHook(shell=self.shell,
-                                                   outputs=outputs)
+            sys.displayhook = CapturingDisplayHook(shell=self.shell, outputs=outputs)
 
         return CapturedIO(stdout, stderr, outputs)
 

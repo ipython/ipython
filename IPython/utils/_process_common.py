@@ -4,16 +4,16 @@ This file is only meant to be imported by the platform-specific implementations
 of subprocess utilities, and it contains tools that are common to all of them.
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import subprocess
 import shlex
 import sys
@@ -21,9 +21,10 @@ import os
 
 from IPython.utils import py3compat
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Function definitions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def read_no_interrupt(p):
     """Read from a pipe ignoring EINTR errors.
@@ -67,24 +68,27 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
     sys.stdout.flush()
     sys.stderr.flush()
     # On win32, close_fds can't be true when using pipes for stdin/out/err
-    close_fds = sys.platform != 'win32'
+    close_fds = sys.platform != "win32"
     # Determine if cmd should be run with system shell.
     shell = isinstance(cmd, str)
     # On POSIX systems run shell commands with user-preferred shell.
     executable = None
-    if shell and os.name == 'posix' and 'SHELL' in os.environ:
-        executable = os.environ['SHELL']
-    p = subprocess.Popen(cmd, shell=shell,
-                         executable=executable,
-                         stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE,
-                         stderr=stderr,
-                         close_fds=close_fds)
+    if shell and os.name == "posix" and "SHELL" in os.environ:
+        executable = os.environ["SHELL"]
+    p = subprocess.Popen(
+        cmd,
+        shell=shell,
+        executable=executable,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=stderr,
+        close_fds=close_fds,
+    )
 
     try:
         out = callback(p)
     except KeyboardInterrupt:
-        print('^C')
+        print("^C")
         sys.stdout.flush()
         sys.stderr.flush()
         out = None
@@ -127,7 +131,7 @@ def getoutput(cmd):
     """
     out = process_handler(cmd, lambda p: p.communicate()[0], subprocess.STDOUT)
     if out is None:
-        return ''
+        return ""
     return py3compat.decode(out)
 
 
@@ -147,6 +151,7 @@ def getoutputerror(cmd):
     stderr : str
     """
     return get_output_error_code(cmd)[:2]
+
 
 def get_output_error_code(cmd):
     """Return (standard output, standard error, return code) of executing cmd
@@ -168,9 +173,10 @@ def get_output_error_code(cmd):
 
     out_err, p = process_handler(cmd, lambda p: (p.communicate(), p))
     if out_err is None:
-        return '', '', p.returncode
+        return "", "", p.returncode
     out, err = out_err
     return py3compat.decode(out), py3compat.decode(err), p.returncode
+
 
 def arg_split(s, posix=False, strict=True):
     """Split a command line's arguments in a shell-like manner.
@@ -193,7 +199,7 @@ def arg_split(s, posix=False, strict=True):
     # and it shouldn't raise an exception.
     # It may be a bad idea to parse things that are not command-line args
     # through this function, but we do, so let's be safe about it.
-    lex.commenters='' #fix for GH-1269
+    lex.commenters = ""  # fix for GH-1269
     tokens = []
     while True:
         try:

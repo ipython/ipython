@@ -5,16 +5,16 @@ Authors
 -------
 * Bradley Froehle
 """
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2012  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import unittest
 
 from IPython.testing import decorators as dec
@@ -35,7 +35,7 @@ class TestFileToRun(tt.TempFileMixin, unittest.TestCase):
     def test_ipy_script_file_attribute(self):
         """Test that `__file__` is set when running `ipython file.ipy`"""
         src = "print(__file__)\n"
-        self.mktmp(src, ext='.ipy')
+        self.mktmp(src, ext=".ipy")
 
         err = None
         tt.ipexec_validate(self.fname, self.fname, err)

@@ -22,36 +22,61 @@ This includes:
         to Pygments.
 
 """
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Standard library
 import re
 
 # Third party
 from pygments.lexers import (
-    BashLexer, HtmlLexer, JavascriptLexer, RubyLexer, PerlLexer, PythonLexer,
-    Python3Lexer, TexLexer)
+    BashLexer,
+    HtmlLexer,
+    JavascriptLexer,
+    RubyLexer,
+    PerlLexer,
+    PythonLexer,
+    Python3Lexer,
+    TexLexer,
+)
 from pygments.lexer import (
-    Lexer, DelegatingLexer, RegexLexer, do_insertions, bygroups, using,
+    Lexer,
+    DelegatingLexer,
+    RegexLexer,
+    do_insertions,
+    bygroups,
+    using,
 )
 from pygments.token import (
-    Generic, Keyword, Literal, Name, Operator, Other, Text, Error,
+    Generic,
+    Keyword,
+    Literal,
+    Name,
+    Operator,
+    Other,
+    Text,
+    Error,
 )
 from pygments.util import get_bool_opt
 
 # Local
 
-line_re = re.compile('.*?\n')
+line_re = re.compile(".*?\n")
 
-__all__ = ['build_ipy_lexer', 'IPython3Lexer', 'IPythonLexer',
-           'IPythonPartialTracebackLexer', 'IPythonTracebackLexer',
-           'IPythonConsoleLexer', 'IPyLexer']
+__all__ = [
+    "build_ipy_lexer",
+    "IPython3Lexer",
+    "IPythonLexer",
+    "IPythonPartialTracebackLexer",
+    "IPythonTracebackLexer",
+    "IPythonConsoleLexer",
+    "IPyLexer",
+]
 
 
 def build_ipy_lexer(python3):
@@ -72,51 +97,112 @@ def build_ipy_lexer(python3):
     # we will also have two IPython lexer classes.
     if python3:
         PyLexer = Python3Lexer
-        name = 'IPython3'
-        aliases = ['ipython3']
+        name = "IPython3"
+        aliases = ["ipython3"]
         doc = """IPython3 Lexer"""
     else:
         PyLexer = PythonLexer
-        name = 'IPython'
-        aliases = ['ipython2', 'ipython']
+        name = "IPython"
+        aliases = ["ipython2", "ipython"]
         doc = """IPython Lexer"""
 
     ipython_tokens = [
-       (r'(?s)(\s*)(%%capture)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%debug)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?is)(\s*)(%%html)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(HtmlLexer))),
-        (r'(?s)(\s*)(%%javascript)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(JavascriptLexer))),
-        (r'(?s)(\s*)(%%js)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(JavascriptLexer))),
-        (r'(?s)(\s*)(%%latex)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(TexLexer))),
-        (r'(?s)(\s*)(%%perl)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PerlLexer))),
-        (r'(?s)(\s*)(%%prun)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%pypy)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%python)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%python2)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PythonLexer))),
-        (r'(?s)(\s*)(%%python3)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(Python3Lexer))),
-        (r'(?s)(\s*)(%%ruby)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(RubyLexer))),
-        (r'(?s)(\s*)(%%time)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%timeit)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%writefile)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%file)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
+        (
+            r"(?s)(\s*)(%%capture)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PyLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%debug)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PyLexer)),
+        ),
+        (
+            r"(?is)(\s*)(%%html)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(HtmlLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%javascript)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(JavascriptLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%js)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(JavascriptLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%latex)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(TexLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%perl)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PerlLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%prun)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PyLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%pypy)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PyLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%python)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PyLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%python2)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PythonLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%python3)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(Python3Lexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%ruby)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(RubyLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%time)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PyLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%timeit)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PyLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%writefile)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PyLexer)),
+        ),
+        (
+            r"(?s)(\s*)(%%file)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(PyLexer)),
+        ),
         (r"(?s)(\s*)(%%)(\w+)(.*)", bygroups(Text, Operator, Keyword, Text)),
-        (r'(?s)(^\s*)(%%!)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(BashLexer))),
-        (r"(%%?)(\w+)(\?\??)$",  bygroups(Operator, Keyword, Operator)),
-        (r"\b(\?\??)(\s*)$",  bygroups(Operator, Text)),
-        (r'(%)(sx|sc|system)(.*)(\n)', bygroups(Operator, Keyword,
-                                                using(BashLexer), Text)),
-        (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)),
-        (r'^(!!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
-        (r'(!)(?!=)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
-        (r'^(\s*)(\?\??)(\s*%{0,2}[\w\.\*]*)', bygroups(Text, Operator, Text)),
-        (r'(\s*%{0,2}[\w\.\*]*)(\?\??)(\s*)$', bygroups(Text, Operator, Text)),
+        (
+            r"(?s)(^\s*)(%%!)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(BashLexer)),
+        ),
+        (r"(%%?)(\w+)(\?\??)$", bygroups(Operator, Keyword, Operator)),
+        (r"\b(\?\??)(\s*)$", bygroups(Operator, Text)),
+        (
+            r"(%)(sx|sc|system)(.*)(\n)",
+            bygroups(Operator, Keyword, using(BashLexer), Text),
+        ),
+        (r"(%)(\w+)(.*\n)", bygroups(Operator, Keyword, Text)),
+        (r"^(!!)(.+)(\n)", bygroups(Operator, using(BashLexer), Text)),
+        (r"(!)(?!=)(.+)(\n)", bygroups(Operator, using(BashLexer), Text)),
+        (r"^(\s*)(\?\??)(\s*%{0,2}[\w\.\*]*)", bygroups(Text, Operator, Text)),
+        (r"(\s*%{0,2}[\w\.\*]*)(\?\??)(\s*)$", bygroups(Text, Operator, Text)),
     ]
 
     tokens = PyLexer.tokens.copy()
-    tokens['root'] = ipython_tokens + tokens['root']
+    tokens["root"] = ipython_tokens + tokens["root"]
 
-    attrs = {'name': name, 'aliases': aliases, 'filenames': [],
-             '__doc__': doc, 'tokens': tokens}
+    attrs = {
+        "name": name,
+        "aliases": aliases,
+        "filenames": [],
+        "__doc__": doc,
+        "tokens": tokens,
+    }
 
     return type(name, (PyLexer,), attrs)
 
@@ -132,10 +218,11 @@ class IPythonPartialTracebackLexer(RegexLexer):
     Handles all the non-python output.
 
     """
-    name = 'IPython Partial Traceback'
+
+    name = "IPython Partial Traceback"
 
     tokens = {
-        'root': [
+        "root": [
             # Tracebacks for syntax errors have a different style.
             # For both types of tracebacks, we mark the first line with
             # Generic.Traceback.  For syntax errors, we mark the filename
@@ -145,31 +232,43 @@ class IPythonPartialTracebackLexer(RegexLexer):
             # traceback.
             #
             ## Non-syntax traceback
-            (r'^(\^C)?(-+\n)', bygroups(Error, Generic.Traceback)),
+            (r"^(\^C)?(-+\n)", bygroups(Error, Generic.Traceback)),
             ## Syntax traceback
-            (r'^(  File)(.*)(, line )(\d+\n)',
-             bygroups(Generic.Traceback, Name.Namespace,
-                      Generic.Traceback, Literal.Number.Integer)),
-
+            (
+                r"^(  File)(.*)(, line )(\d+\n)",
+                bygroups(
+                    Generic.Traceback,
+                    Name.Namespace,
+                    Generic.Traceback,
+                    Literal.Number.Integer,
+                ),
+            ),
             # (Exception Identifier)(Whitespace)(Traceback Message)
-            (r'(?u)(^[^\d\W]\w*)(\s*)(Traceback.*?\n)',
-             bygroups(Name.Exception, Generic.Whitespace, Text)),
+            (
+                r"(?u)(^[^\d\W]\w*)(\s*)(Traceback.*?\n)",
+                bygroups(Name.Exception, Generic.Whitespace, Text),
+            ),
             # (Module/Filename)(Text)(Callee)(Function Signature)
             # Better options for callee and function signature?
-            (r'(.*)( in )(.*)(\(.*\)\n)',
-             bygroups(Name.Namespace, Text, Name.Entity, Name.Tag)),
+            (
+                r"(.*)( in )(.*)(\(.*\)\n)",
+                bygroups(Name.Namespace, Text, Name.Entity, Name.Tag),
+            ),
             # Regular line: (Whitespace)(Line Number)(Python Code)
-            (r'(\s*?)(\d+)(.*?\n)',
-             bygroups(Generic.Whitespace, Literal.Number.Integer, Other)),
+            (
+                r"(\s*?)(\d+)(.*?\n)",
+                bygroups(Generic.Whitespace, Literal.Number.Integer, Other),
+            ),
             # Emphasized line: (Arrow)(Line Number)(Python Code)
             # Using Exception token so arrow color matches the Exception.
-            (r'(-*>?\s?)(\d+)(.*?\n)',
-             bygroups(Name.Exception, Literal.Number.Integer, Other)),
+            (
+                r"(-*>?\s?)(\d+)(.*?\n)",
+                bygroups(Name.Exception, Literal.Number.Integer, Other),
+            ),
             # (Exception Identifier)(Message)
-            (r'(?u)(^[^\d\W]\w*)(:.*?\n)',
-             bygroups(Name.Exception, Text)),
+            (r"(?u)(^[^\d\W]\w*)(:.*?\n)", bygroups(Name.Exception, Text)),
             # Tag everything else as Other, will be handled later.
-            (r'.*\n', Other),
+            (r".*\n", Other),
         ],
     }
 
@@ -184,29 +283,32 @@ class IPythonTracebackLexer(DelegatingLexer):
     this is the line which lists the File and line number.
 
     """
+
     # The lexer inherits from DelegatingLexer.  The "root" lexer is an
     # appropriate IPython lexer, which depends on the value of the boolean
     # `python3`.  First, we parse with the partial IPython traceback lexer.
     # Then, any code marked with the "Other" token is delegated to the root
     # lexer.
     #
-    name = 'IPython Traceback'
-    aliases = ['ipythontb']
+    name = "IPython Traceback"
+    aliases = ["ipythontb"]
 
     def __init__(self, **options):
-        self.python3 = get_bool_opt(options, 'python3', False)
+        self.python3 = get_bool_opt(options, "python3", False)
         if self.python3:
-            self.aliases = ['ipython3tb']
+            self.aliases = ["ipython3tb"]
         else:
-            self.aliases = ['ipython2tb', 'ipythontb']
+            self.aliases = ["ipython2tb", "ipythontb"]
 
         if self.python3:
             IPyLexer = IPython3Lexer
         else:
             IPyLexer = IPythonLexer
 
-        DelegatingLexer.__init__(self, IPyLexer,
-                                 IPythonPartialTracebackLexer, **options)
+        DelegatingLexer.__init__(
+            self, IPyLexer, IPythonPartialTracebackLexer, **options
+        )
+
 
 class IPythonConsoleLexer(Lexer):
     """
@@ -237,9 +339,10 @@ class IPythonConsoleLexer(Lexer):
             Exception
 
     """
-    name = 'IPython console session'
-    aliases = ['ipythonconsole']
-    mimetypes = ['text/x-ipython-console']
+
+    name = "IPython console session"
+    aliases = ["ipythonconsole"]
+    mimetypes = ["text/x-ipython-console"]
 
     # The regexps used to determine what is input and what is output.
     # The default prompts for IPython are:
@@ -248,15 +351,15 @@ class IPythonConsoleLexer(Lexer):
     #    continuation = '   .D.: '
     #    template     = 'Out[#]: '
     #
-    # Where '#' is the 'prompt number' or 'execution count' and 'D' 
-    # D is a number of dots  matching the width of the execution count 
+    # Where '#' is the 'prompt number' or 'execution count' and 'D'
+    # D is a number of dots  matching the width of the execution count
     #
-    in1_regex = r'In \[[0-9]+\]: '
-    in2_regex = r'   \.\.+\.: '
-    out_regex = r'Out\[[0-9]+\]: '
+    in1_regex = r"In \[[0-9]+\]: "
+    in2_regex = r"   \.\.+\.: "
+    out_regex = r"Out\[[0-9]+\]: "
 
     #: The regex to determine when a traceback starts.
-    ipytb_start = re.compile(r'^(\^C)?(-+\n)|^(  File)(.*)(, line )(\d+\n)')
+    ipytb_start = re.compile(r"^(\^C)?(-+\n)|^(  File)(.*)(, line )(\d+\n)")
 
     def __init__(self, **options):
         """Initialize the IPython console lexer.
@@ -281,15 +384,15 @@ class IPythonConsoleLexer(Lexer):
             then the default output prompt is assumed.
 
         """
-        self.python3 = get_bool_opt(options, 'python3', False)
+        self.python3 = get_bool_opt(options, "python3", False)
         if self.python3:
-            self.aliases = ['ipython3console']
+            self.aliases = ["ipython3console"]
         else:
-            self.aliases = ['ipython2console', 'ipythonconsole']
+            self.aliases = ["ipython2console", "ipythonconsole"]
 
-        in1_regex = options.get('in1_regex', self.in1_regex)
-        in2_regex = options.get('in2_regex', self.in2_regex)
-        out_regex = options.get('out_regex', self.out_regex)
+        in1_regex = options.get("in1_regex", self.in1_regex)
+        in2_regex = options.get("in2_regex", self.in2_regex)
+        out_regex = options.get("out_regex", self.out_regex)
 
         # So that we can work with input and output prompts which have been
         # rstrip'd (possibly by editors) we also need rstrip'd variants. If
@@ -299,13 +402,19 @@ class IPythonConsoleLexer(Lexer):
         # with the token. This allows formatted code to be modified so as hide
         # the appearance of prompts, with the whitespace included. One example
         # use of this is in copybutton.js from the standard lib Python docs.
-        in1_regex_rstrip = in1_regex.rstrip() + '\n'
-        in2_regex_rstrip = in2_regex.rstrip() + '\n'
-        out_regex_rstrip = out_regex.rstrip() + '\n'
+        in1_regex_rstrip = in1_regex.rstrip() + "\n"
+        in2_regex_rstrip = in2_regex.rstrip() + "\n"
+        out_regex_rstrip = out_regex.rstrip() + "\n"
 
         # Compile and save them all.
-        attrs = ['in1_regex', 'in2_regex', 'out_regex',
-                 'in1_regex_rstrip', 'in2_regex_rstrip', 'out_regex_rstrip']
+        attrs = [
+            "in1_regex",
+            "in2_regex",
+            "out_regex",
+            "in1_regex_rstrip",
+            "in2_regex_rstrip",
+            "out_regex_rstrip",
+        ]
         for attr in attrs:
             self.__setattr__(attr, re.compile(locals()[attr]))
 
@@ -324,9 +433,9 @@ class IPythonConsoleLexer(Lexer):
         self.reset()
 
     def reset(self):
-        self.mode = 'output'
+        self.mode = "output"
         self.index = 0
-        self.buffer = u''
+        self.buffer = u""
         self.insertions = []
 
     def buffered_tokens(self):
@@ -335,11 +444,11 @@ class IPythonConsoleLexer(Lexer):
         changing to a new state.
 
         """
-        if self.mode == 'output':
+        if self.mode == "output":
             tokens = [(0, Generic.Output, self.buffer)]
-        elif self.mode == 'input':
+        elif self.mode == "input":
             tokens = self.pylexer.get_tokens_unprocessed(self.buffer)
-        else: # traceback
+        else:  # traceback
             tokens = self.tblexer.get_tokens_unprocessed(self.buffer)
 
         for i, t, v in do_insertions(self.insertions, tokens):
@@ -348,7 +457,7 @@ class IPythonConsoleLexer(Lexer):
 
         # Clear it all
         self.index += len(self.buffer)
-        self.buffer = u''
+        self.buffer = u""
         self.insertions = []
 
     def get_mci(self, line):
@@ -377,16 +486,17 @@ class IPythonConsoleLexer(Lexer):
         # Check for possible end of input
         in2_match = self.in2_regex.match(line)
         in2_match_rstrip = self.in2_regex_rstrip.match(line)
-        if (in2_match and in2_match.group().rstrip() == line.rstrip()) or \
-           in2_match_rstrip:
+        if (
+            in2_match and in2_match.group().rstrip() == line.rstrip()
+        ) or in2_match_rstrip:
             end_input = True
         else:
             end_input = False
-        if end_input and self.mode != 'tb':
+        if end_input and self.mode != "tb":
             # Only look for an end of input when not in tb mode.
             # An ellipsis could appear within the traceback.
-            mode = 'output'
-            code = u''
+            mode = "output"
+            code = u""
             insertion = (0, Generic.Prompt, line)
             return mode, code, insertion
 
@@ -394,7 +504,7 @@ class IPythonConsoleLexer(Lexer):
         out_match = self.out_regex.match(line)
         out_match_rstrip = self.out_regex_rstrip.match(line)
         if out_match or out_match_rstrip:
-            mode = 'output'
+            mode = "output"
             if out_match:
                 idx = out_match.end()
             else:
@@ -405,17 +515,16 @@ class IPythonConsoleLexer(Lexer):
             insertion = (0, Generic.Heading, line[:idx])
             return mode, code, insertion
 
-
         # Check for input or continuation prompt (non stripped version)
         in1_match = self.in1_regex.match(line)
-        if in1_match or (in2_match and self.mode != 'tb'):
+        if in1_match or (in2_match and self.mode != "tb"):
             # New input or when not in tb, continued input.
             # We do not check for continued input when in tb since it is
             # allowable to replace a long stack with an ellipsis.
-            mode = 'input'
+            mode = "input"
             if in1_match:
                 idx = in1_match.end()
-            else: # in2_match
+            else:  # in2_match
                 idx = in2_match.end()
             code = line[idx:]
             insertion = (0, Generic.Prompt, line[:idx])
@@ -423,14 +532,14 @@ class IPythonConsoleLexer(Lexer):
 
         # Check for input or continuation prompt (stripped version)
         in1_match_rstrip = self.in1_regex_rstrip.match(line)
-        if in1_match_rstrip or (in2_match_rstrip and self.mode != 'tb'):
+        if in1_match_rstrip or (in2_match_rstrip and self.mode != "tb"):
             # New input or when not in tb, continued input.
             # We do not check for continued input when in tb since it is
             # allowable to replace a long stack with an ellipsis.
-            mode = 'input'
+            mode = "input"
             if in1_match_rstrip:
                 idx = in1_match_rstrip.end()
-            else: # in2_match
+            else:  # in2_match
                 idx = in2_match_rstrip.end()
             code = line[idx:]
             insertion = (0, Generic.Prompt, line[:idx])
@@ -438,13 +547,13 @@ class IPythonConsoleLexer(Lexer):
 
         # Check for traceback
         if self.ipytb_start.match(line):
-            mode = 'tb'
+            mode = "tb"
             code = line
             insertion = None
             return mode, code, insertion
 
         # All other stuff...
-        if self.mode in ('input', 'output'):
+        if self.mode in ("input", "output"):
             # We assume all other text is output. Multiline input that
             # does not use the continuation marker cannot be detected.
             # For example, the 3 in the following is clearly output:
@@ -459,9 +568,9 @@ class IPythonConsoleLexer(Lexer):
             #
             # In both cases, the 2nd line will be 'output'.
             #
-            mode = 'output'
+            mode = "output"
         else:
-            mode = 'tb'
+            mode = "tb"
 
         code = line
         insertion = None
@@ -487,6 +596,7 @@ class IPythonConsoleLexer(Lexer):
         for token in self.buffered_tokens():
             yield token
 
+
 class IPyLexer(Lexer):
     r"""
     Primary lexer for all IPython-like code.
@@ -499,15 +609,15 @@ class IPyLexer(Lexer):
     with Pygments.
 
     """
-    name = 'IPy session'
-    aliases = ['ipy']
+    name = "IPy session"
+    aliases = ["ipy"]
 
     def __init__(self, **options):
-        self.python3 = get_bool_opt(options, 'python3', False)
+        self.python3 = get_bool_opt(options, "python3", False)
         if self.python3:
-            self.aliases = ['ipy3']
+            self.aliases = ["ipy3"]
         else:
-            self.aliases = ['ipy2', 'ipy']
+            self.aliases = ["ipy2", "ipy"]
 
         Lexer.__init__(self, **options)
 
@@ -517,10 +627,9 @@ class IPyLexer(Lexer):
     def get_tokens_unprocessed(self, text):
         # Search for the input prompt anywhere...this allows code blocks to
         # begin with comments as well.
-        if re.match(r'.*(In \[[0-9]+\]:)', text.strip(), re.DOTALL):
+        if re.match(r".*(In \[[0-9]+\]:)", text.strip(), re.DOTALL):
             lex = self.IPythonConsoleLexer
         else:
             lex = self.IPythonLexer
         for token in lex.get_tokens_unprocessed(text):
             yield token
-

@@ -19,9 +19,10 @@ from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
 from IPython.testing.decorators import skip_win32
 import pytest
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Helper classes, from CPython's Pdb test suite
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class _FakeInput(object):
     """
@@ -30,13 +31,15 @@ class _FakeInput(object):
     return it.  The set of lines to return is specified in the
     constructor; they should not have trailing newlines.
     """
+
     def __init__(self, lines):
         self.lines = iter(lines)
 
     def readline(self):
         line = next(self.lines)
         print(line)
-        return line+'\n'
+        return line + "\n"
+
 
 class PdbTestInput(object):
     """Context manager that makes testing Pdb in doctests easier."""
@@ -51,9 +54,11 @@ class PdbTestInput(object):
     def __exit__(self, *exc):
         sys.stdin = self.real_stdin
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Tests
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def test_ipdb_magics():
     '''Test calling some IPython magics from ipdb.
@@ -137,15 +142,16 @@ def test_ipdb_magics():
     ----> 3    debugger.Pdb().set_trace()
     <BLANKLINE>
     ipdb> continue
-    
-    Restore previous trace function, e.g. for coverage.py    
-    
+
+    Restore previous trace function, e.g. for coverage.py
+
     >>> sys.settrace(old_trace)
     '''
 
+
 def test_ipdb_magics2():
-    '''Test ipdb with a very short function.
-    
+    """Test ipdb with a very short function.
+
     >>> old_trace = sys.gettrace()
 
     >>> def bar():
@@ -162,14 +168,15 @@ def test_ipdb_magics2():
     ----> 2    pass
     <BLANKLINE>
     ipdb> continue
-    
-    Restore previous trace function, e.g. for coverage.py    
-    
+
+    Restore previous trace function, e.g. for coverage.py
+
     >>> sys.settrace(old_trace)
-    '''
+    """
+
 
 def can_quit():
-    '''Test that quit work in ipydb
+    """Test that quit work in ipydb
 
     >>> old_trace = sys.gettrace()
 
@@ -189,11 +196,11 @@ def can_quit():
     Restore previous trace function, e.g. for coverage.py
 
     >>> sys.settrace(old_trace)
-    '''
+    """
 
 
 def can_exit():
-    '''Test that quit work in ipydb
+    """Test that quit work in ipydb
 
     >>> old_trace = sys.gettrace()
 
@@ -213,7 +220,7 @@ def can_exit():
     Restore previous trace function, e.g. for coverage.py
 
     >>> sys.settrace(old_trace)
-    '''
+    """
 
 
 def test_interruptible_core_debugger():
@@ -223,6 +230,7 @@ def test_interruptible_core_debugger():
     (this is implemented in ipykernel).  We want to ensure the
     KeyboardInterrupt cause debugging to cease.
     """
+
     def raising_input(msg="", called=[0]):
         called[0] += 1
         assert called[0] == 1, "input() should only be called once!"
@@ -249,6 +257,7 @@ def test_xmode_skip():
     Not as a doctest as pytest does not run doctests.
     """
     import pexpect
+
     env = os.environ.copy()
     env["IPY_TEST_SIMPLE_PROMPT"] = "1"
 

@@ -3,16 +3,16 @@
 Utilities for getting information about IPython and the system it's running in.
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 import platform
@@ -23,9 +23,10 @@ import subprocess
 from IPython.core import release
 from IPython.utils import _sysinfo, encoding
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def pkg_commit_hash(pkg_path):
     """Get short form of commit hash given directory `pkg_path`
@@ -55,14 +56,16 @@ def pkg_commit_hash(pkg_path):
         return "installation", _sysinfo.commit
 
     # maybe we are in a repository
-    proc = subprocess.Popen('git rev-parse --short HEAD'.split(' '),
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            cwd=pkg_path)
+    proc = subprocess.Popen(
+        "git rev-parse --short HEAD".split(" "),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=pkg_path,
+    )
     repo_commit, _ = proc.communicate()
     if repo_commit:
-        return 'repository', repo_commit.strip().decode('ascii')
-    return '(none found)', '<not found>'
+        return "repository", repo_commit.strip().decode("ascii")
+    return "(none found)", "<not found>"
 
 
 def pkg_info(pkg_path):
@@ -90,13 +93,15 @@ def pkg_info(pkg_path):
         platform=platform.platform(),
         os_name=os.name,
         default_encoding=encoding.DEFAULT_ENCODING,
-        )
+    )
+
 
 def get_sys_info():
     """Return useful information about IPython and the system, as a dict."""
     p = os.path
-    path = p.realpath(p.dirname(p.abspath(p.join(__file__, '..'))))
+    path = p.realpath(p.dirname(p.abspath(p.join(__file__, ".."))))
     return pkg_info(path)
+
 
 def sys_info():
     """Return useful information about IPython and the system, as a string.
@@ -104,7 +109,7 @@ def sys_info():
     Examples
     --------
     ::
-    
+
         In [2]: print(sys_info())
         {'commit_hash': '144fdae',      # random
          'commit_source': 'repository',

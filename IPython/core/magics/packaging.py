@@ -1,12 +1,12 @@
 """Implementation of packaging-related magic functions.
 """
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (c) 2018 The IPython Development Team.
 #
 #  Distributed under the terms of the Modified BSD License.
 #
 #  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import re
 import shlex
@@ -33,12 +33,11 @@ def _get_conda_executable():
     # Otherwise, attempt to extract the executable from conda history.
     # This applies in any conda environment.
     history = Path(sys.prefix, "conda-meta", "history").read_text(encoding="utf-8")
-    match = re.search(
+    if match := re.search(
         r"^#\s*cmd:\s*(?P<command>.*conda)\s[create|install]",
         history,
         flags=re.MULTILINE,
-    )
-    if match:
+    ):
         return match.groupdict()["command"]
 
     # Fallback: assume conda is available on the system path.
@@ -46,13 +45,22 @@ def _get_conda_executable():
 
 
 CONDA_COMMANDS_REQUIRING_PREFIX = {
-    'install', 'list', 'remove', 'uninstall', 'update', 'upgrade',
+    "install",
+    "list",
+    "remove",
+    "uninstall",
+    "update",
+    "upgrade",
 }
 CONDA_COMMANDS_REQUIRING_YES = {
-    'install', 'remove', 'uninstall', 'update', 'upgrade',
+    "install",
+    "remove",
+    "uninstall",
+    "update",
+    "upgrade",
 }
-CONDA_ENV_FLAGS = {'-p', '--prefix', '-n', '--name'}
-CONDA_YES_FLAGS = {'-y', '--y'}
+CONDA_ENV_FLAGS = {"-p", "--prefix", "-n", "--name"}
+CONDA_YES_FLAGS = {"-y", "--y"}
 
 
 @magics_class
@@ -67,11 +75,7 @@ class PackagingMagics(Magics):
           %pip install [pkgs]
         """
         python = sys.executable
-        if sys.platform == "win32":
-            python = '"' + python + '"'
-        else:
-            python = shlex.quote(python)
-
+        python = '"' + python + '"' if sys.platform == "win32" else shlex.quote(python)
         self.shell.system(" ".join([python, "-m", "pip", line]))
 
         print("Note: you may need to restart the kernel to use updated packages.")
@@ -84,8 +88,10 @@ class PackagingMagics(Magics):
           %conda install [pkgs]
         """
         if not _is_conda_environment():
-            raise ValueError("The python kernel does not appear to be a conda environment.  "
-                             "Please use ``%pip install`` instead.")
+            raise ValueError(
+                "The python kernel does not appear to be a conda environment.  "
+                "Please use ``%pip install`` instead."
+            )
 
         conda = _get_conda_executable()
         args = shlex.split(line)
@@ -96,7 +102,7 @@ class PackagingMagics(Magics):
 
         # When the subprocess does not allow us to respond "yes" during the installation,
         # we need to insert --yes in the argument list for some commands
-        stdin_disabled = getattr(self.shell, 'kernel', None) is not None
+        stdin_disabled = getattr(self.shell, "kernel", None) is not None
         needs_yes = command in CONDA_COMMANDS_REQUIRING_YES
         has_yes = set(args).intersection(CONDA_YES_FLAGS)
         if stdin_disabled and needs_yes and not has_yes:
@@ -108,5 +114,5 @@ class PackagingMagics(Magics):
         if needs_prefix and not has_prefix:
             extra_args.extend(["--prefix", sys.prefix])
 
-        self.shell.system(' '.join([conda, command] + extra_args + args))
+        self.shell.system(" ".join([conda, command] + extra_args + args))
         print("\nNote: you may need to restart the kernel to use updated packages.")

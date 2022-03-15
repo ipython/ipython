@@ -12,38 +12,50 @@ import pytest
 from IPython import get_ipython
 from traitlets.config import Config
 from IPython.core.formatters import (
-    PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key,
-    DisplayFormatter, JSONFormatter,
+    PlainTextFormatter,
+    HTMLFormatter,
+    PDFFormatter,
+    _mod_name_key,
+    DisplayFormatter,
+    JSONFormatter,
 )
 from IPython.utils.io import capture_output
 
+
 class A(object):
     def __repr__(self):
-        return 'A()'
+        return "A()"
+
 
 class B(A):
     def __repr__(self):
-        return 'B()'
+        return "B()"
+
 
 class C:
     pass
+
 
 class BadRepr(object):
     def __repr__(self):
         raise ValueError("bad repr")
 
+
 class BadPretty(object):
     _repr_pretty_ = None
 
+
 class GoodPretty(object):
     def _repr_pretty_(self, pp, cycle):
-        pp.text('foo')
+        pp.text("foo")
 
     def __repr__(self):
-        return 'GoodPretty()'
+        return "GoodPretty()"
+
 
 def foo_printer(obj, pp, cycle):
-    pp.text('foo')
+    pp.text("foo")
+
 
 def test_pretty():
     f = PlainTextFormatter()
@@ -62,6 +74,7 @@ def test_pretty():
 
 def test_deferred():
     f = PlainTextFormatter()
+
 
 def test_precision():
     """test various values for float_precision."""
@@ -94,6 +107,7 @@ def test_precision():
 def test_bad_precision():
     """test various invalid values for float_precision."""
     f = PlainTextFormatter()
+
     def set_fp(p):
         f.float_precision = p
 
@@ -102,9 +116,10 @@ def test_bad_precision():
     pytest.raises(ValueError, set_fp, "foo")
     pytest.raises(ValueError, set_fp, -1)
 
+
 def test_for_type():
     f = PlainTextFormatter()
-    
+
     # initial return, None
     assert f.for_type(C, foo_printer) is None
     # no func queries
@@ -115,11 +130,12 @@ def test_for_type():
     assert f.for_type(C, None) is foo_printer
     assert f.for_type(C, None) is foo_printer
 
+
 def test_for_type_string():
     f = PlainTextFormatter()
-    
-    type_str = '%s.%s' % (C.__module__, 'C')
-    
+
+    type_str = "%s.%s" % (C.__module__, "C")
+
     # initial return, None
     assert f.for_type(type_str, foo_printer) is None
     # no func queries
@@ -129,11 +145,12 @@ def test_for_type_string():
     assert _mod_name_key(C) not in f.deferred_printers
     assert C in f.type_printers
 
+
 def test_for_type_by_name():
     f = PlainTextFormatter()
-    
+
     mod = C.__module__
-    
+
     # initial return, None
     assert f.for_type_by_name(mod, "C", foo_printer) is None
     # no func queries
@@ -147,21 +164,23 @@ def test_for_type_by_name():
 
 def test_lookup():
     f = PlainTextFormatter()
-    
+
     f.for_type(C, foo_printer)
     assert f.lookup(C()) is foo_printer
     with pytest.raises(KeyError):
         f.lookup(A())
 
+
 def test_lookup_string():
     f = PlainTextFormatter()
-    type_str = '%s.%s' % (C.__module__, 'C')
-    
+    type_str = "%s.%s" % (C.__module__, "C")
+
     f.for_type(type_str, foo_printer)
     assert f.lookup(C()) is foo_printer
     # should move from deferred to imported dict
     assert _mod_name_key(C) not in f.deferred_printers
     assert C in f.type_printers
+
 
 def test_lookup_by_type():
     f = PlainTextFormatter()
@@ -170,38 +189,42 @@ def test_lookup_by_type():
     with pytest.raises(KeyError):
         f.lookup_by_type(A)
 
+
 def test_lookup_by_type_string():
     f = PlainTextFormatter()
-    type_str = '%s.%s' % (C.__module__, 'C')
+    type_str = "%s.%s" % (C.__module__, "C")
     f.for_type(type_str, foo_printer)
-    
+
     # verify insertion
     assert _mod_name_key(C) in f.deferred_printers
     assert C not in f.type_printers
-    
+
     assert f.lookup_by_type(type_str) is foo_printer
     # lookup by string doesn't cause import
     assert _mod_name_key(C) in f.deferred_printers
     assert C not in f.type_printers
-    
+
     assert f.lookup_by_type(C) is foo_printer
     # should move from deferred to imported dict
     assert _mod_name_key(C) not in f.deferred_printers
     assert C in f.type_printers
 
+
 def test_in_formatter():
     f = PlainTextFormatter()
     f.for_type(C, foo_printer)
-    type_str = '%s.%s' % (C.__module__, 'C')
+    type_str = "%s.%s" % (C.__module__, "C")
     assert C in f
     assert type_str in f
 
+
 def test_string_in_formatter():
     f = PlainTextFormatter()
-    type_str = '%s.%s' % (C.__module__, 'C')
+    type_str = "%s.%s" % (C.__module__, "C")
     f.for_type(type_str, foo_printer)
     assert type_str in f
     assert C in f
+
 
 def test_pop():
     f = PlainTextFormatter()
@@ -218,13 +241,14 @@ def test_pop():
         f.pop(A)
     assert f.pop(A, None) is None
 
+
 def test_pop_string():
     f = PlainTextFormatter()
-    type_str = '%s.%s' % (C.__module__, 'C')
-    
+    type_str = "%s.%s" % (C.__module__, "C")
+
     with pytest.raises(KeyError):
         f.pop(type_str)
-    
+
     f.for_type(type_str, foo_printer)
     f.pop(type_str)
     with pytest.raises(KeyError):
@@ -239,13 +263,15 @@ def test_pop_string():
     with pytest.raises(KeyError):
         f.pop(type_str)
     assert f.pop(type_str, None) is None
-    
+
 
 def test_error_method():
     f = HTMLFormatter()
+
     class BadHTML(object):
         def _repr_html_(self):
             raise ValueError("Bad HTML")
+
     bad = BadHTML()
     with capture_output() as captured:
         result = f(bad)
@@ -254,11 +280,14 @@ def test_error_method():
     assert "Bad HTML" in captured.stdout
     assert "_repr_html_" in captured.stdout
 
+
 def test_nowarn_notimplemented():
     f = HTMLFormatter()
+
     class HTMLNotImplemented(object):
         def _repr_html_(self):
             raise NotImplementedError
+
     h = HTMLNotImplemented()
     with capture_output() as captured:
         result = f(h)
@@ -277,11 +306,14 @@ def test_warn_error_for_type():
     assert "NameError" in captured.stdout
     assert "name_error" in captured.stdout
 
+
 def test_error_pretty_method():
     f = PlainTextFormatter()
+
     class BadPretty(object):
         def _repr_pretty_(self):
             return "hello"
+
     bad = BadPretty()
     with capture_output() as captured:
         result = f(bad)
@@ -306,7 +338,8 @@ def test_bad_repr_traceback():
 
 class MakePDF(object):
     def _repr_pdf_(self):
-        return 'PDF'
+        return "PDF"
+
 
 def test_pdf_formatter():
     pdf = MakePDF()
@@ -316,9 +349,11 @@ def test_pdf_formatter():
 
 def test_print_method_bound():
     f = HTMLFormatter()
+
     class MyHTML(object):
         def _repr_html_(self):
             return "hello"
+
     with capture_output() as captured:
         result = f(MyHTML)
     assert result is None
@@ -331,7 +366,6 @@ def test_print_method_bound():
 
 
 def test_print_method_weird():
-
     class TextMagicHat(object):
         def __getattr__(self, key):
             return key
@@ -342,14 +376,14 @@ def test_print_method_weird():
     assert text_hat._repr_html_ == "_repr_html_"
     with capture_output() as captured:
         result = f(text_hat)
-    
+
     assert result is None
     assert "FormatterWarning" not in captured.stderr
 
     class CallableMagicHat(object):
         def __getattr__(self, key):
-            return lambda : key
-    
+            return lambda: key
+
     call_hat = CallableMagicHat()
     with capture_output() as captured:
         result = f(call_hat)
@@ -359,11 +393,11 @@ def test_print_method_weird():
     class BadReprArgs(object):
         def _repr_html_(self, extra, args):
             return "html"
-    
+
     bad = BadReprArgs()
     with capture_output() as captured:
         result = f(bad)
-    
+
     assert result is None
     assert "FormatterWarning" not in captured.stderr
 
@@ -400,6 +434,7 @@ def test_ipython_display_formatter():
     """Objects with _ipython_display_ defined bypass other formatters"""
     f = get_ipython().display_formatter
     catcher = []
+
     class SelfDisplaying(object):
         def _ipython_display_(self):
             catcher.append(self)
@@ -407,13 +442,13 @@ def test_ipython_display_formatter():
     class NotSelfDisplaying(object):
         def __repr__(self):
             return "NotSelfDisplaying"
-        
+
         def _ipython_display_(self):
             raise NotImplementedError
-    
+
     save_enabled = f.ipython_display_formatter.enabled
     f.ipython_display_formatter.enabled = True
-    
+
     yes = SelfDisplaying()
     no = NotSelfDisplaying()
 
@@ -434,20 +469,19 @@ def test_repr_mime():
     class HasReprMime(object):
         def _repr_mimebundle_(self, include=None, exclude=None):
             return {
-                'application/json+test.v2': {
-                    'x': 'y'
-                },
-                'plain/text' : '<HasReprMime>',
-                'image/png' : 'i-overwrite'
+                "application/json+test.v2": {"x": "y"},
+                "plain/text": "<HasReprMime>",
+                "image/png": "i-overwrite",
             }
 
         def _repr_png_(self):
-            return 'should-be-overwritten'
+            return "should-be-overwritten"
+
         def _repr_html_(self):
-            return '<b>hi!</b>'
-    
+            return "<b>hi!</b>"
+
     f = get_ipython().display_formatter
-    html_f = f.formatters['text/html']
+    html_f = f.formatters["text/html"]
     save_enabled = html_f.enabled
     html_f.enabled = True
     obj = HasReprMime()
@@ -473,21 +507,20 @@ def test_repr_mime():
 
 def test_pass_correct_include_exclude():
     class Tester(object):
-
         def __init__(self, include=None, exclude=None):
             self.include = include
             self.exclude = exclude
 
         def _repr_mimebundle_(self, include, exclude, **kwargs):
             if include and (include != self.include):
-                raise ValueError('include got modified: display() may be broken.')
+                raise ValueError("include got modified: display() may be broken.")
             if exclude and (exclude != self.exclude):
-                raise ValueError('exclude got modified: display() may be broken.')
+                raise ValueError("exclude got modified: display() may be broken.")
 
             return None
 
-    include = {'a', 'b', 'c'}
-    exclude = {'c', 'e' , 'f'}
+    include = {"a", "b", "c"}
+    exclude = {"c", "e", "f"}
 
     f = get_ipython().display_formatter
     f.format(Tester(include=include, exclude=exclude), include=include, exclude=exclude)
@@ -499,16 +532,16 @@ def test_repr_mime_meta():
     class HasReprMimeMeta(object):
         def _repr_mimebundle_(self, include=None, exclude=None):
             data = {
-                'image/png': 'base64-image-data',
+                "image/png": "base64-image-data",
             }
             metadata = {
-                'image/png': {
-                    'width': 5,
-                    'height': 10,
+                "image/png": {
+                    "width": 5,
+                    "height": 10,
                 }
             }
             return (data, metadata)
-    
+
     f = get_ipython().display_formatter
     obj = HasReprMimeMeta()
     d, md = f.format(obj)

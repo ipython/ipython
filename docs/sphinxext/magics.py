@@ -42,5 +42,4 @@ def setup(app):
     app.add_object_type('cellmagic', 'cellmagic', 'pair: %s; cell magic', parse_cell_magic)
     app.add_role_to_domain('std', 'cellmagic', CellMagicRole(), override=True)
 
-    metadata = {'parallel_read_safe': True, 'parallel_write_safe': True}
-    return metadata
+    return {'parallel_read_safe': True, 'parallel_write_safe': True}
