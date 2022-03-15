@@ -16,9 +16,9 @@ Authors
 
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import shutil
 import sys
@@ -34,9 +34,9 @@ from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils.process import getoutput
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Globals
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 TMP_TEST_DIR = Path(tempfile.mkdtemp())
 HOME_TEST_DIR = TMP_TEST_DIR / "home_test_dir"
 IP_TEST_DIR = HOME_TEST_DIR / ".ipython"
@@ -45,10 +45,11 @@ IP_TEST_DIR = HOME_TEST_DIR / ".ipython"
 # Setup/teardown functions/decorators
 #
 
+
 def setup_module():
     """Setup test environment for the module:
 
-            - Adds dummy home dir tree
+    - Adds dummy home dir tree
     """
     # Do not mask exceptions here.  In particular, catching WindowsError is a
     # problem because that exception is only defined on Windows...
@@ -58,7 +59,7 @@ def setup_module():
 def teardown_module():
     """Teardown test environment for the module:
 
-            - Remove dummy home dir tree
+    - Remove dummy home dir tree
     """
     # Note: we remove the parent test dir, which is the root of all test
     # subdirs we may have created.  Use shutil instead of os.removedirs, so
@@ -66,9 +67,9 @@ def teardown_module():
     shutil.rmtree(TMP_TEST_DIR)
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Test functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 class ProfileStartupTest(TestCase):
     def setUp(self):
         # create profile dir
@@ -93,12 +94,12 @@ class ProfileStartupTest(TestCase):
         tt.ipexec_validate(self.fname, output, "", options=self.options)
 
     def test_startup_py(self):
-        self.init('00-start.py', 'zzz=123\n', 'print(zzz)\n')
-        self.validate('123')
+        self.init("00-start.py", "zzz=123\n", "print(zzz)\n")
+        self.validate("123")
 
     def test_startup_ipy(self):
-        self.init('00-start.ipy', '%xmode plain\n', '')
-        self.validate('Exception reporting mode: Plain')
+        self.init("00-start.ipy", "%xmode plain\n", "")
+        self.validate("Exception reporting mode: Plain")
 
 
 def test_list_profiles_in():
@@ -119,7 +120,7 @@ def test_list_profiles_in():
     # name remains valid
     found_unicode = False
     for p in list(profiles):
-        if p.endswith('nicode'):
+        if p.endswith("nicode"):
             pd = ProfileDir.find_profile_dir_by_name(td, p)
             profiles.remove(p)
             found_unicode = True

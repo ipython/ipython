@@ -16,11 +16,13 @@ def ignore_keyboardinterrupts(func):
     presses CTRL+C while IPython is idle, and the inputhook loop is running. In
     this case, we want to ignore interrupts.
     """
+
     def wrapper(*args, **kwargs):
         try:
             func(*args, **kwargs)
         except KeyboardInterrupt:
             pass
+
     return wrapper
 
 
@@ -48,7 +50,6 @@ def inputhook_wx1(context):
 
 
 class EventLoopTimer(wx.Timer):
-
     def __init__(self, func):
         self.func = func
         wx.Timer.__init__(self)
@@ -58,7 +59,6 @@ class EventLoopTimer(wx.Timer):
 
 
 class EventLoopRunner(object):
-
     def Run(self, time, input_is_ready):
         self.input_is_ready = input_is_ready
         self.evtloop = wx.EventLoop()
@@ -93,8 +93,10 @@ def inputhook_wx2(context):
         elr = EventLoopRunner()
         # As this time is made shorter, keyboard response improves, but idle
         # CPU load goes up.  10 ms seems like a good compromise.
-        elr.Run(time=10,  # CHANGE time here to control polling interval
-                input_is_ready=context.input_is_ready)
+        elr.Run(
+            time=10,  # CHANGE time here to control polling interval
+            input_is_ready=context.input_is_ready,
+        )
     return 0
 
 
@@ -213,7 +215,7 @@ if major_version >= 4:
 # On OSX, evtloop.Pending() always returns True, regardless of there being
 # any events pending. As such we can't use implementations 1 or 3 of the
 # inputhook as those depend on a pending/dispatch loop.
-elif sys.platform == 'darwin':
+elif sys.platform == "darwin":
     inputhook = inputhook_wx2
 else:
     inputhook = inputhook_wx3

@@ -1,11 +1,13 @@
 """Error script. DO NOT EDIT FURTHER! It will break exception doctests!!!"""
 import sys
 
+
 def div0():
     "foo"
     x = 1
     y = 0
-    x/y
+    x / y
+
 
 def sysexit(stat, mode):
     raise SystemExit(stat, f"Mode = {mode}")
@@ -13,21 +15,22 @@ def sysexit(stat, mode):
 
 def bar(mode):
     "bar"
-    if mode=='div':
+    if mode == "div":
         div0()
-    elif mode=='exit':
+    elif mode == "exit":
         try:
             stat = int(sys.argv[2])
         except:
             stat = 1
         sysexit(stat, mode)
     else:
-        raise ValueError('Unknown mode')
+        raise ValueError("Unknown mode")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     try:
         mode = sys.argv[1]
     except IndexError:
-        mode = 'div'
+        mode = "div"
 
     bar(mode)

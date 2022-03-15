@@ -1,16 +1,16 @@
 """Implementation of configuration-related magic functions.
 """
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
 #  Distributed under the terms of the Modified BSD License.
 #
 #  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Stdlib
 import re
@@ -20,14 +20,15 @@ from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from logging import error
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Magic implementation classes
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-reg = re.compile(r'^\w+\.\w+$')
+reg = re.compile(r"^\w+\.\w+$")
+
+
 @magics_class
 class ConfigMagics(Magics):
-
     def __init__(self, shell):
         super(ConfigMagics, self).__init__(shell)
         self.configurables = []
@@ -134,6 +135,7 @@ class ConfigMagics(Magics):
 
         """
         from traitlets.config.loader import Config
+
         # some IPython objects are Configurable, but do not yet have
         # any configurable traits.  Exclude them from the effects of
         # this magic, as their presence is just noise:
@@ -146,7 +148,7 @@ class ConfigMagics(Magics):
             key=lambda x: x.__class__.__name__,
         )
 
-        classnames = [ c.__class__.__name__ for c in configurables ]
+        classnames = [c.__class__.__name__ for c in configurables]
 
         line = s.strip()
         if not line:
@@ -162,23 +164,22 @@ class ConfigMagics(Magics):
             cls = c.__class__
             help = cls.class_get_help(c)
             # strip leading '--' from cl-args:
-            help = re.sub(re.compile(r'^--', re.MULTILINE), '', help)
+            help = re.sub(re.compile(r"^--", re.MULTILINE), "", help)
             print(help)
             return
         elif reg.match(line):
-            cls, attr = line.split('.')
-            return getattr(configurables[classnames.index(cls)],attr)
-        elif '=' not in line:
-            msg = "Invalid config statement: %r, "\
-                  "should be `Class.trait = value`."
+            cls, attr = line.split(".")
+            return getattr(configurables[classnames.index(cls)], attr)
+        elif "=" not in line:
+            msg = "Invalid config statement: %r, " "should be `Class.trait = value`."
 
             ll = line.lower()
             for classname in classnames:
                 if ll == classname.lower():
-                    msg += '\nDid you mean %s (note the case)?' % classname
+                    msg += "\nDid you mean %s (note the case)?" % classname
                     break
 
-            raise UsageError( msg % line)
+            raise UsageError(msg % line)
 
         # otherwise, assume we are setting configurables.
         # leave quotes on args when splitting, because we want

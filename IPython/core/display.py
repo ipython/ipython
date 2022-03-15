@@ -22,15 +22,42 @@ from IPython.testing.skipdoctest import skip_doctest
 from . import display_functions
 
 
-__all__ = ['display_pretty', 'display_html', 'display_markdown',
-           'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
-           'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
-           'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'ProgressBar', 'JSON',
-           'GeoJSON', 'Javascript', 'Image', 'set_matplotlib_formats',
-           'set_matplotlib_close',
-           'Video']
+__all__ = [
+    "display_pretty",
+    "display_html",
+    "display_markdown",
+    "display_svg",
+    "display_png",
+    "display_jpeg",
+    "display_latex",
+    "display_json",
+    "display_javascript",
+    "display_pdf",
+    "DisplayObject",
+    "TextDisplayObject",
+    "Pretty",
+    "HTML",
+    "Markdown",
+    "Math",
+    "Latex",
+    "SVG",
+    "ProgressBar",
+    "JSON",
+    "GeoJSON",
+    "Javascript",
+    "Image",
+    "set_matplotlib_formats",
+    "set_matplotlib_close",
+    "Video",
+]
 
-_deprecated_names = ["display", "clear_output", "publish_display_data", "update_display", "DisplayHandle"]
+_deprecated_names = [
+    "display",
+    "clear_output",
+    "publish_display_data",
+    "update_display",
+    "DisplayHandle",
+]
 
 __all__ += _deprecated_names
 
@@ -42,7 +69,11 @@ from warnings import warn
 
 def __getattr__(name):
     if name in _deprecated_names:
-        warn(f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython display", DeprecationWarning, stacklevel=2)
+        warn(
+            f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython display",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return getattr(display_functions, name)
 
     if name in globals().keys():
@@ -51,9 +82,10 @@ def __getattr__(name):
         raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # utility functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def _safe_exists(path):
     """Check path, but don't let exceptions raise"""
@@ -83,12 +115,13 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
         metadata = {mimetype: metadata}
     if raw:
         # turn list of pngdata into list of { 'image/png': pngdata }
-        objs = [ {mimetype: obj} for obj in objs ]
+        objs = [{mimetype: obj} for obj in objs]
     display_functions.display(*objs, raw=raw, metadata=metadata, include=[mimetype])
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Main functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def display_pretty(*objs, **kwargs):
@@ -105,7 +138,7 @@ def display_pretty(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('text/plain', objs, **kwargs)
+    _display_mimetype("text/plain", objs, **kwargs)
 
 
 def display_html(*objs, **kwargs):
@@ -125,7 +158,7 @@ def display_html(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('text/html', objs, **kwargs)
+    _display_mimetype("text/html", objs, **kwargs)
 
 
 def display_markdown(*objs, **kwargs):
@@ -143,7 +176,7 @@ def display_markdown(*objs, **kwargs):
         Metadata to be associated with the specific mimetype output.
     """
 
-    _display_mimetype('text/markdown', objs, **kwargs)
+    _display_mimetype("text/markdown", objs, **kwargs)
 
 
 def display_svg(*objs, **kwargs):
@@ -160,7 +193,7 @@ def display_svg(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('image/svg+xml', objs, **kwargs)
+    _display_mimetype("image/svg+xml", objs, **kwargs)
 
 
 def display_png(*objs, **kwargs):
@@ -177,7 +210,7 @@ def display_png(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('image/png', objs, **kwargs)
+    _display_mimetype("image/png", objs, **kwargs)
 
 
 def display_jpeg(*objs, **kwargs):
@@ -194,7 +227,7 @@ def display_jpeg(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('image/jpeg', objs, **kwargs)
+    _display_mimetype("image/jpeg", objs, **kwargs)
 
 
 def display_latex(*objs, **kwargs):
@@ -211,7 +244,7 @@ def display_latex(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('text/latex', objs, **kwargs)
+    _display_mimetype("text/latex", objs, **kwargs)
 
 
 def display_json(*objs, **kwargs):
@@ -230,7 +263,7 @@ def display_json(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('application/json', objs, **kwargs)
+    _display_mimetype("application/json", objs, **kwargs)
 
 
 def display_javascript(*objs, **kwargs):
@@ -247,7 +280,7 @@ def display_javascript(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('application/javascript', objs, **kwargs)
+    _display_mimetype("application/javascript", objs, **kwargs)
 
 
 def display_pdf(*objs, **kwargs):
@@ -264,18 +297,18 @@ def display_pdf(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('application/pdf', objs, **kwargs)
+    _display_mimetype("application/pdf", objs, **kwargs)
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Smart classes
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class DisplayObject(object):
     """An object that wraps data to be displayed."""
 
-    _read_flags = 'r'
+    _read_flags = "r"
     _show_mem_addr = False
     metadata = None
 
@@ -304,7 +337,7 @@ class DisplayObject(object):
             data = str(data)
 
         if data is not None and isinstance(data, str):
-            if data.startswith('http') and url is None:
+            if data.startswith("http") and url is None:
                 url = data
                 filename = None
                 data = None
@@ -354,23 +387,25 @@ class DisplayObject(object):
         elif self.url is not None:
             # Deferred import
             from urllib.request import urlopen
+
             response = urlopen(self.url)
             data = response.read()
             # extract encoding from header, if there is one:
             encoding = None
-            if 'content-type' in response.headers:
-                for sub in response.headers['content-type'].split(';'):
+            if "content-type" in response.headers:
+                for sub in response.headers["content-type"].split(";"):
                     sub = sub.strip()
-                    if sub.startswith('charset'):
-                        encoding = sub.split('=')[-1].strip()
+                    if sub.startswith("charset"):
+                        encoding = sub.split("=")[-1].strip()
                         break
             if (
-                'content-encoding' in response.headers
-                and 'gzip' in response.headers['content-encoding']
+                "content-encoding" in response.headers
+                and "gzip" in response.headers["content-encoding"]
             ):
                 import gzip
                 from io import BytesIO
-                with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
+
+                with gzip.open(BytesIO(data), "rt", encoding=encoding) as fp:
                     encoding = None
                     data = fp.read()
 
@@ -378,23 +413,25 @@ class DisplayObject(object):
             # We only touch self.data once since
             # subclasses such as SVG have @data.setter methods
             # that transform self.data into ... well svg.
-            self.data = data.decode(encoding, 'replace') if encoding else data
+            self.data = data.decode(encoding, "replace") if encoding else data
 
 
 class TextDisplayObject(DisplayObject):
     """Validate that display data is text"""
+
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, str):
-            raise TypeError("%s expects text, not %r" % (self.__class__.__name__, self.data))
+            raise TypeError(
+                "%s expects text, not %r" % (self.__class__.__name__, self.data)
+            )
+
 
 class Pretty(TextDisplayObject):
-
     def _repr_pretty_(self, pp, cycle):
         return pp.text(self.data)
 
 
 class HTML(TextDisplayObject):
-
     def __init__(self, data=None, url=None, filename=None, metadata=None):
         def warn():
             if not data:
@@ -410,7 +447,9 @@ class HTML(TextDisplayObject):
 
         if warn():
             warnings.warn("Consider using IPython.display.IFrame instead")
-        super(HTML, self).__init__(data=data, url=url, filename=filename, metadata=metadata)
+        super(HTML, self).__init__(
+            data=data, url=url, filename=filename, metadata=metadata
+        )
 
     def _repr_html_(self):
         return self._data_and_metadata()
@@ -425,15 +464,13 @@ class HTML(TextDisplayObject):
 
 
 class Markdown(TextDisplayObject):
-
     def _repr_markdown_(self):
         return self._data_and_metadata()
 
 
 class Math(TextDisplayObject):
-
     def _repr_latex_(self):
-        s = r"$\displaystyle %s$" % self.data.strip('$')
+        s = r"$\displaystyle %s$" % self.data.strip("$")
         if self.metadata:
             return s, deepcopy(self.metadata)
         else:
@@ -441,7 +478,6 @@ class Math(TextDisplayObject):
 
 
 class Latex(TextDisplayObject):
-
     def _repr_latex_(self):
         return self._data_and_metadata()
 
@@ -453,7 +489,7 @@ class SVG(DisplayObject):
     a url=URL keyword argument.
     """
 
-    _read_flags = 'rb'
+    _read_flags = "rb"
     # wrap data in a property, which extracts the <svg> tag, discarding
     # document headers
     _data = None
@@ -469,9 +505,10 @@ class SVG(DisplayObject):
             return
         # parse into dom object
         from xml.dom import minidom
+
         x = minidom.parseString(svg)
         # get svg tag (should be 1)
-        found_svg = x.getElementsByTagName('svg')
+        found_svg = x.getElementsByTagName("svg")
         if found_svg:
             svg = found_svg[0].toxml()
         svg = cast_unicode(svg)
@@ -482,9 +519,10 @@ class SVG(DisplayObject):
     def _repr_svg_(self):
         return self._data_and_metadata()
 
+
 class ProgressBar(DisplayObject):
-    """Progressbar supports displaying a progressbar like element
-    """
+    """Progressbar supports displaying a progressbar like element"""
+
     def __init__(self, total):
         """Creates a new progressbar
 
@@ -495,22 +533,25 @@ class ProgressBar(DisplayObject):
         """
         self.total = total
         self._progress = 0
-        self.html_width = '60ex'
+        self.html_width = "60ex"
         self.text_width = 60
-        self._display_id = hexlify(os.urandom(8)).decode('ascii')
+        self._display_id = hexlify(os.urandom(8)).decode("ascii")
 
     def __repr__(self):
         fraction = self.progress / self.total
-        filled = '=' * int(fraction * self.text_width)
-        rest = ' ' * (self.text_width - len(filled))
-        return '[{}{}] {}/{}'.format(
-            filled, rest,
-            self.progress, self.total,
+        filled = "=" * int(fraction * self.text_width)
+        rest = " " * (self.text_width - len(filled))
+        return "[{}{}] {}/{}".format(
+            filled,
+            rest,
+            self.progress,
+            self.total,
         )
 
     def _repr_html_(self):
         return "<progress style='width:{}' max='{}' value='{}'></progress>".format(
-            self.html_width, self.total, self.progress)
+            self.html_width, self.total, self.progress
+        )
 
     def display(self):
         display_functions.display(self, display_id=self._display_id)
@@ -529,7 +570,7 @@ class ProgressBar(DisplayObject):
 
     def __iter__(self):
         self.display()
-        self._progress = -1 # First iteration is 0
+        self._progress = -1  # First iteration is 0
         return self
 
     def __next__(self):
@@ -540,6 +581,7 @@ class ProgressBar(DisplayObject):
         else:
             raise StopIteration()
 
+
 class JSON(DisplayObject):
     """JSON expects a JSON-able dict or list
 
@@ -547,9 +589,20 @@ class JSON(DisplayObject):
 
     Scalar types (None, number, string) are not allowed, only dict or list containers.
     """
+
     # wrap data in a property, which warns about passing already-serialized JSON
     _data = None
-    def __init__(self, data=None, url=None, filename=None, expanded=False, metadata=None, root='root', **kwargs):
+
+    def __init__(
+        self,
+        data=None,
+        url=None,
+        filename=None,
+        expanded=False,
+        metadata=None,
+        root="root",
+        **kwargs,
+    ):
         """Create a JSON display object given raw data.
 
         Parameters
@@ -570,8 +623,8 @@ class JSON(DisplayObject):
             The name of the root element of the JSON tree
         """
         self.metadata = {
-            'expanded': expanded,
-            'root': root,
+            "expanded": expanded,
+            "root": root,
         }
         if metadata:
             self.metadata.update(metadata)
@@ -581,7 +634,10 @@ class JSON(DisplayObject):
 
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, (dict, list)):
-            raise TypeError("%s expects JSONable dict or list, not %r" % (self.__class__.__name__, self.data))
+            raise TypeError(
+                "%s expects JSONable dict or list, not %r"
+                % (self.__class__.__name__, self.data)
+            )
 
     @property
     def data(self):
@@ -604,6 +660,7 @@ class JSON(DisplayObject):
     def _repr_json_(self):
         return self._data_and_metadata()
 
+
 _css_t = """var link = document.createElement("link");
 	link.ref = "stylesheet";
 	link.type = "text/css";
@@ -622,6 +679,7 @@ _lib_t1 = """new Promise(function(resolve, reject) {
 
 _lib_t2 = """
 });"""
+
 
 class GeoJSON(JSON):
     """GeoJSON expects JSON-able dict
@@ -681,19 +739,16 @@ class GeoJSON(JSON):
 
         super(GeoJSON, self).__init__(*args, **kwargs)
 
-
     def _ipython_display_(self):
         bundle = {
-            'application/geo+json': self.data,
-            'text/plain': '<IPython.display.GeoJSON object>'
+            "application/geo+json": self.data,
+            "text/plain": "<IPython.display.GeoJSON object>",
         }
-        metadata = {
-            'application/geo+json': self.metadata
-        }
+        metadata = {"application/geo+json": self.metadata}
         display_functions.display(bundle, metadata=metadata, raw=True)
 
-class Javascript(TextDisplayObject):
 
+class Javascript(TextDisplayObject):
     def __init__(self, data=None, url=None, filename=None, lib=None, css=None):
         """Create a Javascript display object given raw data.
 
@@ -732,31 +787,34 @@ class Javascript(TextDisplayObject):
             css = [css]
         elif css is None:
             css = []
-        if not isinstance(lib, (list,tuple)):
-            raise TypeError('expected sequence, got: %r' % lib)
-        if not isinstance(css, (list,tuple)):
-            raise TypeError('expected sequence, got: %r' % css)
+        if not isinstance(lib, (list, tuple)):
+            raise TypeError("expected sequence, got: %r" % lib)
+        if not isinstance(css, (list, tuple)):
+            raise TypeError("expected sequence, got: %r" % css)
         self.lib = lib
         self.css = css
         super(Javascript, self).__init__(data=data, url=url, filename=filename)
 
     def _repr_javascript_(self):
-        r = ''.join(_css_t % c for c in self.css)
+        r = "".join(_css_t % c for c in self.css)
         for l in self.lib:
             r += _lib_t1 % l
         r += self.data
-        r += _lib_t2*len(self.lib)
+        r += _lib_t2 * len(self.lib)
         return r
 
+
 # constants for identifying png/jpeg data
-_PNG = b'\x89PNG\r\n\x1a\n'
-_JPEG = b'\xff\xd8'
+_PNG = b"\x89PNG\r\n\x1a\n"
+_JPEG = b"\xff\xd8"
+
 
 def _pngxy(data):
     """read the (width, height) from a PNG header"""
-    ihdr = data.index(b'IHDR')
+    ihdr = data.index(b"IHDR")
     # next 8 bytes are width/height
-    return struct.unpack('>ii', data[ihdr+4:ihdr+12])
+    return struct.unpack(">ii", data[ihdr + 4 : ihdr + 12])
+
 
 def _jpegxy(data):
     """read the (width, height) from a JPEG header"""
@@ -764,9 +822,9 @@ def _jpegxy(data):
 
     idx = 4
     while True:
-        block_size = struct.unpack('>H', data[idx:idx+2])[0]
+        block_size = struct.unpack(">H", data[idx : idx + 2])[0]
         idx += block_size
-        if data[idx:idx+2] == b'\xFF\xC0':
+        if data[idx : idx + 2] == b"\xFF\xC0":
             # found Start of Frame
             iSOF = idx
             break
@@ -774,25 +832,26 @@ def _jpegxy(data):
             # read another block
             idx += 2
 
-    h, w = struct.unpack('>HH', data[iSOF+5:iSOF+9])
+    h, w = struct.unpack(">HH", data[iSOF + 5 : iSOF + 9])
     return w, h
+
 
 def _gifxy(data):
     """read the (width, height) from a GIF header"""
-    return struct.unpack('<HH', data[6:10])
+    return struct.unpack("<HH", data[6:10])
 
 
 class Image(DisplayObject):
 
-    _read_flags = 'rb'
-    _FMT_JPEG = u'jpeg'
-    _FMT_PNG = u'png'
-    _FMT_GIF = u'gif'
+    _read_flags = "rb"
+    _FMT_JPEG = "jpeg"
+    _FMT_PNG = "png"
+    _FMT_GIF = "gif"
     _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_GIF]
     _MIMETYPES = {
-        _FMT_PNG: 'image/png',
-        _FMT_JPEG: 'image/jpeg',
-        _FMT_GIF: 'image/gif',
+        _FMT_PNG: "image/png",
+        _FMT_JPEG: "image/jpeg",
+        _FMT_GIF: "image/gif",
     }
 
     def __init__(
@@ -899,9 +958,7 @@ class Image(DisplayObject):
             ext = self._find_ext(url)
         elif data is None:
             raise ValueError("No image data found. Expecting filename, url, or data.")
-        elif isinstance(data, str) and (
-            data.startswith('http') or _safe_exists(data)
-        ):
+        elif isinstance(data, str) and (data.startswith("http") or _safe_exists(data)):
             ext = self._find_ext(data)
         else:
             ext = None
@@ -909,15 +966,15 @@ class Image(DisplayObject):
         if format is None:
             if (
                 ext is not None
-                and ext in [u'jpg', u'jpeg']
+                and ext in ["jpg", "jpeg"]
                 or ext is None
                 and isinstance(data, bytes)
                 and data[:2] == _JPEG
             ):
                 format = self._FMT_JPEG
-            elif ext is not None and ext == u'png':
+            elif ext is not None and ext == "png":
                 format = self._FMT_PNG
-            elif ext is not None and ext == u'gif':
+            elif ext is not None and ext == "gif":
                 format = self._FMT_GIF
             elif ext is not None:
                 format = ext.lower()
@@ -925,7 +982,7 @@ class Image(DisplayObject):
         if format is None:
             format = self._FMT_PNG
 
-        if format.lower() == 'jpg':
+        if format.lower() == "jpg":
             # jpg->jpeg
             format = self._FMT_JPEG
 
@@ -942,21 +999,21 @@ class Image(DisplayObject):
         self.retina = retina
         self.unconfined = unconfined
         self.alt = alt
-        super(Image, self).__init__(data=data, url=url, filename=filename,
-                metadata=metadata)
+        super(Image, self).__init__(
+            data=data, url=url, filename=filename, metadata=metadata
+        )
 
-        if self.width is None and self.metadata.get('width', {}):
-            self.width = metadata['width']
+        if self.width is None and self.metadata.get("width", {}):
+            self.width = metadata["width"]
 
-        if self.height is None and self.metadata.get('height', {}):
-            self.height = metadata['height']
+        if self.height is None and self.metadata.get("height", {}):
+            self.height = metadata["height"]
 
         if self.alt is None and self.metadata.get("alt", {}):
             self.alt = metadata["alt"]
 
         if retina:
             self._retina_shape()
-
 
     def _retina_shape(self):
         """load pixel-doubled width and height from image data"""
@@ -977,7 +1034,7 @@ class Image(DisplayObject):
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.embed:
-            super(Image,self).reload()
+            super(Image, self).reload()
             if self.retina:
                 self._retina_shape()
 
@@ -1008,7 +1065,7 @@ class Image(DisplayObject):
         Any new mimetype support should be implemented here.
         """
         if not self.embed:
-            return {'text/html': self._repr_html_()}
+            return {"text/html": self._repr_html_()}
 
         mimetype = self._mimetype
         data, metadata = self._data_and_metadata(always_both=True)
@@ -1019,19 +1076,20 @@ class Image(DisplayObject):
     def _data_and_metadata(self, always_both=False):
         """shortcut for returning metadata with shape information, if defined"""
         try:
-            b64_data = b2a_base64(self.data).decode('ascii')
+            b64_data = b2a_base64(self.data).decode("ascii")
         except TypeError as e:
             raise FileNotFoundError(
-                "No such file or directory: '%s'" % (self.data)) from e
+                "No such file or directory: '%s'" % (self.data)
+            ) from e
         md = {}
         if self.metadata:
             md.update(self.metadata)
         if self.width:
-            md['width'] = self.width
+            md["width"] = self.width
         if self.height:
-            md['height'] = self.height
+            md["height"] = self.height
         if self.unconfined:
-            md['unconfined'] = self.unconfined
+            md["unconfined"] = self.unconfined
         if self.alt:
             md["alt"] = self.alt
         if md or always_both:
@@ -1058,9 +1116,17 @@ class Image(DisplayObject):
 
 
 class Video(DisplayObject):
-
-    def __init__(self, data=None, url=None, filename=None, embed=False,
-                 mimetype=None, width=None, height=None, html_attributes="controls"):
+    def __init__(
+        self,
+        data=None,
+        url=None,
+        filename=None,
+        embed=False,
+        mimetype=None,
+        width=None,
+        height=None,
+        html_attributes="controls",
+    ):
         """Create a video object given raw data or an URL.
 
         When this object is returned by an input cell or passed to the
@@ -1123,7 +1189,11 @@ class Video(DisplayObject):
         if isinstance(data, (Path, PurePath)):
             data = str(data)
 
-        if url is None and isinstance(data, str) and data.startswith(('http:', 'https:')):
+        if (
+            url is None
+            and isinstance(data, str)
+            and data.startswith(("http:", "https:"))
+        ):
             url = data
             data = None
         elif data is not None and os.path.exists(data):
@@ -1131,11 +1201,13 @@ class Video(DisplayObject):
             data = None
 
         if data and not embed:
-            msg = ''.join([
-                "To embed videos, you must pass embed=True ",
-                "(this may make your notebook files huge)\n",
-                "Consider passing Video(url='...')",
-            ])
+            msg = "".join(
+                [
+                    "To embed videos, you must pass embed=True ",
+                    "(this may make your notebook files huge)\n",
+                    "Consider passing Video(url='...')",
+                ]
+            )
             raise ValueError(msg)
 
         self.mimetype = mimetype
@@ -1146,7 +1218,7 @@ class Video(DisplayObject):
         super(Video, self).__init__(data=data, url=url, filename=filename)
 
     def _repr_html_(self):
-        width = height = ''
+        width = height = ""
         if self.width:
             width = ' width="%d"' % self.width
         if self.height:
@@ -1158,7 +1230,9 @@ class Video(DisplayObject):
             url = self.url if self.url is not None else self.filename
             output = """<video src="{0}" {1} {2} {3}>
       Your browser does not support the <code>video</code> element.
-    </video>""".format(url, self.html_attributes, width, height)
+    </video>""".format(
+                url, self.html_attributes, width, height
+            )
             return output
 
         # Embedded videos are base64-encoded.
@@ -1167,7 +1241,7 @@ class Video(DisplayObject):
             if not mimetype:
                 mimetype, _ = mimetypes.guess_type(self.filename)
 
-            with open(self.filename, 'rb') as f:
+            with open(self.filename, "rb") as f:
                 video = f.read()
         else:
             video = self.data
@@ -1175,12 +1249,14 @@ class Video(DisplayObject):
             # unicode input is already b64-encoded
             b64_video = video
         else:
-            b64_video = b2a_base64(video).decode('ascii').rstrip()
+            b64_video = b2a_base64(video).decode("ascii").rstrip()
 
         output = """<video {0} {1} {2}>
  <source src="data:{3};base64,{4}" type="{3}">
  Your browser does not support the video tag.
- </video>""".format(self.html_attributes, width, height, mimetype, b64_video)
+ </video>""".format(
+            self.html_attributes, width, height, mimetype, b64_video
+        )
         return output
 
     def reload(self):
@@ -1225,6 +1301,7 @@ def set_matplotlib_formats(*formats, **kwargs):
     )
 
     set_matplotlib_formats_orig(*formats, **kwargs)
+
 
 @skip_doctest
 def set_matplotlib_close(close=True):

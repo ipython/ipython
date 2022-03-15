@@ -1,75 +1,74 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (C) 2010-2011, IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import argparse
 import sys
 
-from IPython.core.magic_arguments import (argument, argument_group, kwds,
-    magic_arguments, parse_argstring, real_name)
+from IPython.core.magic_arguments import (
+    argument,
+    argument_group,
+    kwds,
+    magic_arguments,
+    parse_argstring,
+    real_name,
+)
 
 
 @magic_arguments()
-@argument('-f', '--foo', help="an argument")
+@argument("-f", "--foo", help="an argument")
 def magic_foo1(self, args):
-    """ A docstring.
-    """
+    """A docstring."""
     return parse_argstring(magic_foo1, args)
 
 
 @magic_arguments()
 def magic_foo2(self, args):
-    """ A docstring.
-    """
+    """A docstring."""
     return parse_argstring(magic_foo2, args)
 
 
 @magic_arguments()
-@argument('-f', '--foo', help="an argument")
-@argument_group('Group')
-@argument('-b', '--bar', help="a grouped argument")
-@argument_group('Second Group')
-@argument('-z', '--baz', help="another grouped argument")
+@argument("-f", "--foo", help="an argument")
+@argument_group("Group")
+@argument("-b", "--bar", help="a grouped argument")
+@argument_group("Second Group")
+@argument("-z", "--baz", help="another grouped argument")
 def magic_foo3(self, args):
-    """ A docstring.
-    """
+    """A docstring."""
     return parse_argstring(magic_foo3, args)
 
 
 @magic_arguments()
 @kwds(argument_default=argparse.SUPPRESS)
-@argument('-f', '--foo', help="an argument")
+@argument("-f", "--foo", help="an argument")
 def magic_foo4(self, args):
-    """ A docstring.
-    """
+    """A docstring."""
     return parse_argstring(magic_foo4, args)
 
 
-@magic_arguments('frobnicate')
-@argument('-f', '--foo', help="an argument")
+@magic_arguments("frobnicate")
+@argument("-f", "--foo", help="an argument")
 def magic_foo5(self, args):
-    """ A docstring.
-    """
+    """A docstring."""
     return parse_argstring(magic_foo5, args)
 
 
 @magic_arguments()
-@argument('-f', '--foo', help="an argument")
+@argument("-f", "--foo", help="an argument")
 def magic_magic_foo(self, args):
-    """ A docstring.
-    """
+    """A docstring."""
     return parse_argstring(magic_magic_foo, args)
 
 
 @magic_arguments()
-@argument('-f', '--foo', help="an argument")
+@argument("-f", "--foo", help="an argument")
 def foo(self, args):
-    """ A docstring.
-    """
+    """A docstring."""
     return parse_argstring(foo, args)
 
 

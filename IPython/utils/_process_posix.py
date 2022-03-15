@@ -3,16 +3,16 @@
 This file is only meant to be imported by process.py, not by end-users.
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Stdlib
 import errno
@@ -26,13 +26,14 @@ import pexpect
 from ._process_common import getoutput, arg_split
 from IPython.utils.encoding import DEFAULT_ENCODING
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Function definitions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class ProcessHandler(object):
-    """Execute subprocesses under the control of pexpect.
-    """
+    """Execute subprocesses under the control of pexpect."""
+
     # Timeout in seconds to wait on each reading of the subprocess' output.
     # This should not be set too low to avoid cpu overusage from our side,
     # since we read in a loop whose period is controlled by this timeout.
@@ -60,11 +61,14 @@ class ProcessHandler(object):
 
     def __init__(self, logfile=None, read_timeout=None, terminate_timeout=None):
         """Arguments are used for pexpect calls."""
-        self.read_timeout = (ProcessHandler.read_timeout if read_timeout is
-                             None else read_timeout)
-        self.terminate_timeout = (ProcessHandler.terminate_timeout if
-                                  terminate_timeout is None else
-                                  terminate_timeout)
+        self.read_timeout = (
+            ProcessHandler.read_timeout if read_timeout is None else read_timeout
+        )
+        self.terminate_timeout = (
+            ProcessHandler.terminate_timeout
+            if terminate_timeout is None
+            else terminate_timeout
+        )
         self.logfile = sys.stdout if logfile is None else logfile
 
     def getoutput(self, cmd):
@@ -84,9 +88,9 @@ class ProcessHandler(object):
         correct order as would be seen if running the command in a terminal).
         """
         try:
-            return pexpect.run(self.sh, args=['-c', cmd]).replace('\r\n', '\n')
+            return pexpect.run(self.sh, args=["-c", cmd]).replace("\r\n", "\n")
         except KeyboardInterrupt:
-            print('^C', file=sys.stderr, end='')
+            print("^C", file=sys.stderr, end="")
 
     def getoutput_pexpect(self, cmd):
         """Run a command and return its stdout/stderr as a string.
@@ -105,9 +109,9 @@ class ProcessHandler(object):
         correct order as would be seen if running the command in a terminal).
         """
         try:
-            return pexpect.run(self.sh, args=['-c', cmd]).replace('\r\n', '\n')
+            return pexpect.run(self.sh, args=["-c", cmd]).replace("\r\n", "\n")
         except KeyboardInterrupt:
-            print('^C', file=sys.stderr, end='')
+            print("^C", file=sys.stderr, end="")
 
     def system(self, cmd):
         """Execute a command in a subshell.
@@ -123,7 +127,7 @@ class ProcessHandler(object):
         """
         # Get likely encoding for the output.
         enc = DEFAULT_ENCODING
-        
+
         # Patterns to match on the output, for pexpect.  We read input and
         # allow either a short timeout or EOF
         patterns = [pexpect.TIMEOUT, pexpect.EOF]
@@ -141,19 +145,19 @@ class ProcessHandler(object):
             # can set pexpect's search window to be tiny and it won't matter.
             # We only search for the 'patterns' timeout or EOF, which aren't in
             # the text itself.
-            #child = pexpect.spawn(pcmd, searchwindowsize=1)
-            if hasattr(pexpect, 'spawnb'):
-                child = pexpect.spawnb(self.sh, args=['-c', cmd]) # Pexpect-U
+            # child = pexpect.spawn(pcmd, searchwindowsize=1)
+            if hasattr(pexpect, "spawnb"):
+                child = pexpect.spawnb(self.sh, args=["-c", cmd])  # Pexpect-U
             else:
-                child = pexpect.spawn(self.sh, args=['-c', cmd])  # Vanilla Pexpect
+                child = pexpect.spawn(self.sh, args=["-c", cmd])  # Vanilla Pexpect
             flush = sys.stdout.flush
             while True:
                 # res is the index of the pattern that caused the match, so we
                 # know whether we've finished (if we matched EOF) or not
                 res_idx = child.expect_list(patterns, self.read_timeout)
-                print(child.before[out_size:].decode(enc, 'replace'), end='')
+                print(child.before[out_size:].decode(enc, "replace"), end="")
                 flush()
-                if res_idx==EOF_index:
+                if res_idx == EOF_index:
                     break
                 # Update the pointer to what we've already printed
                 out_size = len(child.before)
@@ -167,7 +171,7 @@ class ProcessHandler(object):
             try:
                 out_size = len(child.before)
                 child.expect_list(patterns, self.terminate_timeout)
-                print(child.before[out_size:].decode(enc, 'replace'), end='')
+                print(child.before[out_size:].decode(enc, "replace"), end="")
                 sys.stdout.flush()
             except KeyboardInterrupt:
                 # Impatient users tend to type it multiple times
@@ -201,6 +205,7 @@ class ProcessHandler(object):
 # programs think they are talking to a tty and produce highly formatted output
 # (ls is a good example) that makes them hard.
 system = ProcessHandler().system
+
 
 def check_pid(pid):
     try:

@@ -1,16 +1,16 @@
 # encoding: utf-8
 """Tests for IPython.utils.text"""
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 import math
@@ -23,14 +23,15 @@ import pytest
 
 from IPython.utils import text
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Globals
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def test_columnize():
     """Basic columnize tests."""
     size = 5
-    items = [l*size for l in 'abcd']
+    items = [l * size for l in "abcd"]
 
     out = text.columnize(items, displaywidth=80)
     assert out == "aaaaa  bbbbb  ccccc  ddddd\n"
@@ -61,14 +62,14 @@ def test_columnize():
 
 
 def test_columnize_random():
-    """Test with random input to hopefully catch edge case """
+    """Test with random input to hopefully catch edge case"""
     for row_first in [True, False]:
-        for nitems in [random.randint(2,70) for _ in range(2,20)]:
-            displaywidth = random.randint(20,200)
-            rand_len = [random.randint(2,displaywidth) for _ in range(nitems)]
-            items = ['x'*l for l in rand_len]
+        for nitems in [random.randint(2, 70) for _ in range(2, 20)]:
+            displaywidth = random.randint(20, 200)
+            rand_len = [random.randint(2, displaywidth) for _ in range(nitems)]
+            items = ["x" * l for l in rand_len]
             out = text.columnize(items, row_first=row_first, displaywidth=displaywidth)
-            longer_line = max(len(x) for x in out.split('\n'))
+            longer_line = max(len(x) for x in out.split("\n"))
             longer_element = max(rand_len)
             assert longer_line <= displaywidth, (
                 f"Columnize displayed something lager than displaywidth : {longer_line}\n"
@@ -84,7 +85,7 @@ def test_columnize_random():
 def test_columnize_medium(row_first):
     """Test with inputs than shouldn't be wider than 80"""
     size = 40
-    items = [l*size for l in 'abc']
+    items = [l * size for l in "abc"]
     out = text.columnize(items, row_first=row_first, displaywidth=80)
     assert out == "\n".join(items + [""]), "row_first={0}".format(row_first)
 
@@ -93,13 +94,13 @@ def test_columnize_medium(row_first):
 def test_columnize_long(row_first):
     """Test columnize with inputs longer than the display window"""
     size = 11
-    items = [l*size for l in 'abc']
+    items = [l * size for l in "abc"]
     out = text.columnize(items, row_first=row_first, displaywidth=size - 1)
     assert out == "\n".join(items + [""]), "row_first={0}".format(row_first)
 
 
 def eval_formatter_check(f):
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os, u=u"café", b="café")
+    ns = dict(n=12, pi=math.pi, stuff="hello there", os=os, u="café", b="café")
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     assert s == "12 3 hello"
     s = f.format(" ".join(["{n//%i}" % i for i in range(1, 8)]), **ns)
@@ -116,10 +117,11 @@ def eval_formatter_check(f):
     assert s == ns["u"]
     # This decodes in a platform dependent manner, but it shouldn't error out
     s = f.format("{b}", **ns)
-    ns.assert_raises(NameError, f.format, '{dne}', **ns)
+    ns.assert_raises(NameError, f.format, "{dne}", **ns)
+
 
 def eval_formatter_slicing_check(f):
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
+    ns = dict(n=12, pi=math.pi, stuff="hello there", os=os)
     s = f.format(" {stuff.split()[:]} ", **ns)
     assert s == " ['hello', 'there'] "
     s = f.format(" {stuff.split()[::-1]} ", **ns)
@@ -128,6 +130,7 @@ def eval_formatter_slicing_check(f):
     assert s == ns["stuff"][::2]
 
     pytest.raises(SyntaxError, f.format, "{n:x}", **ns)
+
 
 def eval_formatter_no_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff="hello there", os=os)
@@ -141,22 +144,25 @@ def eval_formatter_no_slicing_check(f):
     s = f.format("{a[:]}", a=[1, 2])
     assert s == "[1, 2]"
 
+
 def test_eval_formatter():
     f = text.EvalFormatter()
     eval_formatter_check(f)
     eval_formatter_no_slicing_check(f)
+
 
 def test_full_eval_formatter():
     f = text.FullEvalFormatter()
     eval_formatter_check(f)
     eval_formatter_slicing_check(f)
 
+
 def test_dollar_formatter():
     f = text.DollarFormatter()
     eval_formatter_check(f)
     eval_formatter_slicing_check(f)
-    
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
+
+    ns = dict(n=12, pi=math.pi, stuff="hello there", os=os)
     s = f.format("$n", **ns)
     assert s == "12"
     s = f.format("$n.real", **ns)

@@ -7,22 +7,22 @@ Authors:
 * Brian Granger (refactoring to a dict subclass)
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-__all__ = ['Struct']
+__all__ = ["Struct"]
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class Struct(dict):
@@ -37,7 +37,9 @@ class Struct(dict):
     * Intelligent merging.
     * Overloaded operators.
     """
+
     _allownew = True
+
     def __init__(self, *args, **kw):
         """Initialize with a dictionary, another Struct, or data.
 
@@ -59,7 +61,7 @@ class Struct(dict):
         >>> sorted(s2.keys())
         ['a', 'b', 'c']
         """
-        object.__setattr__(self, '_allownew', True)
+        object.__setattr__(self, "_allownew", True)
         dict.__init__(self, *args, **kw)
 
     def __setitem__(self, key, value):
@@ -82,7 +84,8 @@ class Struct(dict):
         """
         if not self._allownew and key not in self:
             raise KeyError(
-                "can't create new attribute %s when allow_new_attr(False)" % key)
+                "can't create new attribute %s when allow_new_attr(False)" % key
+            )
         dict.__setitem__(self, key, value)
 
     def __setattr__(self, key, value):
@@ -112,7 +115,7 @@ class Struct(dict):
             # self.__dict__
             if key in self.__dict__ or hasattr(Struct, key):
                 raise AttributeError(
-                    'attr %s is a protected member of class Struct.' % key
+                    "attr %s is a protected member of class Struct." % key
                 )
         try:
             self.__setitem__(key, value)
@@ -160,7 +163,7 @@ class Struct(dict):
         self.merge(other)
         return self
 
-    def __add__(self,other):
+    def __add__(self, other):
         """s + s2 -> New Struct made from s.merge(s2).
 
         Examples
@@ -175,7 +178,7 @@ class Struct(dict):
         sout.merge(other)
         return sout
 
-    def __sub__(self,other):
+    def __sub__(self, other):
         """s1 - s2 -> remove keys in s2 from s1.
 
         Examples
@@ -190,7 +193,7 @@ class Struct(dict):
         sout -= other
         return sout
 
-    def __isub__(self,other):
+    def __isub__(self, other):
         """Inplace remove keys from self that are in other.
 
         Examples
@@ -213,7 +216,7 @@ class Struct(dict):
         the elements of each list as keys and the original keys as values.
         """
         outdict = {}
-        for k,lst in data.items():
+        for k, lst in data.items():
             if isinstance(lst, str):
                 lst = lst.split()
             for entry in lst:
@@ -252,13 +255,13 @@ class Struct(dict):
         """
         return key in self
 
-    def allow_new_attr(self, allow = True):
+    def allow_new_attr(self, allow=True):
         """Set whether new attributes can be created in this Struct.
 
         This can be used to catch typos by verifying that the attribute user
         tries to change already exists in this Struct.
         """
-        object.__setattr__(self, '_allownew', allow)
+        object.__setattr__(self, "_allownew", allow)
 
     def merge(self, __loc_data__=None, __conflict_solve=None, **kw):
         """Merge two Structs with customizable conflict resolution.
@@ -345,15 +348,15 @@ class Struct(dict):
         [('a', 20), ('b', 70)]
         """
 
-        data_dict = dict(__loc_data__,**kw)
+        data_dict = dict(__loc_data__, **kw)
 
         # policies for conflict resolution: two argument functions which return
         # the value that will go in the new struct
-        preserve = lambda old,new: old
-        update   = lambda old,new: new
-        add      = lambda old,new: old + new
-        add_flip = lambda old,new: new + old  # note change of order!
-        add_s    = lambda old,new: old + ' ' + new
+        preserve = lambda old, new: old
+        update = lambda old, new: new
+        add = lambda old, new: old + new
+        add_flip = lambda old, new: new + old  # note change of order!
+        add_s = lambda old, new: old + " " + new
 
         # default policy is to keep current keys when there's a conflict
         conflict_solve = dict.fromkeys(self, preserve)
@@ -364,9 +367,13 @@ class Struct(dict):
         # strings for the three builtin policies and invert it.
         if __conflict_solve:
             inv_conflict_solve_user = __conflict_solve.copy()
-            for name, func in [('preserve',preserve), ('update',update),
-                               ('add',add), ('add_flip',add_flip),
-                               ('add_s',add_s)]:
+            for name, func in [
+                ("preserve", preserve),
+                ("update", update),
+                ("add", add),
+                ("add_flip", add_flip),
+                ("add_s", add_s),
+            ]:
                 if name in inv_conflict_solve_user.keys():
                     inv_conflict_solve_user[func] = inv_conflict_solve_user[name]
                     del inv_conflict_solve_user[name]
@@ -375,5 +382,4 @@ class Struct(dict):
             if key not in self:
                 self[key] = data_dict[key]
             else:
-                self[key] = conflict_solve[key](self[key],data_dict[key])
-
+                self[key] = conflict_solve[key](self[key], data_dict[key])

@@ -14,17 +14,17 @@ Authors
 # name is in the stdlib and name collisions with the stdlib tend to produce
 # weird problems (often with third-party tools).
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011 The IPython Development Team.
 #
 #  Distributed under the terms of the BSD License.
 #
 #  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Stdlib imports
 import __future__
@@ -37,22 +37,27 @@ import operator
 import time
 from contextlib import contextmanager
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Constants
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Roughly equal to PyCF_MASK | PyCF_MASK_OBSOLETE as defined in pythonrun.h,
 # this is used as a bitmask to extract future-related code flags.
-PyCF_MASK = functools.reduce(operator.or_,
-                             (getattr(__future__, fname).compiler_flag
-                              for fname in __future__.all_feature_names))
+PyCF_MASK = functools.reduce(
+    operator.or_,
+    (
+        getattr(__future__, fname).compiler_flag
+        for fname in __future__.all_feature_names
+    ),
+)
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Local utilities
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def code_name(code, number=0):
-    """ Compute a (probably) unique name for code for caching.
+    """Compute a (probably) unique name for code for caching.
 
     This now expects code to be unicode.
     """
@@ -60,15 +65,16 @@ def code_name(code, number=0):
     # Include the number and 12 characters of the hash in the name.  It's
     # pretty much impossible that in a single session we'll have collisions
     # even with truncated hashes, and the full one makes tracebacks too long
-    return '<ipython-input-{0}-{1}>'.format(number, hash_digest[:12])
+    return "<ipython-input-{0}-{1}>".format(number, hash_digest[:12])
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Classes and functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class CachingCompiler(codeop.Compile):
-    """A compiler that caches code compiled from interactive statements.
-    """
+    """A compiler that caches code compiled from interactive statements."""
 
     def __init__(self):
         codeop.Compile.__init__(self)
@@ -83,9 +89,9 @@ class CachingCompiler(codeop.Compile):
         # separate caches (one in each CachingCompiler instance), any call made
         # by Python itself to linecache.checkcache() would obliterate the
         # cached data from the other IPython instances.
-        if not hasattr(linecache, '_ipython_cache'):
+        if not hasattr(linecache, "_ipython_cache"):
             linecache._ipython_cache = {}
-        if not hasattr(linecache, '_checkcache_ori'):
+        if not hasattr(linecache, "_checkcache_ori"):
             linecache._checkcache_ori = linecache.checkcache
         # Now, we must monkeypatch the linecache directly so that parts of the
         # stdlib that call it outside our control go through our codepath
@@ -97,7 +103,7 @@ class CachingCompiler(codeop.Compile):
         # argument used for the builtins.compile function.
         self._filename_map = {}
 
-    def ast_parse(self, source, filename='<unknown>', symbol='exec'):
+    def ast_parse(self, source, filename="<unknown>", symbol="exec"):
         """Parse code to an AST with the current compiler flags active.
 
         Arguments are exactly the same as ast.parse (in the standard library),
@@ -112,8 +118,7 @@ class CachingCompiler(codeop.Compile):
 
     @property
     def compiler_flags(self):
-        """Flags currently active in the compilation process.
-        """
+        """Flags currently active in the compilation process."""
         return self.flags
 
     def get_code_name(self, raw_code, transformed_code, number):
@@ -176,7 +181,6 @@ class CachingCompiler(codeop.Compile):
         ## bits that we'll set to 1
         turn_on_bits = ~self.flags & flags
 
-
         self.flags = self.flags | flags
         try:
             yield
@@ -187,8 +191,7 @@ class CachingCompiler(codeop.Compile):
 
 
 def check_linecache_ipython(*args):
-    """Call linecache.checkcache() safely protecting our cached values.
-    """
+    """Call linecache.checkcache() safely protecting our cached values."""
     # First call the original checkcache as intended
     linecache._checkcache_ori(*args)
     # Then, update back the cache with our data, so that tracebacks related

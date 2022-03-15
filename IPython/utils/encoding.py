@@ -3,16 +3,16 @@
 Utilities for dealing with text encodings
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2012  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import sys
 import locale
 import warnings
@@ -26,10 +26,11 @@ def get_stream_enc(stream, default=None):
     a default if it doesn't exist or evaluates as False. ``default``
     is None if not provided.
     """
-    if not hasattr(stream, 'encoding') or not stream.encoding:
+    if not hasattr(stream, "encoding") or not stream.encoding:
         return default
     else:
         return stream.encoding
+
 
 # Less conservative replacement for sys.getdefaultencoding, that will try
 # to match the environment.
@@ -47,7 +48,7 @@ def getdefaultencoding(prefer_stream=True):
     and usually UTF8 as of Python 3.
     """
     enc = get_stream_enc(sys.stdin) if prefer_stream else None
-    if not enc or enc=='ascii':
+    if not enc or enc == "ascii":
         try:
             # There are reports of getpreferredencoding raising errors
             # in some cases, which may well be fixed, but let's be conservative here.
@@ -58,12 +59,15 @@ def getdefaultencoding(prefer_stream=True):
     # On windows `cp0` can be returned to indicate that there is no code page.
     # Since cp0 is an invalid encoding return instead cp1252 which is the
     # Western European default.
-    if enc == 'cp0':
+    if enc == "cp0":
         warnings.warn(
             "Invalid code page cp0 detected - using cp1252 instead."
             "If cp1252 is incorrect please ensure a valid code page "
-            "is defined for the process.", RuntimeWarning)
-        return 'cp1252'
+            "is defined for the process.",
+            RuntimeWarning,
+        )
+        return "cp1252"
     return enc
+
 
 DEFAULT_ENCODING = getdefaultencoding()

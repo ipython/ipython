@@ -158,9 +158,10 @@ class _AsyncSyntaxErrorVisitor(ast.NodeVisitor):
     the implementation involves wrapping the repl in an async function, it
     is erroneously allowed (e.g. yield or return at the top level)
     """
+
     def __init__(self):
-        if sys.version_info >= (3,8):
-            raise ValueError('DEPRECATED in Python 3.8+')
+        if sys.version_info >= (3, 8):
+            raise ValueError("DEPRECATED in Python 3.8+")
         self.depth = 0
         super().__init__()
 
@@ -168,7 +169,7 @@ class _AsyncSyntaxErrorVisitor(ast.NodeVisitor):
         func_types = (ast.FunctionDef, ast.AsyncFunctionDef)
         invalid_types_by_depth = {
             0: (ast.Return, ast.Yield, ast.YieldFrom),
-            1: (ast.Nonlocal,)
+            1: (ast.Nonlocal,),
         }
 
         should_traverse = self.depth < max(invalid_types_by_depth.keys())
@@ -196,6 +197,7 @@ def _async_parse_cell(cell: str) -> ast.AST:
     # Prior to 3.7 you need to asyncify before parse
     wrapped_parse_tree = ast.parse(_asyncify(cell))
     return wrapped_parse_tree.body[0].body[0]
+
 
 def _should_be_async(cell: str) -> bool:
     """Detect if a block of code need to be wrapped in an `async def`

@@ -10,17 +10,25 @@ from traitlets.config.configurable import Configurable
 from traitlets import Instance
 
 
-class __BuiltinUndefined(object): pass
+class __BuiltinUndefined(object):
+    pass
+
+
 BuiltinUndefined = __BuiltinUndefined()
 
-class __HideBuiltin(object): pass
+
+class __HideBuiltin(object):
+    pass
+
+
 HideBuiltin = __HideBuiltin()
 
 
 class BuiltinTrap(Configurable):
 
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
-                     allow_none=True)
+    shell = Instance(
+        "IPython.core.interactiveshell.InteractiveShellABC", allow_none=True
+    )
 
     def __init__(self, shell=None):
         super(BuiltinTrap, self).__init__(shell=shell, config=None)
@@ -31,10 +39,11 @@ class BuiltinTrap(Configurable):
         self.shell = shell
         # builtins we always add - if set to HideBuiltin, they will just
         # be removed instead of being replaced by something else
-        self.auto_builtins = {'exit': HideBuiltin,
-                              'quit': HideBuiltin,
-                              'get_ipython': self.shell.get_ipython,
-                              }
+        self.auto_builtins = {
+            "exit": HideBuiltin,
+            "quit": HideBuiltin,
+            "get_ipython": self.shell.get_ipython,
+        }
 
     def __enter__(self):
         if self._nested_level == 0:
@@ -55,7 +64,7 @@ class BuiltinTrap(Configurable):
         bdict = builtin_mod.__dict__
         orig = bdict.get(key, BuiltinUndefined)
         if value is HideBuiltin:
-            if orig is not BuiltinUndefined: #same as 'key in bdict'
+            if orig is not BuiltinUndefined:  # same as 'key in bdict'
                 self._orig_builtins[key] = orig
                 del bdict[key]
         else:

@@ -20,6 +20,7 @@ from warnings import warn
 # of these are also attributes of InteractiveShell. They should be on ONE object
 # only and the other objects should ask that one object for their values.
 
+
 class DisplayHook(Configurable):
     """The custom IPython displayhook to replace sys.displayhook.
 
@@ -27,10 +28,12 @@ class DisplayHook(Configurable):
     that gets called anytime user code returns a value.
     """
 
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
-                     allow_none=True)
-    exec_result = Instance('IPython.core.interactiveshell.ExecutionResult',
-                           allow_none=True)
+    shell = Instance(
+        "IPython.core.interactiveshell.InteractiveShellABC", allow_none=True
+    )
+    exec_result = Instance(
+        "IPython.core.interactiveshell.ExecutionResult", allow_none=True
+    )
     cull_fraction = Float(0.2)
 
     def __init__(self, shell=None, cache_size=1000, **kwargs):
@@ -42,8 +45,11 @@ class DisplayHook(Configurable):
         elif cache_size < cache_size_min:
             self.do_full_cache = 0
             cache_size = 0
-            warn('caching was disabled (min value for cache size is %s).' %
-                 cache_size_min,stacklevel=3)
+            warn(
+                "caching was disabled (min value for cache size is %s)."
+                % cache_size_min,
+                stacklevel=3,
+            )
         else:
             self.do_full_cache = 1
 
@@ -51,53 +57,58 @@ class DisplayHook(Configurable):
 
         # we need a reference to the user-level namespace
         self.shell = shell
-        
-        self._,self.__,self.___ = '','',''
+
+        self._, self.__, self.___ = "", "", ""
 
         # these are deliberately global:
-        to_user_ns = {'_':self._,'__':self.__,'___':self.___}
+        to_user_ns = {"_": self._, "__": self.__, "___": self.___}
         self.shell.user_ns.update(to_user_ns)
 
     @property
     def prompt_count(self):
         return self.shell.execution_count
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Methods used in __call__. Override these methods to modify the behavior
     # of the displayhook.
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def check_for_underscore(self):
         """Check if the user has set the '_' variable by hand."""
         # If something injected a '_' variable in __builtin__, delete
         # ipython's automatic one so we don't clobber that.  gettext() in
         # particular uses _, so we need to stay away from it.
-        if '_' in builtin_mod.__dict__:
+        if "_" in builtin_mod.__dict__:
             try:
-                user_value = self.shell.user_ns['_']
+                user_value = self.shell.user_ns["_"]
                 if user_value is not self._:
                     return
-                del self.shell.user_ns['_']
+                del self.shell.user_ns["_"]
             except KeyError:
                 pass
 
     def quiet(self):
         """Should we silence the display hook because of ';'?"""
         # do not print output if input ends in ';'
-        
+
         try:
             cell = self.shell.history_manager.input_hist_parsed[-1]
         except IndexError:
             # some uses of ipshellembed may fail here
             return False
-        
+
         sio = _io.StringIO(cell)
         tokens = list(tokenize.generate_tokens(sio.readline))
 
         for token in reversed(tokens):
-            if token[0] in (tokenize.ENDMARKER, tokenize.NL, tokenize.NEWLINE, tokenize.COMMENT):
+            if token[0] in (
+                tokenize.ENDMARKER,
+                tokenize.NL,
+                tokenize.NEWLINE,
+                tokenize.COMMENT,
+            ):
                 continue
-            if (token[0] == tokenize.OP) and (token[1] == ';'):
+            if (token[0] == tokenize.OP) and (token[1] == ";"):
                 return True
             else:
                 return False
@@ -114,7 +125,7 @@ class DisplayHook(Configurable):
         """
         # Use write, not print which adds an extra space.
         sys.stdout.write(self.shell.separate_out)
-        outprompt = 'Out[{}]: '.format(self.shell.execution_count)
+        outprompt = "Out[{}]: ".format(self.shell.execution_count)
         if self.do_full_cache:
             sys.stdout.write(outprompt)
 
@@ -168,14 +179,14 @@ class DisplayHook(Configurable):
         md_dict : dict (optional)
             The metadata dict to be associated with the display data.
         """
-        if 'text/plain' not in format_dict:
+        if "text/plain" not in format_dict:
             # nothing to do
             return
         # We want to print because we want to always make sure we have a
         # newline, even if all the prompt separators are ''. This is the
         # standard IPython behavior.
-        result_repr = format_dict['text/plain']
-        if '\n' in result_repr:
+        result_repr = format_dict["text/plain"]
+        if "\n" in result_repr:
             # So that multi-line strings line up with the left column of
             # the screen, instead of having the output prompt mess up
             # their first line.
@@ -185,21 +196,25 @@ class DisplayHook(Configurable):
             # a newline.
             if not self.prompt_end_newline:
                 # But avoid extraneous empty lines.
-                result_repr = '\n' + result_repr
+                result_repr = "\n" + result_repr
 
         try:
             print(result_repr)
         except UnicodeEncodeError:
             # If a character is not supported by the terminal encoding replace
             # it with its \u or \x representation
-            print(result_repr.encode(sys.stdout.encoding,'backslashreplace').decode(sys.stdout.encoding))
+            print(
+                result_repr.encode(sys.stdout.encoding, "backslashreplace").decode(
+                    sys.stdout.encoding
+                )
+            )
 
     def update_user_ns(self, result):
         """Update user_ns with various things like _, __, _1, etc."""
 
         # Avoid recursive reference when displaying _oh/Out
-        if self.cache_size and result is not self.shell.user_ns['_oh']:
-            if len(self.shell.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
+        if self.cache_size and result is not self.shell.user_ns["_oh"]:
+            if len(self.shell.user_ns["_oh"]) >= self.cache_size and self.do_full_cache:
                 self.cull_cache()
 
             # Don't overwrite '_' and friends if '_' is in __builtin__
@@ -207,7 +222,7 @@ class DisplayHook(Configurable):
             # do not overwrite _, __ or ___ if one of these has been assigned
             # by the user.
             update_unders = True
-            for unders in ['_'*i for i in range(1,4)]:
+            for unders in ["_" * i for i in range(1, 4)]:
                 if not unders in self.shell.user_ns:
                     continue
                 if getattr(self, unders) is not self.shell.user_ns.get(unders):
@@ -217,18 +232,18 @@ class DisplayHook(Configurable):
             self.__ = self._
             self._ = result
 
-            if ('_' not in builtin_mod.__dict__) and (update_unders):
-                self.shell.push({'_':self._,
-                                 '__':self.__,
-                                '___':self.___}, interactive=False)
+            if ("_" not in builtin_mod.__dict__) and (update_unders):
+                self.shell.push(
+                    {"_": self._, "__": self.__, "___": self.___}, interactive=False
+                )
 
             # hackish access to top-level  namespace to create _1,_2... dynamically
             to_main = {}
             if self.do_full_cache:
-                new_result = '_%s' % self.prompt_count
+                new_result = "_%s" % self.prompt_count
                 to_main[new_result] = result
                 self.shell.push(to_main, interactive=False)
-                self.shell.user_ns['_oh'][self.prompt_count] = result
+                self.shell.user_ns["_oh"][self.prompt_count] = result
 
     def fill_exec_result(self, result):
         if self.exec_result is not None:
@@ -236,13 +251,14 @@ class DisplayHook(Configurable):
 
     def log_output(self, format_dict):
         """Log the output."""
-        if 'text/plain' not in format_dict:
+        if "text/plain" not in format_dict:
             # nothing to do
             return
         if self.shell.logger.log_output:
-            self.shell.logger.log_write(format_dict['text/plain'], 'output')
-        self.shell.history_manager.output_hist_reprs[self.prompt_count] = \
-                                                    format_dict['text/plain']
+            self.shell.logger.log_write(format_dict["text/plain"], "output")
+        self.shell.history_manager.output_hist_reprs[self.prompt_count] = format_dict[
+            "text/plain"
+        ]
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
@@ -269,42 +285,47 @@ class DisplayHook(Configurable):
 
     def cull_cache(self):
         """Output cache is full, cull the oldest entries"""
-        oh = self.shell.user_ns.get('_oh', {})
+        oh = self.shell.user_ns.get("_oh", {})
         sz = len(oh)
         cull_count = max(int(sz * self.cull_fraction), 2)
-        warn('Output cache limit (currently {sz} entries) hit.\n'
-             'Flushing oldest {cull_count} entries.'.format(sz=sz, cull_count=cull_count))
-        
+        warn(
+            "Output cache limit (currently {sz} entries) hit.\n"
+            "Flushing oldest {cull_count} entries.".format(sz=sz, cull_count=cull_count)
+        )
+
         for i, n in enumerate(sorted(oh)):
             if i >= cull_count:
                 break
-            self.shell.user_ns.pop('_%i' % n, None)
+            self.shell.user_ns.pop("_%i" % n, None)
             oh.pop(n, None)
-        
 
     def flush(self):
         if not self.do_full_cache:
-            raise ValueError("You shouldn't have reached the cache flush "
-                             "if full caching is not enabled!")
+            raise ValueError(
+                "You shouldn't have reached the cache flush "
+                "if full caching is not enabled!"
+            )
         # delete auto-generated vars from global namespace
 
-        for n in range(1,self.prompt_count + 1):
-            key = '_'+repr(n)
+        for n in range(1, self.prompt_count + 1):
+            key = "_" + repr(n)
             try:
                 del self.shell.user_ns[key]
-            except: pass
+            except:
+                pass
         # In some embedded circumstances, the user_ns doesn't have the
         # '_oh' key set up.
-        oh = self.shell.user_ns.get('_oh', None)
+        oh = self.shell.user_ns.get("_oh", None)
         if oh is not None:
             oh.clear()
 
         # Release our own references to objects:
-        self._, self.__, self.___ = '', '', ''
+        self._, self.__, self.___ = "", "", ""
 
-        if '_' not in builtin_mod.__dict__:
-            self.shell.user_ns.update({'_':self._,'__':self.__,'___':self.___})
+        if "_" not in builtin_mod.__dict__:
+            self.shell.user_ns.update({"_": self._, "__": self.__, "___": self.___})
         import gc
+
         # TODO: Is this really needed?
         # IronPython blocks here forever
         if sys.platform != "cli":
@@ -322,4 +343,4 @@ class CapturingDisplayHook(object):
         if result is None:
             return
         format_dict, md_dict = self.shell.display_formatter.format(result)
-        self.outputs.append({ 'data': format_dict, 'metadata': md_dict })
+        self.outputs.append({"data": format_dict, "metadata": md_dict})

@@ -21,17 +21,22 @@ from shutil import get_terminal_size as _get_terminal_size
 ignore_termtitle = True
 
 
+if os.name == "posix":
 
-if os.name == 'posix':
     def _term_clear():
-        os.system('clear')
-elif sys.platform == 'win32':
+        os.system("clear")
+
+
+elif sys.platform == "win32":
+
     def _term_clear():
-        os.system('cls')
+        os.system("cls")
+
+
 else:
+
     def _term_clear():
         pass
-
 
 
 def toggle_set_term_title(val):
@@ -50,10 +55,10 @@ def toggle_set_term_title(val):
         appropriate platform-specific module).  If False, it is a no-op.
     """
     global ignore_termtitle
-    ignore_termtitle = not(val)
+    ignore_termtitle = not (val)
 
 
-def _set_term_title(*args,**kw):
+def _set_term_title(*args, **kw):
     """Dummy no-op."""
     pass
 
@@ -63,32 +68,34 @@ def _restore_term_title():
 
 
 def _set_term_title_xterm(title):
-    """ Change virtual terminal title in xterm-workalikes """
+    """Change virtual terminal title in xterm-workalikes"""
     # save the current title to the xterm "stack"
-    sys.stdout.write('\033[22;0t') 
-    sys.stdout.write('\033]0;%s\007' % title)
+    sys.stdout.write("\033[22;0t")
+    sys.stdout.write("\033]0;%s\007" % title)
 
 
 def _restore_term_title_xterm():
-    sys.stdout.write('\033[23;0t') 
+    sys.stdout.write("\033[23;0t")
 
 
-if os.name == 'posix':
-    TERM = os.environ.get('TERM','')
-    if TERM.startswith('xterm'):
+if os.name == "posix":
+    TERM = os.environ.get("TERM", "")
+    if TERM.startswith("xterm"):
         _set_term_title = _set_term_title_xterm
         _restore_term_title = _restore_term_title_xterm
-elif sys.platform == 'win32':
+elif sys.platform == "win32":
     try:
         import ctypes
 
         SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
         SetConsoleTitleW.argtypes = [ctypes.c_wchar_p]
-    
+
         def _set_term_title(title):
             """Set terminal title using ctypes to access the Win32 APIs."""
             SetConsoleTitleW(title)
+
     except ImportError:
+
         def _set_term_title(title):
             """Set terminal title using the 'title' command."""
             global ignore_termtitle

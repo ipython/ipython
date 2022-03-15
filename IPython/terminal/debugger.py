@@ -17,7 +17,8 @@ from prompt_toolkit.history import InMemoryHistory, FileHistory
 from concurrent.futures import ThreadPoolExecutor
 
 from prompt_toolkit import __version__ as ptk_version
-PTK3 = ptk_version.startswith('3.')
+
+PTK3 = ptk_version.startswith("3.")
 
 
 class TerminalPdb(Pdb):
@@ -51,7 +52,9 @@ class TerminalPdb(Pdb):
 
             def gen_comp(self, text):
                 return [m for m in methods_names if m.startswith(text)]
+
             import types
+
             newcomp = types.MethodType(gen_comp, compl)
             compl.custom_matchers.insert(0, newcomp)
             # end add completer.
@@ -85,7 +88,7 @@ class TerminalPdb(Pdb):
         )
 
         if not PTK3:
-            options['inputhook'] = self.shell.inputhook
+            options["inputhook"] = self.shell.inputhook
         options.update(pt_session_options)
         self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(**options)
@@ -98,7 +101,7 @@ class TerminalPdb(Pdb):
         override the same methods from cmd.Cmd to provide prompt toolkit replacement.
         """
         if not self.use_rawinput:
-            raise ValueError('Sorry ipdb does not support use_rawinput=False')
+            raise ValueError("Sorry ipdb does not support use_rawinput=False")
 
         # In order to make sure that prompt, which uses asyncio doesn't
         # interfere with applications in which it's used, we always run the
@@ -118,7 +121,9 @@ class TerminalPdb(Pdb):
                     line = self.cmdqueue.pop(0)
                 else:
                     self._ptcomp.ipy_completer.namespace = self.curframe_locals
-                    self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
+                    self._ptcomp.ipy_completer.global_namespace = (
+                        self.curframe.f_globals
+                    )
 
                     # Run the prompt in a different thread.
                     try:
@@ -155,8 +160,9 @@ def set_trace(frame=None):
     TerminalPdb().set_trace(frame or sys._getframe().f_back)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import pdb
+
     # IPython.core.debugger.Pdb.trace_dispatch shall not catch
     # bdb.BdbQuit. When started through __main__ and an exception
     # happened after hitting "c", this is needed in order to

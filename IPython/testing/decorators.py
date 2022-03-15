@@ -36,13 +36,14 @@ from decorator import decorator
 # Expose the unittest-driven decorators
 from .ipunittest import ipdoctest, ipdocstring
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Classes and functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Simple example of the basic idea
 def as_unittest(func):
     """Decorator to make a simple function into a normal test via unittest."""
+
     class Tester(unittest.TestCase):
         def test(self):
             func()
@@ -50,6 +51,7 @@ def as_unittest(func):
     Tester.__name__ = func.__name__
 
     return Tester
+
 
 # Utility functions
 
@@ -94,10 +96,12 @@ def skip(msg=None):
        decorator : function
          Decorator, which, when applied to a function, causes SkipTest
          to be raised, with the optional message added.
-      """
+    """
     if msg and not isinstance(msg, str):
-        raise ValueError('invalid object passed to `@skip` decorator, did you '
-                         'meant `@skip()` with brackets ?')
+        raise ValueError(
+            "invalid object passed to `@skip` decorator, did you "
+            "meant `@skip()` with brackets ?"
+        )
     return skipif(True, msg)
 
 
@@ -106,7 +110,8 @@ def onlyif(condition, msg):
 
     return skipif(not condition, msg)
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Utility functions for decorators
 def module_not_available(module):
     """Can module be imported?  Returns true if module does NOT import.
@@ -122,25 +127,26 @@ def module_not_available(module):
     return mod_not_avail
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Decorators for public use
 
 # Decorators to skip certain tests on specific platforms.
-skip_win32 = skipif(sys.platform == 'win32',
-                    "This test does not run under Windows")
-skip_linux = skipif(sys.platform.startswith('linux'),
-                    "This test does not run under Linux")
-skip_osx = skipif(sys.platform == 'darwin',"This test does not run under OS X")
+skip_win32 = skipif(sys.platform == "win32", "This test does not run under Windows")
+skip_linux = skipif(
+    sys.platform.startswith("linux"), "This test does not run under Linux"
+)
+skip_osx = skipif(sys.platform == "darwin", "This test does not run under OS X")
 
 
 # Decorators to skip tests if not on specific platforms.
-skip_if_not_win32 = skipif(sys.platform != 'win32',
-                           "This test only runs under Windows")
-skip_if_not_linux = skipif(not sys.platform.startswith('linux'),
-                           "This test only runs under Linux")
+skip_if_not_win32 = skipif(sys.platform != "win32", "This test only runs under Windows")
+skip_if_not_linux = skipif(
+    not sys.platform.startswith("linux"), "This test only runs under Linux"
+)
 
-_x11_skip_cond = (sys.platform not in ('darwin', 'win32') and
-                  os.environ.get('DISPLAY', '') == '')
+_x11_skip_cond = (
+    sys.platform not in ("darwin", "win32") and os.environ.get("DISPLAY", "") == ""
+)
 _x11_skip_msg = "Skipped under *nix when X11/XOrg not available"
 
 skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
@@ -148,11 +154,13 @@ skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
 # Other skip decorators
 
 # generic skip without module
-skip_without = lambda mod: skipif(module_not_available(mod), "This test requires %s" % mod)
+skip_without = lambda mod: skipif(
+    module_not_available(mod), "This test requires %s" % mod
+)
 
-skipif_not_numpy = skip_without('numpy')
+skipif_not_numpy = skip_without("numpy")
 
-skipif_not_matplotlib = skip_without('matplotlib')
+skipif_not_matplotlib = skip_without("matplotlib")
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
@@ -161,15 +169,17 @@ null_deco = lambda f: f
 # Some tests only run where we can use unicode paths. Note that we can't just
 # check os.path.supports_unicode_filenames, which is always False on Linux.
 try:
-    f = tempfile.NamedTemporaryFile(prefix=u"tmp€")
+    f = tempfile.NamedTemporaryFile(prefix="tmp€")
 except UnicodeEncodeError:
     unicode_paths = False
 else:
     unicode_paths = True
     f.close()
 
-onlyif_unicode_paths = onlyif(unicode_paths, ("This test is only applicable "
-                                    "where we can use unicode in filenames."))
+onlyif_unicode_paths = onlyif(
+    unicode_paths,
+    ("This test is only applicable " "where we can use unicode in filenames."),
+)
 
 
 def onlyif_cmds_exist(*commands):

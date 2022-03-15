@@ -29,6 +29,7 @@ def pytest_collection_modifyitems(items):
 
 def get_ipython():
     from .terminal.interactiveshell import TerminalInteractiveShell
+
     if TerminalInteractiveShell._instance:
         return TerminalInteractiveShell.instance()
 
@@ -39,12 +40,14 @@ def get_ipython():
     return TerminalInteractiveShell.instance(config=config)
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def work_path():
     path = pathlib.Path("./tmp-ipython-pytest-profiledir")
     os.environ["IPYTHONDIR"] = str(path.absolute())
     if path.exists():
-        raise ValueError('IPython dir temporary path already exists ! Did previous test run exit successfully ?')
+        raise ValueError(
+            "IPython dir temporary path already exists ! Did previous test run exit successfully ?"
+        )
     path.mkdir()
     yield
     shutil.rmtree(str(path.resolve()))
@@ -57,8 +60,7 @@ def nopage(strng, start=0, screen_lines=0, pager_cmd=None):
 
 
 def xsys(self, cmd):
-    """Replace the default system call with a capturing one for doctest.
-    """
+    """Replace the default system call with a capturing one for doctest."""
     # We use getoutput, but we need to strip it because pexpect captures
     # the trailing newline differently from commands.getoutput
     print(self.getoutput(cmd, split=False, depth=1).rstrip(), end="", file=sys.stdout)
@@ -69,7 +71,7 @@ def xsys(self, cmd):
 # unfortunately this will fail on some test that get executed as _collection_
 # time (before the fixture run), in particular parametrized test that contain
 # yields. so for now execute at import time.
-#@pytest.fixture(autouse=True, scope='session')
+# @pytest.fixture(autouse=True, scope='session')
 def inject():
 
     builtins.get_ipython = get_ipython

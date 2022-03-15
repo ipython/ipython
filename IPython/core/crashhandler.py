@@ -7,17 +7,17 @@ Authors:
 * Brian E. Granger
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 import sys
@@ -34,9 +34,9 @@ from IPython.core.release import __version__ as version
 
 from typing import Optional
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Template for the user message.
 _default_message_template = """\
@@ -95,7 +95,7 @@ class CrashHandler(object):
     """
 
     message_template = _default_message_template
-    section_sep = '\n\n'+'*'*75+'\n\n'
+    section_sep = "\n\n" + "*" * 75 + "\n\n"
 
     def __init__(
         self,
@@ -135,28 +135,29 @@ class CrashHandler(object):
         self.crash_report_fname = "Crash_report_%s.txt" % app.name
         self.app = app
         self.call_pdb = call_pdb
-        #self.call_pdb = True # dbg
+        # self.call_pdb = True # dbg
         self.show_crash_traceback = show_crash_traceback
-        self.info = dict(app_name = app.name,
-                    contact_name = contact_name,
-                    contact_email = contact_email,
-                    bug_tracker = bug_tracker,
-                    crash_report_fname = self.crash_report_fname)
-
+        self.info = dict(
+            app_name=app.name,
+            contact_name=contact_name,
+            contact_email=contact_email,
+            bug_tracker=bug_tracker,
+            crash_report_fname=self.crash_report_fname,
+        )
 
     def __call__(self, etype, evalue, etb):
         """Handle an exception, call for compatible with sys.excepthook"""
-        
+
         # do not allow the crash handler to be called twice without reinstalling it
         # this prevents unlikely errors in the crash handling from entering an
         # infinite loop.
         sys.excepthook = sys.__excepthook__
-        
+
         # Report tracebacks shouldn't use color in general (safer for users)
-        color_scheme = 'NoColor'
+        color_scheme = "NoColor"
 
         # Use this ONLY for developer debugging (keep commented out for release)
-        #color_scheme = 'Linux'   # dbg
+        # color_scheme = 'Linux'   # dbg
         try:
             rptdir = self.app.ipython_dir
         except:
@@ -167,17 +168,17 @@ class CrashHandler(object):
         # write the report filename into the instance dict so it can get
         # properly expanded out in the user message template
         self.crash_report_fname = report_name
-        self.info['crash_report_fname'] = report_name
+        self.info["crash_report_fname"] = report_name
         TBhandler = ultratb.VerboseTB(
             color_scheme=color_scheme,
             long_header=1,
             call_pdb=self.call_pdb,
         )
         if self.call_pdb:
-            TBhandler(etype,evalue,etb)
+            TBhandler(etype, evalue, etb)
             return
         else:
-            traceback = TBhandler.text(etype,evalue,etb,context=31)
+            traceback = TBhandler.text(etype, evalue, etb, context=31)
 
         # print traceback to screen
         if self.show_crash_traceback:
@@ -187,12 +188,12 @@ class CrashHandler(object):
         try:
             report = open(report_name, "w", encoding="utf-8")
         except:
-            print('Could not create crash report on disk.', file=sys.stderr)
+            print("Could not create crash report on disk.", file=sys.stderr)
             return
 
         with report:
             # Inform user on stderr of what happened
-            print('\n'+'*'*70+'\n', file=sys.stderr)
+            print("\n" + "*" * 70 + "\n", file=sys.stderr)
             print(self.message_template.format(**self.info), file=sys.stderr)
 
             # Construct report on disk
@@ -200,38 +201,43 @@ class CrashHandler(object):
 
         input("Hit <Enter> to quit (your terminal may close):")
 
-    def make_report(self,traceback):
+    def make_report(self, traceback):
         """Return a string containing a crash report."""
 
         sec_sep = self.section_sep
 
-        report = ['*'*75+'\n\n'+'IPython post-mortem report\n\n']
+        report = ["*" * 75 + "\n\n" + "IPython post-mortem report\n\n"]
         rpt_add = report.append
         rpt_add(sys_info())
 
         try:
             config = pformat(self.app.config)
             rpt_add(sec_sep)
-            rpt_add('Application name: %s\n\n' % self.app_name)
-            rpt_add('Current user configuration structure:\n\n')
+            rpt_add("Application name: %s\n\n" % self.app_name)
+            rpt_add("Current user configuration structure:\n\n")
             rpt_add(config)
         except:
             pass
-        rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
+        rpt_add(sec_sep + "Crash traceback:\n\n" + traceback)
 
-        return ''.join(report)
+        return "".join(report)
 
 
 def crash_handler_lite(etype, evalue, tb):
     """a light excepthook, adding a small message to the usual traceback"""
     traceback.print_exception(etype, evalue, tb)
-    
+
     from IPython.core.interactiveshell import InteractiveShell
+
     if InteractiveShell.initialized():
         # we are in a Shell environment, give %magic example
         config = "%config "
     else:
         # we are not in a shell, show generic config
         config = "c."
-    print(_lite_message_template.format(email=author_email, config=config, version=version), file=sys.stderr)
-
+    print(
+        _lite_message_template.format(
+            email=author_email, config=config, version=version
+        ),
+        file=sys.stderr,
+    )

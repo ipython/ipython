@@ -7,7 +7,6 @@ IO related utilities.
 # Distributed under the terms of the Modified BSD License.
 
 
-
 import atexit
 import os
 import sys
@@ -32,10 +31,11 @@ class Tee(object):
     When the object is closed or deleted, it closes the original file given to
     it for duplication.
     """
+
     # Inspired by:
     # http://mail.python.org/pipermail/python-list/2007-May/442737.html
 
-    def __init__(self, file_or_name, mode="w", channel='stdout'):
+    def __init__(self, file_or_name, mode="w", channel="stdout"):
         """Construct a new Tee object.
 
         Parameters
@@ -46,10 +46,10 @@ class Tee(object):
             If a filename was give, open with this mode.
         channel : str, one of ['stdout', 'stderr']
         """
-        if channel not in ['stdout', 'stderr']:
-            raise ValueError('Invalid channel spec %s' % channel)
+        if channel not in ["stdout", "stderr"]:
+            raise ValueError("Invalid channel spec %s" % channel)
 
-        if hasattr(file_or_name, 'write') and hasattr(file_or_name, 'seek'):
+        if hasattr(file_or_name, "write") and hasattr(file_or_name, "seek"):
             self.file = file_or_name
         else:
             encoding = None if "b" in mode else "utf-8"
@@ -95,11 +95,11 @@ def ask_yes_no(prompt, default=None, interrupt=None):
 
     Valid answers are: y/yes/n/no (match is not case sensitive)."""
 
-    answers = {'y':True,'n':False,'yes':True,'no':False}
+    answers = {"y": True, "n": False, "yes": True, "no": False}
     ans = None
     while ans not in answers.keys():
         try:
-            ans = input(prompt+' ').lower()
+            ans = input(prompt + " ").lower()
             if not ans:  # response was an empty string
                 ans = default
         except KeyboardInterrupt:
@@ -115,7 +115,7 @@ def ask_yes_no(prompt, default=None, interrupt=None):
     return answers[ans]
 
 
-def temp_pyfile(src, ext='.py'):
+def temp_pyfile(src, ext=".py"):
     """Make a temporary python file, return filename and filehandle.
 
     Parameters
@@ -140,17 +140,24 @@ def temp_pyfile(src, ext='.py'):
 @undoc
 def raw_print(*args, **kw):
     """DEPRECATED: Raw print to sys.__stdout__, otherwise identical interface to print()."""
-    warn("IPython.utils.io.raw_print has been deprecated since IPython 7.0", DeprecationWarning, stacklevel=2)
+    warn(
+        "IPython.utils.io.raw_print has been deprecated since IPython 7.0",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-    print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
-          file=sys.__stdout__)
+    print(*args, sep=kw.get("sep", " "), end=kw.get("end", "\n"), file=sys.__stdout__)
     sys.__stdout__.flush()
+
 
 @undoc
 def raw_print_err(*args, **kw):
     """DEPRECATED: Raw print to sys.__stderr__, otherwise identical interface to print()."""
-    warn("IPython.utils.io.raw_print_err has been deprecated since IPython 7.0", DeprecationWarning, stacklevel=2)
+    warn(
+        "IPython.utils.io.raw_print_err has been deprecated since IPython 7.0",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-    print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
-          file=sys.__stderr__)
+    print(*args, sep=kw.get("sep", " "), end=kw.get("end", "\n"), file=sys.__stderr__)
     sys.__stderr__.flush()

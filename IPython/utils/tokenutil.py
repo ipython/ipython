@@ -10,7 +10,8 @@ from keyword import iskeyword
 import tokenize
 
 
-Token = namedtuple('Token', ['token', 'text', 'start', 'end', 'line'])
+Token = namedtuple("Token", ["token", "text", "start", "end", "line"])
+
 
 def generate_tokens(readline):
     """wrap generate_tokens to catch EOF errors"""
@@ -19,6 +20,7 @@ def generate_tokens(readline):
     except tokenize.TokenError:
         # catch EOF error
         return
+
 
 def line_at_cursor(cell, cursor_pos=0):
     """Return the line in a cell at a given cursor position
@@ -41,7 +43,7 @@ def line_at_cursor(cell, cursor_pos=0):
     lines = cell.splitlines(True)
     for line in lines:
         next_offset = offset + len(line)
-        if not line.endswith('\n'):
+        if not line.endswith("\n"):
             # If the last line doesn't have a trailing newline, treat it as if
             # it does so that the cursor at the end of the line still counts
             # as being on that line.
@@ -52,6 +54,7 @@ def line_at_cursor(cell, cursor_pos=0):
     else:
         line = ""
     return (line, offset)
+
 
 def token_at_cursor(cell, cursor_pos=0):
     """Get the token at a given cursor
@@ -71,12 +74,12 @@ def token_at_cursor(cell, cursor_pos=0):
     names = []
     tokens = []
     call_names = []
-    
-    offsets = {1: 0} # lines start at 1
+
+    offsets = {1: 0}  # lines start at 1
     for tup in generate_tokens(StringIO(cell).readline):
-        
+
         tok = Token(*tup)
-        
+
         # token, text, start, end, line = tup
         start_line, start_col = tok.start
         end_line, end_col = tok.end
@@ -85,8 +88,8 @@ def token_at_cursor(cell, cursor_pos=0):
             lines = tok.line.splitlines(True)
             for lineno, line in enumerate(lines, start_line + 1):
                 if lineno not in offsets:
-                    offsets[lineno] = offsets[lineno-1] + len(line)
-        
+                    offsets[lineno] = offsets[lineno - 1] + len(line)
+
         offset = offsets[start_line]
         # allow '|foo' to find 'foo' at the beginning of a line
         boundary = cursor_pos + 1 if start_col == 0 else cursor_pos
@@ -94,33 +97,36 @@ def token_at_cursor(cell, cursor_pos=0):
             # current token starts after the cursor,
             # don't consume it
             break
-        
+
         if tok.token == tokenize.NAME and not iskeyword(tok.text):
-            if names and tokens and tokens[-1].token == tokenize.OP and tokens[-1].text == '.':
+            if (
+                names
+                and tokens
+                and tokens[-1].token == tokenize.OP
+                and tokens[-1].text == "."
+            ):
                 names[-1] = "%s.%s" % (names[-1], tok.text)
             else:
                 names.append(tok.text)
         elif tok.token == tokenize.OP:
-            if tok.text == '=' and names:
+            if tok.text == "=" and names:
                 # don't inspect the lhs of an assignment
                 names.pop(-1)
-            if tok.text == '(' and names:
+            if tok.text == "(" and names:
                 # if we are inside a function call, inspect the function
                 call_names.append(names[-1])
-            elif tok.text == ')' and call_names:
+            elif tok.text == ")" and call_names:
                 call_names.pop(-1)
-        
+
         tokens.append(tok)
-        
+
         if offsets[end_line] + end_col > cursor_pos:
             # we found the cursor, stop reading
             break
-        
+
     if call_names:
         return call_names[-1]
     elif names:
         return names[-1]
     else:
-        return ''
-    
-
+        return ""

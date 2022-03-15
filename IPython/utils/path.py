@@ -17,16 +17,19 @@ from warnings import warn
 from IPython.utils.process import system
 from IPython.utils.decorators import undoc
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 fs_encoding = sys.getfilesystemencoding()
+
 
 def _writable_dir(path):
     """Whether `path` is a directory, to which the user has write access."""
     return os.path.isdir(path) and os.access(path, os.W_OK)
 
-if sys.platform == 'win32':
+
+if sys.platform == "win32":
+
     def _get_long_path_name(path):
         """Get a long path name (expand ~) on Windows using ctypes.
 
@@ -39,11 +42,12 @@ if sys.platform == 'win32':
         """
         try:
             import ctypes
-        except ImportError as e: 
-            raise ImportError('you need to have ctypes installed for this to work') from e
+        except ImportError as e:
+            raise ImportError(
+                "you need to have ctypes installed for this to work"
+            ) from e
         _GetLongPathName = ctypes.windll.kernel32.GetLongPathNameW
-        _GetLongPathName.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p,
-            ctypes.c_uint ]
+        _GetLongPathName.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint]
 
         buf = ctypes.create_unicode_buffer(260)
         rv = _GetLongPathName(path, buf, 260)
@@ -51,11 +55,13 @@ if sys.platform == 'win32':
             return path
         else:
             return buf.value
+
+
 else:
+
     def _get_long_path_name(path):
         """Dummy no-op."""
         return path
-
 
 
 def get_long_path_name(path):
@@ -68,12 +74,12 @@ def get_long_path_name(path):
 
 
 def compress_user(path):
-    """Reverse of :func:`os.path.expanduser`
-    """
-    home = os.path.expanduser('~')
+    """Reverse of :func:`os.path.expanduser`"""
+    home = os.path.expanduser("~")
     if path.startswith(home):
-        path =  "~" + path[len(home):]
+        path = "~" + path[len(home) :]
     return path
+
 
 def get_py_filename(name):
     """Return a valid python filename in the current directory.
@@ -83,12 +89,12 @@ def get_py_filename(name):
     """
 
     name = os.path.expanduser(name)
-    if not os.path.isfile(name) and not name.endswith('.py'):
-        name += '.py'
+    if not os.path.isfile(name) and not name.endswith(".py"):
+        name += ".py"
     if os.path.isfile(name):
         return name
     else:
-        raise IOError('File `%r` not found.' % name)
+        raise IOError("File `%r` not found." % name)
 
 
 def filefind(filename: str, path_dirs=None) -> str:
@@ -141,13 +147,15 @@ def filefind(filename: str, path_dirs=None) -> str:
         path_dirs = (path_dirs,)
 
     for path in path_dirs:
-        if path == '.': path = os.getcwd()
+        if path == ".":
+            path = os.getcwd()
         testname = expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)
 
-    raise IOError("File %r does not exist in any of the search paths: %r" %
-                  (filename, path_dirs) )
+    raise IOError(
+        "File %r does not exist in any of the search paths: %r" % (filename, path_dirs)
+    )
 
 
 class HomeDirError(Exception):
@@ -173,20 +181,21 @@ def get_home_dir(require_writable=False) -> str:
             The path is resolved, but it is not guaranteed to exist or be writable.
     """
 
-    homedir = os.path.expanduser('~')
+    homedir = os.path.expanduser("~")
     # Next line will make things work even when /home/ is a symlink to
     # /usr/home as it is on FreeBSD, for example
     homedir = os.path.realpath(homedir)
 
-    if not _writable_dir(homedir) and os.name == 'nt':
+    if not _writable_dir(homedir) and os.name == "nt":
         # expanduser failed, use the registry to get the 'My Documents' folder.
         try:
             import winreg as wreg
+
             with wreg.OpenKey(
                 wreg.HKEY_CURRENT_USER,
-                r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+                r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders",
             ) as key:
-                homedir = wreg.QueryValueEx(key,'Personal')[0]
+                homedir = wreg.QueryValueEx(key, "Personal")[0]
         except:
             pass
 
@@ -194,8 +203,11 @@ def get_home_dir(require_writable=False) -> str:
         assert isinstance(homedir, str), "Homedir should be unicode not bytes"
         return homedir
     else:
-        raise HomeDirError('%s is not a writable dir, '
-                'set $HOME environment variable to override' % homedir)
+        raise HomeDirError(
+            "%s is not a writable dir, "
+            "set $HOME environment variable to override" % homedir
+        )
+
 
 def get_xdg_dir():
     """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.
@@ -208,7 +220,9 @@ def get_xdg_dir():
     if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.config if empty OR not set
-        xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
+        xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(
+            get_home_dir(), ".config"
+        )
         if xdg and _writable_dir(xdg):
             assert isinstance(xdg, str)
             return xdg
@@ -227,7 +241,7 @@ def get_xdg_cache_dir():
     if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.cache if empty OR not set
-        xdg = env.get("XDG_CACHE_HOME", None) or os.path.join(get_home_dir(), '.cache')
+        xdg = env.get("XDG_CACHE_HOME", None) or os.path.join(get_home_dir(), ".cache")
         if xdg and _writable_dir(xdg):
             assert isinstance(xdg, str)
             return xdg
@@ -250,21 +264,23 @@ def expand_path(s):
     # the $ to get (\\server\share\%username%). I think it considered $
     # alone an empty var. But, we need the $ to remains there (it indicates
     # a hidden share).
-    if os.name=='nt':
-        s = s.replace('$\\', 'IPYTHON_TEMP')
+    if os.name == "nt":
+        s = s.replace("$\\", "IPYTHON_TEMP")
     s = os.path.expandvars(os.path.expanduser(s))
-    if os.name=='nt':
-        s = s.replace('IPYTHON_TEMP', '$\\')
+    if os.name == "nt":
+        s = s.replace("IPYTHON_TEMP", "$\\")
     return s
 
 
 def unescape_glob(string):
     """Unescape glob pattern in `string`."""
+
     def unescape(s):
-        for pattern in '*[]!?':
-            s = s.replace(r'\{0}'.format(pattern), pattern)
+        for pattern in "*[]!?":
+            s = s.replace(r"\{0}".format(pattern), pattern)
         return s
-    return '\\'.join(map(unescape, string.split('\\\\')))
+
+    return "\\".join(map(unescape, string.split("\\\\")))
 
 
 def shellglob(args):
@@ -277,13 +293,13 @@ def shellglob(args):
     expanded = []
     # Do not unescape backslash in Windows as it is interpreted as
     # path separator:
-    unescape = unescape_glob if sys.platform != 'win32' else lambda x: x
+    unescape = unescape_glob if sys.platform != "win32" else lambda x: x
     for a in args:
         expanded.extend(glob.glob(a) or [unescape(a)])
     return expanded
 
 
-def target_outdated(target,deps):
+def target_outdated(target, deps):
     """Determine whether a target is out of date.
 
     target_outdated(target,deps) -> 1/0
@@ -301,13 +317,13 @@ def target_outdated(target,deps):
     for dep in deps:
         dep_time = os.path.getmtime(dep)
         if dep_time > target_time:
-            #print "For target",target,"Dep failed:",dep # dbg
-            #print "times (dep,tar):",dep_time,target_time # dbg
+            # print "For target",target,"Dep failed:",dep # dbg
+            # print "times (dep,tar):",dep_time,target_time # dbg
             return 1
     return 0
 
 
-def target_update(target,deps,cmd):
+def target_update(target, deps, cmd):
     """Update a target with a given command given a list of dependencies.
 
     target_update(target,deps,cmd) -> runs cmd if target is outdated.
@@ -315,11 +331,12 @@ def target_update(target,deps,cmd):
     This is just a wrapper around target_outdated() which calls the given
     command if target is outdated."""
 
-    if target_outdated(target,deps):
+    if target_outdated(target, deps):
         system(cmd)
 
 
 ENOLINK = 1998
+
 
 def link(src, dst):
     """Hard links ``src`` to ``dst``, returning 0 or errno.
@@ -359,7 +376,7 @@ def link_or_copy(src, dst):
             # anyway, we get duplicate files - see http://bugs.python.org/issue21876
             return
 
-        new_dst = dst + "-temp-%04X" %(random.randint(1, 16**4), )
+        new_dst = dst + "-temp-%04X" % (random.randint(1, 16 ** 4),)
         try:
             link_or_copy(src, new_dst)
         except:
@@ -373,6 +390,7 @@ def link_or_copy(src, dst):
         # Either link isn't supported, or the filesystem doesn't support
         # linking, or 'src' and 'dst' are on different filesystems.
         shutil.copy(src, dst)
+
 
 def ensure_dir_exists(path, mode=0o755):
     """ensure that a directory exists

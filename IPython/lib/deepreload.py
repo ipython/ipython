@@ -19,12 +19,12 @@ A reference to the original :func:`python:reload` is stored in this module as
 This code is almost entirely based on knee.py, which is a Python
 re-implementation of hierarchical module import.
 """
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+# *****************************************************************************
 
 import builtins as builtin_mod
 from contextlib import contextmanager
@@ -37,6 +37,7 @@ import types
 
 original_import = builtin_mod.__import__
 
+
 @contextmanager
 def replace_import_hook(new_import):
     saved_import = builtin_mod.__import__
@@ -45,6 +46,7 @@ def replace_import_hook(new_import):
         yield
     finally:
         builtin_mod.__import__ = saved_import
+
 
 def get_parent(globals, level):
     """
@@ -61,63 +63,69 @@ def get_parent(globals, level):
     orig_level = level
 
     if not level or not isinstance(globals, dict):
-        return None, ''
+        return None, ""
 
-    pkgname = globals.get('__package__', None)
+    pkgname = globals.get("__package__", None)
 
     if pkgname is not None:
         # __package__ is set, so use it
-        if not hasattr(pkgname, 'rindex'):
-            raise ValueError('__package__ set to non-string')
+        if not hasattr(pkgname, "rindex"):
+            raise ValueError("__package__ set to non-string")
         if len(pkgname) == 0:
             if level > 0:
-                raise ValueError('Attempted relative import in non-package')
-            return None, ''
+                raise ValueError("Attempted relative import in non-package")
+            return None, ""
         name = pkgname
     else:
         # __package__ not set, so figure it out and set it
-        if '__name__' not in globals:
-            return None, ''
-        modname = globals['__name__']
+        if "__name__" not in globals:
+            return None, ""
+        modname = globals["__name__"]
 
-        if '__path__' in globals:
+        if "__path__" in globals:
             # __path__ is set, so modname is already the package name
-            globals['__package__'] = name = modname
+            globals["__package__"] = name = modname
         else:
             # Normal module, so work out the package name if any
-            lastdot = modname.rfind('.')
+            lastdot = modname.rfind(".")
             if lastdot < 0 < level:
                 raise ValueError("Attempted relative import in non-package")
             if lastdot < 0:
-                globals['__package__'] = None
-                return None, ''
-            globals['__package__'] = name = modname[:lastdot]
+                globals["__package__"] = None
+                return None, ""
+            globals["__package__"] = name = modname[:lastdot]
 
     dot = len(name)
     for x in range(level, 1, -1):
         try:
-            dot = name.rindex('.', 0, dot)
+            dot = name.rindex(".", 0, dot)
         except ValueError as e:
-            raise ValueError("attempted relative import beyond top-level "
-                             "package") from e
+            raise ValueError(
+                "attempted relative import beyond top-level " "package"
+            ) from e
     name = name[:dot]
 
     try:
         parent = sys.modules[name]
     except BaseException as e:
         if orig_level < 1:
-            warn("Parent module '%.200s' not found while handling absolute "
-                 "import" % name)
+            warn(
+                "Parent module '%.200s' not found while handling absolute "
+                "import" % name
+            )
             parent = None
         else:
-            raise SystemError("Parent module '%.200s' not loaded, cannot "
-                              "perform relative import" % name) from e
+            raise SystemError(
+                "Parent module '%.200s' not loaded, cannot "
+                "perform relative import" % name
+            ) from e
 
     # We expect, but can't guarantee, if parent != None, that:
     # - parent.__name__ == name
     # - parent.__dict__ is globals
     # If this is violated...  Who cares?
     return parent, name
+
 
 def load_next(mod, altmod, name, buf):
     """
@@ -131,19 +139,19 @@ def load_next(mod, altmod, name, buf):
         # 'from . import' (or '__import__("")')
         return mod, None, buf
 
-    dot = name.find('.')
+    dot = name.find(".")
     if dot == 0:
-        raise ValueError('Empty module name')
+        raise ValueError("Empty module name")
 
     if dot < 0:
         subname = name
         next = None
     else:
         subname = name[:dot]
-        next = name[dot+1:]
+        next = name[dot + 1 :]
 
-    if buf != '':
-        buf += '.'
+    if buf != "":
+        buf += "."
     buf += subname
 
     result = import_submodule(mod, subname, buf)
@@ -161,6 +169,7 @@ def load_next(mod, altmod, name, buf):
 # Need to keep track of what we've already reloaded to prevent cyclic evil
 found_now = {}
 
+
 def import_submodule(mod, subname, fullname):
     """m = import_submodule(mod, subname, fullname)"""
     # Require:
@@ -171,7 +180,7 @@ def import_submodule(mod, subname, fullname):
     if fullname in found_now and fullname in sys.modules:
         m = sys.modules[fullname]
     else:
-        print('Reloading', fullname)
+        print("Reloading", fullname)
         found_now[fullname] = 1
         oldm = sys.modules.get(fullname, None)
         try:
@@ -190,10 +199,11 @@ def import_submodule(mod, subname, fullname):
 
     return m
 
+
 def add_submodule(mod, submod, fullname, subname):
     """mod.{subname} = submod"""
     if mod is None:
-        return #Nothing to do here.
+        return  # Nothing to do here.
 
     if submod is None:
         submod = sys.modules[fullname]
@@ -202,16 +212,17 @@ def add_submodule(mod, submod, fullname, subname):
 
     return
 
+
 def ensure_fromlist(mod, fromlist, buf, recursive):
     """Handle 'from module import a, b, c' imports."""
-    if not hasattr(mod, '__path__'):
+    if not hasattr(mod, "__path__"):
         return
     for item in fromlist:
-        if not hasattr(item, 'rindex'):
+        if not hasattr(item, "rindex"):
             raise TypeError("Item in ``from list'' not a string")
-        if item == '*':
+        if item == "*":
             if recursive:
-                continue # avoid endless recursion
+                continue  # avoid endless recursion
             try:
                 all = mod.__all__
             except AttributeError:
@@ -221,7 +232,8 @@ def ensure_fromlist(mod, fromlist, buf, recursive):
                 if not ret:
                     return 0
         elif not hasattr(mod, item):
-            import_submodule(mod, item, buf + '.' + item)
+            import_submodule(mod, item, buf + "." + item)
+
 
 def deep_import_hook(name, globals=None, locals=None, fromlist=None, level=-1):
     """Replacement for __import__()"""
@@ -237,7 +249,7 @@ def deep_import_hook(name, globals=None, locals=None, fromlist=None, level=-1):
     # an empty module name: someone called __import__("") or
     # doctored faulty bytecode
     if tail is None:
-        raise ValueError('Empty module name')
+        raise ValueError("Empty module name")
 
     if not fromlist:
         return head
@@ -245,7 +257,9 @@ def deep_import_hook(name, globals=None, locals=None, fromlist=None, level=-1):
     ensure_fromlist(tail, fromlist, buf, 0)
     return tail
 
+
 modules_reloading = {}
+
 
 def deep_reload_hook(m):
     """Replacement for reload()."""
@@ -277,6 +291,7 @@ def deep_reload_hook(m):
     finally:
         modules_reloading.clear()
     return newm
+
 
 # Save the original hooks
 original_reload = importlib.reload
