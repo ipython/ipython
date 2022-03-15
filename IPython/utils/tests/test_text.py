@@ -63,9 +63,9 @@ def test_columnize():
 def test_columnize_random():
     """Test with random input to hopefully catch edge case """
     for row_first in [True, False]:
-        for nitems in [random.randint(2,70) for i in range(2,20)]:
+        for nitems in [random.randint(2,70) for _ in range(2,20)]:
             displaywidth = random.randint(20,200)
-            rand_len = [random.randint(2,displaywidth) for i in range(nitems)]
+            rand_len = [random.randint(2,displaywidth) for _ in range(nitems)]
             items = ['x'*l for l in rand_len]
             out = text.columnize(items, row_first=row_first, displaywidth=displaywidth)
             longer_line = max(len(x) for x in out.split('\n'))
@@ -116,7 +116,7 @@ def eval_formatter_check(f):
     assert s == ns["u"]
     # This decodes in a platform dependent manner, but it shouldn't error out
     s = f.format("{b}", **ns)
-    nt.assert_raises(NameError, f.format, '{dne}', **ns)
+    ns.assert_raises(NameError, f.format, '{dne}', **ns)
 
 def eval_formatter_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
