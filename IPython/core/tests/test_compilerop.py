@@ -66,8 +66,6 @@ def test_compiler_check_cache():
     cp.cache('x=1', 99)
     # Ensure now that after clearing the cache, our entries survive
     linecache.checkcache()
-    for k in linecache.cache:
-        if k.startswith('<ipython-input-99'):
-            break
-    else:
-        raise AssertionError('Entry for input-99 missing from linecache')
+    assert any(
+        k.startswith("<ipython-input-99") for k in linecache.cache
+    ), "Entry for input-99 missing from linecache"

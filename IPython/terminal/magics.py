@@ -11,6 +11,7 @@ import sys
 from IPython.core.error import TryNext, UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.lib.clipboard import ClipboardEmpty
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.text import SList, strip_email_quotes
 from IPython.utils import py3compat
 
@@ -52,7 +53,7 @@ class TerminalMagics(Magics):
             self.shell.user_ns['pasted_block'] = b
             self.shell.using_paste_magics = True
             try:
-                self.shell.run_cell(b)
+                self.shell.run_cell(b, store_history=True)
             finally:
                 self.shell.using_paste_magics = False
 
@@ -83,6 +84,7 @@ class TerminalMagics(Magics):
         self.shell.set_autoindent()
         print("Automatic indentation is:",['OFF','ON'][self.shell.autoindent])
 
+    @skip_doctest
     @line_magic
     def cpaste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
@@ -111,9 +113,9 @@ class TerminalMagics(Magics):
 
         Shell escapes are not supported (yet).
 
-        See also
+        See Also
         --------
-        paste: automatically pull code from clipboard.
+        paste : automatically pull code from clipboard.
 
         Examples
         --------
@@ -174,9 +176,9 @@ class TerminalMagics(Magics):
 
         IPython statements (magics, shell escapes) are not supported (yet).
 
-        See also
+        See Also
         --------
-        cpaste: manually paste code into terminal until you mark its end.
+        cpaste : manually paste code into terminal until you mark its end.
         """
         opts, name = self.parse_options(parameter_s, 'rq', mode='string')
         if 'r' in opts:
@@ -196,11 +198,10 @@ class TerminalMagics(Magics):
 
         # By default, echo back to terminal unless quiet mode is requested
         if 'q' not in opts:
-            write = self.shell.write
-            write(self.shell.pycolorize(block))
-            if not block.endswith('\n'):
-                write('\n')
-            write("## -- End pasted text --\n")
+            sys.stdout.write(self.shell.pycolorize(block))
+            if not block.endswith("\n"):
+                sys.stdout.write("\n")
+            sys.stdout.write("## -- End pasted text --\n")
 
         self.store_or_execute(block, name)
 

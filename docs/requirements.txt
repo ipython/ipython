@@ -6,4 +6,4 @@ sphinx-rtd-theme
 docrepr
 matplotlib
 stack_data
-pytest
+pytest<7

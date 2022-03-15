@@ -7,7 +7,7 @@ python -c 'import keyring'
 python -c 'import twine'
 python -c 'import sphinx'
 python -c 'import sphinx_rtd_theme'
-python -c 'import nose'
+python -c 'import pytest'
 
 
 BLACK=$(tput setaf 1)
@@ -21,7 +21,7 @@ WHITE=$(tput setaf 7)
 NOR=$(tput sgr0)
 
 
-echo "Will use $EDITOR to edit files when necessary"
+echo "Will use $BLUE'$EDITOR'$NOR to edit files when necessary"
 echo -n "PREV_RELEASE (X.y.z) [$PREV_RELEASE]: "
 read input
 PREV_RELEASE=${input:-$PREV_RELEASE}
@@ -37,11 +37,15 @@ BRANCH=${input:-$BRANCH}
 
 ask_section(){
     echo
-    echo $BLUE"$1"$NOR 
+    echo $BLUE"$1"$NOR
     echo -n $GREEN"Press Enter to continue, S to skip: "$NOR
-    read -n1 value
-    echo 
-    if [ -z $value ] || [ $value = 'y' ]  ; then
+    if [ "$ZSH_NAME" = "zsh" ] ; then
+        read -k1 value
+        value=${value%$'\n'}
+    else
+       read -n1 value
+    fi
+    if [ -z "$value" ] || [ $value = 'y' ]; then
         return 0
     fi
     return 1
@@ -51,11 +55,17 @@ ask_section(){
 maybe_edit(){
     echo
     echo $BLUE"$1"$NOR 
-    echo -n $GREEN"Press e to Edit $1, any other keys to skip: "$NOR
-    read -n1 value
+    echo -n $GREEN"Press ${BLUE}e$GREEN to Edit ${BLUE}$1$GREEN, any other keys to skip: "$NOR
+    if [ "$ZSH_NAME" = "zsh" ] ; then
+        read -k1 value
+        value=${value%$'\n'}
+    else
+       read -n1 value
+    fi
+
     echo 
     if [ $value = 'e' ]  ; then
-        $EDITOR $1
+        $=EDITOR $1
     fi
 }
 
@@ -98,12 +108,14 @@ if ask_section "Generate API difference (using frapuccino)"
 then
     echo $BLUE"Checking out $PREV_RELEASE"$NOR
     git checkout $PREV_RELEASE
+    sleep 1
     echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
-    frappuccino IPython --save IPython-$PREV_RELEASE.json
+    frappuccino IPython IPython.kernel IPython.lib IPython.qt IPython.lib.kernel IPython.html IPython.frontend IPython.external --save IPython-$PREV_RELEASE.json
     echo $BLUE"coming back to $BRANCH"$NOR
     git checkout $BRANCH
+    sleep 1
     echo $BLUE"comparing ..."$NOR
-    frappuccino IPython --compare IPython-$PREV_RELEASE.json
+    frappuccino IPython IPython.kernel IPython.lib --compare IPython-$PREV_RELEASE.json
     echo $GREEN"Use the above guideline to write an API changelog ..."$NOR
     echo $GREEN"Press any keys to continue"$NOR
     read
@@ -116,7 +128,7 @@ echo $GREEN"please update version number in ${RED}IPython/core/release.py${NOR} 
 echo $GREEN"I tried ${RED}sed -i bkp -e '/Uncomment/s/^# //g' IPython/core/release.py${NOR}"
 sed -i bkp -e '/Uncomment/s/^# //g' IPython/core/release.py
 rm IPython/core/release.pybkp
-git diff
+git diff | cat
 maybe_edit IPython/core/release.py
 
 echo $GREEN"Press enter to continue"$NOR
@@ -163,7 +175,7 @@ then
    echo $GREEN"I tried ${RED}sed -i bkp -e '/Uncomment/s/^/# /g' IPython/core/release.py${NOR}"
    sed -i bkp -e '/Uncomment/s/^/# /g' IPython/core/release.py
    rm IPython/core/release.pybkp
-   git diff
+   git diff | cat
    echo $GREEN"Please bump ${RED}the minor version number${NOR}"
    maybe_edit IPython/core/release.py
    echo ${BLUE}"Do not commit yet – we'll do it later."$NOR

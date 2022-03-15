@@ -41,7 +41,7 @@ class ExtensionMagics(Magics):
     @line_magic
     def unload_ext(self, module_str):
         """Unload an IPython extension by its module name.
-        
+
         Not all extensions can be unloaded, only those which define an
         ``unload_ipython_extension`` function.
         """

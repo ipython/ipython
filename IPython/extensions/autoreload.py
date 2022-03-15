@@ -121,9 +121,8 @@ import traceback
 import types
 import weakref
 import gc
-from importlib import import_module
+from importlib import import_module, reload
 from importlib.util import source_from_cache
-from imp import reload
 
 # ------------------------------------------------------------------------------
 # Autoreload functionality
@@ -322,6 +321,10 @@ def update_class(old, new):
             except (AttributeError, TypeError):
                 pass
             continue
+        except ValueError:
+            # can't compare nested structures containing
+            # numpy arrays using `==`
+            pass
 
         if update_generic(old_obj, new_obj):
             continue

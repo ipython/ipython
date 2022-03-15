@@ -10,7 +10,6 @@ To generate a report for IPython 2.0, run:
 #-----------------------------------------------------------------------------
 
 
-import codecs
 import sys
 
 from argparse import ArgumentParser

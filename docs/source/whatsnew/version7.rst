@@ -3,6 +3,153 @@
 ============
 
 
+.. _version 7.32:
+
+IPython 7.32
+============
+
+
+
+Autoload magic lazily
+---------------------
+
+The ability to configure magics to be lazily loaded has been added to IPython.
+See the ``ipython --help-all`` section on ``MagicsManager.lazy_magic``.
+One can now use::
+
+    c.MagicsManager.lazy_magics = {
+              "my_magic": "slow.to.import",
+              "my_other_magic": "also.slow",
+    }
+
+And on first use of ``%my_magic``, or corresponding cell magic, or other line magic,
+the corresponding ``load_ext`` will be called just before trying to invoke the magic.
+
+Misc
+----
+
+ - Update sphinxify  for Docrepr 0.2.0  :ghpull:`13503`.
+ - Set co_name for cells run line by line (to fix debugging with Python 3.10)
+   :ghpull:`13535`
+
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/99>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 7.31:
+
+IPython 7.31
+============
+
+IPython 7.31 brings a couple of backports and fixes from the 8.0 branches,
+it is likely one of the last releases of the 7.x series, as 8.0 will probably be released
+between this release and what would have been 7.32.
+
+Please test 8.0 beta/rc releases in addition to this release.
+
+This Releases:
+ - Backport some fixes for Python 3.10 (:ghpull:`13412`)
+ - use full-alpha transparency on dvipng rendered LaTeX (:ghpull:`13372`)
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/95>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.30:
+
+IPython 7.30
+============
+
+IPython 7.30 fixes a couple of bugs introduce in previous releases (in
+particular with respect to path handling), and introduce a few features and
+improvements:
+
+Notably we will highlight :ghpull:`13267` "Document that ``%run`` can execute
+notebooks and ipy scripts.", which is the first commit of Fernando Pérez since
+mid 2016 (IPython 5.1). If you are new to IPython, Fernando created IPython in
+2001. The other most recent contribution of Fernando to IPython itself was
+May 2018, by reviewing and merging PRs. I want to note that Fernando is still
+active but mostly as a mentor and leader of the whole Jupyter organisation, but
+we're still happy to see him contribute code !
+
+:ghpull:`13290` "Use sphinxify (if available) in object_inspect_mime path"
+should allow richer Repr of docstrings when using jupyterlab inspector.
+
+:ghpull:`13311` make the debugger use ``ThreadPoolExecutor`` for debugger cmdloop.
+This should fix some issues/infinite loop, but let us know if you come across
+any regressions. In particular this fixes issues with `kmaork/madbg <https://github.com/kmaork/madbg>`_,
+a remote debugger for IPython.
+
+Note that this is likely the ante-penultimate release of IPython 7.x as a stable
+branch, as I hope to release IPython 8.0 as well as IPython 7.31 next
+month/early 2022.
+
+IPython 8.0 will drop support for Python 3.7, removed nose as a dependency, and
+7.x will only get critical bug fixes with 8.x becoming the new stable. This will
+not be possible without `NumFOCUS Small Development Grants
+<https://numfocus.org/programs/small-development-grants>`_ Which allowed us to
+hire `Nikita Kniazev <https://github.com/Kojoley>`_ who provide Python and C++
+help and contracting work.
+
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/94?closed=1>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.29:
+
+IPython 7.29
+============
+
+
+IPython 7.29 brings a couple of new functionalities to IPython and a number of bugfixes.
+It is one of the largest recent release, relatively speaking, with close to 15 Pull Requests.
+
+
+ - fix an issue where base64 was returned instead of bytes when showing figures :ghpull:`13162`
+ - fix compatibility with PyQt6, PySide 6 :ghpull:`13172`. This may be of
+   interest if you are running on Apple Silicon as only qt6.2+ is natively
+   compatible.
+ - fix matplotlib qtagg eventloop :ghpull:`13179`
+ - Multiple docs fixes, typos, ... etc.
+ - Debugger will now exit by default on SigInt :ghpull:`13218`, this will be
+   useful in notebook/lab if you forgot to exit the debugger. "Interrupt Kernel"
+   will now exist the debugger.
+
+It give Pdb the ability to skip code in decorators. If functions contain a
+special value names ``__debuggerskip__ = True|False``, the function will not be
+stepped into, and Pdb will step into lower frames only if the value is set to
+``False``. The exact behavior is still likely to have corner cases and will be
+refined in subsequent releases. Feedback welcome. See the debugger module
+documentation for more info. Thanks to the `D. E. Shaw
+group <https://deshaw.com/>`__ for funding this feature.
+
+The main branch of IPython is receiving a number of changes as we received a
+`NumFOCUS SDG <https://numfocus.org/programs/small-development-grants>`__
+($4800), to help us finish replacing ``nose`` by ``pytest``, and make IPython
+future proof with an 8.0 release.
+
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/93>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 7.28:
 
 IPython 7.28
@@ -37,6 +184,49 @@ New Features:
  - Fix broken ipyparallel's refs :ghpull:`13138`
  - Improve formatting of %time documentation :ghpull:`13125`
  - Reword the YouTubeVideo autoplay WN :ghpull:`13147`
+
+
+Highlighted features
+--------------------
+
+
+``YouTubeVideo`` autoplay and the ability to add extra attributes to ``IFrame``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can add any extra attributes to the ``<iframe>`` tag using the new
+``extras`` argument in the ``IFrame`` class. For example::
+
+    In [1]: from IPython.display import IFrame
+
+    In [2]: IFrame(src="src", width=300, height=300, extras=['loading="eager"'])
+
+The above cells will result in the following HTML code being displayed in a
+notebook::
+
+    <iframe
+        width="300"
+        height="300"
+        src="src"
+        frameborder="0"
+        allowfullscreen
+        loading="eager"
+    ></iframe>
+
+Related to the above, the ``YouTubeVideo`` class now takes an
+``allow_autoplay`` flag, which sets up the iframe of the embedded YouTube video
+such that it allows autoplay.
+
+.. note::
+    Whether this works depends on the autoplay policy of the browser rendering
+    the HTML allowing it. It also could get blocked by some browser extensions.
+
+Try it out!
+::
+
+    In [1]: from IPython.display import YouTubeVideo
+
+    In [2]: YouTubeVideo("dQw4w9WgXcQ", allow_autoplay=True)
+
 
 
 Thanks
@@ -95,6 +285,16 @@ Of particular interest are the following Pull-requests:
  - Add expiry days option to pastebin magic and change http protocol to https.
    :ghpull:`13056`
  - Make Ipython.utils.timing work with jupyterlite :ghpull:`13050`.
+
+Pastebin magic expiry days option
+---------------------------------
+
+The Pastebin magic now has ``-e`` option to determine 
+the number of days for paste expiration. For example
+the paste that created with ``%pastebin -e 20 1`` magic will
+be available for next 20 days.
+
+
 
 
 
@@ -501,6 +701,19 @@ Which is now also present on subclasses::
 
 
 .. _version 716:
+
+IPython 7.16.1, 7.16.2
+======================
+
+IPython 7.16.1 was release immediately after 7.16.0 to fix a conda packaging issue.
+The source is identical to 7.16.0 but the file permissions in the tar are different.
+
+IPython 7.16.2 pins jedi dependency to "<=0.17.2" which should prevent some
+issues for users still on python 3.6. This may not be sufficient as pip may
+still allow to downgrade IPython.
+
+Compatibility with Jedi > 0.17.2 was not added as this would have meant bumping
+the minimal version to >0.16.
 
 IPython 7.16
 ============

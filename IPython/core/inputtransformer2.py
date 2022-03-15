@@ -507,9 +507,12 @@ def make_tokens_by_line(lines:List[str]):
 
     #   reexported from token on 3.7+
     NEWLINE, NL = tokenize.NEWLINE, tokenize.NL  # type: ignore
-    tokens_by_line:List[List[Any]] = [[]]
-    if len(lines) > 1 and not lines[0].endswith(('\n', '\r', '\r\n', '\x0b', '\x0c')):
-        warnings.warn("`make_tokens_by_line` received a list of lines which do not have lineending markers ('\\n', '\\r', '\\r\\n', '\\x0b', '\\x0c'), behavior will be unspecified")
+    tokens_by_line: List[List[Any]] = [[]]
+    if len(lines) > 1 and not lines[0].endswith(("\n", "\r", "\r\n", "\x0b", "\x0c")):
+        warnings.warn(
+            "`make_tokens_by_line` received a list of lines which do not have lineending markers ('\\n', '\\r', '\\r\\n', '\\x0b', '\\x0c'), behavior will be unspecified",
+            stacklevel=2,
+        )
     parenlev = 0
     try:
         for token in tokenize.generate_tokens(iter(lines).__next__):
@@ -640,17 +643,17 @@ class TransformerManager:
 
         Parameters
         ----------
-        source : string
-          Python input code, which can be multiline.
+        cell : string
+            Python input code, which can be multiline.
 
         Returns
         -------
         status : str
-          One of 'complete', 'incomplete', or 'invalid' if source is not a
-          prefix of valid code.
+            One of 'complete', 'incomplete', or 'invalid' if source is not a
+            prefix of valid code.
         indent_spaces : int or None
-          The number of spaces by which to indent the next line of code. If
-          status is not 'incomplete', this is None.
+            The number of spaces by which to indent the next line of code. If
+            status is not 'incomplete', this is None.
         """
         # Remember if the lines ends in a new line.
         ends_with_newline = False
@@ -782,18 +785,12 @@ class MaybeAsyncCompile(Compile):
         super().__init__()
         self.flags |= extra_flags
 
-    def __call__(self, *args, **kwds):
-        return compile(*args, **kwds)
-
 
 class MaybeAsyncCommandCompiler(CommandCompiler):
     def __init__(self, extra_flags=0):
         self.compiler = MaybeAsyncCompile(extra_flags=extra_flags)
 
 
-if (sys.version_info.major, sys.version_info.minor) >= (3, 8):
-    _extra_flags = ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
-else:
-    _extra_flags = ast.PyCF_ONLY_AST
+_extra_flags = ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
 
 compile_command = MaybeAsyncCommandCompiler(extra_flags=_extra_flags)

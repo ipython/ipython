@@ -46,7 +46,7 @@ class InputTransformer(metaclass=abc.ABCMeta):
     def push(self, line):
         """Send a line of input to the transformer, returning the transformed
         input or None if the transformer is waiting for more input.
-        
+
         Must be overridden by subclasses.
 
         Implementations may raise ``SyntaxError`` if the input is invalid. No
@@ -58,7 +58,7 @@ class InputTransformer(metaclass=abc.ABCMeta):
     def reset(self):
         """Return, transformed any lines that the transformer has accumulated,
         and reset its internal state.
-        
+
         Must be overridden by subclasses.
         """
         pass
@@ -312,7 +312,7 @@ def has_comment(src):
     Parameters
     ----------
     src : string
-      A single line input string.
+        A single line input string.
 
     Returns
     -------
@@ -324,11 +324,11 @@ def has_comment(src):
 def ends_in_comment_or_string(src):
     """Indicates whether or not an input line ends in a comment or within
     a multiline string.
-    
+
     Parameters
     ----------
     src : string
-      A single line input string.
+        A single line input string.
 
     Returns
     -------
@@ -358,7 +358,7 @@ def help_end(line):
 @CoroutineInputTransformer.wrap
 def cellmagic(end_on_blank_line=False):
     """Captures & transforms cell magics.
-    
+
     After a cell magic is started, this stores up any lines it gets until it is
     reset (sent None).
     """
@@ -397,7 +397,7 @@ def cellmagic(end_on_blank_line=False):
 
 def _strip_prompts(prompt_re, initial_re=None, turnoff_re=None):
     """Remove matching input prompts from a block of input.
-    
+
     Parameters
     ----------
     prompt_re : regular expression
@@ -407,9 +407,11 @@ def _strip_prompts(prompt_re, initial_re=None, turnoff_re=None):
         If no initial expression is given, prompt_re will be used everywhere.
         Used mainly for plain Python prompts, where the continuation prompt
         ``...`` is a valid Python expression in Python 3, so shouldn't be stripped.
-    
-    If initial_re and prompt_re differ,
-    only initial_re will be tested against the first line.
+
+    Notes
+    -----
+    If `initial_re` and `prompt_re differ`,
+    only `initial_re` will be tested against the first line.
     If any prompt is found on the first two lines,
     prompts will be stripped from the rest of the block.
     """
@@ -475,7 +477,7 @@ def ipy_prompt():
 @CoroutineInputTransformer.wrap
 def leading_indent():
     """Remove leading indentation.
-    
+
     If the first line starts with a spaces or tabs, the same whitespace will be
     removed from each following line until it is reset.
     """

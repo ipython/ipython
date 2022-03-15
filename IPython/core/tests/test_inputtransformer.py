@@ -1,5 +1,4 @@
 import tokenize
-import nose.tools as nt
 
 from IPython.testing import tools as tt
 
@@ -25,7 +24,7 @@ def transform_checker(tests, transformer, **kwargs):
                 out = transformer.reset()
             else:
                 out = transformer.push(inp)
-            nt.assert_equal(out, tr)
+            assert out == tr
     finally:
         transformer.reset()
 

@@ -433,6 +433,7 @@ class BaseFormatter(Configurable):
         ----------
         typ : type or '__module__.__name__' string for a type
             The class of the object that will be formatted using `func`.
+
         func : callable
             A callable for computing the format data.
             `func` will be called with the object to be formatted,
@@ -474,8 +475,10 @@ class BaseFormatter(Configurable):
         type_module : str
             The full dotted name of the module the type is defined in, like
             ``numpy``.
+
         type_name : str
             The name of the type (the class name), like ``dtype``
+
         func : callable
             A callable for computing the format data.
             `func` will be called with the object to be formatted,
@@ -834,13 +837,11 @@ class JSONFormatter(BaseFormatter):
         if isinstance(r, tuple):
             # unpack data, metadata tuple for type checking on first element
             r, md = r
-        
-        # handle deprecated JSON-as-string form from IPython < 3
-        if isinstance(r, str):
-            warnings.warn("JSON expects JSONable list/dict containers, not JSON strings",
-            FormatterWarning)
-            r = json.loads(r)
-        
+
+        assert not isinstance(
+            r, str
+        ), "JSON-as-string has been deprecated since IPython < 3"
+
         if md is not None:
             # put the tuple back together
             r = (r, md)

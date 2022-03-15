@@ -132,6 +132,7 @@ from IPython.core.error import TryNext
 from IPython.core.inputtransformer2 import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.core.oinspect import InspectColors
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.path import ensure_dir_exists
@@ -176,8 +177,6 @@ else:
 # may have trouble processing.
 MATCHES_LIMIT = 500
 
-_deprecation_readline_sentinel = object()
-
 
 class ProvisionalCompleterWarning(FutureWarning):
     """
@@ -190,6 +189,8 @@ class ProvisionalCompleterWarning(FutureWarning):
 
 warnings.filterwarnings('error', category=ProvisionalCompleterWarning)
 
+
+@skip_doctest
 @contextmanager
 def provisionalcompleter(action='ignore'):
     """
@@ -461,7 +462,7 @@ def _deduplicate_completions(text: str, completions: _IC)-> _IC:
             seen.add(new_text)
 
 
-def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
+def rectify_completions(text: str, completions: _IC, *, _debug: bool = False) -> _IC:
     """
     Rectify a set of completions to all have the same ``start`` and ``end``
 
@@ -478,6 +479,8 @@ def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
         text that should be completed.
     completions : Iterator[Completion]
         iterator over the completions to rectify
+    _debug : bool
+        Log failed completion
 
     Notes
     -----
@@ -582,7 +585,7 @@ class Completer(Configurable):
 
     greedy = Bool(False,
         help="""Activate greedy completion
-        PENDING DEPRECTION. this is now mostly taken care of with Jedi.
+        PENDING DEPRECATION. this is now mostly taken care of with Jedi.
 
         This will enable completion on elements of lists, results of function calls, etc.,
         but can be unsafe because the code is actually evaluated on TAB.
@@ -608,8 +611,6 @@ class Completer(Configurable):
         help="Enable unicode completions, e.g. \\alpha<tab> . "
              "Includes completion of latex commands, unicode names, and expanding "
              "unicode characters back to latex commands.").tag(config=True)
-
-
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
         """Create a new completer for the command line.
@@ -1110,8 +1111,9 @@ class IPCompleter(Completer):
             'no effects and then removed in future version of IPython.',
             UserWarning)
 
-    def __init__(self, shell=None, namespace=None, global_namespace=None,
-                 use_readline=_deprecation_readline_sentinel, config=None, **kwargs):
+    def __init__(
+        self, shell=None, namespace=None, global_namespace=None, config=None, **kwargs
+    ):
         """IPCompleter() -> completer
 
         Return a completer object.
@@ -1128,20 +1130,22 @@ class IPCompleter(Completer):
             secondary optional dict for completions, to
             handle cases (such as IPython embedded inside functions) where
             both Python scopes are visible.
-        use_readline : bool, optional
-            DEPRECATED, ignored since IPython 6.0, will have no effects
+        config : Config
+            traitlet's config object
+        **kwargs
+            passed to super class unmodified.
         """
 
         self.magic_escape = ESC_MAGIC
         self.splitter = CompletionSplitter()
 
-        if use_readline is not _deprecation_readline_sentinel:
-            warnings.warn('The `use_readline` parameter is deprecated and ignored since IPython 6.0.',
-                          DeprecationWarning, stacklevel=2)
-
         # _greedy_changed() depends on splitter and readline being defined:
-        Completer.__init__(self, namespace=namespace, global_namespace=global_namespace,
-                            config=config, **kwargs)
+        super().__init__(
+            namespace=namespace,
+            global_namespace=global_namespace,
+            config=config,
+            **kwargs
+        )
 
         # List where completion matches will be stored
         self.matches = []
@@ -1178,7 +1182,7 @@ class IPCompleter(Completer):
 
         # This is a list of names of unicode characters that can be completed
         # into their corresponding unicode value. The list is large, so we
-        # laziliy initialize it on first use. Consuming code should access this
+        # lazily initialize it on first use. Consuming code should access this
         # attribute through the `@unicode_names` property.
         self._unicode_names = None
 
@@ -1191,18 +1195,18 @@ class IPCompleter(Completer):
         if self.use_jedi:
             return [
                 *self.custom_matchers,
+                self.dict_key_matches,
                 self.file_matches,
                 self.magic_matches,
-                self.dict_key_matches,
             ]
         else:
             return [
                 *self.custom_matchers,
+                self.dict_key_matches,
                 self.python_matches,
                 self.file_matches,
                 self.magic_matches,
                 self.python_func_kw_matches,
-                self.dict_key_matches,
             ]
 
     def all_completions(self, text:str) -> List[str]:
@@ -2057,6 +2061,24 @@ class IPCompleter(Completer):
         ``column`` when passing multiline strings this could/should be renamed
         but would add extra noise.
 
+        Parameters
+        ----------
+        cursor_line
+            Index of the line the cursor is on. 0 indexed.
+        cursor_pos
+            Position of the cursor in the current line/line_buffer/text. 0
+            indexed.
+        line_buffer : optional, str
+            The current line the cursor is in, this is mostly due to legacy
+            reason that readline could only give a us the single current line.
+            Prefer `full_text`.
+        text : str
+            The current "token" the cursor is in, mostly also for historical
+            reasons. as the completer would trigger only after the current line
+            was parsed.
+        full_text : str
+            Full text of the current cell.
+
         Returns
         -------
         A tuple of N elements which are (likely):
@@ -2117,8 +2139,9 @@ class IPCompleter(Completer):
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other environments.
-        completions:Iterable[Any] = []
-        if self.use_jedi:
+        is_magic_prefix = len(text) > 0 and text[0] == "%"
+        completions: Iterable[Any] = []
+        if self.use_jedi and not is_magic_prefix:
             if not full_text:
                 full_text = line_buffer
             completions = self._jedi_matches(
@@ -2200,12 +2223,22 @@ class IPCompleter(Completer):
             # initialized, and it takes a user-noticeable amount of time to
             # initialize it, so we don't want to initialize it unless we're
             # actually going to use it.
-            s = text[slashpos+1:]
-            candidates = [x for x in self.unicode_names if x.startswith(s)]
+            s = text[slashpos + 1 :]
+            sup = s.upper()
+            candidates = [x for x in self.unicode_names if x.startswith(sup)]
             if candidates:
                 return s, candidates
-            else:
-                return '', ()
+            candidates = [x for x in self.unicode_names if sup in x]
+            if candidates:
+                return s, candidates
+            splitsup = sup.split(" ")
+            candidates = [
+                x for x in self.unicode_names if all(u in x for u in splitsup)
+            ]
+            if candidates:
+                return s, candidates
+
+            return "", ()
 
         # if text does not start with slash
         else:

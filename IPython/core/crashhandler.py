@@ -32,6 +32,8 @@ from IPython.utils.py3compat import input
 
 from IPython.core.release import __version__ as version
 
+from typing import Optional
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -95,8 +97,15 @@ class CrashHandler(object):
     message_template = _default_message_template
     section_sep = '\n\n'+'*'*75+'\n\n'
 
-    def __init__(self, app, contact_name=None, contact_email=None,
-                 bug_tracker=None, show_crash_traceback=True, call_pdb=False):
+    def __init__(
+        self,
+        app,
+        contact_name: Optional[str] = None,
+        contact_email: Optional[str] = None,
+        bug_tracker: Optional[str] = None,
+        show_crash_traceback: bool = True,
+        call_pdb: bool = False,
+    ):
         """Create a new crash handler
 
         Parameters
@@ -113,10 +122,15 @@ class CrashHandler(object):
         show_crash_traceback : bool
             If false, don't print the crash traceback on stderr, only generate
             the on-disk report
-        Non-argument instance attributes
+        call_pdb
+            Whether to call pdb on crash
+
+        Attributes
+        ----------
         These instances contain some non-argument attributes which allow for
         further customization of the crash handler's behavior. Please see the
         source for further details.
+
         """
         self.crash_report_fname = "Crash_report_%s.txt" % app.name
         self.app = app
@@ -171,7 +185,7 @@ class CrashHandler(object):
 
         # and generate a complete report on disk
         try:
-            report = open(report_name,'w')
+            report = open(report_name, "w", encoding="utf-8")
         except:
             print('Could not create crash report on disk.', file=sys.stderr)
             return

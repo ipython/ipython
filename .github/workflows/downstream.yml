@@ -1,0 +1,50 @@
+name: Run Downstream tests
+
+on:
+  push:
+  pull_request:
+  # Run weekly on Monday at 1:23 UTC
+  schedule:
+  - cron:  '23 1 * * 1'
+  workflow_dispatch:
+
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.9"]
+        include:
+          - os: macos-latest
+            python-version: "3.9"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Update Python installer
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+    - name: Install ipykernel
+      run: |
+        cd .. 
+        git clone https://github.com/ipython/ipykernel
+        cd ipykernel
+        pip install -e .[test] 
+        cd ..
+    - name: Install and update Python dependencies
+      run: |
+        python -m pip install --upgrade -e file://$PWD#egg=ipython[test]
+        # we must install IPython after ipykernel to get the right versions.
+        python -m pip install --upgrade --upgrade-strategy eager flaky ipyparallel
+        python -m pip install --upgrade 'pytest<7' 
+    - name: pytest
+      env:
+        COLUMNS: 120
+      run: |
+        cd ../ipykernel
+        pytest

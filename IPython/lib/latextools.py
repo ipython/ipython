@@ -77,7 +77,6 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
         format, e.g. '#AA20FA'.
     scale : float
         Scale factor for the resulting PNG.
-
     None is returned when the backend cannot be used.
 
     """
@@ -161,9 +160,26 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
 
             resolution = round(150*scale)
             subprocess.check_call(
-                ["dvipng", "-T", "tight", "-D", str(resolution), "-z", "9",
-                 "-bg", "transparent", "-o", outfile, dvifile, "-fg", color],
-                 cwd=workdir, stdout=devnull, stderr=devnull)
+                [
+                    "dvipng",
+                    "-T",
+                    "tight",
+                    "-D",
+                    str(resolution),
+                    "-z",
+                    "9",
+                    "-bg",
+                    "Transparent",
+                    "-o",
+                    outfile,
+                    dvifile,
+                    "-fg",
+                    color,
+                ],
+                cwd=workdir,
+                stdout=devnull,
+                stderr=devnull,
+            )
 
         with outfile.open("rb") as f:
             return f.read()

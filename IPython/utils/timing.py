@@ -62,16 +62,16 @@ if resource is not None and hasattr(resource, "getrusage"):
         Similar to clock(), but return a tuple of user/system times."""
         return resource.getrusage(resource.RUSAGE_SELF)[:2]
 
-
 else:
     # There is no distinction of user/system time under windows, so we just use
-    # time.perff_counter() for everything...
-    clocku = clocks = clock = time.perf_counter
+    # time.process_time() for everything...
+    clocku = clocks = clock = time.process_time
+
     def clock2():
         """Under windows, system CPU time can't be measured.
 
-        This just returns perf_counter() and zero."""
-        return time.perf_counter(),0.0
+        This just returns process_time() and zero."""
+        return time.process_time(), 0.0
 
     
 def timings_out(reps,func,*args,**kw):

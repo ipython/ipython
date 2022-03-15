@@ -3,20 +3,20 @@
 """
 import io
 import logging
+import os.path
+import platform
 import re
 import sys
-import os.path
-from textwrap import dedent
 import traceback
 import unittest
+from textwrap import dedent
+
+from tempfile import TemporaryDirectory
 
 from IPython.core.ultratb import ColorTB, VerboseTB
-
-
 from IPython.testing import tools as tt
 from IPython.testing.decorators import onlyif_unicode_paths
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.tempdir import TemporaryDirectory
 
 file_1 = """1
 2
@@ -57,7 +57,7 @@ class ChangedPyFileTest(unittest.TestCase):
         """
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding="utf-8") as f:
                 f.write(file_1)
             
             with prepended_to_syspath(td):
@@ -67,7 +67,7 @@ class ChangedPyFileTest(unittest.TestCase):
                 ip.run_cell("foo.f()")
             
             # Make the file shorter, so the line of the error is missing.
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding="utf-8") as f:
                 f.write(file_2)
             
             # For some reason, this was failing on the *second* call after
@@ -91,7 +91,7 @@ class NonAsciiTest(unittest.TestCase):
         # Non-ascii directory name as well.
         with TemporaryDirectory(suffix=u'é') as td:
             fname = os.path.join(td, u"fooé.py")
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding="utf-8") as f:
                 f.write(file_1)
             
             with prepended_to_syspath(td):
@@ -171,7 +171,7 @@ class IndentationErrorTest(unittest.TestCase):
         
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding="utf-8") as f:
                 f.write(indentationerror_file)
             
             with tt.AssertPrints("IndentationError"):
@@ -187,10 +187,6 @@ se_file_2 = """7/
 """
 
 class SyntaxErrorTest(unittest.TestCase):
-    def test_syntaxerror_without_lineno(self):
-        with tt.AssertNotPrints("TypeError"):
-            with tt.AssertPrints("line unknown"):
-                ip.run_cell("raise SyntaxError()")
 
     def test_syntaxerror_no_stacktrace_at_compile_time(self):
         syntax_error_at_compile_time = """
@@ -224,14 +220,14 @@ bar()
     def test_changing_py_file(self):
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
-            with open(fname, 'w') as f:
+            with open(fname, "w", encoding="utf-8") as f:
                 f.write(se_file_1)
 
             with tt.AssertPrints(["7/", "SyntaxError"]):
                 ip.magic("run " + fname)
 
             # Modify the file
-            with open(fname, 'w') as f:
+            with open(fname, "w", encoding="utf-8") as f:
                 f.write(se_file_2)
 
             # The SyntaxError should point to the correct line
@@ -248,7 +244,8 @@ bar()
                 ip.showsyntaxerror()
 
 import sys
-if sys.version_info < (3,9):
+
+if sys.version_info < (3, 9) and platform.python_implementation() != "PyPy":
     """
     New 3.9 Pgen Parser does not raise Memory error, except on failed malloc.
     """
@@ -359,7 +356,7 @@ def r3o2():
         ):
             ip.run_cell("r1()")
 
-    @recursionlimit(200)
+    @recursionlimit(160)
     def test_recursion_three_frames(self):
         with tt.AssertPrints("[... skipping similar frames: "), \
                 tt.AssertPrints(re.compile(r"r3a at line 8 \(\d{2} times\)"), suppress=False), \

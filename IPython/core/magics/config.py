@@ -54,44 +54,73 @@ class ConfigMagics(Magics):
 
             In [1]: %config
             Available objects for config:
-                TerminalInteractiveShell
-                HistoryManager
-                PrefilterManager
                 AliasManager
-                IPCompleter
                 DisplayFormatter
+                HistoryManager
+                IPCompleter
+                LoggingMagics
+                MagicsManager
+                OSMagics
+                PrefilterManager
+                ScriptMagics
+                TerminalInteractiveShell
 
         To view what is configurable on a given class, just pass the class
         name::
 
             In [2]: %config IPCompleter
-            IPCompleter options
-            -----------------
-            IPCompleter.omit__names=<Enum>
-                Current: 2
-                Choices: (0, 1, 2)
-                Instruct the completer to omit private method names
-                Specifically, when completing on ``object.<tab>``.
-                When 2 [default]: all names that start with '_' will be excluded.
-                When 1: all 'magic' names (``__foo__``) will be excluded.
-                When 0: nothing will be excluded.
-            IPCompleter.merge_completions=<CBool>
+            IPCompleter(Completer) options
+            ----------------------------
+            IPCompleter.backslash_combining_completions=<Bool>
+                Enable unicode completions, e.g. \\alpha<tab> . Includes completion of latex
+                commands, unicode names, and expanding unicode characters back to latex
+                commands.
                 Current: True
-                Whether to merge completion results into a single list
-                If False, only the completion results from the first non-empty
-                completer will be returned.
-            IPCompleter.limit_to__all__=<CBool>
+            IPCompleter.debug=<Bool>
+                Enable debug for the Completer. Mostly print extra information for
+                experimental jedi integration.
                 Current: False
+            IPCompleter.greedy=<Bool>
+                Activate greedy completion
+                        PENDING DEPRECATION. this is now mostly taken care of with Jedi.
+                        This will enable completion on elements of lists, results of function calls, etc.,
+                        but can be unsafe because the code is actually evaluated on TAB.
+                Current: False
+            IPCompleter.jedi_compute_type_timeout=<Int>
+                Experimental: restrict time (in milliseconds) during which Jedi can compute types.
+                        Set to 0 to stop computing types. Non-zero value lower than 100ms may hurt
+                        performance by preventing jedi to build its cache.
+                Current: 400
+            IPCompleter.limit_to__all__=<Bool>
+                DEPRECATED as of version 5.0.
                 Instruct the completer to use __all__ for the completion
                 Specifically, when completing on ``object.<tab>``.
                 When True: only those names in obj.__all__ will be included.
                 When False [default]: the __all__ attribute is ignored
-            IPCompleter.greedy=<CBool>
                 Current: False
-                Activate greedy completion
-                This will enable completion on elements of lists, results of
-                function calls, etc., but can be unsafe because the code is
-                actually evaluated on TAB.
+            IPCompleter.merge_completions=<Bool>
+                Whether to merge completion results into a single list
+                        If False, only the completion results from the first non-empty
+                        completer will be returned.
+                Current: True
+            IPCompleter.omit__names=<Enum>
+                Instruct the completer to omit private method names
+                        Specifically, when completing on ``object.<tab>``.
+                        When 2 [default]: all names that start with '_' will be excluded.
+                        When 1: all 'magic' names (``__foo__``) will be excluded.
+                        When 0: nothing will be excluded.
+                Choices: any of [0, 1, 2]
+                Current: 2
+            IPCompleter.profile_completions=<Bool>
+                If True, emit profiling data for completion subsystem using cProfile.
+                Current: False
+            IPCompleter.profiler_output_dir=<Unicode>
+                Template for path at which to output profile data for completions.
+                Current: '.completion_profiles'
+            IPCompleter.use_jedi=<Bool>
+                Experimental: Use Jedi to generate autocompletions. Default to True if jedi
+                is installed.
+                Current: True
 
         but the real use is in setting values::
 
@@ -118,7 +147,7 @@ class ConfigMagics(Magics):
             # print available configurable names
             print("Available objects for config:")
             for name in classnames:
-                print("    ", name)
+                print("   ", name)
             return
         elif line in classnames:
             # `%config TerminalInteractiveShell` will print trait info for

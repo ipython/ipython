@@ -2,8 +2,6 @@
 
 Utility functions for finding modules on sys.path.
 
-`find_module` returns a path to module or None, given certain conditions.
-
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2011, the IPython Development Team.
@@ -59,11 +57,11 @@ def find_mod(module_name):
         Path to module `module_name`, its __init__.py, or None,
         depending on above conditions.
     """
-    loader = importlib.util.find_spec(module_name)
-    module_path = loader.origin
+    spec = importlib.util.find_spec(module_name)
+    module_path = spec.origin
     if module_path is None:
-        if loader.loader in sys.meta_path:
-            return loader.loader
+        if spec.loader in sys.meta_path:
+            return spec.loader
         return None
     else:
         split_path = module_path.split(".")

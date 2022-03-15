@@ -131,7 +131,7 @@ class Struct(dict):
         >>> s.a
         10
         >>> type(s.get)
-        <... 'builtin_function_or_method'>
+        <...method'>
         >>> try:
         ...     s.b
         ... except AttributeError:

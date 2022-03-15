@@ -221,10 +221,8 @@ class IPythonConsoleLexer(Lexer):
             In [2]: a
             Out[2]: 'foo'
 
-            In [3]: print a
+            In [3]: print(a)
             foo
-
-            In [4]: 1 / 0
 
 
     Support is also provided for IPython exceptions:
@@ -234,13 +232,9 @@ class IPythonConsoleLexer(Lexer):
         .. code-block:: ipythonconsole
 
             In [1]: raise Exception
-
-            ---------------------------------------------------------------------------
-            Exception                                 Traceback (most recent call last)
-            <ipython-input-1-fca2ab0ca76b> in <module>
-            ----> 1 raise Exception
-
-            Exception:
+            Traceback (most recent call last):
+            ...
+            Exception
 
     """
     name = 'IPython console session'

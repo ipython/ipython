@@ -22,14 +22,14 @@ def main():
         print("Adding pseudo-title to:", filepath.name)
         title = filepath.name[:-4].split("/")[-1].replace("-", " ").capitalize()
 
-        data = filepath.read_text()
+        data = filepath.read_text(encoding="utf-8")
         try:
             if data and data.splitlines()[1].startswith('='):
                 continue
         except IndexError:
             pass
 
-        with filepath.open("w") as f:
+        with filepath.open("w", encoding="utf-8") as f:
             f.write(title + "\n")
             f.write("=" * len(title) + "\n\n")
             f.write(data)

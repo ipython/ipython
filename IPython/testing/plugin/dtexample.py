@@ -4,6 +4,9 @@ This file just contains doctests both using plain python and IPython prompts.
 All tests should be loaded by nose.
 """
 
+import os
+
+
 def pyfunc():
     """Some pure python tests...
 
@@ -38,18 +41,6 @@ def ipfunc():
     0 1 1 2 2 3 
 
 
-    Examples that access the operating system work:
-
-    In [1]: !echo hello
-    hello
-
-    In [2]: !echo hello > /tmp/foo_iptest
-
-    In [3]: !cat /tmp/foo_iptest
-    hello
-
-    In [4]: rm -f /tmp/foo_iptest
-
     It's OK to use '_' for the last result, but do NOT try to use IPython's
     numbered history of _NN outputs, since those won't exist under the
     doctest environment:
@@ -70,6 +61,25 @@ def ipfunc():
     Out[9]: 'ipfunc'
     """
     return 'ipfunc'
+
+
+def ipos():
+    """Examples that access the operating system work:
+
+    In [1]: !echo hello
+    hello
+
+    In [2]: !echo hello > /tmp/foo_iptest
+
+    In [3]: !cat /tmp/foo_iptest
+    hello
+
+    In [4]: rm -f /tmp/foo_iptest
+    """
+    pass
+
+
+ipos.__skip_doctest__ = os.name == "nt"
 
 
 def ranfunc():

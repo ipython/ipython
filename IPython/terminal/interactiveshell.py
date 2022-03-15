@@ -3,11 +3,10 @@
 import asyncio
 import os
 import sys
-import warnings
 from warnings import warn
 
+from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
-from IPython.utils import io
 from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd
@@ -31,7 +30,7 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.formatted_text import PygmentsTokens
-from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.history import History
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.patch_stdout import patch_stdout
@@ -51,7 +50,6 @@ from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import create_ipython_shortcuts
 
-DISPLAY_BANNER_DEPRECATED = object()
 PTK3 = ptk_version.startswith('3.')
 
 
@@ -103,12 +101,71 @@ else:
 _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
 def black_reformat_handler(text_before_cursor):
+    """
+    We do not need to protect against error,
+    this is taken care at a higher level where any reformat error is ignored.
+    Indeed we may call reformatting on incomplete code.
+    """
     import black
+
     formatted_text = black.format_str(text_before_cursor, mode=black.FileMode())
-    if not text_before_cursor.endswith('\n') and formatted_text.endswith('\n'):
-       formatted_text = formatted_text[:-1]
+    if not text_before_cursor.endswith("\n") and formatted_text.endswith("\n"):
+        formatted_text = formatted_text[:-1]
     return formatted_text
 
+
+def yapf_reformat_handler(text_before_cursor):
+    from yapf.yapflib import file_resources
+    from yapf.yapflib import yapf_api
+
+    style_config = file_resources.GetDefaultStyleForDir(os.getcwd())
+    formatted_text, was_formatted = yapf_api.FormatCode(
+        text_before_cursor, style_config=style_config
+    )
+    if was_formatted:
+        if not text_before_cursor.endswith("\n") and formatted_text.endswith("\n"):
+            formatted_text = formatted_text[:-1]
+        return formatted_text
+    else:
+        return text_before_cursor
+
+
+class PtkHistoryAdapter(History):
+    """
+    Prompt toolkit has it's own way of handling history, Where it assumes it can
+    Push/pull from history.
+
+    """
+
+    def __init__(self, shell):
+        super().__init__()
+        self.shell = shell
+        self._refresh()
+
+    def append_string(self, string):
+        # we rely on sql for that.
+        self._loaded = False
+        self._refresh()
+
+    def _refresh(self):
+        if not self._loaded:
+            self._loaded_strings = list(self.load_history_strings())
+
+    def load_history_strings(self):
+        last_cell = ""
+        res = []
+        for __, ___, cell in self.shell.history_manager.get_tail(
+            self.shell.history_load_length, include_latest=True
+        ):
+            # Ignore blank lines and consecutive duplicates
+            cell = cell.rstrip()
+            if cell and (cell != last_cell):
+                res.append(cell)
+                last_cell = cell
+        yield from res[::-1]
+
+    def store_string(self, string: str) -> None:
+        pass
 
 class TerminalInteractiveShell(InteractiveShell):
     mime_renderers = Dict().tag(config=True)
@@ -177,9 +234,19 @@ class TerminalInteractiveShell(InteractiveShell):
        sequence to complete.""",
     ).tag(config=True)
 
-    autoformatter = Unicode(None,
-        help="Autoformatter to reformat Terminal code. Can be `'black'` or `None`",
+    autoformatter = Unicode(
+        None,
+        help="Autoformatter to reformat Terminal code. Can be `'black'`, `'yapf'` or `None`",
         allow_none=True
+    ).tag(config=True)
+
+    auto_match = Bool(
+        False,
+        help="""
+        Automatically add/delete closing bracket or quote when opening bracket or quote is entered/deleted.
+        Brackets: (), [], {}
+        Quotes: '', \"\"
+        """,
     ).tag(config=True)
 
     mouse_support = Bool(False,
@@ -211,15 +278,20 @@ class TerminalInteractiveShell(InteractiveShell):
         if self.pt_app:
             self.pt_app.editing_mode = getattr(EditingMode, change.new.upper())
 
-    @observe('autoformatter')
-    def _autoformatter_changed(self, change):
-        formatter = change.new
+    def _set_formatter(self, formatter):
         if formatter is None:
             self.reformat_handler = lambda x:x
         elif formatter == 'black':
             self.reformat_handler = black_reformat_handler
+        elif formatter == "yapf":
+            self.reformat_handler = yapf_reformat_handler
         else:
             raise ValueError
+
+    @observe("autoformatter")
+    def _autoformatter_changed(self, change):
+        formatter = change.new
+        self._set_formatter(formatter)
 
     @observe('highlighting_style')
     @observe('colors')
@@ -298,6 +370,29 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Allows to enable/disable the prompt toolkit history search"
     ).tag(config=True)
 
+    autosuggestions_provider = Unicode(
+        "AutoSuggestFromHistory",
+        help="Specifies from which source automatic suggestions are provided. "
+        "Can be set to `'AutoSuggestFromHistory`' or `None` to disable"
+        "automatic suggestions. Default is `'AutoSuggestFromHistory`'.",
+        allow_none=True,
+    ).tag(config=True)
+
+    def _set_autosuggestions(self, provider):
+        if provider is None:
+            self.auto_suggest = None
+        elif provider == "AutoSuggestFromHistory":
+            self.auto_suggest = AutoSuggestFromHistory()
+        else:
+            raise ValueError("No valid provider.")
+        if self.pt_app:
+            self.pt_app.auto_suggest = self.auto_suggest
+
+    @observe("autosuggestions_provider")
+    def _autosuggestions_provider_changed(self, change):
+        provider = change.new
+        self._set_autosuggestions(provider)
+
     prompt_includes_vi_mode = Bool(True,
         help="Display the current vi mode (when using vi editing mode)."
     ).tag(config=True)
@@ -318,9 +413,7 @@ class TerminalInteractiveShell(InteractiveShell):
     def init_display_formatter(self):
         super(TerminalInteractiveShell, self).init_display_formatter()
         # terminal only supports plain text
-        self.display_formatter.active_types = ['text/plain']
-        # disable `_ipython_display_`
-        self.display_formatter.ipython_display_formatter.enabled = False
+        self.display_formatter.active_types = ["text/plain"]
 
     def init_prompt_toolkit_cli(self):
         if self.simple_prompt:
@@ -339,16 +432,9 @@ class TerminalInteractiveShell(InteractiveShell):
         # Set up keyboard shortcuts
         key_bindings = create_ipython_shortcuts(self)
 
+
         # Pre-populate history from IPython's history database
-        history = InMemoryHistory()
-        last_cell = u""
-        for __, ___, cell in self.history_manager.get_tail(self.history_load_length,
-                                                        include_latest=True):
-            # Ignore blank lines and consecutive duplicates
-            cell = cell.rstrip()
-            if cell and (cell != last_cell):
-                history.append_string(cell)
-                last_cell = cell
+        history = PtkHistoryAdapter(self)
 
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
         self.style = DynamicStyle(lambda: self._style)
@@ -357,7 +443,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(
-            auto_suggest=AutoSuggestFromHistory(),
+            auto_suggest=self.auto_suggest,
             editing_mode=editing_mode,
             key_bindings=key_bindings,
             history=history,
@@ -504,13 +590,15 @@ class TerminalInteractiveShell(InteractiveShell):
         # If we don't do this, people could spawn coroutine with a
         # while/true inside which will freeze the prompt.
 
-        try:
-            old_loop = asyncio.get_event_loop()
-        except RuntimeError:
-            # This happens when the user used `asyncio.run()`.
-            old_loop = None
+        policy = asyncio.get_event_loop_policy()
+        old_loop = get_asyncio_loop()
 
-        asyncio.set_event_loop(self.pt_loop)
+        # FIXME: prompt_toolkit is using the deprecated `asyncio.get_event_loop`
+        # to get the current event loop.
+        # This will probably be replaced by an attribute or input argument,
+        # at which point we can stop calling the soon-to-be-deprecated `set_event_loop` here.
+        if old_loop is not self.pt_loop:
+            policy.set_event_loop(self.pt_loop)
         try:
             with patch_stdout(raw=True):
                 text = self.pt_app.prompt(
@@ -518,14 +606,14 @@ class TerminalInteractiveShell(InteractiveShell):
                     **self._extra_prompt_options())
         finally:
             # Restore the original event loop.
-            asyncio.set_event_loop(old_loop)
+            if old_loop is not None and old_loop is not self.pt_loop:
+                policy.set_event_loop(old_loop)
 
         return text
 
     def enable_win_unicode_console(self):
         # Since IPython 7.10 doesn't support python < 3.6 and PEP 528, Python uses the unicode APIs for the Windows
         # console by default, so WUC shouldn't be needed.
-        from warnings import warn
         warn("`enable_win_unicode_console` is deprecated since IPython 7.10, does not do anything and will be removed in the future",
              DeprecationWarning,
              stacklevel=2)
@@ -536,16 +624,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
         import colorama
         colorama.init()
-
-        # For some reason we make these wrappers around stdout/stderr.
-        # For now, we need to reset them so all output gets coloured.
-        # https://github.com/ipython/ipython/issues/8669
-        # io.std* are deprecated, but don't show our own deprecation warnings
-        # during initialization of the deprecated API.
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', DeprecationWarning)
-            io.stdout = io.IOStream(sys.stdout)
-            io.stderr = io.IOStream(sys.stderr)
 
     def init_magics(self):
         super(TerminalInteractiveShell, self).init_magics()
@@ -566,9 +644,11 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def __init__(self, *args, **kwargs):
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
+        self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()
         self.keep_running = True
+        self._set_formatter(self.autoformatter)
 
 
     def ask_exit(self):
@@ -576,11 +656,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     rl_next_input = None
 
-    def interact(self, display_banner=DISPLAY_BANNER_DEPRECATED):
-
-        if display_banner is not DISPLAY_BANNER_DEPRECATED:
-            warn('interact `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
-
+    def interact(self):
         self.keep_running = True
         while self.keep_running:
             print(self.separate_in, end='')
@@ -596,11 +672,9 @@ class TerminalInteractiveShell(InteractiveShell):
                 if code:
                     self.run_cell(code, store_history=True)
 
-    def mainloop(self, display_banner=DISPLAY_BANNER_DEPRECATED):
+    def mainloop(self):
         # An extra layer of protection in case someone mashing Ctrl-C breaks
         # out of our internal code.
-        if display_banner is not DISPLAY_BANNER_DEPRECATED:
-            warn('mainloop `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
         while True:
             try:
                 self.interact()
@@ -648,7 +722,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 # When we integrate the asyncio event loop, run the UI in the
                 # same event loop as the rest of the code. don't use an actual
                 # input hook. (Asyncio is not made for nesting event loops.)
-                self.pt_loop = asyncio.get_event_loop()
+                self.pt_loop = get_asyncio_loop()
 
             elif self._inputhook:
                 # If an inputhook was set, create a new asyncio event loop with

@@ -81,8 +81,8 @@ profile with:
     $ ipython locate profile foo
     /home/you/.ipython/profile_foo
 
-These map to the utility functions: :func:`IPython.utils.path.get_ipython_dir`
-and :func:`IPython.utils.path.locate_profile` respectively.
+These map to the utility functions: :func:`IPython.paths.get_ipython_dir`
+and :func:`IPython.paths.locate_profile` respectively.
 
 
 .. _profiles_dev:

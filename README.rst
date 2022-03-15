@@ -149,11 +149,11 @@ Alternatives to IPython
 IPython may not be to your taste; if that's the case there might be similar
 project that you might want to use:
 
-- the classic Python REPL.
+- The classic Python REPL.
 - `bpython <https://bpython-interpreter.org/>`_
 - `mypython <https://www.asmeurer.com/mypython/>`_
-- `ptpython and ptipython <https://pypi.org/project/ptpython/>`
-- `xonsh <https://xon.sh/>`
+- `ptpython and ptipython <https://pypi.org/project/ptpython/>`_
+- `Xonsh <https://xon.sh/>`_
 
 Ignoring commits with git blame.ignoreRevsFile
 ==============================================

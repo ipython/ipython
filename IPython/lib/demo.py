@@ -239,7 +239,7 @@ class Demo(object):
             terminal16m
 
           - style('default'): a string of pygments style name to be used.
-          """
+        """
         if hasattr(src, "read"):
              # It seems to be a file or a file-like object
             self.fname = "from a file-like object"
@@ -405,7 +405,7 @@ class Demo(object):
 
         filename = self.shell.mktempfile(self.src_blocks[index])
         self.shell.hooks.editor(filename, 1)
-        with open(Path(filename), "r") as f:
+        with open(Path(filename), "r", encoding="utf-8") as f:
             new_block = f.read()
         # update the source and colored block
         self.src_blocks[index] = new_block

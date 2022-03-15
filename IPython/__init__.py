@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 IPython: tools for interactive and parallel computing in Python.
 
@@ -27,13 +26,15 @@ import sys
 #-----------------------------------------------------------------------------
 
 # Don't forget to also update setup.py when this changes!
-if sys.version_info < (3, 6):
+if sys.version_info < (3, 8):
     raise ImportError(
 """
-IPython 7.10+ supports Python 3.6 and above.
+IPython 8+ supports Python 3.8 and above, following NEP 29.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
 Python 3.3 and 3.4 were supported up to IPython 6.x.
 Python 3.5 was supported with IPython 7.0 to 7.9.
+Python 3.6 was supported with IPython up to 7.16.
+Python 3.7 was still supported with the 7.x branch.
 
 See IPython `README.rst` file for more information:
 
@@ -51,7 +52,6 @@ from .core.application import Application
 from .terminal.embed import embed
 
 from .core.interactiveshell import InteractiveShell
-from .testing import test
 from .utils.sysinfo import sys_info
 from .utils.frame import extract_module_locals
 
@@ -60,6 +60,10 @@ __author__ = '%s <%s>' % (release.author, release.author_email)
 __license__  = release.license
 __version__  = release.version
 version_info = release.version_info
+# list of CVEs that should have been patched in this release.
+# this is informational and should not be relied upon.
+__patched_cves__ = {"CVE-2022-21699"}
+
 
 def embed_kernel(module=None, local_ns=None, **kwargs):
     """Embed and start an IPython kernel in a given scope.
@@ -140,5 +144,12 @@ def start_kernel(argv=None, **kwargs):
         Any other kwargs will be passed to the Application constructor,
         such as `config`.
     """
-    from IPython.kernel.zmq.kernelapp import launch_new_instance
+    import warnings
+
+    warnings.warn(
+        "start_kernel is deprecated since IPython 8.0, use from `ipykernel.kernelapp.launch_new_instance`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    from ipykernel.kernelapp import launch_new_instance
     return launch_new_instance(argv=argv, **kwargs)

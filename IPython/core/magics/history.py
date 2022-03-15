@@ -105,7 +105,7 @@ class HistoryMagics(Magics):
 
         By default, all input history from the current session is displayed.
         Ranges of history can be indicated using the syntax:
-        
+
         ``4``
             Line 4, current session
         ``4-6``
@@ -117,7 +117,7 @@ class HistoryMagics(Magics):
         ``~8/1-~6/5``
             From the first line of 8 sessions ago, to the fifth line of 6
             sessions ago.
-        
+
         Multiple ranges can be entered, separated by spaces
 
         The same syntax is used by %macro, %save, %edit, %rerun
@@ -151,6 +151,7 @@ class HistoryMagics(Magics):
             # We don't want to close stdout at the end!
             close_at_end = False
         else:
+            outfname = os.path.expanduser(outfname)
             if os.path.exists(outfname):
                 try:
                     ans = io.ask_yes_no("File %r exists. Overwrite?" % outfname)
@@ -299,7 +300,11 @@ class HistoryMagics(Magics):
         """
         opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
         if "l" in opts:         # Last n lines
-            n = int(opts['l'])
+            try:
+                n = int(opts["l"])
+            except ValueError:
+                print("Number of lines must be an integer")
+                return
 
             if n == 0:
                 print("Requested 0 last lines - nothing to run")

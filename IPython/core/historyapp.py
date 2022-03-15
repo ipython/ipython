@@ -5,8 +5,8 @@ An application for managing IPython history.
 To be invoked as the `ipython history` subcommand.
 """
 
-import os
 import sqlite3
+from pathlib import Path
 
 from traitlets.config.application import Application
 from .application import BaseIPythonApplication
@@ -52,8 +52,8 @@ class HistoryTrim(BaseIPythonApplication):
     ))
     
     def start(self):
-        profile_dir = self.profile_dir.location
-        hist_file = os.path.join(profile_dir, 'history.sqlite')
+        profile_dir = Path(self.profile_dir.location)
+        hist_file = profile_dir / "history.sqlite"
         con = sqlite3.connect(hist_file)
 
         # Grab the recent history from the current database.
@@ -77,12 +77,12 @@ class HistoryTrim(BaseIPythonApplication):
         con.close()
         
         # Create the new history database.
-        new_hist_file = os.path.join(profile_dir, 'history.sqlite.new')
+        new_hist_file = profile_dir / "history.sqlite.new"
         i = 0
-        while os.path.exists(new_hist_file):
+        while new_hist_file.exists():
             # Make sure we don't interfere with an existing file.
             i += 1
-            new_hist_file = os.path.join(profile_dir, 'history.sqlite.new'+str(i))
+            new_hist_file = profile_dir / ("history.sqlite.new" + str(i))
         new_db = sqlite3.connect(new_hist_file)
         new_db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
                             primary key autoincrement, start timestamp,
@@ -106,16 +106,16 @@ class HistoryTrim(BaseIPythonApplication):
 
         if self.backup:
             i = 1
-            backup_hist_file = os.path.join(profile_dir, 'history.sqlite.old.%d' % i)
-            while os.path.exists(backup_hist_file):
+            backup_hist_file = profile_dir / ("history.sqlite.old.%d" % i)
+            while backup_hist_file.exists():
                 i += 1
-                backup_hist_file = os.path.join(profile_dir, 'history.sqlite.old.%d' % i)
-            os.rename(hist_file, backup_hist_file)
+                backup_hist_file = profile_dir / ("history.sqlite.old.%d" % i)
+            hist_file.rename(backup_hist_file)
             print("Backed up longer history file to", backup_hist_file)
         else:
-            os.remove(hist_file)
+            hist_file.unlink()
         
-        os.rename(new_hist_file, hist_file)
+        new_hist_file.rename(hist_file)
 
 class HistoryClear(HistoryTrim):
     description = clear_hist_help

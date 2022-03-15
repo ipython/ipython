@@ -182,11 +182,12 @@ def getsource(obj, oname='') -> Union[str,None]:
         except TypeError:
             # The object itself provided no meaningful source, try looking for
             # its class definition instead.
-            if hasattr(obj, '__class__'):
-                try:
-                    src = inspect.getsource(obj.__class__)
-                except TypeError:
-                    return None
+            try:
+                src = inspect.getsource(obj.__class__)
+            except (OSError, TypeError):
+                return None
+        except OSError:
+            return None
 
         return src
 
@@ -221,7 +222,7 @@ def format_argspec(argspec):
     This takes a dict instead of ordered arguments and calls
     inspect.format_argspec with the arguments in the necessary order.
 
-    DEPRECATED: Do not use; will be removed in future versions.
+    DEPRECATED (since 7.10): Do not use; will be removed in future versions.
     """
     
     warnings.warn('`format_argspec` function is deprecated as of IPython 7.10'
@@ -233,10 +234,13 @@ def format_argspec(argspec):
 
 @undoc
 def call_tip(oinfo, format_call=True):
-    """DEPRECATED. Extract call tip data from an oinfo dict.
-    """
-    warnings.warn('`call_tip` function is deprecated as of IPython 6.0'
-                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
+    """DEPRECATED since 6.0. Extract call tip data from an oinfo dict."""
+    warnings.warn(
+        "`call_tip` function is deprecated as of IPython 6.0"
+        "and will be removed in future versions.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     # Get call definition
     argspec = oinfo.get('argspec')
     if argspec is None:
@@ -298,7 +302,7 @@ def find_file(obj) -> str:
     Returns
     -------
     fname : str
-      The absolute path to the file where the object was defined.
+        The absolute path to the file where the object was defined.
     """
     obj = _get_wrapped(obj)
 
@@ -308,14 +312,14 @@ def find_file(obj) -> str:
     except TypeError:
         # For an instance, the file that matters is where its class was
         # declared.
-        if hasattr(obj, '__class__'):
-            try:
-                fname = inspect.getabsfile(obj.__class__)
-            except TypeError:
-                # Can happen for builtins
-                pass
-    except:
+        try:
+            fname = inspect.getabsfile(obj.__class__)
+        except (OSError, TypeError):
+            # Can happen for builtins
+            pass
+    except OSError:
         pass
+
     return cast_unicode(fname)
 
 
@@ -333,20 +337,19 @@ def find_source_lines(obj):
     Returns
     -------
     lineno : int
-      The line number where the object definition starts.
+        The line number where the object definition starts.
     """
     obj = _get_wrapped(obj)
 
     try:
+        lineno = inspect.getsourcelines(obj)[1]
+    except TypeError:
+        # For instances, try the class object like getsource() does
         try:
-            lineno = inspect.getsourcelines(obj)[1]
-        except TypeError:
-            # For instances, try the class object like getsource() does
-            if hasattr(obj, '__class__'):
-                lineno = inspect.getsourcelines(obj.__class__)[1]
-            else:
-                lineno = None
-    except:
+            lineno = inspect.getsourcelines(obj.__class__)[1]
+        except (OSError, TypeError):
+            return None
+    except OSError:
         return None
 
     return lineno
@@ -425,7 +428,6 @@ class Inspector(Colorable):
 
         Examples
         --------
-
         In [1]: class NoInit:
            ...:     pass
 
@@ -566,24 +568,27 @@ class Inspector(Colorable):
         bundle['text/plain'] = text
         return bundle
 
-    def _get_info(self, obj, oname='', formatter=None, info=None, detail_level=0):
+    def _get_info(
+        self, obj, oname="", formatter=None, info=None, detail_level=0, omit_sections=()
+    ):
         """Retrieve an info dict and format it.
 
         Parameters
-        ==========
-
-        obj: any
+        ----------
+        obj : any
             Object to inspect and return info from
-        oname: str (default: ''):
+        oname : str (default: ''):
             Name of the variable pointing to `obj`.
-        formatter: callable
-        info:
+        formatter : callable
+        info
             already computed information
-        detail_level: integer
+        detail_level : integer
             Granularity of detail level, if set to 1, give more information.
+        omit_sections : container[str]
+            Titles or keys to omit from output (can be set, tuple, etc., anything supporting `in`)
         """
 
-        info = self._info(obj, oname=oname, info=info, detail_level=detail_level)
+        info = self.info(obj, oname=oname, info=info, detail_level=detail_level)
 
         _mime = {
             'text/plain': [],
@@ -591,6 +596,8 @@ class Inspector(Colorable):
         }
 
         def append_field(bundle, title:str, key:str, formatter=None):
+            if title in omit_sections or key in omit_sections:
+                return
             field = info[key]
             if field is not None:
                 formatted_field = self._mime_format(field, formatter)
@@ -655,7 +662,16 @@ class Inspector(Colorable):
 
         return self.format_mime(_mime)
 
-    def pinfo(self, obj, oname='', formatter=None, info=None, detail_level=0, enable_html_pager=True):
+    def pinfo(
+        self,
+        obj,
+        oname="",
+        formatter=None,
+        info=None,
+        detail_level=0,
+        enable_html_pager=True,
+        omit_sections=(),
+    ):
         """Show detailed information about an object.
 
         Optional arguments:
@@ -676,40 +692,48 @@ class Inspector(Colorable):
           precomputed already.
 
         - detail_level: if set to 1, more information is given.
+
+        - omit_sections: set of section keys and titles to omit
         """
-        info = self._get_info(obj, oname, formatter, info, detail_level)
+        info = self._get_info(
+            obj, oname, formatter, info, detail_level, omit_sections=omit_sections
+        )
         if not enable_html_pager:
             del info['text/html']
         page.page(info)
 
-    def info(self, obj, oname='', formatter=None, info=None, detail_level=0):
-        """DEPRECATED. Compute a dict with detailed information about an object.
+    def _info(self, obj, oname="", info=None, detail_level=0):
         """
-        if formatter is not None:
-            warnings.warn('The `formatter` keyword argument to `Inspector.info`'
-                     'is deprecated as of IPython 5.0 and will have no effects.',
-                      DeprecationWarning, stacklevel=2)
-        return self._info(obj, oname=oname, info=info, detail_level=detail_level)
+        Inspector.info() was likely improperly marked as deprecated
+        while only a parameter was deprecated. We "un-deprecate" it.
+        """
 
-    def _info(self, obj, oname='', info=None, detail_level=0) -> dict:
+        warnings.warn(
+            "The `Inspector.info()` method has been un-deprecated as of 8.0 "
+            "and the `formatter=` keyword removed. `Inspector._info` is now "
+            "an alias, and you can just call `.info()` directly.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.info(obj, oname=oname, info=info, detail_level=detail_level)
+
+    def info(self, obj, oname="", info=None, detail_level=0) -> dict:
         """Compute a dict with detailed information about an object.
 
         Parameters
-        ==========
-
-        obj: any
+        ----------
+        obj : any
             An object to find information about
-        oname: str (default: ''):
+        oname : str (default: '')
             Name of the variable pointing to `obj`.
-        info: (default: None)
+        info : (default: None)
             A struct (dict like with attr access) with some information fields
             which may have been precomputed already.
-        detail_level: int (default:0)
+        detail_level : int (default:0)
             If set to 1, more information is given.
 
         Returns
-        =======
-
+        -------
         An object info dict with known fields from `info_fields`. Keys are
         strings, values are string or None.
         """
@@ -941,7 +965,7 @@ class Inspector(Colorable):
 
           - show_all(False): show all names, including those starting with
             underscores.
-            
+
           - list_types(False): list all available object types for object matching.
         """
         #print 'ps pattern:<%r>' % pattern # dbg
