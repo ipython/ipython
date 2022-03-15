@@ -265,15 +265,14 @@ class HistoryMagics(Magics):
             return
                                     # Get history range
         histlines = self.shell.history_manager.get_range_by_str(arg)
-        cmd = "\n".join(x[2] for x in histlines)
-        if cmd:
+        if cmd := "\n".join(x[2] for x in histlines):
             self.shell.set_next_input(cmd.rstrip())
             return
 
         try:                        # Variable in user namespace
             cmd = str(eval(arg, self.shell.user_ns))
-        except Exception:           # Search for term in history
-            histlines = self.shell.history_manager.search("*"+arg+"*")
+        except Exception:       # Search for term in history
+            histlines = self.shell.history_manager.search(f"*{arg}*")
             for h in reversed([x[2] for x in histlines]):
                 if 'recall' in h or 'rep' in h:
                     continue
@@ -314,15 +313,10 @@ class HistoryMagics(Magics):
                 return
 
             hist = self.shell.history_manager.get_tail(n)
-        elif "g" in opts:       # Search
+        elif "g" in opts:   # Search
             p = "*"+opts['g']+"*"
             hist = list(self.shell.history_manager.search(p))
-            for l in reversed(hist):
-                if "rerun" not in l[2]:
-                    hist = [l]     # The last match which isn't a %rerun
-                    break
-            else:
-                hist = []          # No matches except %rerun
+            hist = next(([l] for l in reversed(hist) if "rerun" not in l[2]), [])
         elif args:              # Specify history ranges
             hist = self.shell.history_manager.get_range_by_str(args)
         else:                   # Last line

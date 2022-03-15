@@ -20,7 +20,7 @@ from IPython.utils.ipstruct import Struct
 
 class MagicsDisplay(object):
     def __init__(self, magics_manager, ignore=None):
-        self.ignore = ignore if ignore else []
+        self.ignore = ignore or []
         self.magics_manager = magics_manager
     
     def _lsmagic(self):
@@ -29,13 +29,34 @@ class MagicsDisplay(object):
         cesc = magic_escapes['cell']
         mman = self.magics_manager
         magics = mman.lsmagic()
-        out = ['Available line magics:',
-               mesc + ('  '+mesc).join(sorted([m for m,v in magics['line'].items() if (v not in self.ignore)])),
-               '',
-               'Available cell magics:',
-               cesc + ('  '+cesc).join(sorted([m for m,v in magics['cell'].items() if (v not in self.ignore)])),
-               '',
-               mman.auto_status()]
+        out = [
+            'Available line magics:',
+            mesc
+            + f'  {mesc}'.join(
+                sorted(
+                    [
+                        m
+                        for m, v in magics['line'].items()
+                        if (v not in self.ignore)
+                    ]
+                )
+            ),
+            '',
+            'Available cell magics:',
+            cesc
+            + f'  {cesc}'.join(
+                sorted(
+                    [
+                        m
+                        for m, v in magics['cell'].items()
+                        if (v not in self.ignore)
+                    ]
+                )
+            ),
+            '',
+            mman.auto_status(),
+        ]
+
         return '\n'.join(out)
 
     def _repr_pretty_(self, p, cycle):
@@ -163,7 +184,7 @@ class BasicMagics(Magics):
             args.line = bool(m_line)
             args.cell = bool(m_cell)
 
-        params_str = "" if params is None else " " + params
+        params_str = "" if params is None else f" {params}"
 
         if args.line:
             mman.register_alias(name, target, 'line', params)
@@ -187,11 +208,7 @@ class BasicMagics(Magics):
         mman = self.shell.magics_manager
         docs = mman.lsmagic_docs(brief, missing='No documentation')
 
-        if rest:
-            format_string = '**%s%s**::\n\n%s\n\n'
-        else:
-            format_string = '%s%s:\n%s\n'
-
+        format_string = '**%s%s**::\n\n%s\n\n' if rest else '%s%s:\n%s\n'
         return ''.join(
             [format_string % (magic_escapes['line'], fname,
                               indent(dedent(fndoc)))
@@ -467,7 +484,7 @@ Currently the magic system has the following functions:""",
             ptformatter.pprint = dstore.rc_pprint
             disp_formatter.active_types = dstore.rc_active_types
 
-            shell.magic('xmode ' + dstore.xmode)
+            shell.magic(f'xmode {dstore.xmode}')
 
         # mode here is the state before we switch; switch_doctest_mode takes
         # the mode we're switching to.
@@ -577,15 +594,13 @@ Currently the magic system has the following functions:""",
 
         from nbformat import write, v4
 
-        cells = []
         hist = list(self.shell.history_manager.get_range())
         if(len(hist)<=1):
             raise ValueError('History is empty, cannot export')
-        for session, execution_count, source in hist[:-1]:
-            cells.append(v4.new_code_cell(
+        cells = [v4.new_code_cell(
                 execution_count=execution_count,
                 source=source
-            ))
+            ) for session, execution_count, source in hist[:-1]]
         nb = v4.new_notebook(cells=cells)
         with io.open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
@@ -628,9 +643,9 @@ class AsyncMagics(BasicMagics):
         """
 
         param = parameter_s.strip()
-        d = {True: "on", False: "off"}
-
         if not param:
+            d = {True: "on", False: "off"}
+
             print("IPython autoawait is `{}`, and set to use `{}`".format(
                 d[self.shell.autoawait],
                 self.shell.loop_runner

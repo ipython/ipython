@@ -144,9 +144,7 @@ def strip_initial_indent(lines):
 
     it = iter(lines)
     first_line = next(it)
-    indent_match = indent_re.match(first_line)
-
-    if indent_match:
+    if indent_match := indent_re.match(first_line):
         # First line was indented
         indent = indent_match.group()
         yield first_line[len(indent):]
@@ -162,8 +160,7 @@ def strip_initial_indent(lines):
         yield first_line
 
     # Pass the remaining lines through without dedenting
-    for line in it:
-        yield line
+    yield from it
 
 
 class InteractivelyDefined(Exception):
@@ -413,10 +410,7 @@ class CodeMagics(Magics):
             except IOError:
                 # If it ends with .py but doesn't already exist, assume we want
                 # a new file.
-                if arg.endswith('.py'):
-                    filename = arg
-                else:
-                    filename = None
+                filename = arg if arg.endswith('.py') else None
             return filename
 
         # Set a few locals from the options for convenience:
@@ -543,7 +537,7 @@ class CodeMagics(Magics):
 
     @skip_doctest
     @line_magic
-    def edit(self, parameter_s='',last_call=['','']):
+    def edit(self, parameter_s='', last_call = None):
         """Bring up an editor and execute the resulting code.
 
         Usage:
@@ -686,6 +680,8 @@ class CodeMagics(Magics):
         starting example for further modifications.  That file also has
         general instructions on how to set a new hook for use once you've
         defined it."""
+        if last_call is None:
+            last_call = ['','']
         opts,args = self.parse_options(parameter_s,'prxn:')
 
         try:

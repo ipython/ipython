@@ -33,12 +33,11 @@ def _get_conda_executable():
     # Otherwise, attempt to extract the executable from conda history.
     # This applies in any conda environment.
     history = Path(sys.prefix, "conda-meta", "history").read_text(encoding="utf-8")
-    match = re.search(
+    if match := re.search(
         r"^#\s*cmd:\s*(?P<command>.*conda)\s[create|install]",
         history,
         flags=re.MULTILINE,
-    )
-    if match:
+    ):
         return match.groupdict()["command"]
 
     # Fallback: assume conda is available on the system path.
@@ -67,11 +66,7 @@ class PackagingMagics(Magics):
           %pip install [pkgs]
         """
         python = sys.executable
-        if sys.platform == "win32":
-            python = '"' + python + '"'
-        else:
-            python = shlex.quote(python)
-
+        python = '"' + python + '"' if sys.platform == "win32" else shlex.quote(python)
         self.shell.system(" ".join([python, "-m", "pip", line]))
 
         print("Note: you may need to restart the kernel to use updated packages.")

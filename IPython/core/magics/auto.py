@@ -113,7 +113,7 @@ class AutoMagics(Magics):
         def errorMessage() -> str:
             error = "Valid modes: "
             for k, v in valid_modes.items():
-                error += str(k) + "->" + v + ", "
+                error += f'{str(k)}->{v}, '
             error = error[:-2]  # remove tailing `, ` after last element
             return error
 

@@ -1,31 +1,23 @@
 # -*- coding: utf-8 -*-
 """Decorators for labeling test objects.
-
 Decorators that merely return a modified version of the original function
 object are straightforward.  Decorators that return a new function object need
 to use nose.tools.make_decorator(original_function)(decorator) in returning the
 decorator, in order to preserve metadata such as function name, setup and
 teardown functions and so on - see nose.tools for more information.
-
 This module provides a set of useful decorators meant to be ready to use in
 your own tests.  See the bottom of the file for the ready-made ones, and if you
 find yourself writing a new one that may be of generic use, add it here.
-
 Included decorators:
-
-
 Lightweight testing that remains unittest-compatible.
-
 - An @as_unittest decorator can be used to tag any normal parameter-less
   function as a unittest TestCase.  Then, both nose and normal unittest will
   recognize it as such.  This will make it easier to migrate away from Nose if
   we ever need/want to while maintaining very lightweight tests.
-
 NOTE: This file contains IPython-specific decorators. Using the machinery in
 IPython.external.decorators, we import either numpy.testing.decorators if numpy is
 available, OR use equivalent code in IPython.external._decorators, which
 we've copied verbatim from numpy.
-
 """
 
 # Copyright (c) IPython Development Team.
@@ -64,10 +56,8 @@ def as_unittest(func):
 
 def skipif(skip_condition, msg=None):
     """Make function raise SkipTest exception if skip_condition is true
-
     Parameters
     ----------
-
     skip_condition : bool or callable
       Flag to determine whether to skip test. If the condition is a
       callable, it is used at runtime to dynamically make the decision. This
@@ -75,7 +65,6 @@ def skipif(skip_condition, msg=None):
       until the test suite is actually executed.
     msg : string
       Message to give on raising a SkipTest exception.
-
     Returns
     -------
     decorator : function
@@ -91,65 +80,15 @@ def skipif(skip_condition, msg=None):
     assert isinstance(skip_condition, bool)
     return pytest.mark.skipif(skip_condition, reason=msg)
 
-    Notes
-    -----
-    You will see from the code that we had to further decorate the
-    decorator with the nose.tools.make_decorator function in order to
-    transmit function name, and various other metadata.
-    '''
-
-    def skip_decorator(f):
-        # Local import to avoid a hard nose dependency and only incur the
-        # import time overhead at actual test-time.
-        import nose
-
-        # Allow for both boolean or callable skip conditions.
-        if callable(skip_condition):
-            skip_val = skip_condition
-        else:
-            skip_val = lambda : skip_condition
-
-        def get_msg(func,msg=None):
-            """Skip message with information about function being skipped."""
-            out = 'Test skipped due to test condition.' if msg is None else msg
-            return "Skipping test: %s. %s" % (func.__name__,out)
-
-        # We need to define *two* skippers because Python doesn't allow both
-        # return with value and yield inside the same function.
-        def skipper_func(*args, **kwargs):
-            """Skipper for normal test functions."""
-            if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
-            else:
-                return f(*args, **kwargs)
-
-        def skipper_gen(*args, **kwargs):
-            """Skipper for test generators."""
-            if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
-            else:
-                yield from f(*args, **kwargs)
-
-        # Choose the right skipper to use when building the actual generator.
-        if nose.util.isgenerator(f):
-            skipper = skipper_gen
-        else:
-            skipper = skipper_func
-
-        return nose.tools.make_decorator(f)(skipper)
-
-    return skip_decorator
 
 # A version with the condition set to true, common case just to attach a message
 # to a skip decorator
 def skip(msg=None):
     """Decorator factory - mark a test function for skipping from test suite.
-
     Parameters
     ----------
       msg : string
         Optional message to be added.
-
     Returns
     -------
        decorator : function
@@ -171,7 +110,6 @@ def onlyif(condition, msg):
 # Utility functions for decorators
 def module_not_available(module):
     """Can module be imported?  Returns true if module does NOT import.
-
     This is used to make a decorator to skip tests that require module to be
     available, but delay the 'import numpy' to test execution time.
     """
@@ -238,11 +176,12 @@ def onlyif_cmds_exist(*commands):
     """
     Decorator to skip test when at least one of `commands` is not found.
     """
-    reason = "This test runs only if command '{cmd}' is installed"
+    assert (
+        os.environ.get("IPTEST_WORKING_DIR", None) is None
+    ), "iptest deprecated since IPython 8.0"
     for cmd in commands:
+        reason = f"This test runs only if command '{cmd}' is installed"
         if not shutil.which(cmd):
-            if os.environ.get("IPTEST_WORKING_DIR", None) is not None:
-                return skip(reason)
             import pytest
 
             return pytest.mark.skip(reason=reason)

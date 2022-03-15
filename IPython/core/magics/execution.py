@@ -104,7 +104,7 @@ class TimeitResult(object):
 
     def _repr_pretty_(self, p , cycle):
         unic = self.__str__()
-        p.text(u'<TimeitResult : '+unic+u'>')
+        p.text(f'<TimeitResult : {unic}>')
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
@@ -350,9 +350,8 @@ class ExecutionMagics(Magics):
             page.page(output)
         print(sys_exit, end=' ')
 
-        dump_file = opts.D[0]
         text_file = opts.T[0]
-        if dump_file:
+        if dump_file := opts.D[0]:
             prof.dump_stats(dump_file)
             print(
                 f"\n*** Profile stats marshalled to file {repr(dump_file)}.{sys_exit}"
@@ -389,9 +388,7 @@ class ExecutionMagics(Magics):
         without having to type '%pdb on' and rerunning your code, you can use
         the %debug magic."""
 
-        par = parameter_s.strip().lower()
-
-        if par:
+        if par := parameter_s.strip().lower():
             try:
                 new_pdb = {'off':0,'0':0,'on':1,'1':1}[par]
             except KeyError:
@@ -908,10 +905,10 @@ class ExecutionMagics(Magics):
         deb.clear_all_breaks()
         if bp_line is not None:
             # Set an initial breakpoint to stop execution
-            maxtries = 10
             bp_file = bp_file or filename
             checkline = deb.checkline(bp_file, bp_line)
             if not checkline:
+                maxtries = 10
                 for bp in range(bp_line + 1, bp_line + maxtries + 1):
                     if deb.checkline(bp_file, bp):
                         break
@@ -950,7 +947,7 @@ class ExecutionMagics(Magics):
                     break
                 finally:
                     sys.settrace(trace)
-            
+
 
         except:
             etype, value, tb = sys.exc_info()
@@ -1423,7 +1420,7 @@ class ExecutionMagics(Magics):
             return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
-        if not ( 'q' in opts) : 
+        if 'q' not in opts: 
             print('Macro `%s` created. To execute, type its name (without quotes).' % name)
             print('=== Macro contents: ===')
             print(macro, end=' ')

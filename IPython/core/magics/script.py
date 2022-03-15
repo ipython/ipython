@@ -146,10 +146,7 @@ class ScriptMagics(Magics):
         @script_args
         def named_script_magic(line, cell):
             # if line, add it as cl-flags
-            if line:
-                line = "%s %s" % (script, line)
-            else:
-                line = script
+            line = "%s %s" % (script, line) if line else script
             return self.shebang(line, cell)
         
         # write a basic docstring:
