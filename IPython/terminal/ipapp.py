@@ -25,6 +25,7 @@ from IPython.core.history import HistoryManager
 from IPython.core.application import (
     ProfileDir, BaseIPythonApplication, base_flags, base_aliases
 )
+from IPython.core.magic import MagicsManager
 from IPython.core.magics import (
     ScriptMagics, LoggingMagics
 )
@@ -200,6 +201,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.__class__,      # it will also affect subclasses (e.g. QtConsole)
             TerminalInteractiveShell,
             HistoryManager,
+            MagicsManager,
             ProfileDir,
             PlainTextFormatter,
             IPCompleter,
@@ -208,26 +210,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             StoreMagics,
         ]
 
-    deprecated_subcommands = dict(
-        qtconsole=('qtconsole.qtconsoleapp.JupyterQtConsoleApp',
-            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter Qt Console."""
-        ),
-        notebook=('notebook.notebookapp.NotebookApp',
-            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter HTML Notebook Server."""
-        ),
-        console=('jupyter_console.app.ZMQTerminalIPythonApp',
-            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter terminal-based Console."""
-        ),
-        nbconvert=('nbconvert.nbconvertapp.NbConvertApp',
-            "DEPRECATED, Will be removed in IPython 6.0 : Convert notebooks to/from other formats."
-        ),
-        trust=('nbformat.sign.TrustNotebookApp',
-            "DEPRECATED, Will be removed in IPython 6.0 : Sign notebooks to trust their potentially unsafe contents at load."
-        ),
-        kernelspec=('jupyter_client.kernelspecapp.KernelSpecApp',
-            "DEPRECATED, Will be removed in IPython 6.0 : Manage Jupyter kernel specifications."
-        ),
-    )
     subcommands = dict(
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles."
@@ -242,11 +224,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             "Manage the IPython history database."
         ),
     )
-    deprecated_subcommands['install-nbextension'] = (
-        "notebook.nbextensions.InstallNBExtensionApp",
-        "DEPRECATED, Will be removed in IPython 6.0 : Install Jupyter notebook extension files"
-    )
-    subcommands.update(deprecated_subcommands)
+
 
     # *do* autocreate requested profile, but don't create the config file.
     auto_create=Bool(True)
@@ -286,22 +264,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     # internal, not-configurable
     something_to_run=Bool(False)
 
-    def parse_command_line(self, argv=None):
-        """override to allow old '-pylab' flag with deprecation warning"""
-
-        argv = sys.argv[1:] if argv is None else argv
-
-        if '-pylab' in argv:
-            # deprecated `-pylab` given,
-            # warn and transform into current syntax
-            argv = argv[:] # copy, don't clobber
-            idx = argv.index('-pylab')
-            warnings.warn("`-pylab` flag has been deprecated.\n"
-            "    Use `--matplotlib <backend>` and import pylab manually.")
-            argv[idx] = '--pylab'
-
-        return super(TerminalIPythonApp, self).parse_command_line(argv)
-    
     @catch_config_error
     def initialize(self, argv=None):
         """Do actions after construct, but before starting the app."""

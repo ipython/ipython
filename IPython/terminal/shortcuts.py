@@ -85,12 +85,177 @@ def create_ipython_shortcuts(shell):
 
     kb.add('f2', filter=has_focus(DEFAULT_BUFFER))(open_input_in_editor)
 
-    if shell.display_completions == 'readlinelike':
-        kb.add('c-i', filter=(has_focus(DEFAULT_BUFFER)
-                              & ~has_selection
-                              & insert_mode
-                              & ~cursor_in_leading_ws
-                        ))(display_completions_like_readline)
+    @Condition
+    def auto_match():
+        return shell.auto_match
+
+    focused_insert = (vi_insert_mode | emacs_insert_mode) & has_focus(DEFAULT_BUFFER)
+    _preceding_text_cache = {}
+    _following_text_cache = {}
+
+    def preceding_text(pattern):
+        try:
+            return _preceding_text_cache[pattern]
+        except KeyError:
+            pass
+        m = re.compile(pattern)
+
+        def _preceding_text():
+            app = get_app()
+            return bool(m.match(app.current_buffer.document.current_line_before_cursor))
+
+        condition = Condition(_preceding_text)
+        _preceding_text_cache[pattern] = condition
+        return condition
+
+    def following_text(pattern):
+        try:
+            return _following_text_cache[pattern]
+        except KeyError:
+            pass
+        m = re.compile(pattern)
+
+        def _following_text():
+            app = get_app()
+            return bool(m.match(app.current_buffer.document.current_line_after_cursor))
+
+        condition = Condition(_following_text)
+        _following_text_cache[pattern] = condition
+        return condition
+
+    # auto match
+    @kb.add("(", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("()")
+        event.current_buffer.cursor_left()
+
+    @kb.add("[", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("[]")
+        event.current_buffer.cursor_left()
+
+    @kb.add("{", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("{}")
+        event.current_buffer.cursor_left()
+
+    @kb.add(
+        '"',
+        filter=focused_insert
+        & auto_match
+        & preceding_text(r'^([^"]+|"[^"]*")*$')
+        & following_text(r"[,)}\]]|$"),
+    )
+    def _(event):
+        event.current_buffer.insert_text('""')
+        event.current_buffer.cursor_left()
+
+    @kb.add(
+        "'",
+        filter=focused_insert
+        & auto_match
+        & preceding_text(r"^([^']+|'[^']*')*$")
+        & following_text(r"[,)}\]]|$"),
+    )
+    def _(event):
+        event.current_buffer.insert_text("''")
+        event.current_buffer.cursor_left()
+
+    # raw string
+    @kb.add(
+        "(", filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$")
+    )
+    def _(event):
+        matches = re.match(
+            r".*(r|R)[\"'](-*)",
+            event.current_buffer.document.current_line_before_cursor,
+        )
+        dashes = matches.group(2) or ""
+        event.current_buffer.insert_text("()" + dashes)
+        event.current_buffer.cursor_left(len(dashes) + 1)
+
+    @kb.add(
+        "[", filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$")
+    )
+    def _(event):
+        matches = re.match(
+            r".*(r|R)[\"'](-*)",
+            event.current_buffer.document.current_line_before_cursor,
+        )
+        dashes = matches.group(2) or ""
+        event.current_buffer.insert_text("[]" + dashes)
+        event.current_buffer.cursor_left(len(dashes) + 1)
+
+    @kb.add(
+        "{", filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$")
+    )
+    def _(event):
+        matches = re.match(
+            r".*(r|R)[\"'](-*)",
+            event.current_buffer.document.current_line_before_cursor,
+        )
+        dashes = matches.group(2) or ""
+        event.current_buffer.insert_text("{}" + dashes)
+        event.current_buffer.cursor_left(len(dashes) + 1)
+
+    # just move cursor
+    @kb.add(")", filter=focused_insert & auto_match & following_text(r"^\)"))
+    @kb.add("]", filter=focused_insert & auto_match & following_text(r"^\]"))
+    @kb.add("}", filter=focused_insert & auto_match & following_text(r"^\}"))
+    @kb.add('"', filter=focused_insert & auto_match & following_text('^"'))
+    @kb.add("'", filter=focused_insert & auto_match & following_text("^'"))
+    def _(event):
+        event.current_buffer.cursor_right()
+
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text(r".*\($")
+        & auto_match
+        & following_text(r"^\)"),
+    )
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text(r".*\[$")
+        & auto_match
+        & following_text(r"^\]"),
+    )
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text(r".*\{$")
+        & auto_match
+        & following_text(r"^\}"),
+    )
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text('.*"$')
+        & auto_match
+        & following_text('^"'),
+    )
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text(r".*'$")
+        & auto_match
+        & following_text(r"^'"),
+    )
+    def _(event):
+        event.current_buffer.delete()
+        event.current_buffer.delete_before_cursor()
+
+    if shell.display_completions == "readlinelike":
+        kb.add(
+            "c-i",
+            filter=(
+                has_focus(DEFAULT_BUFFER)
+                & ~has_selection
+                & insert_mode
+                & ~cursor_in_leading_ws
+            ),
+        )(display_completions_like_readline)
 
     if sys.platform == "win32":
         kb.add("c-v", filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
@@ -99,11 +264,10 @@ def create_ipython_shortcuts(shell):
     def ebivim():
         return shell.emacs_bindings_in_vi_insert_mode
 
-    focused_insert = has_focus(DEFAULT_BUFFER) & vi_insert_mode
+    focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
 
     # Needed for to accept autosuggestions in vi insert mode
-    @kb.add("c-e", filter=focused_insert & ebivim)
-    def _(event):
+    def _apply_autosuggest(event):
         b = event.current_buffer
         suggestion = b.suggestion
         if suggestion:
@@ -111,7 +275,15 @@ def create_ipython_shortcuts(shell):
         else:
             nc.end_of_line(event)
 
-    @kb.add("c-f", filter=focused_insert & ebivim)
+    @kb.add("end", filter=has_focus(DEFAULT_BUFFER) & (ebivim | ~vi_insert_mode))
+    def _(event):
+        _apply_autosuggest(event)
+
+    @kb.add("c-e", filter=focused_insert_vi & ebivim)
+    def _(event):
+        _apply_autosuggest(event)
+
+    @kb.add("c-f", filter=focused_insert_vi)
     def _(event):
         b = event.current_buffer
         suggestion = b.suggestion
@@ -120,7 +292,7 @@ def create_ipython_shortcuts(shell):
         else:
             nc.forward_char(event)
 
-    @kb.add("escape", "f", filter=focused_insert & ebivim)
+    @kb.add("escape", "f", filter=focused_insert_vi & ebivim)
     def _(event):
         b = event.current_buffer
         suggestion = b.suggestion
@@ -141,7 +313,7 @@ def create_ipython_shortcuts(shell):
     }
 
     for key, cmd in key_cmd_dict.items():
-        kb.add(key, filter=focused_insert & ebivim)(cmd)
+        kb.add(key, filter=focused_insert_vi & ebivim)(cmd)
 
     # Alt and Combo Control keybindings
     keys_cmd_dict = {
@@ -160,13 +332,12 @@ def create_ipython_shortcuts(shell):
     }
 
     for keys, cmd in keys_cmd_dict.items():
-        kb.add(*keys, filter=focused_insert & ebivim)(cmd)
+        kb.add(*keys, filter=focused_insert_vi & ebivim)(cmd)
 
     def get_input_mode(self):
-        if sys.version_info[0] == 3:
-            app = get_app()
-            app.ttimeoutlen = shell.ttimeoutlen
-            app.timeoutlen = shell.timeoutlen
+        app = get_app()
+        app.ttimeoutlen = shell.ttimeoutlen
+        app.timeoutlen = shell.timeoutlen
 
         return self._input_mode
 
@@ -174,12 +345,7 @@ def create_ipython_shortcuts(shell):
         shape = {InputMode.NAVIGATION: 2, InputMode.REPLACE: 4}.get(mode, 6)
         cursor = "\x1b[{} q".format(shape)
 
-        if hasattr(sys.stdout, "_cli"):
-            write = sys.stdout._cli.output.write_raw
-        else:
-            write = sys.stdout.write
-
-        write(cursor)
+        sys.stdout.write(cursor)
         sys.stdout.flush()
 
         self._input_mode = mode

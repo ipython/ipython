@@ -471,7 +471,7 @@ def strip_ansi(source):
 class EvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
     
-    Note that this version interprets a : as specifying a format string (as per
+    Note that this version interprets a `:`  as specifying a format string (as per
     standard string formatting), so if slicing is required, you must explicitly
     create a slice.
     
@@ -592,6 +592,9 @@ class DollarFormatter(FullEvalFormatter):
             
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
+
+    def __repr__(self):
+        return "<DollarFormatter>"
 
 #-----------------------------------------------------------------------------
 # Utils to columnize a list of string

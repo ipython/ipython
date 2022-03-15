@@ -46,7 +46,7 @@ def display_page(strng, start=0, screen_lines=25):
 
 def as_hook(page_func):
     """Wrap a pager func to strip the `self` arg
-    
+
     so it can be called as a hook.
     """
     return lambda self, *args, **kwargs: page_func(*args, **kwargs)
@@ -127,7 +127,7 @@ def _detect_screen_size(screen_lines_def):
 
 def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
     """Display a string, piping through a pager after a certain length.
-    
+
     strng can be a mime-bundle dict, supplying multiple representations,
     keyed by mime-type.
 
@@ -199,7 +199,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                 tmppath = Path(tmpname)
                 try:
                     os.close(fd)
-                    with tmppath.open("wt") as tmpfile:
+                    with tmppath.open("wt", encoding="utf-8") as tmpfile:
                         tmpfile.write(strng)
                         cmd = "%s < %s" % (pager_cmd, tmppath)
                     # tmpfile needs to be closed for windows
@@ -213,12 +213,15 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
             try:
                 retval = None
                 # Emulate os.popen, but redirect stderr
-                proc = subprocess.Popen(pager_cmd,
-                                shell=True,
-                                stdin=subprocess.PIPE,
-                                stderr=subprocess.DEVNULL
-                                )
-                pager = os._wrap_close(io.TextIOWrapper(proc.stdin), proc)
+                proc = subprocess.Popen(
+                    pager_cmd,
+                    shell=True,
+                    stdin=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                )
+                pager = os._wrap_close(
+                    io.TextIOWrapper(proc.stdin, encoding="utf-8"), proc
+                )
                 try:
                     pager_encoding = pager.encoding or sys.stdout.encoding
                     pager.write(strng)
@@ -238,10 +241,10 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
 
 def page(data, start=0, screen_lines=0, pager_cmd=None):
     """Display content in a pager, piping through a pager after a certain length.
-    
+
     data can be a mime-bundle dict, supplying multiple representations,
     keyed by mime-type, or text.
-    
+
     Pager is dispatched via the `show_in_pager` IPython hook.
     If no hook is registered, `pager_page` will be used.
     """
@@ -277,7 +280,7 @@ def page_file(fname, start=0, pager_cmd=None):
         try:
             if start > 0:
                 start -= 1
-            page(open(fname).read(),start)
+            page(open(fname, encoding="utf-8").read(), start)
         except:
             print('Unable to show file',repr(fname))
 

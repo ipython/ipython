@@ -7,22 +7,17 @@
 import bdb
 import builtins
 import os
-import signal
-import subprocess
 import sys
-import time
-import warnings
+import platform
 
-from subprocess import PIPE, CalledProcessError, check_output
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 from unittest.mock import patch
 
-import nose.tools as nt
-
 from IPython.core import debugger
 from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
 from IPython.testing.decorators import skip_win32
+import pytest
 
 #-----------------------------------------------------------------------------
 # Helper classes, from CPython's Pdb test suite
@@ -59,20 +54,6 @@ class PdbTestInput(object):
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
-
-def test_longer_repr():
-    from reprlib import repr as trepr
-    
-    a = '1234567890'* 7
-    ar = "'1234567890123456789012345678901234567890123456789012345678901234567890'"
-    a_trunc = "'123456789012...8901234567890'"
-    nt.assert_equal(trepr(a), a_trunc)
-    # The creation of our tracer modifies the repr module's repr function
-    # in-place, since that global is used directly by the stdlib's pdb module.
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', DeprecationWarning)
-        debugger.Tracer()
-    nt.assert_equal(trepr(a), ar)
 
 def test_ipdb_magics():
     '''Test calling some IPython magics from ipdb.
@@ -244,18 +225,22 @@ def test_interruptible_core_debugger():
     """
     def raising_input(msg="", called=[0]):
         called[0] += 1
-        if called[0] == 1:
-            raise KeyboardInterrupt()
-        else:
-            raise AssertionError("input() should only be called once!")
+        assert called[0] == 1, "input() should only be called once!"
+        raise KeyboardInterrupt()
 
-    with patch.object(builtins, "input", raising_input):
-        debugger.InterruptiblePdb().set_trace()
-        # The way this test will fail is by set_trace() never exiting,
-        # resulting in a timeout by the test runner. The alternative
-        # implementation would involve a subprocess, but that adds issues with
-        # interrupting subprocesses that are rather complex, so it's simpler
-        # just to do it this way.
+    tracer_orig = sys.gettrace()
+    try:
+        with patch.object(builtins, "input", raising_input):
+            debugger.InterruptiblePdb().set_trace()
+            # The way this test will fail is by set_trace() never exiting,
+            # resulting in a timeout by the test runner. The alternative
+            # implementation would involve a subprocess, but that adds issues
+            # with interrupting subprocesses that are rather complex, so it's
+            # simpler just to do it this way.
+    finally:
+        # restore the original trace function
+        sys.settrace(tracer_orig)
+
 
 @skip_win32
 def test_xmode_skip():
@@ -388,10 +373,12 @@ def _decorator_skip_setup():
     child = pexpect.spawn(
         sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
     )
-    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
+    child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
 
     child.expect("IPython")
     child.expect("\n")
+
+    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
 
     dedented_blocks = [dedent(b).strip() for b in skip_decorators_blocks]
     in_prompt_number = 1
@@ -426,6 +413,7 @@ def test_decorator_skip():
     child.close()
 
 
+@pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32
 def test_decorator_skip_disabled():
     """test that decorator frame skipping can be disabled"""
@@ -453,6 +441,7 @@ def test_decorator_skip_disabled():
     child.close()
 
 
+@pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32
 def test_decorator_skip_with_breakpoint():
     """test that decorator frame skipping can be disabled"""
@@ -465,10 +454,12 @@ def test_decorator_skip_with_breakpoint():
     child = pexpect.spawn(
         sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
     )
-    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
+    child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
 
     child.expect("IPython")
     child.expect("\n")
+
+    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
 
     ### we need a filename, so we need to exec the full block with a filename
     with NamedTemporaryFile(suffix=".py", dir=".", delete=True) as tf:

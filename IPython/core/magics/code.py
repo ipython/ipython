@@ -185,7 +185,7 @@ class CodeMagics(Magics):
         """Save a set of lines or a macro to a given filename.
 
         Usage:\\
-          %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
+          %save [options] filename [history]
 
         Options:
 
@@ -199,7 +199,7 @@ class CodeMagics(Magics):
 
           -a: append to the file instead of overwriting it.
 
-        This function uses the same syntax as %history for input ranges,
+        The history argument uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
 
         If no ranges are specified, saves history of the current session up to
@@ -222,6 +222,7 @@ class CodeMagics(Magics):
         fname, codefrom = args[0], " ".join(args[1:])
         if not fname.endswith(('.py','.ipy')):
             fname += ext
+        fname = os.path.expanduser(fname)
         file_exists = os.path.isfile(fname)
         if file_exists and not force and not append:
             try:
@@ -537,7 +538,7 @@ class CodeMagics(Magics):
         self.shell.hooks.editor(filename)
 
         # and make a new macro object, to replace the old one
-        mvalue = Path(filename).read_text()
+        mvalue = Path(filename).read_text(encoding="utf-8")
         self.shell.user_ns[mname] = Macro(mvalue)
 
     @skip_doctest
@@ -727,7 +728,7 @@ class CodeMagics(Magics):
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste
         if args.strip() == "pasted_block":
-            self.shell.user_ns["pasted_block"] = filepath.read_text()
+            self.shell.user_ns["pasted_block"] = filepath.read_text(encoding="utf-8")
 
         if 'x' in opts:  # -x prevents actual execution
             print()
@@ -735,9 +736,9 @@ class CodeMagics(Magics):
             print('done. Executing edited code...')
             with preserve_keys(self.shell.user_ns, '__file__'):
                 if not is_temp:
-                    self.shell.user_ns['__file__'] = filename
-                if 'r' in opts:    # Untranslated IPython code
-                    source = filepath.read_text()
+                    self.shell.user_ns["__file__"] = filename
+                if "r" in opts:  # Untranslated IPython code
+                    source = filepath.read_text(encoding="utf-8")
                     self.shell.run_cell(source, store_history=False)
                 else:
                     self.shell.safe_execfile(filename, self.shell.user_ns,
@@ -745,7 +746,7 @@ class CodeMagics(Magics):
 
         if is_temp:
             try:
-                return filepath.read_text()
+                return filepath.read_text(encoding="utf-8")
             except IOError as msg:
                 if Path(msg.filename) == filepath:
                     warn('File not found. Did you forget to save?')

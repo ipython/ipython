@@ -35,30 +35,31 @@ if __name__ == '__main__':
 
     # The inputhook* modules often cause problems on import, such as trying to
     # load incompatible Qt bindings. It's easiest to leave them all out. The
-    docwriter.module_skip_patterns += [ r'\.lib\.inputhook.+',
-                                        r'\.ipdoctest',
-                                        r'\.testing\.plugin',
-                                        # Backwards compat import for lib.lexers
-                                        r'\.nbconvert\.utils\.lexers',
-                                        # We document this manually.
-                                        r'\.utils\.py3compat',
-                                        # These are exposed in display
-                                        r'\.core\.display',
-                                        r'\.lib\.display',
-                                        # Shims
-                                        r'\.config',
-                                        r'\.consoleapp',
-                                        r'\.frontend$',
-                                        r'\.html',
-                                        r'\.nbconvert',
-                                        r'\.nbformat',
-                                        r'\.parallel',
-                                        r'\.qt',
-                                        # this is deprecated.
-                                        r'\.utils\.warn',
-                                        # Private APIs (there should be a lot more here)
-                                        r'\.terminal\.ptutils',
-                                        ]
+    docwriter.module_skip_patterns += [
+        r"\.lib\.inputhook.+",
+        r"\.ipdoctest",
+        r"\.testing\.plugin",
+        # Backwards compat import for lib.lexers
+        r"\.nbconvert\.utils\.lexers",
+        # We document this manually.
+        r"\.utils\.py3compat",
+        # These are exposed in display
+        r"\.core\.display",
+        r"\.lib\.display",
+        # Shims
+        r"\.config",
+        r"\.consoleapp",
+        r"\.frontend$",
+        r"\.html",
+        r"\.nbconvert",
+        r"\.nbformat",
+        r"\.parallel",
+        r"\.qt",
+        # this is deprecated.
+        r"\.utils\.version",
+        # Private APIs (there should be a lot more here)
+        r"\.terminal\.ptutils",
+    ]
     # main API is in the inputhook module, which is documented.
 
     # These modules import functions and classes from other places to expose

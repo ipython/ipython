@@ -2,6 +2,10 @@ name: Run tests
 
 on:
   push:
+    branches:
+      - main
+      - master
+      - '*.x'
   pull_request:
   # Run weekly on Monday at 1:23 UTC
   schedule:
@@ -14,14 +18,35 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.7", "3.8", "3.9"]
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10"]
+        deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
           - os: macos-latest
-            python-version: "3.7"
+            python-version: "3.8"
+            deps: test_extra
           - os: macos-latest
-            python-version: "3.9"
+            python-version: "3.10"
+            deps: test_extra
+          # Tests minimal dependencies set
+          - os: ubuntu-latest
+            python-version: "3.10"
+            deps: test
+          # Tests latest development Python version
+          - os: ubuntu-latest
+            python-version: "3.11-dev"
+            deps: test
+          # Installing optional dependencies stuff takes ages on PyPy
+          - os: ubuntu-latest
+            python-version: "pypy-3.8"
+            deps: test
+          - os: windows-latest
+            python-version: "pypy-3.8"
+            deps: test
+          - os: macos-latest
+            python-version: "pypy-3.8"
+            deps: test
 
     steps:
     - uses: actions/checkout@v2
@@ -29,22 +54,27 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
+    - name: Install latex
+      if: runner.os == 'Linux' && matrix.deps == 'test_extra'
+      run: echo "disable latex for now, issues in mirros" #sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
     - name: Install and update Python dependencies
       run: |
-        python -m pip install --upgrade pip setuptools wheel
-        python -m pip install --upgrade -e file://$PWD#egg=ipython[test]
-        python -m pip install --upgrade --upgrade-strategy eager trio curio 
-        python -m pip install --upgrade pytest pytest-trio 'matplotlib!=3.2.0'
-        python -m pip install --upgrade check-manifest pytest-cov anyio
+        python -m pip install --upgrade pip setuptools wheel build
+        python -m pip install --upgrade -e .[${{ matrix.deps }}]
+        python -m pip install --upgrade check-manifest pytest-cov
+    - name: Try building with Python build
+      if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
+      run: |
+        python -m build
+        shasum -a 256 dist/*
     - name: Check manifest
+      if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: check-manifest
-    - name: iptest
-      run: |
-        cd /tmp && iptest --coverage xml && cd -
-        cp /tmp/ipy_coverage.xml ./
-        cp /tmp/.coverage ./
     - name: pytest
+      env:
+        COLUMNS: 120
       run: |
-        pytest -v
+        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }}
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2

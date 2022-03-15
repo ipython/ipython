@@ -17,11 +17,6 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-# third party
-import nose.tools as nt
-
-from IPython.testing.decorators import skip_iptest_but_not_pytest
-
 # our own
 from IPython.utils.PyColorize import Parser
 import io
@@ -44,7 +39,7 @@ def function(arg, *args, kwarg=True, **kwargs):
     pass is True
     False == None
 
-    with io.open(ru'unicode'):
+    with io.open(ru'unicode', encoding='utf-8'):
         raise ValueError("\n escape \r sequence")
 
     print("wěird ünicoðe")
@@ -56,7 +51,6 @@ class Bar(Super):
 """
 
 
-@skip_iptest_but_not_pytest
 def test_parse_sample(style):
     """and test writing to a buffer"""
     buf = io.StringIO()
@@ -65,12 +59,11 @@ def test_parse_sample(style):
     buf.seek(0)
     f1 = buf.read()
 
-    nt.assert_not_in("ERROR", f1)
+    assert "ERROR" not in f1
 
 
-@skip_iptest_but_not_pytest
 def test_parse_error(style):
     p = Parser(style=style)
     f1 = p.format(")", "str")
     if style != "NoColor":
-        nt.assert_in("ERROR", f1)
+        assert "ERROR" in f1

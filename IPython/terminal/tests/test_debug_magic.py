@@ -51,6 +51,8 @@ def test_debug_magic_passes_through_generators():
     child.sendline("    pass")
     child.sendline("")
 
+    child.timeout = 10 * IPYTHON_TESTING_TIMEOUT_SCALE
+
     child.expect('Exception:')
 
     child.expect(in_prompt)

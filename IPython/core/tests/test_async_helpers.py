@@ -3,8 +3,8 @@ Test for async helpers.
 
 Should only trigger on python 3.5+ or will have syntax errors.
 """
+import platform
 from itertools import chain, repeat
-import nose.tools as nt
 from textwrap import dedent, indent
 from unittest import TestCase
 from IPython.testing.decorators import skip_without
@@ -24,10 +24,10 @@ from IPython.core.async_helpers import _should_be_async
 
 class AsyncTest(TestCase):
     def test_should_be_async(self):
-        nt.assert_false(_should_be_async("False"))
-        nt.assert_true(_should_be_async("await bar()"))
-        nt.assert_true(_should_be_async("x = await bar()"))
-        nt.assert_false(
+        self.assertFalse(_should_be_async("False"))
+        self.assertTrue(_should_be_async("await bar()"))
+        self.assertTrue(_should_be_async("x = await bar()"))
+        self.assertFalse(
             _should_be_async(
                 dedent(
                     """
@@ -276,7 +276,7 @@ class AsyncTest(TestCase):
         """
         )
 
-    if sys.version_info < (3,9):
+    if sys.version_info < (3, 9) and platform.python_implementation() != "PyPy":
         # new pgen parser in 3.9 does not raise MemoryError on too many nested
         # parens anymore
         def test_memory_error(self):
@@ -298,7 +298,7 @@ class AsyncTest(TestCase):
         import asyncio
         await asyncio.sleep(0)
         """)
-        with nt.assert_raises(TypeError):
+        with self.assertRaises(TypeError):
             res.raise_error()
 
     @skip_without('trio')
@@ -308,7 +308,7 @@ class AsyncTest(TestCase):
         import trio
         await trio.sleep(0)
         """)
-        with nt.assert_raises(RuntimeError):
+        with self.assertRaises(RuntimeError):
             res.raise_error()
 
 

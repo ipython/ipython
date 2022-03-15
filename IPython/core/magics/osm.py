@@ -63,10 +63,9 @@ class OSMagics(Magics):
         super().__init__(shell=shell, **kwargs)
 
 
-    @skip_doctest
     def _isexec_POSIX(self, file):
         """
-            Test for executable on a POSIX system
+        Test for executable on a POSIX system
         """
         if os.access(file.path, os.X_OK):
             # will fail on maxOS if access is not X_OK
@@ -75,17 +74,15 @@ class OSMagics(Magics):
 
 
     
-    @skip_doctest
     def _isexec_WIN(self, file):
         """
-            Test for executable file on non POSIX system
+        Test for executable file on non POSIX system
         """
         return file.is_file() and self.execre.match(file.name) is not None
 
-    @skip_doctest
     def isexec(self, file):
         """
-            Test for executable file on non POSIX system
+        Test for executable file on non POSIX system
         """
         if self.is_posix:
             return self._isexec_POSIX(file)
@@ -130,7 +127,7 @@ class OSMagics(Magics):
         Aliases expand Python variables just like system calls using ! or !!
         do: all expressions prefixed with '$' get expanded.  For details of
         the semantic rules, see PEP-215:
-        http://www.python.org/peps/pep-0215.html.  This is the library used by
+        https://peps.python.org/pep-0215/.  This is the library used by
         IPython for variable expansion.  If you want to access a true shell
         variable, an extra $ is necessary to prevent its expansion by
         IPython::
@@ -319,7 +316,6 @@ class OSMagics(Magics):
             ``cd <bookmark_name>`` is enough if there is no directory
             ``<bookmark_name>``, but a bookmark with the name exists.
 
-
         Options:
 
         -q               Be quiet. Do not print the working directory after the
@@ -331,7 +327,6 @@ class OSMagics(Magics):
            Note that ``!cd`` doesn't work for this purpose because the shell
            where ``!command`` runs is immediately discarded after executing
            'command'.
-
 
         Examples
         --------
@@ -633,8 +628,8 @@ class OSMagics(Magics):
 
             # while the list form is useful to loop over:
             In [6]: for f in a.l:
-              ...:      !wc -l $f
-              ...:
+               ...:      !wc -l $f
+               ...:
             146 setup.py
             130 win32_manual_post_install.py
 
@@ -837,7 +832,7 @@ class OSMagics(Magics):
     @cell_magic
     def writefile(self, line, cell):
         """Write the contents of the cell to a file.
-        
+
         The file will be overwritten unless the -a (--append) flag is specified.
         """
         args = magic_arguments.parse_argstring(self.writefile, line)

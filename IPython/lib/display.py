@@ -66,34 +66,39 @@ class Audio(DisplayObject):
     Examples
     --------
 
+    >>> import pytest
+    >>> np = pytest.importorskip("numpy")
+
     Generate a sound
 
     >>> import numpy as np
-    ... framerate = 44100
-    ... t = np.linspace(0,5,framerate*5)
-    ... data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
-    ... Audio(data, rate=framerate)
+    >>> framerate = 44100
+    >>> t = np.linspace(0,5,framerate*5)
+    >>> data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
+    >>> Audio(data, rate=framerate)
+    <IPython.lib.display.Audio object>
 
     Can also do stereo or more channels
 
     >>> dataleft = np.sin(2*np.pi*220*t)
-    ... dataright = np.sin(2*np.pi*224*t)
-    ... Audio([dataleft, dataright], rate=framerate)
+    >>> dataright = np.sin(2*np.pi*224*t)
+    >>> Audio([dataleft, dataright], rate=framerate)
+    <IPython.lib.display.Audio object>
 
     From URL:
 
-    >>> Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")
-    >>> Audio(url="http://www.w3schools.com/html/horse.ogg")
+    >>> Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")  # doctest: +SKIP
+    >>> Audio(url="http://www.w3schools.com/html/horse.ogg")  # doctest: +SKIP
 
     From a File:
 
-    >>> Audio('/path/to/sound.wav')
-    >>> Audio(filename='/path/to/sound.ogg')
+    >>> Audio('/path/to/sound.wav')  # doctest: +SKIP
+    >>> Audio(filename='/path/to/sound.ogg')  # doctest: +SKIP
 
     From Bytes:
 
-    >>> Audio(b'RAW_WAV_DATA..')
-    >>> Audio(data=b'RAW_WAV_DATA..')
+    >>> Audio(b'RAW_WAV_DATA..')  # doctest: +SKIP
+    >>> Audio(data=b'RAW_WAV_DATA..')  # doctest: +SKIP
 
     See Also
     --------
@@ -512,20 +517,20 @@ class FileLinks(FileLink):
                                fp_cleaner=None):
         """ generate built-in formatter function
 
-           this is used to define both the notebook and terminal built-in
-            formatters as they only differ by some wrapper text for each entry
+        this is used to define both the notebook and terminal built-in
+         formatters as they only differ by some wrapper text for each entry
 
-           dirname_output_format: string to use for formatting directory
-            names, dirname will be substituted for a single "%s" which
-            must appear in this string
-           fname_output_format: string to use for formatting file names,
-            if a single "%s" appears in the string, fname will be substituted
-            if two "%s" appear in the string, the path to fname will be
-             substituted for the first and fname will be substituted for the
-             second
-           fp_format: string to use for formatting filepaths, must contain
-            exactly two "%s" and the dirname will be substituted for the first
-            and fname will be substituted for the second
+        dirname_output_format: string to use for formatting directory
+         names, dirname will be substituted for a single "%s" which
+         must appear in this string
+        fname_output_format: string to use for formatting file names,
+         if a single "%s" appears in the string, fname will be substituted
+         if two "%s" appear in the string, the path to fname will be
+          substituted for the first and fname will be substituted for the
+          second
+        fp_format: string to use for formatting filepaths, must contain
+         exactly two "%s" and the dirname will be substituted for the first
+         and fname will be substituted for the second
         """
         def f(dirname, fnames, included_suffixes=None):
             result = []

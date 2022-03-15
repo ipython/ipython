@@ -195,12 +195,12 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         profile : str
-          The name of the profile from which to open history.
+            The name of the profile from which to open history.
         hist_file : str
-          Path to an SQLite history database stored by IPython. If specified,
-          hist_file overrides profile.
+            Path to an SQLite history database stored by IPython. If specified,
+            hist_file overrides profile.
         config : :class:`~traitlets.config.loader.Config`
-          Config object. hist_file can also be set through this.
+            Config object. hist_file can also be set through this.
         """
         # We need a pointer back to the shell for various tasks.
         super(HistoryAccessor, self).__init__(**traits)
@@ -227,7 +227,7 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         profile : str
-          The name of a profile which has a history file.
+            The name of a profile which has a history file.
         """
         return Path(locate_profile(profile)) / "history.sqlite"
 
@@ -242,18 +242,24 @@ class HistoryAccessor(HistoryAccessorBase):
         kwargs = dict(detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         kwargs.update(self.connection_options)
         self.db = sqlite3.connect(str(self.hist_file), **kwargs)
-        self.db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
-                        primary key autoincrement, start timestamp,
-                        end timestamp, num_cmds integer, remark text)""")
-        self.db.execute("""CREATE TABLE IF NOT EXISTS history
-                (session integer, line integer, source text, source_raw text,
-                PRIMARY KEY (session, line))""")
-        # Output history is optional, but ensure the table's there so it can be
-        # enabled later.
-        self.db.execute("""CREATE TABLE IF NOT EXISTS output_history
-                        (session integer, line integer, output text,
-                        PRIMARY KEY (session, line))""")
-        self.db.commit()
+        with self.db:
+            self.db.execute(
+                """CREATE TABLE IF NOT EXISTS sessions (session integer
+                            primary key autoincrement, start timestamp,
+                            end timestamp, num_cmds integer, remark text)"""
+            )
+            self.db.execute(
+                """CREATE TABLE IF NOT EXISTS history
+                    (session integer, line integer, source text, source_raw text,
+                    PRIMARY KEY (session, line))"""
+            )
+            # Output history is optional, but ensure the table's there so it can be
+            # enabled later.
+            self.db.execute(
+                """CREATE TABLE IF NOT EXISTS output_history
+                            (session integer, line integer, output text,
+                            PRIMARY KEY (session, line))"""
+            )
         # success! reset corrupt db count
         self._corrupt_db_counter = 0
 
@@ -265,17 +271,19 @@ class HistoryAccessor(HistoryAccessorBase):
     ## -------------------------------
     ## Methods for retrieving history:
     ## -------------------------------
-    def _run_sql(self, sql, params, raw=True, output=False):
+    def _run_sql(self, sql, params, raw=True, output=False, latest=False):
         """Prepares and runs an SQL query for the history database.
 
         Parameters
         ----------
         sql : str
-          Any filtering expressions to go after SELECT ... FROM ...
+            Any filtering expressions to go after SELECT ... FROM ...
         params : tuple
-          Parameters passed to the SQL query (to replace "?")
+            Parameters passed to the SQL query (to replace "?")
         raw, output : bool
-          See :meth:`get_range`
+            See :meth:`get_range`
+        latest : bool
+            Select rows with max (session, line)
 
         Returns
         -------
@@ -286,8 +294,12 @@ class HistoryAccessor(HistoryAccessorBase):
         if output:
             sqlfrom = "history LEFT JOIN output_history USING (session, line)"
             toget = "history.%s, output_history.output" % toget
+        if latest:
+            toget += ", MAX(session * 128 * 1024 + line)"
         cur = self.db.execute("SELECT session, line, %s FROM %s " %\
                                 (toget, sqlfrom) + sql, params)
+        if latest:
+            cur = (row[:-1] for row in cur)
         if output:    # Regroup into 3-tuples, and parse JSON
             return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
         return cur
@@ -299,23 +311,21 @@ class HistoryAccessor(HistoryAccessorBase):
 
         Parameters
         ----------
-
         session : int
             Session number to retrieve.
 
         Returns
         -------
-
         session_id : int
-           Session ID number
+            Session ID number
         start : datetime
-           Timestamp for the start of the session.
+            Timestamp for the start of the session.
         end : datetime
-           Timestamp for the end of the session, or None if IPython crashed.
+            Timestamp for the end of the session, or None if IPython crashed.
         num_cmds : int
-           Number of commands run, or None if IPython crashed.
+            Number of commands run, or None if IPython crashed.
         remark : unicode
-           A manually set description.
+            A manually set description.
         """
         query = "SELECT * from sessions where session == ?"
         return self.db.execute(query, (session,)).fetchone()
@@ -337,13 +347,13 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         n : int
-          The number of lines to get
+            The number of lines to get
         raw, output : bool
-          See :meth:`get_range`
+            See :meth:`get_range`
         include_latest : bool
-          If False (default), n+1 lines are fetched, and the latest one
-          is discarded. This is intended to be used where the function
-          is called by a user command, which it should not return.
+            If False (default), n+1 lines are fetched, and the latest one
+            is discarded. This is intended to be used where the function
+            is called by a user command, which it should not return.
 
         Returns
         -------
@@ -367,16 +377,16 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         pattern : str
-          The wildcarded pattern to match when searching
+            The wildcarded pattern to match when searching
         search_raw : bool
-          If True, search the raw input, otherwise, the parsed input
+            If True, search the raw input, otherwise, the parsed input
         raw, output : bool
-          See :meth:`get_range`
+            See :meth:`get_range`
         n : None or int
-          If an integer is given, it defines the limit of
-          returned entries.
+            If an integer is given, it defines the limit of
+            returned entries.
         unique : bool
-          When it is true, return only unique entries.
+            When it is true, return only unique entries.
 
         Returns
         -------
@@ -395,7 +405,7 @@ class HistoryAccessor(HistoryAccessorBase):
             params += (n,)
         elif unique:
             sqlform += " ORDER BY session, line"
-        cur = self._run_sql(sqlform, params, raw=raw, output=output)
+        cur = self._run_sql(sqlform, params, raw=raw, output=output, latest=unique)
         if n is not None:
             return reversed(list(cur))
         return cur
@@ -424,9 +434,9 @@ class HistoryAccessor(HistoryAccessorBase):
         Returns
         -------
         entries
-          An iterator over the desired lines. Each line is a 3-tuple, either
-          (session, line, input) if output is False, or
-          (session, line, (input, output)) if output is True.
+            An iterator over the desired lines. Each line is a 3-tuple, either
+            (session, line, input) if output is False, or
+            (session, line, (input, output)) if output is True.
         """
         if stop:
             lineclause = "line >= ? AND line < ?"
@@ -445,13 +455,13 @@ class HistoryAccessor(HistoryAccessorBase):
         Parameters
         ----------
         rangestr : str
-          A string specifying ranges, e.g. "5 ~2/1-4". If empty string is used,
-          this will return everything from current session's history.
+            A string specifying ranges, e.g. "5 ~2/1-4". If empty string is used,
+            this will return everything from current session's history.
 
-          See the documentation of :func:`%history` for the full details.
+            See the documentation of :func:`%history` for the full details.
 
         raw, output : bool
-          As :meth:`get_range`
+            As :meth:`get_range`
 
         Returns
         -------
@@ -599,24 +609,22 @@ class HistoryManager(HistoryAccessor):
 
         Parameters
         ----------
-
         session : int
             Session number to retrieve. The current session is 0, and negative
             numbers count back from current session, so -1 is the previous session.
 
         Returns
         -------
-
         session_id : int
-           Session ID number
+            Session ID number
         start : datetime
-           Timestamp for the start of the session.
+            Timestamp for the start of the session.
         end : datetime
-           Timestamp for the end of the session, or None if IPython crashed.
+            Timestamp for the end of the session, or None if IPython crashed.
         num_cmds : int
-           Number of commands run, or None if IPython crashed.
+            Number of commands run, or None if IPython crashed.
         remark : unicode
-           A manually set description.
+            A manually set description.
         """
         if session <= 0:
             session += self.session_number
@@ -667,9 +675,9 @@ class HistoryManager(HistoryAccessor):
         Returns
         -------
         entries
-          An iterator over the desired lines. Each line is a 3-tuple, either
-          (session, line, input) if output is False, or
-          (session, line, (input, output)) if output is True.
+            An iterator over the desired lines. Each line is a 3-tuple, either
+            (session, line, input) if output is False, or
+            (session, line, (input, output)) if output is True.
         """
         if session <= 0:
             session += self.session_number
@@ -688,14 +696,12 @@ class HistoryManager(HistoryAccessor):
         Parameters
         ----------
         line_num : int
-          The prompt number of this input.
-
+            The prompt number of this input.
         source : str
-          Python input.
-
+            Python input.
         source_raw : str, optional
-          If given, this is the raw input without any IPython transformations
-          applied to it.  If not given, ``source`` is used.
+            If given, this is the raw input without any IPython transformations
+            applied to it.  If not given, ``source`` is used.
         """
         if source_raw is None:
             source_raw = source
@@ -739,7 +745,7 @@ class HistoryManager(HistoryAccessor):
         Parameters
         ----------
         line_num : int
-          The line number from which to save outputs
+            The line number from which to save outputs
         """
         if (not self.db_log_output) or (line_num not in self.output_hist_reprs):
             return
@@ -817,7 +823,7 @@ class HistorySavingThread(threading.Thread):
         try:
             self.db = sqlite3.connect(
                 str(self.history_manager.hist_file),
-                **self.history_manager.connection_options
+                **self.history_manager.connection_options,
             )
             while True:
                 self.history_manager.save_flag.wait()

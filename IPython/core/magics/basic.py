@@ -4,6 +4,7 @@
 import argparse
 from logging import error
 import io
+import os
 from pprint import pformat
 import sys
 from warnings import warn
@@ -45,7 +46,7 @@ class MagicsDisplay(object):
     
     def _jsonable(self):
         """turn magics dict into jsonable dict of the same structure
-        
+
         replaces object instances with their class names as strings
         """
         magic_dict = {}
@@ -74,6 +75,7 @@ class BasicMagics(Magics):
     These are various magics that don't fit into specific categories but that
     are all part of the base 'IPython experience'."""
 
+    @skip_doctest
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         '-l', '--line', action='store_true',
@@ -122,7 +124,7 @@ class BasicMagics(Magics):
 
           In [6]: %whereami
           Out[6]: u'/home/testuser'
-          
+
           In [7]: %alias_magic h history "-p -l 30" --line
           Created `%h` as an alias for `%history -l 30`.
         """
@@ -366,7 +368,7 @@ Currently the magic system has the following functions:""",
 
         If called without arguments, acts as a toggle.
 
-        When in verbose mode the value --show (and --hide) 
+        When in verbose mode the value --show (and --hide)
         will respectively show (or hide) frames with ``__tracebackhide__ =
         True`` value set.
         """
@@ -560,10 +562,6 @@ Currently the magic system has the following functions:""",
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
-        '-e', '--export', action='store_true', default=False,
-        help=argparse.SUPPRESS
-    )
-    @magic_arguments.argument(
         'filename', type=str,
         help='Notebook name or filename'
     )
@@ -573,11 +571,9 @@ Currently the magic system has the following functions:""",
 
         This function can export the current IPython history to a notebook file.
         For example, to export the history to "foo.ipynb" do "%notebook foo.ipynb".
-
-        The -e or --export flag is deprecated in IPython 5.2, and will be
-        removed in the future.
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
+        outfname = os.path.expanduser(args.filename)
 
         from nbformat import write, v4
 
@@ -591,7 +587,7 @@ Currently the magic system has the following functions:""",
                 source=source
             ))
         nb = v4.new_notebook(cells=cells)
-        with io.open(args.filename, 'w', encoding='utf-8') as f:
+        with io.open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
 
 @magics_class
@@ -622,12 +618,11 @@ class AsyncMagics(BasicMagics):
 
         If the passed parameter does not match any of the above and is a python
         identifier, get said object from user namespace and set it as the
-        runner, and activate autoawait. 
+        runner, and activate autoawait.
 
         If the object is a fully qualified object name, attempt to import it and
         set it as the runner, and activate autoawait.
-        
-        
+
         The exact behavior of autoawait is experimental and subject to change
         across version of IPython and Python.
         """

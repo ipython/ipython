@@ -31,7 +31,6 @@ else:
 import os
 import sys
 
-from IPython.utils.version import check_version
 from IPython.external.qt_loaders import (
     load_qt,
     loaded_api,
@@ -101,8 +100,8 @@ def get_options():
 
     mpl = sys.modules.get('matplotlib', None)
 
-    if mpl is not None and not check_version(mpl.__version__, '1.0.2'):
-        #1.0.1 only supports PyQt4 v1
+    if mpl is not None and tuple(mpl.__version__.split(".")) < ("1", "0", "2"):
+        # 1.0.1 only supports PyQt4 v1
         return [QT_API_PYQT_DEFAULT]
 
     qt_api = os.environ.get('QT_API', None)

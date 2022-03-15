@@ -920,10 +920,20 @@ def _counter_pprint(obj, p, cycle):
     else:
         p.pretty(cls_ctor())
 
+
+def _userlist_pprint(obj, p, cycle):
+    cls_ctor = CallExpression.factory(obj.__class__.__name__)
+    if cycle:
+        p.pretty(cls_ctor(RawText("...")))
+    else:
+        p.pretty(cls_ctor(obj.data))
+
+
 for_type_by_name('collections', 'defaultdict', _defaultdict_pprint)
 for_type_by_name('collections', 'OrderedDict', _ordereddict_pprint)
 for_type_by_name('collections', 'deque', _deque_pprint)
 for_type_by_name('collections', 'Counter', _counter_pprint)
+for_type_by_name("collections", "UserList", _userlist_pprint)
 
 if __name__ == '__main__':
     from random import randrange

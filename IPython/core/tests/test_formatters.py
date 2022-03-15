@@ -7,7 +7,7 @@ try:
     import numpy
 except:
     numpy = None
-import nose.tools as nt
+import pytest
 
 from IPython import get_ipython
 from traitlets.config import Config
@@ -95,24 +95,25 @@ def test_bad_precision():
     """test various invalid values for float_precision."""
     f = PlainTextFormatter()
     def set_fp(p):
-        f.float_precision=p
-    nt.assert_raises(ValueError, set_fp, '%')
-    nt.assert_raises(ValueError, set_fp, '%.3f%i')
-    nt.assert_raises(ValueError, set_fp, 'foo')
-    nt.assert_raises(ValueError, set_fp, -1)
+        f.float_precision = p
+
+    pytest.raises(ValueError, set_fp, "%")
+    pytest.raises(ValueError, set_fp, "%.3f%i")
+    pytest.raises(ValueError, set_fp, "foo")
+    pytest.raises(ValueError, set_fp, -1)
 
 def test_for_type():
     f = PlainTextFormatter()
     
     # initial return, None
-    nt.assert_is(f.for_type(C, foo_printer), None)
+    assert f.for_type(C, foo_printer) is None
     # no func queries
-    nt.assert_is(f.for_type(C), foo_printer)
+    assert f.for_type(C) is foo_printer
     # shouldn't change anything
-    nt.assert_is(f.for_type(C), foo_printer)
+    assert f.for_type(C) is foo_printer
     # None should do the same
-    nt.assert_is(f.for_type(C, None), foo_printer)
-    nt.assert_is(f.for_type(C, None), foo_printer)
+    assert f.for_type(C, None) is foo_printer
+    assert f.for_type(C, None) is foo_printer
 
 def test_for_type_string():
     f = PlainTextFormatter()
@@ -120,13 +121,13 @@ def test_for_type_string():
     type_str = '%s.%s' % (C.__module__, 'C')
     
     # initial return, None
-    nt.assert_is(f.for_type(type_str, foo_printer), None)
+    assert f.for_type(type_str, foo_printer) is None
     # no func queries
-    nt.assert_is(f.for_type(type_str), foo_printer)
-    nt.assert_in(_mod_name_key(C), f.deferred_printers)
-    nt.assert_is(f.for_type(C), foo_printer)
-    nt.assert_not_in(_mod_name_key(C), f.deferred_printers)
-    nt.assert_in(C, f.type_printers)
+    assert f.for_type(type_str) is foo_printer
+    assert _mod_name_key(C) in f.deferred_printers
+    assert f.for_type(C) is foo_printer
+    assert _mod_name_key(C) not in f.deferred_printers
+    assert C in f.type_printers
 
 def test_for_type_by_name():
     f = PlainTextFormatter()
@@ -134,21 +135,22 @@ def test_for_type_by_name():
     mod = C.__module__
     
     # initial return, None
-    nt.assert_is(f.for_type_by_name(mod, 'C', foo_printer), None)
+    assert f.for_type_by_name(mod, "C", foo_printer) is None
     # no func queries
-    nt.assert_is(f.for_type_by_name(mod, 'C'), foo_printer)
+    assert f.for_type_by_name(mod, "C") is foo_printer
     # shouldn't change anything
-    nt.assert_is(f.for_type_by_name(mod, 'C'), foo_printer)
+    assert f.for_type_by_name(mod, "C") is foo_printer
     # None should do the same
-    nt.assert_is(f.for_type_by_name(mod, 'C', None), foo_printer)
-    nt.assert_is(f.for_type_by_name(mod, 'C', None), foo_printer)
+    assert f.for_type_by_name(mod, "C", None) is foo_printer
+    assert f.for_type_by_name(mod, "C", None) is foo_printer
+
 
 def test_lookup():
     f = PlainTextFormatter()
     
     f.for_type(C, foo_printer)
-    nt.assert_is(f.lookup(C()), foo_printer)
-    with nt.assert_raises(KeyError):
+    assert f.lookup(C()) is foo_printer
+    with pytest.raises(KeyError):
         f.lookup(A())
 
 def test_lookup_string():
@@ -156,16 +158,16 @@ def test_lookup_string():
     type_str = '%s.%s' % (C.__module__, 'C')
     
     f.for_type(type_str, foo_printer)
-    nt.assert_is(f.lookup(C()), foo_printer)
+    assert f.lookup(C()) is foo_printer
     # should move from deferred to imported dict
-    nt.assert_not_in(_mod_name_key(C), f.deferred_printers)
-    nt.assert_in(C, f.type_printers)
+    assert _mod_name_key(C) not in f.deferred_printers
+    assert C in f.type_printers
 
 def test_lookup_by_type():
     f = PlainTextFormatter()
     f.for_type(C, foo_printer)
-    nt.assert_is(f.lookup_by_type(C), foo_printer)
-    with nt.assert_raises(KeyError):
+    assert f.lookup_by_type(C) is foo_printer
+    with pytest.raises(KeyError):
         f.lookup_by_type(A)
 
 def test_lookup_by_type_string():
@@ -174,69 +176,69 @@ def test_lookup_by_type_string():
     f.for_type(type_str, foo_printer)
     
     # verify insertion
-    nt.assert_in(_mod_name_key(C), f.deferred_printers)
-    nt.assert_not_in(C, f.type_printers)
+    assert _mod_name_key(C) in f.deferred_printers
+    assert C not in f.type_printers
     
-    nt.assert_is(f.lookup_by_type(type_str), foo_printer)
+    assert f.lookup_by_type(type_str) is foo_printer
     # lookup by string doesn't cause import
-    nt.assert_in(_mod_name_key(C), f.deferred_printers)
-    nt.assert_not_in(C, f.type_printers)
+    assert _mod_name_key(C) in f.deferred_printers
+    assert C not in f.type_printers
     
-    nt.assert_is(f.lookup_by_type(C), foo_printer)
+    assert f.lookup_by_type(C) is foo_printer
     # should move from deferred to imported dict
-    nt.assert_not_in(_mod_name_key(C), f.deferred_printers)
-    nt.assert_in(C, f.type_printers)
+    assert _mod_name_key(C) not in f.deferred_printers
+    assert C in f.type_printers
 
 def test_in_formatter():
     f = PlainTextFormatter()
     f.for_type(C, foo_printer)
     type_str = '%s.%s' % (C.__module__, 'C')
-    nt.assert_in(C, f)
-    nt.assert_in(type_str, f)
+    assert C in f
+    assert type_str in f
 
 def test_string_in_formatter():
     f = PlainTextFormatter()
     type_str = '%s.%s' % (C.__module__, 'C')
     f.for_type(type_str, foo_printer)
-    nt.assert_in(type_str, f)
-    nt.assert_in(C, f)
+    assert type_str in f
+    assert C in f
 
 def test_pop():
     f = PlainTextFormatter()
     f.for_type(C, foo_printer)
-    nt.assert_is(f.lookup_by_type(C), foo_printer)
-    nt.assert_is(f.pop(C, None), foo_printer)
+    assert f.lookup_by_type(C) is foo_printer
+    assert f.pop(C, None) is foo_printer
     f.for_type(C, foo_printer)
-    nt.assert_is(f.pop(C), foo_printer)
-    with nt.assert_raises(KeyError):
+    assert f.pop(C) is foo_printer
+    with pytest.raises(KeyError):
         f.lookup_by_type(C)
-    with nt.assert_raises(KeyError):
+    with pytest.raises(KeyError):
         f.pop(C)
-    with nt.assert_raises(KeyError):
+    with pytest.raises(KeyError):
         f.pop(A)
-    nt.assert_is(f.pop(A, None), None)
+    assert f.pop(A, None) is None
 
 def test_pop_string():
     f = PlainTextFormatter()
     type_str = '%s.%s' % (C.__module__, 'C')
     
-    with nt.assert_raises(KeyError):
+    with pytest.raises(KeyError):
         f.pop(type_str)
     
     f.for_type(type_str, foo_printer)
     f.pop(type_str)
-    with nt.assert_raises(KeyError):
+    with pytest.raises(KeyError):
         f.lookup_by_type(C)
-    with nt.assert_raises(KeyError):
+    with pytest.raises(KeyError):
         f.pop(type_str)
 
     f.for_type(C, foo_printer)
-    nt.assert_is(f.pop(type_str, None), foo_printer)
-    with nt.assert_raises(KeyError):
+    assert f.pop(type_str, None) is foo_printer
+    with pytest.raises(KeyError):
         f.lookup_by_type(C)
-    with nt.assert_raises(KeyError):
+    with pytest.raises(KeyError):
         f.pop(type_str)
-    nt.assert_is(f.pop(type_str, None), None)
+    assert f.pop(type_str, None) is None
     
 
 def test_error_method():
@@ -247,10 +249,10 @@ def test_error_method():
     bad = BadHTML()
     with capture_output() as captured:
         result = f(bad)
-    nt.assert_is(result, None)
-    nt.assert_in("Traceback", captured.stdout)
-    nt.assert_in("Bad HTML", captured.stdout)
-    nt.assert_in("_repr_html_", captured.stdout)
+    assert result is None
+    assert "Traceback" in captured.stdout
+    assert "Bad HTML" in captured.stdout
+    assert "_repr_html_" in captured.stdout
 
 def test_nowarn_notimplemented():
     f = HTMLFormatter()
@@ -260,7 +262,7 @@ def test_nowarn_notimplemented():
     h = HTMLNotImplemented()
     with capture_output() as captured:
         result = f(h)
-    nt.assert_is(result, None)
+    assert result is None
     assert "" == captured.stderr
     assert "" == captured.stdout
 
@@ -270,10 +272,10 @@ def test_warn_error_for_type():
     f.for_type(int, lambda i: name_error)
     with capture_output() as captured:
         result = f(5)
-    nt.assert_is(result, None)
-    nt.assert_in("Traceback", captured.stdout)
-    nt.assert_in("NameError", captured.stdout)
-    nt.assert_in("name_error", captured.stdout)
+    assert result is None
+    assert "Traceback" in captured.stdout
+    assert "NameError" in captured.stdout
+    assert "name_error" in captured.stdout
 
 def test_error_pretty_method():
     f = PlainTextFormatter()
@@ -283,11 +285,11 @@ def test_error_pretty_method():
     bad = BadPretty()
     with capture_output() as captured:
         result = f(bad)
-    nt.assert_is(result, None)
-    nt.assert_in("Traceback", captured.stdout)
-    nt.assert_in("_repr_pretty_", captured.stdout)
-    nt.assert_in("given", captured.stdout)
-    nt.assert_in("argument", captured.stdout)
+    assert result is None
+    assert "Traceback" in captured.stdout
+    assert "_repr_pretty_" in captured.stdout
+    assert "given" in captured.stdout
+    assert "argument" in captured.stdout
 
 
 def test_bad_repr_traceback():
@@ -296,10 +298,10 @@ def test_bad_repr_traceback():
     with capture_output() as captured:
         result = f(bad)
     # catches error, returns None
-    nt.assert_is(result, None)
-    nt.assert_in("Traceback", captured.stdout)
-    nt.assert_in("__repr__", captured.stdout)
-    nt.assert_in("ValueError", captured.stdout)
+    assert result is None
+    assert "Traceback" in captured.stdout
+    assert "__repr__" in captured.stdout
+    assert "ValueError" in captured.stdout
 
 
 class MakePDF(object):
@@ -319,8 +321,8 @@ def test_print_method_bound():
             return "hello"
     with capture_output() as captured:
         result = f(MyHTML)
-    nt.assert_is(result, None)
-    nt.assert_not_in("FormatterWarning", captured.stderr)
+    assert result is None
+    assert "FormatterWarning" not in captured.stderr
 
     with capture_output() as captured:
         result = f(MyHTML())
@@ -341,8 +343,8 @@ def test_print_method_weird():
     with capture_output() as captured:
         result = f(text_hat)
     
-    nt.assert_is(result, None)
-    nt.assert_not_in("FormatterWarning", captured.stderr)
+    assert result is None
+    assert "FormatterWarning" not in captured.stderr
 
     class CallableMagicHat(object):
         def __getattr__(self, key):
@@ -362,8 +364,8 @@ def test_print_method_weird():
     with capture_output() as captured:
         result = f(bad)
     
-    nt.assert_is(result, None)
-    nt.assert_not_in("FormatterWarning", captured.stderr)
+    assert result is None
+    assert "FormatterWarning" not in captured.stderr
 
 
 def test_format_config():
@@ -372,12 +374,12 @@ def test_format_config():
     cfg = Config()
     with capture_output() as captured:
         result = f(cfg)
-    nt.assert_is(result, None)
+    assert result is None
     assert captured.stderr == ""
 
     with capture_output() as captured:
         result = f(Config)
-    nt.assert_is(result, None)
+    assert result is None
     assert captured.stderr == ""
 
 
@@ -426,18 +428,6 @@ def test_ipython_display_formatter():
     assert catcher == [yes]
 
     f.ipython_display_formatter.enabled = save_enabled
-
-
-def test_json_as_string_deprecated():
-    class JSONString(object):
-        def _repr_json_(self):
-            return '{}'
-    
-    f = JSONFormatter()
-    with warnings.catch_warnings(record=True) as w:
-        d = f(JSONString())
-    assert d == {}
-    assert len(w) == 1
 
 
 def test_repr_mime():

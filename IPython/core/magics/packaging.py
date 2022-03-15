@@ -32,7 +32,7 @@ def _get_conda_executable():
 
     # Otherwise, attempt to extract the executable from conda history.
     # This applies in any conda environment.
-    history = Path(sys.prefix, "conda-meta", "history").read_text()
+    history = Path(sys.prefix, "conda-meta", "history").read_text(encoding="utf-8")
     match = re.search(
         r"^#\s*cmd:\s*(?P<command>.*conda)\s[create|install]",
         history,

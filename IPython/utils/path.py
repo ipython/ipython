@@ -33,7 +33,7 @@ if sys.platform == 'win32':
         Examples
         --------
 
-        >>> get_long_path_name('c:\\docume~1')
+        >>> get_long_path_name('c:\\\\docume~1')
         'c:\\\\Documents and Settings'
 
         """
@@ -67,20 +67,6 @@ def get_long_path_name(path):
     return _get_long_path_name(path)
 
 
-def unquote_filename(name, win32=(sys.platform=='win32')):
-    """ On Windows, remove leading and trailing quotes from filenames.
-
-    This function has been deprecated and should not be used any more:
-    unquoting is now taken care of by :func:`IPython.utils.process.arg_split`.
-    """
-    warn("'unquote_filename' is deprecated since IPython 5.0 and should not "
-         "be used anymore", DeprecationWarning, stacklevel=2)
-    if win32:
-        if name.startswith(("'", '"')) and name.endswith(("'", '"')):
-            name = name[1:-1]
-    return name
-
-
 def compress_user(path):
     """Reverse of :func:`os.path.expanduser`
     """
@@ -89,7 +75,7 @@ def compress_user(path):
         path =  "~" + path[len(home):]
     return path
 
-def get_py_filename(name, force_win32=None):
+def get_py_filename(name):
     """Return a valid python filename in the current directory.
 
     If the given name is not a file, it adds '.py' and searches again.
@@ -97,10 +83,6 @@ def get_py_filename(name, force_win32=None):
     """
 
     name = os.path.expanduser(name)
-    if force_win32 is not None:
-        warn("The 'force_win32' argument to 'get_py_filename' is deprecated "
-             "since IPython 5.0 and should not be used anymore",
-            DeprecationWarning, stacklevel=2)
     if not os.path.isfile(name) and not name.endswith('.py'):
         name += '.py'
     if os.path.isfile(name):
@@ -223,7 +205,7 @@ def get_xdg_dir():
 
     env = os.environ
 
-    if os.name == 'posix' and sys.platform != 'darwin':
+    if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.config if empty OR not set
         xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
@@ -242,7 +224,7 @@ def get_xdg_cache_dir():
 
     env = os.environ
 
-    if os.name == 'posix' and sys.platform != 'darwin':
+    if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.cache if empty OR not set
         xdg = env.get("XDG_CACHE_HOME", None) or os.path.join(get_home_dir(), '.cache')
@@ -252,36 +234,6 @@ def get_xdg_cache_dir():
 
     return None
 
-
-@undoc
-def get_ipython_dir():
-    warn("get_ipython_dir has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import get_ipython_dir
-    return get_ipython_dir()
-
-@undoc
-def get_ipython_cache_dir():
-    warn("get_ipython_cache_dir has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import get_ipython_cache_dir
-    return get_ipython_cache_dir()
-
-@undoc
-def get_ipython_package_dir():
-    warn("get_ipython_package_dir has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import get_ipython_package_dir
-    return get_ipython_package_dir()
-
-@undoc
-def get_ipython_module_path(module_str):
-    warn("get_ipython_module_path has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import get_ipython_module_path
-    return get_ipython_module_path(module_str)
-
-@undoc
-def locate_profile(profile='default'):
-    warn("locate_profile has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import locate_profile
-    return locate_profile(profile=profile)
 
 def expand_path(s):
     """Expand $VARS and ~names in a string, like a shell

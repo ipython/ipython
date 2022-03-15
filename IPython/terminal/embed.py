@@ -49,7 +49,6 @@ class EmbeddedMagics(Magics):
         you may then kill it and the program will then continue to run without
         the interactive shell interfering again.
 
-
         Kill Instance Option:
 
             If for some reasons you need to kill the location where the instance
@@ -108,6 +107,14 @@ class EmbeddedMagics(Magics):
         self.shell.ask_exit()
 
 
+class _Sentinel:
+    def __init__(self, repr):
+        assert isinstance(repr, str)
+        self.repr = repr
+
+    def __repr__(self):
+        return repr
+
 
 class InteractiveShellEmbed(TerminalInteractiveShell):
 
@@ -148,9 +155,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
                 self._call_location_id)
 
     def __init__(self, **kw):
-        if kw.get('user_global_ns', None) is not None:
-            raise DeprecationWarning(
-                "Key word argument `user_global_ns` has been replaced by `user_module` since IPython 4.0.")
+        assert (
+            "user_global_ns" not in kw
+        ), "Key word argument `user_global_ns` has been replaced by `user_module` since IPython 4.0."
 
         clid = kw.pop('_init_location_id', None)
         if not clid:
@@ -176,8 +183,16 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         super(InteractiveShellEmbed, self).init_magics()
         self.register_magics(EmbeddedMagics)
 
-    def __call__(self, header='', local_ns=None, module=None, dummy=None,
-                 stack_depth=1, global_ns=None, compile_flags=None, **kw):
+    def __call__(
+        self,
+        header="",
+        local_ns=None,
+        module=None,
+        dummy=None,
+        stack_depth=1,
+        compile_flags=None,
+        **kw
+    ):
         """Activate the interactive interpreter.
 
         __call__(self,header='',local_ns=None,module=None,dummy=None) -> Start
@@ -227,8 +242,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.mainloop(local_ns, module, stack_depth=stack_depth,
-                      global_ns=global_ns, compile_flags=compile_flags)
+        self.mainloop(
+            local_ns, module, stack_depth=stack_depth, compile_flags=compile_flags
+        )
 
         self.banner2 = self.old_banner2
 
@@ -238,40 +254,35 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         if self.should_raise:
             raise KillEmbedded('Embedded IPython raising error, as user requested.')
 
-
-    def mainloop(self, local_ns=None, module=None, stack_depth=0,
-                 display_banner=None, global_ns=None, compile_flags=None):
+    def mainloop(
+        self,
+        local_ns=None,
+        module=None,
+        stack_depth=0,
+        compile_flags=None,
+    ):
         """Embeds IPython into a running python program.
 
         Parameters
         ----------
-
         local_ns, module
-          Working local namespace (a dict) and module (a module or similar
-          object). If given as None, they are automatically taken from the scope
-          where the shell was called, so that program variables become visible.
-
+            Working local namespace (a dict) and module (a module or similar
+            object). If given as None, they are automatically taken from the scope
+            where the shell was called, so that program variables become visible.
         stack_depth : int
-          How many levels in the stack to go to looking for namespaces (when
-          local_ns or module is None). This allows an intermediate caller to
-          make sure that this function gets the namespace from the intended
-          level in the stack. By default (0) it will get its locals and globals
-          from the immediate caller.
-
+            How many levels in the stack to go to looking for namespaces (when
+            local_ns or module is None). This allows an intermediate caller to
+            make sure that this function gets the namespace from the intended
+            level in the stack. By default (0) it will get its locals and globals
+            from the immediate caller.
         compile_flags
-          A bit field identifying the __future__ features
-          that are enabled, as passed to the builtin :func:`compile` function.
-          If given as None, they are automatically taken from the scope where
-          the shell was called.
+            A bit field identifying the __future__ features
+            that are enabled, as passed to the builtin :func:`compile` function.
+            If given as None, they are automatically taken from the scope where
+            the shell was called.
 
         """
         
-        if (global_ns is not None) and (module is None):
-            raise DeprecationWarning("'global_ns' keyword argument is deprecated, and has been removed in IPython 5.0 use `module` keyword argument instead.")
-
-        if (display_banner is not None):
-            warnings.warn("The display_banner parameter is deprecated since IPython 4.0", DeprecationWarning)
-
         # Get locals and globals from caller
         if ((local_ns is None or module is None or compile_flags is None)
             and self.default_user_namespaces):
