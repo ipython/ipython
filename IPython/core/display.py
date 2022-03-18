@@ -15,6 +15,7 @@ import warnings
 from copy import deepcopy
 from os.path import splitext
 from pathlib import Path, PurePath
+from urllib.request import urlopen
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
@@ -353,8 +354,6 @@ class DisplayObject(object):
             with open(self.filename, self._read_flags, encoding=encoding) as f:
                 self.data = f.read()
         elif self.url is not None:
-            # Deferred import
-            from urllib.request import urlopen
             response = urlopen(self.url)
             data = response.read()
             # extract encoding from header, if there is one:
@@ -884,7 +883,7 @@ class Image(DisplayObject):
         a URL, or a filename from which to load image data.
         The result is always embedding image data for inline images.
 
-        >>> Image('https://www.google.fr/images/srpr/logo3w.png') # doctest: +SKIP
+        >>> Image('https://www.google.fr/images/srpr/logo3w.png')
         <IPython.core.display.Image object>
 
         >>> Image('/path/to/image.jpg')
