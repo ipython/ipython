@@ -238,22 +238,23 @@ class ModuleReloader:
         return py_filename, pymtime
 
     def _our_modules_to_check(self):
+        if not self.modules:
+            return set()
+
         combined = re.compile("|".join(fnmatch.translate(pat) for pat in self.modules))
 
-        skipped = re.compile(
-            "|".join(fnmatch.translate(pat) for pat in self.skip_modules)
-        )
+        result = filter(combined.match, sys.modules.keys())
 
-        result = filter(
-            lambda mod: not skipped.match(mod),
-            filter(combined.match, sys.modules.keys()),
-        )
+        if self.skip_modules:
+            skipped = re.compile(
+                "|".join(fnmatch.translate(pat) for pat in self.skip_modules)
+            )
+            result = filter(lambda mod: not skipped.match(mod), result)
 
         return set(result)
 
     def check(self, check_all=False, do_reload=True):
         """Check whether some modules need to be reloaded."""
-
         if not self.enabled and not check_all:
             return
 

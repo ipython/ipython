@@ -530,7 +530,7 @@ class TestAutoreload(Fixture):
             self.shell.magic_aimport("-" + mod_name)
             stream = StringIO()
             self.shell.magic_aimport("", stream=stream)
-            self.assertTrue(("Modules to skip:\n%s" % mod_name) in stream.getvalue())
+            self.assertTrue(f"Modules to skip:\n  {mod_name}" in stream.getvalue())
 
             # This should succeed, although no such module exists
             self.shell.magic_aimport("-tmpmod_as318989e89ds")
