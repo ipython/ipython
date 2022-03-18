@@ -71,6 +71,44 @@ class FakeShell:
         self.auto_magics.post_execute_hook()
 
 
+class RewritableFile:
+    def __init__(self, path):
+        self.path = path
+
+        # start mtime at a year ago. this assumes the file isn't
+        # going to be rewritten millions of times, but given that
+        # would make the test take an "unreasonably long time" it
+        # seems like a reasonable assumption
+        self.utime = int(time.time()) - (60 * 60 * 24 * 365)
+
+    def __str__(self):
+        return self.path
+
+    def write(self, content):
+        """
+        Write a file, and force a timestamp difference of at least one second
+
+        Notes
+        -----
+        Python's .pyc files record the timestamp of their compilation
+        with a time resolution of one second.
+
+        Therefore, we need to force a timestamp difference between .py
+        and .pyc, without having the .py file be timestamped in the
+        future, and without changing the timestamp of the .pyc file
+        (because that is stored in the file).  This method assumes
+        that each file isn't going to be rewritten more than a million
+        times.
+        """
+
+        with open(self.path, "w", encoding="utf-8") as f:
+            f.write(textwrap.dedent(content))
+
+        # monotonically increment times
+        self.utime += 1
+        os.utime(self.path, (self.utime, self.utime))
+
+
 class Fixture(TestCase):
     """Fixture for creating test module files"""
 
@@ -99,35 +137,13 @@ class Fixture(TestCase):
         file_name = os.path.join(self.test_dir, module_name + ".py")
         return module_name, file_name
 
-    def write_file(self, filename, content):
-        """
-        Write a file, and force a timestamp difference of at least one second
-
-        Notes
-        -----
-        Python's .pyc files record the timestamp of their compilation
-        with a time resolution of one second.
-
-        Therefore, we need to force a timestamp difference between .py
-        and .pyc, without having the .py file be timestamped in the
-        future, and without changing the timestamp of the .pyc file
-        (because that is stored in the file).  The only reliable way
-        to achieve this seems to be to sleep.
-        """
-        content = textwrap.dedent(content)
-        # Sleep one second + eps
-        time.sleep(1.05)
-
-        # Write
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(content)
-
     def new_module(self, code):
-        code = textwrap.dedent(code)
-        mod_name, mod_fn = self.get_module()
-        with open(mod_fn, "w", encoding="utf-8") as f:
-            f.write(code)
-        return mod_name, mod_fn
+        mod_name, path = self.get_module()
+
+        mod = RewritableFile(path)
+        mod.write(code)
+
+        return mod_name, mod
 
 
 # -----------------------------------------------------------------------------
@@ -149,59 +165,49 @@ def pickle_get_current_class(obj):
 
 class TestAutoreload(Fixture):
     def test_reload_enums(self):
-        mod_name, mod_fn = self.new_module(
-            textwrap.dedent(
-                """
-                                from enum import Enum
-                                class MyEnum(Enum):
-                                    A = 'A'
-                                    B = 'B'
-                            """
-            )
-        )
+        code1 = """
+        from enum import Enum
+        class MyEnum(Enum):
+            A = 'A'
+            B = 'B'
+        """
+        code2 = """
+        from enum import Enum
+        class MyEnum(Enum):
+            A = 'A'
+            B = 'B'
+            C = 'C'
+        """
+        mod_name, mod = self.new_module(code1)
         self.shell.magic_autoreload("2")
         self.shell.magic_aimport(mod_name)
-        self.write_file(
-            mod_fn,
-            textwrap.dedent(
-                """
-                                from enum import Enum
-                                class MyEnum(Enum):
-                                    A = 'A'
-                                    B = 'B'
-                                    C = 'C'
-                            """
-            ),
-        )
+        mod.write(code2)
         with tt.AssertNotPrints(
             ("[autoreload of %s failed:" % mod_name), channel="stderr"
         ):
             self.shell.run_code("pass")  # trigger another reload
 
     def test_reload_class_type(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class Test():
-                def meth(self):
-                    return "old"
+        code1 = """
+        class Test():
+            def meth(self):
+                return "old"
         """
-        )
+        code2 = """
+        class Test():
+            def meth(self):
+                return "new"
+        """
+
+        self.shell.magic_autoreload("2")
+        mod_name, mod = self.new_module(code1)
         assert "test" not in self.shell.ns
         assert "result" not in self.shell.ns
 
         self.shell.run_code("from %s import Test" % mod_name)
         self.shell.run_code("test = Test()")
 
-        self.write_file(
-            mod_fn,
-            """
-            class Test():
-                def meth(self):
-                    return "new"
-        """,
-        )
-
+        mod.write(code2)
         test_object = self.shell.ns["test"]
 
         # important to trigger autoreload logic !
@@ -215,23 +221,27 @@ class TestAutoreload(Fixture):
         self.shell.run_code("p = pickle.dumps(test)")
 
     def test_reload_class_attributes(self):
+        code1 = """
+        class MyClass:
+            def __init__(self, a=10):
+                self.a = a
+                self.b = 22
+            def square(self):
+                print('compute square')
+                return self.a*self.a
+        """
+        code2 = """
+        class MyClass:
+            def __init__(self, a=10):
+                self.a = a
+                self.b = 11
+            def power(self, p):
+                print('compute power '+str(p))
+                return self.a**p
+        """
         self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            textwrap.dedent(
-                """
-                                class MyClass:
+        mod_name, mod = self.new_module(code1)
 
-                                    def __init__(self, a=10):
-                                        self.a = a
-                                        self.b = 22 
-                                        # self.toto = 33
-
-                                    def square(self):
-                                        print('compute square')
-                                        return self.a*self.a
-                            """
-            )
-        )
         self.shell.run_code("from %s import MyClass" % mod_name)
         self.shell.run_code("first = MyClass(5)")
         self.shell.run_code("first.square()")
@@ -244,23 +254,7 @@ class TestAutoreload(Fixture):
             self.shell.run_code("first.toto")
 
         # remove square, add power
-
-        self.write_file(
-            mod_fn,
-            textwrap.dedent(
-                """
-                            class MyClass:
-
-                                def __init__(self, a=10):
-                                    self.a = a
-                                    self.b = 11
-
-                                def power(self, p):
-                                    print('compute power '+str(p))
-                                    return self.a**p
-                            """
-            ),
-        )
+        mod.write(code2)
 
         self.shell.run_code("second = MyClass(5)")
 
@@ -277,32 +271,27 @@ class TestAutoreload(Fixture):
 
     @skipif_not_numpy
     def test_comparing_numpy_structures(self):
+        code1 = """
+        import numpy as np
+        class MyClass:
+            a = (np.array((.1, .2)),
+                 np.array((.2, .3)))
+        """
+        code2 = """
+        import numpy as np
+        class MyClass:
+            a = (np.array((.3, .4)),
+                 np.array((.5, .6)))
+        """
+
         self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            textwrap.dedent(
-                """
-                                import numpy as np
-                                class MyClass:
-                                    a = (np.array((.1, .2)),
-                                         np.array((.2, .3)))
-                            """
-            )
-        )
+        mod_name, mod = self.new_module(code1)
+
         self.shell.run_code("from %s import MyClass" % mod_name)
         self.shell.run_code("first = MyClass()")
 
         # change property `a`
-        self.write_file(
-            mod_fn,
-            textwrap.dedent(
-                """
-                                import numpy as np
-                                class MyClass:
-                                    a = (np.array((.3, .4)),
-                                         np.array((.5, .6)))
-                            """
-            ),
-        )
+        mod.write(code2)
 
         with tt.AssertNotPrints(
             ("[autoreload of %s failed:" % mod_name), channel="stderr"
@@ -310,11 +299,33 @@ class TestAutoreload(Fixture):
             self.shell.run_code("pass")  # trigger another reload
 
     def test_autoload_newly_added_objects(self):
-        self.shell.magic_autoreload("3")
-        mod_code = """
+        code1 = """
         def func1(): pass
         """
-        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        code2 = """
+        def func1(): pass
+        def func2(): pass
+        class Test: pass
+        number = 0
+        from enum import Enum
+        class TestEnum(Enum):
+            A = 'a'
+        """
+        code3 = """
+        def func1(): return 'changed'
+        def func2(): return 'changed'
+        class Test:
+            def new_func(self):
+                return 'changed'
+        number = 1
+        from enum import Enum
+        class TestEnum(Enum):
+            A = 'a'
+            B = 'added'
+        """
+
+        self.shell.magic_autoreload("3")
+        mod_name, mod = self.new_module(code1)
         self.shell.run_code(f"from {mod_name} import *")
         self.shell.run_code("func1()")
         with self.assertRaises(NameError):
@@ -325,17 +336,7 @@ class TestAutoreload(Fixture):
             self.shell.run_code("number")
 
         # ----------- TEST NEW OBJ LOADED --------------------------
-
-        new_code = """
-        def func1(): pass
-        def func2(): pass
-        class Test: pass
-        number = 0
-        from enum import Enum
-        class TestEnum(Enum):
-            A = 'a'
-        """
-        self.write_file(mod_fn, textwrap.dedent(new_code))
+        mod.write(code2)
 
         # test function now exists in shell's namespace namespace
         self.shell.run_code("func2()")
@@ -350,19 +351,7 @@ class TestAutoreload(Fixture):
 
         # ----------- TEST NEW OBJ CAN BE CHANGED --------------------
 
-        new_code = """
-        def func1(): return 'changed'
-        def func2(): return 'changed'
-        class Test:
-            def new_func(self):
-                return 'changed'
-        number = 1
-        from enum import Enum
-        class TestEnum(Enum):
-            A = 'a'
-            B = 'added'
-        """
-        self.write_file(mod_fn, textwrap.dedent(new_code))
+        mod.write(code3)
         self.shell.run_code("assert func1() == 'changed'")
         self.shell.run_code("assert func2() == 'changed'")
         self.shell.run_code("t = Test(); assert t.new_func() == 'changed'")
@@ -370,8 +359,7 @@ class TestAutoreload(Fixture):
         self.shell.run_code("assert TestEnum.B.value == 'added'")
 
         # ----------- TEST IMPORT FROM MODULE --------------------------
-
-        new_mod_code = """
+        code1 = """
         from enum import Enum
         class Ext(Enum):
             A = 'ext'
@@ -382,11 +370,11 @@ class TestAutoreload(Fixture):
                 return 'ext'
         ext_int = 2
         """
-        new_mod_name, new_mod_fn = self.new_module(textwrap.dedent(new_mod_code))
-        current_mod_code = f"""
+        new_mod_name, _ = self.new_module(code1)
+        code2 = f"""
         from {new_mod_name} import *
         """
-        self.write_file(mod_fn, textwrap.dedent(current_mod_code))
+        mod.write(code2)
         self.shell.run_code("assert Ext.A.value == 'ext'")
         self.shell.run_code("assert ext_func() == 'ext'")
         self.shell.run_code("t = ExtTest(); assert t.meth() == 'ext'")
@@ -397,33 +385,44 @@ class TestAutoreload(Fixture):
         Functional test for the automatic reloader using either
         '%autoreload 1' or '%autoreload 2'
         """
+        code1 = """
+        x = 9
+        z = 123  # this item will be deleted
+        def foo(y):
+            return y + 3
+        class Baz(object):
+            def __init__(self, x):
+                self.x = x
+            def bar(self, y):
+                return self.x + y
+            @property
+            def quux(self):
+                return 42
+            def zzz(self):
+                '''This method will be deleted below'''
+                return 99
+        class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
+            def foo(self):
+                return 1
+        """
+        code2 = """
+        x = 10
+        def foo(y):
+            return y + 4
+        class Baz(object):
+            def __init__(self, x):
+                self.x = x
+            def bar(self, y):
+                return self.x + y + 1
+            @property
+            def quux(self):
+                return 43
+        class Bar:    # old-style class
+            def foo(self):
+                return 2
+        """
 
-        mod_name, mod_fn = self.new_module(
-            """
-x = 9
-
-z = 123  # this item will be deleted
-
-def foo(y):
-    return y + 3
-
-class Baz(object):
-    def __init__(self, x):
-        self.x = x
-    def bar(self, y):
-        return self.x + y
-    @property
-    def quux(self):
-        return 42
-    def zzz(self):
-        '''This method will be deleted below'''
-        return 99
-
-class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
-    def foo(self):
-        return 1
-"""
-        )
+        mod_name, mod = self.new_module(code1)
 
         #
         # Import module, and mark for reloading
@@ -433,7 +432,7 @@ class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
             self.shell.magic_aimport(mod_name)
             stream = StringIO()
             self.shell.magic_aimport("", stream=stream)
-            self.assertIn(("Modules to reload:\n%s" % mod_name), stream.getvalue())
+            self.assertIn(f"Modules to reload:\n  {mod_name}", stream.getvalue())
 
             with self.assertRaises(ImportError):
                 self.shell.magic_aimport("tmpmod_as318989e89ds")
@@ -447,29 +446,29 @@ class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
             )
         self.assertIn(mod_name, self.shell.ns)
 
-        mod = sys.modules[mod_name]
+        module = sys.modules[mod_name]
 
         #
         # Test module contents
         #
-        old_foo = mod.foo
-        old_obj = mod.Baz(9)
-        old_obj2 = mod.Bar()
+        old_foo = module.foo
+        old_obj = module.Baz(9)
+        old_obj2 = module.Bar()
 
         def check_module_contents():
-            self.assertEqual(mod.x, 9)
-            self.assertEqual(mod.z, 123)
+            self.assertEqual(module.x, 9)
+            self.assertEqual(module.z, 123)
 
             self.assertEqual(old_foo(0), 3)
-            self.assertEqual(mod.foo(0), 3)
+            self.assertEqual(module.foo(0), 3)
 
-            obj = mod.Baz(9)
+            obj = module.Baz(9)
             self.assertEqual(old_obj.bar(1), 10)
             self.assertEqual(obj.bar(1), 10)
             self.assertEqual(obj.quux, 42)
             self.assertEqual(obj.zzz(), 99)
 
-            obj2 = mod.Bar()
+            obj2 = module.Bar()
             self.assertEqual(old_obj2.foo(), 1)
             self.assertEqual(obj2.foo(), 1)
 
@@ -479,57 +478,27 @@ class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
         # Simulate a failed reload: no reload should occur and exactly
         # one error message should be printed
         #
-        self.write_file(
-            mod_fn,
-            """
-a syntax error
-""",
-        )
+        mod.write("a syntax error\n")
 
-        with tt.AssertPrints(
-            ("[autoreload of %s failed:" % mod_name), channel="stderr"
-        ):
+        with tt.AssertPrints(f"[autoreload of {mod_name} failed:", channel="stderr"):
             self.shell.run_code("pass")  # trigger reload
-        with tt.AssertNotPrints(
-            ("[autoreload of %s failed:" % mod_name), channel="stderr"
-        ):
+        with tt.AssertNotPrints(f"[autoreload of {mod_name} failed:", channel="stderr"):
             self.shell.run_code("pass")  # trigger another reload
         check_module_contents()
 
         #
         # Rewrite module (this time reload should succeed)
         #
-        self.write_file(
-            mod_fn,
-            """
-x = 10
-
-def foo(y):
-    return y + 4
-
-class Baz(object):
-    def __init__(self, x):
-        self.x = x
-    def bar(self, y):
-        return self.x + y + 1
-    @property
-    def quux(self):
-        return 43
-
-class Bar:    # old-style class
-    def foo(self):
-        return 2
-""",
-        )
+        mod.write(code2)
 
         def check_module_contents():
-            self.assertEqual(mod.x, 10)
-            self.assertFalse(hasattr(mod, "z"))
+            self.assertEqual(module.x, 10)
+            self.assertFalse(hasattr(module, "z"))
 
             self.assertEqual(old_foo(0), 4)  # superreload magic!
-            self.assertEqual(mod.foo(0), 4)
+            self.assertEqual(module.foo(0), 4)
 
-            obj = mod.Baz(9)
+            obj = module.Baz(9)
             self.assertEqual(old_obj.bar(1), 11)  # superreload magic!
             self.assertEqual(obj.bar(1), 11)
 
@@ -539,7 +508,7 @@ class Bar:    # old-style class
             self.assertFalse(hasattr(old_obj, "zzz"))
             self.assertFalse(hasattr(obj, "zzz"))
 
-            obj2 = mod.Bar()
+            obj2 = module.Bar()
             self.assertEqual(old_obj2.foo(), 2)
             self.assertEqual(obj2.foo(), 2)
 
@@ -549,7 +518,7 @@ class Bar:    # old-style class
         #
         # Another failure case: deleted file (shouldn't reload)
         #
-        os.unlink(mod_fn)
+        os.unlink(mod.path)
 
         self.shell.run_code("pass")  # trigger reload
         check_module_contents()
@@ -568,12 +537,7 @@ class Bar:    # old-style class
         else:
             self.shell.magic_autoreload("0")
 
-        self.write_file(
-            mod_fn,
-            """
-x = -99
-""",
-        )
+        mod.write("x = -99\n")
 
         self.shell.run_code("pass")  # trigger reload
         self.shell.run_code("pass")
@@ -588,7 +552,7 @@ x = -99
             self.shell.magic_autoreload("")
 
         self.shell.run_code("pass")  # trigger reload
-        self.assertEqual(mod.x, -99)
+        self.assertEqual(module.x, -99)
 
     def test_smoketest_aimport(self):
         self._check_smoketest(use_aimport=True)
