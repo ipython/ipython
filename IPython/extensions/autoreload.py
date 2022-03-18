@@ -158,6 +158,25 @@ class ModuleReloader:
         # Cache module modification times
         self.check(check_all=True, do_reload=False)
 
+    def print_state(self, *, file=None):
+        to_reload = sorted(self.modules.keys())
+        to_skip = sorted(self.skip_modules.keys())
+
+        print("Modules to reload:", file=file)
+        if self.check_all:
+            print("all-except-skipped", file=file)
+        else:
+            print(" ".join(to_reload), file=file)
+
+        print("\nPatterns to reload:", file=file)
+        for pattern, pat in self.module_pats.items():
+            matches = " ".join(
+                filter(pat.match, sys.modules.keys()))
+            print(f"  {repr(pattern)} matches ({matches})", file=file)
+
+        print("\nModules to skip:", file=file)
+        print(" ".join(to_skip), file=file)
+
     def mark_module_skipped(self, module_name):
         """Skip reloading the named module in the future"""
         try:
@@ -602,15 +621,7 @@ class AutoreloadMagics(Magics):
         """
         modname = parameter_s
         if not modname:
-            to_reload = sorted(self._reloader.modules.keys())
-            to_skip = sorted(self._reloader.skip_modules.keys())
-            if stream is None:
-                stream = sys.stdout
-            if self._reloader.check_all:
-                stream.write("Modules to reload:\nall-except-skipped\n")
-            else:
-                stream.write("Modules to reload:\n%s\n" % " ".join(to_reload))
-            stream.write("\nModules to skip:\n%s\n" % " ".join(to_skip))
+            self._reloader.print_state(file=stream)
         elif modname.startswith("-"):
             modname = modname[1:]
             self._reloader.mark_module_skipped(modname)
