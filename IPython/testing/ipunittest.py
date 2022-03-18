@@ -143,7 +143,7 @@ class Doc2UnitTester(object):
             func.__doc__ = ip2py(func.__doc__)
 
         # Now, create a tester object that is a real unittest instance, so
-        # normal unittest machinery (or Nose, or Trial) can find it.
+        # normal unittest machinery can find it.
         class Tester(unittest.TestCase):
             def setUp(self):
                 # Mock urllib.urlopen so that Image tests don't access network.
