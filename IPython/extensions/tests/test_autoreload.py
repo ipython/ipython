@@ -559,3 +559,28 @@ class TestAutoreload(Fixture):
 
     def test_smoketest_autoreload(self):
         self._check_smoketest(use_aimport=False)
+
+    def test_pattern_aimport(self):
+        code1 = "x = 1\n"
+        code2 = "x = 2\n"
+
+        self.shell.magic_autoreload("1")
+
+        # make sure the pattern below will find our module!
+        mod_name, mod = self.new_module(code1)
+        assert mod_name.startswith("tmpmod_")
+
+        # register a pattern autoreload and make sure it doesn't get
+        # auto-imported
+        self.shell.magic_aimport("+tmpmod_*")
+        assert mod_name not in sys.modules
+
+        # actually perform the import and validate
+        self.shell.run_code(f"import {mod_name}")
+        assert mod_name in sys.modules
+        assert sys.modules[mod_name].x == 1
+
+        # update code, trigger a reload, and validate
+        mod.write(code2)
+        self.shell.run_code("pass")
+        assert sys.modules[mod_name].x == 2
