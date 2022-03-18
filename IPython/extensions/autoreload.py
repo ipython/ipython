@@ -65,6 +65,10 @@ The following magic commands are provided:
 
     Import modules 'foo', 'bar' and mark them to be autoreloaded for ``%autoreload 1``
 
+``%aimport +foo.*``
+
+    Mark all modules under 'foo' to be autoreloaded.
+
 ``%aimport -foo``
 
     Mark module 'foo' to not be autoreloaded.
@@ -209,16 +213,15 @@ class ModuleReloader:
         return top_module, top_name
 
     def filename_and_mtime(self, module):
-        if not hasattr(module, "__file__") or module.__file__ is None:
+        filename = getattr(module, "__file__", None)
+        if filename is None:
             return None, None
 
         if getattr(module, "__name__", None) in [None, "__mp_main__", "__main__"]:
             # we cannot reload(__main__) or reload(__mp_main__)
             return None, None
 
-        filename = module.__file__
         path, ext = os.path.splitext(filename)
-
         if ext.lower() == ".py":
             py_filename = filename
         else:
@@ -580,6 +583,7 @@ class AutoreloadMagics(Magics):
           autoreloaded.
 
         """
+        parameter_s = parameter_s.strip()
         if parameter_s == "":
             self._reloader.check(True)
         elif parameter_s == "0":
@@ -609,10 +613,13 @@ class AutoreloadMagics(Magics):
         %aimport foo, bar
         Import modules 'foo', 'bar' and mark them to be autoreloaded for %autoreload 1
 
+        %aimport +foo
+        Mark module or pattern 'foo' to be autoreloaded for %autoreload 1
+
         %aimport -foo
-        Mark module 'foo' to not be autoreloaded for %autoreload 1
+        Mark module or pattern 'foo' to not be autoreloaded for %autoreload 1
         """
-        modname = parameter_s
+        modname = parameter_s.strip()
         if not modname:
             self._reloader.print_state(file=stream)
         elif modname.startswith("+"):
