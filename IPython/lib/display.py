@@ -92,8 +92,8 @@ class Audio(DisplayObject):
 
     From a File:
 
-    >>> Audio('/path/to/sound.wav')  # doctest: +SKIP
-    >>> Audio(filename='/path/to/sound.ogg')  # doctest: +SKIP
+    >>> Audio('IPython/lib/tests/test.wav')  # doctest: +SKIP
+    >>> Audio(filename='IPython/lib/tests/test.wav')  # doctest: +SKIP
 
     From Bytes:
 
