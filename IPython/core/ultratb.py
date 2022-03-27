@@ -360,9 +360,6 @@ class ListTB(TBTools):
     Because they are meant to be called without a full traceback (only a
     list), instances of this class can't call the interactive pdb debugger."""
 
-    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None, parent=None, config=None):
-        TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
-                         ostream=ostream, parent=parent,config=config)
 
     def __call__(self, etype, value, elist):
         self.ostream.flush()
