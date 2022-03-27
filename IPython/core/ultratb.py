@@ -188,9 +188,11 @@ def _format_filename(file, ColorFilename, ColorNormal, *, lineno=None):
     if ipinst is not None and file in ipinst.compile._filename_map:
         file = "[%s]" % ipinst.compile._filename_map[file]
         if lineno is None:
-            tpl_link = f"Input {ColorFilename}In {{file}}{ColorNormal}"
+            tpl_link = f"Input cell {ColorFilename}In {{file}}{ColorNormal}"
         else:
-            tpl_link = f"Input {ColorFilename}In {{file}}:{{lineno}}{ColorNormal}"
+            tpl_link = (
+                f"Input cell {ColorFilename}In {{file}}, line {{lineno}}{ColorNormal}"
+            )
     else:
         file = util_path.compress_user(
             py3compat.cast_unicode(file, util_path.fs_encoding)
