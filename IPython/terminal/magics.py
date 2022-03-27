@@ -53,7 +53,7 @@ class TerminalMagics(Magics):
             self.shell.user_ns['pasted_block'] = b
             self.shell.using_paste_magics = True
             try:
-                self.shell.run_cell(b)
+                self.shell.run_cell(b, store_history=True)
             finally:
                 self.shell.using_paste_magics = False
 

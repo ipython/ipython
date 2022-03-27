@@ -758,6 +758,33 @@ class InteractiveShell(SingletonConfigurable):
         # the appropriate time.
         self.display_trap = DisplayTrap(hook=self.displayhook)
 
+    @staticmethod
+    def get_path_links(p: Path):
+        """Gets path links including all symlinks
+
+        Examples
+        --------
+        In [1]: from IPython.core.interactiveshell import InteractiveShell
+
+        In [2]: import sys, pathlib
+
+        In [3]: paths = InteractiveShell.get_path_links(pathlib.Path(sys.executable))
+
+        In [4]: len(paths) == len(set(paths))
+        Out[4]: True
+
+        In [5]: bool(paths)
+        Out[5]: True
+        """
+        paths = [p]
+        while p.is_symlink():
+            new_path = Path(os.readlink(p))
+            if not new_path.is_absolute():
+                new_path = p.parent / new_path
+            p = new_path
+            paths.append(p)
+        return paths
+
     def init_virtualenv(self):
         """Add the current virtualenv to sys.path so the user can import modules from it.
         This isn't perfect: it doesn't use the Python interpreter with which the
@@ -783,10 +810,7 @@ class InteractiveShell(SingletonConfigurable):
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
-        paths = [p]
-        while p.is_symlink():
-            p = Path(os.readlink(p))
-            paths.append(p.resolve())
+        paths = self.get_path_links(p)
 
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if p_venv.parts[1] == "cygdrive":
@@ -1952,10 +1976,19 @@ class InteractiveShell(SingletonConfigurable):
                         # Exception classes can customise their traceback - we
                         # use this in IPython.parallel for exceptions occurring
                         # in the engines. This should return a list of strings.
-                        stb = value._render_traceback_()
+                        if hasattr(value, "_render_traceback_"):
+                            stb = value._render_traceback_()
+                        else:
+                            stb = self.InteractiveTB.structured_traceback(
+                                etype, value, tb, tb_offset=tb_offset
+                            )
+
                     except Exception:
-                        stb = self.InteractiveTB.structured_traceback(etype,
-                                            value, tb, tb_offset=tb_offset)
+                        print(
+                            "Unexpected exception formatting exception. Falling back to standard exception"
+                        )
+                        traceback.print_exc()
+                        return None
 
                     self._showtraceback(etype, value, stb)
                     if self.call_pdb:
@@ -3018,9 +3051,8 @@ class InteractiveShell(SingletonConfigurable):
                 cell = raw_cell
 
         # Store raw and processed history
-        if store_history:
-            self.history_manager.store_inputs(self.execution_count,
-                                              cell, raw_cell)
+        if store_history and raw_cell.strip(" %") != "paste":
+            self.history_manager.store_inputs(self.execution_count, cell, raw_cell)
         if not silent:
             self.logger.log(cell, raw_cell)
 

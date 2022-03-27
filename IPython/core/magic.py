@@ -311,7 +311,7 @@ class MagicsManager(Configurable):
 
     For example::
 
-        c.MagicsManger.lazy_magics = {
+        c.MagicsManager.lazy_magics = {
           "my_magic": "slow.to.import",
           "my_other_magic": "also.slow",
         }

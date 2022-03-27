@@ -10,6 +10,7 @@ import warnings
 import signal
 import sys
 import re
+import os
 from typing import Callable
 
 
@@ -56,7 +57,7 @@ def create_ipython_shortcuts(shell):
                             & insert_mode
                                       ))(reformat_and_execute)
 
-    kb.add('c-\\')(force_exit)
+    kb.add("c-\\")(quit)
 
     kb.add('c-p', filter=(vi_insert_mode & has_focus(DEFAULT_BUFFER))
                 )(previous_history_or_previous_completion)
@@ -267,14 +268,21 @@ def create_ipython_shortcuts(shell):
     focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
 
     # Needed for to accept autosuggestions in vi insert mode
-    @kb.add("c-e", filter=focused_insert_vi & ebivim)
-    def _(event):
+    def _apply_autosuggest(event):
         b = event.current_buffer
         suggestion = b.suggestion
         if suggestion:
             b.insert_text(suggestion.text)
         else:
             nc.end_of_line(event)
+
+    @kb.add("end", filter=has_focus(DEFAULT_BUFFER) & (ebivim | ~vi_insert_mode))
+    def _(event):
+        _apply_autosuggest(event)
+
+    @kb.add("c-e", filter=focused_insert_vi & ebivim)
+    def _(event):
+        _apply_autosuggest(event)
 
     @kb.add("c-f", filter=focused_insert_vi)
     def _(event):
@@ -451,11 +459,16 @@ def reset_search_buffer(event):
 def suspend_to_bg(event):
     event.app.suspend_to_background()
 
-def force_exit(event):
+def quit(event):
     """
-    Force exit (with a non-zero return value)
+    On platforms that support SIGQUIT, send SIGQUIT to the current process.
+    On other platforms, just exit the process with a message.
     """
-    sys.exit("Quit")
+    sigquit = getattr(signal, "SIGQUIT", None)
+    if sigquit is not None:
+        os.kill(0, signal.SIGQUIT)
+    else:
+        sys.exit("Quit")
 
 def indent_buffer(event):
     event.current_buffer.insert_text(' ' * 4)

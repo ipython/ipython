@@ -3,12 +3,45 @@
 ============
 
 
+.. _version 8.2.0:
+
+IPython 8.2.0
+-------------
+
+IPython 8.2 mostly bring bugfixes to IPython.
+
+ - Auto-suggestion can now be elected with the ``end`` key. :ghpull:`13566`
+ - Some traceback issues with ``assert etb is not None`` have been fixed. :ghpull:`13588`
+ - History is now pulled from the sqitel database and not from in-memory.
+   In particular when using the ``%paste`` magic, the content of the pasted text will
+   be part of the history and not the verbatim text ``%paste`` anymore. :ghpull:`13592`
+ - Fix ``Ctrl-\\`` exit cleanup :ghpull:`13603`
+ - Fixes to ``ultratb`` ipdb support when used outside of IPython. :ghpull:`13498`
+
+
+I am still trying to fix and investigate :ghissue:`13598`, which seem to be
+random, and would appreciate help if you find  reproducible minimal case. I've
+tried to make various changes to the codebase to mitigate it, but a proper fix
+will be difficult without understanding the cause.
+
+
+All the issues on pull-requests for this release can be found in the `8.2
+milestone. <https://github.com/ipython/ipython/milestone/100>`__ . And some
+documentation only PR can be found as part of the `7.33 milestone
+<https://github.com/ipython/ipython/milestone/101>`__ (currently not released).
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 .. _version 8.1.1:
    
 IPython 8.1.1
 -------------
 
-Revert :ghpull:`13537` (fix an issue with symlinks in virtualenv) that raises an error in Python 3.8.
+Fix an issue with virtualenv and Python 3.8 introduced in 8.1
+
+Revert :ghpull:`13537` (fix an issue with symlinks in virtualenv) that raises an
+error in Python 3.8, and fixed in a different way in :ghpull:`13559`.
 
 .. _version 8.1:
 

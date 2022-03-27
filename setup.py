@@ -18,7 +18,6 @@ requires utilities which are not available under Windows."""
 
 import os
 import sys
-from itertools import chain
 
 # **Python version check**
 #
