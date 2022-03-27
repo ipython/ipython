@@ -207,7 +207,16 @@ class TBTools(colorable.Colorable):
     # Number of frames to skip when reporting tracebacks
     tb_offset = 0
 
-    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None, parent=None, config=None):
+    def __init__(
+        self,
+        color_scheme="NoColor",
+        call_pdb=False,
+        ostream=None,
+        parent=None,
+        config=None,
+        *,
+        debugger_cls=None,
+    ):
         # Whether to call the interactive pdb debugger after printing
         # tracebacks or not
         super(TBTools, self).__init__(parent=parent, config=config)
@@ -227,9 +236,10 @@ class TBTools(colorable.Colorable):
 
         self.set_colors(color_scheme)
         self.old_scheme = color_scheme  # save initial value for toggles
+        self.debugger_cls = debugger_cls or debugger.Pdb
 
         if call_pdb:
-            self.pdb = debugger.Pdb()
+            self.pdb = debugger_cls()
         else:
             self.pdb = None
 
@@ -628,8 +638,15 @@ class VerboseTB(TBTools):
         tb_offset=1 allows use of this handler in interpreters which will have
         their own code at the top of the traceback (VerboseTB will first
         remove that frame before printing the traceback info)."""
-        TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
-                         ostream=ostream, parent=parent, config=config)
+        TBTools.__init__(
+            self,
+            color_scheme=color_scheme,
+            call_pdb=call_pdb,
+            ostream=ostream,
+            parent=parent,
+            config=config,
+            debugger_cls=debugger_cls,
+        )
         self.tb_offset = tb_offset
         self.long_header = long_header
         self.include_vars = include_vars
@@ -642,7 +659,6 @@ class VerboseTB(TBTools):
             check_cache = linecache.checkcache
         self.check_cache = check_cache
 
-        self.debugger_cls = debugger_cls or debugger.Pdb
         self.skip_hidden = True
 
     def format_record(self, frame_info):
@@ -907,7 +923,7 @@ class VerboseTB(TBTools):
         fix that by hand after invoking the exception handler."""
 
         if force or self.call_pdb:
-            if self.debugger_cls:
+            if self.pdb is None:
                 self.pdb = self.debugger_cls()
             # the system displayhook may have changed, restore the original
             # for pdb
