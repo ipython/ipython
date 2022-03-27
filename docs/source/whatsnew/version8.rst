@@ -22,9 +22,16 @@ IPython 8.2 mostly bring bugfixes to IPython.
 I am still trying to fix and investigate :ghissue:`13598`, which seem to be
 random, and would appreciate help if you find  reproducible minimal case. I've
 tried to make various changes to the codebase to mitigate it, but a proper fix
-will be difficult without understating the cause.
+will be difficult without understanding the cause.
 
 
+All the issues on pull-requests for this release can be found in the `8.2
+milestone. <https://github.com/ipython/ipython/milestone/100>`__ . And some
+documentation only PR can be found as part of the `7.33 milestone
+<https://github.com/ipython/ipython/milestone/101>`__ (currently not released).
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 .. _version 8.1.1:
    
