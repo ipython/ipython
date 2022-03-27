@@ -3,6 +3,29 @@
 ============
 
 
+.. _version 8.2.0:
+
+IPython 8.2.0
+-------------
+
+IPython 8.2 mostly bring bugfixes to IPython.
+
+ - Auto-suggestion can now be elected with the ``end`` key. :ghpull:`13566`
+ - Some traceback issues with ``assert etb is not None`` have been fixed. :ghpull:`13588`
+ - History is now pulled from the sqitel database and not from in-memory.
+   In particular when using the ``%paste`` magic, the content of the pasted text will
+   be part of the history and not the verbatim text ``%paste`` anymore. :ghpull:`13592`
+ - Fix ``Ctrl-\\`` exit cleanup :ghpull:`13603`
+ - Fixes to ``ultratb`` ipdb support when used outside of IPython. :ghpull:`13498`
+
+
+I am still trying to fix and investigate :ghissue:`13598`, which seem to be
+random, and would appreciate help if you find  reproducible minimal case. I've
+tried to make various changes to the codebase to mitigate it, but a proper fix
+will be difficult without understating the cause.
+
+
+
 .. _version 8.1.1:
    
 IPython 8.1.1
