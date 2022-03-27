@@ -1976,10 +1976,19 @@ class InteractiveShell(SingletonConfigurable):
                         # Exception classes can customise their traceback - we
                         # use this in IPython.parallel for exceptions occurring
                         # in the engines. This should return a list of strings.
-                        stb = value._render_traceback_()
+                        if hasattr(value, "_render_traceback_"):
+                            stb = value._render_traceback_()
+                        else:
+                            stb = self.InteractiveTB.structured_traceback(
+                                etype, value, tb, tb_offset=tb_offset
+                            )
+
                     except Exception:
-                        stb = self.InteractiveTB.structured_traceback(etype,
-                                            value, tb, tb_offset=tb_offset)
+                        print(
+                            "Unexpected exception formatting exception. Falling back to standard exception"
+                        )
+                        traceback.print_exc()
+                        return None
 
                     self._showtraceback(etype, value, stb)
                     if self.call_pdb:
