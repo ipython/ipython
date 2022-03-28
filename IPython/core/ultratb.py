@@ -465,33 +465,41 @@ class ListTB(TBTools):
 
         Lifted almost verbatim from traceback.py
         """
-
         Colors = self.Colors
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
-            item = "  %s in %s%s%s\n" % (
+            item = "  %s" % (
                 _format_filename(
                     filename, Colors.filename, Colors.Normal, lineno=lineno
-                ),
-                Colors.name,
-                name,
-                Colors.Normal,
+                )
             )
+
+            if name != "<module>":
+                item += " in %s%s%s\n" % (
+                    Colors.name,
+                    name,
+                    Colors.Normal,
+                )
+            else:
+                item += "\n"
             if line:
                 item += '    %s\n' % line.strip()
             list.append(item)
         # Emphasize the last entry
         filename, lineno, name, line = extracted_list[-1]
-        item = "%s  %s in %s%s%s%s\n" % (
+        item = "%s  %s" % (
             Colors.normalEm,
             _format_filename(
                 filename, Colors.filenameEm, Colors.normalEm, lineno=lineno
-            ),
-            Colors.nameEm,
-            name,
-            Colors.normalEm,
-            Colors.Normal,
+            )
         )
+        if name != "<module>":
+            item += " in %s%s%s" % (
+                    Colors.nameEm,
+                    name,
+                    Colors.normalEm,
+                )
+        item += "%s\n" % (Colors.Normal)
         if line:
             item += '%s    %s%s\n' % (Colors.line, line.strip(),
                                       Colors.Normal)
@@ -692,7 +700,7 @@ class VerboseTB(TBTools):
 
         func = frame_info.executing.code_qualname()
         if func == "<module>":
-            call = tpl_call.format(file=func, scope="")
+            call = ""
         else:
             # Decide whether to include variable details or not
             var_repr = eqrepr if self.include_vars else nullrepr
@@ -736,7 +744,7 @@ class VerboseTB(TBTools):
         if lvals_list:
             lvals = '%s%s' % (indent, em_normal.join(lvals_list))
 
-        result = "%s, %s\n" % (link, call)
+        result = "%s%s%s\n" % (link, ", " if call else "", call)
 
         result += ''.join(_format_traceback_lines(frame_info.lines, Colors, self.has_colors, lvals))
         return result
