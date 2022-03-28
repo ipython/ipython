@@ -465,6 +465,7 @@ class ListTB(TBTools):
 
         Lifted almost verbatim from traceback.py
         """
+        
         Colors = self.Colors
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
