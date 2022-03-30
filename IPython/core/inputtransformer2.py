@@ -752,11 +752,28 @@ class TransformerManager:
         # We'll use codeop.compile_command to check this with the real parser
         try:
             with warnings.catch_warnings():
-                warnings.simplefilter('error', SyntaxWarning)
-                res = compile_command(''.join(lines), symbol='exec')
-        except (SyntaxError, OverflowError, ValueError, TypeError,
-                MemoryError, SyntaxWarning):
-            return 'invalid', None
+                warnings.simplefilter("error", SyntaxWarning)
+                res = compile_command("".join(lines), symbol="exec")
+        except (
+            SyntaxError,
+            OverflowError,
+            ValueError,
+            TypeError,
+            MemoryError,
+            SyntaxWarning,
+        ):
+            code = "".join(lines)
+            if "nonlocal" in code and lines[-1]:
+                try:
+                    res = compile_command(
+                        "".join([l for l in lines if "nonlocal " not in l]),
+                        symbol="exec",
+                    )
+                    return "incomplete", find_last_indent(lines)
+                except Exception:
+                    pass
+
+            return "invalid", None
         else:
             if res is None:
                 return 'incomplete', find_last_indent(lines)
