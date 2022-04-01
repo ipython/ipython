@@ -126,15 +126,14 @@ def create_ipython_shortcuts(shell):
     @Condition
     def not_inside_unclosed_string():
         app = get_app()
-        preceding_text = app.current_buffer.document.current_line_before_cursor
-        without_escaped = preceding_text.replace('\\"', "").replace("\\'", "")
-        triple_string_pattern = re.compile(
-            r"(?:\"\"\"[^\"]?.*?[^\"]?\"\"\"|'''[^']?.*?[^']?'''*)"
-        )
-        without_triple_strings = triple_string_pattern.sub("", without_escaped)
-        single_string_pattern = re.compile(r"""(?:"[^"]*"|'[^']*')""")
-        without_strings = single_string_pattern.sub("", without_triple_strings)
-        return not ('"' in without_strings or "'" in without_strings)
+        s = app.current_buffer.document.text_before_cursor
+        # remove escaped quotes
+        s = s.replace('\\"', "").replace("\\'", "")
+        # remove triple-quoted string literals
+        s = re.sub(r"(?:\"\"\"[\s\S]*\"\"\"|'''[\s\S]*''')", "", s)
+        # remove single-quoted string literals
+        s = re.sub(r"""(?:"[^"]*["\n]|'[^']*['\n])""", "", s)
+        return not ('"' in s or "'" in s)
 
     # auto match
     @kb.add("(", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
