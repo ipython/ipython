@@ -405,14 +405,14 @@ class TerminalInteractiveShell(InteractiveShell):
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
-        if self.term_title:
+        if self.term_title and _is_tty:
             toggle_set_term_title(True)
             set_term_title(self.term_title_format.format(cwd=abbrev_cwd()))
         else:
             toggle_set_term_title(False)
 
     def restore_term_title(self):
-        if self.term_title:
+        if self.term_title and _is_tty:
             restore_term_title()
 
     def init_display_formatter(self):
