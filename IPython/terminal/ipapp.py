@@ -318,6 +318,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.shell.mainloop()
         else:
             self.log.debug("IPython not interactive...")
+            self.shell.restore_term_title()
             if not self.shell.last_execution_succeeded:
                 sys.exit(1)
 
