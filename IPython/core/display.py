@@ -626,7 +626,7 @@ class JSON(DisplayObject):
         return self._data_and_metadata()
 
 _css_t = """var link = document.createElement("link");
-	link.ref = "stylesheet";
+	link.rel = "stylesheet";
 	link.type = "text/css";
 	link.href = "%s";
 	document.head.appendChild(link);
