@@ -271,7 +271,7 @@ def create_ipython_shortcuts(shell):
     def _apply_autosuggest(event):
         b = event.current_buffer
         suggestion = b.suggestion
-        if suggestion:
+        if suggestion is not None and suggestion.text:
             b.insert_text(suggestion.text)
         else:
             nc.end_of_line(event)
