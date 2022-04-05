@@ -41,7 +41,7 @@ or using unicode completion:
 
 Only valid Python identifiers will complete. Combining characters (like arrow or
 dots) are also available, unlike latex they need to be put after the their
-counterpart that is to say, `F\\\\vec<tab>` is correct, not `\\\\vec<tab>F`.
+counterpart that is to say, ``F\\\\vec<tab>`` is correct, not ``\\\\vec<tab>F``.
 
 Some browsers are known to display combining characters incorrectly.
 

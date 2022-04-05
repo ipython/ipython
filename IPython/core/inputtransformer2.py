@@ -325,7 +325,7 @@ ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
 ESCAPE_SINGLES = {'!', '?', '%', ',', ';', '/'}
 ESCAPE_DOUBLES = {'!!', '??'}  # %% (cell magic) is handled separately
 
-def _make_help_call(target, esc, next_input=None):
+def _make_help_call(target, esc):
     """Prepares a pinfo(2)/psearch call from a target name and the escape
     (i.e. ? or ??)"""
     method  = 'pinfo2' if esc == '??' \
@@ -335,11 +335,8 @@ def _make_help_call(target, esc, next_input=None):
     #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
     t_magic_name, _, t_magic_arg_s = arg.partition(' ')
     t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
-    if next_input is None:
-        return 'get_ipython().run_line_magic(%r, %r)' % (t_magic_name, t_magic_arg_s)
-    else:
-        return 'get_ipython().set_next_input(%r);get_ipython().run_line_magic(%r, %r)' % \
-           (next_input, t_magic_name, t_magic_arg_s)
+    return "get_ipython().run_line_magic(%r, %r)" % (t_magic_name, t_magic_arg_s)
+
 
 def _tr_help(content):
     """Translate lines escaped with: ?
@@ -480,13 +477,8 @@ class HelpEnd(TokenTransformBase):
         target = m.group(1)
         esc = m.group(3)
 
-        # If we're mid-command, put it back on the next prompt for the user.
-        next_input = None
-        if (not lines_before) and (not lines_after) \
-                and content.strip() != m.group(0):
-            next_input = content.rstrip('?\n')
 
-        call = _make_help_call(target, esc, next_input=next_input)
+        call = _make_help_call(target, esc)
         new_line = indent + call + '\n'
 
         return lines_before + [new_line] + lines_after

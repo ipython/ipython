@@ -199,19 +199,29 @@ class ExecutionInfo(object):
     store_history = False
     silent = False
     shell_futures = True
+    cell_id = None
 
-    def __init__(self, raw_cell, store_history, silent, shell_futures):
+    def __init__(self, raw_cell, store_history, silent, shell_futures, cell_id):
         self.raw_cell = raw_cell
         self.store_history = store_history
         self.silent = silent
         self.shell_futures = shell_futures
+        self.cell_id = cell_id
 
     def __repr__(self):
         name = self.__class__.__qualname__
-        raw_cell = ((self.raw_cell[:50] + '..')
-                    if len(self.raw_cell) > 50 else self.raw_cell)
-        return '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s>' %\
-               (name, id(self), raw_cell, self.store_history, self.silent, self.shell_futures)
+        raw_cell = (
+            (self.raw_cell[:50] + "..") if len(self.raw_cell) > 50 else self.raw_cell
+        )
+        return '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s cell_id=%s>' % (
+            name,
+            id(self),
+            raw_cell,
+            self.store_history,
+            self.silent,
+            self.shell_futures,
+            self.cell_id,
+        )
 
 
 class ExecutionResult(object):
@@ -2834,7 +2844,14 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
-    def run_cell(self, raw_cell, store_history=False, silent=False, shell_futures=True):
+    def run_cell(
+        self,
+        raw_cell,
+        store_history=False,
+        silent=False,
+        shell_futures=True,
+        cell_id=None,
+    ):
         """Run a complete IPython cell.
 
         Parameters
@@ -2861,14 +2878,22 @@ class InteractiveShell(SingletonConfigurable):
         result = None
         try:
             result = self._run_cell(
-                raw_cell, store_history, silent, shell_futures)
+                raw_cell, store_history, silent, shell_futures, cell_id
+            )
         finally:
             self.events.trigger('post_execute')
             if not silent:
                 self.events.trigger('post_run_cell', result)
         return result
 
-    def _run_cell(self, raw_cell:str, store_history:bool, silent:bool, shell_futures:bool) -> ExecutionResult:
+    def _run_cell(
+        self,
+        raw_cell: str,
+        store_history: bool,
+        silent: bool,
+        shell_futures: bool,
+        cell_id: str,
+    ) -> ExecutionResult:
         """Internal method to run a complete IPython cell."""
 
         # we need to avoid calling self.transform_cell multiple time on the same thing
@@ -2888,6 +2913,7 @@ class InteractiveShell(SingletonConfigurable):
             shell_futures=shell_futures,
             transformed_cell=transformed_cell,
             preprocessing_exc_tuple=preprocessing_exc_tuple,
+            cell_id=cell_id,
         )
 
         # run_cell_async is async, but may not actually need an eventloop.
@@ -2908,7 +2934,9 @@ class InteractiveShell(SingletonConfigurable):
         try:
             return runner(coro)
         except BaseException as e:
-            info = ExecutionInfo(raw_cell, store_history, silent, shell_futures)
+            info = ExecutionInfo(
+                raw_cell, store_history, silent, shell_futures, cell_id
+            )
             result = ExecutionResult(info)
             result.error_in_exec = e
             self.showtraceback(running_compiled_code=True)
@@ -2964,7 +2992,8 @@ class InteractiveShell(SingletonConfigurable):
         shell_futures=True,
         *,
         transformed_cell: Optional[str] = None,
-        preprocessing_exc_tuple: Optional[Any] = None
+        preprocessing_exc_tuple: Optional[Any] = None,
+        cell_id=None,
     ) -> ExecutionResult:
         """Run a complete IPython cell asynchronously.
 
@@ -2995,8 +3024,7 @@ class InteractiveShell(SingletonConfigurable):
 
         .. versionadded:: 7.0
         """
-        info = ExecutionInfo(
-            raw_cell, store_history, silent, shell_futures)
+        info = ExecutionInfo(raw_cell, store_history, silent, shell_futures, cell_id)
         result = ExecutionResult(info)
 
         if (not raw_cell) or raw_cell.isspace():
