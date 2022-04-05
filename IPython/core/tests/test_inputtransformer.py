@@ -36,141 +36,145 @@ def transform_checker(tests, transformer, **kwargs):
 # it both within single-function tests and also to validate the behavior of the
 # larger objects
 
-syntax = \
-  dict(assign_system =
-       [(i,py3compat.u_format(o)) for i,o in \
-       [(u'a =! ls', "a = get_ipython().getoutput('ls')"),
-        (u'b = !ls', "b = get_ipython().getoutput('ls')"),
-        (u'c= !ls', "c = get_ipython().getoutput('ls')"),
-        (u'd == !ls', u'd == !ls'), # Invalid syntax, but we leave == alone.
-        ('x=1', 'x=1'), # normal input is unmodified
-        ('    ','    '),  # blank lines are kept intact
-        # Tuple unpacking
-        (u"a, b = !echo 'a\\nb'", u"a, b = get_ipython().getoutput(\"echo 'a\\\\nb'\")"),
-        (u"a,= !echo 'a'", u"a, = get_ipython().getoutput(\"echo 'a'\")"),
-        (u"a, *bc = !echo 'a\\nb\\nc'", u"a, *bc = get_ipython().getoutput(\"echo 'a\\\\nb\\\\nc'\")"),
-        # Tuple unpacking with regular Python expressions, not our syntax.
-        (u"a, b = range(2)", u"a, b = range(2)"),
-        (u"a, = range(1)", u"a, = range(1)"),
-        (u"a, *bc = range(3)", u"a, *bc = range(3)"),
-        ]],
-
-       assign_magic =
-       [(i,py3compat.u_format(o)) for i,o in \
-       [(u'a =% who', "a = get_ipython().run_line_magic('who', '')"),
-        (u'b = %who', "b = get_ipython().run_line_magic('who', '')"),
-        (u'c= %ls', "c = get_ipython().run_line_magic('ls', '')"),
-        (u'd == %ls', u'd == %ls'), # Invalid syntax, but we leave == alone.
-        ('x=1', 'x=1'), # normal input is unmodified
-        ('    ','    '),  # blank lines are kept intact
-        (u"a, b = %foo", u"a, b = get_ipython().run_line_magic('foo', '')"),
-        ]],
-
-       classic_prompt =
-       [('>>> x=1', 'x=1'),
-        ('x=1', 'x=1'), # normal input is unmodified
-        ('    ', '    '),  # blank lines are kept intact
-        ],
-
-       ipy_prompt =
-       [('In [1]: x=1', 'x=1'),
-        ('x=1', 'x=1'), # normal input is unmodified
-        ('    ','    '),  # blank lines are kept intact
-        ],
-
-       # Tests for the escape transformer to leave normal code alone
-       escaped_noesc =
-       [ ('    ', '    '),
-         ('x=1', 'x=1'),
-         ],
-
-       # System calls
-       escaped_shell =
-       [(i,py3compat.u_format(o)) for i,o in \
-       [ (u'!ls', "get_ipython().system('ls')"),
-         # Double-escape shell, this means to capture the output of the
-         # subprocess and return it
-         (u'!!ls', "get_ipython().getoutput('ls')"),
-         ]],
-
-       # Help/object info
-       escaped_help =
-       [(i,py3compat.u_format(o)) for i,o in \
-       [ (u'?', 'get_ipython().show_usage()'),
-         (u'?x1', "get_ipython().run_line_magic('pinfo', 'x1')"),
-         (u'??x2', "get_ipython().run_line_magic('pinfo2', 'x2')"),
-         (u'?a.*s', "get_ipython().run_line_magic('psearch', 'a.*s')"),
-         (u'?%hist1', "get_ipython().run_line_magic('pinfo', '%hist1')"),
-         (u'?%%hist2', "get_ipython().run_line_magic('pinfo', '%%hist2')"),
-         (u'?abc = qwe', "get_ipython().run_line_magic('pinfo', 'abc')"),
-         ]],
-
-      end_help =
-      [(i,py3compat.u_format(o)) for i,o in \
-      [ (u'x3?', "get_ipython().run_line_magic('pinfo', 'x3')"),
-        (u'x4??', "get_ipython().run_line_magic('pinfo2', 'x4')"),
-        (u'%hist1?', "get_ipython().run_line_magic('pinfo', '%hist1')"),
-        (u'%hist2??', "get_ipython().run_line_magic('pinfo2', '%hist2')"),
-        (u'%%hist3?', "get_ipython().run_line_magic('pinfo', '%%hist3')"),
-        (u'%%hist4??', "get_ipython().run_line_magic('pinfo2', '%%hist4')"),
-        (u'π.foo?', "get_ipython().run_line_magic('pinfo', 'π.foo')"),
-        (u'f*?', "get_ipython().run_line_magic('psearch', 'f*')"),
-        (u'ax.*aspe*?', "get_ipython().run_line_magic('psearch', 'ax.*aspe*')"),
-        (u'a = abc?', "get_ipython().set_next_input('a = abc');"
-                      "get_ipython().run_line_magic('pinfo', 'abc')"),
-        (u'a = abc.qe??', "get_ipython().set_next_input('a = abc.qe');"
-                          "get_ipython().run_line_magic('pinfo2', 'abc.qe')"),
-        (u'a = *.items?', "get_ipython().set_next_input('a = *.items');"
-                          "get_ipython().run_line_magic('psearch', '*.items')"),
-        (u'plot(a?', "get_ipython().set_next_input('plot(a');"
-                     "get_ipython().run_line_magic('pinfo', 'a')"),
-        (u'a*2 #comment?', 'a*2 #comment?'),
-        ]],
-
-       # Explicit magic calls
-       escaped_magic =
-       [(i,py3compat.u_format(o)) for i,o in \
-       [ (u'%cd', "get_ipython().run_line_magic('cd', '')"),
-         (u'%cd /home', "get_ipython().run_line_magic('cd', '/home')"),
-         # Backslashes need to be escaped.
-         (u'%cd C:\\User', "get_ipython().run_line_magic('cd', 'C:\\\\User')"),
-         (u'    %magic', "    get_ipython().run_line_magic('magic', '')"),
-         ]],
-
-       # Quoting with separate arguments
-       escaped_quote =
-       [ (',f', 'f("")'),
-         (',f x', 'f("x")'),
-         ('  ,f y', '  f("y")'),
-         (',f a b', 'f("a", "b")'),
-         ],
-
-       # Quoting with single argument
-       escaped_quote2 =
-       [ (';f', 'f("")'),
-         (';f x', 'f("x")'),
-         ('  ;f y', '  f("y")'),
-         (';f a b', 'f("a b")'),
-         ],
-
-       # Simply apply parens
-       escaped_paren =
-       [ ('/f', 'f()'),
-         ('/f x', 'f(x)'),
-         ('  /f y', '  f(y)'),
-         ('/f a b', 'f(a, b)'),
-         ],
-
-       # Check that we transform prompts before other transforms
-       mixed =
-       [(i,py3compat.u_format(o)) for i,o in \
-       [ (u'In [1]: %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
-         (u'>>> %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
-         (u'In [2]: !ls', "get_ipython().system('ls')"),
-         (u'In [3]: abs?', "get_ipython().run_line_magic('pinfo', 'abs')"),
-         (u'In [4]: b = %who', "b = get_ipython().run_line_magic('who', '')"),
-         ]],
-       )
+syntax = dict(
+    assign_system=[
+        (i, py3compat.u_format(o))
+        for i, o in [
+            (u"a =! ls", "a = get_ipython().getoutput('ls')"),
+            (u"b = !ls", "b = get_ipython().getoutput('ls')"),
+            (u"c= !ls", "c = get_ipython().getoutput('ls')"),
+            (u"d == !ls", u"d == !ls"),  # Invalid syntax, but we leave == alone.
+            ("x=1", "x=1"),  # normal input is unmodified
+            ("    ", "    "),  # blank lines are kept intact
+            # Tuple unpacking
+            (
+                u"a, b = !echo 'a\\nb'",
+                u"a, b = get_ipython().getoutput(\"echo 'a\\\\nb'\")",
+            ),
+            (u"a,= !echo 'a'", u"a, = get_ipython().getoutput(\"echo 'a'\")"),
+            (
+                u"a, *bc = !echo 'a\\nb\\nc'",
+                u"a, *bc = get_ipython().getoutput(\"echo 'a\\\\nb\\\\nc'\")",
+            ),
+            # Tuple unpacking with regular Python expressions, not our syntax.
+            (u"a, b = range(2)", u"a, b = range(2)"),
+            (u"a, = range(1)", u"a, = range(1)"),
+            (u"a, *bc = range(3)", u"a, *bc = range(3)"),
+        ]
+    ],
+    assign_magic=[
+        (i, py3compat.u_format(o))
+        for i, o in [
+            (u"a =% who", "a = get_ipython().run_line_magic('who', '')"),
+            (u"b = %who", "b = get_ipython().run_line_magic('who', '')"),
+            (u"c= %ls", "c = get_ipython().run_line_magic('ls', '')"),
+            (u"d == %ls", u"d == %ls"),  # Invalid syntax, but we leave == alone.
+            ("x=1", "x=1"),  # normal input is unmodified
+            ("    ", "    "),  # blank lines are kept intact
+            (u"a, b = %foo", u"a, b = get_ipython().run_line_magic('foo', '')"),
+        ]
+    ],
+    classic_prompt=[
+        (">>> x=1", "x=1"),
+        ("x=1", "x=1"),  # normal input is unmodified
+        ("    ", "    "),  # blank lines are kept intact
+    ],
+    ipy_prompt=[
+        ("In [1]: x=1", "x=1"),
+        ("x=1", "x=1"),  # normal input is unmodified
+        ("    ", "    "),  # blank lines are kept intact
+    ],
+    # Tests for the escape transformer to leave normal code alone
+    escaped_noesc=[
+        ("    ", "    "),
+        ("x=1", "x=1"),
+    ],
+    # System calls
+    escaped_shell=[
+        (i, py3compat.u_format(o))
+        for i, o in [
+            (u"!ls", "get_ipython().system('ls')"),
+            # Double-escape shell, this means to capture the output of the
+            # subprocess and return it
+            (u"!!ls", "get_ipython().getoutput('ls')"),
+        ]
+    ],
+    # Help/object info
+    escaped_help=[
+        (i, py3compat.u_format(o))
+        for i, o in [
+            (u"?", "get_ipython().show_usage()"),
+            (u"?x1", "get_ipython().run_line_magic('pinfo', 'x1')"),
+            (u"??x2", "get_ipython().run_line_magic('pinfo2', 'x2')"),
+            (u"?a.*s", "get_ipython().run_line_magic('psearch', 'a.*s')"),
+            (u"?%hist1", "get_ipython().run_line_magic('pinfo', '%hist1')"),
+            (u"?%%hist2", "get_ipython().run_line_magic('pinfo', '%%hist2')"),
+            (u"?abc = qwe", "get_ipython().run_line_magic('pinfo', 'abc')"),
+        ]
+    ],
+    end_help=[
+        (i, py3compat.u_format(o))
+        for i, o in [
+            (u"x3?", "get_ipython().run_line_magic('pinfo', 'x3')"),
+            (u"x4??", "get_ipython().run_line_magic('pinfo2', 'x4')"),
+            (u"%hist1?", "get_ipython().run_line_magic('pinfo', '%hist1')"),
+            (u"%hist2??", "get_ipython().run_line_magic('pinfo2', '%hist2')"),
+            (u"%%hist3?", "get_ipython().run_line_magic('pinfo', '%%hist3')"),
+            (u"%%hist4??", "get_ipython().run_line_magic('pinfo2', '%%hist4')"),
+            (u"π.foo?", "get_ipython().run_line_magic('pinfo', 'π.foo')"),
+            (u"f*?", "get_ipython().run_line_magic('psearch', 'f*')"),
+            (u"ax.*aspe*?", "get_ipython().run_line_magic('psearch', 'ax.*aspe*')"),
+            (u"a = abc?", "get_ipython().run_line_magic('pinfo', 'abc')"),
+            (u"a = abc.qe??", "get_ipython().run_line_magic('pinfo2', 'abc.qe')"),
+            (u"a = *.items?", "get_ipython().run_line_magic('psearch', '*.items')"),
+            (u"plot(a?", "get_ipython().run_line_magic('pinfo', 'a')"),
+            (u"a*2 #comment?", "a*2 #comment?"),
+        ]
+    ],
+    # Explicit magic calls
+    escaped_magic=[
+        (i, py3compat.u_format(o))
+        for i, o in [
+            (u"%cd", "get_ipython().run_line_magic('cd', '')"),
+            (u"%cd /home", "get_ipython().run_line_magic('cd', '/home')"),
+            # Backslashes need to be escaped.
+            (u"%cd C:\\User", "get_ipython().run_line_magic('cd', 'C:\\\\User')"),
+            (u"    %magic", "    get_ipython().run_line_magic('magic', '')"),
+        ]
+    ],
+    # Quoting with separate arguments
+    escaped_quote=[
+        (",f", 'f("")'),
+        (",f x", 'f("x")'),
+        ("  ,f y", '  f("y")'),
+        (",f a b", 'f("a", "b")'),
+    ],
+    # Quoting with single argument
+    escaped_quote2=[
+        (";f", 'f("")'),
+        (";f x", 'f("x")'),
+        ("  ;f y", '  f("y")'),
+        (";f a b", 'f("a b")'),
+    ],
+    # Simply apply parens
+    escaped_paren=[
+        ("/f", "f()"),
+        ("/f x", "f(x)"),
+        ("  /f y", "  f(y)"),
+        ("/f a b", "f(a, b)"),
+    ],
+    # Check that we transform prompts before other transforms
+    mixed=[
+        (i, py3compat.u_format(o))
+        for i, o in [
+            (u"In [1]: %lsmagic", "get_ipython().run_line_magic('lsmagic', '')"),
+            (u">>> %lsmagic", "get_ipython().run_line_magic('lsmagic', '')"),
+            (u"In [2]: !ls", "get_ipython().system('ls')"),
+            (u"In [3]: abs?", "get_ipython().run_line_magic('pinfo', 'abs')"),
+            (u"In [4]: b = %who", "b = get_ipython().run_line_magic('who', '')"),
+        ]
+    ],
+)
 
 # multiline syntax examples.  Each of these should be a list of lists, with
 # each entry itself having pairs of raw/transformed input.  The union (with
