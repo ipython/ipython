@@ -3,6 +3,14 @@
 ============
 
 
+.. _version 8.3.0:
+
+IPython 8.3.0
+-------------
+
+ - :ghpull:`13600`, ``pre_run_*``-hooks will now have a ``cell_id`` attribute on
+   the info object when frontend provide it.
+
 .. _version 8.2.0:
 
 IPython 8.2.0
