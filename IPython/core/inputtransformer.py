@@ -193,7 +193,7 @@ def assemble_logical_lines():
         line = ''.join(parts)
 
 # Utilities
-def _make_help_call(target, esc, lspace, next_input=None):
+def _make_help_call(target, esc, lspace):
     """Prepares a pinfo(2)/psearch call from a target name and the escape
     (i.e. ? or ??)"""
     method  = 'pinfo2' if esc == '??' \
@@ -203,12 +203,13 @@ def _make_help_call(target, esc, lspace, next_input=None):
     #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
     t_magic_name, _, t_magic_arg_s = arg.partition(' ')
     t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
-    if next_input is None:
-        return '%sget_ipython().run_line_magic(%r, %r)' % (lspace, t_magic_name, t_magic_arg_s)
-    else:
-        return '%sget_ipython().set_next_input(%r);get_ipython().run_line_magic(%r, %r)' % \
-           (lspace, next_input, t_magic_name, t_magic_arg_s)
-    
+    return "%sget_ipython().run_line_magic(%r, %r)" % (
+        lspace,
+        t_magic_name,
+        t_magic_arg_s,
+    )
+
+
 # These define the transformations for the different escape characters.
 def _tr_system(line_info):
     "Translate lines escaped with: !"
@@ -349,10 +350,7 @@ def help_end(line):
     esc = m.group(3)
     lspace = _initial_space_re.match(line).group(0)
 
-    # If we're mid-command, put it back on the next prompt for the user.
-    next_input = line.rstrip('?') if line.strip() != m.group(0) else None
-
-    return _make_help_call(target, esc, lspace, next_input)
+    return _make_help_call(target, esc, lspace)
 
 
 @CoroutineInputTransformer.wrap
