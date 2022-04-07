@@ -391,6 +391,7 @@ def _decorator_skip_setup():
     child = pexpect.spawn(
         sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
     )
+    child.str_last_chars = 1000
     child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
 
     child.expect("IPython")
