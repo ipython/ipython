@@ -50,7 +50,7 @@ Backward latex completion
 
 It is sometime challenging to know how to type a character, if you are using
 IPython, or any compatible frontend you can prepend backslash to the character
-and press `<tab>` to expand it to its latex form.
+and press ``<tab>`` to expand it to its latex form.
 
 .. code::
 

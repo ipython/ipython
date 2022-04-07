@@ -518,12 +518,12 @@ class Inspector(Colorable):
         """Return a mime bundle representation of the input text.
 
         - if `formatter` is None, the returned mime bundle has
-           a `text/plain` field, with the input text.
-           a `text/html` field with a `<pre>` tag containing the input text.
+           a ``text/plain`` field, with the input text.
+           a ``text/html`` field with a ``<pre>`` tag containing the input text.
 
-        - if `formatter` is not None, it must be a callable transforming the
-          input text into a mime bundle. Default values for `text/plain` and
-          `text/html` representations are the ones described above.
+        - if ``formatter`` is not None, it must be a callable transforming the
+          input text into a mime bundle. Default values for ``text/plain`` and
+          ``text/html`` representations are the ones described above.
 
         Note:
 
