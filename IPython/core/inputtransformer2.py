@@ -733,8 +733,10 @@ class MaybeAsyncCompile(Compile):
         super().__init__()
         self.flags |= extra_flags
 
-    def __call__(self, *args, **kwds):
-        return compile(*args, **kwds)
+
+    if sys.version_info < (3,8):
+        def __call__(self, *args, **kwds):
+            return compile(*args, **kwds)
 
 
 class MaybeAsyncCommandCompiler(CommandCompiler):
