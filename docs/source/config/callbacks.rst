@@ -17,28 +17,42 @@ For example::
         def __init__(self, ip):
             self.shell = ip
             self.last_x = None
-        
+
         def pre_execute(self):
             self.last_x = self.shell.user_ns.get('x', None)
-        
+
         def pre_run_cell(self, info):
-            print('Cell code: "%s"' % info.raw_cell)
-        
+            print('info.raw_cell =', info.raw_cell)
+            print('info.store_history =', info.store_history)
+            print('info.silent =', info.silent)
+            print('info.shell_futures =', info.shell_futures)
+            print('info.cell_id =', info.cell_id)
+            print(dir(info))
+
         def post_execute(self):
             if self.shell.user_ns.get('x', None) != self.last_x:
                 print("x changed!")
-        
+
         def post_run_cell(self, result):
-            print('Cell code: "%s"' % result.info.raw_cell)
-            if result.error_before_exec:
-                print('Error before execution: %s' % result.error_before_exec)
-        
+            print('result.execution_count = ', result.execution_count)
+            print('result.error_before_exec = ', result.error_before_exec)
+            print('result.error_in_exec = ', result.error_in_exec)
+            print('result.info = ', result.info)
+            print('result.result = ', result.result)
+
     def load_ipython_extension(ip):
         vw = VarWatcher(ip)
         ip.events.register('pre_execute', vw.pre_execute)
         ip.events.register('pre_run_cell', vw.pre_run_cell)
         ip.events.register('post_execute', vw.post_execute)
         ip.events.register('post_run_cell', vw.post_run_cell)
+
+.. versionadded:: 8.3
+
+   Since IPython 8.3 and ipykernel 6.12.1, the ``info`` objects in the callback
+   now have a the ``cell_id`` that will be set to the value sent by the
+   frontened, when those send it.
+
 
 
 Events
