@@ -269,4 +269,7 @@ def read_wav(data):
 
 def test_code_from_file():
     c = display.Code(filename=__file__)
-    assert c._repr_html_().startswith('<style>')
+    html = c._repr_html_()
+    assert html.startswith("<style>")
+    for s in c.css_selectors:
+        assert s in html
