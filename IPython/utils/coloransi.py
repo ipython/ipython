@@ -74,8 +74,8 @@ make_color_table(TermColors)
 class InputTermColors:
     """Color escape sequences for input prompts.
 
-    This class is similar to TermColors, but the escapes are wrapped in \001
-    and \002 so that readline can properly know the length of each line and
+    This class is similar to TermColors, but the escapes are wrapped in \\001
+    and \\002 so that readline can properly know the length of each line and
     can wrap lines accordingly.  Use this class for any colored text which
     needs to be used in input prompts, such as in calls to raw_input().
 
