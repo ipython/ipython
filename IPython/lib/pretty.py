@@ -908,6 +908,8 @@ def _deque_pprint(obj, p, cycle):
     cls_ctor = CallExpression.factory(obj.__class__.__name__)
     if cycle:
         p.pretty(cls_ctor(RawText("...")))
+    elif obj.maxlen is not None:
+        p.pretty(cls_ctor(list(obj), maxlen=obj.maxlen))
     else:
         p.pretty(cls_ctor(list(obj)))
 
