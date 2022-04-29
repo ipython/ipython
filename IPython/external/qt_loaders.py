@@ -66,7 +66,9 @@ class ImportDenier(importlib.abc.MetaPathFinder):
                 """
     Importing %s disabled by IPython, which has
     already imported an Incompatible QT Binding: %s
-    """ % (fullname, loaded_api()))
+    """
+                % (fullname, loaded_api())
+            )
 
 
 ID = ImportDenier()

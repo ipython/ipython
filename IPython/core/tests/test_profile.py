@@ -108,7 +108,7 @@ def test_list_profiles_in():
     for name in ("profile_foo", "profile_hello", "not_a_profile"):
         Path(td / name).mkdir(parents=True)
     if dec.unicode_paths:
-        Path(td / u"profile_ünicode").mkdir(parents=True)
+        Path(td / "profile_ünicode").mkdir(parents=True)
 
     with open(td / "profile_file", "w", encoding="utf-8") as f:
         f.write("I am not a profile directory")

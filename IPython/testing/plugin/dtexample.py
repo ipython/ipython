@@ -38,7 +38,7 @@ def ipfunc():
        ....:     print(i, end=' ')
        ....:     print(i+1, end=' ')
        ....:
-    0 1 1 2 2 3 
+    0 1 1 2 2 3
 
 
     It's OK to use '_' for the last result, but do NOT try to use IPython's
@@ -50,7 +50,7 @@ def ipfunc():
 
     In [8]: print(repr(_))
     'hi'
-    
+
     In [7]: 3+4
     Out[7]: 7
 
@@ -60,7 +60,7 @@ def ipfunc():
     In [9]: ipfunc()
     Out[9]: 'ipfunc'
     """
-    return 'ipfunc'
+    return "ipfunc"
 
 
 def ipos():

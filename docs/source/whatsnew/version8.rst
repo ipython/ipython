@@ -16,9 +16,6 @@ IPython 8.3.0
  - :ghpull:`13600`, ``pre_run_*``-hooks will now have a ``cell_id`` attribute on
    the info object when frontend provide it.
 
- - :ghpull:`13624`, fixed :kbd:`End` key being broken after accepting an
-   autosuggestion.
-
 .. _version 8.2.0:
 
 IPython 8.2.0
@@ -519,8 +516,8 @@ Automatic Vi prompt stripping
 
 When pasting code into IPython, it will strip the leading prompt characters if
 there are any. For example, you can paste the following code into the console -
-it will still work, even though each line is prefixed with prompts (`In`,
-`Out`)::
+it will still work, even though each line is prefixed with prompts (``In``,
+``Out``)::
 
     In [1]: 2 * 2 == 4
     Out[1]: True
@@ -615,7 +612,7 @@ who did a fantastic job at updating our code base, migrating to pytest, pushing
 our coverage, and fixing a large number of bugs. I highly recommend contacting
 them if you need help with C++ and Python projects.
 
-You can find all relevant issues and PRs with the SDG 2021 tag `<https://github.com/ipython/ipython/issues?q=label%3A%22Numfocus+SDG+2021%22+>`__
+You can find all relevant issues and PRs with `the SDG 2021 tag <https://github.com/ipython/ipython/issues?q=label%3A%22Numfocus+SDG+2021%22+>`__
 
 Removing support for older Python versions
 ------------------------------------------

@@ -58,8 +58,8 @@ def script_args(f):
             '--no-raise-error', action="store_false", dest='raise_error',
             help="""Whether you should raise an error message in addition to
             a stream on stderr if you get a nonzero exit code.
-            """
-        )
+            """,
+        ),
     ]
     for arg in args:
         f = arg(f)
