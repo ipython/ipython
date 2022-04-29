@@ -2,6 +2,17 @@
  7.x Series
 ============
 
+.. _version 7.33:
+
+IPython 7.33
+============
+
+ - Allow IPython hooks to receive current cell ids when frontend support it. See
+   :ghpull:`13600`
+
+ - ``?`` does not trigger the insertion of a new cell anymore as most frontend
+   allow proper multiline edition. :ghpull:`13625`
+
 
 .. _version 7.32:
 
