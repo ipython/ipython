@@ -2,12 +2,16 @@
  7.x Series
 ============
 
-.. _version 7.31.1:
+.. _version 7.33:
 
-IPython 7.31.1 (CVE-2022-21699)
-===============================
+IPython 7.33
+============
 
-Fixed CVE-2022-21699, see IPython 8.0.1 release notes for informations.
+ - Allow IPython hooks to receive current cell ids when frontend support it. See
+   :ghpull:`13600`
+
+ - ``?`` does not trigger the insertion of a new cell anymore as most frontend
+   allow proper multiline edition. :ghpull:`13625`
 
 
 .. _version 7.32:
@@ -46,6 +50,13 @@ contributions to this milestone `on github
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
 work on IPython and related libraries.
+
+.. _version 7.31.1:
+
+IPython 7.31.1 (CVE-2022-21699)
+===============================
+
+Fixed CVE-2022-21699, see IPython 8.0.1 release notes for informations.
 
 .. _version 7.31:
 
