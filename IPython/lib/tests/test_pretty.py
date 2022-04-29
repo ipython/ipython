@@ -273,7 +273,7 @@ def test_unicode_repr():
     p = pretty.pretty(c)
     assert p == u
     p = pretty.pretty([c])
-    assert p == u"[%s]" % u
+    assert p == "[%s]" % u
 
 
 def test_basic_class():

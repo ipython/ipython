@@ -87,7 +87,8 @@ g()
 
 #####
 
-MULTILINE_SYSTEM_ASSIGN_AFTER_DEDENT = ("""\
+MULTILINE_SYSTEM_ASSIGN_AFTER_DEDENT = (
+    """\
 def test():
   for i in range(1):
     print(i)

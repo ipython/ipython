@@ -511,7 +511,7 @@ class ExecutionMagics(Magics):
         """Run the named file inside IPython as a program.
 
         Usage::
-        
+
           %run [-n -i -e -G]
                [( -t [-N<N>] | -d [-b<N>] | -p [profile options] )]
                ( -m mod | filename ) [args]
@@ -552,7 +552,7 @@ class ExecutionMagics(Magics):
         *two* back slashes (e.g. ``\\\\*``) to suppress expansions.
         To completely disable these expansions, you can use -G flag.
 
-        On Windows systems, the use of single quotes `'` when specifying 
+        On Windows systems, the use of single quotes `'` when specifying
         a file is not supported. Use double quotes `"`.
 
         Options:

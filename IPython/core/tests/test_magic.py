@@ -448,7 +448,9 @@ def test_multiline_time():
     ip = get_ipython()
     ip.user_ns.pop('run', None)
 
-    ip.run_cell(dedent("""\
+    ip.run_cell(
+        dedent(
+            """\
         %%time
         a = "ho"
         b = "hey"
