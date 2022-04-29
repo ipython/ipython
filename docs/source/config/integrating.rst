@@ -135,7 +135,7 @@ Metadata
 ^^^^^^^^
 
 We often want to provide frontends with guidance on how to display the data. To
-support this, ``_repr_*_()`` methods (except `_repr_pretty_``?) can also return a ``(data, metadata)``
+support this, ``_repr_*_()`` methods (except ``_repr_pretty_``?) can also return a ``(data, metadata)``
 tuple where ``metadata`` is a dictionary containing arbitrary key-value pairs for
 the frontend to interpret. An example use case is ``_repr_jpeg_()``, which can
 be set to return a jpeg image and a ``{'height': 400, 'width': 600}`` dictionary
