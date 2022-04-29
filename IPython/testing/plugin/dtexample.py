@@ -60,7 +60,7 @@ def ipfunc():
     In [9]: ipfunc()
     Out[9]: 'ipfunc'
     """
-    return 'ipfunc'
+    return "ipfunc"
 
 
 def ipos():
