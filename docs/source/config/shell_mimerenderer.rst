@@ -10,7 +10,7 @@ thought to render a number of mimetypes in the shell. This can be used to either
 display inline images if your terminal emulator supports it; or open some
 display results with external file viewers.
 
-Registering new mimetype handlers can so far only be done my extensions and
+Registering new mimetype handlers can so far only be done by extensions and
 requires 4 steps:
 
    - Define a callable that takes 2 parameters:``data`` and ``metadata``; return
