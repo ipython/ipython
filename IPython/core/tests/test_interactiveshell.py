@@ -547,7 +547,7 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
         self.TESTDIR = join(self.BASETESTDIR, u"åäö")
         os.mkdir(self.TESTDIR)
         with open(
-            join(self.TESTDIR, u"åäötestscript.py"), "w", encoding="utf-8"
+            join(self.TESTDIR, "åäötestscript.py"), "w", encoding="utf-8"
         ) as sfile:
             sfile.write("pass\n")
         self.oldpath = os.getcwd()

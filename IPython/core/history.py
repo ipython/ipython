@@ -166,7 +166,7 @@ class HistoryAccessor(HistoryAccessorBase):
         in which case there will be no stored history, no SQLite connection,
         and no background saving thread.  This may be necessary in some
         threaded environments where IPython is embedded.
-        """
+        """,
     ).tag(config=True)
 
     connection_options = Dict(

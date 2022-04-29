@@ -589,7 +589,7 @@ class Completer(Configurable):
 
         This will enable completion on elements of lists, results of function calls, etc.,
         but can be unsafe because the code is actually evaluated on TAB.
-        """
+        """,
     ).tag(config=True)
 
     use_jedi = Bool(default_value=JEDI_INSTALLED,

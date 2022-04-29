@@ -28,7 +28,7 @@ import sys
 # Don't forget to also update setup.py when this changes!
 if sys.version_info < (3, 8):
     raise ImportError(
-"""
+        """
 IPython 8+ supports Python 3.8 and above, following NEP 29.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
 Python 3.3 and 3.4 were supported up to IPython 6.x.
@@ -40,7 +40,8 @@ See IPython `README.rst` file for more information:
 
     https://github.com/ipython/ipython/blob/master/README.rst
 
-""")
+"""
+    )
 
 #-----------------------------------------------------------------------------
 # Setup the top level names
