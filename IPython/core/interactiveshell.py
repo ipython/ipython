@@ -14,6 +14,7 @@
 import abc
 import ast
 import atexit
+import bdb
 import builtins as builtin_mod
 import dis
 import functools
@@ -3403,6 +3404,11 @@ class InteractiveShell(SingletonConfigurable):
                 result.error_in_exec = e
             self.showtraceback(exception_only=True)
             warn("To exit: use 'exit', 'quit', or Ctrl-D.", stacklevel=1)
+        except bdb.BdbQuit:
+            etype, value, tb = sys.exc_info()
+            if result is not None:
+                result.error_in_exec = value
+            # the BdbQuit stops here
         except self.custom_exceptions:
             etype, value, tb = sys.exc_info()
             if result is not None:

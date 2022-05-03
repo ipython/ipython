@@ -101,7 +101,6 @@ All the changes since then are under the same license as IPython.
 #
 #*****************************************************************************
 
-import bdb
 import inspect
 import linecache
 import sys
