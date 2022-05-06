@@ -190,9 +190,7 @@ def _format_filename(file, ColorFilename, ColorNormal, *, lineno=None):
         if lineno is None:
             tpl_link = f"Cell {ColorFilename}In {{file}}{ColorNormal}"
         else:
-            tpl_link = (
-                f"Cell {ColorFilename}In {{file}}, line {{lineno}}{ColorNormal}"
-            )
+            tpl_link = f"Cell {ColorFilename}In {{file}}, line {{lineno}}{ColorNormal}"
     else:
         file = util_path.compress_user(
             py3compat.cast_unicode(file, util_path.fs_encoding)
@@ -465,7 +463,7 @@ class ListTB(TBTools):
 
         Lifted almost verbatim from traceback.py
         """
-        
+
         Colors = self.Colors
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
@@ -492,14 +490,14 @@ class ListTB(TBTools):
             Colors.normalEm,
             _format_filename(
                 filename, Colors.filenameEm, Colors.normalEm, lineno=lineno
-            )
+            ),
         )
         if name != "<module>":
             item += " in %s%s%s" % (
-                    Colors.nameEm,
-                    name,
-                    Colors.normalEm,
-                )
+                Colors.nameEm,
+                name,
+                Colors.normalEm,
+            )
         item += "%s\n" % (Colors.Normal)
         if line:
             item += '%s    %s%s\n' % (Colors.line, line.strip(),
