@@ -45,7 +45,7 @@ def doctest_tb_plain():
 
     In [19]: run simpleerr.py
     Traceback (most recent call last):
-      File ...:... in <module>
+      File ...:...
         bar(mode)
       File ...:... in bar
         div0()
@@ -64,7 +64,7 @@ def doctest_tb_context():
     ---------------------------------------------------------------------------
     ZeroDivisionError                         Traceback (most recent call last)
     <BLANKLINE>
-    ... in <module>
+    ...
          30     except IndexError:
          31         mode = 'div'
     ---> 33     bar(mode)
@@ -93,7 +93,7 @@ def doctest_tb_verbose():
     ---------------------------------------------------------------------------
     ZeroDivisionError                         Traceback (most recent call last)
     <BLANKLINE>
-    ... in <module>
+    ...
          30     except IndexError:
          31         mode = 'div'
     ---> 33     bar(mode)
@@ -134,7 +134,7 @@ def doctest_tb_sysexit():
     Traceback (most recent call last):
       File ...:... in execfile
         exec(compiler(f.read(), fname, "exec"), glob, loc)
-      File ...:... in <module>
+      File ...:...
         bar(mode)
       File ...:... in bar
         sysexit(stat, mode)
@@ -152,7 +152,7 @@ def doctest_tb_sysexit():
          ... with open(fname, "rb") as f:
          ...     compiler = compiler or compile
     ---> ...     exec(compiler(f.read(), fname, "exec"), glob, loc)
-    ...<module>
+    ...
          30     except IndexError:
          31         mode = 'div'
     ---> 33     bar(mode)
@@ -189,7 +189,7 @@ def doctest_tb_sysexit_verbose():
     ---------------------------------------------------------------------------
     SystemExit                                Traceback (most recent call last)
     <BLANKLINE>
-    ... in <module>
+    ...
          30     except IndexError:
          31         mode = 'div'
     ---> 33     bar(mode)
