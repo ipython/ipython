@@ -380,7 +380,8 @@ class InteractiveShellTestCase(unittest.TestCase):
         class A(object):
             @property
             def foo(self):
-                raise NotImplementedError()
+                raise NotImplementedError()  # pragma: no cover
+
         a = A()
 
         found = ip._ofind('a.foo', [('locals', locals())])
@@ -392,7 +393,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         class A(object):
             @property
             def foo(self):
-                raise NotImplementedError()
+                raise NotImplementedError()  # pragma: no cover
 
         a = A()
         a.a = A()
@@ -546,7 +547,7 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
         self.TESTDIR = join(self.BASETESTDIR, u"åäö")
         os.mkdir(self.TESTDIR)
         with open(
-            join(self.TESTDIR, u"åäötestscript.py"), "w", encoding="utf-8"
+            join(self.TESTDIR, "åäötestscript.py"), "w", encoding="utf-8"
         ) as sfile:
             sfile.write("pass\n")
         self.oldpath = os.getcwd()
@@ -585,9 +586,9 @@ class ExitCodeChecks(tt.TempFileMixin):
         self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGALRM)
     
     @onlyif_cmds_exist("csh")
-    def test_exit_code_signal_csh(self):
-        SHELL = os.environ.get('SHELL', None)
-        os.environ['SHELL'] = find_cmd("csh")
+    def test_exit_code_signal_csh(self):  # pragma: no cover
+        SHELL = os.environ.get("SHELL", None)
+        os.environ["SHELL"] = find_cmd("csh")
         try:
             self.test_exit_code_signal()
         finally:
@@ -615,7 +616,7 @@ class TestSystemRaw(ExitCodeChecks):
     def test_control_c(self, *mocks):
         try:
             self.system("sleep 1 # wont happen")
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # pragma: no cove
             self.fail(
                 "system call should intercept "
                 "keyboard interrupt from subprocess.call"
@@ -623,7 +624,7 @@ class TestSystemRaw(ExitCodeChecks):
         self.assertEqual(ip.user_ns["_exit_code"], -signal.SIGINT)
 
     def test_magic_warnings(self):
-        for magic_cmd in ("ls", "pip", "conda", "cd"):
+        for magic_cmd in ("pip", "conda", "cd"):
             with self.assertWarnsRegex(Warning, "You executed the system command"):
                 ip.system_raw(magic_cmd)
 
@@ -679,16 +680,20 @@ class TestAstTransform(unittest.TestCase):
     
     def tearDown(self):
         ip.ast_transformers.remove(self.negator)
-    
+
+    def test_non_int_const(self):
+        with tt.AssertPrints("hello"):
+            ip.run_cell('print("hello")')
+
     def test_run_cell(self):
-        with tt.AssertPrints('-34'):
-            ip.run_cell('print (12 + 22)')
-        
+        with tt.AssertPrints("-34"):
+            ip.run_cell("print(12 + 22)")
+
         # A named reference to a number shouldn't be transformed.
-        ip.user_ns['n'] = 55
-        with tt.AssertNotPrints('-55'):
-            ip.run_cell('print (n)')
-    
+        ip.user_ns["n"] = 55
+        with tt.AssertNotPrints("-55"):
+            ip.run_cell("print(n)")
+
     def test_timeit(self):
         called = set()
         def f(x):
@@ -796,7 +801,11 @@ class TestAstTransform2(unittest.TestCase):
         # This shouldn't throw an error
         ip.run_cell("o = 2.0")
         self.assertEqual(ip.user_ns['o'], 2.0)
-    
+
+    def test_run_cell_non_int(self):
+        ip.run_cell("n = 'a'")
+        assert self.calls == []
+
     def test_timeit(self):
         called = set()
         def f(x):
@@ -815,14 +824,9 @@ class TestAstTransform2(unittest.TestCase):
 class ErrorTransformer(ast.NodeTransformer):
     """Throws an error when it sees a number."""
 
-    # for Python 3.7 and earlier
-    def visit_Num(self, node):
-        raise ValueError("test")
-
-    # for Python 3.8+
     def visit_Constant(self, node):
         if isinstance(node.value, int):
-            return self.visit_Num(node)
+            raise ValueError("test")
         return node
 
 
@@ -845,10 +849,6 @@ class StringRejector(ast.NodeTransformer):
     not be executed by throwing an InputRejected.
     """
     
-    #for python 3.7 and earlier
-    def visit_Str(self, node):
-        raise InputRejected("test")
-
     # 3.8 only
     def visit_Constant(self, node):
         if isinstance(node.value, str):

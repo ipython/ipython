@@ -41,7 +41,7 @@ or using unicode completion:
 
 Only valid Python identifiers will complete. Combining characters (like arrow or
 dots) are also available, unlike latex they need to be put after the their
-counterpart that is to say, `F\\\\vec<tab>` is correct, not `\\\\vec<tab>F`.
+counterpart that is to say, ``F\\\\vec<tab>`` is correct, not ``\\\\vec<tab>F``.
 
 Some browsers are known to display combining characters incorrectly.
 
@@ -50,7 +50,7 @@ Backward latex completion
 
 It is sometime challenging to know how to type a character, if you are using
 IPython, or any compatible frontend you can prepend backslash to the character
-and press `<tab>` to expand it to its latex form.
+and press ``<tab>`` to expand it to its latex form.
 
 .. code::
 
@@ -589,7 +589,7 @@ class Completer(Configurable):
 
         This will enable completion on elements of lists, results of function calls, etc.,
         but can be unsafe because the code is actually evaluated on TAB.
-        """
+        """,
     ).tag(config=True)
 
     use_jedi = Bool(default_value=JEDI_INSTALLED,
@@ -1182,7 +1182,7 @@ class IPCompleter(Completer):
 
         # This is a list of names of unicode characters that can be completed
         # into their corresponding unicode value. The list is large, so we
-        # laziliy initialize it on first use. Consuming code should access this
+        # lazily initialize it on first use. Consuming code should access this
         # attribute through the `@unicode_names` property.
         self._unicode_names = None
 
@@ -2070,7 +2070,7 @@ class IPCompleter(Completer):
             indexed.
         line_buffer : optional, str
             The current line the cursor is in, this is mostly due to legacy
-            reason that readline coudl only give a us the single current line.
+            reason that readline could only give a us the single current line.
             Prefer `full_text`.
         text : str
             The current "token" the cursor is in, mostly also for historical
@@ -2139,8 +2139,9 @@ class IPCompleter(Completer):
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other environments.
-        completions:Iterable[Any] = []
-        if self.use_jedi:
+        is_magic_prefix = len(text) > 0 and text[0] == "%"
+        completions: Iterable[Any] = []
+        if self.use_jedi and not is_magic_prefix:
             if not full_text:
                 full_text = line_buffer
             completions = self._jedi_matches(

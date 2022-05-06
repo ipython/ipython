@@ -220,6 +220,8 @@ except Exception:
 # for tokenizing blocks
 COMMENT, INPUT, OUTPUT =  range(3)
 
+PSEUDO_DECORATORS = ["suppress", "verbatim", "savefig", "doctest"]
+
 #-----------------------------------------------------------------------------
 # Functions and class declarations
 #-----------------------------------------------------------------------------
@@ -263,11 +265,17 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
             block.append((COMMENT, line))
             continue
 
-        if line_stripped.startswith('@'):
-            # Here is where we assume there is, at most, one decorator.
-            # Might need to rethink this.
-            decorator = line_stripped
-            continue
+        if any(
+            line_stripped.startswith("@" + pseudo_decorator)
+            for pseudo_decorator in PSEUDO_DECORATORS
+        ):
+            if decorator:
+                raise RuntimeError(
+                    "Applying multiple pseudo-decorators on one line is not supported"
+                )
+            else:
+                decorator = line_stripped
+                continue
 
         # does this look like an input line?
         matchin = rgxin.match(line)

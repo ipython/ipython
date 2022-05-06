@@ -166,7 +166,7 @@ class HistoryAccessor(HistoryAccessorBase):
         in which case there will be no stored history, no SQLite connection,
         and no background saving thread.  This may be necessary in some
         threaded environments where IPython is embedded.
-        """
+        """,
     ).tag(config=True)
 
     connection_options = Dict(
@@ -296,8 +296,8 @@ class HistoryAccessor(HistoryAccessorBase):
             toget = "history.%s, output_history.output" % toget
         if latest:
             toget += ", MAX(session * 128 * 1024 + line)"
-        cur = self.db.execute("SELECT session, line, %s FROM %s " %\
-                                (toget, sqlfrom) + sql, params)
+        this_querry = "SELECT session, line, %s FROM %s " % (toget, sqlfrom) + sql
+        cur = self.db.execute(this_querry, params)
         if latest:
             cur = (row[:-1] for row in cur)
         if output:    # Regroup into 3-tuples, and parse JSON
@@ -344,6 +344,11 @@ class HistoryAccessor(HistoryAccessorBase):
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
         """Get the last n lines from the history database.
 
+        Most recent entry last.
+
+        Completion will be reordered so that that the last ones are when
+        possible from current session.
+
         Parameters
         ----------
         n : int
@@ -362,11 +367,31 @@ class HistoryAccessor(HistoryAccessorBase):
         self.writeout_cache()
         if not include_latest:
             n += 1
-        cur = self._run_sql("ORDER BY session DESC, line DESC LIMIT ?",
-                                (n,), raw=raw, output=output)
+        # cursor/line/entry
+        this_cur = list(
+            self._run_sql(
+                "WHERE session == ? ORDER BY line DESC LIMIT ?  ",
+                (self.session_number, n),
+                raw=raw,
+                output=output,
+            )
+        )
+        other_cur = list(
+            self._run_sql(
+                "WHERE session != ? ORDER BY session DESC, line DESC LIMIT ?",
+                (self.session_number, n),
+                raw=raw,
+                output=output,
+            )
+        )
+
+        everything = this_cur + other_cur
+
+        everything = everything[:n]
+
         if not include_latest:
-            return reversed(list(cur)[1:])
-        return reversed(list(cur))
+            return list(everything)[:0:-1]
+        return list(everything)[::-1]
 
     @catch_corrupt_db
     def search(self, pattern="*", raw=True, search_raw=True,

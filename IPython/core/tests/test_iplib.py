@@ -236,7 +236,8 @@ def test_run_cell():
     if 4:
         print "bar"
     
-    """)
+    """
+    )
     # Simply verifies that this kind of input is run
     ip.run_cell(complex)
     

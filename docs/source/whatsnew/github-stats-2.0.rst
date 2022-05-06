@@ -916,7 +916,7 @@ Pull Requests (687):
 * :ghpull:`4444`: Css cleaning
 * :ghpull:`4523`: Use username and password for MongoDB on ShiningPanda
 * :ghpull:`4510`: Update whatsnew from PR files
-* :ghpull:`4441`: add `setup.py jsversion`
+* :ghpull:`4441`: add ``setup.py jsversion``
 * :ghpull:`4518`: Fix for race condition in url file decoding.
 * :ghpull:`4497`: don't automatically unpack datetime objects in the message spec
 * :ghpull:`4506`: wait for empty queues as well as load-balanced tasks
@@ -1050,7 +1050,7 @@ Pull Requests (687):
 * :ghpull:`4214`: engine ID metadata should be unicode, not bytes
 * :ghpull:`4232`: no highlight if no language specified
 * :ghpull:`4218`: Fix display of SyntaxError when .py file is modified
-* :ghpull:`4207`: add `setup.py css` command
+* :ghpull:`4207`: add ``setup.py css`` command
 * :ghpull:`4224`: clear previous callbacks on execute
 * :ghpull:`4180`: Iptest refactoring
 * :ghpull:`4105`: JS output area misaligned

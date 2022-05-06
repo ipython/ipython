@@ -33,7 +33,7 @@ from IPython.testing.decorators import skipif_not_numpy
 
 if platform.python_implementation() == "PyPy":
     pytest.skip(
-        "Current autoreload implementation is extremly slow on PyPy",
+        "Current autoreload implementation is extremely slow on PyPy",
         allow_module_level=True,
     )
 

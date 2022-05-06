@@ -14,6 +14,7 @@ import traceback
 import types
 import warnings
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -28,8 +29,6 @@ from typing import Type
 from typing import TYPE_CHECKING
 from typing import Union
 
-import py.path
-
 import pytest
 from _pytest import outcomes
 from _pytest._code.code import ExceptionInfo
@@ -42,6 +41,7 @@ from _pytest.config.argparsing import Parser
 from _pytest.fixtures import FixtureRequest
 from _pytest.nodes import Collector
 from _pytest.outcomes import OutcomeException
+from _pytest.pathlib import fnmatch_ex
 from _pytest.pathlib import import_path
 from _pytest.python_api import approx
 from _pytest.warning_types import PytestWarning
@@ -126,35 +126,55 @@ def pytest_unconfigure() -> None:
 
 
 def pytest_collect_file(
-    path: py.path.local,
+    file_path: Path,
     parent: Collector,
 ) -> Optional[Union["IPDoctestModule", "IPDoctestTextfile"]]:
     config = parent.config
-    if path.ext == ".py":
-        if config.option.ipdoctestmodules and not _is_setup_py(path):
-            mod: IPDoctestModule = IPDoctestModule.from_parent(parent, fspath=path)
+    if file_path.suffix == ".py":
+        if config.option.ipdoctestmodules and not any(
+            (_is_setup_py(file_path), _is_main_py(file_path))
+        ):
+            mod: IPDoctestModule = IPDoctestModule.from_parent(parent, path=file_path)
             return mod
-    elif _is_ipdoctest(config, path, parent):
-        txt: IPDoctestTextfile = IPDoctestTextfile.from_parent(parent, fspath=path)
+    elif _is_ipdoctest(config, file_path, parent):
+        txt: IPDoctestTextfile = IPDoctestTextfile.from_parent(parent, path=file_path)
         return txt
     return None
 
 
-def _is_setup_py(path: py.path.local) -> bool:
-    if path.basename != "setup.py":
+if int(pytest.__version__.split(".")[0]) < 7:
+    _collect_file = pytest_collect_file
+
+    def pytest_collect_file(
+        path,
+        parent: Collector,
+    ) -> Optional[Union["IPDoctestModule", "IPDoctestTextfile"]]:
+        return _collect_file(Path(path), parent)
+
+    _import_path = import_path
+
+    def import_path(path, root):
+        import py.path
+
+        return _import_path(py.path.local(path))
+
+
+def _is_setup_py(path: Path) -> bool:
+    if path.name != "setup.py":
         return False
-    contents = path.read_binary()
+    contents = path.read_bytes()
     return b"setuptools" in contents or b"distutils" in contents
 
 
-def _is_ipdoctest(config: Config, path: py.path.local, parent) -> bool:
-    if path.ext in (".txt", ".rst") and parent.session.isinitpath(path):
+def _is_ipdoctest(config: Config, path: Path, parent: Collector) -> bool:
+    if path.suffix in (".txt", ".rst") and parent.session.isinitpath(path):
         return True
     globs = config.getoption("ipdoctestglob") or ["test*.txt"]
-    for glob in globs:
-        if path.check(fnmatch=glob):
-            return True
-    return False
+    return any(fnmatch_ex(glob, path) for glob in globs)
+
+
+def _is_main_py(path: Path) -> bool:
+    return path.name == "__main__.py"
 
 
 class ReprFailDoctest(TerminalRepr):
@@ -273,7 +293,7 @@ class IPDoctestItem(pytest.Item):
         runner: "IPDocTestRunner",
         dtest: "doctest.DocTest",
     ):
-        # incompatible signature due to to imposed limits on sublcass
+        # incompatible signature due to imposed limits on subclass
         """The public named constructor."""
         return super().from_parent(name=name, parent=parent, runner=runner, dtest=dtest)
 
@@ -372,61 +392,63 @@ class IPDoctestItem(pytest.Item):
         elif isinstance(excinfo.value, MultipleDoctestFailures):
             failures = excinfo.value.failures
 
-        if failures is not None:
-            reprlocation_lines = []
-            for failure in failures:
-                example = failure.example
-                test = failure.test
-                filename = test.filename
-                if test.lineno is None:
-                    lineno = None
-                else:
-                    lineno = test.lineno + example.lineno + 1
-                message = type(failure).__name__
-                # TODO: ReprFileLocation doesn't expect a None lineno.
-                reprlocation = ReprFileLocation(filename, lineno, message)  # type: ignore[arg-type]
-                checker = _get_checker()
-                report_choice = _get_report_choice(
-                    self.config.getoption("ipdoctestreport")
-                )
-                if lineno is not None:
-                    assert failure.test.docstring is not None
-                    lines = failure.test.docstring.splitlines(False)
-                    # add line numbers to the left of the error message
-                    assert test.lineno is not None
-                    lines = [
-                        "%03d %s" % (i + test.lineno + 1, x)
-                        for (i, x) in enumerate(lines)
-                    ]
-                    # trim docstring error lines to 10
-                    lines = lines[max(example.lineno - 9, 0) : example.lineno + 1]
-                else:
-                    lines = [
-                        "EXAMPLE LOCATION UNKNOWN, not showing all tests of that example"
-                    ]
-                    indent = ">>>"
-                    for line in example.source.splitlines():
-                        lines.append(f"??? {indent} {line}")
-                        indent = "..."
-                if isinstance(failure, doctest.DocTestFailure):
-                    lines += checker.output_difference(
-                        example, failure.got, report_choice
-                    ).split("\n")
-                else:
-                    inner_excinfo = ExceptionInfo(failure.exc_info)
-                    lines += ["UNEXPECTED EXCEPTION: %s" % repr(inner_excinfo.value)]
-                    lines += [
-                        x.strip("\n")
-                        for x in traceback.format_exception(*failure.exc_info)
-                    ]
-                reprlocation_lines.append((reprlocation, lines))
-            return ReprFailDoctest(reprlocation_lines)
-        else:
+        if failures is None:
             return super().repr_failure(excinfo)
 
-    def reportinfo(self):
+        reprlocation_lines = []
+        for failure in failures:
+            example = failure.example
+            test = failure.test
+            filename = test.filename
+            if test.lineno is None:
+                lineno = None
+            else:
+                lineno = test.lineno + example.lineno + 1
+            message = type(failure).__name__
+            # TODO: ReprFileLocation doesn't expect a None lineno.
+            reprlocation = ReprFileLocation(filename, lineno, message)  # type: ignore[arg-type]
+            checker = _get_checker()
+            report_choice = _get_report_choice(self.config.getoption("ipdoctestreport"))
+            if lineno is not None:
+                assert failure.test.docstring is not None
+                lines = failure.test.docstring.splitlines(False)
+                # add line numbers to the left of the error message
+                assert test.lineno is not None
+                lines = [
+                    "%03d %s" % (i + test.lineno + 1, x) for (i, x) in enumerate(lines)
+                ]
+                # trim docstring error lines to 10
+                lines = lines[max(example.lineno - 9, 0) : example.lineno + 1]
+            else:
+                lines = [
+                    "EXAMPLE LOCATION UNKNOWN, not showing all tests of that example"
+                ]
+                indent = ">>>"
+                for line in example.source.splitlines():
+                    lines.append(f"??? {indent} {line}")
+                    indent = "..."
+            if isinstance(failure, doctest.DocTestFailure):
+                lines += checker.output_difference(
+                    example, failure.got, report_choice
+                ).split("\n")
+            else:
+                inner_excinfo = ExceptionInfo.from_exc_info(failure.exc_info)
+                lines += ["UNEXPECTED EXCEPTION: %s" % repr(inner_excinfo.value)]
+                lines += [
+                    x.strip("\n") for x in traceback.format_exception(*failure.exc_info)
+                ]
+            reprlocation_lines.append((reprlocation, lines))
+        return ReprFailDoctest(reprlocation_lines)
+
+    def reportinfo(self) -> Tuple[Union["os.PathLike[str]", str], Optional[int], str]:
         assert self.dtest is not None
-        return self.fspath, self.dtest.lineno, "[ipdoctest] %s" % self.name
+        return self.path, self.dtest.lineno, "[ipdoctest] %s" % self.name
+
+    if int(pytest.__version__.split(".")[0]) < 7:
+
+        @property
+        def path(self) -> Path:
+            return Path(self.fspath)
 
 
 def _get_flag_lookup() -> Dict[str, int]:
@@ -474,9 +496,9 @@ class IPDoctestTextfile(pytest.Module):
         # Inspired by doctest.testfile; ideally we would use it directly,
         # but it doesn't support passing a custom checker.
         encoding = self.config.getini("ipdoctest_encoding")
-        text = self.fspath.read_text(encoding)
-        filename = str(self.fspath)
-        name = self.fspath.basename
+        text = self.path.read_text(encoding)
+        filename = str(self.path)
+        name = self.path.name
         globs = {"__name__": "__main__"}
 
         optionflags = get_optionflags(self)
@@ -494,6 +516,27 @@ class IPDoctestTextfile(pytest.Module):
             yield IPDoctestItem.from_parent(
                 self, name=test.name, runner=runner, dtest=test
             )
+
+    if int(pytest.__version__.split(".")[0]) < 7:
+
+        @property
+        def path(self) -> Path:
+            return Path(self.fspath)
+
+        @classmethod
+        def from_parent(
+            cls,
+            parent,
+            *,
+            fspath=None,
+            path: Optional[Path] = None,
+            **kw,
+        ):
+            if path is not None:
+                import py.path
+
+                fspath = py.path.local(path)
+            return super().from_parent(parent=parent, fspath=fspath, **kw)
 
 
 def _check_all_skipped(test: "doctest.DocTest") -> None:
@@ -559,15 +602,20 @@ class IPDoctestModule(pytest.Module):
 
             def _find_lineno(self, obj, source_lines):
                 """Doctest code does not take into account `@property`, this
-                is a hackish way to fix it.
+                is a hackish way to fix it. https://bugs.python.org/issue17446
 
-                https://bugs.python.org/issue17446
+                Wrapped Doctests will need to be unwrapped so the correct
+                line number is returned. This will be reported upstream. #8796
                 """
                 if isinstance(obj, property):
                     obj = getattr(obj, "fget", obj)
+
+                if hasattr(obj, "__wrapped__"):
+                    # Get the main obj in case of it being wrapped
+                    obj = inspect.unwrap(obj)
+
                 # Type ignored because this is a private function.
-                return DocTestFinder._find_lineno(  # type: ignore
-                    self,
+                return super()._find_lineno(  # type:ignore[misc]
                     obj,
                     source_lines,
                 )
@@ -580,20 +628,28 @@ class IPDoctestModule(pytest.Module):
                 with _patch_unwrap_mock_aware():
 
                     # Type ignored because this is a private function.
-                    DocTestFinder._find(  # type: ignore
-                        self, tests, obj, name, module, source_lines, globs, seen
+                    super()._find(  # type:ignore[misc]
+                        tests, obj, name, module, source_lines, globs, seen
                     )
 
-        if self.fspath.basename == "conftest.py":
-            module = self.config.pluginmanager._importconftest(
-                self.fspath, self.config.getoption("importmode")
-            )
+        if self.path.name == "conftest.py":
+            if int(pytest.__version__.split(".")[0]) < 7:
+                module = self.config.pluginmanager._importconftest(
+                    self.path,
+                    self.config.getoption("importmode"),
+                )
+            else:
+                module = self.config.pluginmanager._importconftest(
+                    self.path,
+                    self.config.getoption("importmode"),
+                    rootpath=self.config.rootpath,
+                )
         else:
             try:
-                module = import_path(self.fspath)
+                module = import_path(self.path, root=self.config.rootpath)
             except ImportError:
                 if self.config.getvalue("ipdoctest_ignore_import_errors"):
-                    pytest.skip("unable to import module %r" % self.fspath)
+                    pytest.skip("unable to import module %r" % self.path)
                 else:
                     raise
         # Uses internal doctest module parsing mechanism.
@@ -611,6 +667,27 @@ class IPDoctestModule(pytest.Module):
                 yield IPDoctestItem.from_parent(
                     self, name=test.name, runner=runner, dtest=test
                 )
+
+    if int(pytest.__version__.split(".")[0]) < 7:
+
+        @property
+        def path(self) -> Path:
+            return Path(self.fspath)
+
+        @classmethod
+        def from_parent(
+            cls,
+            parent,
+            *,
+            fspath=None,
+            path: Optional[Path] = None,
+            **kw,
+        ):
+            if path is not None:
+                import py.path
+
+                fspath = py.path.local(path)
+            return super().from_parent(parent=parent, fspath=fspath, **kw)
 
 
 def _setup_fixtures(doctest_item: IPDoctestItem) -> FixtureRequest:
@@ -665,7 +742,7 @@ def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
         )
 
         def check_output(self, want: str, got: str, optionflags: int) -> bool:
-            if IPDoctestOutputChecker.check_output(self, want, got, optionflags):
+            if super().check_output(want, got, optionflags):
                 return True
 
             allow_unicode = optionflags & _get_allow_unicode_flag()
@@ -689,7 +766,7 @@ def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
             if allow_number:
                 got = self._remove_unwanted_precision(want, got)
 
-            return IPDoctestOutputChecker.check_output(self, want, got, optionflags)
+            return super().check_output(want, got, optionflags)
 
         def _remove_unwanted_precision(self, want: str, got: str) -> str:
             wants = list(self._number_re.finditer(want))
@@ -702,10 +779,7 @@ def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
                 exponent: Optional[str] = w.group("exponent1")
                 if exponent is None:
                     exponent = w.group("exponent2")
-                if fraction is None:
-                    precision = 0
-                else:
-                    precision = len(fraction)
+                precision = 0 if fraction is None else len(fraction)
                 if exponent is not None:
                     precision -= int(exponent)
                 if float(w.group()) == approx(float(g.group()), abs=10 ** -precision):

@@ -10,8 +10,7 @@ from tempfile import TemporaryDirectory
 
 
 class NamedFileInTemporaryDirectory(object):
-
-    def __init__(self, filename, mode='w+b', bufsize=-1, **kwds):
+    def __init__(self, filename, mode="w+b", bufsize=-1, add_to_syspath=False, **kwds):
         """
         Open a file named `filename` in a temporary directory.
 

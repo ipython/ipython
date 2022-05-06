@@ -127,7 +127,7 @@ class OSMagics(Magics):
         Aliases expand Python variables just like system calls using ! or !!
         do: all expressions prefixed with '$' get expanded.  For details of
         the semantic rules, see PEP-215:
-        http://www.python.org/peps/pep-0215.html.  This is the library used by
+        https://peps.python.org/pep-0215/.  This is the library used by
         IPython for variable expansion.  If you want to access a true shell
         variable, an extra $ is necessary to prevent its expansion by
         IPython::

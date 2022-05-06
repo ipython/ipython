@@ -92,8 +92,8 @@ class Audio(DisplayObject):
 
     From a File:
 
-    >>> Audio('/path/to/sound.wav')  # doctest: +SKIP
-    >>> Audio(filename='/path/to/sound.ogg')  # doctest: +SKIP
+    >>> Audio('IPython/lib/tests/test.wav')  # doctest: +SKIP
+    >>> Audio(filename='IPython/lib/tests/test.wav')  # doctest: +SKIP
 
     From Bytes:
 
@@ -103,9 +103,9 @@ class Audio(DisplayObject):
     See Also
     --------
     ipywidgets.Audio
-    
-         AUdio widget with more more flexibility and options.
-    
+
+         Audio widget with more more flexibility and options.
+
     """
     _read_flags = 'rb'
 
@@ -510,12 +510,10 @@ class FileLinks(FileLink):
 
         self.recursive = recursive
 
-    def _get_display_formatter(self,
-                               dirname_output_format,
-                               fname_output_format,
-                               fp_format,
-                               fp_cleaner=None):
-        """ generate built-in formatter function
+    def _get_display_formatter(
+        self, dirname_output_format, fname_output_format, fp_format, fp_cleaner=None
+    ):
+        """generate built-in formatter function
 
         this is used to define both the notebook and terminal built-in
          formatters as they only differ by some wrapper text for each entry

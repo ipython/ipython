@@ -122,7 +122,8 @@ class PasteTestCase(TestCase):
         ip.user_ns.pop("x")
 
     def test_paste_py_multi(self):
-        self.paste("""
+        self.paste(
+            """
         >>> x = [1,2,3]
         >>> y = []
         >>> for i in x:
@@ -145,7 +146,8 @@ class PasteTestCase(TestCase):
 
     def test_paste_email(self):
         "Test pasting of email-quoted contents"
-        self.paste("""\
+        self.paste(
+            """\
         >> def foo(x):
         >>     return x + 1
         >> xx = foo(1.1)"""
@@ -154,7 +156,8 @@ class PasteTestCase(TestCase):
 
     def test_paste_email2(self):
         "Email again; some programs add a space also at each quoting level"
-        self.paste("""\
+        self.paste(
+            """\
         > > def foo(x):
         > >     return x + 1
         > > yy = foo(2.1)     """
@@ -163,7 +166,8 @@ class PasteTestCase(TestCase):
 
     def test_paste_email_py(self):
         "Email quoting of interactive input"
-        self.paste("""\
+        self.paste(
+            """\
         >> >>> def f(x):
         >> ...   return x+1
         >> ... 

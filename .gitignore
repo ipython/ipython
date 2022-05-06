@@ -28,5 +28,13 @@ __pycache__
 .pytest_cache
 .python-version
 venv*/
-.idea/
 .mypy_cache/
+
+# jetbrains ide stuff
+*.iml
+.idea/
+
+# vscode ide stuff
+*.code-workspace
+.history
+.vscode

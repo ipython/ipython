@@ -14,40 +14,61 @@
 import abc
 import ast
 import atexit
+import bdb
 import builtins as builtin_mod
+import dis
 import functools
 import inspect
 import os
 import re
 import runpy
+import subprocess
 import sys
 import tempfile
 import traceback
 import types
-import subprocess
 import warnings
+from ast import stmt
 from io import open as io_open
-
+from logging import error
 from pathlib import Path
-from pickleshare import PickleShareDB
+from typing import Callable
+from typing import List as ListType
+from typing import Optional, Tuple
+from warnings import warn
 
+from pickleshare import PickleShareDB
+from tempfile import TemporaryDirectory
+from traitlets import (
+    Any,
+    Bool,
+    CaselessStrEnum,
+    Dict,
+    Enum,
+    Instance,
+    Integer,
+    List,
+    Type,
+    Unicode,
+    default,
+    observe,
+    validate,
+)
 from traitlets.config.configurable import SingletonConfigurable
 from traitlets.utils.importstring import import_item
-from IPython.core import oinspect
-from IPython.core import magic
-from IPython.core import page
-from IPython.core import prefilter
-from IPython.core import ultratb
+
+import IPython.core.hooks
+from IPython.core import magic, oinspect, page, prefilter, ultratb
 from IPython.core.alias import Alias, AliasManager
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
-from IPython.core.events import EventManager, available_events
 from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
 from IPython.core.debugger import InterruptiblePdb
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import InputRejected, UsageError
+from IPython.core.events import EventManager, available_events
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
@@ -59,31 +80,17 @@ from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.usage import default_banner
 from IPython.display import display
+from IPython.paths import get_ipython_dir
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import PyColorize
-from IPython.utils import io
-from IPython.utils import py3compat
-from IPython.utils import openpy
+from IPython.utils import PyColorize, io, openpy, py3compat
 from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
-from IPython.paths import get_ipython_dir
-from IPython.utils.path import get_home_dir, get_py_filename, ensure_dir_exists
-from IPython.utils.process import system, getoutput
+from IPython.utils.path import ensure_dir_exists, get_home_dir, get_py_filename
+from IPython.utils.process import getoutput, system
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
-from IPython.utils.tempdir import TemporaryDirectory
-from traitlets import (
-    Integer, Bool, CaselessStrEnum, Enum, List, Dict, Unicode, Instance, Type,
-    observe, default, validate, Any
-)
-from warnings import warn
-from logging import error
-import IPython.core.hooks
-
-from typing import List as ListType, Tuple, Optional, Callable
-from ast import stmt
+from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 
 sphinxify: Optional[Callable]
 
@@ -122,8 +129,13 @@ _single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
 
 # we still need to run things using the asyncio eventloop, but there is no
 # async integration
-from .async_helpers import _asyncio_runner, _pseudo_sync_runner
-from .async_helpers import _curio_runner, _trio_runner, _should_be_async
+from .async_helpers import (
+    _asyncio_runner,
+    _curio_runner,
+    _pseudo_sync_runner,
+    _should_be_async,
+    _trio_runner,
+)
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -188,19 +200,29 @@ class ExecutionInfo(object):
     store_history = False
     silent = False
     shell_futures = True
+    cell_id = None
 
-    def __init__(self, raw_cell, store_history, silent, shell_futures):
+    def __init__(self, raw_cell, store_history, silent, shell_futures, cell_id):
         self.raw_cell = raw_cell
         self.store_history = store_history
         self.silent = silent
         self.shell_futures = shell_futures
+        self.cell_id = cell_id
 
     def __repr__(self):
         name = self.__class__.__qualname__
-        raw_cell = ((self.raw_cell[:50] + '..')
-                    if len(self.raw_cell) > 50 else self.raw_cell)
-        return '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s>' %\
-               (name, id(self), raw_cell, self.store_history, self.silent, self.shell_futures)
+        raw_cell = (
+            (self.raw_cell[:50] + "..") if len(self.raw_cell) > 50 else self.raw_cell
+        )
+        return '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s cell_id=%s>' % (
+            name,
+            id(self),
+            raw_cell,
+            self.store_history,
+            self.silent,
+            self.shell_futures,
+            self.cell_id,
+        )
 
 
 class ExecutionResult(object):
@@ -747,6 +769,33 @@ class InteractiveShell(SingletonConfigurable):
         # the appropriate time.
         self.display_trap = DisplayTrap(hook=self.displayhook)
 
+    @staticmethod
+    def get_path_links(p: Path):
+        """Gets path links including all symlinks
+
+        Examples
+        --------
+        In [1]: from IPython.core.interactiveshell import InteractiveShell
+
+        In [2]: import sys, pathlib
+
+        In [3]: paths = InteractiveShell.get_path_links(pathlib.Path(sys.executable))
+
+        In [4]: len(paths) == len(set(paths))
+        Out[4]: True
+
+        In [5]: bool(paths)
+        Out[5]: True
+        """
+        paths = [p]
+        while p.is_symlink():
+            new_path = Path(os.readlink(p))
+            if not new_path.is_absolute():
+                new_path = p.parent / new_path
+            p = new_path
+            paths.append(p)
+        return paths
+
     def init_virtualenv(self):
         """Add the current virtualenv to sys.path so the user can import modules from it.
         This isn't perfect: it doesn't use the Python interpreter with which the
@@ -772,10 +821,7 @@ class InteractiveShell(SingletonConfigurable):
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
-        paths = [p]
-        while p.is_symlink():
-            p = Path(os.readlink(p))
-            paths.append(p.resolve())
+        paths = self.get_path_links(p)
 
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if p_venv.parts[1] == "cygdrive":
@@ -1941,10 +1987,19 @@ class InteractiveShell(SingletonConfigurable):
                         # Exception classes can customise their traceback - we
                         # use this in IPython.parallel for exceptions occurring
                         # in the engines. This should return a list of strings.
-                        stb = value._render_traceback_()
+                        if hasattr(value, "_render_traceback_"):
+                            stb = value._render_traceback_()
+                        else:
+                            stb = self.InteractiveTB.structured_traceback(
+                                etype, value, tb, tb_offset=tb_offset
+                            )
+
                     except Exception:
-                        stb = self.InteractiveTB.structured_traceback(etype,
-                                            value, tb, tb_offset=tb_offset)
+                        print(
+                            "Unexpected exception formatting exception. Falling back to standard exception"
+                        )
+                        traceback.print_exc()
+                        return None
 
                     self._showtraceback(etype, value, stb)
                     if self.call_pdb:
@@ -2034,8 +2089,12 @@ class InteractiveShell(SingletonConfigurable):
         (typically over the network by remote frontends).
         """
         from IPython.core.completer import IPCompleter
-        from IPython.core.completerlib import (module_completer,
-                magic_run_completer, cd_completer, reset_completer)
+        from IPython.core.completerlib import (
+            cd_completer,
+            magic_run_completer,
+            module_completer,
+            reset_completer,
+        )
 
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
@@ -2414,14 +2473,9 @@ class InteractiveShell(SingletonConfigurable):
         cmd = self.var_expand(cmd, depth=1)
         # warn if there is an IPython magic alternative.
         main_cmd = cmd.split()[0]
-        has_magic_alternatives = ("pip", "conda", "cd", "ls")
+        has_magic_alternatives = ("pip", "conda", "cd")
 
-        # had to check if the command was an alias expanded because of `ls`
-        is_alias_expanded = self.alias_manager.is_alias(main_cmd) and (
-            self.alias_manager.retrieve_alias(main_cmd).strip() == cmd.strip()
-        )
-
-        if main_cmd in has_magic_alternatives and not is_alias_expanded:
+        if main_cmd in has_magic_alternatives:
             warnings.warn(
                 (
                     "You executed the system command !{0} which may not work "
@@ -2791,7 +2845,14 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
-    def run_cell(self, raw_cell, store_history=False, silent=False, shell_futures=True):
+    def run_cell(
+        self,
+        raw_cell,
+        store_history=False,
+        silent=False,
+        shell_futures=True,
+        cell_id=None,
+    ):
         """Run a complete IPython cell.
 
         Parameters
@@ -2818,14 +2879,22 @@ class InteractiveShell(SingletonConfigurable):
         result = None
         try:
             result = self._run_cell(
-                raw_cell, store_history, silent, shell_futures)
+                raw_cell, store_history, silent, shell_futures, cell_id
+            )
         finally:
             self.events.trigger('post_execute')
             if not silent:
                 self.events.trigger('post_run_cell', result)
         return result
 
-    def _run_cell(self, raw_cell:str, store_history:bool, silent:bool, shell_futures:bool) -> ExecutionResult:
+    def _run_cell(
+        self,
+        raw_cell: str,
+        store_history: bool,
+        silent: bool,
+        shell_futures: bool,
+        cell_id: str,
+    ) -> ExecutionResult:
         """Internal method to run a complete IPython cell."""
 
         # we need to avoid calling self.transform_cell multiple time on the same thing
@@ -2845,6 +2914,7 @@ class InteractiveShell(SingletonConfigurable):
             shell_futures=shell_futures,
             transformed_cell=transformed_cell,
             preprocessing_exc_tuple=preprocessing_exc_tuple,
+            cell_id=cell_id,
         )
 
         # run_cell_async is async, but may not actually need an eventloop.
@@ -2865,7 +2935,9 @@ class InteractiveShell(SingletonConfigurable):
         try:
             return runner(coro)
         except BaseException as e:
-            info = ExecutionInfo(raw_cell, store_history, silent, shell_futures)
+            info = ExecutionInfo(
+                raw_cell, store_history, silent, shell_futures, cell_id
+            )
             result = ExecutionResult(info)
             result.error_in_exec = e
             self.showtraceback(running_compiled_code=True)
@@ -2921,7 +2993,8 @@ class InteractiveShell(SingletonConfigurable):
         shell_futures=True,
         *,
         transformed_cell: Optional[str] = None,
-        preprocessing_exc_tuple: Optional[Any] = None
+        preprocessing_exc_tuple: Optional[Any] = None,
+        cell_id=None,
     ) -> ExecutionResult:
         """Run a complete IPython cell asynchronously.
 
@@ -2952,8 +3025,7 @@ class InteractiveShell(SingletonConfigurable):
 
         .. versionadded:: 7.0
         """
-        info = ExecutionInfo(
-            raw_cell, store_history, silent, shell_futures)
+        info = ExecutionInfo(raw_cell, store_history, silent, shell_futures, cell_id)
         result = ExecutionResult(info)
 
         if (not raw_cell) or raw_cell.isspace():
@@ -3008,9 +3080,8 @@ class InteractiveShell(SingletonConfigurable):
                 cell = raw_cell
 
         # Store raw and processed history
-        if store_history:
-            self.history_manager.store_inputs(self.execution_count,
-                                              cell, raw_cell)
+        if store_history and raw_cell.strip(" %") != "paste":
+            self.history_manager.store_inputs(self.execution_count, cell, raw_cell)
         if not silent:
             self.logger.log(cell, raw_cell)
 
@@ -3141,6 +3212,29 @@ class InteractiveShell(SingletonConfigurable):
             ast.fix_missing_locations(node)
         return node
 
+    def _update_code_co_name(self, code):
+        """Python 3.10 changed the behaviour so that whenever a code object
+        is assembled in the compile(ast) the co_firstlineno would be == 1.
+
+        This makes pydevd/debugpy think that all cells invoked are the same
+        since it caches information based on (co_firstlineno, co_name, co_filename).
+
+        Given that, this function changes the code 'co_name' to be unique
+        based on the first real lineno of the code (which also has a nice
+        side effect of customizing the name so that it's not always <module>).
+
+        See: https://github.com/ipython/ipykernel/issues/841
+        """
+        if not hasattr(code, "replace"):
+            # It may not be available on older versions of Python (only
+            # available for 3.8 onwards).
+            return code
+        try:
+            first_real_line = next(dis.findlinestarts(code))[1]
+        except StopIteration:
+            return code
+        return code.replace(co_name="<cell line: %s>" % (first_real_line,))
+
     async def run_ast_nodes(
         self,
         nodelist: ListType[stmt],
@@ -3239,6 +3333,7 @@ class InteractiveShell(SingletonConfigurable):
                     else 0x0
                 ):
                     code = compiler(mod, cell_name, mode)
+                    code = self._update_code_co_name(code)
                     asy = compare(code)
                 if await self.run_code(code, result, async_=asy):
                     return True
@@ -3309,6 +3404,11 @@ class InteractiveShell(SingletonConfigurable):
                 result.error_in_exec = e
             self.showtraceback(exception_only=True)
             warn("To exit: use 'exit', 'quit', or Ctrl-D.", stacklevel=1)
+        except bdb.BdbQuit:
+            etype, value, tb = sys.exc_info()
+            if result is not None:
+                result.error_in_exec = value
+            # the BdbQuit stops here
         except self.custom_exceptions:
             etype, value, tb = sys.exc_info()
             if result is not None:
@@ -3375,8 +3475,9 @@ class InteractiveShell(SingletonConfigurable):
             make sense in all contexts, for example a terminal ipython can't
             display figures inline.
         """
-        from IPython.core import pylabtools as pt
         from matplotlib_inline.backend_inline import configure_inline_support
+
+        from IPython.core import pylabtools as pt
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
         if gui != 'inline':
@@ -3679,6 +3780,10 @@ class InteractiveShell(SingletonConfigurable):
                 pass
         del self.tempdirs
 
+        # Restore user's cursor
+        if hasattr(self, "editing_mode") and self.editing_mode == "vi":
+            sys.stdout.write("\x1b[0 q")
+            sys.stdout.flush()
 
     def cleanup(self):
         self.restore_sys_module_state()

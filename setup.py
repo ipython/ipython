@@ -18,7 +18,6 @@ requires utilities which are not available under Windows."""
 
 import os
 import sys
-from itertools import chain
 
 # **Python version check**
 #
@@ -53,7 +52,9 @@ See IPython `README.rst` file for more information:
 
 Python {py} detected.
 {pip}
-""".format(py=sys.version_info, pip=pip_message )
+""".format(
+        py=sys.version_info, pip=pip_message
+    )
 
     print(error, file=sys.stderr)
     sys.exit(1)

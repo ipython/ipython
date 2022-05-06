@@ -19,21 +19,22 @@ as otherwise it may influence later tests.
 import functools
 import os
 import platform
-from os.path import join as pjoin
 import random
 import string
 import sys
 import textwrap
 import unittest
+from os.path import join as pjoin
 from unittest.mock import patch
 
 import pytest
+from tempfile import TemporaryDirectory
 
+from IPython.core import debugger
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils.io import capture_output
-from IPython.utils.tempdir import TemporaryDirectory
-from IPython.core import debugger
+
 
 def doctest_refbug():
     """Very nasty problem with references held by multiple runs of a script.
@@ -411,6 +412,7 @@ tclass.py: deleting object: C-third
         """Test %run notebook.ipynb error"""
         pytest.importorskip("nbformat")
         from nbformat import v4, writes
+
         # %run when a file name isn't provided
         pytest.raises(Exception, _ip.magic, "run")
 

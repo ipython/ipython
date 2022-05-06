@@ -3,12 +3,10 @@
 import asyncio
 import os
 import sys
-import warnings
 from warnings import warn
 
 from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
-from IPython.utils import io
 from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd
@@ -32,7 +30,7 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.formatted_text import PygmentsTokens
-from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.history import History
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.patch_stdout import patch_stdout
@@ -116,6 +114,59 @@ def black_reformat_handler(text_before_cursor):
     return formatted_text
 
 
+def yapf_reformat_handler(text_before_cursor):
+    from yapf.yapflib import file_resources
+    from yapf.yapflib import yapf_api
+
+    style_config = file_resources.GetDefaultStyleForDir(os.getcwd())
+    formatted_text, was_formatted = yapf_api.FormatCode(
+        text_before_cursor, style_config=style_config
+    )
+    if was_formatted:
+        if not text_before_cursor.endswith("\n") and formatted_text.endswith("\n"):
+            formatted_text = formatted_text[:-1]
+        return formatted_text
+    else:
+        return text_before_cursor
+
+
+class PtkHistoryAdapter(History):
+    """
+    Prompt toolkit has it's own way of handling history, Where it assumes it can
+    Push/pull from history.
+
+    """
+
+    def __init__(self, shell):
+        super().__init__()
+        self.shell = shell
+        self._refresh()
+
+    def append_string(self, string):
+        # we rely on sql for that.
+        self._loaded = False
+        self._refresh()
+
+    def _refresh(self):
+        if not self._loaded:
+            self._loaded_strings = list(self.load_history_strings())
+
+    def load_history_strings(self):
+        last_cell = ""
+        res = []
+        for __, ___, cell in self.shell.history_manager.get_tail(
+            self.shell.history_load_length, include_latest=True
+        ):
+            # Ignore blank lines and consecutive duplicates
+            cell = cell.rstrip()
+            if cell and (cell != last_cell):
+                res.append(cell)
+                last_cell = cell
+        yield from res[::-1]
+
+    def store_string(self, string: str) -> None:
+        pass
+
 class TerminalInteractiveShell(InteractiveShell):
     mime_renderers = Dict().tag(config=True)
 
@@ -184,8 +235,8 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     autoformatter = Unicode(
-        "black",
-        help="Autoformatter to reformat Terminal code. Can be `'black'` or `None`",
+        None,
+        help="Autoformatter to reformat Terminal code. Can be `'black'`, `'yapf'` or `None`",
         allow_none=True
     ).tag(config=True)
 
@@ -232,6 +283,8 @@ class TerminalInteractiveShell(InteractiveShell):
             self.reformat_handler = lambda x:x
         elif formatter == 'black':
             self.reformat_handler = black_reformat_handler
+        elif formatter == "yapf":
+            self.reformat_handler = yapf_reformat_handler
         else:
             raise ValueError
 
@@ -379,16 +432,9 @@ class TerminalInteractiveShell(InteractiveShell):
         # Set up keyboard shortcuts
         key_bindings = create_ipython_shortcuts(self)
 
+
         # Pre-populate history from IPython's history database
-        history = InMemoryHistory()
-        last_cell = u""
-        for __, ___, cell in self.history_manager.get_tail(self.history_load_length,
-                                                        include_latest=True):
-            # Ignore blank lines and consecutive duplicates
-            cell = cell.rstrip()
-            if cell and (cell != last_cell):
-                history.append_string(cell)
-                last_cell = cell
+        history = PtkHistoryAdapter(self)
 
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
         self.style = DynamicStyle(lambda: self._style)
@@ -568,7 +614,6 @@ class TerminalInteractiveShell(InteractiveShell):
     def enable_win_unicode_console(self):
         # Since IPython 7.10 doesn't support python < 3.6 and PEP 528, Python uses the unicode APIs for the Windows
         # console by default, so WUC shouldn't be needed.
-        from warnings import warn
         warn("`enable_win_unicode_console` is deprecated since IPython 7.10, does not do anything and will be removed in the future",
              DeprecationWarning,
              stacklevel=2)

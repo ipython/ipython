@@ -884,7 +884,7 @@ class Image(DisplayObject):
         a URL, or a filename from which to load image data.
         The result is always embedding image data for inline images.
 
-        >>> Image('http://www.google.fr/images/srpr/logo3w.png')
+        >>> Image('https://www.google.fr/images/srpr/logo3w.png') # doctest: +SKIP
         <IPython.core.display.Image object>
 
         >>> Image('/path/to/image.jpg')
@@ -897,7 +897,7 @@ class Image(DisplayObject):
         it only generates ``<img>`` tag with a link to the source.
         This will not work in the qtconsole or offline.
 
-        >>> Image(url='http://www.google.fr/images/srpr/logo3w.png')
+        >>> Image(url='https://www.google.fr/images/srpr/logo3w.png')
         <IPython.core.display.Image object>
 
         """

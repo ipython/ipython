@@ -207,7 +207,16 @@ class TBTools(colorable.Colorable):
     # Number of frames to skip when reporting tracebacks
     tb_offset = 0
 
-    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None, parent=None, config=None):
+    def __init__(
+        self,
+        color_scheme="NoColor",
+        call_pdb=False,
+        ostream=None,
+        parent=None,
+        config=None,
+        *,
+        debugger_cls=None,
+    ):
         # Whether to call the interactive pdb debugger after printing
         # tracebacks or not
         super(TBTools, self).__init__(parent=parent, config=config)
@@ -227,9 +236,10 @@ class TBTools(colorable.Colorable):
 
         self.set_colors(color_scheme)
         self.old_scheme = color_scheme  # save initial value for toggles
+        self.debugger_cls = debugger_cls or debugger.Pdb
 
         if call_pdb:
-            self.pdb = debugger.Pdb()
+            self.pdb = debugger_cls()
         else:
             self.pdb = None
 
@@ -350,9 +360,6 @@ class ListTB(TBTools):
     Because they are meant to be called without a full traceback (only a
     list), instances of this class can't call the interactive pdb debugger."""
 
-    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None, parent=None, config=None):
-        TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
-                         ostream=ostream, parent=parent,config=config)
 
     def __call__(self, etype, value, elist):
         self.ostream.flush()
@@ -628,8 +635,15 @@ class VerboseTB(TBTools):
         tb_offset=1 allows use of this handler in interpreters which will have
         their own code at the top of the traceback (VerboseTB will first
         remove that frame before printing the traceback info)."""
-        TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
-                         ostream=ostream, parent=parent, config=config)
+        TBTools.__init__(
+            self,
+            color_scheme=color_scheme,
+            call_pdb=call_pdb,
+            ostream=ostream,
+            parent=parent,
+            config=config,
+            debugger_cls=debugger_cls,
+        )
         self.tb_offset = tb_offset
         self.long_header = long_header
         self.include_vars = include_vars
@@ -642,7 +656,6 @@ class VerboseTB(TBTools):
             check_cache = linecache.checkcache
         self.check_cache = check_cache
 
-        self.debugger_cls = debugger_cls or debugger.Pdb
         self.skip_hidden = True
 
     def format_record(self, frame_info):
@@ -763,7 +776,7 @@ class VerboseTB(TBTools):
         self,
         etype: type,
         evalue: BaseException,
-        etb: TracebackType,
+        etb: Optional[TracebackType],
         number_of_lines_of_context,
         tb_offset: Optional[int],
     ):
@@ -772,7 +785,6 @@ class VerboseTB(TBTools):
         This may be called multiple times by Python 3 exception chaining
         (PEP 3134).
         """
-        assert etb is not None
         # some locals
         orig_etype = etype
         try:
@@ -783,7 +795,9 @@ class VerboseTB(TBTools):
         tb_offset = self.tb_offset if tb_offset is None else tb_offset
         assert isinstance(tb_offset, int)
         head = self.prepare_header(etype, self.long_header)
-        records = self.get_records(etb, number_of_lines_of_context, tb_offset)
+        records = (
+            self.get_records(etb, number_of_lines_of_context, tb_offset) if etb else []
+        )
 
         frames = []
         skipped = 0
@@ -822,6 +836,7 @@ class VerboseTB(TBTools):
     def get_records(
         self, etb: TracebackType, number_of_lines_of_context: int, tb_offset: int
     ):
+        assert etb is not None
         context = number_of_lines_of_context - 1
         after = context // 2
         before = context - after
@@ -836,19 +851,17 @@ class VerboseTB(TBTools):
             after=after,
             pygments_formatter=formatter,
         )
-        assert etb is not None
         return list(stack_data.FrameInfo.stack_data(etb, options=options))[tb_offset:]
 
     def structured_traceback(
         self,
         etype: type,
         evalue: Optional[BaseException],
-        etb: TracebackType,
+        etb: Optional[TracebackType],
         tb_offset: Optional[int] = None,
         number_of_lines_of_context: int = 5,
     ):
         """Return a nice text document describing the traceback."""
-        assert etb is not None
         formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
                                                                tb_offset)
 

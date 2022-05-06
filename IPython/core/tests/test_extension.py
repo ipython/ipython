@@ -1,8 +1,9 @@
 import os.path
 
+from tempfile import TemporaryDirectory
+
 import IPython.testing.tools as tt
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.tempdir import TemporaryDirectory
 
 ext1_content = """
 def load_ipython_extension(ip):

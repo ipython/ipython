@@ -470,11 +470,11 @@ def strip_ansi(source):
 
 class EvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
-    
-    Note that this version interprets a : as specifying a format string (as per
+
+    Note that this version interprets a `:`  as specifying a format string (as per
     standard string formatting), so if slicing is required, you must explicitly
     create a slice.
-    
+
     This is to be used in templating cases, such as the parallel batch
     script templates, where simple arithmetic on arguments is useful.
 
@@ -690,8 +690,8 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
         return ([[_get_or_default(items, c * nrow + r, default=empty) for c in range(ncol)] for r in range(nrow)], info)
 
 
-def columnize(items, row_first=False, separator='  ', displaywidth=80, spread=False):
-    """ Transform a list of strings into a single string with columns.
+def columnize(items, row_first=False, separator="  ", displaywidth=80, spread=False):
+    """Transform a list of strings into a single string with columns.
 
     Parameters
     ----------

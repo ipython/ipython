@@ -3,6 +3,134 @@
 ============
 
 
+.. _version 8.3.0:
+
+IPython 8.3.0
+-------------
+
+ - :ghpull:`13625`, using ``?``, ``??``, ``*?`` will not call
+   ``set_next_input`` as most frontend allow proper multiline editing and it was
+   causing issues for many users of multi-cell frontends. This has been backported to 7.33
+
+
+ - :ghpull:`13600`, ``pre_run_*``-hooks will now have a ``cell_id`` attribute on
+   the info object when frontend provide it. This has been backported to 7.33
+
+ - :ghpull:`13624`, fixed :kbd:`End` key being broken after accepting an
+   auto-suggestion.
+
+ - :ghpull:`13657` fix issue where history from different sessions would be mixed.
+
+.. _version 8.2.0:
+
+IPython 8.2.0
+-------------
+
+IPython 8.2 mostly bring bugfixes to IPython.
+
+ - Auto-suggestion can now be elected with the ``end`` key. :ghpull:`13566`
+ - Some traceback issues with ``assert etb is not None`` have been fixed. :ghpull:`13588`
+ - History is now pulled from the sqitel database and not from in-memory.
+   In particular when using the ``%paste`` magic, the content of the pasted text will
+   be part of the history and not the verbatim text ``%paste`` anymore. :ghpull:`13592`
+ - Fix ``Ctrl-\\`` exit cleanup :ghpull:`13603`
+ - Fixes to ``ultratb`` ipdb support when used outside of IPython. :ghpull:`13498`
+
+
+I am still trying to fix and investigate :ghissue:`13598`, which seem to be
+random, and would appreciate help if you find  reproducible minimal case. I've
+tried to make various changes to the codebase to mitigate it, but a proper fix
+will be difficult without understanding the cause.
+
+
+All the issues on pull-requests for this release can be found in the `8.2
+milestone. <https://github.com/ipython/ipython/milestone/100>`__ . And some
+documentation only PR can be found as part of the `7.33 milestone
+<https://github.com/ipython/ipython/milestone/101>`__ (currently not released).
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 8.1.1:
+   
+IPython 8.1.1
+-------------
+
+Fix an issue with virtualenv and Python 3.8 introduced in 8.1
+
+Revert :ghpull:`13537` (fix an issue with symlinks in virtualenv) that raises an
+error in Python 3.8, and fixed in a different way in :ghpull:`13559`.
+
+.. _version 8.1:
+
+IPython 8.1.0
+-------------
+
+IPython 8.1 is the first minor release after 8.0 and fixes a number of bugs and
+Update a few behavior that were problematic with the 8.0 as with many new major
+release.
+
+Note that beyond the changes listed here, IPython 8.1.0 also contains all the
+features listed in :ref:`version 7.32`.
+
+ - Misc and multiple fixes around quotation auto-closing. It is now disabled by
+   default. Run with ``TerminalInteractiveShell.auto_match=True`` to re-enabled
+ - Require pygments>=2.4.0 :ghpull:`13459`, this was implicit in the code, but
+   is now explicit in ``setup.cfg``/``setup.py``
+ - Docs improvement of ``core.magic_arguments`` examples. :ghpull:`13433`
+ - Multi-line edit executes too early with await. :ghpull:`13424`
+
+ - ``black``  is back as an optional dependency, and autoformatting disabled by
+   default until some fixes are implemented (black improperly reformat magics).
+   :ghpull:`13471` Additionally the ability to use ``yapf`` as a code
+   reformatter has been added :ghpull:`13528` . You can use
+   ``TerminalInteractiveShell.autoformatter="black"``,
+   ``TerminalInteractiveShell.autoformatter="yapf"`` to re-enable auto formating
+   with black, or switch to yapf.
+
+ - Fix and issue where ``display`` was not defined.
+
+ - Auto suggestions are now configurable. Currently only
+   ``AutoSuggestFromHistory`` (default) and ``None``. new provider contribution
+   welcomed. :ghpull:`13475`
+
+ - multiple packaging/testing improvement to simplify downstream packaging
+   (xfail with reasons, try to not access network...).
+
+ - Update deprecation. ``InteractiveShell.magic`` internal method has been
+   deprecated for many years but did not emit a warning until now.
+
+ - internal ``appended_to_syspath`` context manager has been deprecated.
+
+ - fix an issue with symlinks in virtualenv :ghpull:`13537` (Reverted in 8.1.1)
+
+ - Fix an issue with vim mode, where cursor would not be reset on exit :ghpull:`13472`
+
+ - ipython directive now remove only known pseudo-decorators :ghpull:`13532`
+
+ - ``IPython/lib/security`` which used to be used for jupyter notebook has been
+   removed.
+
+ - Fix an issue where ``async with`` would execute on new lines. :ghpull:`13436`
+
+
+We want to remind users that IPython is part of the Jupyter organisations, and
+thus governed by a Code of Conduct. Some of the behavior we have seen on GitHub is not acceptable.
+Abuse and non-respectful comments on discussion will not be tolerated.
+
+Many thanks to all the contributors to this release, many of the above fixed issue and
+new features where done by first time contributors, showing there is still
+plenty of easy contribution possible in IPython
+. You can find all individual contributions
+to this milestone `on github <https://github.com/ipython/ipython/milestone/91>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries. In particular the Lazy autoloading of
+magics that you will find described in the 7.32 release notes.
+
+
+.. _version 8.0.1:
+
 IPython 8.0.1 (CVE-2022-21699)
 ------------------------------
 
@@ -45,6 +173,7 @@ Thus starting with this version:
 Further details can be read on the `GitHub Advisory <https://github.com/ipython/ipython/security/advisories/GHSA-pq7m-3gw7-gq5x>`__
 
 
+.. _version 8.0:
 
 IPython 8.0
 -----------
@@ -344,12 +473,11 @@ For more information please see the following unit test : ``extensions/tests/tes
 Auto formatting with black in the CLI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If ``black`` is installed in the same environment as IPython, terminal IPython
-will now *by default*  reformat the code in the CLI when possible. You can
-disable this with ``--TerminalInteractiveShell.autoformatter=None``.
-
 This feature was present in 7.x, but disabled by default.
 
+In 8.0, input was automatically reformatted with Black when black was installed.
+This feature has been reverted for the time being.
+You can re-enable it by setting ``TerminalInteractiveShell.autoformatter`` to ``"black"``
 
 History Range Glob feature
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -393,8 +521,8 @@ Automatic Vi prompt stripping
 
 When pasting code into IPython, it will strip the leading prompt characters if
 there are any. For example, you can paste the following code into the console -
-it will still work, even though each line is prefixed with prompts (`In`,
-`Out`)::
+it will still work, even though each line is prefixed with prompts (``In``,
+``Out``)::
 
     In [1]: 2 * 2 == 4
     Out[1]: True
@@ -489,7 +617,7 @@ who did a fantastic job at updating our code base, migrating to pytest, pushing
 our coverage, and fixing a large number of bugs. I highly recommend contacting
 them if you need help with C++ and Python projects.
 
-You can find all relevant issues and PRs with the SDG 2021 tag `<https://github.com/ipython/ipython/issues?q=label%3A%22Numfocus+SDG+2021%22+>`__
+You can find all relevant issues and PRs with `the SDG 2021 tag <https://github.com/ipython/ipython/issues?q=label%3A%22Numfocus+SDG+2021%22+>`__
 
 Removing support for older Python versions
 ------------------------------------------
