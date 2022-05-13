@@ -317,9 +317,6 @@ def completions_sorting_key(word):
     elif word.startswith('_'):
         prio1 = 1
 
-    if word.endswith('='):
-        prio1 = -1
-
     if word.startswith('%%'):
         # If there's another % in there, this is something else, so leave it alone
         if not "%" in word[2:]:
@@ -1551,8 +1548,7 @@ class IPCompleter(Completer):
                        v.kind in _keeps)
         except ValueError:
             pass
-
-        return list(set(ret))
+        return list(dict.fromkeys(ret))
 
     def python_func_kw_matches(self, text):
         """Match named parameters (kwargs) of the last open function"""
@@ -2166,13 +2162,18 @@ class IPCompleter(Completer):
                     
         seen = set()
         filtered_matches = set()
+        filtered_param_matches = dict()
         for m in matches:
             t, c = m
             if t not in seen:
-                filtered_matches.add(m)
+                # Keep the parameter matches in the function signature order
+                if c == 'IPCompleter.python_func_kw_matches':
+                    filtered_param_matches[m] = None
+                else:
+                    filtered_matches.add(m)
                 seen.add(t)
 
-        _filtered_matches = sorted(filtered_matches, key=lambda x: completions_sorting_key(x[0]))
+        _filtered_matches = list(filtered_param_matches) + sorted(list(filtered_matches), key=lambda x: completions_sorting_key(x[0]))
 
         custom_res = [(m, 'custom') for m in self.dispatch_custom_completer(text) or []]
         
