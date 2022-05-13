@@ -1960,7 +1960,7 @@ class IPCompleter(Completer):
         jedi_matches = []
         jedi_param_matches = []
         for jedi_match in iter(all_jedi_matches):
-            if jedi_match.name.endswith('='):
+            if jedi_match.name.endswith("="):
                 jedi_param_matches.append(jedi_match)
             else:
                 jedi_matches.append(jedi_match)
@@ -2151,8 +2151,7 @@ class IPCompleter(Completer):
         if self.use_jedi and not is_magic_prefix:
             if not full_text:
                 full_text = line_buffer
-            jedi_completions = self._jedi_matches(
-                cursor_pos, cursor_line, full_text)
+            jedi_completions = self._jedi_matches(cursor_pos, cursor_line, full_text)
 
         if self.merge_completions:
             matches = []
@@ -2178,13 +2177,15 @@ class IPCompleter(Completer):
             t, c = m
             if t not in seen:
                 # Keep the parameter matches in the function signature order
-                if c == 'IPCompleter.python_func_kw_matches':
+                if c == "IPCompleter.python_func_kw_matches":
                     filtered_param_matches[m] = None
                 else:
                     filtered_matches.add(m)
                 seen.add(t)
 
-        _filtered_matches = list(filtered_param_matches) + sorted(list(filtered_matches), key=lambda x: completions_sorting_key(x[0]))
+        _filtered_matches = list(filtered_param_matches) + sorted(
+            list(filtered_matches), key=lambda x: completions_sorting_key(x[0])
+        )
 
         custom_res = [(m, 'custom') for m in self.dispatch_custom_completer(text) or []]
         
