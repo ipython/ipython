@@ -1617,8 +1617,10 @@ class IPCompleter(Completer):
             namedArgs = self._default_arguments(eval(callableObj,
                                                     self.namespace))
 
-            # Remove used named arguments from the list, no need to show twice
-            for namedArg in set(namedArgs) - usedNamedArgs:
+            # Remove used named arguments from the list, no need to show twice,
+            # Keep parameters first in the completions by removing from usedNamedArgs
+            usedNamedArgs = {arg for arg in usedNamedArgs if arg not in NamedArgs}
+            for namedArg in namedArgs:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
         except:
@@ -1951,10 +1953,19 @@ class IPCompleter(Completer):
         before = full_text[:offset]
         cursor_line, cursor_column = position_to_cursor(full_text, offset)
 
-        matched_text, matches, matches_origin, jedi_matches = self._complete(
+        matched_text, matches, matches_origin, all_jedi_matches = self._complete(
             full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column)
 
-        iter_jm = iter(jedi_matches)
+        # Move parameter matches first
+        jedi_matches = []
+        jedi_param_matches = []
+        for jedi_match in iter(all_jedi_matches):
+            if jedi_match.name.endswith('='):
+                jedi_param_matches.append(jedi_match)
+            else:
+                jedi_matches.append(jedi_match)
+        # Jedi already sorts matches alphabetically so no need to do that here
+        iter_jm = jedi_param_matches + jedi_matches
         if _timeout:
             for jm in iter_jm:
                 try:
