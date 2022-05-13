@@ -2147,11 +2147,11 @@ class IPCompleter(Completer):
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other environments.
         is_magic_prefix = len(text) > 0 and text[0] == "%"
-        completions: Iterable[Any] = []
+        jedi_completions: Iterable[Any] = []
         if self.use_jedi and not is_magic_prefix:
             if not full_text:
                 full_text = line_buffer
-            completions = self._jedi_matches(
+            jedi_completions = self._jedi_matches(
                 cursor_pos, cursor_line, full_text)
 
         if self.merge_completions:
@@ -2196,7 +2196,7 @@ class IPCompleter(Completer):
 
         self.matches = _matches
 
-        return _CompleteResult(text, _matches, origins, completions)
+        return _CompleteResult(text, _matches, origins, jedi_completions)
         
     def fwd_unicode_match(self, text:str) -> Tuple[str, Sequence[str]]:
         """
