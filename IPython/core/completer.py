@@ -1618,9 +1618,7 @@ class IPCompleter(Completer):
                                                     self.namespace))
 
             # Remove used named arguments from the list, no need to show twice,
-            # Keep parameters first in the completions by removing from usedNamedArgs
-            usedNamedArgs = {arg for arg in usedNamedArgs if arg not in NamedArgs}
-            for namedArg in namedArgs:
+            for namedArg in [arg for arg in namedArgs if arg not in usedNamedArgs]:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
         except:
