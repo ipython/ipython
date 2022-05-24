@@ -146,11 +146,11 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
         return None
     try:
         workdir = Path(tempfile.mkdtemp())
-        tmpfile = workdir.joinpath("tmp.tex")
-        dvifile = workdir.joinpath("tmp.dvi")
-        outfile = workdir.joinpath("tmp.png")
+        tmpfile = "tmp.tex"
+        dvifile = "tmp.dvi"
+        outfile = "tmp.png"
 
-        with tmpfile.open("w", encoding="utf8") as f:
+        with workdir.joinpath(tmpfile).open("w", encoding="utf8") as f:
             f.writelines(genelatex(s, wrap))
 
         with open(os.devnull, 'wb') as devnull:
@@ -181,7 +181,7 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
                 stderr=devnull,
             )
 
-        with outfile.open("rb") as f:
+        with workdir.joinpath(outfile).open("rb") as f:
             return f.read()
     except subprocess.CalledProcessError:
         return None
