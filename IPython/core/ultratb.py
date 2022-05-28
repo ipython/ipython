@@ -239,7 +239,7 @@ class TBTools(colorable.Colorable):
         self.debugger_cls = debugger_cls or debugger.Pdb
 
         if call_pdb:
-            self.pdb = debugger_cls()
+            self.pdb = self.debugger_cls()
         else:
             self.pdb = None
 
