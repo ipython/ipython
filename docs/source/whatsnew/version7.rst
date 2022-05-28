@@ -2,6 +2,15 @@
  7.x Series
 ============
 
+.. _version 7.34:
+
+IPython 7.34
+============
+
+This version contains a single fix:  fix uncaught BdbQuit exceptions on ipdb
+exit :ghpull:`13668`
+
+
 .. _version 7.33:
 
 IPython 7.33
