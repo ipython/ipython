@@ -26,7 +26,10 @@ from traitlets import (
     Float,
 )
 
+from prompt_toolkit import __version__ as ptk_version
+from prompt_toolkit.application.current import get_app
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.cursor_shapes import ModalCursorShapeConfig
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.formatted_text import PygmentsTokens
@@ -37,7 +40,6 @@ from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
 from prompt_toolkit.styles import DynamicStyle, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
-from prompt_toolkit import __version__ as ptk_version
 
 from pygments.styles import get_style_by_name
 from pygments.style import Style
@@ -439,12 +441,9 @@ class TerminalInteractiveShell(InteractiveShell):
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
         self.style = DynamicStyle(lambda: self._style)
 
-        editing_mode = getattr(EditingMode, self.editing_mode.upper())
-
         self.pt_loop = asyncio.new_event_loop()
         self.pt_app = PromptSession(
             auto_suggest=self.auto_suggest,
-            editing_mode=editing_mode,
             key_bindings=key_bindings,
             history=history,
             completer=IPythonPTCompleter(shell=self),
@@ -555,23 +554,30 @@ class TerminalInteractiveShell(InteractiveShell):
             get_message = get_message()
 
         options = {
-                'complete_in_thread': False,
-                'lexer':IPythonPTLexer(),
-                'reserve_space_for_menu':self.space_for_menu,
-                'message': get_message,
-                'prompt_continuation': (
-                    lambda width, lineno, is_soft_wrap:
-                        PygmentsTokens(self.prompts.continuation_prompt_tokens(width))),
-                'multiline': True,
-                'complete_style': self.pt_complete_style,
-
-                # Highlight matching brackets, but only when this setting is
-                # enabled, and only when the DEFAULT_BUFFER has the focus.
-                'input_processors': [ConditionalProcessor(
-                        processor=HighlightMatchingBracketProcessor(chars='[](){}'),
-                        filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
-                            Condition(lambda: self.highlight_matching_brackets))],
-                }
+            "complete_in_thread": False,
+            "lexer": IPythonPTLexer(),
+            "reserve_space_for_menu": self.space_for_menu,
+            "message": get_message,
+            "prompt_continuation": (
+                lambda width, lineno, is_soft_wrap: PygmentsTokens(
+                    self.prompts.continuation_prompt_tokens(width)
+                )
+            ),
+            "multiline": True,
+            "complete_style": self.pt_complete_style,
+            # Highlight matching brackets, but only when this setting is
+            # enabled, and only when the DEFAULT_BUFFER has the focus.
+            "input_processors": [
+                ConditionalProcessor(
+                    processor=HighlightMatchingBracketProcessor(chars="[](){}"),
+                    filter=HasFocus(DEFAULT_BUFFER)
+                    & ~IsDone()
+                    & Condition(lambda: self.highlight_matching_brackets),
+                )
+            ],
+            "cursor": (ModalCursorShapeConfig() if self.modal_cursor else None),
+            "editing_mode": getattr(EditingMode, self.editing_mode.upper()),
+        }
         if not PTK3:
             options['inputhook'] = self.inputhook
 
@@ -601,8 +607,17 @@ class TerminalInteractiveShell(InteractiveShell):
             policy.set_event_loop(self.pt_loop)
         try:
             with patch_stdout(raw=True):
+                def pre_run():
+                    # Copy over ttimeoutlen/timeoutlen values when prompting
+                    # for input. Right now, these can only be copied over in a
+                    # `pre_run` callback.
+                    app = get_app()
+                    app.ttimeoutlen = self.ttimeoutlen
+                    app.timeoutlen = self.timeoutlen
+
                 text = self.pt_app.prompt(
                     default=default,
+                    pre_run=pre_run,
                     **self._extra_prompt_options())
         finally:
             # Restore the original event loop.

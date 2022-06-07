@@ -10,6 +10,8 @@ from . import embed
 
 from pathlib import Path
 from pygments.token import Token
+from prompt_toolkit.application.current import get_app
+from prompt_toolkit.cursor_shapes import ModalCursorShapeConfig
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.formatted_text import PygmentsTokens
@@ -73,7 +75,6 @@ class TerminalPdb(Pdb):
 
         options = dict(
             message=(lambda: PygmentsTokens(get_prompt_tokens())),
-            editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
             key_bindings=create_ipython_shortcuts(self.shell),
             history=self.debugger_history,
             completer=self._ptcomp,
@@ -82,6 +83,7 @@ class TerminalPdb(Pdb):
             complete_style=self.shell.pt_complete_style,
             style=getattr(self.shell, "style", None),
             color_depth=self.shell.color_depth,
+            cursor=(ModalCursorShapeConfig() if self.shell.modal_cursor else None),
         )
 
         if not PTK3:
@@ -121,8 +123,20 @@ class TerminalPdb(Pdb):
                     self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
 
                     # Run the prompt in a different thread.
+                    def pre_run():
+                        # Copy over ttimeoutlen/timeoutlen values when prompting
+                        # for input. Right now, these can only be copied over in a
+                        # `pre_run` callback.
+                        app = get_app()
+                        app.ttimeoutlen = self.shell.ttimeoutlen
+                        app.timeoutlen = self.shell.timeoutlen
+
                     try:
-                        line = self.thread_executor.submit(self.pt_app.prompt).result()
+                        line = self.thread_executor.submit(
+                            self.pt_app.prompt,
+                            pre_run=pre_run,
+                            editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
+                        ).result()
                     except EOFError:
                         line = "EOF"
 
