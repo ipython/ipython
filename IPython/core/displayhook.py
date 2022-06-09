@@ -58,6 +58,8 @@ class DisplayHook(Configurable):
         to_user_ns = {'_':self._,'__':self.__,'___':self.___}
         self.shell.user_ns.update(to_user_ns)
 
+        self.is_quiet = False
+
     @property
     def prompt_count(self):
         return self.shell.execution_count
@@ -83,24 +85,7 @@ class DisplayHook(Configurable):
 
     def quiet(self):
         """Should we silence the display hook because of ';'?"""
-        # do not print output if input ends in ';'
-        
-        try:
-            cell = self.shell.history_manager.input_hist_parsed[-1]
-        except IndexError:
-            # some uses of ipshellembed may fail here
-            return False
-        
-        sio = _io.StringIO(cell)
-        tokens = list(tokenize.generate_tokens(sio.readline))
-
-        for token in reversed(tokens):
-            if token[0] in (tokenize.ENDMARKER, tokenize.NL, tokenize.NEWLINE, tokenize.COMMENT):
-                continue
-            if (token[0] == tokenize.OP) and (token[1] == ';'):
-                return True
-            else:
-                return False
+        return self.is_quiet
 
     def start_displayhook(self):
         """Start the displayhook, initializing resources."""
