@@ -64,6 +64,8 @@ Python {py} detected.
 from setuptools import setup
 
 # Our own imports
+sys.path.insert(0, ".")
+
 from setupbase import target_update
 
 from setupbase import (
