@@ -474,11 +474,7 @@ class ListTB(TBTools):
             )
 
             if name != "<module>":
-                item += " in %s%s%s\n" % (
-                    Colors.name,
-                    name,
-                    Colors.Normal,
-                )
+                item += f" in {Colors.name}{name}{Colors.Normal}\n"
             else:
                 item += "\n"
             if line:
@@ -493,11 +489,7 @@ class ListTB(TBTools):
             ),
         )
         if name != "<module>":
-            item += " in %s%s%s" % (
-                Colors.nameEm,
-                name,
-                Colors.normalEm,
-            )
+            item += f" in {Colors.nameEm}{name}{Colors.normalEm}"
         item += "%s\n" % (Colors.Normal)
         if line:
             item += '%s    %s%s\n' % (Colors.line, line.strip(),
