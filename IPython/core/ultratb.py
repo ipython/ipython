@@ -470,12 +470,12 @@ class ListTB(TBTools):
             normalCol, nameCol, fileCol, lineCol = (
                 # Emphasize the last entry
                 (Colors.normalEm, Colors.nameEm, Colors.filenameEm, Colors.line)
-                if ind == len(extracted_list) - 1 else
-                (Colors.Normal, Colors.name, Colors.filename, "")
+                if ind == len(extracted_list) - 1
+                else (Colors.Normal, Colors.name, Colors.filename, "")
             )
 
             fns = _format_filename(filename, fileCol, normalCol, lineno=lineno)
-            item =f"{normalCol}  {fns}"
+            item = f"{normalCol}  {fns}"
 
             if name != "<module>":
                 item += f" in {nameCol}{name}{normalCol}\n"
