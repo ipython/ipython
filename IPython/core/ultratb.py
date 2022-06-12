@@ -468,6 +468,7 @@ class ListTB(TBTools):
         list = []
         for ind, (filename, lineno, name, line) in enumerate(extracted_list):
             normalCol, nameCol, fileCol, lineCol = (
+                # Emphasize the last entry
                 (Colors.normalEm, Colors.nameEm, Colors.filenameEm, Colors.line)
                 if ind == len(extracted_list) - 1 else
                 (Colors.Normal, Colors.name, Colors.filename, "")
