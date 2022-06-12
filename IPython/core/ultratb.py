@@ -466,35 +466,24 @@ class ListTB(TBTools):
 
         Colors = self.Colors
         list = []
-        for filename, lineno, name, line in extracted_list[:-1]:
-            item = "  %s" % (
-                _format_filename(
-                    filename, Colors.filename, Colors.Normal, lineno=lineno
-                )
+        for ind, (filename, lineno, name, line) in enumerate(extracted_list):
+            normalCol, nameCol, fileCol, lineCol = (
+                (Colors.normalEm, Colors.nameEm, Colors.filenameEm, Colors.line)
+                if ind == len(extracted_list) - 1 else
+                (Colors.Normal, Colors.name, Colors.filename, "")
             )
 
+            fns = _format_filename(filename, fileCol, normalCol, lineno=lineno)
+            item =f"{normalCol}  {fns}"
+
             if name != "<module>":
-                item += f" in {Colors.name}{name}{Colors.Normal}\n"
+                item += f" in {nameCol}{name}{normalCol}\n"
             else:
                 item += "\n"
             if line:
-                item += '    %s\n' % line.strip()
+                item += f"{lineCol}    {line.strip()}{normalCol}\n"
             list.append(item)
-        # Emphasize the last entry
-        filename, lineno, name, line = extracted_list[-1]
-        item = "%s  %s" % (
-            Colors.normalEm,
-            _format_filename(
-                filename, Colors.filenameEm, Colors.normalEm, lineno=lineno
-            ),
-        )
-        if name != "<module>":
-            item += f" in {Colors.nameEm}{name}{Colors.normalEm}"
-        item += "%s\n" % (Colors.Normal)
-        if line:
-            item += '%s    %s%s\n' % (Colors.line, line.strip(),
-                                      Colors.Normal)
-        list.append(item)
+
         return list
 
     def _format_exception_only(self, etype, value):
@@ -735,7 +724,7 @@ class VerboseTB(TBTools):
         if lvals_list:
             lvals = '%s%s' % (indent, em_normal.join(lvals_list))
 
-        result = "%s%s%s\n" % (link, ", " if call else "", call)
+        result = f'{link}{", " if call else ""}{call}\n'
 
         result += ''.join(_format_traceback_lines(frame_info.lines, Colors, self.has_colors, lvals))
         return result
