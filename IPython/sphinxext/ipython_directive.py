@@ -174,7 +174,7 @@ To Do
 
 # Authors
 # =======
-# 
+#
 # - John D Hunter: original author.
 # - Fernando Perez: refactoring, documentation, cleanups, port to 0.11.
 # - VáclavŠmilauer <eudoxos-AT-arcig.cz>: Prompt generalizations.
@@ -807,74 +807,56 @@ class EmbeddedSphinxShell(object):
         the content as a list as if it were ipython code
         """
         output = []
-        savefig = False # keep up with this to clear figure
-        multiline = False # to handle line continuation
-        multiline_start = None
         fmtin = self.promptin
-
         ct = 0
 
-        for lineno, line in enumerate(content):
+        try:
+            savefigs = [i for i, line in enumerate(content)
+                        if line[:8] == '@savefig']
+            comments = [i for i, line in enumerate(content)
+                        if line != '' and line[0] == '#']
+            content_text = '\n'.join([c if c[:8] != '@savefig' else ''
+                                      for c in content])
+            mod = ast.parse(content_text)
+            linestarts = [body.lineno - 1 for body in mod.body]
+        except Exception:
+            savefigs = []
+            comments = []
+            linestarts = [0]
 
-            line_stripped = line.strip()
-            if not len(line):
-                output.append(line)
+        breaks = sorted(savefigs + linestarts + comments)
+        for i, lineno in enumerate(breaks):
+            if i == 0:
                 continue
+            output.append([c for c in content[breaks[i-1]:lineno]])
 
-            # handle decorators
-            if line_stripped.startswith('@'):
-                output.extend([line])
-                if 'savefig' in line:
-                    savefig = True # and need to clear figure
-                continue
+        output.append([c for c in content[lineno:]])
 
-            # handle comments
-            if line_stripped.startswith('#'):
-                output.extend([line])
-                continue
+        fmtoutput = []
+        for block in output:
+            for i, line in enumerate(block):
+                if line[:8] == '@savefig':
+                    fmtoutput.append(line)
+                    add_blank = False
+                    continue
+                add_blank = True
+                if i == 0:
+                    modified = u'%s %s' % (fmtin % ct, line.strip())
+                    continuation = u'   %s:' % ''.join(['.']*(len(str(ct))+2))
+                    ct += 1
+                    fmtoutput.append(modified)
+                else:
+                    modified = u'%s %s' % (continuation, line)
+                    fmtoutput.append(modified)
+            if add_blank:
+                fmtoutput.append('')
 
-            # deal with lines checking for multiline
-            continuation  = u'   %s:'% ''.join(['.']*(len(str(ct))+2))
-            if not multiline:
-                modified = u"%s %s" % (fmtin % ct, line_stripped)
-                output.append(modified)
-                ct += 1
-                try:
-                    ast.parse(line_stripped)
-                    output.append(u'')
-                except Exception: # on a multiline
-                    multiline = True
-                    multiline_start = lineno
-            else: # still on a multiline
-                modified = u'%s %s' % (continuation, line)
-                output.append(modified)
+        if len(savefigs) > 0:  # clear figure if plotted
+            self.ensure_pyplot()
+            self.process_input_line('plt.clf()', store_history=False)
+            self.clear_cout()
 
-                # if the next line is indented, it should be part of multiline
-                if len(content) > lineno + 1:
-                    nextline = content[lineno + 1]
-                    if len(nextline) - len(nextline.lstrip()) > 3:
-                        continue
-                try:
-                    mod = ast.parse(
-                            '\n'.join(content[multiline_start:lineno+1]))
-                    if isinstance(mod.body[0], ast.FunctionDef):
-                        # check to see if we have the whole function
-                        for element in mod.body[0].body:
-                            if isinstance(element, ast.Return):
-                                multiline = False
-                    else:
-                        output.append(u'')
-                        multiline = False
-                except Exception:
-                    pass
-
-            if savefig: # clear figure if plotted
-                self.ensure_pyplot()
-                self.process_input_line('plt.clf()', store_history=False)
-                self.clear_cout()
-                savefig = False
-
-        return output
+        return fmtoutput
 
     def custom_doctest(self, decorator, input_lines, found, submitted):
         """
