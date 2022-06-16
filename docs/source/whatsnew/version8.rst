@@ -3,6 +3,22 @@
 ============
 
 
+.. _version 8.3.0:
+
+IPython 8.3.0
+-------------
+
+ - :ghpull:`13625`, using ``?``, ``??``, ``*?`` will not call
+   ``set_next_input`` as most frontend allow proper multiline editing and it was
+   causing issues for many users of multi-cell frontends.
+
+
+ - :ghpull:`13600`, ``pre_run_*``-hooks will now have a ``cell_id`` attribute on
+   the info object when frontend provide it.
+
+ - :ghpull:`13624`, fixed :kbd:`End` key being broken after accepting an
+   autosuggestion.
+
 .. _version 8.2.0:
 
 IPython 8.2.0
