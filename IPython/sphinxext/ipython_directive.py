@@ -821,8 +821,11 @@ class EmbeddedSphinxShell(object):
                 output.append(line)
                 continue
 
-            # handle decorators
-            if line_stripped.startswith('@'):
+            # handle pseudo-decorators, whilst ensuring real python decorators are treated as input
+            if any(
+                line_stripped.startswith("@" + pseudo_decorator)
+                for pseudo_decorator in PSEUDO_DECORATORS
+            ):
                 output.extend([line])
                 if 'savefig' in line:
                     savefig = True # and need to clear figure
