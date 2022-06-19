@@ -166,14 +166,17 @@ Profiles
 
 IPython can use multiple profiles, with separate configuration and
 history. By default, if you don't specify a profile, IPython always runs
-in the ``default`` profile. To use a new profile::
+in the ``default`` profile. To use a profile::
 
-    ipython profile create foo   # create the profile foo
-    ipython --profile=foo        # start IPython using the new profile
+    ipython --profile=foo        # start IPython using foo if it exists or create it if it doesn't
 
 Profiles are typically stored in :ref:`ipythondir`, but you can also keep
 a profile in the current working directory, for example to distribute it
-with a project. To find a profile directory on the filesystem::
+with a project. To create or load a profile with a specified directory::
+
+    ipython --profile-dir foo
+
+To find a profile directory on the filesystem::
 
     ipython locate profile foo
 
