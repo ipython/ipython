@@ -241,6 +241,7 @@ such that it allows autoplay.
     the HTML allowing it. It also could get blocked by some browser extensions.
 
 Try it out!
+
 ::
 
     In [1]: from IPython.display import YouTubeVideo
@@ -1368,7 +1369,6 @@ Miscellaneous
 IPython 7.3.0
 =============
 
-.. _whatsnew720:
 
 IPython 7.3.0 bring several bug fixes and small improvements that you will
 described bellow. 
@@ -1393,6 +1393,8 @@ Misc bug fixes and improvements:
  - Re-initialize posix aliases after a ``%reset`` :ghpull:`11528`
  - Allow the IPython command line to run ``*.ipynb`` files :ghpull:`11529`
 
+.. _whatsnew720:
+   
 IPython 7.2.0
 =============
 
@@ -1423,8 +1425,7 @@ and we're now proud to have code contributed by Chris in IPython.
 OSMagics.cd_force_quiet configuration option
 --------------------------------------------
 
-You can set this option to force the %cd magic to behave as if ``-q`` was passed:
-::
+You can set this option to force the %cd magic to behave as if ``-q`` was passed::
 
     In [1]: cd /
     /
