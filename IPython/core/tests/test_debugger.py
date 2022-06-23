@@ -379,6 +379,7 @@ def _decorator_skip_setup():
     child.expect("\n")
 
     child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
+    child.str_last_chars = 500
 
     dedented_blocks = [dedent(b).strip() for b in skip_decorators_blocks]
     in_prompt_number = 1
