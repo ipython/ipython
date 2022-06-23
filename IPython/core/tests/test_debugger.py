@@ -369,6 +369,7 @@ def _decorator_skip_setup():
 
     env = os.environ.copy()
     env["IPY_TEST_SIMPLE_PROMPT"] = "1"
+    env["PROMPT_TOOLKIT_NO_CPR"] = "1"
 
     child = pexpect.spawn(
         sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
