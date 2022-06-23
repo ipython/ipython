@@ -20,6 +20,11 @@ from prompt_toolkit import __version__ as ptk_version
 PTK3 = ptk_version.startswith('3.')
 
 
+# we want to avoid ptk as much as possible when using subprocesses
+# as it uses cursor positioning requests, deletes color ....
+_use_simple_prompt = "IPY_TEST_SIMPLE_PROMPT" in os.environ
+
+
 class TerminalPdb(Pdb):
     """Standalone IPython debugger."""
 
@@ -87,8 +92,9 @@ class TerminalPdb(Pdb):
         if not PTK3:
             options['inputhook'] = self.shell.inputhook
         options.update(pt_session_options)
-        self.pt_loop = asyncio.new_event_loop()
-        self.pt_app = PromptSession(**options)
+        if not _use_simple_prompt:
+            self.pt_loop = asyncio.new_event_loop()
+            self.pt_app = PromptSession(**options)
 
     def cmdloop(self, intro=None):
         """Repeatedly issue a prompt, accept input, parse an initial prefix
@@ -121,10 +127,15 @@ class TerminalPdb(Pdb):
                     self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
 
                     # Run the prompt in a different thread.
-                    try:
-                        line = self.thread_executor.submit(self.pt_app.prompt).result()
-                    except EOFError:
-                        line = "EOF"
+                    if not _use_simple_prompt:
+                        try:
+                            line = self.thread_executor.submit(
+                                self.pt_app.prompt
+                            ).result()
+                        except EOFError:
+                            line = "EOF"
+                    else:
+                        line = input("ipdb> ")
 
                 line = self.precmd(line)
                 stop = self.onecmd(line)
