@@ -452,11 +452,13 @@ def test_decorator_skip_with_breakpoint():
 
     env = os.environ.copy()
     env["IPY_TEST_SIMPLE_PROMPT"] = "1"
+    env["PROMPT_TOOLKIT_NO_CPR"] = "1"
 
     child = pexpect.spawn(
         sys.executable, ["-m", "IPython", "--colors=nocolor"], env=env
     )
     child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
+    child.str_last_chars = 500
 
     child.expect("IPython")
     child.expect("\n")
