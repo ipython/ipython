@@ -1,10 +1,10 @@
-.. _ipython_as_shell:
 
 .. note::
 
    This page has been kept for historical reason. You most likely want to use
    `Xonsh <https://xon.sh/>`__ instead of this.
 
+.. _ipython_as_shell:
 
 =========================
 IPython as a system shell
