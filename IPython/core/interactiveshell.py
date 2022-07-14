@@ -480,8 +480,7 @@ class InteractiveShell(SingletonConfigurable):
     ).tag(config=True)
 
     warn_venv = Bool(
-        True,
-        help="Warn on startup if running inside a virtual environment."
+        True, help="Warn on startup if running inside a virtual environment."
     ).tag(config=True)
 
     # TODO: this part of prompt management should be moved to the frontends.
