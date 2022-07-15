@@ -481,7 +481,7 @@ class InteractiveShell(SingletonConfigurable):
 
     warn_venv = Bool(
         True,
-        help='Warn if running in a virtual environment with no IPython installed (so IPython from the global environment is used).'
+        help="Warn if running in a virtual environment with no IPython installed (so IPython from the global environment is used)."
     ).tag(config=True)
 
     # TODO: this part of prompt management should be moved to the frontends.
