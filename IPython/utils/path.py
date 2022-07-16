@@ -85,11 +85,11 @@ def get_py_filename(name):
     name = os.path.expanduser(name)
     if os.path.isfile(name):
         return name
-    if not name.endswith('.py'):
-        py_name = name + '.py'
+    if not name.endswith(".py"):
+        py_name = name + ".py"
         if os.path.isfile(py_name):
             return py_name
-    raise IOError('File `%r` not found.' % name)
+    raise IOError("File `%r` not found." % name)
 
 
 def filefind(filename: str, path_dirs=None) -> str:
