@@ -113,7 +113,7 @@ def create_ipython_shortcuts(shell):
             c = buf[i]
             if c == quote:
                 paired = not paired
-            elif c == '\\':
+            elif c == "\\":
                 i += 1
             i += 1
         return paired
@@ -127,16 +127,19 @@ def create_ipython_shortcuts(shell):
             return _preceding_text_cache[pattern]
 
         if callable(pattern):
+
             def _preceding_text():
                 app = get_app()
                 before_cursor = app.current_buffer.document.current_line_before_cursor
                 return bool(pattern(before_cursor))
+
         else:
             m = re.compile(pattern)
 
             def _preceding_text():
                 app = get_app()
-                return bool(m.match(app.current_buffer.document.current_line_before_cursor))
+                before_cursor = app.current_buffer.document.current_line_before_cursor
+                return bool(m.match(before_cursor))
 
         condition = Condition(_preceding_text)
         _preceding_text_cache[pattern] = condition
