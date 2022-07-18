@@ -479,6 +479,11 @@ class InteractiveShell(SingletonConfigurable):
         """
     ).tag(config=True)
 
+    warn_venv = Bool(
+        True,
+        help="Warn if running in a virtual environment with no IPython installed (so IPython from the global environment is used).",
+    ).tag(config=True)
+
     # TODO: this part of prompt management should be moved to the frontends.
     # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
     separate_in = SeparateUnicode('\n').tag(config=True)
@@ -847,11 +852,11 @@ class InteractiveShell(SingletonConfigurable):
                     p_ver = re_m.groups()
 
             virtual_env = str(virtual_env_path).format(*p_ver)
-
-        warn(
-            "Attempting to work in a virtualenv. If you encounter problems, "
-            "please install IPython inside the virtualenv."
-        )
+        if self.warn_venv:
+            warn(
+                "Attempting to work in a virtualenv. If you encounter problems, "
+                "please install IPython inside the virtualenv."
+            )
         import site
         sys.path.insert(0, virtual_env)
         site.addsitedir(virtual_env)
