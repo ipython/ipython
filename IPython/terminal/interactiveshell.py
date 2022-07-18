@@ -665,7 +665,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 code = self.prompt_for_code()
             except EOFError:
                 if (not self.confirm_exit) \
-                        or self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
+                        or self.ask_yes_no('Do you really want to exit [Y/n]?','y','n'):
                     self.ask_exit()
 
             else:
