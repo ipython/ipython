@@ -177,7 +177,7 @@ On top of the above there are significant modification to the AST of
 significant overhead to this kind of code.
 
 By default the generated coroutine function will be consumed by Asyncio's
-``loop_runner = asyncio.get_evenloop().run_until_complete()`` method if
+``loop_runner = asyncio.get_event_loop().run_until_complete()`` method if
 ``async`` mode is deemed necessary, otherwise the coroutine will just be
 exhausted in a simple runner. It is possible, though, to change the default
 runner.

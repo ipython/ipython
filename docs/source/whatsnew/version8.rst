@@ -2,6 +2,17 @@
  8.x Series
 ============
 
+.. _version 8.4.0:
+
+IPython 8.4.0
+-------------
+
+As for 7.34, this version contains a single fix:  fix uncaught BdbQuit exceptions on ipdb
+exit :ghpull:`13668`, and a single typo fix in documentation: :ghpull:`13682`
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 
 .. _version 8.3.0:
 

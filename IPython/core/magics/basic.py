@@ -368,7 +368,7 @@ Currently the magic system has the following functions:""",
 
         If called without arguments, acts as a toggle.
 
-        When in verbose mode the value --show (and --hide)
+        When in verbose mode the value `--show` (and `--hide`)
         will respectively show (or hide) frames with ``__tracebackhide__ =
         True`` value set.
         """

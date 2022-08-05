@@ -187,7 +187,10 @@ def _format_filename(file, ColorFilename, ColorNormal, *, lineno=None):
 
     if ipinst is not None and file in ipinst.compile._filename_map:
         file = "[%s]" % ipinst.compile._filename_map[file]
-        tpl_link = f"Input {ColorFilename}In {{file}}{ColorNormal}"
+        if lineno is None:
+            tpl_link = f"Cell {ColorFilename}In {{file}}{ColorNormal}"
+        else:
+            tpl_link = f"Cell {ColorFilename}In {{file}}, line {{lineno}}{ColorNormal}"
     else:
         file = util_path.compress_user(
             py3compat.cast_unicode(file, util_path.fs_encoding)
@@ -239,7 +242,7 @@ class TBTools(colorable.Colorable):
         self.debugger_cls = debugger_cls or debugger.Pdb
 
         if call_pdb:
-            self.pdb = debugger_cls()
+            self.pdb = self.debugger_cls()
         else:
             self.pdb = None
 
@@ -463,34 +466,25 @@ class ListTB(TBTools):
 
         Colors = self.Colors
         list = []
-        for filename, lineno, name, line in extracted_list[:-1]:
-            item = "  %s in %s%s%s\n" % (
-                _format_filename(
-                    filename, Colors.filename, Colors.Normal, lineno=lineno
-                ),
-                Colors.name,
-                name,
-                Colors.Normal,
+        for ind, (filename, lineno, name, line) in enumerate(extracted_list):
+            normalCol, nameCol, fileCol, lineCol = (
+                # Emphasize the last entry
+                (Colors.normalEm, Colors.nameEm, Colors.filenameEm, Colors.line)
+                if ind == len(extracted_list) - 1
+                else (Colors.Normal, Colors.name, Colors.filename, "")
             )
+
+            fns = _format_filename(filename, fileCol, normalCol, lineno=lineno)
+            item = f"{normalCol}  {fns}"
+
+            if name != "<module>":
+                item += f" in {nameCol}{name}{normalCol}\n"
+            else:
+                item += "\n"
             if line:
-                item += '    %s\n' % line.strip()
+                item += f"{lineCol}    {line.strip()}{normalCol}\n"
             list.append(item)
-        # Emphasize the last entry
-        filename, lineno, name, line = extracted_list[-1]
-        item = "%s  %s in %s%s%s%s\n" % (
-            Colors.normalEm,
-            _format_filename(
-                filename, Colors.filenameEm, Colors.normalEm, lineno=lineno
-            ),
-            Colors.nameEm,
-            name,
-            Colors.normalEm,
-            Colors.Normal,
-        )
-        if line:
-            item += '%s    %s%s\n' % (Colors.line, line.strip(),
-                                      Colors.Normal)
-        list.append(item)
+
         return list
 
     def _format_exception_only(self, etype, value):
@@ -687,7 +681,7 @@ class VerboseTB(TBTools):
 
         func = frame_info.executing.code_qualname()
         if func == "<module>":
-            call = tpl_call.format(file=func, scope="")
+            call = ""
         else:
             # Decide whether to include variable details or not
             var_repr = eqrepr if self.include_vars else nullrepr
@@ -731,7 +725,7 @@ class VerboseTB(TBTools):
         if lvals_list:
             lvals = '%s%s' % (indent, em_normal.join(lvals_list))
 
-        result = "%s, %s\n" % (link, call)
+        result = f'{link}{", " if call else ""}{call}\n'
 
         result += ''.join(_format_traceback_lines(frame_info.lines, Colors, self.has_colors, lvals))
         return result
