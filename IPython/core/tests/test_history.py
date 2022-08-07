@@ -228,11 +228,12 @@ def test_histmanager_disabled():
     # hist_file should not be created
     assert hist_file.exists() is False
 
+
 def test_get_tail_session_awareness():
     """Test .get_tail() is:
-                - session specific in HistoryManager
-                - session agnostic in HistoryAccessor
-            same for .get_last_session_id()
+        - session specific in HistoryManager
+        - session agnostic in HistoryAccessor
+    same for .get_last_session_id()
     """
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:

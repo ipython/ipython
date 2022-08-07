@@ -361,8 +361,9 @@ class HistoryAccessor(HistoryAccessorBase):
         self.writeout_cache()
         if not include_latest:
             n += 1
-        cur = self._run_sql("ORDER BY session DESC, line DESC LIMIT ?",
-                                (n,), raw=raw, output=output)
+        cur = self._run_sql(
+            "ORDER BY session DESC, line DESC LIMIT ?", (n,), raw=raw, output=output
+        )
         if not include_latest:
             return reversed(list(cur)[1:])
         return reversed(list(cur))
