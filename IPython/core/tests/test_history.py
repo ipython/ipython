@@ -242,6 +242,7 @@ def test_get_tail_session_awareness():
         get_source = lambda x: x[2]
         hm1 = None
         hm2 = None
+        ha = None
         try:
             # hm1 creates a new session and adds history entries,
             # ha catches up
@@ -298,8 +299,9 @@ def test_get_tail_session_awareness():
         finally:
             if hm1:
                 hm1.save_thread.stop()
+                hm1.db.close()
             if hm2:
                 hm2.save_thread.stop()
-            hm = hm1 or hm2
-            if hm:
-                hm.db.close()
+                hm2.db.close()
+            if ha:
+                ha.db.close()
