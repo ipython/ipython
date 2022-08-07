@@ -367,7 +367,8 @@ class Pdb(OldPdb):
         self.msg("Restart doesn't make sense here. Using 'quit' instead.")
         return self.do_quit(arg)
 
-    def print_stack_trace(self, context=None):
+    def format_stack_trace(self, context=None):
+        result = []
         Colors = self.color_scheme_table.active_colors
         ColorsNormal = Colors.Normal
         if context is None:
@@ -385,17 +386,52 @@ class Pdb(OldPdb):
                     skipped += 1
                     continue
                 if skipped:
-                    print(
+                    result.append(
                         f"{Colors.excName}    [... skipping {skipped} hidden frame(s)]{ColorsNormal}\n"
                     )
                     skipped = 0
                 self.print_stack_entry(frame_lineno, context=context)
             if skipped:
-                print(
+                result.append(
                     f"{Colors.excName}    [... skipping {skipped} hidden frame(s)]{ColorsNormal}\n"
                 )
         except KeyboardInterrupt:
             pass
+        return result
+
+    def print_stacktrace(self, context=None):
+        print("".join(self.format_stack_trace(context=context)))
+
+    def do_snapshot(self, arg):
+        if not arg or arg == 'create':
+            snapshot.snapshot(context=self.format_stack_trace())
+            return
+
+        option, *args = arg.split()
+        if option == 'list':
+            snapshot.print_snapshot_list()
+        elif option == 'revert':
+            idx = -1
+            if args:
+                try:
+                    idx = int(args[0])
+                except ValueError:
+                    self.error(f"Could not parse snapshot index, {repr(args[0])} is not a valid integer.")
+                    return
+
+            n = len(snapshot.SNAPSHOTS)
+            if not (-n <= idx < n):
+                self.error(f"Snapshot index {idx} is invalid, valid intervals are [{-n}, {n})")
+                return
+
+            snapshot.revert_to_snapshot(idx)
+
+        elif option == 'killall':
+            snapshot.revert_to_snapshot(0)
+        else:
+            raise ValueError(f"Unknown option: {arg}")
+
+    do_snap = do_sn = do_snapshot
 
     def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
                           context=None):
