@@ -2,9 +2,9 @@ name: Run MyPy
 
 on:
   push:
-    branches: [ master, 7.x]
+    branches: [ main, 7.x]
   pull_request:
-    branches: [ master, 7.x]
+    branches: [ main, 7.x]
 
 jobs:
   build:
