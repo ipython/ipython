@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - master
       - '*.x'
   pull_request:
   # Run weekly on Monday at 1:23 UTC

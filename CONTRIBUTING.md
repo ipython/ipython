@@ -33,7 +33,7 @@ When opening a new Issue, please take the following steps:
 
 1. Search GitHub and/or Google for your issue to avoid duplicate reports.
    Keyword searches for your error messages are most helpful.
-2. If possible, try updating to master and reproducing your issue,
+2. If possible, try updating to main and reproducing your issue,
    because we may have already fixed it.
 3. Try to include a minimal reproducible test case.
 4. Include relevant system information.  Start with the output of:
@@ -53,7 +53,7 @@ Some guidelines on contributing to IPython:
   Review and discussion can begin well before the work is complete,
   and the more discussion the better.
   The worst case is that the PR is closed.
-* Pull Requests should generally be made against master
+* Pull Requests should generally be made against main
 * Pull Requests should be tested, if feasible:
     - bugfixes should include regression tests.
     - new behavior should at least get minimal exercise.
