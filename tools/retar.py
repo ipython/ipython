@@ -4,6 +4,8 @@ Un-targz and retargz a targz file to ensure reproducible build.
 usage: 
 
     $ export SOURCE_DATE_EPOCH=$(date +%s)
+    # or
+    $ export SOURCE_DATE_EPOCH=$(git show -s --format=%ct HEAD)
     ...
     $ python retar.py <tarfile.gz>
 
