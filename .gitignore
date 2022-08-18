@@ -3,7 +3,6 @@ build
 dist
 _build
 docs/man/*.gz
-docs/source/api/generated
 docs/source/config/options
 docs/source/config/shortcuts/*.csv
 docs/source/savefig
