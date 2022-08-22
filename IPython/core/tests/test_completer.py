@@ -475,6 +475,17 @@ class TestCompleter(unittest.TestCase):
             "encoding" in c.signature
         ), "Signature of function was not found by completer"
 
+    def test_completions_have_type(self):
+        """
+        Lets make sure matchers provide completion type.
+        """
+        ip = get_ipython()
+        with provisionalcompleter():
+            ip.Completer.use_jedi = False
+            completions = ip.Completer.completions("%tim", 3)
+            c = next(completions)  # should be `%time` or similar
+        assert c.type == 'magic', "Signature of function was not found by completer"
+
     @pytest.mark.xfail(reason="Known failure on jedi<=0.18.0")
     def test_deduplicate_completions(self):
         """
