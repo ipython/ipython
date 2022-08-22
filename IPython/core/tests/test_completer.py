@@ -484,7 +484,7 @@ class TestCompleter(unittest.TestCase):
             ip.Completer.use_jedi = False
             completions = ip.Completer.completions("%tim", 3)
             c = next(completions)  # should be `%time` or similar
-        assert c.type == 'magic', "Signature of function was not found by completer"
+        assert c.type == "magic", "Signature of function was not found by completer"
 
     @pytest.mark.xfail(reason="Known failure on jedi<=0.18.0")
     def test_deduplicate_completions(self):

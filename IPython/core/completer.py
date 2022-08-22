@@ -360,10 +360,12 @@ _JediCompletionLike = Union[jedi.api.Completion, _FakeJediCompletion]
 
 def matcher(*, type: str):
     """Decorator for adding attributes to matcher-derived completion items."""
-    def outer(func):
+
+    def wrapper(func):
         func.completion_type = type
         return func
-    return outer
+
+    return wrapper
 
 
 class Completion:
@@ -931,8 +933,9 @@ def _safe_isinstance(obj, module, class_name):
     return (module in sys.modules and
             isinstance(obj, getattr(import_module(module), class_name)))
 
-@matcher(type='unicode')
-def back_unicode_name_matches(text:str) -> Tuple[str, Sequence[str]]:
+
+@matcher(type="unicode")
+def back_unicode_name_matches(text: str) -> Tuple[str, Sequence[str]]:
     """Match Unicode characters back to Unicode name
 
     This does  ``☃`` -> ``\\snowman``
@@ -972,8 +975,8 @@ def back_unicode_name_matches(text:str) -> Tuple[str, Sequence[str]]:
     return '', ()
 
 
-@matcher(type='latex')
-def back_latex_name_matches(text:str) -> Tuple[str, Sequence[str]] :
+@matcher(type="latex")
+def back_latex_name_matches(text: str) -> Tuple[str, Sequence[str]]:
     """Match latex characters back to unicode name
 
     This does ``\\ℵ`` -> ``\\aleph``
@@ -1242,8 +1245,8 @@ class IPCompleter(Completer):
         return [f.replace("\\","/")
                 for f in self.glob("%s*" % text)]
 
-    @matcher(type='file')
-    def file_matches(self, text:str)->List[str]:
+    @matcher(type="file")
+    def file_matches(self, text: str) -> List[str]:
         """Match filenames, expanding ~USER type strings.
 
         Most of the seemingly convoluted logic in this completer is an
@@ -1325,8 +1328,8 @@ class IPCompleter(Completer):
         # Mark directories in input list by appending '/' to their names.
         return [x+'/' if os.path.isdir(x) else x for x in matches]
 
-    @matcher(type='magic')
-    def magic_matches(self, text:str):
+    @matcher(type="magic")
+    def magic_matches(self, text: str):
         """Match magics"""
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too.
@@ -1368,9 +1371,9 @@ class IPCompleter(Completer):
 
         return comp
 
-    @matcher(type='config magic')
-    def magic_config_matches(self, text:str) -> List[str]:
-        """ Match class names and attributes for %config magic """
+    @matcher(type="config magic")
+    def magic_config_matches(self, text: str) -> List[str]:
+        """Match class names and attributes for %config magic"""
         texts = text.strip().split()
 
         if len(texts) > 0 and (texts[0] == 'config' or texts[0] == '%config'):
@@ -1404,9 +1407,9 @@ class IPCompleter(Completer):
                          if attr.startswith(texts[1]) ]
         return []
 
-    @matcher(type='colors magic')
-    def magic_color_matches(self, text:str) -> List[str] :
-        """ Match color schemes for %colors magic"""
+    @matcher(type="colors magic")
+    def magic_color_matches(self, text: str) -> List[str]:
+        """Match color schemes for %colors magic"""
         texts = text.split()
         if text.endswith(' '):
             # .split() strips off the trailing whitespace. Add '' back
@@ -1419,7 +1422,9 @@ class IPCompleter(Completer):
                      if color.startswith(prefix) ]
         return []
 
-    def _jedi_matches(self, cursor_column:int, cursor_line:int, text:str) -> Iterable[_JediCompletionLike]:
+    def _jedi_matches(
+        self, cursor_column: int, cursor_line: int, text: str
+    ) -> Iterable[_JediCompletionLike]:
         """
         Return a list of :any:`jedi.api.Completion`s object from a ``text`` and
         cursor position.
@@ -1573,7 +1578,7 @@ class IPCompleter(Completer):
 
         return list(set(ret))
 
-    @matcher(type='param')
+    @matcher(type="param")
     def python_func_kw_matches(self, text):
         """Match named parameters (kwargs) of the last open function"""
 
@@ -1670,10 +1675,9 @@ class IPCompleter(Completer):
             return obj.dtype.names or []
         return []
 
-    @matcher(type='dictionary key')
-    def dict_key_matches(self, text:str) -> List[str]:
-        "Match string keys in a dictionary, after e.g. 'foo[' "
-
+    @matcher(type="dictionary key")
+    def dict_key_matches(self, text: str) -> List[str]:
+        """Match string keys in a dictionary, after e.g. ``foo[``."""
 
         if self.__dict_key_regexps is not None:
             regexps = self.__dict_key_regexps
@@ -1776,8 +1780,8 @@ class IPCompleter(Completer):
         return [leading + k + suf for k in matches]
 
     @staticmethod
-    @matcher(type='unicode')
-    def unicode_name_matches(text:str) -> Tuple[str, List[str]] :
+    @matcher(type="unicode")
+    def unicode_name_matches(text: str) -> Tuple[str, List[str]]:
         """Match Latex-like syntax for unicode characters base
         on the name of the character.
 
@@ -1798,9 +1802,8 @@ class IPCompleter(Completer):
                 pass
         return '', []
 
-
-    @matcher(type='latex')
-    def latex_matches(self, text:str) -> Tuple[str, Sequence[str]]:
+    @matcher(type="latex")
+    def latex_matches(self, text: str) -> Tuple[str, Sequence[str]]:
         """Match Latex syntax for unicode characters.
 
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
@@ -1978,8 +1981,15 @@ class IPCompleter(Completer):
         before = full_text[:offset]
         cursor_line, cursor_column = position_to_cursor(full_text, offset)
 
-        matched_text, matches, matches_origin, jedi_matches, matches_type = self._complete(
-            full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column)
+        (
+            matched_text,
+            matches,
+            matches_origin,
+            jedi_matches,
+            matches_type,
+        ) = self._complete(
+            full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column
+        )
 
         iter_jm = iter(jedi_matches)
         if _timeout:
@@ -2027,7 +2037,14 @@ class IPCompleter(Completer):
         # crash
         assert before.endswith(matched_text)
         for m, origin, type_ in zip(matches, matches_origin, matches_type):
-            yield Completion(start=start_offset, end=offset, text=m, _origin=origin, signature='', type=type_ or '<unknown>')
+            yield Completion(
+                start=start_offset,
+                end=offset,
+                text=m,
+                _origin=origin,
+                signature="",
+                type=type_ or "<unknown>",
+            )
 
 
     def complete(self, text=None, line_buffer=None, cursor_pos=None) -> Tuple[str, Sequence[str]]:
@@ -2139,8 +2156,13 @@ class IPCompleter(Completer):
                 name_text, name_matches = meth(base_text)
                 if name_text:
                     size = min(len(name_matches), MATCHES_LIMIT)
-                    return _CompleteResult(name_text, name_matches[:MATCHES_LIMIT],
-                           [meth.__qualname__]*size, (), [meth.completion_type]*size)
+                    return _CompleteResult(
+                        name_text,
+                        name_matches[:MATCHES_LIMIT],
+                        [meth.__qualname__] * size,
+                        (),
+                        [meth.completion_type] * size,
+                    )
 
 
         # If no line buffer is given, assume the input text is all there was
@@ -2176,19 +2198,32 @@ class IPCompleter(Completer):
         if self.merge_completions:
             matches = []
             for matcher in self.matchers:
-                completion_type = matcher.completion_type if hasattr(matcher, 'completion_type') else None
+                completion_type = (
+                    matcher.completion_type
+                    if hasattr(matcher, "completion_type")
+                    else None
+                )
                 try:
-                    matches.extend([(m, matcher.__qualname__, completion_type)
-                                    for m in matcher(text)])
+                    matches.extend(
+                        [
+                            (m, matcher.__qualname__, completion_type)
+                            for m in matcher(text)
+                        ]
+                    )
                 except:
                     # Show the ugly traceback if the matcher causes an
                     # exception, but do NOT crash the kernel!
                     sys.excepthook(*sys.exc_info())
         else:
             for matcher in self.matchers:
-                completion_type = matcher.completion_type if hasattr(matcher, 'completion_type') else None
-                matches = [(m, matcher.__qualname__, completion_type)
-                            for m in matcher(text)]
+                completion_type = (
+                    matcher.completion_type
+                    if hasattr(matcher, "completion_type")
+                    else None
+                )
+                matches = [
+                    (m, matcher.__qualname__, completion_type) for m in matcher(text)
+                ]
                 if matches:
                     break
                     
@@ -2202,8 +2237,10 @@ class IPCompleter(Completer):
 
         _filtered_matches = sorted(filtered_matches, key=lambda x: completions_sorting_key(x[0]))
 
-        custom_res = [(m, 'custom', None) for m in self.dispatch_custom_completer(text) or []]
-        
+        custom_res = [
+            (m, "custom", None) for m in self.dispatch_custom_completer(text) or []
+        ]
+
         _filtered_matches = custom_res or _filtered_matches
         
         _filtered_matches = _filtered_matches[:MATCHES_LIMIT]
@@ -2215,8 +2252,8 @@ class IPCompleter(Completer):
 
         return _CompleteResult(text, _matches, origins, completions, types)
 
-    @matcher(type='unicode')
-    def fwd_unicode_match(self, text:str) -> Tuple[str, Sequence[str]]:
+    @matcher(type="unicode")
+    def fwd_unicode_match(self, text: str) -> Tuple[str, Sequence[str]]:
         """
         Forward match a string starting with a backslash with a list of
         potential Unicode completions.
