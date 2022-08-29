@@ -675,19 +675,23 @@ class Completer(Configurable):
         matches = []
         match_append = matches.append
         n = len(text)
-        for lst in [keyword.kwlist,
-                    builtin_mod.__dict__.keys(),
-                    self.namespace.keys(),
-                    self.global_namespace.keys()]:
+        for lst in [
+            keyword.kwlist,
+            builtin_mod.__dict__.keys(),
+            list(self.namespace.keys()),
+            list(self.global_namespace.keys()),
+        ]:
             for word in lst:
                 if word[:n] == text and word != "__builtins__":
                     match_append(word)
 
         snake_case_re = re.compile(r"[^_]+(_[^_]+)+?\Z")
-        for lst in [self.namespace.keys(),
-                    self.global_namespace.keys()]:
-            shortened = {"_".join([sub[0] for sub in word.split('_')]) : word
-                         for word in lst if snake_case_re.match(word)}
+        for lst in [list(self.namespace.keys()), list(self.global_namespace.keys())]:
+            shortened = {
+                "_".join([sub[0] for sub in word.split("_")]): word
+                for word in lst
+                if snake_case_re.match(word)
+            }
             for word in shortened.keys():
                 if word[:n] == text and word != "__builtins__":
                     match_append(shortened[word])

@@ -48,7 +48,7 @@ Python 3.7 was still supported with the 7.x branch.
 
 See IPython `README.rst` file for more information:
 
-    https://github.com/ipython/ipython/blob/master/README.rst
+    https://github.com/ipython/ipython/blob/main/README.rst
 
 Python {py} detected.
 {pip}
