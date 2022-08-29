@@ -31,7 +31,7 @@ MILESTONE=${input:-$MILESTONE}
 echo -n "VERSION (X.y.z) [$VERSION]:"
 read input
 VERSION=${input:-$VERSION}
-echo -n "BRANCH (master|X.y) [$BRANCH]:"
+echo -n "BRANCH (main|X.y) [$BRANCH]:"
 read input
 BRANCH=${input:-$BRANCH}
 

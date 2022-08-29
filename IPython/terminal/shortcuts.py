@@ -32,6 +32,22 @@ def cursor_in_leading_ws():
     return (not before) or before.isspace()
 
 
+# Needed for to accept autosuggestions in vi insert mode
+def _apply_autosuggest(event):
+    """
+    Apply autosuggestion if at end of line.
+    """
+    b = event.current_buffer
+    d = b.document
+    after_cursor = d.text[d.cursor_position :]
+    lines = after_cursor.split("\n")
+    end_of_current_line = lines[0].strip()
+    suggestion = b.suggestion
+    if (suggestion is not None) and (suggestion.text) and (end_of_current_line == ""):
+        b.insert_text(suggestion.text)
+    else:
+        nc.end_of_line(event)
+
 def create_ipython_shortcuts(shell):
     """Set up the prompt_toolkit keyboard shortcuts for IPython"""
 
@@ -266,15 +282,6 @@ def create_ipython_shortcuts(shell):
         return shell.emacs_bindings_in_vi_insert_mode
 
     focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
-
-    # Needed for to accept autosuggestions in vi insert mode
-    def _apply_autosuggest(event):
-        b = event.current_buffer
-        suggestion = b.suggestion
-        if suggestion is not None and suggestion.text:
-            b.insert_text(suggestion.text)
-        else:
-            nc.end_of_line(event)
 
     @kb.add("end", filter=has_focus(DEFAULT_BUFFER) & (ebivim | ~vi_insert_mode))
     def _(event):

@@ -1,5 +1,5 @@
-.. image:: https://codecov.io/github/ipython/ipython/coverage.svg?branch=master
-    :target: https://codecov.io/github/ipython/ipython?branch=master
+.. image:: https://codecov.io/github/ipython/ipython/coverage.svg?branch=main
+    :target: https://codecov.io/github/ipython/ipython?branch=main
 
 .. image:: https://img.shields.io/pypi/v/IPython.svg
     :target: https://pypi.python.org/pypi/ipython
