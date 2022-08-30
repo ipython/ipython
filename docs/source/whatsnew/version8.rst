@@ -2,6 +2,122 @@
  8.x Series
 ============
 
+.. _version 8.5.0:
+
+IPython 8.5.0
+-------------
+
+First release since a couple of month due to various reasons and timing preventing
+me for sticking to the usual monthly release the last Friday of each month. This
+is of non negligible size as it has more than two dozen PRs with various fixes
+an bug fixes.
+
+Many thanks to everybody who contributed PRs for your patience in review and
+merges.
+
+Here is a non exhaustive list of changes that have been implemented for IPython
+8.5.0. As usual you can find the full list of issues and PRs tagged with `the
+8.5 milestone
+<https://github.com/ipython/ipython/pulls?q=is%3Aclosed+milestone%3A8.5+>`__.
+
+ - Added shortcut for accepting auto suggestion. The End key shortcut for
+   accepting auto-suggestion This binding works in Vi mode too, provided
+   ``TerminalInteractiveShell.emacs_bindings_in_vi_insert_mode`` is set to be
+   ``True`` :ghpull:`13566`.
+
+ - No popup in window for latex generation w hen generating latex (e.g. via
+   `_latex_repr_`) no popup window is shows under Windows. :ghpull:`13679`
+
+ - Fixed error raised when attempting to tab-complete an input string with
+   consecutive periods or forward slashes (such as "file:///var/log/...").
+   :ghpull:`13675`
+
+ - Relative filenames in Latex rendering :
+   The `latex_to_png_dvipng` command internally generates input and output file
+   arguments to `latex` and `dvipis`. These arguments are now generated as
+   relative files to the current working directory instead of absolute file
+   paths. This solves a problem where the current working directory contains
+   characters that are not handled properly by `latex` and `dvips`. There are
+   no changes to the user API. :ghpull:`13680`
+
+ - Stripping decorators bug: Fixed bug which meant that ipython code blocks in
+   restructured text documents executed with the ipython-sphinx extension
+   skipped any lines of code containing python decorators. :ghpull:`13612`
+
+ - Allow some modules with frozen dataclasses to be reloaded. :ghpull:`13732`
+ - Fix paste magic on wayland. :ghpull:`13671`
+ - show maxlen in deque's repr. :ghpull:`13648`
+
+Restore line numbers for Input 
+------------------------------
+
+Line number information in tracebacks from input are restored.
+Line numbers from input were removed during the transition to v8 enhanced traceback reporting.
+
+So, instead of::
+
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)
+    Input In [3], in <cell line: 1>()
+    ----> 1 myfunc(2)
+
+    Input In [2], in myfunc(z)
+          1 def myfunc(z):
+    ----> 2     foo.boo(z-1)
+
+    File ~/code/python/ipython/foo.py:3, in boo(x)
+          2 def boo(x):
+    ----> 3     return 1/(1-x)
+
+    ZeroDivisionError: division by zero
+
+The error traceback now looks like::
+
+      ---------------------------------------------------------------------------
+      ZeroDivisionError                         Traceback (most recent call last)
+      Cell In [3], line 1
+      ----> 1 myfunc(2)
+
+      Cell In [2], line 2, in myfunc(z)
+            1 def myfunc(z):
+      ----> 2     foo.boo(z-1)
+
+      File ~/code/python/ipython/foo.py:3, in boo(x)
+            2 def boo(x):
+      ----> 3     return 1/(1-x)
+
+      ZeroDivisionError: division by zero
+
+or, with xmode=Plain::
+
+    Traceback (most recent call last):
+      Cell In [12], line 1
+        myfunc(2)
+      Cell In [6], line 2 in myfunc
+        foo.boo(z-1)
+      File ~/code/python/ipython/foo.py:3 in boo
+        return 1/(1-x)
+    ZeroDivisionError: division by zero
+
+:ghpull:`13560`
+
+New setting to silence warning if working inside a virtual environment
+----------------------------------------------------------------------
+
+Previously, when starting IPython in a virtual environment without IPython installed (so IPython from the global environment is used), the following warning was printed:
+
+    Attempting to work in a virtualenv. If you encounter problems, please install IPython inside the virtualenv.
+
+This warning can be permanently silenced by setting ``c.InteractiveShell.warn_venv`` to ``False`` (the default is ``True``).
+
+:ghpull:`13706`
+
+-------
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 8.4.0:
 
 IPython 8.4.0
