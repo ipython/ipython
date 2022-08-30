@@ -144,6 +144,13 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
         find_cmd('dvipng')
     except FindCmdError:
         return None
+
+    startupinfo = None
+    if os.name == "nt":
+        # prevent popup-windows
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
     try:
         workdir = Path(tempfile.mkdtemp())
         tmpfile = "tmp.tex"
@@ -156,7 +163,11 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
         with open(os.devnull, 'wb') as devnull:
             subprocess.check_call(
                 ["latex", "-halt-on-error", "-interaction", "batchmode", tmpfile],
-                cwd=workdir, stdout=devnull, stderr=devnull)
+                cwd=workdir,
+                stdout=devnull,
+                stderr=devnull,
+                startupinfo=startupinfo,
+            )
 
             resolution = round(150*scale)
             subprocess.check_call(
@@ -179,6 +190,7 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
                 cwd=workdir,
                 stdout=devnull,
                 stderr=devnull,
+                startupinfo=startupinfo,
             )
 
         with workdir.joinpath(outfile).open("rb") as f:
