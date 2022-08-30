@@ -2,6 +2,7 @@ from IPython.core.error import TryNext
 from IPython.lib.clipboard import ClipboardEmpty
 from IPython.testing.decorators import skip_if_no_x11
 
+
 @skip_if_no_x11
 def test_clipboard_get():
     # Smoketest for clipboard access - we can't easily guarantee that the
