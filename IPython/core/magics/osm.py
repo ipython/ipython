@@ -8,6 +8,7 @@ builtin.
 
 import io
 import os
+import pathlib
 import re
 import sys
 from pprint import pformat
@@ -409,7 +410,7 @@ class OSMagics(Magics):
             except OSError:
                 print(sys.exc_info()[1])
             else:
-                cwd = os.getcwd()
+                cwd = pathlib.Path.cwd()
                 dhist = self.shell.user_ns['_dh']
                 if oldcwd != cwd:
                     dhist.append(cwd)
@@ -419,7 +420,7 @@ class OSMagics(Magics):
             os.chdir(self.shell.home_dir)
             if hasattr(self.shell, 'term_title') and self.shell.term_title:
                 set_term_title(self.shell.term_title_format.format(cwd="~"))
-            cwd = os.getcwd()
+            cwd = pathlib.Path.cwd()
             dhist = self.shell.user_ns['_dh']
 
             if oldcwd != cwd:
