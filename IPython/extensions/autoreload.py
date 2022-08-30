@@ -300,7 +300,7 @@ def update_instances(old, new):
 
     for ref in refs:
         if type(ref) is old:
-            ref.__class__ = new
+            object.__setattr__(ref, "__class__", new)
 
 
 def update_class(old, new):

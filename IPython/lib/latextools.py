@@ -144,19 +144,30 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
         find_cmd('dvipng')
     except FindCmdError:
         return None
+
+    startupinfo = None
+    if os.name == "nt":
+        # prevent popup-windows
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
     try:
         workdir = Path(tempfile.mkdtemp())
-        tmpfile = workdir.joinpath("tmp.tex")
-        dvifile = workdir.joinpath("tmp.dvi")
-        outfile = workdir.joinpath("tmp.png")
+        tmpfile = "tmp.tex"
+        dvifile = "tmp.dvi"
+        outfile = "tmp.png"
 
-        with tmpfile.open("w", encoding="utf8") as f:
+        with workdir.joinpath(tmpfile).open("w", encoding="utf8") as f:
             f.writelines(genelatex(s, wrap))
 
         with open(os.devnull, 'wb') as devnull:
             subprocess.check_call(
                 ["latex", "-halt-on-error", "-interaction", "batchmode", tmpfile],
-                cwd=workdir, stdout=devnull, stderr=devnull)
+                cwd=workdir,
+                stdout=devnull,
+                stderr=devnull,
+                startupinfo=startupinfo,
+            )
 
             resolution = round(150*scale)
             subprocess.check_call(
@@ -179,9 +190,10 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
                 cwd=workdir,
                 stdout=devnull,
                 stderr=devnull,
+                startupinfo=startupinfo,
             )
 
-        with outfile.open("rb") as f:
+        with workdir.joinpath(outfile).open("rb") as f:
             return f.read()
     except subprocess.CalledProcessError:
         return None

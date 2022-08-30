@@ -91,7 +91,12 @@ def get_default_editor():
 # - no isatty method
 for _name in ('stdin', 'stdout', 'stderr'):
     _stream = getattr(sys, _name)
-    if not _stream or not hasattr(_stream, 'isatty') or not _stream.isatty():
+    try:
+        if not _stream or not hasattr(_stream, "isatty") or not _stream.isatty():
+            _is_tty = False
+            break
+    except ValueError:
+        # stream is closed
         _is_tty = False
         break
 else:

@@ -202,7 +202,6 @@ class HistoryAccessor(HistoryAccessorBase):
         config : :class:`~traitlets.config.loader.Config`
             Config object. hist_file can also be set through this.
         """
-        # We need a pointer back to the shell for various tasks.
         super(HistoryAccessor, self).__init__(**traits)
         # defer setting hist_file from kwarg until after init,
         # otherwise the default kwarg value would clobber any value
@@ -344,11 +343,6 @@ class HistoryAccessor(HistoryAccessorBase):
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
         """Get the last n lines from the history database.
 
-        Most recent entry last.
-
-        Completion will be reordered so that that the last ones are when
-        possible from current session.
-
         Parameters
         ----------
         n : int
@@ -367,31 +361,12 @@ class HistoryAccessor(HistoryAccessorBase):
         self.writeout_cache()
         if not include_latest:
             n += 1
-        # cursor/line/entry
-        this_cur = list(
-            self._run_sql(
-                "WHERE session == ? ORDER BY line DESC LIMIT ?  ",
-                (self.session_number, n),
-                raw=raw,
-                output=output,
-            )
+        cur = self._run_sql(
+            "ORDER BY session DESC, line DESC LIMIT ?", (n,), raw=raw, output=output
         )
-        other_cur = list(
-            self._run_sql(
-                "WHERE session != ? ORDER BY session DESC, line DESC LIMIT ?",
-                (self.session_number, n),
-                raw=raw,
-                output=output,
-            )
-        )
-
-        everything = this_cur + other_cur
-
-        everything = everything[:n]
-
         if not include_latest:
-            return list(everything)[:0:-1]
-        return list(everything)[::-1]
+            return reversed(list(cur)[1:])
+        return reversed(list(cur))
 
     @catch_corrupt_db
     def search(self, pattern="*", raw=True, search_raw=True,
@@ -560,7 +535,6 @@ class HistoryManager(HistoryAccessor):
     def __init__(self, shell=None, config=None, **traits):
         """Create a new history manager associated with a shell instance.
         """
-        # We need a pointer back to the shell for various tasks.
         super(HistoryManager, self).__init__(shell=shell, config=config,
             **traits)
         self.save_flag = threading.Event()
@@ -655,6 +629,59 @@ class HistoryManager(HistoryAccessor):
             session += self.session_number
 
         return super(HistoryManager, self).get_session_info(session=session)
+
+    @catch_corrupt_db
+    def get_tail(self, n=10, raw=True, output=False, include_latest=False):
+        """Get the last n lines from the history database.
+
+        Most recent entry last.
+
+        Completion will be reordered so that that the last ones are when
+        possible from current session.
+
+        Parameters
+        ----------
+        n : int
+            The number of lines to get
+        raw, output : bool
+            See :meth:`get_range`
+        include_latest : bool
+            If False (default), n+1 lines are fetched, and the latest one
+            is discarded. This is intended to be used where the function
+            is called by a user command, which it should not return.
+
+        Returns
+        -------
+        Tuples as :meth:`get_range`
+        """
+        self.writeout_cache()
+        if not include_latest:
+            n += 1
+        # cursor/line/entry
+        this_cur = list(
+            self._run_sql(
+                "WHERE session == ? ORDER BY line DESC LIMIT ?  ",
+                (self.session_number, n),
+                raw=raw,
+                output=output,
+            )
+        )
+        other_cur = list(
+            self._run_sql(
+                "WHERE session != ? ORDER BY session DESC, line DESC LIMIT ?",
+                (self.session_number, n),
+                raw=raw,
+                output=output,
+            )
+        )
+
+        everything = this_cur + other_cur
+
+        everything = everything[:n]
+
+        if not include_latest:
+            return list(everything)[:0:-1]
+        return list(everything)[::-1]
 
     def _get_range_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
