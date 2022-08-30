@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - master
       - '*.x'
   pull_request:
   # Run weekly on Monday at 1:23 UTC
@@ -50,9 +49,9 @@ jobs:
             deps: test
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
