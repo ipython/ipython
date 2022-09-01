@@ -11,7 +11,6 @@ deprecated in 7.0.
 # Distributed under the terms of the Modified BSD License.
 
 import ast
-import sys
 from codeop import CommandCompiler, Compile
 import re
 import tokenize

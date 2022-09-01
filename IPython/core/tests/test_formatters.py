@@ -1,6 +1,5 @@
 """Tests for the Formatters."""
 
-import warnings
 from math import pi
 
 try:

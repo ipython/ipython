@@ -36,7 +36,6 @@ import shutil
 import sys
 import tempfile
 import unittest
-import warnings
 from importlib import import_module
 
 from decorator import decorator

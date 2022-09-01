@@ -4,8 +4,6 @@
 # Module imports
 #-----------------------------------------------------------------------------
 
-# third party
-import pytest
 
 # our own packages
 

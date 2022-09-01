@@ -18,8 +18,6 @@ import tempfile
 
 from pathlib import Path
 
-from IPython.testing.tools import make_tempfile
-
 import IPython.utils.module_paths as mp
 
 TEST_FILE_PATH = Path(__file__).resolve().parent

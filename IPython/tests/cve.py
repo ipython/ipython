@@ -9,7 +9,6 @@ import sys
 import os
 import string
 import subprocess
-import time
 
 
 def test_cve_2022_21699():
