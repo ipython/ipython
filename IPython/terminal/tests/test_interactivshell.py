@@ -102,11 +102,14 @@ class mock_input_helper(object):
 
     def __enter__(self):
         self.orig_prompt_for_code = self.ip.prompt_for_code
+        self.orig_prompt_for_code_async = self.ip.prompt_for_code_async
         self.ip.prompt_for_code = self.fake_input
+        self.ip.prompt_for_code_async = self.fake_input_async
         return self
 
     def __exit__(self, etype, value, tb):
         self.ip.prompt_for_code = self.orig_prompt_for_code
+        self.ip.prompt_for_code_async = self.orig_prompt_for_code_async
 
     def fake_input(self):
         try:
@@ -118,6 +121,10 @@ class mock_input_helper(object):
             self.exception = sys.exc_info()
             self.ip.keep_running = False
             return u''
+
+    async def fake_input_async(self):
+        return self.fake_input()
+
 
 def mock_input(testfunc):
     """Decorator for tests of the main interact loop.
@@ -240,3 +247,28 @@ class TerminalMagicsTestCase(unittest.TestCase):
         tm.store_or_execute(s, name=None)
         
         self.assertEqual(ip.user_ns['pasted_func'](54), 55)
+
+
+class KeyboardInterruptBlockingCall(unittest.TestCase):
+    def test_keyboardinterrupt_in_blocking_call(self):
+        # Tests gh-13737
+        def yield_code():
+            code = (
+                'from IPython.core.async_helpers import get_asyncio_loop\n'
+                'loop = get_asyncio_loop()\n'
+                '\n'
+                'async def coro():\n'
+                '    raise KeyboardInterrupt\n'
+                '\n'
+                'task = loop.create_task(coro())\n'
+            )
+
+            yield '%gui asyncio'
+            yield code
+
+        with mock_input_helper(yield_code()) as mih:
+            try:
+                mih.ip.interact()
+            except KeyboardInterrupt:
+                # KeyboardInterrupt escaped interact()
+                self.fail()
