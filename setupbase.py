@@ -220,7 +220,11 @@ def find_entry_points():
         ]
     major_suffix = str(sys.version_info[0])
     minor_suffix = ".".join([str(sys.version_info[0]), str(sys.version_info[1])])
-    return [e % '' for e in ep] + [e % major_suffix for e in ep] + [e % minor_suffix for e in ep]
+    return (
+        [e % "" for e in ep]
+        + [e % major_suffix for e in ep]
+        + [e % minor_suffix for e in ep]
+    )
 
 class install_lib_symlink(Command):
     user_options = [
