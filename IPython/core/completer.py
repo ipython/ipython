@@ -167,7 +167,6 @@ from typing import (
     TYPE_CHECKING,
     Set,
 )
-from typing_extensions import TypedDict, NotRequired
 
 from IPython.core.error import TryNext
 from IPython.core.inputtransformer2 import ESC_MAGIC
@@ -208,11 +207,14 @@ except ImportError:
 
 if TYPE_CHECKING:
     from typing import cast
+    from typing_extensions import TypedDict, NotRequired
 else:
 
     def cast(obj, _type):
         return obj
 
+    TypedDict = Dict
+    NotRequired = Tuple
 
 # -----------------------------------------------------------------------------
 # Globals
