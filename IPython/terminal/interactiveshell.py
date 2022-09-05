@@ -582,13 +582,16 @@ class TerminalInteractiveShell(InteractiveShell):
 
         return options
 
-    def prompt_for_code(self):
+    def _get_next_input_text(self):
         if self.rl_next_input:
             default = self.rl_next_input
             self.rl_next_input = None
         else:
             default = ''
 
+        return default
+
+    def prompt_for_code(self):
         # In order to make sure that asyncio code written in the
         # interactive shell doesn't interfere with the prompt, we run the
         # prompt in a different event loop.
@@ -607,7 +610,7 @@ class TerminalInteractiveShell(InteractiveShell):
         try:
             with patch_stdout(raw=True):
                 text = self.pt_app.prompt(
-                    default=default,
+                    default=self._get_next_input_text(),
                     **self._extra_prompt_options())
         finally:
             # Restore the original event loop.
