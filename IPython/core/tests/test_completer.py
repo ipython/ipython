@@ -298,7 +298,7 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
 
         name, matches = ip.complete("\\Ⅴ")
-        self.assertEqual(matches, ("\\ROMAN NUMERAL FIVE",))
+        self.assertEqual(matches, ["\\ROMAN NUMERAL FIVE"])
 
     def test_forward_unicode_completion(self):
         ip = get_ipython()
@@ -379,6 +379,12 @@ class TestCompleter(unittest.TestCase):
 
     def test_quoted_file_completions(self):
         ip = get_ipython()
+
+        def _(text):
+            return ip.Completer._complete(
+                cursor_line=0, cursor_pos=len(text), full_text=text
+            )["IPCompleter.file_matcher"]["completions"]
+
         with TemporaryWorkingDirectory():
             name = "foo'bar"
             open(name, "w", encoding="utf-8").close()
@@ -387,25 +393,16 @@ class TestCompleter(unittest.TestCase):
             escaped = name if sys.platform == "win32" else "foo\\'bar"
 
             # Single quote matches embedded single quote
-            text = "open('foo"
-            c = ip.Completer._complete(
-                cursor_line=0, cursor_pos=len(text), full_text=text
-            )[1]
-            self.assertEqual(c, [escaped])
+            c = _("open('foo")[0]
+            self.assertEqual(c.text, escaped)
 
             # Double quote requires no escape
-            text = 'open("foo'
-            c = ip.Completer._complete(
-                cursor_line=0, cursor_pos=len(text), full_text=text
-            )[1]
-            self.assertEqual(c, [name])
+            c = _('open("foo')[0]
+            self.assertEqual(c.text, name)
 
             # No quote requires an escape
-            text = "%ls foo"
-            c = ip.Completer._complete(
-                cursor_line=0, cursor_pos=len(text), full_text=text
-            )[1]
-            self.assertEqual(c, [escaped])
+            c = _("%ls foo")[0]
+            self.assertEqual(c.text, escaped)
 
     def test_all_completions_dups(self):
         """
@@ -474,6 +471,17 @@ class TestCompleter(unittest.TestCase):
         assert (
             "encoding" in c.signature
         ), "Signature of function was not found by completer"
+
+    def test_completions_have_type(self):
+        """
+        Lets make sure matchers provide completion type.
+        """
+        ip = get_ipython()
+        with provisionalcompleter():
+            ip.Completer.use_jedi = False
+            completions = ip.Completer.completions("%tim", 3)
+            c = next(completions)  # should be `%time` or similar
+        assert c.type == "magic", "Type of magic was not assigned by completer"
 
     @pytest.mark.xfail(reason="Known failure on jedi<=0.18.0")
     def test_deduplicate_completions(self):

@@ -100,6 +100,30 @@ option.
 
 Be sure to update :any:`jedi` to the latest stable version or to try the
 current development version to get better completions.
+
+Matchers
+========
+
+All completions routines are implemented using unified ``matchers`` API.
+The matchers API is provisional and subject to change without notice.
+
+The built-in matchers include:
+
+- ``IPCompleter.dict_key_matcher``:  dictionary key completions,
+- ``IPCompleter.magic_matcher``: completions for magics,
+- ``IPCompleter.unicode_name_matcher``, ``IPCompleter.fwd_unicode_matcher`` and ``IPCompleter.latex_matcher``: see `Forward latex/unicode completion`_,
+- ``back_unicode_name_matcher`` and ``back_latex_name_matcher``: see `Backward latex completion`_,
+- ``IPCompleter.file_matcher``: paths to files and directories,
+- ``IPCompleter.python_func_kw_matcher`` - function keywords,
+- ``IPCompleter.python_matches`` - globals and attributes (v1 API),
+- ``IPCompleter.jedi_matcher`` - static analysis with Jedi,
+- ``IPCompleter.custom_completer_matcher`` - pluggable completer with a default implementation in ``core.InteractiveShell``
+    which uses uses IPython hooks system (`complete_command`) with string dispatch (including regular expressions).
+    Differently to other matchers, ``custom_completer_matcher`` will not suppress Jedi results to match
+    behaviour in earlier IPython versions.
+
+Adding custom matchers is possible by appending to `IPCompleter.custom_matchers` list,
+but please be aware that this API is subject to change.
 """
 
 
@@ -124,9 +148,26 @@ import unicodedata
 import uuid
 import warnings
 from contextlib import contextmanager
+from functools import lru_cache, partial
 from importlib import import_module
 from types import SimpleNamespace
-from typing import Iterable, Iterator, List, Tuple, Union, Any, Sequence, Dict, NamedTuple, Pattern, Optional
+from typing import (
+    Iterable,
+    Iterator,
+    List,
+    Tuple,
+    Union,
+    Any,
+    Sequence,
+    Dict,
+    NamedTuple,
+    Pattern,
+    Optional,
+    Callable,
+    TYPE_CHECKING,
+    Set,
+)
+from typing_extensions import TypedDict, NotRequired
 
 from IPython.core.error import TryNext
 from IPython.core.inputtransformer2 import ESC_MAGIC
@@ -137,13 +178,24 @@ from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.path import ensure_dir_exists
 from IPython.utils.process import arg_split
-from traitlets import Bool, Enum, Int, List as ListTrait, Unicode, default, observe
+from traitlets import (
+    Bool,
+    Enum,
+    Int,
+    List as ListTrait,
+    Unicode,
+    Dict as DictTrait,
+    Union as UnionTrait,
+    default,
+    observe,
+)
 from traitlets.config.configurable import Configurable
 
 import __main__
 
 # skip module docstests
 __skip_doctest__ = True
+
 
 try:
     import jedi
@@ -153,7 +205,16 @@ try:
     JEDI_INSTALLED = True
 except ImportError:
     JEDI_INSTALLED = False
-#-----------------------------------------------------------------------------
+
+if TYPE_CHECKING:
+    from typing import cast
+else:
+
+    def cast(obj, _type):
+        return obj
+
+
+# -----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
 
@@ -177,6 +238,8 @@ else:
 # may have trouble processing.
 MATCHES_LIMIT = 500
 
+# Completion type reported when no type can be inferred.
+_UNKNOWN_TYPE = "<unknown>"
 
 class ProvisionalCompleterWarning(FutureWarning):
     """
@@ -355,6 +418,9 @@ class _FakeJediCompletion:
         return '<Fake completion object jedi has crashed>'
 
 
+_JediCompletionLike = Union[jedi.api.Completion, _FakeJediCompletion]
+
+
 class Completion:
     """
     Completion object used and return by IPython completers.
@@ -415,6 +481,131 @@ class Completion:
 
     def __hash__(self):
         return hash((self.start, self.end, self.text))
+
+
+class SimpleCompletion:
+    # TODO: decide whether we should keep the ``SimpleCompletion`` separate from ``Completion``
+    #  there are two advantages of keeping them separate:
+    #   - compatibility with old readline `Completer.complete` interface (less important)
+    #   - ease of use for third parties (just return matched text and don't worry about coordinates)
+    #  the disadvantage is that we need to loop over the completions again to transform them into
+    #  `Completion` objects (but it was done like that before the refactor into `SimpleCompletion` too).
+    __slots__ = ["text", "type"]
+
+    def __init__(self, text: str, *, type: str = None):
+        self.text = text
+        self.type = type
+
+    def __repr__(self):
+        return f"<SimpleCompletion text={self.text!r} type={self.type!r}>"
+
+
+class _MatcherResultBase(TypedDict):
+
+    #: suffix of the provided ``CompletionContext.token``, if not given defaults to full token.
+    matched_fragment: NotRequired[str]
+
+    #: whether to suppress results from other matchers; default is False.
+    suppress_others: NotRequired[bool]
+
+    #: are completions already ordered and should be left as-is? default is False.
+    ordered: NotRequired[bool]
+
+    # TODO: should we used a relevance score for ordering?
+    #: value between 0 (likely not relevant) and 100 (likely relevant); default is 50.
+    # relevance: NotRequired[float]
+
+
+class SimpleMatcherResult(_MatcherResultBase):
+    """Result of new-style completion matcher."""
+
+    #: list of candidate completions
+    completions: Sequence[SimpleCompletion]
+
+
+class _JediMatcherResult(_MatcherResultBase):
+    """Matching result returned by Jedi (will be processed differently)"""
+
+    #: list of candidate completions
+    completions: Iterable[_JediCompletionLike]
+
+
+class CompletionContext(NamedTuple):
+    # rationale: many legacy matchers relied on completer state (`self.text_until_cursor`)
+    # which was not explicitly visible as an argument of the matcher, making any refactor
+    # prone to errors; by explicitly passing `cursor_position` we can decouple the matchers
+    # from the completer, and make substituting them in sub-classes easier.
+
+    #: Relevant fragment of code directly preceding the cursor.
+    #: The extraction of token is implemented via splitter heuristic
+    #: (following readline behaviour for legacy reasons), which is user configurable
+    #: (by switching the greedy mode).
+    token: str
+
+    full_text: str
+
+    #: Cursor position in the line (the same for ``full_text`` and `text``).
+    cursor_position: int
+
+    #: Cursor line in ``full_text``.
+    cursor_line: int
+
+    @property
+    @lru_cache(maxsize=None)  # TODO change to @cache after dropping Python 3.7
+    def text_until_cursor(self) -> str:
+        return self.line_with_cursor[: self.cursor_position]
+
+    @property
+    @lru_cache(maxsize=None)  # TODO change to @cache after dropping Python 3.7
+    def line_with_cursor(self) -> str:
+        return self.full_text.split("\n")[self.cursor_line]
+
+
+MatcherResult = Union[SimpleMatcherResult, _JediMatcherResult]
+
+MatcherAPIv1 = Callable[[str], List[str]]
+MatcherAPIv2 = Callable[[CompletionContext], MatcherResult]
+Matcher = Union[MatcherAPIv1, MatcherAPIv2]
+
+
+def completion_matcher(
+    *, priority: float = None, identifier: str = None, api_version=1
+):
+    """Adds attributes describing the matcher.
+
+    Parameters
+    ----------
+    priority : Optional[float]
+        The priority of the matcher, determines the order of execution of matchers.
+        Higher priority means that the matcher will be executed first. Defaults to 50.
+    identifier : Optional[str]
+        identifier of the matcher allowing users to modify the behaviour via traitlets,
+        and also used to for debugging (will be passed as ``origin`` with the completions).
+        Defaults to matcher function ``__qualname__``.
+    api_version: Optional[int]
+        version of the Matcher API used by this matcher.
+        Currently supported values are 1 and 2.
+        Defaults to 1.
+    """
+
+    def wrapper(func: Matcher):
+        func.matcher_priority = priority
+        func.matcher_identifier = identifier or func.__qualname__
+        func.matcher_api_version = api_version
+        return func
+
+    return wrapper
+
+
+def _get_matcher_id(matcher: Matcher):
+    return getattr(matcher, "matcher_identifier", matcher.__qualname__)
+
+
+def _get_matcher_api_version(matcher):
+    return getattr(matcher, "matcher_api_version", 1)
+
+
+context_matcher = partial(completion_matcher, api_version=2)
 
 
 _IC = Iterable[Completion]
@@ -920,7 +1111,16 @@ def _safe_isinstance(obj, module, class_name):
     return (module in sys.modules and
             isinstance(obj, getattr(import_module(module), class_name)))
 
-def back_unicode_name_matches(text:str) -> Tuple[str, Sequence[str]]:
+
+@context_matcher()
+def back_unicode_name_matcher(context):
+    fragment, matches = back_unicode_name_matches(context.token)
+    return _convert_matcher_v1_result_to_v2(
+        matches, type="unicode", fragment=fragment, suppress_if_matches=True
+    )
+
+
+def back_unicode_name_matches(text: str) -> Tuple[str, Sequence[str]]:
     """Match Unicode characters back to Unicode name
 
     This does  ``☃`` -> ``\\snowman``
@@ -959,7 +1159,16 @@ def back_unicode_name_matches(text:str) -> Tuple[str, Sequence[str]]:
         pass
     return '', ()
 
-def back_latex_name_matches(text:str) -> Tuple[str, Sequence[str]] :
+
+@context_matcher()
+def back_latex_name_matcher(context):
+    fragment, matches = back_latex_name_matches(context.token)
+    return _convert_matcher_v1_result_to_v2(
+        matches, type="latex", fragment=fragment, suppress_if_matches=True
+    )
+
+
+def back_latex_name_matches(text: str) -> Tuple[str, Sequence[str]]:
     """Match latex characters back to unicode name
 
     This does ``\\ℵ`` -> ``\\aleph``
@@ -1038,11 +1247,25 @@ def _make_signature(completion)-> str:
                                           for p in signature.defined_names()) if f])
 
 
-class _CompleteResult(NamedTuple):
-    matched_text : str
-    matches: Sequence[str]
-    matches_origin: Sequence[str]
-    jedi_matches: Any
+_CompleteResult = Dict[str, MatcherResult]
+
+
+def _convert_matcher_v1_result_to_v2(
+    matches: Sequence[str],
+    type: str,
+    fragment: str = None,
+    suppress_if_matches: bool = False,
+) -> SimpleMatcherResult:
+    """Utility to help with transition"""
+    result = {
+        "completions": [SimpleCompletion(text=match, type=type) for match in matches],
+        "suppress_others": (True if matches else False)
+        if suppress_if_matches
+        else False,
+    }
+    if fragment is not None:
+        result["matched_fragment"] = fragment
+    return result
 
 
 class IPCompleter(Completer):
@@ -1058,17 +1281,58 @@ class IPCompleter(Completer):
         else:
             self.splitter.delims = DELIMS
 
-    dict_keys_only = Bool(False,
-        help="""Whether to show dict key matches only""")
+    dict_keys_only = Bool(
+        False,
+        help="""
+        Whether to show dict key matches only.
+        
+        (disables all matchers except for `IPCompleter.dict_key_matcher`).
+        """,
+    )
 
-    merge_completions = Bool(True,
+    suppress_competing_matchers = UnionTrait(
+        [Bool(), DictTrait(Bool(None, allow_none=True))],
+        help="""
+        Whether to suppress completions from other `Matchers`_.
+
+        When set to ``None`` (default) the matchers will attempt to auto-detect
+        whether suppression of other matchers is desirable. For example, at
+        the beginning of a line followed by `%` we expect a magic completion
+        to be the only applicable option, and after ``my_dict['`` we usually
+        expect a completion with an existing dictionary key.
+
+        If you want to disable this heuristic and see completions from all matchers,
+        set ``IPCompleter.suppress_competing_matchers = False``.
+        To disable the heuristic for specific matchers provide a dictionary mapping:
+        ``IPCompleter.suppress_competing_matchers = {'IPCompleter.dict_key_matcher': False}``.
+
+        Set ``IPCompleter.suppress_competing_matchers = True`` to limit
+        completions to the set of matchers with the highest priority;
+        this is equivalent to ``IPCompleter.merge_completions`` and        
+        can be beneficial for performance, but will sometimes omit relevant
+        candidates from matchers further down the priority list.
+        """,
+    ).tag(config=True)
+
+    merge_completions = Bool(
+        True,
         help="""Whether to merge completion results into a single list
 
         If False, only the completion results from the first non-empty
         completer will be returned.
-        """
+        
+        As of version 8.5.0, setting the value to ``False`` is an alias for:
+        ``IPCompleter.suppress_competing_matchers = True.``.
+        """,
     ).tag(config=True)
-    omit__names = Enum((0,1,2), default_value=2,
+
+    disable_matchers = ListTrait(
+        Unicode(), help="""List of matchers to disable."""
+    ).tag(config=True)
+
+    omit__names = Enum(
+        (0, 1, 2),
+        default_value=2,
         help="""Instruct the completer to omit private method names
 
         Specifically, when completing on ``object.<tab>``.
@@ -1144,7 +1408,7 @@ class IPCompleter(Completer):
             namespace=namespace,
             global_namespace=global_namespace,
             config=config,
-            **kwargs
+            **kwargs,
         )
 
         # List where completion matches will be stored
@@ -1173,8 +1437,8 @@ class IPCompleter(Completer):
         #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
 
         self.magic_arg_matchers = [
-            self.magic_config_matches,
-            self.magic_color_matches,
+            self.magic_config_matcher,
+            self.magic_color_matcher,
         ]
 
         # This is set externally by InteractiveShell
@@ -1186,27 +1450,53 @@ class IPCompleter(Completer):
         # attribute through the `@unicode_names` property.
         self._unicode_names = None
 
+        self._backslash_combining_matchers = [
+            self.latex_name_matcher,
+            self.unicode_name_matcher,
+            back_latex_name_matcher,
+            back_unicode_name_matcher,
+            self.fwd_unicode_matcher,
+        ]
+
+        if not self.backslash_combining_completions:
+            for matcher in self._backslash_combining_matchers:
+                self.disable_matchers.append(matcher.matcher_identifier)
+
+        if not self.merge_completions:
+            self.suppress_competing_matchers = True
+
+        if self.dict_keys_only:
+            self.disable_matchers.append(self.dict_key_matcher.matcher_identifier)
+
     @property
-    def matchers(self) -> List[Any]:
+    def matchers(self) -> List[Matcher]:
         """All active matcher routines for completion"""
         if self.dict_keys_only:
-            return [self.dict_key_matches]
+            return [self.dict_key_matcher]
 
         if self.use_jedi:
             return [
                 *self.custom_matchers,
-                self.dict_key_matches,
-                self.file_matches,
-                self.magic_matches,
+                *self._backslash_combining_matchers,
+                *self.magic_arg_matchers,
+                self.custom_completer_matcher,
+                self.magic_matcher,
+                self._jedi_matcher,
+                self.dict_key_matcher,
+                self.file_matcher,
             ]
         else:
             return [
                 *self.custom_matchers,
-                self.dict_key_matches,
+                *self._backslash_combining_matchers,
+                *self.magic_arg_matchers,
+                self.custom_completer_matcher,
+                self.dict_key_matcher,
+                # TODO: convert python_matches to v2 API
+                self.magic_matcher,
                 self.python_matches,
-                self.file_matches,
-                self.magic_matches,
-                self.python_func_kw_matches,
+                self.file_matcher,
+                self.python_func_kw_matcher,
             ]
 
     def all_completions(self, text:str) -> List[str]:
@@ -1227,7 +1517,14 @@ class IPCompleter(Completer):
         return [f.replace("\\","/")
                 for f in self.glob("%s*" % text)]
 
-    def file_matches(self, text:str)->List[str]:
+    @context_matcher()
+    def file_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
+        matches = self.file_matches(context.token)
+        # TODO: add a heuristic for suppressing (e.g. if it has OS-specific delimiter,
+        #  starts with `/home/`, `C:\`, etc)
+        return _convert_matcher_v1_result_to_v2(matches, type="path")
+
+    def file_matches(self, text: str) -> List[str]:
         """Match filenames, expanding ~USER type strings.
 
         Most of the seemingly convoluted logic in this completer is an
@@ -1309,7 +1606,16 @@ class IPCompleter(Completer):
         # Mark directories in input list by appending '/' to their names.
         return [x+'/' if os.path.isdir(x) else x for x in matches]
 
-    def magic_matches(self, text:str):
+    @context_matcher()
+    def magic_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
+        text = context.token
+        matches = self.magic_matches(text)
+        result = _convert_matcher_v1_result_to_v2(matches, type="magic")
+        is_magic_prefix = len(text) > 0 and text[0] == "%"
+        result["suppress_others"] = is_magic_prefix and bool(result["completions"])
+        return result
+
+    def magic_matches(self, text: str):
         """Match magics"""
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too.
@@ -1351,8 +1657,14 @@ class IPCompleter(Completer):
 
         return comp
 
-    def magic_config_matches(self, text:str) -> List[str]:
-        """ Match class names and attributes for %config magic """
+    @context_matcher()
+    def magic_config_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
+        # NOTE: uses `line_buffer` equivalent for compatibility
+        matches = self.magic_config_matches(context.line_with_cursor)
+        return _convert_matcher_v1_result_to_v2(matches, type="param")
+
+    def magic_config_matches(self, text: str) -> List[str]:
+        """Match class names and attributes for %config magic"""
         texts = text.strip().split()
 
         if len(texts) > 0 and (texts[0] == 'config' or texts[0] == '%config'):
@@ -1386,8 +1698,14 @@ class IPCompleter(Completer):
                          if attr.startswith(texts[1]) ]
         return []
 
-    def magic_color_matches(self, text:str) -> List[str] :
-        """ Match color schemes for %colors magic"""
+    @context_matcher()
+    def magic_color_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
+        # NOTE: uses `line_buffer` equivalent for compatibility
+        matches = self.magic_color_matches(context.line_with_cursor)
+        return _convert_matcher_v1_result_to_v2(matches, type="param")
+
+    def magic_color_matches(self, text: str) -> List[str]:
+        """Match color schemes for %colors magic"""
         texts = text.split()
         if text.endswith(' '):
             # .split() strips off the trailing whitespace. Add '' back
@@ -1400,9 +1718,24 @@ class IPCompleter(Completer):
                      if color.startswith(prefix) ]
         return []
 
-    def _jedi_matches(self, cursor_column:int, cursor_line:int, text:str) -> Iterable[Any]:
+    @context_matcher(identifier="IPCompleter.jedi_matcher")
+    def _jedi_matcher(self, context: CompletionContext) -> _JediMatcherResult:
+        matches = self._jedi_matches(
+            cursor_column=context.cursor_position,
+            cursor_line=context.cursor_line,
+            text=context.full_text,
+        )
+        return {
+            "completions": matches,
+            # statis analysis should not suppress other matchers
+            "suppress_others": False,
+        }
+
+    def _jedi_matches(
+        self, cursor_column: int, cursor_line: int, text: str
+    ) -> Iterable[_JediCompletionLike]:
         """
-        Return a list of :any:`jedi.api.Completions` object from a ``text`` and
+        Return a list of :any:`jedi.api.Completion`s object from a ``text`` and
         cursor position.
 
         Parameters
@@ -1554,6 +1887,11 @@ class IPCompleter(Completer):
 
         return list(set(ret))
 
+    @context_matcher()
+    def python_func_kw_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
+        matches = self.python_func_kw_matches(context.token)
+        return _convert_matcher_v1_result_to_v2(matches, type="param")
+
     def python_func_kw_matches(self, text):
         """Match named parameters (kwargs) of the last open function"""
 
@@ -1650,9 +1988,18 @@ class IPCompleter(Completer):
             return obj.dtype.names or []
         return []
 
-    def dict_key_matches(self, text:str) -> List[str]:
-        "Match string keys in a dictionary, after e.g. 'foo[' "
+    @context_matcher()
+    def dict_key_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
+        matches = self.dict_key_matches(context.token)
+        return _convert_matcher_v1_result_to_v2(
+            matches, type="dict key", suppress_if_matches=True
+        )
 
+    def dict_key_matches(self, text: str) -> List[str]:
+        """Match string keys in a dictionary, after e.g. ``foo[``.
+
+        DEPRECATED: Deprecated since 8.5. Use ``dict_key_matcher`` instead.
+        """
 
         if self.__dict_key_regexps is not None:
             regexps = self.__dict_key_regexps
@@ -1754,8 +2101,15 @@ class IPCompleter(Completer):
 
         return [leading + k + suf for k in matches]
 
+    @context_matcher()
+    def unicode_name_matcher(self, context):
+        fragment, matches = self.unicode_name_matches(context.token)
+        return _convert_matcher_v1_result_to_v2(
+            matches, type="unicode", fragment=fragment, suppress_if_matches=True
+        )
+
     @staticmethod
-    def unicode_name_matches(text:str) -> Tuple[str, List[str]] :
+    def unicode_name_matches(text: str) -> Tuple[str, List[str]]:
         """Match Latex-like syntax for unicode characters base
         on the name of the character.
 
@@ -1776,8 +2130,14 @@ class IPCompleter(Completer):
                 pass
         return '', []
 
+    @context_matcher()
+    def latex_name_matcher(self, context):
+        fragment, matches = self.latex_matches(context.token)
+        return _convert_matcher_v1_result_to_v2(
+            matches, type="latex", fragment=fragment, suppress_if_matches=True
+        )
 
-    def latex_matches(self, text:str) -> Tuple[str, Sequence[str]]:
+    def latex_matches(self, text: str) -> Tuple[str, Sequence[str]]:
         """Match Latex syntax for unicode characters.
 
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
@@ -1796,6 +2156,15 @@ class IPCompleter(Completer):
                 if matches:
                     return s, matches
         return '', ()
+
+    @context_matcher()
+    def custom_completer_matcher(self, context):
+        matches = self.dispatch_custom_completer(context.token) or []
+        result = _convert_matcher_v1_result_to_v2(
+            matches, type="<unknown>", suppress_if_matches=True
+        )
+        result["ordered"] = True
+        return result
 
     def dispatch_custom_completer(self, text):
         if not self.custom_completers:
@@ -1951,12 +2320,25 @@ class IPCompleter(Completer):
         """
         deadline = time.monotonic() + _timeout
 
-
         before = full_text[:offset]
         cursor_line, cursor_column = position_to_cursor(full_text, offset)
 
-        matched_text, matches, matches_origin, jedi_matches = self._complete(
-            full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column)
+        jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
+
+        results = self._complete(
+            full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column
+        )
+        non_jedi_results: Dict[str, SimpleMatcherResult] = {
+            identifier: result
+            for identifier, result in results.items()
+            if identifier != jedi_matcher_id
+        }
+
+        jedi_matches = (
+            cast(results[jedi_matcher_id], _JediMatcherResult)["completions"]
+            if jedi_matcher_id in results
+            else ()
+        )
 
         iter_jm = iter(jedi_matches)
         if _timeout:
@@ -1984,27 +2366,55 @@ class IPCompleter(Completer):
 
         for jm in iter_jm:
             delta = len(jm.name_with_symbols) - len(jm.complete)
-            yield Completion(start=offset - delta,
-                             end=offset,
-                             text=jm.name_with_symbols,
-                             type='<unknown>',  # don't compute type for speed
-                             _origin='jedi',
-                             signature='')
-
-
-        start_offset = before.rfind(matched_text)
+            yield Completion(
+                start=offset - delta,
+                end=offset,
+                text=jm.name_with_symbols,
+                type=_UNKNOWN_TYPE,  # don't compute type for speed
+                _origin="jedi",
+                signature="",
+            )
 
         # TODO:
         # Suppress this, right now just for debug.
-        if jedi_matches and matches and self.debug:
-            yield Completion(start=start_offset, end=offset, text='--jedi/ipython--',
-                             _origin='debug', type='none', signature='')
+        if jedi_matches and non_jedi_results and self.debug:
+            some_start_offset = before.rfind(
+                next(iter(non_jedi_results.values()))["matched_fragment"]
+            )
+            yield Completion(
+                start=some_start_offset,
+                end=offset,
+                text="--jedi/ipython--",
+                _origin="debug",
+                type="none",
+                signature="",
+            )
 
-        # I'm unsure if this is always true, so let's assert and see if it
-        # crash
-        assert before.endswith(matched_text)
-        for m, t in zip(matches, matches_origin):
-            yield Completion(start=start_offset, end=offset, text=m, _origin=t, signature='', type='<unknown>')
+        ordered = []
+        sortable = []
+
+        for origin, result in non_jedi_results.items():
+            matched_text = result["matched_fragment"]
+            start_offset = before.rfind(matched_text)
+            is_ordered = result.get("ordered", False)
+            container = ordered if is_ordered else sortable
+
+            # I'm unsure if this is always true, so let's assert and see if it
+            # crash
+            assert before.endswith(matched_text)
+
+            for simple_completion in result["completions"]:
+                completion = Completion(
+                    start=start_offset,
+                    end=offset,
+                    text=simple_completion.text,
+                    _origin=origin,
+                    signature="",
+                    type=simple_completion.type or _UNKNOWN_TYPE,
+                )
+                container.append(completion)
+
+        yield from self._deduplicate(ordered + self._sort(sortable))
 
 
     def complete(self, text=None, line_buffer=None, cursor_pos=None) -> Tuple[str, Sequence[str]]:
@@ -2046,7 +2456,54 @@ class IPCompleter(Completer):
                       PendingDeprecationWarning)
         # potential todo, FOLD the 3rd throw away argument of _complete
         # into the first 2 one.
-        return self._complete(line_buffer=line_buffer, cursor_pos=cursor_pos, text=text, cursor_line=0)[:2]
+        # TODO: Q: does the above refer to jedi completions (i.e. 0-indexed?)
+        # TODO: should we deprecate now, or does it stay?
+
+        results = self._complete(
+            line_buffer=line_buffer, cursor_pos=cursor_pos, text=text, cursor_line=0
+        )
+
+        jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
+
+        return self._arrange_and_extract(
+            results,
+            # TODO: can we confirm that excluding Jedi here was a deliberate choice in previous version?
+            skip_matchers={jedi_matcher_id},
+            # this API does not support different start/end positions (fragments of token).
+            abort_if_offset_changes=True,
+        )
+
+    def _arrange_and_extract(
+        self,
+        results: Dict[str, MatcherResult],
+        skip_matchers: Set[str],
+        abort_if_offset_changes: bool,
+    ):
+
+        sortable = []
+        ordered = []
+        most_recent_fragment = None
+        for identifier, result in results.items():
+            if identifier in skip_matchers:
+                continue
+            if not most_recent_fragment:
+                most_recent_fragment = result["matched_fragment"]
+            if (
+                abort_if_offset_changes
+                and result["matched_fragment"] != most_recent_fragment
+            ):
+                break
+            if result.get("ordered", False):
+                ordered.extend(result["completions"])
+            else:
+                sortable.extend(result["completions"])
+
+        if not most_recent_fragment:
+            most_recent_fragment = ""  # to satisfy typechecker (and just in case)
+
+        return most_recent_fragment, [
+            m.text for m in self._deduplicate(ordered + self._sort(sortable))
+        ]
 
     def _complete(self, *, cursor_line, cursor_pos, line_buffer=None, text=None,
                   full_text=None) -> _CompleteResult:
@@ -2081,13 +2538,9 @@ class IPCompleter(Completer):
 
         Returns
         -------
-        A tuple of N elements which are (likely):
-            matched_text: ? the text that the complete matched
-            matches: list of completions ?
-            matches_origin: ? list same length as matches, and where each completion came from
-            jedi_matches: list of Jedi matches, have it's own structure.
+        An ordered dictionary where keys are identifiers of completion
+        matchers and values are ``MatcherResult``s.
         """
-
 
         # if the cursor position isn't given, the only sane assumption we can
         # make is that it's at the end of the line (the common case)
@@ -2100,93 +2553,131 @@ class IPCompleter(Completer):
         # if text is either None or an empty string, rely on the line buffer
         if (not line_buffer) and full_text:
             line_buffer = full_text.split('\n')[cursor_line]
-        if not text: # issue #11508: check line_buffer before calling split_line
-            text = self.splitter.split_line(line_buffer, cursor_pos)  if line_buffer else ''
-
-        if self.backslash_combining_completions:
-            # allow deactivation of these on windows.
-            base_text = text if not line_buffer else line_buffer[:cursor_pos]
-
-            for meth in (self.latex_matches,
-                         self.unicode_name_matches,
-                         back_latex_name_matches,
-                         back_unicode_name_matches,
-                         self.fwd_unicode_match):
-                name_text, name_matches = meth(base_text)
-                if name_text:
-                    return _CompleteResult(name_text, name_matches[:MATCHES_LIMIT], \
-                           [meth.__qualname__]*min(len(name_matches), MATCHES_LIMIT), ())
-
+        if not text:  # issue #11508: check line_buffer before calling split_line
+            text = (
+                self.splitter.split_line(line_buffer, cursor_pos) if line_buffer else ""
+            )
 
         # If no line buffer is given, assume the input text is all there was
         if line_buffer is None:
             line_buffer = text
 
+        # deprecated - do not use `line_buffer` in new code.
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
 
-        # Do magic arg matches
-        for matcher in self.magic_arg_matchers:
-            matches = list(matcher(line_buffer))[:MATCHES_LIMIT]
-            if matches:
-                origins = [matcher.__qualname__] * len(matches)
-                return _CompleteResult(text, matches, origins, ())
+        if not full_text:
+            full_text = line_buffer
+
+        context = CompletionContext(
+            full_text=full_text,
+            cursor_position=cursor_pos,
+            cursor_line=cursor_line,
+            token=text,
+        )
 
         # Start with a clean slate of completions
-        matches = []
+        results = {}
 
-        # FIXME: we should extend our api to return a dict with completions for
-        # different types of objects.  The rlcomplete() method could then
-        # simply collapse the dict into a list for readline, but we'd have
-        # richer completion semantics in other environments.
-        is_magic_prefix = len(text) > 0 and text[0] == "%"
-        completions: Iterable[Any] = []
-        if self.use_jedi and not is_magic_prefix:
-            if not full_text:
-                full_text = line_buffer
-            completions = self._jedi_matches(
-                cursor_pos, cursor_line, full_text)
+        custom_completer_matcher_id = _get_matcher_id(self.custom_completer_matcher)
+        jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
 
-        if self.merge_completions:
-            matches = []
-            for matcher in self.matchers:
-                try:
-                    matches.extend([(m, matcher.__qualname__)
-                                    for m in matcher(text)])
-                except:
-                    # Show the ugly traceback if the matcher causes an
-                    # exception, but do NOT crash the kernel!
-                    sys.excepthook(*sys.exc_info())
-        else:
-            for matcher in self.matchers:
-                matches = [(m, matcher.__qualname__)
-                            for m in matcher(text)]
-                if matches:
-                    break
-                    
-        seen = set()
-        filtered_matches = set()
-        for m in matches:
-            t, c = m
-            if t not in seen:
-                filtered_matches.add(m)
-                seen.add(t)
+        for matcher in self.matchers:
+            api_version = _get_matcher_api_version(matcher)
+            matcher_id = _get_matcher_id(matcher)
 
-        _filtered_matches = sorted(filtered_matches, key=lambda x: completions_sorting_key(x[0]))
+            if matcher_id in results:
+                warnings.warn(f"Duplicate matcher ID: {matcher_id}.")
 
-        custom_res = [(m, 'custom') for m in self.dispatch_custom_completer(text) or []]
-        
-        _filtered_matches = custom_res or _filtered_matches
-        
-        _filtered_matches = _filtered_matches[:MATCHES_LIMIT]
-        _matches = [m[0] for m in _filtered_matches]
-        origins = [m[1] for m in _filtered_matches]
+            try:
+                if api_version == 1:
+                    result = _convert_matcher_v1_result_to_v2(
+                        matcher(text), type=_UNKNOWN_TYPE
+                    )
+                elif api_version == 2:
+                    # TODO: MATCHES_LIMIT was used inconsistently in previous version
+                    #  (applied individually to latex/unicode and magic arguments matcher,
+                    #  but not Jedi, paths, magics, etc). Jedi did not have a limit here at
+                    #  all, but others had a total limit (retained in `_deduplicate_and_sort`).
+                    #  1) Was that deliberate or an omission?
+                    #  2) Should we include the limit in the API v2 signature to allow
+                    #     more expensive matchers to return early?
+                    result = cast(matcher, MatcherAPIv2)(context)
+                else:
+                    raise ValueError(f"Unsupported API version {api_version}")
+            except:
+                # Show the ugly traceback if the matcher causes an
+                # exception, but do NOT crash the kernel!
+                sys.excepthook(*sys.exc_info())
+                continue
 
-        self.matches = _matches
+            # set default value for matched fragment if suffix was not selected.
+            result["matched_fragment"] = result.get("matched_fragment", context.token)
 
-        return _CompleteResult(text, _matches, origins, completions)
-        
-    def fwd_unicode_match(self, text:str) -> Tuple[str, Sequence[str]]:
+            suppression_recommended = result.get("suppress_others", False)
+
+            should_suppress = (
+                self.suppress_competing_matchers is True
+                or suppression_recommended
+                or (
+                    isinstance(self.suppress_competing_matchers, dict)
+                    and self.suppress_competing_matchers[matcher_id]
+                )
+            ) and len(result["completions"])
+
+            if should_suppress:
+                new_results = {matcher_id: result}
+                if (
+                    matcher_id == custom_completer_matcher_id
+                    and jedi_matcher_id in results
+                ):
+                    # custom completer does not suppress Jedi (this may change in future versions).
+                    new_results[jedi_matcher_id] = results[jedi_matcher_id]
+                results = new_results
+                break
+
+            results[matcher_id] = result
+
+        _, matches = self._arrange_and_extract(
+            results,
+            # TODO Jedi completions non included in legacy stateful API; was this deliberate or omission?
+            #  if it was omission, we can remove the filtering step, otherwise remove this comment.
+            skip_matchers={jedi_matcher_id},
+            abort_if_offset_changes=False,
+        )
+
+        # populate legacy stateful API
+        self.matches = matches
+
+        return results
+
+    @staticmethod
+    def _deduplicate(
+        matches: Sequence[SimpleCompletion],
+    ) -> Iterable[SimpleCompletion]:
+        filtered_matches = {}
+        for match in matches:
+            text = match.text
+            if (
+                text not in filtered_matches
+                or filtered_matches[text].type == _UNKNOWN_TYPE
+            ):
+                filtered_matches[text] = match
+
+        return filtered_matches.values()
+
+    @staticmethod
+    def _sort(matches: Sequence[SimpleCompletion]):
+        return sorted(matches, key=lambda x: completions_sorting_key(x.text))
+
+    @context_matcher()
+    def fwd_unicode_matcher(self, context):
+        fragment, matches = self.latex_matches(context.token)
+        return _convert_matcher_v1_result_to_v2(
+            matches, type="unicode", fragment=fragment, suppress_if_matches=True
+        )
+
+    def fwd_unicode_match(self, text: str) -> Tuple[str, Sequence[str]]:
         """
         Forward match a string starting with a backslash with a list of
         potential Unicode completions.
