@@ -101,6 +101,8 @@ option.
 Be sure to update :any:`jedi` to the latest stable version or to try the
 current development version to get better completions.
 
+.. _Matchers:
+
 Matchers
 ========
 
