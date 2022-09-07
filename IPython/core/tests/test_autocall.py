@@ -8,6 +8,7 @@ with better-isolated tests that don't rely on the global instance in iptest.
 from IPython.core.splitinput import LineInfo
 from IPython.core.prefilter import AutocallChecker
 
+
 def doctest_autocall():
     """
     In [1]: def f1(a,b,c):

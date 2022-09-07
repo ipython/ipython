@@ -32,6 +32,7 @@ tests.append(("Pérez Fernando", ("", "", "Pérez", "Fernando")))
 def test_split_user_input():
     return tt.check_pairs(split_user_input, tests)
 
+
 def test_LineInfo():
     """Simple test for LineInfo construction and str()"""
     linfo = LineInfo("  %cd /home")

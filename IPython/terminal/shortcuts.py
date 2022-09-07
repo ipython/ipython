@@ -140,6 +140,18 @@ def create_ipython_shortcuts(shell):
         _following_text_cache[pattern] = condition
         return condition
 
+    @Condition
+    def not_inside_unclosed_string():
+        app = get_app()
+        s = app.current_buffer.document.text_before_cursor
+        # remove escaped quotes
+        s = s.replace('\\"', "").replace("\\'", "")
+        # remove triple-quoted string literals
+        s = re.sub(r"(?:\"\"\"[\s\S]*\"\"\"|'''[\s\S]*''')", "", s)
+        # remove single-quoted string literals
+        s = re.sub(r"""(?:"[^"]*["\n]|'[^']*['\n])""", "", s)
+        return not ('"' in s or "'" in s)
+
     # auto match
     @kb.add("(", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
     def _(event):
@@ -160,7 +172,7 @@ def create_ipython_shortcuts(shell):
         '"',
         filter=focused_insert
         & auto_match
-        & preceding_text(r'^([^"]+|"[^"]*")*$')
+        & not_inside_unclosed_string
         & following_text(r"[,)}\]]|$"),
     )
     def _(event):
@@ -171,12 +183,34 @@ def create_ipython_shortcuts(shell):
         "'",
         filter=focused_insert
         & auto_match
-        & preceding_text(r"^([^']+|'[^']*')*$")
+        & not_inside_unclosed_string
         & following_text(r"[,)}\]]|$"),
     )
     def _(event):
         event.current_buffer.insert_text("''")
         event.current_buffer.cursor_left()
+
+    @kb.add(
+        '"',
+        filter=focused_insert
+        & auto_match
+        & not_inside_unclosed_string
+        & preceding_text(r'^.*""$'),
+    )
+    def _(event):
+        event.current_buffer.insert_text('""""')
+        event.current_buffer.cursor_left(3)
+
+    @kb.add(
+        "'",
+        filter=focused_insert
+        & auto_match
+        & not_inside_unclosed_string
+        & preceding_text(r"^.*''$"),
+    )
+    def _(event):
+        event.current_buffer.insert_text("''''")
+        event.current_buffer.cursor_left(3)
 
     # raw string
     @kb.add(
