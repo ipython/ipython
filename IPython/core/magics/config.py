@@ -139,7 +139,7 @@ class ConfigMagics(Magics):
                 ``IPCompleter.merge_completions`` and can be beneficial for performance, but
                 will sometimes omit relevant candidates from matchers further down the
                 priority list.
-                Current: False
+                Current: None
             IPCompleter.use_jedi=<Bool>
                 Experimental: Use Jedi to generate autocompletions. Default to True if jedi
                 is installed.

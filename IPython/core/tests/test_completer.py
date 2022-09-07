@@ -1295,6 +1295,36 @@ class TestCompleter(unittest.TestCase):
             for c in completions:
                 self.assertEqual(c.text[0], "%")
 
+    def test_dict_key_restrict_to_dicts(self):
+        """Test that dict key suppresses non-dict completion items"""
+        ip = get_ipython()
+        c = ip.Completer
+        d = {"abc": None}
+        ip.user_ns["d"] = d
+
+        text = 'd["a'
+
+        def _():
+            with provisionalcompleter():
+                c.use_jedi = True
+                return [
+                    completion.text for completion in c.completions(text, len(text))
+                ]
+
+        completions = _()
+        self.assertEqual(completions, ["abc"])
+
+        # check that it can be disabled in granular manner:
+        cfg = Config()
+        cfg.IPCompleter.suppress_competing_matchers = {
+            "IPCompleter.dict_key_matcher": False
+        }
+        c.update_config(cfg)
+
+        completions = _()
+        self.assertIn("abc", completions)
+        self.assertGreater(len(completions), 1)
+
     def test_matcher_suppression(self):
         @completion_matcher(identifier="a_matcher")
         def a_matcher(text):
@@ -1326,15 +1356,33 @@ class TestCompleter(unittest.TestCase):
             c = ip.Completer
 
             def _(text, expected):
-                with provisionalcompleter():
-                    c.use_jedi = False
-                    s, matches = c.complete(text)
-                    self.assertEqual(expected, matches)
+                c.use_jedi = False
+                s, matches = c.complete(text)
+                self.assertEqual(expected, matches)
 
             _("do not suppress", ["completion_a", "completion_b", "completion_c"])
             _("suppress all", ["completion_b"])
             _("suppress all but a", ["completion_a", "completion_b"])
             _("suppress all but c", ["completion_b", "completion_c"])
+
+            def configure(suppression_config):
+                cfg = Config()
+                cfg.IPCompleter.suppress_competing_matchers = suppression_config
+                c.update_config(cfg)
+
+            # test that configuration takes priority over the run-time decisions
+
+            configure(False)
+            _("suppress all", ["completion_a", "completion_b", "completion_c"])
+
+            configure({"b_matcher": False})
+            _("suppress all", ["completion_a", "completion_b", "completion_c"])
+
+            configure({"a_matcher": False})
+            _("suppress all", ["completion_b"])
+
+            configure({"b_matcher": True})
+            _("do not suppress", ["completion_b"])
 
     def test_matcher_disabling(self):
         @completion_matcher(identifier="a_matcher")
@@ -1346,10 +1394,8 @@ class TestCompleter(unittest.TestCase):
             return ["completion_b"]
 
         def _(expected):
-            with provisionalcompleter():
-                c.use_jedi = False
-                s, matches = c.complete("completion_")
-                self.assertEqual(expected, matches)
+            s, matches = c.complete("completion_")
+            self.assertEqual(expected, matches)
 
         with custom_matchers([a_matcher, b_matcher]):
             ip = get_ipython()
@@ -1376,10 +1422,8 @@ class TestCompleter(unittest.TestCase):
             return {"completions": [SimpleCompletion("completion_b")], "suppress": True}
 
         def _(expected):
-            with provisionalcompleter():
-                c.use_jedi = False
-                s, matches = c.complete("completion_")
-                self.assertEqual(expected, matches)
+            s, matches = c.complete("completion_")
+            self.assertEqual(expected, matches)
 
         with custom_matchers([a_matcher, b_matcher]):
             ip = get_ipython()

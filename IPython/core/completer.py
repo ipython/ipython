@@ -1337,7 +1337,8 @@ class IPCompleter(Completer):
     )
 
     suppress_competing_matchers = UnionTrait(
-        [Bool(), DictTrait(Bool(None, allow_none=True))],
+        [Bool(allow_none=True), DictTrait(Bool(None, allow_none=True))],
+        default_value=None,
         help="""
         Whether to suppress completions from other *Matchers*.
 
@@ -2703,13 +2704,14 @@ class IPCompleter(Completer):
             if not suppressed_matchers:
                 suppression_recommended = result.get("suppress", False)
 
+                suppression_config = (
+                    self.suppress_competing_matchers.get(matcher_id, None)
+                    if isinstance(self.suppress_competing_matchers, dict)
+                    else self.suppress_competing_matchers
+                )
                 should_suppress = (
-                    self.suppress_competing_matchers is True
-                    or suppression_recommended
-                    or (
-                        isinstance(self.suppress_competing_matchers, dict)
-                        and self.suppress_competing_matchers[matcher_id]
-                    )
+                    (suppression_config is True)
+                    or (suppression_recommended and (suppression_config is not False))
                 ) and len(result["completions"])
 
                 if should_suppress:
