@@ -105,7 +105,7 @@ class ConfigMagics(Magics):
                 Whether to merge completion results into a single list
                         If False, only the completion results from the first non-empty
                         completer will be returned.
-                        As of version 8.5.0, setting the value to ``False`` is an alias for:
+                        As of version 8.6.0, setting the value to ``False`` is an alias for:
                         ``IPCompleter.suppress_competing_matchers = True.``.
                 Current: True
             IPCompleter.omit__names=<Enum>
@@ -123,7 +123,7 @@ class ConfigMagics(Magics):
                 Template for path at which to output profile data for completions.
                 Current: '.completion_profiles'
             IPCompleter.suppress_competing_matchers=<Union>
-                Whether to suppress completions from other `Matchers`_.
+                Whether to suppress completions from other *Matchers*.
                 When set to ``None`` (default) the matchers will attempt to auto-detect
                 whether suppression of other matchers is desirable. For example, at the
                 beginning of a line followed by `%` we expect a magic completion to be the
@@ -136,9 +136,9 @@ class ConfigMagics(Magics):
                 False}``.
                 Set ``IPCompleter.suppress_competing_matchers = True`` to limit completions
                 to the set of matchers with the highest priority; this is equivalent to
-                ``IPCompleter.merge_completions`` and         can be beneficial for
-                performance, but will sometimes omit relevant candidates from matchers
-                further down the priority list.
+                ``IPCompleter.merge_completions`` and can be beneficial for performance, but
+                will sometimes omit relevant candidates from matchers further down the
+                priority list.
                 Current: False
             IPCompleter.use_jedi=<Bool>
                 Experimental: Use Jedi to generate autocompletions. Default to True if jedi

@@ -24,6 +24,9 @@ from IPython.core.completer import (
     provisionalcompleter,
     match_dict_keys,
     _deduplicate_completions,
+    completion_matcher,
+    SimpleCompletion,
+    CompletionContext,
 )
 
 # -----------------------------------------------------------------------------
@@ -107,6 +110,16 @@ def greedy_completion():
         yield
     finally:
         ip.Completer.greedy = greedy_original
+
+
+@contextmanager
+def custom_matchers(matchers):
+    ip = get_ipython()
+    try:
+        ip.Completer.custom_matchers.extend(matchers)
+        yield
+    finally:
+        ip.Completer.custom_matchers.clear()
 
 
 def test_protect_filename():
@@ -1281,3 +1294,97 @@ class TestCompleter(unittest.TestCase):
             completions = completer.completions(text, len(text))
             for c in completions:
                 self.assertEqual(c.text[0], "%")
+
+    def test_matcher_suppression(self):
+        @completion_matcher(identifier="a_matcher")
+        def a_matcher(text):
+            return ["completion_a"]
+
+        @completion_matcher(identifier="b_matcher", api_version=2)
+        def b_matcher(context: CompletionContext):
+            text = context.token
+            result = {"completions": [SimpleCompletion("completion_b")]}
+
+            if text == "suppress c":
+                result["suppress"] = {"c_matcher"}
+
+            if text.startswith("suppress all"):
+                result["suppress"] = True
+                if text == "suppress all but c":
+                    result["do_not_suppress"] = {"c_matcher"}
+                if text == "suppress all but a":
+                    result["do_not_suppress"] = {"a_matcher"}
+
+            return result
+
+        @completion_matcher(identifier="c_matcher")
+        def c_matcher(text):
+            return ["completion_c"]
+
+        with custom_matchers([a_matcher, b_matcher, c_matcher]):
+            ip = get_ipython()
+            c = ip.Completer
+
+            def _(text, expected):
+                with provisionalcompleter():
+                    c.use_jedi = False
+                    s, matches = c.complete(text)
+                    self.assertEqual(expected, matches)
+
+            _("do not suppress", ["completion_a", "completion_b", "completion_c"])
+            _("suppress all", ["completion_b"])
+            _("suppress all but a", ["completion_a", "completion_b"])
+            _("suppress all but c", ["completion_b", "completion_c"])
+
+    def test_matcher_disabling(self):
+        @completion_matcher(identifier="a_matcher")
+        def a_matcher(text):
+            return ["completion_a"]
+
+        @completion_matcher(identifier="b_matcher")
+        def b_matcher(text):
+            return ["completion_b"]
+
+        def _(expected):
+            with provisionalcompleter():
+                c.use_jedi = False
+                s, matches = c.complete("completion_")
+                self.assertEqual(expected, matches)
+
+        with custom_matchers([a_matcher, b_matcher]):
+            ip = get_ipython()
+            c = ip.Completer
+
+            _(["completion_a", "completion_b"])
+
+            cfg = Config()
+            cfg.IPCompleter.disable_matchers = ["b_matcher"]
+            c.update_config(cfg)
+
+            _(["completion_a"])
+
+            cfg.IPCompleter.disable_matchers = []
+            c.update_config(cfg)
+
+    def test_matcher_priority(self):
+        @completion_matcher(identifier="a_matcher", priority=0, api_version=2)
+        def a_matcher(text):
+            return {"completions": [SimpleCompletion("completion_a")], "suppress": True}
+
+        @completion_matcher(identifier="b_matcher", priority=2, api_version=2)
+        def b_matcher(text):
+            return {"completions": [SimpleCompletion("completion_b")], "suppress": True}
+
+        def _(expected):
+            with provisionalcompleter():
+                c.use_jedi = False
+                s, matches = c.complete("completion_")
+                self.assertEqual(expected, matches)
+
+        with custom_matchers([a_matcher, b_matcher]):
+            ip = get_ipython()
+            c = ip.Completer
+
+            _(["completion_b"])
+            a_matcher.matcher_priority = 3
+            _(["completion_a"])
