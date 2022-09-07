@@ -132,7 +132,7 @@ Matcher API
 
 Simplifying some details, the ``Matcher`` interface can described as
 
-.. highlight::
+.. code-block::
 
     MatcherAPIv1 = Callable[[str], list[str]]
     MatcherAPIv2 = Callable[[CompletionContext], SimpleMatcherResult]
