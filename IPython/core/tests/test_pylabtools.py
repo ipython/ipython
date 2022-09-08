@@ -155,9 +155,6 @@ def test_import_pylab():
     assert ns["np"] == np
 
 
-from traitlets.config import Config
-
-
 class TestPylabSwitch(object):
     class Shell(InteractiveShell):
         def init_history(self):

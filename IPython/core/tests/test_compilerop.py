@@ -17,9 +17,6 @@
 import linecache
 import sys
 
-# Third-party imports
-import pytest
-
 # Our own imports
 from IPython.core import compilerop
 
