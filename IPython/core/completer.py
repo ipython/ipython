@@ -1228,12 +1228,12 @@ def _safe_isinstance(obj, module, class_name):
 
 
 @context_matcher()
-def back_unicode_name_matcher(context):
+def back_unicode_name_matcher(context: CompletionContext):
     """Match Unicode characters back to Unicode name
 
     Same as :any:`back_unicode_name_matches`, but adopted to new Matcher API.
     """
-    fragment, matches = back_unicode_name_matches(context.token)
+    fragment, matches = back_unicode_name_matches(context.text_until_cursor)
     return _convert_matcher_v1_result_to_v2(
         matches, type="unicode", fragment=fragment, suppress_if_matches=True
     )
@@ -1282,12 +1282,12 @@ def back_unicode_name_matches(text: str) -> Tuple[str, Sequence[str]]:
 
 
 @context_matcher()
-def back_latex_name_matcher(context):
+def back_latex_name_matcher(context: CompletionContext):
     """Match latex characters back to unicode name
 
     Same as :any:`back_latex_name_matches`, but adopted to new Matcher API.
     """
-    fragment, matches = back_latex_name_matches(context.token)
+    fragment, matches = back_latex_name_matches(context.text_until_cursor)
     return _convert_matcher_v1_result_to_v2(
         matches, type="latex", fragment=fragment, suppress_if_matches=True
     )
@@ -2255,9 +2255,9 @@ class IPCompleter(Completer):
         return [leading + k + suf for k in matches]
 
     @context_matcher()
-    def unicode_name_matcher(self, context):
+    def unicode_name_matcher(self, context: CompletionContext):
         """Same as :any:`unicode_name_matches`, but adopted to new Matcher API."""
-        fragment, matches = self.unicode_name_matches(context.token)
+        fragment, matches = self.unicode_name_matches(context.text_until_cursor)
         return _convert_matcher_v1_result_to_v2(
             matches, type="unicode", fragment=fragment, suppress_if_matches=True
         )
@@ -2285,12 +2285,12 @@ class IPCompleter(Completer):
         return '', []
 
     @context_matcher()
-    def latex_name_matcher(self, context):
+    def latex_name_matcher(self, context: CompletionContext):
         """Match Latex syntax for unicode characters.
 
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
         """
-        fragment, matches = self.latex_matches(context.token)
+        fragment, matches = self.latex_matches(context.text_until_cursor)
         return _convert_matcher_v1_result_to_v2(
             matches, type="latex", fragment=fragment, suppress_if_matches=True
         )
@@ -2857,9 +2857,12 @@ class IPCompleter(Completer):
         return sorted(matches, key=lambda x: completions_sorting_key(x.text))
 
     @context_matcher()
-    def fwd_unicode_matcher(self, context):
+    def fwd_unicode_matcher(self, context: CompletionContext):
         """Same as :any:`fwd_unicode_match`, but adopted to new Matcher API."""
-        fragment, matches = self.latex_matches(context.token)
+        # TODO: use `context.limit` to terminate early once we matched the maximum
+        #  number that will be used downstream; can be added as an optional to
+        #  `fwd_unicode_match(text: str, limit: int = None)` or we could re-implement here.
+        fragment, matches = self.fwd_unicode_match(context.text_until_cursor)
         return _convert_matcher_v1_result_to_v2(
             matches, type="unicode", fragment=fragment, suppress_if_matches=True
         )

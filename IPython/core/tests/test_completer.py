@@ -1295,6 +1295,18 @@ class TestCompleter(unittest.TestCase):
             for c in completions:
                 self.assertEqual(c.text[0], "%")
 
+    def test_fwd_unicode_restricts(self):
+        ip = get_ipython()
+        completer = ip.Completer
+        text = "\\ROMAN NUMERAL FIVE"
+
+        with provisionalcompleter():
+            completer.use_jedi = True
+            completions = [
+                completion.text for completion in completer.completions(text, len(text))
+            ]
+            self.assertEqual(completions, ["\u2164"])
+
     def test_dict_key_restrict_to_dicts(self):
         """Test that dict key suppresses non-dict completion items"""
         ip = get_ipython()
