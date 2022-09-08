@@ -1,9 +1,1 @@
--e .[test]
-ipykernel
-setuptools>=18.5
-sphinx
-sphinx-rtd-theme
-docrepr
-matplotlib
-stack_data
-pytest<7
+-e .[doc]
