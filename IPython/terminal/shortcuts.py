@@ -106,20 +106,40 @@ def create_ipython_shortcuts(shell):
     def auto_match():
         return shell.auto_match
 
+    def all_quotes_paired(quote, buf):
+        paired = True
+        i = 0
+        while i < len(buf):
+            c = buf[i]
+            if c == quote:
+                paired = not paired
+            elif c == "\\":
+                i += 1
+            i += 1
+        return paired
+
     focused_insert = (vi_insert_mode | emacs_insert_mode) & has_focus(DEFAULT_BUFFER)
     _preceding_text_cache = {}
     _following_text_cache = {}
 
     def preceding_text(pattern):
-        try:
+        if pattern in _preceding_text_cache:
             return _preceding_text_cache[pattern]
-        except KeyError:
-            pass
-        m = re.compile(pattern)
 
-        def _preceding_text():
-            app = get_app()
-            return bool(m.match(app.current_buffer.document.current_line_before_cursor))
+        if callable(pattern):
+
+            def _preceding_text():
+                app = get_app()
+                before_cursor = app.current_buffer.document.current_line_before_cursor
+                return bool(pattern(before_cursor))
+
+        else:
+            m = re.compile(pattern)
+
+            def _preceding_text():
+                app = get_app()
+                before_cursor = app.current_buffer.document.current_line_before_cursor
+                return bool(m.match(before_cursor))
 
         condition = Condition(_preceding_text)
         _preceding_text_cache[pattern] = condition
@@ -173,6 +193,7 @@ def create_ipython_shortcuts(shell):
         filter=focused_insert
         & auto_match
         & not_inside_unclosed_string
+        & preceding_text(lambda line: all_quotes_paired('"', line))
         & following_text(r"[,)}\]]|$"),
     )
     def _(event):
@@ -184,6 +205,7 @@ def create_ipython_shortcuts(shell):
         filter=focused_insert
         & auto_match
         & not_inside_unclosed_string
+        & preceding_text(lambda line: all_quotes_paired("'", line))
         & following_text(r"[,)}\]]|$"),
     )
     def _(event):
