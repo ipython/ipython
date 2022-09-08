@@ -623,7 +623,8 @@ class CompletionContext(NamedTuple):
     #: The maximum number of completions that will be used downstream.
     #: Matchers can use this information to abort early.
     #: The built-in Jedi matcher is currently excepted from this limit.
-    limit: int
+    # If not given, return all possible completions.
+    limit: Optional[int]
 
     @property
     @lru_cache(maxsize=None)  # TODO change to @cache after dropping Python 3.7
