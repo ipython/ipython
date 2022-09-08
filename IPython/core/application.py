@@ -14,7 +14,6 @@ object and then create the configurable objects, passing the config to them.
 
 import atexit
 from copy import deepcopy
-import glob
 import logging
 import os
 import shutil

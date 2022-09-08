@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for various magic functions."""
 
-import asyncio
 import gc
 import io
 import os

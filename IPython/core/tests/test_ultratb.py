@@ -2,7 +2,6 @@
 """Tests for IPython.core.ultratb
 """
 import io
-import logging
 import os.path
 import platform
 import re

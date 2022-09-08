@@ -8,7 +8,6 @@
 import sys
 from io import StringIO
 
-from subprocess import Popen, PIPE
 import unittest
 
 from IPython.utils.io import Tee, capture_output
