@@ -19,7 +19,6 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import sys
 import traceback
 from pprint import pformat

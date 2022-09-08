@@ -4,7 +4,6 @@ Color schemes for exception handling code in IPython.
 """
 
 import os
-import warnings
 
 #*****************************************************************************
 #       Copyright (C) 2005-2006 Fernando Perez <fperez@colorado.edu>

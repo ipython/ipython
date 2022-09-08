@@ -12,7 +12,7 @@ import subprocess
 from base64 import encodebytes
 import textwrap
 
-from pathlib import Path, PurePath
+from pathlib import Path
 
 from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config

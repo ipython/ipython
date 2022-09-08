@@ -17,7 +17,6 @@ Utility functions for finding modules on sys.path.
 
 # Stdlib imports
 import importlib
-import os
 import sys
 
 # Third-party imports

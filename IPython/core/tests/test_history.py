@@ -7,7 +7,6 @@
 
 # stdlib
 import io
-import sqlite3
 import sys
 import tempfile
 from datetime import datetime
