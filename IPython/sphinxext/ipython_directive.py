@@ -220,7 +220,7 @@ except Exception:
 # for tokenizing blocks
 COMMENT, INPUT, OUTPUT =  range(3)
 
-PSEUDO_DECORATORS = ["suppress", "verbatim", "savefig", "doctest"]
+PSEUDO_DECORATORS = ["suppress", "verbatim", "savefig", "doctest", "okexcept"]
 
 #-----------------------------------------------------------------------------
 # Functions and class declarations
@@ -443,6 +443,16 @@ class EmbeddedSphinxShell(object):
         image_directive = '\n'.join(imagerows)
         return image_file, image_directive
 
+    @staticmethod
+    def no_traceback_handler(shell, etype, value, tb, tb_offset=None):
+        """
+        Exception handler that shows only the exception without the traceback.
+        """
+        shell.InteractiveTB.color_toggle()
+        stb = shell.InteractiveTB.get_exception_only(etype, value)
+        print(shell.InteractiveTB.stb2text(stb))
+        return stb
+
     # Callbacks for each type of token
     def process_input(self, data, input_prompt, lineno):
         """
@@ -453,14 +463,20 @@ class EmbeddedSphinxShell(object):
         image_file = None
         image_directive = None
 
-        is_verbatim = decorator=='@verbatim' or self.is_verbatim
-        is_doctest = (decorator is not None and \
-                     decorator.startswith('@doctest')) or self.is_doctest
-        is_suppress = decorator=='@suppress' or self.is_suppress
-        is_okexcept = decorator=='@okexcept' or self.is_okexcept
-        is_okwarning = decorator=='@okwarning' or self.is_okwarning
-        is_savefig = decorator is not None and \
-                     decorator.startswith('@savefig')
+        is_verbatim = decorator == "@verbatim" or self.is_verbatim
+        is_doctest = (
+            decorator is not None and decorator.startswith("@doctest")
+        ) or self.is_doctest
+        is_suppress = decorator == "@suppress" or self.is_suppress
+        is_okexcept = (
+            decorator is not None and decorator.startswith("@okexcept")
+        ) or self.is_okexcept
+        no_traceback = (
+            decorator is not None
+            and decorator.partition(" ")[2].startswith("no_traceback")
+        ) or self.no_traceback
+        is_okwarning = decorator == "@okwarning" or self.is_okwarning
+        is_savefig = decorator is not None and decorator.startswith("@savefig")
 
         input_lines = input.split('\n')
         if len(input_lines) > 1:
@@ -494,7 +510,11 @@ class EmbeddedSphinxShell(object):
                 self.IP.execution_count += 1 # increment it anyway
             else:
                 # only submit the line in non-verbatim mode
+                if no_traceback:
+                    self.IP.set_custom_exc((BaseException,), self.no_traceback_handler)
                 self.process_input_lines(input_lines, store_history=store_history)
+                if no_traceback:
+                    self.IP.set_custom_exc((), None)
 
         if not is_suppress:
             for i, line in enumerate(input_lines):
@@ -901,13 +921,14 @@ class IPythonDirective(Directive):
     required_arguments = 0
     optional_arguments = 4 # python, suppress, verbatim, doctest
     final_argumuent_whitespace = True
-    option_spec = { 'python': directives.unchanged,
-                    'suppress' : directives.flag,
-                    'verbatim' : directives.flag,
-                    'doctest' : directives.flag,
-                    'okexcept': directives.flag,
-                    'okwarning': directives.flag
-                  }
+    option_spec = {
+        "python": directives.unchanged,
+        "suppress": directives.flag,
+        "verbatim": directives.flag,
+        "doctest": directives.flag,
+        "okexcept": directives.unchanged,
+        "okwarning": directives.flag,
+    }
 
     shell = None
 
@@ -1002,11 +1023,12 @@ class IPythonDirective(Directive):
         rgxin, rgxout, promptin, promptout = self.setup()
 
         options = self.options
-        self.shell.is_suppress = 'suppress' in options
-        self.shell.is_doctest = 'doctest' in options
-        self.shell.is_verbatim = 'verbatim' in options
-        self.shell.is_okexcept = 'okexcept' in options
-        self.shell.is_okwarning = 'okwarning' in options
+        self.shell.is_suppress = "suppress" in options
+        self.shell.is_doctest = "doctest" in options
+        self.shell.is_verbatim = "verbatim" in options
+        self.shell.is_okexcept = "okexcept" in options
+        self.shell.is_okwarning = "okwarning" in options
+        self.shell.no_traceback = options.get("okexcept") == "no_traceback"
 
         # handle pure python code
         if 'python' in self.arguments:

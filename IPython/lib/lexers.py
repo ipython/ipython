@@ -31,6 +31,7 @@ This includes:
 #-----------------------------------------------------------------------------
 
 # Standard library
+import builtins
 import re
 
 # Third party
@@ -255,8 +256,19 @@ class IPythonConsoleLexer(Lexer):
     in2_regex = r'   \.\.+\.: '
     out_regex = r'Out\[[0-9]+\]: '
 
-    #: The regex to determine when a traceback starts.
-    ipytb_start = re.compile(r'^(\^C)?(-+\n)|^(  File)(.*)(, line )(\d+\n)')
+    #: The regex to determine when a traceback or exception starts.
+    exceptions = [
+        name
+        for name, value in builtins.__dict__.items()
+        if isinstance(value, type)
+        and issubclass(value, Exception)
+        and not issubclass(value, Warning)
+    ]
+    ipytb_start = re.compile(
+        r"^(\^C)?(-+\n)|^(  File)(.*)(, line )(\d+\n)|^("
+        + "|".join(exceptions)
+        + r"): \S.*\n"
+    )
 
     def __init__(self, **options):
         """Initialize the IPython console lexer.
