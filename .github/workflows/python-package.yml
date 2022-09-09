@@ -3,6 +3,9 @@
 
 name: Python package
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main, 7.x ]
