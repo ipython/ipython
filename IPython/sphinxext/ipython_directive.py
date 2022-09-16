@@ -139,8 +139,6 @@ An example usage of the directive is:
 
         In [3]: print(y)
 
-See http://matplotlib.org/sampledoc/ipython_directive.html for additional
-documentation.
 
 Pseudo-Decorators
 =================
