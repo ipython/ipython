@@ -2,8 +2,6 @@
 
 
 from logging import error
-import io
-import os
 from pprint import pformat
 import sys
 from warnings import warn
