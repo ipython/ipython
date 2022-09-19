@@ -12,6 +12,9 @@ on:
   workflow_dispatch:
 
 
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
