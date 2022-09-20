@@ -254,16 +254,16 @@ class KeyboardInterruptBlockingCall(unittest.TestCase):
         # Tests gh-13737
         def yield_code():
             code = (
-                'from IPython.core.async_helpers import get_asyncio_loop\n'
-                'loop = get_asyncio_loop()\n'
-                '\n'
-                'async def coro():\n'
-                '    raise KeyboardInterrupt\n'
-                '\n'
-                'task = loop.create_task(coro())\n'
+                "from IPython.core.async_helpers import get_asyncio_loop\n"
+                "loop = get_asyncio_loop()\n"
+                "\n"
+                "async def coro():\n"
+                "    raise KeyboardInterrupt\n"
+                "\n"
+                "task = loop.create_task(coro())\n"
             )
 
-            yield '%gui asyncio'
+            yield "%gui asyncio"
             yield code
 
         with mock_input_helper(yield_code()) as mih:

@@ -610,8 +610,8 @@ class TerminalInteractiveShell(InteractiveShell):
         try:
             with patch_stdout(raw=True):
                 text = self.pt_app.prompt(
-                    default=self._get_next_input_text(),
-                    **self._extra_prompt_options())
+                    default=self._get_next_input_text(), **self._extra_prompt_options()
+                )
         finally:
             # Restore the original event loop.
             if old_loop is not None and old_loop is not self.pt_loop:
@@ -622,8 +622,8 @@ class TerminalInteractiveShell(InteractiveShell):
     async def prompt_for_code_async(self):
         with patch_stdout(raw=True):
             return await self.pt_app.prompt_async(
-                default=self._get_next_input_text(),
-                **self._extra_prompt_options())
+                default=self._get_next_input_text(), **self._extra_prompt_options()
+            )
 
     def enable_win_unicode_console(self):
         # Since IPython 7.10 doesn't support python < 3.6 and PEP 528, Python uses the unicode APIs for the Windows
@@ -674,11 +674,11 @@ class TerminalInteractiveShell(InteractiveShell):
         self.keep_running = True
 
         while self.keep_running:
-            print(self.separate_in, end='')
-            code = ''
+            print(self.separate_in, end="")
+            code = ""
 
             try:
-                if self.active_eventloop == 'asyncio':
+                if self.active_eventloop == "asyncio":
                     # Same loop for code and prompt_toolkit. If user starts a task which contains a
                     # blocking call, e.g. `time.sleep()`, IPython will not use the loop runner but
                     # the pseudo runner which will return immediately and we will go into
