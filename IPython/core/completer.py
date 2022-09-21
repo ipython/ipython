@@ -317,9 +317,6 @@ def completions_sorting_key(word):
     elif word.startswith('_'):
         prio1 = 1
 
-    if word.endswith('='):
-        prio1 = -1
-
     if word.startswith('%%'):
         # If there's another % in there, this is something else, so leave it alone
         if not "%" in word[2:]:
@@ -1555,8 +1552,7 @@ class IPCompleter(Completer):
                        v.kind in _keeps)
         except ValueError:
             pass
-
-        return list(set(ret))
+        return list(dict.fromkeys(ret))
 
     def python_func_kw_matches(self, text):
         """Match named parameters (kwargs) of the last open function"""
@@ -1625,8 +1621,8 @@ class IPCompleter(Completer):
             namedArgs = self._default_arguments(eval(callableObj,
                                                     self.namespace))
 
-            # Remove used named arguments from the list, no need to show twice
-            for namedArg in set(namedArgs) - usedNamedArgs:
+            # Remove used named arguments from the list, no need to show twice,
+            for namedArg in [arg for arg in namedArgs if arg not in usedNamedArgs]:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
         except:
@@ -1959,10 +1955,19 @@ class IPCompleter(Completer):
         before = full_text[:offset]
         cursor_line, cursor_column = position_to_cursor(full_text, offset)
 
-        matched_text, matches, matches_origin, jedi_matches = self._complete(
+        matched_text, matches, matches_origin, all_jedi_matches = self._complete(
             full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column)
 
-        iter_jm = iter(jedi_matches)
+        # Move parameter matches first
+        jedi_matches = []
+        jedi_param_matches = []
+        for jedi_match in iter(all_jedi_matches):
+            if jedi_match.name.endswith("="):
+                jedi_param_matches.append(jedi_match)
+            else:
+                jedi_matches.append(jedi_match)
+        # Jedi already sorts matches alphabetically so no need to do that here
+        iter_jm = jedi_param_matches + jedi_matches
         if _timeout:
             for jm in iter_jm:
                 try:
@@ -2144,12 +2149,11 @@ class IPCompleter(Completer):
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other environments.
         is_magic_prefix = len(text) > 0 and text[0] == "%"
-        completions: Iterable[Any] = []
+        jedi_completions: Iterable[Any] = []
         if self.use_jedi and not is_magic_prefix:
             if not full_text:
                 full_text = line_buffer
-            completions = self._jedi_matches(
-                cursor_pos, cursor_line, full_text)
+            jedi_completions = self._jedi_matches(cursor_pos, cursor_line, full_text)
 
         if self.merge_completions:
             matches = []
@@ -2170,13 +2174,20 @@ class IPCompleter(Completer):
                     
         seen = set()
         filtered_matches = set()
+        filtered_param_matches = dict()
         for m in matches:
             t, c = m
             if t not in seen:
-                filtered_matches.add(m)
+                # Keep the parameter matches in the function signature order
+                if c == "IPCompleter.python_func_kw_matches":
+                    filtered_param_matches[m] = None
+                else:
+                    filtered_matches.add(m)
                 seen.add(t)
 
-        _filtered_matches = sorted(filtered_matches, key=lambda x: completions_sorting_key(x[0]))
+        _filtered_matches = list(filtered_param_matches) + sorted(
+            list(filtered_matches), key=lambda x: completions_sorting_key(x[0])
+        )
 
         custom_res = [(m, 'custom') for m in self.dispatch_custom_completer(text) or []]
         
@@ -2188,7 +2199,7 @@ class IPCompleter(Completer):
 
         self.matches = _matches
 
-        return _CompleteResult(text, _matches, origins, completions)
+        return _CompleteResult(text, _matches, origins, jedi_completions)
         
     def fwd_unicode_match(self, text:str) -> Tuple[str, Sequence[str]]:
         """
