@@ -191,7 +191,8 @@ import unicodedata
 import uuid
 import warnings
 from contextlib import contextmanager
-from functools import lru_cache, partial
+from dataclasses import dataclass
+from functools import cached_property, partial
 from importlib import import_module
 from types import SimpleNamespace
 from typing import (
@@ -597,7 +598,8 @@ class _JediMatcherResult(_MatcherResultBase):
     completions: Iterable[_JediCompletionLike]
 
 
-class CompletionContext(NamedTuple):
+@dataclass
+class CompletionContext:
     """Completion context provided as an argument to matchers in the Matcher API v2."""
 
     # rationale: many legacy matchers relied on completer state (`self.text_until_cursor`)
@@ -626,13 +628,11 @@ class CompletionContext(NamedTuple):
     # If not given, return all possible completions.
     limit: Optional[int]
 
-    @property
-    @lru_cache(maxsize=None)  # TODO change to @cache after dropping Python 3.7
+    @cached_property
     def text_until_cursor(self) -> str:
         return self.line_with_cursor[: self.cursor_position]
 
-    @property
-    @lru_cache(maxsize=None)  # TODO change to @cache after dropping Python 3.7
+    @cached_property
     def line_with_cursor(self) -> str:
         return self.full_text.split("\n")[self.cursor_line]
 
