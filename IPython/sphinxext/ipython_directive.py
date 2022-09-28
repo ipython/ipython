@@ -981,7 +981,7 @@ class IPythonDirective(Directive):
         self.shell.warning_is_error = warning_is_error
 
         # setup bookmark for saving figures directory
-        self.shell.process_input_line('bookmark ipy_savedir %s'%savefig_dir,
+        self.shell.process_input_line('bookmark ipy_savedir "%s"'%savefig_dir,
                                       store_history=False)
         self.shell.clear_cout()
 
