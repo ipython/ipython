@@ -13,9 +13,6 @@
 .. image:: https://raster.shields.io/badge/Follows-NEP29-brightgreen.png
     :target: https://numpy.org/neps/nep-0029-deprecation_policy.html
 
-.. image:: https://tidelift.com/subscription/pkg/pypi-ipython
-    :target: https://tidelift.com/badges/package/pypi/ipython?style=flat
-
 
 ===========================================
  IPython: Productive Interactive Computing
