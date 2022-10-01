@@ -17,9 +17,8 @@ import shutil
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
-
-from os.path import join
 
 from IPython.core.error import InputRejected
 from IPython.core.inputtransformer import InputTransformer
@@ -543,11 +542,11 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
     @onlyif_unicode_paths
     def setUp(self):
-        self.BASETESTDIR = tempfile.mkdtemp()
-        self.TESTDIR = join(self.BASETESTDIR, u"åäö")
+        self.BASETESTDIR = Path(tempfile.mkdtemp())
+        self.TESTDIR = self.BASETESTDIR / u"åäö"
         os.mkdir(self.TESTDIR)
         with open(
-            join(self.TESTDIR, "åäötestscript.py"), "w", encoding="utf-8"
+            self.TESTDIR / "åäötestscript.py", "w", encoding="utf-8"
         ) as sfile:
             sfile.write("pass\n")
         self.oldpath = os.getcwd()
