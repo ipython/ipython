@@ -1255,6 +1255,15 @@ class InteractiveShell(SingletonConfigurable):
         if user_ns is None:
             user_ns = user_module.__dict__
 
+        @functools.wraps(io_open)
+        def modified_open(file, *args, **kwargs):
+            if file in {0, 1, 2}:
+                raise ValueError(f"IPython won't let you open fd={file} by default")
+
+            return io_open(file, *args, **kwargs)
+
+        user_ns["open"] = modified_open
+
         return user_module, user_ns
 
     def init_sys_modules(self):
