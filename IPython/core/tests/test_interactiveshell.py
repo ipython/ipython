@@ -543,11 +543,9 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
     @onlyif_unicode_paths
     def setUp(self):
         self.BASETESTDIR = Path(tempfile.mkdtemp())
-        self.TESTDIR = self.BASETESTDIR / u"åäö"
+        self.TESTDIR = self.BASETESTDIR / "åäö"
         os.mkdir(self.TESTDIR)
-        with open(
-            self.TESTDIR / "åäötestscript.py", "w", encoding="utf-8"
-        ) as sfile:
+        with open(self.TESTDIR / "åäötestscript.py", "w", encoding="utf-8") as sfile:
             sfile.write("pass\n")
         self.oldpath = os.getcwd()
         os.chdir(self.TESTDIR)
