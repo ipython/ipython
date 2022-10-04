@@ -70,6 +70,18 @@ The following magic commands are provided:
 
     Mark module 'foo' to not be autoreloaded.
 
+``%averbose off``
+
+    Perform autoreload tasks quietly
+
+``%averbose on``
+
+    Report activity with `print` statements.
+
+``%averbose log``
+
+    Report activity with the logger.
+
 Caveats
 =======
 
@@ -123,6 +135,7 @@ import traceback
 import types
 import weakref
 import gc
+import logging
 from importlib import import_module, reload
 from importlib.util import source_from_cache
 
@@ -153,6 +166,9 @@ class ModuleReloader:
         # Module modification timestamps
         self.modules_mtimes = {}
         self.shell = shell
+
+        # Reporting callable for verbosity
+        self._report = lambda msg: None  # by default, be quiet.
 
         # Cache module modification times
         self.check(check_all=True, do_reload=False)
@@ -252,6 +268,7 @@ class ModuleReloader:
 
             # If we've reached this point, we should try to reload the module
             if do_reload:
+                self._report(f"Reloading '{modname}'.")
                 try:
                     if self.autoload_obj:
                         superreload(m, reload, self.old_objects, self.shell)
@@ -607,6 +624,29 @@ class AutoreloadMagics(Magics):
 
                     # Inject module to user namespace
                     self.shell.push({top_name: top_module})
+
+    @line_magic
+    def averbose(self, parameter_s=""):
+        r"""%averbose => Turn verbosity on/off for autoreloading.
+
+        %averbose 0 or %averbose off
+        Turn off any reporting during autoreload.
+
+        %averbose 1 or %averbose on
+        Report autoreload activity via print statements.
+
+        %averbose 2 or %averbose log
+        Report autoreload activity via logging.
+        """
+
+        if parameter_s == "0" or parameter_s.lower() == "off":
+            self._reloader._report = lambda msg: None
+        elif parameter_s == "1" or parameter_s.lower() == "on":
+            self._reloader._report = lambda msg: print(msg)
+        elif parameter_s == "2" or parameter_s.lower() == "log":
+            self._reloader._report = lambda msg: logging.getLogger('autoreload').info(msg)
+        else:
+            raise ValueError(f'Unrecognized parameter "{parameter_s}".')
 
     def pre_run_cell(self):
         if self._reloader.enabled:
