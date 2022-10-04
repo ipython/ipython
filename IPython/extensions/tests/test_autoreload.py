@@ -419,6 +419,23 @@ class TestAutoreload(Fixture):
         with self.assertRaises(ValueError):
             self.shell.magic_autoreload('4')
 
+    def test_aimport_parsing(self):
+        # Modules can be included or excluded all in one line.
+        module_reloader = self.shell.auto_magics._reloader
+        self.shell.magic_aimport('os')  # import and mark `os` for auto-reload.
+        assert module_reloader.modules['os'] is True
+        assert 'os' not in module_reloader.skip_modules.keys()
+
+        self.shell.magic_aimport('-math')  # forbid autoreloading of `math`
+        assert module_reloader.skip_modules['math'] is True
+        assert 'math' not in module_reloader.modules.keys()
+
+        self.shell.magic_aimport('-os, math')  # Can do this all in one line; wasn't possible before.
+        assert module_reloader.modules['math'] is True
+        assert 'math' not in module_reloader.skip_modules.keys()
+        assert module_reloader.skip_modules['os'] is True
+        assert 'os' not in module_reloader.modules.keys()
+
     def _check_smoketest(self, use_aimport=True):
         """
         Functional test for the automatic reloader using either
