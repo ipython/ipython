@@ -566,6 +566,8 @@ class AutoreloadMagics(Magics):
             self._reloader.check_all = True
             self._reloader.enabled = True
             self._reloader.autoload_obj = True
+        else:
+            raise ValueError(f'Unrecognized parameter "{parameter_s}".')
 
     @line_magic
     def aimport(self, parameter_s="", stream=None):
