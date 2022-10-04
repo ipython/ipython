@@ -97,6 +97,7 @@ Some of the known remaining caveats are:
 - C extension modules cannot be reloaded, and so cannot be autoreloaded.
 """
 
+from IPython.core.magic import Magics, magics_class, line_magic
 __skip_doctest__ = True
 
 # -----------------------------------------------------------------------------
@@ -491,8 +492,6 @@ def superreload(module, reload=reload, old_objects=None, shell=None):
 # IPython connectivity
 # ------------------------------------------------------------------------------
 
-from IPython.core.magic import Magics, magics_class, line_magic
-
 
 @magics_class
 class AutoreloadMagics(Magics):
@@ -557,7 +556,6 @@ class AutoreloadMagics(Magics):
             self._reloader.enabled = True
         elif parameter_s == "2":
             self._reloader.check_all = True
-            self._reloader.enabled = True
             self._reloader.enabled = True
         elif parameter_s == "3":
             self._reloader.check_all = True
