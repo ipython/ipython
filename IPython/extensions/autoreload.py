@@ -110,6 +110,7 @@ Some of the known remaining caveats are:
 """
 
 from IPython.core.magic import Magics, magics_class, line_magic
+
 __skip_doctest__ = True
 
 # -----------------------------------------------------------------------------
@@ -643,7 +644,9 @@ class AutoreloadMagics(Magics):
         elif parameter_s == "1" or parameter_s.lower() == "on":
             self._reloader._report = lambda msg: print(msg)
         elif parameter_s == "2" or parameter_s.lower() == "log":
-            self._reloader._report = lambda msg: logging.getLogger('autoreload').info(msg)
+            self._reloader._report = lambda msg: logging.getLogger("autoreload").info(
+                msg
+            )
         else:
             raise ValueError(f'Unrecognized parameter "{parameter_s}".')
 

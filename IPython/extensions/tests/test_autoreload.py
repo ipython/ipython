@@ -407,10 +407,12 @@ class TestAutoreload(Fixture):
         def gather_settings(mode):
             self.shell.magic_autoreload(mode)
             module_reloader = self.shell.auto_magics._reloader
-            return AutoreloadSettings(module_reloader.check_all,
-                                      module_reloader.enabled,
-                                      module_reloader.autoload_obj
-                                      )
+            return AutoreloadSettings(
+                module_reloader.check_all,
+                module_reloader.enabled,
+                module_reloader.autoload_obj,
+            )
+
         assert gather_settings("0") == gather_settings("off")
         assert gather_settings("0") == gather_settings("OFF")  # Case insensitive
         assert gather_settings("1") == gather_settings("explicit")
@@ -419,24 +421,26 @@ class TestAutoreload(Fixture):
 
         # And an invalid mode name raises an exception.
         with self.assertRaises(ValueError):
-            self.shell.magic_autoreload('4')
+            self.shell.magic_autoreload("4")
 
     def test_aimport_parsing(self):
         # Modules can be included or excluded all in one line.
         module_reloader = self.shell.auto_magics._reloader
-        self.shell.magic_aimport('os')  # import and mark `os` for auto-reload.
-        assert module_reloader.modules['os'] is True
-        assert 'os' not in module_reloader.skip_modules.keys()
+        self.shell.magic_aimport("os")  # import and mark `os` for auto-reload.
+        assert module_reloader.modules["os"] is True
+        assert "os" not in module_reloader.skip_modules.keys()
 
-        self.shell.magic_aimport('-math')  # forbid autoreloading of `math`
-        assert module_reloader.skip_modules['math'] is True
-        assert 'math' not in module_reloader.modules.keys()
+        self.shell.magic_aimport("-math")  # forbid autoreloading of `math`
+        assert module_reloader.skip_modules["math"] is True
+        assert "math" not in module_reloader.modules.keys()
 
-        self.shell.magic_aimport('-os, math')  # Can do this all in one line; wasn't possible before.
-        assert module_reloader.modules['math'] is True
-        assert 'math' not in module_reloader.skip_modules.keys()
-        assert module_reloader.skip_modules['os'] is True
-        assert 'os' not in module_reloader.modules.keys()
+        self.shell.magic_aimport(
+            "-os, math"
+        )  # Can do this all in one line; wasn't possible before.
+        assert module_reloader.modules["math"] is True
+        assert "math" not in module_reloader.skip_modules.keys()
+        assert module_reloader.skip_modules["os"] is True
+        assert "os" not in module_reloader.modules.keys()
 
     def test_averbose(self):
         self.shell.magic_averbose("off")
@@ -446,7 +450,7 @@ class TestAutoreload(Fixture):
         """
         mod_name, mod_fn = self.new_module(mod_code)
         self.shell.run_code(f"import {mod_name}")
-        with tt.AssertPrints('', channel="stdout"):  # no output.
+        with tt.AssertPrints("", channel="stdout"):  # no output.
             self.shell.run_code("pass")
 
         self.write_file(mod_fn, mod_code)  # "modify" the module
@@ -456,7 +460,7 @@ class TestAutoreload(Fixture):
 
         self.write_file(mod_fn, mod_code)  # "modify" the module
         self.shell.magic_averbose("off")  # Should not see anything on next call
-        with tt.AssertPrints('', channel="stdout"):
+        with tt.AssertPrints("", channel="stdout"):
             self.shell.run_code("pass")
 
         # TODO: test logging. Why won't this work?
@@ -472,7 +476,7 @@ class TestAutoreload(Fixture):
 
         # And an invalid mode name raises an exception.
         with self.assertRaises(ValueError):
-            self.shell.magic_averbose('fax')
+            self.shell.magic_averbose("fax")
 
     def _check_smoketest(self, use_aimport=True):
         """
