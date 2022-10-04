@@ -310,6 +310,7 @@ class TestAutoreload(Fixture):
             self.shell.run_code("pass")  # trigger another reload
 
     def test_autoload_newly_added_objects(self):
+        # All of these fail with %autoreload 2
         self.shell.magic_autoreload("3")
         mod_code = """
         def func1(): pass

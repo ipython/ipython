@@ -50,9 +50,8 @@ The following magic commands are provided:
 
 ``%autoreload 3``, ``%autoreload complete``
 
-    Reload all modules (except those excluded by ``%aimport``) AND
-    autoload newly added objects every time before executing the
-    Python code typed.
+    Same as 2/all, but also adds any new objects in the module. See
+    unit test at IPython/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects
 
 ``%aimport``
 
@@ -540,8 +539,8 @@ class AutoreloadMagics(Magics):
         before executing the Python code typed.
 
         %autoreload 3 or %autoreload complete
-        Reload all modules (except those excluded by %aimport) every time
-        before executing the Python code typed.
+        Same as 2/all, but also but also adds any new objects in the module. See
+        unit test at IPython/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects
 
         Reloading Python modules in a reliable way is in general
         difficult, and unexpected things may occur. %autoreload tries to
