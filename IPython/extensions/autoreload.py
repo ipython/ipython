@@ -29,29 +29,30 @@ Usage
 
 The following magic commands are provided:
 
-``%autoreload``
+``%autoreload``, ``%autoreload now``
 
     Reload all modules (except those excluded by ``%aimport``)
     automatically now.
 
-``%autoreload 0``
+``%autoreload 0``, ``%autoreload off``
 
     Disable automatic reloading.
 
-``%autoreload 1``
+``%autoreload 1``, ``%autoreload explicit``
 
     Reload all modules imported with ``%aimport`` every time before
     executing the Python code typed.
 
-``%autoreload 2``
+``%autoreload 2``, ``%autoreload all``
 
     Reload all modules (except those excluded by ``%aimport``) every
     time before executing the Python code typed.
 
-``%autoreload 3``
+``%autoreload 3``, ``%autoreload complete``
 
-    Reload all modules AND autoload newly added objects
-    every time before executing the Python code typed.
+    Reload all modules (except those excluded by ``%aimport``) AND
+    autoload newly added objects every time before executing the
+    Python code typed.
 
 ``%aimport``
 
@@ -506,18 +507,22 @@ class AutoreloadMagics(Magics):
     def autoreload(self, parameter_s=""):
         r"""%autoreload => Reload modules automatically
 
-        %autoreload
+        %autoreload or %autoreload now
         Reload all modules (except those excluded by %aimport) automatically
         now.
 
-        %autoreload 0
+        %autoreload 0 or %autoreload off
         Disable automatic reloading.
 
-        %autoreload 1
-        Reload all modules imported with %aimport every time before executing
+        %autoreload 1 or %autoreload explicit
+        Reload only modules imported with %aimport every time before executing
         the Python code typed.
 
-        %autoreload 2
+        %autoreload 2 or %autoreload all
+        Reload all modules (except those excluded by %aimport) every time
+        before executing the Python code typed.
+
+        %autoreload 3 or %autoreload complete
         Reload all modules (except those excluded by %aimport) every time
         before executing the Python code typed.
 
@@ -547,17 +552,17 @@ class AutoreloadMagics(Magics):
           autoreloaded.
 
         """
-        if parameter_s == "":
+        if parameter_s == "" or parameter_s.lower() == "now":
             self._reloader.check(True)
-        elif parameter_s == "0":
+        elif parameter_s == "0" or parameter_s.lower() == "off":
             self._reloader.enabled = False
-        elif parameter_s == "1":
+        elif parameter_s == "1" or parameter_s.lower() == "explicit":
             self._reloader.check_all = False
             self._reloader.enabled = True
-        elif parameter_s == "2":
+        elif parameter_s == "2" or parameter_s.lower() == "all":
             self._reloader.check_all = True
             self._reloader.enabled = True
-        elif parameter_s == "3":
+        elif parameter_s == "3" or parameter_s.lower() == "complete":
             self._reloader.check_all = True
             self._reloader.enabled = True
             self._reloader.autoload_obj = True
@@ -576,7 +581,7 @@ class AutoreloadMagics(Magics):
         Import modules 'foo', 'bar' and mark them to be autoreloaded for %autoreload 1
 
         %aimport -foo
-        Mark module 'foo' to not be autoreloaded for %autoreload 1
+        Mark module 'foo' to not be autoreloaded for %autoreload 1, 2, or 3
         """
         modname = parameter_s
         if not modname:
