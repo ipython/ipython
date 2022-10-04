@@ -580,8 +580,9 @@ class AutoreloadMagics(Magics):
         %aimport foo, bar
         Import modules 'foo', 'bar' and mark them to be autoreloaded for %autoreload 1
 
-        %aimport -foo
-        Mark module 'foo' to not be autoreloaded for %autoreload 1, 2, or 3
+        %aimport -foo, bar
+        Mark module 'foo' to not be autoreloaded for %autoreload 1, 2, or 3, and 'bar'
+        to be autoreloaded for 1.
         """
         modname = parameter_s
         if not modname:
@@ -594,15 +595,16 @@ class AutoreloadMagics(Magics):
             else:
                 stream.write("Modules to reload:\n%s\n" % " ".join(to_reload))
             stream.write("\nModules to skip:\n%s\n" % " ".join(to_skip))
-        elif modname.startswith("-"):
-            modname = modname[1:]
-            self._reloader.mark_module_skipped(modname)
         else:
             for _module in [_.strip() for _ in modname.split(",")]:
-                top_module, top_name = self._reloader.aimport_module(_module)
+                if _module.startswith("-"):
+                    _module = _module[1:].strip()
+                    self._reloader.mark_module_skipped(_module)
+                else:
+                    top_module, top_name = self._reloader.aimport_module(_module)
 
-                # Inject module to user namespace
-                self.shell.push({top_name: top_module})
+                    # Inject module to user namespace
+                    self.shell.push({top_name: top_module})
 
     def pre_run_cell(self):
         if self._reloader.enabled:
