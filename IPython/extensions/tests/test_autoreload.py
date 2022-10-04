@@ -22,6 +22,7 @@ import shutil
 import random
 import time
 from io import StringIO
+from dataclasses import dataclass
 
 import IPython.testing.tools as tt
 
@@ -392,6 +393,31 @@ class TestAutoreload(Fixture):
         self.shell.run_code("assert ext_func() == 'ext'")
         self.shell.run_code("t = ExtTest(); assert t.meth() == 'ext'")
         self.shell.run_code("assert ext_int == 2")
+
+    def test_verbose_names(self):
+        # Asserts correspondense between original mode names and their verbose equivalents.
+        @dataclass
+        class AutoreloadSettings:
+            check_all: bool
+            enabled: bool
+            autoload_obj: bool
+
+        def gather_settings(mode):
+            self.shell.magic_autoreload(mode)
+            module_reloader = self.shell.auto_magics._reloader
+            return AutoreloadSettings(module_reloader.check_all,
+                                      module_reloader.enabled,
+                                      module_reloader.autoload_obj
+                                      )
+        assert gather_settings("0") == gather_settings("off")
+        assert gather_settings("0") == gather_settings("OFF")  # Case insensitive
+        assert gather_settings("1") == gather_settings("explicit")
+        assert gather_settings("2") == gather_settings("all")
+        assert gather_settings("3") == gather_settings("complete")
+
+        # And an invalid mode name raises an exception.
+        with self.assertRaises(ValueError):
+            self.shell.magic_autoreload('4')
 
     def _check_smoketest(self, use_aimport=True):
         """
