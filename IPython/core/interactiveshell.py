@@ -61,7 +61,7 @@ from IPython.core import magic, oinspect, page, prefilter, ultratb
 from IPython.core.alias import Alias, AliasManager
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
-from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
+from IPython.core.compilerop import CachingCompiler
 from IPython.core.debugger import InterruptiblePdb
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
@@ -1810,7 +1810,6 @@ class InteractiveShell(SingletonConfigurable):
         self.InteractiveTB = ultratb.AutoFormattedTB(mode = 'Plain',
                                                      color_scheme='NoColor',
                                                      tb_offset = 1,
-                                   check_cache=check_linecache_ipython,
                                    debugger_cls=self.debugger_cls, parent=self)
 
         # The instance will store a pointer to the system-wide exception hook,

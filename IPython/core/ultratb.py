@@ -644,10 +644,8 @@ class VerboseTB(TBTools):
         self.long_header = long_header
         self.include_vars = include_vars
         # By default we use linecache.checkcache, but the user can provide a
-        # different check_cache implementation.  This is used by the IPython
-        # kernel to provide tracebacks for interactive code that is cached,
-        # by a compiler instance that flushes the linecache but preserves its
-        # own code cache.
+        # different check_cache implementation.  This was formerly used by the
+        # IPython kernel for interactive code, but is no longer necessary.
         if check_cache is None:
             check_cache = linecache.checkcache
         self.check_cache = check_cache
