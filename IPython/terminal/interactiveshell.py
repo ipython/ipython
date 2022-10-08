@@ -711,7 +711,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     active_eventloop = None
     def enable_gui(self, gui=None):
-        if gui and (gui != 'inline') :
+        if gui and (gui not in ['inline', 'webagg']) :
             self.active_eventloop, self._inputhook =\
                 get_inputhook_name_and_func(gui)
         else:
