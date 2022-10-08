@@ -2,7 +2,7 @@
 """Decorators that don't go anywhere else.
 
 This module contains misc. decorators that don't really go with another module
-in :mod:`IPython.utils`. Beore putting something here please see if it should
+in :mod:`IPython.utils`. Before putting something here please see if it should
 go into another topical module in :mod:`IPython.utils`.
 """
 
@@ -16,6 +16,10 @@ go into another topical module in :mod:`IPython.utils`.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from typing import Sequence
+
+from IPython.utils.docs import GENERATING_DOCUMENTATION
+
 
 #-----------------------------------------------------------------------------
 # Code
@@ -48,6 +52,7 @@ def flag_calls(func):
     wrapper.__doc__ = func.__doc__
     return wrapper
 
+
 def undoc(func):
     """Mark a function or class as undocumented.
 
@@ -56,3 +61,23 @@ def undoc(func):
     """
     return func
 
+
+def sphinx_options(
+    show_inheritance: bool = True,
+    show_inherited_members: bool = False,
+    exclude_inherited_from: Sequence[str] = tuple(),
+):
+    """Set sphinx options"""
+
+    def wrapper(func):
+        if not GENERATING_DOCUMENTATION:
+            return func
+
+        func._sphinx_options = dict(
+            show_inheritance=show_inheritance,
+            show_inherited_members=show_inherited_members,
+            exclude_inherited_from=exclude_inherited_from,
+        )
+        return func
+
+    return wrapper
