@@ -11,6 +11,7 @@ recurring bugs we seem to encounter with high-level interaction.
 
 import asyncio
 import ast
+import contextlib
 import os
 import signal
 import shutil
@@ -1098,3 +1099,23 @@ def test_set_custom_completer():
 
     # clean up
     ip.Completer.custom_matchers.pop()
+
+
+@contextlib.contextmanager
+def with_virtualenv(value):
+    original_venv = os.environ.get("VIRTUAL_ENV")
+    os.environ["VIRTUAL_ENV"] = value
+    try:
+        yield
+    finally:
+        if original_venv:
+            os.environ["VIRTUAL_ENV"] = original_venv
+        else:
+            os.environ.pop("VIRTUAL_ENV")
+
+
+def test_can_init_virtualenv():
+    shell = interactiveshell.InteractiveShell()
+
+    with with_virtualenv("./test"):
+        shell.init_virtualenv()
