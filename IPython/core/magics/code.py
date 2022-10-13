@@ -15,7 +15,6 @@
 # Stdlib
 import inspect
 import io
-import os
 import re
 import sys
 import ast
@@ -219,11 +218,11 @@ class CodeMagics(Magics):
         append = 'a' in opts
         mode = 'a' if append else 'w'
         ext = '.ipy' if raw else '.py'
-        fname, codefrom = args[0], " ".join(args[1:])
-        if not fname.endswith(('.py','.ipy')):
-            fname += ext
-        fname = os.path.expanduser(fname)
-        file_exists = os.path.isfile(fname)
+        fname, codefrom = Path(args[0]), " ".join(args[1:])
+        if fname.suffix not in ('.py','.ipy'):
+            fname = fname.with_suffix(fname.suffix + ext)
+        fname = fname.expanduser()
+        file_exists = fname.is_file()
         if file_exists and not force and not append:
             try:
                 overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
@@ -238,7 +237,7 @@ class CodeMagics(Magics):
         except (TypeError, ValueError) as e:
             print(e.args[0])
             return
-        with io.open(fname, mode, encoding="utf-8") as f:
+        with fname.open(mode, encoding="utf-8") as f:
             if not file_exists or not append:
                 f.write("# coding: utf-8\n")
             f.write(cmds)
@@ -409,12 +408,12 @@ class CodeMagics(Magics):
         def make_filename(arg):
             "Make a filename from the given args"
             try:
-                filename = get_py_filename(arg)
+                filename = Path(get_py_filename(arg))
             except IOError:
                 # If it ends with .py but doesn't already exist, assume we want
                 # a new file.
                 if arg.endswith('.py'):
-                    filename = arg
+                    filename = Path(arg)
                 else:
                     filename = None
             return filename
@@ -474,7 +473,7 @@ class CodeMagics(Magics):
                     # For objects, try to edit the file where they are defined
                     filename = find_file(data)
                     if filename:
-                        if 'fakemodule' in filename.lower() and \
+                        if 'fakemodule' in str(filename).lower() and \
                             inspect.isclass(data):
                             # class created by %edit? Try to find source
                             # by looking for method definitions instead, the
@@ -485,13 +484,13 @@ class CodeMagics(Magics):
                                     continue
                                 filename = find_file(attr)
                                 if filename and \
-                                  'fakemodule' not in filename.lower():
+                                  'fakemodule' not in str(filename).lower():
                                     # change the attribute to be the edit
                                     # target instead
                                     data = attr
                                     break
                         
-                        m = ipython_input_pat.match(os.path.basename(filename))
+                        m = ipython_input_pat.match(filename.name)
                         if m:
                             raise InteractivelyDefined(int(m.groups()[0])) from e
 
@@ -517,7 +516,7 @@ class CodeMagics(Magics):
                     use_temp = False
 
         if use_temp:
-            filename = shell.mktempfile(data)
+            filename = Path(shell.mktempfile(data))
             print('IPython will make a temporary file named:',filename)
 
         # use last_call to remember the state of the previous call, but don't
@@ -534,11 +533,11 @@ class CodeMagics(Magics):
 
     def _edit_macro(self,mname,macro):
         """open an editor with the macro data in a file"""
-        filename = self.shell.mktempfile(macro.value)
-        self.shell.hooks.editor(filename)
+        filename = Path(self.shell.mktempfile(macro.value))
+        self.shell.hooks.editor(str(filename))
 
         # and make a new macro object, to replace the old one
-        mvalue = Path(filename).read_text(encoding="utf-8")
+        mvalue = filename.read_text(encoding="utf-8")
         self.shell.user_ns[mname] = Macro(mvalue)
 
     @skip_doctest
@@ -705,19 +704,18 @@ class CodeMagics(Magics):
             return
 
         if is_temp:
-            self._knowntemps.add(filename)
-        elif (filename in self._knowntemps):
+            self._knowntemps.add(str(filename))
+        elif (str(filename) in self._knowntemps):
             is_temp = True
 
 
         # do actual editing here
         print('Editing...', end=' ')
         sys.stdout.flush()
-        filepath = Path(filename)
         try:
             # Quote filenames that may have spaces in them when opening
             # the editor
-            quoted = filename = str(filepath.absolute())
+            quoted = str(filename.absolute())
             if " " in quoted:
                 quoted = "'%s'" % quoted
             self.shell.hooks.editor(quoted, lineno)
@@ -728,7 +726,7 @@ class CodeMagics(Magics):
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste
         if args.strip() == "pasted_block":
-            self.shell.user_ns["pasted_block"] = filepath.read_text(encoding="utf-8")
+            self.shell.user_ns["pasted_block"] = filename.read_text(encoding="utf-8")
 
         if 'x' in opts:  # -x prevents actual execution
             print()
@@ -736,19 +734,19 @@ class CodeMagics(Magics):
             print('done. Executing edited code...')
             with preserve_keys(self.shell.user_ns, '__file__'):
                 if not is_temp:
-                    self.shell.user_ns["__file__"] = filename
+                    self.shell.user_ns["__file__"] = str(filename.absolute())
                 if "r" in opts:  # Untranslated IPython code
-                    source = filepath.read_text(encoding="utf-8")
+                    source = filename.read_text(encoding="utf-8")
                     self.shell.run_cell(source, store_history=False)
                 else:
-                    self.shell.safe_execfile(filename, self.shell.user_ns,
+                    self.shell.safe_execfile(str(filename.absolute()), self.shell.user_ns,
                                              self.shell.user_ns)
 
         if is_temp:
             try:
-                return filepath.read_text(encoding="utf-8")
+                return filename.read_text(encoding="utf-8")
             except IOError as msg:
-                if Path(msg.filename) == filepath:
+                if Path(msg.filename) == filename:
                     warn('File not found. Did you forget to save?')
                     return
                 else:

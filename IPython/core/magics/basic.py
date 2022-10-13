@@ -3,7 +3,7 @@
 
 from logging import error
 import io
-import os
+from pathlib import Path
 from pprint import pformat
 import sys
 from warnings import warn
@@ -561,7 +561,7 @@ Currently the magic system has the following functions:""",
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
-        'filename', type=str,
+        'filename', type=Path,
         help='Notebook name or filename'
     )
     @line_magic
@@ -572,7 +572,7 @@ Currently the magic system has the following functions:""",
         For example, to export the history to "foo.ipynb" do "%notebook foo.ipynb".
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
-        outfname = os.path.expanduser(args.filename)
+        outfname = args.filename.expanduser()
 
         from nbformat import write, v4
 
@@ -586,7 +586,7 @@ Currently the magic system has the following functions:""",
                 source=source
             ))
         nb = v4.new_notebook(cells=cells)
-        with io.open(outfname, "w", encoding="utf-8") as f:
+        with outfname.open("w", encoding="utf-8") as f:
             write(nb, f, version=4)
 
 @magics_class
