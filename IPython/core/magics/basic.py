@@ -560,7 +560,7 @@ Currently the magic system has the following functions:""",
         return ptformatter.float_format
 
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('filename', type=Path, help='Notebook name or filename')
+    @magic_arguments.argument("filename", type=Path, help="Notebook name or filename")
     @line_magic
     def notebook(self, s):
         """Export and convert IPython notebooks.
