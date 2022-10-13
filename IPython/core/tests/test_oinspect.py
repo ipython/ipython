@@ -70,7 +70,7 @@ def test_inspect_getfile_raises_exception():
 # A couple of utilities to ensure these tests work the same from a source or a
 # binary install
 def pyfile(fname):
-    return fname.with_suffix(re.sub('\.py[co]$', '.py', fname.suffix))
+    return fname.with_suffix(re.sub(r"\.py[co]$", ".py", fname.suffix))
 
 
 def match_pyfiles(f1, f2):

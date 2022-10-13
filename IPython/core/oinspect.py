@@ -98,7 +98,7 @@ def get_encoding(obj):
     # filesystem.
     if ofile is None:
         return None
-    elif ofile.suffix in ('.so', '.dll', '.pyd'):
+    elif ofile.suffix in (".so", ".dll", ".pyd"):
         return None
     elif not ofile.is_file():
         return None
@@ -106,7 +106,9 @@ def get_encoding(obj):
         # Print only text files, not extension binaries.  Note that
         # getsourcelines returns lineno with 1-offset and page() uses
         # 0-offset, so we must adjust.
-        with stdlib_io.open(str(ofile), 'rb') as buffer:   # Tweaked to use io.open for Python 2
+        with stdlib_io.open(
+            str(ofile), "rb"
+        ) as buffer:   # Tweaked to use io.open for Python 2
             encoding, lines = openpy.detect_encoding(buffer.readline)
         return encoding
 
@@ -502,10 +504,10 @@ class Inspector(Colorable):
         # run contents of file through pager starting at line where the object
         # is defined, as long as the file isn't binary and is actually on the
         # filesystem.
-        if ofile.suffix in ('.so', '.dll', '.pyd'):
-            print('File %r is binary, not printing.' % str(ofile))
+        if ofile.suffix in (".so", ".dll", ".pyd"):
+            print("File %r is binary, not printing." % str(ofile))
         elif not ofile.is_file():
-            print('File %r does not exist, not printing.' % str(ofile))
+            print("File %r does not exist, not printing." % str(ofile))
         else:
             # Print only text files, not extension binaries.  Note that
             # getsourcelines returns lineno with 1-offset and page() uses
@@ -812,11 +814,11 @@ class Inspector(Colorable):
             binary_file = True
         else:
             fname_msg = str(fname)
-            if fname.suffix in ('.so', '.dll', '.pyd'):
+            if fname.suffix in (".so", ".dll", ".pyd"):
                 binary_file = True
-            elif fname.name.endswith('<string>'):
-                fname_msg = 'Dynamically generated function. No source code available.'
-            out['file'] = compress_user(fname_msg)
+            elif fname.name.endswith("<string>"):
+                fname_msg = "Dynamically generated function. No source code available."
+            out["file"] = compress_user(fname_msg)
 
         # Original source code for a callable, class or property.
         if detail_level:

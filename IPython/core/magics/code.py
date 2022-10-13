@@ -219,7 +219,7 @@ class CodeMagics(Magics):
         mode = 'a' if append else 'w'
         ext = '.ipy' if raw else '.py'
         fname, codefrom = Path(args[0]), " ".join(args[1:])
-        if fname.suffix not in ('.py','.ipy'):
+        if fname.suffix not in (".py", ".ipy"):
             fname = fname.with_suffix(fname.suffix + ext)
         fname = fname.expanduser()
         file_exists = fname.is_file()
@@ -473,8 +473,9 @@ class CodeMagics(Magics):
                     # For objects, try to edit the file where they are defined
                     filename = find_file(data)
                     if filename:
-                        if 'fakemodule' in str(filename).lower() and \
-                            inspect.isclass(data):
+                        if "fakemodule" in str(filename).lower() and inspect.isclass(
+                            data
+                        ):
                             # class created by %edit? Try to find source
                             # by looking for method definitions instead, the
                             # __module__ in those classes is FakeModule.
@@ -483,8 +484,10 @@ class CodeMagics(Magics):
                                 if not inspect.ismethod(attr):
                                     continue
                                 filename = find_file(attr)
-                                if filename and \
-                                  'fakemodule' not in str(filename).lower():
+                                if (
+                                    filename
+                                    and "fakemodule" not in str(filename).lower()
+                                ):
                                     # change the attribute to be the edit
                                     # target instead
                                     data = attr
@@ -705,7 +708,7 @@ class CodeMagics(Magics):
 
         if is_temp:
             self._knowntemps.add(str(filename))
-        elif (str(filename) in self._knowntemps):
+        elif str(filename) in self._knowntemps:
             is_temp = True
 
 
@@ -739,8 +742,9 @@ class CodeMagics(Magics):
                     source = filename.read_text(encoding="utf-8")
                     self.shell.run_cell(source, store_history=False)
                 else:
-                    self.shell.safe_execfile(str(filename.absolute()), self.shell.user_ns,
-                                             self.shell.user_ns)
+                    self.shell.safe_execfile(
+                        str(filename.absolute()), self.shell.user_ns, self.shell.user_ns
+                    )
 
         if is_temp:
             try:
