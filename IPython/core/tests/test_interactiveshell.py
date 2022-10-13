@@ -545,10 +545,11 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
         self.BASETESTDIR = Path(tempfile.mkdtemp())
         self.TESTDIR = self.BASETESTDIR / "åäö"
         self.TESTDIR.mkdir()
-        
+
         self.fname = "åäötestscript.py"
         self.TESTFILE = self.TESTDIR / self.fname
         self.TESTFILE.write_text("pass\n", encoding="utf-8")
+
         self.oldpath = os.getcwd()
         os.chdir(self.TESTDIR)
 
