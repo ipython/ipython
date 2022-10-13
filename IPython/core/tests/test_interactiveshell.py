@@ -544,12 +544,13 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
     def setUp(self):
         self.BASETESTDIR = Path(tempfile.mkdtemp())
         self.TESTDIR = self.BASETESTDIR / "åäö"
-        os.mkdir(self.TESTDIR)
-        with open(self.TESTDIR / "åäötestscript.py", "w", encoding="utf-8") as sfile:
-            sfile.write("pass\n")
+        self.TESTDIR.mkdir()
+        
+        self.fname = "åäötestscript.py"
+        self.TESTFILE = self.TESTDIR / self.fname
+        self.TESTFILE.write_text("pass\n", encoding="utf-8")
         self.oldpath = os.getcwd()
         os.chdir(self.TESTDIR)
-        self.fname = u"åäötestscript.py"
 
     def tearDown(self):
         os.chdir(self.oldpath)
