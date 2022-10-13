@@ -24,6 +24,9 @@ from IPython.core.completer import (
     provisionalcompleter,
     match_dict_keys,
     _deduplicate_completions,
+    completion_matcher,
+    SimpleCompletion,
+    CompletionContext,
 )
 
 # -----------------------------------------------------------------------------
@@ -107,6 +110,16 @@ def greedy_completion():
         yield
     finally:
         ip.Completer.greedy = greedy_original
+
+
+@contextmanager
+def custom_matchers(matchers):
+    ip = get_ipython()
+    try:
+        ip.Completer.custom_matchers.extend(matchers)
+        yield
+    finally:
+        ip.Completer.custom_matchers.clear()
 
 
 def test_protect_filename():
@@ -298,7 +311,7 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
 
         name, matches = ip.complete("\\Ⅴ")
-        self.assertEqual(matches, ("\\ROMAN NUMERAL FIVE",))
+        self.assertEqual(matches, ["\\ROMAN NUMERAL FIVE"])
 
     def test_forward_unicode_completion(self):
         ip = get_ipython()
@@ -379,6 +392,12 @@ class TestCompleter(unittest.TestCase):
 
     def test_quoted_file_completions(self):
         ip = get_ipython()
+
+        def _(text):
+            return ip.Completer._complete(
+                cursor_line=0, cursor_pos=len(text), full_text=text
+            )["IPCompleter.file_matcher"]["completions"]
+
         with TemporaryWorkingDirectory():
             name = "foo'bar"
             open(name, "w", encoding="utf-8").close()
@@ -387,25 +406,16 @@ class TestCompleter(unittest.TestCase):
             escaped = name if sys.platform == "win32" else "foo\\'bar"
 
             # Single quote matches embedded single quote
-            text = "open('foo"
-            c = ip.Completer._complete(
-                cursor_line=0, cursor_pos=len(text), full_text=text
-            )[1]
-            self.assertEqual(c, [escaped])
+            c = _("open('foo")[0]
+            self.assertEqual(c.text, escaped)
 
             # Double quote requires no escape
-            text = 'open("foo'
-            c = ip.Completer._complete(
-                cursor_line=0, cursor_pos=len(text), full_text=text
-            )[1]
-            self.assertEqual(c, [name])
+            c = _('open("foo')[0]
+            self.assertEqual(c.text, name)
 
             # No quote requires an escape
-            text = "%ls foo"
-            c = ip.Completer._complete(
-                cursor_line=0, cursor_pos=len(text), full_text=text
-            )[1]
-            self.assertEqual(c, [escaped])
+            c = _("%ls foo")[0]
+            self.assertEqual(c.text, escaped)
 
     def test_all_completions_dups(self):
         """
@@ -474,6 +484,17 @@ class TestCompleter(unittest.TestCase):
         assert (
             "encoding" in c.signature
         ), "Signature of function was not found by completer"
+
+    def test_completions_have_type(self):
+        """
+        Lets make sure matchers provide completion type.
+        """
+        ip = get_ipython()
+        with provisionalcompleter():
+            ip.Completer.use_jedi = False
+            completions = ip.Completer.completions("%tim", 3)
+            c = next(completions)  # should be `%time` or similar
+        assert c.type == "magic", "Type of magic was not assigned by completer"
 
     @pytest.mark.xfail(reason="Known failure on jedi<=0.18.0")
     def test_deduplicate_completions(self):
@@ -1273,3 +1294,153 @@ class TestCompleter(unittest.TestCase):
             completions = completer.completions(text, len(text))
             for c in completions:
                 self.assertEqual(c.text[0], "%")
+
+    def test_fwd_unicode_restricts(self):
+        ip = get_ipython()
+        completer = ip.Completer
+        text = "\\ROMAN NUMERAL FIVE"
+
+        with provisionalcompleter():
+            completer.use_jedi = True
+            completions = [
+                completion.text for completion in completer.completions(text, len(text))
+            ]
+            self.assertEqual(completions, ["\u2164"])
+
+    def test_dict_key_restrict_to_dicts(self):
+        """Test that dict key suppresses non-dict completion items"""
+        ip = get_ipython()
+        c = ip.Completer
+        d = {"abc": None}
+        ip.user_ns["d"] = d
+
+        text = 'd["a'
+
+        def _():
+            with provisionalcompleter():
+                c.use_jedi = True
+                return [
+                    completion.text for completion in c.completions(text, len(text))
+                ]
+
+        completions = _()
+        self.assertEqual(completions, ["abc"])
+
+        # check that it can be disabled in granular manner:
+        cfg = Config()
+        cfg.IPCompleter.suppress_competing_matchers = {
+            "IPCompleter.dict_key_matcher": False
+        }
+        c.update_config(cfg)
+
+        completions = _()
+        self.assertIn("abc", completions)
+        self.assertGreater(len(completions), 1)
+
+    def test_matcher_suppression(self):
+        @completion_matcher(identifier="a_matcher")
+        def a_matcher(text):
+            return ["completion_a"]
+
+        @completion_matcher(identifier="b_matcher", api_version=2)
+        def b_matcher(context: CompletionContext):
+            text = context.token
+            result = {"completions": [SimpleCompletion("completion_b")]}
+
+            if text == "suppress c":
+                result["suppress"] = {"c_matcher"}
+
+            if text.startswith("suppress all"):
+                result["suppress"] = True
+                if text == "suppress all but c":
+                    result["do_not_suppress"] = {"c_matcher"}
+                if text == "suppress all but a":
+                    result["do_not_suppress"] = {"a_matcher"}
+
+            return result
+
+        @completion_matcher(identifier="c_matcher")
+        def c_matcher(text):
+            return ["completion_c"]
+
+        with custom_matchers([a_matcher, b_matcher, c_matcher]):
+            ip = get_ipython()
+            c = ip.Completer
+
+            def _(text, expected):
+                c.use_jedi = False
+                s, matches = c.complete(text)
+                self.assertEqual(expected, matches)
+
+            _("do not suppress", ["completion_a", "completion_b", "completion_c"])
+            _("suppress all", ["completion_b"])
+            _("suppress all but a", ["completion_a", "completion_b"])
+            _("suppress all but c", ["completion_b", "completion_c"])
+
+            def configure(suppression_config):
+                cfg = Config()
+                cfg.IPCompleter.suppress_competing_matchers = suppression_config
+                c.update_config(cfg)
+
+            # test that configuration takes priority over the run-time decisions
+
+            configure(False)
+            _("suppress all", ["completion_a", "completion_b", "completion_c"])
+
+            configure({"b_matcher": False})
+            _("suppress all", ["completion_a", "completion_b", "completion_c"])
+
+            configure({"a_matcher": False})
+            _("suppress all", ["completion_b"])
+
+            configure({"b_matcher": True})
+            _("do not suppress", ["completion_b"])
+
+    def test_matcher_disabling(self):
+        @completion_matcher(identifier="a_matcher")
+        def a_matcher(text):
+            return ["completion_a"]
+
+        @completion_matcher(identifier="b_matcher")
+        def b_matcher(text):
+            return ["completion_b"]
+
+        def _(expected):
+            s, matches = c.complete("completion_")
+            self.assertEqual(expected, matches)
+
+        with custom_matchers([a_matcher, b_matcher]):
+            ip = get_ipython()
+            c = ip.Completer
+
+            _(["completion_a", "completion_b"])
+
+            cfg = Config()
+            cfg.IPCompleter.disable_matchers = ["b_matcher"]
+            c.update_config(cfg)
+
+            _(["completion_a"])
+
+            cfg.IPCompleter.disable_matchers = []
+            c.update_config(cfg)
+
+    def test_matcher_priority(self):
+        @completion_matcher(identifier="a_matcher", priority=0, api_version=2)
+        def a_matcher(text):
+            return {"completions": [SimpleCompletion("completion_a")], "suppress": True}
+
+        @completion_matcher(identifier="b_matcher", priority=2, api_version=2)
+        def b_matcher(text):
+            return {"completions": [SimpleCompletion("completion_b")], "suppress": True}
+
+        def _(expected):
+            s, matches = c.complete("completion_")
+            self.assertEqual(expected, matches)
+
+        with custom_matchers([a_matcher, b_matcher]):
+            ip = get_ipython()
+            c = ip.Completer
+
+            _(["completion_b"])
+            a_matcher.matcher_priority = 3
+            _(["completion_a"])
