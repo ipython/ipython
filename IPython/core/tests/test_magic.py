@@ -1261,10 +1261,9 @@ def _run_edit_test(arg_s, exp_filename=None,
     filename, lineno, is_temp = M._find_edit_target(ip, args, opts, last_call)
 
     if exp_filename is not None:
-        assert exp_filename == filename
+        assert Path(exp_filename) == filename
     if exp_contents is not None:
-        with io.open(filename, 'r', encoding='utf-8') as f:
-            contents = f.read()
+        contents = filename.read_text(encoding="utf-8")
         assert exp_contents == contents
     if exp_lineno != -1:
         assert exp_lineno == lineno
