@@ -108,7 +108,7 @@ def get_encoding(obj):
         # 0-offset, so we must adjust.
         with stdlib_io.open(
             str(ofile), "rb"
-        ) as buffer:   # Tweaked to use io.open for Python 2
+        ) as buffer:  # Tweaked to use io.open for Python 2
             encoding, lines = openpy.detect_encoding(buffer.readline)
         return encoding
 
