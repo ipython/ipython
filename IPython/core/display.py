@@ -389,7 +389,19 @@ class DisplayObject(object):
 
 
 class TextDisplayObject(DisplayObject):
-    """Validate that display data is text"""
+    """Create a text display object given raw data.
+
+    Parameters
+    ----------
+    data : str or unicode
+        The raw data or a URL or file to load the data from.
+    url : unicode
+        A URL to download the data from.
+    filename : unicode
+        Path to a local file to load the data from.
+    metadata : dict
+        Dict of metadata associated to be the object when displayed
+    """
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, str):
             raise TypeError("%s expects text, not %r" % (self.__class__.__name__, self.data))
