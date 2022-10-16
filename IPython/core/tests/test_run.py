@@ -339,7 +339,7 @@ tclass.py: deleting object: C-third
         """Check that files in odd encodings are accepted."""
         mydir = os.path.dirname(__file__)
         na = os.path.join(mydir, "nonascii.py")
-        _ip.run_line_magic("run", "%r" % na)
+        _ip.magic('run "%s"' % na)
         assert _ip.user_ns["u"] == "Ўт№Ф"
 
     def test_run_py_file_attribute(self):
