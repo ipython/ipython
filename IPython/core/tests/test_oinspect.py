@@ -5,6 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 
+from contextlib import contextmanager
 from inspect import signature, Signature, Parameter
 import inspect
 import os
@@ -43,7 +44,7 @@ class SourceModuleMainTest:
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 46  # Put here the actual number of this line
+THIS_LINE_NUMBER = 47  # Put here the actual number of this line
 
 
 def test_find_source_lines():
@@ -343,6 +344,70 @@ def test_pdef():
     # See gh-1914
     def foo(): pass
     inspector.pdef(foo, 'foo')
+
+
+@contextmanager
+def cleanup_user_ns(**kwargs):
+    """
+    On exit delete all the keys that were not in user_ns before entering.
+
+    It does not restore old values !
+
+    Parameters
+    ----------
+
+    **kwargs
+        used to update ip.user_ns
+
+    """
+    try:
+        known = set(ip.user_ns.keys())
+        ip.user_ns.update(kwargs)
+        yield
+    finally:
+        added = set(ip.user_ns.keys()) - known
+        for k in added:
+            del ip.user_ns[k]
+
+
+def test_pinfo_getindex():
+    def dummy():
+        """
+        MARKER
+        """
+
+    container = [dummy]
+    with cleanup_user_ns(container=container):
+        with AssertPrints("MARKER"):
+            ip._inspect("pinfo", "container[0]", detail_level=0)
+    assert "container" not in ip.user_ns.keys()
+
+
+def test_qmark_getindex():
+    def dummy():
+        """
+        MARKER 2
+        """
+
+    container = [dummy]
+    with cleanup_user_ns(container=container):
+        with AssertPrints("MARKER 2"):
+            ip.run_cell("container[0]?")
+    assert "container" not in ip.user_ns.keys()
+
+
+def test_qmark_getindex_negatif():
+    def dummy():
+        """
+        MARKER 3
+        """
+
+    container = [dummy]
+    with cleanup_user_ns(container=container):
+        with AssertPrints("MARKER 3"):
+            ip.run_cell("container[-1]?")
+    assert "container" not in ip.user_ns.keys()
+
 
 
 def test_pinfo_nonascii():

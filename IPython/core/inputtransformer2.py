@@ -429,13 +429,17 @@ class EscapedCommand(TokenTransformBase):
 
         return lines_before + [new_line] + lines_after
 
-_help_end_re = re.compile(r"""(%{0,2}
-                              (?!\d)[\w*]+            # Variable name
-                              (\.(?!\d)[\w*]+)*       # .etc.etc
-                              )
-                              (\?\??)$                # ? or ??
-                              """,
-                              re.VERBOSE)
+
+_help_end_re = re.compile(
+    r"""(%{0,2}
+    (?!\d)[\w*]+            # Variable name
+    (\.(?!\d)[\w*]+|\[-?[0-9]+\])*       # .etc.etc or [0], we only support literal integers.
+    )
+    (\?\??)$                # ? or ??
+    """,
+    re.VERBOSE,
+)
+
 
 class HelpEnd(TokenTransformBase):
     """Transformer for help syntax: obj? and obj??"""
@@ -464,10 +468,11 @@ class HelpEnd(TokenTransformBase):
     def transform(self, lines):
         """Transform a help command found by the ``find()`` classmethod.
         """
-        piece = ''.join(lines[self.start_line:self.q_line+1])
-        indent, content = piece[:self.start_col], piece[self.start_col:]
-        lines_before = lines[:self.start_line]
-        lines_after = lines[self.q_line + 1:]
+
+        piece = "".join(lines[self.start_line : self.q_line + 1])
+        indent, content = piece[: self.start_col], piece[self.start_col :]
+        lines_before = lines[: self.start_line]
+        lines_after = lines[self.q_line + 1 :]
 
         m = _help_end_re.search(content)
         if not m:
@@ -543,8 +548,13 @@ def has_sunken_brackets(tokens: List[tokenize.TokenInfo]):
 
 def show_linewise_tokens(s: str):
     """For investigation and debugging"""
-    if not s.endswith('\n'):
-        s += '\n'
+    warnings.warn(
+        "show_linewise_tokens is deprecated since IPython 8.6",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    if not s.endswith("\n"):
+        s += "\n"
     lines = s.splitlines(keepends=True)
     for line in make_tokens_by_line(lines):
         print("Line -------")
