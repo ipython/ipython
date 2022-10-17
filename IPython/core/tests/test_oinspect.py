@@ -395,6 +395,7 @@ def test_qmark_getindex():
             ip.run_cell("container[0]?")
     assert "container" not in ip.user_ns.keys()
 
+
 def test_qmark_getindex_negatif():
     def dummy():
         """

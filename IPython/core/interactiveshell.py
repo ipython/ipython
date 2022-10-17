@@ -147,7 +147,8 @@ dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 # Utilities
 #-----------------------------------------------------------------------------
 
-def is_integer_string(s:str):
+
+def is_integer_string(s: str):
     """
     Variant of "str.isnumeric()" that allow negative values and other ints.
     """
@@ -156,7 +157,8 @@ def is_integer_string(s:str):
         return True
     except ValueError:
         return False
-    raise ValueError('Unexpected error')
+    raise ValueError("Unexpected error")
+
 
 @undoc
 def softspace(file, newvalue):
