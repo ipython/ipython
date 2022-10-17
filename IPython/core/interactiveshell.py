@@ -147,6 +147,17 @@ dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 # Utilities
 #-----------------------------------------------------------------------------
 
+def is_integer_string(s:str):
+    """
+    Variant of "str.isnumeric()" that allow negative values and other ints.
+    """
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+    raise ValueError('Unexpected error')
+
 @undoc
 def softspace(file, newvalue):
     """Copied from code.py, to remove the dependency"""
@@ -1548,7 +1559,7 @@ class InteractiveShell(SingletonConfigurable):
                     break
                 parts.append(var)
                 for ind in indices:
-                    if ind[-1] != "]" and not ind[:-1].isnumeric():
+                    if ind[-1] != "]" and not is_integer_string(ind[:-1]):
                         parts_ok = False
                         break
                     parts.append(ind[:-1])
@@ -1602,7 +1613,7 @@ class InteractiveShell(SingletonConfigurable):
                         if idx == len(oname_rest) - 1:
                             obj = self._getattr_property(obj, part)
                         else:
-                            if part.isnumeric():
+                            if is_integer_string(part):
                                 obj = obj[int(part)]
                             else:
                                 obj = getattr(obj, part)
@@ -1669,7 +1680,7 @@ class InteractiveShell(SingletonConfigurable):
                 #
                 # The universal alternative is to traverse the mro manually
                 # searching for attrname in class dicts.
-                if attrname.isnumeric():
+                if is_integer_string(attrname):
                     return obj[int(attrname)]
                 else:
                     attr = getattr(type(obj), attrname)

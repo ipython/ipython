@@ -432,12 +432,14 @@ class EscapedCommand(TokenTransformBase):
 
 _help_end_re = re.compile(
     r"""(%{0,2}
-                              (?!\d)[\w*]+            # Variable name
-                              (\.(?!\d)[\w*]+|\[[0-9]+\])*       # .etc.etc or [0], we only support literal integers.
-                              )
-                              (\?\??)$                # ? or ??
-                              """,
-                              re.VERBOSE)
+    (?!\d)[\w*]+            # Variable name
+    (\.(?!\d)[\w*]+|\[-?[0-9]+\])*       # .etc.etc or [0], we only support literal integers.
+    )
+    (\?\??)$                # ? or ??
+    """,
+    re.VERBOSE,
+)
+
 
 class HelpEnd(TokenTransformBase):
     """Transformer for help syntax: obj? and obj??"""

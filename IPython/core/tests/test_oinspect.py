@@ -395,6 +395,19 @@ def test_qmark_getindex():
             ip.run_cell("container[0]?")
     assert "container" not in ip.user_ns.keys()
 
+def test_qmark_getindex_negatif():
+    def dummy():
+        """
+        MARKER 3
+        """
+
+    container = [dummy]
+    with cleanup_user_ns(container=container):
+        with AssertPrints("MARKER 3"):
+            ip.run_cell("container[-1]?")
+    assert "container" not in ip.user_ns.keys()
+
+
 
 def test_pinfo_nonascii():
     # See gh-1177
