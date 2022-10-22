@@ -492,7 +492,7 @@ class NamespaceMagics(Magics):
         --aggressive
             Try to aggressively remove modules from sys.modules ; this
             may allow you to reimport Python modules that have been updated and
-            pick up changes, but can have unattended consequences.
+            pick up changes, but can have unintended consequences.
 
         in
             reset input history
