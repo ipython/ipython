@@ -36,7 +36,7 @@ version_info = (_version_major, _version_minor, _version_patch, _version_extra)
 kernel_protocol_version_info = (5, 0)
 kernel_protocol_version = "%i.%i" % kernel_protocol_version_info
 
-license = 'BSD-3-Clause'
+license = "BSD-3-Clause"
 
 authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
            'Janko'    : ('Janko Hauser','jhauser@zscout.de'),
