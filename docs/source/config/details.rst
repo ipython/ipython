@@ -69,7 +69,7 @@ shell:
 
     /home/bob >>> # it works
 
-See ``IPython/example/utils/cwd_prompt.py`` for an example of how to write an
+See ``IPython/example/utils/cwd_prompt.py`` for an example of how to write
 extensions to customise prompts.
 
 Inside IPython or in a startup script, you can use a custom prompts class
