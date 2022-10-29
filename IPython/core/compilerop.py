@@ -190,8 +190,6 @@ def check_linecache_ipython(*args):
     also existed?
     """
     import warnings
-    warnings.warn(
-        'Just call linecache.checkcache() directly.',
-        DeprecationWarning
-    )
+
+    warnings.warn("Just call linecache.checkcache() directly.", DeprecationWarning)
     linecache.checkcache()
