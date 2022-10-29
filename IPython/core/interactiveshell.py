@@ -1258,9 +1258,10 @@ class InteractiveShell(SingletonConfigurable):
         @functools.wraps(io_open)
         def modified_open(file, *args, **kwargs):
             if file in {0, 1, 2}:
-                raise ValueError(f"IPython won't let you open fd={file} by default "
-                "as it is likely to crash IPython. If you know what you are doing, "
-                "you can use builtins' open."
+                raise ValueError(
+                    f"IPython won't let you open fd={file} by default "
+                    "as it is likely to crash IPython. If you know what you are doing, "
+                    "you can use builtins' open."
                 )
 
             return io_open(file, *args, **kwargs)
