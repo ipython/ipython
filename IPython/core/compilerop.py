@@ -191,5 +191,9 @@ def check_linecache_ipython(*args):
     """
     import warnings
 
-    warnings.warn("Just call linecache.checkcache() directly.", DeprecationWarning)
+    warnings.warn(
+        "Deprecated Since IPython 8.6, Just call linecache.checkcache() directly.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     linecache.checkcache()
