@@ -625,6 +625,7 @@ class JSON(DisplayObject):
     def _repr_json_(self):
         return self._data_and_metadata()
 
+
 _css_t = """var link = document.createElement("link");
 	link.rel = "stylesheet";
 	link.type = "text/css";
