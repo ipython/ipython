@@ -72,7 +72,7 @@ def _set_term_title_xterm(title):
     # go back one title (probably undoing a %cd title change).
     if not _xterm_term_title_saved:
         # save the current title to the xterm "stack"
-        sys.stdout.write('\033[22;0t') 
+        sys.stdout.write("\033[22;0t")
         _xterm_term_title_saved = True
     sys.stdout.write('\033]0;%s\007' % title)
 
