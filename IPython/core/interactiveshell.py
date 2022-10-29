@@ -270,6 +270,16 @@ class ExecutionResult(object):
         return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s info=%s result=%s>' %\
                 (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
 
+@functools.wraps(io_open)
+def _modified_open(file, *args, **kwargs):
+    if file in {0, 1, 2}:
+        raise ValueError(
+            f"IPython won't let you open fd={file} by default "
+            "as it is likely to crash IPython. If you know what you are doing, "
+            "you can use builtins' open."
+        )
+
+    return io_open(file, *args, **kwargs)
 
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
@@ -1255,19 +1265,6 @@ class InteractiveShell(SingletonConfigurable):
         if user_ns is None:
             user_ns = user_module.__dict__
 
-        @functools.wraps(io_open)
-        def modified_open(file, *args, **kwargs):
-            if file in {0, 1, 2}:
-                raise ValueError(
-                    f"IPython won't let you open fd={file} by default "
-                    "as it is likely to crash IPython. If you know what you are doing, "
-                    "you can use builtins' open."
-                )
-
-            return io_open(file, *args, **kwargs)
-
-        user_ns["open"] = modified_open
-
         return user_module, user_ns
 
     def init_sys_modules(self):
@@ -1336,6 +1333,7 @@ class InteractiveShell(SingletonConfigurable):
 
         ns['exit'] = self.exiter
         ns['quit'] = self.exiter
+        ns["open"] = _modified_open
 
         # Sync what we've added so far to user_ns_hidden so these aren't seen
         # by %who

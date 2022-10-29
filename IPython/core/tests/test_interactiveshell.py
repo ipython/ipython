@@ -104,17 +104,14 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertIsInstance(res.error_before_exec, SyntaxError)
 
     def test_open_standard_input_stream(self):
-        ip.init_create_namespaces()
         res = ip.run_cell("open(0)")
         self.assertIsInstance(res.error_in_exec, ValueError)
 
     def test_open_standard_output_stream(self):
-        ip.init_create_namespaces()
         res = ip.run_cell("open(1)")
         self.assertIsInstance(res.error_in_exec, ValueError)
 
     def test_open_standard_error_stream(self):
-        ip.init_create_namespaces()
         res = ip.run_cell("open(2)")
         self.assertIsInstance(res.error_in_exec, ValueError)
 
