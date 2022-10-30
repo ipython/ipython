@@ -229,22 +229,22 @@ else:
         SystemExit                                Traceback (most recent call last)
         <BLANKLINE>
         ...
-            30     except IndexError:
-            31         mode = 'div'
+             30     except IndexError:
+             31         mode = 'div'
         ---> 33     bar(mode)
                 mode = 'exit'
         <BLANKLINE>
         ... in bar(mode='exit')
-            ...     except:
-            ...         stat = 1
+             ...     except:
+             ...         stat = 1
         ---> ...     sysexit(stat, mode)
                 mode = 'exit'
                 stat = 2
-            ...     else:
-            ...         raise ValueError('Unknown mode')
+             ...     else:
+             ...         raise ValueError('Unknown mode')
         <BLANKLINE>
         ... in sysexit(stat=2, mode='exit')
-            10 def sysexit(stat, mode):
+             10 def sysexit(stat, mode):
         ---> 11     raise SystemExit(stat, f"Mode = {mode}")
                 stat = 2
                 mode = 'exit'
