@@ -374,6 +374,21 @@ tclass.py: deleting object: C-third
         # Check that __file__ was not leaked back into user_ns.
         assert file1 == file2
 
+    def test_run_ipy_file_args(self):
+        """Test handling of extra arguments in `%run <file.ipy> args to pass`."""
+        
+        src = "args = ' '.join(__import__('sys').argv)\n"
+        self.mktmp(src, ext='.ipy')
+        test_args = "--foo bar -iGm"
+        run_command = " ".join((self.fname, test_args))
+        save_argv = sys.argv.copy()
+
+        _ip.run_line_magic("run", run_command)
+        
+        # Check the args were captured in from the `%run` command
+        assert _ip.user_ns["args"] == run_command
+        assert sys.argv == save_argv, "The sys.argv parameters were not replaced."
+        
     def test_run_formatting(self):
         """ Test that %run -t -N<N> does not raise a TypeError for N > 1."""
         src = "pass"

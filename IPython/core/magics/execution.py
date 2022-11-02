@@ -711,12 +711,6 @@ class ExecutionMagics(Magics):
             else:
                 raise
 
-        if filename.lower().endswith(('.ipy', '.ipynb')):
-            with preserve_keys(self.shell.user_ns, '__file__'):
-                self.shell.user_ns['__file__'] = filename
-                self.shell.safe_execfile_ipy(filename, raise_exceptions=True)
-            return
-
         # Control the response to exit() calls made by the script being run
         exit_ignore = 'e' in opts
 
@@ -804,6 +798,11 @@ class ExecutionMagics(Magics):
                     if 'm' in opts:
                         def run():
                             self.shell.safe_run_module(modulename, prog_ns)
+                    elif filename.lower().endswith(('.ipy', '.ipynb')):
+                        def run():
+                            with preserve_keys(self.shell.user_ns, '__file__'):
+                                self.shell.user_ns['__file__'] = filename
+                                self.shell.safe_execfile_ipy(filename, raise_exceptions=True)
                     else:
                         if runner is None:
                             runner = self.default_runner
