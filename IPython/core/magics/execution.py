@@ -798,11 +798,16 @@ class ExecutionMagics(Magics):
                     if 'm' in opts:
                         def run():
                             self.shell.safe_run_module(modulename, prog_ns)
-                    elif filename.lower().endswith(('.ipy', '.ipynb')):
+
+                    elif filename.lower().endswith((".ipy", ".ipynb")):
+
                         def run():
-                            with preserve_keys(self.shell.user_ns, '__file__'):
-                                self.shell.user_ns['__file__'] = filename
-                                self.shell.safe_execfile_ipy(filename, raise_exceptions=True)
+                            with preserve_keys(self.shell.user_ns, "__file__"):
+                                self.shell.user_ns["__file__"] = filename
+                                self.shell.safe_execfile_ipy(
+                                    filename, raise_exceptions=True
+                                )
+
                     else:
                         if runner is None:
                             runner = self.default_runner
