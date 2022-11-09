@@ -24,7 +24,6 @@ __pycache__
 .cache
 .coverage
 *.swp
-.vscode
 .pytest_cache
 .python-version
 venv*/
