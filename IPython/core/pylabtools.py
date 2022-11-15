@@ -26,6 +26,7 @@ backends = {
     "qt": "Qt5Agg",
     "osx": "MacOSX",
     "nbagg": "nbAgg",
+    "webagg": "WebAgg",
     "notebook": "nbAgg",
     "agg": "agg",
     "svg": "svg",

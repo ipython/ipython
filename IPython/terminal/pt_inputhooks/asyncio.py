@@ -31,8 +31,7 @@ from prompt_toolkit import __version__ as ptk_version
 
 from IPython.core.async_helpers import get_asyncio_loop
 
-PTK3 = ptk_version.startswith('3.')
-
+PTK3 = ptk_version.startswith("3.")
 
 
 def inputhook(context):

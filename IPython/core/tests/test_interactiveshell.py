@@ -103,6 +103,18 @@ class InteractiveShellTestCase(unittest.TestCase):
         res = ip.run_cell("raise = 3")
         self.assertIsInstance(res.error_before_exec, SyntaxError)
 
+    def test_open_standard_input_stream(self):
+        res = ip.run_cell("open(0)")
+        self.assertIsInstance(res.error_in_exec, ValueError)
+
+    def test_open_standard_output_stream(self):
+        res = ip.run_cell("open(1)")
+        self.assertIsInstance(res.error_in_exec, ValueError)
+
+    def test_open_standard_error_stream(self):
+        res = ip.run_cell("open(2)")
+        self.assertIsInstance(res.error_in_exec, ValueError)
+
     def test_In_variable(self):
         "Verify that In variable grows with user input (GH-284)"
         oldlen = len(ip.user_ns['In'])

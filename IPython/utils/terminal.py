@@ -62,15 +62,27 @@ def _restore_term_title():
     pass
 
 
+_xterm_term_title_saved = False
+
+
 def _set_term_title_xterm(title):
     """ Change virtual terminal title in xterm-workalikes """
-    # save the current title to the xterm "stack"
-    sys.stdout.write('\033[22;0t') 
+    global _xterm_term_title_saved
+    # Only save the title the first time we set, otherwise restore will only
+    # go back one title (probably undoing a %cd title change).
+    if not _xterm_term_title_saved:
+        # save the current title to the xterm "stack"
+        sys.stdout.write("\033[22;0t")
+        _xterm_term_title_saved = True
     sys.stdout.write('\033]0;%s\007' % title)
 
 
 def _restore_term_title_xterm():
+    # Make sure the restore has at least one accompanying set.
+    global _xterm_term_title_saved
+    assert _xterm_term_title_saved
     sys.stdout.write('\033[23;0t') 
+    _xterm_term_title_saved = False
 
 
 if os.name == 'posix':

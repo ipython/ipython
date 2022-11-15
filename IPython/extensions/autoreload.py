@@ -107,6 +107,10 @@ Some of the known remaining caveats are:
   before it is reloaded are not upgraded.
 
 - C extension modules cannot be reloaded, and so cannot be autoreloaded.
+
+- While comparing Enum and Flag, the 'is' Identity Operator is used (even in the case '==' has been used (Similar to the 'None' keyword)).
+
+- Reloading a module, or importing the same module by a different name, creates new Enums. These may look the same, but are not.
 """
 
 from IPython.core.magic import Magics, magics_class, line_magic

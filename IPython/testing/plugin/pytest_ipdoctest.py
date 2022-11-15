@@ -782,7 +782,7 @@ def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
                 precision = 0 if fraction is None else len(fraction)
                 if exponent is not None:
                     precision -= int(exponent)
-                if float(w.group()) == approx(float(g.group()), abs=10 ** -precision):
+                if float(w.group()) == approx(float(g.group()), abs=10**-precision):
                     # They're close enough. Replace the text we actually
                     # got with the text we want, so that it will match when we
                     # check the string literally.

@@ -405,14 +405,14 @@ class TerminalInteractiveShell(InteractiveShell):
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
-        if self.term_title:
+        if self.term_title and _is_tty:
             toggle_set_term_title(True)
             set_term_title(self.term_title_format.format(cwd=abbrev_cwd()))
         else:
             toggle_set_term_title(False)
 
     def restore_term_title(self):
-        if self.term_title:
+        if self.term_title and _is_tty:
             restore_term_title()
 
     def init_display_formatter(self):
@@ -711,9 +711,8 @@ class TerminalInteractiveShell(InteractiveShell):
 
     active_eventloop = None
     def enable_gui(self, gui=None):
-        if gui and (gui != 'inline') :
-            self.active_eventloop, self._inputhook =\
-                get_inputhook_name_and_func(gui)
+        if gui and (gui not in {"inline", "webagg"}):
+            self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
         else:
             self.active_eventloop = self._inputhook = None
 

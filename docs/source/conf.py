@@ -41,6 +41,14 @@ else:
     html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
+# Allow Python scripts to change behaviour during sphinx run
+os.environ["IN_SPHINX_RUN"] = "True"
+
+autodoc_type_aliases = {
+    "Matcher": " IPython.core.completer.Matcher",
+    "MatcherAPIv1": " IPython.core.completer.MatcherAPIv1",
+}
+
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.

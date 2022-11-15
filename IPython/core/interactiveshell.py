@@ -61,7 +61,7 @@ from IPython.core import magic, oinspect, page, prefilter, ultratb
 from IPython.core.alias import Alias, AliasManager
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
-from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
+from IPython.core.compilerop import CachingCompiler
 from IPython.core.debugger import InterruptiblePdb
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
@@ -147,6 +147,19 @@ dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 # Utilities
 #-----------------------------------------------------------------------------
 
+
+def is_integer_string(s: str):
+    """
+    Variant of "str.isnumeric()" that allow negative values and other ints.
+    """
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+    raise ValueError("Unexpected error")
+
+
 @undoc
 def softspace(file, newvalue):
     """Copied from code.py, to remove the dependency"""
@@ -213,14 +226,17 @@ class ExecutionInfo(object):
         raw_cell = (
             (self.raw_cell[:50] + "..") if len(self.raw_cell) > 50 else self.raw_cell
         )
-        return '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s cell_id=%s>' % (
-            name,
-            id(self),
-            raw_cell,
-            self.store_history,
-            self.silent,
-            self.shell_futures,
-            self.cell_id,
+        return (
+            '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s cell_id=%s>'
+            % (
+                name,
+                id(self),
+                raw_cell,
+                self.store_history,
+                self.silent,
+                self.shell_futures,
+                self.cell_id,
+            )
         )
 
 
@@ -254,6 +270,16 @@ class ExecutionResult(object):
         return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s info=%s result=%s>' %\
                 (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
 
+@functools.wraps(io_open)
+def _modified_open(file, *args, **kwargs):
+    if file in {0, 1, 2}:
+        raise ValueError(
+            f"IPython won't let you open fd={file} by default "
+            "as it is likely to crash IPython. If you know what you are doing, "
+            "you can use builtins' open."
+        )
+
+    return io_open(file, *args, **kwargs)
 
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
@@ -1307,6 +1333,7 @@ class InteractiveShell(SingletonConfigurable):
 
         ns['exit'] = self.exiter
         ns['quit'] = self.exiter
+        ns["open"] = _modified_open
 
         # Sync what we've added so far to user_ns_hidden so these aren't seen
         # by %who
@@ -1537,10 +1564,33 @@ class InteractiveShell(SingletonConfigurable):
         Has special code to detect magic functions.
         """
         oname = oname.strip()
-        if not oname.startswith(ESC_MAGIC) and \
-                not oname.startswith(ESC_MAGIC2) and \
-                not all(a.isidentifier() for a in oname.split(".")):
-            return {'found': False}
+        raw_parts = oname.split(".")
+        parts = []
+        parts_ok = True
+        for p in raw_parts:
+            if p.endswith("]"):
+                var, *indices = p.split("[")
+                if not var.isidentifier():
+                    parts_ok = False
+                    break
+                parts.append(var)
+                for ind in indices:
+                    if ind[-1] != "]" and not is_integer_string(ind[:-1]):
+                        parts_ok = False
+                        break
+                    parts.append(ind[:-1])
+                continue
+
+            if not p.isidentifier():
+                parts_ok = False
+            parts.append(p)
+
+        if (
+            not oname.startswith(ESC_MAGIC)
+            and not oname.startswith(ESC_MAGIC2)
+            and not parts_ok
+        ):
+            return {"found": False}
 
         if namespaces is None:
             # Namespaces to search in:
@@ -1562,7 +1612,7 @@ class InteractiveShell(SingletonConfigurable):
         # Look for the given name by splitting it in parts.  If the head is
         # found, then we look for all the remaining parts as members, and only
         # declare success if we can find them all.
-        oname_parts = oname.split('.')
+        oname_parts = parts
         oname_head, oname_rest = oname_parts[0],oname_parts[1:]
         for nsname,ns in namespaces:
             try:
@@ -1579,7 +1629,10 @@ class InteractiveShell(SingletonConfigurable):
                         if idx == len(oname_rest) - 1:
                             obj = self._getattr_property(obj, part)
                         else:
-                            obj = getattr(obj, part)
+                            if is_integer_string(part):
+                                obj = obj[int(part)]
+                            else:
+                                obj = getattr(obj, part)
                     except:
                         # Blanket except b/c some badly implemented objects
                         # allow __getattr__ to raise exceptions other than
@@ -1643,7 +1696,10 @@ class InteractiveShell(SingletonConfigurable):
                 #
                 # The universal alternative is to traverse the mro manually
                 # searching for attrname in class dicts.
-                attr = getattr(type(obj), attrname)
+                if is_integer_string(attrname):
+                    return obj[int(attrname)]
+                else:
+                    attr = getattr(type(obj), attrname)
             except AttributeError:
                 pass
             else:
@@ -1765,7 +1821,6 @@ class InteractiveShell(SingletonConfigurable):
         self.InteractiveTB = ultratb.AutoFormattedTB(mode = 'Plain',
                                                      color_scheme='NoColor',
                                                      tb_offset = 1,
-                                   check_cache=check_linecache_ipython,
                                    debugger_cls=self.debugger_cls, parent=self)
 
         # The instance will store a pointer to the system-wide exception hook,

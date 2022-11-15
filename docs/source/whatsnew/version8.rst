@@ -2,6 +2,70 @@
  8.x Series
 ============
 
+.. _version 8.6.0:
+
+IPython 8.6.0
+-------------
+
+Back to a more regular release schedule (at least I try), as Friday is
+already over by more than 24h hours. This is a slightly bigger release with a
+few new features that contain no less then 25 PRs.
+
+We'll notably found a couple of non negligible changes:
+
+The ``install_ext`` and related functions have been removed after being
+deprecated for years. You can use pip to install extensions. ``pip`` did not
+exists when ``install_ext`` was introduced. You can still load local extensions
+without installing them. Just set your ``sys.path`` for example. :ghpull:`13744`
+
+IPython now have extra entry points that that the major *and minor* version of
+python. For some of you this mean that you can do a quick ``ipython3.10`` to
+launch IPython from the Python 3.10 interpreter, while still using Python 3.11
+as your main Python. :ghpull:`13743`
+
+The completer matcher API have been improved. See :ghpull:`13745`. This should
+improve the type inference and improve dict keys completions in many use case.
+Tanks ``@krassowski`` for all the works, and the D.E. Shaw group for sponsoring
+it.
+
+The color of error nodes in tracebacks can now be customized. See
+:ghpull:`13756`. This is a private attribute until someone find the time to
+properly add a configuration option. Note that with Python 3.11 that also show
+the relevant nodes in traceback, it would be good to leverage this informations
+(plus the "did you mean" info added on attribute errors). But that's likely work
+I won't have time to do before long, so contributions welcome.
+
+As we follow NEP 29, we removed support for numpy 1.19 :ghpull:`13760`.
+
+
+The ``open()`` function present in the user namespace by default will now refuse
+to open the file descriptors 0,1,2 (stdin, out, err), to avoid crashing IPython.
+This mostly occurs in teaching context when incorrect values get passed around. 
+
+
+The ``?``, ``??``, and corresponding ``pinfo``, ``pinfo2`` magics can now find
+objects insides arrays. That is to say, the following now works::
+
+
+   >>> def my_func(*arg, **kwargs):pass
+   >>> container = [my_func]
+   >>> container[0]?
+
+
+If ``container`` define a custom ``getitem``, this __will__ trigger the custom
+method. So don't put side effects in your ``getitems``. Thanks the D.E. Shaw
+group for the request and sponsoring the work.
+
+
+As usual you can find the full list of PRs on GitHub under `the 8.6 milestone
+<https://github.com/ipython/ipython/pulls?q=milestone%3A8.6>`__.
+
+Thanks to all hacktoberfest contributors, please contribute to
+`closember.org <https://closember.org/>`__.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 .. _version 8.5.0:
 
 IPython 8.5.0
