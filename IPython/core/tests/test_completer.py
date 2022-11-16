@@ -1396,6 +1396,65 @@ class TestCompleter(unittest.TestCase):
             configure({"b_matcher": True})
             _("do not suppress", ["completion_b"])
 
+            configure(True)
+            _("do not suppress", ["completion_a"])
+
+    def test_matcher_suppression_with_iterator(self):
+        @completion_matcher(identifier="matcher_returning_iterator")
+        def matcher_returning_iterator(text):
+            return iter(["completion_iter"])
+
+        @completion_matcher(identifier="matcher_returning_list")
+        def matcher_returning_list(text):
+            return ["completion_list"]
+
+        with custom_matchers([matcher_returning_iterator, matcher_returning_list]):
+            ip = get_ipython()
+            c = ip.Completer
+
+            def _(text, expected):
+                c.use_jedi = False
+                s, matches = c.complete(text)
+                self.assertEqual(expected, matches)
+
+            def configure(suppression_config):
+                cfg = Config()
+                cfg.IPCompleter.suppress_competing_matchers = suppression_config
+                c.update_config(cfg)
+
+            configure(False)
+            _("---", ["completion_iter", "completion_list"])
+
+            configure(True)
+            _("---", ["completion_iter"])
+
+            configure(None)
+            _("--", ["completion_iter", "completion_list"])
+
+    def test_matcher_suppression_with_jedi(self):
+        ip = get_ipython()
+        c = ip.Completer
+        c.use_jedi = True
+
+        def configure(suppression_config):
+            cfg = Config()
+            cfg.IPCompleter.suppress_competing_matchers = suppression_config
+            c.update_config(cfg)
+
+        def _():
+            with provisionalcompleter():
+                matches = [completion.text for completion in c.completions("dict.", 5)]
+                self.assertIn("keys", matches)
+
+        configure(False)
+        _()
+
+        configure(True)
+        _()
+
+        configure(None)
+        _()
+
     def test_matcher_disabling(self):
         @completion_matcher(identifier="a_matcher")
         def a_matcher(text):

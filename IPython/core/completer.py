@@ -671,6 +671,19 @@ class MatcherAPIv2(Protocol):
 Matcher: TypeAlias = Union[MatcherAPIv1, MatcherAPIv2]
 
 
+def has_any_completions(result: MatcherResult) -> bool:
+    """Check if any result includes any completions."""
+    if hasattr(result["completions"], "__len__"):
+        return len(result["completions"]) != 0
+    try:
+        old_iterator = result["completions"]
+        first = next(old_iterator)
+        result["completions"] = itertools.chain([first], old_iterator)
+        return True
+    except StopIteration:
+        return False
+
+
 def completion_matcher(
     *, priority: float = None, identifier: str = None, api_version: int = 1
 ):
@@ -1952,7 +1965,7 @@ class IPCompleter(Completer):
             else:
                 return []
 
-    def python_matches(self, text:str)->List[str]:
+    def python_matches(self, text: str) -> Iterable[str]:
         """Match attributes or global python names"""
         if "." in text:
             try:
@@ -2807,7 +2820,7 @@ class IPCompleter(Completer):
                 should_suppress = (
                     (suppression_config is True)
                     or (suppression_recommended and (suppression_config is not False))
-                ) and len(result["completions"])
+                ) and has_any_completions(result)
 
                 if should_suppress:
                     suppression_exceptions = result.get("do_not_suppress", set())
