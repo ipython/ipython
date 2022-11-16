@@ -697,7 +697,10 @@ def completion_matcher(
     identifier : Optional[str]
         identifier of the matcher allowing users to modify the behaviour via traitlets,
         and also used to for debugging (will be passed as ``origin`` with the completions).
-        Defaults to matcher function ``__qualname__``.
+
+        Defaults to matcher function's ``__qualname__`` (for example,
+        ``IPCompleter.file_matcher`` for the built-in matched defined
+        as a ``file_matcher`` method of the ``IPCompleter`` class).
     api_version: Optional[int]
         version of the Matcher API used by this matcher.
         Currently supported values are 1 and 2.
@@ -1460,14 +1463,18 @@ class IPCompleter(Completer):
 
         If False, only the completion results from the first non-empty
         completer will be returned.
-        
+
         As of version 8.6.0, setting the value to ``False`` is an alias for:
         ``IPCompleter.suppress_competing_matchers = True.``.
         """,
     ).tag(config=True)
 
     disable_matchers = ListTrait(
-        Unicode(), help="""List of matchers to disable."""
+        Unicode(),
+        help="""List of matchers to disable.
+
+        The list should contain matcher identifiers (see :any:`completion_matcher`).
+        """,
     ).tag(config=True)
 
     omit__names = Enum(
