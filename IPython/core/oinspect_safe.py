@@ -13,8 +13,19 @@
 # limitations under the License.
 
 # This file is based on https://github.com/googlecolab/colabtools/blob/feb5dde3839251fd6fd8bf23e081d0a8b9a8187b/google/colab/_inspector.py
+# Another take on a safe_repr is at
+# https://github.com/microsoft/debugpy/blob/04403ddc1c2f67e783cdc1b13789ddff7d8f3b9c/src/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_safe_repr.py,
+# but while it does do a lot of checking, it also calls __repr__ at
+# https://github.com/microsoft/debugpy/blob/04403ddc1c2f67e783cdc1b13789ddff7d8f3b9c/src/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_safe_repr.py#L350
+# Same for the upstream pydev version: https://github.com/fabioz/PyDev.Debugger/blob/c604fe20cd87b186d2191c2528d21aa01b4e15cb/_pydevd_bundle/pydevd_safe_repr.py
 
-"""Colab-specific IPython.oinspect.Inspector and related utilities."""
+"""Tools for inspecting Python objects in a "safe" way.
+
+Similar to the oinspect module, but we go to great lengths to not call
+a __repr__ method, except for a small whitelist of objects.
+
+Based on the Colab _inspector.py module (Apache 2.0 license)
+"""
 
 import ast
 import builtins
@@ -377,8 +388,8 @@ class _SafeReprParam:
         return self._repr
 
 
-class ColabInspector(oinspect.Inspector):
-    """Colab-specific object inspector."""
+class SafeInspector(oinspect.Inspector):
+    """Safe object inspector that does not invoke an arbitray objects __repr__ method."""
 
     def _getdef(self, obj, oname=""):
         """Safe variant of oinspect.Inspector._getdef.
@@ -411,7 +422,7 @@ class ColabInspector(oinspect.Inspector):
             new_sig = sig.replace(parameters=new_params)
             return f"{oname}{new_sig}"
         except:  # pylint: disable=bare-except
-            logging.exception("Exception raised in ColabInspector._getdef")
+            logging.exception("Exception raised in SafeInspector._getdef")
 
     def info(self, obj, oname="", formatter=None, info=None, detail_level=0):
         """Compute a dict with detailed information about an object.
