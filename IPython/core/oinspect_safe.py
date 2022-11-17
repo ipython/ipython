@@ -36,7 +36,6 @@ import math
 import re
 import types
 
-import astor
 from IPython.core import oinspect
 from IPython.utils import dir2
 
@@ -621,9 +620,7 @@ def _get_source_definition(obj):
 
         function.body = []
         function.decorator_list = []
-        decl = astor.to_source(
-            function, indent_with="", pretty_source=join_lines
-        ).strip()
+        decl = ast.unparse(function).strip()
         # Strip the trailing `:`
         if decl.endswith(":"):
             decl = decl[:-1]
