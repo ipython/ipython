@@ -471,6 +471,7 @@ class SafeInspector(oinspect.Inspector):
         # * isalias
         # * ismagic
         # * namespace
+        # * subclasses
         #
         # TODO(b/138128444): Handle class_docstring and call_def, or determine that
         # we're safe ignoring them.
@@ -487,6 +488,7 @@ class SafeInspector(oinspect.Inspector):
             "isalias": False,
             "ismagic": info.ismagic if info else False,
             "namespace": info.namespace if info else "",
+            "subclasses": None,
         }
         if detail_level >= self.str_detail_level:
             out["string_form"] = _safe_repr(obj)
@@ -559,6 +561,12 @@ class SafeInspector(oinspect.Inspector):
                 argspec = _getargspec_dict(init)
                 if argspec:
                     out["argspec"] = argspec
+            names = [sub.__name__ for sub in type.__subclasses__(obj)]
+            if len(names) < 10:
+                all_names = ", ".join(names)
+            else:
+                all_names = ", ".join(names[:10] + ["..."])
+            out["subclasses"] = all_names
         elif callable(obj):
             definition = _get_source_definition(obj)
             if not definition:
