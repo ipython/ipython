@@ -389,6 +389,9 @@ class InteractiveShell(SingletonConfigurable):
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
     compiler_class = Type(CachingCompiler)
+    inspector_class = Type(
+        oinspect.Inspector, help="Class to use to instantiate the shell inspector"
+    ).tag(config=True)
 
     sphinxify_docstring = Bool(False, help=
         """
@@ -755,10 +758,12 @@ class InteractiveShell(SingletonConfigurable):
     @observe('colors')
     def init_inspector(self, changes=None):
         # Object inspector
-        self.inspector = oinspect.Inspector(oinspect.InspectColors,
-                                            PyColorize.ANSICodeColors,
-                                            self.colors,
-                                            self.object_info_string_level)
+        self.inspector = self.inspector_class(
+            oinspect.InspectColors,
+            PyColorize.ANSICodeColors,
+            self.colors,
+            self.object_info_string_level,
+        )
 
     def init_io(self):
         # implemented in subclasses, TerminalInteractiveShell does call
