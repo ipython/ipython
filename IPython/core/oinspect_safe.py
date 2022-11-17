@@ -423,7 +423,7 @@ class SafeInspector(oinspect.Inspector):
         except:  # pylint: disable=bare-except
             logging.exception("Exception raised in SafeInspector._getdef")
 
-    def info(self, obj, oname="", formatter=None, info=None, detail_level=0):
+    def info(self, obj, oname="", info=None, detail_level=0):
         """Compute a dict with detailed information about an object.
 
         This overrides the superclass method for two main purposes:
@@ -433,7 +433,6 @@ class SafeInspector(oinspect.Inspector):
         Args:
           obj: object to inspect.
           oname: (optional) string reference to this object
-          formatter: (optional) custom docstring formatter
           info: (optional) previously computed information about obj
           detail_level: (optional) 0 or 1; 1 means "include more detail"
 
@@ -521,8 +520,7 @@ class SafeInspector(oinspect.Inspector):
             if source is not None:
                 out["source"] = source
         if "source" not in out:
-            formatter = formatter or (lambda x: x)
-            docstring = formatter(_getdoc(obj) or "<no docstring>")
+            docstring = _getdoc(obj) or "<no docstring>"
             if docstring:
                 out["docstring"] = docstring
 
