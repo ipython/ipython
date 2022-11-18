@@ -1011,33 +1011,56 @@ class Inspector(Colorable):
         page.page('\n'.join(sorted(search_result)))
 
 
+# We could have implemented render_signature as a Signature subclass, except that
+# we want to take into account the object's name when calculating the line length
 def _render_signature(obj_signature, obj_name) -> str:
     """
-    This was mostly taken from inspect.Signature.__str__.
-    Look there for the comments.
-    The only change is to add linebreaks when this gets too long.
+    This is a copy of inspect.Signature.__str__ with minor formatting improvements
+
+    The only change is to add linebreaks between parameters when the total line length would be very long
     """
+    # BEGIN CHANGE
+    # We set the self variable so we can just copy the Signature.__str__ code below
+    self = obj_signature
+    # END CHANGE
+
     result = []
-    pos_only = False
-    kw_only = True
-    for param in obj_signature.parameters.values():
-        if param.kind == inspect._POSITIONAL_ONLY:
-            pos_only = True
-        elif pos_only:
+    render_pos_only_separator = False
+    render_kw_only_separator = True
+    for param in self.parameters.values():
+        formatted = str(param)
+
+        kind = param.kind
+
+        if kind == inspect._POSITIONAL_ONLY:
+            render_pos_only_separator = True
+        elif render_pos_only_separator:
+            # It's not a positional-only parameter, and the flag
+            # is set to 'True' (there were pos-only params before.)
             result.append('/')
-            pos_only = False
+            render_pos_only_separator = False
 
-        if param.kind == inspect._VAR_POSITIONAL:
-            kw_only = False
-        elif param.kind == inspect._KEYWORD_ONLY and kw_only:
+        if kind == inspect._VAR_POSITIONAL:
+            # OK, we have an '*args'-like parameter, so we won't need
+            # a '*' to separate keyword-only arguments
+            render_kw_only_separator = False
+        elif kind == inspect._KEYWORD_ONLY and render_kw_only_separator:
+            # We have a keyword-only parameter to render and we haven't
+            # rendered an '*args'-like parameter before, so add a '*'
+            # separator to the parameters list ("foo(arg1, *, arg2)" case)
             result.append('*')
-            kw_only = False
+            # This condition should be only triggered once, so
+            # reset the flag
+            render_kw_only_separator = False
 
-        result.append(str(param))
+        result.append(formatted)
 
-    if pos_only:
+    if render_pos_only_separator:
+        # There were only positional-only parameters, hence the
+        # flag was not reset to 'False'
         result.append('/')
 
+    # BEGIN CHANGE
     # add up name, parameters, braces (2), and commas
     if len(obj_name) + sum(len(r) + 2 for r in result) > 75:
         # This doesn’t fit behind “Signature: ” in an inspect window.
@@ -1046,9 +1069,10 @@ def _render_signature(obj_signature, obj_name) -> str:
         )
     else:
         rendered = '{}({})'.format(obj_name, ', '.join(result))
+    # END CHANGE
 
-    if obj_signature.return_annotation is not inspect._empty:
-        anno = inspect.formatannotation(obj_signature.return_annotation)
+    if self.return_annotation is not inspect._empty:
+        anno = inspect.formatannotation(self.return_annotation)
         rendered += ' -> {}'.format(anno)
 
     return rendered
