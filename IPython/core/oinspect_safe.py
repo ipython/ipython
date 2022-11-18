@@ -35,6 +35,8 @@ import logging
 import math
 import re
 import types
+from typing import Union
+
 
 from IPython.core import oinspect
 from IPython.utils import dir2
@@ -375,22 +377,20 @@ def _safe_repr(obj, depth=0, visited=None):
     # We didn't know what it was; we give up and just give the type name.
     return "{} instance".format(fully_qualified_type_name)
 
-
-# The `inspect.Parameter` class hardcodes the use of `repr()` for formatting
-# default values; this is a small shim for replacing defaults using our
-# `_safe_repr` function.
-class _SafeReprParam:
-    def __init__(self, v):
-        self._repr = _safe_repr(v)
+class _SafeRepr:
+    """A safe repr wrapper for an object
+    
+    This class wraps a value to provide a repr that is safe for that value"""
+    def __init__(self, value):
+        self._repr = _safe_repr(value)
 
     def __repr__(self):
         return self._repr
 
-
 class SafeInspector(oinspect.Inspector):
     """Safe object inspector that does not invoke an arbitray objects __repr__ method."""
 
-    def _getdef(self, obj, oname=""):
+    def _getdef(self, obj, oname="") -> Union[str,None]:
         """Safe variant of oinspect.Inspector._getdef.
 
         The upstream _getdef method includes the full string representation of all
@@ -404,23 +404,25 @@ class SafeInspector(oinspect.Inspector):
         Returns:
           A formatted definition or None.
         """
-        if dir2.safe_hasattr(obj, "__call__") and not oinspect.is_simple_callable(obj):
-            obj = obj.__call__
-
         try:
             try:
                 sig = inspect.signature(obj)
             except (TypeError, ValueError):
+                # TODO: when does this happen? Should the main oinspect._getdef guard for this too?
                 return None
+
+            # Replace defaults and annotations with safe repr equivalents
             new_params = []
             for v in sig.parameters.values():
-                new_default = v.default
-                if v.default != v.empty:
-                    new_default = _SafeReprParam(v.default)
-                new_params.append(v.replace(default=new_default))
-            new_sig = sig.replace(parameters=new_params)
-            return f"{oname}{new_sig}"
-        except:  # pylint: disable=bare-except
+                new_params.append(v.replace(
+                    default=_SafeRepr(v.default) if v.default != v.empty else v.default,
+                    annotation=_SafeRepr(v.annotation) if v.annotation != v.empty else v.annotation
+                ))
+            sig = sig.replace(parameters=new_params)
+
+            # oinspect._render_signature adds linebreaks between parameters if the name and signature is long
+            return oinspect._render_signature(sig, oname)
+        except: # pylint: disable=bare-except
             logging.exception("Exception raised in SafeInspector._getdef")
 
     def info(self, obj, oname="", info=None, detail_level=0):
