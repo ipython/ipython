@@ -726,7 +726,7 @@ class Inspector(Colorable):
             Name of the variable pointing to `obj`.
         info : (default: None)
             A struct (dict like with attr access) with some information fields
-            which may have been precomputed already.
+            (ismagic, isalias, namespace) which may have been precomputed already.
         detail_level : int (default:0)
             If set to 1, more information is given.
 
