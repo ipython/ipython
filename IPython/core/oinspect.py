@@ -873,10 +873,7 @@ class Inspector(Colorable):
         # Constructor docstring for classes
         if inspect.isclass(obj):
             # get the init signature:
-            try:
-                init_def = self._getdef(obj, oname)
-            except AttributeError:
-                init_def = None
+            init_def = self._getdef(obj, oname)
 
             # get the __init__ docstring
             try:
