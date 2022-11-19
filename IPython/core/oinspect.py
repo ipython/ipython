@@ -736,14 +736,9 @@ class Inspector(Colorable):
         strings, values are string or None.
         """
 
-        if info is None:
-            ismagic = False
-            isalias = False
-            ospace = ''
-        else:
-            ismagic = info.ismagic
-            isalias = info.isalias
-            ospace = info.namespace
+        ismagic = getattr(info, 'magic', False)
+        isalias = getattr(info, 'isalias', False)
+        ospace = getattr(info, 'namespace', None)
 
         # Get docstring, special-casing aliases:
         if isalias:
