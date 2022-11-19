@@ -321,7 +321,7 @@ def find_file(obj) -> str:
     return cast_unicode(fname)
 
 
-def find_source_lines(obj):
+def find_source_lines(obj, return_length=False):
     """Find the line number in a file where an object was defined.
 
     This is essentially a robust wrapper around `inspect.getsourcelines`.
@@ -331,26 +331,32 @@ def find_source_lines(obj):
     Parameters
     ----------
     obj : any Python object
+    return_length : whether to return the number of lines in the definition
 
     Returns
     -------
     lineno : int
         The line number where the object definition starts.
+    length : int
+        If return_length is True, the number of lines in the definition
     """
     obj = _get_wrapped(obj)
 
     try:
-        lineno = inspect.getsourcelines(obj)[1]
+        lines = inspect.getsourcelines(obj)[1]
     except TypeError:
         # For instances, try the class object like getsource() does
         try:
-            lineno = inspect.getsourcelines(obj.__class__)[1]
+            lines = inspect.getsourcelines(obj.__class__)[1]
         except (OSError, TypeError):
             return None
     except OSError:
         return None
 
-    return lineno
+    if return_length:
+        return lines[1], len(lines[0])
+    else:
+        return lines[1]
 
 class Inspector(Colorable):
 
@@ -798,6 +804,10 @@ class Inspector(Colorable):
             elif fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
             out['file'] = compress_user(fname)
+            line = find_source_lines(obj, return_length=True)
+            if line is not None:
+                out["source_start_line"] = line[0]
+                out["source_end_line"] = line[0] + line[1] - 1
 
 
 
