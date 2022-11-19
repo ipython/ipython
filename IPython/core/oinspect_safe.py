@@ -31,11 +31,13 @@ import ast
 import builtins
 import collections.abc as collections_abc
 import inspect
+import linecache
 import logging
 import math
 import re
 import types
 from typing import Union
+
 
 
 from IPython.core import oinspect
@@ -74,56 +76,47 @@ _APPROVED_REPRS = (
 _UNAVAILABLE_MODULE_NAME = "<unknown>"
 
 
-def _getdoc(obj):
-    """Custom wrapper for inspect.getdoc.
-
-    IPython.core.oinspect.getdoc wraps Python's inspect.getdoc to catch exceptions
-    and allow for objects with a custom getdoc() method. However, there are two
-    problems:
-     * inspect.getdoc already catches any exceptions
-     * it then calls get_encoding, which calls inspect.getfile, which may call
-       repr(obj) (to use in an error string, which oinspect.getdoc throws away).
-
-    We replace this with our own wrapper which still allows for custom getdoc()
-    methods, but avoids calling inspect.getfile.
-
-    Args:
-      obj: an object to fetch a docstring for
-
-    Returns:
-      A docstring or ''.
-    """
-    if hasattr(obj, "getdoc"):
-        try:
-            docstring = obj.getdoc()
-        except Exception:  # pylint: disable=broad-except
-            pass
-        else:
-            if isinstance(docstring, str):
-                return docstring
-
-    return inspect.getdoc(obj) or ""
-
 
 def _unwrap(obj):
-    """Safe version of inspect.unwrap.
-
-    If the object is decorated with more than _MAX_DECORATOR_DEPTH decorators,
-    the original object is returned.
+    """Safe best-effort version of inspect.unwrap    
 
     Args:
       obj: object to unwrap
 
     Returns:
-      The unwrapped object.
+      The unwrapped object if there was no error unwrapping it, otherwise the original object.
     """
-    original = obj
-    for _ in range(_MAX_DECORATOR_DEPTH):
-        if not hasattr(obj, "__wrapped__"):
-            return obj
-        obj = obj.__wrapped__
-    return original
+    try:
+        return inspect.unwrap(obj)
+    except:
+        # For example, there could be a cycle in the unwraps, or there could be
+        # an error on accessing the __wrapped__ attribute
+        return obj
 
+
+@undoc
+def getargspec(obj):
+    """Wrapper around :func:`inspect.getfullargspec`
+
+    In addition to functions and methods, this can also handle objects with a
+    ``__call__`` attribute.
+
+    DEPRECATED: Deprecated since 7.10. Do not use, will be removed.
+    """
+
+    warnings.warn('`getargspec` function is deprecated as of IPython 7.10'
+                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
+
+    if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
+        obj = obj.__call__
+
+    return inspect.getfullargspec(obj)
+
+
+
+# TODO: strip out self from arginspect
+
+# Call signature, then call safe_repr on the default values
 
 def _getargspec(obj):
     """Wrapper for oinspect.getargspec.
@@ -138,9 +131,12 @@ def _getargspec(obj):
     """
     obj = _unwrap(obj)
     try:
+        # TODO: oinspect.getargspec is deprecated
         argspec = oinspect.getargspec(obj)
     except (TypeError, AttributeError):
         return None
+
+    # Strip out self from the args
     if argspec.args and argspec.args[0] == "self":
         argspec = argspec._replace(args=argspec.args[1:])
     return argspec
@@ -173,23 +169,6 @@ def _getargspec_dict(obj):
             defaults=[_safe_repr(val) for val in argspec.defaults]
         )
     return argspec._asdict()
-
-
-def _getsource(obj):
-    """Safe oinspect.getsource wrapper.
-
-    **NOTE**: this function is may call repr(obj).
-
-    Args:
-      obj: object whose source we want to fetch.
-
-    Returns:
-      source code or None.
-    """
-    try:
-        return oinspect.getsource(obj)
-    except TypeError:
-        return None
 
 
 def _safe_repr(obj, depth=0, visited=None):
@@ -293,13 +272,6 @@ def _safe_repr(obj, depth=0, visited=None):
         ):
             return f"{type_name} with shape {shape} and dtype {obj.dtype}"
 
-        if (
-            isinstance(shape, tuple)
-            or hasattr(shape, "__module__")
-            and isinstance(shape.__module__, str)
-            and "tensorflow." in shape.__module__
-        ):
-            return "{} with shape {}".format(type_name, shape)
 
     # We recur on the types allowed above; the logic is slightly different for
     # dicts, as they have compound entries.
@@ -425,7 +397,16 @@ class SafeInspector(oinspect.Inspector):
         except: # pylint: disable=bare-except
             logging.exception("Exception raised in SafeInspector._getdef")
 
-    def info(self, obj, oname="", info=None, detail_level=0):
+    def getstr(self, obj):
+        return _safe_repr(obj)
+
+    def getlen(self, obj):
+        # TODO: figure out when it is safe to call len(obj)
+        # for example, it can stall a long time on lazy objects
+        # so perhaps we just have a whitelist of things it is safe to call on?
+        return None
+
+    def info(self, obj, oname="", info=None, detail_level=0) -> dict:
         """Compute a dict with detailed information about an object.
 
         This overrides the superclass method for two main purposes:
@@ -466,9 +447,6 @@ class SafeInspector(oinspect.Inspector):
         # This can be expensive, as the stdlib mechanisms for looking up the file
         # containing obj may call repr(obj).
         #
-        # NOTE: These keys should stay in sync with the corresponding list in our
-        # frontend code.
-        #
         # We want non-None values for:
         # * isalias
         # * ismagic
@@ -478,27 +456,95 @@ class SafeInspector(oinspect.Inspector):
         # TODO(b/138128444): Handle class_docstring and call_def, or determine that
         # we're safe ignoring them.
 
-        obj_type = type(obj)
-        out = {
-            "name": oname,
-            "found": True,
-            "is_class": inspect.isclass(obj),
-            "string_form": None,
-            # Fill in empty values.
-            "docstring": None,
-            "file": None,
-            "isalias": False,
-            "ismagic": info.ismagic if info else False,
-            "namespace": info.namespace if info else "",
-            "subclasses": None,
-        }
+        ismagic = getattr(info, 'magic', False)
+        isalias = getattr(info, 'isalias', False)
+        ospace = getattr(info, 'namespace', None)
+
+        # TODO: upstream function has code here to get the docstring, probably prematurely.
+        # Check to see if we are handling, for example, the isalias case below where we get the docstring
+
+
+        # store output in a dict, we initialize it here and fill it as we go
+        out = dict(
+            name=oname,
+            found=True,
+            isalias=isalias,
+            ismagic=ismagic,
+            isclass=inspect.isclass(obj),
+            subclasses=None,
+        )
+
+        if ospace:
+            out['namespace'] = ospace
+
+        if ismagic:
+            out['type_name'] = 'Magic function'
+        elif isalias:
+            out['type_name'] = 'System alias'
+        else:
+            out['type_name'] = type(obj).__name__
+
+        try:
+            bclass = obj.__class__
+            # TODO: PROBLEM!!! calling str...
+            out['base_class'] = str(bclass)
+        except:
+            pass
+
+        # Length (for strings and lists)
+        try:
+            # TODO: is calling len an issue? Presumably for some lazy objects it may take a long time
+            # to calculate the length
+            out['length'] = str(len(obj))
+        except Exception:
+            pass
+
+
+        # Find the file if it is safe
+        binary_file = False
+        if _iscallable(obj):
+            fname = oinspect.find_file(obj)
+            if fname is None:
+                # if anything goes wrong, we don't want to show source, so it's as
+                # if the file was binary
+                binary_file = True
+            else:
+                if fname.endswith(('.so', '.dll', '.pyd')):
+                    binary_file = True
+                elif fname.endswith('<string>'):
+                    fname = 'Dynamically generated function. No source code available.'
+                out['file'] = oinspect.compress_user(fname)
+                line = oinspect.find_source_lines(obj, return_length=True)
+                if line is not None:
+                    out["source_start_line"] = line[0]
+                    out["source_end_line"] = line[0] + line[1] - 1
+
+
+
+        # TODO: match up the functionality for string_form
         if detail_level >= self.str_detail_level:
+            # TODO: elide strings that are too long
+            # TODO: indent string
+            # TODO: is all that done in _safe_repr???
             out["string_form"] = _safe_repr(obj)
 
-        if getattr(info, "ismagic", False):
-            out["type_name"] = "Magic function"
-        else:
-            out["type_name"] = obj_type.__name__
+            # Other implementation...
+            # string_max = 200 # max size of strings to show (snipped if longer)
+            # shalf = int((string_max - 5) / 2)
+
+            # try:
+            #     ostr = str(obj)
+            #     str_head = 'string_form'
+            #     if not detail_level and len(ostr)>string_max:
+            #         ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
+            #         ostr = ("\n" + " " * len(str_head.expandtabs())).\
+            #                 join(q.strip() for q in ostr.split("\n"))
+            #     out[str_head] = ostr
+            # except:
+            #     pass
+
+        # BEGIN OLD IMPLEMENTATION
+
 
         # If the object is callable, we want to compute a docstring and related
         # information. We could exit early, but all the code below is in conditional
@@ -514,55 +560,90 @@ class SafeInspector(oinspect.Inspector):
         # * detail_level == 1 but we can't find source
         # So we first try dealing with detail_level == 1, and then set
         # the docstring if no source is set.
-        if detail_level == 1:
+        if detail_level > 0:
             # This should only ever happen if the user has asked for source (eg via
             # `obj??`), so we're OK with potentially calling repr for now.
-            # TODO(b/138128444): Ensure we don't call str() or repr().
-            source = _getsource(obj)
-            if source is None and hasattr(obj, "__class__"):
-                source = _getsource(obj.__class__)
-            if source is not None:
-                out["source"] = source
-        if "source" not in out:
-            docstring = _getdoc(obj) or "<no docstring>"
-            if docstring:
-                out["docstring"] = docstring
 
-        if _iscallable(obj):
-            filename = oinspect.find_file(obj)
-            if filename and (
-                filename.endswith((".py", ".py3", ".pyc"))
-                or "<ipython-input" in filename
-            ):
-                out["file"] = filename
 
-            line = oinspect.find_source_lines(obj)
-            out["source_start_line"] = line
-            # inspect.getsourcelines exposes the length of the source as well, which
-            # can be used to highlight the entire code block, but find_source_lines
-            # currently does not expose this. For now just highlight the first line.
-            out["source_end_line"] = line
+            # Flush the source cache because inspect can return out-of-date
+            # source
+            linecache.checkcache()
+
+            try:
+                if isinstance(obj, property) or not binary_file:
+                    src = oinspect.getsource(obj, oname)
+
+                    # TODO: When does this happen? Should we port this part upstream, getting the source for .__class__??
+                    if src is None and hasattr(obj, "__class__"):
+                        src = oinspect.getsource(obj.__class__)
+
+                    if src is not None:
+                        src = src.rstrip()
+                    out['source'] = src
+
+            except Exception:
+                pass
+  
+        # Get docstring, special-casing aliases:
+        # TODO: calling str(obj) all over here!
+        if isalias:
+            if not callable(obj):
+                try:
+                    docstring = "Alias to the system command:\n  %s" % obj[1]
+                except:
+                    docstring = "Alias: " + str(obj)
+            else:
+                docstring = "Alias to " + str(obj)
+                if obj.__doc__:
+                    docstring += "\nDocstring:\n" + obj.__doc__
+        else:
+            docstring = oinspect.getdoc(obj)
+            if docstring is None:
+                docstring = '<no docstring>'
+
+        # Add docstring only if source does not have it (avoid repetitions).
+        if docstring and not self._source_contains_docstring(out.get('source'), docstring):
+            out['docstring'] = docstring
+
+
+        if docstring is not None:
+            # Add docstring if source does not have it (avoid repetitions).
+            if 'source' in out:
+                if not self._source_contains_docstring(out['source'], docstring):
+                    out['docstring'] = docstring
+            else:
+                out['docstring'] = docstring
+        else:
+            out['docstring'] = '<no docstring>'
+
+
+        # TODO: MADE IT TO HERE IN COMPARING WITH UPSTREAM
 
         # The remaining attributes only apply to classes or callables.
         if inspect.isclass(obj):
-            # For classes with an __init__, we set init_definition and init_docstring.
-            init = getattr(obj, "__init__", None)
-            if init:
-                init_docstring = _getdoc(init)
-                if init_docstring and init_docstring != _BASE_INIT_DOC:
-                    out["init_docstring"] = init_docstring
-                init_def = _get_source_definition(init)
-                if not init_def:
-                    init_def = self._getdef(init, oname)
-                if init_def:
-                    out["init_definition"] = init_def
+            # get the init signature:
+            init_def = self._getdef(obj, oname)
 
-            # For classes, the __init__ method is the method invoked on call, but
-            # old-style classes may not have an __init__ method.
-            if init:
-                argspec = _getargspec_dict(init)
-                if argspec:
-                    out["argspec"] = argspec
+            # get the __init__ docstring and, if still needed, the __init__ signature
+            obj_init = getattr(obj, "__init__", None)
+            if obj_init:
+               init_docstring = oinspect.getdoc(obj_init)
+                # Skip Python's auto-generated docstrings
+                if init_docstring == oinspect._object_init_docstring:
+                    init_docstring = None
+
+                if not init_def:
+                    # Get signature from init if top-level sig failed.
+                    # Can happen for built-in types (dict, etc.).
+                    init_def = self._getdef(obj_init, oname)
+
+            if init_def:
+                out['init_definition'] = init_def
+
+            if init_docstring:
+                out['init_docstring'] = init_docstring
+
+
             names = [sub.__name__ for sub in type.__subclasses__(obj)]
             if len(names) < 10:
                 all_names = ", ".join(names)
@@ -577,7 +658,7 @@ class SafeInspector(oinspect.Inspector):
                 out["definition"] = definition
 
             if not oinspect.is_simple_callable(obj):
-                call_docstring = _getdoc(obj.__call__)
+                call_docstring = oinspect.getdoc(obj.__call__)
                 if call_docstring and call_docstring != _BASE_CALL_DOC:
                     out["call_docstring"] = call_docstring
 
