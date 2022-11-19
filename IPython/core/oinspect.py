@@ -903,37 +903,37 @@ class Inspector(Colorable):
         # and class docstring for instances:
         else:
             # reconstruct the function definition and print it:
-            defln = self._getdef(obj, oname)
-            if defln:
-                out['definition'] = defln
+            definition = self._getdef(obj, oname)
+            if definition:
+                out['definition'] = definition
 
             # First, check whether the instance docstring is identical to the
             # class one, and print it separately if they don't coincide.  In
             # most cases they will, but it's nice to print all the info for
             # objects which use instance-customized docstrings.
-            if ds:
+            if docstring:
                 try:
                     cls = getattr(obj,'__class__')
                 except:
-                    class_ds = None
+                    class_docstring = None
                 else:
-                    class_ds = getdoc(cls)
+                    class_docstring = getdoc(cls)
                 # Skip Python's auto-generated docstrings
-                if class_ds in _builtin_type_docstrings:
-                    class_ds = None
-                if class_ds and ds != class_ds:
-                    out['class_docstring'] = class_ds
+                if class_docstring in _builtin_type_docstrings:
+                    class_docstring = None
+                if class_docstring and docstring != class_docstring:
+                    out['class_docstring'] = class_docstring
 
             # Next, try to show constructor docstrings
             try:
-                init_ds = getdoc(obj.__init__)
+                init_docstring = getdoc(obj.__init__)
                 # Skip Python's auto-generated docstrings
-                if init_ds == _object_init_docstring:
-                    init_ds = None
+                if init_docstring == _object_init_docstring:
+                    init_docstring = None
             except AttributeError:
-                init_ds = None
-            if init_ds:
-                out['init_docstring'] = init_ds
+                init_docstring = None
+            if init_docstring:
+                out['init_docstring'] = init_docstring
 
             # Call form docstring for callable instances
             if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
@@ -942,12 +942,11 @@ class Inspector(Colorable):
                     # it may never be the case that call def and definition differ,
                     # but don't include the same signature twice
                     out['call_def'] = call_def
-                call_ds = getdoc(obj.__call__)
+
+                call_docstring = getdoc(obj.__call__)
                 # Skip Python's auto-generated docstrings
-                if call_ds == _func_call_docstring:
-                    call_ds = None
-                if call_ds:
-                    out['call_docstring'] = call_ds
+                if call_docstring != _func_call_docstring:
+                    out['call_docstring'] = call_docstring
 
         return object_info(**out)
 
@@ -956,7 +955,7 @@ class Inspector(Colorable):
         """
         Check whether the source *src* contains the docstring *doc*.
 
-        This is is helper function to skip displaying the docstring if the
+        This is a helper function to skip displaying the docstring if the
         source already contains it, avoiding repetition of information.
         """
         try:
