@@ -845,6 +845,7 @@ class Inspector(Colorable):
                 pass
 
         # Get docstring, special-casing aliases:
+        docstring = None
         if isalias:
             # TODO: not sure if we need the self.getstr??
             if not callable(obj):
@@ -911,17 +912,10 @@ class Inspector(Colorable):
             # class one, and print it separately if they don't coincide.  In
             # most cases they will, but it's nice to print all the info for
             # objects which use instance-customized docstrings.
-            if docstring:
-                try:
-                    cls = getattr(obj,'__class__')
-                except:
-                    class_docstring = None
-                else:
-                    class_docstring = getdoc(cls)
-                # Skip Python's auto-generated docstrings
-                if class_docstring in _builtin_type_docstrings:
-                    class_docstring = None
-                if class_docstring and docstring != class_docstring:
+            if docstring and safe_hasattr(obj, '__class__'):
+                class_docstring = getdoc(obj.__class__)
+                # Only include the class docstring if is useful and not already included
+                if class_docstring and class_docstring not in _builtin_type_docstrings and class_docstring != docstring:
                     out['class_docstring'] = class_docstring
 
             # Next, try to show constructor docstrings
