@@ -121,14 +121,13 @@ def getdoc(obj) -> Union[str,None]:
     """
     # Allow objects to offer customized documentation via a getdoc method:
     try:
-        ds = obj.getdoc()
+        docstring = obj.getdoc()
     except Exception:
         pass
     else:
-        if isinstance(ds, str):
-            return inspect.cleandoc(ds)
-    docstr = inspect.getdoc(obj)
-    return docstr
+        if isinstance(docstring, str):
+            return inspect.cleandoc(docstring)
+    return inspect.getdoc(obj)
 
 
 def getsource(obj, oname='') -> Union[str,None]:
