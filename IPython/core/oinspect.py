@@ -875,29 +875,24 @@ class Inspector(Colorable):
             # get the init signature:
             init_def = self._getdef(obj, oname)
 
-            # get the __init__ docstring
-            try:
-                obj_init = obj.__init__
-            except AttributeError:
-                init_ds = None
-            else:
-                if init_def is None:
-                    # Get signature from init if top-level sig failed.
-                    # Can happen for built-in types (list, etc.).
-                    try:
-                        init_def = self._getdef(obj_init, oname)
-                    except AttributeError:
-                        pass
-                init_ds = getdoc(obj_init)
+            # get the __init__ docstring and, if still needed, the __init__ signature
+            obj_init = getattr(obj, "__init__", None)
+            if obj_init:
+               init_docstring = getdoc(obj_init)
                 # Skip Python's auto-generated docstrings
-                if init_ds == _object_init_docstring:
-                    init_ds = None
+                if init_docstring == _object_init_docstring:
+                    init_docstring = None
+
+                if not init_def:
+                    # Get signature from init if top-level sig failed.
+                    # Can happen for built-in types (dict, etc.).
+                    init_def = self._getdef(obj_init, oname)
 
             if init_def:
                 out['init_definition'] = init_def
 
-            if init_ds:
-                out['init_docstring'] = init_ds
+            if init_docstring:
+                out['init_docstring'] = init_docstring
 
             names = [sub.__name__ for sub in type.__subclasses__(obj)]
             if len(names) < 10:
