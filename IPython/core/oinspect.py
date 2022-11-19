@@ -332,11 +332,11 @@ def find_source_lines(obj, return_length=False):
     obj = _get_wrapped(obj)
 
     try:
-        lines = inspect.getsourcelines(obj)[1]
+        lines = inspect.getsourcelines(obj)
     except TypeError:
         # For instances, try the class object like getsource() does
         try:
-            lines = inspect.getsourcelines(obj.__class__)[1]
+            lines = inspect.getsourcelines(obj.__class__)
         except (OSError, TypeError):
             return None
     except OSError:
