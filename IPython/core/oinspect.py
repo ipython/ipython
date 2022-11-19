@@ -269,8 +269,7 @@ def call_tip(oinfo, format_call=True):
 
 
 def _get_wrapped(obj):
-    """Try unwrapping an object from its decorators
-    """
+    """Try unwrapping an object from its decorators"""
     try:
         return inspect.unwrap(obj)
     except:
@@ -738,10 +737,9 @@ class Inspector(Colorable):
         strings, values are string or None.
         """
 
-        ismagic = getattr(info, 'magic', False)
-        isalias = getattr(info, 'isalias', False)
-        ospace = getattr(info, 'namespace', None)
-
+        ismagic = getattr(info, "magic", False)
+        isalias = getattr(info, "isalias", False)
+        ospace = getattr(info, "namespace", None)
 
         # store output in a dict, we initialize it here and fill it as we go
         out = dict(
@@ -754,7 +752,7 @@ class Inspector(Colorable):
         )
 
         if ospace:
-            out['namespace'] = ospace
+            out["namespace"] = ospace
 
         if ismagic:
             out['type_name'] = 'Magic function'
@@ -765,13 +763,13 @@ class Inspector(Colorable):
 
         try:
             bclass = obj.__class__
-            out['base_class'] = self.getstr(bclass)
+            out["base_class"] = self.getstr(bclass)
         except:
             pass
 
         # Length (for strings and lists)
         try:
-            out['length'] = str(self.getlen(obj))
+            out["length"] = str(self.getlen(obj))
         except Exception:
             pass
 
@@ -799,25 +797,22 @@ class Inspector(Colorable):
                 out["source_start_line"] = line[0]
                 out["source_end_line"] = line[0] + line[1] - 1
 
-
-
         # String form, but snip if too long in ? form (full in ??)
         if detail_level >= self.str_detail_level:
-            string_max = 200 # max size of strings to show (snipped if longer)
+            string_max = 200  # max size of strings to show (snipped if longer)
             shalf = int((string_max - 5) / 2)
 
             try:
                 ostr = self.getstr(obj)
-                str_head = 'string_form'
-                if detail_level == 0 and len(ostr)>string_max:
-                    ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
-                    ostr = ("\n" + " " * len(str_head.expandtabs())).\
-                            join(q.strip() for q in ostr.split("\n"))
+                str_head = "string_form"
+                if detail_level == 0 and len(ostr) > string_max:
+                    ostr = ostr[:shalf] + " <...> " + ostr[-shalf:]
+                    ostr = ("\n" + " " * len(str_head.expandtabs())).join(
+                        q.strip() for q in ostr.split("\n")
+                    )
                 out[str_head] = ostr
             except:
                 pass
-
-
 
         # Original source code for a callable, class or property.
         if detail_level > 0:
@@ -853,13 +848,13 @@ class Inspector(Colorable):
 
         if docstring is not None:
             # Add docstring if source does not have it (avoid repetitions).
-            if 'source' in out:
-                if not self._source_contains_docstring(out['source'], docstring):
-                    out['docstring'] = docstring
+            if "source" in out:
+                if not self._source_contains_docstring(out["source"], docstring):
+                    out["docstring"] = docstring
             else:
-                out['docstring'] = docstring
+                out["docstring"] = docstring
         else:
-            out['docstring'] = '<no docstring>'
+            out["docstring"] = "<no docstring>"
 
         # Constructor docstring for classes
         if inspect.isclass(obj):
@@ -883,7 +878,7 @@ class Inspector(Colorable):
                 out['init_definition'] = init_def
 
             if init_docstring:
-                out['init_docstring'] = init_docstring
+                out["init_docstring"] = init_docstring
 
             names = [sub.__name__ for sub in type.__subclasses__(obj)]
             if len(names) < 10:
@@ -896,17 +891,21 @@ class Inspector(Colorable):
             # reconstruct the function definition and print it:
             definition = self._getdef(obj, oname)
             if definition:
-                out['definition'] = definition
+                out["definition"] = definition
 
             # First, check whether the instance docstring is identical to the
             # class one, and print it separately if they don't coincide.  In
             # most cases they will, but it's nice to print all the info for
             # objects which use instance-customized docstrings.
-            if docstring and safe_hasattr(obj, '__class__'):
+            if docstring and safe_hasattr(obj, "__class__"):
                 class_docstring = getdoc(obj.__class__)
                 # Only include the class docstring if is useful and not already included
-                if class_docstring and class_docstring not in _builtin_type_docstrings and class_docstring != docstring:
-                    out['class_docstring'] = class_docstring
+                if (
+                    class_docstring
+                    and class_docstring not in _builtin_type_docstrings
+                    and class_docstring != docstring
+                ):
+                    out["class_docstring"] = class_docstring
 
             # Next, try to show constructor docstrings
             try:
@@ -917,7 +916,7 @@ class Inspector(Colorable):
             except AttributeError:
                 init_docstring = None
             if init_docstring:
-                out['init_docstring'] = init_docstring
+                out["init_docstring"] = init_docstring
 
             # Call form docstring for callable instances
             if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
@@ -930,7 +929,7 @@ class Inspector(Colorable):
                 call_docstring = getdoc(obj.__call__)
                 # Skip Python's auto-generated docstrings
                 if call_docstring != _func_call_docstring:
-                    out['call_docstring'] = call_docstring
+                    out["call_docstring"] = call_docstring
 
         return object_info(**out)
 

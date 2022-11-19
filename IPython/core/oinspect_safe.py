@@ -36,7 +36,6 @@ import types
 from typing import Union
 
 
-
 from IPython.core import oinspect
 from IPython.utils import dir2
 
@@ -79,10 +78,14 @@ def getargspec(obj):
     DEPRECATED: Deprecated since 7.10. Do not use, will be removed.
     """
 
-    warnings.warn('`getargspec` function is deprecated as of IPython 7.10'
-                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
+    warnings.warn(
+        "`getargspec` function is deprecated as of IPython 7.10"
+        "and will be removed in future versions.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-    if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
+    if safe_hasattr(obj, "__call__") and not is_simple_callable(obj):
         obj = obj.__call__
 
     return inspect.getfullargspec(obj)
@@ -189,7 +192,6 @@ def _safe_repr(obj, depth=0, visited=None):
         ):
             return f"{type_name} with shape {shape} and dtype {obj.dtype}"
 
-
     # We recur on the types allowed above; the logic is slightly different for
     # dicts, as they have compound entries.
     if isinstance(obj, dict):
@@ -266,20 +268,23 @@ def _safe_repr(obj, depth=0, visited=None):
     # We didn't know what it was; we give up and just give the type name.
     return "{} instance".format(fully_qualified_type_name)
 
+
 class _SafeRepr:
     """A safe repr wrapper for an object
-    
+
     This class wraps a value to provide a repr that is safe for that value"""
+
     def __init__(self, value):
         self._repr = _safe_repr(value)
 
     def __repr__(self):
         return self._repr
 
+
 class SafeInspector(oinspect.Inspector):
     """Safe object inspector that does not invoke an arbitray objects __repr__ method."""
 
-    def _getdef(self, obj, oname="") -> Union[str,None]:
+    def _getdef(self, obj, oname="") -> Union[str, None]:
         """Safe variant of oinspect.Inspector._getdef.
 
         The upstream _getdef method includes the full string representation of all
@@ -303,15 +308,21 @@ class SafeInspector(oinspect.Inspector):
             # Replace defaults and annotations with safe repr equivalents
             new_params = []
             for v in sig.parameters.values():
-                new_params.append(v.replace(
-                    default=_SafeRepr(v.default) if v.default != v.empty else v.default,
-                    annotation=_SafeRepr(v.annotation) if v.annotation != v.empty else v.annotation
-                ))
+                new_params.append(
+                    v.replace(
+                        default=_SafeRepr(v.default)
+                        if v.default != v.empty
+                        else v.default,
+                        annotation=_SafeRepr(v.annotation)
+                        if v.annotation != v.empty
+                        else v.annotation,
+                    )
+                )
             sig = sig.replace(parameters=new_params)
 
             # oinspect._render_signature adds linebreaks between parameters if the name and signature is long
             return oinspect._render_signature(sig, oname)
-        except: # pylint: disable=bare-except
+        except:  # pylint: disable=bare-except
             logging.exception("Exception raised in SafeInspector._getdef")
 
     def getstr(self, obj):
