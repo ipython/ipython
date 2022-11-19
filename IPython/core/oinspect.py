@@ -869,7 +869,7 @@ class Inspector(Colorable):
             # get the __init__ docstring and, if still needed, the __init__ signature
             obj_init = getattr(obj, "__init__", None)
             if obj_init:
-               init_docstring = getdoc(obj_init)
+                init_docstring = getdoc(obj_init)
                 # Skip Python's auto-generated docstrings
                 if init_docstring == _object_init_docstring:
                     init_docstring = None
