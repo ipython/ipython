@@ -37,7 +37,7 @@ from typing import Union
 
 
 from IPython.core import oinspect
-from IPython.utils import dir2
+from IPython.utils.decorators import undoc
 
 # We also iterate over dicts, but the logic differs slightly (due to compound
 # entries), so they don't appear in this mapping.
