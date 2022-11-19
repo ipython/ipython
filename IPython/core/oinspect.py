@@ -273,7 +273,7 @@ def _get_wrapped(obj):
     """
     try:
         return inspect.unwrap(obj)
-    except ValueError:
+    except:
         return obj
 
 def find_file(obj) -> str:
