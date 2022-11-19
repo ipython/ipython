@@ -715,6 +715,12 @@ class Inspector(Colorable):
         )
         return self.info(obj, oname=oname, info=info, detail_level=detail_level)
 
+    def getstr(self, obj):
+        return str(obj)
+
+    def getlen(self, obj):
+        return len(obj)
+
     def info(self, obj, oname="", info=None, detail_level=0) -> dict:
         """Compute a dict with detailed information about an object.
 
@@ -740,27 +746,19 @@ class Inspector(Colorable):
         isalias = getattr(info, 'isalias', False)
         ospace = getattr(info, 'namespace', None)
 
-        # Get docstring, special-casing aliases:
-        if isalias:
-            if not callable(obj):
-                try:
-                    ds = "Alias to the system command:\n  %s" % obj[1]
-                except:
-                    ds = "Alias: " + str(obj)
-            else:
-                ds = "Alias to " + str(obj)
-                if obj.__doc__:
-                    ds += "\nDocstring:\n" + obj.__doc__
-        else:
-            ds = getdoc(obj)
-            if ds is None:
-                ds = '<no docstring>'
 
         # store output in a dict, we initialize it here and fill it as we go
-        out = dict(name=oname, found=True, isalias=isalias, ismagic=ismagic, subclasses=None)
+        out = dict(
+            name=oname,
+            found=True,
+            isalias=isalias,
+            ismagic=ismagic,
+            isclass=inspect.isclass(obj),
+            subclasses=None,
+        )
 
-        string_max = 200 # max size of strings to show (snipped if longer)
-        shalf = int((string_max - 5) / 2)
+        if ospace:
+            out['namespace'] = ospace
 
         if ismagic:
             out['type_name'] = 'Magic function'
@@ -771,34 +769,24 @@ class Inspector(Colorable):
 
         try:
             bclass = obj.__class__
-            out['base_class'] = str(bclass)
+            out['base_class'] = self.getstr(bclass)
         except:
             pass
 
-        # String form, but snip if too long in ? form (full in ??)
-        if detail_level >= self.str_detail_level:
-            try:
-                ostr = str(obj)
-                str_head = 'string_form'
-                if not detail_level and len(ostr)>string_max:
-                    ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
-                    ostr = ("\n" + " " * len(str_head.expandtabs())).\
-                            join(q.strip() for q in ostr.split("\n"))
-                out[str_head] = ostr
-            except:
-                pass
-
-        if ospace:
-            out['namespace'] = ospace
-
         # Length (for strings and lists)
         try:
-            out['length'] = str(len(obj))
+            out['length'] = str(self.getlen(obj))
         except Exception:
             pass
 
         # Filename where object was defined
         binary_file = False
+        # TODO: in safeinspect, calling find_file is gated behind this returning true. Perhaps we should have a self.find_file to it can easily be overridden?:
+        # inspect.ismodule(obj)
+        # or inspect.isclass(obj)
+        # or inspect.ismethod(obj)
+        # or inspect.isfunction(obj)
+        # or inspect.iscode(obj)
         fname = find_file(obj)
         if fname is None:
             # if anything goes wrong, we don't want to show source, so it's as
@@ -811,8 +799,28 @@ class Inspector(Colorable):
                 fname = 'Dynamically generated function. No source code available.'
             out['file'] = compress_user(fname)
 
+
+
+        # String form, but snip if too long in ? form (full in ??)
+        if detail_level >= self.str_detail_level:
+            string_max = 200 # max size of strings to show (snipped if longer)
+            shalf = int((string_max - 5) / 2)
+
+            try:
+                ostr = self.getstr(obj)
+                str_head = 'string_form'
+                if detail_level == 0 and len(ostr)>string_max:
+                    ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
+                    ostr = ("\n" + " " * len(str_head.expandtabs())).\
+                            join(q.strip() for q in ostr.split("\n"))
+                out[str_head] = ostr
+            except:
+                pass
+
+
+
         # Original source code for a callable, class or property.
-        if detail_level:
+        if detail_level > 0:
             # Flush the source cache because inspect can return out-of-date
             # source
             linecache.checkcache()
@@ -826,9 +834,31 @@ class Inspector(Colorable):
             except Exception:
                 pass
 
-        # Add docstring only if no source is to be shown (avoid repetitions).
-        if ds and not self._source_contains_docstring(out.get('source'), ds):
-            out['docstring'] = ds
+        # Get docstring, special-casing aliases:
+        if isalias:
+            # TODO: not sure if we need the self.getstr??
+            if not callable(obj):
+                try:
+                    docstring = "Alias to the system command:\n  " + self.getstr(obj[1])
+                except:
+                    docstring = "Alias: " + self.getstr(obj)
+            else:
+                docstring = "Alias to " + self.getstr(obj)
+                if obj.__doc__:
+                    # TODO: call getdoc instead of manually using __doc__??
+                    docstring += "\nDocstring:\n" + obj.__doc__
+        else:
+            docstring = getdoc(obj)
+
+        if docstring is not None:
+            # Add docstring if source does not have it (avoid repetitions).
+            if 'source' in out:
+                if not self._source_contains_docstring(out['source'], docstring):
+                    out['docstring'] = docstring
+            else:
+                out['docstring'] = docstring
+        else:
+            out['docstring'] = '<no docstring>'
 
         # Constructor docstring for classes
         if inspect.isclass(obj):
