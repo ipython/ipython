@@ -872,8 +872,6 @@ class Inspector(Colorable):
 
         # Constructor docstring for classes
         if inspect.isclass(obj):
-            out['isclass'] = True
-
             # get the init signature:
             try:
                 init_def = self._getdef(obj, oname)
