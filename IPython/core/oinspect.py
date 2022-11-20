@@ -792,10 +792,13 @@ class Inspector(Colorable):
             elif fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
             out['file'] = compress_user(fname)
-            line = find_source_lines(obj, return_length=True)
-            if line is not None:
-                out["source_start_line"] = line[0]
-                out["source_end_line"] = line[0] + line[1] - 1
+            try:
+                line = find_source_lines(obj, return_length=True)
+                if line is not None:
+                    out["source_start_line"] = line[0]
+                    out["source_end_line"] = line[0] + line[1] - 1
+            except:
+                pass
 
         # String form, but snip if too long in ? form (full in ??)
         if detail_level >= self.str_detail_level:
