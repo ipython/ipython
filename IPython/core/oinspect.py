@@ -737,7 +737,7 @@ class Inspector(Colorable):
         strings, values are string or None.
         """
 
-        ismagic = getattr(info, "magic", False)
+        ismagic = getattr(info, "ismagic", False)
         isalias = getattr(info, "isalias", False)
         ospace = getattr(info, "namespace", None)
 
