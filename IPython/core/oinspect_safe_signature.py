@@ -1,4 +1,4 @@
-# This is a modified copy of parts of inspect.py from Python 3.11
+# This is a modified copy of parts of inspect.py from CPython 3.11, modified so that a call to repr() or str() is substituted with a call to safe_repr
 # https://github.com/python/cpython/blob/2d5f4ba17480c1f883a0822c90af25d2ec9bf7ed/Lib/inspect.py
 
 
@@ -97,13 +97,13 @@ def get_annotations(obj, *, globals=None, locals=None, eval_str=False):
         obj_locals = None
         unwrap = obj
     else:
-        raise TypeError(f"{obj!r} is not a module, class, or callable.")
+        raise TypeError("{} is not a module, class, or callable.".format(safe_repr(obj)))
 
     if ann is None:
         return {}
 
     if not isinstance(ann, dict):
-        raise ValueError(f"{obj!r}.__annotations__ is neither a dict nor None")
+        raise ValueError("{}.__annotations__ is neither a dict nor None".format(safe_repr(obj)))
 
     if not ann:
         return {}
@@ -138,14 +138,16 @@ def formatannotation(annotation, base_module=None):
         def repl(match):
             text = match.group()
             return text.removeprefix('typing.')
-        return re.sub(r'[\w\.]+', repl, repr(annotation))
+        return re.sub(r'[\w\.]+', repl, safe_repr(annotation))
     if isinstance(annotation, types.GenericAlias):
+        # Potentially a problem, but I can't figure out a way to not call repr here
         return str(annotation)
     if isinstance(annotation, type):
         if annotation.__module__ in ('builtins', base_module):
             return annotation.__qualname__
         return annotation.__module__+'.'+annotation.__qualname__
-    return repr(annotation)
+    return safe_repr(annotation)
+
 
 
 ###############################################################################
@@ -193,7 +195,7 @@ def _signature_get_partial(wrapped_sig, partial, extra_args=()):
     try:
         ba = wrapped_sig.bind_partial(*partial_args, **partial_keywords)
     except TypeError as ex:
-        msg = 'partial object {!r} has incorrect arguments'.format(partial)
+        msg = 'partial object {} has incorrect arguments'.format(safe_repr(partial))
         raise ValueError(msg) from ex
 
 
@@ -402,7 +404,7 @@ def _signature_fromstr(cls, obj, s, skip_bound_arg=True):
         module = None
 
     if not isinstance(module, ast.Module):
-        raise ValueError("{!r} builtin has invalid signature".format(obj))
+        raise ValueError("{} builtin has invalid signature".format(safe_repr(obj)))
 
     f = module.body[0]
 
@@ -525,12 +527,12 @@ def _signature_from_builtin(cls, func, skip_bound_arg=True):
     """
 
     if not _signature_is_builtin(func):
-        raise TypeError("{!r} is not a Python builtin "
-                        "function".format(func))
+        raise TypeError("{} is not a Python builtin "
+                        "function".format(safe_repr(func)))
 
     s = getattr(func, "__text_signature__", None)
     if not s:
-        raise ValueError("no signature found for builtin {!r}".format(func))
+        raise ValueError("no signature found for builtin {}".format(safe_repr(func)))
 
     return _signature_fromstr(cls, func, s, skip_bound_arg)
 
@@ -546,7 +548,7 @@ def _signature_from_function(cls, func, skip_bound_arg=True,
         else:
             # If it's not a pure Python function, and not a duck type
             # of pure function:
-            raise TypeError('{!r} is not a Python function'.format(func))
+            raise TypeError('{} is not a Python function'.format(safe_repr(func)))
 
     s = getattr(func, "__text_signature__", None)
     if s:
@@ -651,7 +653,7 @@ def _signature_from_callable(obj, *,
                                 eval_str=eval_str)
 
     if not callable(obj):
-        raise TypeError('{!r} is not a callable object'.format(obj))
+        raise TypeError('{} is not a callable object'.format(safe_repr(obj)))
 
     if isinstance(obj, types.MethodType):
         # In this case we skip the first parameter of the underlying
@@ -681,10 +683,10 @@ def _signature_from_callable(obj, *,
         pass
     else:
         if sig is not None:
-            if not isinstance(sig, Signature):
+            if not isinstance(sig, inspect.Signature):
                 raise TypeError(
-                    'unexpected object {!r} in __signature__ '
-                    'attribute'.format(sig))
+                    'unexpected object {} in __signature__ '
+                    'attribute'.format(safe_repr(sig)))
             return sig
 
     try:
@@ -792,7 +794,7 @@ def _signature_from_callable(obj, *,
                     return sigcls.from_callable(object)
                 else:
                     raise ValueError(
-                        'no signature found for builtin type {!r}'.format(obj))
+                        'no signature found for builtin type {}'.format(safe_repr(obj)))
 
     elif not isinstance(obj, _NonUserDefinedCallables):
         # An object with __call__
@@ -804,7 +806,7 @@ def _signature_from_callable(obj, *,
             try:
                 sig = _get_signature_of(call)
             except ValueError as ex:
-                msg = 'no signature found for {!r}'.format(obj)
+                msg = 'no signature found for {}'.format(safe_repr(obj))
                 raise ValueError(msg) from ex
 
     if sig is not None:
@@ -817,11 +819,13 @@ def _signature_from_callable(obj, *,
 
     if isinstance(obj, types.BuiltinFunctionType):
         # Raise a nicer error message for builtins
-        msg = 'no signature found for builtin function {!r}'.format(obj)
+        msg = 'no signature found for builtin function {}'.format(safe_repr(obj))
         raise ValueError(msg)
 
-    raise ValueError('callable {!r} is not supported by signature'.format(obj))
+    raise ValueError('callable {} is not supported by signature'.format(safe_repr(obj)))
 
+
+# imported _empty and _void to get the inspect singletons
 
 class _ParameterKind(enum.IntEnum):
     POSITIONAL_ONLY = 'positional-only'
@@ -881,7 +885,7 @@ class Parameter:
         try:
             self._kind = _ParameterKind(kind)
         except ValueError:
-            raise ValueError(f'value {kind!r} is not a valid Parameter.kind')
+            raise ValueError('value {} is not a valid Parameter.kind'.format(safe_repr(kind)))
         if default is not _empty:
             if self._kind in (_VAR_POSITIONAL, _VAR_KEYWORD):
                 msg = '{} parameters cannot have default values'
@@ -916,7 +920,7 @@ class Parameter:
         # where the name is a keyword, so for compatibility we'll allow it.
         is_keyword = iskeyword(name) and self._kind is not _POSITIONAL_ONLY
         if is_keyword or not name.isidentifier():
-            raise ValueError('{!r} is not a valid parameter name'.format(name))
+            raise ValueError('{} is not a valid parameter name'.format(safe_repr(name)))
 
         self._name = name
 
@@ -975,9 +979,9 @@ class Parameter:
 
         if self._default is not _empty:
             if self._annotation is not _empty:
-                formatted = '{} = {}'.format(formatted, repr(self._default))
+                formatted = '{} = {}'.format(formatted, safe_repr(self._default))
             else:
-                formatted = '{}={}'.format(formatted, repr(self._default))
+                formatted = '{}={}'.format(formatted, safe_repr(self._default))
 
         if kind == _VAR_POSITIONAL:
             formatted = '*' + formatted
@@ -1125,7 +1129,7 @@ class BoundArguments:
     def __repr__(self):
         args = []
         for arg, value in self.arguments.items():
-            args.append('{}={!r}'.format(arg, value))
+            args.append('{}={}'.format(arg, safe_repr(value)))
         return '<{} ({})>'.format(self.__class__.__name__, ', '.join(args))
 
 
@@ -1201,7 +1205,7 @@ class Signature:
                             kind_defaults = True
 
                     if name in params:
-                        msg = 'duplicate parameter name: {!r}'.format(name)
+                        msg = 'duplicate parameter name: {}'.format(safe_repr(name))
                         raise ValueError(msg)
 
                     params[name] = param
@@ -1259,7 +1263,7 @@ class Signature:
     def __eq__(self, other):
         if self is other:
             return True
-        if not isinstance(other, Signature):
+        if not isinstance(other, inspect.Signature):
             return NotImplemented
         return self._hash_basis() == other._hash_basis()
 
@@ -1292,9 +1296,9 @@ class Signature:
                         break
                     elif param.name in kwargs:
                         if param.kind == _POSITIONAL_ONLY:
-                            msg = '{arg!r} parameter is positional only, ' \
+                            msg = '{arg} parameter is positional only, ' \
                                   'but was passed as a keyword'
-                            msg = msg.format(arg=param.name)
+                            msg = msg.format(arg=safe_repr(param.name))
                             raise TypeError(msg) from None
                         parameters_ex = (param,)
                         break
@@ -1312,8 +1316,8 @@ class Signature:
                             parameters_ex = (param,)
                             break
                         else:
-                            msg = 'missing a required argument: {arg!r}'
-                            msg = msg.format(arg=param.name)
+                            msg = 'missing a required argument: {arg}'
+                            msg = msg.format(arg=safe_repr(param.name))
                             raise TypeError(msg) from None
             else:
                 # We have a positional argument to process
@@ -1339,8 +1343,8 @@ class Signature:
 
                     if param.name in kwargs and param.kind != _POSITIONAL_ONLY:
                         raise TypeError(
-                            'multiple values for argument {arg!r}'.format(
-                                arg=param.name)) from None
+                            'multiple values for argument {arg}'.format(
+                                arg=safe_repr(param.name))) from None
 
                     arguments[param.name] = arg_val
 
@@ -1369,17 +1373,17 @@ class Signature:
                 # arguments.
                 if (not partial and param.kind != _VAR_POSITIONAL and
                                                     param.default is _empty):
-                    raise TypeError('missing a required argument: {arg!r}'. \
-                                    format(arg=param_name)) from None
+                    raise TypeError('missing a required argument: {arg}'. \
+                                    format(arg=safe_repr(param_name))) from None
 
             else:
                 if param.kind == _POSITIONAL_ONLY:
                     # This should never happen in case of a properly built
                     # Signature object (but let's have this check here
                     # to ensure correct behaviour just in case)
-                    raise TypeError('{arg!r} parameter is positional only, '
+                    raise TypeError('{arg} parameter is positional only, '
                                     'but was passed as a keyword'. \
-                                    format(arg=param.name))
+                                    format(arg=safe_repr(param.name)))
 
                 arguments[param_name] = arg_val
 
@@ -1389,8 +1393,8 @@ class Signature:
                 arguments[kwargs_param.name] = kwargs
             else:
                 raise TypeError(
-                    'got an unexpected keyword argument {arg!r}'.format(
-                        arg=next(iter(kwargs))))
+                    'got an unexpected keyword argument {arg}'.format(
+                        arg=safe_repr(next(iter(kwargs)))))
 
         return self._bound_arguments_cls(self, arguments)
 
@@ -1424,7 +1428,7 @@ class Signature:
         render_pos_only_separator = False
         render_kw_only_separator = True
         for param in self.parameters.values():
-            formatted = str(param)
+            formatted = safe_repr(param)
 
             kind = param.kind
 
