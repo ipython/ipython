@@ -35,9 +35,9 @@ import math
 import types
 from typing import Union
 
-
-from IPython.core import oinspect
+from . import oinspect
 from IPython.utils.decorators import undoc
+from . import oinspect_safe_signature
 
 # We also iterate over dicts, but the logic differs slightly (due to compound
 # entries), so they don't appear in this mapping.
@@ -300,7 +300,7 @@ class SafeInspector(oinspect.Inspector):
         """
         try:
             try:
-                sig = inspect.signature(obj)
+                sig = oinspect_safe_signature.signature(obj)
             except (TypeError, ValueError):
                 # TODO: when does this happen? Should the main oinspect._getdef guard for this too?
                 return None
