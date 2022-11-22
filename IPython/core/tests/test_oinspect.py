@@ -14,6 +14,7 @@ import re
 import sys
 
 from .. import oinspect
+from .. import oinspect_safe
 
 from decorator import decorator
 
@@ -22,15 +23,24 @@ from IPython.utils.path import compress_user
 
 
 #-----------------------------------------------------------------------------
-# Globals and constants
+# Parametrize inspector tests to run with both the default and safe inspectors
 #-----------------------------------------------------------------------------
 
-inspector = None
+default_inspector = oinspect.Inspector()
+safe_inspector = oinspect_safe.SafeInspector()
 
-def setup_module():
-    global inspector
-    inspector = oinspect.Inspector()
+def pytest_generate_tests(metafunc):
+    if "inspector" in metafunc.fixturenames:
+        metafunc.parametrize("inspector", [default_inspector, safe_inspector], ids=["default-inspector", "safe-inspector"], indirect=True)
 
+@pytest.fixture()
+def inspector(request):
+    ip.inspector = request.param
+    return request.param
+
+#-----------------------------------------------------------------------------
+# Globals and constants
+#-----------------------------------------------------------------------------
 
 class SourceModuleMainTest:
     __module__ = "__main__"
@@ -44,7 +54,7 @@ class SourceModuleMainTest:
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 47  # Put here the actual number of this line
+THIS_LINE_NUMBER = 57 # Put here the actual number of this line
 
 
 def test_find_source_lines():
@@ -166,6 +176,16 @@ class NoBoolCall:
         """just raise NotImplemented"""
         raise NotImplementedError('Must be implemented')
 
+class BadRepr:
+    """
+    A honeypot repr that should not be called
+    """
+    def __repr__(self):
+        import time
+        time.sleep(10)
+        raise ValueError("DON'T CALL ME")
+        return 'A VERY BAD REPR'
+
 
 class SerialLiar(object):
     """Attribute accesses always get another copy of the same class.
@@ -187,7 +207,7 @@ class SerialLiar(object):
 # Tests
 #-----------------------------------------------------------------------------
 
-def test_info():
+def test_info(inspector):
     "Check that Inspector.info fills out various fields as expected."
     i = inspector.info(Call, oname="Call")
     assert i["type_name"] == "type"
@@ -207,8 +227,13 @@ def test_info():
     assert i["docstring"] == Call.__doc__
     assert i["source"] == None
     assert i["isclass"] is True
-    assert i["init_definition"] == "Call(x, y=1)"
     assert i["init_docstring"] == Call.__init__.__doc__
+
+
+    if isinstance(inspector, oinspect_safe.SafeInspector):
+        assert i["init_definition"] == "Call(x, y=SAFE_REPR)"
+    else:
+        assert i["init_definition"] == "Call(x, y=1)"
 
     i = inspector.info(Call, detail_level=1)
     assert i["source"] is not None
@@ -224,20 +249,20 @@ def test_info():
     assert i["call_docstring"] == Call.__call__.__doc__
 
 
-def test_class_signature():
+def test_class_signature(inspector):
     info = inspector.info(HasSignature, "HasSignature")
     assert info["init_definition"] == "HasSignature(test)"
     assert info["init_docstring"] == HasSignature.__init__.__doc__
 
 
-def test_info_awkward():
+def test_info_awkward(inspector):
     # Just test that this doesn't throw an error.
     inspector.info(Awkward())
 
-def test_bool_raise():
+def test_bool_raise(inspector):
     inspector.info(NoBoolCall())
 
-def test_info_serialliar():
+def test_info_serialliar(inspector):
     fib_tracker = [0]
     inspector.info(SerialLiar(fib_tracker))
 
@@ -245,10 +270,15 @@ def test_info_serialliar():
     # infinite loops: https://github.com/ipython/ipython/issues/9122
     assert fib_tracker[0] < 9000
 
+# Only test this with the safe inspector
+def test_info_badrepr(inspector):
+    if isinstance(inspector, oinspect_safe.SafeInspector):
+        inspector.info(BadRepr())
+
 def support_function_one(x, y=2, *a, **kw):
     """A simple function."""
 
-def test_calldef_none():
+def test_calldef_none(inspector):
     # We should ignore __call__ for all of these.
     for obj in [support_function_one, SimpleClass().method, any, str.upper]:
         i = inspector.info(obj)
@@ -258,7 +288,7 @@ def test_calldef_none():
 def f_kwarg(pos, *, kwonly):
     pass
 
-def test_definition_kwonlyargs():
+def test_definition_kwonlyargs(inspector):
     i = inspector.info(f_kwarg, oname="f_kwarg")  # analysis:ignore
     assert i["definition"] == "f_kwarg(pos, *, kwonly)"
 
@@ -287,12 +317,12 @@ def test_getdoc():
     assert oinspect.getdoc(c) == "standard docstring"
 
 
-def test_empty_property_has_no_source():
+def test_empty_property_has_no_source(inspector):
     i = inspector.info(property(), detail_level=1)
     assert i["source"] is None
 
 
-def test_property_sources():
+def test_property_sources(inspector):
     # A simple adder whose source and signature stays
     # the same across Python distributions
     def simple_add(a, b):
@@ -320,7 +350,7 @@ def test_property_sources():
     assert "def simple_add(a, b)" in i["source"]
 
 
-def test_property_docstring_is_in_info_for_detail_level_0():
+def test_property_docstring_is_in_info_for_detail_level_0(inspector):
     class A(object):
         @property
         def foobar(self):
@@ -340,7 +370,7 @@ def test_property_docstring_is_in_info_for_detail_level_0():
     )
 
 
-def test_pdef():
+def test_pdef(inspector):
     # See gh-1914
     def foo(): pass
     inspector.pdef(foo, 'foo')
@@ -370,7 +400,7 @@ def cleanup_user_ns(**kwargs):
             del ip.user_ns[k]
 
 
-def test_pinfo_getindex():
+def test_pinfo_getindex(inspector):
     def dummy():
         """
         MARKER
@@ -383,7 +413,7 @@ def test_pinfo_getindex():
     assert "container" not in ip.user_ns.keys()
 
 
-def test_qmark_getindex():
+def test_qmark_getindex(inspector):
     def dummy():
         """
         MARKER 2
@@ -396,7 +426,7 @@ def test_qmark_getindex():
     assert "container" not in ip.user_ns.keys()
 
 
-def test_qmark_getindex_negatif():
+def test_qmark_getindex_negatif(inspector):
     def dummy():
         """
         MARKER 3
@@ -410,20 +440,20 @@ def test_qmark_getindex_negatif():
 
 
 
-def test_pinfo_nonascii():
+def test_pinfo_nonascii(inspector):
     # See gh-1177
     from . import nonascii2
     ip.user_ns['nonascii2'] = nonascii2
     ip._inspect('pinfo', 'nonascii2', detail_level=1)
 
-def test_pinfo_type():
+def test_pinfo_type(inspector):
     """
     type can fail in various edge case, for example `type.__subclass__()`
     """
     ip._inspect('pinfo', 'type')
 
 
-def test_pinfo_docstring_no_source():
+def test_pinfo_docstring_no_source(inspector):
     """Docstring should be included with detail_level=1 if there is no source"""
     with AssertPrints('Docstring:'):
         ip._inspect('pinfo', 'str.format', detail_level=0)
@@ -431,7 +461,7 @@ def test_pinfo_docstring_no_source():
         ip._inspect('pinfo', 'str.format', detail_level=1)
 
 
-def test_pinfo_no_docstring_if_source():
+def test_pinfo_no_docstring_if_source(inspector):
     """Docstring should not be included with detail_level=1 if source is found"""
     def foo():
         """foo has a docstring"""
@@ -446,7 +476,7 @@ def test_pinfo_no_docstring_if_source():
         ip._inspect('pinfo', 'foo', detail_level=1)
 
 
-def test_pinfo_docstring_if_detail_and_no_source():
+def test_pinfo_docstring_if_detail_and_no_source(inspector):
     """ Docstring should be displayed if source info not available """
     obj_def = '''class Foo(object):
                   """ This is a docstring for Foo """
@@ -471,7 +501,7 @@ def test_pinfo_docstring_if_detail_and_no_source():
             ip._inspect('pinfo', 'foo.bar', detail_level=1)
 
 
-def test_pinfo_magic():
+def test_pinfo_magic(inspector):
     with AssertPrints('Docstring:'):
         ip._inspect('pinfo', 'lsmagic', detail_level=0)
 
@@ -479,14 +509,14 @@ def test_pinfo_magic():
         ip._inspect('pinfo', 'lsmagic', detail_level=1)
 
 
-def test_init_colors():
+def test_init_colors(inspector):
     # ensure colors are not present in signature info
     info = inspector.info(HasSignature)
     init_def = info["init_definition"]
     assert "[0m" not in init_def
 
 
-def test_builtin_init():
+def test_builtin_init(inspector):
     info = inspector.info(list)
     init_def = info['init_definition']
     assert init_def is not None
