@@ -87,6 +87,7 @@ def getargspec(obj):
 
     return inspect.getfullargspec(obj)
 
+
 class _SafeRepr:
     """A safe repr wrapper for an object
 

@@ -24,21 +24,29 @@ from IPython.utils.path import compress_user
 
 #-----------------------------------------------------------------------------
 # Parametrize inspector tests to run with both the default and safe inspectors
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 default_inspector = oinspect.Inspector()
 safe_inspector = oinspect_safe.SafeInspector()
 
+
 def pytest_generate_tests(metafunc):
     if "inspector" in metafunc.fixturenames:
-        metafunc.parametrize("inspector", [default_inspector, safe_inspector], ids=["default-inspector", "safe-inspector"], indirect=True)
+        metafunc.parametrize(
+            "inspector",
+            [default_inspector, safe_inspector],
+            ids=["default-inspector", "safe-inspector"],
+            indirect=True,
+        )
+
 
 @pytest.fixture()
 def inspector(request):
     ip.inspector = request.param
     return request.param
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------
 
@@ -54,7 +62,7 @@ class SourceModuleMainTest:
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 57 # Put here the actual number of this line
+THIS_LINE_NUMBER = 57  # Put here the actual number of this line
 
 
 def test_find_source_lines():
@@ -180,11 +188,13 @@ class BadRepr:
     """
     A honeypot repr that should not be called
     """
+
     def __repr__(self):
         import time
+
         time.sleep(10)
         raise ValueError("DON'T CALL ME")
-        return 'A VERY BAD REPR'
+        return "A VERY BAD REPR"
 
 
 class SerialLiar(object):
@@ -254,6 +264,7 @@ def test_info_awkward(inspector):
     # Just test that this doesn't throw an error.
     inspector.info(Awkward())
 
+
 def test_bool_raise(inspector):
     inspector.info(NoBoolCall())
 
@@ -264,6 +275,7 @@ def test_info_serialliar(inspector):
     # Nested attribute access should be cut off at 100 levels deep to avoid
     # infinite loops: https://github.com/ipython/ipython/issues/9122
     assert fib_tracker[0] < 9000
+
 
 # Only test this with the safe inspector
 def test_info_badrepr(inspector):
@@ -282,6 +294,7 @@ def test_calldef_none(inspector):
 
 def f_kwarg(pos, *, kwonly):
     pass
+
 
 def test_definition_kwonlyargs(inspector):
     i = inspector.info(f_kwarg, oname="f_kwarg")  # analysis:ignore
