@@ -6,7 +6,6 @@
 import types
 from collections import OrderedDict
 
-# TODO get_annotations also calls repr!
 from inspect import isbuiltin, ismethoddescriptor, isclass, ismodule, isfunction, CO_VARARGS, CO_VARKEYWORDS, unwrap, _empty, _void
 import inspect
 from keyword import iskeyword
