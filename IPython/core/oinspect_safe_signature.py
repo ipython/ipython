@@ -18,8 +18,7 @@ import functools
 import enum
 import re
 
-def safe_repr(obj):
-    return 'SAFE_REPR'
+from .oinspect_safe_repr import safe_repr
 
 ###########################
 ## Begin modified copy of https://github.com/python/cpython/blob/2d5f4ba17480c1f883a0822c90af25d2ec9bf7ed/Lib/inspect.py

@@ -227,13 +227,8 @@ def test_info(inspector):
     assert i["docstring"] == Call.__doc__
     assert i["source"] == None
     assert i["isclass"] is True
+    assert i["init_definition"] == "Call(x, y=1)"
     assert i["init_docstring"] == Call.__init__.__doc__
-
-
-    if isinstance(inspector, oinspect_safe.SafeInspector):
-        assert i["init_definition"] == "Call(x, y=SAFE_REPR)"
-    else:
-        assert i["init_definition"] == "Call(x, y=1)"
 
     i = inspector.info(Call, detail_level=1)
     assert i["source"] is not None
