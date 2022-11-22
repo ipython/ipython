@@ -80,6 +80,7 @@ def safe_repr(obj, depth=0, visited=None):
      * the number of elements we'll format in an iterable
      * the total depth we'll recur
      * the size of any single entry
+
     Any time we cross one of these thresholds, we use `...` to imply additional
     elements were elided, just as python does when printing circular objects.
 
