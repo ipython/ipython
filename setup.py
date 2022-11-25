@@ -139,9 +139,7 @@ setup_args['cmdclass'] = {
     'install_scripts_sym': install_scripts_for_symlink,
     'unsymlink': unsymlink,
 }
-setup_args["entry_points"] = {
-    "console_scripts": find_entry_points()
-}
+setup_args["entry_points"] = {"console_scripts": find_entry_points()}
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
