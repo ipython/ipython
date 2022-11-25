@@ -2362,6 +2362,14 @@ class InteractiveShell(SingletonConfigurable):
                 kwargs['local_ns'] = self.get_local_scope(stack_depth)
             with self.builtin_trap:
                 result = fn(*args, **kwargs)
+
+            # The code below prevents output from being displayed
+            # when using magic %time.
+            # Output from '%time foo();', for instance, would never
+            # be displayed.
+            if magic_name == 'time' and len(magic_arg_s) > 0 and magic_arg_s[-1] == ';':
+                return None
+
             return result
 
     def get_local_scope(self, stack_depth):
