@@ -2367,7 +2367,7 @@ class InteractiveShell(SingletonConfigurable):
             # when using magic %time.
             # Output from '%time foo();', for instance, would never
             # be displayed.
-            if magic_name == 'time' and len(magic_arg_s) > 0 and magic_arg_s[-1] == ';':
+            if magic_name == "time" and len(magic_arg_s) > 0 and magic_arg_s[-1] == ";":
                 return None
 
             return result
