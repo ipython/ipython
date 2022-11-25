@@ -66,7 +66,7 @@ from setuptools import setup
 # Our own imports
 sys.path.insert(0, ".")
 
-from setupbase import target_update
+from setupbase import target_update, find_entry_points
 
 from setupbase import (
     setup_args,
@@ -138,6 +138,9 @@ setup_args['cmdclass'] = {
     'install_lib_symlink': install_lib_symlink,
     'install_scripts_sym': install_scripts_for_symlink,
     'unsymlink': unsymlink,
+}
+setup_args["entry_points"] = {
+    "console_scripts": find_entry_points()
 }
 
 #---------------------------------------------------------------------------
