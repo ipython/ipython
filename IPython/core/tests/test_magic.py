@@ -418,7 +418,7 @@ def test_time():
 
 
 # ';' at the end of %time prevents instruction value to be printed.
-# This tests fix for #13837 
+# This tests fix for #13837.
 def test_time_no_outputwith_semicolon():
     ip = get_ipython()
 
