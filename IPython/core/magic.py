@@ -260,6 +260,7 @@ def _function_magic_marker(magic_kind):
 MAGIC_NO_VAR_EXPAND_ATTR = '_ipython_magic_no_var_expand'
 MAGIC_OUTPUT_CAN_BE_DISABLED = '_ipython_magic_output_can_be_disabled'
 
+
 def no_var_expand(magic_func):
     """Mark a magic function as not needing variable expansion
 
