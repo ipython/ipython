@@ -275,6 +275,7 @@ def no_var_expand(magic_func):
     setattr(magic_func, MAGIC_NO_VAR_EXPAND_ATTR, True)
     return magic_func
 
+
 def output_can_be_disabled(magic_func):
     """Mark a magic function so its output may be disabled.
 
