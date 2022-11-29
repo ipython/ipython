@@ -92,7 +92,7 @@ class DisplayHook(Configurable):
             return False
         
         return self.semicolon_at_end_of_expression(cell)
-        
+
     @staticmethod
     def semicolon_at_end_of_expression(expression):
         """Parse Python expression and detects whether last token is ';'"""
