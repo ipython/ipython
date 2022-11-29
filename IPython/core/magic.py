@@ -258,7 +258,7 @@ def _function_magic_marker(magic_kind):
 
 
 MAGIC_NO_VAR_EXPAND_ATTR = '_ipython_magic_no_var_expand'
-
+MAGIC_OUTPUT_CAN_BE_DISABLED = '_ipython_magic_output_can_be_disabled'
 
 def no_var_expand(magic_func):
     """Mark a magic function as not needing variable expansion
@@ -275,6 +275,15 @@ def no_var_expand(magic_func):
     setattr(magic_func, MAGIC_NO_VAR_EXPAND_ATTR, True)
     return magic_func
 
+def output_can_be_disabled(magic_func):
+    """Mark a magic function so its output may be disabled.
+
+    The output is disabled if the Python expression used as a parameter of
+    the magic ends in a semicolon, not counting a Python comment that can
+    follows it.
+    """
+    setattr(magic_func, MAGIC_OUTPUT_CAN_BE_DISABLED, True)
+    return magic_func
 
 # Create the actual decorators for public use
 
