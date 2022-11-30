@@ -190,6 +190,7 @@ import time
 import unicodedata
 import uuid
 import warnings
+from ast import literal_eval
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import cached_property, partial
@@ -212,6 +213,7 @@ from typing import (
     Literal,
 )
 
+from IPython.core.guarded_eval import guarded_eval, EvaluationContext
 from IPython.core.error import TryNext
 from IPython.core.inputtransformer2 import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
@@ -295,6 +297,9 @@ MATCHES_LIMIT = 500
 
 # Completion type reported when no type can be inferred.
 _UNKNOWN_TYPE = "<unknown>"
+
+# sentinel value to signal lack of a match
+not_found = object()
 
 class ProvisionalCompleterWarning(FutureWarning):
     """
@@ -902,12 +907,33 @@ class CompletionSplitter(object):
 
 class Completer(Configurable):
 
-    greedy = Bool(False,
-        help="""Activate greedy completion
-        PENDING DEPRECATION. this is now mostly taken care of with Jedi.
+    greedy = Bool(
+        False,
+        help="""Activate greedy completion.
 
-        This will enable completion on elements of lists, results of function calls, etc.,
-        but can be unsafe because the code is actually evaluated on TAB.
+        .. deprecated:: 8.8
+            Use :any:`evaluation` instead.
+
+        As of IPython 8.8 proxy for ``evaluation = 'unsafe'`` when set to ``True``,
+        and for ``'forbidden'`` when set to ``False``.
+        """,
+    ).tag(config=True)
+
+    evaluation = Enum(
+        ('forbidden', 'minimal', 'limitted', 'unsafe', 'dangerous'),
+        default_value='limitted',
+        help="""Code evaluation under completion.
+
+        Successive options allow to enable more eager evaluation for more accurate completion suggestions,
+        including for nested dictionaries, nested lists, or even results of function calls. Setting `unsafe`
+        or higher can lead to evaluation of arbitrary user code on TAB with potentially dangerous side effects.
+
+        Allowed values are:
+          - `forbidden`: no evaluation at all
+          - `minimal`:  evaluation of literals and access to built-in namespaces; no item/attribute evaluation nor access to locals/globals
+          - `limitted` (default): access to all namespaces, evaluation of hard-coded methods (``keys()``, ``__getattr__``, ``__getitems__``, etc) on allow-listed objects (e.g. ``dict``, ``list``, ``tuple``, ``pandas.Series``)
+          - `unsafe`: evaluation of all methods and function calls but not of syntax with side-effects like `del x`,
+          - `dangerous`: completely arbitrary evaluation
         """,
     ).tag(config=True)
 
@@ -1029,27 +1055,15 @@ class Completer(Configurable):
         with a __getattr__ hook is evaluated.
 
         """
-
-        # Another option, seems to work great. Catches things like ''.<tab>
-        m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
-
-        if m:
-            expr, attr = m.group(1, 3)
-        elif self.greedy:
-            m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
-            if not m2:
-                return []
-            expr, attr = m2.group(1,2)
-        else:
+        m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
+        if not m2:
             return []
+        expr, attr = m2.group(1,2)
 
-        try:
-            obj = eval(expr, self.namespace)
-        except:
-            try:
-                obj = eval(expr, self.global_namespace)
-            except:
-                return []
+        obj = self._evaluate_expr(expr)
+
+        if obj is not_found:
+            return []
 
         if self.limit_to__all__ and hasattr(obj, '__all__'):
             words = get__all__entries(obj)
@@ -1068,8 +1082,32 @@ class Completer(Configurable):
             pass
         # Build match list to return
         n = len(attr)
-        return [u"%s.%s" % (expr, w) for w in words if w[:n] == attr ]
+        return ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
 
+
+    def _evaluate_expr(self, expr):
+        obj = not_found
+        done = False
+        while not done and expr:
+            try:
+                obj = guarded_eval(
+                    expr,
+                    EvaluationContext(
+                        globals_=self.global_namespace,
+                        locals_=self.namespace,
+                        evaluation=self.evaluation
+                    )
+                )
+                done = True
+            except Exception as e:
+                if self.debug:
+                    print('Evaluation exception', e)
+                # trim the expression to remove any invalid prefix
+                # e.g. user starts `(d[`, so we get `expr = '(d'`,
+                # where parenthesis is not closed.
+                # TODO: make this faster by reusing parts of the computation?
+                expr = expr[1:]
+        return obj
 
 def get__all__entries(obj):
     """returns the strings in the __all__ attribute"""
@@ -1081,8 +1119,8 @@ def get__all__entries(obj):
     return [w for w in words if isinstance(w, str)]
 
 
-def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], prefix: str, delims: str,
-                    extra_prefix: Optional[Tuple[str, bytes]]=None) -> Tuple[str, int, List[str]]:
+def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes], ...]]], prefix: str, delims: str,
+                    extra_prefix: Optional[Tuple[Union[str, bytes], ...]]=None) -> Tuple[str, int, List[str]]:
     """Used by dict_key_matches, matching the prefix to a list of keys
 
     Parameters
@@ -1106,25 +1144,28 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
 
     """
     prefix_tuple = extra_prefix if extra_prefix else ()
+
     Nprefix = len(prefix_tuple)
+    text_serializable_types = (str, bytes, int, float, slice)
     def filter_prefix_tuple(key):
         # Reject too short keys
         if len(key) <= Nprefix:
             return False
-        # Reject keys with non str/bytes in it
+        # Reject keys which cannot be serialised to text
         for k in key:
-            if not isinstance(k, (str, bytes)):
+            if not isinstance(k, text_serializable_types):
                 return False
         # Reject keys that do not match the prefix
         for k, pt in zip(key, prefix_tuple):
-            if k != pt:
+            if k != pt and not isinstance(pt, slice):
                 return False
         # All checks passed!
         return True
 
-    filtered_keys:List[Union[str,bytes]] = []
+    filtered_keys: List[Union[str, bytes, int, float, slice]] = []
+
     def _add_to_filtered_keys(key):
-        if isinstance(key, (str, bytes)):
+        if isinstance(key, text_serializable_types):
             filtered_keys.append(key)
 
     for k in keys:
@@ -1140,7 +1181,7 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     assert quote_match is not None # silence mypy
     quote = quote_match.group()
     try:
-        prefix_str = eval(prefix + quote, {})
+        prefix_str = literal_eval(prefix + quote)
     except Exception:
         return '', 0, []
 
@@ -1150,17 +1191,18 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     token_start = token_match.start()
     token_prefix = token_match.group()
 
-    matched:List[str] = []
+    matched: List[str] = []
     for key in filtered_keys:
+        str_key = key if isinstance(key, (str, bytes)) else str(key)
         try:
-            if not key.startswith(prefix_str):
+            if not str_key.startswith(prefix_str):
                 continue
         except (AttributeError, TypeError, UnicodeError):
             # Python 3+ TypeError on b'a'.startswith('a') or vice-versa
             continue
 
         # reformat remainder of key to begin with prefix
-        rem = key[len(prefix_str):]
+        rem = str_key[len(prefix_str):]
         # force repr wrapped in '
         rem_repr = repr(rem + '"') if isinstance(rem, str) else repr(rem + b'"')
         rem_repr = rem_repr[1 + rem_repr.index("'"):-2]
@@ -1237,11 +1279,14 @@ def position_to_cursor(text:str, offset:int)->Tuple[int, int]:
     return line, col
 
 
-def _safe_isinstance(obj, module, class_name):
+def _safe_isinstance(obj, module, class_name, *attrs):
     """Checks if obj is an instance of module.class_name if loaded
     """
-    return (module in sys.modules and
-            isinstance(obj, getattr(import_module(module), class_name)))
+    if module in sys.modules:
+        m = sys.modules[module]
+        for attr in [class_name, *attrs]:
+            m = getattr(m, attr)
+        return isinstance(obj, m)
 
 
 @context_matcher()
@@ -1394,6 +1439,37 @@ def _make_signature(completion)-> str:
 _CompleteResult = Dict[str, MatcherResult]
 
 
+DICT_MATCHER_REGEX = re.compile(r"""(?x)
+(  # match dict-referring - or any get item object - expression
+    .+
+)
+\[   # open bracket
+\s*  # and optional whitespace
+# Capture any number of serializable objects (e.g. "a", "b", 'c')
+# and slices
+((?:[uUbB]?  # string prefix (r not handled)
+    (?:
+        '(?:[^']|(?<!\\)\\')*'
+    |
+        "(?:[^"]|(?<!\\)\\")*"
+    |
+        # capture integers and slices
+        (?:[-+]?\d+)?(?::(?:[-+]?\d+)?){0,2}
+    )
+    \s*,\s*
+)*)
+([uUbB]?  # string prefix (r not handled)
+    (?:   # unclosed string
+        '(?:[^']|(?<!\\)\\')*
+    |
+        "(?:[^"]|(?<!\\)\\")*
+    |
+        (?:[-+]?\d+)
+    )
+)?
+$
+""")
+
 def _convert_matcher_v1_result_to_v2(
     matches: Sequence[str],
     type: str,
@@ -1413,21 +1489,21 @@ def _convert_matcher_v1_result_to_v2(
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
-    __dict_key_regexps: Optional[Dict[bool,Pattern]] = None
-
     @observe('greedy')
     def _greedy_changed(self, change):
         """update the splitter and readline delims when greedy is changed"""
         if change['new']:
+            self.evaluation = 'unsafe'
             self.splitter.delims = GREEDY_DELIMS
         else:
+            self.evaluation = 'limitted'
             self.splitter.delims = DELIMS
 
     dict_keys_only = Bool(
         False,
         help="""
         Whether to show dict key matches only.
-        
+
         (disables all matchers except for `IPCompleter.dict_key_matcher`).
         """,
     )
@@ -2149,10 +2225,15 @@ class IPCompleter(Completer):
             return method()
 
         # Special case some common in-memory dict-like types
-        if isinstance(obj, dict) or\
-           _safe_isinstance(obj, 'pandas', 'DataFrame'):
+        if (isinstance(obj, dict) or
+           _safe_isinstance(obj, 'pandas', 'DataFrame')):
             try:
                 return list(obj.keys())
+            except Exception:
+                return []
+        elif _safe_isinstance(obj, 'pandas', 'core', 'indexing', '_LocIndexer'):
+            try:
+                return list(obj.obj.keys())
             except Exception:
                 return []
         elif _safe_isinstance(obj, 'numpy', 'ndarray') or\
@@ -2175,65 +2256,43 @@ class IPCompleter(Completer):
             You can use :meth:`dict_key_matcher` instead.
         """
 
-        if self.__dict_key_regexps is not None:
-            regexps = self.__dict_key_regexps
-        else:
-            dict_key_re_fmt = r'''(?x)
-            (  # match dict-referring expression wrt greedy setting
-                %s
-            )
-            \[   # open bracket
-            \s*  # and optional whitespace
-            # Capture any number of str-like objects (e.g. "a", "b", 'c')
-            ((?:[uUbB]?  # string prefix (r not handled)
-                (?:
-                    '(?:[^']|(?<!\\)\\')*'
-                |
-                    "(?:[^"]|(?<!\\)\\")*"
-                )
-                \s*,\s*
-            )*)
-            ([uUbB]?  # string prefix (r not handled)
-                (?:   # unclosed string
-                    '(?:[^']|(?<!\\)\\')*
-                |
-                    "(?:[^"]|(?<!\\)\\")*
-                )
-            )?
-            $
-            '''
-            regexps = self.__dict_key_regexps = {
-                False: re.compile(dict_key_re_fmt % r'''
-                                  # identifiers separated by .
-                                  (?!\d)\w+
-                                  (?:\.(?!\d)\w+)*
-                                  '''),
-                True: re.compile(dict_key_re_fmt % '''
-                                 .+
-                                 ''')
-            }
+        # Short-circuit on closed dictionary (regular expression would
+        # not match anyway, but would take quite a while).
+        if self.text_until_cursor.strip().endswith(']'):
+            return []
 
-        match = regexps[self.greedy].search(self.text_until_cursor)
+        match = DICT_MATCHER_REGEX.search(self.text_until_cursor)
 
         if match is None:
             return []
 
-        expr, prefix0, prefix = match.groups()
-        try:
-            obj = eval(expr, self.namespace)
-        except Exception:
-            try:
-                obj = eval(expr, self.global_namespace)
-            except Exception:
-                return []
+        expr, prior_tuple_keys, key_prefix = match.groups()
+
+        obj = self._evaluate_expr(expr)
+
+        if obj is not_found:
+            return []
 
         keys = self._get_keys(obj)
         if not keys:
             return keys
 
-        extra_prefix = eval(prefix0) if prefix0 != '' else None
+        tuple_prefix = guarded_eval(
+            prior_tuple_keys,
+            EvaluationContext(
+                globals_=self.global_namespace,
+                locals_=self.namespace,
+                evaluation=self.evaluation,
+                in_subscript=True
+            )
+        )
 
-        closing_quote, token_offset, matches = match_dict_keys(keys, prefix, self.splitter.delims, extra_prefix=extra_prefix)
+        closing_quote, token_offset, matches = match_dict_keys(
+            keys,
+            key_prefix,
+            self.splitter.delims,
+            extra_prefix=tuple_prefix
+        )
         if not matches:
             return matches
 
@@ -2242,7 +2301,7 @@ class IPCompleter(Completer):
         # - the start of the key text
         # - the start of the completion
         text_start = len(self.text_until_cursor) - len(text)
-        if prefix:
+        if key_prefix:
             key_start = match.start(3)
             completion_start = key_start + token_offset
         else:

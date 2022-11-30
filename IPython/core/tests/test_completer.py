@@ -113,6 +113,17 @@ def greedy_completion():
 
 
 @contextmanager
+def evaluation_level(evaluation: str):
+    ip = get_ipython()
+    evaluation_original = ip.Completer.evaluation
+    try:
+        ip.Completer.evaluation = evaluation
+        yield
+    finally:
+        ip.Completer.evaluation = evaluation_original
+
+
+@contextmanager
 def custom_matchers(matchers):
     ip = get_ipython()
     try:
@@ -522,10 +533,10 @@ class TestCompleter(unittest.TestCase):
 
     def test_greedy_completions(self):
         """
-        Test the capability of the Greedy completer. 
+        Test the capability of the Greedy completer.
 
         Most of the test here does not really show off the greedy completer, for proof
-        each of the text below now pass with Jedi. The greedy completer is capable of more. 
+        each of the text below now pass with Jedi. The greedy completer is capable of more.
 
         See the :any:`test_dict_key_completion_contexts`
 
@@ -852,15 +863,13 @@ class TestCompleter(unittest.TestCase):
         assert match_dict_keys(keys, '"', delims=delims) == ('"', 1, ["foo"])
         assert match_dict_keys(keys, '"f', delims=delims) == ('"', 1, ["foo"])
 
-        match_dict_keys
-
     def test_match_dict_keys_tuple(self):
         """
         Test that match_dict_keys called with extra prefix works on a couple of use case,
         does return what expected, and does not crash.
         """
         delims = " \t\n`!@#$^&*()=+[{]}\\|;:'\",<>?"
-        
+
         keys = [("foo", "bar"), ("foo", "oof"), ("foo", b"bar"), ('other', 'test')]
 
         # Completion on first key == "foo"
@@ -882,6 +891,11 @@ class TestCompleter(unittest.TestCase):
         assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2')) == ("'", 1, ["foo3"])
         assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3')) == ("'", 1, ["foo4"])
         assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3', 'foo4')) == ("'", 1, [])
+
+        keys = [("foo", 1111), ("foo", 2222), (3333, "bar"), (3333, 'test')]
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["1111", "2222"])
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=(3333,)) == ("'", 1, ["bar", "test"])
+        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("3333",)) == ("'", 1, [])
 
     def test_dict_key_completion_string(self):
         """Test dictionary key completion for string keys"""
@@ -1050,6 +1064,7 @@ class TestCompleter(unittest.TestCase):
 
         ip.user_ns["C"] = C
         ip.user_ns["get"] = lambda: d
+        ip.user_ns["nested"] = {'x': d}
 
         def assert_no_completion(**kwargs):
             _, matches = complete(**kwargs)
@@ -1074,6 +1089,13 @@ class TestCompleter(unittest.TestCase):
         assert_completion(line_buffer="+ d[")
         assert_completion(line_buffer="(d[")
         assert_completion(line_buffer="C.data[")
+
+        # nested dict completion
+        assert_completion(line_buffer="nested['x'][")
+
+        with evaluation_level('minimal'):
+            with pytest.raises(AssertionError):
+                assert_completion(line_buffer="nested['x'][")
 
         # greedy flag
         def assert_completion(**kwargs):
@@ -1162,12 +1184,21 @@ class TestCompleter(unittest.TestCase):
         _, matches = complete(line_buffer="d['")
         self.assertIn("my_head", matches)
         self.assertIn("my_data", matches)
-        # complete on a nested level
-        with greedy_completion():
+        def completes_on_nested():
             ip.user_ns["d"] = numpy.zeros(2, dtype=dt)
             _, matches = complete(line_buffer="d[1]['my_head']['")
             self.assertTrue(any(["my_dt" in m for m in matches]))
             self.assertTrue(any(["my_df" in m for m in matches]))
+        # complete on a nested level
+        with greedy_completion():
+            completes_on_nested()
+
+        with evaluation_level('limitted'):
+            completes_on_nested()
+
+        with evaluation_level('minimal'):
+            with pytest.raises(AssertionError):
+                completes_on_nested()
 
     @dec.skip_without("pandas")
     def test_dataframe_key_completion(self):
@@ -1180,6 +1211,17 @@ class TestCompleter(unittest.TestCase):
         _, matches = complete(line_buffer="d['")
         self.assertIn("hello", matches)
         self.assertIn("world", matches)
+        _, matches = complete(line_buffer="d.loc[:, '")
+        self.assertIn("hello", matches)
+        self.assertIn("world", matches)
+        _, matches = complete(line_buffer="d.loc[1:, '")
+        self.assertIn("hello", matches)
+        _, matches = complete(line_buffer="d.loc[1:1, '")
+        self.assertIn("hello", matches)
+        _, matches = complete(line_buffer="d.loc[1:1:-1, '")
+        self.assertIn("hello", matches)
+        _, matches = complete(line_buffer="d.loc[::, '")
+        self.assertIn("hello", matches)
 
     def test_dict_key_completion_invalids(self):
         """Smoke test cases dict key completion can't handle"""
