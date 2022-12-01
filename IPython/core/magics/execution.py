@@ -37,7 +37,7 @@ from IPython.core.magic import (
     magics_class,
     needs_local_scope,
     no_var_expand,
-    output_can_be_disabled,
+    output_can_be_silenced,
     on_off,
 )
 from IPython.testing.skipdoctest import skip_doctest
@@ -1195,7 +1195,7 @@ class ExecutionMagics(Magics):
     @no_var_expand
     @needs_local_scope
     @line_cell_magic
-    @output_can_be_disabled
+    @output_can_be_silenced
     def time(self,line='', cell=None, local_ns=None):
         """Time execution of a Python statement or expression.
 
