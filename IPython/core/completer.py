@@ -671,6 +671,19 @@ class MatcherAPIv2(Protocol):
 Matcher: TypeAlias = Union[MatcherAPIv1, MatcherAPIv2]
 
 
+def has_any_completions(result: MatcherResult) -> bool:
+    """Check if any result includes any completions."""
+    if hasattr(result["completions"], "__len__"):
+        return len(result["completions"]) != 0
+    try:
+        old_iterator = result["completions"]
+        first = next(old_iterator)
+        result["completions"] = itertools.chain([first], old_iterator)
+        return True
+    except StopIteration:
+        return False
+
+
 def completion_matcher(
     *, priority: float = None, identifier: str = None, api_version: int = 1
 ):
@@ -684,7 +697,10 @@ def completion_matcher(
     identifier : Optional[str]
         identifier of the matcher allowing users to modify the behaviour via traitlets,
         and also used to for debugging (will be passed as ``origin`` with the completions).
-        Defaults to matcher function ``__qualname__``.
+
+        Defaults to matcher function's ``__qualname__`` (for example,
+        ``IPCompleter.file_matcher`` for the built-in matched defined
+        as a ``file_matcher`` method of the ``IPCompleter`` class).
     api_version: Optional[int]
         version of the Matcher API used by this matcher.
         Currently supported values are 1 and 2.
@@ -1447,14 +1463,18 @@ class IPCompleter(Completer):
 
         If False, only the completion results from the first non-empty
         completer will be returned.
-        
+
         As of version 8.6.0, setting the value to ``False`` is an alias for:
         ``IPCompleter.suppress_competing_matchers = True.``.
         """,
     ).tag(config=True)
 
     disable_matchers = ListTrait(
-        Unicode(), help="""List of matchers to disable."""
+        Unicode(),
+        help="""List of matchers to disable.
+
+        The list should contain matcher identifiers (see :any:`completion_matcher`).
+        """,
     ).tag(config=True)
 
     omit__names = Enum(
@@ -1952,7 +1972,7 @@ class IPCompleter(Completer):
             else:
                 return []
 
-    def python_matches(self, text:str)->List[str]:
+    def python_matches(self, text: str) -> Iterable[str]:
         """Match attributes or global python names"""
         if "." in text:
             try:
@@ -2807,7 +2827,7 @@ class IPCompleter(Completer):
                 should_suppress = (
                     (suppression_config is True)
                     or (suppression_recommended and (suppression_config is not False))
-                ) and len(result["completions"])
+                ) and has_any_completions(result)
 
                 if should_suppress:
                     suppression_exceptions = result.get("do_not_suppress", set())
