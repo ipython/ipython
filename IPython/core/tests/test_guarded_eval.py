@@ -9,8 +9,8 @@ from IPython.testing import decorators as dec
 import pytest
 
 
-def limitted(**kwargs):
-    return EvaluationContext(locals_=kwargs, globals_={}, evaluation="limitted")
+def limited(**kwargs):
+    return EvaluationContext(locals_=kwargs, globals_={}, evaluation="limited")
 
 
 def unsafe(**kwargs):
@@ -22,7 +22,7 @@ def test_pandas_series_iloc():
     import pandas as pd
 
     series = pd.Series([1], index=["a"])
-    context = limitted(data=series)
+    context = limited(data=series)
     assert guarded_eval("data.iloc[0]", context) == 1
 
 
@@ -30,7 +30,7 @@ def test_pandas_series_iloc():
 def test_pandas_series():
     import pandas as pd
 
-    context = limitted(data=pd.Series([1], index=["a"]))
+    context = limited(data=pd.Series([1], index=["a"]))
     assert guarded_eval('data["a"]', context) == 1
     with pytest.raises(KeyError):
         guarded_eval('data["c"]', context)
@@ -49,7 +49,7 @@ def test_pandas_bad_series():
             return "CUSTOM_ATTR"
 
     bad_series = BadItemSeries([1], index=["a"])
-    context = limitted(data=bad_series)
+    context = limited(data=bad_series)
 
     with pytest.raises(GuardRejection):
         guarded_eval('data["a"]', context)
@@ -65,7 +65,7 @@ def test_pandas_bad_series():
     assert guarded_eval('data["a"]', context) == "CUSTOM_ITEM"
 
     bad_attr_series = BadAttrSeries([1], index=["a"])
-    context = limitted(data=bad_attr_series)
+    context = limited(data=bad_attr_series)
     assert guarded_eval('data["a"]', context) == 1
     with pytest.raises(GuardRejection):
         guarded_eval("data.a", context)
@@ -77,7 +77,7 @@ def test_pandas_dataframe_loc():
     from pandas.testing import assert_series_equal
 
     data = pd.DataFrame([{"a": 1}])
-    context = limitted(data=data)
+    context = limited(data=data)
     assert_series_equal(guarded_eval('data.loc[:, "a"]', context), data["a"])
 
 
@@ -95,16 +95,16 @@ def test_named_tuple():
     good = GoodNamedTuple(a="x")
     bad = BadNamedTuple(a="x")
 
-    context = limitted(data=good)
+    context = limited(data=good)
     assert guarded_eval("data[0]", context) == "x"
 
-    context = limitted(data=bad)
+    context = limited(data=bad)
     with pytest.raises(GuardRejection):
         guarded_eval("data[0]", context)
 
 
 def test_dict():
-    context = limitted(data={"a": 1, "b": {"x": 2}, ("x", "y"): 3})
+    context = limited(data={"a": 1, "b": {"x": 2}, ("x", "y"): 3})
     assert guarded_eval('data["a"]', context) == 1
     assert guarded_eval('data["b"]', context) == {"x": 2}
     assert guarded_eval('data["b"]["x"]', context) == 2
@@ -114,43 +114,43 @@ def test_dict():
 
 
 def test_set():
-    context = limitted(data={"a", "b"})
+    context = limited(data={"a", "b"})
     assert guarded_eval("data.difference", context)
 
 
 def test_list():
-    context = limitted(data=[1, 2, 3])
+    context = limited(data=[1, 2, 3])
     assert guarded_eval("data[1]", context) == 2
     assert guarded_eval("data.copy", context)
 
 
 def test_dict_literal():
-    context = limitted()
+    context = limited()
     assert guarded_eval("{}", context) == {}
     assert guarded_eval('{"a": 1}', context) == {"a": 1}
 
 
 def test_list_literal():
-    context = limitted()
+    context = limited()
     assert guarded_eval("[]", context) == []
     assert guarded_eval('[1, "a"]', context) == [1, "a"]
 
 
 def test_set_literal():
-    context = limitted()
+    context = limited()
     assert guarded_eval("set()", context) == set()
     assert guarded_eval('{"a"}', context) == {"a"}
 
 
 def test_if_expression():
-    context = limitted()
+    context = limited()
     assert guarded_eval("2 if True else 3", context) == 2
     assert guarded_eval("4 if False else 5", context) == 5
 
 
 def test_object():
     obj = object()
-    context = limitted(obj=obj)
+    context = limited(obj=obj)
     assert guarded_eval("obj.__dir__", context) == obj.__dir__
 
 
@@ -163,11 +163,11 @@ def test_object():
     ],
 )
 def test_number_attributes(code, expected):
-    assert guarded_eval(code, limitted()) == expected
+    assert guarded_eval(code, limited()) == expected
 
 
 def test_method_descriptor():
-    context = limitted()
+    context = limited()
     assert guarded_eval("list.copy.__name__", context) == "copy"
 
 
@@ -179,7 +179,7 @@ def test_method_descriptor():
     ],
 )
 def test_calls(data, good, bad, expected):
-    context = limitted(data=data)
+    context = limited(data=data)
     assert guarded_eval(good, context) == expected
 
     with pytest.raises(GuardRejection):
@@ -195,13 +195,13 @@ def test_calls(data, good, bad, expected):
     ],
 )
 def test_literals(code, expected):
-    context = limitted()
+    context = limited()
     assert guarded_eval(code, context) == expected
 
 
 def test_subscript():
     context = EvaluationContext(
-        locals_={}, globals_={}, evaluation="limitted", in_subscript=True
+        locals_={}, globals_={}, evaluation="limited", in_subscript=True
     )
     empty_slice = slice(None, None, None)
     assert guarded_eval("", context) == tuple()

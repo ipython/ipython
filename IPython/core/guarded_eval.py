@@ -207,7 +207,7 @@ class EvaluationContext(NamedTuple):
     locals_: dict
     globals_: dict
     evaluation: Literal[
-        "forbidden", "minimal", "limitted", "unsafe", "dangerous"
+        "forbidden", "minimal", "limited", "unsafe", "dangerous"
     ] = "forbidden"
     in_subscript: bool = False
 
@@ -260,13 +260,13 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
     Applies evaluation restrictions defined in the context.
 
-    Currently does not support evaluation of functions with arguments.
+    Currently does not support evaluation of functions with keyword arguments.
 
     Does not evaluate actions which always have side effects:
     - class definitions (``class sth: ...``)
     - function definitions (``def sth: ...``)
     - variable assignments (``x = 1``)
-    - augumented assignments (``x += 1``)
+    - augmented assignments (``x += 1``)
     - deletions (``del x``)
 
     Does not evaluate operations which do not return values:
@@ -274,7 +274,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     - pass (``pass``)
     - imports (``import x``)
     - control flow
-       - conditionals (``if x:``) except for terenary IfExp (``a if x else b``)
+       - conditionals (``if x:``) except for ternary IfExp (``a if x else b``)
        - loops (``for`` and `while``)
        - exception handling
 
@@ -393,7 +393,6 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             return eval_node(node.orelse, context)
     if isinstance(node, ast.Call):
         func = eval_node(node.func, context)
-        print(node.keywords)
         if policy.can_call(func) and not node.keywords:
             args = [eval_node(arg, context) for arg in node.args]
             return func(*args)
@@ -490,7 +489,7 @@ EVALUATION_POLICIES = {
         allowed_calls=set(),
         allow_any_calls=False,
     ),
-    "limitted": SelectivePolicy(
+    "limited": SelectivePolicy(
         # TODO:
         # - should reject binary and unary operations if custom methods would be dispatched
         allowed_getitem=BUILTIN_GETITEM,

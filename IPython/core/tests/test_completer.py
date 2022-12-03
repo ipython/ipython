@@ -1354,7 +1354,7 @@ class TestCompleter(unittest.TestCase):
         with greedy_completion():
             completes_on_nested()
 
-        with evaluation_level("limitted"):
+        with evaluation_level("limited"):
             completes_on_nested()
 
         with evaluation_level("minimal"):

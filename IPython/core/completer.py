@@ -916,15 +916,15 @@ class Completer(Configurable):
         .. deprecated:: 8.8
             Use :any:`evaluation` and :any:`auto_close_dict_keys` instead.
 
-        Whent enabled in IPython 8.8+ activates following settings for compatibility:
+        When enabled in IPython 8.8+ activates following settings for compatibility:
         - ``evaluation = 'unsafe'``
         - ``auto_close_dict_keys = True``
         """,
     ).tag(config=True)
 
     evaluation = Enum(
-        ("forbidden", "minimal", "limitted", "unsafe", "dangerous"),
-        default_value="limitted",
+        ("forbidden", "minimal", "limited", "unsafe", "dangerous"),
+        default_value="limited",
         help="""Code evaluation under completion.
 
         Successive options allow to enable more eager evaluation for more accurate completion suggestions,
@@ -934,7 +934,7 @@ class Completer(Configurable):
         Allowed values are:
           - `forbidden`: no evaluation at all
           - `minimal`:  evaluation of literals and access to built-in namespaces; no item/attribute evaluation nor access to locals/globals
-          - `limitted` (default): access to all namespaces, evaluation of hard-coded methods (``keys()``, ``__getattr__``, ``__getitems__``, etc) on allow-listed objects (e.g. ``dict``, ``list``, ``tuple``, ``pandas.Series``)
+          - `limited` (default): access to all namespaces, evaluation of hard-coded methods (``keys()``, ``__getattr__``, ``__getitems__``, etc) on allow-listed objects (e.g. ``dict``, ``list``, ``tuple``, ``pandas.Series``)
           - `unsafe`: evaluation of all methods and function calls but not of syntax with side-effects like `del x`,
           - `dangerous`: completely arbitrary evaluation
         """,
@@ -1651,7 +1651,7 @@ class IPCompleter(Completer):
             self.auto_close_dict_keys = True
             self.splitter.delims = GREEDY_DELIMS
         else:
-            self.evaluation = "limitted"
+            self.evaluation = "limited"
             self.auto_close_dict_keys = False
             self.splitter.delims = DELIMS
 
