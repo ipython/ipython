@@ -50,7 +50,7 @@ Backward latex completion
 
 It is sometime challenging to know how to type a character, if you are using
 IPython, or any compatible frontend you can prepend backslash to the character
-and press ``<tab>`` to expand it to its latex form.
+and press :kbd:`Tab` to expand it to its latex form.
 
 .. code::
 
@@ -59,7 +59,7 @@ and press ``<tab>`` to expand it to its latex form.
 
 
 Both forward and backward completions can be deactivated by setting the
-``Completer.backslash_combining_completions`` option to ``False``.
+:any:`Completer.backslash_combining_completions` option to ``False``.
 
 
 Experimental
@@ -95,7 +95,7 @@ having to execute any code:
    ... myvar[1].bi<tab>
 
 Tab completion will be able to infer that ``myvar[1]`` is a real number without
-executing any code unlike the previously available ``IPCompleter.greedy``
+executing almost any code unlike the deprecated :any:`IPCompleter.greedy`
 option.
 
 Be sure to update :any:`jedi` to the latest stable version or to try the
@@ -972,29 +972,38 @@ class Completer(Configurable):
         help="""Activate greedy completion.
 
         .. deprecated:: 8.8
-            Use :any:`evaluation` and :any:`auto_close_dict_keys` instead.
+            Use :any:`Completer.evaluation` and :any:`Completer.auto_close_dict_keys` instead.
 
-        When enabled in IPython 8.8+ activates following settings for compatibility:
-        - ``evaluation = 'unsafe'``
-        - ``auto_close_dict_keys = True``
+        When enabled in IPython 8.8 or newer, changes configuration as follows:
+
+        - ``Completer.evaluation = 'unsafe'``
+        - ``Completer.auto_close_dict_keys = True``
         """,
     ).tag(config=True)
 
     evaluation = Enum(
         ("forbidden", "minimal", "limited", "unsafe", "dangerous"),
         default_value="limited",
-        help="""Code evaluation under completion.
+        help="""Policy for code evaluation under completion.
 
-        Successive options allow to enable more eager evaluation for more accurate completion suggestions,
-        including for nested dictionaries, nested lists, or even results of function calls. Setting `unsafe`
-        or higher can lead to evaluation of arbitrary user code on TAB with potentially dangerous side effects.
+        Successive options allow to enable more eager evaluation for better
+        completion suggestions, including for nested dictionaries, nested lists,
+        or even results of function calls.
+        Setting ``unsafe`` or higher can lead to evaluation of arbitrary user
+        code on :kbd:`Tab` with potentially unwanted or dangerous side effects.
 
         Allowed values are:
-          - `forbidden`: no evaluation at all
-          - `minimal`:  evaluation of literals and access to built-in namespaces; no item/attribute evaluation nor access to locals/globals
-          - `limited` (default): access to all namespaces, evaluation of hard-coded methods (``keys()``, ``__getattr__``, ``__getitems__``, etc) on allow-listed objects (e.g. ``dict``, ``list``, ``tuple``, ``pandas.Series``)
-          - `unsafe`: evaluation of all methods and function calls but not of syntax with side-effects like `del x`,
-          - `dangerous`: completely arbitrary evaluation
+
+        - ``forbidden``: no evaluation of code is permitted,
+        - ``minimal``: evaluation of literals and access to built-in namespace;
+          no item/attribute evaluation nor access to locals/globals,
+        - ``limited``: access to all namespaces, evaluation of hard-coded methods
+          (for example: :any:`dict.keys`, :any:`object.__getattr__`,
+          :any:`object.__getitem__`) on allow-listed objects (for example:
+          :any:`dict`, :any:`list`, :any:`tuple`, ``pandas.Series``),
+        - ``unsafe``: evaluation of all methods and function calls but not of
+          syntax with side-effects like `del x`,
+        - ``dangerous``: completely arbitrary evaluation.
         """,
     ).tag(config=True)
 
@@ -1019,7 +1028,15 @@ class Completer(Configurable):
              "unicode characters back to latex commands.").tag(config=True)
 
     auto_close_dict_keys = Bool(
-        False, help="""Enable auto-closing dictionary keys."""
+        False,
+        help="""
+        Enable auto-closing dictionary keys.
+
+        When enabled string keys will be suffixed with a final quote
+        (matching the opening quote), tuple keys will also receive a
+        separating comma if needed, and keys which are final will
+        receive a closing bracket (``]``).
+        """,
     ).tag(config=True)
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
@@ -1157,8 +1174,8 @@ class Completer(Configurable):
                 obj = guarded_eval(
                     expr,
                     EvaluationContext(
-                        globals_=self.global_namespace,
-                        locals_=self.namespace,
+                        globals=self.global_namespace,
+                        locals=self.namespace,
                         evaluation=self.evaluation,
                     ),
                 )
@@ -1183,7 +1200,7 @@ def get__all__entries(obj):
     return [w for w in words if isinstance(w, str)]
 
 
-class DictKeyState(enum.Flag):
+class _DictKeyState(enum.Flag):
     """Represent state of the key match in context of other possible matches.
 
     - given `d1 = {'a': 1}` completion on `d1['<tab>` will yield `{'a': END_OF_ITEM}` as there is no tuple.
@@ -1199,6 +1216,7 @@ class DictKeyState(enum.Flag):
 
 
 def _parse_tokens(c):
+    """Parse tokens even if there is an error."""
     tokens = []
     token_generator = tokenize.generate_tokens(iter(c.splitlines()).__next__)
     while True:
@@ -1257,7 +1275,7 @@ def match_dict_keys(
     prefix: str,
     delims: str,
     extra_prefix: Optional[Tuple[Union[str, bytes], ...]] = None,
-) -> Tuple[str, int, Dict[str, DictKeyState]]:
+) -> Tuple[str, int, Dict[str, _DictKeyState]]:
     """Used by dict_key_matches, matching the prefix to a list of keys
 
     Parameters
@@ -1307,8 +1325,8 @@ def match_dict_keys(
         return True
 
     filtered_key_is_final: Dict[
-        Union[str, bytes, int, float], DictKeyState
-    ] = defaultdict(lambda: DictKeyState.BASELINE)
+        Union[str, bytes, int, float], _DictKeyState
+    ] = defaultdict(lambda: _DictKeyState.BASELINE)
 
     for k in keys:
         # If at least one of the matches is not final, mark as undetermined.
@@ -1319,9 +1337,9 @@ def match_dict_keys(
             if filter_prefix_tuple(k):
                 key_fragment = k[prefix_tuple_size]
                 filtered_key_is_final[key_fragment] |= (
-                    DictKeyState.END_OF_TUPLE
+                    _DictKeyState.END_OF_TUPLE
                     if len(k) == prefix_tuple_size + 1
-                    else DictKeyState.IN_TUPLE
+                    else _DictKeyState.IN_TUPLE
                 )
         elif prefix_tuple_size > 0:
             # we are completing a tuple but this key is not a tuple,
@@ -1329,7 +1347,7 @@ def match_dict_keys(
             pass
         else:
             if isinstance(k, text_serializable_types):
-                filtered_key_is_final[k] |= DictKeyState.END_OF_ITEM
+                filtered_key_is_final[k] |= _DictKeyState.END_OF_ITEM
 
     filtered_keys = filtered_key_is_final.keys()
 
@@ -1367,7 +1385,7 @@ def match_dict_keys(
     token_start = token_match.start()
     token_prefix = token_match.group()
 
-    matched: Dict[str, DictKeyState] = {}
+    matched: Dict[str, _DictKeyState] = {}
 
     str_key: Union[str, bytes]
 
@@ -2503,8 +2521,8 @@ class IPCompleter(Completer):
         tuple_prefix = guarded_eval(
             prior_tuple_keys,
             EvaluationContext(
-                globals_=self.global_namespace,
-                locals_=self.namespace,
+                globals=self.global_namespace,
+                locals=self.namespace,
                 evaluation=self.evaluation,
                 in_subscript=True,
             ),
@@ -2569,7 +2587,7 @@ class IPCompleter(Completer):
 
         results = []
 
-        end_of_tuple_or_item = DictKeyState.END_OF_TUPLE | DictKeyState.END_OF_ITEM
+        end_of_tuple_or_item = _DictKeyState.END_OF_TUPLE | _DictKeyState.END_OF_ITEM
 
         for k, state_flag in matches.items():
             result = leading + k
@@ -2584,7 +2602,7 @@ class IPCompleter(Completer):
 
             if state_flag in end_of_tuple_or_item and can_close_bracket:
                 result += "]"
-            if state_flag == DictKeyState.IN_TUPLE and can_close_tuple_item:
+            if state_flag == _DictKeyState.IN_TUPLE and can_close_tuple_item:
                 result += ", "
             results.append(result)
         return results

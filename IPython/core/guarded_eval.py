@@ -17,6 +17,7 @@ from functools import cached_property
 from dataclasses import dataclass, field
 
 from IPython.utils.docs import GENERATING_DOCUMENTATION
+from IPython.utils.decorators import undoc
 
 
 if TYPE_CHECKING or GENERATING_DOCUMENTATION:
@@ -26,21 +27,25 @@ else:
     Protocol = object  # requires Python >=3.8
 
 
+@undoc
 class HasGetItem(Protocol):
     def __getitem__(self, key) -> None:
         ...
 
 
+@undoc
 class InstancesHaveGetItem(Protocol):
     def __call__(self, *args, **kwargs) -> HasGetItem:
         ...
 
 
+@undoc
 class HasGetAttr(Protocol):
     def __getattr__(self, key) -> None:
         ...
 
 
+@undoc
 class DoesNotHaveGetAttr(Protocol):
     pass
 
@@ -49,7 +54,7 @@ class DoesNotHaveGetAttr(Protocol):
 MayHaveGetattr = Union[HasGetAttr, DoesNotHaveGetAttr]
 
 
-def unbind_method(func: Callable) -> Union[Callable, None]:
+def _unbind_method(func: Callable) -> Union[Callable, None]:
     """Get unbound method for given bound method.
 
     Returns None if cannot get unbound method."""
@@ -69,8 +74,11 @@ def unbind_method(func: Callable) -> Union[Callable, None]:
     return None
 
 
+@undoc
 @dataclass
 class EvaluationPolicy:
+    """Definition of evaluation policy."""
+
     allow_locals_access: bool = False
     allow_globals_access: bool = False
     allow_item_access: bool = False
@@ -92,12 +100,12 @@ class EvaluationPolicy:
         if func in self.allowed_calls:
             return True
 
-        owner_method = unbind_method(func)
+        owner_method = _unbind_method(func)
         if owner_method and owner_method in self.allowed_calls:
             return True
 
 
-def has_original_dunder_external(
+def _has_original_dunder_external(
     value,
     module_name,
     access_path,
@@ -121,7 +129,7 @@ def has_original_dunder_external(
         return False
 
 
-def has_original_dunder(
+def _has_original_dunder(
     value, allowed_types, allowed_methods, allowed_external, method_name
 ):
     # note: Python ignores `__getattr__`/`__getitem__` on instances,
@@ -141,12 +149,13 @@ def has_original_dunder(
         return True
 
     for module_name, *access_path in allowed_external:
-        if has_original_dunder_external(value, module_name, access_path, method_name):
+        if _has_original_dunder_external(value, module_name, access_path, method_name):
             return True
 
     return False
 
 
+@undoc
 @dataclass
 class SelectivePolicy(EvaluationPolicy):
     allowed_getitem: Set[InstancesHaveGetItem] = field(default_factory=set)
@@ -155,14 +164,14 @@ class SelectivePolicy(EvaluationPolicy):
     allowed_getattr_external: Set[Tuple[str, ...]] = field(default_factory=set)
 
     def can_get_attr(self, value, attr):
-        has_original_attribute = has_original_dunder(
+        has_original_attribute = _has_original_dunder(
             value,
             allowed_types=self.allowed_getattr,
             allowed_methods=self._getattribute_methods,
             allowed_external=self.allowed_getattr_external,
             method_name="__getattribute__",
         )
-        has_original_attr = has_original_dunder(
+        has_original_attr = _has_original_dunder(
             value,
             allowed_types=self.allowed_getattr,
             allowed_methods=self._getattr_methods,
@@ -182,7 +191,7 @@ class SelectivePolicy(EvaluationPolicy):
 
     def can_get_item(self, value, item):
         """Allow accessing `__getiitem__` of allow-listed instances unless it was not modified."""
-        return has_original_dunder(
+        return _has_original_dunder(
             value,
             allowed_types=self.allowed_getitem,
             allowed_methods=self._getitem_methods,
@@ -211,34 +220,50 @@ class SelectivePolicy(EvaluationPolicy):
         }
 
 
-class DummyNamedTuple(NamedTuple):
+class _DummyNamedTuple(NamedTuple):
     pass
 
 
 class EvaluationContext(NamedTuple):
-    locals_: dict
-    globals_: dict
+    #: Local namespace
+    locals: dict
+    #: Global namespace
+    globals: dict
+    #: Evaluation policy identifier
     evaluation: Literal[
         "forbidden", "minimal", "limited", "unsafe", "dangerous"
     ] = "forbidden"
+    #: Whether the evalution of code takes place inside of a subscript.
+    #: Useful for evaluating ``:-1, 'col'`` in ``df[:-1, 'col']``.
     in_subscript: bool = False
 
 
-class IdentitySubscript:
+class _IdentitySubscript:
+    """Returns the key itself when item is requested via subscript."""
+
     def __getitem__(self, key):
         return key
 
 
-IDENTITY_SUBSCRIPT = IdentitySubscript()
+IDENTITY_SUBSCRIPT = _IdentitySubscript()
 SUBSCRIPT_MARKER = "__SUBSCRIPT_SENTINEL__"
 
 
-class GuardRejection(ValueError):
+class GuardRejection(Exception):
+    """Exception raised when guard rejects evaluation attempt."""
+
     pass
 
 
 def guarded_eval(code: str, context: EvaluationContext):
-    locals_ = context.locals_
+    """Evaluate provided code in the evaluation context.
+
+    If evaluation policy given by context is set to ``forbidden``
+    no evaluation will be performed; if it is set to ``dangerous``
+    standard :func:`eval` will be used; finally, for any other,
+    policy :func:`eval_node` will be called on parsed AST.
+    """
+    locals_ = context.locals
 
     if context.evaluation == "forbidden":
         raise GuardRejection("Forbidden mode")
@@ -256,10 +281,10 @@ def guarded_eval(code: str, context: EvaluationContext):
         locals_ = locals_.copy()
         locals_[SUBSCRIPT_MARKER] = IDENTITY_SUBSCRIPT
         code = SUBSCRIPT_MARKER + "[" + code + "]"
-        context = EvaluationContext(**{**context._asdict(), **{"locals_": locals_}})
+        context = EvaluationContext(**{**context._asdict(), **{"locals": locals_}})
 
     if context.evaluation == "dangerous":
-        return eval(code, context.globals_, context.locals_)
+        return eval(code, context.globals, context.locals)
 
     expression = ast.parse(code, mode="eval")
 
@@ -267,14 +292,12 @@ def guarded_eval(code: str, context: EvaluationContext):
 
 
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
-    """
-    Evaluate AST node in provided context.
+    """Evaluate AST node in provided context.
 
-    Applies evaluation restrictions defined in the context.
+    Applies evaluation restrictions defined in the context. Currently does not support evaluation of functions with keyword arguments.
 
-    Currently does not support evaluation of functions with keyword arguments.
+    Does not evaluate actions that always have side effects:
 
-    Does not evaluate actions which always have side effects:
     - class definitions (``class sth: ...``)
     - function definitions (``def sth: ...``)
     - variable assignments (``x = 1``)
@@ -282,13 +305,15 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     - deletions (``del x``)
 
     Does not evaluate operations which do not return values:
+
     - assertions (``assert x``)
     - pass (``pass``)
     - imports (``import x``)
-    - control flow
-       - conditionals (``if x:``) except for ternary IfExp (``a if x else b``)
-       - loops (``for`` and `while``)
-       - exception handling
+    - control flow:
+
+        - conditionals (``if x:``) except for ternary IfExp (``a if x else b``)
+        - loops (``for`` and `while``)
+        - exception handling
 
     The purpose of this function is to guard against unwanted side-effects;
     it does not give guarantees on protection from malicious code execution.
@@ -376,10 +401,10 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             f" not allowed in {context.evaluation} mode",
         )
     if isinstance(node, ast.Name):
-        if policy.allow_locals_access and node.id in context.locals_:
-            return context.locals_[node.id]
-        if policy.allow_globals_access and node.id in context.globals_:
-            return context.globals_[node.id]
+        if policy.allow_locals_access and node.id in context.locals:
+            return context.locals[node.id]
+        if policy.allow_globals_access and node.id in context.globals:
+            return context.globals[node.id]
         if policy.allow_builtins_access and hasattr(builtins, node.id):
             # note: do not use __builtins__, it is implementation detail of Python
             return getattr(builtins, node.id)
@@ -439,8 +464,8 @@ BUILTIN_GETITEM: Set[InstancesHaveGetItem] = {
     collections.UserDict,
     collections.UserList,
     collections.UserString,
-    DummyNamedTuple,
-    IdentitySubscript,
+    _DummyNamedTuple,
+    _IdentitySubscript,
 }
 
 
@@ -537,3 +562,12 @@ EVALUATION_POLICIES = {
         allow_any_calls=True,
     ),
 }
+
+
+__all__ = [
+    "guarded_eval",
+    "eval_node",
+    "GuardRejection",
+    "EvaluationContext",
+    "_unbind_method",
+]

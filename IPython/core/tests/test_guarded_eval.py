@@ -3,18 +3,18 @@ from IPython.core.guarded_eval import (
     EvaluationContext,
     GuardRejection,
     guarded_eval,
-    unbind_method,
+    _unbind_method,
 )
 from IPython.testing import decorators as dec
 import pytest
 
 
 def limited(**kwargs):
-    return EvaluationContext(locals_=kwargs, globals_={}, evaluation="limited")
+    return EvaluationContext(locals=kwargs, globals={}, evaluation="limited")
 
 
 def unsafe(**kwargs):
-    return EvaluationContext(locals_=kwargs, globals_={}, evaluation="unsafe")
+    return EvaluationContext(locals=kwargs, globals={}, evaluation="unsafe")
 
 
 @dec.skip_without("pandas")
@@ -206,7 +206,7 @@ def test_access_builtins():
 
 def test_subscript():
     context = EvaluationContext(
-        locals_={}, globals_={}, evaluation="limited", in_subscript=True
+        locals={}, globals={}, evaluation="limited", in_subscript=True
     )
     empty_slice = slice(None, None, None)
     assert guarded_eval("", context) == tuple()
@@ -221,8 +221,8 @@ def test_unbind_method():
             return "CUSTOM"
 
     x = X()
-    assert unbind_method(x.index) is X.index
-    assert unbind_method([].index) is list.index
+    assert _unbind_method(x.index) is X.index
+    assert _unbind_method([].index) is list.index
 
 
 def test_assumption_instance_attr_do_not_matter():
