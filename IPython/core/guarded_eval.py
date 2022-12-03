@@ -1,6 +1,7 @@
 from typing import (
     Any,
     Callable,
+    Dict,
     Set,
     Tuple,
     NamedTuple,
@@ -9,10 +10,11 @@ from typing import (
     Union,
     TYPE_CHECKING,
 )
+import ast
 import builtins
 import collections
+import operator
 import sys
-import ast
 from functools import cached_property
 from dataclasses import dataclass, field
 
@@ -84,6 +86,7 @@ class EvaluationPolicy:
     allow_item_access: bool = False
     allow_attr_access: bool = False
     allow_builtins_access: bool = False
+    allow_all_operations: bool = False
     allow_any_calls: bool = False
     allowed_calls: Set[Callable] = field(default_factory=set)
 
@@ -92,6 +95,10 @@ class EvaluationPolicy:
 
     def can_get_attr(self, value, attr):
         return self.allow_attr_access
+
+    def can_operate(self, dunders: Tuple[str, ...], a, b=None):
+        if self.allow_all_operations:
+            return True
 
     def can_call(self, func):
         if self.allow_any_calls:
@@ -160,8 +167,16 @@ def _has_original_dunder(
 class SelectivePolicy(EvaluationPolicy):
     allowed_getitem: Set[InstancesHaveGetItem] = field(default_factory=set)
     allowed_getitem_external: Set[Tuple[str, ...]] = field(default_factory=set)
+
     allowed_getattr: Set[MayHaveGetattr] = field(default_factory=set)
     allowed_getattr_external: Set[Tuple[str, ...]] = field(default_factory=set)
+
+    allowed_operations: Set = field(default_factory=set)
+    allowed_operations_external: Set[Tuple[str, ...]] = field(default_factory=set)
+
+    _operation_methods_cache: Dict[str, Set[Callable]] = field(
+        default_factory=dict, init=False
+    )
 
     def can_get_attr(self, value, attr):
         has_original_attribute = _has_original_dunder(
@@ -198,6 +213,27 @@ class SelectivePolicy(EvaluationPolicy):
             allowed_external=self.allowed_getitem_external,
             method_name="__getitem__",
         )
+
+    def can_operate(self, dunders: Tuple[str, ...], a, b=None):
+        return all(
+            [
+                _has_original_dunder(
+                    a,
+                    allowed_types=self.allowed_operations,
+                    allowed_methods=self._dunder_methods(dunder),
+                    allowed_external=self.allowed_operations_external,
+                    method_name=dunder,
+                )
+                for dunder in dunders
+            ]
+        )
+
+    def _dunder_methods(self, dunder: str) -> Set[Callable]:
+        if dunder not in self._operation_methods_cache:
+            self._operation_methods_cache[dunder] = self._safe_get_methods(
+                self.allowed_operations, dunder
+            )
+        return self._operation_methods_cache[dunder]
 
     @cached_property
     def _getitem_methods(self) -> Set[Callable]:
@@ -291,6 +327,50 @@ def guarded_eval(code: str, context: EvaluationContext):
     return eval_node(expression, context)
 
 
+BINARY_OP_DUNDERS: Dict[Type[ast.operator], Tuple[str]] = {
+    ast.Add: ("__add__",),
+    ast.Sub: ("__sub__",),
+    ast.Mult: ("__mul__",),
+    ast.Div: ("__truediv__",),
+    ast.FloorDiv: ("__floordiv__",),
+    ast.Mod: ("__mod__",),
+    ast.Pow: ("__pow__",),
+    ast.LShift: ("__lshift__",),
+    ast.RShift: ("__rshift__",),
+    ast.BitOr: ("__or__",),
+    ast.BitXor: ("__xor__",),
+    ast.BitAnd: ("__and__",),
+    ast.MatMult: ("__matmul__",),
+}
+
+COMP_OP_DUNDERS: Dict[Type[ast.cmpop], Tuple[str, ...]] = {
+    ast.Eq: ("__eq__",),
+    ast.NotEq: ("__ne__", "__eq__"),
+    ast.Lt: ("__lt__", "__gt__"),
+    ast.LtE: ("__le__", "__ge__"),
+    ast.Gt: ("__gt__", "__lt__"),
+    ast.GtE: ("__ge__", "__le__"),
+    ast.In: ("__contains__",),
+    # Note: ast.Is, ast.IsNot, ast.NotIn are handled specially
+}
+
+UNARY_OP_DUNDERS: Dict[Type[ast.unaryop], Tuple[str, ...]] = {
+    ast.USub: ("__neg__",),
+    ast.UAdd: ("__pos__",),
+    # we have to check both __inv__ and __invert__!
+    ast.Invert: ("__invert__", "__inv__"),
+    ast.Not: ("__not__",),
+}
+
+
+def _find_dunder(node_op, dunders) -> Union[Tuple[str, ...], None]:
+    dunder = None
+    for op, candidate_dunder in dunders.items():
+        if isinstance(node_op, op):
+            dunder = candidate_dunder
+    return dunder
+
+
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     """Evaluate AST node in provided context.
 
@@ -324,35 +404,55 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.Expression):
         return eval_node(node.body, context)
     if isinstance(node, ast.BinOp):
-        # TODO: add guards
         left = eval_node(node.left, context)
         right = eval_node(node.right, context)
-        if isinstance(node.op, ast.Add):
-            return left + right
-        if isinstance(node.op, ast.Sub):
-            return left - right
-        if isinstance(node.op, ast.Mult):
-            return left * right
-        if isinstance(node.op, ast.Div):
-            return left / right
-        if isinstance(node.op, ast.FloorDiv):
-            return left // right
-        if isinstance(node.op, ast.Mod):
-            return left % right
-        if isinstance(node.op, ast.Pow):
-            return left**right
-        if isinstance(node.op, ast.LShift):
-            return left << right
-        if isinstance(node.op, ast.RShift):
-            return left >> right
-        if isinstance(node.op, ast.BitOr):
-            return left | right
-        if isinstance(node.op, ast.BitXor):
-            return left ^ right
-        if isinstance(node.op, ast.BitAnd):
-            return left & right
-        if isinstance(node.op, ast.MatMult):
-            return left @ right
+        dunders = _find_dunder(node.op, BINARY_OP_DUNDERS)
+        if dunders:
+            if policy.can_operate(dunders, left, right):
+                return getattr(left, dunders[0])(right)
+            else:
+                raise GuardRejection(
+                    f"Operation (`{dunders}`) for",
+                    type(left),
+                    f"not allowed in {context.evaluation} mode",
+                )
+    if isinstance(node, ast.Compare):
+        left = eval_node(node.left, context)
+        all_true = True
+        negate = False
+        for op, right in zip(node.ops, node.comparators):
+            right = eval_node(right, context)
+            dunder = None
+            dunders = _find_dunder(op, COMP_OP_DUNDERS)
+            if not dunders:
+                if isinstance(op, ast.NotIn):
+                    dunders = COMP_OP_DUNDERS[ast.In]
+                    negate = True
+                if isinstance(op, ast.Is):
+                    dunder = "is_"
+                if isinstance(op, ast.IsNot):
+                    dunder = "is_"
+                    negate = True
+            if not dunder and dunders:
+                dunder = dunders[0]
+            if dunder:
+                a, b = (right, left) if dunder == "__contains__" else (left, right)
+                if dunder == "is_" or dunders and policy.can_operate(dunders, a, b):
+                    result = getattr(operator, dunder)(a, b)
+                    if negate:
+                        result = not result
+                    if not result:
+                        all_true = False
+                    left = right
+                else:
+                    raise GuardRejection(
+                        f"Comparison (`{dunder}`) for",
+                        type(left),
+                        f"not allowed in {context.evaluation} mode",
+                    )
+            else:
+                raise ValueError(f"Comparison `{dunder}` not supported")
+        return all_true
     if isinstance(node, ast.Constant):
         return node.value
     if isinstance(node, ast.Index):
@@ -379,16 +479,17 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.ExtSlice):
         return tuple([eval_node(dim, context) for dim in node.dims])
     if isinstance(node, ast.UnaryOp):
-        # TODO: add guards
         value = eval_node(node.operand, context)
-        if isinstance(node.op, ast.USub):
-            return -value
-        if isinstance(node.op, ast.UAdd):
-            return +value
-        if isinstance(node.op, ast.Invert):
-            return ~value
-        if isinstance(node.op, ast.Not):
-            return not value
+        dunders = _find_dunder(node.op, UNARY_OP_DUNDERS)
+        if dunders:
+            if policy.can_operate(dunders, value):
+                return getattr(value, dunders[0])()
+            else:
+                raise GuardRejection(
+                    f"Operation (`{dunders}`) for",
+                    type(value),
+                    f"not allowed in {context.evaluation} mode",
+                )
         raise ValueError("Unhandled unary operation:", node.op)
     if isinstance(node, ast.Subscript):
         value = eval_node(node.value, context)
@@ -527,6 +628,9 @@ BUILTIN_GETATTR: Set[MayHaveGetattr] = {
     method_descriptor,
 }
 
+
+BUILTIN_OPERATIONS = {int, float, complex, *BUILTIN_GETATTR}
+
 EVALUATION_POLICIES = {
     "minimal": EvaluationPolicy(
         allow_builtins_access=True,
@@ -536,6 +640,7 @@ EVALUATION_POLICIES = {
         allow_attr_access=False,
         allowed_calls=set(),
         allow_any_calls=False,
+        allow_all_operations=False,
     ),
     "limited": SelectivePolicy(
         # TODO:
@@ -548,6 +653,7 @@ EVALUATION_POLICIES = {
             ("pandas", "DataFrame"),
             ("pandas", "Series"),
         },
+        allowed_operations=BUILTIN_OPERATIONS,
         allow_builtins_access=True,
         allow_locals_access=True,
         allow_globals_access=True,
@@ -560,6 +666,7 @@ EVALUATION_POLICIES = {
         allow_attr_access=True,
         allow_item_access=True,
         allow_any_calls=True,
+        allow_all_operations=True,
     ),
 }
 
