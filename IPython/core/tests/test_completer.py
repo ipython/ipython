@@ -114,7 +114,7 @@ def greedy_completion():
 
 
 @contextmanager
-def evaluation_level(evaluation: str):
+def evaluation_policy(evaluation: str):
     ip = get_ipython()
     evaluation_original = ip.Completer.evaluation
     try:
@@ -1253,7 +1253,7 @@ class TestCompleter(unittest.TestCase):
         # nested dict completion
         assert_completion(line_buffer="nested['x'][")
 
-        with evaluation_level("minimal"):
+        with evaluation_policy("minimal"):
             with pytest.raises(AssertionError):
                 assert_completion(line_buffer="nested['x'][")
 
@@ -1354,10 +1354,10 @@ class TestCompleter(unittest.TestCase):
         with greedy_completion():
             completes_on_nested()
 
-        with evaluation_level("limited"):
+        with evaluation_policy("limited"):
             completes_on_nested()
 
-        with evaluation_level("minimal"):
+        with evaluation_policy("minimal"):
             with pytest.raises(AssertionError):
                 completes_on_nested()
 

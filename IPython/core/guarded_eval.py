@@ -1,4 +1,15 @@
-from typing import Callable, Set, Tuple, NamedTuple, Literal, Union, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    Set,
+    Tuple,
+    NamedTuple,
+    Type,
+    Literal,
+    Union,
+    TYPE_CHECKING,
+)
+import builtins
 import collections
 import sys
 import ast
@@ -21,7 +32,7 @@ class HasGetItem(Protocol):
 
 
 class InstancesHaveGetItem(Protocol):
-    def __call__(self) -> HasGetItem:
+    def __call__(self, *args, **kwargs) -> HasGetItem:
         ...
 
 
@@ -55,6 +66,7 @@ def unbind_method(func: Callable) -> Union[Callable, None]:
         )
     ):
         return getattr(owner_class, name)
+    return None
 
 
 @dataclass
@@ -137,7 +149,7 @@ def has_original_dunder(
 
 @dataclass
 class SelectivePolicy(EvaluationPolicy):
-    allowed_getitem: Set[HasGetItem] = field(default_factory=set)
+    allowed_getitem: Set[InstancesHaveGetItem] = field(default_factory=set)
     allowed_getitem_external: Set[Tuple[str, ...]] = field(default_factory=set)
     allowed_getattr: Set[MayHaveGetattr] = field(default_factory=set)
     allowed_getattr_external: Set[Tuple[str, ...]] = field(default_factory=set)
@@ -368,8 +380,9 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             return context.locals_[node.id]
         if policy.allow_globals_access and node.id in context.globals_:
             return context.globals_[node.id]
-        if policy.allow_builtins_access and node.id in __builtins__:
-            return __builtins__[node.id]
+        if policy.allow_builtins_access and hasattr(builtins, node.id):
+            # note: do not use __builtins__, it is implementation detail of Python
+            return getattr(builtins, node.id)
         if not policy.allow_globals_access and not policy.allow_locals_access:
             raise GuardRejection(
                 f"Namespace access not allowed in {context.evaluation} mode"
@@ -413,7 +426,7 @@ SUPPORTED_EXTERNAL_GETITEM = {
     ("numpy", "void"),
 }
 
-BUILTIN_GETITEM = {
+BUILTIN_GETITEM: Set[InstancesHaveGetItem] = {
     dict,
     str,
     bytes,
@@ -441,8 +454,8 @@ list_non_mutating_methods = ("copy", "index", "count")
 set_non_mutating_methods = set(dir(set)) & set(dir(frozenset))
 
 
-dict_keys = type({}.keys())
-method_descriptor = type(list.copy)
+dict_keys: Type[collections.abc.KeysView] = type({}.keys())
+method_descriptor: Any = type(list.copy)
 
 ALLOWED_CALLS = {
     bytes,
@@ -479,6 +492,16 @@ ALLOWED_CALLS = {
     collections.Counter.most_common,
 }
 
+BUILTIN_GETATTR: Set[MayHaveGetattr] = {
+    *BUILTIN_GETITEM,
+    set,
+    frozenset,
+    object,
+    type,  # `type` handles a lot of generic cases, e.g. numbers as in `int.real`.
+    dict_keys,
+    method_descriptor,
+}
+
 EVALUATION_POLICIES = {
     "minimal": EvaluationPolicy(
         allow_builtins_access=True,
@@ -494,15 +517,7 @@ EVALUATION_POLICIES = {
         # - should reject binary and unary operations if custom methods would be dispatched
         allowed_getitem=BUILTIN_GETITEM,
         allowed_getitem_external=SUPPORTED_EXTERNAL_GETITEM,
-        allowed_getattr={
-            *BUILTIN_GETITEM,
-            set,
-            frozenset,
-            object,
-            type,  # `type` handles a lot of generic cases, e.g. numbers as in `int.real`.
-            dict_keys,
-            method_descriptor,
-        },
+        allowed_getattr=BUILTIN_GETATTR,
         allowed_getattr_external={
             # pandas Series/Frame implements custom `__getattr__`
             ("pandas", "DataFrame"),

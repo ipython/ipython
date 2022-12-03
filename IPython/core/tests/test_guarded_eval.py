@@ -199,6 +199,11 @@ def test_literals(code, expected):
     assert guarded_eval(code, context) == expected
 
 
+def test_access_builtins():
+    context = limited()
+    assert guarded_eval("round", context) == round
+
+
 def test_subscript():
     context = EvaluationContext(
         locals_={}, globals_={}, evaluation="limited", in_subscript=True
