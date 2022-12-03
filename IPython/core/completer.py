@@ -210,6 +210,8 @@ from typing import (
     Optional,
     TYPE_CHECKING,
     Set,
+    Sized,
+    TypeVar,
     Literal,
 )
 
@@ -255,10 +257,11 @@ except ImportError:
 
 if TYPE_CHECKING or GENERATING_DOCUMENTATION:
     from typing import cast
-    from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias
+    from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 else:
+    from typing import Generic
 
-    def cast(obj, type_):
+    def cast(type_, obj):
         """Workaround for `TypeError: MatcherAPIv2() takes no arguments`"""
         return obj
 
@@ -267,6 +270,7 @@ else:
     TypedDict = Dict  # by extension of `NotRequired` requires 3.11 too
     Protocol = object  # requires Python >=3.8
     TypeAlias = Any  # requires Python >=3.10
+    TypeGuard = Generic  # requires Python >=3.10
 if GENERATING_DOCUMENTATION:
     from typing import TypedDict
 
@@ -470,8 +474,9 @@ class _FakeJediCompletion:
         self.complete = name
         self.type = 'crashed'
         self.name_with_symbols = name
-        self.signature = ''
-        self._origin = 'fake'
+        self.signature = ""
+        self._origin = "fake"
+        self.text = "crashed"
 
     def __repr__(self):
         return '<Fake completion object jedi has crashed>'
@@ -507,11 +512,23 @@ class Completion:
 
     __slots__ = ['start', 'end', 'text', 'type', 'signature', '_origin']
 
-    def __init__(self, start: int, end: int, text: str, *, type: str=None, _origin='', signature='') -> None:
-        warnings.warn("``Completion`` is a provisional API (as of IPython 6.0). "
-                      "It may change without warnings. "
-                      "Use in corresponding context manager.",
-                      category=ProvisionalCompleterWarning, stacklevel=2)
+    def __init__(
+        self,
+        start: int,
+        end: int,
+        text: str,
+        *,
+        type: Optional[str] = None,
+        _origin="",
+        signature="",
+    ) -> None:
+        warnings.warn(
+            "``Completion`` is a provisional API (as of IPython 6.0). "
+            "It may change without warnings. "
+            "Use in corresponding context manager.",
+            category=ProvisionalCompleterWarning,
+            stacklevel=2,
+        )
 
         self.start = start
         self.end = end
@@ -524,7 +541,7 @@ class Completion:
         return '<Completion start=%s end=%s text=%r type=%r, signature=%r,>' % \
                 (self.start, self.end, self.text, self.type or '?', self.signature or '?')
 
-    def __eq__(self, other)->Bool:
+    def __eq__(self, other) -> bool:
         """
         Equality and hash do not hash the type (as some completer may not be
         able to infer the type), but are use to (partially) de-duplicate
@@ -592,14 +609,18 @@ class SimpleMatcherResult(_MatcherResultBase, TypedDict):
     # in order to get __orig_bases__ for documentation
 
     #: List of candidate completions
-    completions: Sequence[SimpleCompletion]
+    completions: Sequence[SimpleCompletion] | Iterator[SimpleCompletion]
 
 
 class _JediMatcherResult(_MatcherResultBase):
     """Matching result returned by Jedi (will be processed differently)"""
 
     #: list of candidate completions
-    completions: Iterable[_JediCompletionLike]
+    completions: Iterator[_JediCompletionLike]
+
+
+AnyMatcherCompletion = Union[_JediCompletionLike, SimpleCompletion]
+AnyCompletion = TypeVar("AnyCompletion", AnyMatcherCompletion, Completion)
 
 
 @dataclass
@@ -650,6 +671,9 @@ class _MatcherAPIv1Base(Protocol):
         """Call signature."""
         ...
 
+    #: Used to construct the default matcher identifier
+    __qualname__: str
+
 
 class _MatcherAPIv1Total(_MatcherAPIv1Base, Protocol):
     #: API version
@@ -674,25 +698,59 @@ class MatcherAPIv2(Protocol):
         """Call signature."""
         ...
 
+    #: Used to construct the default matcher identifier
+    __qualname__: str
+
 
 Matcher: TypeAlias = Union[MatcherAPIv1, MatcherAPIv2]
 
 
+def _is_matcher_v1(matcher: Matcher) -> TypeGuard[MatcherAPIv1]:
+    api_version = _get_matcher_api_version(matcher)
+    return api_version == 1
+
+
+def _is_matcher_v2(matcher: Matcher) -> TypeGuard[MatcherAPIv2]:
+    api_version = _get_matcher_api_version(matcher)
+    return api_version == 2
+
+
+def _is_sizable(value: Any) -> TypeGuard[Sized]:
+    """Determines whether objects is sizable"""
+    return hasattr(value, "__len__")
+
+
+def _is_iterator(value: Any) -> TypeGuard[Iterator]:
+    """Determines whether objects is sizable"""
+    return hasattr(value, "__next__")
+
+
 def has_any_completions(result: MatcherResult) -> bool:
     """Check if any result includes any completions."""
-    if hasattr(result["completions"], "__len__"):
-        return len(result["completions"]) != 0
-    try:
-        old_iterator = result["completions"]
-        first = next(old_iterator)
-        result["completions"] = itertools.chain([first], old_iterator)
-        return True
-    except StopIteration:
-        return False
+    completions = result["completions"]
+    if _is_sizable(completions):
+        return len(completions) != 0
+    if _is_iterator(completions):
+        try:
+            old_iterator = completions
+            first = next(old_iterator)
+            result["completions"] = cast(
+                Iterator[SimpleCompletion],
+                itertools.chain([first], old_iterator),
+            )
+            return True
+        except StopIteration:
+            return False
+    raise ValueError(
+        "Completions returned by matcher need to be an Iterator or a Sizable"
+    )
 
 
 def completion_matcher(
-    *, priority: float = None, identifier: str = None, api_version: int = 1
+    *,
+    priority: Optional[float] = None,
+    identifier: Optional[str] = None,
+    api_version: int = 1,
 ):
     """Adds attributes describing the matcher.
 
@@ -715,14 +773,14 @@ def completion_matcher(
     """
 
     def wrapper(func: Matcher):
-        func.matcher_priority = priority or 0
-        func.matcher_identifier = identifier or func.__qualname__
-        func.matcher_api_version = api_version
+        func.matcher_priority = priority or 0  # type: ignore
+        func.matcher_identifier = identifier or func.__qualname__  # type: ignore
+        func.matcher_api_version = api_version  # type: ignore
         if TYPE_CHECKING:
             if api_version == 1:
-                func = cast(func, MatcherAPIv1)
+                func = cast(MatcherAPIv1, func)
             elif api_version == 2:
-                func = cast(func, MatcherAPIv2)
+                func = cast(MatcherAPIv2, func)
         return func
 
     return wrapper
@@ -1311,6 +1369,8 @@ def match_dict_keys(
 
     matched: Dict[str, DictKeyState] = {}
 
+    str_key: Union[str, bytes]
+
     for key in filtered_keys:
         if isinstance(key, (int, float)):
             # User typed a number but this key is not a number.
@@ -1637,7 +1697,7 @@ def _convert_matcher_v1_result_to_v2(
     }
     if fragment is not None:
         result["matched_fragment"] = fragment
-    return result
+    return cast(SimpleMatcherResult, result)
 
 
 class IPCompleter(Completer):
@@ -1839,7 +1899,7 @@ class IPCompleter(Completer):
 
         if not self.backslash_combining_completions:
             for matcher in self._backslash_combining_matchers:
-                self.disable_matchers.append(matcher.matcher_identifier)
+                self.disable_matchers.append(_get_matcher_id(matcher))
 
         if not self.merge_completions:
             self.suppress_competing_matchers = True
@@ -2129,7 +2189,7 @@ class IPCompleter(Completer):
 
     def _jedi_matches(
         self, cursor_column: int, cursor_line: int, text: str
-    ) -> Iterable[_JediCompletionLike]:
+    ) -> Iterator[_JediCompletionLike]:
         """
         Return a list of :any:`jedi.api.Completion`s object from a ``text`` and
         cursor position.
@@ -2195,15 +2255,23 @@ class IPCompleter(Completer):
                 print("Error detecting if completing a non-finished string :", e, '|')
 
         if not try_jedi:
-            return []
+            return iter([])
         try:
             return filter(completion_filter, interpreter.complete(column=cursor_column, line=cursor_line + 1))
         except Exception as e:
             if self.debug:
-                return [_FakeJediCompletion('Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""' % (e))]
+                return iter(
+                    [
+                        _FakeJediCompletion(
+                            'Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""'
+                            % (e)
+                        )
+                    ]
+                )
             else:
-                return []
+                return iter([])
 
+    @completion_matcher(api_version=1)
     def python_matches(self, text: str) -> Iterable[str]:
         """Match attributes or global python names"""
         if "." in text:
@@ -2762,17 +2830,23 @@ class IPCompleter(Completer):
 
         jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
 
+        def is_non_jedi_result(
+            result: MatcherResult, identifier: str
+        ) -> TypeGuard[SimpleMatcherResult]:
+            return identifier != jedi_matcher_id
+
         results = self._complete(
             full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column
         )
+
         non_jedi_results: Dict[str, SimpleMatcherResult] = {
             identifier: result
             for identifier, result in results.items()
-            if identifier != jedi_matcher_id
+            if is_non_jedi_result(result, identifier)
         }
 
         jedi_matches = (
-            cast(results[jedi_matcher_id], _JediMatcherResult)["completions"]
+            cast(_JediMatcherResult, results[jedi_matcher_id])["completions"]
             if jedi_matcher_id in results
             else ()
         )
@@ -2827,8 +2901,8 @@ class IPCompleter(Completer):
                 signature="",
             )
 
-        ordered = []
-        sortable = []
+        ordered: List[Completion] = []
+        sortable: List[Completion] = []
 
         for origin, result in non_jedi_results.items():
             matched_text = result["matched_fragment"]
@@ -2918,8 +2992,8 @@ class IPCompleter(Completer):
         abort_if_offset_changes: bool,
     ):
 
-        sortable = []
-        ordered = []
+        sortable: List[AnyMatcherCompletion] = []
+        ordered: List[AnyMatcherCompletion] = []
         most_recent_fragment = None
         for identifier, result in results.items():
             if identifier in skip_matchers:
@@ -3018,11 +3092,11 @@ class IPCompleter(Completer):
         )
 
         # Start with a clean slate of completions
-        results = {}
+        results: Dict[str, MatcherResult] = {}
 
         jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
 
-        suppressed_matchers = set()
+        suppressed_matchers: Set[str] = set()
 
         matchers = {
             _get_matcher_id(matcher): matcher
@@ -3032,7 +3106,6 @@ class IPCompleter(Completer):
         }
 
         for matcher_id, matcher in matchers.items():
-            api_version = _get_matcher_api_version(matcher)
             matcher_id = _get_matcher_id(matcher)
 
             if matcher_id in self.disable_matchers:
@@ -3044,14 +3117,16 @@ class IPCompleter(Completer):
             if matcher_id in suppressed_matchers:
                 continue
 
+            result: MatcherResult
             try:
-                if api_version == 1:
+                if _is_matcher_v1(matcher):
                     result = _convert_matcher_v1_result_to_v2(
                         matcher(text), type=_UNKNOWN_TYPE
                     )
-                elif api_version == 2:
-                    result = cast(matcher, MatcherAPIv2)(context)
+                elif _is_matcher_v2(matcher):
+                    result = matcher(context)
                 else:
+                    api_version = _get_matcher_api_version(matcher)
                     raise ValueError(f"Unsupported API version {api_version}")
             except:
                 # Show the ugly traceback if the matcher causes an
@@ -3063,7 +3138,9 @@ class IPCompleter(Completer):
             result["matched_fragment"] = result.get("matched_fragment", context.token)
 
             if not suppressed_matchers:
-                suppression_recommended = result.get("suppress", False)
+                suppression_recommended: Union[bool, Set[str]] = result.get(
+                    "suppress", False
+                )
 
                 suppression_config = (
                     self.suppress_competing_matchers.get(matcher_id, None)
@@ -3076,10 +3153,12 @@ class IPCompleter(Completer):
                 ) and has_any_completions(result)
 
                 if should_suppress:
-                    suppression_exceptions = result.get("do_not_suppress", set())
-                    try:
+                    suppression_exceptions: Set[str] = result.get(
+                        "do_not_suppress", set()
+                    )
+                    if isinstance(suppression_recommended, Iterable):
                         to_suppress = set(suppression_recommended)
-                    except TypeError:
+                    else:
                         to_suppress = set(matchers)
                     suppressed_matchers = to_suppress - suppression_exceptions
 
@@ -3106,9 +3185,9 @@ class IPCompleter(Completer):
 
     @staticmethod
     def _deduplicate(
-        matches: Sequence[SimpleCompletion],
-    ) -> Iterable[SimpleCompletion]:
-        filtered_matches = {}
+        matches: Sequence[AnyCompletion],
+    ) -> Iterable[AnyCompletion]:
+        filtered_matches: Dict[str, AnyCompletion] = {}
         for match in matches:
             text = match.text
             if (
@@ -3120,7 +3199,7 @@ class IPCompleter(Completer):
         return filtered_matches.values()
 
     @staticmethod
-    def _sort(matches: Sequence[SimpleCompletion]):
+    def _sort(matches: Sequence[AnyCompletion]):
         return sorted(matches, key=lambda x: completions_sorting_key(x.text))
 
     @context_matcher()
