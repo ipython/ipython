@@ -178,6 +178,7 @@ The suppression behaviour can is user-configurable via
 
 from __future__ import annotations
 import builtins as builtin_mod
+import enum
 import glob
 import inspect
 import itertools
@@ -186,15 +187,16 @@ import os
 import re
 import string
 import sys
+import tokenize
 import time
 import unicodedata
 import uuid
 import warnings
 from ast import literal_eval
+from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import cached_property, partial
-from importlib import import_module
 from types import SimpleNamespace
 from typing import (
     Iterable,
@@ -205,8 +207,6 @@ from typing import (
     Any,
     Sequence,
     Dict,
-    NamedTuple,
-    Pattern,
     Optional,
     TYPE_CHECKING,
     Set,
@@ -233,7 +233,6 @@ from traitlets import (
     Unicode,
     Dict as DictTrait,
     Union as UnionTrait,
-    default,
     observe,
 )
 from traitlets.config.configurable import Configurable
@@ -559,7 +558,7 @@ class SimpleCompletion:
 
     __slots__ = ["text", "type"]
 
-    def __init__(self, text: str, *, type: str = None):
+    def __init__(self, text: str, *, type: Optional[str] = None):
         self.text = text
         self.type = type
 
@@ -647,16 +646,18 @@ MatcherResult = Union[SimpleMatcherResult, _JediMatcherResult]
 
 
 class _MatcherAPIv1Base(Protocol):
-    def __call__(self, text: str) -> list[str]:
+    def __call__(self, text: str) -> List[str]:
         """Call signature."""
+        ...
 
 
 class _MatcherAPIv1Total(_MatcherAPIv1Base, Protocol):
     #: API version
     matcher_api_version: Optional[Literal[1]]
 
-    def __call__(self, text: str) -> list[str]:
+    def __call__(self, text: str) -> List[str]:
         """Call signature."""
+        ...
 
 
 #: Protocol describing Matcher API v1.
@@ -671,6 +672,7 @@ class MatcherAPIv2(Protocol):
 
     def __call__(self, context: CompletionContext) -> MatcherResult:
         """Call signature."""
+        ...
 
 
 Matcher: TypeAlias = Union[MatcherAPIv1, MatcherAPIv2]
@@ -912,10 +914,11 @@ class Completer(Configurable):
         help="""Activate greedy completion.
 
         .. deprecated:: 8.8
-            Use :any:`evaluation` instead.
+            Use :any:`evaluation` and :any:`auto_close_dict_keys` instead.
 
-        As of IPython 8.8 proxy for ``evaluation = 'unsafe'`` when set to ``True``,
-        and for ``'forbidden'`` when set to ``False``.
+        Whent enabled in IPython 8.8+ activates following settings for compatibility:
+        - ``evaluation = 'unsafe'``
+        - ``auto_close_dict_keys = True``
         """,
     ).tag(config=True)
 
@@ -956,6 +959,11 @@ class Completer(Configurable):
         help="Enable unicode completions, e.g. \\alpha<tab> . "
              "Includes completion of latex commands, unicode names, and expanding "
              "unicode characters back to latex commands.").tag(config=True)
+
+    auto_close_dict_keys = Bool(
+        False,
+        help="""Enable auto-closing dictionary keys."""
+    ).tag(config=True)
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
         """Create a new completer for the command line.
@@ -1119,8 +1127,80 @@ def get__all__entries(obj):
     return [w for w in words if isinstance(w, str)]
 
 
-def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes], ...]]], prefix: str, delims: str,
-                    extra_prefix: Optional[Tuple[Union[str, bytes], ...]]=None) -> Tuple[str, int, List[str]]:
+class DictKeyState(enum.Flag):
+    """Represent state of the key match in context of other possible matches.
+
+    - given `d1 = {'a': 1}` completion on `d1['<tab>` will yield `{'a': END_OF_ITEM}` as there is no tuple.
+    - given `d2 = {('a', 'b'): 1}`: `d2['a', '<tab>` will yield `{'b': END_OF_TUPLE}` as there is no tuple members to add beyond `'b'`.
+    - given `d3 = {('a', 'b'): 1}`: `d3['<tab>` will yield `{'a': IN_TUPLE}` as `'a'` can be added.
+    - given `d4 = {'a': 1, ('a', 'b'): 2}`: `d4['<tab>` will yield `{'a': END_OF_ITEM & END_OF_TUPLE}`
+    """
+    BASELINE = 0
+    END_OF_ITEM = enum.auto()
+    END_OF_TUPLE = enum.auto()
+    IN_TUPLE = enum.auto()
+
+
+def _parse_tokens(c):
+    tokens = []
+    token_generator = tokenize.generate_tokens(iter(c.splitlines()).__next__)
+    while True:
+        try:
+            tokens.append(next(token_generator))
+        except tokenize.TokenError:
+            return tokens
+        except StopIteration:
+            return tokens
+
+
+def _match_number_in_dict_key_prefix(prefix: str) -> Union[str, None]:
+    """Match any valid Python numeric literal in a prefix of dictionary keys.
+
+    References:
+    - https://docs.python.org/3/reference/lexical_analysis.html#numeric-literals
+    - https://docs.python.org/3/library/tokenize.html
+    """
+    if prefix[-1].isspace():
+        # if user typed a space we do not have anything to complete
+        # even if there was a valid number token before
+        return None
+    tokens = _parse_tokens(prefix)
+    rev_tokens = reversed(tokens)
+    skip_over = {tokenize.ENDMARKER, tokenize.NEWLINE}
+    number = None
+    for token in rev_tokens:
+        if token.type in skip_over:
+            continue
+        if number is None:
+            if token.type == tokenize.NUMBER:
+                number = token.string
+                continue
+            else:
+                # we did not match a number
+                return None
+        if token.type == tokenize.OP:
+            if token.string == ',':
+                break
+            if token.string in {'+', '-'}:
+                number = token.string + number
+        else:
+            return None
+    return number
+
+
+_INT_FORMATS = {
+    '0b': bin,
+    '0o': oct,
+    '0x': hex,
+}
+
+
+def match_dict_keys(
+    keys: List[Union[str, bytes, Tuple[Union[str, bytes], ...]]],
+    prefix: str,
+    delims: str,
+    extra_prefix: Optional[Tuple[Union[str, bytes], ...]] = None
+) -> Tuple[str, int, Dict[str, DictKeyState]]:
     """Used by dict_key_matches, matching the prefix to a list of keys
 
     Parameters
@@ -1140,16 +1220,21 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes], ...]]]
     A tuple of three elements: ``quote``, ``token_start``, ``matched``, with
     ``quote`` being the quote that need to be used to close current string.
     ``token_start`` the position where the replacement should start occurring,
-    ``matches`` a list of replacement/completion
-
+    ``matches`` a dictionary of replacement/completion keys on keys and values
+        indicating whether the state.
     """
     prefix_tuple = extra_prefix if extra_prefix else ()
 
-    Nprefix = len(prefix_tuple)
+    prefix_tuple_size = sum([
+        # for pandas, do not count slices as taking space
+        not isinstance(k, slice)
+        for k in prefix_tuple
+    ])
     text_serializable_types = (str, bytes, int, float, slice)
+
     def filter_prefix_tuple(key):
         # Reject too short keys
-        if len(key) <= Nprefix:
+        if len(key) <= prefix_tuple_size:
             return False
         # Reject keys which cannot be serialised to text
         for k in key:
@@ -1162,28 +1247,58 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes], ...]]]
         # All checks passed!
         return True
 
-    filtered_keys: List[Union[str, bytes, int, float, slice]] = []
-
-    def _add_to_filtered_keys(key):
-        if isinstance(key, text_serializable_types):
-            filtered_keys.append(key)
+    filtered_key_is_final: Dict[Union[str, bytes, int, float], DictKeyState] = defaultdict(lambda: DictKeyState.BASELINE)
 
     for k in keys:
+        # If at least one of the matches is not final, mark as undetermined.
+        # This can happen with `d = {111: 'b', (111, 222): 'a'}` where
+        # `111` appears final on first match but is not final on the second.
+
         if isinstance(k, tuple):
             if filter_prefix_tuple(k):
-                _add_to_filtered_keys(k[Nprefix])
+                key_fragment = k[prefix_tuple_size]
+                filtered_key_is_final[key_fragment] |= (
+                    DictKeyState.END_OF_TUPLE
+                    if len(k) == prefix_tuple_size + 1 else
+                    DictKeyState.IN_TUPLE
+                )
+        elif prefix_tuple_size > 0:
+            # we are completing a tuple but this key is not a tuple,
+            # so we should ignore it
+            pass
         else:
-            _add_to_filtered_keys(k)
+            if isinstance(k, text_serializable_types):
+                filtered_key_is_final[k] |= DictKeyState.END_OF_ITEM
+
+    filtered_keys = filtered_key_is_final.keys()
 
     if not prefix:
-        return '', 0, [repr(k) for k in filtered_keys]
-    quote_match = re.search('["\']', prefix)
-    assert quote_match is not None # silence mypy
-    quote = quote_match.group()
-    try:
-        prefix_str = literal_eval(prefix + quote)
-    except Exception:
-        return '', 0, []
+        return '', 0, {repr(k): v for k, v in filtered_key_is_final.items()}
+
+    quote_match = re.search('(?:"|\')', prefix)
+    is_user_prefix_numeric = False
+
+    if quote_match:
+        quote = quote_match.group()
+        valid_prefix = prefix + quote
+        try:
+            prefix_str = literal_eval(valid_prefix)
+        except Exception:
+            return '', 0, {}
+    else:
+        # If it does not look like a string, let's assume
+        # we are dealing with a number or variable.
+        number_match = _match_number_in_dict_key_prefix(prefix)
+
+        # We do not want the key matcher to suggest variable names so we yield:
+        if number_match is None:
+            # The alternative would be to assume that user forgort the quote
+            # and if the substring matches, suggest adding it at the start.
+            return '', 0, {}
+
+        prefix_str = number_match
+        is_user_prefix_numeric = True
+        quote = ''
 
     pattern = '[^' + ''.join('\\' + c for c in delims) + ']*$'
     token_match = re.search(pattern, prefix, re.UNICODE)
@@ -1191,13 +1306,29 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes], ...]]]
     token_start = token_match.start()
     token_prefix = token_match.group()
 
-    matched: List[str] = []
+    matched: Dict[str, DictKeyState] = {}
+
     for key in filtered_keys:
-        str_key = key if isinstance(key, (str, bytes)) else str(key)
+        if isinstance(key, (int, float)):
+            # User typed a number but this key is not a number.
+            if not is_user_prefix_numeric:
+                continue
+            str_key = str(key)
+            if isinstance(key, int):
+                int_base = prefix_str[:2].lower()
+                # if user typed integer using binary/oct/hex notation:
+                if int_base in _INT_FORMATS:
+                    int_format = _INT_FORMATS[int_base]
+                    str_key = int_format(key)
+        else:
+            # User typed a string but this key is a number.
+            if is_user_prefix_numeric:
+                continue
+            str_key = key
         try:
             if not str_key.startswith(prefix_str):
                 continue
-        except (AttributeError, TypeError, UnicodeError):
+        except (AttributeError, TypeError, UnicodeError) as e:
             # Python 3+ TypeError on b'a'.startswith('a') or vice-versa
             continue
 
@@ -1213,7 +1344,9 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes], ...]]]
             rem_repr = rem_repr.replace('"', '\\"')
 
         # then reinsert prefix from start of token
-        matched.append('%s%s' % (token_prefix, rem_repr))
+        match = '%s%s' % (token_prefix, rem_repr)
+
+        matched[match] = filtered_key_is_final[key]
     return quote, token_start, matched
 
 
@@ -1447,24 +1580,39 @@ DICT_MATCHER_REGEX = re.compile(r"""(?x)
 \s*  # and optional whitespace
 # Capture any number of serializable objects (e.g. "a", "b", 'c')
 # and slices
-((?:[uUbB]?  # string prefix (r not handled)
-    (?:
-        '(?:[^']|(?<!\\)\\')*'
-    |
-        "(?:[^"]|(?<!\\)\\")*"
+((?:(?:
+    (?: # closed string
+        [uUbB]?  # string prefix (r not handled)
+        (?:
+            '(?:[^']|(?<!\\)\\')*'
+        |
+            "(?:[^"]|(?<!\\)\\")*"
+        )
+    )
     |
         # capture integers and slices
         (?:[-+]?\d+)?(?::(?:[-+]?\d+)?){0,2}
+    |
+        # integer in bin/hex/oct notation
+        0[bBxXoO]_?(?:\w|\d)+
     )
     \s*,\s*
 )*)
-([uUbB]?  # string prefix (r not handled)
-    (?:   # unclosed string
-        '(?:[^']|(?<!\\)\\')*
+((?:
+    (?: # unclosed string
+        [uUbB]?  # string prefix (r not handled)
+        (?:
+            '(?:[^']|(?<!\\)\\')*
+            |
+            "(?:[^"]|(?<!\\)\\")*
+        )
+    )
     |
-        "(?:[^"]|(?<!\\)\\")*
-    |
+        # unfinished integer
         (?:[-+]?\d+)
+    |
+        # integer in bin/hex/oct notation
+        0[bBxXoO]_?(?:\w|\d)+
     )
 )?
 $
@@ -1473,7 +1621,7 @@ $
 def _convert_matcher_v1_result_to_v2(
     matches: Sequence[str],
     type: str,
-    fragment: str = None,
+    fragment: Optional[str] = None,
     suppress_if_matches: bool = False,
 ) -> SimpleMatcherResult:
     """Utility to help with transition"""
@@ -1494,9 +1642,11 @@ class IPCompleter(Completer):
         """update the splitter and readline delims when greedy is changed"""
         if change['new']:
             self.evaluation = 'unsafe'
+            self.auto_close_dict_keys = True
             self.splitter.delims = GREEDY_DELIMS
         else:
             self.evaluation = 'limitted'
+            self.auto_close_dict_keys = False
             self.splitter.delims = DELIMS
 
     dict_keys_only = Bool(
@@ -2294,7 +2444,7 @@ class IPCompleter(Completer):
             extra_prefix=tuple_prefix
         )
         if not matches:
-            return matches
+            return []
 
         # get the cursor position of
         # - the text being completed
@@ -2313,26 +2463,55 @@ class IPCompleter(Completer):
         else:
             leading = text[text_start:completion_start]
 
-        # the index of the `[` character
-        bracket_idx = match.end(1)
-
         # append closing quote and bracket as appropriate
         # this is *not* appropriate if the opening quote or bracket is outside
-        # the text given to this method
-        suf = ''
-        continuation = self.line_buffer[len(self.text_until_cursor):]
-        if key_start > text_start and closing_quote:
-            # quotes were opened inside text, maybe close them
-            if continuation.startswith(closing_quote):
-                continuation = continuation[len(closing_quote):]
-            else:
-                suf += closing_quote
-        if bracket_idx > text_start:
-            # brackets were opened inside text, maybe close them
-            if not continuation.startswith(']'):
-                suf += ']'
+        # the text given to this method, e.g. `d["""a\nt
+        can_close_quote = False
+        can_close_bracket = False
 
-        return [leading + k + suf for k in matches]
+        continuation = self.line_buffer[len(self.text_until_cursor):].strip()
+
+        if continuation.startswith(closing_quote):
+            # do not close if already closed, e.g. `d['a<tab>'`
+            continuation = continuation[len(closing_quote):]
+        else:
+            can_close_quote = True
+
+        continuation = continuation.strip()
+
+        # e.g. `pandas.DataFrame` has different tuple indexer behaviour,
+        # handling it is out of scope, so let's avoid appending suffixes.
+        has_known_tuple_handling = isinstance(obj, dict)
+
+        can_close_bracket = not continuation.startswith(']') and self.auto_close_dict_keys
+        can_close_tuple_item = not continuation.startswith(',') and has_known_tuple_handling and self.auto_close_dict_keys
+        can_close_quote = can_close_quote and self.auto_close_dict_keys
+
+        # fast path if closing qoute should be appended but not suffix is allowed
+        if not can_close_quote and not can_close_bracket and closing_quote:
+            return [leading + k for k in matches]
+
+        results = []
+
+        end_of_tuple_or_item = DictKeyState.END_OF_TUPLE | DictKeyState.END_OF_ITEM
+
+        for k, state_flag in matches.items():
+            result = leading + k
+            if can_close_quote and closing_quote:
+                result += closing_quote
+
+            if state_flag == end_of_tuple_or_item:
+                # We do not know which suffix to add,
+                # e.g. both tuple item and string
+                # match this item.
+                pass
+
+            if state_flag in end_of_tuple_or_item and can_close_bracket:
+                result += ']'
+            if state_flag == DictKeyState.IN_TUPLE and can_close_tuple_item:
+                result += ', '
+            results.append(result)
+        return results
 
     @context_matcher()
     def unicode_name_matcher(self, context: CompletionContext):

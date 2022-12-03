@@ -24,6 +24,7 @@ from IPython.core.completer import (
     provisionalcompleter,
     match_dict_keys,
     _deduplicate_completions,
+    _match_number_in_dict_key_prefix,
     completion_matcher,
     SimpleCompletion,
     CompletionContext,
@@ -180,7 +181,6 @@ def check_line_split(splitter, test_specs):
         line = part1 + part2
         out = splitter.split_line(line, cursor_pos)
         assert out == split
-
 
 def test_line_split():
     """Basic line splitter test with default specs."""
@@ -852,16 +852,37 @@ class TestCompleter(unittest.TestCase):
         """
         delims = " \t\n`!@#$^&*()=+[{]}\\|;:'\",<>?"
 
-        keys = ["foo", b"far"]
-        assert match_dict_keys(keys, "b'", delims=delims) == ("'", 2, ["far"])
-        assert match_dict_keys(keys, "b'f", delims=delims) == ("'", 2, ["far"])
-        assert match_dict_keys(keys, 'b"', delims=delims) == ('"', 2, ["far"])
-        assert match_dict_keys(keys, 'b"f', delims=delims) == ('"', 2, ["far"])
+        def match(*args, **kwargs):
+            quote, offset, matches = match_dict_keys(*args, **kwargs)
+            return quote, offset, list(matches)
 
-        assert match_dict_keys(keys, "'", delims=delims) == ("'", 1, ["foo"])
-        assert match_dict_keys(keys, "'f", delims=delims) == ("'", 1, ["foo"])
-        assert match_dict_keys(keys, '"', delims=delims) == ('"', 1, ["foo"])
-        assert match_dict_keys(keys, '"f', delims=delims) == ('"', 1, ["foo"])
+        keys = ["foo", b"far"]
+        assert match(keys, "b'", delims=delims) == ("'", 2, ["far"])
+        assert match(keys, "b'f", delims=delims) == ("'", 2, ["far"])
+        assert match(keys, 'b"', delims=delims) == ('"', 2, ["far"])
+        assert match(keys, 'b"f', delims=delims) == ('"', 2, ["far"])
+
+        assert match(keys, "'", delims=delims) == ("'", 1, ["foo"])
+        assert match(keys, "'f", delims=delims) == ("'", 1, ["foo"])
+        assert match(keys, '"', delims=delims) == ('"', 1, ["foo"])
+        assert match(keys, '"f', delims=delims) == ('"', 1, ["foo"])
+
+        # Completion on first item of tuple
+        keys = [("foo", 1111), ("foo", 2222), (3333, "bar"), (3333, 'test')]
+        assert match(keys, "'f", delims=delims) == ("'", 1, ["foo"])
+        assert match(keys, "33", delims=delims) == ("", 0, ["3333"])
+
+        # Completion on numbers
+        keys = [
+            0xdeadbeef,   # 3735928559
+            1111, 1234, "1999",
+            0b10101,   # 21
+            22
+        ]
+        assert match(keys, "0xdead", delims=delims) == ("", 0, ["0xdeadbeef"])
+        assert match(keys, "1", delims=delims) == ("", 0, ["1111", "1234"])
+        assert match(keys, "2", delims=delims) == ("", 0, ["21", "22"])
+        assert match(keys, "0b101", delims=delims) == ("", 0, ['0b10101', '0b10110'])
 
     def test_match_dict_keys_tuple(self):
         """
@@ -872,30 +893,85 @@ class TestCompleter(unittest.TestCase):
 
         keys = [("foo", "bar"), ("foo", "oof"), ("foo", b"bar"), ('other', 'test')]
 
+        def match(*args, **kwargs):
+            quote, offset, matches = match_dict_keys(*args, **kwargs)
+            return quote, offset, list(matches)
+
         # Completion on first key == "foo"
-        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["bar", "oof"])
-        assert match_dict_keys(keys, "\"", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["bar", "oof"])
-        assert match_dict_keys(keys, "'o", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["oof"])
-        assert match_dict_keys(keys, "\"o", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["oof"])
-        assert match_dict_keys(keys, "b'", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
-        assert match_dict_keys(keys, "b\"", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
-        assert match_dict_keys(keys, "b'b", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
-        assert match_dict_keys(keys, "b\"b", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
+        assert match(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["bar", "oof"])
+        assert match(keys, "\"", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["bar", "oof"])
+        assert match(keys, "'o", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["oof"])
+        assert match(keys, "\"o", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["oof"])
+        assert match(keys, "b'", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
+        assert match(keys, "b\"", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
+        assert match(keys, "b'b", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
+        assert match(keys, "b\"b", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
 
         # No Completion
-        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("no_foo",)) == ("'", 1, [])
-        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("fo",)) == ("'", 1, [])
+        assert match(keys, "'", delims=delims, extra_prefix=("no_foo",)) == ("'", 1, [])
+        assert match(keys, "'", delims=delims, extra_prefix=("fo",)) == ("'", 1, [])
 
         keys = [('foo1', 'foo2', 'foo3', 'foo4'), ('foo1', 'foo2', 'bar', 'foo4')]
-        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1',)) == ("'", 1, ["foo2", "foo2"])
-        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2')) == ("'", 1, ["foo3"])
-        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3')) == ("'", 1, ["foo4"])
-        assert match_dict_keys(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3', 'foo4')) == ("'", 1, [])
+        assert match(keys, "'foo", delims=delims, extra_prefix=('foo1',)) == ("'", 1, ["foo2"])
+        assert match(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2')) == ("'", 1, ["foo3"])
+        assert match(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3')) == ("'", 1, ["foo4"])
+        assert match(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3', 'foo4')) == ("'", 1, [])
 
-        keys = [("foo", 1111), ("foo", 2222), (3333, "bar"), (3333, 'test')]
-        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["1111", "2222"])
-        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=(3333,)) == ("'", 1, ["bar", "test"])
-        assert match_dict_keys(keys, "'", delims=delims, extra_prefix=("3333",)) == ("'", 1, [])
+        keys = [("foo", 1111), ("foo", "2222"), (3333, "bar"), (3333, 4444)]
+        assert match(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["2222"])
+        assert match(keys, "", delims=delims, extra_prefix=("foo",)) == ("", 0, ["1111", "'2222'"])
+        assert match(keys, "'", delims=delims, extra_prefix=(3333,)) == ("'", 1, ["bar"])
+        assert match(keys, "", delims=delims, extra_prefix=(3333,)) == ("", 0, ["'bar'", "4444"])
+        assert match(keys, "'", delims=delims, extra_prefix=("3333",)) == ("'", 1, [])
+        assert match(keys, "33", delims=delims) == ("", 0, ["3333"])
+
+    def test_dict_key_completion_closures(self):
+        ip = get_ipython()
+        complete = ip.Completer.complete
+        ip.Completer.auto_close_dict_keys = True
+
+        ip.user_ns["d"] = {
+            # tuple only
+            ('aa', 11): None,
+            # tuple and non-tuple
+            ('bb', 22): None,
+            'bb': None,
+            # non-tuple only
+            'cc': None,
+            # numeric tuple only
+            (77, 'x'): None,
+            # numeric tuple and non-tuple
+            (88, 'y'): None,
+            88: None,
+            # numeric non-tuple only
+            99: None,
+        }
+
+        _, matches = complete(line_buffer="d[")
+        # should append `, ` if matches a tuple only
+        self.assertIn("'aa', ", matches)
+        # should not append anything if matches a tuple and an item
+        self.assertIn("'bb'", matches)
+        # should append `]` if matches and item only
+        self.assertIn("'cc']", matches)
+
+        # should append `, ` if matches a tuple only
+        self.assertIn("77, ", matches)
+        # should not append anything if matches a tuple and an item
+        self.assertIn("88", matches)
+        # should append `]` if matches and item only
+        self.assertIn("99]", matches)
+
+        _, matches = complete(line_buffer="d['aa', ")
+        # should restrict matches to those matching tuple prefix
+        self.assertIn("11]", matches)
+        self.assertNotIn("'bb'", matches)
+        self.assertNotIn("'bb', ", matches)
+        self.assertNotIn("'bb']", matches)
+        self.assertNotIn("'cc'", matches)
+        self.assertNotIn("'cc', ", matches)
+        self.assertNotIn("'cc']", matches)
+        ip.Completer.auto_close_dict_keys = False
 
     def test_dict_key_completion_string(self):
         """Test dictionary key completion for string keys"""
@@ -1051,6 +1127,35 @@ class TestCompleter(unittest.TestCase):
         self.assertIn("foobar", matches)
         self.assertNotIn("foo", matches)
         self.assertNotIn("bar", matches)
+
+    def test_dict_key_completion_numbers(self):
+        ip = get_ipython()
+        complete = ip.Completer.complete
+
+        ip.user_ns["d"] = {
+            0xdeadbeef: None,   # 3735928559
+            1111: None,
+            1234: None,
+            "1999": None,
+            0b10101: None,   # 21
+            22: None
+        }
+        _, matches = complete(line_buffer="d[1")
+        self.assertIn("1111", matches)
+        self.assertIn("1234", matches)
+        self.assertNotIn("1999", matches)
+        self.assertNotIn("'1999'", matches)
+
+        _, matches = complete(line_buffer="d[0xdead")
+        self.assertIn("0xdeadbeef", matches)
+
+        _, matches = complete(line_buffer="d[2")
+        self.assertIn("21", matches)
+        self.assertIn("22", matches)
+
+        _, matches = complete(line_buffer="d[0b101")
+        self.assertIn("0b10101", matches)
+        self.assertIn("0b10110", matches)
 
     def test_dict_key_completion_contexts(self):
         """Test expression contexts in which dict key completion occurs"""
@@ -1545,3 +1650,35 @@ class TestCompleter(unittest.TestCase):
             _(["completion_b"])
             a_matcher.matcher_priority = 3
             _(["completion_a"])
+
+
+@pytest.mark.parametrize(
+    'input, expected',
+    [
+        ['1.234', '1.234'],
+        # should match signed numbers
+        ['+1', '+1'],
+        ['-1', '-1'],
+        ['-1.0', '-1.0'],
+        ['-1.', '-1.'],
+        ['+1.', '+1.'],
+        ['.1', '.1'],
+        # should not match non-numbers
+        ['1..', None],
+        ['..', None],
+        ['.1.', None],
+        # should match after comma
+        [',1', '1'],
+        [', 1', '1'],
+        [', .1', '.1'],
+        [', +.1', '+.1'],
+        # should not match after trailing spaces
+        ['.1 ', None],
+        # some complex cases
+        ['0b_0011_1111_0100_1110', '0b_0011_1111_0100_1110'],
+        ['0xdeadbeef', '0xdeadbeef'],
+        ['0b_1110_0101', '0b_1110_0101']
+    ]
+)
+def test_match_numeric_literal_for_dict_key(input, expected):
+    assert _match_number_in_dict_key_prefix(input) == expected

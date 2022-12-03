@@ -1,10 +1,18 @@
-from typing import Callable, Protocol, Set, Tuple, NamedTuple, Literal, Union
+from typing import Callable, Set, Tuple, NamedTuple, Literal, Union, TYPE_CHECKING
 import collections
 import sys
 import ast
-import types
 from functools import cached_property
 from dataclasses import dataclass, field
+
+from IPython.utils.docs import GENERATING_DOCUMENTATION
+
+
+if TYPE_CHECKING or GENERATING_DOCUMENTATION:
+    from typing_extensions import Protocol
+else:
+    # do not require on runtime
+    Protocol = object  # requires Python >=3.8
 
 
 class HasGetItem(Protocol):
@@ -266,20 +274,23 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     Currently does not support evaluation of functions with arguments.
 
     Does not evaluate actions which always have side effects:
-    - class definitions (`class sth: ...`)
-    - function definitions (`def sth: ...`)
-    - variable assignments (`x = 1`)
-    - augumented assignments (`x += 1`)
-    - deletions (`del x`)
+    - class definitions (``class sth: ...``)
+    - function definitions (``def sth: ...``)
+    - variable assignments (``x = 1``)
+    - augumented assignments (``x += 1``)
+    - deletions (``del x``)
 
     Does not evaluate operations which do not return values:
-    - assertions (`assert x`)
-    - pass (`pass`)
-    - imports (`import x`)
+    - assertions (``assert x``)
+    - pass (``pass``)
+    - imports (``import x``)
     - control flow
-       - conditionals (`if x:`) except for terenary IfExp (`a if x else b`)
-       - loops (`for` and `while`)
+       - conditionals (``if x:``) except for terenary IfExp (``a if x else b``)
+       - loops (``for`` and `while``)
        - exception handling
+
+    The purpose of this function is to guard against unwanted side-effects;
+    it does not give guarantees on protection from malicious code execution.
     """
     policy = EVALUATION_POLICIES[context.evaluation]
     if node is None:
