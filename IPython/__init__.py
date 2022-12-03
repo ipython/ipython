@@ -63,7 +63,7 @@ __version__  = release.version
 version_info = release.version_info
 # list of CVEs that should have been patched in this release.
 # this is informational and should not be relied upon.
-__patched_cves__ = {"CVE-2022-21699"}
+__patched_cves__ = {"CVE-2022-21699", "CVE-2023-24816"}
 
 
 def embed_kernel(module=None, local_ns=None, **kwargs):

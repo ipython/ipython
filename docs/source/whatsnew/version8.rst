@@ -2,6 +2,18 @@
  8.x Series
 ============
 
+
+IPython 8.9.1
+-------------
+
+Out of schedule release of IPython with minor fixes to patch a potential CVE-2023-24816.
+This is a really low severity CVE that you most likely are not affected by unless:
+
+ - You are on windows.
+ - You have a custom build of Python without ``_ctypes``
+ - You cd or start IPython or Jupyter in untrusted directory which names may be valid shell commands.
+
+
 .. _version 8.9.0:
 
 IPython 8.9.0
