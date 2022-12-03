@@ -853,31 +853,38 @@ class TestCompleter(unittest.TestCase):
         delims = " \t\n`!@#$^&*()=+[{]}\\|;:'\",<>?"
 
         def match(*args, **kwargs):
-            quote, offset, matches = match_dict_keys(*args, **kwargs)
+            quote, offset, matches = match_dict_keys(*args, delims=delims, **kwargs)
             return quote, offset, list(matches)
 
         keys = ["foo", b"far"]
-        assert match(keys, "b'", delims=delims) == ("'", 2, ["far"])
-        assert match(keys, "b'f", delims=delims) == ("'", 2, ["far"])
-        assert match(keys, 'b"', delims=delims) == ('"', 2, ["far"])
-        assert match(keys, 'b"f', delims=delims) == ('"', 2, ["far"])
+        assert match(keys, "b'") == ("'", 2, ["far"])
+        assert match(keys, "b'f") == ("'", 2, ["far"])
+        assert match(keys, 'b"') == ('"', 2, ["far"])
+        assert match(keys, 'b"f') == ('"', 2, ["far"])
 
-        assert match(keys, "'", delims=delims) == ("'", 1, ["foo"])
-        assert match(keys, "'f", delims=delims) == ("'", 1, ["foo"])
-        assert match(keys, '"', delims=delims) == ('"', 1, ["foo"])
-        assert match(keys, '"f', delims=delims) == ('"', 1, ["foo"])
+        assert match(keys, "'") == ("'", 1, ["foo"])
+        assert match(keys, "'f") == ("'", 1, ["foo"])
+        assert match(keys, '"') == ('"', 1, ["foo"])
+        assert match(keys, '"f') == ('"', 1, ["foo"])
 
         # Completion on first item of tuple
         keys = [("foo", 1111), ("foo", 2222), (3333, "bar"), (3333, "test")]
-        assert match(keys, "'f", delims=delims) == ("'", 1, ["foo"])
-        assert match(keys, "33", delims=delims) == ("", 0, ["3333"])
+        assert match(keys, "'f") == ("'", 1, ["foo"])
+        assert match(keys, "33") == ("", 0, ["3333"])
 
         # Completion on numbers
-        keys = [0xDEADBEEF, 1111, 1234, "1999", 0b10101, 22]  # 3735928559  # 21
-        assert match(keys, "0xdead", delims=delims) == ("", 0, ["0xdeadbeef"])
-        assert match(keys, "1", delims=delims) == ("", 0, ["1111", "1234"])
-        assert match(keys, "2", delims=delims) == ("", 0, ["21", "22"])
-        assert match(keys, "0b101", delims=delims) == ("", 0, ["0b10101", "0b10110"])
+        keys = [
+            0xDEADBEEF,
+            1111,
+            1234,
+            "1999",
+            0b10101,
+            22,
+        ]  # 0xDEADBEEF = 3735928559; 0b10101 = 21
+        assert match(keys, "0xdead") == ("", 0, ["0xdeadbeef"])
+        assert match(keys, "1") == ("", 0, ["1111", "1234"])
+        assert match(keys, "2") == ("", 0, ["21", "22"])
+        assert match(keys, "0b101") == ("", 0, ["0b10101", "0b10110"])
 
     def test_match_dict_keys_tuple(self):
         """
@@ -888,97 +895,43 @@ class TestCompleter(unittest.TestCase):
 
         keys = [("foo", "bar"), ("foo", "oof"), ("foo", b"bar"), ('other', 'test')]
 
-        def match(*args, **kwargs):
-            quote, offset, matches = match_dict_keys(*args, **kwargs)
+        def match(*args, extra=None, **kwargs):
+            quote, offset, matches = match_dict_keys(
+                *args, delims=delims, extra_prefix=extra, **kwargs
+            )
             return quote, offset, list(matches)
 
         # Completion on first key == "foo"
-        assert match(keys, "'", delims=delims, extra_prefix=("foo",)) == (
-            "'",
-            1,
-            ["bar", "oof"],
-        )
-        assert match(keys, '"', delims=delims, extra_prefix=("foo",)) == (
-            '"',
-            1,
-            ["bar", "oof"],
-        )
-        assert match(keys, "'o", delims=delims, extra_prefix=("foo",)) == (
-            "'",
-            1,
-            ["oof"],
-        )
-        assert match(keys, '"o', delims=delims, extra_prefix=("foo",)) == (
-            '"',
-            1,
-            ["oof"],
-        )
-        assert match(keys, "b'", delims=delims, extra_prefix=("foo",)) == (
-            "'",
-            2,
-            ["bar"],
-        )
-        assert match(keys, 'b"', delims=delims, extra_prefix=("foo",)) == (
-            '"',
-            2,
-            ["bar"],
-        )
-        assert match(keys, "b'b", delims=delims, extra_prefix=("foo",)) == (
-            "'",
-            2,
-            ["bar"],
-        )
-        assert match(keys, 'b"b', delims=delims, extra_prefix=("foo",)) == (
-            '"',
-            2,
-            ["bar"],
-        )
+        assert match(keys, "'", extra=("foo",)) == ("'", 1, ["bar", "oof"])
+        assert match(keys, '"', extra=("foo",)) == ('"', 1, ["bar", "oof"])
+        assert match(keys, "'o", extra=("foo",)) == ("'", 1, ["oof"])
+        assert match(keys, '"o', extra=("foo",)) == ('"', 1, ["oof"])
+        assert match(keys, "b'", extra=("foo",)) == ("'", 2, ["bar"])
+        assert match(keys, 'b"', extra=("foo",)) == ('"', 2, ["bar"])
+        assert match(keys, "b'b", extra=("foo",)) == ("'", 2, ["bar"])
+        assert match(keys, 'b"b', extra=("foo",)) == ('"', 2, ["bar"])
 
         # No Completion
-        assert match(keys, "'", delims=delims, extra_prefix=("no_foo",)) == ("'", 1, [])
-        assert match(keys, "'", delims=delims, extra_prefix=("fo",)) == ("'", 1, [])
+        assert match(keys, "'", extra=("no_foo",)) == ("'", 1, [])
+        assert match(keys, "'", extra=("fo",)) == ("'", 1, [])
 
         keys = [("foo1", "foo2", "foo3", "foo4"), ("foo1", "foo2", "bar", "foo4")]
-        assert match(keys, "'foo", delims=delims, extra_prefix=("foo1",)) == (
+        assert match(keys, "'foo", extra=("foo1",)) == ("'", 1, ["foo2"])
+        assert match(keys, "'foo", extra=("foo1", "foo2")) == ("'", 1, ["foo3"])
+        assert match(keys, "'foo", extra=("foo1", "foo2", "foo3")) == ("'", 1, ["foo4"])
+        assert match(keys, "'foo", extra=("foo1", "foo2", "foo3", "foo4")) == (
             "'",
             1,
-            ["foo2"],
+            [],
         )
-        assert match(keys, "'foo", delims=delims, extra_prefix=("foo1", "foo2")) == (
-            "'",
-            1,
-            ["foo3"],
-        )
-        assert match(
-            keys, "'foo", delims=delims, extra_prefix=("foo1", "foo2", "foo3")
-        ) == ("'", 1, ["foo4"])
-        assert match(
-            keys, "'foo", delims=delims, extra_prefix=("foo1", "foo2", "foo3", "foo4")
-        ) == ("'", 1, [])
 
         keys = [("foo", 1111), ("foo", "2222"), (3333, "bar"), (3333, 4444)]
-        assert match(keys, "'", delims=delims, extra_prefix=("foo",)) == (
-            "'",
-            1,
-            ["2222"],
-        )
-        assert match(keys, "", delims=delims, extra_prefix=("foo",)) == (
-            "",
-            0,
-            ["1111", "'2222'"],
-        )
-        assert match(keys, "'", delims=delims, extra_prefix=(3333,)) == (
-            "'",
-            1,
-            ["bar"],
-        )
-        assert match(keys, "", delims=delims, extra_prefix=(3333,)) == (
-            "",
-            0,
-            ["'bar'", "4444"],
-        )
-        assert match(keys, "'", delims=delims, extra_prefix=("3333",)) == ("'", 1, [])
-        assert match(keys, "33", delims=delims) == ("", 0, ["3333"])
+        assert match(keys, "'", extra=("foo",)) == ("'", 1, ["2222"])
+        assert match(keys, "", extra=("foo",)) == ("", 0, ["1111", "'2222'"])
+        assert match(keys, "'", extra=(3333,)) == ("'", 1, ["bar"])
+        assert match(keys, "", extra=(3333,)) == ("", 0, ["'bar'", "4444"])
+        assert match(keys, "'", extra=("3333",)) == ("'", 1, [])
+        assert match(keys, "33") == ("", 0, ["3333"])
 
     def test_dict_key_completion_closures(self):
         ip = get_ipython()
