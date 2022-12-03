@@ -868,21 +868,16 @@ class TestCompleter(unittest.TestCase):
         assert match(keys, '"f', delims=delims) == ('"', 1, ["foo"])
 
         # Completion on first item of tuple
-        keys = [("foo", 1111), ("foo", 2222), (3333, "bar"), (3333, 'test')]
+        keys = [("foo", 1111), ("foo", 2222), (3333, "bar"), (3333, "test")]
         assert match(keys, "'f", delims=delims) == ("'", 1, ["foo"])
         assert match(keys, "33", delims=delims) == ("", 0, ["3333"])
 
         # Completion on numbers
-        keys = [
-            0xdeadbeef,   # 3735928559
-            1111, 1234, "1999",
-            0b10101,   # 21
-            22
-        ]
+        keys = [0xDEADBEEF, 1111, 1234, "1999", 0b10101, 22]  # 3735928559  # 21
         assert match(keys, "0xdead", delims=delims) == ("", 0, ["0xdeadbeef"])
         assert match(keys, "1", delims=delims) == ("", 0, ["1111", "1234"])
         assert match(keys, "2", delims=delims) == ("", 0, ["21", "22"])
-        assert match(keys, "0b101", delims=delims) == ("", 0, ['0b10101', '0b10110'])
+        assert match(keys, "0b101", delims=delims) == ("", 0, ["0b10101", "0b10110"])
 
     def test_match_dict_keys_tuple(self):
         """
@@ -898,30 +893,90 @@ class TestCompleter(unittest.TestCase):
             return quote, offset, list(matches)
 
         # Completion on first key == "foo"
-        assert match(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["bar", "oof"])
-        assert match(keys, "\"", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["bar", "oof"])
-        assert match(keys, "'o", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["oof"])
-        assert match(keys, "\"o", delims=delims, extra_prefix=("foo",)) == ("\"", 1, ["oof"])
-        assert match(keys, "b'", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
-        assert match(keys, "b\"", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
-        assert match(keys, "b'b", delims=delims, extra_prefix=("foo",)) == ("'", 2, ["bar"])
-        assert match(keys, "b\"b", delims=delims, extra_prefix=("foo",)) == ("\"", 2, ["bar"])
+        assert match(keys, "'", delims=delims, extra_prefix=("foo",)) == (
+            "'",
+            1,
+            ["bar", "oof"],
+        )
+        assert match(keys, '"', delims=delims, extra_prefix=("foo",)) == (
+            '"',
+            1,
+            ["bar", "oof"],
+        )
+        assert match(keys, "'o", delims=delims, extra_prefix=("foo",)) == (
+            "'",
+            1,
+            ["oof"],
+        )
+        assert match(keys, '"o', delims=delims, extra_prefix=("foo",)) == (
+            '"',
+            1,
+            ["oof"],
+        )
+        assert match(keys, "b'", delims=delims, extra_prefix=("foo",)) == (
+            "'",
+            2,
+            ["bar"],
+        )
+        assert match(keys, 'b"', delims=delims, extra_prefix=("foo",)) == (
+            '"',
+            2,
+            ["bar"],
+        )
+        assert match(keys, "b'b", delims=delims, extra_prefix=("foo",)) == (
+            "'",
+            2,
+            ["bar"],
+        )
+        assert match(keys, 'b"b', delims=delims, extra_prefix=("foo",)) == (
+            '"',
+            2,
+            ["bar"],
+        )
 
         # No Completion
         assert match(keys, "'", delims=delims, extra_prefix=("no_foo",)) == ("'", 1, [])
         assert match(keys, "'", delims=delims, extra_prefix=("fo",)) == ("'", 1, [])
 
-        keys = [('foo1', 'foo2', 'foo3', 'foo4'), ('foo1', 'foo2', 'bar', 'foo4')]
-        assert match(keys, "'foo", delims=delims, extra_prefix=('foo1',)) == ("'", 1, ["foo2"])
-        assert match(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2')) == ("'", 1, ["foo3"])
-        assert match(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3')) == ("'", 1, ["foo4"])
-        assert match(keys, "'foo", delims=delims, extra_prefix=('foo1', 'foo2', 'foo3', 'foo4')) == ("'", 1, [])
+        keys = [("foo1", "foo2", "foo3", "foo4"), ("foo1", "foo2", "bar", "foo4")]
+        assert match(keys, "'foo", delims=delims, extra_prefix=("foo1",)) == (
+            "'",
+            1,
+            ["foo2"],
+        )
+        assert match(keys, "'foo", delims=delims, extra_prefix=("foo1", "foo2")) == (
+            "'",
+            1,
+            ["foo3"],
+        )
+        assert match(
+            keys, "'foo", delims=delims, extra_prefix=("foo1", "foo2", "foo3")
+        ) == ("'", 1, ["foo4"])
+        assert match(
+            keys, "'foo", delims=delims, extra_prefix=("foo1", "foo2", "foo3", "foo4")
+        ) == ("'", 1, [])
 
         keys = [("foo", 1111), ("foo", "2222"), (3333, "bar"), (3333, 4444)]
-        assert match(keys, "'", delims=delims, extra_prefix=("foo",)) == ("'", 1, ["2222"])
-        assert match(keys, "", delims=delims, extra_prefix=("foo",)) == ("", 0, ["1111", "'2222'"])
-        assert match(keys, "'", delims=delims, extra_prefix=(3333,)) == ("'", 1, ["bar"])
-        assert match(keys, "", delims=delims, extra_prefix=(3333,)) == ("", 0, ["'bar'", "4444"])
+        assert match(keys, "'", delims=delims, extra_prefix=("foo",)) == (
+            "'",
+            1,
+            ["2222"],
+        )
+        assert match(keys, "", delims=delims, extra_prefix=("foo",)) == (
+            "",
+            0,
+            ["1111", "'2222'"],
+        )
+        assert match(keys, "'", delims=delims, extra_prefix=(3333,)) == (
+            "'",
+            1,
+            ["bar"],
+        )
+        assert match(keys, "", delims=delims, extra_prefix=(3333,)) == (
+            "",
+            0,
+            ["'bar'", "4444"],
+        )
         assert match(keys, "'", delims=delims, extra_prefix=("3333",)) == ("'", 1, [])
         assert match(keys, "33", delims=delims) == ("", 0, ["3333"])
 
@@ -932,16 +987,16 @@ class TestCompleter(unittest.TestCase):
 
         ip.user_ns["d"] = {
             # tuple only
-            ('aa', 11): None,
+            ("aa", 11): None,
             # tuple and non-tuple
-            ('bb', 22): None,
-            'bb': None,
+            ("bb", 22): None,
+            "bb": None,
             # non-tuple only
-            'cc': None,
+            "cc": None,
             # numeric tuple only
-            (77, 'x'): None,
+            (77, "x"): None,
             # numeric tuple and non-tuple
-            (88, 'y'): None,
+            (88, "y"): None,
             88: None,
             # numeric non-tuple only
             99: None,
@@ -1133,12 +1188,12 @@ class TestCompleter(unittest.TestCase):
         complete = ip.Completer.complete
 
         ip.user_ns["d"] = {
-            0xdeadbeef: None,   # 3735928559
+            0xDEADBEEF: None,  # 3735928559
             1111: None,
             1234: None,
             "1999": None,
-            0b10101: None,   # 21
-            22: None
+            0b10101: None,  # 21
+            22: None,
         }
         _, matches = complete(line_buffer="d[1")
         self.assertIn("1111", matches)
@@ -1169,7 +1224,7 @@ class TestCompleter(unittest.TestCase):
 
         ip.user_ns["C"] = C
         ip.user_ns["get"] = lambda: d
-        ip.user_ns["nested"] = {'x': d}
+        ip.user_ns["nested"] = {"x": d}
 
         def assert_no_completion(**kwargs):
             _, matches = complete(**kwargs)
@@ -1198,7 +1253,7 @@ class TestCompleter(unittest.TestCase):
         # nested dict completion
         assert_completion(line_buffer="nested['x'][")
 
-        with evaluation_level('minimal'):
+        with evaluation_level("minimal"):
             with pytest.raises(AssertionError):
                 assert_completion(line_buffer="nested['x'][")
 
@@ -1289,6 +1344,7 @@ class TestCompleter(unittest.TestCase):
         _, matches = complete(line_buffer="d['")
         self.assertIn("my_head", matches)
         self.assertIn("my_data", matches)
+
         def completes_on_nested():
             ip.user_ns["d"] = numpy.zeros(2, dtype=dt)
             _, matches = complete(line_buffer="d[1]['my_head']['")
@@ -1298,10 +1354,10 @@ class TestCompleter(unittest.TestCase):
         with greedy_completion():
             completes_on_nested()
 
-        with evaluation_level('limitted'):
+        with evaluation_level("limitted"):
             completes_on_nested()
 
-        with evaluation_level('minimal'):
+        with evaluation_level("minimal"):
             with pytest.raises(AssertionError):
                 completes_on_nested()
 
@@ -1653,32 +1709,32 @@ class TestCompleter(unittest.TestCase):
 
 
 @pytest.mark.parametrize(
-    'input, expected',
+    "input, expected",
     [
-        ['1.234', '1.234'],
+        ["1.234", "1.234"],
         # should match signed numbers
-        ['+1', '+1'],
-        ['-1', '-1'],
-        ['-1.0', '-1.0'],
-        ['-1.', '-1.'],
-        ['+1.', '+1.'],
-        ['.1', '.1'],
+        ["+1", "+1"],
+        ["-1", "-1"],
+        ["-1.0", "-1.0"],
+        ["-1.", "-1."],
+        ["+1.", "+1."],
+        [".1", ".1"],
         # should not match non-numbers
-        ['1..', None],
-        ['..', None],
-        ['.1.', None],
+        ["1..", None],
+        ["..", None],
+        [".1.", None],
         # should match after comma
-        [',1', '1'],
-        [', 1', '1'],
-        [', .1', '.1'],
-        [', +.1', '+.1'],
+        [",1", "1"],
+        [", 1", "1"],
+        [", .1", ".1"],
+        [", +.1", "+.1"],
         # should not match after trailing spaces
-        ['.1 ', None],
+        [".1 ", None],
         # some complex cases
-        ['0b_0011_1111_0100_1110', '0b_0011_1111_0100_1110'],
-        ['0xdeadbeef', '0xdeadbeef'],
-        ['0b_1110_0101', '0b_1110_0101']
-    ]
+        ["0b_0011_1111_0100_1110", "0b_0011_1111_0100_1110"],
+        ["0xdeadbeef", "0xdeadbeef"],
+        ["0b_1110_0101", "0b_1110_0101"],
+    ],
 )
 def test_match_numeric_literal_for_dict_key(input, expected):
     assert _match_number_in_dict_key_prefix(input) == expected
