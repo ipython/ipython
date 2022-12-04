@@ -886,6 +886,12 @@ class TestCompleter(unittest.TestCase):
         assert match(keys, "2") == ("", 0, ["21", "22"])
         assert match(keys, "0b101") == ("", 0, ["0b10101", "0b10110"])
 
+        # Should yield on variables
+        assert match(keys, "a_variable") == ("", 0, [])
+
+        # Should pass over invalid literals
+        assert match(keys, "'' ''") == ("", 0, [])
+
     def test_match_dict_keys_tuple(self):
         """
         Test that match_dict_keys called with extra prefix works on a couple of use case,
@@ -1687,6 +1693,9 @@ class TestCompleter(unittest.TestCase):
         ["0b_0011_1111_0100_1110", "0b_0011_1111_0100_1110"],
         ["0xdeadbeef", "0xdeadbeef"],
         ["0b_1110_0101", "0b_1110_0101"],
+        # should not match if in an operation
+        ["1 + 1", None],
+        [", 1 + 1", None],
     ],
 )
 def test_match_numeric_literal_for_dict_key(input, expected):
