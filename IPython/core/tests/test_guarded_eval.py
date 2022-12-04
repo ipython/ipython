@@ -1,4 +1,5 @@
 from typing import NamedTuple
+from functools import partial
 from IPython.core.guarded_eval import (
     EvaluationContext,
     GuardRejection,
@@ -9,12 +10,19 @@ from IPython.testing import decorators as dec
 import pytest
 
 
-def limited(**kwargs):
-    return EvaluationContext(locals=kwargs, globals={}, evaluation="limited")
+def create_context(evaluation: str, **kwargs):
+    return EvaluationContext(locals=kwargs, globals={}, evaluation=evaluation)
 
 
-def unsafe(**kwargs):
-    return EvaluationContext(locals=kwargs, globals={}, evaluation="unsafe")
+forbidden = partial(create_context, "forbidden")
+minimal = partial(create_context, "minimal")
+limited = partial(create_context, "limited")
+unsafe = partial(create_context, "unsafe")
+dangerous = partial(create_context, "dangerous")
+
+LIMITED_OR_HIGHER = [limited, unsafe, dangerous]
+
+MINIMAL_OR_HIGHER = [minimal, *LIMITED_OR_HIGHER]
 
 
 @dec.skip_without("pandas")
@@ -142,7 +150,7 @@ def test_set_literal():
     assert guarded_eval('{"a"}', context) == {"a"}
 
 
-def test_if_expression():
+def test_evaluates_if_expression():
     context = limited()
     assert guarded_eval("2 if True else 3", context) == 2
     assert guarded_eval("4 if False else 5", context) == 5
@@ -178,7 +186,7 @@ def test_method_descriptor():
         [{"a": 1}, "data.keys().isdisjoint({})", "data.update()", True],
     ],
 )
-def test_calls(data, good, bad, expected):
+def test_evaluates_calls(data, good, bad, expected):
     context = limited(data=data)
     assert guarded_eval(good, context) == expected
 
@@ -194,9 +202,26 @@ def test_calls(data, good, bad, expected):
         ["list(range(20))[3:-2:3]", [3, 6, 9, 12, 15]],
     ],
 )
-def test_literals(code, expected):
-    context = limited()
-    assert guarded_eval(code, context) == expected
+@pytest.mark.parametrize("context", LIMITED_OR_HIGHER)
+def test_evaluates_complex_cases(code, expected, context):
+    assert guarded_eval(code, context()) == expected
+
+
+@pytest.mark.parametrize(
+    "code,expected",
+    [
+        ["1", 1],
+        ["1.0", 1.0],
+        ["0xdeedbeef", 0xDEEDBEEF],
+        ["True", True],
+        ["None", None],
+        ["{}", {}],
+        ["[]", []],
+    ],
+)
+@pytest.mark.parametrize("context", MINIMAL_OR_HIGHER)
+def test_evaluates_literals(code, expected, context):
+    assert guarded_eval(code, context()) == expected
 
 
 @pytest.mark.parametrize(
@@ -207,9 +232,9 @@ def test_literals(code, expected):
         ["~5", -6],
     ],
 )
-def test_unary_operations(code, expected):
-    context = limited()
-    assert guarded_eval(code, context) == expected
+@pytest.mark.parametrize("context", LIMITED_OR_HIGHER)
+def test_evaluates_unary_operations(code, expected, context):
+    assert guarded_eval(code, context()) == expected
 
 
 @pytest.mark.parametrize(
@@ -228,9 +253,9 @@ def test_unary_operations(code, expected):
         ["1 & 2", 0],
     ],
 )
-def test_binary_operations(code, expected):
-    context = limited()
-    assert guarded_eval(code, context) == expected
+@pytest.mark.parametrize("context", LIMITED_OR_HIGHER)
+def test_evaluates_binary_operations(code, expected, context):
+    assert guarded_eval(code, context()) == expected
 
 
 @pytest.mark.parametrize(
@@ -262,16 +287,152 @@ def test_binary_operations(code, expected):
         ["True is True", True],
         ["False is False", True],
         ["True is False", False],
+        ["True is not True", False],
+        ["False is not True", True],
     ],
 )
-def test_comparisons(code, expected):
-    context = limited()
-    assert guarded_eval(code, context) == expected
+@pytest.mark.parametrize("context", LIMITED_OR_HIGHER)
+def test_evaluates_comparisons(code, expected, context):
+    assert guarded_eval(code, context()) == expected
 
 
-def test_access_builtins():
+def test_guards_comparisons():
+    class GoodEq(int):
+        pass
+
+    class BadEq(int):
+        def __eq__(self, other):
+            assert False
+
+    context = limited(bad=BadEq(1), good=GoodEq(1))
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("bad == 1", context)
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("bad != 1", context)
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("1 == bad", context)
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("1 != bad", context)
+
+    assert guarded_eval("good == 1", context) is True
+    assert guarded_eval("good != 1", context) is False
+    assert guarded_eval("1 == good", context) is True
+    assert guarded_eval("1 != good", context) is False
+
+
+def test_guards_unary_operations():
+    class GoodOp(int):
+        pass
+
+    class BadOpInv(int):
+        def __inv__(self, other):
+            assert False
+
+    class BadOpInverse(int):
+        def __inv__(self, other):
+            assert False
+
+    context = limited(good=GoodOp(1), bad1=BadOpInv(1), bad2=BadOpInverse(1))
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("~bad1", context)
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("~bad2", context)
+
+
+def test_guards_binary_operations():
+    class GoodOp(int):
+        pass
+
+    class BadOp(int):
+        def __add__(self, other):
+            assert False
+
+    context = limited(good=GoodOp(1), bad=BadOp(1))
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("1 + bad", context)
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("bad + 1", context)
+
+    assert guarded_eval("good + 1", context) == 2
+    assert guarded_eval("1 + good", context) == 2
+
+
+def test_guards_attributes():
+    class GoodAttr(float):
+        pass
+
+    class BadAttr1(float):
+        def __getattr__(self, key):
+            assert False
+
+    class BadAttr2(float):
+        def __getattribute__(self, key):
+            assert False
+
+    context = limited(good=GoodAttr(0.5), bad1=BadAttr1(0.5), bad2=BadAttr2(0.5))
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("bad1.as_integer_ratio", context)
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("bad2.as_integer_ratio", context)
+
+    assert guarded_eval("good.as_integer_ratio()", context) == (1, 2)
+
+
+@pytest.mark.parametrize("context", MINIMAL_OR_HIGHER)
+def test_access_builtins(context):
+    assert guarded_eval("round", context()) == round
+
+
+def test_access_builtins_fails():
     context = limited()
-    assert guarded_eval("round", context) == round
+    with pytest.raises(NameError):
+        guarded_eval("this_is_not_builtin", context)
+
+
+def test_rejects_forbidden():
+    context = forbidden()
+    with pytest.raises(GuardRejection):
+        guarded_eval("1", context)
+
+
+def test_guards_locals_and_globals():
+    context = EvaluationContext(
+        locals={"local_a": "a"}, globals={"global_b": "b"}, evaluation="minimal"
+    )
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("local_a", context)
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("global_b", context)
+
+
+def test_access_locals_and_globals():
+    context = EvaluationContext(
+        locals={"local_a": "a"}, globals={"global_b": "b"}, evaluation="limited"
+    )
+    assert guarded_eval("local_a", context) == "a"
+    assert guarded_eval("global_b", context) == "b"
+
+
+@pytest.mark.parametrize(
+    "code",
+    ["def func(): pass", "class C: pass", "x = 1", "x += 1", "del x", "import ast"],
+)
+@pytest.mark.parametrize("context", [minimal(), limited(), unsafe()])
+def test_rejects_side_effect_syntax(code, context):
+    with pytest.raises(SyntaxError):
+        guarded_eval(code, context)
 
 
 def test_subscript():

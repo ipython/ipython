@@ -108,6 +108,7 @@ class EvaluationPolicy:
             return True
 
         owner_method = _unbind_method(func)
+
         if owner_method and owner_method in self.allowed_calls:
             return True
 
@@ -127,6 +128,10 @@ def _has_original_dunder_external(
         value_type = type(value)
         if type(value) == member_type:
             return True
+        if method_name == "__getattribute__":
+            # we have to short-circuit here due to an unresolved issue in
+            # `isinstance` implementation: https://bugs.python.org/issue32683
+            return False
         if isinstance(value, member_type):
             method = getattr(value_type, method_name, None)
             member_method = getattr(member_type, method_name, None)
@@ -149,7 +154,7 @@ def _has_original_dunder(
 
     method = getattr(value_type, method_name, None)
 
-    if not method:
+    if method is None:
         return None
 
     if method in allowed_methods:
@@ -193,16 +198,13 @@ class SelectivePolicy(EvaluationPolicy):
             allowed_external=self.allowed_getattr_external,
             method_name="__getattr__",
         )
+
         # Many objects do not have `__getattr__`, this is fine
         if has_original_attr is None and has_original_attribute:
             return True
 
         # Accept objects without modifications to `__getattr__` and `__getattribute__`
         return has_original_attr and has_original_attribute
-
-    def get_attr(self, value, attr):
-        if self.can_get_attr(value, attr):
-            return getattr(value, attr)
 
     def can_get_item(self, value, item):
         """Allow accessing `__getiitem__` of allow-listed instances unless it was not modified."""
@@ -215,20 +217,24 @@ class SelectivePolicy(EvaluationPolicy):
         )
 
     def can_operate(self, dunders: Tuple[str, ...], a, b=None):
+        objects = [a]
+        if b is not None:
+            objects.append(b)
         return all(
             [
                 _has_original_dunder(
-                    a,
+                    obj,
                     allowed_types=self.allowed_operations,
-                    allowed_methods=self._dunder_methods(dunder),
+                    allowed_methods=self._operator_dunder_methods(dunder),
                     allowed_external=self.allowed_operations_external,
                     method_name=dunder,
                 )
                 for dunder in dunders
+                for obj in objects
             ]
         )
 
-    def _dunder_methods(self, dunder: str) -> Set[Callable]:
+    def _operator_dunder_methods(self, dunder: str) -> Set[Callable]:
         if dunder not in self._operation_methods_cache:
             self._operation_methods_cache[dunder] = self._safe_get_methods(
                 self.allowed_operations, dunder
@@ -257,7 +263,7 @@ class SelectivePolicy(EvaluationPolicy):
 
 
 class _DummyNamedTuple(NamedTuple):
-    pass
+    """Used internally to retrieve methods of named tuple instance."""
 
 
 class EvaluationContext(NamedTuple):
@@ -451,12 +457,15 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                         f"not allowed in {context.evaluation} mode",
                     )
             else:
-                raise ValueError(f"Comparison `{dunder}` not supported")
+                raise ValueError(
+                    f"Comparison `{dunder}` not supported"
+                )  # pragma: no cover
         return all_true
     if isinstance(node, ast.Constant):
         return node.value
     if isinstance(node, ast.Index):
-        return eval_node(node.value, context)
+        # deprecated since Python 3.9
+        return eval_node(node.value, context)  # pragma: no cover
     if isinstance(node, ast.Tuple):
         return tuple(eval_node(e, context) for e in node.elts)
     if isinstance(node, ast.List):
@@ -477,7 +486,8 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             eval_node(node.step, context),
         )
     if isinstance(node, ast.ExtSlice):
-        return tuple([eval_node(dim, context) for dim in node.dims])
+        # deprecated since Python 3.9
+        return tuple([eval_node(dim, context) for dim in node.dims])  # pragma: no cover
     if isinstance(node, ast.UnaryOp):
         value = eval_node(node.operand, context)
         dunders = _find_dunder(node.op, UNARY_OP_DUNDERS)
@@ -490,7 +500,6 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                     type(value),
                     f"not allowed in {context.evaluation} mode",
                 )
-        raise ValueError("Unhandled unary operation:", node.op)
     if isinstance(node, ast.Subscript):
         value = eval_node(node.value, context)
         slice_ = eval_node(node.slice, context)
@@ -507,14 +516,14 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         if policy.allow_globals_access and node.id in context.globals:
             return context.globals[node.id]
         if policy.allow_builtins_access and hasattr(builtins, node.id):
-            # note: do not use __builtins__, it is implementation detail of Python
+            # note: do not use __builtins__, it is implementation detail of cPython
             return getattr(builtins, node.id)
         if not policy.allow_globals_access and not policy.allow_locals_access:
             raise GuardRejection(
                 f"Namespace access not allowed in {context.evaluation} mode"
             )
         else:
-            raise NameError(f"{node.id} not found in locals nor globals")
+            raise NameError(f"{node.id} not found in locals, globals, nor builtins")
     if isinstance(node, ast.Attribute):
         value = eval_node(node.value, context)
         if policy.can_get_attr(value, node.attr):
@@ -540,7 +549,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             func,  # not joined to avoid calling `repr`
             f"not allowed in {context.evaluation} mode",
         )
-    raise ValueError("Unhandled node", node)
+    raise ValueError("Unhandled node", ast.dump(node))
 
 
 SUPPORTED_EXTERNAL_GETITEM = {
@@ -551,6 +560,7 @@ SUPPORTED_EXTERNAL_GETITEM = {
     ("numpy", "ndarray"),
     ("numpy", "void"),
 }
+
 
 BUILTIN_GETITEM: Set[InstancesHaveGetItem] = {
     dict,
@@ -583,6 +593,8 @@ set_non_mutating_methods = set(dir(set)) & set(dir(frozenset))
 dict_keys: Type[collections.abc.KeysView] = type({}.keys())
 method_descriptor: Any = type(list.copy)
 
+NUMERICS = {int, float, complex}
+
 ALLOWED_CALLS = {
     bytes,
     *_list_methods(bytes),
@@ -600,6 +612,8 @@ ALLOWED_CALLS = {
     *_list_methods(str),
     tuple,
     *_list_methods(tuple),
+    *NUMERICS,
+    *[method for numeric_cls in NUMERICS for method in _list_methods(numeric_cls)],
     collections.deque,
     *_list_methods(collections.deque, list_non_mutating_methods),
     collections.defaultdict,
@@ -624,12 +638,13 @@ BUILTIN_GETATTR: Set[MayHaveGetattr] = {
     frozenset,
     object,
     type,  # `type` handles a lot of generic cases, e.g. numbers as in `int.real`.
+    *NUMERICS,
     dict_keys,
     method_descriptor,
 }
 
 
-BUILTIN_OPERATIONS = {int, float, complex, *BUILTIN_GETATTR}
+BUILTIN_OPERATIONS = {*BUILTIN_GETATTR}
 
 EVALUATION_POLICIES = {
     "minimal": EvaluationPolicy(

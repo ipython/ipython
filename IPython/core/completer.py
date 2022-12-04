@@ -996,7 +996,8 @@ class Completer(Configurable):
 
         - ``forbidden``: no evaluation of code is permitted,
         - ``minimal``: evaluation of literals and access to built-in namespace;
-          no item/attribute evaluation nor access to locals/globals,
+          no item/attribute evaluationm no access to locals/globals,
+          no evaluation of any operations or comparisons.
         - ``limited``: access to all namespaces, evaluation of hard-coded methods
           (for example: :any:`dict.keys`, :any:`object.__getattr__`,
           :any:`object.__getitem__`) on allow-listed objects (for example:
