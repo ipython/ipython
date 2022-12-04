@@ -701,8 +701,6 @@ EVALUATION_POLICIES = {
         allow_all_operations=False,
     ),
     "limited": SelectivePolicy(
-        # TODO:
-        # - should reject binary and unary operations if custom methods would be dispatched
         allowed_getitem=BUILTIN_GETITEM,
         allowed_getitem_external=SUPPORTED_EXTERNAL_GETITEM,
         allowed_getattr=BUILTIN_GETATTR,
