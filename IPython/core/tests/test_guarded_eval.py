@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from typing import NamedTuple
 from functools import partial
 from IPython.core.guarded_eval import (
@@ -25,12 +26,53 @@ LIMITED_OR_HIGHER = [limited, unsafe, dangerous]
 MINIMAL_OR_HIGHER = [minimal, *LIMITED_OR_HIGHER]
 
 
+@contextmanager
+def module_not_installed(module: str):
+    import sys
+
+    try:
+        to_restore = sys.modules[module]
+        del sys.modules[module]
+    except KeyError:
+        to_restore = None
+    try:
+        yield
+    finally:
+        sys.modules[module] = to_restore
+
+
 @dec.skip_without("pandas")
 def test_pandas_series_iloc():
     import pandas as pd
 
     series = pd.Series([1], index=["a"])
     context = limited(data=series)
+    assert guarded_eval("data.iloc[0]", context) == 1
+
+
+def test_rejects_custom_properties():
+    class BadProperty:
+        @property
+        def iloc(self):
+            return [None]
+
+    series = BadProperty()
+    context = limited(data=series)
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("data.iloc[0]", context)
+
+
+@dec.skip_without("pandas")
+def test_accepts_non_overriden_properties():
+    import pandas as pd
+
+    class GoodProperty(pd.Series):
+        pass
+
+    series = GoodProperty([1], index=["a"])
+    context = limited(data=series)
+
     assert guarded_eval("data.iloc[0]", context) == 1
 
 
@@ -472,9 +514,12 @@ def test_assumption_instance_attr_do_not_matter():
         def __getattr__(self, k):
             return "a"
 
+    def f(self):
+        return "b"
+
     t = T()
-    t.__getitem__ = lambda f: "b"
-    t.__getattr__ = lambda f: "b"
+    t.__getitem__ = f
+    t.__getattr__ = f
     assert t[1] == "a"
     assert t[1] == "a"
 

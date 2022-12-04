@@ -3,6 +3,7 @@ from typing import (
     Callable,
     Dict,
     Set,
+    Sequence,
     Tuple,
     NamedTuple,
     Type,
@@ -113,18 +114,30 @@ class EvaluationPolicy:
             return True
 
 
+def _get_external(module_name: str, access_path: Sequence[str]):
+    """Get value from external module given a dotted access path.
+
+    Raises:
+    * `KeyError` if module is removed not found, and
+    * `AttributeError` if acess path does not match an exported object
+    """
+    member_type = sys.modules[module_name]
+    for attr in access_path:
+        member_type = getattr(member_type, attr)
+    return member_type
+
+
 def _has_original_dunder_external(
     value,
-    module_name,
-    access_path,
-    method_name,
+    module_name: str,
+    access_path: Sequence[str],
+    method_name: str,
 ):
+    if module_name not in sys.modules:
+        # LBYLB as it is faster
+        return False
     try:
-        if module_name not in sys.modules:
-            return False
-        member_type = sys.modules[module_name]
-        for attr in access_path:
-            member_type = getattr(member_type, attr)
+        member_type = _get_external(module_name, access_path)
         value_type = type(value)
         if type(value) == member_type:
             return True
@@ -199,12 +212,42 @@ class SelectivePolicy(EvaluationPolicy):
             method_name="__getattr__",
         )
 
+        accept = False
+
         # Many objects do not have `__getattr__`, this is fine
         if has_original_attr is None and has_original_attribute:
-            return True
+            accept = True
+        else:
+            # Accept objects without modifications to `__getattr__` and `__getattribute__`
+            accept = has_original_attr and has_original_attribute
 
-        # Accept objects without modifications to `__getattr__` and `__getattribute__`
-        return has_original_attr and has_original_attribute
+        if accept:
+            # We still need to check for overriden properties.
+
+            value_class = type(value)
+            if not hasattr(value_class, attr):
+                return True
+
+            class_attr_val = getattr(value_class, attr)
+            is_property = isinstance(class_attr_val, property)
+
+            if not is_property:
+                return True
+
+            # Properties in allowed types are ok
+            if type(value) in self.allowed_getattr:
+                return True
+
+            # Properties in subclasses of allowed types may be ok if not changed
+            for module_name, *access_path in self.allowed_getattr_external:
+                try:
+                    external_class = _get_external(module_name, access_path)
+                    external_class_attr_val = getattr(external_class, attr)
+                except (KeyError, AttributeError):
+                    return False  # pragma: no cover
+                return class_attr_val == external_class_attr_val
+
+        return False
 
     def can_get_item(self, value, item):
         """Allow accessing `__getiitem__` of allow-listed instances unless it was not modified."""
