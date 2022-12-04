@@ -60,7 +60,8 @@ MayHaveGetattr = Union[HasGetAttr, DoesNotHaveGetAttr]
 def _unbind_method(func: Callable) -> Union[Callable, None]:
     """Get unbound method for given bound method.
 
-    Returns None if cannot get unbound method."""
+    Returns None if cannot get unbound method, or method is already unbound.
+    """
     owner = getattr(func, "__self__", None)
     owner_class = type(owner)
     name = getattr(func, "__name__", None)
@@ -214,7 +215,7 @@ class SelectivePolicy(EvaluationPolicy):
 
         accept = False
 
-        # Many objects do not have `__getattr__`, this is fine
+        # Many objects do not have `__getattr__`, this is fine.
         if has_original_attr is None and has_original_attribute:
             accept = True
         else:
@@ -234,9 +235,10 @@ class SelectivePolicy(EvaluationPolicy):
             if not is_property:
                 return True
 
-            # Properties in allowed types are ok
+            # Properties in allowed types are ok (although we do not include any
+            # properties in our default allow list currently).
             if type(value) in self.allowed_getattr:
-                return True
+                return True  # pragma: no cover
 
             # Properties in subclasses of allowed types may be ok if not changed
             for module_name, *access_path in self.allowed_getattr_external:

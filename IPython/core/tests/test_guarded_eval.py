@@ -22,7 +22,6 @@ unsafe = partial(create_context, "unsafe")
 dangerous = partial(create_context, "dangerous")
 
 LIMITED_OR_HIGHER = [limited, unsafe, dangerous]
-
 MINIMAL_OR_HIGHER = [minimal, *LIMITED_OR_HIGHER]
 
 
@@ -39,6 +38,39 @@ def module_not_installed(module: str):
         yield
     finally:
         sys.modules[module] = to_restore
+
+
+def test_external_not_installed():
+    """
+    Because attribute check requires checking if object is not of allowed
+    external type, this tests logic for absence of external module.
+    """
+
+    class Custom:
+        def __init__(self):
+            self.test = 1
+
+        def __getattr__(self, key):
+            return key
+
+    with module_not_installed("pandas"):
+        context = limited(x=Custom())
+        with pytest.raises(GuardRejection):
+            guarded_eval("x.test", context)
+
+
+@dec.skip_without("pandas")
+def test_external_changed_api(monkeypatch):
+    """Check that the execution rejects if external API changed paths"""
+    import pandas as pd
+
+    series = pd.Series([1], index=["a"])
+
+    with monkeypatch.context() as m:
+        m.delattr(pd, "Series")
+        context = limited(data=series)
+        with pytest.raises(GuardRejection):
+            guarded_eval("data.iloc[0]", context)
 
 
 @dec.skip_without("pandas")
@@ -496,6 +528,7 @@ def test_unbind_method():
     x = X()
     assert _unbind_method(x.index) is X.index
     assert _unbind_method([].index) is list.index
+    assert _unbind_method(list.index) is None
 
 
 def test_assumption_instance_attr_do_not_matter():
