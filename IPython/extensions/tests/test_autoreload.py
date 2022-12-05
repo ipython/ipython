@@ -71,9 +71,6 @@ class FakeShell:
         self.auto_magics.aimport(parameter, stream=stream)
         self.auto_magics.post_execute_hook()
 
-    def magic_averbose(self, parameter):
-        self.auto_magics.averbose(parameter)
-
 class Fixture(TestCase):
     """Fixture for creating test module files"""
 
@@ -442,41 +439,40 @@ class TestAutoreload(Fixture):
         assert module_reloader.skip_modules["os"] is True
         assert "os" not in module_reloader.modules.keys()
 
-    def test_averbose(self):
-        self.shell.magic_averbose("off")
+    def test_autoreload_output(self):
         self.shell.magic_autoreload("complete")
         mod_code = """
         def func1(): pass
         """
         mod_name, mod_fn = self.new_module(mod_code)
         self.shell.run_code(f"import {mod_name}")
-        with tt.AssertPrints("", channel="stdout"):  # no output.
+        with tt.AssertPrints("", channel="stdout"):  # no output; this is default
             self.shell.run_code("pass")
 
+        self.shell.magic_autoreload("complete --print")
         self.write_file(mod_fn, mod_code)  # "modify" the module
-        self.shell.magic_averbose("on")  # Should now see a print statement.
-        with tt.AssertPrints(f"Reloading '{mod_name}'.", channel="stdout"):
+        with tt.AssertPrints(f"Reloading '{mod_name}'.", channel="stdout"):  # see something printed out
             self.shell.run_code("pass")
 
+        self.shell.magic_autoreload("complete -p")
         self.write_file(mod_fn, mod_code)  # "modify" the module
-        self.shell.magic_averbose("off")  # Should not see anything on next call
-        with tt.AssertPrints("", channel="stdout"):
+        with tt.AssertPrints(f"Reloading '{mod_name}'.", channel="stdout"):  # see something printed out
             self.shell.run_code("pass")
 
-        # TODO: test logging. Why won't this work?
-        # with tt.AssertPrints('LOGGER: '):
-        #     self.shell.run_code("import logging; logging.basicConfig(format='LOGGER: %(message)s');"
-        #                         "logger = logging.getLogger(); logger.setLevel(logging.DEBUG);"
-        #                         "logger.info('test')")
+        self.shell.magic_autoreload("complete --print --log")
+        self.write_file(mod_fn, mod_code)  # "modify" the module
+        with tt.AssertPrints(f"Reloading '{mod_name}'.", channel="stdout"):  # see something printed out
+            self.shell.run_code("pass")
 
-        # self.shell.magic_averbose("log")  # Should see it formatted as per our logging config
-        # self.write_file(mod_fn, mod_code)  # "modify" the module
-        # with tt.AssertPrints(f"LOGGER: Reloading '{mod_name}'.", channel="stdout"):
-        #     self.shell.run_code("pass")
-
-        # And an invalid mode name raises an exception.
-        with self.assertRaises(ValueError):
-            self.shell.magic_averbose("fax")
+        # TODO: test logging, i.e. --log. Why won't this work?
+        # with tt.AssertPrints("LOGGER: test", channel="stdout"):
+        #     # logger.info('test')
+        #     self.shell.run_code("import logging; import sys;"
+        #                         "logging.basicConfig(format='LOGGER: %(message)s',"
+        #                         "                    stream=sys.stdout,"
+        #                         "                    level=logging.DEBUG);"
+        #                         "logging.getLogger().info('test');"
+        #     )
 
     def _check_smoketest(self, use_aimport=True):
         """

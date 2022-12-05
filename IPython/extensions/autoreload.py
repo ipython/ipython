@@ -53,6 +53,10 @@ The following magic commands are provided:
     Same as 2/all, but also adds any new objects in the module. See
     unit test at IPython/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects
 
+  Adding ``--print`` or ``-p`` to the ``%autoreload`` line will print autoreload activity to
+  standard out. ``--log`` or ``-l`` will do it to the log at INFO level; both can be used
+  simultaneously.
+
 ``%aimport``
 
     List modules which are to be automatically imported or not to be imported.
@@ -68,18 +72,6 @@ The following magic commands are provided:
 ``%aimport -foo``
 
     Mark module 'foo' to not be autoreloaded.
-
-``%averbose off``
-
-    Perform autoreload tasks quietly
-
-``%averbose on``
-
-    Report activity with `print` statements.
-
-``%averbose log``
-
-    Report activity with the logger.
 
 Caveats
 =======
@@ -113,6 +105,7 @@ Some of the known remaining caveats are:
 - Reloading a module, or importing the same module by a different name, creates new Enums. These may look the same, but are not.
 """
 
+from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
 
 __skip_doctest__ = True
@@ -525,7 +518,28 @@ class AutoreloadMagics(Magics):
         self.loaded_modules = set(sys.modules)
 
     @line_magic
-    def autoreload(self, parameter_s=""):
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('mode', type=str, default='now', nargs='?',
+                              help="""
+                              blank or 'now' - Reload all modules (except those excluded by
+                                %%aimport) automaticallynow.
+                              
+                              '0' or 'off' - Disable automatic reloading.
+
+                              '1' or 'explicit' - Reload only modules imported with %%aimport every
+                                time before executing the Python code typed.
+
+                              '2' or 'all' - Reload all modules (except those excluded by %%aimport)
+                                every time before executing the Python code typed.
+
+                              '3' or 'complete' - Same as 2/all, but also but also adds any new
+                                objects in the module.
+                              """)
+    @magic_arguments.argument('-p', '--print', action='store_true', default=False,
+                              help='Show autoreload activity using `print` statements')
+    @magic_arguments.argument('-l', '--log', action='store_true', default=False,
+                              help='Show autoreload activity using the logger')
+    def autoreload(self, line=""):
         r"""%autoreload => Reload modules automatically
 
         %autoreload or %autoreload now
@@ -546,6 +560,10 @@ class AutoreloadMagics(Magics):
         %autoreload 3 or %autoreload complete
         Same as 2/all, but also but also adds any new objects in the module. See
         unit test at IPython/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects
+
+        The optional arguments --print and --log control display of autoreload activity. The default
+        is to act silently; --print (or -p) will print out the names of modules that are being
+        reloaded, and --log (or -l) outputs them to the log at INFO level.
 
         Reloading Python modules in a reliable way is in general
         difficult, and unexpected things may occur. %autoreload tries to
@@ -573,23 +591,45 @@ class AutoreloadMagics(Magics):
           autoreloaded.
 
         """
-        parameter_s_lower = parameter_s.lower()
-        if parameter_s == "" or parameter_s_lower == "now":
+        args = magic_arguments.parse_argstring(self.autoreload, line)
+        mode = args.mode.lower()
+        
+        def p(msg):
+            print(msg)
+            
+        def l(msg):
+            logging.getLogger("autoreload").info(msg)
+
+        def pl(msg):
+            p(msg)
+            l(msg)
+
+        if args.print is False and args.log is False:
+            self._reloader._report = lambda msg: None
+        elif args.print is True:
+            if args.log is True:
+                self._reloader._report = lambda msg: pl(msg)
+            else:
+                self._reloader._report = lambda msg: p(msg)
+        elif args.log is True:
+            self._reloader._report = lambda msg: l(msg)
+
+        if mode == "" or mode == "now":
             self._reloader.check(True)
-        elif parameter_s == "0" or parameter_s_lower == "off":
+        elif mode == "0" or mode == "off":
             self._reloader.enabled = False
-        elif parameter_s == "1" or parameter_s_lower == "explicit":
+        elif mode == "1" or mode == "explicit":
             self._reloader.check_all = False
             self._reloader.enabled = True
-        elif parameter_s == "2" or parameter_s_lower == "all":
+        elif mode == "2" or mode == "all":
             self._reloader.check_all = True
             self._reloader.enabled = True
-        elif parameter_s == "3" or parameter_s_lower == "complete":
+        elif mode == "3" or mode == "complete":
             self._reloader.check_all = True
             self._reloader.enabled = True
             self._reloader.autoload_obj = True
         else:
-            raise ValueError(f'Unrecognized parameter "{parameter_s}".')
+            raise ValueError(f'Unrecognized autoreload mode "{mode}".')
 
     @line_magic
     def aimport(self, parameter_s="", stream=None):
@@ -629,31 +669,6 @@ class AutoreloadMagics(Magics):
 
                     # Inject module to user namespace
                     self.shell.push({top_name: top_module})
-
-    @line_magic
-    def averbose(self, parameter_s=""):
-        r"""%averbose => Turn verbosity on/off for autoreloading.
-
-        %averbose 0 or %averbose off
-        Turn off any reporting during autoreload.
-
-        %averbose 1 or %averbose on
-        Report autoreload activity via print statements.
-
-        %averbose 2 or %averbose log
-        Report autoreload activity via logging.
-        """
-
-        if parameter_s == "0" or parameter_s.lower() == "off":
-            self._reloader._report = lambda msg: None
-        elif parameter_s == "1" or parameter_s.lower() == "on":
-            self._reloader._report = lambda msg: print(msg)
-        elif parameter_s == "2" or parameter_s.lower() == "log":
-            self._reloader._report = lambda msg: logging.getLogger("autoreload").info(
-                msg
-            )
-        else:
-            raise ValueError(f'Unrecognized parameter "{parameter_s}".')
 
     def pre_run_cell(self):
         if self._reloader.enabled:
