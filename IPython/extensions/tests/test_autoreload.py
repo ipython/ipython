@@ -71,6 +71,7 @@ class FakeShell:
         self.auto_magics.aimport(parameter, stream=stream)
         self.auto_magics.post_execute_hook()
 
+
 class Fixture(TestCase):
     """Fixture for creating test module files"""
 
@@ -451,30 +452,36 @@ class TestAutoreload(Fixture):
 
         self.shell.magic_autoreload("complete --print")
         self.write_file(mod_fn, mod_code)  # "modify" the module
-        with tt.AssertPrints(f"Reloading '{mod_name}'.", channel="stdout"):  # see something printed out
+        with tt.AssertPrints(
+            f"Reloading '{mod_name}'.", channel="stdout"
+        ):  # see something printed out
             self.shell.run_code("pass")
 
         self.shell.magic_autoreload("complete -p")
         self.write_file(mod_fn, mod_code)  # "modify" the module
-        with tt.AssertPrints(f"Reloading '{mod_name}'.", channel="stdout"):  # see something printed out
+        with tt.AssertPrints(
+            f"Reloading '{mod_name}'.", channel="stdout"
+        ):  # see something printed out
             self.shell.run_code("pass")
 
         self.shell.magic_autoreload("complete --print --log")
         self.write_file(mod_fn, mod_code)  # "modify" the module
-        with tt.AssertPrints(f"Reloading '{mod_name}'.", channel="stdout"):  # see something printed out
+        with tt.AssertPrints(
+            f"Reloading '{mod_name}'.", channel="stdout"
+        ):  # see something printed out
             self.shell.run_code("pass")
 
         self.shell.magic_autoreload("complete --print --log")
         self.write_file(mod_fn, mod_code)  # "modify" the module
-        with self.assertLogs(logger='autoreload') as lo:  # see something printed out
+        with self.assertLogs(logger="autoreload") as lo:  # see something printed out
             self.shell.run_code("pass")
-        assert lo.output==[f"INFO:autoreload:Reloading '{mod_name}'."]
+        assert lo.output == [f"INFO:autoreload:Reloading '{mod_name}'."]
 
         self.shell.magic_autoreload("complete -l")
         self.write_file(mod_fn, mod_code)  # "modify" the module
-        with self.assertLogs(logger='autoreload') as lo:  # see something printed out
+        with self.assertLogs(logger="autoreload") as lo:  # see something printed out
             self.shell.run_code("pass")
-        assert lo.output==[f"INFO:autoreload:Reloading '{mod_name}'."]
+        assert lo.output == [f"INFO:autoreload:Reloading '{mod_name}'."]
 
     def _check_smoketest(self, use_aimport=True):
         """
