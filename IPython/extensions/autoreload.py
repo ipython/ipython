@@ -519,26 +519,40 @@ class AutoreloadMagics(Magics):
 
     @line_magic
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('mode', type=str, default='now', nargs='?',
-                              help="""
-                              blank or 'now' - Reload all modules (except those excluded by
-                                %%aimport) automaticallynow.
-                              
-                              '0' or 'off' - Disable automatic reloading.
+    @magic_arguments.argument(
+        "mode",
+        type=str,
+        default="now",
+        nargs="?",
+        help="""blank or 'now' - Reload all modules (except those excluded by %%aimport)
+             automatically now.
 
-                              '1' or 'explicit' - Reload only modules imported with %%aimport every
-                                time before executing the Python code typed.
+             '0' or 'off' - Disable automatic reloading.
 
-                              '2' or 'all' - Reload all modules (except those excluded by %%aimport)
-                                every time before executing the Python code typed.
+             '1' or 'explicit' - Reload only modules imported with %%aimport every
+             time before executing the Python code typed.
 
-                              '3' or 'complete' - Same as 2/all, but also but also adds any new
-                                objects in the module.
-                              """)
-    @magic_arguments.argument('-p', '--print', action='store_true', default=False,
-                              help='Show autoreload activity using `print` statements')
-    @magic_arguments.argument('-l', '--log', action='store_true', default=False,
-                              help='Show autoreload activity using the logger')
+             '2' or 'all' - Reload all modules (except those excluded by %%aimport)
+             every time before executing the Python code typed.
+
+             '3' or 'complete' - Same as 2/all, but also but also adds any new
+             objects in the module.
+             """,
+    )
+    @magic_arguments.argument(
+        "-p",
+        "--print",
+        action="store_true",
+        default=False,
+        help="Show autoreload activity using `print` statements",
+    )
+    @magic_arguments.argument(
+        "-l",
+        "--log",
+        action="store_true",
+        default=False,
+        help="Show autoreload activity using the logger",
+    )
     def autoreload(self, line=""):
         r"""%autoreload => Reload modules automatically
 
@@ -593,10 +607,10 @@ class AutoreloadMagics(Magics):
         """
         args = magic_arguments.parse_argstring(self.autoreload, line)
         mode = args.mode.lower()
-        
+
         def p(msg):
             print(msg)
-            
+
         def l(msg):
             logging.getLogger("autoreload").info(msg)
 
