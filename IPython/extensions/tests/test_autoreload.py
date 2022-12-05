@@ -464,15 +464,17 @@ class TestAutoreload(Fixture):
         with tt.AssertPrints(f"Reloading '{mod_name}'.", channel="stdout"):  # see something printed out
             self.shell.run_code("pass")
 
-        # TODO: test logging, i.e. --log. Why won't this work?
-        # with tt.AssertPrints("LOGGER: test", channel="stdout"):
-        #     # logger.info('test')
-        #     self.shell.run_code("import logging; import sys;"
-        #                         "logging.basicConfig(format='LOGGER: %(message)s',"
-        #                         "                    stream=sys.stdout,"
-        #                         "                    level=logging.DEBUG);"
-        #                         "logging.getLogger().info('test');"
-        #     )
+        self.shell.magic_autoreload("complete --print --log")
+        self.write_file(mod_fn, mod_code)  # "modify" the module
+        with self.assertLogs(logger='autoreload') as lo:  # see something printed out
+            self.shell.run_code("pass")
+        assert lo.output==[f"INFO:autoreload:Reloading '{mod_name}'."]
+
+        self.shell.magic_autoreload("complete -l")
+        self.write_file(mod_fn, mod_code)  # "modify" the module
+        with self.assertLogs(logger='autoreload') as lo:  # see something printed out
+            self.shell.run_code("pass")
+        assert lo.output==[f"INFO:autoreload:Reloading '{mod_name}'."]
 
     def _check_smoketest(self, use_aimport=True):
         """
