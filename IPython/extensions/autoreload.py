@@ -573,17 +573,18 @@ class AutoreloadMagics(Magics):
           autoreloaded.
 
         """
-        if parameter_s == "" or parameter_s.lower() == "now":
+        parameter_s_lower = parameter_s.lower()
+        if parameter_s == "" or parameter_s_lower == "now":
             self._reloader.check(True)
-        elif parameter_s == "0" or parameter_s.lower() == "off":
+        elif parameter_s == "0" or parameter_s_lower == "off":
             self._reloader.enabled = False
-        elif parameter_s == "1" or parameter_s.lower() == "explicit":
+        elif parameter_s == "1" or parameter_s_lower == "explicit":
             self._reloader.check_all = False
             self._reloader.enabled = True
-        elif parameter_s == "2" or parameter_s.lower() == "all":
+        elif parameter_s == "2" or parameter_s_lower == "all":
             self._reloader.check_all = True
             self._reloader.enabled = True
-        elif parameter_s == "3" or parameter_s.lower() == "complete":
+        elif parameter_s == "3" or parameter_s_lower == "complete":
             self._reloader.check_all = True
             self._reloader.enabled = True
             self._reloader.autoload_obj = True
