@@ -377,12 +377,14 @@ def load_qt(api_options):
     PyQt5 available (requires QtCore, QtGui, QtSvg, QtWidgets): %s
     PySide >= 1.0.3 installed:                                  %s
     PySide2 installed:                                          %s
+    PySide6 installed:                                          %s
     Tried to load:                                              %r
     """ % (loaded_api(),
            has_binding(QT_API_PYQT),
            has_binding(QT_API_PYQT5),
            has_binding(QT_API_PYSIDE),
            has_binding(QT_API_PYSIDE2),
+           has_binding(QT_API_PYSIDE6),
            api_options))
 
 
