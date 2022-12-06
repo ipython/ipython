@@ -23,6 +23,9 @@ if QT_API not set:
 else:
     use what QT_API says
 
+    Note that %gui's implementation will always set a `QT_API`, see
+    `IPython.terminal.pt_inputhooks.get_inputhook_name_and_func`
+
 """
 # NOTE: This is no longer an external, third-party module, and should be
 # considered part of IPython. For compatibility however, it is being kept in
@@ -99,6 +102,7 @@ def get_options():
         return [loaded]
 
     mpl = sys.modules.get('matplotlib', None)
+    print(f'{mpl=}') # will be None of matplotlib has not yet been imported
 
     if mpl is not None and tuple(mpl.__version__.split(".")) < ("1", "0", "2"):
         # 1.0.1 only supports PyQt4 v1
@@ -120,6 +124,7 @@ def get_options():
         raise RuntimeError("Invalid Qt API %r, valid values are: %r" %
                            (qt_api, ', '.join(_qt_apis)))
     else:
+        print(f'{qt_api=}')
         return [qt_api]
 
 

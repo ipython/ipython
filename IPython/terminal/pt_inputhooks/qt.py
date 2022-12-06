@@ -1,5 +1,6 @@
 import sys
 import os
+#`qt_for_kernel` will import the "best" qt version
 from IPython.external.qt_for_kernel import QtCore, QtGui, enum_helper
 from IPython import get_ipython
 
@@ -63,6 +64,7 @@ def inputhook(context):
         timer = QtCore.QTimer()
         timer.timeout.connect(event_loop.quit)
         while not context.input_is_ready():
+            # NOTE: run the event loop, and after 50 ms, call `quit` to exit it.
             timer.start(50)  # 50 ms
             _exec(event_loop)
             timer.stop()

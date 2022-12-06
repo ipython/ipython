@@ -55,8 +55,13 @@ def get_inputhook_name_and_func(gui):
         os.environ["QT_API"] = "pyqt5"
         gui_mod = "qt"
     elif gui == "qt6":
+        # XXX: this locks us into pyqt6 even if pyside6 is installed.
         os.environ["QT_API"] = "pyqt6"
         gui_mod = "qt"
 
+    print(f'{gui_mod=}')
+    # Note: `IPython.terminal.pt_inputhooks.qt` imports `IPython.external.qt_for_kernel` and that's
+    # where the environment variable locks us into `pyqt6`, despite the fact that it seems `PySide6`
+    # is supported.
     mod = importlib.import_module('IPython.terminal.pt_inputhooks.'+gui_mod)
     return gui, mod.inputhook
