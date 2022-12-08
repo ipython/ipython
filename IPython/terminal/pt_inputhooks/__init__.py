@@ -41,6 +41,7 @@ class UnknownBackend(KeyError):
 
 
 def get_inputhook_name_and_func(gui):
+    print(f'`get_inputhook_name_and_func` called with {gui=}')
     if gui in registered:
         return gui, registered[gui]
 

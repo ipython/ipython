@@ -95,6 +95,7 @@ def matplotlib_options(mpl):
                           mpqt)
 
 def get_options():
+    print(f'`get_options` called with {os.environ.get("QT_API", None)=}')
     """Return a list of acceptable QT APIs, in decreasing order of preference."""
     #already imported Qt somewhere. Use that
     loaded = loaded_api()
@@ -129,5 +130,7 @@ def get_options():
 
 
 api_opts = get_options()
+print(f'Importing `IPython.terminal.pt_inputhooks.qt` with {api_opts=}')
 QtCore, QtGui, QtSvg, QT_API = load_qt(api_opts)
+print(f'Loaded Qt with {QT_API=}')
 enum_helper = enum_factory(QT_API, QtCore)

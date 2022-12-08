@@ -57,7 +57,7 @@ def inputhook(context):
         QtCore.QTimer.singleShot(0, _reclaim_excepthook)
 
     event_loop = QtCore.QEventLoop(app)
-
+    print(f'`inputhook` running Qt {QtCore.qVersion()} event loop.\r')
     if sys.platform == 'win32':
         # The QSocketNotifier method doesn't appear to work on Windows.
         # Use polling instead.
