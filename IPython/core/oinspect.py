@@ -588,7 +588,7 @@ class Inspector(Colorable):
             bundle["text/plain"].append((title, formatted_field["text/plain"]))
             bundle["text/html"].append((title, formatted_field["text/html"]))
 
-    def _make_info_unformatted(self, info, formatter, detail_level, omit_sections):
+    def _make_info_unformatted(self, obj, info, formatter, detail_level, omit_sections):
         """Assemble the mimebundle as unformatted lists of information"""
         bundle = {
             "text/plain": [],
@@ -685,7 +685,7 @@ class Inspector(Colorable):
 
         info = self.info(obj, oname=oname, info=info, detail_level=detail_level)
         bundle = self._make_info_unformatted(
-            info, formatter, detail_level=detail_level, omit_sections=omit_sections
+            obj, info, formatter, detail_level=detail_level, omit_sections=omit_sections
         )
         return self.format_mime(bundle)
 
