@@ -16,6 +16,7 @@ __all__ = ['Inspector','InspectColors']
 import ast
 import inspect
 from inspect import signature
+import html
 import linecache
 import warnings
 import os
@@ -531,7 +532,7 @@ class Inspector(Colorable):
         """
         defaults = {
             'text/plain': text,
-            'text/html': '<pre>' + text + '</pre>'
+            'text/html': '<pre>' + html.escape(text) + '</pre>'
         }
 
         if formatter is None:
