@@ -128,7 +128,6 @@ More powerful methods
 
       Displays the object as a side effect; the return value is ignored. If this
       is defined, all other display methods are ignored.
-      This method is ignored in the REPL.
 
 
 Metadata
