@@ -553,23 +553,23 @@ class Inspector(Colorable):
 
     def format_mime(self, bundle):
         """Format a mimebundle being created by _make_info_unformatted into a real mimebundle"""
-        # First, format the field names and values for the text/plain field
-        text_plain = bundle['text/plain']
-        if isinstance(text_plain, (list, tuple)):
-            text = ''
-            heads, bodies = list(zip(*text_plain))
-            _len = max(len(h) for h in heads)
+        # Format text/plain mimetype
+        if isinstance(bundle['text/plain'], (list, tuple)):
+            # bundle['text/plain'] is a list of (head, formatted body) pairs
+            lines = []
+            _len = max(len(h) for h,_ in bundle['text/plain'])
 
-            for head, body in zip(heads, bodies):
+            for head, body in bundle['text/plain']:
                 body = body.strip('\n')
                 delim = '\n' if '\n' in body else ' '
-                text += self.__head(head+':') + (_len - len(head))*' ' +delim + body +'\n'
+                lines.append(f"{self.__head(head+':')}{(_len - len(head))*' '}{delim}{body}")
 
-            bundle['text/plain'] = text
+            bundle['text/plain'] = '\n'.join(lines)
 
-        # Next format the text/html value by joining strings if it is a list of strings
+        # Format the text/html mimetype
         if isinstance(bundle['text/html'], (list, tuple)):
-            bundle['text/html'] = '\n'.join(bundle['text/html'])
+            # bundle['text/html'] is a list of (head, formatted body) pairs
+            bundle['text/html'] = '\n'.join((f'<h1>{head}</h1>\n{body}' for (head,body) in bundle['text/html']))
         return bundle
 
     def _append_info_field(self, bundle, title:str, key:str, info, omit_sections, formatter):
@@ -580,7 +580,7 @@ class Inspector(Colorable):
         if field is not None:
             formatted_field = self._mime_format(field, formatter)
             bundle['text/plain'].append((title, formatted_field['text/plain']))
-            bundle['text/html'] += '<h1>' + title + '</h1>\n' + formatted_field['text/html']
+            bundle['text/html'].append((title, formatted_field['text/html']))
 
     def _make_info_unformatted(self, info, formatter, detail_level, omit_sections):
         """Assemble the mimebundle as unformatted lists of information"""
