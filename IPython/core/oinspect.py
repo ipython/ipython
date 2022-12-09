@@ -552,20 +552,103 @@ class Inspector(Colorable):
 
 
     def format_mime(self, bundle):
-
+        """Format a mimebundle being created by _make_info_unformatted into a real mimebundle"""
+        # First, format the field names and values for the text/plain field
         text_plain = bundle['text/plain']
+        if isinstance(text_plain, (list, tuple)):
+            text = ''
+            heads, bodies = list(zip(*text_plain))
+            _len = max(len(h) for h in heads)
 
-        text = ''
-        heads, bodies = list(zip(*text_plain))
-        _len = max(len(h) for h in heads)
+            for head, body in zip(heads, bodies):
+                body = body.strip('\n')
+                delim = '\n' if '\n' in body else ' '
+                text += self.__head(head+':') + (_len - len(head))*' ' +delim + body +'\n'
 
-        for head, body in zip(heads, bodies):
-            body = body.strip('\n')
-            delim = '\n' if '\n' in body else ' '
-            text += self.__head(head+':') + (_len - len(head))*' ' +delim + body +'\n'
+            bundle['text/plain'] = text
 
-        bundle['text/plain'] = text
+        # Next format the text/html value by joining strings if it is a list of strings
+        if isinstance(bundle['text/html'], (list, tuple)):
+            bundle['text/html'] = '\n'.join(bundle['text/html'])
         return bundle
+
+    def _append_info_field(self, bundle, title:str, key:str, info, omit_sections, formatter):
+        """Append an info value to the unformatted mimebundle being constructed by _make_info_unformatted"""
+        if title in omit_sections or key in omit_sections:
+            return
+        field = info[key]
+        if field is not None:
+            formatted_field = self._mime_format(field, formatter)
+            bundle['text/plain'].append((title, formatted_field['text/plain']))
+            bundle['text/html'] += '<h1>' + title + '</h1>\n' + formatted_field['text/html']
+
+    def _make_info_unformatted(self, info, formatter, detail_level, omit_sections):
+        """Assemble the mimebundle as unformatted lists of information"""
+        bundle = {
+            'text/plain': [],
+            'text/html': [],
+        }
+
+        # A convenience function to simplify calls below
+        def append_field(bundle, title:str, key:str, formatter=None):
+            self._append_info_field(bundle, title=title, key=key, info=info, omit_sections=omit_sections, formatter=formatter)
+
+        def code_formatter(text):
+            return {
+                'text/plain': self.format(text),
+                'text/html': pylight(text)
+            }
+
+        if info['isalias']:
+            append_field(bundle, 'Repr', 'string_form')
+
+        elif info['ismagic']:
+            if detail_level > 0:
+                append_field(bundle, 'Source', 'source', code_formatter)
+            else:
+                append_field(bundle, 'Docstring', 'docstring', formatter)
+            append_field(bundle, 'File', 'file')
+
+        elif info['isclass'] or is_simple_callable(obj):
+            # Functions, methods, classes
+            append_field(bundle, 'Signature', 'definition', code_formatter)
+            append_field(bundle, 'Init signature', 'init_definition', code_formatter)
+            append_field(bundle, 'Docstring', 'docstring', formatter)
+            if detail_level > 0 and info['source']:
+                append_field(bundle, 'Source', 'source', code_formatter)
+            else:
+                append_field(bundle, 'Init docstring', 'init_docstring', formatter)
+
+            append_field(bundle, 'File', 'file')
+            append_field(bundle, 'Type', 'type_name')
+            append_field(bundle, 'Subclasses', 'subclasses')
+
+        else:
+            # General Python objects
+            append_field(bundle, 'Signature', 'definition', code_formatter)
+            append_field(bundle, 'Call signature', 'call_def', code_formatter)
+            append_field(bundle, 'Type', 'type_name')
+            append_field(bundle, 'String form', 'string_form')
+
+            # Namespace
+            if info['namespace'] != 'Interactive':
+                append_field(bundle, 'Namespace', 'namespace')
+
+            append_field(bundle, 'Length', 'length')
+            append_field(bundle, 'File', 'file')
+
+            # Source or docstring, depending on detail level and whether
+            # source found.
+            if detail_level > 0 and info['source']:
+                append_field(bundle, 'Source', 'source', code_formatter)
+            else:
+                append_field(bundle, 'Docstring', 'docstring', formatter)
+
+            append_field(bundle, 'Class docstring', 'class_docstring', formatter)
+            append_field(bundle, 'Init docstring', 'init_docstring', formatter)
+            append_field(bundle, 'Call docstring', 'call_docstring', formatter)
+        return bundle
+
 
     def _get_info(
         self, obj, oname="", formatter=None, info=None, detail_level=0, omit_sections=()
@@ -588,78 +671,8 @@ class Inspector(Colorable):
         """
 
         info = self.info(obj, oname=oname, info=info, detail_level=detail_level)
-
-        _mime = {
-            'text/plain': [],
-            'text/html': '',
-        }
-
-        def append_field(bundle, title:str, key:str, formatter=None):
-            if title in omit_sections or key in omit_sections:
-                return
-            field = info[key]
-            if field is not None:
-                formatted_field = self._mime_format(field, formatter)
-                bundle['text/plain'].append((title, formatted_field['text/plain']))
-                bundle['text/html'] += '<h1>' + title + '</h1>\n' + formatted_field['text/html'] + '\n'
-
-        def code_formatter(text):
-            return {
-                'text/plain': self.format(text),
-                'text/html': pylight(text)
-            }
-
-        if info['isalias']:
-            append_field(_mime, 'Repr', 'string_form')
-
-        elif info['ismagic']:
-            if detail_level > 0:
-                append_field(_mime, 'Source', 'source', code_formatter)
-            else:
-                append_field(_mime, 'Docstring', 'docstring', formatter)
-            append_field(_mime, 'File', 'file')
-
-        elif info['isclass'] or is_simple_callable(obj):
-            # Functions, methods, classes
-            append_field(_mime, 'Signature', 'definition', code_formatter)
-            append_field(_mime, 'Init signature', 'init_definition', code_formatter)
-            append_field(_mime, 'Docstring', 'docstring', formatter)
-            if detail_level > 0 and info['source']:
-                append_field(_mime, 'Source', 'source', code_formatter)
-            else:
-                append_field(_mime, 'Init docstring', 'init_docstring', formatter)
-
-            append_field(_mime, 'File', 'file')
-            append_field(_mime, 'Type', 'type_name')
-            append_field(_mime, 'Subclasses', 'subclasses')
-
-        else:
-            # General Python objects
-            append_field(_mime, 'Signature', 'definition', code_formatter)
-            append_field(_mime, 'Call signature', 'call_def', code_formatter)
-            append_field(_mime, 'Type', 'type_name')
-            append_field(_mime, 'String form', 'string_form')
-
-            # Namespace
-            if info['namespace'] != 'Interactive':
-                append_field(_mime, 'Namespace', 'namespace')
-
-            append_field(_mime, 'Length', 'length')
-            append_field(_mime, 'File', 'file')
-
-            # Source or docstring, depending on detail level and whether
-            # source found.
-            if detail_level > 0 and info['source']:
-                append_field(_mime, 'Source', 'source', code_formatter)
-            else:
-                append_field(_mime, 'Docstring', 'docstring', formatter)
-
-            append_field(_mime, 'Class docstring', 'class_docstring', formatter)
-            append_field(_mime, 'Init docstring', 'init_docstring', formatter)
-            append_field(_mime, 'Call docstring', 'call_docstring', formatter)
-
-
-        return self.format_mime(_mime)
+        bundle = self._make_info_unformatted(info, formatter, detail_level=detail_level, omit_sections=omit_sections)
+        return self.format_mime(bundle)
 
     def pinfo(
         self,
