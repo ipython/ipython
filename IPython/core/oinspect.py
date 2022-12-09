@@ -531,8 +531,8 @@ class Inspector(Colorable):
 
         """
         defaults = {
-            'text/plain': text,
-            'text/html': '<pre>' + html.escape(text) + '</pre>'
+            "text/plain": text,
+            "text/html": f"<pre>{html.escape(text)}</pre>",
         }
 
         if formatter is None:
@@ -543,10 +543,7 @@ class Inspector(Colorable):
             if not isinstance(formatted, dict):
                 # Handle the deprecated behavior of a formatter returning
                 # a string instead of a mime bundle.
-                return {
-                    'text/plain': formatted,
-                    'text/html': '<pre>' + formatted + '</pre>'
-                }
+                return {"text/plain": formatted, "text/html": f"<pre>{formatted}</pre>"}
 
             else:
                 return dict(defaults, **formatted)
