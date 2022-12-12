@@ -611,8 +611,8 @@ class AutoreloadMagics(Magics):
         p  = print
 
         logger = logging.getLogger("autoreload")
-        def l(msg):
-            logger.info(msg)
+
+        l = logger.info
 
         def pl(msg):
             p(msg)
