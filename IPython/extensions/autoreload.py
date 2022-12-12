@@ -608,11 +608,11 @@ class AutoreloadMagics(Magics):
         args = magic_arguments.parse_argstring(self.autoreload, line)
         mode = args.mode.lower()
 
-        def p(msg):
-            print(msg)
+        p  = print
 
+        logger = logging.getLogger("autoreload")
         def l(msg):
-            logging.getLogger("autoreload").info(msg)
+            logger.info(msg)
 
         def pl(msg):
             p(msg)
@@ -622,11 +622,11 @@ class AutoreloadMagics(Magics):
             self._reloader._report = lambda msg: None
         elif args.print is True:
             if args.log is True:
-                self._reloader._report = lambda msg: pl(msg)
+                self._reloader._report = pl
             else:
-                self._reloader._report = lambda msg: p(msg)
+                self._reloader._report = p
         elif args.log is True:
-            self._reloader._report = lambda msg: l(msg)
+            self._reloader._report = l
 
         if mode == "" or mode == "now":
             self._reloader.check(True)
