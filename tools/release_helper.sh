@@ -8,6 +8,7 @@ python -c 'import twine'
 python -c 'import sphinx'
 python -c 'import sphinx_rtd_theme'
 python -c 'import pytest'
+python -c 'import build'
 
 
 BLACK=$(tput setaf 1)
