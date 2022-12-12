@@ -608,7 +608,7 @@ class AutoreloadMagics(Magics):
         args = magic_arguments.parse_argstring(self.autoreload, line)
         mode = args.mode.lower()
 
-        p  = print
+        p = print
 
         logger = logging.getLogger("autoreload")
 
