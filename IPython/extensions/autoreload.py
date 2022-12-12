@@ -653,14 +653,14 @@ class AutoreloadMagics(Magics):
         List modules to automatically import and not to import.
 
         %aimport foo
-        Import module 'foo' and mark it to be autoreloaded for %autoreload 1
+        Import module 'foo' and mark it to be autoreloaded for %autoreload explicit
 
         %aimport foo, bar
-        Import modules 'foo', 'bar' and mark them to be autoreloaded for %autoreload 1
+        Import modules 'foo', 'bar' and mark them to be autoreloaded for %autoreload explicit
 
         %aimport -foo, bar
-        Mark module 'foo' to not be autoreloaded for %autoreload 1, 2, or 3, and 'bar'
-        to be autoreloaded for 1.
+        Mark module 'foo' to not be autoreloaded for %autoreload explicit, all, or complete, and 'bar'
+        to be autoreloaded for mode explicit.
         """
         modname = parameter_s
         if not modname:
