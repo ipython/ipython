@@ -716,6 +716,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # This hook runs with each cycle of the `prompt_toolkit`'s event loop.
             self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
         else:
+            print(f'Disconnecting event loop {self._inputhook=}')
             self.active_eventloop = self._inputhook = None
 
         # For prompt_toolkit 3.0. We have to create an asyncio event loop with
