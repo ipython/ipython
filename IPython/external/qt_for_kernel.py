@@ -100,6 +100,7 @@ def get_options():
     #already imported Qt somewhere. Use that
     loaded = loaded_api()
     if loaded is not None:
+        print(f'`QtCore` already imported: {loaded=}')
         return [loaded]
 
     mpl = sys.modules.get('matplotlib', None)
