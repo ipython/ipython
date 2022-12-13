@@ -40,18 +40,19 @@ class UnknownBackend(KeyError):
                                     ', '.join(backends + sorted(registered)))
 
 
+last_qt_version = None  # stores which version (i.e. `gui`) was requested the first time.
+
 def set_qt_api(gui):
     """Sets the `QT_API` environment variable if it isn't already set."""
-    # TODO: how do we do this here?
-    # if hasattr(kernel, "app"):
-    #     raise RuntimeError("Kernel already running a Qt event loop.")
 
-    # if gui != "qt" and hasattr(kernel, "last_qt_version"):
-    #     if kernel.last_qt_version != gui:
-    #         raise ValueError(
-    #             "Cannot switch Qt versions for this session; "
-    #             f"must use {kernel.last_qt_version}."
-    #         )
+    global last_qt_version
+
+    if gui != "qt" and last_qt_version is not None:
+        if last_qt_version != gui:
+            raise ValueError(
+                "Cannot switch Qt versions for this session; "
+                f"must use {last_qt_version}."
+            )
 
     qt_api = os.environ.get("QT_API", None)
     if qt_api is not None and gui != "qt":
@@ -115,6 +116,9 @@ def set_qt_api(gui):
                 f'Unrecognized Qt version: {gui}. Should be "qt4", "qt5", "qt6", or "qt".'
             )
 
+    # Due to the import mechanism, we can't change Qt versions once we've chosen one. So we tag the
+    # version so we can check for this and give an error.
+    last_qt_version = gui
 
 def get_inputhook_name_and_func(gui):
     print(f'`get_inputhook_name_and_func` called with {gui=}')
