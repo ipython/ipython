@@ -104,7 +104,7 @@ def get_options():
         return [loaded]
 
     mpl = sys.modules.get("matplotlib", None)
-    print(f"{mpl=}") # will be None of matplotlib has not yet been imported
+    print(f"{mpl=}")  # will be None of matplotlib has not yet been imported
 
     if mpl is not None and tuple(mpl.__version__.split(".")) < ("1", "0", "2"):
         # 1.0.1 only supports PyQt4 v1

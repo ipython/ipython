@@ -394,6 +394,7 @@ def load_qt(api_options):
             )
         )
 
+
 def enum_factory(QT_API, QtCore):
     """Construct an enum helper to account for PyQt5 <-> PyQt6 changes."""
 
