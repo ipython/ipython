@@ -367,7 +367,8 @@ def load_qt(api_options):
         commit_api(api)
         return result
     else:
-        raise ImportError("""
+        raise ImportError(
+            """
     Could not load requested Qt binding. Please ensure that
     PyQt4 >= 4.7, PyQt5, PyQt6, PySide >= 1.0.3, PySide2, or 
     PySide6is available, and only one is imported per session.
@@ -380,15 +381,18 @@ def load_qt(api_options):
     PySide2 installed:                                          %s
     PySide6 installed:                                          %s
     Tried to load:                                              %r
-    """ % (loaded_api(),
-           has_binding(QT_API_PYQT),
-           has_binding(QT_API_PYQT5),
-           has_binding(QT_API_PYQT6),
-           has_binding(QT_API_PYSIDE),
-           has_binding(QT_API_PYSIDE2),
-           has_binding(QT_API_PYSIDE6),
-           api_options))
-
+    """
+            % (
+                loaded_api(),
+                has_binding(QT_API_PYQT),
+                has_binding(QT_API_PYQT5),
+                has_binding(QT_API_PYQT6),
+                has_binding(QT_API_PYSIDE),
+                has_binding(QT_API_PYSIDE2),
+                has_binding(QT_API_PYSIDE6),
+                api_options,
+            )
+        )
 
 def enum_factory(QT_API, QtCore):
     """Construct an enum helper to account for PyQt5 <-> PyQt6 changes."""

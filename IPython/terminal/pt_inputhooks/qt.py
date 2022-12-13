@@ -1,6 +1,5 @@
 import sys
 import os
-#`qt_for_kernel` will import the "best" qt version
 from IPython.external.qt_for_kernel import QtCore, QtGui, enum_helper
 from IPython import get_ipython
 
@@ -62,7 +61,7 @@ def inputhook(context):
     event_loop = QtCore.QEventLoop(app)
     global announced
     if announced == 0:
-        print(f'`inputhook` running Qt {QtCore.qVersion()} event loop.\r')
+        print(f"`inputhook` running Qt {QtCore.qVersion()} event loop.")
         announced += 1
     elif announced == 10:
         announced = 0

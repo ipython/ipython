@@ -40,7 +40,9 @@ class UnknownBackend(KeyError):
                                     ', '.join(backends + sorted(registered)))
 
 
-last_qt_version = None  # stores which version (i.e. `gui`) was requested the first time.
+last_qt_version = None
+"""Stores which version (i.e. `gui`) was requested the first time."""
+
 
 def set_qt_api(gui):
     """Sets the `QT_API` environment variable if it isn't already set."""
@@ -121,7 +123,7 @@ def set_qt_api(gui):
     last_qt_version = gui
 
 def get_inputhook_name_and_func(gui):
-    print(f'`get_inputhook_name_and_func` called with {gui=}')
+    print(f"`get_inputhook_name_and_func` called with {gui=}")
     if gui in registered:
         return gui, registered[gui]
 
@@ -129,7 +131,7 @@ def get_inputhook_name_and_func(gui):
         raise UnknownBackend(gui)
 
     if gui in aliases:
-        print('gui has an alias')
+        print("gui has an alias")
         return get_inputhook_name_and_func(aliases[gui])
 
     gui_mod = gui

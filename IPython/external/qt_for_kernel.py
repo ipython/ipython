@@ -100,11 +100,11 @@ def get_options():
     #already imported Qt somewhere. Use that
     loaded = loaded_api()
     if loaded is not None:
-        print(f'`QtCore` already imported: {loaded=}')
+        print(f"`QtCore` already imported: {loaded=}")
         return [loaded]
 
-    mpl = sys.modules.get('matplotlib', None)
-    print(f'{mpl=}') # will be None of matplotlib has not yet been imported
+    mpl = sys.modules.get("matplotlib", None)
+    print(f"{mpl=}") # will be None of matplotlib has not yet been imported
 
     if mpl is not None and tuple(mpl.__version__.split(".")) < ("1", "0", "2"):
         # 1.0.1 only supports PyQt4 v1
@@ -126,12 +126,12 @@ def get_options():
         raise RuntimeError("Invalid Qt API %r, valid values are: %r" %
                            (qt_api, ', '.join(_qt_apis)))
     else:
-        print(f'{qt_api=}')
+        print(f"{qt_api=}")
         return [qt_api]
 
 
 api_opts = get_options()
-print(f'Importing `IPython.terminal.pt_inputhooks.qt` with {api_opts=}')
+print(f"Importing `IPython.terminal.pt_inputhooks.qt` with {api_opts=}")
 QtCore, QtGui, QtSvg, QT_API = load_qt(api_opts)
-print(f'Loaded Qt with {QT_API=}')
+print(f"Loaded Qt with {QT_API=}")
 enum_helper = enum_factory(QT_API, QtCore)
