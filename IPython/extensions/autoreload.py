@@ -633,14 +633,16 @@ class AutoreloadMagics(Magics):
         elif mode == "0" or mode == "off":
             self._reloader.enabled = False
         elif mode == "1" or mode == "explicit":
+            self._reloader.enabled = True
             self._reloader.check_all = False
-            self._reloader.enabled = True
+            self._reloader.autoload_obj = False
         elif mode == "2" or mode == "all":
-            self._reloader.check_all = True
             self._reloader.enabled = True
+            self._reloader.check_all = True
+            self._reloader.autoload_obj = False
         elif mode == "3" or mode == "complete":
-            self._reloader.check_all = True
             self._reloader.enabled = True
+            self._reloader.check_all = True
             self._reloader.autoload_obj = True
         else:
             raise ValueError(f'Unrecognized autoreload mode "{mode}".')
