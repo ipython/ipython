@@ -3138,8 +3138,12 @@ class InteractiveShell(SingletonConfigurable):
             else:
                 cell = raw_cell
 
+        # Do NOT store paste/cpaste magic history
+        if "get_ipython().run_line_magic(" in cell and "paste" in cell:
+            store_history = False
+
         # Store raw and processed history
-        if store_history and raw_cell.strip(" %") != "paste":
+        if store_history:
             self.history_manager.store_inputs(self.execution_count, cell, raw_cell)
         if not silent:
             self.logger.log(cell, raw_cell)
