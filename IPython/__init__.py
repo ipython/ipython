@@ -1,3 +1,4 @@
+# PYTHON_ARGCOMPLETE_OK
 """
 IPython: tools for interactive and parallel computing in Python.
 
