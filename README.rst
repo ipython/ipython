@@ -5,7 +5,7 @@
     :target: https://pypi.python.org/pypi/ipython
 
 .. image:: https://github.com/ipython/ipython/actions/workflows/test.yml/badge.svg
-    :target: https://github.com/ipython/ipython/actions/workflows/test.yml)
+    :target: https://github.com/ipython/ipython/actions/workflows/test.yml
 
 .. image:: https://www.codetriage.com/ipython/ipython/badges/users.svg
     :target: https://www.codetriage.com/ipython/ipython/

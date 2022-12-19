@@ -77,4 +77,7 @@ jobs:
       run: |
         pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }}
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
+      with:
+         name: Test
+         files: /home/runner/work/ipython/ipython/coverage.xml
