@@ -72,6 +72,7 @@ def set_qt_api(gui):
                 f'environment variable is set to "{qt_api}"'
             )
     else:
+        # NOTE: 'qt4' is not selectable because it's set as an alias for 'qt'; see `aliases` above.
         if gui == "qt4":
             try:
                 import PyQt  # noqa
