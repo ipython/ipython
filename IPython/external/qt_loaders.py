@@ -370,8 +370,8 @@ def load_qt(api_options):
         raise ImportError(
             """
     Could not load requested Qt binding. Please ensure that
-    PyQt4 >= 4.7, PyQt5, PyQt6, PySide >= 1.0.3, PySide2, or 
-    PySide6is available, and only one is imported per session.
+    PyQt4 >= 4.7, PyQt5, PyQt6, PySide >= 1.0.3, PySide2, or
+    PySide6 is available, and only one is imported per session.
 
     Currently-imported Qt library:                              %r
     PyQt4 available (requires QtCore, QtGui, QtSvg):            %s
