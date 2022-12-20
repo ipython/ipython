@@ -59,21 +59,21 @@ def set_qt_api(gui):
     loaded = loaded_api()
 
     qt_env2gui = {
-        QT_API_PYSIDE: 'qt4',
-        QT_API_PYQTv1: 'qt4',
-        QT_API_PYQT: 'qt4',
-        QT_API_PYSIDE2: 'qt5',
-        QT_API_PYQT5: 'qt5',
-        QT_API_PYSIDE6: 'qt6',
-        QT_API_PYQT6: 'qt6',
+        QT_API_PYSIDE: "qt4",
+        QT_API_PYQTv1: "qt4",
+        QT_API_PYQT: "qt4",
+        QT_API_PYSIDE2: "qt5",
+        QT_API_PYQT5: "qt5",
+        QT_API_PYSIDE6: "qt6",
+        QT_API_PYQT6: "qt6",
     }
-    if loaded is not None and gui != 'qt':
+    if loaded is not None and gui != "qt":
         if qt_env2gui[loaded] != gui:
             raise ImportError(
-                f'Cannot switch Qt versions for this session; must use {qt_env2gui[loaded]}.'
+                f"Cannot switch Qt versions for this session; must use {qt_env2gui[loaded]}."
             )
 
-    if qt_api is not None and gui != 'qt':
+    if qt_api is not None and gui != "qt":
         if qt_env2gui[qt_api] != gui:
             print(
                 f'Request for "{gui}" will be ignored because `QT_API` '
