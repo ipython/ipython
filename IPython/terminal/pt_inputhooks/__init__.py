@@ -40,33 +40,41 @@ class UnknownBackend(KeyError):
                                     ', '.join(backends + sorted(registered)))
 
 
-last_qt_version = None
-"""Stores which version (i.e. `gui`) was requested the first time."""
-
-
 def set_qt_api(gui):
     """Sets the `QT_API` environment variable if it isn't already set."""
 
-    global last_qt_version
+    qt_api = os.environ.get("QT_API", None)
 
-    if gui != "qt" and last_qt_version is not None:
-        if last_qt_version != gui:
-            raise ValueError(
-                "Cannot switch Qt versions for this session; "
-                f"must use {last_qt_version}."
+    from IPython.external.qt_loaders import (
+        QT_API_PYQT,
+        QT_API_PYQT5,
+        QT_API_PYQT6,
+        QT_API_PYSIDE,
+        QT_API_PYSIDE2,
+        QT_API_PYSIDE6,
+        QT_API_PYQTv1,
+        loaded_api,
+    )
+
+    loaded = loaded_api()
+
+    qt_env2gui = {
+        QT_API_PYSIDE: 'qt4',
+        QT_API_PYQTv1: 'qt4',
+        QT_API_PYQT: 'qt4',
+        QT_API_PYSIDE2: 'qt5',
+        QT_API_PYQT5: 'qt5',
+        QT_API_PYSIDE6: 'qt6',
+        QT_API_PYQT6: 'qt6',
+    }
+    if loaded is not None and gui != 'qt':
+        if qt_env2gui[loaded] != gui:
+            raise ImportError(
+                f'Cannot switch Qt versions for this session; must use {qt_env2gui[loaded]}.'
             )
 
-    qt_api = os.environ.get("QT_API", None)
-    if qt_api is not None and gui != "qt":
-        env2gui = {
-            "pyside": "qt4",
-            "pyqt": "qt4",
-            "pyside2": "qt5",
-            "pyqt5": "qt5",
-            "pyside6": "qt6",
-            "pyqt6": "qt6",
-        }
-        if env2gui[qt_api] != gui:
+    if qt_api is not None and gui != 'qt':
+        if qt_env2gui[qt_api] != gui:
             print(
                 f'Request for "{gui}" will be ignored because `QT_API` '
                 f'environment variable is set to "{qt_api}"'
@@ -119,9 +127,6 @@ def set_qt_api(gui):
                 f'Unrecognized Qt version: {gui}. Should be "qt4", "qt5", "qt6", or "qt".'
             )
 
-    # Due to the import mechanism, we can't change Qt versions once we've chosen one. So we tag the
-    # version so we can check for this and give an error.
-    last_qt_version = gui
 
 def get_inputhook_name_and_func(gui):
     print(f"`get_inputhook_name_and_func` called with {gui=}")
