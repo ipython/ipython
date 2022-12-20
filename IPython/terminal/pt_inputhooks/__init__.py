@@ -129,7 +129,6 @@ def set_qt_api(gui):
 
 
 def get_inputhook_name_and_func(gui):
-    print(f"`get_inputhook_name_and_func` called with {gui=}")
     if gui in registered:
         return gui, registered[gui]
 
@@ -137,7 +136,6 @@ def get_inputhook_name_and_func(gui):
         raise UnknownBackend(gui)
 
     if gui in aliases:
-        print("gui has an alias")
         return get_inputhook_name_and_func(aliases[gui])
 
     gui_mod = gui
