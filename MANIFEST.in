@@ -4,6 +4,7 @@ include LICENSE
 include setupbase.py
 include MANIFEST.in
 include pytest.ini
+include py.typed
 include mypy.ini
 include .mailmap
 include .flake8

@@ -116,6 +116,21 @@ class CachingCompiler(codeop.Compile):
         """
         return code_name(transformed_code, number)
 
+    def format_code_name(self, name):
+        """Return a user-friendly label and name for a code block.
+
+        Parameters
+        ----------
+        name : str
+            The name for the code block returned from get_code_name
+
+        Returns
+        -------
+        A (label, name) pair that can be used in tracebacks, or None if the default formatting should be used.
+        """
+        if name in self._filename_map:
+            return "Cell", "In[%s]" % self._filename_map[name]
+
     def cache(self, transformed_code, number=0, raw_code=None):
         """Make a name for a block of code, and cache the code.
 

@@ -31,6 +31,8 @@ jobs:
       run: |
         mypy -p IPython.terminal
         mypy -p IPython.core.magics
+        mypy -p IPython.core.guarded_eval
+        mypy -p IPython.core.completer
     - name: Lint with pyflakes
       run: |
         flake8  IPython/core/magics/script.py

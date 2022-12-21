@@ -2,6 +2,32 @@
  8.x Series
 ============
 
+
+.. _version 8.7.0:
+
+IPython 8.7.0
+-------------
+
+
+Small release of IPython with a couple of bug fixes and new features for this
+month. Next month is end of year, it is unclear if there will be a release close
+the new year's eve, or if the next release will be at end of January.
+
+Here are a few of the relevant fixes,
+as usual you can find the full list of PRs on GitHub under `the 8.7 milestone
+<https://github.com/ipython/ipython/pulls?q=milestone%3A8.7>`__.
+
+
+   - :ghpull:`13834` bump the minimum prompt toolkit to 3.0.11.
+   - IPython shipped with the ``py.typed`` marker now, and we are progressively
+     adding more types. :ghpull:`13831`
+   - :ghpull:`13817` add configuration of code blacks formatting.
+
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 8.6.0:
 
 IPython 8.6.0
@@ -40,7 +66,7 @@ As we follow NEP 29, we removed support for numpy 1.19 :ghpull:`13760`.
 
 The ``open()`` function present in the user namespace by default will now refuse
 to open the file descriptors 0,1,2 (stdin, out, err), to avoid crashing IPython.
-This mostly occurs in teaching context when incorrect values get passed around. 
+This mostly occurs in teaching context when incorrect values get passed around.
 
 
 The ``?``, ``??``, and corresponding ``pinfo``, ``pinfo2`` magics can now find
