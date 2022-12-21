@@ -147,7 +147,7 @@ class TerminalMagics(Magics):
 
         sentinel = opts.get('s', u'--')
         block = '\n'.join(get_pasted_lines(sentinel, quiet=quiet))
-        self.store_or_execute(block, name, store_history=False)
+        self.store_or_execute(block, name, store_history=True)
 
     @line_magic
     def paste(self, parameter_s=''):

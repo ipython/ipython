@@ -1,3 +1,4 @@
+# PYTHON_ARGCOMPLETE_OK
 # encoding: utf-8
 """Terminal-based IPython entry point.
 """

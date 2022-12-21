@@ -139,7 +139,15 @@ setup_args['cmdclass'] = {
     'install_scripts_sym': install_scripts_for_symlink,
     'unsymlink': unsymlink,
 }
-setup_args["entry_points"] = {"console_scripts": find_entry_points()}
+
+setup_args["entry_points"] = {
+    "console_scripts": find_entry_points(),
+    "pygments.lexers": [
+        "ipythonconsole = IPython.lib.lexers:IPythonConsoleLexer",
+        "ipython = IPython.lib.lexers:IPythonLexer",
+        "ipython3 = IPython.lib.lexers:IPython3Lexer",
+    ],
+}
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
