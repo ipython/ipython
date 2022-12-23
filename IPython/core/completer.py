@@ -59,7 +59,8 @@ and press :kbd:`Tab` to expand it to its latex form.
 
 
 Both forward and backward completions can be deactivated by setting the
-:any:`Completer.backslash_combining_completions` option to ``False``.
+:std:configtrait:`Completer.backslash_combining_completions` option to
+``False``.
 
 
 Experimental
@@ -166,7 +167,7 @@ this can be achieved by adding a list of identifiers of matchers which
 should not be suppressed to ``MatcherResult`` under ``do_not_suppress`` key.
 
 The suppression behaviour can is user-configurable via
-:any:`IPCompleter.suppress_competing_matchers`.
+:std:configtrait:`IPCompleter.suppress_competing_matchers`.
 """
 
 
@@ -972,7 +973,7 @@ class Completer(Configurable):
         help="""Activate greedy completion.
 
         .. deprecated:: 8.8
-            Use :any:`Completer.evaluation` and :any:`Completer.auto_close_dict_keys` instead.
+            Use :std:configtrait:`Completer.evaluation` and :std:configtrait:`Completer.auto_close_dict_keys` instead.
 
         When enabled in IPython 8.8 or newer, changes configuration as follows:
 
