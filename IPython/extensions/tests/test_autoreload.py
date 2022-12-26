@@ -367,7 +367,8 @@ class TestAutoreload(Fixture):
         self.shell.run_code("assert func2() == 'changed'")
         self.shell.run_code("t = Test(); assert t.new_func() == 'changed'")
         self.shell.run_code("assert number == 1")
-        self.shell.run_code("assert TestEnum.B.value == 'added'")
+        if sys.version_info < (3, 12):
+            self.shell.run_code("assert TestEnum.B.value == 'added'")
 
         # ----------- TEST IMPORT FROM MODULE --------------------------
 
