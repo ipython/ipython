@@ -72,11 +72,11 @@ def create_ipython_shortcuts(shell):
     def ebivim():
         return shell.emacs_bindings_in_vi_insert_mode
 
-    kb.add('escape', 'enter', filter=(has_focus(DEFAULT_BUFFER)
-                            & ~has_selection
-                            & insert_mode
-                            & ebivim
-                                      ))(reformat_and_execute)
+    kb.add(
+        "escape",
+        "enter",
+        filter=(has_focus(DEFAULT_BUFFER) & ~has_selection & insert_mode & ebivim),
+    )(reformat_and_execute)
 
     kb.add("c-\\")(quit)
 
