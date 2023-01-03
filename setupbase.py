@@ -218,10 +218,8 @@ def find_entry_points():
             'ipython%s = IPython:start_ipython',
         ]
     major_suffix = str(sys.version_info[0])
-    return (
-        [e % "" for e in ep]
-        + [e % major_suffix for e in ep]
-    )
+    return [e % "" for e in ep] + [e % major_suffix for e in ep]
+
 
 class install_lib_symlink(Command):
     user_options = [
