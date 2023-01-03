@@ -2,6 +2,44 @@
  8.x Series
 ============
 
+.. _version 8.8.0:
+
+IPython 8.8.0
+-------------
+
+First release of IPython in 2023 as there was no release at the end of
+December.
+
+This is an unusually big release (relatively speaking) with more than 15 Pull
+Requests merge.
+
+Of particular interest are:
+
+ - :ghpull:`13852` that replace the greedy completer and improve
+   completion, in particular for dictionary keys.
+ - :ghpull:`13858` that adds ``py.typed`` to ``setup.cfg`` to make sure it is
+   bundled in wheels.
+ - :ghpull:`13869` that implements tab completions for IPython options in the
+   shell when using `argcomplete <https://github.com/kislyuk/argcomplete>`. I
+   believe this also needs a recent version of Traitlets.
+ - :ghpull:`13865` makes the ``inspector`` class of `InteractiveShell`
+   configurable.
+ - :ghpull:`13880` that remove minor-version entrypoints as the minor version
+   entry points that would be included in the wheel would be the one of the
+   Python version that was used to build the ``whl`` file.
+
+In no particular order, the rest of the changes update the test suite to be
+compatible with Pygments 2.14, various docfixes, testing on more recent python
+versions and various updates.
+
+As usual you can find the full list of PRs on GitHub under `the 8.8 milestone
+<https://github.com/ipython/ipython/milestone/110>`__.
+
+Many thanks to @krassowski for the many PRs and @jasongrout for reviewing and
+merging contributions.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 .. _version 8.7.0:
 
@@ -138,7 +176,7 @@ Here is a non exhaustive list of changes that have been implemented for IPython
  - Fix paste magic on wayland. :ghpull:`13671`
  - show maxlen in deque's repr. :ghpull:`13648`
 
-Restore line numbers for Input 
+Restore line numbers for Input
 ------------------------------
 
 Line number information in tracebacks from input are restored.
@@ -269,7 +307,7 @@ Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
 work on IPython and related libraries.
 
 .. _version 8.1.1:
-   
+
 IPython 8.1.1
 -------------
 
@@ -403,10 +441,10 @@ The 8.x branch started diverging from its predecessor around IPython 7.12
 (January 2020).
 
 This release contains 250+ pull requests, in addition to many of the features
-and backports that have made it to the 7.x branch. Please see the 
+and backports that have made it to the 7.x branch. Please see the
 `8.0 milestone <https://github.com/ipython/ipython/milestone/73?closed=1>`__ for the full list of pull requests.
 
-Please feel free to send pull requests to updates those notes after release, 
+Please feel free to send pull requests to updates those notes after release,
 I have likely forgotten a few things reviewing 250+ PRs.
 
 Dependencies changes/downstream packaging
@@ -421,7 +459,7 @@ looking for help to do so.
  - minimal Python is now 3.8
  - ``nose`` is not a testing requirement anymore
  - ``pytest`` replaces nose.
- - ``iptest``/``iptest3`` cli entrypoints do not exists anymore. 
+ - ``iptest``/``iptest3`` cli entrypoints do not exists anymore.
  - minimum officially support ``numpy`` version has been bumped, but this should
    not have much effect on packaging.
 
@@ -443,7 +481,7 @@ deprecation warning:
  - Please add **since which version** something is deprecated.
 
 As a side note, it is much easier to conditionally compare version
-numbers rather than using ``try/except`` when functionality changes with a version. 
+numbers rather than using ``try/except`` when functionality changes with a version.
 
 I won't list all the removed features here, but modules like ``IPython.kernel``,
 which was just a shim module around ``ipykernel`` for the past 8 years, have been
@@ -475,7 +513,7 @@ by mypy.
 Featured changes
 ----------------
 
-Here is a features list of changes in IPython 8.0. This is of course non-exhaustive. 
+Here is a features list of changes in IPython 8.0. This is of course non-exhaustive.
 Please note as well that many features have been added in the 7.x branch as well
 (and hence why you want to read the 7.x what's new notes), in particular
 features contributed by QuantStack (with respect to debugger protocol and Xeus
@@ -523,7 +561,7 @@ The error traceback is now correctly formatted, showing the cell number in which
 
     ZeroDivisionError: division by zero
 
-The ``stack_data`` package has been integrated, which provides smarter information in the traceback; 
+The ``stack_data`` package has been integrated, which provides smarter information in the traceback;
 in particular it will highlight the AST node where an error occurs which can help to quickly narrow down errors.
 
 For example in the following snippet::
@@ -563,7 +601,7 @@ and IPython 8.0 is capable of telling you where the index error occurs::
     ----> 3     return x[0][i][0]
                        ^^^^^^^
 
-The corresponding locations marked here with ``^`` will show up highlighted in 
+The corresponding locations marked here with ``^`` will show up highlighted in
 the terminal and notebooks.
 
 Finally, a colon ``::`` and line number is appended after a filename in
@@ -760,7 +798,7 @@ Previously, this was not the case for the Vi-mode prompts::
 This is now fixed, and Vi prompt prefixes - ``[ins]`` and ``[nav]`` -  are
 skipped just as the normal ``In`` would be.
 
-IPython shell can be started in the Vi mode using ``ipython --TerminalInteractiveShell.editing_mode=vi``, 
+IPython shell can be started in the Vi mode using ``ipython --TerminalInteractiveShell.editing_mode=vi``,
 You should be able to change mode dynamically with ``%config TerminalInteractiveShell.editing_mode='vi'``
 
 Empty History Ranges
@@ -787,8 +825,8 @@ when followed with :kbd:`F2`), send it to `dpaste.org <http://dpast.org>`_ using
 
 Windows timing implementation: Switch to process_time
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Timing on Windows, for example with ``%%time``,  was changed from being based on ``time.perf_counter`` 
-(which counted time even when the process was sleeping) to being based on ``time.process_time`` instead 
+Timing on Windows, for example with ``%%time``,  was changed from being based on ``time.perf_counter``
+(which counted time even when the process was sleeping) to being based on ``time.process_time`` instead
 (which only counts CPU time). This brings it closer to the behavior on Linux. See :ghpull:`12984`.
 
 Miscellaneous
@@ -813,7 +851,7 @@ Re-added support for XDG config directories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 XDG support through the years comes and goes. There is a tension between having
-an identical location for configuration in all platforms versus having simple instructions. 
+an identical location for configuration in all platforms versus having simple instructions.
 After initial failures a couple of years ago, IPython was modified to automatically migrate XDG
 config files back into ``~/.ipython``. That migration code has now been removed.
 IPython now checks the XDG locations, so if you _manually_ move your config
@@ -841,7 +879,7 @@ Removing support for older Python versions
 
 
 We are removing support for Python up through 3.7, allowing internal code to use the more
-efficient ``pathlib`` and to make better use of type annotations. 
+efficient ``pathlib`` and to make better use of type annotations.
 
 .. image:: ../_images/8.0/pathlib_pathlib_everywhere.jpg
    :alt: "Meme image of Toy Story with Woody and Buzz, with the text 'pathlib, pathlib everywhere'"
