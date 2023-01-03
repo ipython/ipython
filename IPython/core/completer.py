@@ -256,7 +256,7 @@ except ImportError:
     JEDI_INSTALLED = False
 
 
-if TYPE_CHECKING or GENERATING_DOCUMENTATION:
+if TYPE_CHECKING or GENERATING_DOCUMENTATION and sys.version_info >= (3, 11):
     from typing import cast
     from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 else:
