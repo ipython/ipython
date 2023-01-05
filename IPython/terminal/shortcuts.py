@@ -68,10 +68,15 @@ def create_ipython_shortcuts(shell):
         reformat_text_before_cursor(event.current_buffer, event.current_buffer.document, shell)
         event.current_buffer.validate_and_handle()
 
-    kb.add('escape', 'enter', filter=(has_focus(DEFAULT_BUFFER)
-                            & ~has_selection
-                            & insert_mode
-                                      ))(reformat_and_execute)
+    @Condition
+    def ebivim():
+        return shell.emacs_bindings_in_vi_insert_mode
+
+    kb.add(
+        "escape",
+        "enter",
+        filter=(has_focus(DEFAULT_BUFFER) & ~has_selection & insert_mode & ebivim),
+    )(reformat_and_execute)
 
     kb.add("c-\\")(quit)
 
@@ -332,10 +337,6 @@ def create_ipython_shortcuts(shell):
 
     if sys.platform == "win32":
         kb.add("c-v", filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
-
-    @Condition
-    def ebivim():
-        return shell.emacs_bindings_in_vi_insert_mode
 
     focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
 

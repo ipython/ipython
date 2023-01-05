@@ -211,20 +211,15 @@ def find_entry_points():
     use, our own build_scripts_entrypt class below parses these and builds
     command line scripts.
 
-    Each of our entry points gets a plain name, e.g. ipython, a name
-    suffixed with the Python major version number, e.g. ipython3, and
-    a name suffixed with the Python major.minor version number, eg. ipython3.8.
+    Each of our entry points gets a plain name, e.g. ipython, and a name
+    suffixed with the Python major version number, e.g. ipython3.
     """
     ep = [
             'ipython%s = IPython:start_ipython',
         ]
     major_suffix = str(sys.version_info[0])
-    minor_suffix = ".".join([str(sys.version_info[0]), str(sys.version_info[1])])
-    return (
-        [e % "" for e in ep]
-        + [e % major_suffix for e in ep]
-        + [e % minor_suffix for e in ep]
-    )
+    return [e % "" for e in ep] + [e % major_suffix for e in ep]
+
 
 class install_lib_symlink(Command):
     user_options = [

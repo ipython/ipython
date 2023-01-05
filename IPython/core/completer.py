@@ -59,7 +59,8 @@ and press :kbd:`Tab` to expand it to its latex form.
 
 
 Both forward and backward completions can be deactivated by setting the
-:any:`Completer.backslash_combining_completions` option to ``False``.
+:std:configtrait:`Completer.backslash_combining_completions` option to
+``False``.
 
 
 Experimental
@@ -166,7 +167,7 @@ this can be achieved by adding a list of identifiers of matchers which
 should not be suppressed to ``MatcherResult`` under ``do_not_suppress`` key.
 
 The suppression behaviour can is user-configurable via
-:any:`IPCompleter.suppress_competing_matchers`.
+:std:configtrait:`IPCompleter.suppress_competing_matchers`.
 """
 
 
@@ -255,7 +256,7 @@ except ImportError:
     JEDI_INSTALLED = False
 
 
-if TYPE_CHECKING or GENERATING_DOCUMENTATION:
+if TYPE_CHECKING or GENERATING_DOCUMENTATION and sys.version_info >= (3, 11):
     from typing import cast
     from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 else:
@@ -284,7 +285,7 @@ if GENERATING_DOCUMENTATION:
 # write this). With below range we cover them all, with a density of ~67%
 # biggest next gap we consider only adds up about 1% density and there are 600
 # gaps that would need hard coding.
-_UNICODE_RANGES = [(32, 0x3134b), (0xe0001, 0xe01f0)]
+_UNICODE_RANGES = [(32, 0x323B0), (0xE0001, 0xE01F0)]
 
 # Public API
 __all__ = ["Completer", "IPCompleter"]
@@ -972,7 +973,7 @@ class Completer(Configurable):
         help="""Activate greedy completion.
 
         .. deprecated:: 8.8
-            Use :any:`Completer.evaluation` and :any:`Completer.auto_close_dict_keys` instead.
+            Use :std:configtrait:`Completer.evaluation` and :std:configtrait:`Completer.auto_close_dict_keys` instead.
 
         When enabled in IPython 8.8 or newer, changes configuration as follows:
 
