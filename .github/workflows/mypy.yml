@@ -29,11 +29,13 @@ jobs:
         pip install mypy pyflakes flake8
     - name: Lint with mypy
       run: |
+        set -e
         mypy -p IPython.terminal
         mypy -p IPython.core.magics
         mypy -p IPython.core.guarded_eval
         mypy -p IPython.core.completer
     - name: Lint with pyflakes
       run: |
+        set -e
         flake8  IPython/core/magics/script.py
         flake8  IPython/core/magics/packaging.py

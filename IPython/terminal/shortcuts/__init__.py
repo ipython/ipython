@@ -11,7 +11,7 @@ import signal
 import sys
 import re
 import os
-from typing import Callable
+from typing import Callable, Dict, Union
 
 
 from prompt_toolkit.application.current import get_app
@@ -143,10 +143,10 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False):
         return paired
 
     focused_insert = (vi_insert_mode | emacs_insert_mode) & has_focus(DEFAULT_BUFFER)
-    _preceding_text_cache = {}
-    _following_text_cache = {}
+    _preceding_text_cache: Dict[Union[str, Callable], Condition] = {}
+    _following_text_cache: Dict[Union[str, Callable], Condition] = {}
 
-    def preceding_text(pattern):
+    def preceding_text(pattern: Union[str, Callable]):
         if pattern in _preceding_text_cache:
             return _preceding_text_cache[pattern]
 
@@ -383,8 +383,8 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False):
         self._input_mode = mode
 
     if shell.editing_mode == "vi" and shell.modal_cursor:
-        ViState._input_mode = InputMode.INSERT
-        ViState.input_mode = property(get_input_mode, set_input_mode)
+        ViState._input_mode = InputMode.INSERT  # type: ignore
+        ViState.input_mode = property(get_input_mode, set_input_mode)  # type: ignore
 
     return kb
 
