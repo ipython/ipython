@@ -358,6 +358,9 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False):
         auto_suggest.accept_character
     )
     kb.add("left", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
+        auto_suggest.accept_and_move_cursor_left
+    )
+    kb.add("c-down", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.accept_and_keep_cursor
     )
     kb.add("backspace", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(

@@ -164,8 +164,12 @@ def accept_and_keep_cursor(event: KeyPressEvent):
     if suggestion:
         buffer.insert_text(suggestion.text)
         buffer.cursor_position = old_position
-    else:
-        nc.backward_char(event)
+
+
+def accept_and_move_cursor_left(event: KeyPressEvent):
+    """Accept autosuggestion and move cursor left"""
+    accept_and_keep_cursor(event)
+    nc.backward_char(event)
 
 
 def backspace_and_resume_hint(event: KeyPressEvent):
