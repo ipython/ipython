@@ -357,6 +357,12 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False):
     kb.add("right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.accept_character
     )
+    kb.add("left", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
+        auto_suggest.accept_and_keep_cursor
+    )
+    kb.add("backspace", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
+        auto_suggest.backspace_and_resume_hint
+    )
 
     # Simple Control keybindings
     key_cmd_dict = {

@@ -37,6 +37,8 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
     def connect(self, pt_app: PromptSession):
         self._connected_apps.append(pt_app)
+        # note: `on_text_changed` could be used for a bit different behaviour
+        # on character deletion (i.e. reseting history position on backspace)
         pt_app.default_buffer.on_text_insert.add_handler(self.reset_history_position)
 
     def get_suggestion(
@@ -113,35 +115,35 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 # Needed for to accept autosuggestions in vi insert mode
 def accept_in_vi_insert_mode(event: KeyPressEvent):
     """Apply autosuggestion if at end of line."""
-    b = event.current_buffer
-    d = b.document
+    buffer = event.current_buffer
+    d = buffer.document
     after_cursor = d.text[d.cursor_position :]
     lines = after_cursor.split("\n")
     end_of_current_line = lines[0].strip()
-    suggestion = b.suggestion
+    suggestion = buffer.suggestion
     if (suggestion is not None) and (suggestion.text) and (end_of_current_line == ""):
-        b.insert_text(suggestion.text)
+        buffer.insert_text(suggestion.text)
     else:
         nc.end_of_line(event)
 
 
 def accept(event: KeyPressEvent):
     """Accept autosuggestion"""
-    b = event.current_buffer
-    suggestion = b.suggestion
+    buffer = event.current_buffer
+    suggestion = buffer.suggestion
     if suggestion:
-        b.insert_text(suggestion.text)
+        buffer.insert_text(suggestion.text)
     else:
         nc.forward_char(event)
 
 
 def accept_word(event: KeyPressEvent):
     """Fill partial autosuggestion by word"""
-    b = event.current_buffer
-    suggestion = b.suggestion
+    buffer = event.current_buffer
+    suggestion = buffer.suggestion
     if suggestion:
         t = re.split(r"(\S+\s+)", suggestion.text)
-        b.insert_text(next((x for x in t if x), ""))
+        buffer.insert_text(next((x for x in t if x), ""))
     else:
         nc.forward_word(event)
 
@@ -152,6 +154,33 @@ def accept_character(event: KeyPressEvent):
     suggestion = b.suggestion
     if suggestion and suggestion.text:
         b.insert_text(suggestion.text[0])
+
+
+def accept_and_keep_cursor(event: KeyPressEvent):
+    """Accept autosuggestion and keep cursor in place"""
+    buffer = event.current_buffer
+    old_position = buffer.cursor_position
+    suggestion = buffer.suggestion
+    if suggestion:
+        buffer.insert_text(suggestion.text)
+        buffer.cursor_position = old_position
+    else:
+        nc.backward_char(event)
+
+
+def backspace_and_resume_hint(event: KeyPressEvent):
+    """Resume autosuggestions after deleting last character"""
+    current_buffer = event.current_buffer
+
+    def resume_hinting(buffer: Buffer):
+        if buffer.auto_suggest:
+            suggestion = buffer.auto_suggest.get_suggestion(buffer, buffer.document)
+            if suggestion:
+                buffer.suggestion = suggestion
+        current_buffer.on_text_changed.remove_handler(resume_hinting)
+
+    current_buffer.on_text_changed.add_handler(resume_hinting)
+    nc.backward_delete_char(event)
 
 
 def accept_token(event: KeyPressEvent):
