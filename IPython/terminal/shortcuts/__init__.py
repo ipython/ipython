@@ -333,6 +333,7 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False):
     kb.add("escape", "f", filter=focused_insert_vi & ebivim)(
         autosuggestions.accept_word
     )
+    kb.add("c-right", filter=has_focus(DEFAULT_BUFFER))(autosuggestions.accept_token)
 
     # Simple Control keybindings
     key_cmd_dict = {
