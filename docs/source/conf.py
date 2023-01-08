@@ -211,7 +211,6 @@ default_role = 'literal'
 # given in html_static_path.
 # html_style = 'default.css'
 
-
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 #html_title = None
@@ -325,6 +324,10 @@ texinfo_documents = [
 ]
 
 modindex_common_prefix = ['IPython.']
+
+
+def setup(app):
+    app.add_css_file("theme_overrides.css")
 
 
 # Cleanup
