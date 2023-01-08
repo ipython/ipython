@@ -4,6 +4,7 @@ import asyncio
 import os
 import sys
 from warnings import warn
+from typing import Union as UnionType
 
 from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
@@ -49,6 +50,7 @@ from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import create_ipython_shortcuts
+from .shortcuts.auto_suggest import NavigableAutoSuggestFromHistory
 
 PTK3 = ptk_version.startswith('3.')
 
@@ -183,7 +185,7 @@ class TerminalInteractiveShell(InteractiveShell):
                                      'menus, decrease for short and wide.'
                             ).tag(config=True)
 
-    pt_app = None
+    pt_app: UnionType[PromptSession, None] = None
     debugger_history = None
 
     debugger_history_file = Unicode(
@@ -376,18 +378,25 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     autosuggestions_provider = Unicode(
-        "AutoSuggestFromHistory",
+        "NavigableAutoSuggestFromHistory",
         help="Specifies from which source automatic suggestions are provided. "
-        "Can be set to `'AutoSuggestFromHistory`' or `None` to disable"
-        "automatic suggestions. Default is `'AutoSuggestFromHistory`'.",
+        "Can be set to ``'NavigableAutoSuggestFromHistory'`` (:kbd:`up` and "
+        ":kbd:`down` swap suggestions), ``'AutoSuggestFromHistory'``, "
+        " or ``None`` to disable automatic suggestions. "
+        "Default is `'NavigableAutoSuggestFromHistory`'.",
         allow_none=True,
     ).tag(config=True)
 
     def _set_autosuggestions(self, provider):
+        # disconnect old handler
+        if self.auto_suggest and isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
+            self.auto_suggest.disconnect()
         if provider is None:
             self.auto_suggest = None
         elif provider == "AutoSuggestFromHistory":
             self.auto_suggest = AutoSuggestFromHistory()
+        elif provider == "NavigableAutoSuggestFromHistory":
+            self.auto_suggest = NavigableAutoSuggestFromHistory()
         else:
             raise ValueError("No valid provider.")
         if self.pt_app:
@@ -462,6 +471,8 @@ class TerminalInteractiveShell(InteractiveShell):
             tempfile_suffix=".py",
             **self._extra_prompt_options()
         )
+        if isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
+            self.auto_suggest.connect(self.pt_app)
 
     def _make_style_from_name_or_cls(self, name_or_cls):
         """
@@ -649,6 +660,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def __init__(self, *args, **kwargs):
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
+        self.auto_suggest: UnionType[AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None] = None
         self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()

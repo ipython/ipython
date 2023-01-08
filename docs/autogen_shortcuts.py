@@ -101,6 +101,7 @@ class _DummyTerminal:
     input_transformer_manager = None
     display_completions = None
     editing_mode = "emacs"
+    auto_suggest = None
 
 
 def create_identifier(handler: Callable):

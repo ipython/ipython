@@ -1,5 +1,5 @@
 import pytest
-from IPython.terminal.shortcuts.autosuggestions import (
+from IPython.terminal.shortcuts.auto_suggest import (
     accept_in_vi_insert_mode,
     accept_token,
 )

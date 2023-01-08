@@ -34,10 +34,22 @@ from prompt_toolkit.key_binding.vi_state import InputMode, ViState
 from prompt_toolkit.layout.layout import FocusableElement
 
 from IPython.utils.decorators import undoc
-from . import auto_match as match, autosuggestions
+from . import auto_match as match, auto_suggest
 
 
 __all__ = ["create_ipython_shortcuts"]
+
+
+try:
+    # only added in 3.0.30
+    from prompt_toolkit.filters import has_suggestion
+except ImportError:
+
+    @undoc
+    @Condition
+    def has_suggestion():
+        buffer = get_app().current_buffer
+        return buffer.suggestion is not None and buffer.suggestion.text != ""
 
 
 @undoc
@@ -324,16 +336,27 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False):
 
     # autosuggestions
     kb.add("end", filter=has_focus(DEFAULT_BUFFER) & (ebivim | ~vi_insert_mode))(
-        autosuggestions.accept_in_vi_insert_mode
+        auto_suggest.accept_in_vi_insert_mode
     )
     kb.add("c-e", filter=focused_insert_vi & ebivim)(
-        autosuggestions.accept_in_vi_insert_mode
+        auto_suggest.accept_in_vi_insert_mode
     )
-    kb.add("c-f", filter=focused_insert_vi)(autosuggestions.accept)
-    kb.add("escape", "f", filter=focused_insert_vi & ebivim)(
-        autosuggestions.accept_word
+    kb.add("c-f", filter=focused_insert_vi)(auto_suggest.accept)
+    kb.add("escape", "f", filter=focused_insert_vi & ebivim)(auto_suggest.accept_word)
+    kb.add("c-right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
+        auto_suggest.accept_token
     )
-    kb.add("c-right", filter=has_focus(DEFAULT_BUFFER))(autosuggestions.accept_token)
+    from functools import partial
+
+    kb.add("up", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
+        auto_suggest.swap_autosuggestion_up(shell.auto_suggest)
+    )
+    kb.add("down", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
+        auto_suggest.swap_autosuggestion_down(shell.auto_suggest)
+    )
+    kb.add("right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
+        auto_suggest.accept_character
+    )
 
     # Simple Control keybindings
     key_cmd_dict = {
