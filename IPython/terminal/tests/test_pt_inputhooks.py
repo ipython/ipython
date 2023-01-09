@@ -12,7 +12,7 @@ guis_avail = []
 def _get_qt_vers():
     """If any version of Qt is available, this will populate `guis_avail` with 'qt' and 'qtx'. Due
     to the import mechanism, we can't import multiple versions of Qt in one session."""
-    for gui in ["qt", "qt6", "qt5", "qt4"]:
+    for gui in ["qt", "qt6", "qt5"]:
         print(f"Trying {gui}")
         try:
             set_qt_api(gui)
@@ -39,7 +39,7 @@ def test_inputhook_qt():
     get_inputhook_name_and_func(gui)
 
     # ...and now we're stuck with this version of Qt for good; can't switch.
-    for not_gui in ["qt6", "qt5", "qt4"]:
+    for not_gui in ["qt6", "qt5"]:
         if not_gui not in guis_avail:
             break
 

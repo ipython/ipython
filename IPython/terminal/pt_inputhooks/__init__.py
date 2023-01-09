@@ -8,7 +8,6 @@ aliases = {
 
 backends = [
     "qt",
-    "qt4",
     "qt5",
     "qt6",
     "gtk",
@@ -80,21 +79,7 @@ def set_qt_api(gui):
                 f'environment variable is set to "{qt_api}"'
             )
     else:
-        # NOTE: 'qt4' is not selectable because it's set as an alias for 'qt'; see `aliases` above.
-        if gui == "qt4":
-            try:
-                import PyQt  # noqa
-
-                os.environ["QT_API"] = "pyqt"
-            except ImportError:
-                try:
-                    import PySide  # noqa
-
-                    os.environ["QT_API"] = "pyside"
-                except ImportError:
-                    # Neither implementation installed; set it to something so IPython gives an error
-                    os.environ["QT_API"] = "pyqt"
-        elif gui == "qt5":
+        if gui == "qt5":
             try:
                 import PyQt5  # noqa
 
@@ -124,7 +109,7 @@ def set_qt_api(gui):
                 del os.environ["QT_API"]
         else:
             raise ValueError(
-                f'Unrecognized Qt version: {gui}. Should be "qt4", "qt5", "qt6", or "qt".'
+                f'Unrecognized Qt version: {gui}. Should be "qt5", "qt6", or "qt".'
             )
 
 
