@@ -1,5 +1,6 @@
 import pytest
 from IPython.terminal.shortcuts.auto_suggest import (
+    accept,
     accept_in_vi_insert_mode,
     accept_token,
     accept_character,
@@ -12,6 +13,7 @@ from IPython.terminal.shortcuts.auto_suggest import (
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 from unittest.mock import patch, Mock
 
@@ -28,6 +30,22 @@ def make_event(text, cursor, suggestion):
     event.current_buffer.document.text = text
     event.current_buffer.document.cursor_position = cursor
     return event
+
+
+@pytest.mark.parametrize(
+    "text, suggestion, expected",
+    [
+        ("", "def out(tag: str, n=50):", "def out(tag: str, n=50):"),
+        ("def ", "out(tag: str, n=50):", "out(tag: str, n=50):"),
+    ],
+)
+def test_accept(text, suggestion, expected):
+    event = make_event(text, len(text), suggestion)
+    buffer = event.current_buffer
+    buffer.insert_text = Mock()
+    accept(event)
+    assert buffer.insert_text.called
+    assert buffer.insert_text.call_args[0] == (expected,)
 
 
 @pytest.mark.parametrize(
@@ -154,6 +172,17 @@ def test_autosuggest_token_empty():
         accept_token(event)
         assert not event.current_buffer.insert_text.called
         assert forward_word.called
+
+
+def test_other_providers():
+    """Ensure that swapping autosuggestions does not break with other providers"""
+    provider = AutoSuggestFromHistory()
+    up = swap_autosuggestion_up(provider)
+    down = swap_autosuggestion_down(provider)
+    event = Mock()
+    event.current_buffer = Buffer()
+    assert up(event) is None
+    assert down(event) is None
 
 
 async def test_navigable_provider():
