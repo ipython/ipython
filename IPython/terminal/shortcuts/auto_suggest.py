@@ -58,7 +58,6 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         self, text: str, skip_lines: float, history: History, previous: bool
     ):
         line_number = -1
-
         for string in reversed(list(history.get_strings())):
             for line in reversed(string.splitlines()):
                 line_number += 1
@@ -167,7 +166,7 @@ def accept_and_keep_cursor(event: KeyPressEvent):
 
 
 def accept_and_move_cursor_left(event: KeyPressEvent):
-    """Accept autosuggestion and move cursor left"""
+    """Accept autosuggestion and move cursor left in place"""
     accept_and_keep_cursor(event)
     nc.backward_char(event)
 

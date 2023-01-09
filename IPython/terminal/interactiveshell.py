@@ -389,7 +389,9 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def _set_autosuggestions(self, provider):
         # disconnect old handler
-        if self.auto_suggest and isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
+        if self.auto_suggest and isinstance(
+            self.auto_suggest, NavigableAutoSuggestFromHistory
+        ):
             self.auto_suggest.disconnect()
         if provider is None:
             self.auto_suggest = None
@@ -660,7 +662,9 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def __init__(self, *args, **kwargs):
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
-        self.auto_suggest: UnionType[AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None] = None
+        self.auto_suggest: UnionType[
+            AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
+        ] = None
         self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()

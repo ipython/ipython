@@ -2,7 +2,17 @@ import pytest
 from IPython.terminal.shortcuts.auto_suggest import (
     accept_in_vi_insert_mode,
     accept_token,
+    accept_character,
+    accept_word,
+    accept_and_keep_cursor,
+    NavigableAutoSuggestFromHistory,
+    swap_autosuggestion_up,
+    swap_autosuggestion_down,
 )
+
+from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.shortcuts import PromptSession
+from prompt_toolkit.buffer import Buffer
 
 from unittest.mock import patch, Mock
 
@@ -81,6 +91,59 @@ def test_autosuggest_token(text, suggestion, expected):
     assert event.current_buffer.insert_text.call_args[0] == (expected,)
 
 
+@pytest.mark.parametrize(
+    "text, suggestion, expected",
+    [
+        ("", "def out(tag: str, n=50):", "d"),
+        ("d", "ef out(tag: str, n=50):", "e"),
+        ("de ", "f out(tag: str, n=50):", "f"),
+        ("def", " out(tag: str, n=50):", " "),
+    ],
+)
+def test_accept_character(text, suggestion, expected):
+    event = make_event(text, len(text), suggestion)
+    event.current_buffer.insert_text = Mock()
+    accept_character(event)
+    assert event.current_buffer.insert_text.called
+    assert event.current_buffer.insert_text.call_args[0] == (expected,)
+
+
+@pytest.mark.parametrize(
+    "text, suggestion, expected",
+    [
+        ("", "def out(tag: str, n=50):", "def "),
+        ("d", "ef out(tag: str, n=50):", "ef "),
+        ("de", "f out(tag: str, n=50):", "f "),
+        ("def", " out(tag: str, n=50):", " "),
+        # (this is why we also have accept_token)
+        ("def ", "out(tag: str, n=50):", "out(tag: "),
+    ],
+)
+def test_accept_word(text, suggestion, expected):
+    event = make_event(text, len(text), suggestion)
+    event.current_buffer.insert_text = Mock()
+    accept_word(event)
+    assert event.current_buffer.insert_text.called
+    assert event.current_buffer.insert_text.call_args[0] == (expected,)
+
+
+@pytest.mark.parametrize(
+    "text, suggestion, expected, cursor",
+    [
+        ("", "def out(tag: str, n=50):", "def out(tag: str, n=50):", 0),
+        ("def ", "out(tag: str, n=50):", "out(tag: str, n=50):", 4),
+    ],
+)
+def test_accept_and_keep_cursor(text, suggestion, expected, cursor):
+    event = make_event(text, cursor, suggestion)
+    buffer = event.current_buffer
+    buffer.insert_text = Mock()
+    accept_and_keep_cursor(event)
+    assert buffer.insert_text.called
+    assert buffer.insert_text.call_args[0] == (expected,)
+    assert buffer.cursor_position == cursor
+
+
 def test_autosuggest_token_empty():
     full = "def out(tag: str, n=50):"
     event = make_event(full, len(full), "")
@@ -92,3 +155,79 @@ def test_autosuggest_token_empty():
         accept_token(event)
         assert not event.current_buffer.insert_text.called
         assert forward_word.called
+
+
+async def test_navigable_provider():
+    provider = NavigableAutoSuggestFromHistory()
+    history = InMemoryHistory(history_strings=["very_a", "very", "very_b", "very_c"])
+    buffer = Buffer(history=history)
+
+    async for _ in history.load():
+        pass
+
+    buffer.cursor_position = 5
+    buffer.text = "very"
+
+    up = swap_autosuggestion_up(provider)
+    down = swap_autosuggestion_down(provider)
+
+    event = Mock()
+    event.current_buffer = buffer
+
+    def get_suggestion():
+        suggestion = provider.get_suggestion(buffer, buffer.document)
+        buffer.suggestion = suggestion
+        return suggestion
+
+    assert get_suggestion().text == "_c"
+
+    # should go up
+    up(event)
+    assert get_suggestion().text == "_b"
+
+    # should skip over 'very' which is identical to buffer content
+    up(event)
+    assert get_suggestion().text == "_a"
+
+    # should cycle back to beginning
+    up(event)
+    assert get_suggestion().text == "_c"
+
+    # should cycle back through end boundary
+    down(event)
+    assert get_suggestion().text == "_a"
+
+    down(event)
+    assert get_suggestion().text == "_b"
+
+    down(event)
+    assert get_suggestion().text == "_c"
+
+    down(event)
+    assert get_suggestion().text == "_a"
+
+
+def test_navigable_provider_connection():
+    provider = NavigableAutoSuggestFromHistory()
+    provider.skip_lines = 1
+
+    session_1 = PromptSession()
+    provider.connect(session_1)
+
+    assert provider.skip_lines == 1
+    session_1.default_buffer.on_text_insert.fire()
+    assert provider.skip_lines == 0
+
+    session_2 = PromptSession()
+    provider.connect(session_2)
+    provider.skip_lines = 2
+
+    assert provider.skip_lines == 2
+    session_2.default_buffer.on_text_insert.fire()
+    assert provider.skip_lines == 0
+
+    provider.skip_lines = 3
+    provider.disconnect()
+    session_1.default_buffer.on_text_insert.fire()
+    session_2.default_buffer.on_text_insert.fire()
+    assert provider.skip_lines == 3
