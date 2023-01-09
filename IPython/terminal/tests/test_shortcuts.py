@@ -11,7 +11,6 @@ from IPython.terminal.shortcuts.auto_suggest import (
 )
 
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import PromptSession
 from prompt_toolkit.buffer import Buffer
 
 from unittest.mock import patch, Mock
@@ -207,18 +206,24 @@ async def test_navigable_provider():
     assert get_suggestion().text == "_a"
 
 
+def create_session_mock():
+    session = Mock()
+    session.default_buffer = Buffer()
+    return session
+
+
 def test_navigable_provider_connection():
     provider = NavigableAutoSuggestFromHistory()
     provider.skip_lines = 1
 
-    session_1 = PromptSession()
+    session_1 = create_session_mock()
     provider.connect(session_1)
 
     assert provider.skip_lines == 1
     session_1.default_buffer.on_text_insert.fire()
     assert provider.skip_lines == 0
 
-    session_2 = PromptSession()
+    session_2 = create_session_mock()
     provider.connect(session_2)
     provider.skip_lines = 2
 
