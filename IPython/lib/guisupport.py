@@ -115,7 +115,7 @@ def get_app_qt4(*args, **kwargs):
     app = QtGui.QApplication.instance()
     if app is None:
         if not args:
-            args = ([''],)
+            args = ([""],)
         app = QtGui.QApplication(*args, **kwargs)
     return app
 
@@ -128,7 +128,7 @@ def is_event_loop_running_qt4(app=None):
 
     # Old way: check attribute on QApplication singleton
     if app is None:
-        app = get_app_qt4([''])
+        app = get_app_qt4([""])
     if hasattr(app, '_in_event_loop'):
         return app._in_event_loop
     else:
@@ -138,7 +138,7 @@ def is_event_loop_running_qt4(app=None):
 def start_event_loop_qt4(app=None):
     """Start the qt event loop in a consistent manner."""
     if app is None:
-        app = get_app_qt([''])
+        app = get_app_qt4([""])
     if not is_event_loop_running_qt4(app):
         app._in_event_loop = True
         app.exec_()
