@@ -83,8 +83,8 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             query, self.skip_lines, history
         ):
             # if user has history ['very.a', 'very', 'very.b'] and typed 'very'
-            # we want to switch from 'very.b' to 'very.a' because a) if they
-            # suggestion equals current text, prompt-toolit aborts suggesting
+            # we want to switch from 'very.b' to 'very.a' because a) if the
+            # suggestion equals current text, prompt-toolkit aborts suggesting
             # b) user likely would not be interested in 'very' anyways (they
             # already typed it).
             if query + suggestion != other_than:
