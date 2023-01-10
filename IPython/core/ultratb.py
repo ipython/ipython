@@ -184,10 +184,9 @@ def _format_filename(file, ColorFilename, ColorNormal, *, lineno=None):
         ColorScheme's normal coloring to be used.
     """
     ipinst = get_ipython()
-    if (
-        ipinst is not None
-        and (data := ipinst.compile.format_code_name(file)) is not None
-    ):
+    data = ipinst.compile.format_code_name(file)
+    
+    if (ipinst is not None and data is not None):
         label, name = data
         if lineno is None:
             tpl_link = f"{{label}} {ColorFilename}{{name}}{ColorNormal}"
