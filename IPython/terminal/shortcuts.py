@@ -25,6 +25,20 @@ from prompt_toolkit.key_binding.vi_state import InputMode, ViState
 
 from IPython.utils.decorators import undoc
 
+
+def _all_quotes_paired(quote, buf):
+    paired = True
+    i = 0
+    while i < len(buf):
+        c = buf[i]
+        if c == quote:
+            paired = not paired
+        elif c == "\\":
+            i += 1
+        i += 1
+    return paired
+
+
 @undoc
 @Condition
 def cursor_in_leading_ws():
@@ -48,25 +62,34 @@ def _apply_autosuggest(event):
     else:
         nc.end_of_line(event)
 
+
+def reformat_and_execute(*, shell, **kwargs):
+    def _reformat_and_execute_inner(event):
+        # shell is a closure
+        reformat_text_before_cursor(
+            event.current_buffer, event.current_buffer.document, "shell"
+        )
+        event.current_buffer.validate_and_handle()
+
+    return _reformat_and_execute_inner
+
+
 def create_ipython_shortcuts(shell):
     """Set up the prompt_toolkit keyboard shortcuts for IPython"""
 
     kb = KeyBindings()
     insert_mode = vi_insert_mode | emacs_insert_mode
 
+    default_focus = has_focus(DEFAULT_BUFFER)
+    default_focus_no_selection_insert = default_focus & ~has_selection & insert_mode
+
     if getattr(shell, 'handle_return', None):
         return_handler = shell.handle_return(shell)
     else:
         return_handler = newline_or_execute_outer(shell)
 
-    kb.add('enter', filter=(has_focus(DEFAULT_BUFFER)
-                            & ~has_selection
-                            & insert_mode
-                        ))(return_handler)
-
-    def reformat_and_execute(event):
-        reformat_text_before_cursor(event.current_buffer, event.current_buffer.document, shell)
-        event.current_buffer.validate_and_handle()
+    kb.add("enter", filter=default_focus_no_selection_insert)(return_handler)
+    _locals = {"shell": shell}
 
     @Condition
     def ebivim():
@@ -75,21 +98,27 @@ def create_ipython_shortcuts(shell):
     kb.add(
         "escape",
         "enter",
-        filter=(has_focus(DEFAULT_BUFFER) & ~has_selection & insert_mode & ebivim),
-    )(reformat_and_execute)
+        filter=(default_focus_no_selection_insert & ebivim),
+    )(reformat_and_execute(**_locals))
+
+    kb.add(
+        "c-f10",
+        filter=(default_focus & ~has_selection & insert_mode & ebivim),
+    )(reformat_and_execute(**_locals))
 
     kb.add("c-\\")(quit)
 
-    kb.add('c-p', filter=(vi_insert_mode & has_focus(DEFAULT_BUFFER))
-                )(previous_history_or_previous_completion)
+    kb.add("c-p", filter=(vi_insert_mode & default_focus))(
+        previous_history_or_previous_completion
+    )
 
-    kb.add('c-n', filter=(vi_insert_mode & has_focus(DEFAULT_BUFFER))
-                )(next_history_or_next_completion)
+    kb.add("c-n", filter=(vi_insert_mode & default_focus))(
+        next_history_or_next_completion
+    )
 
-    kb.add('c-g', filter=(has_focus(DEFAULT_BUFFER) & has_completions)
-                )(dismiss_completion)
+    kb.add("c-g", filter=(default_focus & has_completions))(dismiss_completion)
 
-    kb.add('c-c', filter=has_focus(DEFAULT_BUFFER))(reset_buffer)
+    kb.add("c-c", filter=default_focus)(reset_buffer)
 
     kb.add('c-c', filter=has_focus(SEARCH_BUFFER))(reset_search_buffer)
 
@@ -97,33 +126,22 @@ def create_ipython_shortcuts(shell):
     kb.add('c-z', filter=supports_suspend)(suspend_to_bg)
 
     # Ctrl+I == Tab
-    kb.add('tab', filter=(has_focus(DEFAULT_BUFFER)
-                          & ~has_selection
-                          & insert_mode
-                          & cursor_in_leading_ws
-                        ))(indent_buffer)
-    kb.add('c-o', filter=(has_focus(DEFAULT_BUFFER) & emacs_insert_mode)
-           )(newline_autoindent_outer(shell.input_transformer_manager))
+    kb.add(
+        "tab",
+        filter=(default_focus_no_selection_insert & cursor_in_leading_ws),
+    )(indent_buffer)
+    kb.add("c-o", filter=(default_focus & emacs_insert_mode))(
+        newline_autoindent_outer(shell.input_transformer_manager)
+    )
 
-    kb.add('f2', filter=has_focus(DEFAULT_BUFFER))(open_input_in_editor)
+    kb.add("f2", filter=default_focus)(open_input_in_editor)
 
     @Condition
     def auto_match():
         return shell.auto_match
 
-    def all_quotes_paired(quote, buf):
-        paired = True
-        i = 0
-        while i < len(buf):
-            c = buf[i]
-            if c == quote:
-                paired = not paired
-            elif c == "\\":
-                i += 1
-            i += 1
-        return paired
 
-    focused_insert = (vi_insert_mode | emacs_insert_mode) & has_focus(DEFAULT_BUFFER)
+    focused_insert = insert_mode & default_focus
     _preceding_text_cache = {}
     _following_text_cache = {}
 
@@ -198,7 +216,7 @@ def create_ipython_shortcuts(shell):
         filter=focused_insert
         & auto_match
         & not_inside_unclosed_string
-        & preceding_text(lambda line: all_quotes_paired('"', line))
+        & preceding_text(lambda line: _all_quotes_paired('"', line))
         & following_text(r"[,)}\]]|$"),
     )
     def _(event):
@@ -210,7 +228,7 @@ def create_ipython_shortcuts(shell):
         filter=focused_insert
         & auto_match
         & not_inside_unclosed_string
-        & preceding_text(lambda line: all_quotes_paired("'", line))
+        & preceding_text(lambda line: _all_quotes_paired("'", line))
         & following_text(r"[,)}\]]|$"),
     )
     def _(event):
@@ -328,19 +346,16 @@ def create_ipython_shortcuts(shell):
         kb.add(
             "c-i",
             filter=(
-                has_focus(DEFAULT_BUFFER)
-                & ~has_selection
-                & insert_mode
-                & ~cursor_in_leading_ws
+                default_focus & ~has_selection & insert_mode & ~cursor_in_leading_ws
             ),
         )(display_completions_like_readline)
 
     if sys.platform == "win32":
-        kb.add("c-v", filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
+        kb.add("c-v", filter=(default_focus & ~vi_mode))(win_paste)
 
-    focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
+    focused_insert_vi = default_focus & vi_insert_mode
 
-    @kb.add("end", filter=has_focus(DEFAULT_BUFFER) & (ebivim | ~vi_insert_mode))
+    @kb.add("end", filter=default_focus & (ebivim | ~vi_insert_mode))
     def _(event):
         _apply_autosuggest(event)
 
@@ -427,7 +442,7 @@ def reformat_text_before_cursor(buffer, document, shell):
     try:
         formatted_text = shell.reformat_handler(text)
         buffer.insert_text(formatted_text)
-    except Exception as e:
+    except Exception:
         buffer.insert_text(text)
 
 
