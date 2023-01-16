@@ -1,7 +1,7 @@
 import re
 import tokenize
 from io import StringIO
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Generator, Tuple
 
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding import KeyPressEvent
@@ -19,7 +19,11 @@ def _get_query(document: Document):
 
 
 class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
-    """ """
+    """
+    A subclass of AutoSuggestFromHistory that allow navigation to next/previous
+    suggestion from history. To do so it remembers the current position, but it
+    state need to carefully be cleared on the right events.
+    """
 
     def __init__(
         self,
@@ -56,7 +60,24 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
     def _find_match(
         self, text: str, skip_lines: float, history: History, previous: bool
-    ):
+    ) -> Generator[Tuple[str, float], None, None]:
+        """
+        text: str
+
+        skip_lines: float
+            float is used as the base value is +inf
+
+        Yields
+        ------
+        Tuple with:
+        str:
+            current suggestion.
+        float:
+            will actually yield only ints, which is passed back via skip_lines,
+            which may be a +inf (float)
+
+
+        """
         line_number = -1
         for string in reversed(list(history.get_strings())):
             for line in reversed(string.splitlines()):

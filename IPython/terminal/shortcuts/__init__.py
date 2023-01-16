@@ -163,11 +163,11 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False):
             return _preceding_text_cache[pattern]
 
         if callable(pattern):
-
             def _preceding_text():
                 app = get_app()
                 before_cursor = app.current_buffer.document.current_line_before_cursor
-                return bool(pattern(before_cursor))
+                # mypy can't infer if(callable): https://github.com/python/mypy/issues/3603
+                return bool(pattern(before_cursor))  # type: ignore[operator]
 
         else:
             m = re.compile(pattern)
