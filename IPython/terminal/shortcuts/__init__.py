@@ -165,6 +165,7 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
             return _preceding_text_cache[pattern]
 
         if callable(pattern):
+
             def _preceding_text():
                 app = get_app()
                 before_cursor = app.current_buffer.document.current_line_before_cursor
@@ -215,11 +216,17 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
         return not ('"' in s or "'" in s)
 
     # auto match
-    auto_match_parens = {"(": match.parenthesis, "[": match.brackets, "{": match.braces}
-    for key, cmd in auto_match_parens.items():
+    for key, cmd in match.auto_match_parens.items():
         kb.add(key, filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))(
             cmd
         )
+
+    # raw string
+    for key, cmd in match.auto_match_parens_raw_string.items():
+        kb.add(
+            key,
+            filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$"),
+        )(cmd)
 
     kb.add(
         '"',
@@ -254,18 +261,6 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
         & not_inside_unclosed_string
         & preceding_text(r"^.*''$"),
     )(match.docstring_single_quotes)
-
-    # raw string
-    auto_match_parens_raw_string = {
-        "(": match.raw_string_parenthesis,
-        "[": match.raw_string_bracket,
-        "{": match.raw_string_braces,
-    }
-    for key, cmd in auto_match_parens_raw_string.items():
-        kb.add(
-            key,
-            filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$"),
-        )(cmd)
 
     # just move cursor
     kb.add(")", filter=focused_insert & auto_match & following_text(r"^\)"))(

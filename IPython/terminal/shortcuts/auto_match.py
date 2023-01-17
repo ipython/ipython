@@ -94,3 +94,11 @@ def delete_pair(event: KeyPressEvent):
     """Delete auto-closed parenthesis"""
     event.current_buffer.delete()
     event.current_buffer.delete_before_cursor()
+
+
+auto_match_parens = {"(": parenthesis, "[": brackets, "{": braces}
+auto_match_parens_raw_string = {
+    "(": raw_string_parenthesis,
+    "[": raw_string_bracket,
+    "{": raw_string_braces,
+}
