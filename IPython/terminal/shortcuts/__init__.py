@@ -6,50 +6,36 @@ Module to define and register Terminal IPython shortcuts with
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import warnings
+import os
+import re
 import signal
 import sys
-import re
-import os
+import warnings
 from typing import Callable, Dict, Union
-
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
+from prompt_toolkit.filters import Condition, emacs_insert_mode, has_completions
+from prompt_toolkit.filters import has_focus as has_focus_impl
 from prompt_toolkit.filters import (
-    has_focus as has_focus_impl,
     has_selection,
-    Condition,
+    has_suggestion,
     vi_insert_mode,
-    emacs_insert_mode,
-    has_completions,
     vi_mode,
-)
-from prompt_toolkit.key_binding.bindings.completion import (
-    display_completions_like_readline,
 )
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.bindings import named_commands as nc
+from prompt_toolkit.key_binding.bindings.completion import (
+    display_completions_like_readline,
+)
 from prompt_toolkit.key_binding.vi_state import InputMode, ViState
 from prompt_toolkit.layout.layout import FocusableElement
 
+from IPython.terminal.shortcuts import auto_match as match
+from IPython.terminal.shortcuts import auto_suggest
 from IPython.utils.decorators import undoc
-from . import auto_match as match, auto_suggest
-
 
 __all__ = ["create_ipython_shortcuts"]
-
-
-try:
-    # only added in 3.0.30
-    from prompt_toolkit.filters import has_suggestion
-except ImportError:
-
-    @undoc
-    @Condition
-    def has_suggestion():
-        buffer = get_app().current_buffer
-        return buffer.suggestion is not None and buffer.suggestion.text != ""
 
 
 @undoc
@@ -66,8 +52,24 @@ def has_focus(value: FocusableElement):
     return Condition(tester)
 
 
-def create_ipython_shortcuts(shell, for_all_platforms: bool = False):
-    """Set up the prompt_toolkit keyboard shortcuts for IPython."""
+def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindings:
+    """Set up the prompt_toolkit keyboard shortcuts for IPython.
+
+    Parameters
+    ----------
+    shell: InteractiveShell
+        The current IPython shell Instance
+    for_all_platforms: bool (default false)
+        This parameter is mostly used in generating the documentation
+        to create the shortcut binding for all the platforms, and export
+        them.
+
+    Returns
+    -------
+    KeyBindings
+        the keybinding instance for prompt toolkit.
+
+    """
     # Warning: if possible, do NOT define handler functions in the locals
     # scope of this function, instead define functions in the global
     # scope, or a separate module, and include a user-friendly docstring
@@ -613,8 +615,8 @@ if sys.platform == "win32":
     from IPython.core.error import TryNext
     from IPython.lib.clipboard import (
         ClipboardEmpty,
-        win32_clipboard_get,
         tkinter_clipboard_get,
+        win32_clipboard_get,
     )
 
     @undoc

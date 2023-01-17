@@ -260,7 +260,7 @@ def _swap_autosuggestion(
     """
     We skip most recent history entry (in either direction) if it equals the
     current autosuggestion because if user cycles when auto-suggestion is shown
-    they most likely want something else than what was suggested (othewrise
+    they most likely want something else than what was suggested (otherwise
     they would have accepted the suggestion).
     """
     suggestion = buffer.suggestion
