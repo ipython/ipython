@@ -144,6 +144,10 @@ class PtkHistoryAdapter(History):
 
     """
 
+    auto_suggest: UnionType[
+        AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
+    ]
+
     def __init__(self, shell):
         super().__init__()
         self.shell = shell
@@ -660,11 +664,9 @@ class TerminalInteractiveShell(InteractiveShell):
                 self.alias_manager.soft_define_alias(cmd, cmd)
 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
-        self.auto_suggest: UnionType[
-            AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
-        ] = None
+        self.auto_suggest = None
         self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()

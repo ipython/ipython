@@ -1,7 +1,7 @@
 import re
 import tokenize
 from io import StringIO
-from typing import Callable, List, Optional, Union, Generator, Tuple
+from typing import Callable, List, Optional, Union, Generator, Tuple, Sequence
 
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding import KeyPressEvent
@@ -62,10 +62,18 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         self, text: str, skip_lines: float, history: History, previous: bool
     ) -> Generator[Tuple[str, float], None, None]:
         """
-        text: str
-
-        skip_lines: float
-            float is used as the base value is +inf
+        text : str
+            Text content to find a match for, the user cursor is most of the
+            time at the end of this text.
+        skip_lines : float
+            number of items to skip in the search, this is used to indicate how
+            far in the list the user has navigated by pressing up or down.
+            The float type is used as the base value is +inf
+        history : History
+            prompt_toolkit History instance to fetch previous entries from.
+        previous : bool
+            Direction of the search, whether we are looking previous match
+            (True), or next match (False).
 
         Yields
         ------
@@ -91,7 +99,9 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
                 if previous and line_number >= skip_lines:
                     return
 
-    def _find_next_match(self, text: str, skip_lines: float, history: History):
+    def _find_next_match(
+        self, text: str, skip_lines: float, history: History
+    ) -> Generator[Tuple[str, float], None, None]:
         return self._find_match(text, skip_lines, history, previous=False)
 
     def _find_previous_match(self, text: str, skip_lines: float, history: History):
@@ -99,7 +109,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             list(self._find_match(text, skip_lines, history, previous=True))
         )
 
-    def up(self, query: str, other_than: str, history: History):
+    def up(self, query: str, other_than: str, history: History) -> None:
         for suggestion, line_number in self._find_next_match(
             query, self.skip_lines, history
         ):
@@ -115,7 +125,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             # no matches found, cycle back to beginning
             self.skip_lines = 0
 
-    def down(self, query: str, other_than: str, history: History):
+    def down(self, query: str, other_than: str, history: History) -> None:
         for suggestion, line_number in self._find_previous_match(
             query, self.skip_lines, history
         ):
