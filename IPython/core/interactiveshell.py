@@ -24,11 +24,12 @@ import runpy
 import subprocess
 import sys
 import tempfile
+import tokenize
 import traceback
 import types
 import warnings
 from ast import stmt
-from io import open as io_open
+from io import open as io_open, StringIO
 from logging import error
 from pathlib import Path
 from typing import Callable
@@ -3049,6 +3050,25 @@ class InteractiveShell(SingletonConfigurable):
             cell = transformed_cell
         return _should_be_async(cell)
 
+    def cell_is_quiet(self, cell: str) -> bool:
+        """Should we silence the display hook because of ';'?"""
+        sio = StringIO(cell)
+        tokens = list(tokenize.generate_tokens(sio.readline))
+
+        for token in reversed(tokens):
+            if token[0] in (
+                tokenize.ENDMARKER,
+                tokenize.NL,
+                tokenize.NEWLINE,
+                tokenize.COMMENT,
+            ):
+                continue
+            if (token[0] == tokenize.OP) and (token[1] == ";"):
+                return True
+            else:
+                return False
+        return False
+
     async def run_cell_async(
         self,
         raw_cell: str,
@@ -3196,6 +3216,7 @@ class InteractiveShell(SingletonConfigurable):
                 # Give the displayhook a reference to our ExecutionResult so it
                 # can fill in the output value.
                 self.displayhook.exec_result = result
+                self.displayhook.is_quiet = self.cell_is_quiet(cell)
 
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
