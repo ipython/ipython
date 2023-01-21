@@ -123,9 +123,8 @@ class ProfileAwareConfigLoader(PyFileConfigLoader):
         return super(ProfileAwareConfigLoader, self).load_subconfig(fname, path=path)
 
 class BaseIPythonApplication(Application):
-
-    name = u'ipython'
-    description = Unicode(u'IPython: an enhanced interactive Python shell.')
+    name = "ipython"
+    description = "IPython: an enhanced interactive Python shell."
     version = Unicode(release.version)
 
     aliases = base_aliases
