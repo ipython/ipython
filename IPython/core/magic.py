@@ -280,7 +280,7 @@ def no_var_expand(magic_func):
 def output_can_be_silenced(magic_func):
     """Mark a magic function so its output may be silenced.
 
-    The output is silenced if the Python expression used as a parameter of
+    The output is silenced if the Python code used as a parameter of
     the magic ends in a semicolon, not counting a Python comment that can
     follow it.
     """
