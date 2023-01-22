@@ -52,12 +52,14 @@ def has_focus(value: FocusableElement):
     return Condition(tester)
 
 
+@undoc
 @Condition
 def has_line_below() -> bool:
     document = get_app().current_buffer.document
     return document.cursor_position_row < len(document.lines) - 1
 
 
+@undoc
 @Condition
 def has_line_above() -> bool:
     document = get_app().current_buffer.document
@@ -378,12 +380,13 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
         & has_suggestion
         & has_focus(DEFAULT_BUFFER),
     )(auto_suggest.swap_autosuggestion_down(shell.auto_suggest))
-    kb.add("up", filter=navigable_suggestions & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.up_and_update_hint
-    )
-    kb.add("down", filter=navigable_suggestions & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.down_and_update_hint
-    )
+    kb.add(
+        "up", filter=has_line_above & navigable_suggestions & has_focus(DEFAULT_BUFFER)
+    )(auto_suggest.up_and_update_hint)
+    kb.add(
+        "down",
+        filter=has_line_below & navigable_suggestions & has_focus(DEFAULT_BUFFER),
+    )(auto_suggest.down_and_update_hint)
     kb.add("right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.accept_character
     )
