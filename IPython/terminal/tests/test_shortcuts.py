@@ -6,6 +6,7 @@ from IPython.terminal.shortcuts.auto_suggest import (
     accept_character,
     accept_word,
     accept_and_keep_cursor,
+    discard,
     NavigableAutoSuggestFromHistory,
     swap_autosuggestion_up,
     swap_autosuggestion_down,
@@ -46,6 +47,22 @@ def test_accept(text, suggestion, expected):
     accept(event)
     assert buffer.insert_text.called
     assert buffer.insert_text.call_args[0] == (expected,)
+
+
+@pytest.mark.parametrize(
+    "text, suggestion",
+    [
+        ("", "def out(tag: str, n=50):"),
+        ("def ", "out(tag: str, n=50):"),
+    ],
+)
+def test_discard(text, suggestion):
+    event = make_event(text, len(text), suggestion)
+    buffer = event.current_buffer
+    buffer.insert_text = Mock()
+    discard(event)
+    assert not buffer.insert_text.called
+    assert buffer.suggestion is None
 
 
 @pytest.mark.parametrize(

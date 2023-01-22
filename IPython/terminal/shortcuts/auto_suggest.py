@@ -167,6 +167,12 @@ def accept(event: KeyPressEvent):
         nc.forward_char(event)
 
 
+def discard(event: KeyPressEvent):
+    """Discard autosuggestion"""
+    buffer = event.current_buffer
+    buffer.suggestion = None
+
+
 def accept_word(event: KeyPressEvent):
     """Fill partial autosuggestion by word"""
     buffer = event.current_buffer

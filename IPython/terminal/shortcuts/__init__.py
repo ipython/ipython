@@ -343,8 +343,9 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
     kb.add("c-right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.accept_token
     )
-    from functools import partial
-
+    kb.add("escape", filter=has_suggestion & has_focus(DEFAULT_BUFFER), eager=True)(
+        auto_suggest.discard
+    )
     kb.add("up", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.swap_autosuggestion_up(shell.auto_suggest)
     )
