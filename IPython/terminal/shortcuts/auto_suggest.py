@@ -10,12 +10,43 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, Suggestion
 from prompt_toolkit.document import Document
 from prompt_toolkit.history import History
 from prompt_toolkit.shortcuts import PromptSession
+from prompt_toolkit.layout.processors import (
+    Processor,
+    Transformation,
+    TransformationInput,
+)
 
 from IPython.utils.tokenutil import generate_tokens
 
 
 def _get_query(document: Document):
-    return document.text.rsplit("\n", 1)[-1]
+    return document.lines[document.cursor_position_row]
+
+
+class AppendAutoSuggestionInAnyLine(Processor):
+    """
+    Append the auto suggestion to lines other than the last (appending to the
+    last line is natively supported by the prompt toolkit).
+    """
+
+    def __init__(self, style: str = "class:auto-suggestion") -> None:
+        self.style = style
+
+    def apply_transformation(self, ti: TransformationInput) -> Transformation:
+        is_last_line = ti.lineno == ti.document.line_count - 1
+        is_active_line = ti.lineno == ti.document.cursor_position_row
+
+        if not is_last_line and is_active_line:
+            buffer = ti.buffer_control.buffer
+
+            if buffer.suggestion and ti.document.is_cursor_at_the_end_of_line:
+                suggestion = buffer.suggestion.text
+            else:
+                suggestion = ""
+
+            return Transformation(fragments=ti.fragments + [(self.style, suggestion)])
+        else:
+            return Transformation(fragments=ti.fragments)
 
 
 class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
@@ -208,19 +239,38 @@ def accept_and_move_cursor_left(event: KeyPressEvent):
     nc.backward_char(event)
 
 
+def _update_hint(buffer: Buffer):
+    if buffer.auto_suggest:
+        suggestion = buffer.auto_suggest.get_suggestion(buffer, buffer.document)
+        buffer.suggestion = suggestion
+
+
 def backspace_and_resume_hint(event: KeyPressEvent):
     """Resume autosuggestions after deleting last character"""
     current_buffer = event.current_buffer
 
     def resume_hinting(buffer: Buffer):
-        if buffer.auto_suggest:
-            suggestion = buffer.auto_suggest.get_suggestion(buffer, buffer.document)
-            if suggestion:
-                buffer.suggestion = suggestion
+        _update_hint(buffer)
         current_buffer.on_text_changed.remove_handler(resume_hinting)
 
     current_buffer.on_text_changed.add_handler(resume_hinting)
     nc.backward_delete_char(event)
+
+
+def up_and_update_hint(event: KeyPressEvent):
+    """Go up and update hint"""
+    current_buffer = event.current_buffer
+
+    current_buffer.auto_up(count=event.arg)
+    _update_hint(current_buffer)
+
+
+def down_and_update_hint(event: KeyPressEvent):
+    """Go down and update hint"""
+    current_buffer = event.current_buffer
+
+    current_buffer.auto_down(count=event.arg)
+    _update_hint(current_buffer)
 
 
 def accept_token(event: KeyPressEvent):

@@ -50,7 +50,10 @@ from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import create_ipython_shortcuts
-from .shortcuts.auto_suggest import NavigableAutoSuggestFromHistory
+from .shortcuts.auto_suggest import (
+    NavigableAutoSuggestFromHistory,
+    AppendAutoSuggestionInAnyLine,
+)
 
 PTK3 = ptk_version.startswith('3.')
 
@@ -577,23 +580,39 @@ class TerminalInteractiveShell(InteractiveShell):
             get_message = get_message()
 
         options = {
-                'complete_in_thread': False,
-                'lexer':IPythonPTLexer(),
-                'reserve_space_for_menu':self.space_for_menu,
-                'message': get_message,
-                'prompt_continuation': (
-                    lambda width, lineno, is_soft_wrap:
-                        PygmentsTokens(self.prompts.continuation_prompt_tokens(width))),
-                'multiline': True,
-                'complete_style': self.pt_complete_style,
-
+            "complete_in_thread": False,
+            "lexer": IPythonPTLexer(),
+            "reserve_space_for_menu": self.space_for_menu,
+            "message": get_message,
+            "prompt_continuation": (
+                lambda width, lineno, is_soft_wrap: PygmentsTokens(
+                    self.prompts.continuation_prompt_tokens(width)
+                )
+            ),
+            "multiline": True,
+            "complete_style": self.pt_complete_style,
+            "input_processors": [
                 # Highlight matching brackets, but only when this setting is
                 # enabled, and only when the DEFAULT_BUFFER has the focus.
-                'input_processors': [ConditionalProcessor(
-                        processor=HighlightMatchingBracketProcessor(chars='[](){}'),
-                        filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
-                            Condition(lambda: self.highlight_matching_brackets))],
-                }
+                ConditionalProcessor(
+                    processor=HighlightMatchingBracketProcessor(chars="[](){}"),
+                    filter=HasFocus(DEFAULT_BUFFER)
+                    & ~IsDone()
+                    & Condition(lambda: self.highlight_matching_brackets),
+                ),
+                # Show auto-suggestion in lines other than the last line.
+                ConditionalProcessor(
+                    processor=AppendAutoSuggestionInAnyLine(),
+                    filter=HasFocus(DEFAULT_BUFFER)
+                    & ~IsDone()
+                    & Condition(
+                        lambda: isinstance(
+                            self.auto_suggest, NavigableAutoSuggestFromHistory
+                        )
+                    ),
+                ),
+            ],
+        }
         if not PTK3:
             options['inputhook'] = self.inputhook
 

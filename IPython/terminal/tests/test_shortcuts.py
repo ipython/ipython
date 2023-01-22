@@ -14,6 +14,7 @@ from IPython.terminal.shortcuts.auto_suggest import (
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.document import Document
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 from unittest.mock import patch, Mock
@@ -26,10 +27,7 @@ def make_event(text, cursor, suggestion):
     event.current_buffer.text = text
     event.current_buffer.cursor_position = cursor
     event.current_buffer.suggestion.text = suggestion
-    event.current_buffer.document = Mock()
-    event.current_buffer.document.get_end_of_line_position = Mock(return_value=0)
-    event.current_buffer.document.text = text
-    event.current_buffer.document.cursor_position = cursor
+    event.current_buffer.document = Document(text=text, cursor_position=cursor)
     return event
 
 
@@ -250,6 +248,42 @@ async def test_navigable_provider():
 
     down(event)
     assert get_suggestion().text == "_a"
+
+
+async def test_navigable_provider_multiline_entries():
+    provider = NavigableAutoSuggestFromHistory()
+    history = InMemoryHistory(history_strings=["very_a\nvery_b", "very_c"])
+    buffer = Buffer(history=history)
+
+    async for _ in history.load():
+        pass
+
+    buffer.cursor_position = 5
+    buffer.text = "very"
+    up = swap_autosuggestion_up(provider)
+    down = swap_autosuggestion_down(provider)
+
+    event = Mock()
+    event.current_buffer = buffer
+
+    def get_suggestion():
+        suggestion = provider.get_suggestion(buffer, buffer.document)
+        buffer.suggestion = suggestion
+        return suggestion
+
+    assert get_suggestion().text == "_c"
+
+    up(event)
+    assert get_suggestion().text == "_b"
+
+    up(event)
+    assert get_suggestion().text == "_a"
+
+    down(event)
+    assert get_suggestion().text == "_b"
+
+    down(event)
+    assert get_suggestion().text == "_c"
 
 
 def create_session_mock():

@@ -52,6 +52,18 @@ def has_focus(value: FocusableElement):
     return Condition(tester)
 
 
+@Condition
+def has_line_below() -> bool:
+    document = get_app().current_buffer.document
+    return document.cursor_position_row < len(document.lines) - 1
+
+
+@Condition
+def has_line_above() -> bool:
+    document = get_app().current_buffer.document
+    return document.cursor_position_row != 0
+
+
 def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindings:
     """Set up the prompt_toolkit keyboard shortcuts for IPython.
 
@@ -332,6 +344,12 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
     focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
 
     # autosuggestions
+    @Condition
+    def navigable_suggestions():
+        return isinstance(
+            shell.auto_suggest, auto_suggest.NavigableAutoSuggestFromHistory
+        )
+
     kb.add("end", filter=has_focus(DEFAULT_BUFFER) & (ebivim | ~vi_insert_mode))(
         auto_suggest.accept_in_vi_insert_mode
     )
@@ -343,19 +361,33 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
     kb.add("c-right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.accept_token
     )
-    kb.add("escape", filter=has_suggestion & has_focus(DEFAULT_BUFFER), eager=True)(
+    kb.add("escape", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.discard
     )
-    kb.add("up", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.swap_autosuggestion_up(shell.auto_suggest)
+    kb.add(
+        "up",
+        filter=navigable_suggestions
+        & ~has_line_above
+        & has_suggestion
+        & has_focus(DEFAULT_BUFFER),
+    )(auto_suggest.swap_autosuggestion_up(shell.auto_suggest))
+    kb.add(
+        "down",
+        filter=navigable_suggestions
+        & ~has_line_below
+        & has_suggestion
+        & has_focus(DEFAULT_BUFFER),
+    )(auto_suggest.swap_autosuggestion_down(shell.auto_suggest))
+    kb.add("up", filter=navigable_suggestions & has_focus(DEFAULT_BUFFER))(
+        auto_suggest.up_and_update_hint
     )
-    kb.add("down", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.swap_autosuggestion_down(shell.auto_suggest)
+    kb.add("down", filter=navigable_suggestions & has_focus(DEFAULT_BUFFER))(
+        auto_suggest.down_and_update_hint
     )
     kb.add("right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.accept_character
     )
-    kb.add("left", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
+    kb.add("c-left", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.accept_and_move_cursor_left
     )
     kb.add("c-down", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
