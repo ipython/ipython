@@ -16,7 +16,7 @@ active contributor `@krassowski <https://github.com/krassowski>`.
 - ``ctrl+right`` accepts a semantic token (macos default shortcuts take
   precedence and need to be disabled to make this work)
 - ``backspace`` deletes a character and resumes hinting autosuggestions
-- ``left`` accepts suggestion and moves cursor left one character.
+- ``ctrl-left`` accepts suggestion and moves cursor left one character.
 - ``backspace`` deletes a character and resumes hinting autosuggestions
 - ``down`` moves to suggestion to later in history when no lines are present below the cursors. 
 - ``up`` moves to suggestion from earlier in history when no lines are present above the cursor.
@@ -27,7 +27,7 @@ This is best described by the Gif posted by @krassowski, and in the PR itself
 .. image:: ../_images/autosuggest.png
 
 Please report any feedback in order for us to improve the user experience. 
-In particular we are also working on make the shortcuts configurable.
+In particular we are also working on making the shortcuts configurable.
 
 .. _version 8.8.0:
 
