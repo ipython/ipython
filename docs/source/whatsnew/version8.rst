@@ -2,6 +2,33 @@
  8.x Series
 ============
 
+.. _version 8.9.0:
+
+IPython 8.9.0
+-------------
+
+
+The biggest improvement for 8.9 is a drastic amelioration if the
+auto-suggestions sponsored by D.E. Shaw and implmented by the more and more
+active contributor `@krassowski <https://github.com/krassowski>`.
+
+- ``right`` accepts a single character from suggestion
+- ``ctrl+right`` accepts a semantic token (macos default shortcuts take
+  precedence and need to be disabled to make this work)
+- ``backspace`` deletes a character and resumes hinting autosuggestions
+- ``left`` accepts suggestion and moves cursor left one character.
+- ``backspace`` deletes a character and resumes hinting autosuggestions
+- ``down`` moves to suggestion to later in history when no lines are present below the cursors. 
+- ``up`` moves to suggestion from earlier in history when no lines are present above the cursor.
+
+This is best described by the Gif posted by @krassowski, and in the PR itself
+:ghpull:`13888`.
+
+.. image:: ../_images/autosuggest.png
+
+Please report any feedback in order for us to improve the user experience. 
+In particular we are also working on make the shortcuts configurable.
+
 .. _version 8.8.0:
 
 IPython 8.8.0
