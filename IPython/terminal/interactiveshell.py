@@ -4,6 +4,7 @@ import asyncio
 import os
 import sys
 from warnings import warn
+from typing import Union as UnionType
 
 from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
@@ -49,6 +50,10 @@ from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import create_ipython_shortcuts
+from .shortcuts.auto_suggest import (
+    NavigableAutoSuggestFromHistory,
+    AppendAutoSuggestionInAnyLine,
+)
 
 PTK3 = ptk_version.startswith('3.')
 
@@ -142,6 +147,10 @@ class PtkHistoryAdapter(History):
 
     """
 
+    auto_suggest: UnionType[
+        AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
+    ]
+
     def __init__(self, shell):
         super().__init__()
         self.shell = shell
@@ -183,7 +192,7 @@ class TerminalInteractiveShell(InteractiveShell):
                                      'menus, decrease for short and wide.'
                             ).tag(config=True)
 
-    pt_app = None
+    pt_app: UnionType[PromptSession, None] = None
     debugger_history = None
 
     debugger_history_file = Unicode(
@@ -376,18 +385,27 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     autosuggestions_provider = Unicode(
-        "AutoSuggestFromHistory",
+        "NavigableAutoSuggestFromHistory",
         help="Specifies from which source automatic suggestions are provided. "
-        "Can be set to `'AutoSuggestFromHistory`' or `None` to disable"
-        "automatic suggestions. Default is `'AutoSuggestFromHistory`'.",
+        "Can be set to ``'NavigableAutoSuggestFromHistory'`` (:kbd:`up` and "
+        ":kbd:`down` swap suggestions), ``'AutoSuggestFromHistory'``, "
+        " or ``None`` to disable automatic suggestions. "
+        "Default is `'NavigableAutoSuggestFromHistory`'.",
         allow_none=True,
     ).tag(config=True)
 
     def _set_autosuggestions(self, provider):
+        # disconnect old handler
+        if self.auto_suggest and isinstance(
+            self.auto_suggest, NavigableAutoSuggestFromHistory
+        ):
+            self.auto_suggest.disconnect()
         if provider is None:
             self.auto_suggest = None
         elif provider == "AutoSuggestFromHistory":
             self.auto_suggest = AutoSuggestFromHistory()
+        elif provider == "NavigableAutoSuggestFromHistory":
+            self.auto_suggest = NavigableAutoSuggestFromHistory()
         else:
             raise ValueError("No valid provider.")
         if self.pt_app:
@@ -462,6 +480,8 @@ class TerminalInteractiveShell(InteractiveShell):
             tempfile_suffix=".py",
             **self._extra_prompt_options()
         )
+        if isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
+            self.auto_suggest.connect(self.pt_app)
 
     def _make_style_from_name_or_cls(self, name_or_cls):
         """
@@ -560,23 +580,39 @@ class TerminalInteractiveShell(InteractiveShell):
             get_message = get_message()
 
         options = {
-                'complete_in_thread': False,
-                'lexer':IPythonPTLexer(),
-                'reserve_space_for_menu':self.space_for_menu,
-                'message': get_message,
-                'prompt_continuation': (
-                    lambda width, lineno, is_soft_wrap:
-                        PygmentsTokens(self.prompts.continuation_prompt_tokens(width))),
-                'multiline': True,
-                'complete_style': self.pt_complete_style,
-
+            "complete_in_thread": False,
+            "lexer": IPythonPTLexer(),
+            "reserve_space_for_menu": self.space_for_menu,
+            "message": get_message,
+            "prompt_continuation": (
+                lambda width, lineno, is_soft_wrap: PygmentsTokens(
+                    self.prompts.continuation_prompt_tokens(width)
+                )
+            ),
+            "multiline": True,
+            "complete_style": self.pt_complete_style,
+            "input_processors": [
                 # Highlight matching brackets, but only when this setting is
                 # enabled, and only when the DEFAULT_BUFFER has the focus.
-                'input_processors': [ConditionalProcessor(
-                        processor=HighlightMatchingBracketProcessor(chars='[](){}'),
-                        filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
-                            Condition(lambda: self.highlight_matching_brackets))],
-                }
+                ConditionalProcessor(
+                    processor=HighlightMatchingBracketProcessor(chars="[](){}"),
+                    filter=HasFocus(DEFAULT_BUFFER)
+                    & ~IsDone()
+                    & Condition(lambda: self.highlight_matching_brackets),
+                ),
+                # Show auto-suggestion in lines other than the last line.
+                ConditionalProcessor(
+                    processor=AppendAutoSuggestionInAnyLine(),
+                    filter=HasFocus(DEFAULT_BUFFER)
+                    & ~IsDone()
+                    & Condition(
+                        lambda: isinstance(
+                            self.auto_suggest, NavigableAutoSuggestFromHistory
+                        )
+                    ),
+                ),
+            ],
+        }
         if not PTK3:
             options['inputhook'] = self.inputhook
 
@@ -647,8 +683,9 @@ class TerminalInteractiveShell(InteractiveShell):
                 self.alias_manager.soft_define_alias(cmd, cmd)
 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
+        self.auto_suggest = None
         self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()
