@@ -109,9 +109,7 @@ def set_qt_api(gui):
             if "QT_API" in os.environ.keys():
                 del os.environ["QT_API"]
         else:
-            print(
-                f'Unrecognized Qt version: {gui}. Should be "qt5", "qt6", or "qt".'
-            )
+            print(f'Unrecognized Qt version: {gui}. Should be "qt5", "qt6", or "qt".')
             return
 
 
