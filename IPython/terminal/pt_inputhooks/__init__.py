@@ -68,9 +68,10 @@ def set_qt_api(gui):
     }
     if loaded is not None and gui != "qt":
         if qt_env2gui[loaded] != gui:
-            raise ImportError(
+            print(
                 f"Cannot switch Qt versions for this session; must use {qt_env2gui[loaded]}."
             )
+            return
 
     if qt_api is not None and gui != "qt":
         if qt_env2gui[qt_api] != gui:
@@ -108,9 +109,10 @@ def set_qt_api(gui):
             if "QT_API" in os.environ.keys():
                 del os.environ["QT_API"]
         else:
-            raise ValueError(
+            print(
                 f'Unrecognized Qt version: {gui}. Should be "qt5", "qt6", or "qt".'
             )
+            return
 
 
 def get_inputhook_name_and_func(gui):
