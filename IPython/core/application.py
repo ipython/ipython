@@ -310,7 +310,7 @@ class BaseIPythonApplication(Application):
                 except OSError as e:
                     # this will not be EEXIST
                     self.log.error("couldn't create path %s: %s", path, e)
-            self.log.debug("IPYTHONDIR set to: %s" % new)
+            self.log.debug("IPYTHONDIR set to: %s", new)
 
     def load_config_file(self, suppress_errors=IPYTHON_SUPPRESS_CONFIG_ERRORS):
         """Load the config file.
@@ -467,7 +467,7 @@ class BaseIPythonApplication(Application):
         s = self.generate_config_file()
         config_file = Path(self.profile_dir.location) / self.config_file_name
         if self.overwrite or not config_file.exists():
-            self.log.warning("Generating default config file: %r" % (config_file))
+            self.log.warning("Generating default config file: %r", (config_file))
             config_file.write_text(s, encoding="utf-8")
 
     @catch_config_error
