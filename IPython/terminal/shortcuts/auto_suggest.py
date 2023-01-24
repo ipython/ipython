@@ -75,6 +75,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         # note: `on_text_changed` could be used for a bit different behaviour
         # on character deletion (i.e. reseting history position on backspace)
         pt_app.default_buffer.on_text_insert.add_handler(self.reset_history_position)
+        pt_app.default_buffer.on_cursor_position_changed.add_handler(self._dismiss)
 
     def get_suggestion(
         self, buffer: Buffer, document: Document
@@ -88,6 +89,9 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
                 return Suggestion(suggestion)
 
         return None
+
+    def _dismiss(self, buffer, *args, **kwargs):
+        buffer.suggestion = None
 
     def _find_match(
         self, text: str, skip_lines: float, history: History, previous: bool
