@@ -24,7 +24,7 @@ active contributor `@krassowski <https://github.com/krassowski>`.
 This is best described by the Gif posted by @krassowski, and in the PR itself
 :ghpull:`13888`.
 
-.. image:: ../_images/autosuggest.png
+.. image:: ../_images/autosuggest.gif
 
 Please report any feedback in order for us to improve the user experience. 
 In particular we are also working on making the shortcuts configurable.
