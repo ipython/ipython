@@ -147,10 +147,6 @@ class PtkHistoryAdapter(History):
 
     """
 
-    auto_suggest: UnionType[
-        AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
-    ]
-
     def __init__(self, shell):
         super().__init__()
         self.shell = shell
@@ -193,6 +189,9 @@ class TerminalInteractiveShell(InteractiveShell):
                             ).tag(config=True)
 
     pt_app: UnionType[PromptSession, None] = None
+    auto_suggest: UnionType[
+        AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
+    ] = None
     debugger_history = None
 
     debugger_history_file = Unicode(
@@ -685,7 +684,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def __init__(self, *args, **kwargs) -> None:
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
-        self.auto_suggest = None
         self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()
