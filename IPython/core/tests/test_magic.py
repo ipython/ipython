@@ -416,6 +416,65 @@ def test_time():
         with tt.AssertPrints("hihi", suppress=False):
             ip.run_cell("f('hi')")
 
+
+# ';' at the end of %time prevents instruction value to be printed.
+# This tests fix for #13837.
+def test_time_no_output_with_semicolon():
+    ip = get_ipython()
+
+    # Test %time cases
+    with tt.AssertPrints(" 123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%time 123000+456")
+
+    with tt.AssertNotPrints(" 123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%time 123000+456;")
+
+    with tt.AssertPrints(" 123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%time 123000+456 # Comment")
+
+    with tt.AssertNotPrints(" 123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%time 123000+456; # Comment")
+
+    with tt.AssertPrints(" 123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%time 123000+456 # ;Comment")
+
+    # Test %%time cases
+    with tt.AssertPrints("123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%%time\n123000+456\n\n\n")
+
+    with tt.AssertNotPrints("123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%%time\n123000+456;\n\n\n")
+
+    with tt.AssertPrints("123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%%time\n123000+456  # Comment\n\n\n")
+
+    with tt.AssertNotPrints("123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%%time\n123000+456;  # Comment\n\n\n")
+
+    with tt.AssertPrints("123456"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%%time\n123000+456  # ;Comment\n\n\n")
+
+
 def test_time_last_not_expression():
     ip.run_cell("%%time\n"
                 "var_1 = 1\n"
