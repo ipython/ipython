@@ -65,6 +65,10 @@ The following magic commands are provided:
 
     Import modules 'foo', 'bar' and mark them to be autoreloaded for ``%autoreload 1``
 
+``%aimport +foo.*``
+
+    Mark all modules under 'foo' to be autoreloaded.
+
 ``%aimport -foo``
 
     Mark module 'foo' to not be autoreloaded.
@@ -125,6 +129,8 @@ import traceback
 import types
 import weakref
 import gc
+import fnmatch
+import re
 from importlib import import_module, reload
 from importlib.util import source_from_cache
 
@@ -147,9 +153,9 @@ class ModuleReloader:
         # Modules that failed to reload: {module: mtime-on-failed-reload, ...}
         self.failed = {}
         # Modules specially marked as autoreloadable.
-        self.modules = {}
+        self.modules = set()
         # Modules specially marked as not autoreloadable.
-        self.skip_modules = {}
+        self.skip_modules = set()
         # (module-name, name) -> weakref, for replacing old code objects
         self.old_objects = {}
         # Module modification timestamps
@@ -159,21 +165,38 @@ class ModuleReloader:
         # Cache module modification times
         self.check(check_all=True, do_reload=False)
 
+    def _print_matches(self, patterns, *, file=None):
+        for pat in sorted(patterns):
+            matches = " ".join(
+                filter(lambda mod: fnmatch.fnmatchcase(mod, pat), sys.modules.keys())
+            )
+
+            if not matches:
+                print(f"  {pat} [not imported]", file=file)
+            elif pat == matches:
+                print(f"  {pat}", file=file)
+            else:
+                print(f"  {pat} matches {matches}", file=file)
+
+    def print_state(self, *, file=None):
+        print("Modules to reload:", file=file)
+        if self.check_all:
+            print("all-except-skipped", file=file)
+        else:
+            self._print_matches(self.modules, file=file)
+
+        print("\nModules to skip:", file=file)
+        self._print_matches(self.skip_modules, file=file)
+
     def mark_module_skipped(self, module_name):
         """Skip reloading the named module in the future"""
-        try:
-            del self.modules[module_name]
-        except KeyError:
-            pass
-        self.skip_modules[module_name] = True
+        self.modules.discard(module_name)
+        self.skip_modules.add(module_name)
 
     def mark_module_reloadable(self, module_name):
         """Reload the named module in the future (if it is imported)"""
-        try:
-            del self.skip_modules[module_name]
-        except KeyError:
-            pass
-        self.modules[module_name] = True
+        self.skip_modules.discard(module_name)
+        self.modules.add(module_name)
 
     def aimport_module(self, module_name):
         """Import a module, and mark it reloadable
@@ -194,16 +217,15 @@ class ModuleReloader:
         return top_module, top_name
 
     def filename_and_mtime(self, module):
-        if not hasattr(module, "__file__") or module.__file__ is None:
+        filename = getattr(module, "__file__", None)
+        if filename is None:
             return None, None
 
         if getattr(module, "__name__", None) in [None, "__mp_main__", "__main__"]:
             # we cannot reload(__main__) or reload(__mp_main__)
             return None, None
 
-        filename = module.__file__
         path, ext = os.path.splitext(filename)
-
         if ext.lower() == ".py":
             py_filename = filename
         else:
@@ -219,21 +241,35 @@ class ModuleReloader:
 
         return py_filename, pymtime
 
+    def _our_modules_to_check(self):
+        if not self.modules:
+            return set()
+
+        combined = re.compile("|".join(fnmatch.translate(pat) for pat in self.modules))
+
+        result = filter(combined.match, sys.modules.keys())
+
+        if self.skip_modules:
+            skipped = re.compile(
+                "|".join(fnmatch.translate(pat) for pat in self.skip_modules)
+            )
+            result = filter(lambda mod: not skipped.match(mod), result)
+
+        return set(result)
+
     def check(self, check_all=False, do_reload=True):
         """Check whether some modules need to be reloaded."""
-
         if not self.enabled and not check_all:
             return
 
         if check_all or self.check_all:
             modules = list(sys.modules.keys())
         else:
-            modules = list(self.modules.keys())
+            modules = self._our_modules_to_check()
 
         for modname in modules:
-            m = sys.modules.get(modname, None)
-
-            if modname in self.skip_modules:
+            m = sys.modules.get(modname)
+            if m is None:
                 continue
 
             py_filename, pymtime = self.filename_and_mtime(m)
@@ -552,6 +588,7 @@ class AutoreloadMagics(Magics):
           autoreloaded.
 
         """
+        parameter_s = parameter_s.strip()
         if parameter_s == "":
             self._reloader.check(True)
         elif parameter_s == "0":
@@ -581,26 +618,22 @@ class AutoreloadMagics(Magics):
         %aimport foo, bar
         Import modules 'foo', 'bar' and mark them to be autoreloaded for %autoreload 1
 
+        %aimport +foo
+        Mark module or pattern 'foo' to be autoreloaded for %autoreload 1
+
         %aimport -foo
-        Mark module 'foo' to not be autoreloaded for %autoreload 1
+        Mark module or pattern 'foo' to not be autoreloaded for %autoreload 1
         """
-        modname = parameter_s
+        modname = parameter_s.strip()
         if not modname:
-            to_reload = sorted(self._reloader.modules.keys())
-            to_skip = sorted(self._reloader.skip_modules.keys())
-            if stream is None:
-                stream = sys.stdout
-            if self._reloader.check_all:
-                stream.write("Modules to reload:\nall-except-skipped\n")
-            else:
-                stream.write("Modules to reload:\n%s\n" % " ".join(to_reload))
-            stream.write("\nModules to skip:\n%s\n" % " ".join(to_skip))
+            self._reloader.print_state(file=stream)
+        elif modname.startswith("+"):
+            self._reloader.mark_module_reloadable(modname[1:].lstrip())
         elif modname.startswith("-"):
-            modname = modname[1:]
-            self._reloader.mark_module_skipped(modname)
+            self._reloader.mark_module_skipped(modname[1:].lstrip())
         else:
-            for _module in [_.strip() for _ in modname.split(",")]:
-                top_module, top_name = self._reloader.aimport_module(_module)
+            for module in modname.split(","):
+                top_module, top_name = self._reloader.aimport_module(module.strip())
 
                 # Inject module to user namespace
                 self.shell.push({top_name: top_module})
