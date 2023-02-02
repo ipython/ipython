@@ -2464,14 +2464,15 @@ class IPCompleter(Completer):
     def _get_keys(obj: Any, prefix: str = None) -> List[Any]:
         # Objects can define their own completions by defining an
         # _ipy_key_completions_() method.
-        method = get_real_method(obj, '_ipython_key_completions_')
+        key_completions_getter = get_real_method(obj, '_ipython_key_completions_')
         
-        if method is not None:
+        if key_completions_getter is not None:
             # older versions of ipython assumed _ipython_key_completions_ took no arguments
-            if "prefix" in inspect.signature(method).parameters:
-                return method(prefix)
+            if "prefix" in inspect.signature(key_completions_getter).parameters:
+                key_prefix = prefix[1:]  # strip leading apostrophe from key before passing to ._ipython_key_completions
+                return key_completions_getter(key_prefix)
             else:
-                return method()
+                return key_completions_getter()
 
         # Special case some common in-memory dict-like types
         if isinstance(obj, dict) or _safe_isinstance(obj, "pandas", "DataFrame"):
