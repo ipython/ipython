@@ -225,6 +225,19 @@ class KeyCompletable:
         return list(self.things)
 
 
+class KeyCompleteableFileSystemGivenPrefix:
+    def __init__(self, things=()):
+        self.things = things
+
+    def _ipython_key_completions_(self, prefix):
+        """Completes key only up to next folder separator"""
+
+        def depth(path):
+            return path.count('/')
+        
+        return [folder for folder in self.things if folder.startswith(prefix) and depth(folder) <= depth(prefix)]
+        
+
 class TestCompleter(unittest.TestCase):
     def setUp(self):
         """
@@ -1368,6 +1381,20 @@ class TestCompleter(unittest.TestCase):
         _, matches = ip.Completer.complete(line_buffer="key_completable['qw")
         self.assertIn("qwerty", matches)
         self.assertIn("qwick", matches)
+
+    def test_object_key_completion_given_prefix(self):
+        ip = get_ipython()
+        ip.user_ns["key_completable"] = KeyCompleteableFileSystemGivenPrefix(["folder1", "folder1/folder2", "folder1/folder3"])
+
+        _, matches = ip.Completer.complete(line_buffer="key_completable['f")
+        self.assertIn("folder1", matches)
+        
+        _, matches = ip.Completer.complete(line_buffer="key_completable['folder1/f")
+        self.assertIn("folder1/folder2", matches)
+        self.assertIn("folder1/folder3", matches)
+
+    def test_no_matching_key_completions_given_prefix(self):
+        ...
 
     def test_class_key_completion(self):
         ip = get_ipython()
