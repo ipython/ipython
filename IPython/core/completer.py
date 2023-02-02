@@ -2461,12 +2461,17 @@ class IPCompleter(Completer):
         return argMatches
 
     @staticmethod
-    def _get_keys(obj: Any) -> List[Any]:
+    def _get_keys(obj: Any, prefix: str = None) -> List[Any]:
         # Objects can define their own completions by defining an
         # _ipy_key_completions_() method.
         method = get_real_method(obj, '_ipython_key_completions_')
+        
         if method is not None:
-            return method()
+            # older versions of ipython assumed _ipython_key_completions_ took no arguments
+            if "prefix" in inspect.signature(method).parameters:
+                return method(prefix)
+            else:
+                return method()
 
         # Special case some common in-memory dict-like types
         if isinstance(obj, dict) or _safe_isinstance(obj, "pandas", "DataFrame"):
@@ -2516,7 +2521,7 @@ class IPCompleter(Completer):
         if obj is not_found:
             return []
 
-        keys = self._get_keys(obj)
+        keys = self._get_keys(obj, key_prefix)
         if not keys:
             return keys
 
