@@ -16,6 +16,13 @@ You can also customise key completions for your objects, e.g. pressing tab after
 returns a list of objects which are possible keys in a subscript expression
 ``obj[key]``.
 
+You can also optionally change your key completions dynamically as a function of the part of the key typed so far,
+by passing a ``prefix`` arg to ``_ipython_key_completions_()``.
+For example you could have ``obj["f`` tab-complete to ``obj["folder1``, 
+whilst ``obj["folder1/f`` tab-completes to ``obj["folder1/folder2`` 
+(as opposed to having ``obj["f`` tab-complete to both ``obj["folder1`` and ``obj["folder1/folder2`` up front).
+The ``prefix`` arg feature is only available in IPython versions later than v8.9.0.
+
 .. versionadded:: 5.0
    Custom key completions
 
