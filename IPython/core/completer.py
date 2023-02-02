@@ -2461,7 +2461,7 @@ class IPCompleter(Completer):
         return argMatches
 
     @staticmethod
-    def _get_keys(obj: Any, prefix: str = None) -> List[Any]:
+    def _get_keys(obj: Any, prefix: Optional[str] = None) -> List[Any]:
         # Objects can define their own completions by defining an
         # _ipy_key_completions_() method.
         key_completions_getter = get_real_method(obj, '_ipython_key_completions_')
