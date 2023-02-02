@@ -18,11 +18,6 @@ from warnings import warn
 from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
 
-# setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
-devnull = open(os.devnull, "w", encoding="utf-8")
-atexit.register(devnull.close)
-
-
 class Tee(object):
     """A class to duplicate an output stream to stdout/err.
 

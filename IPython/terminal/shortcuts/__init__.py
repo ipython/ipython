@@ -363,9 +363,9 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
     kb.add("c-right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
         auto_suggest.accept_token
     )
-    kb.add("escape", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.discard
-    )
+    kb.add(
+        "escape", filter=has_suggestion & has_focus(DEFAULT_BUFFER) & emacs_insert_mode
+    )(auto_suggest.discard)
     kb.add(
         "up",
         filter=navigable_suggestions
@@ -451,7 +451,6 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
     if shell.editing_mode == "vi" and shell.modal_cursor:
         ViState._input_mode = InputMode.INSERT  # type: ignore
         ViState.input_mode = property(get_input_mode, set_input_mode)  # type: ignore
-
     return kb
 
 

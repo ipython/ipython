@@ -2,6 +2,54 @@
  8.x Series
 ============
 
+.. _version 8.9.0:
+
+IPython 8.9.0
+-------------
+
+Second release of IPython in 2023, last Friday of the month, we are back on
+track. This is a small release with a few bug-fixes, and improvements, mostly
+with respect to terminal shortcuts.
+
+
+The biggest improvement for 8.9 is a drastic amelioration if the
+auto-suggestions sponsored by D.E. Shaw and implemented by the more and more
+active contributor `@krassowski <https://github.com/krassowski>`.
+
+- ``right`` accepts a single character from suggestion
+- ``ctrl+right`` accepts a semantic token (macos default shortcuts take
+  precedence and need to be disabled to make this work)
+- ``backspace`` deletes a character and resumes hinting autosuggestions
+- ``ctrl-left`` accepts suggestion and moves cursor left one character.
+- ``backspace`` deletes a character and resumes hinting autosuggestions
+- ``down`` moves to suggestion to later in history when no lines are present below the cursors.
+- ``up`` moves to suggestion from earlier in history when no lines are present above the cursor.
+
+This is best described by the Gif posted by `@krassowski
+<https://github.com/krassowski>`, and in the PR itself :ghpull:`13888`.
+
+.. image:: ../_images/autosuggest.gif
+
+Please report any feedback in order for us to improve the user experience.
+In particular we are also working on making the shortcuts configurable.
+
+If you are interested into better terminal shortcut, I also invite you to
+participate in issue `13879
+<https://github.com/ipython/ipython/issues/13879>`__.
+
+
+As we follow `NEP29
+<https://numpy.org/neps/nep-0029-deprecation_policy.html>`__, next version of
+IPython will officially stop supporting numpy 1.20, and will stop supporting
+Python 3.8 after April release.
+
+As usual you can find the full list of PRs on GitHub under `the 8.9 milestone
+<https://github.com/ipython/ipython/milestone/111?closed=1>`__.
+
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 .. _version 8.8.0:
 
 IPython 8.8.0
