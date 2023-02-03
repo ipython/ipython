@@ -12,7 +12,7 @@ track. This is a small release with a few bug-fixes, and improvements, mostly
 with respect to terminal shortcuts.
 
 
-The biggest improvement for 8.9 is a drastic amelioration if the
+The biggest improvement for 8.9 is a drastic amelioration of the
 auto-suggestions sponsored by D.E. Shaw and implemented by the more and more
 active contributor `@krassowski <https://github.com/krassowski>`.
 
