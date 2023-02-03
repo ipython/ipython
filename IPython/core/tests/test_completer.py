@@ -240,7 +240,7 @@ class KeyCompleteableFileSystemGivenPrefix:
             for folder in self.things
             if folder.startswith(prefix) and depth(folder) <= depth(prefix)
         ]
-        
+
 
 class TestCompleter(unittest.TestCase):
     def setUp(self):
@@ -1398,9 +1398,6 @@ class TestCompleter(unittest.TestCase):
         _, matches = ip.Completer.complete(line_buffer="key_completable['folder1/f")
         self.assertIn("folder1/folder2", matches)
         self.assertIn("folder1/folder3", matches)
-
-    def test_no_matching_key_completions_given_prefix(self):
-        ...
 
     def test_class_key_completion(self):
         ip = get_ipython()
