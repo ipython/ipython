@@ -233,11 +233,11 @@ class KeyCompleteableFileSystemGivenPrefix:
         """Completes key only up to next folder separator"""
 
         def depth(path):
-            return path.count('/')
-        
+            return path.count("/")
+
         return [
-            folder 
-            for folder in self.things 
+            folder
+            for folder in self.things
             if folder.startswith(prefix) and depth(folder) <= depth(prefix)
         ]
         
