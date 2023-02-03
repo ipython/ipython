@@ -235,7 +235,11 @@ class KeyCompleteableFileSystemGivenPrefix:
         def depth(path):
             return path.count('/')
         
-        return [folder for folder in self.things if folder.startswith(prefix) and depth(folder) <= depth(prefix)]
+        return [
+            folder 
+            for folder in self.things 
+            if folder.startswith(prefix) and depth(folder) <= depth(prefix)
+        ]
         
 
 class TestCompleter(unittest.TestCase):
@@ -1384,11 +1388,13 @@ class TestCompleter(unittest.TestCase):
 
     def test_object_key_completion_given_prefix(self):
         ip = get_ipython()
-        ip.user_ns["key_completable"] = KeyCompleteableFileSystemGivenPrefix(["folder1", "folder1/folder2", "folder1/folder3"])
+        ip.user_ns["key_completable"] = KeyCompleteableFileSystemGivenPrefix(
+            ["folder1", "folder1/folder2", "folder1/folder3"]
+        )
 
         _, matches = ip.Completer.complete(line_buffer="key_completable['f")
         self.assertIn("folder1", matches)
-        
+
         _, matches = ip.Completer.complete(line_buffer="key_completable['folder1/f")
         self.assertIn("folder1/folder2", matches)
         self.assertIn("folder1/folder3", matches)
