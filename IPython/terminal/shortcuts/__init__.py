@@ -227,7 +227,7 @@ AUTO_SUGGEST_BINDINGS = [
     ),
     Binding(
         auto_suggest.accept_character,
-        ["right"],
+        ["escape", "right"],
         "has_suggestion & default_buffer_focused",
     ),
     Binding(
