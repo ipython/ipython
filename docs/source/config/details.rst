@@ -200,10 +200,20 @@ With (X)EMacs >= 24, You can enable IPython in python-mode with:
 Keyboard Shortcuts
 ==================
 
+.. versionadded:: 8.10
+
+You can modify, disable or modify keyboard shortcuts for IPython Terminal using
+:std:configtrait:`TerminalInteractiveShell.shortcuts` traitlet.
+
+The list of shortcuts is available in the Configuring IPython :ref:`terminal-shortcuts-list` section.
+
+Advanced configuration
+----------------------
+
 .. versionchanged:: 5.0
 
-You can customise keyboard shortcuts for terminal IPython. Put code like this in
-a :ref:`startup file <startup_files>`::
+Creating custom commands requires adding custom code to a
+:ref:`startup file <startup_files>`::
 
     from IPython import get_ipython
     from prompt_toolkit.enums import DEFAULT_BUFFER

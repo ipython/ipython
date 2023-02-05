@@ -190,7 +190,6 @@ KEYBINDING_FILTERS = {
     "is_windows_os": is_windows_os,
     "auto_match": auto_match,
     "focused_insert": (vi_insert_mode | emacs_insert_mode) & default_buffer_focused,
-    "focused_insert_vi": vi_insert_mode & default_buffer_focused,
     "not_inside_unclosed_string": not_inside_unclosed_string,
     "readline_like_completions": readline_like_completions,
     "preceded_by_paired_double_quotes": preceding_text(
@@ -203,7 +202,6 @@ KEYBINDING_FILTERS = {
     "preceded_by_two_double_quotes": preceding_text(r'^.*""$'),
     "preceded_by_two_single_quotes": preceding_text(r"^.*''$"),
     "followed_by_closing_paren_or_end": following_text(r"[,)}\]]|$"),
-    # match
     "preceded_by_opening_round_paren": preceding_text(r".*\($"),
     "preceded_by_opening_bracket": preceding_text(r".*\[$"),
     "preceded_by_opening_brace": preceding_text(r".*\{$"),

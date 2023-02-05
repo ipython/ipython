@@ -185,10 +185,16 @@ AUTO_SUGGEST_BINDINGS = [
         "default_buffer_focused & (ebivim | ~vi_insert_mode)",
     ),
     Binding(
-        auto_suggest.accept_in_vi_insert_mode, ["c-e"], "focused_insert_vi & ebivim"
+        auto_suggest.accept_in_vi_insert_mode,
+        ["c-e"],
+        "vi_insert_mode & default_buffer_focused & ebivim",
     ),
-    Binding(auto_suggest.accept, ["c-f"], "focused_insert_vi"),
-    Binding(auto_suggest.accept_word, ["escape", "f"], "focused_insert_vi & ebivim"),
+    Binding(auto_suggest.accept, ["c-f"], "vi_insert_mode & default_buffer_focused"),
+    Binding(
+        auto_suggest.accept_word,
+        ["escape", "f"],
+        "vi_insert_mode & default_buffer_focused & ebivim",
+    ),
     Binding(
         auto_suggest.accept_token,
         ["c-right"],
@@ -249,7 +255,7 @@ AUTO_SUGGEST_BINDINGS = [
 
 
 SIMPLE_CONTROL_BINDINGS = [
-    Binding(cmd, [key], "focused_insert_vi & ebivim")
+    Binding(cmd, [key], "vi_insert_mode & default_buffer_focused & ebivim")
     for key, cmd in {
         "c-a": nc.beginning_of_line,
         "c-b": nc.backward_char,
@@ -262,7 +268,7 @@ SIMPLE_CONTROL_BINDINGS = [
 
 
 ALT_AND_COMOBO_CONTROL_BINDINGS = [
-    Binding(cmd, list(keys), "focused_insert_vi & ebivim")
+    Binding(cmd, list(keys), "vi_insert_mode & default_buffer_focused & ebivim")
     for keys, cmd in {
         # Control Combos
         ("c-x", "c-e"): nc.edit_and_execute,

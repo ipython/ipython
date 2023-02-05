@@ -1,8 +1,10 @@
+.. _terminal-shortcuts-list:
+
 =================
 IPython shortcuts
 =================
 
-Available shortcuts in an IPython terminal.
+Shortcuts available in an IPython terminal.
 
 .. note::
 
@@ -12,7 +14,10 @@ Available shortcuts in an IPython terminal.
 
 * Comma-separated keys, e.g. :kbd:`Esc`, :kbd:`f`, indicate a sequence which can be activated by pressing the listed keys in succession.
 * Plus-separated keys, e.g. :kbd:`Esc` + :kbd:`f` indicate a combination which requires pressing all keys simultaneously.
-* Hover over the ⓘ icon in the filter column to see when the shortcut is active.g
+* Hover over the ⓘ icon in the filter column to see when the shortcut is active.
+
+You can use :std:configtrait:`TerminalInteractiveShell.shortcuts` configuration
+to modify, disable or add shortcuts.
 
 .. role:: raw-html(raw)
    :format: html
