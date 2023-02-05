@@ -441,7 +441,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 "match_filter": Unicode(),
                 "new_keys": List(Unicode()),
                 "new_filter": Unicode(),
-                "create": Bool(default=False),
+                "create": Bool(False),
             },
         ),
         help="""Add, disable or modifying shortcuts.
