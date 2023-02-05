@@ -7,414 +7,263 @@ Module to define and register Terminal IPython shortcuts with
 # Distributed under the terms of the Modified BSD License.
 
 import os
-import re
 import signal
 import sys
 import warnings
-from typing import Callable, Dict, Union
+from dataclasses import dataclass
+from typing import Callable, Any, Optional, List
 
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
-from prompt_toolkit.filters import Condition, emacs_insert_mode, has_completions
-from prompt_toolkit.filters import has_focus as has_focus_impl
-from prompt_toolkit.filters import (
-    has_selection,
-    has_suggestion,
-    vi_insert_mode,
-    vi_mode,
-)
 from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from prompt_toolkit.key_binding.bindings import named_commands as nc
 from prompt_toolkit.key_binding.bindings.completion import (
     display_completions_like_readline,
 )
 from prompt_toolkit.key_binding.vi_state import InputMode, ViState
-from prompt_toolkit.layout.layout import FocusableElement
+from prompt_toolkit.filters import Condition
 
+from IPython.core.getipython import get_ipython
 from IPython.terminal.shortcuts import auto_match as match
 from IPython.terminal.shortcuts import auto_suggest
+from IPython.terminal.shortcuts.filters import filter_from_string
 from IPython.utils.decorators import undoc
 
 __all__ = ["create_ipython_shortcuts"]
 
 
-@undoc
-@Condition
-def cursor_in_leading_ws():
-    before = get_app().current_buffer.document.current_line_before_cursor
-    return (not before) or before.isspace()
+@dataclass
+class BaseBinding:
+    command: Callable[[KeyPressEvent], Any]
+    keys: List[str]
 
 
-def has_focus(value: FocusableElement):
-    """Wrapper around has_focus adding a nice `__name__` to tester function"""
-    tester = has_focus_impl(value).func
-    tester.__name__ = f"is_focused({value})"
-    return Condition(tester)
+@dataclass
+class RuntimeBinding(BaseBinding):
+    filter: Condition
 
 
-@undoc
-@Condition
-def has_line_below() -> bool:
-    document = get_app().current_buffer.document
-    return document.cursor_position_row < len(document.lines) - 1
+@dataclass
+class Binding(BaseBinding):
+    # while filter could be created by referencing variables directly (rather
+    # than created from strings), by using strings we ensure that users will
+    # be able to create filters in configuration (e.g. JSON) files too, which
+    # also benefits the documentation by enforcing human-readable filter names.
+    condition: Optional[str] = None
 
-
-@undoc
-@Condition
-def has_line_above() -> bool:
-    document = get_app().current_buffer.document
-    return document.cursor_position_row != 0
-
-
-def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindings:
-    """Set up the prompt_toolkit keyboard shortcuts for IPython.
-
-    Parameters
-    ----------
-    shell: InteractiveShell
-        The current IPython shell Instance
-    for_all_platforms: bool (default false)
-        This parameter is mostly used in generating the documentation
-        to create the shortcut binding for all the platforms, and export
-        them.
-
-    Returns
-    -------
-    KeyBindings
-        the keybinding instance for prompt toolkit.
-
-    """
-    # Warning: if possible, do NOT define handler functions in the locals
-    # scope of this function, instead define functions in the global
-    # scope, or a separate module, and include a user-friendly docstring
-    # describing the action.
-
-    kb = KeyBindings()
-    insert_mode = vi_insert_mode | emacs_insert_mode
-
-    if getattr(shell, "handle_return", None):
-        return_handler = shell.handle_return(shell)
-    else:
-        return_handler = newline_or_execute_outer(shell)
-
-    kb.add("enter", filter=(has_focus(DEFAULT_BUFFER) & ~has_selection & insert_mode))(
-        return_handler
-    )
-
-    @Condition
-    def ebivim():
-        return shell.emacs_bindings_in_vi_insert_mode
-
-    @kb.add(
-        "escape",
-        "enter",
-        filter=(has_focus(DEFAULT_BUFFER) & ~has_selection & insert_mode & ebivim),
-    )
-    def reformat_and_execute(event):
-        """Reformat code and execute it"""
-        reformat_text_before_cursor(
-            event.current_buffer, event.current_buffer.document, shell
-        )
-        event.current_buffer.validate_and_handle()
-
-    kb.add("c-\\")(quit)
-
-    kb.add("c-p", filter=(vi_insert_mode & has_focus(DEFAULT_BUFFER)))(
-        previous_history_or_previous_completion
-    )
-
-    kb.add("c-n", filter=(vi_insert_mode & has_focus(DEFAULT_BUFFER)))(
-        next_history_or_next_completion
-    )
-
-    kb.add("c-g", filter=(has_focus(DEFAULT_BUFFER) & has_completions))(
-        dismiss_completion
-    )
-
-    kb.add("c-c", filter=has_focus(DEFAULT_BUFFER))(reset_buffer)
-
-    kb.add("c-c", filter=has_focus(SEARCH_BUFFER))(reset_search_buffer)
-
-    supports_suspend = Condition(lambda: hasattr(signal, "SIGTSTP"))
-    kb.add("c-z", filter=supports_suspend)(suspend_to_bg)
-
-    # Ctrl+I == Tab
-    kb.add(
-        "tab",
-        filter=(
-            has_focus(DEFAULT_BUFFER)
-            & ~has_selection
-            & insert_mode
-            & cursor_in_leading_ws
-        ),
-    )(indent_buffer)
-    kb.add("c-o", filter=(has_focus(DEFAULT_BUFFER) & emacs_insert_mode))(
-        newline_autoindent_outer(shell.input_transformer_manager)
-    )
-
-    kb.add("f2", filter=has_focus(DEFAULT_BUFFER))(open_input_in_editor)
-
-    @Condition
-    def auto_match():
-        return shell.auto_match
-
-    def all_quotes_paired(quote, buf):
-        paired = True
-        i = 0
-        while i < len(buf):
-            c = buf[i]
-            if c == quote:
-                paired = not paired
-            elif c == "\\":
-                i += 1
-            i += 1
-        return paired
-
-    focused_insert = (vi_insert_mode | emacs_insert_mode) & has_focus(DEFAULT_BUFFER)
-    _preceding_text_cache: Dict[Union[str, Callable], Condition] = {}
-    _following_text_cache: Dict[Union[str, Callable], Condition] = {}
-
-    def preceding_text(pattern: Union[str, Callable]):
-        if pattern in _preceding_text_cache:
-            return _preceding_text_cache[pattern]
-
-        if callable(pattern):
-
-            def _preceding_text():
-                app = get_app()
-                before_cursor = app.current_buffer.document.current_line_before_cursor
-                # mypy can't infer if(callable): https://github.com/python/mypy/issues/3603
-                return bool(pattern(before_cursor))  # type: ignore[operator]
-
+    def __post_init__(self):
+        if self.condition:
+            self.filter = filter_from_string(self.condition)
         else:
-            m = re.compile(pattern)
+            self.filter = None
 
-            def _preceding_text():
-                app = get_app()
-                before_cursor = app.current_buffer.document.current_line_before_cursor
-                return bool(m.match(before_cursor))
 
-            _preceding_text.__name__ = f"preceding_text({pattern!r})"
+def create_identifier(handler: Callable):
+    parts = handler.__module__.split(".")
+    name = handler.__name__
+    package = parts[0]
+    if len(parts) > 1:
+        final_module = parts[-1]
+        return f"{package}:{final_module}.{name}"
+    else:
+        return f"{package}:{name}"
 
-        condition = Condition(_preceding_text)
-        _preceding_text_cache[pattern] = condition
-        return condition
 
-    def following_text(pattern):
-        try:
-            return _following_text_cache[pattern]
-        except KeyError:
-            pass
-        m = re.compile(pattern)
-
-        def _following_text():
-            app = get_app()
-            return bool(m.match(app.current_buffer.document.current_line_after_cursor))
-
-        _following_text.__name__ = f"following_text({pattern!r})"
-
-        condition = Condition(_following_text)
-        _following_text_cache[pattern] = condition
-        return condition
-
-    @Condition
-    def not_inside_unclosed_string():
-        app = get_app()
-        s = app.current_buffer.document.text_before_cursor
-        # remove escaped quotes
-        s = s.replace('\\"', "").replace("\\'", "")
-        # remove triple-quoted string literals
-        s = re.sub(r"(?:\"\"\"[\s\S]*\"\"\"|'''[\s\S]*''')", "", s)
-        # remove single-quoted string literals
-        s = re.sub(r"""(?:"[^"]*["\n]|'[^']*['\n])""", "", s)
-        return not ('"' in s or "'" in s)
-
-    # auto match
-    for key, cmd in match.auto_match_parens.items():
-        kb.add(key, filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))(
-            cmd
+AUTO_MATCH_BINDINGS = [
+    *[
+        Binding(
+            cmd, [key], "focused_insert & auto_match & followed_by_closing_paren_or_end"
         )
+        for key, cmd in match.auto_match_parens.items()
+    ],
+    *[
+        # raw string
+        Binding(cmd, [key], "focused_insert & auto_match & preceded_by_raw_str_prefix")
+        for key, cmd in match.auto_match_parens_raw_string.items()
+    ],
+    Binding(
+        match.double_quote,
+        ['"'],
+        "focused_insert"
+        " & auto_match"
+        " & not_inside_unclosed_string"
+        " & preceded_by_paired_double_quotes"
+        " & followed_by_closing_paren_or_end",
+    ),
+    Binding(
+        match.single_quote,
+        ["'"],
+        "focused_insert"
+        " & auto_match"
+        " & not_inside_unclosed_string"
+        " & preceded_by_paired_single_quotes"
+        " & followed_by_closing_paren_or_end",
+    ),
+    Binding(
+        match.docstring_double_quotes,
+        ['"'],
+        "focused_insert"
+        " & auto_match"
+        " & not_inside_unclosed_string"
+        " & preceded_by_two_double_quotes",
+    ),
+    Binding(
+        match.docstring_single_quotes,
+        ["'"],
+        "focused_insert"
+        " & auto_match"
+        " & not_inside_unclosed_string"
+        " & preceded_by_two_single_quotes",
+    ),
+    Binding(
+        match.skip_over,
+        [")"],
+        "focused_insert & auto_match & followed_by_closing_round_paren",
+    ),
+    Binding(
+        match.skip_over,
+        ["]"],
+        "focused_insert & auto_match & followed_by_closing_bracket",
+    ),
+    Binding(
+        match.skip_over,
+        ["}"],
+        "focused_insert & auto_match & followed_by_closing_brace",
+    ),
+    Binding(
+        match.skip_over, ['"'], "focused_insert & auto_match & followed_by_double_quote"
+    ),
+    Binding(
+        match.skip_over, ["'"], "focused_insert & auto_match & followed_by_single_quote"
+    ),
+    Binding(
+        match.delete_pair,
+        ["backspace"],
+        "focused_insert"
+        " & preceded_by_opening_round_paren"
+        " & auto_match"
+        " & followed_by_closing_round_paren",
+    ),
+    Binding(
+        match.delete_pair,
+        ["backspace"],
+        "focused_insert"
+        " & preceded_by_opening_bracket"
+        " & auto_match"
+        " & followed_by_closing_bracket",
+    ),
+    Binding(
+        match.delete_pair,
+        ["backspace"],
+        "focused_insert"
+        " & preceded_by_opening_brace"
+        " & auto_match"
+        " & followed_by_closing_brace",
+    ),
+    Binding(
+        match.delete_pair,
+        ["backspace"],
+        "focused_insert"
+        " & preceded_by_double_quote"
+        " & auto_match"
+        " & followed_by_double_quote",
+    ),
+    Binding(
+        match.delete_pair,
+        ["backspace"],
+        "focused_insert"
+        " & preceded_by_single_quote"
+        " & auto_match"
+        " & followed_by_single_quote",
+    ),
+]
 
-    # raw string
-    for key, cmd in match.auto_match_parens_raw_string.items():
-        kb.add(
-            key,
-            filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$"),
-        )(cmd)
+AUTO_SUGGEST_BINDINGS = [
+    Binding(
+        auto_suggest.accept_in_vi_insert_mode,
+        ["end"],
+        "default_buffer_focused & (ebivim | ~vi_insert_mode)",
+    ),
+    Binding(
+        auto_suggest.accept_in_vi_insert_mode, ["c-e"], "focused_insert_vi & ebivim"
+    ),
+    Binding(auto_suggest.accept, ["c-f"], "focused_insert_vi"),
+    Binding(auto_suggest.accept_word, ["escape", "f"], "focused_insert_vi & ebivim"),
+    Binding(
+        auto_suggest.accept_token,
+        ["c-right"],
+        "has_suggestion & default_buffer_focused",
+    ),
+    Binding(
+        auto_suggest.discard,
+        ["escape"],
+        "has_suggestion & default_buffer_focused & emacs_insert_mode",
+    ),
+    Binding(
+        auto_suggest.swap_autosuggestion_up,
+        ["up"],
+        "navigable_suggestions"
+        " & ~has_line_above"
+        " & has_suggestion"
+        " & default_buffer_focused",
+    ),
+    Binding(
+        auto_suggest.swap_autosuggestion_down,
+        ["down"],
+        "navigable_suggestions"
+        " & ~has_line_below"
+        " & has_suggestion"
+        " & default_buffer_focused",
+    ),
+    Binding(
+        auto_suggest.up_and_update_hint,
+        ["up"],
+        "has_line_above & navigable_suggestions & default_buffer_focused",
+    ),
+    Binding(
+        auto_suggest.down_and_update_hint,
+        ["down"],
+        "has_line_below & navigable_suggestions & default_buffer_focused",
+    ),
+    Binding(
+        auto_suggest.accept_character,
+        ["right"],
+        "has_suggestion & default_buffer_focused",
+    ),
+    Binding(
+        auto_suggest.accept_and_move_cursor_left,
+        ["c-left"],
+        "has_suggestion & default_buffer_focused",
+    ),
+    Binding(
+        auto_suggest.accept_and_keep_cursor,
+        ["c-down"],
+        "has_suggestion & default_buffer_focused",
+    ),
+    Binding(
+        auto_suggest.backspace_and_resume_hint,
+        ["backspace"],
+        "has_suggestion & default_buffer_focused",
+    ),
+]
 
-    kb.add(
-        '"',
-        filter=focused_insert
-        & auto_match
-        & not_inside_unclosed_string
-        & preceding_text(lambda line: all_quotes_paired('"', line))
-        & following_text(r"[,)}\]]|$"),
-    )(match.double_quote)
 
-    kb.add(
-        "'",
-        filter=focused_insert
-        & auto_match
-        & not_inside_unclosed_string
-        & preceding_text(lambda line: all_quotes_paired("'", line))
-        & following_text(r"[,)}\]]|$"),
-    )(match.single_quote)
-
-    kb.add(
-        '"',
-        filter=focused_insert
-        & auto_match
-        & not_inside_unclosed_string
-        & preceding_text(r'^.*""$'),
-    )(match.docstring_double_quotes)
-
-    kb.add(
-        "'",
-        filter=focused_insert
-        & auto_match
-        & not_inside_unclosed_string
-        & preceding_text(r"^.*''$"),
-    )(match.docstring_single_quotes)
-
-    # just move cursor
-    kb.add(")", filter=focused_insert & auto_match & following_text(r"^\)"))(
-        match.skip_over
-    )
-    kb.add("]", filter=focused_insert & auto_match & following_text(r"^\]"))(
-        match.skip_over
-    )
-    kb.add("}", filter=focused_insert & auto_match & following_text(r"^\}"))(
-        match.skip_over
-    )
-    kb.add('"', filter=focused_insert & auto_match & following_text('^"'))(
-        match.skip_over
-    )
-    kb.add("'", filter=focused_insert & auto_match & following_text("^'"))(
-        match.skip_over
-    )
-
-    kb.add(
-        "backspace",
-        filter=focused_insert
-        & preceding_text(r".*\($")
-        & auto_match
-        & following_text(r"^\)"),
-    )(match.delete_pair)
-    kb.add(
-        "backspace",
-        filter=focused_insert
-        & preceding_text(r".*\[$")
-        & auto_match
-        & following_text(r"^\]"),
-    )(match.delete_pair)
-    kb.add(
-        "backspace",
-        filter=focused_insert
-        & preceding_text(r".*\{$")
-        & auto_match
-        & following_text(r"^\}"),
-    )(match.delete_pair)
-    kb.add(
-        "backspace",
-        filter=focused_insert
-        & preceding_text('.*"$')
-        & auto_match
-        & following_text('^"'),
-    )(match.delete_pair)
-    kb.add(
-        "backspace",
-        filter=focused_insert
-        & preceding_text(r".*'$")
-        & auto_match
-        & following_text(r"^'"),
-    )(match.delete_pair)
-
-    if shell.display_completions == "readlinelike":
-        kb.add(
-            "c-i",
-            filter=(
-                has_focus(DEFAULT_BUFFER)
-                & ~has_selection
-                & insert_mode
-                & ~cursor_in_leading_ws
-            ),
-        )(display_completions_like_readline)
-
-    if sys.platform == "win32" or for_all_platforms:
-        kb.add("c-v", filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
-
-    focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
-
-    # autosuggestions
-    @Condition
-    def navigable_suggestions():
-        return isinstance(
-            shell.auto_suggest, auto_suggest.NavigableAutoSuggestFromHistory
-        )
-
-    kb.add("end", filter=has_focus(DEFAULT_BUFFER) & (ebivim | ~vi_insert_mode))(
-        auto_suggest.accept_in_vi_insert_mode
-    )
-    kb.add("c-e", filter=focused_insert_vi & ebivim)(
-        auto_suggest.accept_in_vi_insert_mode
-    )
-    kb.add("c-f", filter=focused_insert_vi)(auto_suggest.accept)
-    kb.add("escape", "f", filter=focused_insert_vi & ebivim)(auto_suggest.accept_word)
-    kb.add("c-right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.accept_token
-    )
-    kb.add(
-        "escape", filter=has_suggestion & has_focus(DEFAULT_BUFFER) & emacs_insert_mode
-    )(auto_suggest.discard)
-    kb.add(
-        "up",
-        filter=navigable_suggestions
-        & ~has_line_above
-        & has_suggestion
-        & has_focus(DEFAULT_BUFFER),
-    )(auto_suggest.swap_autosuggestion_up(shell.auto_suggest))
-    kb.add(
-        "down",
-        filter=navigable_suggestions
-        & ~has_line_below
-        & has_suggestion
-        & has_focus(DEFAULT_BUFFER),
-    )(auto_suggest.swap_autosuggestion_down(shell.auto_suggest))
-    kb.add(
-        "up", filter=has_line_above & navigable_suggestions & has_focus(DEFAULT_BUFFER)
-    )(auto_suggest.up_and_update_hint)
-    kb.add(
-        "down",
-        filter=has_line_below & navigable_suggestions & has_focus(DEFAULT_BUFFER),
-    )(auto_suggest.down_and_update_hint)
-    kb.add("right", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.accept_character
-    )
-    kb.add("c-left", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.accept_and_move_cursor_left
-    )
-    kb.add("c-down", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.accept_and_keep_cursor
-    )
-    kb.add("backspace", filter=has_suggestion & has_focus(DEFAULT_BUFFER))(
-        auto_suggest.backspace_and_resume_hint
-    )
-
-    # Simple Control keybindings
-    key_cmd_dict = {
+SIMPLE_CONTROL_BINDINGS = [
+    Binding(cmd, [key], "focused_insert_vi & ebivim")
+    for key, cmd in {
         "c-a": nc.beginning_of_line,
         "c-b": nc.backward_char,
         "c-k": nc.kill_line,
         "c-w": nc.backward_kill_word,
         "c-y": nc.yank,
         "c-_": nc.undo,
-    }
+    }.items()
+]
 
-    for key, cmd in key_cmd_dict.items():
-        kb.add(key, filter=focused_insert_vi & ebivim)(cmd)
 
-    # Alt and Combo Control keybindings
-    keys_cmd_dict = {
+ALT_AND_COMOBO_CONTROL_BINDINGS = [
+    Binding(cmd, list(keys), "focused_insert_vi & ebivim")
+    for keys, cmd in {
         # Control Combos
         ("c-x", "c-e"): nc.edit_and_execute,
         ("c-x", "e"): nc.edit_and_execute,
@@ -427,10 +276,48 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
         ("escape", "u"): nc.uppercase_word,
         ("escape", "y"): nc.yank_pop,
         ("escape", "."): nc.yank_last_arg,
-    }
+    }.items()
+]
 
-    for keys, cmd in keys_cmd_dict.items():
-        kb.add(*keys, filter=focused_insert_vi & ebivim)(cmd)
+
+def add_binding(bindings: KeyBindings, binding: Binding):
+    bindings.add(
+        *binding.keys,
+        **({"filter": binding.filter} if binding.filter is not None else {}),
+    )(binding.command)
+
+
+def create_ipython_shortcuts(shell, skip=None) -> KeyBindings:
+    """Set up the prompt_toolkit keyboard shortcuts for IPython.
+
+    Parameters
+    ----------
+    shell: InteractiveShell
+        The current IPython shell Instance
+    skip: List[Binding]
+        Bindings to skip.
+
+    Returns
+    -------
+    KeyBindings
+        the keybinding instance for prompt toolkit.
+
+    """
+    kb = KeyBindings()
+    skip = skip or []
+    for binding in KEY_BINDINGS:
+        skip_this_one = False
+        for to_skip in skip:
+            if (
+                to_skip.command == binding.command
+                and to_skip.filter == binding.filter
+                and to_skip.keys == binding.keys
+            ):
+                skip_this_one = True
+                break
+        if skip_this_one:
+            continue
+        add_binding(kb, binding)
 
     def get_input_mode(self):
         app = get_app()
@@ -451,7 +338,17 @@ def create_ipython_shortcuts(shell, for_all_platforms: bool = False) -> KeyBindi
     if shell.editing_mode == "vi" and shell.modal_cursor:
         ViState._input_mode = InputMode.INSERT  # type: ignore
         ViState.input_mode = property(get_input_mode, set_input_mode)  # type: ignore
+
     return kb
+
+
+def reformat_and_execute(event):
+    """Reformat code and execute it"""
+    shell = get_ipython()
+    reformat_text_before_cursor(
+        event.current_buffer, event.current_buffer.document, shell
+    )
+    event.current_buffer.validate_and_handle()
 
 
 def reformat_text_before_cursor(buffer, document, shell):
@@ -461,6 +358,14 @@ def reformat_text_before_cursor(buffer, document, shell):
         buffer.insert_text(formatted_text)
     except Exception as e:
         buffer.insert_text(text)
+
+
+def handle_return_or_newline_or_execute(event):
+    shell = get_ipython()
+    if getattr(shell, "handle_return", None):
+        return shell.handle_return(shell)(event)
+    else:
+        return newline_or_execute_outer(shell)(event)
 
 
 def newline_or_execute_outer(shell):
@@ -511,8 +416,6 @@ def newline_or_execute_outer(shell):
                 b.insert_text("\n" + indent)
             else:
                 b.insert_text("\n")
-
-    newline_or_execute.__qualname__ = "newline_or_execute"
 
     return newline_or_execute
 
@@ -610,30 +513,24 @@ def newline_with_copy_margin(event):
         b.cursor_right(count=pos_diff)
 
 
-def newline_autoindent_outer(inputsplitter) -> Callable[..., None]:
-    """
-    Return a function suitable for inserting a indented newline after the cursor.
+def newline_autoindent(event):
+    """Insert a newline after the cursor indented appropriately.
 
     Fancier version of deprecated ``newline_with_copy_margin`` which should
     compute the correct indentation of the inserted line. That is to say, indent
     by 4 extra space after a function definition, class definition, context
     manager... And dedent by 4 space after ``pass``, ``return``, ``raise ...``.
     """
+    shell = get_ipython()
+    inputsplitter = shell.input_transformer_manager
+    b = event.current_buffer
+    d = b.document
 
-    def newline_autoindent(event):
-        """Insert a newline after the cursor indented appropriately."""
-        b = event.current_buffer
-        d = b.document
-
-        if b.complete_state:
-            b.cancel_completion()
-        text = d.text[: d.cursor_position] + "\n"
-        _, indent = inputsplitter.check_complete(text)
-        b.insert_text("\n" + (" " * (indent or 0)), move_cursor=False)
-
-    newline_autoindent.__qualname__ = "newline_autoindent"
-
-    return newline_autoindent
+    if b.complete_state:
+        b.cancel_completion()
+    text = d.text[: d.cursor_position] + "\n"
+    _, indent = inputsplitter.check_complete(text)
+    b.insert_text("\n" + (" " * (indent or 0)), move_cursor=False)
 
 
 def open_input_in_editor(event):
@@ -666,5 +563,58 @@ else:
 
     @undoc
     def win_paste(event):
-        """Stub used when auto-generating shortcuts for documentation"""
+        """Stub used on other platforms"""
         pass
+
+
+KEY_BINDINGS = [
+    Binding(
+        handle_return_or_newline_or_execute,
+        ["enter"],
+        "default_buffer_focused & ~has_selection & insert_mode",
+    ),
+    Binding(
+        reformat_and_execute,
+        ["escape", "enter"],
+        "default_buffer_focused & ~has_selection & insert_mode & ebivim",
+    ),
+    Binding(quit, ["c-\\"]),
+    Binding(
+        previous_history_or_previous_completion,
+        ["c-p"],
+        "vi_insert_mode & default_buffer_focused",
+    ),
+    Binding(
+        next_history_or_next_completion,
+        ["c-n"],
+        "vi_insert_mode & default_buffer_focused",
+    ),
+    Binding(dismiss_completion, ["c-g"], "default_buffer_focused & has_completions"),
+    Binding(reset_buffer, ["c-c"], "default_buffer_focused"),
+    Binding(reset_search_buffer, ["c-c"], "search_buffer_focused"),
+    Binding(suspend_to_bg, ["c-z"], "supports_suspend"),
+    Binding(
+        indent_buffer,
+        ["tab"],  # Ctrl+I == Tab
+        "default_buffer_focused"
+        " & ~has_selection"
+        " & insert_mode"
+        " & cursor_in_leading_ws",
+    ),
+    Binding(newline_autoindent, ["c-o"], "default_buffer_focused & emacs_insert_mode"),
+    Binding(open_input_in_editor, ["f2"], "default_buffer_focused"),
+    *AUTO_MATCH_BINDINGS,
+    *AUTO_SUGGEST_BINDINGS,
+    Binding(
+        display_completions_like_readline,
+        ["c-i"],
+        "readline_like_completions"
+        " & default_buffer_focused"
+        " & ~has_selection"
+        " & insert_mode"
+        " & ~cursor_in_leading_ws",
+    ),
+    Binding(win_paste, ["c-v"], "default_buffer_focused & ~vi_mode & is_windows_os"),
+    *SIMPLE_CONTROL_BINDINGS,
+    *ALT_AND_COMOBO_CONTROL_BINDINGS,
+]

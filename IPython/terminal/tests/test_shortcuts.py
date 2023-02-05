@@ -11,6 +11,8 @@ from IPython.terminal.shortcuts.auto_suggest import (
     swap_autosuggestion_up,
     swap_autosuggestion_down,
 )
+from IPython.terminal.shortcuts.auto_match import skip_over
+from IPython.terminal.shortcuts import create_ipython_shortcuts
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.buffer import Buffer
@@ -192,18 +194,20 @@ def test_autosuggest_token_empty():
 def test_other_providers():
     """Ensure that swapping autosuggestions does not break with other providers"""
     provider = AutoSuggestFromHistory()
-    up = swap_autosuggestion_up(provider)
-    down = swap_autosuggestion_down(provider)
+    ip = get_ipython()
+    ip.auto_suggest = provider
     event = Mock()
     event.current_buffer = Buffer()
-    assert up(event) is None
-    assert down(event) is None
+    assert swap_autosuggestion_up(event) is None
+    assert swap_autosuggestion_down(event) is None
 
 
 async def test_navigable_provider():
     provider = NavigableAutoSuggestFromHistory()
     history = InMemoryHistory(history_strings=["very_a", "very", "very_b", "very_c"])
     buffer = Buffer(history=history)
+    ip = get_ipython()
+    ip.auto_suggest = provider
 
     async for _ in history.load():
         pass
@@ -211,8 +215,8 @@ async def test_navigable_provider():
     buffer.cursor_position = 5
     buffer.text = "very"
 
-    up = swap_autosuggestion_up(provider)
-    down = swap_autosuggestion_down(provider)
+    up = swap_autosuggestion_up
+    down = swap_autosuggestion_down
 
     event = Mock()
     event.current_buffer = buffer
@@ -254,14 +258,16 @@ async def test_navigable_provider_multiline_entries():
     provider = NavigableAutoSuggestFromHistory()
     history = InMemoryHistory(history_strings=["very_a\nvery_b", "very_c"])
     buffer = Buffer(history=history)
+    ip = get_ipython()
+    ip.auto_suggest = provider
 
     async for _ in history.load():
         pass
 
     buffer.cursor_position = 5
     buffer.text = "very"
-    up = swap_autosuggestion_up(provider)
-    down = swap_autosuggestion_down(provider)
+    up = swap_autosuggestion_up
+    down = swap_autosuggestion_down
 
     event = Mock()
     event.current_buffer = buffer
@@ -316,3 +322,101 @@ def test_navigable_provider_connection():
     session_1.default_buffer.on_text_insert.fire()
     session_2.default_buffer.on_text_insert.fire()
     assert provider.skip_lines == 3
+
+
+@pytest.fixture
+def ipython_with_prompt():
+    ip = get_ipython()
+    ip.pt_app = Mock()
+    ip.pt_app.key_bindings = create_ipython_shortcuts(ip)
+    try:
+        yield ip
+    finally:
+        ip.pt_app = None
+
+
+def find_bindings_by_command(command):
+    ip = get_ipython()
+    return [
+        binding
+        for binding in ip.pt_app.key_bindings.bindings
+        if binding.handler == command
+    ]
+
+
+def test_modify_unique_shortcut(ipython_with_prompt):
+    matched = find_bindings_by_command(accept_token)
+    assert len(matched) == 1
+
+    ipython_with_prompt.shortcuts = [
+        {"command": "IPython:auto_suggest.accept_token", "new_keys": ["a", "b", "c"]}
+    ]
+    matched = find_bindings_by_command(accept_token)
+    assert len(matched) == 1
+    assert list(matched[0].keys) == ["a", "b", "c"]
+
+    ipython_with_prompt.shortcuts = [
+        {"command": "IPython:auto_suggest.accept_token", "new_keys": []}
+    ]
+    matched = find_bindings_by_command(accept_token)
+    assert len(matched) == 0
+
+    ipython_with_prompt.shortcuts = []
+    matched = find_bindings_by_command(accept_token)
+    assert len(matched) == 1
+
+
+def test_modify_shortcut_with_filters(ipython_with_prompt):
+    matched = find_bindings_by_command(skip_over)
+    matched_keys = {m.keys[0] for m in matched}
+    assert matched_keys == {")", "]", "}", "'", '"'}
+
+    with pytest.raises(ValueError, match="Multiple shortcuts matching"):
+        ipython_with_prompt.shortcuts = [
+            {"command": "IPython:auto_match.skip_over", "new_keys": ["x"]}
+        ]
+
+    ipython_with_prompt.shortcuts = [
+        {
+            "command": "IPython:auto_match.skip_over",
+            "new_keys": ["x"],
+            "match_filter": "focused_insert & auto_match & followed_by_single_quote",
+        }
+    ]
+    matched = find_bindings_by_command(skip_over)
+    matched_keys = {m.keys[0] for m in matched}
+    assert matched_keys == {")", "]", "}", "x", '"'}
+
+
+def test_command():
+    pass
+
+
+def test_add_shortcut_for_new_command(ipython_with_prompt):
+    matched = find_bindings_by_command(test_command)
+    assert len(matched) == 0
+
+    with pytest.raises(ValueError, match="test_command is not a known"):
+        ipython_with_prompt.shortcuts = [{"command": "test_command", "new_keys": ["x"]}]
+    matched = find_bindings_by_command(test_command)
+    assert len(matched) == 0
+
+
+def test_add_shortcut_for_existing_command(ipython_with_prompt):
+    matched = find_bindings_by_command(skip_over)
+    assert len(matched) == 5
+
+    with pytest.raises(ValueError, match="Cannot add a shortcut without keys"):
+        ipython_with_prompt.shortcuts = [
+            {"command": "IPython:auto_match.skip_over", "new_keys": [], "create": True}
+        ]
+
+    ipython_with_prompt.shortcuts = [
+        {"command": "IPython:auto_match.skip_over", "new_keys": ["x"], "create": True}
+    ]
+    matched = find_bindings_by_command(skip_over)
+    assert len(matched) == 6
+
+    ipython_with_prompt.shortcuts = []
+    matched = find_bindings_by_command(skip_over)
+    assert len(matched) == 5

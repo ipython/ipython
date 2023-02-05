@@ -16,6 +16,7 @@ from traitlets import (
     Unicode,
     Dict,
     Integer,
+    List,
     observe,
     Instance,
     Type,
@@ -29,7 +30,7 @@ from traitlets import (
 
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
+from prompt_toolkit.filters import HasFocus, Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.history import History
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
@@ -49,7 +50,14 @@ from .magics import TerminalMagics
 from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
-from .shortcuts import create_ipython_shortcuts
+from .shortcuts import (
+    create_ipython_shortcuts,
+    create_identifier,
+    RuntimeBinding,
+    Binding,
+    add_binding,
+)
+from .shortcuts.filters import KEYBINDING_FILTERS, filter_from_string
 from .shortcuts.auto_suggest import (
     NavigableAutoSuggestFromHistory,
     AppendAutoSuggestionInAnyLine,
@@ -415,6 +423,145 @@ class TerminalInteractiveShell(InteractiveShell):
         provider = change.new
         self._set_autosuggestions(provider)
 
+    shortcuts = List(
+        trait=Dict(
+            key_trait=Enum(
+                [
+                    "command",
+                    "match_keys",
+                    "match_filter",
+                    "new_keys",
+                    "new_filter",
+                    "create",
+                ]
+            ),
+            per_key_traits={
+                "command": Unicode(),
+                "match_keys": List(Unicode()),
+                "match_filter": Unicode(),
+                "new_keys": List(Unicode()),
+                "new_filter": Unicode(),
+                "create": Bool(default=False),
+            },
+        ),
+        help=f"""Add, disable or modifying shortcuts.
+
+        Each entry on the list should be a dictionary with ``command`` key
+        identifying the target function executed by the shortcut and at least
+        one of the following::
+        - ``match_keys``: list of keys used to match an existing shortcut,
+        - ``match_filter``: shortcut filter used to match an existing shortcut,
+        - ``new_keys``: list of keys to set,
+        - ``new_filter``: a new shortcut filter to set
+
+        The filters have to be composed of pre-defined verbs and joined by one
+        of the following conjunctions: ``&`` (and), ``|` (or), ``~`` (not).
+        The pre-defined verbs are: ({', '.join(KEYBINDING_FILTERS)}).
+
+        To disable a shortcut set ``new_keys`` to an empty list.
+        To add a shortcut add key ``create`` with value ``True``.
+
+        When modifying/disabling shortcuts, ``match_keys``/``match_filter`` can
+        be omitted if the provided specification uniquely identifies a shortcut
+        to be modified/disabled. When modifying a shortcut ``new_filter`` or
+        ``new_keys`` can be omitted which will result in reuse of the existing
+        filter/keys.
+
+        Only shortcuts defined in IPython (and not default prompt toolkit
+        shortcuts) can be modified or disabled.
+        """,
+    ).tag(config=True)
+
+    @observe("shortcuts")
+    def _shortcuts_changed(self, change):
+        user_shortcuts = change.new
+        # rebuild the bindings list from scratch
+        key_bindings = create_ipython_shortcuts(self)
+
+        # for now we only allow adding shortcuts for commands which are already
+        # registered; this is a security precaution.
+        known_commands = {
+            create_identifier(binding.handler): binding.handler
+            for binding in key_bindings.bindings
+        }
+        shortcuts_to_skip = []
+        shortcuts_to_add = []
+
+        for shortcut in user_shortcuts:
+            command_id = shortcut["command"]
+            if command_id not in known_commands:
+                allowed_commands = "\n - ".join(known_commands)
+                raise ValueError(
+                    f"{command_id} is not a known shortcut command."
+                    f" Allowed commands are: \n - {allowed_commands}"
+                )
+            old_keys = shortcut.get("match_keys", None)
+            old_filter = (
+                filter_from_string(shortcut["match_filter"])
+                if "match_filter" in shortcut
+                else None
+            )
+            matching = [
+                binding
+                for binding in key_bindings.bindings
+                if (
+                    (old_filter is None or binding.filter == old_filter)
+                    and (old_keys is None or [k for k in binding.keys] == old_keys)
+                    and create_identifier(binding.handler) == command_id
+                )
+            ]
+
+            new_keys = shortcut.get("new_keys", None)
+            new_filter = shortcut.get("new_filter", None)
+
+            command = known_commands[command_id]
+
+            creating_new = shortcut.get("create", False)
+            modifying_existing = not creating_new and (
+                new_keys is not None or new_filter
+            )
+
+            if creating_new and new_keys == []:
+                raise ValueError("Cannot add a shortcut without keys")
+
+            if modifying_existing:
+                specification = {
+                    key: shortcut[key]
+                    for key in ["command", "filter"]
+                    if key in shortcut
+                }
+                if len(matching) == 0:
+                    raise ValueError(f"No shortcuts matching {specification} found")
+                elif len(matching) > 1:
+                    raise ValueError(
+                        f"Multiple shortcuts matching {specification} found,"
+                        f" please add keys/filter to select one of: {matching}"
+                    )
+
+                for matched in matching:
+                    shortcuts_to_skip.append(
+                        RuntimeBinding(
+                            command,
+                            keys=[k for k in matching[0].keys],
+                            filter=matching[0].filter,
+                        )
+                    )
+
+            if new_keys != []:
+                shortcuts_to_add.append(
+                    Binding(
+                        command,
+                        keys=new_keys,
+                        condition=new_filter if new_filter is not None else "always",
+                    )
+                )
+
+        # rebuild the bindings list from scratch
+        key_bindings = create_ipython_shortcuts(self, skip=shortcuts_to_skip)
+        for binding in shortcuts_to_add:
+            add_binding(key_bindings, binding)
+        self.pt_app.key_bindings = key_bindings
+
     prompt_includes_vi_mode = Bool(True,
         help="Display the current vi mode (when using vi editing mode)."
     ).tag(config=True)
@@ -477,7 +624,7 @@ class TerminalInteractiveShell(InteractiveShell):
             enable_open_in_editor=self.extra_open_editor_shortcuts,
             color_depth=self.color_depth,
             tempfile_suffix=".py",
-            **self._extra_prompt_options()
+            **self._extra_prompt_options(),
         )
         if isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
             self.auto_suggest.connect(self.pt_app)
