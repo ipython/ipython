@@ -99,11 +99,11 @@ class TerminalPdb(Pdb):
 
     def _prompt(self):
         """
-        In case another prompt_toolkit apps have to run in parallel to this one (e.g. in madbg),
+        In case other prompt_toolkit apps have to run in parallel to this one (e.g. in madbg),
         create_app_session must be used to prevent mixing up between them. According to the prompt_toolkit docs:
 
-        If you need multiple applications running at the same time, you have to create a separate
-        `AppSession` using a `with create_app_session():` block.
+        > If you need multiple applications running at the same time, you have to create a separate
+        > `AppSession` using a `with create_app_session():` block.
         """
         with create_app_session():
             return self.pt_app.prompt()
