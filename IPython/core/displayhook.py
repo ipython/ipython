@@ -91,7 +91,13 @@ class DisplayHook(Configurable):
             # some uses of ipshellembed may fail here
             return False
         
-        sio = _io.StringIO(cell)
+        return self.semicolon_at_end_of_expression(cell)
+
+    @staticmethod
+    def semicolon_at_end_of_expression(expression):
+        """Parse Python expression and detects whether last token is ';'"""
+
+        sio = _io.StringIO(expression)
         tokens = list(tokenize.generate_tokens(sio.readline))
 
         for token in reversed(tokens):

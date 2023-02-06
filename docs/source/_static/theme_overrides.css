@@ -1,0 +1,7 @@
+/*
+ Needed to revert problematic lack of wrapping in sphinx_rtd_theme, see:
+ https://github.com/readthedocs/sphinx_rtd_theme/issues/117
+*/
+.wy-table-responsive table.shortcuts td, .wy-table-responsive table.shortcuts th {
+  white-space: normal!important;
+}

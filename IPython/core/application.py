@@ -123,9 +123,8 @@ class ProfileAwareConfigLoader(PyFileConfigLoader):
         return super(ProfileAwareConfigLoader, self).load_subconfig(fname, path=path)
 
 class BaseIPythonApplication(Application):
-
-    name = u'ipython'
-    description = Unicode(u'IPython: an enhanced interactive Python shell.')
+    name = "ipython"
+    description = "IPython: an enhanced interactive Python shell."
     version = Unicode(release.version)
 
     aliases = base_aliases
@@ -311,7 +310,7 @@ class BaseIPythonApplication(Application):
                 except OSError as e:
                     # this will not be EEXIST
                     self.log.error("couldn't create path %s: %s", path, e)
-            self.log.debug("IPYTHONDIR set to: %s" % new)
+            self.log.debug("IPYTHONDIR set to: %s", new)
 
     def load_config_file(self, suppress_errors=IPYTHON_SUPPRESS_CONFIG_ERRORS):
         """Load the config file.
@@ -401,7 +400,7 @@ class BaseIPythonApplication(Application):
                     self.log.fatal("Profile %r not found."%self.profile)
                     self.exit(1)
             else:
-                self.log.debug(f"Using existing profile dir: {p.location!r}")
+                self.log.debug("Using existing profile dir: %r", p.location)
         else:
             location = self.config.ProfileDir.location
             # location is fully specified
@@ -421,7 +420,7 @@ class BaseIPythonApplication(Application):
                     self.log.fatal("Profile directory %r not found."%location)
                     self.exit(1)
             else:
-                self.log.debug(f"Using existing profile dir: {p.location!r}")
+                self.log.debug("Using existing profile dir: %r", p.location)
             # if profile_dir is specified explicitly, set profile name
             dir_name = os.path.basename(p.location)
             if dir_name.startswith('profile_'):
@@ -468,7 +467,7 @@ class BaseIPythonApplication(Application):
         s = self.generate_config_file()
         config_file = Path(self.profile_dir.location) / self.config_file_name
         if self.overwrite or not config_file.exists():
-            self.log.warning("Generating default config file: %r" % (config_file))
+            self.log.warning("Generating default config file: %r", (config_file))
             config_file.write_text(s, encoding="utf-8")
 
     @catch_config_error

@@ -2,6 +2,54 @@
  8.x Series
 ============
 
+.. _version 8.9.0:
+
+IPython 8.9.0
+-------------
+
+Second release of IPython in 2023, last Friday of the month, we are back on
+track. This is a small release with a few bug-fixes, and improvements, mostly
+with respect to terminal shortcuts.
+
+
+The biggest improvement for 8.9 is a drastic amelioration of the
+auto-suggestions sponsored by D.E. Shaw and implemented by the more and more
+active contributor `@krassowski <https://github.com/krassowski>`.
+
+- ``right`` accepts a single character from suggestion
+- ``ctrl+right`` accepts a semantic token (macos default shortcuts take
+  precedence and need to be disabled to make this work)
+- ``backspace`` deletes a character and resumes hinting autosuggestions
+- ``ctrl-left`` accepts suggestion and moves cursor left one character.
+- ``backspace`` deletes a character and resumes hinting autosuggestions
+- ``down`` moves to suggestion to later in history when no lines are present below the cursors.
+- ``up`` moves to suggestion from earlier in history when no lines are present above the cursor.
+
+This is best described by the Gif posted by `@krassowski
+<https://github.com/krassowski>`, and in the PR itself :ghpull:`13888`.
+
+.. image:: ../_images/autosuggest.gif
+
+Please report any feedback in order for us to improve the user experience.
+In particular we are also working on making the shortcuts configurable.
+
+If you are interested in better terminal shortcuts, I also invite you to
+participate in issue `13879
+<https://github.com/ipython/ipython/issues/13879>`__.
+
+
+As we follow `NEP29
+<https://numpy.org/neps/nep-0029-deprecation_policy.html>`__, next version of
+IPython will officially stop supporting numpy 1.20, and will stop supporting
+Python 3.8 after April release.
+
+As usual you can find the full list of PRs on GitHub under `the 8.9 milestone
+<https://github.com/ipython/ipython/milestone/111?closed=1>`__.
+
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 .. _version 8.8.0:
 
 IPython 8.8.0
@@ -11,11 +59,11 @@ First release of IPython in 2023 as there was no release at the end of
 December.
 
 This is an unusually big release (relatively speaking) with more than 15 Pull
-Requests merge.
+Requests merged.
 
 Of particular interest are:
 
- - :ghpull:`13852` that replace the greedy completer and improve
+ - :ghpull:`13852` that replaces the greedy completer and improves
    completion, in particular for dictionary keys.
  - :ghpull:`13858` that adds ``py.typed`` to ``setup.cfg`` to make sure it is
    bundled in wheels.
@@ -24,7 +72,7 @@ Of particular interest are:
    believe this also needs a recent version of Traitlets.
  - :ghpull:`13865` makes the ``inspector`` class of `InteractiveShell`
    configurable.
- - :ghpull:`13880` that remove minor-version entrypoints as the minor version
+ - :ghpull:`13880` that removes minor-version entrypoints as the minor version
    entry points that would be included in the wheel would be the one of the
    Python version that was used to build the ``whl`` file.
 
@@ -48,8 +96,8 @@ IPython 8.7.0
 
 
 Small release of IPython with a couple of bug fixes and new features for this
-month. Next month is end of year, it is unclear if there will be a release close
-the new year's eve, or if the next release will be at end of January.
+month. Next month is the end of year, it is unclear if there will be a release
+close to the new year's eve, or if the next release will be at the end of January.
 
 Here are a few of the relevant fixes,
 as usual you can find the full list of PRs on GitHub under `the 8.7 milestone
@@ -73,29 +121,29 @@ IPython 8.6.0
 
 Back to a more regular release schedule (at least I try), as Friday is
 already over by more than 24h hours. This is a slightly bigger release with a
-few new features that contain no less then 25 PRs.
+few new features that contain no less than 25 PRs.
 
 We'll notably found a couple of non negligible changes:
 
 The ``install_ext`` and related functions have been removed after being
 deprecated for years. You can use pip to install extensions. ``pip`` did not
-exists when ``install_ext`` was introduced. You can still load local extensions
+exist when ``install_ext`` was introduced. You can still load local extensions
 without installing them. Just set your ``sys.path`` for example. :ghpull:`13744`
 
-IPython now have extra entry points that that the major *and minor* version of
-python. For some of you this mean that you can do a quick ``ipython3.10`` to
+IPython now has extra entry points that use the major *and minor* version of
+python. For some of you this means that you can do a quick ``ipython3.10`` to
 launch IPython from the Python 3.10 interpreter, while still using Python 3.11
 as your main Python. :ghpull:`13743`
 
-The completer matcher API have been improved. See :ghpull:`13745`. This should
+The completer matcher API has been improved. See :ghpull:`13745`. This should
 improve the type inference and improve dict keys completions in many use case.
-Tanks ``@krassowski`` for all the works, and the D.E. Shaw group for sponsoring
+Thanks ``@krassowski`` for all the work, and the D.E. Shaw group for sponsoring
 it.
 
 The color of error nodes in tracebacks can now be customized. See
-:ghpull:`13756`. This is a private attribute until someone find the time to
-properly add a configuration option. Note that with Python 3.11 that also show
-the relevant nodes in traceback, it would be good to leverage this informations
+:ghpull:`13756`. This is a private attribute until someone finds the time to
+properly add a configuration option. Note that with Python 3.11 that also shows
+the relevant nodes in traceback, it would be good to leverage this information
 (plus the "did you mean" info added on attribute errors). But that's likely work
 I won't have time to do before long, so contributions welcome.
 
@@ -108,7 +156,7 @@ This mostly occurs in teaching context when incorrect values get passed around.
 
 
 The ``?``, ``??``, and corresponding ``pinfo``, ``pinfo2`` magics can now find
-objects insides arrays. That is to say, the following now works::
+objects inside arrays. That is to say, the following now works::
 
 
    >>> def my_func(*arg, **kwargs):pass
@@ -117,7 +165,7 @@ objects insides arrays. That is to say, the following now works::
 
 
 If ``container`` define a custom ``getitem``, this __will__ trigger the custom
-method. So don't put side effects in your ``getitems``. Thanks the D.E. Shaw
+method. So don't put side effects in your ``getitems``. Thanks to the D.E. Shaw
 group for the request and sponsoring the work.
 
 
@@ -143,17 +191,17 @@ an bug fixes.
 Many thanks to everybody who contributed PRs for your patience in review and
 merges.
 
-Here is a non exhaustive list of changes that have been implemented for IPython
+Here is a non-exhaustive list of changes that have been implemented for IPython
 8.5.0. As usual you can find the full list of issues and PRs tagged with `the
 8.5 milestone
 <https://github.com/ipython/ipython/pulls?q=is%3Aclosed+milestone%3A8.5+>`__.
 
- - Added shortcut for accepting auto suggestion. The End key shortcut for
+ - Added a shortcut for accepting auto suggestion. The End key shortcut for
    accepting auto-suggestion This binding works in Vi mode too, provided
    ``TerminalInteractiveShell.emacs_bindings_in_vi_insert_mode`` is set to be
    ``True`` :ghpull:`13566`.
 
- - No popup in window for latex generation w hen generating latex (e.g. via
+ - No popup in window for latex generation when generating latex (e.g. via
    `_latex_repr_`) no popup window is shows under Windows. :ghpull:`13679`
 
  - Fixed error raised when attempting to tab-complete an input string with
@@ -269,12 +317,12 @@ IPython 8.3.0
 
 
  - :ghpull:`13600`, ``pre_run_*``-hooks will now have a ``cell_id`` attribute on
-   the info object when frontend provide it. This has been backported to 7.33
+   the info object when frontend provides it. This has been backported to 7.33
 
  - :ghpull:`13624`, fixed :kbd:`End` key being broken after accepting an
    auto-suggestion.
 
- - :ghpull:`13657` fix issue where history from different sessions would be mixed.
+ - :ghpull:`13657` fixed an issue where history from different sessions would be mixed.
 
 .. _version 8.2.0:
 
@@ -292,8 +340,8 @@ IPython 8.2 mostly bring bugfixes to IPython.
  - Fixes to ``ultratb`` ipdb support when used outside of IPython. :ghpull:`13498`
 
 
-I am still trying to fix and investigate :ghissue:`13598`, which seem to be
-random, and would appreciate help if you find  reproducible minimal case. I've
+I am still trying to fix and investigate :ghissue:`13598`, which seems to be
+random, and would appreciate help if you find a reproducible minimal case. I've
 tried to make various changes to the codebase to mitigate it, but a proper fix
 will be difficult without understanding the cause.
 
@@ -322,7 +370,7 @@ IPython 8.1.0
 -------------
 
 IPython 8.1 is the first minor release after 8.0 and fixes a number of bugs and
-Update a few behavior that were problematic with the 8.0 as with many new major
+updates a few behaviors that were problematic with the 8.0 as with many new major
 release.
 
 Note that beyond the changes listed here, IPython 8.1.0 also contains all the
@@ -373,8 +421,8 @@ We want to remind users that IPython is part of the Jupyter organisations, and
 thus governed by a Code of Conduct. Some of the behavior we have seen on GitHub is not acceptable.
 Abuse and non-respectful comments on discussion will not be tolerated.
 
-Many thanks to all the contributors to this release, many of the above fixed issue and
-new features where done by first time contributors, showing there is still
+Many thanks to all the contributors to this release, many of the above fixed issues and
+new features were done by first time contributors, showing there is still
 plenty of easy contribution possible in IPython
 . You can find all individual contributions
 to this milestone `on github <https://github.com/ipython/ipython/milestone/91>`__.
@@ -435,7 +483,7 @@ IPython 8.0
 
 IPython 8.0 is bringing a large number of new features and improvements to both the
 user of the terminal and of the kernel via Jupyter. The removal of compatibility
-with older version of Python is also the opportunity to do a couple of
+with an older version of Python is also the opportunity to do a couple of
 performance improvements in particular with respect to startup time.
 The 8.x branch started diverging from its predecessor around IPython 7.12
 (January 2020).
@@ -444,7 +492,7 @@ This release contains 250+ pull requests, in addition to many of the features
 and backports that have made it to the 7.x branch. Please see the
 `8.0 milestone <https://github.com/ipython/ipython/milestone/73?closed=1>`__ for the full list of pull requests.
 
-Please feel free to send pull requests to updates those notes after release,
+Please feel free to send pull requests to update those notes after release,
 I have likely forgotten a few things reviewing 250+ PRs.
 
 Dependencies changes/downstream packaging
@@ -459,8 +507,8 @@ looking for help to do so.
  - minimal Python is now 3.8
  - ``nose`` is not a testing requirement anymore
  - ``pytest`` replaces nose.
- - ``iptest``/``iptest3`` cli entrypoints do not exists anymore.
- - minimum officially support ``numpy`` version has been bumped, but this should
+ - ``iptest``/``iptest3`` cli entrypoints do not exist anymore.
+ - the minimum officially ​supported ``numpy`` version has been bumped, but this should
    not have much effect on packaging.
 
 

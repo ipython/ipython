@@ -2367,6 +2367,14 @@ class InteractiveShell(SingletonConfigurable):
                 kwargs['local_ns'] = self.get_local_scope(stack_depth)
             with self.builtin_trap:
                 result = fn(*args, **kwargs)
+
+            # The code below prevents the output from being displayed
+            # when using magics with decodator @output_can_be_silenced
+            # when the last Python token in the expression is a ';'.
+            if getattr(fn, magic.MAGIC_OUTPUT_CAN_BE_SILENCED, False):
+                if DisplayHook.semicolon_at_end_of_expression(magic_arg_s):
+                    return None
+
             return result
 
     def get_local_scope(self, stack_depth):
@@ -2420,6 +2428,14 @@ class InteractiveShell(SingletonConfigurable):
             with self.builtin_trap:
                 args = (magic_arg_s, cell)
                 result = fn(*args, **kwargs)
+
+            # The code below prevents the output from being displayed
+            # when using magics with decodator @output_can_be_silenced
+            # when the last Python token in the expression is a ';'.
+            if getattr(fn, magic.MAGIC_OUTPUT_CAN_BE_SILENCED, False):
+                if DisplayHook.semicolon_at_end_of_expression(cell):
+                    return None
+
             return result
 
     def find_line_magic(self, magic_name):
@@ -3199,6 +3215,7 @@ class InteractiveShell(SingletonConfigurable):
 
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
+
 
                 has_raised = await self.run_ast_nodes(code_ast.body, cell_name,
                        interactivity=interactivity, compiler=compiler, result=result)

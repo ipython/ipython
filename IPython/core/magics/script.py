@@ -210,7 +210,7 @@ class ScriptMagics(Magics):
 
         async def _handle_stream(stream, stream_arg, file_object):
             while True:
-                line = (await stream.readline()).decode("utf8")
+                line = (await stream.readline()).decode("utf8", errors="replace")
                 if not line:
                     break
                 if stream_arg:
