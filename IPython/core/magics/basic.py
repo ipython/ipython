@@ -2,12 +2,11 @@
 
 
 from logging import error
-import io
-import os
 from pprint import pformat
 import sys
 from warnings import warn
 
+from pathlib import Path
 from traitlets.utils.importstring import import_item
 from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError
@@ -575,7 +574,7 @@ Currently the magic system has the following functions:""",
         For example, to export the history to "foo.ipynb" do "%notebook foo.ipynb".
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
-        outfname = os.path.expanduser(args.filename)
+        outf = Path(args.filename)
 
         from nbformat import write, v4
 
@@ -583,13 +582,13 @@ Currently the magic system has the following functions:""",
         hist = list(self.shell.history_manager.get_range())
         if(len(hist)<=1):
             raise ValueError('History is empty, cannot export')
-        for session, execution_count, source in hist[:-1]:
+        for _, execution_count, source in hist[:-1]:
             cells.append(v4.new_code_cell(
                 execution_count=execution_count,
                 source=source
             ))
         nb = v4.new_notebook(cells=cells)
-        with io.open(outfname, "w", encoding="utf-8") as f:
+        with outf.open(mode="w", encoding="utf-8") as f:
             write(nb, f, version=4)
 
 @magics_class
