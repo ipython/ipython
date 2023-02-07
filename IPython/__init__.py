@@ -61,6 +61,7 @@ __author__ = '%s <%s>' % (release.author, release.author_email)
 __license__  = release.license
 __version__  = release.version
 version_info = release.version_info
+__version_info__ = release.__version_info__
 # list of CVEs that should have been patched in this release.
 # this is informational and should not be relied upon.
 __patched_cves__ = {"CVE-2022-21699"}

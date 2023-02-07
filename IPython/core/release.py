@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
 """Release data for the IPython project."""
 
-#-----------------------------------------------------------------------------
-#  Copyright (c) 2008, IPython Development Team.
+from typing import Tuple
+
+# -----------------------------------------------------------------------------
+#  Copyright (c) 2008-Present, IPython Development Team.
 #  Copyright (c) 2001, Fernando Perez <fernando.perez@colorado.edu>
 #  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
 #  Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
@@ -31,6 +32,14 @@ if _version_extra:
 
 version = __version__  # backwards compatibility name
 version_info = (_version_major, _version_minor, _version_patch, _version_extra)
+
+# trying to standardize on __version_info__ now, let's keep the numerical parts only
+# as sorting a,b,rc,dev is complex.
+__version_info__: Tuple[int, int, int] = (
+    _version_major,
+    _version_minor,
+    _version_patch,
+)
 
 # Change this when incrementing the kernel protocol version
 kernel_protocol_version_info = (5, 0)
