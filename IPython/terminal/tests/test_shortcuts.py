@@ -345,8 +345,8 @@ def find_bindings_by_command(command):
 
 
 def test_modify_unique_shortcut(ipython_with_prompt):
-    matched = find_bindings_by_command(accept_token)
-    assert len(matched) == 1
+    original = find_bindings_by_command(accept_token)
+    assert len(original) == 1
 
     ipython_with_prompt.shortcuts = [
         {"command": "IPython:auto_suggest.accept_token", "new_keys": ["a", "b", "c"]}
@@ -354,6 +354,22 @@ def test_modify_unique_shortcut(ipython_with_prompt):
     matched = find_bindings_by_command(accept_token)
     assert len(matched) == 1
     assert list(matched[0].keys) == ["a", "b", "c"]
+    assert list(matched[0].keys) != list(original[0].keys)
+    assert matched[0].filter == original[0].filter
+
+    ipython_with_prompt.shortcuts = [
+        {"command": "IPython:auto_suggest.accept_token", "new_filter": "always"}
+    ]
+    matched = find_bindings_by_command(accept_token)
+    assert len(matched) == 1
+    assert list(matched[0].keys) != ["a", "b", "c"]
+    assert list(matched[0].keys) == list(original[0].keys)
+    assert matched[0].filter != original[0].filter
+
+
+def test_disable_shortcut(ipython_with_prompt):
+    matched = find_bindings_by_command(accept_token)
+    assert len(matched) == 1
 
     ipython_with_prompt.shortcuts = [
         {"command": "IPython:auto_suggest.accept_token", "new_keys": []}

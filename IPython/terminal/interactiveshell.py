@@ -54,7 +54,6 @@ from .shortcuts import (
     create_ipython_shortcuts,
     create_identifier,
     RuntimeBinding,
-    Binding,
     add_binding,
 )
 from .shortcuts.filters import KEYBINDING_FILTERS, filter_from_string
@@ -549,21 +548,29 @@ class TerminalInteractiveShell(InteractiveShell):
                         f" please add keys/filter to select one of: {matching}"
                     )
 
-                for matched in matching:
-                    shortcuts_to_skip.append(
-                        RuntimeBinding(
-                            command,
-                            keys=[k for k in matching[0].keys],
-                            filter=matching[0].filter,
-                        )
+                matched = matching[0]
+                old_filter = matched.filter
+                old_keys = list(matched.keys)
+                shortcuts_to_skip.append(
+                    RuntimeBinding(
+                        command,
+                        keys=old_keys,
+                        filter=old_filter,
                     )
+                )
 
             if new_keys != []:
                 shortcuts_to_add.append(
-                    Binding(
+                    RuntimeBinding(
                         command,
-                        keys=new_keys,
-                        condition=new_filter if new_filter is not None else "always",
+                        keys=new_keys or old_keys,
+                        filter=filter_from_string(new_filter)
+                        if new_filter is not None
+                        else (
+                            old_filter
+                            if old_filter is not None
+                            else filter_from_string("always")
+                        ),
                     )
                 )
 
