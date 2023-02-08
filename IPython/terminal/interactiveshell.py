@@ -482,7 +482,10 @@ class TerminalInteractiveShell(InteractiveShell):
 
     @observe("shortcuts")
     def _shortcuts_changed(self, change):
-        user_shortcuts = change.new
+        if self.pt_app:
+            self.pt_app.key_bindings = self._merge_shortcuts(user_shortcuts=change.new)
+
+    def _merge_shortcuts(self, user_shortcuts):
         # rebuild the bindings list from scratch
         key_bindings = create_ipython_shortcuts(self)
 
@@ -568,7 +571,8 @@ class TerminalInteractiveShell(InteractiveShell):
         key_bindings = create_ipython_shortcuts(self, skip=shortcuts_to_skip)
         for binding in shortcuts_to_add:
             add_binding(key_bindings, binding)
-        self.pt_app.key_bindings = key_bindings
+
+        return key_bindings
 
     prompt_includes_vi_mode = Bool(True,
         help="Display the current vi mode (when using vi editing mode)."
@@ -607,8 +611,7 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
         # Set up keyboard shortcuts
-        key_bindings = create_ipython_shortcuts(self)
-
+        key_bindings = self._merge_shortcuts(user_shortcuts=self.shortcuts)
 
         # Pre-populate history from IPython's history database
         history = PtkHistoryAdapter(self)

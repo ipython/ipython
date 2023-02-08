@@ -388,17 +388,19 @@ def test_modify_shortcut_with_filters(ipython_with_prompt):
     assert matched_keys == {")", "]", "}", "x", '"'}
 
 
-def test_command():
+def example_command():
     pass
 
 
 def test_add_shortcut_for_new_command(ipython_with_prompt):
-    matched = find_bindings_by_command(test_command)
+    matched = find_bindings_by_command(example_command)
     assert len(matched) == 0
 
-    with pytest.raises(ValueError, match="test_command is not a known"):
-        ipython_with_prompt.shortcuts = [{"command": "test_command", "new_keys": ["x"]}]
-    matched = find_bindings_by_command(test_command)
+    with pytest.raises(ValueError, match="example_command is not a known"):
+        ipython_with_prompt.shortcuts = [
+            {"command": "example_command", "new_keys": ["x"]}
+        ]
+    matched = find_bindings_by_command(example_command)
     assert len(matched) == 0
 
 
@@ -420,3 +422,13 @@ def test_add_shortcut_for_existing_command(ipython_with_prompt):
     ipython_with_prompt.shortcuts = []
     matched = find_bindings_by_command(skip_over)
     assert len(matched) == 5
+
+
+def test_setting_shortcuts_before_pt_app_init():
+    ipython = get_ipython()
+    assert ipython.pt_app is None
+    shortcuts = [
+        {"command": "IPython:auto_match.skip_over", "new_keys": ["x"], "create": True}
+    ]
+    ipython.shortcuts = shortcuts
+    assert ipython.shortcuts == shortcuts
