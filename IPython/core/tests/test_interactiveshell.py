@@ -1112,10 +1112,16 @@ def test_set_custom_completer():
     ip.Completer.custom_matchers.pop()
 
 
-class TestShowTracebacksAttack(unittest.TestCase):
+class TestShowTracebackAttack(unittest.TestCase):
     """Test that the interactive shell is resilient against the client attack of
     manipulating the showtracebacks method. These attacks shouldn't result in an
     unhandled exception in the kernel."""
+
+    def setUp(self):
+        self.orig_showtraceback = interactiveshell.InteractiveShell.showtraceback
+
+    def tearDown(self):
+        interactiveshell.InteractiveShell.showtraceback = self.orig_showtraceback
 
     def test_set_show_tracebacks_none(self):
         """Test the case of the client setting showtracebacks to None"""
