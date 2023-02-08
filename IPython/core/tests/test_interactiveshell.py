@@ -1110,3 +1110,43 @@ def test_set_custom_completer():
 
     # clean up
     ip.Completer.custom_matchers.pop()
+
+
+class TestShowTracebacksAttack(unittest.TestCase):
+    """Test that the interactive shell is resilient against the client attack of
+    manipulating the showtracebacks method. These attacks shouldn't result in an
+    unhandled exception in the kernel."""
+
+    def test_set_show_tracebacks_none(self):
+        """Test the case of the client setting showtracebacks to None"""
+
+        result = ip.run_cell(
+            """
+            import IPython.core.interactiveshell
+            IPython.core.interactiveshell.InteractiveShell.showtraceback = None
+
+            assert False, "This should not raise an exception"
+        """
+        )
+        print(result)
+
+        assert result.result is None
+        assert isinstance(result.error_in_exec, TypeError)
+        assert str(result.error_in_exec) == "'NoneType' object is not callable"
+
+    def test_set_show_tracebacks_noop(self):
+        """Test the case of the client setting showtracebacks to a no op lambda"""
+
+        result = ip.run_cell(
+            """
+            import IPython.core.interactiveshell
+            IPython.core.interactiveshell.InteractiveShell.showtraceback = lambda *args, **kwargs: None
+
+            assert False, "This should not raise an exception"
+        """
+        )
+        print(result)
+
+        assert result.result is None
+        assert isinstance(result.error_in_exec, AssertionError)
+        assert str(result.error_in_exec) == "This should not raise an exception"
