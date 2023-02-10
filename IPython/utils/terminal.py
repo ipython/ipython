@@ -91,30 +91,14 @@ if os.name == 'posix':
         _set_term_title = _set_term_title_xterm
         _restore_term_title = _restore_term_title_xterm
 elif sys.platform == 'win32':
-    try:
-        import ctypes
+    import ctypes
 
-        SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
-        SetConsoleTitleW.argtypes = [ctypes.c_wchar_p]
-    
-        def _set_term_title(title):
-            """Set terminal title using ctypes to access the Win32 APIs."""
-            SetConsoleTitleW(title)
-    except ImportError:
-        def _set_term_title(title):
-            """Set terminal title using the 'title' command."""
-            global ignore_termtitle
+    SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
+    SetConsoleTitleW.argtypes = [ctypes.c_wchar_p]
 
-            try:
-                # Cannot be on network share when issuing system commands
-                curr = os.getcwd()
-                os.chdir("C:")
-                ret = os.system("title " + title)
-            finally:
-                os.chdir(curr)
-            if ret:
-                # non-zero return code signals error, don't try again
-                ignore_termtitle = True
+    def _set_term_title(title):
+        """Set terminal title using ctypes to access the Win32 APIs."""
+        SetConsoleTitleW(title)
 
 
 def set_term_title(title):
