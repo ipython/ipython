@@ -3,16 +3,41 @@
 ============
 
 
-IPython 8.9.1
--------------
+.. _version 8.10.0:
+   
+IPython 8.10
+------------
 
 Out of schedule release of IPython with minor fixes to patch a potential CVE-2023-24816.
 This is a really low severity CVE that you most likely are not affected by unless:
 
  - You are on windows.
  - You have a custom build of Python without ``_ctypes``
- - You cd or start IPython or Jupyter in untrusted directory which names may be valid shell commands.
+ - You cd or start IPython or Jupyter in untrusted directory which names may be
+   valid shell commands.
 
+You can read more on `the advisory
+<https://github.com/ipython/ipython/security/advisories/GHSA-29gw-9793-fvw7>`__. 
+
+In addition to fixing this CVE we also fix a couple of outstanding bugs and issues.
+
+As usual you can find the full list of PRs on GitHub under `the 8.10 milestone
+<https://github.com/ipython/ipython/milestone/112?closed=1>`__.
+
+In Particular:
+
+ - bump minimum numpy to `>=1.21` version following NEP29. :ghpull:`13930`
+ - fix for compatibility with MyPy 1.0. :ghpull:`13933`
+ - fix nbgrader stalling when IPython's ``showtraceback`` function is
+   monkeypatched. :ghpull:`13934`
+
+
+
+As this release also contains those minimal changes in addition to fixing the
+CVE I decided to bump the minor version anyway.
+
+This will not affect the normal release schedule, so IPython 8.11 is due in
+about 2 weeks.
 
 .. _version 8.9.0:
 
