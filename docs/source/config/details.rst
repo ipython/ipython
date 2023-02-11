@@ -200,7 +200,7 @@ With (X)EMacs >= 24, You can enable IPython in python-mode with:
 Keyboard Shortcuts
 ==================
 
-.. versionadded:: 8.10
+.. versionadded:: 8.11
 
 You can modify, disable or modify keyboard shortcuts for IPython Terminal using
 :std:configtrait:`TerminalInteractiveShell.shortcuts` traitlet.
