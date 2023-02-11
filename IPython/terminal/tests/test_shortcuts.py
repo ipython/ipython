@@ -420,6 +420,17 @@ def test_add_shortcut_for_new_command(ipython_with_prompt):
     assert len(matched) == 0
 
 
+def test_modify_shortcut_failure(ipython_with_prompt):
+    with pytest.raises(ValueError, match="No shortcuts matching"):
+        ipython_with_prompt.shortcuts = [
+            {
+                "command": "IPython:auto_match.skip_over",
+                "match_keys": ["x"],
+                "new_keys": ["y"],
+            }
+        ]
+
+
 def test_add_shortcut_for_existing_command(ipython_with_prompt):
     matched = find_bindings_by_command(skip_over)
     assert len(matched) == 5
