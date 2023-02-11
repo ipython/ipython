@@ -47,6 +47,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.timing import clock, clock2
+from IPython.core.displayhook import DisplayHook
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -1461,7 +1462,10 @@ class ExecutionMagics(Magics):
         disp = not args.no_display
         with capture_output(out, err, disp) as io:
             self.shell.run_cell(cell)
-        if args.output:
+        if DisplayHook.semicolon_at_end_of_expression(cell):
+            if args.output in self.shell.user_ns:
+                del self.shell.user_ns[args.output]
+        elif args.output:
             self.shell.user_ns[args.output] = io
 
 def parse_breakpoint(text, current_file):
