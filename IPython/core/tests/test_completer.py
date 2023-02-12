@@ -543,6 +543,7 @@ class TestCompleter(unittest.TestCase):
         """
         ip = get_ipython()
         ip.ex("a=list(range(5))")
+        ip.ex("d = {'a b': str}")
         _, c = ip.complete(".", line="a[0].")
         self.assertFalse(".real" in c, "Shouldn't have completed on a[0]: %s" % c)
 
@@ -561,14 +562,14 @@ class TestCompleter(unittest.TestCase):
             _(
                 "a[0].",
                 5,
-                "a[0].real",
+                ".real",
                 "Should have completed on a[0].: %s",
                 Completion(5, 5, "real"),
             )
             _(
                 "a[0].r",
                 6,
-                "a[0].real",
+                ".real",
                 "Should have completed on a[0].r: %s",
                 Completion(5, 6, "real"),
             )
@@ -576,9 +577,23 @@ class TestCompleter(unittest.TestCase):
             _(
                 "a[0].from_",
                 10,
-                "a[0].from_bytes",
+                ".from_bytes",
                 "Should have completed on a[0].from_: %s",
                 Completion(5, 10, "from_bytes"),
+            )
+            _(
+                "assert str.star",
+                14,
+                "str.startswith",
+                "Should have completed on `assert str.star`: %s",
+                Completion(11, 14, "startswith"),
+            )
+            _(
+                "d['a b'].str",
+                12,
+                ".strip",
+                "Should have completed on `d['a b'].str`: %s",
+                Completion(9, 12, "strip"),
             )
 
     def test_omit__names(self):
