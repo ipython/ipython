@@ -17,6 +17,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+import pytest
 from unittest import mock
 
 from os.path import join
@@ -635,10 +636,23 @@ class TestSystemRaw(ExitCodeChecks):
             )
         self.assertEqual(ip.user_ns["_exit_code"], -signal.SIGINT)
 
-    def test_magic_warnings(self):
-        for magic_cmd in ("pip", "conda", "cd"):
-            with self.assertWarnsRegex(Warning, "You executed the system command"):
-                ip.system_raw(magic_cmd)
+
+@pytest.mark.parametrize("magic_cmd", ["pip", "conda", "cd"])
+def test_magic_warnings(magic_cmd):
+    if sys.platform == "win32":
+        to_mock = "os.system"
+        expected_arg, expected_kwargs = magic_cmd, dict()
+    else:
+        to_mock = "subprocess.call"
+        expected_arg, expected_kwargs = magic_cmd, dict(
+            shell=True, executable=os.environ.get("SHELL", None)
+        )
+
+    with mock.patch(to_mock, return_value=0) as mock_sub:
+        with pytest.warns(Warning, match=r"You executed the system command"):
+            ip.system_raw(magic_cmd)
+        mock_sub.assert_called_once_with(expected_arg, **expected_kwargs)
+
 
 # TODO: Exit codes are currently ignored on Windows.
 class TestSystemPipedExitCode(ExitCodeChecks):
@@ -1089,9 +1103,12 @@ def test_run_cell_asyncio_run():
 
 
 def test_should_run_async():
-    assert not ip.should_run_async("a = 5")
-    assert ip.should_run_async("await x")
-    assert ip.should_run_async("import asyncio; await asyncio.sleep(1)")
+    assert not ip.should_run_async("a = 5", transformed_cell="a = 5")
+    assert ip.should_run_async("await x", transformed_cell="await x")
+    assert ip.should_run_async(
+        "import asyncio; await asyncio.sleep(1)",
+        transformed_cell="import asyncio; await asyncio.sleep(1)",
+    )
 
 
 def test_set_custom_completer():
@@ -1110,3 +1127,49 @@ def test_set_custom_completer():
 
     # clean up
     ip.Completer.custom_matchers.pop()
+
+
+class TestShowTracebackAttack(unittest.TestCase):
+    """Test that the interactive shell is resilient against the client attack of
+    manipulating the showtracebacks method. These attacks shouldn't result in an
+    unhandled exception in the kernel."""
+
+    def setUp(self):
+        self.orig_showtraceback = interactiveshell.InteractiveShell.showtraceback
+
+    def tearDown(self):
+        interactiveshell.InteractiveShell.showtraceback = self.orig_showtraceback
+
+    def test_set_show_tracebacks_none(self):
+        """Test the case of the client setting showtracebacks to None"""
+
+        result = ip.run_cell(
+            """
+            import IPython.core.interactiveshell
+            IPython.core.interactiveshell.InteractiveShell.showtraceback = None
+
+            assert False, "This should not raise an exception"
+        """
+        )
+        print(result)
+
+        assert result.result is None
+        assert isinstance(result.error_in_exec, TypeError)
+        assert str(result.error_in_exec) == "'NoneType' object is not callable"
+
+    def test_set_show_tracebacks_noop(self):
+        """Test the case of the client setting showtracebacks to a no op lambda"""
+
+        result = ip.run_cell(
+            """
+            import IPython.core.interactiveshell
+            IPython.core.interactiveshell.InteractiveShell.showtraceback = lambda *args, **kwargs: None
+
+            assert False, "This should not raise an exception"
+        """
+        )
+        print(result)
+
+        assert result.result is None
+        assert isinstance(result.error_in_exec, AssertionError)
+        assert str(result.error_in_exec) == "This should not raise an exception"

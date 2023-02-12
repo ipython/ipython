@@ -609,8 +609,8 @@ SUPPORTED_EXTERNAL_GETITEM = {
 
 BUILTIN_GETITEM: Set[InstancesHaveGetItem] = {
     dict,
-    str,
-    bytes,
+    str,  # type: ignore[arg-type]
+    bytes,  # type: ignore[arg-type]
     list,
     tuple,
     collections.defaultdict,
@@ -619,7 +619,7 @@ BUILTIN_GETITEM: Set[InstancesHaveGetItem] = {
     collections.ChainMap,
     collections.UserDict,
     collections.UserList,
-    collections.UserString,
+    collections.UserString,  # type: ignore[arg-type]
     _DummyNamedTuple,
     _IdentitySubscript,
 }
