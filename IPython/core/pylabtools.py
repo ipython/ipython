@@ -154,7 +154,7 @@ def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
     if fmt == 'svg':
         data = data.decode('utf-8')
     elif base64:
-        data = b2a_base64(data).decode("ascii")
+        data = b2a_base64(data, newline=False).decode("ascii")
     return data
 
 def retina_figure(fig, base64=False, **kwargs):
@@ -174,7 +174,7 @@ def retina_figure(fig, base64=False, **kwargs):
     w, h = _pngxy(pngdata)
     metadata = {"width": w//2, "height":h//2}
     if base64:
-        pngdata = b2a_base64(pngdata).decode("ascii")
+        pngdata = b2a_base64(pngdata, newline=False).decode("ascii")
     return pngdata, metadata
 
 
