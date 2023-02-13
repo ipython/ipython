@@ -473,7 +473,7 @@ class _FakeJediCompletion:
         return '<Fake completion object jedi has crashed>'
 
 
-_JediCompletionLike = Union[jedi.api.Completion, _FakeJediCompletion]
+_JediCompletionLike = Union["jedi.api.Completion", _FakeJediCompletion]
 
 
 class Completion:
@@ -1427,7 +1427,7 @@ class IPCompleter(Completer):
         False,
         help="""
         Whether to show dict key matches only.
-        
+
         (disables all matchers except for `IPCompleter.dict_key_matcher`).
         """,
     )
