@@ -483,7 +483,7 @@ class _FakeJediCompletion:
         return '<Fake completion object jedi has crashed>'
 
 
-_JediCompletionLike = Union[jedi.api.Completion, _FakeJediCompletion]
+_JediCompletionLike = Union["jedi.api.Completion", _FakeJediCompletion]
 
 
 class Completion:
