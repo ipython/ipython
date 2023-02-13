@@ -1042,7 +1042,7 @@ class Image(DisplayObject):
     def _data_and_metadata(self, always_both=False):
         """shortcut for returning metadata with shape information, if defined"""
         try:
-            b64_data = b2a_base64(self.data).decode('ascii')
+            b64_data = b2a_base64(self.data, newline=False).decode("ascii")
         except TypeError as e:
             raise FileNotFoundError(
                 "No such file or directory: '%s'" % (self.data)) from e
@@ -1198,7 +1198,7 @@ class Video(DisplayObject):
             # unicode input is already b64-encoded
             b64_video = video
         else:
-            b64_video = b2a_base64(video).decode('ascii').rstrip()
+            b64_video = b2a_base64(video, newline=False).decode("ascii").rstrip()
 
         output = """<video {0} {1} {2}>
  <source src="data:{3};base64,{4}" type="{3}">

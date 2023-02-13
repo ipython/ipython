@@ -483,7 +483,7 @@ class _FakeJediCompletion:
         return '<Fake completion object jedi has crashed>'
 
 
-_JediCompletionLike = Union[jedi.api.Completion, _FakeJediCompletion]
+_JediCompletionLike = Union["jedi.api.Completion", _FakeJediCompletion]
 
 
 class Completion:
@@ -1162,11 +1162,36 @@ class Completer(Configurable):
             raise
         except Exception:
             # Silence errors from completion function
-            #raise # dbg
             pass
         # Build match list to return
         n = len(attr)
-        return ["%s.%s" % (expr, w) for w in words if w[:n] == attr]
+
+        # Note: ideally we would just return words here and the prefix
+        # reconciliator would know that we intend to append to rather than
+        # replace the input text; this requires refactoring to return range
+        # which ought to be replaced (as does jedi).
+        tokens = _parse_tokens(expr)
+        rev_tokens = reversed(tokens)
+        skip_over = {tokenize.ENDMARKER, tokenize.NEWLINE}
+        name_turn = True
+
+        parts = []
+        for token in rev_tokens:
+            if token.type in skip_over:
+                continue
+            if token.type == tokenize.NAME and name_turn:
+                parts.append(token.string)
+                name_turn = False
+            elif token.type == tokenize.OP and token.string == "." and not name_turn:
+                parts.append(token.string)
+                name_turn = True
+            else:
+                # short-circuit if not empty nor name token
+                break
+
+        prefix_after_space = "".join(reversed(parts))
+
+        return ["%s.%s" % (prefix_after_space, w) for w in words if w[:n] == attr]
 
     def _evaluate_expr(self, expr):
         obj = not_found

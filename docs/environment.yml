@@ -16,3 +16,4 @@ dependencies:
     - prompt_toolkit
     - ipykernel
     - stack_data
+    - -e ..

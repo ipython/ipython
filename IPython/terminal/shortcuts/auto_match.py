@@ -1,7 +1,7 @@
 """
-Utilities function for keybinding with prompt toolkit. 
+Utilities function for keybinding with prompt toolkit.
 
-This will be bound to specific key press and filter modes, 
+This will be bound to specific key press and filter modes,
 like whether we are in edit mode, and whether the completer is open.
 """
 import re
@@ -84,9 +84,9 @@ def raw_string_braces(event: KeyPressEvent):
 
 
 def skip_over(event: KeyPressEvent):
-    """Skip over automatically added parenthesis.
+    """Skip over automatically added parenthesis/quote.
 
-    (rather than adding another parenthesis)"""
+    (rather than adding another parenthesis/quote)"""
     event.current_buffer.cursor_right()
 
 

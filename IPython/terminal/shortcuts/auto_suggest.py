@@ -1,7 +1,7 @@
 import re
 import tokenize
 from io import StringIO
-from typing import Callable, List, Optional, Union, Generator, Tuple, Sequence
+from typing import Callable, List, Optional, Union, Generator, Tuple
 
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding import KeyPressEvent
@@ -16,6 +16,7 @@ from prompt_toolkit.layout.processors import (
     TransformationInput,
 )
 
+from IPython.core.getipython import get_ipython
 from IPython.utils.tokenutil import generate_tokens
 
 
@@ -346,33 +347,29 @@ def _swap_autosuggestion(
     buffer.suggestion = new_suggestion
 
 
-def swap_autosuggestion_up(provider: Provider):
-    def swap_autosuggestion_up(event: KeyPressEvent):
-        """Get next autosuggestion from history."""
-        if not isinstance(provider, NavigableAutoSuggestFromHistory):
-            return
+def swap_autosuggestion_up(event: KeyPressEvent):
+    """Get next autosuggestion from history."""
+    shell = get_ipython()
+    provider = shell.auto_suggest
 
-        return _swap_autosuggestion(
-            buffer=event.current_buffer, provider=provider, direction_method=provider.up
-        )
+    if not isinstance(provider, NavigableAutoSuggestFromHistory):
+        return
 
-    swap_autosuggestion_up.__name__ = "swap_autosuggestion_up"
-    return swap_autosuggestion_up
+    return _swap_autosuggestion(
+        buffer=event.current_buffer, provider=provider, direction_method=provider.up
+    )
 
 
-def swap_autosuggestion_down(
-    provider: Union[AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None]
-):
-    def swap_autosuggestion_down(event: KeyPressEvent):
-        """Get previous autosuggestion from history."""
-        if not isinstance(provider, NavigableAutoSuggestFromHistory):
-            return
+def swap_autosuggestion_down(event: KeyPressEvent):
+    """Get previous autosuggestion from history."""
+    shell = get_ipython()
+    provider = shell.auto_suggest
 
-        return _swap_autosuggestion(
-            buffer=event.current_buffer,
-            provider=provider,
-            direction_method=provider.down,
-        )
+    if not isinstance(provider, NavigableAutoSuggestFromHistory):
+        return
 
-    swap_autosuggestion_down.__name__ = "swap_autosuggestion_down"
-    return swap_autosuggestion_down
+    return _swap_autosuggestion(
+        buffer=event.current_buffer,
+        provider=provider,
+        direction_method=provider.down,
+    )

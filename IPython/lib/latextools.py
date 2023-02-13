@@ -160,38 +160,37 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
         with workdir.joinpath(tmpfile).open("w", encoding="utf8") as f:
             f.writelines(genelatex(s, wrap))
 
-        with open(os.devnull, 'wb') as devnull:
-            subprocess.check_call(
-                ["latex", "-halt-on-error", "-interaction", "batchmode", tmpfile],
-                cwd=workdir,
-                stdout=devnull,
-                stderr=devnull,
-                startupinfo=startupinfo,
-            )
+        subprocess.check_call(
+            ["latex", "-halt-on-error", "-interaction", "batchmode", tmpfile],
+            cwd=workdir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            startupinfo=startupinfo,
+        )
 
-            resolution = round(150*scale)
-            subprocess.check_call(
-                [
-                    "dvipng",
-                    "-T",
-                    "tight",
-                    "-D",
-                    str(resolution),
-                    "-z",
-                    "9",
-                    "-bg",
-                    "Transparent",
-                    "-o",
-                    outfile,
-                    dvifile,
-                    "-fg",
-                    color,
-                ],
-                cwd=workdir,
-                stdout=devnull,
-                stderr=devnull,
-                startupinfo=startupinfo,
-            )
+        resolution = round(150 * scale)
+        subprocess.check_call(
+            [
+                "dvipng",
+                "-T",
+                "tight",
+                "-D",
+                str(resolution),
+                "-z",
+                "9",
+                "-bg",
+                "Transparent",
+                "-o",
+                outfile,
+                dvifile,
+                "-fg",
+                color,
+            ],
+            cwd=workdir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            startupinfo=startupinfo,
+        )
 
         with workdir.joinpath(outfile).open("rb") as f:
             return f.read()

@@ -183,8 +183,7 @@ today_fmt = '%B %d, %Y'
 
 # Exclude these glob-style patterns when looking for source files. They are
 # relative to the source/ directory.
-exclude_patterns = []
-
+exclude_patterns = ["**.ipynb_checkpoints"]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
