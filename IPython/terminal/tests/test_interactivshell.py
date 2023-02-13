@@ -9,9 +9,8 @@ import os
 
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
-from IPython.core.inputtransformer import InputTransformer
+
 from IPython.testing import tools as tt
-from IPython.utils.capture import capture_output
 
 from IPython.terminal.ptutils import _elide, _adjust_completion_text_based_on_context
 from IPython.terminal.shortcuts.auto_suggest import NavigableAutoSuggestFromHistory

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from inspect import getsource
 from pathlib import Path
-from typing import cast, Callable, List, Union
+from typing import cast, List, Union
 from html import escape as html_escape
 import re
 
@@ -10,7 +10,8 @@ from prompt_toolkit.key_binding import KeyBindingsBase
 from prompt_toolkit.filters import Filter, Condition
 from prompt_toolkit.shortcuts import PromptSession
 
-from IPython.terminal.shortcuts import create_ipython_shortcuts
+from IPython.terminal.shortcuts import create_ipython_shortcuts, create_identifier
+from IPython.terminal.shortcuts.filters import KEYBINDING_FILTERS
 
 
 @dataclass
@@ -44,9 +45,14 @@ class _Invert(Filter):
     filter: Filter
 
 
-conjunctions_labels = {"_AndList": "and", "_OrList": "or"}
+conjunctions_labels = {"_AndList": "&", "_OrList": "|"}
 
 ATOMIC_CLASSES = {"Never", "Always", "Condition"}
+
+
+HUMAN_NAMES_FOR_FILTERS = {
+    filter_: name for name, filter_ in KEYBINDING_FILTERS.items()
+}
 
 
 def format_filter(
@@ -58,6 +64,8 @@ def format_filter(
     s = filter_.__class__.__name__
     if s == "Condition":
         func = cast(Condition, filter_).func
+        if filter_ in HUMAN_NAMES_FOR_FILTERS:
+            return HUMAN_NAMES_FOR_FILTERS[filter_]
         name = func.__name__
         if name == "<lambda>":
             source = getsource(func)
@@ -66,10 +74,12 @@ def format_filter(
     elif s == "_Invert":
         operand = cast(_Invert, filter_).filter
         if operand.__class__.__name__ in ATOMIC_CLASSES:
-            return f"not {format_filter(operand, is_top_level=False)}"
-        return f"not ({format_filter(operand, is_top_level=False)})"
+            return f"~{format_filter(operand, is_top_level=False)}"
+        return f"~({format_filter(operand, is_top_level=False)})"
     elif s in conjunctions_labels:
         filters = cast(_NestedFilter, filter_).filters
+        if filter_ in HUMAN_NAMES_FOR_FILTERS:
+            return HUMAN_NAMES_FOR_FILTERS[filter_]
         conjunction = conjunctions_labels[s]
         glue = f" {conjunction} "
         result = glue.join(format_filter(x, is_top_level=False) for x in filters)
@@ -102,17 +112,6 @@ class _DummyTerminal:
     display_completions = None
     editing_mode = "emacs"
     auto_suggest = None
-
-
-def create_identifier(handler: Callable):
-    parts = handler.__module__.split(".")
-    name = handler.__name__
-    package = parts[0]
-    if len(parts) > 1:
-        final_module = parts[-1]
-        return f"{package}:{final_module}.{name}"
-    else:
-        return f"{package}:{name}"
 
 
 def bindings_from_prompt_toolkit(prompt_bindings: KeyBindingsBase) -> List[Binding]:
@@ -178,11 +177,12 @@ def format_prompt_keys(keys: str, add_alternatives=True) -> str:
 
     return result
 
+
 if __name__ == '__main__':
     here = Path(__file__).parent
     dest = here / "source" / "config" / "shortcuts"
 
-    ipy_bindings = create_ipython_shortcuts(_DummyTerminal(), for_all_platforms=True)
+    ipy_bindings = create_ipython_shortcuts(_DummyTerminal())
 
     session = PromptSession(key_bindings=ipy_bindings)
     prompt_bindings = session.app.key_bindings
