@@ -106,21 +106,21 @@ def start_event_loop_wx(app=None):
         app._in_event_loop = True
 
 #-----------------------------------------------------------------------------
-# qt4
+# Qt
 #-----------------------------------------------------------------------------
 
 def get_app_qt4(*args, **kwargs):
-    """Create a new qt4 app or return an existing one."""
+    """Create a new Qt app or return an existing one."""
     from IPython.external.qt_for_kernel import QtGui
     app = QtGui.QApplication.instance()
     if app is None:
         if not args:
-            args = ([''],)
+            args = ([""],)
         app = QtGui.QApplication(*args, **kwargs)
     return app
 
 def is_event_loop_running_qt4(app=None):
-    """Is the qt4 event loop running."""
+    """Is the qt event loop running."""
     # New way: check attribute on shell instance
     ip = get_ipython()
     if ip is not None:
@@ -128,17 +128,17 @@ def is_event_loop_running_qt4(app=None):
 
     # Old way: check attribute on QApplication singleton
     if app is None:
-        app = get_app_qt4([''])
+        app = get_app_qt4([""])
     if hasattr(app, '_in_event_loop'):
         return app._in_event_loop
     else:
-        # Does qt4 provide a other way to detect this?
+        # Does qt provide a other way to detect this?
         return False
 
 def start_event_loop_qt4(app=None):
-    """Start the qt4 event loop in a consistent manner."""
+    """Start the qt event loop in a consistent manner."""
     if app is None:
-        app = get_app_qt4([''])
+        app = get_app_qt4([""])
     if not is_event_loop_running_qt4(app):
         app._in_event_loop = True
         app.exec_()
