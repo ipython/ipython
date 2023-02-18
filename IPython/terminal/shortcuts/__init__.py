@@ -492,37 +492,10 @@ def indent_buffer(event):
     event.current_buffer.insert_text(" " * 4)
 
 
-@undoc
-def newline_with_copy_margin(event):
-    """
-    DEPRECATED since IPython 6.0
-
-    See :any:`newline_autoindent_outer` for a replacement.
-
-    Preserve margin and cursor position when using
-    Control-O to insert a newline in EMACS mode
-    """
-    warnings.warn(
-        "`newline_with_copy_margin(event)` is deprecated since IPython 6.0. "
-        "see `newline_autoindent_outer(shell)(event)` for a replacement.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    b = event.current_buffer
-    cursor_start_pos = b.document.cursor_position_col
-    b.newline(copy_margin=True)
-    b.cursor_up(count=1)
-    cursor_end_pos = b.document.cursor_position_col
-    if cursor_start_pos != cursor_end_pos:
-        pos_diff = cursor_start_pos - cursor_end_pos
-        b.cursor_right(count=pos_diff)
-
-
 def newline_autoindent(event):
     """Insert a newline after the cursor indented appropriately.
 
-    Fancier version of deprecated ``newline_with_copy_margin`` which should
+    Fancier version of former ``newline_with_copy_margin`` which should
     compute the correct indentation of the inserted line. That is to say, indent
     by 4 extra space after a function definition, class definition, context
     manager... And dedent by 4 space after ``pass``, ``return``, ``raise ...``.
