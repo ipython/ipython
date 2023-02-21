@@ -195,28 +195,33 @@ def _simple_format_traceback_lines(lnum, index, lines, Colors, lvals, _line_form
     numbers_width = INDENT_SIZE - 1
     res = []
 
-    for i,line in enumerate(lines, lnum-index):
+    for i, line in enumerate(lines, lnum - index):
         line = py3compat.cast_unicode(line)
 
-        new_line, err = _line_format(line, 'str')
+        new_line, err = _line_format(line, "str")
         if not err:
             line = new_line
 
         if i == lnum:
             # This is the line with the error
             pad = numbers_width - len(str(i))
-            num = '%s%s' % (debugger.make_arrow(pad), str(lnum))
-            line = '%s%s%s %s%s' % (Colors.linenoEm, num,
-                                    Colors.line, line, Colors.Normal)
+            num = "%s%s" % (debugger.make_arrow(pad), str(lnum))
+            line = "%s%s%s %s%s" % (
+                Colors.linenoEm,
+                num,
+                Colors.line,
+                line,
+                Colors.Normal,
+            )
         else:
-            num = '%*s' % (numbers_width, i)
-            line = '%s%s%s %s' % (Colors.lineno, num,
-                                  Colors.Normal, line)
+            num = "%*s" % (numbers_width, i)
+            line = "%s%s%s %s" % (Colors.lineno, num, Colors.Normal, line)
 
         res.append(line)
         if lvals and i == lnum:
-            res.append(lvals + '\n')
+            res.append(lvals + "\n")
     return res
+
 
 def _format_filename(file, ColorFilename, ColorNormal, *, lineno=None):
     """
@@ -330,7 +335,6 @@ class TBTools(colorable.Colorable):
     def get_parts_of_chained_exception(
         self, evalue
     ) -> Optional[Tuple[type, BaseException, TracebackType]]:
-
         chained_evalue = self._get_chained_exception(evalue)
 
         if chained_evalue:
@@ -660,9 +664,9 @@ class FrameInfo:
     really long frames.
     """
 
-    description : Optional[str]
-    filename : str
-    lineno : int
+    description: Optional[str]
+    filename: str
+    lineno: int
 
     @classmethod
     def _from_stack_data_FrameInfo(cls, frame_info):
@@ -707,9 +711,7 @@ class FrameInfo:
             return None
 
 
-
-
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 class VerboseTB(TBTools):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead
     of HTML.  Requires inspect and pydoc.  Crazy, man.
@@ -760,7 +762,7 @@ class VerboseTB(TBTools):
 
         self.skip_hidden = True
 
-    def format_record(self, frame_info:FrameInfo):
+    def format_record(self, frame_info: FrameInfo):
         """Format a single stack frame"""
         assert isinstance(frame_info, FrameInfo)
         Colors = self.Colors  # just a shorthand + quicker name lookup
@@ -787,10 +789,10 @@ class VerboseTB(TBTools):
             lineno=frame_info.lineno,
         )
         args, varargs, varkw, locals_ = inspect.getargvalues(frame_info.frame)
-        if frame_info.executing is not None: 
+        if frame_info.executing is not None:
             func = frame_info.executing.code_qualname()
         else:
-            func = '?'
+            func = "?"
         if func == "<module>":
             call = ""
         else:
@@ -840,16 +842,28 @@ class VerboseTB(TBTools):
         if frame_info._sd is None:
             assert False
             # fast fallback if file is too long
-            tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
+            tpl_link = "%s%%s%s" % (Colors.filenameEm, ColorsNormal)
             link = tpl_link % util_path.compress_user(frame_info.filename)
-            level = '%s %s\n' % (link, call)
-            _line_format = PyColorize.Parser(style=self.color_scheme_table.active_scheme_name, parent=self).format2
+            level = "%s %s\n" % (link, call)
+            _line_format = PyColorize.Parser(
+                style=self.color_scheme_table.active_scheme_name, parent=self
+            ).format2
             first_line = frame_info.code.co_firstlineno
             current_line = frame_info.lineno[0]
-            return '%s%s' % (level, ''.join(
-                _simple_format_traceback_lines(current_line, current_line-first_line, frame_info.raw_lines, Colors, lvals,
-                                         _line_format)))
-            #result += "\n".join(frame_info.raw_lines)
+            return "%s%s" % (
+                level,
+                "".join(
+                    _simple_format_traceback_lines(
+                        current_line,
+                        current_line - first_line,
+                        frame_info.raw_lines,
+                        Colors,
+                        lvals,
+                        _line_format,
+                    )
+                ),
+            )
+            # result += "\n".join(frame_info.raw_lines)
         else:
             result += "".join(
                 _format_traceback_lines(
@@ -925,8 +939,14 @@ class VerboseTB(TBTools):
         skipped = 0
         lastrecord = len(records) - 1
         for i, record in enumerate(records):
-            if not isinstance(record._sd, stack_data.RepeatedFrames) and self.skip_hidden:
-                if record.frame.f_locals.get("__tracebackhide__", 0) and i != lastrecord:
+            if (
+                not isinstance(record._sd, stack_data.RepeatedFrames)
+                and self.skip_hidden
+            ):
+                if (
+                    record.frame.f_locals.get("__tracebackhide__", 0)
+                    and i != lastrecord
+                ):
                     skipped += 1
                     continue
             if skipped:
@@ -981,20 +1001,18 @@ class VerboseTB(TBTools):
         while cf is not None:
             source_file = inspect.getsourcefile(etb.tb_frame)
             lines, first = inspect.getsourcelines(etb.tb_frame)
-            max_len = max(max_len,  first+len(lines))
+            max_len = max(max_len, first + len(lines))
             tbs.append(cf)
             cf = cf.tb_next
 
-
-        
         if max_len > FAST_THRESHOLD:
             FIs = []
             for tb in tbs:
                 frame = tb.tb_frame
-                lineno = frame.f_lineno,
+                lineno = (frame.f_lineno,)
                 code = frame.f_code
                 filename = code.co_filename
-                FIs.append( FrameInfo("Raw frame", filename, lineno, frame, code))
+                FIs.append(FrameInfo("Raw frame", filename, lineno, frame, code))
             return FIs
         res = list(stack_data.FrameInfo.stack_data(etb, options=options))[tb_offset:]
         res = [FrameInfo._from_stack_data_FrameInfo(r) for r in res]
@@ -1249,9 +1267,14 @@ class AutoFormattedTB(FormattedTB):
         except KeyboardInterrupt:
             print("\nKeyboardInterrupt")
 
-    def structured_traceback(self, etype=None, value=None, tb=None,
-                             tb_offset=None, number_of_lines_of_context=5):
-
+    def structured_traceback(
+        self,
+        etype=None,
+        value=None,
+        tb=None,
+        tb_offset=None,
+        number_of_lines_of_context=5,
+    ):
         etype: type
         value: BaseException
         # tb: TracebackType or tupleof tb types ?

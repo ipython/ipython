@@ -193,7 +193,6 @@ class TestPylabSwitch(object):
         matplotlib.rcParamsOrig = self._saved_rcParamsOrig
 
     def test_qt(self):
-
         s = self.Shell()
         gui, backend = s.enable_matplotlib(None)
         assert gui == "qt"

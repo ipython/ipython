@@ -66,7 +66,6 @@ class TerminalPdb(Pdb):
         # setup history only when we start pdb
         if self.shell.debugger_history is None:
             if self.shell.debugger_history_file is not None:
-
                 p = Path(self.shell.debugger_history_file).expanduser()
                 if not p.exists():
                     p.touch()

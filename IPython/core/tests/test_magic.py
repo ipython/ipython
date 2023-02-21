@@ -1094,7 +1094,6 @@ def test_script_err():
 
 
 def test_script_out_err():
-
     ip = get_ipython()
     ip.run_cell_magic(
         "script",

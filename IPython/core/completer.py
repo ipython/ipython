@@ -3036,7 +3036,6 @@ class IPCompleter(Completer):
         skip_matchers: Set[str],
         abort_if_offset_changes: bool,
     ):
-
         sortable: List[AnyMatcherCompletion] = []
         ordered: List[AnyMatcherCompletion] = []
         most_recent_fragment = None
