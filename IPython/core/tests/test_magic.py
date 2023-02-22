@@ -530,6 +530,25 @@ def test_time_local_ns():
     del ip.user_ns["myvar"]
 
 
+# Test %%capture magic. Added to test issue #13926
+def test_capture():
+    ip = get_ipython()
+
+    # Test %%capture nominal case
+    ip.run_cell("%%capture abc\n1+2")
+    with tt.AssertPrints("True", suppress=False):
+        ip.run_cell("'abc' in locals()")
+    with tt.AssertPrints("True", suppress=False):
+        ip.run_cell("'outputs' in dir(abc)")
+    with tt.AssertPrints("3", suppress=False):
+        ip.run_cell("abc.outputs[0]")
+
+    # Test %%capture with ';' at end of expression
+    ip.run_cell("%%capture abc\n7+8;")
+    with tt.AssertPrints("False", suppress=False):
+        ip.run_cell("'abc' in locals()")
+
+
 def test_doctest_mode():
     "Toggle doctest_mode twice, it should be a no-op and run without error"
     _ip.run_line_magic("doctest_mode", "")
