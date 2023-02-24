@@ -255,6 +255,7 @@ try:
 
     # disable evaluating descriptors
     from packaging import version
+
     if version.parse(jedi.__version__) > version.parse("0.18.2"):
         jedi.settings.instance_allow_descriptor_getattr = False
     else:
