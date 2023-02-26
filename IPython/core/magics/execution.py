@@ -1040,7 +1040,8 @@ class ExecutionMagics(Magics):
           use time.time to measure the time, which is the default on Unix.
           This function measures wall time.
 
-        -cuse time.clock to measure the time, which is the default on
+        -c
+          use time.clock to measure the time, which is the default on
           Windows and measures wall time. On Unix, resource.getrusage is used
           instead and returns the CPU user time.
 
