@@ -2,6 +2,46 @@
  8.x Series
 ============
 
+.. _version 8.11.0:
+
+IPython 8.11
+------------
+
+Back on almost regular monthly schedule for IPython with end-of-month
+really-late-Friday release, with a few new features, bugfix and UX improvements.
+
+This is a non-exhaustive list, but among other you will find:
+
+Faster Traceback Highlighting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Resurrection of pre-IPython-8 traceback highlighting code.
+
+Really long and complicated files were slow to highlight in traceback with
+IPython 8 despite upstream improvement that make many case better. Therefore
+starting with IPython 8.11 when one of the highlighted file is more than 10 000
+line long by default, we'll fallback to a faster path that does not have all the
+features of highlighting failing AST nodes.
+
+This can be configures by setting the value of
+``IPython.code.ultratb.FAST_THRESHOLD`` to an arbitrary low or large value.
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+ - ``%gui`` should now support PySide6. :ghpull:`13864`
+ - Cli shortcuts can now be configured :ghpull:`13928`
+ - Capture output should now respect ``;`` semicolon to suppress output.
+   :ghpull:`13940`
+
+ - Base64 encoded images (in jupyter frontend), will not have trailing newlines.
+   :ghpull:`13941`
+
+As usual you can find the full list of PRs on GitHub under `the 8.10 milestone
+<https://github.com/ipython/ipython/milestone/113?closed=1>`__.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 .. _version 8.10.0:
    
@@ -262,7 +302,7 @@ Here is a non-exhaustive list of changes that have been implemented for IPython
  - show maxlen in deque's repr. :ghpull:`13648`
 
 Restore line numbers for Input
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Line number information in tracebacks from input are restored.
 Line numbers from input were removed during the transition to v8 enhanced traceback reporting.
@@ -315,7 +355,7 @@ or, with xmode=Plain::
 :ghpull:`13560`
 
 New setting to silence warning if working inside a virtual environment
-----------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Previously, when starting IPython in a virtual environment without IPython installed (so IPython from the global environment is used), the following warning was printed:
 
