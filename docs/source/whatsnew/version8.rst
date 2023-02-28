@@ -27,18 +27,67 @@ features of highlighting failing AST nodes.
 This can be configures by setting the value of
 ``IPython.code.ultratb.FAST_THRESHOLD`` to an arbitrary low or large value.
 
+
+Autoreload verbosity
+~~~~~~~~~~~~~~~~~~~~
+
+We introduce more descriptive names for the ``%autoreload`` parameter:
+
+- ``%autoreload now`` (also ``%autoreload``) - perform autoreload immediately.
+- ``%autoreload off`` (also ``%autoreload 0``) - turn off autoreload.
+- ``%autoreload explicit`` (also ``%autoreload 1``) - turn on autoreload only for modules
+  whitelisted by ``%aimport`` statements.
+- ``%autoreload all`` (also ``%autoreload 2``) - turn on autoreload for all modules except those
+  blacklisted by ``%aimport`` statements.
+- ``%autoreload complete`` (also ``%autoreload 3``) - all the fatures of ``all`` but also adding new
+  objects from the imported modules (see
+  IPython/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects).
+
+The original designations (e.g. "2") still work, and these new ones are case-insensitive.
+
+Additionally, the option ``--print`` or ``-p`` can be added to the line to print the names of
+modules being reloaded. Similarly, ``--log`` or ``-l`` will output the names to the logger at INFO
+level. Both can be used simultaneously.
+
+The parsing logic for ``%aimport`` is now improved such that modules can be whitelisted and
+blacklisted in the same line, e.g. it's now possible to call ``%aimport os, -math`` to include
+``os`` for ``%autoreload explicit`` and exclude ``math`` for modes ``all`` and ``complete``.
+
+Terminal shortcuts customization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Previously modifying shortcuts was only possible by hooking into startup files
+and practically limited to adding new shortcuts or removing all shortcuts bound
+to a specific key. This release enables users to override existing terminal
+shortcuts, disable them or add new keybindings.
+
+For example, to set the :kbd:`right` to accept a single character of auto-suggestion
+you could use::
+
+    my_shortcuts = [
+        {
+            "command": "IPython:auto_suggest.accept_character",
+            "new_keys": ["right"]
+        }
+    ]
+    %config TerminalInteractiveShell.shortcuts = my_shortcuts
+
+You can learn more in :std:configtrait:`TerminalInteractiveShell.shortcuts`
+configuration reference.
+
 Miscellaneous
 ~~~~~~~~~~~~~
 
  - ``%gui`` should now support PySide6. :ghpull:`13864`
- - Cli shortcuts can now be configured :ghpull:`13928`
+ - Cli shortcuts can now be configured :ghpull:`13928`, see above.
    (note that there might be an issue with prompt_toolkit 3.0.37 and shortcut configuration).
+
  - Capture output should now respect ``;`` semicolon to suppress output.
    :ghpull:`13940`
  - Base64 encoded images (in jupyter frontend), will not have trailing newlines.
    :ghpull:`13941`
 
-As usual you can find the full list of PRs on GitHub under `the 8.10 milestone
+As usual you can find the full list of PRs on GitHub under `the 8.11 milestone
 <https://github.com/ipython/ipython/milestone/113?closed=1>`__.
 
 Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
