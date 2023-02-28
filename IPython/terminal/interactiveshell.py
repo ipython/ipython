@@ -914,7 +914,7 @@ class TerminalInteractiveShell(InteractiveShell):
     active_eventloop = None
     def enable_gui(self, gui=None):
         if self._inputhook is not None and gui is not None:
-            warn(
+            print(
                 f"Shell was already running a gui event loop for {self.active_eventloop}; switching to {gui}."
             )
         if gui and (gui not in {"inline", "webagg"}):
