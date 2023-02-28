@@ -541,7 +541,9 @@ class TerminalInteractiveShell(InteractiveShell):
                     if key in shortcut
                 }
                 if len(matching) == 0:
-                    raise ValueError(f"No shortcuts matching {specification} found")
+                    raise ValueError(
+                        f"No shortcuts matching {specification} found in {key_bindings.bindings}"
+                    )
                 elif len(matching) > 1:
                     raise ValueError(
                         f"Multiple shortcuts matching {specification} found,"
