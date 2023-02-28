@@ -8,7 +8,8 @@ IPython 8.11
 ------------
 
 Back on almost regular monthly schedule for IPython with end-of-month
-really-late-Friday release, with a few new features, bugfix and UX improvements.
+really-late-Friday release to make sure some bugs are properly fixed.
+Small addition of with a few new features, bugfix and UX improvements.
 
 This is a non-exhaustive list, but among other you will find:
 
@@ -31,9 +32,9 @@ Miscellaneous
 
  - ``%gui`` should now support PySide6. :ghpull:`13864`
  - Cli shortcuts can now be configured :ghpull:`13928`
+   (note that there might be an issue with prompt_toolkit 3.0.37 and shortcut configuration).
  - Capture output should now respect ``;`` semicolon to suppress output.
    :ghpull:`13940`
-
  - Base64 encoded images (in jupyter frontend), will not have trailing newlines.
    :ghpull:`13941`
 
