@@ -920,7 +920,7 @@ class TerminalInteractiveShell(InteractiveShell):
         if self._inputhook is not None and gui is not None:
             print(
                 f"Shell is already running a gui event loop for {self.active_eventloop}. "
-                "Call with no arguments to disable current loop."
+                "Call with no arguments to disable the current loop."
             )
             return
         if self._inputhook is not None and gui is None:

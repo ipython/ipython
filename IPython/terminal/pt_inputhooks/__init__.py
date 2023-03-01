@@ -111,7 +111,8 @@ def set_qt_api(gui):
                 del os.environ["QT_API"]
         else:
             print(f'Unrecognized Qt version: {gui}. Should be "qt5", "qt6", or "qt".')
-            return None
+            return
+
         # Import it now so we can figure out which version it is.
         from IPython.external.qt_for_kernel import QT_API
 
