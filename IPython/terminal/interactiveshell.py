@@ -915,9 +915,14 @@ class TerminalInteractiveShell(InteractiveShell):
     def enable_gui(self, gui=None):
         if self._inputhook is not None and gui is not None:
             print(
-                f"Shell is already running a gui event loop for {self.active_eventloop}."
+                f"Shell is already running a gui event loop for {self.active_eventloop}. "
+                "Call with no arguments to disable current loop."
             )
             return
+        if self._inputhook is not None and gui is None:
+            print('GUI event loop hook disabled.')
+            self.active_eventloop = self._inputhook = None
+
         if gui and (gui not in {"inline", "webagg"}):
             # This hook runs with each cycle of the `prompt_toolkit`'s event loop.
             self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
