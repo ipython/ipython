@@ -34,7 +34,7 @@ _get_qt_vers()
 )
 def test_inputhook_qt():
     # Choose the "best" Qt version.
-    gui_ret, _ = get_inputhook_name_and_func('qt')
+    gui_ret, _ = get_inputhook_name_and_func("qt")
 
     assert gui_ret != "qt"  # you get back the specific version that was loaded.
     assert gui_ret in guis_avail

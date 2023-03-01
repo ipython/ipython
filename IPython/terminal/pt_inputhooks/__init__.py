@@ -114,6 +114,7 @@ def set_qt_api(gui):
             return None
         # Import it now so we can figure out which version it is.
         from IPython.external.qt_for_kernel import QT_API
+
         return qt_env2gui[QT_API]
 
 
