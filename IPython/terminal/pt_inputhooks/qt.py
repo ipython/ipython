@@ -20,6 +20,9 @@ def _reclaim_excepthook():
         sys.excepthook = shell.excepthook
 
 
+announced = 0
+
+
 def inputhook(context):
     global _appref
     app = QtCore.QCoreApplication.instance()
@@ -56,6 +59,15 @@ def inputhook(context):
         QtCore.QTimer.singleShot(0, _reclaim_excepthook)
 
     event_loop = QtCore.QEventLoop(app)
+
+    global announced
+    if announced == 0:
+        print(f"`inputhook` running Qt {QtCore.qVersion()} event loop.")
+        announced += 1
+    elif announced == 10:
+        announced = 0
+    else:
+        announced += 1
 
     if sys.platform == 'win32':
         # The QSocketNotifier method doesn't appear to work on Windows.
