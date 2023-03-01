@@ -913,6 +913,10 @@ class TerminalInteractiveShell(InteractiveShell):
 
     active_eventloop = None
     def enable_gui(self, gui=None):
+        if self._inputhook is None and gui is None:
+            print("No event loop hook running.")
+            return
+
         if self._inputhook is not None and gui is not None:
             print(
                 f"Shell is already running a gui event loop for {self.active_eventloop}. "
@@ -920,7 +924,6 @@ class TerminalInteractiveShell(InteractiveShell):
             )
             return
         if self._inputhook is not None and gui is None:
-            print('GUI event loop hook disabled.')
             self.active_eventloop = self._inputhook = None
 
         if gui and (gui not in {"inline", "webagg"}):
@@ -940,15 +943,18 @@ class TerminalInteractiveShell(InteractiveShell):
                 # same event loop as the rest of the code. don't use an actual
                 # input hook. (Asyncio is not made for nesting event loops.)
                 self.pt_loop = get_asyncio_loop()
+                print("Installed asyncio event loop hook.")
 
             elif self._inputhook:
                 # If an inputhook was set, create a new asyncio event loop with
                 # this inputhook for the prompt.
                 self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
+                print(f"Installed {self.active_eventloop} event loop hook.")
             else:
                 # When there's no inputhook, run the prompt in a separate
                 # asyncio event loop.
                 self.pt_loop = asyncio.new_event_loop()
+                print("GUI event loop hook disabled.")
 
     # Run !system commands directly, not through pipes, so terminal programs
     # work correctly.
