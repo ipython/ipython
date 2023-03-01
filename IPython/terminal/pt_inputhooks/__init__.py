@@ -69,7 +69,7 @@ def set_qt_api(gui):
     if loaded is not None and gui != "qt":
         if qt_env2gui[loaded] != gui:
             print(
-                f"Cannot switch Qt versions for this session; must use {qt_env2gui[loaded]}."
+                f"Cannot switch Qt versions for this session; will use {qt_env2gui[loaded]}."
             )
             return
 
