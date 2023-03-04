@@ -715,6 +715,7 @@ def doctest_precision():
     Out[5]: '3.141593e+00'
     """
 
+
 def test_debug_magic():
     """Test debugging a small code with %debug
 
@@ -726,6 +727,7 @@ def test_debug_magic():
     a b
     In [2]:
     """
+
 
 def test_debug_magic_locals():
     """Test debugging a small code with %debug with locals
