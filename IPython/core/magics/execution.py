@@ -423,7 +423,7 @@ class ExecutionMagics(Magics):
     @no_var_expand
     @line_cell_magic
     @needs_local_scope
-    def debug(self, line='', cell=None, local_ns=None):
+    def debug(self, line="", cell=None, local_ns=None):
         """Activate the interactive debugger.
 
         This magic command support two ways of activating debugger.
@@ -870,8 +870,9 @@ class ExecutionMagics(Magics):
 
         return stats
 
-    def _run_with_debugger(self, code, code_ns, filename=None,
-                           bp_line=None, bp_file=None, local_ns=None):
+    def _run_with_debugger(
+        self, code, code_ns, filename=None, bp_line=None, bp_file=None, local_ns=None
+    ):
         """
         Run `code` in debugger with a break point.
 
