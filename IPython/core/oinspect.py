@@ -122,14 +122,13 @@ def getdoc(obj) -> Union[str,None]:
     """
     # Allow objects to offer customized documentation via a getdoc method:
     try:
-        ds = obj.getdoc()
+        docstring = obj.getdoc()
     except Exception:
         pass
     else:
-        if isinstance(ds, str):
-            return inspect.cleandoc(ds)
-    docstr = inspect.getdoc(obj)
-    return docstr
+        if isinstance(docstring, str):
+            return inspect.cleandoc(docstring)
+    return inspect.getdoc(obj)
 
 
 def getsource(obj, oname='') -> Union[str,None]:
@@ -271,22 +270,11 @@ def call_tip(oinfo, format_call=True):
 
 
 def _get_wrapped(obj):
-    """Get the original object if wrapped in one or more @decorators
-
-    Some objects automatically construct similar objects on any unrecognised
-    attribute access (e.g. unittest.mock.call). To protect against infinite loops,
-    this will arbitrarily cut off after 100 levels of obj.__wrapped__
-    attribute access. --TK, Jan 2016
-    """
-    orig_obj = obj
-    i = 0
-    while safe_hasattr(obj, '__wrapped__'):
-        obj = obj.__wrapped__
-        i += 1
-        if i > 100:
-            # __wrapped__ is probably a lie, so return the thing we started with
-            return orig_obj
-    return obj
+    """Try unwrapping an object from its decorators"""
+    try:
+        return inspect.unwrap(obj)
+    except:
+        return obj
 
 def find_file(obj) -> str:
     """Find the absolute path to the file where an object was defined.
@@ -323,7 +311,7 @@ def find_file(obj) -> str:
     return cast_unicode(fname)
 
 
-def find_source_lines(obj):
+def find_source_lines(obj, return_length=False):
     """Find the line number in a file where an object was defined.
 
     This is essentially a robust wrapper around `inspect.getsourcelines`.
@@ -333,26 +321,32 @@ def find_source_lines(obj):
     Parameters
     ----------
     obj : any Python object
+    return_length : whether to return the number of lines in the definition
 
     Returns
     -------
     lineno : int
         The line number where the object definition starts.
+    length : int
+        If return_length is True, the number of lines in the definition
     """
     obj = _get_wrapped(obj)
 
     try:
-        lineno = inspect.getsourcelines(obj)[1]
+        lines = inspect.getsourcelines(obj)
     except TypeError:
         # For instances, try the class object like getsource() does
         try:
-            lineno = inspect.getsourcelines(obj.__class__)[1]
+            lines = inspect.getsourcelines(obj.__class__)
         except (OSError, TypeError):
             return None
     except OSError:
         return None
 
-    return lineno
+    if return_length:
+        return lines[1], len(lines[0])
+    else:
+        return lines[1]
 
 class Inspector(Colorable):
 
@@ -742,6 +736,12 @@ class Inspector(Colorable):
         )
         return self.info(obj, oname=oname, info=info, detail_level=detail_level)
 
+    def getstr(self, obj):
+        return str(obj)
+
+    def getlen(self, obj):
+        return len(obj)
+
     def info(self, obj, oname="", info=None, detail_level=0) -> dict:
         """Compute a dict with detailed information about an object.
 
@@ -753,7 +753,7 @@ class Inspector(Colorable):
             Name of the variable pointing to `obj`.
         info : (default: None)
             A struct (dict like with attr access) with some information fields
-            which may have been precomputed already.
+            (ismagic, isalias, namespace) which may have been precomputed already.
         detail_level : int (default:0)
             If set to 1, more information is given.
 
@@ -763,36 +763,22 @@ class Inspector(Colorable):
         strings, values are string or None.
         """
 
-        if info is None:
-            ismagic = False
-            isalias = False
-            ospace = ''
-        else:
-            ismagic = info.ismagic
-            isalias = info.isalias
-            ospace = info.namespace
-
-        # Get docstring, special-casing aliases:
-        if isalias:
-            if not callable(obj):
-                try:
-                    ds = "Alias to the system command:\n  %s" % obj[1]
-                except:
-                    ds = "Alias: " + str(obj)
-            else:
-                ds = "Alias to " + str(obj)
-                if obj.__doc__:
-                    ds += "\nDocstring:\n" + obj.__doc__
-        else:
-            ds = getdoc(obj)
-            if ds is None:
-                ds = '<no docstring>'
+        ismagic = getattr(info, "ismagic", False)
+        isalias = getattr(info, "isalias", False)
+        ospace = getattr(info, "namespace", None)
 
         # store output in a dict, we initialize it here and fill it as we go
-        out = dict(name=oname, found=True, isalias=isalias, ismagic=ismagic, subclasses=None)
+        out = dict(
+            name=oname,
+            found=True,
+            isalias=isalias,
+            ismagic=ismagic,
+            isclass=inspect.isclass(obj),
+            subclasses=None,
+        )
 
-        string_max = 200 # max size of strings to show (snipped if longer)
-        shalf = int((string_max - 5) / 2)
+        if ospace:
+            out["namespace"] = ospace
 
         if ismagic:
             out['type_name'] = 'Magic function'
@@ -803,34 +789,24 @@ class Inspector(Colorable):
 
         try:
             bclass = obj.__class__
-            out['base_class'] = str(bclass)
+            out["base_class"] = self.getstr(bclass)
         except:
             pass
 
-        # String form, but snip if too long in ? form (full in ??)
-        if detail_level >= self.str_detail_level:
-            try:
-                ostr = str(obj)
-                str_head = 'string_form'
-                if not detail_level and len(ostr)>string_max:
-                    ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
-                    ostr = ("\n" + " " * len(str_head.expandtabs())).\
-                            join(q.strip() for q in ostr.split("\n"))
-                out[str_head] = ostr
-            except:
-                pass
-
-        if ospace:
-            out['namespace'] = ospace
-
         # Length (for strings and lists)
         try:
-            out['length'] = str(len(obj))
+            out["length"] = str(self.getlen(obj))
         except Exception:
             pass
 
         # Filename where object was defined
         binary_file = False
+        # TODO: in safeinspect, calling find_file is gated behind this returning true. Perhaps we should have a self.find_file to it can easily be overridden?:
+        # inspect.ismodule(obj)
+        # or inspect.isclass(obj)
+        # or inspect.ismethod(obj)
+        # or inspect.isfunction(obj)
+        # or inspect.iscode(obj)
         fname = find_file(obj)
         if fname is None:
             # if anything goes wrong, we don't want to show source, so it's as
@@ -842,9 +818,33 @@ class Inspector(Colorable):
             elif fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
             out['file'] = compress_user(fname)
+            try:
+                line = find_source_lines(obj, return_length=True)
+                if line is not None:
+                    out["source_start_line"] = line[0]
+                    out["source_end_line"] = line[0] + line[1] - 1
+            except:
+                pass
+
+        # String form, but snip if too long in ? form (full in ??)
+        if detail_level >= self.str_detail_level:
+            string_max = 200  # max size of strings to show (snipped if longer)
+            shalf = int((string_max - 5) / 2)
+
+            try:
+                ostr = self.getstr(obj)
+                str_head = "string_form"
+                if detail_level == 0 and len(ostr) > string_max:
+                    ostr = ostr[:shalf] + " <...> " + ostr[-shalf:]
+                    ostr = ("\n" + " " * len(str_head.expandtabs())).join(
+                        q.strip() for q in ostr.split("\n")
+                    )
+                out[str_head] = ostr
+            except:
+                pass
 
         # Original source code for a callable, class or property.
-        if detail_level:
+        if detail_level > 0:
             # Flush the source cache because inspect can return out-of-date
             # source
             linecache.checkcache()
@@ -858,43 +858,56 @@ class Inspector(Colorable):
             except Exception:
                 pass
 
-        # Add docstring only if no source is to be shown (avoid repetitions).
-        if ds and not self._source_contains_docstring(out.get('source'), ds):
-            out['docstring'] = ds
+        # Get docstring, special-casing aliases:
+        docstring = None
+        if isalias:
+            # TODO: not sure if we need the self.getstr??
+            if not callable(obj):
+                try:
+                    docstring = "Alias to the system command:\n  " + self.getstr(obj[1])
+                except:
+                    docstring = "Alias: " + self.getstr(obj)
+            else:
+                docstring = "Alias to " + self.getstr(obj)
+                if obj.__doc__:
+                    # TODO: call getdoc instead of manually using __doc__??
+                    docstring += "\nDocstring:\n" + obj.__doc__
+        else:
+            docstring = getdoc(obj)
+
+        if docstring is not None:
+            # Add docstring if source does not have it (avoid repetitions).
+            if "source" in out:
+                if not self._source_contains_docstring(out["source"], docstring):
+                    out["docstring"] = docstring
+            else:
+                out["docstring"] = docstring
+        else:
+            out["docstring"] = "<no docstring>"
 
         # Constructor docstring for classes
         if inspect.isclass(obj):
-            out['isclass'] = True
-
             # get the init signature:
-            try:
-                init_def = self._getdef(obj, oname)
-            except AttributeError:
-                init_def = None
+            init_def = self._getdef(obj, oname)
 
-            # get the __init__ docstring
-            try:
-                obj_init = obj.__init__
-            except AttributeError:
-                init_ds = None
-            else:
-                if init_def is None:
-                    # Get signature from init if top-level sig failed.
-                    # Can happen for built-in types (list, etc.).
-                    try:
-                        init_def = self._getdef(obj_init, oname)
-                    except AttributeError:
-                        pass
-                init_ds = getdoc(obj_init)
+            # get the __init__ docstring and, if still needed, the __init__ signature
+            obj_init = getattr(obj, "__init__", None)
+            if obj_init:
+                init_docstring = getdoc(obj_init)
                 # Skip Python's auto-generated docstrings
-                if init_ds == _object_init_docstring:
-                    init_ds = None
+                if init_docstring == _object_init_docstring:
+                    init_docstring = None
+
+                if not init_def:
+                    # Get signature from init if top-level sig failed.
+                    # Can happen for built-in types (dict, etc.).
+                    init_def = self._getdef(obj_init, oname)
 
             if init_def:
                 out['init_definition'] = init_def
 
-            if init_ds:
-                out['init_docstring'] = init_ds
+            if init_docstring:
+                out["init_docstring"] = init_docstring
 
             names = [sub.__name__ for sub in type.__subclasses__(obj)]
             if len(names) < 10:
@@ -905,37 +918,34 @@ class Inspector(Colorable):
         # and class docstring for instances:
         else:
             # reconstruct the function definition and print it:
-            defln = self._getdef(obj, oname)
-            if defln:
-                out['definition'] = defln
+            definition = self._getdef(obj, oname)
+            if definition:
+                out["definition"] = definition
 
             # First, check whether the instance docstring is identical to the
             # class one, and print it separately if they don't coincide.  In
             # most cases they will, but it's nice to print all the info for
             # objects which use instance-customized docstrings.
-            if ds:
-                try:
-                    cls = getattr(obj,'__class__')
-                except:
-                    class_ds = None
-                else:
-                    class_ds = getdoc(cls)
-                # Skip Python's auto-generated docstrings
-                if class_ds in _builtin_type_docstrings:
-                    class_ds = None
-                if class_ds and ds != class_ds:
-                    out['class_docstring'] = class_ds
+            if docstring and safe_hasattr(obj, "__class__"):
+                class_docstring = getdoc(obj.__class__)
+                # Only include the class docstring if is useful and not already included
+                if (
+                    class_docstring
+                    and class_docstring not in _builtin_type_docstrings
+                    and class_docstring != docstring
+                ):
+                    out["class_docstring"] = class_docstring
 
             # Next, try to show constructor docstrings
             try:
-                init_ds = getdoc(obj.__init__)
+                init_docstring = getdoc(obj.__init__)
                 # Skip Python's auto-generated docstrings
-                if init_ds == _object_init_docstring:
-                    init_ds = None
+                if init_docstring == _object_init_docstring:
+                    init_docstring = None
             except AttributeError:
-                init_ds = None
-            if init_ds:
-                out['init_docstring'] = init_ds
+                init_docstring = None
+            if init_docstring:
+                out["init_docstring"] = init_docstring
 
             # Call form docstring for callable instances
             if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
@@ -944,12 +954,11 @@ class Inspector(Colorable):
                     # it may never be the case that call def and definition differ,
                     # but don't include the same signature twice
                     out['call_def'] = call_def
-                call_ds = getdoc(obj.__call__)
+
+                call_docstring = getdoc(obj.__call__)
                 # Skip Python's auto-generated docstrings
-                if call_ds == _func_call_docstring:
-                    call_ds = None
-                if call_ds:
-                    out['call_docstring'] = call_ds
+                if call_docstring != _func_call_docstring:
+                    out["call_docstring"] = call_docstring
 
         return object_info(**out)
 
@@ -958,7 +967,7 @@ class Inspector(Colorable):
         """
         Check whether the source *src* contains the docstring *doc*.
 
-        This is is helper function to skip displaying the docstring if the
+        This is a helper function to skip displaying the docstring if the
         source already contains it, avoiding repetition of information.
         """
         try:
@@ -1037,33 +1046,56 @@ class Inspector(Colorable):
         page.page('\n'.join(sorted(search_result)))
 
 
+# We could have implemented render_signature as a Signature subclass, except that
+# we want to take into account the object's name when calculating the line length
 def _render_signature(obj_signature, obj_name) -> str:
     """
-    This was mostly taken from inspect.Signature.__str__.
-    Look there for the comments.
-    The only change is to add linebreaks when this gets too long.
+    This is a copy of inspect.Signature.__str__ with minor formatting improvements
+
+    The only change is to add linebreaks between parameters when the total line length would be very long
     """
+    # BEGIN CHANGE
+    # We set the self variable so we can just copy the Signature.__str__ code below
+    self = obj_signature
+    # END CHANGE
+
     result = []
-    pos_only = False
-    kw_only = True
-    for param in obj_signature.parameters.values():
-        if param.kind == inspect._POSITIONAL_ONLY:
-            pos_only = True
-        elif pos_only:
+    render_pos_only_separator = False
+    render_kw_only_separator = True
+    for param in self.parameters.values():
+        formatted = str(param)
+
+        kind = param.kind
+
+        if kind == inspect._POSITIONAL_ONLY:
+            render_pos_only_separator = True
+        elif render_pos_only_separator:
+            # It's not a positional-only parameter, and the flag
+            # is set to 'True' (there were pos-only params before.)
             result.append('/')
-            pos_only = False
+            render_pos_only_separator = False
 
-        if param.kind == inspect._VAR_POSITIONAL:
-            kw_only = False
-        elif param.kind == inspect._KEYWORD_ONLY and kw_only:
+        if kind == inspect._VAR_POSITIONAL:
+            # OK, we have an '*args'-like parameter, so we won't need
+            # a '*' to separate keyword-only arguments
+            render_kw_only_separator = False
+        elif kind == inspect._KEYWORD_ONLY and render_kw_only_separator:
+            # We have a keyword-only parameter to render and we haven't
+            # rendered an '*args'-like parameter before, so add a '*'
+            # separator to the parameters list ("foo(arg1, *, arg2)" case)
             result.append('*')
-            kw_only = False
+            # This condition should be only triggered once, so
+            # reset the flag
+            render_kw_only_separator = False
 
-        result.append(str(param))
+        result.append(formatted)
 
-    if pos_only:
+    if render_pos_only_separator:
+        # There were only positional-only parameters, hence the
+        # flag was not reset to 'False'
         result.append('/')
 
+    # BEGIN CHANGE
     # add up name, parameters, braces (2), and commas
     if len(obj_name) + sum(len(r) + 2 for r in result) > 75:
         # This doesn’t fit behind “Signature: ” in an inspect window.
@@ -1072,9 +1104,10 @@ def _render_signature(obj_signature, obj_name) -> str:
         )
     else:
         rendered = '{}({})'.format(obj_name, ', '.join(result))
+    # END CHANGE
 
-    if obj_signature.return_annotation is not inspect._empty:
-        anno = inspect.formatannotation(obj_signature.return_annotation)
+    if self.return_annotation is not inspect._empty:
+        anno = inspect.formatannotation(self.return_annotation)
         rendered += ' -> {}'.format(anno)
 
     return rendered

@@ -1,3 +1,14 @@
 [build-system]
 requires = ["setuptools >= 51.0.0"]
 build-backend = "setuptools.build_meta"
+
+
+[tool.black]
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories
+# in the root of the project.
+(
+  ^/IPython/core/oinspect_safe_signature\.py    # exclude safe_signature so we can easily compare it to upstream
+  | ^/timing\.py
+)
+'''
