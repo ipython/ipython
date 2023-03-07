@@ -999,8 +999,12 @@ class VerboseTB(TBTools):
         max_len = 0
         tbs = []
         while cf is not None:
-            source_file = inspect.getsourcefile(etb.tb_frame)
-            lines, first = inspect.getsourcelines(etb.tb_frame)
+            try:
+                source_file = inspect.getsourcefile(etb.tb_frame)
+                lines, first = inspect.getsourcelines(etb.tb_frame)
+            except OSError:
+                max_len = float("-inf")
+                break
             max_len = max(max_len, first + len(lines))
             tbs.append(cf)
             cf = cf.tb_next
