@@ -567,8 +567,11 @@ class HistoryManager(HistoryAccessor):
             conn = self.db
 
         with conn:
-            cur = conn.execute("""INSERT INTO sessions VALUES (NULL, ?, NULL,
-                            NULL, "") """, (datetime.datetime.now(),))
+            cur = conn.execute(
+                """INSERT INTO sessions VALUES (NULL, ?, NULL,
+                            NULL, '') """,
+                (datetime.datetime.now(),),
+            )
             self.session_number = cur.lastrowid
 
     def end_session(self):
