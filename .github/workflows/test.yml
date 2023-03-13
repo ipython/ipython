@@ -62,7 +62,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel build
         python -m pip install --upgrade -e .[${{ matrix.deps }}]
-        python -m pip install --upgrade check-manifest pytest-cov
+        python -m pip install --upgrade check-manifest pytest-cov  pytest-json-report
     - name: Try building with Python build
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: |
@@ -75,7 +75,13 @@ jobs:
       env:
         COLUMNS: 120
       run: |
-        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }}
+        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --json-report --json-report-file=./report-${{ matrix.python-version }}-${{runner.os}}.json
+    - uses: actions/upload-artifact@v3
+      with:
+          name: upload pytest timing reports as json
+          path: |
+            ./report-*.json
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
