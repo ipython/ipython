@@ -10,6 +10,7 @@ be accessed directly from the outside
 """
 import importlib.abc
 import sys
+import os
 import types
 from functools import partial, lru_cache
 import operator
@@ -368,6 +369,10 @@ def load_qt(api_options):
         commit_api(api)
         return result
     else:
+        # Clear the environment variable since it doesn't work.
+        if "QT_API" in os.environ:
+            del os.environ["QT_API"]
+
         raise ImportError(
             """
     Could not load requested Qt binding. Please ensure that

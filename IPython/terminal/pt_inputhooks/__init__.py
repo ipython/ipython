@@ -69,9 +69,9 @@ def set_qt_api(gui):
     if loaded is not None and gui != "qt":
         if qt_env2gui[loaded] != gui:
             print(
-                f"Cannot switch Qt versions for this session; must use {qt_env2gui[loaded]}."
+                f"Cannot switch Qt versions for this session; will use {qt_env2gui[loaded]}."
             )
-            return
+            return qt_env2gui[loaded]
 
     if qt_api is not None and gui != "qt":
         if qt_env2gui[qt_api] != gui:
@@ -79,6 +79,7 @@ def set_qt_api(gui):
                 f'Request for "{gui}" will be ignored because `QT_API` '
                 f'environment variable is set to "{qt_api}"'
             )
+            return qt_env2gui[qt_api]
     else:
         if gui == "qt5":
             try:
@@ -112,6 +113,11 @@ def set_qt_api(gui):
             print(f'Unrecognized Qt version: {gui}. Should be "qt5", "qt6", or "qt".')
             return
 
+        # Import it now so we can figure out which version it is.
+        from IPython.external.qt_for_kernel import QT_API
+
+        return qt_env2gui[QT_API]
+
 
 def get_inputhook_name_and_func(gui):
     if gui in registered:
@@ -125,7 +131,7 @@ def get_inputhook_name_and_func(gui):
 
     gui_mod = gui
     if gui.startswith("qt"):
-        set_qt_api(gui)
+        gui = set_qt_api(gui)
         gui_mod = "qt"
 
     mod = importlib.import_module("IPython.terminal.pt_inputhooks." + gui_mod)

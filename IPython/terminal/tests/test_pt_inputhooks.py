@@ -33,18 +33,18 @@ _get_qt_vers()
     len(guis_avail) == 0, reason="No viable version of PyQt or PySide installed."
 )
 def test_inputhook_qt():
-    gui = guis_avail[0]
+    # Choose the "best" Qt version.
+    gui_ret, _ = get_inputhook_name_and_func("qt")
 
-    # Choose a qt version and get the input hook function. This will import Qt...
-    get_inputhook_name_and_func(gui)
+    assert gui_ret != "qt"  # you get back the specific version that was loaded.
+    assert gui_ret in guis_avail
 
-    # ...and now we're stuck with this version of Qt for good; can't switch.
-    for not_gui in ["qt6", "qt5"]:
-        if not_gui not in guis_avail:
-            break
-
-    with pytest.raises(ImportError):
-        get_inputhook_name_and_func(not_gui)
-
-    # A gui of 'qt' means "best available", or in this case, the last one that was used.
-    get_inputhook_name_and_func("qt")
+    if len(guis_avail) > 2:
+        # ...and now we're stuck with this version of Qt for good; can't switch.
+        for not_gui in ["qt6", "qt5"]:
+            if not_gui != gui_ret:
+                break
+        # Try to import the other gui; it won't work.
+        gui_ret2, _ = get_inputhook_name_and_func(not_gui)
+        assert gui_ret2 == gui_ret
+        assert gui_ret2 != not_gui
