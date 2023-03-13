@@ -32,7 +32,7 @@ from io import open as io_open
 from logging import error
 from pathlib import Path
 from typing import Callable
-from typing import List as ListType
+from typing import List as ListType, Dict as DictType, Any as AnyType
 from typing import Optional, Tuple
 from warnings import warn
 
@@ -90,6 +90,8 @@ from IPython.utils.process import getoutput, system
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
+from IPython.core.oinspect import OInfo
+
 
 sphinxify: Optional[Callable]
 
@@ -1560,15 +1562,28 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
     # Things related to object introspection
     #-------------------------------------------------------------------------
-
-    def _ofind(self, oname, namespaces=None):
-        """Find an object in the available namespaces.
-
-        self._ofind(oname) -> dict with keys: found,obj,ospace,ismagic
-
-        Has special code to detect magic functions.
+    @staticmethod
+    def _find_parts(oname: str) -> ListType[str]:
         """
-        oname = oname.strip()
+        Given an object name, return a list of parts of this object name.
+
+        Basically split on docs when using attribute access,
+        and extract the value when using square bracket.
+
+
+        For example foo.bar[3].baz[x] -> foo, bar, 3, baz, x
+
+
+        Returns
+        -------
+        parts_ok: bool
+            wether we were properly able to parse parts.
+        parts: list of str
+            extracted parts
+
+
+
+        """
         raw_parts = oname.split(".")
         parts = []
         parts_ok = True
@@ -1590,12 +1605,31 @@ class InteractiveShell(SingletonConfigurable):
                 parts_ok = False
             parts.append(p)
 
+        return parts_ok, parts
+
+    def _ofind(self, oname: str, namespaces: DictType[str, AnyType] = None):
+        """Find an object in the available namespaces.
+
+        self._ofind(oname) -> dict with keys: found,obj,ospace,ismagic
+
+        Has special code to detect magic functions.
+        """
+        oname = oname.strip()
+        parts_ok, parts = self._find_parts(oname)
+
         if (
             not oname.startswith(ESC_MAGIC)
             and not oname.startswith(ESC_MAGIC2)
             and not parts_ok
         ):
-            return {"found": False}
+            return OInfo(
+                ismagic=False,
+                isalias=False,
+                found=False,
+                obj=None,
+                namespace="",
+                parent=None,
+            )
 
         if namespaces is None:
             # Namespaces to search in:
@@ -1675,14 +1709,16 @@ class InteractiveShell(SingletonConfigurable):
             found = True
             ospace = 'Interactive'
 
-        return {
-                'obj':obj,
-                'found':found,
-                'parent':parent,
-                'ismagic':ismagic,
-                'isalias':isalias,
-                'namespace':ospace
-               }
+        return OInfo(
+            **{
+                "obj": obj,
+                "found": found,
+                "parent": parent,
+                "ismagic": ismagic,
+                "isalias": isalias,
+                "namespace": ospace,
+            }
+        )
 
     @staticmethod
     def _getattr_property(obj, attrname):
@@ -1726,9 +1762,9 @@ class InteractiveShell(SingletonConfigurable):
         # Nothing helped, fall back.
         return getattr(obj, attrname)
 
-    def _object_find(self, oname, namespaces=None):
+    def _object_find(self, oname, namespaces=None) -> OInfo:
         """Find an object and return a struct with info about it."""
-        return Struct(self._ofind(oname, namespaces))
+        return self._ofind(oname, namespaces)
 
     def _inspect(self, meth, oname, namespaces=None, **kw):
         """Generic interface to the inspector system.

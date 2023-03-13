@@ -25,6 +25,7 @@ from os.path import join
 from IPython.core.error import InputRejected
 from IPython.core.inputtransformer import InputTransformer
 from IPython.core import interactiveshell
+from IPython.core.oinspect import OInfo
 from IPython.testing.decorators import (
     skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
 )
@@ -360,7 +361,7 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         # Get info on line magic
         lfind = ip._ofind("lmagic")
-        info = dict(
+        info = OInfo(
             found=True,
             isalias=False,
             ismagic=True,
@@ -379,7 +380,7 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         # Get info on cell magic
         find = ip._ofind("cmagic")
-        info = dict(
+        info = OInfo(
             found=True,
             isalias=False,
             ismagic=True,
@@ -397,9 +398,15 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         a = A()
 
-        found = ip._ofind('a.foo', [('locals', locals())])
-        info = dict(found=True, isalias=False, ismagic=False,
-                    namespace='locals', obj=A.foo, parent=a)
+        found = ip._ofind("a.foo", [("locals", locals())])
+        info = OInfo(
+            found=True,
+            isalias=False,
+            ismagic=False,
+            namespace="locals",
+            obj=A.foo,
+            parent=a,
+        )
         self.assertEqual(found, info)
 
     def test_ofind_multiple_attribute_lookups(self):
@@ -412,9 +419,15 @@ class InteractiveShellTestCase(unittest.TestCase):
         a.a = A()
         a.a.a = A()
 
-        found = ip._ofind('a.a.a.foo', [('locals', locals())])
-        info = dict(found=True, isalias=False, ismagic=False,
-                    namespace='locals', obj=A.foo, parent=a.a.a)
+        found = ip._ofind("a.a.a.foo", [("locals", locals())])
+        info = OInfo(
+            found=True,
+            isalias=False,
+            ismagic=False,
+            namespace="locals",
+            obj=A.foo,
+            parent=a.a.a,
+        )
         self.assertEqual(found, info)
 
     def test_ofind_slotted_attributes(self):
@@ -424,14 +437,26 @@ class InteractiveShellTestCase(unittest.TestCase):
                 self.foo = 'bar'
 
         a = A()
-        found = ip._ofind('a.foo', [('locals', locals())])
-        info = dict(found=True, isalias=False, ismagic=False,
-                    namespace='locals', obj=a.foo, parent=a)
+        found = ip._ofind("a.foo", [("locals", locals())])
+        info = OInfo(
+            found=True,
+            isalias=False,
+            ismagic=False,
+            namespace="locals",
+            obj=a.foo,
+            parent=a,
+        )
         self.assertEqual(found, info)
 
-        found = ip._ofind('a.bar', [('locals', locals())])
-        info = dict(found=False, isalias=False, ismagic=False,
-                    namespace=None, obj=None, parent=a)
+        found = ip._ofind("a.bar", [("locals", locals())])
+        info = OInfo(
+            found=False,
+            isalias=False,
+            ismagic=False,
+            namespace=None,
+            obj=None,
+            parent=a,
+        )
         self.assertEqual(found, info)
 
     def test_ofind_prefers_property_to_instance_level_attribute(self):
@@ -443,7 +468,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         a.__dict__["foo"] = "baz"
         self.assertEqual(a.foo, "bar")
         found = ip._ofind("a.foo", [("locals", locals())])
-        self.assertIs(found["obj"], A.foo)
+        self.assertIs(found.obj, A.foo)
 
     def test_custom_syntaxerror_exception(self):
         called = []
