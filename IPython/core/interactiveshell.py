@@ -33,7 +33,7 @@ from logging import error
 from pathlib import Path
 from typing import Callable
 from typing import List as ListType, Dict as DictType, Any as AnyType
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Tuple
 from warnings import warn
 
 from pickleshare import PickleShareDB
@@ -1563,7 +1563,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to object introspection
     #-------------------------------------------------------------------------
     @staticmethod
-    def _find_parts(oname: str) -> ListType[str]:
+    def _find_parts(oname: str) -> Tuple[bool, ListType[str]]:
         """
         Given an object name, return a list of parts of this object name.
 
@@ -1607,7 +1607,9 @@ class InteractiveShell(SingletonConfigurable):
 
         return parts_ok, parts
 
-    def _ofind(self, oname: str, namespaces: DictType[str, AnyType] = None):
+    def _ofind(
+        self, oname: str, namespaces: Optional[Sequence[Tuple[str, AnyType]]] = None
+    ):
         """Find an object in the available namespaces.
 
         self._ofind(oname) -> dict with keys: found,obj,ospace,ismagic
@@ -1627,7 +1629,7 @@ class InteractiveShell(SingletonConfigurable):
                 isalias=False,
                 found=False,
                 obj=None,
-                namespace="",
+                namespace=None,
                 parent=None,
             )
 
@@ -1710,14 +1712,12 @@ class InteractiveShell(SingletonConfigurable):
             ospace = 'Interactive'
 
         return OInfo(
-            **{
-                "obj": obj,
-                "found": found,
-                "parent": parent,
-                "ismagic": ismagic,
-                "isalias": isalias,
-                "namespace": ospace,
-            }
+            obj=obj,
+            found=found,
+            parent=parent,
+            ismagic=ismagic,
+            isalias=isalias,
+            namespace=ospace,
         )
 
     @staticmethod
@@ -3110,7 +3110,7 @@ class InteractiveShell(SingletonConfigurable):
         shell_futures=True,
         *,
         transformed_cell: Optional[str] = None,
-        preprocessing_exc_tuple: Optional[Any] = None,
+        preprocessing_exc_tuple: Optional[AnyType] = None,
         cell_id=None,
     ) -> ExecutionResult:
         """Run a complete IPython cell asynchronously.
@@ -3425,7 +3425,7 @@ class InteractiveShell(SingletonConfigurable):
                 if mode == "exec":
                     mod = Module([node], [])
                 elif mode == "single":
-                    mod = ast.Interactive([node])
+                    mod = ast.Interactive([node])  # type: ignore
                 with compiler.extra_flags(
                     getattr(ast, "PyCF_ALLOW_TOP_LEVEL_AWAIT", 0x0)
                     if self.autoawait

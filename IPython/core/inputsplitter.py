@@ -31,6 +31,8 @@ import sys
 import tokenize
 import warnings
 
+from typing import List
+
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
                                            ipy_prompt,
@@ -319,17 +321,16 @@ class InputSplitter(object):
     # Private attributes
 
     # List with lines of input accumulated so far
-    _buffer = None
+    _buffer: List[str]
     # Command compiler
-    _compile = None
+    _compile: codeop.CommandCompiler
     # Boolean indicating whether the current block is complete
     _is_complete = None
     # Boolean indicating whether the current block has an unrecoverable syntax error
     _is_invalid = False
 
-    def __init__(self):
-        """Create a new InputSplitter instance.
-        """
+    def __init__(self) -> None:
+        """Create a new InputSplitter instance."""
         self._buffer = []
         self._compile = codeop.CommandCompiler()
         self.encoding = get_input_encoding()
@@ -483,7 +484,7 @@ class InputSplitter(object):
                 return False
             
             try:
-                code_ast = ast.parse(u''.join(self._buffer))
+                code_ast = ast.parse("".join(self._buffer))
             except Exception:
                 #print("Can't parse AST")  # debug
                 return False

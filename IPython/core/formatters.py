@@ -29,6 +29,8 @@ from traitlets import (
     default, observe,
 )
 
+from typing import Any
+
 
 class DisplayFormatter(Configurable):
 
@@ -306,8 +308,8 @@ class BaseFormatter(Configurable):
     returned and this format type is not used.
     """
 
-    format_type = Unicode('text/plain')
-    _return_type = str
+    format_type = Unicode("text/plain")
+    _return_type: Any = str
 
     enabled = Bool(True).tag(config=True)
 
