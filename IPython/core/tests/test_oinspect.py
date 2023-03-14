@@ -471,12 +471,49 @@ def test_pinfo_docstring_if_detail_and_no_source():
             ip._inspect('pinfo', 'foo.bar', detail_level=1)
 
 
-def test_pinfo_magic():
-    with AssertPrints('Docstring:'):
-        ip._inspect('pinfo', 'lsmagic', detail_level=0)
+def test_pinfo_docstring_dynamic():
+    obj_def = """class Bar:
+    __custom_documentations__ = {
+     "prop" : "cdoc for prop",
+     "non_exist" : "cdoc for non_exist",
+    }
+    @property
+    def prop(self):
+        '''
+        Docstring for prop
+        '''
+        return self._prop
+    
+    @prop.setter
+    def prop(self, v):
+        self._prop = v
+    """
+    ip.run_cell(obj_def)
 
-    with AssertPrints('Source:'):
-        ip._inspect('pinfo', 'lsmagic', detail_level=1)
+    ip.run_cell("b = Bar()")
+
+    with AssertPrints("Docstring:   cdoc for prop"):
+        ip.run_line_magic("pinfo", "b.prop")
+
+    with AssertPrints("Docstring:   cdoc for non_exist"):
+        ip.run_line_magic("pinfo", "b.non_exist")
+
+    with AssertPrints("Docstring:   cdoc for prop"):
+        ip.run_cell("b.prop?")
+
+    with AssertPrints("Docstring:   cdoc for non_exist"):
+        ip.run_cell("b.non_exist?")
+
+    with AssertPrints("Docstring:   <no docstring>"):
+        ip.run_cell("b.undefined?")
+
+
+def test_pinfo_magic():
+    with AssertPrints("Docstring:"):
+        ip._inspect("pinfo", "lsmagic", detail_level=0)
+
+    with AssertPrints("Source:"):
+        ip._inspect("pinfo", "lsmagic", detail_level=1)
 
 
 def test_init_colors():

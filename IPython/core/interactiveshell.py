@@ -1609,10 +1609,19 @@ class InteractiveShell(SingletonConfigurable):
 
     def _ofind(
         self, oname: str, namespaces: Optional[Sequence[Tuple[str, AnyType]]] = None
-    ):
+    ) -> OInfo:
         """Find an object in the available namespaces.
 
-        self._ofind(oname) -> dict with keys: found,obj,ospace,ismagic
+
+        Returns
+        -------
+        OInfo with fields:
+          - ismagic
+          - isalias
+          - found
+          - obj
+          - namespac
+          - parent
 
         Has special code to detect magic functions.
         """
@@ -1771,11 +1780,11 @@ class InteractiveShell(SingletonConfigurable):
 
         This function is meant to be called by pdef, pdoc & friends.
         """
-        info = self._object_find(oname, namespaces)
+        info: OInfo = self._object_find(oname, namespaces)
         docformat = (
             sphinxify(self.object_inspect(oname)) if self.sphinxify_docstring else None
         )
-        if info.found:
+        if info.found or hasattr(info.parent, oinspect.HOOK_NAME):
             pmethod = getattr(self.inspector, meth)
             # TODO: only apply format_screen to the plain/text repr of the mime
             # bundle.

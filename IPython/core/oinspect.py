@@ -13,18 +13,25 @@ reference the name under which an object is being read.
 __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
-import ast
-import inspect
+from dataclasses import dataclass
 from inspect import signature
-import html
-import linecache
-import warnings
-import os
 from textwrap import dedent
-import types
+import ast
+import html
+import inspect
 import io as stdlib_io
+import linecache
+import os
+import sys
+import types
+import warnings
 
-from typing import Union
+from typing import Any, Optional, Dict, Union, List, Tuple
+
+if sys.version_info <= (3, 10):
+    from typing_extensions import TypeAlias
+else:
+    from typing import TypeAlias
 
 # IPython's own
 from IPython.core import page
@@ -46,8 +53,11 @@ from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.formatters import HtmlFormatter
 
-from typing import Any, Optional
-from dataclasses import dataclass
+HOOK_NAME = "__custom_documentations__"
+
+
+UnformattedBundle: TypeAlias = Dict[str, List[Tuple[str, str]]]  # List of (title, body)
+Bundle: TypeAlias = Dict[str, str]
 
 
 @dataclass
@@ -564,34 +574,52 @@ class Inspector(Colorable):
             else:
                 return dict(defaults, **formatted)
 
-
-    def format_mime(self, bundle):
+    def format_mime(self, bundle: UnformattedBundle) -> Bundle:
         """Format a mimebundle being created by _make_info_unformatted into a real mimebundle"""
         # Format text/plain mimetype
-        if isinstance(bundle["text/plain"], (list, tuple)):
-            # bundle['text/plain'] is a list of (head, formatted body) pairs
-            lines = []
-            _len = max(len(h) for h, _ in bundle["text/plain"])
+        assert isinstance(bundle["text/plain"], list)
+        for item in bundle["text/plain"]:
+            assert isinstance(item, tuple)
 
-            for head, body in bundle["text/plain"]:
-                body = body.strip("\n")
-                delim = "\n" if "\n" in body else " "
-                lines.append(
-                    f"{self.__head(head+':')}{(_len - len(head))*' '}{delim}{body}"
+        new_b: Bundle = {}
+        lines = []
+        _len = max(len(h) for h, _ in bundle["text/plain"])
+
+        for head, body in bundle["text/plain"]:
+            body = body.strip("\n")
+            delim = "\n" if "\n" in body else " "
+            lines.append(
+                f"{self.__head(head+':')}{(_len - len(head))*' '}{delim}{body}"
+            )
+
+        new_b["text/plain"] = "\n".join(lines)
+
+        if "text/html" in bundle:
+            assert isinstance(bundle["text/html"], list)
+            for item in bundle["text/html"]:
+                assert isinstance(item, tuple)
+            # Format the text/html mimetype
+            if isinstance(bundle["text/html"], (list, tuple)):
+                # bundle['text/html'] is a list of (head, formatted body) pairs
+                new_b["text/html"] = "\n".join(
+                    (f"<h1>{head}</h1>\n{body}" for (head, body) in bundle["text/html"])
                 )
 
-            bundle["text/plain"] = "\n".join(lines)
-
-        # Format the text/html mimetype
-        if isinstance(bundle["text/html"], (list, tuple)):
-            # bundle['text/html'] is a list of (head, formatted body) pairs
-            bundle["text/html"] = "\n".join(
-                (f"<h1>{head}</h1>\n{body}" for (head, body) in bundle["text/html"])
-            )
-        return bundle
+        for k in bundle.keys():
+            if k in ("text/html", "text/plain"):
+                continue
+            else:
+                new_b = bundle[k]  # type:ignore
+        return new_b
 
     def _append_info_field(
-        self, bundle, title: str, key: str, info, omit_sections, formatter
+        self,
+        bundle: UnformattedBundle,
+        title: str,
+        key: str,
+        info,
+        omit_sections,
+        formatter,
     ):
         """Append an info value to the unformatted mimebundle being constructed by _make_info_unformatted"""
         if title in omit_sections or key in omit_sections:
@@ -602,15 +630,19 @@ class Inspector(Colorable):
             bundle["text/plain"].append((title, formatted_field["text/plain"]))
             bundle["text/html"].append((title, formatted_field["text/html"]))
 
-    def _make_info_unformatted(self, obj, info, formatter, detail_level, omit_sections):
+    def _make_info_unformatted(
+        self, obj, info, formatter, detail_level, omit_sections
+    ) -> UnformattedBundle:
         """Assemble the mimebundle as unformatted lists of information"""
-        bundle = {
+        bundle: UnformattedBundle = {
             "text/plain": [],
             "text/html": [],
         }
 
         # A convenience function to simplify calls below
-        def append_field(bundle, title: str, key: str, formatter=None):
+        def append_field(
+            bundle: UnformattedBundle, title: str, key: str, formatter=None
+        ):
             self._append_info_field(
                 bundle,
                 title=title,
@@ -620,7 +652,7 @@ class Inspector(Colorable):
                 formatter=formatter,
             )
 
-        def code_formatter(text):
+        def code_formatter(text) -> Bundle:
             return {
                 'text/plain': self.format(text),
                 'text/html': pylight(text)
@@ -678,8 +710,14 @@ class Inspector(Colorable):
 
 
     def _get_info(
-        self, obj, oname="", formatter=None, info=None, detail_level=0, omit_sections=()
-    ):
+        self,
+        obj: Any,
+        oname: str = "",
+        formatter=None,
+        info: Optional[OInfo] = None,
+        detail_level=0,
+        omit_sections=(),
+    ) -> Bundle:
         """Retrieve an info dict and format it.
 
         Parameters
@@ -697,9 +735,13 @@ class Inspector(Colorable):
             Titles or keys to omit from output (can be set, tuple, etc., anything supporting `in`)
         """
 
-        info = self.info(obj, oname=oname, info=info, detail_level=detail_level)
+        info_dict = self.info(obj, oname=oname, info=info, detail_level=detail_level)
         bundle = self._make_info_unformatted(
-            obj, info, formatter, detail_level=detail_level, omit_sections=omit_sections
+            obj,
+            info_dict,
+            formatter,
+            detail_level=detail_level,
+            omit_sections=omit_sections,
         )
         return self.format_mime(bundle)
 
@@ -708,7 +750,7 @@ class Inspector(Colorable):
         obj,
         oname="",
         formatter=None,
-        info=None,
+        info: Optional[OInfo] = None,
         detail_level=0,
         enable_html_pager=True,
         omit_sections=(),
@@ -736,12 +778,13 @@ class Inspector(Colorable):
 
         - omit_sections: set of section keys and titles to omit
         """
-        info = self._get_info(
+        assert info is not None
+        info_b: Bundle = self._get_info(
             obj, oname, formatter, info, detail_level, omit_sections=omit_sections
         )
         if not enable_html_pager:
-            del info['text/html']
-        page.page(info)
+            del info_b["text/html"]
+        page.page(info_b)
 
     def _info(self, obj, oname="", info=None, detail_level=0):
         """
@@ -758,7 +801,7 @@ class Inspector(Colorable):
         )
         return self.info(obj, oname=oname, info=info, detail_level=detail_level)
 
-    def info(self, obj, oname="", info=None, detail_level=0) -> dict:
+    def info(self, obj, oname="", info=None, detail_level=0) -> Dict[str, Any]:
         """Compute a dict with detailed information about an object.
 
         Parameters
@@ -789,7 +832,19 @@ class Inspector(Colorable):
             ospace = info.namespace
 
         # Get docstring, special-casing aliases:
-        if isalias:
+        att_name = oname.split(".")[-1]
+        parents_docs = None
+        prelude = ""
+        if info and info.parent and hasattr(info.parent, HOOK_NAME):
+            parents_docs_dict = getattr(info.parent, HOOK_NAME)
+            parents_docs = parents_docs_dict.get(att_name, None)
+        out = dict(
+            name=oname, found=True, isalias=isalias, ismagic=ismagic, subclasses=None
+        )
+
+        if parents_docs:
+            ds = parents_docs
+        elif isalias:
             if not callable(obj):
                 try:
                     ds = "Alias to the system command:\n  %s" % obj[1]
@@ -806,8 +861,9 @@ class Inspector(Colorable):
             else:
                 ds = ds_or_None
 
+        ds = prelude + ds
+
         # store output in a dict, we initialize it here and fill it as we go
-        out = dict(name=oname, found=True, isalias=isalias, ismagic=ismagic, subclasses=None)
 
         string_max = 200 # max size of strings to show (snipped if longer)
         shalf = int((string_max - 5) / 2)
@@ -980,8 +1036,8 @@ class Inspector(Colorable):
         source already contains it, avoiding repetition of information.
         """
         try:
-            def_node, = ast.parse(dedent(src)).body
-            return ast.get_docstring(def_node) == doc
+            (def_node,) = ast.parse(dedent(src)).body
+            return ast.get_docstring(def_node) == doc  # type: ignore[arg-type]
         except Exception:
             # The source can become invalid or even non-existent (because it
             # is re-fetched from the source file) so the above code fail in
