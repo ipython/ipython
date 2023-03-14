@@ -46,7 +46,7 @@ from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.formatters import HtmlFormatter
 
-from typing import Any
+from typing import Any, Optional
 from dataclasses import dataclass
 
 
@@ -55,7 +55,7 @@ class OInfo:
     ismagic: bool
     isalias: bool
     found: bool
-    namespace: str
+    namespace: Optional[str]
     parent: Any
     obj: Any
 
@@ -173,7 +173,10 @@ def getsource(obj, oname='') -> Union[str,None]:
                 oname_prefix = ('%s.' % oname) if oname else ''
                 sources.append(''.join(('# ', oname_prefix, attrname)))
                 if inspect.isfunction(fn):
-                    sources.append(dedent(getsource(fn)))
+                    _src = getsource(fn)
+                    if _src:
+                        # assert _src is not None, "please mypy"
+                        sources.append(dedent(_src))
                 else:
                     # Default str/repr only prints function name,
                     # pretty.pretty prints module name too.
@@ -797,9 +800,11 @@ class Inspector(Colorable):
                 if obj.__doc__:
                     ds += "\nDocstring:\n" + obj.__doc__
         else:
-            ds = getdoc(obj)
-            if ds is None:
+            ds_or_None = getdoc(obj)
+            if ds_or_None is None:
                 ds = '<no docstring>'
+            else:
+                ds = ds_or_None
 
         # store output in a dict, we initialize it here and fill it as we go
         out = dict(name=oname, found=True, isalias=isalias, ismagic=ismagic, subclasses=None)
@@ -1060,15 +1065,15 @@ def _render_signature(obj_signature, obj_name) -> str:
     pos_only = False
     kw_only = True
     for param in obj_signature.parameters.values():
-        if param.kind == inspect._POSITIONAL_ONLY:
+        if param.kind == inspect.Parameter.POSITIONAL_ONLY:
             pos_only = True
         elif pos_only:
             result.append('/')
             pos_only = False
 
-        if param.kind == inspect._VAR_POSITIONAL:
+        if param.kind == inspect.Parameter.VAR_POSITIONAL:
             kw_only = False
-        elif param.kind == inspect._KEYWORD_ONLY and kw_only:
+        elif param.kind == inspect.Parameter.KEYWORD_ONLY and kw_only:
             result.append('*')
             kw_only = False
 
