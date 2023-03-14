@@ -994,7 +994,7 @@ class VerboseTB(TBTools):
             pygments_formatter=formatter,
         )
 
-        # let's estimate the amount of code we eill have to parse/highlight.
+        # Let's estimate the amount of code we will have to parse/highlight.
         cf = etb
         max_len = 0
         tbs = []

@@ -46,6 +46,19 @@ from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.formatters import HtmlFormatter
 
+from typing import Any
+from dataclasses import dataclass
+
+
+@dataclass
+class OInfo:
+    ismagic: bool
+    isalias: bool
+    found: bool
+    namespace: str
+    parent: Any
+    obj: Any
+
 def pylight(code):
     return highlight(code, PythonLexer(), HtmlFormatter(noclasses=True))
 

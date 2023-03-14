@@ -29,6 +29,8 @@ from IPython.terminal.shortcuts import auto_suggest
 from IPython.terminal.shortcuts.filters import filter_from_string
 from IPython.utils.decorators import undoc
 
+from prompt_toolkit.enums import DEFAULT_BUFFER
+
 __all__ = ["create_ipython_shortcuts"]
 
 

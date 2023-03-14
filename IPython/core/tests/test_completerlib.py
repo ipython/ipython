@@ -177,7 +177,7 @@ def test_module_without_init():
         try:
             os.makedirs(os.path.join(tmpdir, fake_module_name))
             s = try_import(mod=fake_module_name)
-            assert s == []
+            assert s == [], f"for module {fake_module_name}"
         finally:
             sys.path.remove(tmpdir)
 
