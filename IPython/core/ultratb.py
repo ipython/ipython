@@ -391,7 +391,12 @@ class TBTools(colorable.Colorable):
         return self.stb2text(tb_list)
 
     def structured_traceback(
-        self, etype, evalue, tb, tb_offset: Optional[int] = None, context=5, mode=None
+        self,
+        etype: type,
+        evalue: Optional[BaseException],
+        etb: Optional[TracebackType] = None,
+        tb_offset: Optional[int] = None,
+        context=5,
     ):
         """Return a list of traceback frames.
 
@@ -435,7 +440,7 @@ class ListTB(TBTools):
     def structured_traceback(
         self,
         etype: type,
-        evalue: BaseException,
+        evalue: Optional[BaseException],
         etb: Optional[TracebackType] = None,
         tb_offset: Optional[int] = None,
         context=5,
@@ -493,8 +498,11 @@ class ListTB(TBTools):
         exception = self.get_parts_of_chained_exception(evalue)
 
         if exception and not id(exception[1]) in chained_exc_ids:
-            chained_exception_message = self.prepare_chained_exception_message(
-                evalue.__cause__)[0]
+            chained_exception_message = (
+                self.prepare_chained_exception_message(evalue.__cause__)[0]
+                if evalue is not None
+                else ""
+            )
             etype, evalue, etb = exception
             # Trace exception to avoid infinite 'cause' loop
             chained_exc_ids.add(id(exception[1]))
@@ -872,7 +880,7 @@ class VerboseTB(TBTools):
             )
         return result
 
-    def prepare_header(self, etype, long_version=False):
+    def prepare_header(self, etype: str, long_version: bool = False):
         colors = self.Colors  # just a shorthand + quicker name lookup
         colorsnormal = colors.Normal  # used a lot
         exc = '%s%s%s' % (colors.excName, etype, colorsnormal)
@@ -882,15 +890,25 @@ class VerboseTB(TBTools):
             pyver = 'Python ' + sys.version.split()[0] + ': ' + sys.executable
             date = time.ctime(time.time())
 
-            head = '%s%s%s\n%s%s%s\n%s' % (colors.topline, '-' * width, colorsnormal,
-                                           exc, ' ' * (width - len(str(etype)) - len(pyver)),
-                                           pyver, date.rjust(width) )
-            head += "\nA problem occurred executing Python code.  Here is the sequence of function" \
-                    "\ncalls leading up to the error, with the most recent (innermost) call last."
+            head = "%s%s%s\n%s%s%s\n%s" % (
+                colors.topline,
+                "-" * width,
+                colorsnormal,
+                exc,
+                " " * (width - len(etype) - len(pyver)),
+                pyver,
+                date.rjust(width),
+            )
+            head += (
+                "\nA problem occurred executing Python code.  Here is the sequence of function"
+                "\ncalls leading up to the error, with the most recent (innermost) call last."
+            )
         else:
             # Simplified header
-            head = '%s%s' % (exc, 'Traceback (most recent call last)'. \
-                             rjust(width - len(str(etype))) )
+            head = "%s%s" % (
+                exc,
+                "Traceback (most recent call last)".rjust(width - len(etype)),
+            )
 
         return head
 
@@ -911,7 +929,7 @@ class VerboseTB(TBTools):
     def format_exception_as_a_whole(
         self,
         etype: type,
-        evalue: BaseException,
+        evalue: Optional[BaseException],
         etb: Optional[TracebackType],
         number_of_lines_of_context,
         tb_offset: Optional[int],
@@ -995,7 +1013,7 @@ class VerboseTB(TBTools):
         )
 
         # Let's estimate the amount of code we will have to parse/highlight.
-        cf = etb
+        cf: Optional[TracebackType] = etb
         max_len = 0
         tbs = []
         while cf is not None:

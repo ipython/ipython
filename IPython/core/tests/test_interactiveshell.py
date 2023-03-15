@@ -449,7 +449,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(found, info)
 
         found = ip._ofind("a.bar", [("locals", locals())])
-        info = OInfo(
+        expected = OInfo(
             found=False,
             isalias=False,
             ismagic=False,
@@ -457,7 +457,7 @@ class InteractiveShellTestCase(unittest.TestCase):
             obj=None,
             parent=a,
         )
-        self.assertEqual(found, info)
+        assert found == expected
 
     def test_ofind_prefers_property_to_instance_level_attribute(self):
         class A(object):
