@@ -369,8 +369,8 @@ def embed(*, header="", compile_flags=None, **kwargs):
         d = 40
         embed()
 
-    Full customization can be done by passing a :class:`Config` in as the
-    config argument.
+    Full customization can be done by passing a traitlets :class:`Config` in as the
+    `config` argument (see :ref:`configure_start_ipython`).
     """
     config = kwargs.get('config')
     if config is None:

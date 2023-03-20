@@ -82,6 +82,7 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
         The namespace to load into IPython user namespace (default: caller)
     **kwargs : various, optional
         Further keyword args are relayed to the IPKernelApp constructor,
+        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
         allowing configuration of the Kernel.  Will only have an effect
         on the first embed_kernel call for a given process.
     """
@@ -118,7 +119,7 @@ def start_ipython(argv=None, **kwargs):
         specify this dictionary to initialize the IPython user namespace with particular values.
     **kwargs : various, optional
         Any other kwargs will be passed to the Application constructor,
-        such as `config`.
+        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`).
     """
     from IPython.terminal.ipapp import launch_new_instance
     return launch_new_instance(argv=argv, **kwargs)
@@ -143,7 +144,7 @@ def start_kernel(argv=None, **kwargs):
         specify this dictionary to initialize the IPython user namespace with particular values.
     **kwargs : various, optional
         Any other kwargs will be passed to the Application constructor,
-        such as `config`.
+        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`).
     """
     import warnings
 
