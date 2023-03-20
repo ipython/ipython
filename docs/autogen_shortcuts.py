@@ -17,7 +17,7 @@ from IPython.terminal.shortcuts.filters import KEYBINDING_FILTERS
 @dataclass
 class Shortcut:
     #: a sequence of keys (each element on the list corresponds to pressing one or more keys)
-    keys_sequence: list[str]
+    keys_sequence: List[str]
     filter: str
 
 
@@ -146,7 +146,7 @@ def format_prompt_keys(keys: str, add_alternatives=True) -> str:
         escaped = key.replace("\\", "\\\\")
         return f":kbd:`{escaped}`"
 
-    keys_to_press: list[str]
+    keys_to_press: List[str]
 
     prefixes = {
         "c-s-": [to_rst("ctrl"), to_rst("shift")],
