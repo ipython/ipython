@@ -132,7 +132,7 @@ def start_kernel(argv=None, **kwargs):
 
     `start_kernel()` does full, regular IPython initialization,
     including loading startup files, configuration, etc.
-    much of which is skipped by `embed()`.
+    much of which is skipped by `embed_kernel()`.
 
     Parameters
     ----------
