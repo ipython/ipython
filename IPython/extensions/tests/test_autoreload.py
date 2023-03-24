@@ -21,6 +21,7 @@ import textwrap
 import shutil
 import random
 import time
+from py_compile import compile, PycInvalidationMode
 from io import StringIO
 from dataclasses import dataclass
 
@@ -114,14 +115,18 @@ class Fixture(TestCase):
         future, and without changing the timestamp of the .pyc file
         (because that is stored in the file).  The only reliable way
         to achieve this seems to be to sleep.
+
+        Since 3.7, we should be able to force a recompile using PycInvalidationMode
         """
         content = textwrap.dedent(content)
         # Sleep one second + eps
-        time.sleep(1.05)
+        # time.sleep(1.05)
 
         # Write
         with open(filename, "w", encoding="utf-8") as f:
             f.write(content)
+
+        compile(filename, invalidation_mode=PycInvalidationMode.CHECKED_HASH)
 
     def new_module(self, code):
         code = textwrap.dedent(code)
