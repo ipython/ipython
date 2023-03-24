@@ -73,6 +73,10 @@ class FakeShell:
         self.auto_magics.post_execute_hook()
 
 
+import os
+
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
 class Fixture(TestCase):
     """Fixture for creating test module files"""
 
@@ -119,6 +123,8 @@ class Fixture(TestCase):
         Since 3.7, we should be able to force a recompile using PycInvalidationMode
         """
         content = textwrap.dedent(content)
+        import os
+
         # Sleep one second + eps
         # time.sleep(1.05)
 
