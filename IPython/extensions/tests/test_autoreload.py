@@ -24,6 +24,7 @@ import time
 from py_compile import compile, PycInvalidationMode
 from io import StringIO
 from dataclasses import dataclass
+from pathlib import Path
 
 import IPython.testing.tools as tt
 
@@ -123,21 +124,23 @@ class Fixture(TestCase):
         Since 3.7, we should be able to force a recompile using PycInvalidationMode
         """
         content = textwrap.dedent(content)
-        import os
 
-        # Sleep one second + eps
-        # time.sleep(1.05)
-        d = self.shell.auto_magics._reloader.modules_mtimes
-        from pathlib import Path
-
-        k = Path(filename).name
-        d[k[:-3]] = d[k[:-3]] - 10
+        # We used to Sleep one second + eps on older Python
+        # now we try to fake the timesamp internally and recompile
+        # by checking hash.
+        if sys.platform == "win32":
+            time.sleep(1.05)
+        else:
+            internal_timestamp = self.shell.auto_magics._reloader.modules_mtimes
+            name = Path(filename).name
+            internal_timestamp[name[:-3]] = internal_timestamp[name[:-3]] - 10
 
         # Write
         with open(filename, "w", encoding="utf-8") as f:
             f.write(content)
 
-        compile(filename, invalidation_mode=PycInvalidationMode.CHECKED_HASH)
+        if sys.platform != "win32":
+            compile(filename, invalidation_mode=PycInvalidationMode.CHECKED_HASH)
 
     def new_module(self, code):
         code = textwrap.dedent(code)
