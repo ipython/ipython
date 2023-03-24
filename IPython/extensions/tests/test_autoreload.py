@@ -633,7 +633,7 @@ class Bar:    # old-style class
 """,
         )
 
-        def check_module_contents():
+        def check_module_contents_2():
             self.assertEqual(mod.x, 10)
             self.assertFalse(hasattr(mod, "z"))
 
@@ -654,8 +654,9 @@ class Bar:    # old-style class
             self.assertEqual(old_obj2.foo(), 2)
             self.assertEqual(obj2.foo(), 2)
 
+        time.sleep(1.05)  # pyc dified date
         self.shell.run_code("pass")  # trigger reload
-        check_module_contents()
+        check_module_contents_2()
 
         #
         # Another failure case: deleted file (shouldn't reload)
@@ -663,7 +664,7 @@ class Bar:    # old-style class
         os.unlink(mod_fn)
 
         self.shell.run_code("pass")  # trigger reload
-        check_module_contents()
+        check_module_contents_2()
 
         #
         # Disable autoreload and rewrite module: no reload should occur
@@ -688,7 +689,7 @@ x = -99
 
         self.shell.run_code("pass")  # trigger reload
         self.shell.run_code("pass")
-        check_module_contents()
+        check_module_contents_2()
 
         #
         # Re-enable autoreload: reload should now occur
