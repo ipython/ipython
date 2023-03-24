@@ -127,6 +127,11 @@ class Fixture(TestCase):
 
         # Sleep one second + eps
         # time.sleep(1.05)
+        d = self.shell.auto_magics._reloader.modules_mtimes
+        from pathlib import Path
+
+        k = Path(filename).name
+        d[k[:-3]] = d[k[:-3]] - 10
 
         # Write
         with open(filename, "w", encoding="utf-8") as f:
