@@ -380,7 +380,7 @@ def embed(*, header="", compile_flags=None, **kwargs):
     **kwargs : various, optional
         Any other kwargs will be passed to the :class:`InteractiveShellEmbed` constructor.
         Full customization can be done by passing a traitlets :class:`Config` in as the
-        `config` argument (see :ref:`configure_start_ipython`).
+        `config` argument (see :ref:`configure_start_ipython` and :ref:`terminal_options`).
     """
     config = kwargs.get('config')
     if config is None:
