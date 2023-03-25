@@ -56,6 +56,8 @@ from .core.interactiveshell import InteractiveShell
 from .utils.sysinfo import sys_info
 from .utils.frame import extract_module_locals
 
+__all__ = ["start_ipython", "embed", "start_kernel", "embed_kernel"]
+
 # Release data
 __author__ = '%s <%s>' % (release.author, release.author_email)
 __license__  = release.license

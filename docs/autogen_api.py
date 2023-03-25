@@ -66,10 +66,13 @@ if __name__ == '__main__':
     # them as part of the public API. They must have __all__ defined. The
     # non-API modules they import from should be excluded by the skip patterns
     # above.
-    docwriter.names_from__all__.update({
-        'IPython.display',
-    })
-    
+    docwriter.names_from__all__.update(
+        {
+            "IPython",
+            "IPython.display",
+        }
+    )
+
     # Now, generate the outputs
     docwriter.write_api_docs(outdir)
     # Write index with .txt extension - we can include it, but Sphinx won't try
