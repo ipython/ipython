@@ -369,8 +369,18 @@ def embed(*, header="", compile_flags=None, **kwargs):
         d = 40
         embed()
 
-    Full customization can be done by passing a traitlets :class:`Config` in as the
-    `config` argument (see :ref:`configure_start_ipython`).
+    Parameters
+    ----------
+
+    header : str
+        Optional header string to print at startup.
+    compile_flags
+        Passed to the `compile_flags` parameter of :py:meth:`InteractiveShellEmbed.mainloop()`,
+        which is called when the :class:`InteractiveShellEmbed` instance is called.
+    **kwargs : various, optional
+        Any other kwargs will be passed to the :class:`InteractiveShellEmbed` constructor.
+        Full customization can be done by passing a traitlets :class:`Config` in as the
+        `config` argument (see :ref:`configure_start_ipython`).
     """
     config = kwargs.get('config')
     if config is None:
