@@ -17,6 +17,7 @@ from prompt_toolkit.filters import Condition, emacs_insert_mode, has_completions
 from prompt_toolkit.filters import has_focus as has_focus_impl
 from prompt_toolkit.filters import (
     Always,
+    Never,
     has_selection,
     has_suggestion,
     vi_insert_mode,
@@ -174,6 +175,8 @@ default_buffer_focused = has_focus(DEFAULT_BUFFER)
 
 KEYBINDING_FILTERS = {
     "always": Always(),
+    # never is used for exposing commands which have no default keybindings
+    "never": Never(),
     "has_line_below": has_line_below,
     "has_line_above": has_line_above,
     "has_selection": has_selection,

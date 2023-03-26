@@ -51,6 +51,7 @@ from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import (
+    KEY_BINDINGS,
     create_ipython_shortcuts,
     create_identifier,
     RuntimeBinding,
@@ -491,8 +492,8 @@ class TerminalInteractiveShell(InteractiveShell):
         # for now we only allow adding shortcuts for commands which are already
         # registered; this is a security precaution.
         known_commands = {
-            create_identifier(binding.handler): binding.handler
-            for binding in key_bindings.bindings
+            create_identifier(binding.command): binding.command
+            for binding in KEY_BINDINGS
         }
         shortcuts_to_skip = []
         shortcuts_to_add = []
@@ -513,11 +514,11 @@ class TerminalInteractiveShell(InteractiveShell):
             )
             matching = [
                 binding
-                for binding in key_bindings.bindings
+                for binding in KEY_BINDINGS
                 if (
                     (old_filter is None or binding.filter == old_filter)
                     and (old_keys is None or [k for k in binding.keys] == old_keys)
-                    and create_identifier(binding.handler) == command_id
+                    and create_identifier(binding.command) == command_id
                 )
             ]
 
@@ -542,7 +543,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 }
                 if len(matching) == 0:
                     raise ValueError(
-                        f"No shortcuts matching {specification} found in {key_bindings.bindings}"
+                        f"No shortcuts matching {specification} found in {KEY_BINDINGS}"
                     )
                 elif len(matching) > 1:
                     raise ValueError(
