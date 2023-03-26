@@ -181,10 +181,33 @@ KEYBINDING_FILTERS = {
     "vi_mode": vi_mode,
     "vi_insert_mode": vi_insert_mode,
     "emacs_insert_mode": emacs_insert_mode,
+    # https://github.com/ipython/ipython/pull/12603 argued for inclusion of
+    # emacs key bindings with a configurable `emacs_bindings_in_vi_insert_mode`
+    # toggle; when the toggle is on user can access keybindigns like `ctrl + e`
+    # in vi insert mode. Because some of the emacs bindings involve `escape`
+    # followed by another key, e.g. `escape` followed by `f`, prompt-toolkit
+    # needs to wait to see if there will be another character typed in before
+    # executing pure `escape` keybinding; in vi insert mode `escape` switches to
+    # command mode which is common and performance critical action for vi users.
+    # To avoid the delay users employ a workaround:
+    # https://github.com/ipython/ipython/issues/13443#issuecomment-1032753703
+    # which involves switching `emacs_bindings_in_vi_insert_mode` off.
+    #
+    # For the workaround to work:
+    # 1) end users need to toggle `emacs_bindings_in_vi_insert_mode` off
+    # 2) all keybindings which would involve `escape` need to respect that
+    #    toggle by including either:
+    #      - `vi_insert_mode & ebivim` for actions which have emacs keybindings
+    #        predefined upstream in prompt-toolkit, or
+    #      - `emacs_like_insert_mode` for actions which do not have existing
+    #        emacs keybindings predefined upstream (or need overriding of the
+    #        upstream bindings to modify behaviour), defined below.
+    "emacs_like_insert_mode": (vi_insert_mode & ebivim) | emacs_insert_mode,
     "has_completions": has_completions,
     "insert_mode": vi_insert_mode | emacs_insert_mode,
     "default_buffer_focused": default_buffer_focused,
     "search_buffer_focused": has_focus(SEARCH_BUFFER),
+    # `ebivim` stands for emacs bindings in vi insert mode
     "ebivim": ebivim,
     "supports_suspend": supports_suspend,
     "is_windows_os": is_windows_os,

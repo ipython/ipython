@@ -178,9 +178,8 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
                     break
 
 
-# Needed for to accept autosuggestions in vi insert mode
-def accept_in_vi_insert_mode(event: KeyPressEvent):
-    """Apply autosuggestion if at end of line."""
+def accept_or_jump_to_end(event: KeyPressEvent):
+    """Apply autosuggestion or jump to end of line."""
     buffer = event.current_buffer
     d = buffer.document
     after_cursor = d.text[d.cursor_position :]
@@ -191,6 +190,15 @@ def accept_in_vi_insert_mode(event: KeyPressEvent):
         buffer.insert_text(suggestion.text)
     else:
         nc.end_of_line(event)
+
+
+def accept_in_vi_insert_mode(event: KeyPressEvent):
+    """Accept autosuggestion or jump to end of line.
+
+    .. deprecated:: 8.12
+        Use `accept_or_jump_to_end` instead.
+    """
+    return accept_or_jump_to_end(event)
 
 
 def accept(event: KeyPressEvent):
