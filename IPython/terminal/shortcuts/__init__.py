@@ -266,7 +266,8 @@ AUTO_SUGGEST_BINDINGS = [
     Binding(
         auto_suggest.backspace_and_resume_hint,
         ["backspace"],
-        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
+        # no `has_suggestion` here to allow resuming if no suggestion
+        "default_buffer_focused & emacs_like_insert_mode",
     ),
 ]
 
