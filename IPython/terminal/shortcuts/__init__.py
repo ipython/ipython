@@ -186,12 +186,12 @@ AUTO_SUGGEST_BINDINGS = [
     # 2) prompt-toolkit checks if we are at the end of text, not end of line
     #    hence it does not work in multi-line mode of navigable provider
     Binding(
-        auto_suggest.accept_in_vi_insert_mode,
+        auto_suggest.accept_or_jump_to_end,
         ["end"],
         "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
     ),
     Binding(
-        auto_suggest.accept_in_vi_insert_mode,
+        auto_suggest.accept_or_jump_to_end,
         ["c-e"],
         "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
     ),

@@ -2,6 +2,7 @@ import re
 import tokenize
 from io import StringIO
 from typing import Callable, List, Optional, Union, Generator, Tuple
+import warnings
 
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding import KeyPressEvent
@@ -192,7 +193,7 @@ def accept_or_jump_to_end(event: KeyPressEvent):
         nc.end_of_line(event)
 
 
-def accept_in_vi_insert_mode(event: KeyPressEvent):
+def _deprected_accept_in_vi_insert_mode(event: KeyPressEvent):
     """Accept autosuggestion or jump to end of line.
 
     .. deprecated:: 8.12
@@ -381,3 +382,16 @@ def swap_autosuggestion_down(event: KeyPressEvent):
         provider=provider,
         direction_method=provider.down,
     )
+
+
+def __getattr__(key):
+    if key == "accept_in_vi_insert_mode":
+        warnings.warn(
+            "`accept_in_vi_insert_mode` is deprecated since IPython 8.12 and "
+            "renamed to `accept_or_jump_to_end`. Please update your configuration "
+            "accordingly",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return _deprected_accept_in_vi_insert_mode
+    raise AttributeError
