@@ -208,6 +208,11 @@ AUTO_SUGGEST_BINDINGS = [
         "has_suggestion & default_buffer_focused & emacs_insert_mode",
     ),
     Binding(
+        auto_suggest.discard,
+        ["delete"],
+        "has_suggestion & default_buffer_focused & emacs_insert_mode",
+    ),
+    Binding(
         auto_suggest.swap_autosuggestion_up,
         ["up"],
         "navigable_suggestions"
