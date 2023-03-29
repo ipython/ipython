@@ -163,7 +163,7 @@ When multiple matchers simultaneously request surpression, the results from of
 the matcher with higher priority will be returned.
 
 Sometimes it is desirable to suppress most but not all other matchers;
-this can be achieved by adding a list of identifiers of matchers which
+this can be achieved by adding a set of identifiers of matchers which
 should not be suppressed to ``MatcherResult`` under ``do_not_suppress`` key.
 
 The suppression behaviour can is user-configurable via
