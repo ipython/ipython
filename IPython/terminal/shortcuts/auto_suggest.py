@@ -261,14 +261,13 @@ def _update_hint(buffer: Buffer):
 
 def backspace_and_resume_hint(event: KeyPressEvent):
     """Resume autosuggestions after deleting last character"""
-    current_buffer = event.current_buffer
-
-    def resume_hinting(buffer: Buffer):
-        _update_hint(buffer)
-        current_buffer.on_text_changed.remove_handler(resume_hinting)
-
-    current_buffer.on_text_changed.add_handler(resume_hinting)
     nc.backward_delete_char(event)
+    _update_hint(event.current_buffer)
+
+
+def resume_hinting(event: KeyPressEvent):
+    """Resume autosuggestions"""
+    return _update_hint(event.current_buffer)
 
 
 def up_and_update_hint(event: KeyPressEvent):
