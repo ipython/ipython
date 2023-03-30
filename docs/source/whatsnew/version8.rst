@@ -2,6 +2,81 @@
  8.x Series
 ============
 
+.. _version 8.12.0:
+
+
+Dynamic documentation dispatch
+------------------------------
+
+
+We are experimenting with dynamic documentation dispatch for object attribute.
+See :ghissue:`13860`. The goal is to allow object to define documentation for
+their attributes, properties, even when those are dynamically defined with
+`__getattr__`.
+
+In particular when those objects are base types it can be useful to show the
+documentation
+
+
+.. code::
+
+    In [1]: class User:
+    ...:
+    ...:     __custom_documentations__ = {
+    ...:         "first": "The first name of the user.",
+    ...:         "last": "The last name of the user.",
+    ...:     }
+    ...:
+    ...:     first:str
+    ...:     last:str
+    ...:
+    ...:     def __init__(self, first, last):
+    ...:         self.first = first
+    ...:         self.last = last
+    ...:
+    ...:     @property
+    ...:     def full(self):
+    ...:         """`self.first` and `self.last` joined by a space."""
+    ...:         return self.first + " " + self.last
+    ...:
+    ...:
+    ...: user = Person('Jane', 'Doe')
+
+    In [2]: user.first?
+    Type:            str
+    String form:     Jane
+    Length:          4
+    Docstring:       the first name of a the person object, a str
+    Class docstring:
+    ....
+
+    In [3]: user.last?
+    Type:            str
+    String form:     Doe
+    Length:          3
+    Docstring:       the last name, also a str
+    ...
+
+
+We can see here the symmetry with IPython looking for the docstring on the
+properties::
+
+
+    In [4]: user.full?
+    HERE
+    Type:        property
+    String form: <property object at 0x102bb15d0>
+    Docstring:   first and last join by a space
+
+
+Note that while in the above example we use a static dictionary, libraries may
+decide to use a custom object that define ``__getitem__``, we caution against
+using objects that would trigger computation to show documentation, but it is
+sometime preferable for highly dynamic code that for example export ans API as
+object.
+
+
+
 .. _version 8.11.0:
 
 IPython 8.11
@@ -94,7 +169,7 @@ Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
 work on IPython and related libraries.
 
 .. _version 8.10.0:
-   
+
 IPython 8.10
 ------------
 
@@ -107,7 +182,7 @@ This is a really low severity CVE that you most likely are not affected by unles
    valid shell commands.
 
 You can read more on `the advisory
-<https://github.com/ipython/ipython/security/advisories/GHSA-29gw-9793-fvw7>`__. 
+<https://github.com/ipython/ipython/security/advisories/GHSA-29gw-9793-fvw7>`__.
 
 In addition to fixing this CVE we also fix a couple of outstanding bugs and issues.
 
