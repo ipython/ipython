@@ -181,30 +181,45 @@ AUTO_MATCH_BINDINGS = [
 ]
 
 AUTO_SUGGEST_BINDINGS = [
+    # there are two reasons for re-defining bindings defined upstream:
+    # 1) prompt-toolkit does not execute autosuggestion bindings in vi mode,
+    # 2) prompt-toolkit checks if we are at the end of text, not end of line
+    #    hence it does not work in multi-line mode of navigable provider
     Binding(
-        auto_suggest.accept_in_vi_insert_mode,
+        auto_suggest.accept_or_jump_to_end,
         ["end"],
-        "default_buffer_focused & (ebivim | ~vi_insert_mode)",
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
     ),
     Binding(
-        auto_suggest.accept_in_vi_insert_mode,
+        auto_suggest.accept_or_jump_to_end,
         ["c-e"],
-        "vi_insert_mode & default_buffer_focused & ebivim",
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
     ),
-    Binding(auto_suggest.accept, ["c-f"], "vi_insert_mode & default_buffer_focused"),
+    Binding(
+        auto_suggest.accept,
+        ["c-f"],
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
+    ),
+    Binding(
+        auto_suggest.accept,
+        ["right"],
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
+    ),
     Binding(
         auto_suggest.accept_word,
         ["escape", "f"],
-        "vi_insert_mode & default_buffer_focused & ebivim",
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
     ),
     Binding(
         auto_suggest.accept_token,
         ["c-right"],
-        "has_suggestion & default_buffer_focused",
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
     ),
     Binding(
         auto_suggest.discard,
         ["escape"],
+        # note this one is using `emacs_insert_mode`, not `emacs_like_insert_mode`
+        # as in `vi_insert_mode` we do not want `escape` to be shadowed (ever).
         "has_suggestion & default_buffer_focused & emacs_insert_mode",
     ),
     Binding(
@@ -241,22 +256,23 @@ AUTO_SUGGEST_BINDINGS = [
     Binding(
         auto_suggest.accept_character,
         ["escape", "right"],
-        "has_suggestion & default_buffer_focused",
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
     ),
     Binding(
         auto_suggest.accept_and_move_cursor_left,
         ["c-left"],
-        "has_suggestion & default_buffer_focused",
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
     ),
     Binding(
         auto_suggest.accept_and_keep_cursor,
         ["c-down"],
-        "has_suggestion & default_buffer_focused",
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
     ),
     Binding(
         auto_suggest.backspace_and_resume_hint,
         ["backspace"],
-        "has_suggestion & default_buffer_focused",
+        # no `has_suggestion` here to allow resuming if no suggestion
+        "default_buffer_focused & emacs_like_insert_mode",
     ),
 ]
 

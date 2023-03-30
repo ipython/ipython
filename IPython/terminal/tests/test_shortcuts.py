@@ -1,7 +1,7 @@
 import pytest
 from IPython.terminal.shortcuts.auto_suggest import (
     accept,
-    accept_in_vi_insert_mode,
+    accept_or_jump_to_end,
     accept_token,
     accept_character,
     accept_word,
@@ -20,6 +20,13 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 from unittest.mock import patch, Mock
+
+
+def test_deprected():
+    import IPython.terminal.shortcuts.auto_suggest as iptsa
+
+    with pytest.warns(DeprecationWarning, match=r"8\.12.+accept_or_jump_to_end"):
+        iptsa.accept_in_vi_insert_mode
 
 
 def make_event(text, cursor, suggestion):
@@ -80,7 +87,7 @@ def test_autosuggest_at_EOL(text, cursor, suggestion, called):
 
     event = make_event(text, cursor, suggestion)
     event.current_buffer.insert_text = Mock()
-    accept_in_vi_insert_mode(event)
+    accept_or_jump_to_end(event)
     if called:
         event.current_buffer.insert_text.assert_called()
     else:

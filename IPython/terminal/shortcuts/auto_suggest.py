@@ -2,6 +2,7 @@ import re
 import tokenize
 from io import StringIO
 from typing import Callable, List, Optional, Union, Generator, Tuple
+import warnings
 
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding import KeyPressEvent
@@ -178,9 +179,8 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
                     break
 
 
-# Needed for to accept autosuggestions in vi insert mode
-def accept_in_vi_insert_mode(event: KeyPressEvent):
-    """Apply autosuggestion if at end of line."""
+def accept_or_jump_to_end(event: KeyPressEvent):
+    """Apply autosuggestion or jump to end of line."""
     buffer = event.current_buffer
     d = buffer.document
     after_cursor = d.text[d.cursor_position :]
@@ -191,6 +191,15 @@ def accept_in_vi_insert_mode(event: KeyPressEvent):
         buffer.insert_text(suggestion.text)
     else:
         nc.end_of_line(event)
+
+
+def _deprected_accept_in_vi_insert_mode(event: KeyPressEvent):
+    """Accept autosuggestion or jump to end of line.
+
+    .. deprecated:: 8.12
+        Use `accept_or_jump_to_end` instead.
+    """
+    return accept_or_jump_to_end(event)
 
 
 def accept(event: KeyPressEvent):
@@ -373,3 +382,16 @@ def swap_autosuggestion_down(event: KeyPressEvent):
         provider=provider,
         direction_method=provider.down,
     )
+
+
+def __getattr__(key):
+    if key == "accept_in_vi_insert_mode":
+        warnings.warn(
+            "`accept_in_vi_insert_mode` is deprecated since IPython 8.12 and "
+            "renamed to `accept_or_jump_to_end`. Please update your configuration "
+            "accordingly",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return _deprected_accept_in_vi_insert_mode
+    raise AttributeError
