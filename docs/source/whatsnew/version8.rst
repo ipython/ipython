@@ -4,10 +4,64 @@
 
 .. _version 8.12.0:
 
+IPython 8.12
+------------
+
+Hopefully slightly early release for IPython 8.12. Last Thursday of the month,
+even if I guess it's likely already Friday somewhere in the pacific ocean.
+
+A number of PRs and bug fixes this month with close to 20 PRs merged !
+
+
+The IPython repo reached :ghpull:``14000`` !! Actually the PR that create those exact release
+note is :ghpull:`14000`. Ok, more issues and PR is not always better, and I'd
+love to have more time to close issues and Pull Requests.
+
+Let's note that in less than 2 month JupyterCon is back, in Paris please visit
+`jupytercon.com <https://jupytercon.com>`__, and looking forward to see you
+there.
+
+
+
+Packagers should take note that ``typing_extension`` is now a mandatory dependency
+for Python versions ``<3.10``.
+
+
+
+Let's note also that according to `NEP29
+<https://numpy.org/neps/nep-0029-deprecation_policy.html>`__, It is soon time to
+stop support for Python 3.8 that will be release more than 3 and 1/2 years ago::
+
+    On Apr 14, 2023 drop support for Python 3.8 (initially released on Oct 14, 2019)
+
+Thus I am likely to stop advertising support for Python 3.8 in the next
+release at the end of April.
+
+
+Here are some miscellaneous updates of interest:
+
+ - :ghpull:`13957` brings updates to the Qt integration, particularly for Qt6.
+ - :ghpull:`13960` fixes the %debug magic command to give access to the local
+   scope.
+ - :ghpull:`13964` fixes some crashes with the new fast traceback code. Note that
+   there are still some issues with the fast traceback code, and I a, likely
+   to fix and tweak behavior.
+ - :ghpull:`13973` We are slowly migrating IPython internals to use proper type
+   objects/dataclasses instead of dictionaries to allow static typing checks.
+   These are technically public API and could lead to breakage, so please let us
+   know if that's the case and I'll mitigate.
+ - :ghpull:`13990`, :ghpull:`13991`, :ghpull:`13994` all improve keybinding and
+   shortcut configurability.
+
+As usual you can find the full list of PRs on GitHub under `the 8.12 milestone
+<https://github.com/ipython/ipython/milestone/114?closed=1>`__.
+
+We want to thank the D.E. Shaw group for requesting and sponsoring the work on
+the following big feature. We had productive discussions on how to best expose
+this feature
 
 Dynamic documentation dispatch
-------------------------------
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We are experimenting with dynamic documentation dispatch for object attribute.
 See :ghissue:`13860`. The goal is to allow object to define documentation for
@@ -18,29 +72,30 @@ In particular when those objects are base types it can be useful to show the
 documentation
 
 
-.. code::
+.. code-block:: ipython
+
 
     In [1]: class User:
-    ...:
-    ...:     __custom_documentations__ = {
-    ...:         "first": "The first name of the user.",
-    ...:         "last": "The last name of the user.",
-    ...:     }
-    ...:
-    ...:     first:str
-    ...:     last:str
-    ...:
-    ...:     def __init__(self, first, last):
-    ...:         self.first = first
-    ...:         self.last = last
-    ...:
-    ...:     @property
-    ...:     def full(self):
-    ...:         """`self.first` and `self.last` joined by a space."""
-    ...:         return self.first + " " + self.last
-    ...:
-    ...:
-    ...: user = Person('Jane', 'Doe')
+       ...:
+       ...:     __custom_documentations__ = {
+       ...:         "first": "The first name of the user.",
+       ...:         "last": "The last name of the user.",
+       ...:     }
+       ...:
+       ...:     first:str
+       ...:     last:str
+       ...:
+       ...:     def __init__(self, first, last):
+       ...:         self.first = first
+       ...:         self.last = last
+       ...:
+       ...:     @property
+       ...:     def full(self):
+       ...:         """`self.first` and `self.last` joined by a space."""
+       ...:         return self.first + " " + self.last
+       ...:
+       ...:
+       ...: user = Person('Jane', 'Doe')
 
     In [2]: user.first?
     Type:            str
@@ -59,7 +114,9 @@ documentation
 
 
 We can see here the symmetry with IPython looking for the docstring on the
-properties::
+properties:
+
+.. code-block:: ipython
 
 
     In [4]: user.full?
