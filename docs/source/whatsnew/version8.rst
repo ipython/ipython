@@ -13,15 +13,13 @@ even if I guess it's likely already Friday somewhere in the pacific ocean.
 A number of PRs and bug fixes this month with close to 20 PRs merged !
 
 
-The IPython repo reached :ghpull:``14000`` !! Actually the PR that create those exact release
+The IPython repo reached :ghpull:`14000` !! Actually the PR that create those exact release
 note is :ghpull:`14000`. Ok, more issues and PR is not always better, and I'd
 love to have more time to close issues and Pull Requests.
 
 Let's note that in less than 2 month JupyterCon is back, in Paris please visit
 `jupytercon.com <https://jupytercon.com>`__, and looking forward to see you
 there.
-
-
 
 Packagers should take note that ``typing_extension`` is now a mandatory dependency
 for Python versions ``<3.10``.
