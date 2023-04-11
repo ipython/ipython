@@ -835,7 +835,7 @@ class Inspector(Colorable):
         att_name = oname.split(".")[-1]
         parents_docs = None
         prelude = ""
-        if info and info.parent and hasattr(info.parent, HOOK_NAME):
+        if info and info.parent is not None and hasattr(info.parent, HOOK_NAME):
             parents_docs_dict = getattr(info.parent, HOOK_NAME)
             parents_docs = parents_docs_dict.get(att_name, None)
         out = dict(
