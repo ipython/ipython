@@ -1781,9 +1781,12 @@ class InteractiveShell(SingletonConfigurable):
         This function is meant to be called by pdef, pdoc & friends.
         """
         info: OInfo = self._object_find(oname, namespaces)
-        docformat = (
-            sphinxify(self.object_inspect(oname)) if self.sphinxify_docstring else None
-        )
+        if self.sphinxify_docstring:
+            if sphinxify is None:
+                raise ImportError("Module ``docrepr`` required but missing")
+            docformat = sphinxify(self.object_inspect(oname))
+        else:
+            docformat = None
         if info.found or hasattr(info.parent, oinspect.HOOK_NAME):
             pmethod = getattr(self.inspector, meth)
             # TODO: only apply format_screen to the plain/text repr of the mime
