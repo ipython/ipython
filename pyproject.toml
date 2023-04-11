@@ -19,7 +19,7 @@ exclude = [
    #'IPython/core/interactiveshell.py',
    'IPython/core/magic.py',
    'IPython/core/profileapp.py',
-   'IPython/core/ultratb.py',
+   # 'IPython/core/ultratb.py',
    'IPython/lib/deepreload.py',
    'IPython/lib/pretty.py',
    'IPython/sphinxext/ipython_directive.py',

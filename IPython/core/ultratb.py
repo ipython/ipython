@@ -89,20 +89,22 @@ Inheritance diagram:
 #*****************************************************************************
 
 
+import functools
 import inspect
 import linecache
 import pydoc
 import sys
 import time
 import traceback
+import types
 from types import TracebackType
-from typing import Tuple, List, Any, Optional
+from typing import Any, List, Optional, Tuple
 
 import stack_data
-from stack_data import FrameInfo as SDFrameInfo
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.styles import get_style_by_name
 
+import IPython.utils.colorable as colorable
 # IPython's own modules
 from IPython import get_ipython
 from IPython.core import debugger
@@ -112,8 +114,6 @@ from IPython.utils import PyColorize
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils.terminal import get_terminal_size
-
-import IPython.utils.colorable as colorable
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks
@@ -133,6 +133,54 @@ FAST_THRESHOLD = 10_000
 # functionality to produce a pseudo verbose TB for SyntaxErrors, so that they
 # can be recognized properly by ipython.el's py-traceback-line-re
 # (SyntaxErrors have to be treated specially because they have no traceback)
+
+
+@functools.lru_cache()
+def count_lines_in_py_file(filename: str) -> int:
+    """
+    Given a filename, returns the number of lines in the file
+    if it ends with the extension ".py". Otherwise, returns 0.
+    """
+    if not filename.endswith(".py"):
+        return 0
+    else:
+        try:
+            with open(filename, "r") as file:
+                s = sum(1 for line in file)
+        except UnicodeError:
+            return 0
+    return s
+
+    """
+    Given a frame object, returns the total number of lines in the file
+    if the filename ends with the extension ".py". Otherwise, returns 0.
+    """
+
+
+def get_line_number_of_frame(frame: types.FrameType) -> int:
+    """
+    Given a frame object, returns the total number of lines in the file
+    containing the frame's code object, or the number of lines in the
+    frame's source code if the file is not available.
+
+    Parameters
+    ----------
+    frame : FrameType
+        The frame object whose line number is to be determined.
+
+    Returns
+    -------
+    int
+        The total number of lines in the file containing the frame's
+        code object, or the number of lines in the frame's source code
+        if the file is not available.
+    """
+    filename = frame.f_code.co_filename
+    if filename is None:
+        print("No file....")
+        lines, first = inspect.getsourcelines(frame)
+        return first + len(lines)
+    return count_lines_in_py_file(filename)
 
 
 def _format_traceback_lines(lines, Colors, has_colors: bool, lvals):
@@ -194,8 +242,8 @@ def _simple_format_traceback_lines(lnum, index, lines, Colors, lvals, _line_form
     """
     numbers_width = INDENT_SIZE - 1
     res = []
-
     for i, line in enumerate(lines, lnum - index):
+        # assert isinstance(line, str)
         line = py3compat.cast_unicode(line)
 
         new_line, err = _line_format(line, "str")
@@ -396,7 +444,7 @@ class TBTools(colorable.Colorable):
         evalue: Optional[BaseException],
         etb: Optional[TracebackType] = None,
         tb_offset: Optional[int] = None,
-        context=5,
+        number_of_lines_of_context: int = 5,
     ):
         """Return a list of traceback frames.
 
@@ -497,7 +545,7 @@ class ListTB(TBTools):
 
         exception = self.get_parts_of_chained_exception(evalue)
 
-        if exception and not id(exception[1]) in chained_exc_ids:
+        if exception and (id(exception[1]) not in chained_exc_ids):
             chained_exception_message = (
                 self.prepare_chained_exception_message(evalue.__cause__)[0]
                 if evalue is not None
@@ -509,8 +557,12 @@ class ListTB(TBTools):
             chained_exceptions_tb_offset = 0
             out_list = (
                 self.structured_traceback(
-                    etype, evalue, (etb, chained_exc_ids),
-                    chained_exceptions_tb_offset, context)
+                    etype,
+                    evalue,
+                    (etb, chained_exc_ids),  # type: ignore
+                    chained_exceptions_tb_offset,
+                    context,
+                )
                 + chained_exception_message
                 + out_list)
 
@@ -673,27 +725,41 @@ class FrameInfo:
     """
 
     description: Optional[str]
-    filename: str
-    lineno: int
+    filename: Optional[str]
+    lineno: Tuple[int]
+    # number of context lines to use
+    context: Optional[int]
 
     @classmethod
     def _from_stack_data_FrameInfo(cls, frame_info):
         return cls(
             getattr(frame_info, "description", None),
-            getattr(frame_info, "filename", None),
-            getattr(frame_info, "lineno", None),
+            getattr(frame_info, "filename", None),  # type: ignore[arg-type]
+            getattr(frame_info, "lineno", None),  # type: ignore[arg-type]
             getattr(frame_info, "frame", None),
             getattr(frame_info, "code", None),
             sd=frame_info,
+            context=None,
         )
 
-    def __init__(self, description, filename, lineno, frame, code, sd=None):
+    def __init__(
+        self,
+        description: Optional[str],
+        filename: str,
+        lineno: Tuple[int],
+        frame,
+        code,
+        *,
+        sd=None,
+        context=None,
+    ):
         self.description = description
         self.filename = filename
         self.lineno = lineno
         self.frame = frame
         self.code = code
         self._sd = sd
+        self.context = context
 
         # self.lines = []
         if sd is None:
@@ -848,7 +914,6 @@ class VerboseTB(TBTools):
 
         result = f'{link}{", " if call else ""}{call}\n'
         if frame_info._sd is None:
-            assert False
             # fast fallback if file is too long
             tpl_link = "%s%%s%s" % (Colors.filenameEm, ColorsNormal)
             link = tpl_link % util_path.compress_user(frame_info.filename)
@@ -858,13 +923,25 @@ class VerboseTB(TBTools):
             ).format2
             first_line = frame_info.code.co_firstlineno
             current_line = frame_info.lineno[0]
+            raw_lines = frame_info.raw_lines
+            index = current_line - first_line
+
+            if index >= frame_info.context:
+                start = max(index - frame_info.context, 0)
+                stop = index + frame_info.context
+                index = frame_info.context
+            else:
+                start = 0
+                stop = index + frame_info.context
+            raw_lines = raw_lines[start:stop]
+
             return "%s%s" % (
                 level,
                 "".join(
                     _simple_format_traceback_lines(
                         current_line,
-                        current_line - first_line,
-                        frame_info.raw_lines,
+                        index,
+                        raw_lines,
                         Colors,
                         lvals,
                         _line_format,
@@ -942,13 +1019,13 @@ class VerboseTB(TBTools):
         # some locals
         orig_etype = etype
         try:
-            etype = etype.__name__
+            etype = etype.__name__  # type: ignore
         except AttributeError:
             pass
 
         tb_offset = self.tb_offset if tb_offset is None else tb_offset
         assert isinstance(tb_offset, int)
-        head = self.prepare_header(etype, self.long_header)
+        head = self.prepare_header(str(etype), self.long_header)
         records = (
             self.get_records(etb, number_of_lines_of_context, tb_offset) if etb else []
         )
@@ -1018,23 +1095,34 @@ class VerboseTB(TBTools):
         tbs = []
         while cf is not None:
             try:
-                source_file = inspect.getsourcefile(etb.tb_frame)
-                lines, first = inspect.getsourcelines(etb.tb_frame)
+                mod = inspect.getmodule(cf.tb_frame)
+                if mod is not None:
+                    mod_name = mod.__name__
+                    root_name, *_ = mod_name.split(".")
+                    if root_name == "IPython":
+                        cf = cf.tb_next
+                        continue
+                max_len = get_line_number_of_frame(cf.tb_frame)
+
             except OSError:
-                max_len = float("-inf")
-                break
-            max_len = max(max_len, first + len(lines))
+                max_len = 0
+            max_len = max(max_len, max_len)
             tbs.append(cf)
-            cf = cf.tb_next
+            cf = getattr(cf, "tb_next", None)
 
         if max_len > FAST_THRESHOLD:
             FIs = []
             for tb in tbs:
-                frame = tb.tb_frame
+                frame = tb.tb_frame  # type: ignore
                 lineno = (frame.f_lineno,)
                 code = frame.f_code
                 filename = code.co_filename
-                FIs.append(FrameInfo("Raw frame", filename, lineno, frame, code))
+                # TODO: Here we need to use before/after/
+                FIs.append(
+                    FrameInfo(
+                        "Raw frame", filename, lineno, frame, code, context=context
+                    )
+                )
             return FIs
         res = list(stack_data.FrameInfo.stack_data(etb, options=options))[tb_offset:]
         res = [FrameInfo._from_stack_data_FrameInfo(r) for r in res]
@@ -1044,7 +1132,7 @@ class VerboseTB(TBTools):
         self,
         etype: type,
         evalue: Optional[BaseException],
-        etb: Optional[TracebackType],
+        etb: Optional[TracebackType] = None,
         tb_offset: Optional[int] = None,
         number_of_lines_of_context: int = 5,
     ):
@@ -1115,8 +1203,8 @@ class VerboseTB(TBTools):
             with display_trap:
                 self.pdb.reset()
                 # Find the right frame so we don't pop up inside ipython itself
-                if hasattr(self, 'tb') and self.tb is not None:
-                    etb = self.tb
+                if hasattr(self, "tb") and self.tb is not None:  # type: ignore[has-type]
+                    etb = self.tb  # type: ignore[has-type]
                 else:
                     etb = self.tb = sys.last_traceback
                 while self.tb is not None and self.tb.tb_next is not None:
@@ -1291,24 +1379,23 @@ class AutoFormattedTB(FormattedTB):
 
     def structured_traceback(
         self,
-        etype=None,
-        value=None,
-        tb=None,
-        tb_offset=None,
-        number_of_lines_of_context=5,
+        etype: type,
+        evalue: Optional[BaseException],
+        etb: Optional[TracebackType] = None,
+        tb_offset: Optional[int] = None,
+        number_of_lines_of_context: int = 5,
     ):
-        etype: type
-        value: BaseException
         # tb: TracebackType or tupleof tb types ?
         if etype is None:
-            etype, value, tb = sys.exc_info()
-        if isinstance(tb, tuple):
+            etype, evalue, etb = sys.exc_info()
+        if isinstance(etb, tuple):
             # tb is a tuple if this is a chained exception.
-            self.tb = tb[0]
+            self.tb = etb[0]
         else:
-            self.tb = tb
+            self.tb = etb
         return FormattedTB.structured_traceback(
-            self, etype, value, tb, tb_offset, number_of_lines_of_context)
+            self, etype, evalue, etb, tb_offset, number_of_lines_of_context
+        )
 
 
 #---------------------------------------------------------------------------
@@ -1366,7 +1453,7 @@ def text_repr(value):
     """Hopefully pretty robust repr equivalent."""
     # this is pretty horrible but should always return *something*
     try:
-        return pydoc.text.repr(value)
+        return pydoc.text.repr(value)  # type: ignore[call-arg]
     except KeyboardInterrupt:
         raise
     except:
