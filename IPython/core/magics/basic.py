@@ -296,11 +296,11 @@ Currently the magic system has the following functions:""",
 
         oname = args and args or '_'
         info = self.shell._ofind(oname)
-        if info['found']:
+        if info.found:
             if raw:
-                txt = str(info["obj"])
+                txt = str(info.obj)
             else:
-                txt = pformat(info["obj"])
+                txt = pformat(info.obj)
             page.page(txt)
         else:
             print('Object `%s` not found' % oname)
