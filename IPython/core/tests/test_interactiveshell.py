@@ -713,12 +713,10 @@ class TestModules(tt.TempFileMixin):
 class Negator(ast.NodeTransformer):
     """Negates all number literals in an AST."""
 
-    # for python 3.7 and earlier
     def visit_Num(self, node):
         node.n = -node.n
         return node
 
-    # for python 3.8+
     def visit_Constant(self, node):
         if isinstance(node.value, int):
             return self.visit_Num(node)
@@ -900,7 +898,6 @@ class StringRejector(ast.NodeTransformer):
     not be executed by throwing an InputRejected.
     """
     
-    # 3.8 only
     def visit_Constant(self, node):
         if isinstance(node.value, str):
             raise InputRejected("test")

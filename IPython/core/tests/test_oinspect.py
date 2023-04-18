@@ -568,20 +568,12 @@ def test_render_signature_long():
         signature(long_function),
         long_function.__name__,
     )
-    if sys.version_info >= (3, 9):
-        expected = """\
+    expected = """\
 long_function(
     a_really_long_parameter: int,
     and_another_long_one: bool = False,
     let_us_make_sure_this_is_looong: Optional[str] = None,
 ) -> bool\
 """
-    else:
-        expected = """\
-long_function(
-    a_really_long_parameter: int,
-    and_another_long_one: bool = False,
-    let_us_make_sure_this_is_looong: Union[str, NoneType] = None,
-) -> bool\
-"""
+
     assert sig == expected

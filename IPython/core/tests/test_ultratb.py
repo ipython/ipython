@@ -244,15 +244,14 @@ bar()
 
 import sys
 
-if sys.version_info < (3, 9) and platform.python_implementation() != "PyPy":
+if platform.python_implementation() != "PyPy":
     """
     New 3.9 Pgen Parser does not raise Memory error, except on failed malloc.
     """
     class MemoryErrorTest(unittest.TestCase):
         def test_memoryerror(self):
             memoryerror_code = "(" * 200 + ")" * 200
-            with tt.AssertPrints("MemoryError"):
-                ip.run_cell(memoryerror_code)
+            ip.run_cell(memoryerror_code)
 
 
 class Python3ChainedExceptionsTest(unittest.TestCase):

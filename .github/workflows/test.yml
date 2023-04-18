@@ -19,12 +19,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
           - os: macos-latest
-            python-version: "3.8"
+            python-version: "3.9"
             deps: test_extra
           - os: macos-latest
             python-version: "3.11"
@@ -39,13 +39,13 @@ jobs:
             deps: test
           # Installing optional dependencies stuff takes ages on PyPy
           - os: ubuntu-latest
-            python-version: "pypy-3.8"
+            python-version: "pypy-3.9"
             deps: test
           - os: windows-latest
-            python-version: "pypy-3.8"
+            python-version: "pypy-3.9"
             deps: test
           - os: macos-latest
-            python-version: "pypy-3.8"
+            python-version: "pypy-3.9"
             deps: test
 
     steps:
