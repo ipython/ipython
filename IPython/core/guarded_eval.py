@@ -508,9 +508,6 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         return all_true
     if isinstance(node, ast.Constant):
         return node.value
-    if isinstance(node, ast.Index):
-        # deprecated since Python 3.9
-        return eval_node(node.value, context)  # pragma: no cover
     if isinstance(node, ast.Tuple):
         return tuple(eval_node(e, context) for e in node.elts)
     if isinstance(node, ast.List):
@@ -530,9 +527,6 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             eval_node(node.upper, context),
             eval_node(node.step, context),
         )
-    if isinstance(node, ast.ExtSlice):
-        # deprecated since Python 3.9
-        return tuple([eval_node(dim, context) for dim in node.dims])  # pragma: no cover
     if isinstance(node, ast.UnaryOp):
         value = eval_node(node.operand, context)
         dunders = _find_dunder(node.op, UNARY_OP_DUNDERS)

@@ -276,12 +276,12 @@ class AsyncTest(TestCase):
         """
         )
 
-    if sys.version_info < (3, 9) and platform.python_implementation() != "PyPy":
-        # new pgen parser in 3.9 does not raise MemoryError on too many nested
-        # parens anymore
-        def test_memory_error(self):
-            with self.assertRaises(MemoryError):
-                iprc("(" * 200 + ")" * 200)
+    def test_memory_error(self):
+        """
+        The pgen parser in 3.8 or before use to raise MemoryError on too many
+        nested parens anymore"""
+
+        iprc("(" * 200 + ")" * 200)
 
     @skip_without('curio')
     def test_autoawait_curio(self):
