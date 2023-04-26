@@ -370,6 +370,23 @@ def cleanup_user_ns(**kwargs):
             del ip.user_ns[k]
 
 
+def test_pinfo_bool_raise():
+    """
+    Test that bool method is not called on parent.
+    """
+
+    class RaiseBool:
+        attr = None
+
+        def __bool__(self):
+            raise ValueError("pinfo should not access this method")
+
+    raise_bool = RaiseBool()
+
+    with cleanup_user_ns(raise_bool=raise_bool):
+        ip._inspect("pinfo", "raise_bool.attr", detail_level=0)
+
+
 def test_pinfo_getindex():
     def dummy():
         """
