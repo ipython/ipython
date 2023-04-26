@@ -27,6 +27,7 @@ __pycache__
 *.swp
 .pytest_cache
 .python-version
+.venv*/
 venv*/
 .mypy_cache/
 

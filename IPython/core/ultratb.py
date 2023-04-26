@@ -89,6 +89,7 @@ Inheritance diagram:
 #*****************************************************************************
 
 
+from collections.abc import Sequence
 import functools
 import inspect
 import linecache
@@ -181,6 +182,14 @@ def get_line_number_of_frame(frame: types.FrameType) -> int:
         lines, first = inspect.getsourcelines(frame)
         return first + len(lines)
     return count_lines_in_py_file(filename)
+
+
+def _safe_string(value, what, func=str):
+    # Copied from cpython/Lib/traceback.py
+    try:
+        return func(value)
+    except:
+        return f"<{what} {func.__name__}() failed>"
 
 
 def _format_traceback_lines(lines, Colors, has_colors: bool, lvals):
@@ -999,9 +1008,26 @@ class VerboseTB(TBTools):
             # User exception is improperly defined.
             etype, evalue = str, sys.exc_info()[:2]
             etype_str, evalue_str = map(str, (etype, evalue))
+
+        notes = getattr(evalue, "__notes__", [])
+        if not isinstance(notes, Sequence) or isinstance(notes, (str, bytes)):
+            notes = [_safe_string(notes, "__notes__", func=repr)]
+
         # ... and format it
-        return ['%s%s%s: %s' % (colors.excName, etype_str,
-                                colorsnormal, py3compat.cast_unicode(evalue_str))]
+        return [
+            "{}{}{}: {}".format(
+                colors.excName,
+                etype_str,
+                colorsnormal,
+                py3compat.cast_unicode(evalue_str),
+            ),
+            *(
+                "{}{}".format(
+                    colorsnormal, _safe_string(py3compat.cast_unicode(n), "note")
+                )
+                for n in notes
+            ),
+        ]
 
     def format_exception_as_a_whole(
         self,
@@ -1068,7 +1094,7 @@ class VerboseTB(TBTools):
             if ipinst is not None:
                 ipinst.hooks.synchronize_with_editor(frame_info.filename, frame_info.lineno, 0)
 
-        return [[head] + frames + [''.join(formatted_exception[0])]]
+        return [[head] + frames + formatted_exception]
 
     def get_records(
         self, etb: TracebackType, number_of_lines_of_context: int, tb_offset: int
