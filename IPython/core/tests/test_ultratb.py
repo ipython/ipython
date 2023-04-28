@@ -363,6 +363,29 @@ def r3o2():
             ip.run_cell("r3o2()")
 
 
+class PEP678NotesReportingTest(unittest.TestCase):
+    ERROR_WITH_NOTE = """
+try:
+    raise AssertionError("Message")
+except Exception as e:
+    try:
+        e.add_note("This is a PEP-678 note.")
+    except AttributeError:  # Python <= 3.10
+        e.__notes__ = ("This is a PEP-678 note.",)
+    raise
+    """
+
+    def test_verbose_reports_notes(self):
+        with tt.AssertPrints(["AssertionError", "Message", "This is a PEP-678 note."]):
+            ip.run_cell(self.ERROR_WITH_NOTE)
+
+    def test_plain_reports_notes(self):
+        with tt.AssertPrints(["AssertionError", "Message", "This is a PEP-678 note."]):
+            ip.run_cell("%xmode Plain")
+            ip.run_cell(self.ERROR_WITH_NOTE)
+            ip.run_cell("%xmode Verbose")
+
+
 #----------------------------------------------------------------------------
 
 # module testing (minimal)

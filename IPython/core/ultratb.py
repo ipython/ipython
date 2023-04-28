@@ -686,6 +686,9 @@ class ListTB(TBTools):
             else:
                 list.append('%s\n' % stype)
 
+            # PEP-678 notes
+            list.extend(f"{x}\n" for x in getattr(value, "__notes__", []))
+
         # sync with user hooks
         if have_filedata:
             ipinst = get_ipython()
