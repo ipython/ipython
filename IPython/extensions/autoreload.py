@@ -170,6 +170,9 @@ class ModuleReloader:
         # Cache module modification times
         self.check(check_all=True, do_reload=False)
 
+        # To hide autoreload errors
+        self.hide_errors = False
+
     def mark_module_skipped(self, module_name):
         """Skip reloading the named module in the future"""
         try:
@@ -274,12 +277,13 @@ class ModuleReloader:
                     if py_filename in self.failed:
                         del self.failed[py_filename]
                 except:
-                    print(
-                        "[autoreload of {} failed: {}]".format(
-                            modname, traceback.format_exc(10)
-                        ),
-                        file=sys.stderr,
-                    )
+                    if not self.hide_errors:
+                        print(
+                            "[autoreload of {} failed: {}]".format(
+                                modname, traceback.format_exc(10)
+                            ),
+                            file=sys.stderr,
+                        )
                     self.failed[py_filename] = pymtime
 
 
@@ -553,6 +557,12 @@ class AutoreloadMagics(Magics):
         default=False,
         help="Show autoreload activity using the logger",
     )
+    @magic_arguments.argument(
+        "--hide-errors",
+        action="store_true",
+        default=False,
+        help="Hide autoreload errors",
+    )
     def autoreload(self, line=""):
         r"""%autoreload => Reload modules automatically
 
@@ -578,6 +588,9 @@ class AutoreloadMagics(Magics):
         The optional arguments --print and --log control display of autoreload activity. The default
         is to act silently; --print (or -p) will print out the names of modules that are being
         reloaded, and --log (or -l) outputs them to the log at INFO level.
+
+        The optional argument --hide-errors hides any errors that can happen when trying to
+        reload code.
 
         Reloading Python modules in a reliable way is in general
         difficult, and unexpected things may occur. %autoreload tries to
@@ -627,6 +640,8 @@ class AutoreloadMagics(Magics):
                 self._reloader._report = p
         elif args.log is True:
             self._reloader._report = l
+
+        self._reloader.hide_errors = args.hide_errors
 
         if mode == "" or mode == "now":
             self._reloader.check(True)
