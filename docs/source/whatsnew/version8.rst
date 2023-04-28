@@ -2,6 +2,34 @@
  8.x Series
 ============
 
+
+.. _version 8.13:
+
+IPython 8.13
+------------
+
+As usual for the end of the month, minor release of IPython. This release is
+significant in that it not only has a number of bugfixes, but also drop support
+for Python 3.8 as per NEP 29 (:ghpull:`14023`).
+
+All the critical bugfixes have been backported onto the 8.12.1 release (see
+below). In addition to that went into 8.12.1 you'll find:
+
+ - Pretty reprensentation for ``Counter`` has been fixed to match the Python one
+   and be in decreasing order. :ghpull:`14032`
+ - Module completion is better when jedi is disabled :ghpull:`14029`.
+ - Improvment of ``%%bash`` magic that would get stuck :ghpull:`14019`
+
+
+We hope you enjoy this release an will maybe see you at JupyterCon in less than
+two weeks.
+
+As usual you can find the full list of PRs on GitHub under `the 8.12.1 milestone
+<https://github.com/ipython/ipython/milestone/115?closed=1>`__.
+
+Thanks to the D.E. Shaw group for the request and sponsoring the work.
+
+
 .. _version 8.12.1:
 
 IPython 8.12.1
