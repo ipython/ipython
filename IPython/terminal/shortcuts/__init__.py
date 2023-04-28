@@ -229,7 +229,7 @@ AUTO_SUGGEST_BINDINGS = [
     ),
     Binding(
         auto_suggest.swap_autosuggestion_up,
-        ["up"],
+        ["c-up"],
         "navigable_suggestions"
         " & ~has_line_above"
         " & has_suggestion"
@@ -237,7 +237,7 @@ AUTO_SUGGEST_BINDINGS = [
     ),
     Binding(
         auto_suggest.swap_autosuggestion_down,
-        ["down"],
+        ["c-down"],
         "navigable_suggestions"
         " & ~has_line_below"
         " & has_suggestion"
@@ -245,12 +245,12 @@ AUTO_SUGGEST_BINDINGS = [
     ),
     Binding(
         auto_suggest.up_and_update_hint,
-        ["up"],
+        ["c-up"],
         "has_line_above & navigable_suggestions & default_buffer_focused",
     ),
     Binding(
         auto_suggest.down_and_update_hint,
-        ["down"],
+        ["c-down"],
         "has_line_below & navigable_suggestions & default_buffer_focused",
     ),
     Binding(
@@ -265,8 +265,8 @@ AUTO_SUGGEST_BINDINGS = [
     ),
     Binding(
         auto_suggest.accept_and_keep_cursor,
-        ["c-down"],
-        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
+        ["escape", "down"],
+        "has_suggestion & default_buffer_focused & emacs_insert_mode",
     ),
     Binding(
         auto_suggest.backspace_and_resume_hint,
