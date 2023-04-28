@@ -637,6 +637,7 @@ set_non_mutating_methods = set(dir(set)) & set(dir(frozenset))
 
 dict_keys: Type[collections.abc.KeysView] = type({}.keys())
 method_descriptor: Any = type(list.copy)
+module = type(builtins)
 
 NUMERICS = {int, float, complex}
 
@@ -686,6 +687,7 @@ BUILTIN_GETATTR: Set[MayHaveGetattr] = {
     *NUMERICS,
     dict_keys,
     method_descriptor,
+    module,
 }
 
 
