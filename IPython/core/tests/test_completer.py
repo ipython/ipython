@@ -6,9 +6,11 @@
 
 import os
 import pytest
+import itertools
 import sys
 import textwrap
 import unittest
+import unicodedata
 
 from contextlib import contextmanager
 
@@ -28,6 +30,8 @@ from IPython.core.completer import (
     completion_matcher,
     SimpleCompletion,
     CompletionContext,
+    _unicode_name_compute,
+    _UNICODE_RANGE,
 )
 
 # -----------------------------------------------------------------------------
@@ -40,8 +44,6 @@ def recompute_unicode_ranges():
 
     use to recompute the gap in the global _UNICODE_RANGES of completer.py
     """
-    import itertools
-    import unicodedata
     valid = []
     for c in range(0,0x10FFFF + 1):
         try:
@@ -67,13 +69,15 @@ def recompute_unicode_ranges():
     return sorted(gap_lens)[-1]
 
 
-
+@pytest.mark.skipif(
+    sys.version_info < (3, 11),
+    reason="this test is slow, and only need to run once on newer Python",
+)
 def test_unicode_range():
     """
     Test that the ranges we test for unicode names give the same number of
     results than testing the full length.
     """
-    from IPython.core.completer import  _unicode_name_compute, _UNICODE_RANGES
 
     expected_list = _unicode_name_compute([(0, 0x110000)])
     test = _unicode_name_compute(_UNICODE_RANGES)
