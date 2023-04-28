@@ -568,3 +568,15 @@ def test_assumption_named_tuples_share_getitem():
         pass
 
     assert A.__getitem__ == B.__getitem__
+
+
+@dec.skip_without("numpy")
+def test_module_access():
+    import numpy
+
+    context = limited(numpy=numpy)
+    assert guarded_eval("numpy.linalg.norm", context) == numpy.linalg.norm
+
+    context = minimal(numpy=numpy)
+    with pytest.raises(GuardRejection):
+        guarded_eval("np.linalg.norm", context)
