@@ -101,8 +101,6 @@ def find_package_data():
 
     package_data = {
         'IPython.core' : ['profile/README*'],
-        'IPython.core.tests' : ['*.png', '*.jpg', 'daft_extension/*.py'],
-        'IPython.lib.tests' : ['*.wav'],
         'IPython.testing.plugin' : ['*.txt'],
     }
 
@@ -346,4 +344,3 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
                 )
 
     return MyBuildPy
-

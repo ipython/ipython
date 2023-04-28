@@ -51,7 +51,7 @@ The following magic commands are provided:
 ``%autoreload 3``, ``%autoreload complete``
 
     Same as 2/all, but also adds any new objects in the module. See
-    unit test at IPython/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects
+    unit test at tests/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects
 
   Adding ``--print`` or ``-p`` to the ``%autoreload`` line will print autoreload activity to
   standard out. ``--log`` or ``-l`` will do it to the log at INFO level; both can be used
@@ -573,7 +573,7 @@ class AutoreloadMagics(Magics):
 
         %autoreload 3 or %autoreload complete
         Same as 2/all, but also but also adds any new objects in the module. See
-        unit test at IPython/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects
+        unit test at tests/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects
 
         The optional arguments --print and --log control display of autoreload activity. The default
         is to act silently; --print (or -p) will print out the names of modules that are being
