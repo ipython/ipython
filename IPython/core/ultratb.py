@@ -677,6 +677,9 @@ class ListTB(TBTools):
             else:
                 list.append('%s\n' % stype)
 
+            # PEP-678 notes
+            list.extend(f"{x}\n" for x in getattr(value, "__notes__", []))
+
         # sync with user hooks
         if have_filedata:
             ipinst = get_ipython()
@@ -1000,8 +1003,11 @@ class VerboseTB(TBTools):
             etype, evalue = str, sys.exc_info()[:2]
             etype_str, evalue_str = map(str, (etype, evalue))
         # ... and format it
-        return ['%s%s%s: %s' % (colors.excName, etype_str,
-                                colorsnormal, py3compat.cast_unicode(evalue_str))]
+        notes = "".join("\n" + x for x in getattr(evalue, "__notes__", []))
+        return [
+            f"{colors.excName}{etype_str}{colorsnormal}: "
+            f"{py3compat.cast_unicode(evalue_str)}{notes}"
+        ]
 
     def format_exception_as_a_whole(
         self,

@@ -26,6 +26,7 @@ __pycache__
 .coverage
 *.swp
 .pytest_cache
+.hypothesis
 .python-version
 venv*/
 .mypy_cache/
