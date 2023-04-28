@@ -2,6 +2,31 @@
  8.x Series
 ============
 
+.. _version 8.12.1:
+
+IPython 8.12.1
+--------------
+
+This is the twin release of IPython 8.13 that contain only critical UI and bug
+fixes. The next minor version of IPython has dropped support for Python 3.8 – as
+per Nep 29 and this IPython 8.12.x will now only receive bugfixes.
+
+
+ - :ghpull:`14004` Fix a bug introduced in IPython 8.12 that crash when
+   inspecting some docstrings.
+ - :ghpull:`14010` Fix fast traceback code that was not working in some case.
+ - :ghpull:`14014` Fix ``%page`` magic broken in some case.
+ - :ghpull:`14026`, :ghpull:`14027` Tweak default shortcut with respect to
+   autosuggestions.
+ - :ghpull:`14033` add back the ability to use ``.get()`` on OInfo object for
+   backward compatibility with h5py (this will be re-deprecated later, and h5py
+   will also get a fix).
+
+As usual you can find the full list of PRs on GitHub under `the 8.12.1 milestone
+<https://github.com/ipython/ipython/milestone/116?closed=1>`__.
+
+Thanks to the D.E. Shaw group for the request and sponsoring the work.
+
 .. _version 8.12.0:
 
 IPython 8.12
