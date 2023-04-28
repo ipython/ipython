@@ -277,10 +277,7 @@ AUTO_SUGGEST_BINDINGS = [
     Binding(
         auto_suggest.resume_hinting,
         ["right"],
-        # For now this binding is inactive (the filter includes `never`).
-        # TODO: remove `never` if we reach a consensus in #13991
-        # TODO: use `emacs_like_insert_mode` once #13991 is in
-        "never & default_buffer_focused & ((vi_insert_mode & ebivim) | emacs_insert_mode)",
+        "default_buffer_focused & emacs_like_insert_mode",
     ),
 ]
 
