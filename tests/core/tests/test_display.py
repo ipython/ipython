@@ -125,7 +125,7 @@ def test_base64image():
 
 def test_image_filename_defaults():
     '''test format constraint, and validity of jpeg and png'''
-    tpath = ipath.get_ipython_package_dir()
+    tpath = os.path.join(os.path.dirname(__file__), "..", "..")
     pytest.raises(
         ValueError,
         display.Image,

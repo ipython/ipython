@@ -13,7 +13,7 @@ import pytest
 import re
 import sys
 
-from .. import oinspect
+from IPython.core import oinspect
 
 from decorator import decorator
 
@@ -194,7 +194,7 @@ def test_info():
     expected_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
     assert i["base_class"] == expected_class
     assert re.search(
-        "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>",
+        "<class 'tests.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>",
         i["string_form"],
     )
     fname = __file__
@@ -500,7 +500,7 @@ def test_pinfo_docstring_dynamic():
         Docstring for prop
         '''
         return self._prop
-    
+
     @prop.setter
     def prop(self, v):
         self._prop = v

@@ -21,7 +21,7 @@ import numpy as np
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.display import _PNG, _JPEG
-from .. import pylabtools as pt
+from IPython.core import pylabtools as pt
 
 from IPython.testing import decorators as dec
 
