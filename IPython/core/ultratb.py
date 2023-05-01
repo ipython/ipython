@@ -591,7 +591,7 @@ class ListTB(TBTools):
         """
 
         Colors = self.Colors
-        list = []
+        output_list = []
         for ind, (filename, lineno, name, line) in enumerate(extracted_list):
             normalCol, nameCol, fileCol, lineCol = (
                 # Emphasize the last entry
@@ -609,9 +609,9 @@ class ListTB(TBTools):
                 item += "\n"
             if line:
                 item += f"{lineCol}    {line.strip()}{normalCol}\n"
-            list.append(item)
+            output_list.append(item)
 
-        return list
+        return output_list
 
     def _format_exception_only(self, etype, value):
         """Format the exception part of a traceback.
@@ -628,11 +628,11 @@ class ListTB(TBTools):
         """
         have_filedata = False
         Colors = self.Colors
-        list = []
+        output_list = []
         stype = py3compat.cast_unicode(Colors.excName + etype.__name__ + Colors.Normal)
         if value is None:
             # Not sure if this can still happen in Python 2.6 and above
-            list.append(stype + '\n')
+            output_list.append(stype + "\n")
         else:
             if issubclass(etype, SyntaxError):
                 have_filedata = True
@@ -643,7 +643,7 @@ class ListTB(TBTools):
                 else:
                     lineno = "unknown"
                     textline = ""
-                list.append(
+                output_list.append(
                     "%s  %s%s\n"
                     % (
                         Colors.normalEm,
@@ -663,31 +663,33 @@ class ListTB(TBTools):
                     i = 0
                     while i < len(textline) and textline[i].isspace():
                         i += 1
-                    list.append('%s    %s%s\n' % (Colors.line,
-                                                  textline.strip(),
-                                                  Colors.Normal))
+                    output_list.append(
+                        "%s    %s%s\n" % (Colors.line, textline.strip(), Colors.Normal)
+                    )
                     if value.offset is not None:
                         s = '    '
                         for c in textline[i:value.offset - 1]:
                             if c.isspace():
                                 s += c
                             else:
-                                s += ' '
-                        list.append('%s%s^%s\n' % (Colors.caret, s,
-                                                   Colors.Normal))
+                                s += " "
+                        output_list.append(
+                            "%s%s^%s\n" % (Colors.caret, s, Colors.Normal)
+                        )
 
             try:
                 s = value.msg
             except Exception:
                 s = self._some_str(value)
             if s:
-                list.append('%s%s:%s %s\n' % (stype, Colors.excName,
-                                              Colors.Normal, s))
+                output_list.append(
+                    "%s%s:%s %s\n" % (stype, Colors.excName, Colors.Normal, s)
+                )
             else:
-                list.append('%s\n' % stype)
+                output_list.append("%s\n" % stype)
 
             # PEP-678 notes
-            list.extend(f"{x}\n" for x in getattr(value, "__notes__", []))
+            output_list.extend(f"{x}\n" for x in getattr(value, "__notes__", []))
 
         # sync with user hooks
         if have_filedata:
@@ -695,7 +697,7 @@ class ListTB(TBTools):
             if ipinst is not None:
                 ipinst.hooks.synchronize_with_editor(value.filename, value.lineno, 0)
 
-        return list
+        return output_list
 
     def get_exception_only(self, etype, value):
         """Only print the exception type and message, without a traceback.
@@ -1012,6 +1014,7 @@ class VerboseTB(TBTools):
             etype, evalue = str, sys.exc_info()[:2]
             etype_str, evalue_str = map(str, (etype, evalue))
 
+        # PEP-678 notes
         notes = getattr(evalue, "__notes__", [])
         if not isinstance(notes, Sequence) or isinstance(notes, (str, bytes)):
             notes = [_safe_string(notes, "__notes__", func=repr)]
