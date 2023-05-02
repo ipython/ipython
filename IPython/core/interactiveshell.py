@@ -3585,7 +3585,9 @@ class InteractiveShell(SingletonConfigurable):
             make sense in all contexts, for example a terminal ipython can't
             display figures inline.
         """
-        from matplotlib_inline.backend_inline import configure_inline_support
+        # NOTE: this import triggers `enable_gui('qt')` and occurs before the users' config (e.g.
+        # `--matplotlib=qt5`) is procssed.
+        # from matplotlib_inline.backend_inline import configure_inline_support
 
         from IPython.core import pylabtools as pt
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
@@ -3601,7 +3603,7 @@ class InteractiveShell(SingletonConfigurable):
                 gui, backend = pt.find_gui_and_backend(self.pylab_gui_select)
 
         pt.activate_matplotlib(backend)
-        configure_inline_support(self, backend)
+        # configure_inline_support(self, backend)
 
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
