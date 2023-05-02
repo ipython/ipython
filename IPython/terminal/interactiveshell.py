@@ -907,55 +907,72 @@ class TerminalInteractiveShell(InteractiveShell):
         self._atexit_once()
 
 
-    _inputhook = None
+    _inputhook = None  # The actual event loop hook function
     def inputhook(self, context):
         if self._inputhook is not None:
             self._inputhook(context)
 
-    active_eventloop = None
+    active_eventloop = None # The name of the event loop hook, e.g. "qt5"
     def enable_gui(self, gui=None):
-        if self._inputhook is None and gui is None:
-            print("No event loop hook running.")
-            return
+        # NOTE: these two variables should be in sync; `active_eventloop` is the name and
+        # `_inputhook` is the actual function.
+        assert (self.active_eventloop is None and self._inputhook is None) \
+            or (self.active_eventloop is not None and self._inputhook is not None)
 
-        if self._inputhook is not None and gui is not None:
-            print(
-                f"Shell is already running a gui event loop for {self.active_eventloop}. "
-                "Call with no arguments to disable the current loop."
-            )
-            return
-        if self._inputhook is not None and gui is None:
-            self.active_eventloop = self._inputhook = None
-
-        if gui and (gui not in {"inline", "webagg"}):
-            # This hook runs with each cycle of the `prompt_toolkit`'s event loop.
-            self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
-        else:
-            self.active_eventloop = self._inputhook = None
-
-        # For prompt_toolkit 3.0. We have to create an asyncio event loop with
-        # this inputhook.
-        if PTK3:
-            import asyncio
-            from prompt_toolkit.eventloop import new_eventloop_with_inputhook
-
-            if gui == 'asyncio':
-                # When we integrate the asyncio event loop, run the UI in the
-                # same event loop as the rest of the code. don't use an actual
-                # input hook. (Asyncio is not made for nesting event loops.)
-                self.pt_loop = get_asyncio_loop()
-                print("Installed asyncio event loop hook.")
-
-            elif self._inputhook:
-                # If an inputhook was set, create a new asyncio event loop with
-                # this inputhook for the prompt.
-                self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
-                print(f"Installed {self.active_eventloop} event loop hook.")
+        if gui is None:
+            # Requesting to remove the event loop hook.
+            if self._inputhook is None:
+                print("No event loop hook running.")
+                return
             else:
-                # When there's no inputhook, run the prompt in a separate
-                # asyncio event loop.
-                self.pt_loop = asyncio.new_event_loop()
+                # Input hook currently exists; let's yank it.
+                self.active_eventloop = self._inputhook = None
+                if PTK3:
+                    import asyncio
+                    self.pt_loop = asyncio.new_event_loop()
                 print("GUI event loop hook disabled.")
+                return
+        else:
+            # Requesting an event loop hook.
+            import asyncio
+            if self._inputhook is None:
+                # No event loop hook currently installed.
+                if gui in {"inline", "webagg"}:
+                    # There's no actual hook for these.
+                    return
+                else:
+                    self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
+                    if PTK3:
+                        from prompt_toolkit.eventloop import new_eventloop_with_inputhook
+                        self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
+                    print(f"Installed {self.active_eventloop} event loop hook.")
+            else:
+                # An event loop hook is already installed.
+                if self.active_eventloop == gui:
+                    # already installed; nothing to do.
+                    return
+                elif self.active_eventloop.startswith('qt'):
+                    if gui == 'qt':
+                        # This means "requesting latest version". But you can't switch versions once
+                        # you've chosen one, so we just accept this if the event loop hook is
+                        # already *any* Qt version.
+                        return
+                    elif gui.startswith('qt'):
+                        # Requesting a specific version of qt, but not the same version as the one
+                        # installed last time. We run this code, which will let the Qt importing
+                        # logic tell the user that the version cannot be switched. Effectively, we
+                        # are re-hooking the same hook.
+                        self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
+                        if PTK3:
+                            from prompt_toolkit.eventloop import new_eventloop_with_inputhook
+                            self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
+                        # Still print this so it's clear what's happening.
+                        print(f"Installed {self.active_eventloop} event loop hook.")
+                else:
+                    # A hook is already installed, and the user is requesting a different one.
+                    print(f"Shell is already running a gui event loop for {self.active_eventloop}. "
+                          "Call with no arguments to disable the current loop.")
+                    return
 
     # Run !system commands directly, not through pipes, so terminal programs
     # work correctly.
