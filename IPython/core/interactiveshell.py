@@ -3607,6 +3607,9 @@ class InteractiveShell(SingletonConfigurable):
 
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
+
+        # NOTE: the call to `enable_gui` below does not seem necessary. `pt.activate_matplotlib`
+        # calls `pyplot.install_repl_displayhook()` when switching backends.
         self.enable_gui(gui)
         self.magics_manager.registry['ExecutionMagics'].default_runner = \
             pt.mpl_runner(self.safe_execfile)
