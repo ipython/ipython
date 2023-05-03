@@ -947,6 +947,9 @@ class TerminalInteractiveShell(InteractiveShell):
                         self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
                     print(f"Installed {self.active_eventloop} event loop hook.")
             else:
+                def cannot_change_hook_msg():
+                    print(f"Shell is already running a gui event loop for {self.active_eventloop}. "
+                          "Call with no arguments to disable the current loop.")
                 # An event loop hook is already installed.
                 if self.active_eventloop == gui:
                     # already installed; nothing to do.
@@ -968,10 +971,12 @@ class TerminalInteractiveShell(InteractiveShell):
                             self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
                         # Still print this so it's clear what's happening.
                         print(f"Installed {self.active_eventloop} event loop hook.")
+                    else:
+                        # A hook is already installed, and the user is requesting a different one.
+                        cannot_change_hook_msg()
+                        return
                 else:
-                    # A hook is already installed, and the user is requesting a different one.
-                    print(f"Shell is already running a gui event loop for {self.active_eventloop}. "
-                          "Call with no arguments to disable the current loop.")
+                    cannot_change_hook_msg()
                     return
 
     # Run !system commands directly, not through pipes, so terminal programs
