@@ -926,11 +926,12 @@ class TerminalInteractiveShell(InteractiveShell):
                 return
             else:
                 # Input hook currently exists; let's yank it.
+                msg = f"GUI event loop hook for {self.active_eventloop} removed."
                 self.active_eventloop = self._inputhook = None
                 if PTK3:
                     import asyncio
                     self.pt_loop = asyncio.new_event_loop()
-                print("GUI event loop hook disabled.")
+                print(msg)
                 return
         else:
             # Requesting an event loop hook.
