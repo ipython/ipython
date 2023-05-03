@@ -951,13 +951,13 @@ class TerminalInteractiveShell(InteractiveShell):
                 if self.active_eventloop == gui:
                     # already installed; nothing to do.
                     return
-                if gui.startswith('qt'):
-                    if gui =='qt' and  self.active_eventloop.startswith('qt'):
+                elif self.active_eventloop.startswith('qt'):
+                    if gui == 'qt':
                         # This means "requesting latest version". But you can't switch versions once
                         # you've chosen one, so we just accept this if the event loop hook is
                         # already *any* Qt version.
                         return
-                    elif self.active_eventloop.startswith('qt'):
+                    elif gui.startswith('qt'):
                         # Requesting a specific version of qt, but not the same version as the one
                         # installed last time. We run this code, which will let the Qt importing
                         # logic tell the user that the version cannot be switched. Effectively, we
