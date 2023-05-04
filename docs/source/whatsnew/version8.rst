@@ -2,6 +2,25 @@
  8.x Series
 ============
 
+.. _version 8.13.1:
+.. _version 8.13.2:
+.. _version 8.12.3:
+
+IPython 8.13.1, 8.13.2 and 8.12.2
+---------------------------------
+
+3 quick in succession patch release of IPython in addition to IPython 8.13.0
+having been yanked. 
+
+IPython 8.13.0 was improperly tagged as still compatible with Python 3.8, and
+still had some mention of compatibility woth 3.8. IPython 8.13.1 is identical to
+8.13 but with the exception of being correctly tagged. This release and yank was
+mostly done to fix CI. 
+
+IPython 8.12.2 and 8.13.2 contain UI fixes, with respect to right arrow not
+working in some case in the terminal, and 8.12.2 contain also a requested
+backport of :ghpull:`14029` (Allow safe access to the ``__getattribute__``
+method of modules) for tab completion.
 
 .. _version 8.13:
 
