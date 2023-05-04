@@ -54,6 +54,13 @@ def has_line_below() -> bool:
 
 @undoc
 @Condition
+def is_cursor_at_the_end_of_line() -> bool:
+    document = get_app().current_buffer.document
+    return document.is_cursor_at_the_end_of_line
+
+
+@undoc
+@Condition
 def has_line_above() -> bool:
     document = get_app().current_buffer.document
     return document.cursor_position_row != 0
@@ -179,6 +186,7 @@ KEYBINDING_FILTERS = {
     "never": Never(),
     "has_line_below": has_line_below,
     "has_line_above": has_line_above,
+    "is_cursor_at_the_end_of_line": is_cursor_at_the_end_of_line,
     "has_selection": has_selection,
     "has_suggestion": has_suggestion,
     "vi_mode": vi_mode,

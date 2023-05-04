@@ -277,7 +277,9 @@ AUTO_SUGGEST_BINDINGS = [
     Binding(
         auto_suggest.resume_hinting,
         ["right"],
-        "default_buffer_focused & emacs_like_insert_mode",
+        "is_cursor_at_the_end_of_line"
+        " & default_buffer_focused"
+        " & emacs_like_insert_mode",
     ),
 ]
 
