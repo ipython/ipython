@@ -39,7 +39,7 @@ if sys.version_info < (3, 9):
 
 
     error = """
-IPython 8.13+ supports Python 3.8 and above, following NEP 29.
+IPython 8.13+ supports Python 3.9 and above, following NEP 29.
 IPython 8.0-8.12 supports Python 3.8 and above, following NEP 29.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
 Python 3.3 and 3.4 were supported up to IPython 6.x.
