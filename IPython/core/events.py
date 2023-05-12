@@ -26,7 +26,8 @@ class EventManager(object):
 
        This API is experimental in IPython 2.0, and may be revised in future versions.
     """
-    def __init__(self, shell, available_events):
+
+    def __init__(self, shell, available_events, print_on_error=True):
         """Initialise the :class:`CallbackManager`.
 
         Parameters
@@ -35,9 +36,12 @@ class EventManager(object):
             The :class:`~IPython.core.interactiveshell.InteractiveShell` instance
         available_events
             An iterable of names for callback events.
+        print_on_error:
+            A boolean flag to set whether the EventManager will print a warning which a event errors.
         """
         self.shell = shell
         self.callbacks = {n:[] for n in available_events}
+        self.print_on_error = print_on_error
     
     def register(self, event, function):
         """Register a new event callback.
@@ -88,7 +92,8 @@ class EventManager(object):
             try:
                 func(*args, **kwargs)
             except (Exception, KeyboardInterrupt):
-                print("Error in callback {} (for {}):".format(func, event))
+                if self.print_on_error:
+                    print("Error in callback {} (for {}):".format(func, event))
                 self.shell.showtraceback()
 
 # event_name -> prototype mapping
