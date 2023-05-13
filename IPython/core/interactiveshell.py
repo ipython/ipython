@@ -91,6 +91,7 @@ from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 from IPython.core.oinspect import OInfo
+from io import StringIO
 
 
 sphinxify: Optional[Callable]
@@ -286,6 +287,10 @@ def _modified_open(file, *args, **kwargs):
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
 
+    OPERATOR_NAME = "⊕"
+    OPERATOR_PREC = "+"
+    OPERATOR_ASCII = "opop"
+    OP_FUNC_NAME = "undefined"
     _instance = None
 
     ast_transformers = List([], help=
@@ -3237,7 +3242,23 @@ class InteractiveShell(SingletonConfigurable):
 
             with self.display_trap:
                 # Compile to bytecode
+                import tokenize
+                from io import BytesIO
+
+                def tokenize_and_add_stuff(string, word):
+                    result = []
+                    tokens = tokenize.generate_tokens(StringIO(string).readline)
+                    for toknum, tokval, _, _, _ in tokens:
+                        if tokval == word:
+                            result.append((tokenize.OP, self.OPERATOR_PREC))
+                            result.append((toknum, self.OPERATOR_ASCII))
+                            result.append((tokenize.OP, self.OPERATOR_PREC))
+                        else:
+                            result.append((toknum, tokval))
+                    return tokenize.untokenize(result)
                 try:
+                    cell = tokenize_and_add_stuff(cell, self.OPERATOR_NAME)
+                    print(cell)
                     code_ast = compiler.ast_parse(cell, filename=cell_name)
                 except self.custom_exceptions as e:
                     etype, value, tb = sys.exc_info()
@@ -3254,6 +3275,50 @@ class InteractiveShell(SingletonConfigurable):
                 # Apply AST transformations
                 try:
                     code_ast = self.transform_ast(code_ast)
+                    import ast
+                    from ast import BinOp, Name
+                    from copy import deepcopy
+
+                    template = ast.parse(
+                        """
+infix_(exp1, exp2)
+"""
+                    ).body[0]
+
+                    class BinOpReplacer(ast.NodeTransformer):
+                        def __init__(self, op, func_name):
+                            self.search = op
+                            self.func_name = func_name
+
+                        def visit_BinOp(self, node):
+                            print("visit_BinOp")
+                            if isinstance(node.left, BinOp):
+                                print("left visit_BinOp is binop")
+                                left = node.left
+                                print("left.right is ", left.right)
+                                if (
+                                    isinstance(left.right, Name)
+                                    and left.right.id == self.search
+                                ):
+                                    expr = deepcopy(template)
+                                    expr.value.func.id = self.func_name
+                                    print(f"setting {expr.value.func.id=}")
+                                    expr.value.args[0] = node.left.left
+                                    expr.value.args[1] = node.right
+                                    return expr.value
+                            return ast.BinOp(
+                                left=self.visit(node.left),
+                                op=node.op,
+                                right=self.visit(node.right),
+                            )
+
+                            return node
+
+                    bor = BinOpReplacer(self.OPERATOR_ASCII, self.OP_FUNC_NAME)
+                    res = bor.visit(code_ast)
+                    code_ast = ast.fix_missing_locations(res)
+                    print(ast.unparse(code_ast))
+
                 except InputRejected as e:
                     self.showtraceback()
                     return error_before_exec(e)
