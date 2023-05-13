@@ -3258,7 +3258,6 @@ class InteractiveShell(SingletonConfigurable):
                     return tokenize.untokenize(result)
                 try:
                     cell = tokenize_and_add_stuff(cell, self.OPERATOR_NAME)
-                    print(cell)
                     code_ast = compiler.ast_parse(cell, filename=cell_name)
                 except self.custom_exceptions as e:
                     etype, value, tb = sys.exc_info()
@@ -3291,18 +3290,14 @@ infix_(exp1, exp2)
                             self.func_name = func_name
 
                         def visit_BinOp(self, node):
-                            print("visit_BinOp")
                             if isinstance(node.left, BinOp):
-                                print("left visit_BinOp is binop")
                                 left = node.left
-                                print("left.right is ", left.right)
                                 if (
                                     isinstance(left.right, Name)
                                     and left.right.id == self.search
                                 ):
                                     expr = deepcopy(template)
                                     expr.value.func.id = self.func_name
-                                    print(f"setting {expr.value.func.id=}")
                                     expr.value.args[0] = node.left.left
                                     expr.value.args[1] = node.right
                                     return expr.value
@@ -3317,7 +3312,6 @@ infix_(exp1, exp2)
                     bor = BinOpReplacer(self.OPERATOR_ASCII, self.OP_FUNC_NAME)
                     res = bor.visit(code_ast)
                     code_ast = ast.fix_missing_locations(res)
-                    print(ast.unparse(code_ast))
 
                 except InputRejected as e:
                     self.showtraceback()
