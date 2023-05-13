@@ -596,7 +596,6 @@ Currently the magic system has the following functions:""",
 
 @magics_class
 class AsyncMagics(BasicMagics):
-
     @line_magic
     def infix(self, parameter_s):
         func, as_, op, prec_, prec = parameter_s.strip().split()
