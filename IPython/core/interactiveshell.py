@@ -740,12 +740,11 @@ class InteractiveShell(SingletonConfigurable):
         """Initialize logging in case it was requested at the command line.
         """
         if self.logappend:
-            self.magic('logstart %s append' % self.logappend)
+            self.run_line_magic("logstart", "%s append" % self.logappend)
         elif self.logfile:
-            self.magic('logstart %s' % self.logfile)
+            self.run_line_magic("logstart", "%s" % self.logfile)
         elif self.logstart:
-            self.magic('logstart')
-
+            self.run_line_magic("logstart")
 
     def init_builtins(self):
         # A single, static flag that we set to True.  Its presence indicates

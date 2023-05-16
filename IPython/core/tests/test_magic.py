@@ -819,7 +819,7 @@ def test_prun_special_syntax():
 @dec.skipif(execution.profile is None)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
-    _ip.magic(r"prun -q x = '\t'")
+    _ip.run_line_magic("prun", r"-q x = '\t'")
     assert _ip.user_ns["x"] == "\t"
 
 

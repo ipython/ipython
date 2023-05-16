@@ -175,7 +175,8 @@ class IndentationErrorTest(unittest.TestCase):
             
             with tt.AssertPrints("IndentationError"):
                 with tt.AssertPrints("zoon()", suppress=False):
-                    ip.magic('run %s' % fname)
+                    ip.run_line_magic("run", fname)
+
 
 se_file_1 = """1
 2
@@ -223,7 +224,7 @@ bar()
                 f.write(se_file_1)
 
             with tt.AssertPrints(["7/", "SyntaxError"]):
-                ip.magic("run " + fname)
+                ip.run_line_magic("run", fname)
 
             # Modify the file
             with open(fname, "w", encoding="utf-8") as f:
@@ -231,7 +232,7 @@ bar()
 
             # The SyntaxError should point to the correct line
             with tt.AssertPrints(["7/", "SyntaxError"]):
-                ip.magic("run " + fname)
+                ip.run_line_magic("run", fname)
 
     def test_non_syntaxerror(self):
         # SyntaxTB may be called with an error other than a SyntaxError
