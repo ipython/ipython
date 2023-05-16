@@ -32,7 +32,12 @@ exclude = [
 ]
 
 [tool.pytest.ini_options]
+minversion = "6.0"
+xfail_strict = true
 addopts = [
+   "--strict-config",
+   "--strict-markers",
+   "-ra",
    "--durations=10",
    "-pIPython.testing.plugin.pytest_ipdoctest",
    "--ipdoctest-modules",
@@ -70,6 +75,8 @@ addopts = [
    "--ignore=IPython/utils/traitlets.py",
    "--ignore=IPython/utils/version.py"
 ]
+filterwarnings = ["error"]
+log_cli_level = "info"
 doctest_optionflags = [
    "NORMALIZE_WHITESPACE",
    "ELLIPSIS"
