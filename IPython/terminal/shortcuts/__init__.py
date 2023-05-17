@@ -279,7 +279,8 @@ AUTO_SUGGEST_BINDINGS = [
         ["right"],
         "is_cursor_at_the_end_of_line"
         " & default_buffer_focused"
-        " & emacs_like_insert_mode",
+        " & emacs_like_insert_mode"
+        " & pass_through",
     ),
 ]
 
