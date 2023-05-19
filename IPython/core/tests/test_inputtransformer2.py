@@ -160,7 +160,7 @@ HELP_UNICODE = (
 )
 
 
-def null_cleanup_transformer(lines):
+def null_cleanup_transformer(lines, **kwargs):
     """
     A cleanup transform that returns an empty list.
     """
