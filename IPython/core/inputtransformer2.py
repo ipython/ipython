@@ -17,6 +17,11 @@ import tokenize
 from typing import List, Tuple, Optional, Any
 import warnings
 
+# only for type checking, do not import this, it lead to a circular
+# import
+if False:
+    from IPython.core.interactiveshell import InteractiveShell
+
 _indent_re = re.compile(r'^[ \t]+')
 
 def leading_empty_lines(lines):
@@ -570,7 +575,11 @@ class TransformerManager:
     The key methods for external use are ``transform_cell()``
     and ``check_complete()``.
     """
-    def __init__(self):
+
+    shell: Optional["InteractiveShell"]
+
+    def __init__(self, shell=None):
+        self.shell = shell
         self.cleanup_transforms = [
             leading_empty_lines,
             leading_indent,

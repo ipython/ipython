@@ -71,7 +71,7 @@ from IPython.core.events import EventManager, available_events
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
-from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
+from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2, TransformerManager
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
@@ -430,8 +430,9 @@ class InteractiveShell(SingletonConfigurable):
     ipython_dir= Unicode('').tag(config=True) # Set to get_ipython_dir() in __init__
 
     # Used to transform cells before running them, and check whether code is complete
-    input_transformer_manager = Instance('IPython.core.inputtransformer2.TransformerManager',
-                                         ())
+    input_transformer_manager = Instance(
+        "IPython.core.inputtransformer2.TransformerManager", allow_none=True
+    )
 
     @property
     def input_transformers_cleanup(self):
@@ -593,6 +594,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_history()
         self.init_encoding()
         self.init_prefilter()
+        self.init_input_transformer_manager()
 
         self.init_syntax_highlighting()
         self.init_hooks()
@@ -2740,6 +2742,13 @@ class InteractiveShell(SingletonConfigurable):
         print("------> " + cmd)
 
     #-------------------------------------------------------------------------
+    # Things related to input_transformer_manager
+    # -------------------------------------------------------------------------
+
+    def init_input_transformer_manager(self):
+        self.input_transformer_manager = TransformerManager(shell=self)
+
+    # -------------------------------------------------------------------------
     # Things related to extracting values/expressions from kernel and user_ns
     #-------------------------------------------------------------------------
 
