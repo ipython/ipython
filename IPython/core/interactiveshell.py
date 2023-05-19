@@ -306,6 +306,16 @@ class InteractiveShell(SingletonConfigurable):
         """
     ).tag(config=True)
 
+    autobalance = Bool(
+        False,
+        help="""
+        Add automatically opening and closing parenthesis, braces and brackets
+        at the begin matching respectively closing and opening ones. Opening
+        symbols are added in the begin of the expression, and closings symbols
+        at the end of the line. E.g. `1+2)/2]*(2+3` becomes `[(1+2)/2]*(2+3)`.
+        """,
+    ).tag(config=True)
+
     autoindent = Bool(True, help=
         """
         Autoindent IPython code entered interactively.
@@ -485,9 +495,8 @@ class InteractiveShell(SingletonConfigurable):
         will be displayed as regular output instead."""
     ).tag(config=True)
 
-
-    show_rewritten_input = Bool(True,
-        help="Show rewritten input, e.g. for autocall."
+    show_rewritten_input = Bool(
+        True, help="Show rewritten input, e.g. for autocall and autobalance."
     ).tag(config=True)
 
     quiet = Bool(False).tag(config=True)
