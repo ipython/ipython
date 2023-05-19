@@ -142,3 +142,32 @@ class AutoMagics(Magics):
                     self.shell.autocall = self._magic_state.autocall_save = 1
 
         print("Automatic calling is:", list(valid_modes.values())[self.shell.autocall])
+
+    @line_magic
+    def autobalance(self, parameter_s=""):
+        """Automatically balance parenthesis, braces and brackets.
+
+        On single line cell, this mode add automatically needed symbol at the
+        begin of the expression and the end of the line. If symbols need to
+        be added at other place, there exists a ambiguity, and this
+        transformation is not applied.
+
+        Without arguments toggles on/off. With arguments it sets the value, and
+        you can use any of (case insensitive):
+
+         - on, 1, True: to activate
+
+         - off, 0, False: to deactivate.
+
+        When symbols are added, the rewritten line is displayed. See
+        shell configuration `show_rewritten_input` to change this behavior.
+        """
+
+        arg = parameter_s.lower()
+        if arg in ("on", "1", "true"):
+            self.shell.autobalance = True
+        elif arg in ("off", "0", "false"):
+            self.shell.autobalance = False
+        else:
+            self.shell.autobalance = not self.shell.autobalance
+        print("Autobalance " + ("enabled" if self.shell.autobalance else "disabled"))
