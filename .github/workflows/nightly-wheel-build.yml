@@ -18,9 +18,9 @@ upload_anaconda:
         cache-dependency-path: |
           setup.cfg
     - name: Try building with Python build
-    if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
-    run: |
-      python -m build
+      if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
+      run: |
+        python -m build
 
     - name: Upload wheel 
       uses: scientific-python/upload-nightly-wheel
