@@ -23,8 +23,8 @@ jobs:
         run: |
           python -m build
 
-      - name: Upload wheel 
-        uses: scientific-python/upload-nightly-wheel@latest
-        with: 
+      - name: Upload wheel
+        uses: scientific-python/upload-nightly-action@latest
+        with:
           artifact-names: dist/*.whl
           anaconda-nightly-upload-token: ${secrets.UPLOAD_TOKEN}
