@@ -1,6 +1,9 @@
 name: Nightly Wheel builder
 on:
   workflow_dispatch:
+  schedule:
+    # this cron is ran every Sunday at midnight UTC
+    - cron: '0 0 * * 0'
 
 jobs:
   upload_anaconda:
