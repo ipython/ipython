@@ -11,11 +11,12 @@ deprecated in 7.0.
 # Distributed under the terms of the Modified BSD License.
 
 import ast
-from codeop import CommandCompiler, Compile
 import re
+import sys
 import tokenize
-from typing import List, Tuple, Optional, Any
 import warnings
+from codeop import CommandCompiler, Compile
+from typing import Any, List, Optional, Tuple
 
 _indent_re = re.compile(r'^[ \t]+')
 
@@ -524,6 +525,18 @@ def make_tokens_by_line(lines:List[str]):
     except tokenize.TokenError:
         # Input ended in a multiline string or expression. That's OK for us.
         pass
+
+    except SyntaxError as e:
+        if (
+            getattr(e, "msg", "")
+            in (
+                "unexpected character after line continuation character",
+                "unexpected EOF while parsing",
+            )
+        ) and sys.version_info >= (3, 12):
+            pass
+        else:
+            raise
 
 
     if not tokens_by_line[-1]:
