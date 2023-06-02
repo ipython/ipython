@@ -31,7 +31,7 @@ from IPython.core.completer import (
     SimpleCompletion,
     CompletionContext,
     _unicode_name_compute,
-    _UNICODE_RANGE,
+    _UNICODE_RANGES,
 )
 
 # -----------------------------------------------------------------------------
