@@ -527,13 +527,7 @@ def make_tokens_by_line(lines:List[str]):
         pass
 
     except SyntaxError as e:
-        if (
-            getattr(e, "msg", "")
-            in (
-                "unexpected character after line continuation character",
-                "unexpected EOF while parsing",
-            )
-        ) and sys.version_info >= (3, 12):
+        if sys.version_info >= (3, 12):
             pass
         else:
             raise
