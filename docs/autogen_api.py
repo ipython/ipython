@@ -24,8 +24,6 @@ if __name__ == '__main__':
     docwriter.package_skip_patterns += [r'\.external$',
                                         # Extensions are documented elsewhere.
                                         r'\.extensions',
-                                        # Magics are documented separately
-                                        r'\.core\.magics',
                                         # This isn't API
                                         r'\.sphinxext',
                                         # Shims
