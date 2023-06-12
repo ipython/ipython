@@ -14,13 +14,11 @@ import ast
 from codeop import CommandCompiler, Compile
 import re
 import tokenize
-from typing import List, Tuple, Optional, Any
+from typing import List, Tuple, Optional, Any, TYPE_CHECKING
 import warnings
 import io
 
-# only for type checking, do not import this, it lead to a circular
-# import
-if False:
+if TYPE_CHECKING:
     from IPython.core.interactiveshell import InteractiveShell
 
 _indent_re = re.compile(r'^[ \t]+')
