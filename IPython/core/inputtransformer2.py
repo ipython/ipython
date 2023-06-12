@@ -241,8 +241,9 @@ class AutoBalancer:
 
     has_side_effects: bool = True
 
-    def __init__(self, shell):
+    def __init__(self, shell=None, default=False):
         self._shell = shell
+        self._default = default
 
     def __call__(self, lines):
         """For single line cell, add necessary [{( and )}] to balance."""
@@ -251,12 +252,16 @@ class AutoBalancer:
             # apply only for single line cell
             return lines
 
-        if self._shell is None or not self._shell.autobalance:
+        if self._shell is None:
+            if not self._default:
+                return lines
+        elif not self._shell.autobalance:
             return lines
 
         modified, new_line = _autobalance_line(lines[0])
         if modified:
-            self._shell.auto_rewrite_input(new_line)
+            if self._shell is not None:
+                self._shell.auto_rewrite_input(new_line)
             return [new_line]
         return lines
 
