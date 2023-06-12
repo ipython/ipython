@@ -792,12 +792,12 @@ class TestMiscTransform(unittest.TestCase):
         cleanup = 0
         line_t = 0
 
-        def count_cleanup(lines, **kwargs):
+        def count_cleanup(lines):
             nonlocal cleanup
             cleanup += 1
             return lines
 
-        def count_line_t(lines, **kwargs):
+        def count_line_t(lines):
             nonlocal line_t
             line_t += 1
             return lines

@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 _indent_re = re.compile(r'^[ \t]+')
 
-def leading_empty_lines(lines, **kwargs):
+def leading_empty_lines(lines):
     """Remove leading empty lines
 
     If the leading lines are empty or contain only whitespace, they will be
@@ -37,7 +37,7 @@ def leading_empty_lines(lines, **kwargs):
     return lines
 
 
-def leading_indent(lines, **kwargs):
+def leading_indent(lines):
     """Remove leading indentation.
 
     If the first line starts with a spaces or tabs, the same whitespace will be
@@ -82,7 +82,7 @@ class PromptStripper:
     def _strip(self, lines):
         return [self.prompt_re.sub('', l, count=1) for l in lines]
 
-    def __call__(self, lines, **kwargs):
+    def __call__(self, lines):
         if not lines:
             return lines
         if self.initial_re.match(lines[0]) or \
@@ -120,7 +120,7 @@ ipython_prompt = PromptStripper(
 )
 
 
-def cell_magic(lines, **kwargs):
+def cell_magic(lines):
     if not lines or not lines[0].startswith('%%'):
         return lines
     if re.match(r'%%\w+\?', lines[0]):
@@ -236,24 +236,29 @@ def _autobalance_line(inpt_code):
     return (True, new_code)
 
 
-def autobalance(lines, **kwargs):
-    """For single line cell, add necessary [{( and )}] to balance."""
+class AutoBalancer:
+    """Callable class, for single line cell, add necessary [{( and )}] to balance."""
 
-    shell = kwargs.get("shell")
-    display = kwargs.get("display", False)
+    has_side_effects: bool = True
 
-    if len(lines) != 1:
-        # apply only for single line cell
+    def __init__(self, shell):
+        self._shell = shell
+
+    def __call__(self, lines):
+        """For single line cell, add necessary [{( and )}] to balance."""
+
+        if len(lines) != 1:
+            # apply only for single line cell
+            return lines
+
+        if self._shell is None or not self._shell.autobalance:
+            return lines
+
+        modified, new_line = _autobalance_line(lines[0])
+        if modified:
+            self._shell.auto_rewrite_input(new_line)
+            return [new_line]
         return lines
-
-    if shell is None or not shell.autobalance:
-        return lines
-
-    modified, new_line = _autobalance_line(lines[0])
-    if modified and display:
-        shell.auto_rewrite_input(new_line)
-        return [new_line]
-    return lines
 
 
 class TokenTransformBase:
@@ -321,7 +326,7 @@ class MagicAssign(TokenTransformBase):
                     and (line[assign_ix+2].type == tokenize.NAME):
                 return cls(line[assign_ix+1].start)
 
-    def transform(self, lines: List[str], **kwargs):
+    def transform(self, lines: List[str]):
         """Transform a magic assignment found by the ``find()`` classmethod.
         """
         start_line, start_col = self.start_line, self.start_col
@@ -360,7 +365,7 @@ class SystemAssign(TokenTransformBase):
                         break
                     ix += 1
 
-    def transform(self, lines: List[str], **kwargs):
+    def transform(self, lines: List[str]):
         """Transform a system assignment found by the ``find()`` classmethod.
         """
         start_line, start_col = self.start_line, self.start_col
@@ -477,7 +482,7 @@ class EscapedCommand(TokenTransformBase):
             if line[ix].string in ESCAPE_SINGLES:
                 return cls(line[ix].start)
 
-    def transform(self, lines, **kwargs):
+    def transform(self, lines):
         """Transform an escaped line found by the ``find()`` classmethod.
         """
         start_line, start_col = self.start_line, self.start_col
@@ -538,7 +543,7 @@ class HelpEnd(TokenTransformBase):
                     ix += 1
                 return cls(line[ix].start, line[-2].start)
 
-    def transform(self, lines, **kwargs):
+    def transform(self, lines):
         """Transform a help command found by the ``find()`` classmethod.
         """
 
@@ -647,7 +652,6 @@ class TransformerManager:
     shell: Optional["InteractiveShell"]
 
     def __init__(self, shell=None):
-        self.shell = shell
         self.cleanup_transforms = [
             leading_empty_lines,
             leading_indent,
@@ -656,7 +660,7 @@ class TransformerManager:
         ]
         self.line_transforms = [
             cell_magic,
-            autobalance,
+            AutoBalancer(shell),
         ]
         self.token_transformers = [
             MagicAssign,
@@ -665,7 +669,7 @@ class TransformerManager:
             HelpEnd,
         ]
 
-    def do_one_token_transform(self, lines, display=False):
+    def do_one_token_transform(self, lines):
         """Find and run the transform earliest in the code.
 
         Returns (changed, lines).
@@ -692,16 +696,14 @@ class TransformerManager:
         ordered_transformers = sorted(candidates, key=TokenTransformBase.sortby)
         for transformer in ordered_transformers:
             try:
-                return True, transformer.transform(
-                    lines, shell=self.shell, display=display
-                )
+                return True, transformer.transform(lines)
             except SyntaxError:
                 pass
         return False, lines
 
-    def do_token_transforms(self, lines, display=False):
+    def do_token_transforms(self, lines):
         for _ in range(TRANSFORM_LOOP_LIMIT):
-            changed, lines = self.do_one_token_transform(lines, display=display)
+            changed, lines = self.do_one_token_transform(lines)
             if not changed:
                 return lines
 
@@ -714,7 +716,7 @@ class TransformerManager:
             cell += '\n'  # Ensure the cell has a trailing newline
         lines = cell.splitlines(keepends=True)
         for transform in self.cleanup_transforms + self.line_transforms:
-            lines = transform(lines, shell=self.shell, display=True)
+            lines = transform(lines)
 
         lines = self.do_token_transforms(lines)
         return ''.join(lines)
@@ -764,7 +766,7 @@ class TransformerManager:
         try:
             for transform in self.cleanup_transforms:
                 if not getattr(transform, 'has_side_effects', False):
-                    lines = transform(lines, shell=self.shell, display=False)
+                    lines = transform(lines)
         except SyntaxError:
             return 'invalid', None
 
@@ -778,8 +780,8 @@ class TransformerManager:
         try:
             for transform in self.line_transforms:
                 if not getattr(transform, 'has_side_effects', False):
-                    lines = transform(lines, shell=self.shell, display=False)
-            lines = self.do_token_transforms(lines, display=False)
+                    lines = transform(lines)
+            lines = self.do_token_transforms(lines)
         except SyntaxError:
             return 'invalid', None
 
