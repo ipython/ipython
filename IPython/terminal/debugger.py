@@ -10,6 +10,7 @@ from . import embed
 
 from pathlib import Path
 from pygments.token import Token
+from prompt_toolkit.application import create_app_session
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.formatted_text import PygmentsTokens
@@ -95,6 +96,17 @@ class TerminalPdb(Pdb):
             self.pt_loop = asyncio.new_event_loop()
             self.pt_app = PromptSession(**options)
 
+    def _prompt(self):
+        """
+        In case other prompt_toolkit apps have to run in parallel to this one (e.g. in madbg),
+        create_app_session must be used to prevent mixing up between them. According to the prompt_toolkit docs:
+
+        > If you need multiple applications running at the same time, you have to create a separate
+        > `AppSession` using a `with create_app_session():` block.
+        """
+        with create_app_session():
+            return self.pt_app.prompt()
+
     def cmdloop(self, intro=None):
         """Repeatedly issue a prompt, accept input, parse an initial prefix
         off the received input, and dispatch to action methods, passing them
@@ -128,9 +140,7 @@ class TerminalPdb(Pdb):
                     # Run the prompt in a different thread.
                     if not _use_simple_prompt:
                         try:
-                            line = self.thread_executor.submit(
-                                self.pt_app.prompt
-                            ).result()
+                            line = self.thread_executor.submit(self._prompt).result()
                         except EOFError:
                             line = "EOF"
                     else:
