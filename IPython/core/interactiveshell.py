@@ -3338,8 +3338,11 @@ class InteractiveShell(SingletonConfigurable):
                 # an InputRejected.  Short-circuit in this case so that we
                 # don't unregister the transform.
                 raise
-            except Exception:
-                warn("AST transformer %r threw an error. It will be unregistered." % transformer)
+            except Exception as e:
+                warn(
+                    "AST transformer %r threw an error. It will be unregistered. %s"
+                    % (transformer, e)
+                )
                 self.ast_transformers.remove(transformer)
 
         if self.ast_transformers:
