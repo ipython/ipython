@@ -2417,7 +2417,7 @@ class InteractiveShell(SingletonConfigurable):
                 result = fn(*args, **kwargs)
 
             # The code below prevents the output from being displayed
-            # when using magics with decodator @output_can_be_silenced
+            # when using magics with decorator @output_can_be_silenced
             # when the last Python token in the expression is a ';'.
             if getattr(fn, magic.MAGIC_OUTPUT_CAN_BE_SILENCED, False):
                 if DisplayHook.semicolon_at_end_of_expression(magic_arg_s):
@@ -2478,7 +2478,7 @@ class InteractiveShell(SingletonConfigurable):
                 result = fn(*args, **kwargs)
 
             # The code below prevents the output from being displayed
-            # when using magics with decodator @output_can_be_silenced
+            # when using magics with decorator @output_can_be_silenced
             # when the last Python token in the expression is a ';'.
             if getattr(fn, magic.MAGIC_OUTPUT_CAN_BE_SILENCED, False):
                 if DisplayHook.semicolon_at_end_of_expression(cell):
