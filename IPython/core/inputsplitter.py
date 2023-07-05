@@ -44,6 +44,7 @@ from IPython.core.inputtransformer import (leading_indent,
                                            assign_from_system,
                                            assemble_python_lines,
                                            )
+from IPython.utils import tokenutil
 
 # These are available in this module for backwards compatibility.
 from IPython.core.inputtransformer import (ESC_SHELL, ESC_SH_CAP, ESC_HELP,
@@ -128,7 +129,7 @@ def partial_tokens(s):
     readline = io.StringIO(s).readline
     token = tokenize.TokenInfo(tokenize.NEWLINE, '', (1, 0), (1, 0), '')
     try:
-        for token in tokenize.generate_tokens(readline):
+        for token in tokenutil.generate_tokens_catch_errors(readline):
             yield token
     except tokenize.TokenError as e:
         # catch EOF error
@@ -150,8 +151,21 @@ def find_next_indent(code):
         tokens.pop()
     if not tokens:
         return 0
-    while (tokens[-1].type in {tokenize.DEDENT, tokenize.NEWLINE, tokenize.COMMENT}):
+
+    while tokens[-1].type in {
+        tokenize.DEDENT,
+        tokenize.NEWLINE,
+        tokenize.COMMENT,
+        tokenize.ERRORTOKEN,
+    }:
         tokens.pop()
+
+    # Starting in Python 3.12, the tokenize module adds implicit newlines at the end
+    # of input. We need to remove those if we're in a multiline statement
+    if tokens[-1].type == IN_MULTILINE_STATEMENT:
+        while tokens[-2].type in {tokenize.NL}:
+            tokens.pop(-2)
+
 
     if tokens[-1].type == INCOMPLETE_STRING:
         # Inside a multiline string
