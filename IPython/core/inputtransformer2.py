@@ -292,17 +292,18 @@ class SystemAssign(TokenTransformBase):
     def find_post_312(cls, tokens_by_line):
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
-            if (assign_ix is not None) \
-                    and not line[assign_ix].line.strip().startswith('=') \
-                    and (len(line) >= assign_ix + 2) \
-                    and (line[assign_ix + 1].type == tokenize.OP) \
-                    and (line[assign_ix + 1].string == '!'):
+            if (
+                (assign_ix is not None)
+                and not line[assign_ix].line.strip().startswith("=")
+                and (len(line) >= assign_ix + 2)
+                and (line[assign_ix + 1].type == tokenize.OP)
+                and (line[assign_ix + 1].string == "!")
+            ):
                 return cls(line[assign_ix + 1].start)
 
     @classmethod
     def find(cls, tokens_by_line):
-        """Find the first system assignment (a = !foo) in the cell.
-        """
+        """Find the first system assignment (a = !foo) in the cell."""
         if sys.version_info < (3, 12):
             return cls.find_pre_312(tokens_by_line)
         return cls.find_post_312(tokens_by_line)
@@ -531,8 +532,9 @@ def make_tokens_by_line(lines:List[str]):
         )
     parenlev = 0
     try:
-        for token in tokenutil.generate_tokens_catch_errors(iter(lines).__next__,
-                                                            extra_errors_to_catch=['expected EOF']):
+        for token in tokenutil.generate_tokens_catch_errors(
+            iter(lines).__next__, extra_errors_to_catch=["expected EOF"]
+        ):
             tokens_by_line[-1].append(token)
             if (token.type == NEWLINE) \
                     or ((token.type == NL) and (parenlev <= 0)):
@@ -701,8 +703,8 @@ class TransformerManager:
         for line in reversed(lines):
             if not line.strip():
                 continue
-            elif line.strip('\n').endswith('\\'):
-                return 'incomplete', find_last_indent(lines)
+            elif line.strip("\n").endswith("\\"):
+                return "incomplete", find_last_indent(lines)
             else:
                 break
 
@@ -742,8 +744,10 @@ class TransformerManager:
         if not tokens_by_line:
             return 'incomplete', find_last_indent(lines)
 
-        if (tokens_by_line[-1][-1].type != tokenize.ENDMARKER
-                and tokens_by_line[-1][-1].type != tokenize.ERRORTOKEN):
+        if (
+            tokens_by_line[-1][-1].type != tokenize.ENDMARKER
+            and tokens_by_line[-1][-1].type != tokenize.ERRORTOKEN
+        ):
             # We're in a multiline string or expression
             return 'incomplete', find_last_indent(lines)
 

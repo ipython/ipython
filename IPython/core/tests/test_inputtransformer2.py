@@ -297,6 +297,7 @@ def test_find_assign_op_dedent():
         _find_assign_op([Tk(s) for s in ("", "(", "a", "=", "b", ")", "=", "5")]) == 6
     )
 
+
 extra_closing_paren_param = (
     pytest.param("(\n))", "invalid", None)
     if sys.version_info >= (3, 12)

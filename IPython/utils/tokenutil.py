@@ -21,9 +21,13 @@ def generate_tokens(readline):
         # catch EOF error
         return
 
+
 def generate_tokens_catch_errors(readline, extra_errors_to_catch=None):
-    default_errors_to_catch = ['unterminated string literal', 'invalid non-printable character',
-                               'after line continuation character']
+    default_errors_to_catch = [
+        "unterminated string literal",
+        "invalid non-printable character",
+        "after line continuation character",
+    ]
     assert extra_errors_to_catch is None or isinstance(extra_errors_to_catch, list)
     errors_to_catch = default_errors_to_catch + (extra_errors_to_catch or [])
 
@@ -40,11 +44,12 @@ def generate_tokens_catch_errors(readline, extra_errors_to_catch=None):
                 line = tokens[-1].line
             else:
                 start = end = (1, 0)
-                line = ''
-            yield tokenize.TokenInfo(tokenize.ERRORTOKEN, '', start, end, line)
+                line = ""
+            yield tokenize.TokenInfo(tokenize.ERRORTOKEN, "", start, end, line)
         else:
             # Catch EOF
             raise
+
 
 def line_at_cursor(cell, cursor_pos=0):
     """Return the line in a cell at a given cursor position

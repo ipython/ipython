@@ -152,7 +152,12 @@ def find_next_indent(code):
     if not tokens:
         return 0
 
-    while (tokens[-1].type in {tokenize.DEDENT, tokenize.NEWLINE, tokenize.COMMENT, tokenize.ERRORTOKEN}):
+    while tokens[-1].type in {
+        tokenize.DEDENT,
+        tokenize.NEWLINE,
+        tokenize.COMMENT,
+        tokenize.ERRORTOKEN,
+    }:
         tokens.pop()
 
     # Starting in Python 3.12, the tokenize module adds implicit newlines at the end
