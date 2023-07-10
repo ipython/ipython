@@ -6,6 +6,7 @@ import pytest
 from tempfile import TemporaryDirectory
 from IPython.testing import tools as tt
 
+
 def _exceptiongroup_common(
     outer_chain: str,
     inner_chain: str,
@@ -60,7 +61,7 @@ def _exceptiongroup_common(
         match_lines += [
             "During handling of the above exception, another exception occurred:",
         ]
-    elif inner_chain == 'from':
+    elif inner_chain == "from":
         match_lines += [
             "The above exception was the direct cause of the following exception:",
         ]
@@ -87,20 +88,22 @@ def _exceptiongroup_common(
 
     err_index = match_index = 0
     for expected in match_lines:
-        for i,actual in enumerate(error_lines):
+        for i, actual in enumerate(error_lines):
             if actual == expected:
-                error_lines = error_lines[i+1:]
+                error_lines = error_lines[i + 1 :]
                 break
         else:
-            assert False, f'{expected} not found in cap.stderr'
+            assert False, f"{expected} not found in cap.stderr"
+
 
 @pytest.mark.skipif(
-        sys.version_info < (3, 11), reason="Native ExceptionGroup not implemented"
-        )
+    sys.version_info < (3, 11), reason="Native ExceptionGroup not implemented"
+)
 @pytest.mark.parametrize("outer_chain", ["none", "from", "another"])
 @pytest.mark.parametrize("inner_chain", ["none", "from", "another"])
 def test_native_exceptiongroup(outer_chain, inner_chain) -> None:
     _exceptiongroup_common(outer_chain, inner_chain, native=True)
+
 
 @pytest.mark.parametrize("outer_chain", ["none", "from", "another"])
 @pytest.mark.parametrize("inner_chain", ["none", "from", "another"])
