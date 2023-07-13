@@ -112,6 +112,8 @@ try:
 except ImportError:
     sphinxify = None
 
+if sys.version_info[:2] < (3, 11):
+    from exceptiongroup import BaseExceptionGroup
 
 class ProvisionalWarning(DeprecationWarning):
     """
@@ -2095,25 +2097,38 @@ class InteractiveShell(SingletonConfigurable):
                     stb.extend(self.InteractiveTB.get_exception_only(etype,
                                                                      value))
                 else:
-                    try:
-                        # Exception classes can customise their traceback - we
-                        # use this in IPython.parallel for exceptions occurring
-                        # in the engines. This should return a list of strings.
-                        if hasattr(value, "_render_traceback_"):
-                            stb = value._render_traceback_()
-                        else:
-                            stb = self.InteractiveTB.structured_traceback(
-                                etype, value, tb, tb_offset=tb_offset
-                            )
 
-                    except Exception:
-                        print(
-                            "Unexpected exception formatting exception. Falling back to standard exception"
-                        )
+                    def contains_exceptiongroup(val):
+                        if val is None:
+                            return False
+                        return isinstance(
+                            val, BaseExceptionGroup
+                        ) or contains_exceptiongroup(val.__context__)
+
+                    if contains_exceptiongroup(value):
+                        # fall back to native exception formatting until ultratb
+                        # supports exception groups
                         traceback.print_exc()
-                        return None
+                    else:
+                        try:
+                            # Exception classes can customise their traceback - we
+                            # use this in IPython.parallel for exceptions occurring
+                            # in the engines. This should return a list of strings.
+                            if hasattr(value, "_render_traceback_"):
+                                stb = value._render_traceback_()
+                            else:
+                                stb = self.InteractiveTB.structured_traceback(
+                                    etype, value, tb, tb_offset=tb_offset
+                                )
 
-                    self._showtraceback(etype, value, stb)
+                        except Exception:
+                            print(
+                                "Unexpected exception formatting exception. Falling back to standard exception"
+                            )
+                            traceback.print_exc()
+                            return None
+
+                        self._showtraceback(etype, value, stb)
                     if self.call_pdb:
                         # drop into debugger
                         self.debugger(force=True)
