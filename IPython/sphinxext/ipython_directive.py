@@ -581,7 +581,9 @@ class EmbeddedSphinxShell(object):
             s += "<<<" + ("-" * 73)
             logger.warning(s)
             if self.warning_is_error:
-                raise RuntimeError('Non Expected exception in `{}` line {}'.format(filename, lineno))
+                raise RuntimeError(
+                    "Unexpected exception in `{}` line {}".format(filename, lineno)
+                )
 
         # output any warning raised during execution to stdout
         # unless :okwarning: has been specified.
@@ -597,7 +599,9 @@ class EmbeddedSphinxShell(object):
                 s += "<<<" + ("-" * 73)
                 logger.warning(s)
                 if self.warning_is_error:
-                    raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
+                    raise RuntimeError(
+                        "Unexpected warning in `{}` line {}".format(filename, lineno)
+                    )
 
         self.clear_cout()
         return (ret, input_lines, processed_output,
