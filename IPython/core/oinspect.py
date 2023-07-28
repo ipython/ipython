@@ -333,7 +333,7 @@ def _get_wrapped(obj):
             return orig_obj
     return obj
 
-def find_file(obj) -> Path:
+def find_file(obj) -> Optional[Path]:
     """Find the absolute path to the file where an object was defined.
 
     This is essentially a robust wrapper around `inspect.getabsfile`.
@@ -346,7 +346,7 @@ def find_file(obj) -> Path:
 
     Returns
     -------
-    fname : str
+    fname : Optional[Path]
         The absolute path to the file where the object was defined.
     """
     obj = _get_wrapped(obj)
