@@ -1,3 +1,4 @@
+# PYTHON_ARGCOMPLETE_OK
 """
 IPython: tools for interactive and parallel computing in Python.
 
@@ -25,10 +26,11 @@ import sys
 #-----------------------------------------------------------------------------
 
 # Don't forget to also update setup.py when this changes!
-if sys.version_info < (3, 8):
+if sys.version_info < (3, 9):
     raise ImportError(
         """
-IPython 8+ supports Python 3.8 and above, following NEP 29.
+IPython 8.13+ supports Python 3.9 and above, following NEP 29.
+IPython 8.0-8.12 supports Python 3.8 and above, following NEP 29.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
 Python 3.3 and 3.4 were supported up to IPython 6.x.
 Python 3.5 was supported with IPython 7.0 to 7.9.
@@ -55,6 +57,8 @@ from .core.interactiveshell import InteractiveShell
 from .utils.sysinfo import sys_info
 from .utils.frame import extract_module_locals
 
+__all__ = ["start_ipython", "embed", "start_kernel", "embed_kernel"]
+
 # Release data
 __author__ = '%s <%s>' % (release.author, release.author_email)
 __license__  = release.license
@@ -62,7 +66,7 @@ __version__  = release.version
 version_info = release.version_info
 # list of CVEs that should have been patched in this release.
 # this is informational and should not be relied upon.
-__patched_cves__ = {"CVE-2022-21699"}
+__patched_cves__ = {"CVE-2022-21699", "CVE-2023-24816"}
 
 
 def embed_kernel(module=None, local_ns=None, **kwargs):
@@ -81,7 +85,8 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
         The namespace to load into IPython user namespace (default: caller)
     **kwargs : various, optional
         Further keyword args are relayed to the IPKernelApp constructor,
-        allowing configuration of the Kernel.  Will only have an effect
+        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
+        allowing configuration of the kernel (see :ref:`kernel_options`).  Will only have an effect
         on the first embed_kernel call for a given process.
     """
     
@@ -117,7 +122,8 @@ def start_ipython(argv=None, **kwargs):
         specify this dictionary to initialize the IPython user namespace with particular values.
     **kwargs : various, optional
         Any other kwargs will be passed to the Application constructor,
-        such as `config`.
+        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
+        allowing configuration of the instance (see :ref:`terminal_options`).
     """
     from IPython.terminal.ipapp import launch_new_instance
     return launch_new_instance(argv=argv, **kwargs)
@@ -131,7 +137,7 @@ def start_kernel(argv=None, **kwargs):
 
     `start_kernel()` does full, regular IPython initialization,
     including loading startup files, configuration, etc.
-    much of which is skipped by `embed()`.
+    much of which is skipped by `embed_kernel()`.
 
     Parameters
     ----------
@@ -142,7 +148,8 @@ def start_kernel(argv=None, **kwargs):
         specify this dictionary to initialize the IPython user namespace with particular values.
     **kwargs : various, optional
         Any other kwargs will be passed to the Application constructor,
-        such as `config`.
+        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
+        allowing configuration of the kernel (see :ref:`kernel_options`).
     """
     import warnings
 

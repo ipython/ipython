@@ -2,14 +2,6 @@
 # when releasing with bash, simple source it to get asked questions. 
 
 # misc check before starting
-
-python -c 'import keyring'
-python -c 'import twine'
-python -c 'import sphinx'
-python -c 'import sphinx_rtd_theme'
-python -c 'import pytest'
-
-
 BLACK=$(tput setaf 1)
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -19,6 +11,22 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 WHITE=$(tput setaf 7)
 NOR=$(tput sgr0)
+
+
+echo "Checking all tools are installed..."
+
+python -c 'import keyring'
+python -c 'import twine'
+python -c 'import sphinx'
+python -c 'import sphinx_rtd_theme'
+python -c 'import pytest'
+python -c 'import build'
+# those are necessary fo building the docs
+echo "Checking imports for docs"
+python -c 'import numpy'
+python -c 'import matplotlib'
+
+
 
 
 echo "Will use $BLUE'$EDITOR'$NOR to edit files when necessary"

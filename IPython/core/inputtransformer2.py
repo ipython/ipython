@@ -13,9 +13,12 @@ deprecated in 7.0.
 import ast
 from codeop import CommandCompiler, Compile
 import re
+import sys
 import tokenize
 from typing import List, Tuple, Optional, Any
 import warnings
+
+from IPython.utils import tokenutil
 
 _indent_re = re.compile(r'^[ \t]+')
 
@@ -269,9 +272,7 @@ class MagicAssign(TokenTransformBase):
 class SystemAssign(TokenTransformBase):
     """Transformer for assignments from system commands (a = !foo)"""
     @classmethod
-    def find(cls, tokens_by_line):
-        """Find the first system assignment (a = !foo) in the cell.
-        """
+    def find_pre_312(cls, tokens_by_line):
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
             if (assign_ix is not None) \
@@ -286,6 +287,26 @@ class SystemAssign(TokenTransformBase):
                     elif not line[ix].string.isspace():
                         break
                     ix += 1
+
+    @classmethod
+    def find_post_312(cls, tokens_by_line):
+        for line in tokens_by_line:
+            assign_ix = _find_assign_op(line)
+            if (
+                (assign_ix is not None)
+                and not line[assign_ix].line.strip().startswith("=")
+                and (len(line) >= assign_ix + 2)
+                and (line[assign_ix + 1].type == tokenize.OP)
+                and (line[assign_ix + 1].string == "!")
+            ):
+                return cls(line[assign_ix + 1].start)
+
+    @classmethod
+    def find(cls, tokens_by_line):
+        """Find the first system assignment (a = !foo) in the cell."""
+        if sys.version_info < (3, 12):
+            return cls.find_pre_312(tokens_by_line)
+        return cls.find_post_312(tokens_by_line)
 
     def transform(self, lines: List[str]):
         """Transform a system assignment found by the ``find()`` classmethod.
@@ -511,7 +532,9 @@ def make_tokens_by_line(lines:List[str]):
         )
     parenlev = 0
     try:
-        for token in tokenize.generate_tokens(iter(lines).__next__):
+        for token in tokenutil.generate_tokens_catch_errors(
+            iter(lines).__next__, extra_errors_to_catch=["expected EOF"]
+        ):
             tokens_by_line[-1].append(token)
             if (token.type == NEWLINE) \
                     or ((token.type == NL) and (parenlev <= 0)):
@@ -677,9 +700,13 @@ class TransformerManager:
         if not lines:
             return 'complete', None
 
-        if lines[-1].endswith('\\'):
-            # Explicit backslash continuation
-            return 'incomplete', find_last_indent(lines)
+        for line in reversed(lines):
+            if not line.strip():
+                continue
+            elif line.strip("\n").endswith("\\"):
+                return "incomplete", find_last_indent(lines)
+            else:
+                break
 
         try:
             for transform in self.cleanup_transforms:
@@ -717,7 +744,10 @@ class TransformerManager:
         if not tokens_by_line:
             return 'incomplete', find_last_indent(lines)
 
-        if tokens_by_line[-1][-1].type != tokenize.ENDMARKER:
+        if (
+            tokens_by_line[-1][-1].type != tokenize.ENDMARKER
+            and tokens_by_line[-1][-1].type != tokenize.ERRORTOKEN
+        ):
             # We're in a multiline string or expression
             return 'incomplete', find_last_indent(lines)
 

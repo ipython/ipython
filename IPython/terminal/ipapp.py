@@ -156,7 +156,7 @@ frontend_flags['i'] = (
 flags.update(frontend_flags)
 
 aliases = dict(base_aliases)
-aliases.update(shell_aliases)
+aliases.update(shell_aliases)  # type: ignore[arg-type]
 
 #-----------------------------------------------------------------------------
 # Main classes and functions
@@ -180,7 +180,7 @@ class LocateIPythonApp(BaseIPythonApplication):
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     name = u'ipython'
     description = usage.cl_usage
-    crash_handler_class = IPAppCrashHandler
+    crash_handler_class = IPAppCrashHandler  # typing: ignore[assignment]
     examples = _examples
 
     flags = flags
@@ -318,6 +318,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.shell.mainloop()
         else:
             self.log.debug("IPython not interactive...")
+            self.shell.restore_term_title()
             if not self.shell.last_execution_succeeded:
                 sys.exit(1)
 

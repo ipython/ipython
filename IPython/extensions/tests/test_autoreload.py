@@ -22,6 +22,7 @@ import shutil
 import random
 import time
 from io import StringIO
+from dataclasses import dataclass
 
 import IPython.testing.tools as tt
 
@@ -310,6 +311,7 @@ class TestAutoreload(Fixture):
             self.shell.run_code("pass")  # trigger another reload
 
     def test_autoload_newly_added_objects(self):
+        # All of these fail with %autoreload 2
         self.shell.magic_autoreload("3")
         mod_code = """
         def func1(): pass
@@ -367,7 +369,8 @@ class TestAutoreload(Fixture):
         self.shell.run_code("assert func2() == 'changed'")
         self.shell.run_code("t = Test(); assert t.new_func() == 'changed'")
         self.shell.run_code("assert number == 1")
-        self.shell.run_code("assert TestEnum.B.value == 'added'")
+        if sys.version_info < (3, 12):
+            self.shell.run_code("assert TestEnum.B.value == 'added'")
 
         # ----------- TEST IMPORT FROM MODULE --------------------------
 
@@ -391,6 +394,95 @@ class TestAutoreload(Fixture):
         self.shell.run_code("assert ext_func() == 'ext'")
         self.shell.run_code("t = ExtTest(); assert t.meth() == 'ext'")
         self.shell.run_code("assert ext_int == 2")
+
+    def test_verbose_names(self):
+        # Asserts correspondense between original mode names and their verbose equivalents.
+        @dataclass
+        class AutoreloadSettings:
+            check_all: bool
+            enabled: bool
+            autoload_obj: bool
+
+        def gather_settings(mode):
+            self.shell.magic_autoreload(mode)
+            module_reloader = self.shell.auto_magics._reloader
+            return AutoreloadSettings(
+                module_reloader.check_all,
+                module_reloader.enabled,
+                module_reloader.autoload_obj,
+            )
+
+        assert gather_settings("0") == gather_settings("off")
+        assert gather_settings("0") == gather_settings("OFF")  # Case insensitive
+        assert gather_settings("1") == gather_settings("explicit")
+        assert gather_settings("2") == gather_settings("all")
+        assert gather_settings("3") == gather_settings("complete")
+
+        # And an invalid mode name raises an exception.
+        with self.assertRaises(ValueError):
+            self.shell.magic_autoreload("4")
+
+    def test_aimport_parsing(self):
+        # Modules can be included or excluded all in one line.
+        module_reloader = self.shell.auto_magics._reloader
+        self.shell.magic_aimport("os")  # import and mark `os` for auto-reload.
+        assert module_reloader.modules["os"] is True
+        assert "os" not in module_reloader.skip_modules.keys()
+
+        self.shell.magic_aimport("-math")  # forbid autoreloading of `math`
+        assert module_reloader.skip_modules["math"] is True
+        assert "math" not in module_reloader.modules.keys()
+
+        self.shell.magic_aimport(
+            "-os, math"
+        )  # Can do this all in one line; wasn't possible before.
+        assert module_reloader.modules["math"] is True
+        assert "math" not in module_reloader.skip_modules.keys()
+        assert module_reloader.skip_modules["os"] is True
+        assert "os" not in module_reloader.modules.keys()
+
+    def test_autoreload_output(self):
+        self.shell.magic_autoreload("complete")
+        mod_code = """
+        def func1(): pass
+        """
+        mod_name, mod_fn = self.new_module(mod_code)
+        self.shell.run_code(f"import {mod_name}")
+        with tt.AssertPrints("", channel="stdout"):  # no output; this is default
+            self.shell.run_code("pass")
+
+        self.shell.magic_autoreload("complete --print")
+        self.write_file(mod_fn, mod_code)  # "modify" the module
+        with tt.AssertPrints(
+            f"Reloading '{mod_name}'.", channel="stdout"
+        ):  # see something printed out
+            self.shell.run_code("pass")
+
+        self.shell.magic_autoreload("complete -p")
+        self.write_file(mod_fn, mod_code)  # "modify" the module
+        with tt.AssertPrints(
+            f"Reloading '{mod_name}'.", channel="stdout"
+        ):  # see something printed out
+            self.shell.run_code("pass")
+
+        self.shell.magic_autoreload("complete --print --log")
+        self.write_file(mod_fn, mod_code)  # "modify" the module
+        with tt.AssertPrints(
+            f"Reloading '{mod_name}'.", channel="stdout"
+        ):  # see something printed out
+            self.shell.run_code("pass")
+
+        self.shell.magic_autoreload("complete --print --log")
+        self.write_file(mod_fn, mod_code)  # "modify" the module
+        with self.assertLogs(logger="autoreload") as lo:  # see something printed out
+            self.shell.run_code("pass")
+        assert lo.output == [f"INFO:autoreload:Reloading '{mod_name}'."]
+
+        self.shell.magic_autoreload("complete -l")
+        self.write_file(mod_fn, mod_code)  # "modify" the module
+        with self.assertLogs(logger="autoreload") as lo:  # see something printed out
+            self.shell.run_code("pass")
+        assert lo.output == [f"INFO:autoreload:Reloading '{mod_name}'."]
 
     def _check_smoketest(self, use_aimport=True):
         """

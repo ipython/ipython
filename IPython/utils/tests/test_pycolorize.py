@@ -18,6 +18,7 @@ Authors
 #-----------------------------------------------------------------------------
 
 # our own
+import sys
 from IPython.utils.PyColorize import Parser
 import io
 import pytest
@@ -40,7 +41,7 @@ def function(arg, *args, kwarg=True, **kwargs):
     False == None
 
     with io.open(ru'unicode', encoding='utf-8'):
-        raise ValueError("\n escape \r sequence")
+        raise ValueError("escape \r sequence")
 
     print("wěird ünicoðe")
 
@@ -64,6 +65,6 @@ def test_parse_sample(style):
 
 def test_parse_error(style):
     p = Parser(style=style)
-    f1 = p.format(")", "str")
+    f1 = p.format(r"\ " if sys.version_info >= (3, 12) else ")", "str")
     if style != "NoColor":
         assert "ERROR" in f1

@@ -422,6 +422,7 @@ def test_collections_counter():
         (Counter(), 'Counter()'),
         (Counter(a=1), "Counter({'a': 1})"),
         (MyCounter(a=1), "MyCounter({'a': 1})"),
+        (Counter(a=1, c=22), "Counter({'c': 22, 'a': 1})"),
     ]
     for obj, expected in cases:
         assert pretty.pretty(obj) == expected

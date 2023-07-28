@@ -177,6 +177,10 @@ class HistoryAccessor(HistoryAccessorBase):
         """
     ).tag(config=True)
 
+    @default("connection_options")
+    def _default_connection_options(self):
+        return dict(check_same_thread=False)
+
     # The SQLite database
     db = Any()
     @observe('db')
@@ -567,8 +571,11 @@ class HistoryManager(HistoryAccessor):
             conn = self.db
 
         with conn:
-            cur = conn.execute("""INSERT INTO sessions VALUES (NULL, ?, NULL,
-                            NULL, "") """, (datetime.datetime.now(),))
+            cur = conn.execute(
+                """INSERT INTO sessions VALUES (NULL, ?, NULL,
+                            NULL, '') """,
+                (datetime.datetime.now(),),
+            )
             self.session_number = cur.lastrowid
 
     def end_session(self):

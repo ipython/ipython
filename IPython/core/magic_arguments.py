@@ -251,7 +251,7 @@ class ArgMethodWrapper(ArgDecorator):
 
     """
 
-    _method_name = None
+    _method_name: str
 
     def __init__(self, *args, **kwds):
         self.args = args

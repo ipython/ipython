@@ -350,7 +350,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 def embed(*, header="", compile_flags=None, **kwargs):
     """Call this to embed IPython at the current point in your program.
 
-    The first invocation of this will create an :class:`InteractiveShellEmbed`
+    The first invocation of this will create a :class:`terminal.embed.InteractiveShellEmbed`
     instance and then call it.  Consecutive calls just call the already
     created instance.
 
@@ -369,8 +369,18 @@ def embed(*, header="", compile_flags=None, **kwargs):
         d = 40
         embed()
 
-    Full customization can be done by passing a :class:`Config` in as the
-    config argument.
+    Parameters
+    ----------
+
+    header : str
+        Optional header string to print at startup.
+    compile_flags
+        Passed to the `compile_flags` parameter of :py:meth:`terminal.embed.InteractiveShellEmbed.mainloop()`,
+        which is called when the :class:`terminal.embed.InteractiveShellEmbed` instance is called.
+    **kwargs : various, optional
+        Any other kwargs will be passed to the :class:`terminal.embed.InteractiveShellEmbed` constructor.
+        Full customization can be done by passing a traitlets :class:`Config` in as the
+        `config` argument (see :ref:`configure_start_ipython` and :ref:`terminal_options`).
     """
     config = kwargs.get('config')
     if config is None:

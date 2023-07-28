@@ -51,24 +51,24 @@ def recursionlimit(frames):
 class ChangedPyFileTest(unittest.TestCase):
     def test_changing_py_file(self):
         """Traceback produced if the line where the error occurred is missing?
-        
+
         https://github.com/ipython/ipython/issues/1456
         """
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
             with open(fname, "w", encoding="utf-8") as f:
                 f.write(file_1)
-            
+
             with prepended_to_syspath(td):
                 ip.run_cell("import foo")
-            
+
             with tt.AssertPrints("ZeroDivisionError"):
                 ip.run_cell("foo.f()")
-            
+
             # Make the file shorter, so the line of the error is missing.
             with open(fname, "w", encoding="utf-8") as f:
                 f.write(file_2)
-            
+
             # For some reason, this was failing on the *second* call after
             # changing the file, so we call f() twice.
             with tt.AssertNotPrints("Internal Python error", channel='stderr'):
@@ -92,27 +92,27 @@ class NonAsciiTest(unittest.TestCase):
             fname = os.path.join(td, u"fooé.py")
             with open(fname, "w", encoding="utf-8") as f:
                 f.write(file_1)
-            
+
             with prepended_to_syspath(td):
                 ip.run_cell("import foo")
-            
+
             with tt.AssertPrints("ZeroDivisionError"):
                 ip.run_cell("foo.f()")
-    
+
     def test_iso8859_5(self):
         with TemporaryDirectory() as td:
             fname = os.path.join(td, 'dfghjkl.py')
 
             with io.open(fname, 'w', encoding='iso-8859-5') as f:
                 f.write(iso_8859_5_file)
-            
+
             with prepended_to_syspath(td):
                 ip.run_cell("from dfghjkl import fail")
-            
+
             with tt.AssertPrints("ZeroDivisionError"):
                 with tt.AssertPrints(u'дбИЖ', suppress=False):
                     ip.run_cell('fail()')
-    
+
     def test_nonascii_msg(self):
         cell = u"raise Exception('é')"
         expected = u"Exception('é')"
@@ -167,12 +167,12 @@ class IndentationErrorTest(unittest.TestCase):
         with tt.AssertPrints("IndentationError"):
             with tt.AssertPrints("zoon()", suppress=False):
                 ip.run_cell(indentationerror_file)
-        
+
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "foo.py")
             with open(fname, "w", encoding="utf-8") as f:
                 f.write(indentationerror_file)
-            
+
             with tt.AssertPrints("IndentationError"):
                 with tt.AssertPrints("zoon()", suppress=False):
                     ip.magic('run %s' % fname)
@@ -244,15 +244,14 @@ bar()
 
 import sys
 
-if sys.version_info < (3, 9) and platform.python_implementation() != "PyPy":
+if platform.python_implementation() != "PyPy":
     """
     New 3.9 Pgen Parser does not raise Memory error, except on failed malloc.
     """
     class MemoryErrorTest(unittest.TestCase):
         def test_memoryerror(self):
             memoryerror_code = "(" * 200 + ")" * 200
-            with tt.AssertPrints("MemoryError"):
-                ip.run_cell(memoryerror_code)
+            ip.run_cell(memoryerror_code)
 
 
 class Python3ChainedExceptionsTest(unittest.TestCase):
@@ -362,6 +361,29 @@ def r3o2():
                 tt.AssertPrints(re.compile(r"r3b at line 11 \(\d{2} times\)"), suppress=False), \
                 tt.AssertPrints(re.compile(r"r3c at line 14 \(\d{2} times\)"), suppress=False):
             ip.run_cell("r3o2()")
+
+
+class PEP678NotesReportingTest(unittest.TestCase):
+    ERROR_WITH_NOTE = """
+try:
+    raise AssertionError("Message")
+except Exception as e:
+    try:
+        e.add_note("This is a PEP-678 note.")
+    except AttributeError:  # Python <= 3.10
+        e.__notes__ = ("This is a PEP-678 note.",)
+    raise
+    """
+
+    def test_verbose_reports_notes(self):
+        with tt.AssertPrints(["AssertionError", "Message", "This is a PEP-678 note."]):
+            ip.run_cell(self.ERROR_WITH_NOTE)
+
+    def test_plain_reports_notes(self):
+        with tt.AssertPrints(["AssertionError", "Message", "This is a PEP-678 note."]):
+            ip.run_cell("%xmode Plain")
+            ip.run_cell(self.ERROR_WITH_NOTE)
+            ip.run_cell("%xmode Verbose")
 
 
 #----------------------------------------------------------------------------

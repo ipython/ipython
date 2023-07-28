@@ -43,7 +43,7 @@ jobs:
         python -m pip install --upgrade -e file://$PWD#egg=ipython[test]
         # we must install IPython after ipykernel to get the right versions.
         python -m pip install --upgrade --upgrade-strategy eager flaky ipyparallel
-        python -m pip install --upgrade 'pytest<7' 
+        python -m pip install --upgrade 'pytest<7'  'pytest_asyncio<0.21'
     - name: pytest
       env:
         COLUMNS: 120

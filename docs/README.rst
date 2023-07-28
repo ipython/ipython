@@ -26,7 +26,7 @@ the following tools are needed to build the documentation:
 In a conda environment, or a Python 3 ``venv``, you should be able to run::
 
   cd ipython
-  pip install .[doc] -U
+  pip install -U -r docs/requirements.txt
 
 
 Build Commands

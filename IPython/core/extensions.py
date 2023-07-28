@@ -88,13 +88,7 @@ class ExtensionManager(Configurable):
 
         with self.shell.builtin_trap:
             if module_str not in sys.modules:
-                with prepended_to_syspath(self.ipython_extension_dir):
-                    mod = import_module(module_str)
-                    if mod.__file__.startswith(self.ipython_extension_dir):
-                        print(("Loading extensions from {dir} is deprecated. "
-                               "We recommend managing extensions like any "
-                               "other Python packages, in site-packages.").format(
-                              dir=compress_user(self.ipython_extension_dir)))
+                mod = import_module(module_str)
             mod = sys.modules[module_str]
             if self._call_load_ipython_extension(mod):
                 self.loaded.add(module_str)
@@ -155,13 +149,3 @@ class ExtensionManager(Configurable):
         if hasattr(mod, 'unload_ipython_extension'):
             mod.unload_ipython_extension(self.shell)
             return True
-
-    @undoc
-    def install_extension(self, url, filename=None):
-        """
-        Deprecated.
-        """
-        # Ensure the extension directory exists
-        raise DeprecationWarning(
-            '`install_extension` and the `install_ext` magic have been deprecated since IPython 4.0'
-            'Use pip or other package managers to manage ipython extensions.')

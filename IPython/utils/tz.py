@@ -33,7 +33,9 @@ class tzUTC(tzinfo):
     def dst(self, d):
         return ZERO
 
-UTC = tzUTC()
+
+UTC = tzUTC()  # type: ignore[abstract]
+
 
 def utc_aware(unaware):
     """decorator for adding UTC tzinfo to datetime's utcfoo methods"""

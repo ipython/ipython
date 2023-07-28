@@ -103,6 +103,7 @@ def write_doc(name, title, app, preamble=None):
     trait_aliases = reverse_aliases(app)
     filename = options / (name + ".rst")
     with open(filename, "w", encoding="utf-8") as f:
+        f.write(".. _" + name + "_options:" + "\n\n")
         f.write(title + "\n")
         f.write(("=" * len(title)) + "\n")
         f.write("\n")

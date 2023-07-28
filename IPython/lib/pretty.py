@@ -918,7 +918,7 @@ def _counter_pprint(obj, p, cycle):
     if cycle:
         p.pretty(cls_ctor(RawText("...")))
     elif len(obj):
-        p.pretty(cls_ctor(dict(obj)))
+        p.pretty(cls_ctor(dict(obj.most_common())))
     else:
         p.pretty(cls_ctor())
 

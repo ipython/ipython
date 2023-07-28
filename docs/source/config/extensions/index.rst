@@ -6,8 +6,7 @@ IPython extensions
 
 A level above configuration are IPython extensions, Python modules which modify
 the behaviour of the shell. They are referred to by an importable module name,
-and can be placed anywhere you'd normally import from, or in
-``.ipython/extensions/``.
+and can be placed anywhere you'd normally import from.
 
 Getting extensions
 ==================
@@ -56,10 +55,10 @@ imported, and the currently active :class:`~IPython.core.interactiveshell.Intera
 instance is passed as the only argument. You can do anything you want with
 IPython at that point.
 
-:func:`load_ipython_extension` will not be called again if the user use
-`%load_extension`.  The user have to explicitly ask the extension to be
-reloaded (with `%reload_extension`). In case where the use ask the extension to
-be reloaded, , the extension will be unloaded (with
+:func:`load_ipython_extension` will not be called again if the users use
+`%load_extension`.  The user has to explicitly ask the extension to be
+reloaded (with `%reload_extension`). In cases where the user asks the extension to
+be reloaded, the extension will be unloaded (with
 `unload_ipython_extension`), and loaded again. 
 
 Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiveshell.InteractiveShell.register_magic_function`, 
@@ -71,10 +70,7 @@ Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiv
    :ref:`defining_magics`
 
 You can put your extension modules anywhere you want, as long as they can be
-imported by Python's standard import mechanism. However, to make it easy to
-write extensions, you can also put your extensions in :file:`extensions/`
-within the :ref:`IPython directory <ipythondir>`. This directory is
-added to :data:`sys.path` automatically.
+imported by Python's standard import mechanism.
 
 When your extension is ready for general use, please add it to the `extensions
 index <https://github.com/ipython/ipython/wiki/Extensions-Index>`_. We also

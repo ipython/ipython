@@ -183,8 +183,7 @@ today_fmt = '%B %d, %Y'
 
 # Exclude these glob-style patterns when looking for source files. They are
 # relative to the source/ directory.
-exclude_patterns = []
-
+exclude_patterns = ["**.ipynb_checkpoints"]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
@@ -210,7 +209,6 @@ default_role = 'literal'
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
 # html_style = 'default.css'
-
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -325,6 +323,10 @@ texinfo_documents = [
 ]
 
 modindex_common_prefix = ['IPython.']
+
+
+def setup(app):
+    app.add_css_file("theme_overrides.css")
 
 
 # Cleanup

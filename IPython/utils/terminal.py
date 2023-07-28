@@ -62,15 +62,27 @@ def _restore_term_title():
     pass
 
 
+_xterm_term_title_saved = False
+
+
 def _set_term_title_xterm(title):
     """ Change virtual terminal title in xterm-workalikes """
-    # save the current title to the xterm "stack"
-    sys.stdout.write('\033[22;0t') 
+    global _xterm_term_title_saved
+    # Only save the title the first time we set, otherwise restore will only
+    # go back one title (probably undoing a %cd title change).
+    if not _xterm_term_title_saved:
+        # save the current title to the xterm "stack"
+        sys.stdout.write("\033[22;0t")
+        _xterm_term_title_saved = True
     sys.stdout.write('\033]0;%s\007' % title)
 
 
 def _restore_term_title_xterm():
+    # Make sure the restore has at least one accompanying set.
+    global _xterm_term_title_saved
+    assert _xterm_term_title_saved
     sys.stdout.write('\033[23;0t') 
+    _xterm_term_title_saved = False
 
 
 if os.name == 'posix':
@@ -79,30 +91,14 @@ if os.name == 'posix':
         _set_term_title = _set_term_title_xterm
         _restore_term_title = _restore_term_title_xterm
 elif sys.platform == 'win32':
-    try:
-        import ctypes
+    import ctypes
 
-        SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
-        SetConsoleTitleW.argtypes = [ctypes.c_wchar_p]
-    
-        def _set_term_title(title):
-            """Set terminal title using ctypes to access the Win32 APIs."""
-            SetConsoleTitleW(title)
-    except ImportError:
-        def _set_term_title(title):
-            """Set terminal title using the 'title' command."""
-            global ignore_termtitle
+    SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
+    SetConsoleTitleW.argtypes = [ctypes.c_wchar_p]
 
-            try:
-                # Cannot be on network share when issuing system commands
-                curr = os.getcwd()
-                os.chdir("C:")
-                ret = os.system("title " + title)
-            finally:
-                os.chdir(curr)
-            if ret:
-                # non-zero return code signals error, don't try again
-                ignore_termtitle = True
+    def _set_term_title(title):
+        """Set terminal title using ctypes to access the Win32 APIs."""
+        SetConsoleTitleW(title)
 
 
 def set_term_title(title):

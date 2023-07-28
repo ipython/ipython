@@ -3,8 +3,7 @@ include COPYING.rst
 include LICENSE
 include setupbase.py
 include MANIFEST.in
-include pytest.ini
-include mypy.ini
+include py.typed
 include .mailmap
 include .flake8
 include .pre-commit-config.yaml

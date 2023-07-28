@@ -1,15 +1,11 @@
 """Tests for the key interactiveshell module, where the main ipython class is defined.
 """
-#-----------------------------------------------------------------------------
-# Module imports
-#-----------------------------------------------------------------------------
 
+import stack_data
+import sys
 
-# our own packages
+SV_VERSION = tuple([int(x) for x in stack_data.__version__.split(".")[0:2]])
 
-#-----------------------------------------------------------------------------
-# Test functions
-#-----------------------------------------------------------------------------
 
 def test_reset():
     """reset must clear most namespaces."""
@@ -170,45 +166,47 @@ def doctest_tb_sysexit():
     """
 
 
-def doctest_tb_sysexit_verbose():
-    """
-    In [18]: %run simpleerr.py exit
-    An exception has occurred, use %tb to see the full traceback.
-    SystemExit: (1, 'Mode = exit')
+if SV_VERSION < (0, 6):
 
-    In [19]: %run simpleerr.py exit 2
-    An exception has occurred, use %tb to see the full traceback.
-    SystemExit: (2, 'Mode = exit')
+    def doctest_tb_sysexit_verbose_stack_data_05():
+        """
+        In [18]: %run simpleerr.py exit
+        An exception has occurred, use %tb to see the full traceback.
+        SystemExit: (1, 'Mode = exit')
 
-    In [23]: %xmode verbose
-    Exception reporting mode: Verbose
+        In [19]: %run simpleerr.py exit 2
+        An exception has occurred, use %tb to see the full traceback.
+        SystemExit: (2, 'Mode = exit')
 
-    In [24]: %tb
-    ---------------------------------------------------------------------------
-    SystemExit                                Traceback (most recent call last)
-    <BLANKLINE>
-    ...
-         30     except IndexError:
-         31         mode = 'div'
-    ---> 33     bar(mode)
-            mode = 'exit'
-    <BLANKLINE>
-    ... in bar(mode='exit')
-         ...     except:
-         ...         stat = 1
-    ---> ...     sysexit(stat, mode)
-            mode = 'exit'
-            stat = 2
-         ...     else:
-         ...         raise ValueError('Unknown mode')
-    <BLANKLINE>
-    ... in sysexit(stat=2, mode='exit')
-         10 def sysexit(stat, mode):
-    ---> 11     raise SystemExit(stat, f"Mode = {mode}")
-            stat = 2
-    <BLANKLINE>
-    SystemExit: (2, 'Mode = exit')
-    """
+        In [23]: %xmode verbose
+        Exception reporting mode: Verbose
+
+        In [24]: %tb
+        ---------------------------------------------------------------------------
+        SystemExit                                Traceback (most recent call last)
+        <BLANKLINE>
+        ...
+            30     except IndexError:
+            31         mode = 'div'
+        ---> 33     bar(mode)
+                mode = 'exit'
+        <BLANKLINE>
+        ... in bar(mode='exit')
+            ...     except:
+            ...         stat = 1
+        ---> ...     sysexit(stat, mode)
+                mode = 'exit'
+                stat = 2
+            ...     else:
+            ...         raise ValueError('Unknown mode')
+        <BLANKLINE>
+        ... in sysexit(stat=2, mode='exit')
+            10 def sysexit(stat, mode):
+        ---> 11     raise SystemExit(stat, f"Mode = {mode}")
+                stat = 2
+        <BLANKLINE>
+        SystemExit: (2, 'Mode = exit')
+        """
 
 
 def test_run_cell():

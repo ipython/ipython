@@ -31,6 +31,8 @@ import sys
 import tokenize
 import warnings
 
+from typing import List
+
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
                                            ipy_prompt,
@@ -42,6 +44,7 @@ from IPython.core.inputtransformer import (leading_indent,
                                            assign_from_system,
                                            assemble_python_lines,
                                            )
+from IPython.utils import tokenutil
 
 # These are available in this module for backwards compatibility.
 from IPython.core.inputtransformer import (ESC_SHELL, ESC_SH_CAP, ESC_HELP,
@@ -126,7 +129,7 @@ def partial_tokens(s):
     readline = io.StringIO(s).readline
     token = tokenize.TokenInfo(tokenize.NEWLINE, '', (1, 0), (1, 0), '')
     try:
-        for token in tokenize.generate_tokens(readline):
+        for token in tokenutil.generate_tokens_catch_errors(readline):
             yield token
     except tokenize.TokenError as e:
         # catch EOF error
@@ -148,8 +151,21 @@ def find_next_indent(code):
         tokens.pop()
     if not tokens:
         return 0
-    while (tokens[-1].type in {tokenize.DEDENT, tokenize.NEWLINE, tokenize.COMMENT}):
+
+    while tokens[-1].type in {
+        tokenize.DEDENT,
+        tokenize.NEWLINE,
+        tokenize.COMMENT,
+        tokenize.ERRORTOKEN,
+    }:
         tokens.pop()
+
+    # Starting in Python 3.12, the tokenize module adds implicit newlines at the end
+    # of input. We need to remove those if we're in a multiline statement
+    if tokens[-1].type == IN_MULTILINE_STATEMENT:
+        while tokens[-2].type in {tokenize.NL}:
+            tokens.pop(-2)
+
 
     if tokens[-1].type == INCOMPLETE_STRING:
         # Inside a multiline string
@@ -319,17 +335,16 @@ class InputSplitter(object):
     # Private attributes
 
     # List with lines of input accumulated so far
-    _buffer = None
+    _buffer: List[str]
     # Command compiler
-    _compile = None
+    _compile: codeop.CommandCompiler
     # Boolean indicating whether the current block is complete
     _is_complete = None
     # Boolean indicating whether the current block has an unrecoverable syntax error
     _is_invalid = False
 
-    def __init__(self):
-        """Create a new InputSplitter instance.
-        """
+    def __init__(self) -> None:
+        """Create a new InputSplitter instance."""
         self._buffer = []
         self._compile = codeop.CommandCompiler()
         self.encoding = get_input_encoding()
@@ -483,7 +498,7 @@ class InputSplitter(object):
                 return False
             
             try:
-                code_ast = ast.parse(u''.join(self._buffer))
+                code_ast = ast.parse("".join(self._buffer))
             except Exception:
                 #print("Can't parse AST")  # debug
                 return False

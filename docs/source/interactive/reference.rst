@@ -44,7 +44,7 @@ the command-line by passing the full class name and a corresponding value; type
     <...snip...>
     --matplotlib=<CaselessStrEnum> (InteractiveShellApp.matplotlib)
         Default: None
-        Choices: ['auto', 'gtk', 'gtk3', 'gtk4', 'inline', 'nbagg', 'notebook', 'osx', 'qt', 'qt4', 'qt5', 'tk', 'wx']
+        Choices: ['auto', 'gtk', 'gtk3', 'gtk4', 'inline', 'nbagg', 'notebook', 'osx', 'qt', 'qt5', 'qt6', 'tk', 'wx']
         Configure matplotlib for interactive use with the default matplotlib
         backend.
     <...snip...>
@@ -892,7 +892,7 @@ GUI event loop support
 ======================
 
 IPython has excellent support for working interactively with Graphical User
-Interface (GUI) toolkits, such as wxPython, PyQt4/PySide, PyGTK and Tk. This is
+Interface (GUI) toolkits, such as wxPython, PyQt/PySide, PyGTK and Tk. This is
 implemented by running the toolkit's event loop while IPython is waiting for
 input.
 
@@ -902,7 +902,7 @@ For users, enabling GUI event loop integration is simple.  You simple use the
     %gui [GUINAME]
 
 With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
-arguments include ``wx``, ``qt``, ``qt5``, ``gtk``, ``gtk3`` ``gtk4``, and
+arguments include ``wx``, ``qt``, ``qt5``, ``qt6``, ``gtk``, ``gtk3`` ``gtk4``, and
 ``tk``.
 
 Thus, to use wxPython interactively and create a running :class:`wx.App`
@@ -936,16 +936,9 @@ PyQt and PySide
 .. attempt at explanation of the complete mess that is Qt support
 
 When you use ``--gui=qt`` or ``--matplotlib=qt``, IPython can work with either
-PyQt4 or PySide.  There are three options for configuration here, because
-PyQt4 has two APIs for QString and QVariant: v1, which is the default on
-Python 2, and the more natural v2, which is the only API supported by PySide.
-v2 is also the default for PyQt4 on Python 3.  IPython's code for the QtConsole
-uses v2, but you can still use any interface in your code, since the
-Qt frontend is in a different process.
-
-The default will be to import PyQt4 without configuration of the APIs, thus
-matching what most applications would expect. It will fall back to PySide if
-PyQt4 is unavailable.
+PyQt or PySide.  ``qt`` implies "use the latest version available", and it favors
+PyQt over PySide. To request a specific version, use ``qt5`` or ``qt6``. Note that
+Qt4 is not supported with the ``--gui`` switch (and has not been for some time now).
 
 If specified, IPython will respect the environment variable ``QT_API`` used
 by ETS.  ETS 4.0 also works with both PyQt4 and PySide, but it requires

@@ -471,7 +471,6 @@ def test_decorator_skip_with_breakpoint():
 
     ### we need a filename, so we need to exec the full block with a filename
     with NamedTemporaryFile(suffix=".py", dir=".", delete=True) as tf:
-
         name = tf.name[:-3].split("/")[-1]
         tf.write("\n".join([dedent(x) for x in skip_decorators_blocks[:-1]]).encode())
         tf.flush()

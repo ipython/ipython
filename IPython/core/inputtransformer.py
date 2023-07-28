@@ -9,10 +9,11 @@ import abc
 import functools
 import re
 import tokenize
-from tokenize import generate_tokens, untokenize, TokenError
+from tokenize import untokenize, TokenError
 from io import StringIO
 
 from IPython.core.splitinput import LineInfo
+from IPython.utils import tokenutil
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -127,7 +128,7 @@ class TokenInputTransformer(InputTransformer):
 
     def reset_tokenizer(self):
         it = iter(self.buf)
-        self.tokenizer = generate_tokens(it.__next__)
+        self.tokenizer = tokenutil.generate_tokens_catch_errors(it.__next__)
 
     def push(self, line):
         self.buf.append(line + '\n')
@@ -295,7 +296,7 @@ def _line_tokens(line):
     readline = StringIO(line).readline
     toktypes = set()
     try:
-        for t in generate_tokens(readline):
+        for t in tokenutil.generate_tokens_catch_errors(readline):
             toktypes.add(t[0])
     except TokenError as e:
         # There are only two cases where a TokenError is raised.

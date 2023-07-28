@@ -3,16 +3,18 @@ channels:
  - conda-forge
  - defaults
 dependencies:
-  - python=3.8
-  - setuptools>=18.5
+  - python=3.10
+  - setuptools
   - sphinx>=4.2
-  - sphinx_rtd_theme>=1.0
+  - sphinx_rtd_theme
   - numpy
-  - nose
+  - exceptiongroup
   - testpath
   - matplotlib
+  - pip
   - pip:
     - docrepr
     - prompt_toolkit
     - ipykernel
     - stack_data
+    - -e ..

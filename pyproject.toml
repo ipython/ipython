@@ -1,3 +1,81 @@
 [build-system]
 requires = ["setuptools >= 51.0.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.mypy]
+python_version = 3.9
+ignore_missing_imports = true
+follow_imports = 'silent'
+exclude = [
+   'test_\.+\.py',
+   'IPython.utils.tests.test_wildcard',
+   'testing',
+   'tests',
+   'PyColorize.py',
+   '_process_win32_controller.py',
+   'IPython/core/application.py',
+   'IPython/core/completerlib.py',
+   'IPython/core/displaypub.py',
+   'IPython/core/historyapp.py',
+   #'IPython/core/interactiveshell.py',
+   'IPython/core/magic.py',
+   'IPython/core/profileapp.py',
+   # 'IPython/core/ultratb.py',
+   'IPython/lib/deepreload.py',
+   'IPython/lib/pretty.py',
+   'IPython/sphinxext/ipython_directive.py',
+   'IPython/terminal/ipapp.py',
+   'IPython/utils/_process_win32.py',
+   'IPython/utils/path.py',
+   'IPython/utils/timing.py',
+   'IPython/utils/text.py'
+]
+
+[tool.pytest.ini_options]
+addopts = [
+   "--durations=10",
+   "-pIPython.testing.plugin.pytest_ipdoctest",
+   "--ipdoctest-modules",
+   "--ignore=docs",
+   "--ignore=examples",
+   "--ignore=htmlcov",
+   "--ignore=ipython_kernel",
+   "--ignore=ipython_parallel",
+   "--ignore=results",
+   "--ignore=tmp",
+   "--ignore=tools",
+   "--ignore=traitlets",
+   "--ignore=IPython/core/tests/daft_extension",
+   "--ignore=IPython/sphinxext",
+   "--ignore=IPython/terminal/pt_inputhooks",
+   "--ignore=IPython/__main__.py",
+   "--ignore=IPython/external/qt_for_kernel.py",
+   "--ignore=IPython/html/widgets/widget_link.py",
+   "--ignore=IPython/html/widgets/widget_output.py",
+   "--ignore=IPython/terminal/console.py",
+   "--ignore=IPython/utils/_process_cli.py",
+   "--ignore=IPython/utils/_process_posix.py",
+   "--ignore=IPython/utils/_process_win32.py",
+   "--ignore=IPython/utils/_process_win32_controller.py",
+   "--ignore=IPython/utils/daemonize.py",
+   "--ignore=IPython/utils/eventful.py",
+   "--ignore=IPython/kernel",
+   "--ignore=IPython/consoleapp.py",
+   "--ignore=IPython/core/inputsplitter.py",
+   "--ignore=IPython/lib/kernel.py",
+   "--ignore=IPython/utils/jsonutil.py",
+   "--ignore=IPython/utils/localinterfaces.py",
+   "--ignore=IPython/utils/log.py",
+   "--ignore=IPython/utils/signatures.py",
+   "--ignore=IPython/utils/traitlets.py",
+   "--ignore=IPython/utils/version.py"
+]
+doctest_optionflags = [
+   "NORMALIZE_WHITESPACE",
+   "ELLIPSIS"
+]
+ipdoctest_optionflags = [
+   "NORMALIZE_WHITESPACE",
+   "ELLIPSIS"
+]
+asyncio_mode = "strict"

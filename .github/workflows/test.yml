@@ -19,33 +19,33 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
           - os: macos-latest
-            python-version: "3.8"
+            python-version: "3.9"
             deps: test_extra
           - os: macos-latest
-            python-version: "3.10"
+            python-version: "3.11"
             deps: test_extra
           # Tests minimal dependencies set
           - os: ubuntu-latest
-            python-version: "3.10"
+            python-version: "3.11"
             deps: test
           # Tests latest development Python version
           - os: ubuntu-latest
-            python-version: "3.11-dev"
+            python-version: "3.12-dev"
             deps: test
           # Installing optional dependencies stuff takes ages on PyPy
           - os: ubuntu-latest
-            python-version: "pypy-3.8"
+            python-version: "pypy-3.9"
             deps: test
           - os: windows-latest
-            python-version: "pypy-3.8"
+            python-version: "pypy-3.9"
             deps: test
           - os: macos-latest
-            python-version: "pypy-3.8"
+            python-version: "pypy-3.9"
             deps: test
 
     steps:
@@ -55,14 +55,23 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
+        cache-dependency-path: |
+          setup.cfg
     - name: Install latex
       if: runner.os == 'Linux' && matrix.deps == 'test_extra'
       run: echo "disable latex for now, issues in mirros" #sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
-    - name: Install and update Python dependencies
+    - name: Install and update Python dependencies (binary only)
+      if: ${{ ! contains( matrix.python-version, 'dev' ) }}
       run: |
-        python -m pip install --upgrade pip setuptools wheel build
-        python -m pip install --upgrade -e .[${{ matrix.deps }}]
-        python -m pip install --upgrade check-manifest pytest-cov
+        python -m pip install --only-binary ':all:' --upgrade pip setuptools wheel build
+        python -m pip install --only-binary ':all:' --no-binary curio --upgrade -e .[${{ matrix.deps }}]
+        python -m pip install --only-binary ':all:' --upgrade check-manifest pytest-cov  pytest-json-report
+    - name: Install and update Python dependencies (dev?)
+      if: ${{ contains( matrix.python-version, 'dev' ) }}
+      run: |
+        python -m pip install --pre --upgrade pip setuptools wheel build
+        python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --no-binary curio --upgrade -e .[${{ matrix.deps }}]
+        python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --upgrade check-manifest pytest-cov  pytest-json-report
     - name: Try building with Python build
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: |
@@ -75,6 +84,15 @@ jobs:
       env:
         COLUMNS: 120
       run: |
-        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }}
+        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --json-report --json-report-file=./report-${{ matrix.python-version }}-${{runner.os}}.json
+    - uses: actions/upload-artifact@v3
+      with:
+          name: upload pytest timing reports as json
+          path: |
+            ./report-*.json
+
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
+      with:
+         name: Test
+         files: /home/runner/work/ipython/ipython/coverage.xml

@@ -298,13 +298,18 @@ def test_find_assign_op_dedent():
     )
 
 
+extra_closing_paren_param = (
+    pytest.param("(\n))", "invalid", None)
+    if sys.version_info >= (3, 12)
+    else pytest.param("(\n))", "incomplete", 0)
+)
 examples = [
     pytest.param("a = 1", "complete", None),
     pytest.param("for a in range(5):", "incomplete", 4),
     pytest.param("for a in range(5):\n    if a > 0:", "incomplete", 8),
     pytest.param("raise = 2", "invalid", None),
     pytest.param("a = [1,\n2,", "incomplete", 0),
-    pytest.param("(\n))", "incomplete", 0),
+    extra_closing_paren_param,
     pytest.param("\\\r\n", "incomplete", 0),
     pytest.param("a = '''\n   hi", "incomplete", 3),
     pytest.param("def a():\n x=1\n global x", "invalid", None),

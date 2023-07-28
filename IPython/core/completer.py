@@ -50,7 +50,7 @@ Backward latex completion
 
 It is sometime challenging to know how to type a character, if you are using
 IPython, or any compatible frontend you can prepend backslash to the character
-and press ``<tab>`` to expand it to its latex form.
+and press :kbd:`Tab` to expand it to its latex form.
 
 .. code::
 
@@ -59,7 +59,8 @@ and press ``<tab>`` to expand it to its latex form.
 
 
 Both forward and backward completions can be deactivated by setting the
-``Completer.backslash_combining_completions`` option to ``False``.
+:std:configtrait:`Completer.backslash_combining_completions` option to
+``False``.
 
 
 Experimental
@@ -95,7 +96,7 @@ having to execute any code:
    ... myvar[1].bi<tab>
 
 Tab completion will be able to infer that ``myvar[1]`` is a real number without
-executing any code unlike the previously available ``IPCompleter.greedy``
+executing almost any code unlike the deprecated :any:`IPCompleter.greedy`
 option.
 
 Be sure to update :any:`jedi` to the latest stable version or to try the
@@ -162,11 +163,11 @@ When multiple matchers simultaneously request surpression, the results from of
 the matcher with higher priority will be returned.
 
 Sometimes it is desirable to suppress most but not all other matchers;
-this can be achieved by adding a list of identifiers of matchers which
+this can be achieved by adding a set of identifiers of matchers which
 should not be suppressed to ``MatcherResult`` under ``do_not_suppress`` key.
 
 The suppression behaviour can is user-configurable via
-:any:`IPCompleter.suppress_competing_matchers`.
+:std:configtrait:`IPCompleter.suppress_competing_matchers`.
 """
 
 
@@ -178,6 +179,7 @@ The suppression behaviour can is user-configurable via
 
 from __future__ import annotations
 import builtins as builtin_mod
+import enum
 import glob
 import inspect
 import itertools
@@ -186,14 +188,16 @@ import os
 import re
 import string
 import sys
+import tokenize
 import time
 import unicodedata
 import uuid
 import warnings
+from ast import literal_eval
+from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import cached_property, partial
-from importlib import import_module
 from types import SimpleNamespace
 from typing import (
     Iterable,
@@ -204,14 +208,15 @@ from typing import (
     Any,
     Sequence,
     Dict,
-    NamedTuple,
-    Pattern,
     Optional,
     TYPE_CHECKING,
     Set,
+    Sized,
+    TypeVar,
     Literal,
 )
 
+from IPython.core.guarded_eval import guarded_eval, EvaluationContext
 from IPython.core.error import TryNext
 from IPython.core.inputtransformer2 import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
@@ -231,7 +236,6 @@ from traitlets import (
     Unicode,
     Dict as DictTrait,
     Union as UnionTrait,
-    default,
     observe,
 )
 from traitlets.config.configurable import Configurable
@@ -252,12 +256,13 @@ except ImportError:
     JEDI_INSTALLED = False
 
 
-if TYPE_CHECKING or GENERATING_DOCUMENTATION:
+if TYPE_CHECKING or GENERATING_DOCUMENTATION and sys.version_info >= (3, 11):
     from typing import cast
-    from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias
+    from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 else:
+    from typing import Generic
 
-    def cast(obj, type_):
+    def cast(type_, obj):
         """Workaround for `TypeError: MatcherAPIv2() takes no arguments`"""
         return obj
 
@@ -266,6 +271,7 @@ else:
     TypedDict = Dict  # by extension of `NotRequired` requires 3.11 too
     Protocol = object  # requires Python >=3.8
     TypeAlias = Any  # requires Python >=3.10
+    TypeGuard = Generic  # requires Python >=3.10
 if GENERATING_DOCUMENTATION:
     from typing import TypedDict
 
@@ -279,7 +285,7 @@ if GENERATING_DOCUMENTATION:
 # write this). With below range we cover them all, with a density of ~67%
 # biggest next gap we consider only adds up about 1% density and there are 600
 # gaps that would need hard coding.
-_UNICODE_RANGES = [(32, 0x3134b), (0xe0001, 0xe01f0)]
+_UNICODE_RANGES = [(32, 0x323B0), (0xE0001, 0xE01F0)]
 
 # Public API
 __all__ = ["Completer", "IPCompleter"]
@@ -295,6 +301,9 @@ MATCHES_LIMIT = 500
 
 # Completion type reported when no type can be inferred.
 _UNKNOWN_TYPE = "<unknown>"
+
+# sentinel value to signal lack of a match
+not_found = object()
 
 class ProvisionalCompleterWarning(FutureWarning):
     """
@@ -466,14 +475,15 @@ class _FakeJediCompletion:
         self.complete = name
         self.type = 'crashed'
         self.name_with_symbols = name
-        self.signature = ''
-        self._origin = 'fake'
+        self.signature = ""
+        self._origin = "fake"
+        self.text = "crashed"
 
     def __repr__(self):
         return '<Fake completion object jedi has crashed>'
 
 
-_JediCompletionLike = Union[jedi.api.Completion, _FakeJediCompletion]
+_JediCompletionLike = Union["jedi.api.Completion", _FakeJediCompletion]
 
 
 class Completion:
@@ -503,11 +513,23 @@ class Completion:
 
     __slots__ = ['start', 'end', 'text', 'type', 'signature', '_origin']
 
-    def __init__(self, start: int, end: int, text: str, *, type: str=None, _origin='', signature='') -> None:
-        warnings.warn("``Completion`` is a provisional API (as of IPython 6.0). "
-                      "It may change without warnings. "
-                      "Use in corresponding context manager.",
-                      category=ProvisionalCompleterWarning, stacklevel=2)
+    def __init__(
+        self,
+        start: int,
+        end: int,
+        text: str,
+        *,
+        type: Optional[str] = None,
+        _origin="",
+        signature="",
+    ) -> None:
+        warnings.warn(
+            "``Completion`` is a provisional API (as of IPython 6.0). "
+            "It may change without warnings. "
+            "Use in corresponding context manager.",
+            category=ProvisionalCompleterWarning,
+            stacklevel=2,
+        )
 
         self.start = start
         self.end = end
@@ -520,7 +542,7 @@ class Completion:
         return '<Completion start=%s end=%s text=%r type=%r, signature=%r,>' % \
                 (self.start, self.end, self.text, self.type or '?', self.signature or '?')
 
-    def __eq__(self, other)->Bool:
+    def __eq__(self, other) -> bool:
         """
         Equality and hash do not hash the type (as some completer may not be
         able to infer the type), but are use to (partially) de-duplicate
@@ -554,7 +576,7 @@ class SimpleCompletion:
 
     __slots__ = ["text", "type"]
 
-    def __init__(self, text: str, *, type: str = None):
+    def __init__(self, text: str, *, type: Optional[str] = None):
         self.text = text
         self.type = type
 
@@ -588,14 +610,18 @@ class SimpleMatcherResult(_MatcherResultBase, TypedDict):
     # in order to get __orig_bases__ for documentation
 
     #: List of candidate completions
-    completions: Sequence[SimpleCompletion]
+    completions: Sequence[SimpleCompletion] | Iterator[SimpleCompletion]
 
 
 class _JediMatcherResult(_MatcherResultBase):
     """Matching result returned by Jedi (will be processed differently)"""
 
     #: list of candidate completions
-    completions: Iterable[_JediCompletionLike]
+    completions: Iterator[_JediCompletionLike]
+
+
+AnyMatcherCompletion = Union[_JediCompletionLike, SimpleCompletion]
+AnyCompletion = TypeVar("AnyCompletion", AnyMatcherCompletion, Completion)
 
 
 @dataclass
@@ -642,16 +668,21 @@ MatcherResult = Union[SimpleMatcherResult, _JediMatcherResult]
 
 
 class _MatcherAPIv1Base(Protocol):
-    def __call__(self, text: str) -> list[str]:
+    def __call__(self, text: str) -> List[str]:
         """Call signature."""
+        ...
+
+    #: Used to construct the default matcher identifier
+    __qualname__: str
 
 
 class _MatcherAPIv1Total(_MatcherAPIv1Base, Protocol):
     #: API version
     matcher_api_version: Optional[Literal[1]]
 
-    def __call__(self, text: str) -> list[str]:
+    def __call__(self, text: str) -> List[str]:
         """Call signature."""
+        ...
 
 
 #: Protocol describing Matcher API v1.
@@ -666,13 +697,61 @@ class MatcherAPIv2(Protocol):
 
     def __call__(self, context: CompletionContext) -> MatcherResult:
         """Call signature."""
+        ...
+
+    #: Used to construct the default matcher identifier
+    __qualname__: str
 
 
 Matcher: TypeAlias = Union[MatcherAPIv1, MatcherAPIv2]
 
 
+def _is_matcher_v1(matcher: Matcher) -> TypeGuard[MatcherAPIv1]:
+    api_version = _get_matcher_api_version(matcher)
+    return api_version == 1
+
+
+def _is_matcher_v2(matcher: Matcher) -> TypeGuard[MatcherAPIv2]:
+    api_version = _get_matcher_api_version(matcher)
+    return api_version == 2
+
+
+def _is_sizable(value: Any) -> TypeGuard[Sized]:
+    """Determines whether objects is sizable"""
+    return hasattr(value, "__len__")
+
+
+def _is_iterator(value: Any) -> TypeGuard[Iterator]:
+    """Determines whether objects is sizable"""
+    return hasattr(value, "__next__")
+
+
+def has_any_completions(result: MatcherResult) -> bool:
+    """Check if any result includes any completions."""
+    completions = result["completions"]
+    if _is_sizable(completions):
+        return len(completions) != 0
+    if _is_iterator(completions):
+        try:
+            old_iterator = completions
+            first = next(old_iterator)
+            result["completions"] = cast(
+                Iterator[SimpleCompletion],
+                itertools.chain([first], old_iterator),
+            )
+            return True
+        except StopIteration:
+            return False
+    raise ValueError(
+        "Completions returned by matcher need to be an Iterator or a Sizable"
+    )
+
+
 def completion_matcher(
-    *, priority: float = None, identifier: str = None, api_version: int = 1
+    *,
+    priority: Optional[float] = None,
+    identifier: Optional[str] = None,
+    api_version: int = 1,
 ):
     """Adds attributes describing the matcher.
 
@@ -684,7 +763,10 @@ def completion_matcher(
     identifier : Optional[str]
         identifier of the matcher allowing users to modify the behaviour via traitlets,
         and also used to for debugging (will be passed as ``origin`` with the completions).
-        Defaults to matcher function ``__qualname__``.
+
+        Defaults to matcher function's ``__qualname__`` (for example,
+        ``IPCompleter.file_matcher`` for the built-in matched defined
+        as a ``file_matcher`` method of the ``IPCompleter`` class).
     api_version: Optional[int]
         version of the Matcher API used by this matcher.
         Currently supported values are 1 and 2.
@@ -692,14 +774,14 @@ def completion_matcher(
     """
 
     def wrapper(func: Matcher):
-        func.matcher_priority = priority or 0
-        func.matcher_identifier = identifier or func.__qualname__
-        func.matcher_api_version = api_version
+        func.matcher_priority = priority or 0  # type: ignore
+        func.matcher_identifier = identifier or func.__qualname__  # type: ignore
+        func.matcher_api_version = api_version  # type: ignore
         if TYPE_CHECKING:
             if api_version == 1:
-                func = cast(func, MatcherAPIv1)
+                func = cast(MatcherAPIv1, func)
             elif api_version == 2:
-                func = cast(func, MatcherAPIv2)
+                func = cast(MatcherAPIv2, func)
         return func
 
     return wrapper
@@ -886,12 +968,44 @@ class CompletionSplitter(object):
 
 class Completer(Configurable):
 
-    greedy = Bool(False,
-        help="""Activate greedy completion
-        PENDING DEPRECATION. this is now mostly taken care of with Jedi.
+    greedy = Bool(
+        False,
+        help="""Activate greedy completion.
 
-        This will enable completion on elements of lists, results of function calls, etc.,
-        but can be unsafe because the code is actually evaluated on TAB.
+        .. deprecated:: 8.8
+            Use :std:configtrait:`Completer.evaluation` and :std:configtrait:`Completer.auto_close_dict_keys` instead.
+
+        When enabled in IPython 8.8 or newer, changes configuration as follows:
+
+        - ``Completer.evaluation = 'unsafe'``
+        - ``Completer.auto_close_dict_keys = True``
+        """,
+    ).tag(config=True)
+
+    evaluation = Enum(
+        ("forbidden", "minimal", "limited", "unsafe", "dangerous"),
+        default_value="limited",
+        help="""Policy for code evaluation under completion.
+
+        Successive options allow to enable more eager evaluation for better
+        completion suggestions, including for nested dictionaries, nested lists,
+        or even results of function calls.
+        Setting ``unsafe`` or higher can lead to evaluation of arbitrary user
+        code on :kbd:`Tab` with potentially unwanted or dangerous side effects.
+
+        Allowed values are:
+
+        - ``forbidden``: no evaluation of code is permitted,
+        - ``minimal``: evaluation of literals and access to built-in namespace;
+          no item/attribute evaluationm no access to locals/globals,
+          no evaluation of any operations or comparisons.
+        - ``limited``: access to all namespaces, evaluation of hard-coded methods
+          (for example: :any:`dict.keys`, :any:`object.__getattr__`,
+          :any:`object.__getitem__`) on allow-listed objects (for example:
+          :any:`dict`, :any:`list`, :any:`tuple`, ``pandas.Series``),
+        - ``unsafe``: evaluation of all methods and function calls but not of
+          syntax with side-effects like `del x`,
+        - ``dangerous``: completely arbitrary evaluation.
         """,
     ).tag(config=True)
 
@@ -914,6 +1028,18 @@ class Completer(Configurable):
         help="Enable unicode completions, e.g. \\alpha<tab> . "
              "Includes completion of latex commands, unicode names, and expanding "
              "unicode characters back to latex commands.").tag(config=True)
+
+    auto_close_dict_keys = Bool(
+        False,
+        help="""
+        Enable auto-closing dictionary keys.
+
+        When enabled string keys will be suffixed with a final quote
+        (matching the opening quote), tuple keys will also receive a
+        separating comma if needed, and keys which are final will
+        receive a closing bracket (``]``).
+        """,
+    ).tag(config=True)
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
         """Create a new completer for the command line.
@@ -1013,27 +1139,15 @@ class Completer(Configurable):
         with a __getattr__ hook is evaluated.
 
         """
-
-        # Another option, seems to work great. Catches things like ''.<tab>
-        m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
-
-        if m:
-            expr, attr = m.group(1, 3)
-        elif self.greedy:
-            m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
-            if not m2:
-                return []
-            expr, attr = m2.group(1,2)
-        else:
+        m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
+        if not m2:
             return []
+        expr, attr = m2.group(1, 2)
 
-        try:
-            obj = eval(expr, self.namespace)
-        except:
-            try:
-                obj = eval(expr, self.global_namespace)
-            except:
-                return []
+        obj = self._evaluate_expr(expr)
+
+        if obj is not_found:
+            return []
 
         if self.limit_to__all__ and hasattr(obj, '__all__'):
             words = get__all__entries(obj)
@@ -1048,12 +1162,60 @@ class Completer(Configurable):
             raise
         except Exception:
             # Silence errors from completion function
-            #raise # dbg
             pass
         # Build match list to return
         n = len(attr)
-        return [u"%s.%s" % (expr, w) for w in words if w[:n] == attr ]
 
+        # Note: ideally we would just return words here and the prefix
+        # reconciliator would know that we intend to append to rather than
+        # replace the input text; this requires refactoring to return range
+        # which ought to be replaced (as does jedi).
+        tokens = _parse_tokens(expr)
+        rev_tokens = reversed(tokens)
+        skip_over = {tokenize.ENDMARKER, tokenize.NEWLINE}
+        name_turn = True
+
+        parts = []
+        for token in rev_tokens:
+            if token.type in skip_over:
+                continue
+            if token.type == tokenize.NAME and name_turn:
+                parts.append(token.string)
+                name_turn = False
+            elif token.type == tokenize.OP and token.string == "." and not name_turn:
+                parts.append(token.string)
+                name_turn = True
+            else:
+                # short-circuit if not empty nor name token
+                break
+
+        prefix_after_space = "".join(reversed(parts))
+
+        return ["%s.%s" % (prefix_after_space, w) for w in words if w[:n] == attr]
+
+    def _evaluate_expr(self, expr):
+        obj = not_found
+        done = False
+        while not done and expr:
+            try:
+                obj = guarded_eval(
+                    expr,
+                    EvaluationContext(
+                        globals=self.global_namespace,
+                        locals=self.namespace,
+                        evaluation=self.evaluation,
+                    ),
+                )
+                done = True
+            except Exception as e:
+                if self.debug:
+                    print("Evaluation exception", e)
+                # trim the expression to remove any invalid prefix
+                # e.g. user starts `(d[`, so we get `expr = '(d'`,
+                # where parenthesis is not closed.
+                # TODO: make this faster by reusing parts of the computation?
+                expr = expr[1:]
+        return obj
 
 def get__all__entries(obj):
     """returns the strings in the __all__ attribute"""
@@ -1065,8 +1227,82 @@ def get__all__entries(obj):
     return [w for w in words if isinstance(w, str)]
 
 
-def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], prefix: str, delims: str,
-                    extra_prefix: Optional[Tuple[str, bytes]]=None) -> Tuple[str, int, List[str]]:
+class _DictKeyState(enum.Flag):
+    """Represent state of the key match in context of other possible matches.
+
+    - given `d1 = {'a': 1}` completion on `d1['<tab>` will yield `{'a': END_OF_ITEM}` as there is no tuple.
+    - given `d2 = {('a', 'b'): 1}`: `d2['a', '<tab>` will yield `{'b': END_OF_TUPLE}` as there is no tuple members to add beyond `'b'`.
+    - given `d3 = {('a', 'b'): 1}`: `d3['<tab>` will yield `{'a': IN_TUPLE}` as `'a'` can be added.
+    - given `d4 = {'a': 1, ('a', 'b'): 2}`: `d4['<tab>` will yield `{'a': END_OF_ITEM & END_OF_TUPLE}`
+    """
+
+    BASELINE = 0
+    END_OF_ITEM = enum.auto()
+    END_OF_TUPLE = enum.auto()
+    IN_TUPLE = enum.auto()
+
+
+def _parse_tokens(c):
+    """Parse tokens even if there is an error."""
+    tokens = []
+    token_generator = tokenize.generate_tokens(iter(c.splitlines()).__next__)
+    while True:
+        try:
+            tokens.append(next(token_generator))
+        except tokenize.TokenError:
+            return tokens
+        except StopIteration:
+            return tokens
+
+
+def _match_number_in_dict_key_prefix(prefix: str) -> Union[str, None]:
+    """Match any valid Python numeric literal in a prefix of dictionary keys.
+
+    References:
+    - https://docs.python.org/3/reference/lexical_analysis.html#numeric-literals
+    - https://docs.python.org/3/library/tokenize.html
+    """
+    if prefix[-1].isspace():
+        # if user typed a space we do not have anything to complete
+        # even if there was a valid number token before
+        return None
+    tokens = _parse_tokens(prefix)
+    rev_tokens = reversed(tokens)
+    skip_over = {tokenize.ENDMARKER, tokenize.NEWLINE}
+    number = None
+    for token in rev_tokens:
+        if token.type in skip_over:
+            continue
+        if number is None:
+            if token.type == tokenize.NUMBER:
+                number = token.string
+                continue
+            else:
+                # we did not match a number
+                return None
+        if token.type == tokenize.OP:
+            if token.string == ",":
+                break
+            if token.string in {"+", "-"}:
+                number = token.string + number
+        else:
+            return None
+    return number
+
+
+_INT_FORMATS = {
+    "0b": bin,
+    "0o": oct,
+    "0x": hex,
+}
+
+
+def match_dict_keys(
+    keys: List[Union[str, bytes, Tuple[Union[str, bytes], ...]]],
+    prefix: str,
+    delims: str,
+    extra_prefix: Optional[Tuple[Union[str, bytes], ...]] = None,
+) -> Tuple[str, int, Dict[str, _DictKeyState]]:
     """Used by dict_key_matches, matching the prefix to a list of keys
 
     Parameters
@@ -1086,47 +1322,89 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     A tuple of three elements: ``quote``, ``token_start``, ``matched``, with
     ``quote`` being the quote that need to be used to close current string.
     ``token_start`` the position where the replacement should start occurring,
-    ``matches`` a list of replacement/completion
-
+    ``matches`` a dictionary of replacement/completion keys on keys and values
+        indicating whether the state.
     """
     prefix_tuple = extra_prefix if extra_prefix else ()
-    Nprefix = len(prefix_tuple)
+
+    prefix_tuple_size = sum(
+        [
+            # for pandas, do not count slices as taking space
+            not isinstance(k, slice)
+            for k in prefix_tuple
+        ]
+    )
+    text_serializable_types = (str, bytes, int, float, slice)
+
     def filter_prefix_tuple(key):
         # Reject too short keys
-        if len(key) <= Nprefix:
+        if len(key) <= prefix_tuple_size:
             return False
-        # Reject keys with non str/bytes in it
+        # Reject keys which cannot be serialised to text
         for k in key:
-            if not isinstance(k, (str, bytes)):
+            if not isinstance(k, text_serializable_types):
                 return False
         # Reject keys that do not match the prefix
         for k, pt in zip(key, prefix_tuple):
-            if k != pt:
+            if k != pt and not isinstance(pt, slice):
                 return False
         # All checks passed!
         return True
 
-    filtered_keys:List[Union[str,bytes]] = []
-    def _add_to_filtered_keys(key):
-        if isinstance(key, (str, bytes)):
-            filtered_keys.append(key)
+    filtered_key_is_final: Dict[
+        Union[str, bytes, int, float], _DictKeyState
+    ] = defaultdict(lambda: _DictKeyState.BASELINE)
 
     for k in keys:
+        # If at least one of the matches is not final, mark as undetermined.
+        # This can happen with `d = {111: 'b', (111, 222): 'a'}` where
+        # `111` appears final on first match but is not final on the second.
+
         if isinstance(k, tuple):
             if filter_prefix_tuple(k):
-                _add_to_filtered_keys(k[Nprefix])
+                key_fragment = k[prefix_tuple_size]
+                filtered_key_is_final[key_fragment] |= (
+                    _DictKeyState.END_OF_TUPLE
+                    if len(k) == prefix_tuple_size + 1
+                    else _DictKeyState.IN_TUPLE
+                )
+        elif prefix_tuple_size > 0:
+            # we are completing a tuple but this key is not a tuple,
+            # so we should ignore it
+            pass
         else:
-            _add_to_filtered_keys(k)
+            if isinstance(k, text_serializable_types):
+                filtered_key_is_final[k] |= _DictKeyState.END_OF_ITEM
+
+    filtered_keys = filtered_key_is_final.keys()
 
     if not prefix:
-        return '', 0, [repr(k) for k in filtered_keys]
-    quote_match = re.search('["\']', prefix)
-    assert quote_match is not None # silence mypy
-    quote = quote_match.group()
-    try:
-        prefix_str = eval(prefix + quote, {})
-    except Exception:
-        return '', 0, []
+        return "", 0, {repr(k): v for k, v in filtered_key_is_final.items()}
+
+    quote_match = re.search("(?:\"|')", prefix)
+    is_user_prefix_numeric = False
+
+    if quote_match:
+        quote = quote_match.group()
+        valid_prefix = prefix + quote
+        try:
+            prefix_str = literal_eval(valid_prefix)
+        except Exception:
+            return "", 0, {}
+    else:
+        # If it does not look like a string, let's assume
+        # we are dealing with a number or variable.
+        number_match = _match_number_in_dict_key_prefix(prefix)
+
+        # We do not want the key matcher to suggest variable names so we yield:
+        if number_match is None:
+            # The alternative would be to assume that user forgort the quote
+            # and if the substring matches, suggest adding it at the start.
+            return "", 0, {}
+
+        prefix_str = number_match
+        is_user_prefix_numeric = True
+        quote = ""
 
     pattern = '[^' + ''.join('\\' + c for c in delims) + ']*$'
     token_match = re.search(pattern, prefix, re.UNICODE)
@@ -1134,17 +1412,36 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
     token_start = token_match.start()
     token_prefix = token_match.group()
 
-    matched:List[str] = []
+    matched: Dict[str, _DictKeyState] = {}
+
+    str_key: Union[str, bytes]
+
     for key in filtered_keys:
-        try:
-            if not key.startswith(prefix_str):
+        if isinstance(key, (int, float)):
+            # User typed a number but this key is not a number.
+            if not is_user_prefix_numeric:
                 continue
-        except (AttributeError, TypeError, UnicodeError):
+            str_key = str(key)
+            if isinstance(key, int):
+                int_base = prefix_str[:2].lower()
+                # if user typed integer using binary/oct/hex notation:
+                if int_base in _INT_FORMATS:
+                    int_format = _INT_FORMATS[int_base]
+                    str_key = int_format(key)
+        else:
+            # User typed a string but this key is a number.
+            if is_user_prefix_numeric:
+                continue
+            str_key = key
+        try:
+            if not str_key.startswith(prefix_str):
+                continue
+        except (AttributeError, TypeError, UnicodeError) as e:
             # Python 3+ TypeError on b'a'.startswith('a') or vice-versa
             continue
 
         # reformat remainder of key to begin with prefix
-        rem = key[len(prefix_str):]
+        rem = str_key[len(prefix_str) :]
         # force repr wrapped in '
         rem_repr = repr(rem + '"') if isinstance(rem, str) else repr(rem + b'"')
         rem_repr = rem_repr[1 + rem_repr.index("'"):-2]
@@ -1155,7 +1452,9 @@ def match_dict_keys(keys: List[Union[str, bytes, Tuple[Union[str, bytes]]]], pre
             rem_repr = rem_repr.replace('"', '\\"')
 
         # then reinsert prefix from start of token
-        matched.append('%s%s' % (token_prefix, rem_repr))
+        match = "%s%s" % (token_prefix, rem_repr)
+
+        matched[match] = filtered_key_is_final[key]
     return quote, token_start, matched
 
 
@@ -1221,11 +1520,14 @@ def position_to_cursor(text:str, offset:int)->Tuple[int, int]:
     return line, col
 
 
-def _safe_isinstance(obj, module, class_name):
+def _safe_isinstance(obj, module, class_name, *attrs):
     """Checks if obj is an instance of module.class_name if loaded
     """
-    return (module in sys.modules and
-            isinstance(obj, getattr(import_module(module), class_name)))
+    if module in sys.modules:
+        m = sys.modules[module]
+        for attr in [class_name, *attrs]:
+            m = getattr(m, attr)
+        return isinstance(obj, m)
 
 
 @context_matcher()
@@ -1378,10 +1680,59 @@ def _make_signature(completion)-> str:
 _CompleteResult = Dict[str, MatcherResult]
 
 
+DICT_MATCHER_REGEX = re.compile(
+    r"""(?x)
+(  # match dict-referring - or any get item object - expression
+    .+
+)
+\[   # open bracket
+\s*  # and optional whitespace
+# Capture any number of serializable objects (e.g. "a", "b", 'c')
+# and slices
+((?:(?:
+    (?: # closed string
+        [uUbB]?  # string prefix (r not handled)
+        (?:
+            '(?:[^']|(?<!\\)\\')*'
+        |
+            "(?:[^"]|(?<!\\)\\")*"
+        )
+    )
+    |
+        # capture integers and slices
+        (?:[-+]?\d+)?(?::(?:[-+]?\d+)?){0,2}
+    |
+        # integer in bin/hex/oct notation
+        0[bBxXoO]_?(?:\w|\d)+
+    )
+    \s*,\s*
+)*)
+((?:
+    (?: # unclosed string
+        [uUbB]?  # string prefix (r not handled)
+        (?:
+            '(?:[^']|(?<!\\)\\')*
+            |
+            "(?:[^"]|(?<!\\)\\")*
+        )
+    )
+    |
+        # unfinished integer
+        (?:[-+]?\d+)
+    |
+        # integer in bin/hex/oct notation
+        0[bBxXoO]_?(?:\w|\d)+
+    )
+)?
+$
+"""
+)
+
+
 def _convert_matcher_v1_result_to_v2(
     matches: Sequence[str],
     type: str,
-    fragment: str = None,
+    fragment: Optional[str] = None,
     suppress_if_matches: bool = False,
 ) -> SimpleMatcherResult:
     """Utility to help with transition"""
@@ -1391,27 +1742,29 @@ def _convert_matcher_v1_result_to_v2(
     }
     if fragment is not None:
         result["matched_fragment"] = fragment
-    return result
+    return cast(SimpleMatcherResult, result)
 
 
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
-    __dict_key_regexps: Optional[Dict[bool,Pattern]] = None
-
     @observe('greedy')
     def _greedy_changed(self, change):
         """update the splitter and readline delims when greedy is changed"""
-        if change['new']:
+        if change["new"]:
+            self.evaluation = "unsafe"
+            self.auto_close_dict_keys = True
             self.splitter.delims = GREEDY_DELIMS
         else:
+            self.evaluation = "limited"
+            self.auto_close_dict_keys = False
             self.splitter.delims = DELIMS
 
     dict_keys_only = Bool(
         False,
         help="""
         Whether to show dict key matches only.
-        
+
         (disables all matchers except for `IPCompleter.dict_key_matcher`).
         """,
     )
@@ -1447,14 +1800,18 @@ class IPCompleter(Completer):
 
         If False, only the completion results from the first non-empty
         completer will be returned.
-        
+
         As of version 8.6.0, setting the value to ``False`` is an alias for:
         ``IPCompleter.suppress_competing_matchers = True.``.
         """,
     ).tag(config=True)
 
     disable_matchers = ListTrait(
-        Unicode(), help="""List of matchers to disable."""
+        Unicode(),
+        help="""List of matchers to disable.
+
+        The list should contain matcher identifiers (see :any:`completion_matcher`).
+        """,
     ).tag(config=True)
 
     omit__names = Enum(
@@ -1587,7 +1944,7 @@ class IPCompleter(Completer):
 
         if not self.backslash_combining_completions:
             for matcher in self._backslash_combining_matchers:
-                self.disable_matchers.append(matcher.matcher_identifier)
+                self.disable_matchers.append(_get_matcher_id(matcher))
 
         if not self.merge_completions:
             self.suppress_competing_matchers = True
@@ -1877,7 +2234,7 @@ class IPCompleter(Completer):
 
     def _jedi_matches(
         self, cursor_column: int, cursor_line: int, text: str
-    ) -> Iterable[_JediCompletionLike]:
+    ) -> Iterator[_JediCompletionLike]:
         """
         Return a list of :any:`jedi.api.Completion`s object from a ``text`` and
         cursor position.
@@ -1943,16 +2300,24 @@ class IPCompleter(Completer):
                 print("Error detecting if completing a non-finished string :", e, '|')
 
         if not try_jedi:
-            return []
+            return iter([])
         try:
             return filter(completion_filter, interpreter.complete(column=cursor_column, line=cursor_line + 1))
         except Exception as e:
             if self.debug:
-                return [_FakeJediCompletion('Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""' % (e))]
+                return iter(
+                    [
+                        _FakeJediCompletion(
+                            'Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""'
+                            % (e)
+                        )
+                    ]
+                )
             else:
-                return []
+                return iter([])
 
-    def python_matches(self, text:str)->List[str]:
+    @completion_matcher(api_version=1)
+    def python_matches(self, text: str) -> Iterable[str]:
         """Match attributes or global python names"""
         if "." in text:
             try:
@@ -2129,10 +2494,14 @@ class IPCompleter(Completer):
             return method()
 
         # Special case some common in-memory dict-like types
-        if isinstance(obj, dict) or\
-           _safe_isinstance(obj, 'pandas', 'DataFrame'):
+        if isinstance(obj, dict) or _safe_isinstance(obj, "pandas", "DataFrame"):
             try:
                 return list(obj.keys())
+            except Exception:
+                return []
+        elif _safe_isinstance(obj, "pandas", "core", "indexing", "_LocIndexer"):
+            try:
+                return list(obj.obj.keys())
             except Exception:
                 return []
         elif _safe_isinstance(obj, 'numpy', 'ndarray') or\
@@ -2155,74 +2524,49 @@ class IPCompleter(Completer):
             You can use :meth:`dict_key_matcher` instead.
         """
 
-        if self.__dict_key_regexps is not None:
-            regexps = self.__dict_key_regexps
-        else:
-            dict_key_re_fmt = r'''(?x)
-            (  # match dict-referring expression wrt greedy setting
-                %s
-            )
-            \[   # open bracket
-            \s*  # and optional whitespace
-            # Capture any number of str-like objects (e.g. "a", "b", 'c')
-            ((?:[uUbB]?  # string prefix (r not handled)
-                (?:
-                    '(?:[^']|(?<!\\)\\')*'
-                |
-                    "(?:[^"]|(?<!\\)\\")*"
-                )
-                \s*,\s*
-            )*)
-            ([uUbB]?  # string prefix (r not handled)
-                (?:   # unclosed string
-                    '(?:[^']|(?<!\\)\\')*
-                |
-                    "(?:[^"]|(?<!\\)\\")*
-                )
-            )?
-            $
-            '''
-            regexps = self.__dict_key_regexps = {
-                False: re.compile(dict_key_re_fmt % r'''
-                                  # identifiers separated by .
-                                  (?!\d)\w+
-                                  (?:\.(?!\d)\w+)*
-                                  '''),
-                True: re.compile(dict_key_re_fmt % '''
-                                 .+
-                                 ''')
-            }
+        # Short-circuit on closed dictionary (regular expression would
+        # not match anyway, but would take quite a while).
+        if self.text_until_cursor.strip().endswith("]"):
+            return []
 
-        match = regexps[self.greedy].search(self.text_until_cursor)
+        match = DICT_MATCHER_REGEX.search(self.text_until_cursor)
 
         if match is None:
             return []
 
-        expr, prefix0, prefix = match.groups()
-        try:
-            obj = eval(expr, self.namespace)
-        except Exception:
-            try:
-                obj = eval(expr, self.global_namespace)
-            except Exception:
-                return []
+        expr, prior_tuple_keys, key_prefix = match.groups()
+
+        obj = self._evaluate_expr(expr)
+
+        if obj is not_found:
+            return []
 
         keys = self._get_keys(obj)
         if not keys:
             return keys
 
-        extra_prefix = eval(prefix0) if prefix0 != '' else None
+        tuple_prefix = guarded_eval(
+            prior_tuple_keys,
+            EvaluationContext(
+                globals=self.global_namespace,
+                locals=self.namespace,
+                evaluation=self.evaluation,
+                in_subscript=True,
+            ),
+        )
 
-        closing_quote, token_offset, matches = match_dict_keys(keys, prefix, self.splitter.delims, extra_prefix=extra_prefix)
+        closing_quote, token_offset, matches = match_dict_keys(
+            keys, key_prefix, self.splitter.delims, extra_prefix=tuple_prefix
+        )
         if not matches:
-            return matches
+            return []
 
         # get the cursor position of
         # - the text being completed
         # - the start of the key text
         # - the start of the completion
         text_start = len(self.text_until_cursor) - len(text)
-        if prefix:
+        if key_prefix:
             key_start = match.start(3)
             completion_start = key_start + token_offset
         else:
@@ -2234,26 +2578,61 @@ class IPCompleter(Completer):
         else:
             leading = text[text_start:completion_start]
 
-        # the index of the `[` character
-        bracket_idx = match.end(1)
-
         # append closing quote and bracket as appropriate
         # this is *not* appropriate if the opening quote or bracket is outside
-        # the text given to this method
-        suf = ''
-        continuation = self.line_buffer[len(self.text_until_cursor):]
-        if key_start > text_start and closing_quote:
-            # quotes were opened inside text, maybe close them
-            if continuation.startswith(closing_quote):
-                continuation = continuation[len(closing_quote):]
-            else:
-                suf += closing_quote
-        if bracket_idx > text_start:
-            # brackets were opened inside text, maybe close them
-            if not continuation.startswith(']'):
-                suf += ']'
+        # the text given to this method, e.g. `d["""a\nt
+        can_close_quote = False
+        can_close_bracket = False
 
-        return [leading + k + suf for k in matches]
+        continuation = self.line_buffer[len(self.text_until_cursor) :].strip()
+
+        if continuation.startswith(closing_quote):
+            # do not close if already closed, e.g. `d['a<tab>'`
+            continuation = continuation[len(closing_quote) :]
+        else:
+            can_close_quote = True
+
+        continuation = continuation.strip()
+
+        # e.g. `pandas.DataFrame` has different tuple indexer behaviour,
+        # handling it is out of scope, so let's avoid appending suffixes.
+        has_known_tuple_handling = isinstance(obj, dict)
+
+        can_close_bracket = (
+            not continuation.startswith("]") and self.auto_close_dict_keys
+        )
+        can_close_tuple_item = (
+            not continuation.startswith(",")
+            and has_known_tuple_handling
+            and self.auto_close_dict_keys
+        )
+        can_close_quote = can_close_quote and self.auto_close_dict_keys
+
+        # fast path if closing qoute should be appended but not suffix is allowed
+        if not can_close_quote and not can_close_bracket and closing_quote:
+            return [leading + k for k in matches]
+
+        results = []
+
+        end_of_tuple_or_item = _DictKeyState.END_OF_TUPLE | _DictKeyState.END_OF_ITEM
+
+        for k, state_flag in matches.items():
+            result = leading + k
+            if can_close_quote and closing_quote:
+                result += closing_quote
+
+            if state_flag == end_of_tuple_or_item:
+                # We do not know which suffix to add,
+                # e.g. both tuple item and string
+                # match this item.
+                pass
+
+            if state_flag in end_of_tuple_or_item and can_close_bracket:
+                result += "]"
+            if state_flag == _DictKeyState.IN_TUPLE and can_close_tuple_item:
+                result += ", "
+            results.append(result)
+        return results
 
     @context_matcher()
     def unicode_name_matcher(self, context: CompletionContext):
@@ -2496,17 +2875,23 @@ class IPCompleter(Completer):
 
         jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
 
+        def is_non_jedi_result(
+            result: MatcherResult, identifier: str
+        ) -> TypeGuard[SimpleMatcherResult]:
+            return identifier != jedi_matcher_id
+
         results = self._complete(
             full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column
         )
+
         non_jedi_results: Dict[str, SimpleMatcherResult] = {
             identifier: result
             for identifier, result in results.items()
-            if identifier != jedi_matcher_id
+            if is_non_jedi_result(result, identifier)
         }
 
         jedi_matches = (
-            cast(results[jedi_matcher_id], _JediMatcherResult)["completions"]
+            cast(_JediMatcherResult, results[jedi_matcher_id])["completions"]
             if jedi_matcher_id in results
             else ()
         )
@@ -2561,8 +2946,8 @@ class IPCompleter(Completer):
                 signature="",
             )
 
-        ordered = []
-        sortable = []
+        ordered: List[Completion] = []
+        sortable: List[Completion] = []
 
         for origin, result in non_jedi_results.items():
             matched_text = result["matched_fragment"]
@@ -2651,9 +3036,8 @@ class IPCompleter(Completer):
         skip_matchers: Set[str],
         abort_if_offset_changes: bool,
     ):
-
-        sortable = []
-        ordered = []
+        sortable: List[AnyMatcherCompletion] = []
+        ordered: List[AnyMatcherCompletion] = []
         most_recent_fragment = None
         for identifier, result in results.items():
             if identifier in skip_matchers:
@@ -2752,11 +3136,11 @@ class IPCompleter(Completer):
         )
 
         # Start with a clean slate of completions
-        results = {}
+        results: Dict[str, MatcherResult] = {}
 
         jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
 
-        suppressed_matchers = set()
+        suppressed_matchers: Set[str] = set()
 
         matchers = {
             _get_matcher_id(matcher): matcher
@@ -2766,7 +3150,6 @@ class IPCompleter(Completer):
         }
 
         for matcher_id, matcher in matchers.items():
-            api_version = _get_matcher_api_version(matcher)
             matcher_id = _get_matcher_id(matcher)
 
             if matcher_id in self.disable_matchers:
@@ -2778,14 +3161,16 @@ class IPCompleter(Completer):
             if matcher_id in suppressed_matchers:
                 continue
 
+            result: MatcherResult
             try:
-                if api_version == 1:
+                if _is_matcher_v1(matcher):
                     result = _convert_matcher_v1_result_to_v2(
                         matcher(text), type=_UNKNOWN_TYPE
                     )
-                elif api_version == 2:
-                    result = cast(matcher, MatcherAPIv2)(context)
+                elif _is_matcher_v2(matcher):
+                    result = matcher(context)
                 else:
+                    api_version = _get_matcher_api_version(matcher)
                     raise ValueError(f"Unsupported API version {api_version}")
             except:
                 # Show the ugly traceback if the matcher causes an
@@ -2797,7 +3182,9 @@ class IPCompleter(Completer):
             result["matched_fragment"] = result.get("matched_fragment", context.token)
 
             if not suppressed_matchers:
-                suppression_recommended = result.get("suppress", False)
+                suppression_recommended: Union[bool, Set[str]] = result.get(
+                    "suppress", False
+                )
 
                 suppression_config = (
                     self.suppress_competing_matchers.get(matcher_id, None)
@@ -2807,13 +3194,15 @@ class IPCompleter(Completer):
                 should_suppress = (
                     (suppression_config is True)
                     or (suppression_recommended and (suppression_config is not False))
-                ) and len(result["completions"])
+                ) and has_any_completions(result)
 
                 if should_suppress:
-                    suppression_exceptions = result.get("do_not_suppress", set())
-                    try:
+                    suppression_exceptions: Set[str] = result.get(
+                        "do_not_suppress", set()
+                    )
+                    if isinstance(suppression_recommended, Iterable):
                         to_suppress = set(suppression_recommended)
-                    except TypeError:
+                    else:
                         to_suppress = set(matchers)
                     suppressed_matchers = to_suppress - suppression_exceptions
 
@@ -2840,9 +3229,9 @@ class IPCompleter(Completer):
 
     @staticmethod
     def _deduplicate(
-        matches: Sequence[SimpleCompletion],
-    ) -> Iterable[SimpleCompletion]:
-        filtered_matches = {}
+        matches: Sequence[AnyCompletion],
+    ) -> Iterable[AnyCompletion]:
+        filtered_matches: Dict[str, AnyCompletion] = {}
         for match in matches:
             text = match.text
             if (
@@ -2854,7 +3243,7 @@ class IPCompleter(Completer):
         return filtered_matches.values()
 
     @staticmethod
-    def _sort(matches: Sequence[SimpleCompletion]):
+    def _sort(matches: Sequence[AnyCompletion]):
         return sorted(matches, key=lambda x: completions_sorting_key(x.text))
 
     @context_matcher()
