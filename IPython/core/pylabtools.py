@@ -209,7 +209,7 @@ def mpl_runner(safe_execfile):
         #print '*** Matplotlib runner ***' # dbg
         # turn off rendering until end of script
         with matplotlib.rc_context({"interactive": False}):
-            safe_execfile(fname,*where,**kw)
+            safe_execfile(fname, *where, **kw)
 
         if matplotlib.is_interactive():
             plt.show()
