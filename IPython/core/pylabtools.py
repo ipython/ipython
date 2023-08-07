@@ -210,6 +210,10 @@ def mpl_runner(safe_execfile):
         # turn off rendering until end of script
         with matplotlib.rc_context({'interactive': False}):
             safe_execfile(fname,*where,**kw)
+
+        if matplotlib.is_interactive():
+            plt.show()
+
         # make rendering call now, if the user tried to do it
         if plt.draw_if_interactive.called:
             plt.draw()
