@@ -208,7 +208,7 @@ def mpl_runner(safe_execfile):
 
         #print '*** Matplotlib runner ***' # dbg
         # turn off rendering until end of script
-        with matplotlib.rc_context({'interactive': False}):
+        with matplotlib.rc_context({"interactive": False}):
             safe_execfile(fname,*where,**kw)
 
         if matplotlib.is_interactive():
@@ -319,11 +319,11 @@ def find_gui_and_backend(gui=None, gui_select=None):
 
     import matplotlib
 
-    has_unified_qt_backend = matplotlib.__version__[:3] >= '3.5'
+    has_unified_qt_backend = matplotlib.__version__[:3] >= "3.5"
 
     backends_ = dict(backends)
     if not has_unified_qt_backend:
-        backends_['qt'] = 'qt5agg'
+        backends_["qt"] = "qt5agg"
 
     if gui and gui != 'auto':
         # select backend based on requested gui
