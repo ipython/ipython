@@ -23,7 +23,7 @@ backends = {
     "qt4": "Qt4Agg",
     "qt5": "Qt5Agg",
     "qt6": "QtAgg",
-    "qt": "Qt5Agg",
+    "qt": "QtAgg",
     "osx": "MacOSX",
     "nbagg": "nbAgg",
     "webagg": "WebAgg",
@@ -53,8 +53,8 @@ backend2gui["CocoaAgg"] = "osx"
 # supports either Qt5 or Qt6 and the IPython qt event loop support Qt4, Qt5,
 # and Qt6.
 backend2gui["QtAgg"] = "qt"
-backend2gui["Qt4Agg"] = "qt"
-backend2gui["Qt5Agg"] = "qt"
+backend2gui["Qt4Agg"] = "qt4"
+backend2gui["Qt5Agg"] = "qt5"
 
 # And some backends that don't need GUI integration
 del backend2gui["nbAgg"]
@@ -317,9 +317,15 @@ def find_gui_and_backend(gui=None, gui_select=None):
 
     import matplotlib
 
+    has_unified_qt_backend = matplotlib.__version__[:3] >= '3.5'
+
+    backends_ = dict(backends)
+    if not has_unified_qt_backend:
+        backends_['qt'] = 'qt5agg'
+
     if gui and gui != 'auto':
         # select backend based on requested gui
-        backend = backends[gui]
+        backend = backends_[gui]
         if gui == 'agg':
             gui = None
     else:
@@ -336,7 +342,7 @@ def find_gui_and_backend(gui=None, gui_select=None):
         # ones allowed.
         if gui_select and gui != gui_select:
             gui = gui_select
-            backend = backends[gui]
+            backend = backends_[gui]
 
     return gui, backend
 
