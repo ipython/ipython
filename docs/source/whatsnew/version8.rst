@@ -58,7 +58,7 @@ IPython 8.13.1, 8.13.2 and 8.12.2
 having been yanked.
 
 IPython 8.13.0 was improperly tagged as still compatible with Python 3.8, and
-still had some mention of compatibility woth 3.8. IPython 8.13.1 is identical to
+still had some mention of compatibility with 3.8. IPython 8.13.1 is identical to
 8.13 but with the exception of being correctly tagged. This release and yank was
 mostly done to fix CI.
 
@@ -88,7 +88,7 @@ below). In addition to that went into 8.12.1 you'll find:
 We hope you enjoy this release an will maybe see you at JupyterCon in less than
 two weeks.
 
-As usual you can find the full list of PRs on GitHub under `the 8.12.1 milestone
+As usual you can find the full list of PRs on GitHub under `the 8.13 milestone
 <https://github.com/ipython/ipython/milestone/115?closed=1>`__.
 
 Thanks to the D.E. Shaw group for the request and sponsoring the work.
