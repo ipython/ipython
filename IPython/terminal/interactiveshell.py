@@ -915,10 +915,14 @@ class TerminalInteractiveShell(InteractiveShell):
     active_eventloop = None
     def enable_gui(self, gui=None):
         if self.simple_prompt is True and gui is not None:
-            print(f"Cannot install event loop hook for \"{gui}\" when running with `--simple-prompt`.")
-            print("NOTE: Tk is supported natively; use Tk apps and Tk backends with `--simple-prompt`.")
+            print(
+                f'Cannot install event loop hook for "{gui}" when running with `--simple-prompt`.'
+            )
+            print(
+                "NOTE: Tk is supported natively; use Tk apps and Tk backends with `--simple-prompt`."
+            )
             return
-        
+
         if self._inputhook is None and gui is None:
             print("No event loop hook running.")
             return
