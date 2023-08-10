@@ -298,10 +298,12 @@ class DisplayHook(Configurable):
             key = '_'+repr(n)
             try:
                 del self.shell.user_ns_hidden[key]
-            except KeyError: pass
+            except KeyError:
+                pass
             try:
                 del self.shell.user_ns[key]
-            except KeyError: pass
+            except KeyError:
+                pass
         # In some embedded circumstances, the user_ns doesn't have the
         # '_oh' key set up.
         oh = self.shell.user_ns.get('_oh', None)
