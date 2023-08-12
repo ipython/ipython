@@ -18,9 +18,9 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.enums import DEFAULT_BUFFER
 
 from unittest.mock import patch, Mock
-from prompt_toolkit.enums import DEFAULT_BUFFER
 
 
 def test_deprected():
@@ -213,8 +213,6 @@ def test_reset_search_buffer():
 
     reset_search_buffer(event_empty)
     event_empty.app.layout.focus.assert_called_once_with(DEFAULT_BUFFER)
-
-
 
 
 def test_other_providers():
