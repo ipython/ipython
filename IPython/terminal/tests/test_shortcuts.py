@@ -12,7 +12,7 @@ from IPython.terminal.shortcuts.auto_suggest import (
     swap_autosuggestion_down,
 )
 from IPython.terminal.shortcuts.auto_match import skip_over
-from IPython.terminal.shortcuts import create_ipython_shortcuts,reset_search_buffer
+from IPython.terminal.shortcuts import create_ipython_shortcuts, reset_search_buffer
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.buffer import Buffer
