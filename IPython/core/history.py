@@ -9,6 +9,7 @@ import datetime
 from pathlib import Path
 import re
 import sqlite3
+import sys
 import threading
 
 from traitlets.config.configurable import LoggingConfigurable
@@ -28,6 +29,14 @@ from traitlets import (
     default,
     observe,
 )
+
+
+if sys.version_info >= (3, 12):
+
+    def _adapt_datetime(val):
+        return val.isoformat(" ")
+
+    sqlite3.register_adapter(datetime.datetime, _adapt_datetime)
 
 #-----------------------------------------------------------------------------
 # Classes and functions
