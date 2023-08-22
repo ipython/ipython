@@ -117,7 +117,7 @@ The following uses the builtin :magic:`timeit` in cell mode::
       ...: min(x)
       ...: max(x)
       ...:
-  1000 loops, best of 3: 438 us per loop
+  518 µs ± 4.39 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
 In this case, ``x = range(10000)`` is called as the line argument, and the
 block with ``min(x)`` and ``max(x)`` is called as the cell body.  The
