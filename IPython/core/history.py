@@ -574,7 +574,7 @@ class HistoryManager(HistoryAccessor):
             cur = conn.execute(
                 """INSERT INTO sessions VALUES (NULL, ?, NULL,
                             NULL, '') """,
-                (datetime.datetime.now(),),
+                (datetime.datetime.now().isoformat(" "),),
             )
             self.session_number = cur.lastrowid
 
@@ -582,9 +582,15 @@ class HistoryManager(HistoryAccessor):
         """Close the database session, filling in the end time and line count."""
         self.writeout_cache()
         with self.db:
-            self.db.execute("""UPDATE sessions SET end=?, num_cmds=? WHERE
-                            session==?""", (datetime.datetime.now(),
-                            len(self.input_hist_parsed)-1, self.session_number))
+            self.db.execute(
+                """UPDATE sessions SET end=?, num_cmds=? WHERE
+                            session==?""",
+                (
+                    datetime.datetime.now().isoformat(" "),
+                    len(self.input_hist_parsed) - 1,
+                    self.session_number,
+                ),
+            )
         self.session_number = 0
 
     def name_session(self, name):

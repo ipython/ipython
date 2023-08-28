@@ -20,7 +20,6 @@ import os
 import time
 
 
-
 # prevent jedi/parso's debug messages pipe into interactiveshell
 logging.getLogger("parso").setLevel(logging.WARNING)
 
