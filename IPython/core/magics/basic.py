@@ -109,12 +109,12 @@ class BasicMagics(Magics):
           Created `%%t` as an alias for `%%timeit`.
 
           In [2]: %t -n1 pass
-          1 loops, best of 3: 954 ns per loop
+          107 ns ± 43.6 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
           In [3]: %%t -n1
              ...: pass
              ...:
-          1 loops, best of 3: 954 ns per loop
+          107 ns ± 58.3 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
           In [4]: %alias_magic --cell whereami pwd
           UsageError: Cell magic function `%%pwd` not found.

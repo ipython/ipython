@@ -1050,7 +1050,7 @@ class ExecutionMagics(Magics):
         provided, <N> is determined so as to get sufficient accuracy.
 
         -r<R>: number of repeats <R>, each consisting of <N> loops, and take the
-        best result.
+        average result.
         Default: 7
 
         -t: use time.time to measure the time, which is the default on Unix.
