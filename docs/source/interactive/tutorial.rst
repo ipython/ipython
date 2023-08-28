@@ -133,12 +133,12 @@ The following examples show how to call the built-in :magic:`timeit` magic, both
 in line and cell mode::
 
       In [1]: %timeit range(1000)
-      100000 loops, best of 3: 7.76 us per loop
+      179 ns ± 2.66 ns per loop (mean ± std. dev. of 7 runs, 10000000 loops each)
 
       In [2]: %%timeit x = range(10000)
       ...: max(x)
       ...: 
-      1000 loops, best of 3: 223 us per loop
+      264 µs ± 1 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
 The built-in magics include:
 

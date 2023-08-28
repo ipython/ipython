@@ -218,10 +218,10 @@ Magics support assignment:
 .. code-block:: ipython
 
     In [1]: results = %timeit -r1 -n1 -o list(range(1000))
-    1 loops, best of 1: 21.1 µs per loop
+    62.1 µs ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 
     In [2]: results
-    Out[2]: <TimeitResult : 1 loops, best of 1: 21.1 µs per loop>
+    <TimeitResult : 62.1 µs ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)>
 
 Magics with double percent signs (``%%``) can spread over multiple lines, but they do not support assignments:
 
