@@ -15,9 +15,14 @@
 # Python standard modules
 import glob
 import io
+import logging
 import os
 import time
 
+
+
+# prevent jedi/parso's debug messages pipe into interactiveshell
+logging.getLogger("parso").setLevel(logging.WARNING)
 
 #****************************************************************************
 # FIXME: This class isn't a mixin anymore, but it still needs attributes from
