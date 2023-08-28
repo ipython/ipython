@@ -319,7 +319,7 @@ def find_gui_and_backend(gui=None, gui_select=None):
 
     import matplotlib
 
-    has_unified_qt_backend = matplotlib.__version__[:3] >= "3.5"
+    has_unified_qt_backend = getattr(matplotlib, "__version_info__", (0, 0)) >= (3, 5)
 
     backends_ = dict(backends)
     if not has_unified_qt_backend:
