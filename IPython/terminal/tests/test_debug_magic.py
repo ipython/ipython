@@ -68,8 +68,10 @@ def test_debug_magic_passes_through_generators():
     child.expect_exact('----> 1 for x in gen:')
 
     child.expect(ipdb_prompt)
-    child.sendline('u')
-    child.expect_exact('*** Oldest frame')
+    child.sendline("u")
+    child.expect_exact(
+        "*** all frames above hidden, use `skip_hidden False` to get get into those."
+    )
 
     child.expect(ipdb_prompt)
     child.sendline('exit')

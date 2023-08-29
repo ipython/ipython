@@ -1,6 +1,23 @@
 ============
  8.x Series
 ============
+
+.. _version 8.15:
+
+IPython 8.15
+------------
+
+Medium release of IPython after a couple of month hiatus, and a bit off-schedule.
+
+The main change is the addition of the ability to move between chained
+exceptions when using IPdb, this feature was also contributed to upstream Pdb
+and is thus native to CPython in Python 3.13+ Though ipdb should support this
+feature in older version of Python. I invite you to look at the `CPython changes
+and docs <https://github.com/python/cpython/pull/106676>`_ for more details.
+
+I also want o thanks the `D.E. Shaw group <https://www.deshaw.com/>`_ for
+suggesting and funding this feature.
+
 .. _version 8.14:
 
 IPython 8.14
