@@ -25,6 +25,16 @@ Among other, IPython 8.15:
    changed :ghpull:`14119`
  - Fix multiple issues with matplotlib interactive mode, qt5/qt6 :ghpull:`14128`
 
+Support for PEP-678 Exception Notes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ultratb now shows :pep:`678` notes, improving your debugging experience on
+Python 3.11+ or with libraries such as Pytest and Hypothesis.
+
+Native fallback for displaying ExceptionGroup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ExceptionGroups are now displayed with ``traceback.print_exc``, as a temporary fix until UltraTB properly supports displaying child exceptions.
+
 
 We have two larger features:
 
