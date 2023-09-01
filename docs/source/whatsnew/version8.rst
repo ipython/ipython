@@ -74,11 +74,76 @@ and is thus native to CPython in Python 3.13+ Though ipdb should support this
 feature in older version of Python. I invite you to look at the `CPython changes
 and docs <https://github.com/python/cpython/pull/106676>`__ for more details.
 
+In short, once in post-mortem debuger (``%debug``), you can use the ipdb
+``exceptions`` command to switch exceptions, for example:
 
+.. code-block:: ipython
 
-In particular I want to thank the `D.E. Shaw group
-<https://www.deshaw.com/>`__ for suggesting and funding the two largest feature
-as well as many bug fixes of this release.
+    In [1]: def foo(x):
+        ...:     try:
+        ...:         bar(x)
+        ...:     except Exception as e:
+        ...:         raise ValueError("foo (): bar failed") from e
+        ...:
+        ...: def bar(x):
+        ...:     1 / X
+        ...:
+
+    In [2]: foo(0)
+    ---------------------------------------------------------------------------
+    NameError                                 Traceback (most recent call last)
+    Cell In[1], line 3, in foo(x)
+          2 try:
+    ----> 3     bar(x)
+          4 except Exception as e:
+
+    Cell In[1], line 9, in bar(x)
+          8 def bar(x):
+    ----> 9     1 / X
+
+    NameError: name 'X' is not defined
+
+    The above exception was the direct cause of the following exception:
+
+    ValueError                                Traceback (most recent call last)
+    Cell In[2], line 1
+    ----> 1 foo(0)
+
+    Cell In[1], line 5, in foo(x)
+          3     bar(x)
+          4 except Exception as e:
+    ----> 5     raise ValueError("foo (): bar failed") from e
+
+    ValueError: foo (): bar failed
+
+    In [3]: %debug
+    > <ipython-input-1-b0bbdc271ffb>(5)foo()
+          3         bar(x)
+          4     except Exception as e:
+    ----> 5         raise ValueError("foo (): bar failed") from e
+
+In previous ipdb you could not go into the bar error, now from within pdb you
+can use ``exceptions``:
+
+.. code-block:: ipython
+
+    ipdb> exceptions
+        0 NameError("name 'X' is not defined")
+    >   1 ValueError('foo (): bar failed')
+
+    ipdb> exceptions 0
+    > <ipython-input-1-b0bbdc271ffb>(9)bar()
+          6
+          7
+          8 def bar(x):
+    ----> 9     1 / X
+         10
+
+    ipdb>
+
+In particular I want to thank the `D.E. Shaw group <https://www.deshaw.com/>`__
+for suggesting and funding the two largest feature as well as many bug fixes of
+this release.
 
 As usual you can find the full list of PRs on GitHub under `the 8.15 milestone
 <https://github.com/ipython/ipython/milestone/120?closed=1>`__.
