@@ -7,16 +7,73 @@
 IPython 8.15
 ------------
 
-Medium release of IPython after a couple of month hiatus, and a bit off-schedule.
+Medium release of IPython after a couple of month hiatus, and a bit
+off-schedule.
+
+Among other, IPython 8.15:
+
+ - Improve compatibility with future version of Python 3.12/3.13
+   :ghpull:`14107`, :ghpull:`14139`,
+ - Improve support for ``ExceptionGroups``, :ghpull:`14108`
+ - Fix hangs in ``%gui osx``, :ghpull:`14125`
+ - Fix memory lead with ``%reset``, :ghpull:`14133`
+ - Unstable config option to modify traceback highlighting that is sometime hard
+   to read :ghpull:`14138`
+ - Support ``.`` in ``ipdb`` as an argument to the ``list`` command
+   :ghpull:`14121`
+ - Workroud ``parso`` showing warning message when the default logger level is
+   changed :ghpull:`14119`
+ - Fix multiple issues with matplotlib interactive mode, qt5/qt6 :ghpull:`14128`
+
+
+We have two larger features:
+
+AST-based macros
+~~~~~~~~~~~~~~~~
+
+:ghpull:`14100` introduce a new and efficient way to modify each execution block
+(cell) using an template-ast-based transform. Unlike IPython pre and post code
+execution hooks, this actually transform the code that is execute with as
+minimal as possible overhead. While it was already technically possible to
+register ast transformers for IPython this was far from evident.
+
+This should make it trivial to hook into IPython to implement custom hooks, that
+for example time or profile your code, catch exceptions to provide error
+messages for students or do any other kind of transformations.
+
+In addition to programmatic API there is also a magic to quickly register
+hooks::
+
+   In [1]: %%code_wrap before_after
+      ...: print('before')
+      ...: __code__
+      ...: print('after')
+      ...: __ret__
+
+This mean that  for any subsequent execution code will be executed.
+You can modify the above to print the date, compute the execution time,
+retry the code in a for loop....
+
+
+Allow IPdb/Pdb to move between chained exceptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The main change is the addition of the ability to move between chained
 exceptions when using IPdb, this feature was also contributed to upstream Pdb
 and is thus native to CPython in Python 3.13+ Though ipdb should support this
 feature in older version of Python. I invite you to look at the `CPython changes
-and docs <https://github.com/python/cpython/pull/106676>`_ for more details.
+and docs <https://github.com/python/cpython/pull/106676>`__ for more details.
 
-I also want o thanks the `D.E. Shaw group <https://www.deshaw.com/>`_ for
-suggesting and funding this feature.
+
+
+I, in particular  want to thanks the `D.E. Shaw group
+<https://www.deshaw.com/>`__ for suggesting and funding the two largest feature
+as well as many bug fixes of this release.
+
+As usual you can find the full list of PRs on GitHub under `the 8.15 milestone
+<https://github.com/ipython/ipython/milestone/120?closed=1>`__.
+
+
 
 .. _version 8.14:
 
