@@ -76,7 +76,7 @@ and docs <https://github.com/python/cpython/pull/106676>`__ for more details.
 
 
 
-I, in particular  want to thanks the `D.E. Shaw group
+In particular I want to thank the `D.E. Shaw group
 <https://www.deshaw.com/>`__ for suggesting and funding the two largest feature
 as well as many bug fixes of this release.
 
