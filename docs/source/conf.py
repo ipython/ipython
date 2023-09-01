@@ -36,10 +36,10 @@ if ON_RTD:
                     "__name__": "__main__",
                 },
             )
-else:
-    import sphinx_rtd_theme
-    html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+import sphinx_rtd_theme
+
+html_theme = "sphinx_rtd_theme"
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Allow Python scripts to change behaviour during sphinx run
 os.environ["IN_SPHINX_RUN"] = "True"
