@@ -445,6 +445,9 @@ class HTML(TextDisplayObject):
 
 class Markdown(TextDisplayObject):
 
+    def __repr__(self):
+        return self.data
+    
     def _repr_markdown_(self):
         return self._data_and_metadata()
 
