@@ -444,7 +444,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     - control flow:
 
         - conditionals (``if x:``) except for ternary IfExp (``a if x else b``)
-        - loops (``for`` and `while``)
+        - loops (``for`` and ``while``)
         - exception handling
 
     The purpose of this function is to guard against unwanted side-effects;
