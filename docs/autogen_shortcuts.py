@@ -88,6 +88,8 @@ def format_filter(
         return result
     elif s in ["Never", "Always"]:
         return s.lower()
+    elif s == "PassThrough":
+        return "pass_through"
     else:
         raise ValueError(f"Unknown filter type: {filter_}")
 

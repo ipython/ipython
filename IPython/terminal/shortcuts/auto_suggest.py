@@ -20,6 +20,8 @@ from prompt_toolkit.layout.processors import (
 from IPython.core.getipython import get_ipython
 from IPython.utils.tokenutil import generate_tokens
 
+from .filters import pass_through
+
 
 def _get_query(document: Document):
     return document.lines[document.cursor_position_row]
@@ -267,7 +269,10 @@ def backspace_and_resume_hint(event: KeyPressEvent):
 
 def resume_hinting(event: KeyPressEvent):
     """Resume autosuggestions"""
-    return _update_hint(event.current_buffer)
+    pass_through.reply(event)
+    # Order matters: if update happened first and event reply second, the
+    # suggestion would be auto-accepted if both actions are bound to same key.
+    _update_hint(event.current_buffer)
 
 
 def up_and_update_hint(event: KeyPressEvent):
