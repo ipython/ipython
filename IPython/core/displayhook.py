@@ -51,7 +51,7 @@ class DisplayHook(Configurable):
 
         # we need a reference to the user-level namespace
         self.shell = shell
-        
+
         self._,self.__,self.___ = '','',''
 
         # these are deliberately global:
@@ -83,15 +83,9 @@ class DisplayHook(Configurable):
 
     def quiet(self):
         """Should we silence the display hook because of ';'?"""
-        # do not print output if input ends in ';'
-        
-        try:
-            cell = self.shell.history_manager.input_hist_parsed[-1]
-        except IndexError:
-            # some uses of ipshellembed may fail here
-            return False
-        
-        return self.semicolon_at_end_of_expression(cell)
+        if self.exec_result is not None:
+            return self.semicolon_at_end_of_expression(self.exec_result.info.raw_cell)
+        return False
 
     @staticmethod
     def semicolon_at_end_of_expression(expression):
@@ -280,13 +274,12 @@ class DisplayHook(Configurable):
         cull_count = max(int(sz * self.cull_fraction), 2)
         warn('Output cache limit (currently {sz} entries) hit.\n'
              'Flushing oldest {cull_count} entries.'.format(sz=sz, cull_count=cull_count))
-        
+
         for i, n in enumerate(sorted(oh)):
             if i >= cull_count:
                 break
             self.shell.user_ns.pop('_%i' % n, None)
             oh.pop(n, None)
-        
 
     def flush(self):
         if not self.do_full_cache:
