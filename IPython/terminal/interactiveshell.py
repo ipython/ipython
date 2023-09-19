@@ -4,7 +4,7 @@ import asyncio
 import os
 import sys
 from warnings import warn
-from typing import Union as UnionType
+from typing import Union as UnionType, Optional
 
 from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
@@ -912,8 +912,9 @@ class TerminalInteractiveShell(InteractiveShell):
         if self._inputhook is not None:
             self._inputhook(context)
 
-    active_eventloop = None
-    def enable_gui(self, gui=None):
+    active_eventloop: Optional[str] = None
+
+    def enable_gui(self, gui: Optional[str] = None) -> None:
         if self.simple_prompt is True and gui is not None:
             print(
                 f'Cannot install event loop hook for "{gui}" when running with `--simple-prompt`.'
@@ -928,8 +929,15 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
         if self._inputhook is not None and gui is not None:
-            print(
-                f"Shell is already running a gui event loop for {self.active_eventloop}. "
+            newev, newinhook = get_inputhook_name_and_func(gui)
+            if self._inputhook == newinhook:
+                # same inputhook, do nothing
+                self.log.info(
+                    f"Shell is already running the {self.active_eventloop} eventloop. Doing nothing"
+                )
+                return
+            self.log.warning(
+                f"Shell is already running a different gui event loop for {self.active_eventloop}. "
                 "Call with no arguments to disable the current loop."
             )
             return
