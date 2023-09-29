@@ -16,10 +16,10 @@ pyg214 = tuple(int(x) for x in pygments_version.split(".")[:2]) >= (2, 14)
 class TestLexers(TestCase):
     """Collection of lexers tests"""
     def setUp(self):
-        self.lexer = lexers.IPythonLexer()
+        self.lexer = lexers.IPython3Lexer()
         self.bash_lexer = BashLexer()
 
-    def testIPythonLexer(self):
+    def testIPython3Lexer(self):
         fragment = '!echo $HOME\n'
         bash_tokens = [
             (Token.Operator, '!'),

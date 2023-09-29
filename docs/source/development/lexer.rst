@@ -9,22 +9,20 @@ The IPython console lexer has been rewritten and now supports tracebacks
 and customized input/output prompts. An entire suite of lexers is now
 available at :mod:`IPython.lib.lexers`. These include:
 
-IPythonLexer & IPython3Lexer
-  Lexers for pure IPython (python + magic/shell commands)
+IPython3Lexer
+  Lexer for pure IPython  (python 3 + magic/shell commands)
 
 IPythonPartialTracebackLexer & IPythonTracebackLexer
-  Supports 2.x and 3.x via the keyword `python3`. The partial traceback
-  lexer reads everything but the Python code appearing in a traceback.
-  The full lexer combines the partial lexer with an IPython lexer.
+  The partial traceback lexer reads everything but the Python code
+  appearing in a traceback. The full lexer combines the partial lexer
+  with the IPython3Lexer.
 
 IPythonConsoleLexer
-  A lexer for IPython console sessions, with support for tracebacks.
-  Supports 2.x and 3.x via the keyword `python3`.
+  A lexer for python 3 IPython console sessions, with support for tracebacks.
 
 IPyLexer
   A friendly lexer which examines the first line of text and from it,
   decides whether to use an IPython lexer or an IPython console lexer.
-  Supports 2.x and 3.x via the keyword `python3`.
 
 Previously, the :class:`IPythonConsoleLexer` class was available at
 :mod:`IPython.sphinxext.ipython_console_hightlight`.  It was inserted
