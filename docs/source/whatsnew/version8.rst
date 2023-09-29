@@ -2,6 +2,17 @@
  8.x Series
 ============
 
+.. _version 8.12.3:
+
+IPython 8.12.3
+--------------
+
+Tiny release of 8.12.3 that backport a small number of fixes for users still
+using Python 3.8.
+
+ - :ghpull:`14080` add passthrough filter shortcuts
+ - :ghpull:`14169` Fix `InteractiveShellEmbed`
+
 .. _version 8.15:
 
 IPython 8.15
@@ -198,7 +209,7 @@ so if you plan to update to Python 3.12 after its release, we encourage for extr
 
 .. _version 8.13.1:
 .. _version 8.13.2:
-.. _version 8.12.3:
+.. _version 8.12.2:
 
 IPython 8.13.1, 8.13.2 and 8.12.2
 ---------------------------------
