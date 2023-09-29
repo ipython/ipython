@@ -21,8 +21,10 @@ import textwrap
 import shutil
 import random
 import time
+from py_compile import compile, PycInvalidationMode
 from io import StringIO
 from dataclasses import dataclass
+from pathlib import Path
 
 import IPython.testing.tools as tt
 
@@ -72,6 +74,10 @@ class FakeShell:
         self.auto_magics.post_execute_hook()
 
 
+import os
+
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
 class Fixture(TestCase):
     """Fixture for creating test module files"""
 
@@ -114,14 +120,27 @@ class Fixture(TestCase):
         future, and without changing the timestamp of the .pyc file
         (because that is stored in the file).  The only reliable way
         to achieve this seems to be to sleep.
+
+        Since 3.7, we should be able to force a recompile using PycInvalidationMode
         """
         content = textwrap.dedent(content)
-        # Sleep one second + eps
-        time.sleep(1.05)
+
+        # We used to Sleep one second + eps on older Python
+        # now we try to fake the timesamp internally and recompile
+        # by checking hash.
+        if sys.platform == "win32":
+            time.sleep(1.05)
+        else:
+            internal_timestamp = self.shell.auto_magics._reloader.modules_mtimes
+            name = Path(filename).name
+            internal_timestamp[name[:-3]] = internal_timestamp[name[:-3]] - 10
 
         # Write
         with open(filename, "w", encoding="utf-8") as f:
             f.write(content)
+
+        if sys.platform != "win32":
+            compile(filename, invalidation_mode=PycInvalidationMode.CHECKED_HASH)
 
     def new_module(self, code):
         code = textwrap.dedent(code)
@@ -614,7 +633,7 @@ class Bar:    # old-style class
 """,
         )
 
-        def check_module_contents():
+        def check_module_contents_2():
             self.assertEqual(mod.x, 10)
             self.assertFalse(hasattr(mod, "z"))
 
@@ -635,8 +654,9 @@ class Bar:    # old-style class
             self.assertEqual(old_obj2.foo(), 2)
             self.assertEqual(obj2.foo(), 2)
 
+        time.sleep(1.05)  # pyc dified date
         self.shell.run_code("pass")  # trigger reload
-        check_module_contents()
+        check_module_contents_2()
 
         #
         # Another failure case: deleted file (shouldn't reload)
@@ -644,7 +664,7 @@ class Bar:    # old-style class
         os.unlink(mod_fn)
 
         self.shell.run_code("pass")  # trigger reload
-        check_module_contents()
+        check_module_contents_2()
 
         #
         # Disable autoreload and rewrite module: no reload should occur
@@ -669,7 +689,7 @@ x = -99
 
         self.shell.run_code("pass")  # trigger reload
         self.shell.run_code("pass")
-        check_module_contents()
+        check_module_contents_2()
 
         #
         # Re-enable autoreload: reload should now occur
