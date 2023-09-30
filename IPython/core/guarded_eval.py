@@ -417,8 +417,7 @@ UNARY_OP_DUNDERS: Dict[Type[ast.unaryop], Tuple[str, ...]] = {
 
 
 class Duck:
-    """A dummy class used to create objects of other classes without calling their __init__"""
-    pass
+    """A dummy class used to create objects of other classes without calling their ``__init__``"""
 
 
 def _find_dunder(node_op, dunders) -> Union[Tuple[str, ...], None]:
