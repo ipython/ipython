@@ -1,3 +1,4 @@
+from inspect import signature
 from typing import (
     Any,
     Callable,
@@ -415,6 +416,11 @@ UNARY_OP_DUNDERS: Dict[Type[ast.unaryop], Tuple[str, ...]] = {
 }
 
 
+class Duck:
+    """A dummy class used to create objects of other classes without calling their __init__"""
+    pass
+
+
 def _find_dunder(node_op, dunders) -> Union[Tuple[str, ...], None]:
     dunder = None
     for op, candidate_dunder in dunders.items():
@@ -584,6 +590,13 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         if policy.can_call(func) and not node.keywords:
             args = [eval_node(arg, context) for arg in node.args]
             return func(*args)
+        sig = signature(func)
+        # if annotation was not stringized, or it was stringized
+        # but resolved by signature call we know the return type
+        if not isinstance(sig.return_annotation, str):
+            duck = Duck()
+            duck.__class__ = sig.return_annotation
+            return duck
         raise GuardRejection(
             "Call for",
             func,  # not joined to avoid calling `repr`
