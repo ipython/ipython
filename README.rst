@@ -10,8 +10,8 @@
 .. image:: https://www.codetriage.com/ipython/ipython/badges/users.svg
     :target: https://www.codetriage.com/ipython/ipython/
 
-.. image:: https://raster.shields.io/badge/Follows-NEP29-brightgreen.png
-    :target: https://numpy.org/neps/nep-0029-deprecation_policy.html
+.. image:: https://raster.shields.io/badge/Follows-SPEC--0000-brightgreen.png
+    :target: https://scientific-python.org/specs/spec-0000/
 
 .. image:: https://tidelift.com/badges/package/pypi/ipython?style=flat
     :target: https://tidelift.com/subscription/pkg/pypi-ipython
@@ -30,6 +30,8 @@ contribute to the project.
 IPython (Interactive Python) is a command shell for interactive computing in multiple programming languages, originally developed for the Python programming language, that offers introspection, rich media, shell syntax, tab completion, and history.
 
 **IPython versions and Python Support**
+
+Starting after IPython 8.16, we will progressively transition to `Spec-0000 <https://scientific-python.org/specs/spec-0000/>`_.
 
 Starting with IPython 7.10, IPython follows `NEP 29 <https://numpy.org/neps/nep-0029-deprecation_policy.html>`_
 
