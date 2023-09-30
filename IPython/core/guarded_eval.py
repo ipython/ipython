@@ -1,4 +1,4 @@
-from inspect import signature
+from inspect import signature, Signature
 from typing import (
     Any,
     Callable,
@@ -336,6 +336,7 @@ class _IdentitySubscript:
 
 IDENTITY_SUBSCRIPT = _IdentitySubscript()
 SUBSCRIPT_MARKER = "__SUBSCRIPT_SENTINEL__"
+UNKNOWN_SIGNATURE = Signature()
 
 
 class GuardRejection(Exception):
@@ -589,10 +590,15 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         if policy.can_call(func) and not node.keywords:
             args = [eval_node(arg, context) for arg in node.args]
             return func(*args)
-        sig = signature(func)
+        try:
+            sig = signature(func)
+        except ValueError:
+            sig = UNKNOWN_SIGNATURE
         # if annotation was not stringized, or it was stringized
         # but resolved by signature call we know the return type
-        if not isinstance(sig.return_annotation, str):
+        not_empty = sig.return_annotation is not Signature.empty
+        not_stringized = not isinstance(sig.return_annotation, str)
+        if not_empty and not_stringized:
             duck = Duck()
             duck.__class__ = sig.return_annotation
             return duck
