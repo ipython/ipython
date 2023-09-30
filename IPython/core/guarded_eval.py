@@ -600,8 +600,17 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         not_stringized = not isinstance(sig.return_annotation, str)
         if not_empty and not_stringized:
             duck = Duck()
-            duck.__class__ = sig.return_annotation
-            return duck
+            # if allow-listed builtin is on type annotation, instantiate it
+            if policy.can_call(sig.return_annotation) and not node.keywords:
+                args = [eval_node(arg, context) for arg in node.args]
+                return sig.return_annotation(*args)
+            try:
+                # if custom class is in type annotation, mock it;
+                # this only works for heat types, not builtins
+                duck.__class__ = sig.return_annotation
+                return duck
+            except TypeError:
+                pass
         raise GuardRejection(
             "Call for",
             func,  # not joined to avoid calling `repr`
