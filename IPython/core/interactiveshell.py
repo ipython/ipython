@@ -21,6 +21,7 @@ import inspect
 import os
 import re
 import runpy
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -3902,7 +3903,7 @@ class InteractiveShell(SingletonConfigurable):
         del self.tempfiles
         for tdir in self.tempdirs:
             try:
-                tdir.rmdir()
+                shutil.rmtree(tdir)
                 self.tempdirs.remove(tdir)
             except FileNotFoundError:
                 pass
