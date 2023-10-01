@@ -606,7 +606,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 return sig.return_annotation(*args)
             try:
                 # if custom class is in type annotation, mock it;
-                # this only works for heat types, not builtins
+                # this only works for heap types, not builtins
                 duck.__class__ = sig.return_annotation
                 return duck
             except TypeError:
