@@ -86,14 +86,15 @@ class ExtensionManager(Configurable):
 
         from IPython.utils.syspathcontext import prepended_to_syspath
 
-        with self.shell.builtin_trap:
-            if module_str not in sys.modules:
-                mod = import_module(module_str)
-            mod = sys.modules[module_str]
-            if self._call_load_ipython_extension(mod):
-                self.loaded.add(module_str)
-            else:
-                return "no load function"
+        if self.shell and getattr(self.shell, "builtin_trap", None) is not None:
+            with self.shell.builtin_trap:
+                if module_str not in sys.modules:
+                    mod = import_module(module_str)
+                mod = sys.modules[module_str]
+                if self._call_load_ipython_extension(mod):
+                    self.loaded.add(module_str)
+                else:
+                    return "no load function"
 
     def unload_extension(self, module_str: str):
         """Unload an IPython extension by its module name.
