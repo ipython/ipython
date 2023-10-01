@@ -1546,3 +1546,31 @@ def test_run_module_from_import_hook():
         assert output == captured.stdout
 
         sys.meta_path.pop(0)
+
+
+def doctest_magic_output_can_be_silenced():
+    """Test ...
+    In [1]: from IPython.core.magic import register_line_magic, output_can_be_silenced
+
+    In [2]: @register_line_magic
+       ...: def echo_magic(line):
+       ...:     return line
+       ...:
+
+    In [3]: @register_line_magic
+       ...: @output_can_be_silenced
+       ...: def echo_magic_can_be_silenced(line):
+       ...:     return line
+       ...:
+
+    In [4]: %echo_magic hello
+    Out[4]: 'hello'
+
+    In [5]: %echo_magic hello;
+    Out[5]: 'hello;'
+
+    In [6]: %echo_magic_can_be_silenced hello;
+
+    In [7]: %echo_magic_can_be_silenced hello
+    Out[7]: 'hello'
+    """
