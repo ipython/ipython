@@ -250,8 +250,9 @@ class ExecutionResult(object):
 
     Stores information about what took place.
     """
-    execution_count = None
-    error_before_exec = None
+
+    execution_count: Optional[int] = None
+    error_before_exec: Optional[bool] = None
     error_in_exec: Optional[BaseException] = None
     info = None
     result = None
@@ -530,14 +531,18 @@ class InteractiveShell(SingletonConfigurable):
                             ).tag(config=True)
 
     # Subcomponents of InteractiveShell
-    alias_manager = Instance('IPython.core.alias.AliasManager', allow_none=True)
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
-    builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap', allow_none=True)
-    display_trap = Instance('IPython.core.display_trap.DisplayTrap', allow_none=True)
-    extension_manager = Instance('IPython.core.extensions.ExtensionManager', allow_none=True)
-    payload_manager = Instance('IPython.core.payload.PayloadManager', allow_none=True)
-    history_manager = Instance('IPython.core.history.HistoryAccessorBase', allow_none=True)
-    magics_manager = Instance('IPython.core.magic.MagicsManager', allow_none=True)
+    alias_manager = Instance("IPython.core.alias.AliasManager", allow_none=True)
+    prefilter_manager = Instance(
+        "IPython.core.prefilter.PrefilterManager", allow_none=True
+    )
+    builtin_trap = Instance("IPython.core.builtin_trap.BuiltinTrap")
+    display_trap = Instance("IPython.core.display_trap.DisplayTrap")
+    extension_manager = Instance(
+        "IPython.core.extensions.ExtensionManager", allow_none=True
+    )
+    payload_manager = Instance("IPython.core.payload.PayloadManager", allow_none=True)
+    history_manager = Instance("IPython.core.history.HistoryAccessorBase")
+    magics_manager = Instance("IPython.core.magic.MagicsManager")
 
     profile_dir = Instance('IPython.core.application.ProfileDir', allow_none=True)
     @property
@@ -3244,7 +3249,7 @@ class InteractiveShell(SingletonConfigurable):
         # Our own compiler remembers the __future__ environment. If we want to
         # run code with a separate __future__ environment, use the default
         # compiler
-        compiler = self.compile if shell_futures else self.compiler_class()
+        compiler = self.compile if shell_futures else self.compiler_class()  # type: ignore [operator]
 
         _run_async = False
 
