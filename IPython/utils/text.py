@@ -13,15 +13,10 @@ import re
 import string
 import sys
 import textwrap
+import warnings
 from string import Formatter
 from pathlib import Path
 
-
-# datetime.strftime date format for ipython
-if sys.platform == 'win32':
-    date_format = "%B %d, %Y"
-else:
-    date_format = "%B %-d, %Y"
 
 class LSString(str):
     """String derivative with a special access attributes.
@@ -336,7 +331,13 @@ ini_spaces_re = re.compile(r'^(\s+)')
 
 def num_ini_spaces(strng):
     """Return the number of initial spaces in a string"""
-
+    warnings.warn(
+        "`num_ini_spaces` is Pending Deprecation since IPython 8.17."
+        "It is considered fro removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
     ini_spaces = ini_spaces_re.match(strng)
     if ini_spaces:
         return ini_spaces.end()
@@ -391,6 +392,13 @@ def wrap_paragraphs(text, ncols=80):
     -------
     list of complete paragraphs, wrapped to fill `ncols` columns.
     """
+    warnings.warn(
+        "`wrap_paragraphs` is Pending Deprecation since IPython 8.17."
+        "It is considered fro removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
     paragraph_re = re.compile(r'\n(\s*\n)+', re.MULTILINE)
     text = dedent(text).strip()
     paragraphs = paragraph_re.split(text)[::2] # every other entry is space
@@ -465,6 +473,14 @@ def strip_ansi(source):
     source : str
         Source to remove the ansi from
     """
+    warnings.warn(
+        "`strip_ansi` is Pending Deprecation since IPython 8.17."
+        "It is considered fro removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
+
     return re.sub(r'\033\[(\d|;)+?m', '', source)
 
 
@@ -682,6 +698,13 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
         In [5]: all((info[k] == ideal[k] for k in ideal.keys()))
         Out[5]: True
     """
+    warnings.warn(
+        "`compute_item_matrix` is Pending Deprecation since IPython 8.17."
+        "It is considered fro removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
     info = _find_optimal(list(map(len, items)), row_first, *args, **kwargs)
     nrow, ncol = info['max_rows'], info['num_columns']
     if row_first:
@@ -709,6 +732,13 @@ def columnize(items, row_first=False, separator="  ", displaywidth=80, spread=Fa
     -------
     The formatted string.
     """
+    warnings.warn(
+        "`columnize` is Pending Deprecation since IPython 8.17."
+        "It is considered fro removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
     if not items:
         return '\n'
     matrix, info = compute_item_matrix(items, row_first=row_first, separator_size=len(separator), displaywidth=displaywidth)
