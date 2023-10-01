@@ -13,7 +13,7 @@ import io as _io
 import tokenize
 
 from traitlets.config.configurable import Configurable
-from traitlets import Instance, Float
+from traitlets import Instance, Unicode, Float
 from warnings import warn
 
 # TODO: Move the various attributes (cache_size, [others now moved]). Some
@@ -31,6 +31,7 @@ class DisplayHook(Configurable):
                      allow_none=True)
     exec_result = Instance('IPython.core.interactiveshell.ExecutionResult',
                            allow_none=True)
+    exec_cell = Unicode(allow_none=True)
     cull_fraction = Float(0.2)
 
     def __init__(self, shell=None, cache_size=1000, **kwargs):
@@ -83,8 +84,8 @@ class DisplayHook(Configurable):
 
     def quiet(self):
         """Should we silence the display hook because of ';'?"""
-        if self.exec_result is not None:
-            return self.semicolon_at_end_of_expression(self.exec_result.info.raw_cell)
+        if self.exec_result is not None and self.exec_result.cell is not None:
+            return self.semicolon_at_end_of_expression(self.exec_result.cell)
         return False
 
     @staticmethod

@@ -255,6 +255,7 @@ class ExecutionResult(object):
     error_in_exec: Optional[BaseException] = None
     info = None
     result = None
+    cell = None
 
     def __init__(self, info):
         self.info = info
@@ -3223,6 +3224,8 @@ class InteractiveShell(SingletonConfigurable):
                 cell = transformed_cell
             else:
                 cell = raw_cell
+
+        result.cell = cell
 
         # Do NOT store paste/cpaste magic history
         if "get_ipython().run_line_magic(" in cell and "paste" in cell:
