@@ -3,9 +3,10 @@
 ============
 
 .. _version 8.16:
+.. _version 8.16.1:
 
-IPython 8.16
-------------
+IPython 8.16, 8.16.1
+--------------------
 
 Small double release of IPython (with the 8.12.3 release notes just below).
 Mostly bug fixes and cleanups, and type annotations. Of interest for users:
@@ -13,12 +14,16 @@ Mostly bug fixes and cleanups, and type annotations. Of interest for users:
  - :ghpull:`14153` Fix a bug of the new iPdb chained traceback where some
    Exception would not have any traceback. (see upstream fix in CPython for more
    details).
- - :ghpull:`14163` Fix an error where semicolon would not suppress output.
  - :ghpull:`14168` Fix case with spurious message about event loops when using
    matplotlib.
 
-As usual you can find the full list of PRs on GitHub under `the 8.16 milestone
-<https://github.com/ipython/ipython/milestone/121?closed=1>`__.
+This PR is in 8.16.0 but reverted in 8.16.1, we'll  rework the fix for 8.17
+
+ - :ghpull:`14163` Fix an error where semicolon would not suppress output.
+
+As usual you can find the full list of PRs on GitHub under `the 8.16
+<https://github.com/ipython/ipython/milestone/121?closed=1>`__ and `8.16.1 milestone
+<https://github.com/ipython/ipython/milestone/124?closed=1>`__.
 
 Thanks to the `D.E. Shaw group <https://www.deshaw.com/>`__ for the request and
 sponsoring the work.
