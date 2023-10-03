@@ -13,3 +13,4 @@ repos:
     rev: 1.7.2
     hooks:
     -   id: darker
+        additional_dependencies: [isort, mypy, flake8]
