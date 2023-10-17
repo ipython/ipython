@@ -111,7 +111,7 @@ and is thus native to CPython in Python 3.13+ Though ipdb should support this
 feature in older version of Python. I invite you to look at the `CPython changes
 and docs <https://github.com/python/cpython/pull/106676>`__ for more details.
 
-In short, once in post-mortem debuger (``%debug``), you can use the ipdb
+In short, once in post-mortem debugger (``%debug``), you can use the ipdb
 ``exceptions`` command to switch exceptions, for example:
 
 .. code-block:: ipython
@@ -265,10 +265,10 @@ for Python 3.8 as per NEP 29 (:ghpull:`14023`).
 All the critical bugfixes have been backported onto the 8.12.1 release (see
 below). In addition to that went into 8.12.1 you'll find:
 
- - Pretty reprensentation for ``Counter`` has been fixed to match the Python one
+ - Pretty representation for ``Counter`` has been fixed to match the Python one
    and be in decreasing order. :ghpull:`14032`
  - Module completion is better when jedi is disabled :ghpull:`14029`.
- - Improvment of ``%%bash`` magic that would get stuck :ghpull:`14019`
+ - Improvement of ``%%bash`` magic that would get stuck :ghpull:`14019`
 
 
 We hope you enjoy this release an will maybe see you at JupyterCon in less than
@@ -948,7 +948,7 @@ features listed in :ref:`version 7.32`.
    :ghpull:`13471` Additionally the ability to use ``yapf`` as a code
    reformatter has been added :ghpull:`13528` . You can use
    ``TerminalInteractiveShell.autoformatter="black"``,
-   ``TerminalInteractiveShell.autoformatter="yapf"`` to re-enable auto formating
+   ``TerminalInteractiveShell.autoformatter="yapf"`` to re-enable auto formatting
    with black, or switch to yapf.
 
  - Fix and issue where ``display`` was not defined.
