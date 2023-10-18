@@ -417,7 +417,7 @@ class Inspector(Colorable):
         If any exception is generated, None is returned instead and the
         exception is suppressed."""
         if not callable(obj):
-            return None        
+            return None
         try:
             return _render_signature(signature(obj), oname)
         except:
