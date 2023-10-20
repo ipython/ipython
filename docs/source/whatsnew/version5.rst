@@ -121,7 +121,7 @@ Define ``_repr_mimebundle_``
 Object can now define `_repr_mimebundle_` in place of multiple `_repr_*_`
 methods and return a full mimebundle. This greatly simplify many implementation
 and allow to publish custom mimetypes (like geojson, plotly, dataframes....).
-See the ``Custom Display Logic`` example notebook for more informations.
+See the ``Custom Display Logic`` example notebook for more information.
 
 Execution Heuristics
 --------------------

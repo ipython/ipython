@@ -211,7 +211,7 @@ Issues (18):
 * :ghissue:`4134`: multi-line parser fails on ''' in comment, qtconsole and notebook.
 * :ghissue:`3998`: sample custom.js needs to be updated
 * :ghissue:`4078`: StoreMagic.autorestore not working in 1.0.0
-* :ghissue:`3990`: Buitlin `input` doesn't work over zmq
+* :ghissue:`3990`: Builtin `input` doesn't work over zmq
 * :ghissue:`4015`: nbconvert fails to convert all the content of a notebook
 * :ghissue:`4059`: Issues with Ellipsis literal in Python 3
 * :ghissue:`4103`: Wrong default argument of DirectView.clear
@@ -543,7 +543,7 @@ Pull Requests (793):
 * :ghpull:`3648`: Fix store magic test 
 * :ghpull:`3650`: Fix, config_file_name was ignored
 * :ghpull:`3640`: Gcf.get_active() can return None
-* :ghpull:`3571`: Added shorcuts to split cell, merge cell above and merge cell below.
+* :ghpull:`3571`: Added shortcuts to split cell, merge cell above and merge cell below.
 * :ghpull:`3635`: Added missing slash to print-pdf call.
 * :ghpull:`3487`: Drop patch for compatibility with pyreadline 1.5
 * :ghpull:`3338`: Allow filename with extension in find_cmd in Windows.
