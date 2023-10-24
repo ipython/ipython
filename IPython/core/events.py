@@ -89,9 +89,8 @@ class EventManager(object):
 available_events = {}
 
 def _define_event(callback_function):
-    callback_proto = callback_prototype(callback_function)
-    available_events[callback_function.__name__] = callback_proto
-    return callback_proto
+    available_events[callback_function.__name__] = callback_function
+    return callback_function
 
 # ------------------------------------------------------------------------------
 # Callback prototypes
