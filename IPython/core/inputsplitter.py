@@ -31,7 +31,7 @@ import sys
 import tokenize
 import warnings
 
-from typing import List
+from typing import List, Tuple, Union
 
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
@@ -150,7 +150,7 @@ def partial_tokens(s):
         else:
             raise
 
-def find_next_indent(code):
+def find_next_indent(code) -> int:
     """Find the number of spaces for the next line of indentation"""
     tokens = list(partial_tokens(code))
     if tokens[-1].type == tokenize.ENDMARKER:
@@ -324,7 +324,7 @@ class InputSplitter(object):
     # If self.source matches the first value, the second value is a valid
     # current indentation. Otherwise, the cache is invalid and the indentation
     # must be recalculated.
-    _indent_spaces_cache = None, None
+    _indent_spaces_cache: Union[Tuple[None, None], Tuple[str, int]] = None, None
     # String, indicating the default input encoding.  It is computed by default
     # at initialization time via get_input_encoding(), but it can be reset by a
     # client with specific knowledge of the encoding.
@@ -332,7 +332,7 @@ class InputSplitter(object):
     # String where the current full source input is stored, properly encoded.
     # Reading this attribute is the normal way of querying the currently pushed
     # source code, that has been properly encoded.
-    source = ''
+    source: str = ""
     # Code object corresponding to the current source.  It is automatically
     # synced to the source, so it can be queried at any time to obtain the code
     # object; it will be None if the source doesn't compile to valid Python.
@@ -517,9 +517,10 @@ class InputSplitter(object):
         # General fallback - accept more code
         return True
 
-    def get_indent_spaces(self):
+    def get_indent_spaces(self) -> int:
         sourcefor, n = self._indent_spaces_cache
         if sourcefor == self.source:
+            assert n is not None
             return n
 
         # self.source always has a trailing newline
@@ -568,7 +569,7 @@ class IPythonInputSplitter(InputSplitter):
     # Private attributes
 
     # List with lines of raw input accumulated so far.
-    _buffer_raw = None
+    _buffer_raw: List[str]
 
     def __init__(self, line_input_checker=True, physical_line_transforms=None,
                     logical_line_transforms=None, python_line_transforms=None):
@@ -658,8 +659,8 @@ class IPythonInputSplitter(InputSplitter):
             tmp = transform.reset()
             if tmp is not None:
                 yield tmp
-        
-        out = []
+
+        out: List[str] = []
         for t in self.transforms_in_use:
             out = _flush(t, out)
         
