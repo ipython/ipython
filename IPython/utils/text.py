@@ -17,6 +17,8 @@ import warnings
 from string import Formatter
 from pathlib import Path
 
+from typing import List, Union, Optional, Dict, Tuple
+
 
 class LSString(str):
     """String derivative with a special access attributes.
@@ -627,7 +629,7 @@ def _col_chunks(l, max_rows, row_first=False):
             yield l[i:(i + max_rows)]
 
 
-def _find_optimal(rlist, row_first=False, separator_size=2, displaywidth=80):
+def _find_optimal(rlist, row_first:bool, separator_size:int, displaywidth:int):
     """Calculate optimal info to columnize a list of string"""
     for max_rows in range(1, len(rlist) + 1):
         col_widths = list(map(max, _col_chunks(rlist, max_rows, row_first)))
@@ -650,7 +652,7 @@ def _get_or_default(mylist, i, default=None):
         return mylist[i]
 
 
-def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
+def compute_item_matrix(items, row_first:bool=False, empty=None,*,  separator_size=2, displaywidth=80) -> Tuple[List[List[int]], Dict[str, int]] :
     """Returns a nested list, and info to columnize items
 
     Parameters
@@ -705,7 +707,7 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
         stacklevel=2,
         category=PendingDeprecationWarning,
     )
-    info = _find_optimal(list(map(len, items)), row_first, *args, **kwargs)
+    info = _find_optimal(list(map(len, items)), row_first, separator_size=separator_size, displaywidth=displaywidth)
     nrow, ncol = info['max_rows'], info['num_columns']
     if row_first:
         return ([[_get_or_default(items, r * ncol + c, default=empty) for c in range(ncol)] for r in range(nrow)], info)
@@ -741,10 +743,11 @@ def columnize(items, row_first=False, separator="  ", displaywidth=80, spread=Fa
     )
     if not items:
         return '\n'
+    matrix:List[List[int]]
     matrix, info = compute_item_matrix(items, row_first=row_first, separator_size=len(separator), displaywidth=displaywidth)
     if spread:
         separator = separator.ljust(int(info['optimal_separator_width']))
-    fmatrix = [filter(None, x) for x in matrix]
+    fmatrix:List[filter[int]] = [filter(None, x) for x in matrix]
     sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['column_widths'])])
     return '\n'.join(map(sjoin, fmatrix))+'\n'
 
