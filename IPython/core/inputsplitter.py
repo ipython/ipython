@@ -31,7 +31,8 @@ import sys
 import tokenize
 import warnings
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
+from types import CodeType
 
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
@@ -336,7 +337,7 @@ class InputSplitter(object):
     # Code object corresponding to the current source.  It is automatically
     # synced to the source, so it can be queried at any time to obtain the code
     # object; it will be None if the source doesn't compile to valid Python.
-    code = None
+    code: Optional[CodeType] = None
 
     # Private attributes
 
@@ -345,9 +346,9 @@ class InputSplitter(object):
     # Command compiler
     _compile: codeop.CommandCompiler
     # Boolean indicating whether the current block is complete
-    _is_complete = None
+    _is_complete: Optional[bool] = None
     # Boolean indicating whether the current block has an unrecoverable syntax error
-    _is_invalid = False
+    _is_invalid: bool = False
 
     def __init__(self) -> None:
         """Create a new InputSplitter instance."""
