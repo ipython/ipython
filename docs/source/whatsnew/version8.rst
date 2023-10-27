@@ -2,6 +2,25 @@
  8.x Series
 ============
 
+.. _version 8.17:
+
+IPython 8.17
+------------
+
+Medium-sized release of IPython that includes some cleanup (backcall, python2 leftovers)
+and some refactoring improvements (typing, pathlib) and a fix on completion.
+
+  - :ghpull:`14216` remove backcall dependency
+  - :ghpull:`14217` make pickleshare dependency optional
+  - :ghpull:`14190` remove support for python 2 in lexers
+  - :ghpull:`14185` support completion based on type annotations of calls
+
+As usual you can find the full list of PRs on GitHub under `the 8.17
+<https://github.com/ipython/ipython/milestone/123?closed=1>`__ milestone.
+
+Thanks to the `D.E. Shaw group <https://www.deshaw.com/>`__ for the request and
+sponsoring the work.
+
 .. _version 8.16:
 .. _version 8.16.1:
 
