@@ -37,7 +37,28 @@ from typing import List as ListType, Dict as DictType, Any as AnyType
 from typing import Optional, Sequence, Tuple
 from warnings import warn
 
-from pickleshare import PickleShareDB
+try:
+    from pickleshare import PickleShareDB
+except ModuleNotFoundError:
+
+    class PickleShareDB:  # type: ignore [no-redef]
+        def __init__(self, path):
+            pass
+
+        def get(self, key, default):
+            warn(
+                f"using {key} requires you to install the `pickleshare` library.",
+                stacklevel=2,
+            )
+            return default
+
+        def __setitem__(self, key, value):
+            warn(
+                f"using {key} requires you to install the `pickleshare` library.",
+                stacklevel=2,
+            )
+
+
 from tempfile import TemporaryDirectory
 from traitlets import (
     Any,
