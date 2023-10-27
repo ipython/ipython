@@ -5,8 +5,9 @@
 import os
 import sys
 
+from pathlib import Path
+
 # Useful shorthands
-pjoin = os.path.join
 cd = os.chdir
 
 # Constants
@@ -34,13 +35,12 @@ def get_ipdir():
     """Get IPython directory from command line, or assume it's the one above."""
 
     # Initialize arguments and check location
-    ipdir = pjoin(os.path.dirname(__file__), os.pardir)
-
-    ipdir = os.path.abspath(ipdir)
+    ipdir = Path(__file__).parent / os.pardir
+    ipdir = ipdir.resolve()
 
     cd(ipdir)
-    if not os.path.isdir('IPython') and os.path.isfile('setup.py'):
-        raise SystemExit('Invalid ipython directory: %s' % ipdir)
+    if not Path("IPython").is_dir() and Path("setup.py").is_file():
+        raise SystemExit("Invalid ipython directory: %s" % ipdir)
     return ipdir
 
 def execfile(fname, globs, locs=None):
