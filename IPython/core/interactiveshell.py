@@ -41,7 +41,7 @@ try:
     from pickleshare import PickleShareDB
 except ModuleNotFoundError:
 
-    class PickleShareDB:
+    class PickleShareDB:  # type: ignore [no-redef]
         def __init__(self, path):
             pass
 
