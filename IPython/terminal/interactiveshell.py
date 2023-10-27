@@ -753,7 +753,7 @@ class TerminalInteractiveShell(InteractiveShell):
             "message": get_message,
             "prompt_continuation": (
                 lambda width, lineno, is_soft_wrap: PygmentsTokens(
-                    self.prompts.continuation_prompt_tokens(width)
+                    self.prompts.continuation_prompt_tokens(width, lineno=lineno)
                 )
             ),
             "multiline": True,

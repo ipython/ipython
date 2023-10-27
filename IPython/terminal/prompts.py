@@ -28,8 +28,9 @@ class Prompts(object):
 
     def in_prompt_tokens(self):
         return [
-            (Token.Prompt, self.vi_mode() ),
-            (Token.Prompt, 'In ['),
+            (Token.Prompt, self.vi_mode()),
+            (Token.Prompt, "1 | "),
+            (Token.Prompt, "In ["),
             (Token.PromptNum, str(self.shell.execution_count)),
             (Token.Prompt, ']: '),
         ]
@@ -37,11 +38,15 @@ class Prompts(object):
     def _width(self):
         return fragment_list_width(self.in_prompt_tokens())
 
-    def continuation_prompt_tokens(self, width=None):
+    def continuation_prompt_tokens(self, width=None, *, lineno=None):
         if width is None:
             width = self._width()
+        prefix = " " * len(self.vi_mode()) + str(lineno + 1) + " | "
         return [
-            (Token.Prompt, (' ' * (width - 5)) + '...: '),
+            (
+                Token.Prompt,
+                prefix + (" " * (width - len(prefix) - 5)) + "...: ",
+            ),
         ]
 
     def rewrite_prompt_tokens(self):
