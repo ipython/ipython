@@ -337,7 +337,7 @@ class InputSplitter(object):
     # Code object corresponding to the current source.  It is automatically
     # synced to the source, so it can be queried at any time to obtain the code
     # object; it will be None if the source doesn't compile to valid Python.
-    code:Optional[CodeType] = None
+    code: Optional[CodeType] = None
 
     # Private attributes
 
@@ -346,9 +346,9 @@ class InputSplitter(object):
     # Command compiler
     _compile: codeop.CommandCompiler
     # Boolean indicating whether the current block is complete
-    _is_complete:Optional[bool] = None
+    _is_complete: Optional[bool] = None
     # Boolean indicating whether the current block has an unrecoverable syntax error
-    _is_invalid:bool = False
+    _is_invalid: bool = False
 
     def __init__(self) -> None:
         """Create a new InputSplitter instance."""

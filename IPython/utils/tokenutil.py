@@ -24,7 +24,9 @@ def generate_tokens(readline):
         return
 
 
-def generate_tokens_catch_errors(readline, extra_errors_to_catch:Optional[List[str]]=None):
+def generate_tokens_catch_errors(
+    readline, extra_errors_to_catch: Optional[List[str]] = None
+):
     default_errors_to_catch = [
         "unterminated string literal",
         "invalid non-printable character",
@@ -33,7 +35,7 @@ def generate_tokens_catch_errors(readline, extra_errors_to_catch:Optional[List[s
     assert extra_errors_to_catch is None or isinstance(extra_errors_to_catch, list)
     errors_to_catch = default_errors_to_catch + (extra_errors_to_catch or [])
 
-    tokens:List[TokenInfo] = []
+    tokens: List[TokenInfo] = []
     try:
         for token in tokenize.generate_tokens(readline):
             tokens.append(token)
@@ -86,7 +88,8 @@ def line_at_cursor(cell, cursor_pos=0):
         line = ""
     return (line, offset)
 
-def token_at_cursor(cell:str, cursor_pos:int=0):
+
+def token_at_cursor(cell: str, cursor_pos: int = 0):
     """Get the token at a given cursor
 
     Used for introspection.
@@ -101,8 +104,8 @@ def token_at_cursor(cell:str, cursor_pos:int=0):
     cursor_pos : int
         The location of the cursor in the block where the token should be found
     """
-    names:List[str] = []
-    tokens:List[Token] = []
+    names: List[str] = []
+    tokens: List[Token] = []
     call_names = []
     
     offsets = {1: 0} # lines start at 1

@@ -24,7 +24,7 @@ import time
 try:
     import resource
 except ModuleNotFoundError:
-    resource = None #type: ignore [assignment]
+    resource = None  # type: ignore [assignment]
 
 # Some implementations (like jyputerlite) don't have getrusage
 if resource is not None and hasattr(resource, "getrusage"):
