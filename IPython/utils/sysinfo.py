@@ -20,6 +20,8 @@ import pprint
 import sys
 import subprocess
 
+from pathlib import Path
+
 from IPython.core import release
 from IPython.utils import _sysinfo, encoding
 
@@ -94,9 +96,8 @@ def pkg_info(pkg_path):
 
 def get_sys_info():
     """Return useful information about IPython and the system, as a dict."""
-    p = os.path
-    path = p.realpath(p.dirname(p.abspath(p.join(__file__, '..'))))
-    return pkg_info(path)
+    path = Path(__file__, "..").resolve().parent
+    return pkg_info(str(path))
 
 def sys_info():
     """Return useful information about IPython and the system, as a string.
