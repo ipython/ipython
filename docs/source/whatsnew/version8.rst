@@ -2,18 +2,22 @@
  8.x Series
 ============
 
+.. _version 8.17.1:
 .. _version 8.17:
 
-IPython 8.17
-------------
+IPython 8.17, 8.17.1
+--------------------
 
 Medium-sized release of IPython that includes some cleanup (backcall, python2 leftovers)
 and some refactoring improvements (typing, pathlib) and a fix on completion.
 
   - :ghpull:`14216` remove backcall dependency
   - :ghpull:`14217` make pickleshare dependency optional
-  - :ghpull:`14190` remove support for python 2 in lexers
   - :ghpull:`14185` support completion based on type annotations of calls
+
+Reverted in 8.17.1:
+
+  - :ghpull:`14190` remove support for python 2 in lexers (reverted in 8.17.1 as it is imported by qtconsole/spyder)
 
 Mamba and Micromamba magic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
