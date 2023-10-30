@@ -4,10 +4,12 @@ import pytest
 import pygments.lexers
 import pygments.lexer
 
-from IPython.lib.lexers import IPythonConsoleLexer, IPython3Lexer
+from IPython.lib.lexers import IPythonConsoleLexer, IPythonLexer, IPython3Lexer
 
 #: the human-readable names of the IPython lexers with ``entry_points``
-EXPECTED_LEXER_NAMES = [cls.name for cls in [IPythonConsoleLexer, IPython3Lexer]]
+EXPECTED_LEXER_NAMES = [
+    cls.name for cls in [IPythonConsoleLexer, IPythonLexer, IPython3Lexer]
+]
 
 
 @pytest.fixture
