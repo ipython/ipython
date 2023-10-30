@@ -15,6 +15,21 @@ and some refactoring improvements (typing, pathlib) and a fix on completion.
   - :ghpull:`14190` remove support for python 2 in lexers
   - :ghpull:`14185` support completion based on type annotations of calls
 
+Mamba and Micromamba magic
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to the conda command to manage conda environment, mamba and
+micromamba can now be used using the corresponding magic in IPython.
+Since these commands are compatible with conda, they are following the
+same logic.
+
+These two magic require to have the corresponding commands available
+either in the conda environment or system wide.
+
+:ghpull:`14191`
+
+----
+
 As usual you can find the full list of PRs on GitHub under `the 8.17
 <https://github.com/ipython/ipython/milestone/123?closed=1>`__ milestone.
 
