@@ -115,7 +115,7 @@ fi
 if ask_section "Generate API difference (using frapuccino)"
 then
     echo $BLUE"Checking out $PREV_RELEASE"$NOR
-    git switch $PREV_RELEASE
+    git checkout tags/$PREV_RELEASE
     sleep 1
     echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
     frappuccino IPython IPython.kernel IPython.lib IPython.qt IPython.lib.kernel IPython.html IPython.frontend IPython.external --save IPython-$PREV_RELEASE.json
@@ -206,10 +206,10 @@ then
 
 
    echo
-   echo $BLUE"let's : git switch $VERSION"$NOR
+   echo $BLUE"let's : git checkout tags/$VERSION"$NOR
    echo $GREEN"Press enter to continue"$NOR
    read
-   git switch $VERSION
+   git checkout tags/$VERSION
 fi
 
 if ask_section "Should we build and release ?"
