@@ -77,7 +77,8 @@ def test_spaces():
              ('\tx', 1),
              ('\t x', 2),
              ]
-    tt.check_pairs(isp.num_ini_spaces, tests)
+    with pytest.warns(PendingDeprecationWarning):
+        tt.check_pairs(isp.num_ini_spaces, tests)
 
 
 def test_remove_comments():
