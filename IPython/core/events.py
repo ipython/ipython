@@ -82,7 +82,11 @@ class EventManager(object):
                 func(*args, **kwargs)
             except (Exception, KeyboardInterrupt):
                 if self.print_on_error:
-                    print("Error in callback {} (for {}):".format(func, event))
+                    print(
+                        "Error in callback {} (for {}), with arguments args {},kwargs {}:".format(
+                            func, event, args, kwargs
+                        )
+                    )
                 self.shell.showtraceback()
 
 # event_name -> prototype mapping
