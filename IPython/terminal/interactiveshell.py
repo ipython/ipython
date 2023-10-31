@@ -588,6 +588,17 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Display the current vi mode (when using vi editing mode)."
     ).tag(config=True)
 
+    prompt_line_number_format = Unicode(
+        "",
+        help="The format for line numbering, will be passed `line` (int, 1 based)"
+        " the current line number and `rel_line` the relative line number."
+        " for example to display both you can use the following template string :"
+        " c.TerminalInteractiveShell.prompt_line_number_format='{line: 4d}/{rel_line:+03d} | '"
+        " This will display the current line number, with leading space and a width of at least 4"
+        " character, as well as the relative line number 0 padded and always with a + or - sign."
+        " Note that when using Emacs mode the prompt of the first line may not update.",
+    ).tag(config=True)
+
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
