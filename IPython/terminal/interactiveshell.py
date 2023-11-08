@@ -785,13 +785,16 @@ class TerminalInteractiveShell(InteractiveShell):
 
         return options
 
-    def prompt_for_code(self):
+    def _get_next_input_text(self):
         if self.rl_next_input:
             default = self.rl_next_input
             self.rl_next_input = None
         else:
             default = ''
 
+        return default
+
+    def prompt_for_code(self):
         # In order to make sure that asyncio code written in the
         # interactive shell doesn't interfere with the prompt, we run the
         # prompt in a different event loop.
@@ -810,14 +813,20 @@ class TerminalInteractiveShell(InteractiveShell):
         try:
             with patch_stdout(raw=True):
                 text = self.pt_app.prompt(
-                    default=default,
-                    **self._extra_prompt_options())
+                    default=self._get_next_input_text(), **self._extra_prompt_options()
+                )
         finally:
             # Restore the original event loop.
             if old_loop is not None and old_loop is not self.pt_loop:
                 policy.set_event_loop(old_loop)
 
         return text
+
+    async def prompt_for_code_async(self):
+        with patch_stdout(raw=True):
+            return await self.pt_app.prompt_async(
+                default=self._get_next_input_text(), **self._extra_prompt_options()
+            )
 
     def enable_win_unicode_console(self):
         # Since IPython 7.10 doesn't support python < 3.6 and PEP 528, Python uses the unicode APIs for the Windows
@@ -866,11 +875,46 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def interact(self):
         self.keep_running = True
+
         while self.keep_running:
-            print(self.separate_in, end='')
+            print(self.separate_in, end="")
+            code = ""
 
             try:
-                code = self.prompt_for_code()
+                if self.active_eventloop == "asyncio":
+                    # Same loop for code and prompt_toolkit. If user starts a task which contains a
+                    # blocking call, e.g. `time.sleep()`, IPython will not use the loop runner but
+                    # the pseudo runner which will return immediately and we will go into
+                    # prompt_for_code. If KeyboardInterrupt comes while we are in there, the
+                    # internal prompt_toolkit state may get corrupted. By running the prompt in the
+                    # async way we get the task and can properly cancel it if KeyboardInterrupt
+                    # comes.
+                    loop = get_asyncio_loop()
+                    pending = asyncio.all_tasks(loop=loop)
+                    prompt_task = loop.create_task(self.prompt_for_code_async())
+                    while not prompt_task.done():
+                        # In case multiple tasks with blocking calls are started at the same time,
+                        # e.g. task = loop.create_task(coro()); task_2 = loop.create_task(coro()),
+                        # and people try to interrupt until they get the prompt back, we will get
+                        # multiple KeyboardInterrupts and need to keep taking care of them until the
+                        # prompt_task is done, otherwise we'd be thrown out of interact().
+                        try:
+                            code = loop.run_until_complete(prompt_task)
+                        except KeyboardInterrupt:
+                            if not prompt_task.cancelled():
+                                prompt_task.cancel()
+                            self.showtraceback(tb_offset=5)
+                        except asyncio.CancelledError:
+                            # Our cancellation
+                            pass
+
+                    for task in pending:
+                        if task.done() and not task.cancelled():
+                            # Prevent "exception was never retrieved" but do not raise
+                            # CancelledError here
+                            task.exception()
+                else:
+                    code = self.prompt_for_code()
             except EOFError:
                 if (not self.confirm_exit) \
                         or self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
