@@ -12,7 +12,7 @@ import warnings
 from IPython.core.display import _pngxy
 from IPython.utils.decorators import flag_calls
 
-from typing import Dict, Union, Tuple
+from typing import Dict, Union, Tuple, Any, Optional
 
 # If user specifies a GUI, that dictates the backend, otherwise we read the
 # user's mpl default from the mpl rc structure
@@ -107,12 +107,13 @@ def figsize(sizex: int, sizey: int) -> None:
       matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
     """
     import matplotlib
-    matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
+
+    matplotlib.rcParams["figure.figsize"] = [sizex, sizey]
 
 
 def print_figure(
     fig, fmt: str = "png", bbox_inches: str = "tight", base64: bool = False, **kwargs
-) -> Union[str, bytes]:
+) -> Union[str, bytes, None]:
     """Print a figure to an image, and return the resulting file data
 
     Returned data will be bytes unless ``fmt='svg'``,
@@ -130,7 +131,7 @@ def print_figure(
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
     if not fig.axes and not fig.lines:
-        return
+        return None
 
     dpi = fig.dpi
     if fmt == 'retina':
@@ -151,18 +152,22 @@ def print_figure(
     bytes_io = BytesIO()
     if fig.canvas is None:
         from matplotlib.backend_bases import FigureCanvasBase
+
         FigureCanvasBase(fig)
-
+    assert fig is not None
+    assert fig.canvas is not None
     fig.canvas.print_figure(bytes_io, **kw)
-    data = bytes_io.getvalue()
-    if fmt == 'svg':
-        data = data.decode('utf-8')
+    data: bytes = bytes_io.getvalue()
+    if fmt == "svg":
+        return data.decode("utf-8")
     elif base64:
-        data = b2a_base64(data, newline=False).decode("ascii")
-    return data
+        return b2a_base64(data, newline=False).decode("ascii")
+    return None
 
 
-def retina_figure(fig, base64: bool = False, **kwargs):
+def retina_figure(
+    fig, base64: bool = False, **kwargs
+) -> Tuple[Union[str, bytes, None], Dict[str, Any]]:
     """format a figure as a pixel-doubled (retina) PNG
 
     If `base64` is True, return base64-encoded str instead of raw bytes
@@ -171,16 +176,18 @@ def retina_figure(fig, base64: bool = False, **kwargs):
     .. versionadded:: 7.29
         base64 argument
     """
-    pngdata = print_figure(fig, fmt="retina", base64=False, **kwargs)
+    pngbytes = print_figure(fig, fmt="retina", base64=False, **kwargs)
     # Make sure that retina_figure acts just like print_figure and returns
     # None when the figure is empty.
-    if pngdata is None:
-        return
-    w, h = _pngxy(pngdata)
-    metadata = {"width": w//2, "height":h//2}
+    if pngbytes is None:
+        return None, {}
+    assert isinstance(pngbytes, bytes)
+    w, h = _pngxy(pngbytes)
+    metadata = {"width": w // 2, "height": h // 2}
     if base64:
-        pngdata = b2a_base64(pngdata, newline=False).decode("ascii")
-    return pngdata, metadata
+        return b2a_base64(pngbytes, newline=False).decode("ascii"), metadata
+    else:
+        return pngbytes, metadata
 
 
 # We need a little factory function here to create the closure where

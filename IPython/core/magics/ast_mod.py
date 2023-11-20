@@ -178,7 +178,18 @@ transforming:
 __skip_doctest__ = True
 
 
-from ast import NodeTransformer, Store, Load, Name, Expr, Assign, Module
+from ast import (
+    NodeTransformer,
+    Store,
+    Load,
+    Name,
+    Expr,
+    Assign,
+    Module,
+    FunctionDef,
+    ImportFrom,
+    Import,
+)
 import ast
 import copy
 
@@ -206,7 +217,7 @@ class Mangler(NodeTransformer):
             predicate = lambda name: name.startswith("___")
         self.predicate = predicate
 
-    def visit_Name(self, node):
+    def visit_Name(self, node: Name):
         if self.predicate(node.id):
             self.log("Mangling", node.id)
             # Once in the ast we do not need
@@ -216,7 +227,7 @@ class Mangler(NodeTransformer):
             self.log("Not mangling", node.id)
         return node
 
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node: FunctionDef):
         if self.predicate(node.name):
             self.log("Mangling", node.name)
             node.name = "mangle-" + node.name
@@ -231,10 +242,10 @@ class Mangler(NodeTransformer):
                 self.log("Not mangling function arg", arg.arg)
         return self.generic_visit(node)
 
-    def visit_ImportFrom(self, node):
+    def visit_ImportFrom(self, node: ImportFrom) -> ImportFrom:
         return self._visit_Import_and_ImportFrom(node)
 
-    def visit_Import(self, node):
+    def visit_Import(self, node: Import) -> Import:
         return self._visit_Import_and_ImportFrom(node)
 
     def _visit_Import_and_ImportFrom(self, node):
