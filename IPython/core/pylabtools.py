@@ -12,6 +12,8 @@ import warnings
 from IPython.core.display import _pngxy
 from IPython.utils.decorators import flag_calls
 
+from typing import Dict, Union, Tuple
+
 # If user specifies a GUI, that dictates the backend, otherwise we read the
 # user's mpl default from the mpl rc structure
 backends = {
@@ -41,7 +43,7 @@ backends = {
 # GUI support to activate based on the desired matplotlib backend.  For the
 # most part it's just a reverse of the above dict, but we also need to add a
 # few others that map to the same GUI manually:
-backend2gui = dict(zip(backends.values(), backends.keys()))
+backend2gui: Dict[str, str] = dict(zip(backends.values(), backends.keys()))
 # In the reverse mapping, there are a few extra valid matplotlib backends that
 # map to the same GUI support
 backend2gui["GTK"] = backend2gui["GTKCairo"] = "gtk"
@@ -97,7 +99,7 @@ def getfigs(*fig_nums):
         return figs
 
 
-def figsize(sizex, sizey):
+def figsize(sizex: int, sizey: int) -> None:
     """Set the default figure size to be [sizex, sizey].
 
     This is just an easy to remember, convenience wrapper that sets::
@@ -108,7 +110,9 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
+def print_figure(
+    fig, fmt: str = "png", bbox_inches: str = "tight", base64: bool = False, **kwargs
+) -> Union[str, bytes]:
     """Print a figure to an image, and return the resulting file data
 
     Returned data will be bytes unless ``fmt='svg'``,
@@ -157,7 +161,8 @@ def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
         data = b2a_base64(data, newline=False).decode("ascii")
     return data
 
-def retina_figure(fig, base64=False, **kwargs):
+
+def retina_figure(fig, base64: bool = False, **kwargs):
     """format a figure as a pixel-doubled (retina) PNG
 
     If `base64` is True, return base64-encoded str instead of raw bytes
