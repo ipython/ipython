@@ -108,8 +108,8 @@ to pick a style in accordance with ``InteractiveShell.colors``.
 
 You can see the Pygments styles available on your system by running::
 
-    import pygments
-    list(pygments.styles.get_all_styles())
+    from pygments.styles import get_all_styles
+    list(get_all_styles())
 
 Additionally, ``TerminalInteractiveShell.highlighting_style_overrides`` can override
 specific styles in the highlighting. It should be a dictionary mapping Pygments
