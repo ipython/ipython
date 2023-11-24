@@ -322,7 +322,7 @@ class InputSplitterTestCase(unittest.TestCase):
 
     @pytest.mark.xfail(
         reason="Bug in python 3.9.8 – bpo 45738",
-        condition=sys.version_info in [(3, 9, 8, "final", 0), (3, 11, 0, "alpha", 2)],
+        condition=sys.version_info in [(3, 11, 0, "alpha", 2)],
         raises=SystemError,
         strict=True,
     )
