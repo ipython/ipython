@@ -3,6 +3,8 @@
 Timezone utilities
 
 Just UTC-awareness right now
+
+Deprecated since IPython 8.19.0.
 """
 
 # -----------------------------------------------------------------------------
@@ -16,17 +18,35 @@ Just UTC-awareness right now
 # Imports
 # -----------------------------------------------------------------------------
 
+import warnings
 from datetime import tzinfo, timedelta, datetime
 
 # -----------------------------------------------------------------------------
 # Code
 # -----------------------------------------------------------------------------
+
+__all__ = ["tzUTC", "utc_aware", "utcfromtimestamp", "utcnow"]
+
 # constant for zero offset
 ZERO = timedelta(0)
 
 
+def __getattr__(name):
+    if name not in __all__:
+        err = f"IPython.utils.tz is deprecated and has no attribute {name}"
+        raise AttributeError(err)
+
+    msg = "The module `IPython.utils.tz` is deprecated and will be completely removed."
+    warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
+
+    return getattr(name)
+
+
 class tzUTC(tzinfo):
-    """tzinfo object for UTC (zero offset)"""
+    """tzinfo object for UTC (zero offset)
+
+    Deprecated since IPython 8.19.0.
+    """
 
     def utcoffset(self, d):
         return ZERO
@@ -39,7 +59,10 @@ UTC = tzUTC()  # type: ignore[abstract]
 
 
 def utc_aware(unaware):
-    """decorator for adding UTC tzinfo to datetime's utcfoo methods"""
+    """decorator for adding UTC tzinfo to datetime's utcfoo methods
+
+    Deprecated since IPython 8.19.0.
+    """
 
     def utc_method(*args, **kwargs):
         dt = unaware(*args, **kwargs)
