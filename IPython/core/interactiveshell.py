@@ -42,6 +42,8 @@ try:
 except ModuleNotFoundError:
 
     class PickleShareDB:  # type: ignore [no-redef]
+        _mock = True
+
         def __init__(self, path):
             pass
 
