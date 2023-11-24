@@ -117,7 +117,10 @@ def get_root_modules():
         # Don't try to scan for modules every time.
         return list(sys.builtin_module_names)
 
-    rootmodules_cache = ip.db.get('rootmodules_cache', {})
+    if getattr(ip.db, "_mock", False):
+        rootmodules_cache = {}
+    else:
+        rootmodules_cache = ip.db.get("rootmodules_cache", {})
     rootmodules = list(sys.builtin_module_names)
     start_time = time()
     store = False
