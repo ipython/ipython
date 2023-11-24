@@ -84,5 +84,7 @@ def inputhook(context):
                 _exec(event_loop)
         finally:
             notifier.setEnabled(False)
-    # make sure that the QObject is being deleted
+
+    # This makes sure that the event loop is garbage collected.
+    # See issue 14240.
     event_loop.setParent(None)
