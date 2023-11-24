@@ -2,6 +2,28 @@
  8.x Series
 ============
 
+IPython 8.18
+------------
+
+Small release of IPython that fixes a small number of inconveniences.
+
+ - :ghpull:`14251` Fix a memory leak in qt event loop integration by setting
+   the Loop parent to None.
+ - :ghpull:`14252` Pickleshare was made an optional dependency in 8.17, this
+   leads to warnings in some installations when using modules completions. The
+   warning has been silenced.
+ - :ghpull:`14241` Update event loop code for compatibility with more recent
+   ``prompt_toolkit`` due to deprecations in Python 3.12.
+ - :ghpull:`14245` Fix doc example on Pygments styles
+ - :ghpull:`14238` Remove dependency on app_nope, this is actually only a
+   dependency of IPykernel.
+
+As usual you can find the full list of PRs on GitHub under `the 8.18
+<https://github.com/ipython/ipython/milestone/125?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 .. _version 8.17.1:
 .. _version 8.17:
 
@@ -37,8 +59,8 @@ either in the conda environment or system wide.
 As usual you can find the full list of PRs on GitHub under `the 8.17
 <https://github.com/ipython/ipython/milestone/123?closed=1>`__ milestone.
 
-Thanks to the `D.E. Shaw group <https://www.deshaw.com/>`__ for the request and
-sponsoring the work.
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 .. _version 8.16:
 .. _version 8.16.1:
@@ -63,8 +85,8 @@ As usual you can find the full list of PRs on GitHub under `the 8.16
 <https://github.com/ipython/ipython/milestone/121?closed=1>`__ and `8.16.1 milestone
 <https://github.com/ipython/ipython/milestone/124?closed=1>`__.
 
-Thanks to the `D.E. Shaw group <https://www.deshaw.com/>`__ for the request and
-sponsoring the work.
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 .. _version 8.12.3:
 
@@ -315,7 +337,8 @@ two weeks.
 As usual you can find the full list of PRs on GitHub under `the 8.13 milestone
 <https://github.com/ipython/ipython/milestone/115?closed=1>`__.
 
-Thanks to the D.E. Shaw group for the request and sponsoring the work.
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 
 .. _version 8.12.1:
@@ -341,7 +364,8 @@ per Nep 29 and this IPython 8.12.x will now only receive bugfixes.
 As usual you can find the full list of PRs on GitHub under `the 8.12.1 milestone
 <https://github.com/ipython/ipython/milestone/116?closed=1>`__.
 
-Thanks to the D.E. Shaw group for the request and sponsoring the work.
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 .. _version 8.12.0:
 
