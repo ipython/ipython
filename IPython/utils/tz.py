@@ -24,8 +24,10 @@ from datetime import tzinfo, timedelta, datetime
 # -----------------------------------------------------------------------------
 # Code
 # -----------------------------------------------------------------------------
-
 __all__ = ["tzUTC", "utc_aware", "utcfromtimestamp", "utcnow"]
+
+# Enable display of DeprecrationWarning for this module explicitly.
+warnings.filterwarnings("default", category=DeprecationWarning, module=__name__)
 
 # constant for zero offset
 ZERO = timedelta(0)
@@ -36,10 +38,14 @@ def __getattr__(name):
         err = f"IPython.utils.tz is deprecated and has no attribute {name}"
         raise AttributeError(err)
 
-    msg = "The module `IPython.utils.tz` is deprecated and will be completely removed."
-    warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
+    _warn_deprecated()
 
     return getattr(name)
+
+
+def _warn_deprecated():
+    msg = "The module `IPython.utils.tz` is deprecated and will be completely removed."
+    warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
 
 
 class tzUTC(tzinfo):
@@ -47,6 +53,8 @@ class tzUTC(tzinfo):
 
     Deprecated since IPython 8.19.0.
     """
+
+    _warn_deprecated()
 
     def utcoffset(self, d):
         return ZERO
@@ -65,6 +73,7 @@ def utc_aware(unaware):
     """
 
     def utc_method(*args, **kwargs):
+        _warn_deprecated()
         dt = unaware(*args, **kwargs)
         return dt.replace(tzinfo=UTC)
 
