@@ -2,8 +2,10 @@
  8.x Series
 ============
 
-IPython 8.18
-------------
+IPython 8.18 and 8.18.1
+-----------------------
+
+8.18.1 is identical to 8.18 but pin ``prompt_toolkit`` to greater than ``3.0.41``
 
 Small release of IPython that fixes a small number of inconveniences.
 
