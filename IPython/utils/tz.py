@@ -26,8 +26,6 @@ from datetime import tzinfo, timedelta, datetime
 # -----------------------------------------------------------------------------
 __all__ = ["tzUTC", "utc_aware", "utcfromtimestamp", "utcnow"]
 
-# Enable display of DeprecrationWarning for this module explicitly.
-warnings.filterwarnings("default", category=DeprecationWarning, module=__name__)
 
 # constant for zero offset
 ZERO = timedelta(0)
