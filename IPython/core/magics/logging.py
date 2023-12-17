@@ -83,14 +83,14 @@ class LoggingMagics(Magics):
             log 'raw' input.  Normally, IPython's logs contain the processed
             input, so that user lines are logged in their final form, converted
             into valid Python.  For example, %Exit is logged as
-            _ip.magic("Exit").  If the -r flag is given, all input is logged
+            _ip.run_line_magic("Exit").  If the -r flag is given, all input is logged
             exactly as typed, with no transformations applied.
 
           -t
             put timestamps before each input line logged (these are put in
             comments).
 
-          -q 
+          -q
             suppress output of logstate message when logging is invoked
         """
 
