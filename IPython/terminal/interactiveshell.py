@@ -747,7 +747,7 @@ class TerminalInteractiveShell(InteractiveShell):
         def get_message():
             return PygmentsTokens(self.prompts.in_prompt_tokens())
 
-        if self.editing_mode == 'emacs' and self.prompt_line_number_format == '':
+        if self.editing_mode == "emacs" and self.prompt_line_number_format == "":
             # with emacs mode the prompt is (usually) static, so we call only
             # the function once. With VI mode it can toggle between [ins] and
             # [nor] so we can't precompute.
