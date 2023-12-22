@@ -2,6 +2,54 @@
  8.x Series
 ============
 
+.. _version 8.19:
+
+IPython 8.19
+------------
+
+New release of IPython a bit before the end of the month, and end of the year.
+
+Mostly cleanup and deprecation, due to upstream deprecation and removal.
+
+Remove of Python 3.9 support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A bit later than originally plan, IPython 8.19 does not support Python 3.9
+anymore, as well as the few conditional code that were executing only on Python
+3.9. :ghpull:`14254`
+
+We used the opportunity to deprecate ``IPython.utils.tz`` :ghpull:`14256`, due
+to upstream deprecation of some timezone utilities. It will be removed at a later
+date.
+
+We now also run CI on Python 3.12 (what I likely should have done before), but
+running on too many Python version uses a lot of CI time.
+
+Absolute and relative Line Numbers in Prompts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Thanks to the contribution of ``cohml``, IPython CLI now support absolute and
+relative line numbers in both vi and emacs prompt, use for example
+``c.TerminalInteractiveShell.prompt_line_number_format='{line: 4d}/{rel_line:+03d} | '``
+configuration option to display both in a custom format.
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+In addition to various bugfixes, I unpinned pytest, let me know if there are any
+issues and we'll re-pin.
+
+See you in 2024
+~~~~~~~~~~~~~~~
+
+As usual you can find the full list of PRs on GitHub under `the 8.19
+<https://github.com/ipython/ipython/milestone/126?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 8.18:
+
 IPython 8.18 and 8.18.1
 -----------------------
 
