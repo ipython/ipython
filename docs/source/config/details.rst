@@ -34,7 +34,7 @@ which defines the defaults. The required interface is like this:
    :class:`~.TerminalInteractiveShell` instance.
 
    .. method:: in_prompt_tokens(cli=None)
-               continuation_prompt_tokens(self, cli=None, width=None)
+               continuation_prompt_tokens(self, width=None)
                rewrite_prompt_tokens()
                out_prompt_tokens()
 

@@ -3,6 +3,7 @@
 import asyncio
 import os
 import sys
+import inspect
 from warnings import warn
 from typing import Union as UnionType, Optional
 
@@ -66,8 +67,8 @@ from .shortcuts.auto_suggest import (
 PTK3 = ptk_version.startswith('3.')
 
 
-class _NoStyle(Style): pass
-
+class _NoStyle(Style):
+    pass
 
 
 _style_overrides_light_bg = {
@@ -83,6 +84,20 @@ _style_overrides_linux = {
             Token.OutPrompt: '#ansibrightred',
             Token.OutPromptNum: '#ansired bold',
 }
+
+
+def _backward_compat_continuation_prompt_tokens(method, width: int, *, lineno: int):
+    """
+    Sagemath use custom prompt and we broke them in 8.19.
+    """
+    sig = inspect.signature(method)
+    if "lineno" in inspect.signature(method).parameters or any(
+        [p.kind == p.VAR_KEYWORD for p in sig.parameters.values()]
+    ):
+        return method(width, lineno=lineno)
+    else:
+        return method(width)
+
 
 def get_default_editor():
     try:
@@ -764,7 +779,9 @@ class TerminalInteractiveShell(InteractiveShell):
             "message": get_message,
             "prompt_continuation": (
                 lambda width, lineno, is_soft_wrap: PygmentsTokens(
-                    self.prompts.continuation_prompt_tokens(width, lineno=lineno)
+                    _backward_compat_continuation_prompt_tokens(
+                        self.prompts.continuation_prompt_tokens, width, lineno=lineno
+                    )
                 )
             ),
             "multiline": True,
