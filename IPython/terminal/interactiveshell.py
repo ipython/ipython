@@ -1,6 +1,5 @@
 """IPython terminal interface using prompt_toolkit"""
 
-import asyncio
 import os
 import sys
 from warnings import warn
@@ -96,7 +95,8 @@ def get_default_editor():
     if os.name == 'posix':
         return 'vi'  # the only one guaranteed to be there!
     else:
-        return 'notepad' # same in Windows!
+        return "notepad"  # same in Windows!
+
 
 # conservatively check for tty
 # overridden streams can result in things like:
@@ -293,7 +293,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
         return self.editing_mode
 
-
     @observe('editing_mode')
     def _editing_mode(self, change):
         if self.pt_app:
@@ -321,7 +320,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def refresh_style(self):
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
-
 
     highlighting_style_overrides = Dict(
         help="Override highlighting format for specific tokens"
@@ -859,7 +857,6 @@ class TerminalInteractiveShell(InteractiveShell):
             for cmd in ('clear', 'more', 'less', 'man'):
                 self.alias_manager.soft_define_alias(cmd, cmd)
 
-
     def __init__(self, *args, **kwargs) -> None:
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
         self._set_autosuggestions(self.autosuggestions_provider)
@@ -867,7 +864,6 @@ class TerminalInteractiveShell(InteractiveShell):
         self.init_term_title()
         self.keep_running = True
         self._set_formatter(self.autoformatter)
-
 
     def ask_exit(self):
         self.keep_running = False
@@ -915,7 +911,6 @@ class TerminalInteractiveShell(InteractiveShell):
         # in existent use case.
 
         self._atexit_once()
-
 
     _inputhook = None
     def inputhook(self, context):
