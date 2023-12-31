@@ -17,7 +17,7 @@ import warnings
 from string import Formatter
 from pathlib import Path
 
-from typing import List, Union, Optional, Dict, Tuple
+from typing import List, Dict, Tuple
 
 
 class LSString(str):
@@ -357,7 +357,7 @@ def format_screen(strng):
     return strng
 
 
-def dedent(text):
+def dedent(text: str) -> str:
     """Equivalent of textwrap.dedent that ignores unindented first line.
 
     This means it will still dedent strings like:
