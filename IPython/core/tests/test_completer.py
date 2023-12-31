@@ -61,7 +61,7 @@ def recompute_unicode_ranges():
     pstart, pstop = 0,0
     for start, stop in rg:
         lens.append(stop-start)
-        gap_lens.append((start - pstop, hex(pstop), hex(start), f'{round((start - pstop)/0xe01f0*100)}%'))
+        gap_lens.append((start - pstop, hex(pstop+1), hex(start), f'{round((start - pstop)/0xe01f0*100)}%'))
         pstart, pstop = start, stop
 
     return sorted(gap_lens)[-1]
@@ -99,7 +99,7 @@ def test_unicode_range():
     assert len_exp == len_test, message
 
     # fail if new unicode symbols have been added. 
-    assert len_exp <= 143041, message
+    assert len_exp <= 143668, message
 
 
 @contextmanager
