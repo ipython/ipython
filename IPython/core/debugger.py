@@ -454,7 +454,7 @@ class Pdb(OldPdb):
                 with self._hold_exceptions(_chained_exceptions):
                     OldPdb.interaction(self, frame, tb)
             else:
-                OldPdb.interaction(self, frame, traceback)
+                OldPdb.interaction(self, frame, tb_or_exc)
 
         except KeyboardInterrupt:
             self.stdout.write("\n" + self.shell.get_exception_only())
