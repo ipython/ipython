@@ -6,9 +6,12 @@ import os
 
 class MyPrompt(Prompts):
 
-     def in_prompt_tokens(self, cli=None):
-         return [(Token, os.getcwd()),
-                 (Token.Prompt, '>>>')]
+    def in_prompt_tokens(self):
+        return [
+                (Token, os.getcwd()),
+                (Token.Prompt, ">>>")
+               ]
+
 
 def load_ipython_extension(shell):
     new_prompts = MyPrompt(shell)
@@ -20,7 +23,3 @@ def unload_ipython_extension(shell):
         print("cannot unload")
     else:
         shell.prompts = shell.prompts.old_prompts
-
-
-
-

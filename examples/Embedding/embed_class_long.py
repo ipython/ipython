@@ -18,26 +18,26 @@ The code in this file is deliberately extra-verbose, meant for learning."""
 # %run example-embed.py)
 
 from IPython.terminal.prompts import Prompts, Token
+from traitlets.config.loader import Config
 
 class CustomPrompt(Prompts):
 
-    def in_prompt_tokens(self, cli=None):
+    def in_prompt_tokens(self):
 
-       return [
+        return [
             (Token.Prompt, 'In <'),
             (Token.PromptNum, str(self.shell.execution_count)),
             (Token.Prompt, '>: '),
             ]
 
     def out_prompt_tokens(self):
-       return [
+        return [
             (Token.OutPrompt, 'Out<'),
             (Token.OutPromptNum, str(self.shell.execution_count)),
             (Token.OutPrompt, '>: '),
         ]
  
 
-from traitlets.config.loader import Config
 try:
     get_ipython
 except NameError:

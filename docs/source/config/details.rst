@@ -33,7 +33,7 @@ which defines the defaults. The required interface is like this:
    Prompt style definition. *shell* is a reference to the
    :class:`~.TerminalInteractiveShell` instance.
 
-   .. method:: in_prompt_tokens(cli=None)
+   .. method:: in_prompt_tokens()
                continuation_prompt_tokens(self, width=None)
                rewrite_prompt_tokens()
                out_prompt_tokens()
@@ -43,8 +43,6 @@ which defines the defaults. The required interface is like this:
       For continuation prompts, *width* is an integer representing the width of
       the prompt area in terminal columns.
 
-      *cli*, where used, is the prompt_toolkit ``CommandLineInterface`` instance.
-      This is mainly for compatibility with the API prompt_toolkit expects.
 
 Here is an example Prompt class that will show the current working directory
 in the input prompt:
@@ -55,7 +53,7 @@ in the input prompt:
     import os
 
     class MyPrompt(Prompts):
-         def in_prompt_tokens(self, cli=None):
+         def in_prompt_tokens(self):
              return [(Token, os.getcwd()),
                      (Token.Prompt, ' >>>')]
 
