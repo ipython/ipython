@@ -70,18 +70,10 @@ from setuptools import setup
 # Our own imports
 sys.path.insert(0, ".")
 
-from setupbase import (
-    check_package_data_first,
-    find_data_files,
-    find_entry_points,
-    git_prebuild,
-    install_lib_symlink,
-    install_scripts_for_symlink,
-    install_symlinked,
-    setup_args,
-    target_update,
-    unsymlink,
-)
+from setupbase import (check_package_data_first, find_data_files,
+                       find_entry_points, git_prebuild, install_lib_symlink,
+                       install_scripts_for_symlink, install_symlinked,
+                       setup_args, target_update, unsymlink)
 
 # -------------------------------------------------------------------------------
 # Handle OS specific things
