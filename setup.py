@@ -122,7 +122,7 @@ package = "ipython"
 
 from setuptools import find_packages
 
-setup_args["packages"] = find_packages(include=[package])
+setup_args["packages"] = find_packages()
 setup_args["package_dir"] = {package: package}
 
 # ---------------------------------------------------------------------------
