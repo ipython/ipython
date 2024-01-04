@@ -213,7 +213,9 @@ class BaseIPythonApplication(Application):
         return d
     
     _in_init_profile_dir = False
+
     profile_dir = Instance(ProfileDir, allow_none=True)
+
     @default('profile_dir')
     def _profile_dir_default(self):
         # avoid recursion
@@ -226,11 +228,13 @@ class BaseIPythonApplication(Application):
     overwrite = Bool(False,
         help="""Whether to overwrite existing config files when copying"""
     ).tag(config=True)
+
     auto_create = Bool(False,
         help="""Whether to create profile dir if it doesn't exist"""
     ).tag(config=True)
 
     config_files = List(Unicode())
+
     @default('config_files')
     def _config_files_default(self):
         return [self.config_file_name]
