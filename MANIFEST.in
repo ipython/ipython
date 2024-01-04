@@ -9,8 +9,6 @@ include .flake8
 include .pre-commit-config.yaml
 include long_description.rst
 
-recursive-include ipython *.py
-
 recursive-exclude tools *
 exclude tools
 exclude CONTRIBUTING.md
@@ -47,3 +45,6 @@ global-exclude *.pyo
 global-exclude .dircopy.log
 global-exclude .git
 global-exclude .ipynb_checkpoints
+
+
+recursive-include ipython *.py
