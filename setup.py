@@ -5,7 +5,7 @@ Under Posix environments it works like a typical setup.py script.
 Under Windows, the command sdist is not supported, since IPython
 requires utilities which are not available under Windows."""
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (c) 2008-2011, IPython Development Team.
 #  Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
 #  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
@@ -14,7 +14,7 @@ requires utilities which are not available under Windows."""
 #  Distributed under the terms of the Modified BSD License.
 #
 #  The full license is in the file COPYING.rst, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 import sys
@@ -24,19 +24,23 @@ import sys
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
 if sys.version_info < (3, 10):
-    pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
+    pip_message = (
+        "This may be due to an out of date pip. Make sure you have pip >= 9.0.1."
+    )
     try:
         import pip
-        pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
-        if pip_version < (9, 0, 1) :
-            pip_message = 'Your pip version is out of date, please install pip >= 9.0.1. '\
-            'pip {} detected.'.format(pip.__version__)
+
+        pip_version = tuple([int(x) for x in pip.__version__.split(".")[:3]])
+        if pip_version < (9, 0, 1):
+            pip_message = (
+                "Your pip version is out of date, please install pip >= 9.0.1. "
+                "pip {} detected.".format(pip.__version__)
+            )
         else:
             # pip is new enough - it must be something else
-            pip_message = ''
+            pip_message = ""
     except Exception:
         pass
-
 
     error = """
 IPython 8.19+ supports Python 3.10 and above, following SPEC0
@@ -54,9 +58,7 @@ See IPython `README.rst` file for more information:
 
 Python {py} detected.
 {pip}
-""".format(
-        py=sys.version_info, pip=pip_message
-    )
+""".format(py=sys.version_info, pip=pip_message)
 
     print(error, file=sys.stderr)
     sys.exit(1)
@@ -68,42 +70,34 @@ from setuptools import setup
 # Our own imports
 sys.path.insert(0, ".")
 
-from setupbase import target_update, find_entry_points
+from setupbase import (check_package_data_first, find_data_files,
+                       find_entry_points, git_prebuild, install_lib_symlink,
+                       install_scripts_for_symlink, install_symlinked,
+                       setup_args, target_update, unsymlink)
 
-from setupbase import (
-    setup_args,
-    check_package_data_first,
-    find_data_files,
-    git_prebuild,
-    install_symlinked,
-    install_lib_symlink,
-    install_scripts_for_symlink,
-    unsymlink,
-)
-
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Handle OS specific things
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-if os.name in ('nt','dos'):
-    os_name = 'windows'
+if os.name in ("nt", "dos"):
+    os_name = "windows"
 else:
     os_name = os.name
 
 # Under Windows, 'sdist' has not been supported.  Now that the docs build with
 # Sphinx it might work, but let's not turn it on until someone confirms that it
 # actually works.
-if os_name == 'windows' and 'sdist' in sys.argv:
-    print('The sdist command is not available under Windows.  Exiting.')
+if os_name == "windows" and "sdist" in sys.argv:
+    print("The sdist command is not available under Windows.  Exiting.")
     sys.exit(1)
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Things related to the IPython documentation
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 # update the manuals when building a source dist
-if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
+if len(sys.argv) >= 2 and sys.argv[1] in ("sdist", "bdist_rpm"):
 
     # List of things to be updated. Each entry is a triplet of args for
     # target_update()
@@ -115,37 +109,35 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
         ),
     ]
 
+    [target_update(*t) for t in to_update]
 
-    [ target_update(*t) for t in to_update ]
-
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 data_files = find_data_files()
 
-setup_args['data_files'] = data_files
-package = 'ipython'
+setup_args["data_files"] = data_files
+package = "ipython"
 
 from setuptools import find_packages
 
-setup_args['packages'] = find_packages(include=[package])
-setup_args['package_dir'] = {package: package}
+setup_args["packages"] = find_packages(include=[package])
+setup_args["package_dir"] = {package: package}
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # custom distutils commands
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # imports here, so they are after setuptools import if there was one
 from setuptools.command.sdist import sdist
 
-setup_args['cmdclass'] = {
-    'build_py': \
-            check_package_data_first(git_prebuild('IPython')),
-    'sdist' : git_prebuild('IPython', sdist),
-    'symlink': install_symlinked,
-    'install_lib_symlink': install_lib_symlink,
-    'install_scripts_sym': install_scripts_for_symlink,
-    'unsymlink': unsymlink,
+setup_args["cmdclass"] = {
+    "build_py": check_package_data_first(git_prebuild("IPython")),
+    "sdist": git_prebuild("IPython", sdist),
+    "symlink": install_symlinked,
+    "install_lib_symlink": install_lib_symlink,
+    "install_scripts_sym": install_scripts_for_symlink,
+    "unsymlink": unsymlink,
 }
 
 setup_args["entry_points"] = {
@@ -157,9 +149,9 @@ setup_args["entry_points"] = {
     ],
 }
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Do the actual setup now
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     setup(**setup_args)
