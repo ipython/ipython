@@ -125,6 +125,12 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
 data_files = find_data_files()
 
 setup_args['data_files'] = data_files
+package = 'ipython'
+
+from setuptools import find_packages
+
+setup_args['packages'] = find_packages(include=[package])
+setup_args['package_dir'] = {package: package}
 
 #---------------------------------------------------------------------------
 # custom distutils commands
