@@ -9,6 +9,8 @@ include .flake8
 include .pre-commit-config.yaml
 include long_description.rst
 
+recursive-include ipython *.py
+
 recursive-exclude tools *
 exclude tools
 exclude CONTRIBUTING.md
