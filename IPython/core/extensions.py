@@ -10,8 +10,7 @@ import sys
 from importlib import import_module, reload
 
 from traitlets.config.configurable import Configurable
-from IPython.utils.path import ensure_dir_exists, compress_user
-from IPython.utils.decorators import undoc
+from IPython.utils.path import ensure_dir_exists
 from traitlets import Instance
 
 
@@ -84,7 +83,7 @@ class ExtensionManager(Configurable):
         if module_str in self.loaded:
             return "already loaded"
 
-        from IPython.utils.syspathcontext import prepended_to_syspath
+        assert self.shell is not None
 
         with self.shell.builtin_trap:
             if module_str not in sys.modules:
