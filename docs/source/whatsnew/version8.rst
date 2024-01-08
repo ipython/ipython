@@ -2,6 +2,34 @@
  8.x Series
 ============
 
+
+.. _version 8.20:
+
+IPython 8.20
+------------
+
+Quick IPython release in this beginning of 2024, barely 2 weeks after the previous
+release.
+
+This is mostly to fix a backward compatibility issue, I would have done a  patch
+release earlier if I could. As a few other cleanup are also part of this
+release, this will get a minor version bump.
+
+
+The crux of this release is :ghpull:`14274` (Inspect continuation prompt
+signature and pass only viable arguments), the rest of the changes are mostly
+type annotation, and a few compatibility issues with Python 3.13 that are
+getting addressed.
+
+Python 3.13 compatibility is still not complete (help welcomed).
+
+As usual you can find the full list of PRs on GitHub under `the 8.20
+<https://github.com/ipython/ipython/milestone/127?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 8.19:
 
 IPython 8.19
