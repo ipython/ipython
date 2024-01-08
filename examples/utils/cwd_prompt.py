@@ -7,10 +7,7 @@ import os
 class MyPrompt(Prompts):
 
     def in_prompt_tokens(self):
-        return [
-                (Token, os.getcwd()),
-                (Token.Prompt, ">>>")
-               ]
+        return [(Token, os.getcwd()), (Token.Prompt, ">>>")]
 
 
 def load_ipython_extension(shell):
