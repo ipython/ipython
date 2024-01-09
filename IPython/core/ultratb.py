@@ -789,7 +789,20 @@ class FrameInfo:
 
     @property
     def lines(self):
-        return self._sd.lines
+        from executing.executing import NotOneValueFound
+
+        try:
+            return self._sd.lines
+        except NotOneValueFound:
+
+            class Dummy:
+                lineno = 0
+                is_current = False
+
+                def render(self, *, pygmented):
+                    return "<Error retrieving source code with stack_data see ipython/ipython#13598>"
+
+            return [Dummy()]
 
     @property
     def executing(self):
