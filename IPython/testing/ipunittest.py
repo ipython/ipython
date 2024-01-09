@@ -56,7 +56,7 @@ def count_failures(runner):
         return [
             TestResults(failure, try_)
             for failure, try_, skip in runner._stats.values()
-            if f > 0
+            if failure > 0
         ]
 
 
