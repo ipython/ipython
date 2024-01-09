@@ -4,8 +4,8 @@
 #
 # Copyright (c) 2004-2021 Holger Krekel and others
 """Discover and run ipdoctests in modules and test files."""
-import builtins
 import bdb
+import builtins
 import inspect
 import os
 import platform
@@ -15,25 +15,25 @@ import types
 import warnings
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import Generator
-from typing import Iterable
-from typing import List
-from typing import Optional
-from typing import Pattern
-from typing import Sequence
-from typing import Tuple
-from typing import Type
-from typing import TYPE_CHECKING
-from typing import Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Optional,
+    Pattern,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 
 import pytest
 from _pytest import outcomes
-from _pytest._code.code import ExceptionInfo
-from _pytest._code.code import ReprFileLocation
-from _pytest._code.code import TerminalRepr
+from _pytest._code.code import ExceptionInfo, ReprFileLocation, TerminalRepr
 from _pytest._io import TerminalWriter
 from _pytest.compat import safe_getattr
 from _pytest.config import Config
@@ -41,13 +41,14 @@ from _pytest.config.argparsing import Parser
 from _pytest.fixtures import FixtureRequest
 from _pytest.nodes import Collector
 from _pytest.outcomes import OutcomeException
-from _pytest.pathlib import fnmatch_ex
-from _pytest.pathlib import import_path
+from _pytest.pathlib import fnmatch_ex, import_path
 from _pytest.python_api import approx
 from _pytest.warning_types import PytestWarning
 
 if TYPE_CHECKING:
     import doctest
+
+    from .ipdoctest import IPDoctestOutputChecker
 
 DOCTEST_REPORT_CHOICE_NONE = "none"
 DOCTEST_REPORT_CHOICE_CDIFF = "cdiff"
@@ -271,6 +272,8 @@ def _get_runner(
 
 
 class IPDoctestItem(pytest.Item):
+    _user_ns_orig: Dict[str, Any]
+
     def __init__(
         self,
         name: str,
@@ -283,6 +286,7 @@ class IPDoctestItem(pytest.Item):
         self.dtest = dtest
         self.obj = None
         self.fixture_request: Optional[FixtureRequest] = None
+        self._user_ns_orig = {}
 
     @classmethod
     def from_parent(  # type: ignore
