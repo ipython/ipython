@@ -85,17 +85,16 @@ def test_skip_dt_decorator():
     """Doctest-skipping decorator should preserve the docstring.
     """
     # Careful: 'check' must be a *verbatim* copy of the doctest_bad docstring!
-    check = dedent(
-        """A function whose doctest we need to skip.
+    check = """A function whose doctest we need to skip.
 
     >>> 1+1
     3
     """
-    )
+
     # Fetch the docstring from doctest_bad after decoration.
     val = doctest_bad.__doc__
-    
-    assert check == val, "doctest_bad docstrings don't match"
+
+    assert dedent(check) == dedent(val), "doctest_bad docstrings don't match"
 
 
 # Doctest skipping should work for class methods too
