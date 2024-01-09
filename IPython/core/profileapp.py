@@ -209,7 +209,7 @@ class ProfileCreate(BaseIPythonApplication):
     name = u'ipython-profile'
     description = create_help
     examples = _create_examples
-    auto_create = Bool(True)
+    auto_create = Bool(True).tag(config=True)
     def _log_format_default(self):
         return "[%(name)s] %(message)s"
 

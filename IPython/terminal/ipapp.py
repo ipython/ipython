@@ -177,7 +177,7 @@ class LocateIPythonApp(BaseIPythonApplication):
 
 
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
-    name = u'ipython'
+    name = "ipython"
     description = usage.cl_usage
     crash_handler_class = IPAppCrashHandler  # typing: ignore[assignment]
     examples = _examples
@@ -196,7 +196,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     def _classes_default(self):
         """This has to be in a method, for TerminalIPythonApp to be available."""
         return [
-            InteractiveShellApp, # ShellApp comes before TerminalApp, because
+            InteractiveShellApp,  # ShellApp comes before TerminalApp, because
             self.__class__,      # it will also affect subclasses (e.g. QtConsole)
             TerminalInteractiveShell,
             HistoryManager,
@@ -224,9 +224,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ),
     )
 
-
     # *do* autocreate requested profile, but don't create the config file.
-    auto_create=Bool(True)
+    auto_create = Bool(True).tag(config=True)
+
     # configurables
     quick = Bool(False,
         help="""Start IPython quickly by skipping the loading of config files."""
