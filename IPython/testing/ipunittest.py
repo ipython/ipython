@@ -53,7 +53,11 @@ def count_failures(runner):
     if sys.version_info < (3, 13):
         return [TestResults(f, t) for f, t in runner._name2ft.values() if f > 0]
     else:
-        return [TestResults(f, t) for f, t in runner._stats.values() if f > 0]
+        return [
+            TestResults(failure, try_)
+            for failure, try_, skip in runner._stats.values()
+            if f > 0
+        ]
 
 
 class IPython2PythonConverter(object):
