@@ -346,7 +346,7 @@ SPEC 0 and SPEC 4
 You've heard about the NEPs, (NumPy enhancement Proposal), having a NEP for something non-numpy specific was sometime confusing.
 Long live the `SPECs <https://scientific-python.org/specs/>`_.
 
-We are now trying to follow SPEC 0 (aka old NEP 29) for of support of upstream libraries.
+We are now trying to follow SPEC 0 (aka old NEP 29) for support of upstream libraries.
 
 We also now try to follow SPEC 4 (test and publish nightly on a centralized nightly repository).
 We encourage you to do so as well in order to report breakage, and contribute to the SPEC process !
@@ -356,7 +356,7 @@ Python 3.12 compatibility ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Python 3.12 changed its tokenizer to have better support for f-strings and allow arbitrary expression.
-This is a great new feature and performance improvement in python 3.12.
+This is a great new feature and performance improvement in Python 3.12.
 
 Unfortunately this means the new tokenizer does not support incomplete or invalid Python which will
 break many features of IPython. Thus compatibility of IPython with Python 3.12 is not guarantied.
