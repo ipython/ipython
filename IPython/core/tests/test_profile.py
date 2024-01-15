@@ -125,7 +125,16 @@ def test_list_profiles_in():
     # so only check for *nicode, and that creating a ProfileDir from the
     # name remains valid
     found_unicode = False
-    assert set(list(profiles)) == {"foo", "hello", "ünicode"}
+    if dec.unicode_paths:
+        assert set(list(profiles)) == {"foo", "hello", "ünicode"}
+        things = [s.name for s in os.scandir(td)]
+        assert set(list(things)) == {
+            "profile_foo",
+            "profile_hello",
+            "profile_ünicode",
+            "not_a_profile",
+            "profile_file",
+        }
     for p in list(profiles):
         if p.endswith('nicode'):
             pd = ProfileDir.find_profile_dir_by_name(td, p)
