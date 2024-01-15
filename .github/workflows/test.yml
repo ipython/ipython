@@ -18,6 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
