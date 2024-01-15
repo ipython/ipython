@@ -102,7 +102,7 @@ def test_wierd():
     with open(td / "profile_file", "w", encoding="utf-8") as f:
         f.write("I am not a profile directory")
 
-    things = os.scandir(td)
+    things = list(os.scandir(td))
     assert len(things) == 2
 
     shutil.rmtree(str(p))
