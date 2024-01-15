@@ -94,7 +94,8 @@ class ProfileStartupTest(TestCase):
 
 def test_wierd():
     td = Path(tempfile.mkdtemp(dir=TMP_TEST_DIR))
-    p = Path(td / "profile_ünicode").mkdir(parents=True)
+    p = Path(td / "profile_ünicode2")
+    p.mkdir(parents=True)
     shutil.rmtree(str(p))
 
 
