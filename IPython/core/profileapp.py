@@ -105,7 +105,14 @@ def list_profiles_in(path):
             print(f.name, "is profile")
             profiles.append(f.name.split("_", 1)[-1])
         else:
-            print(f.name, "is not profile")
+            print(
+                f.name,
+                "is not profile",
+                "is_dir:",
+                f.is_dir(),
+                "startswith profile?",
+                f.name.startswith("profile_"),
+            )
     return profiles
 
 
