@@ -22,6 +22,7 @@ Authors
 
 import shutil
 import sys
+import os
 import tempfile
 from pathlib import Path
 from unittest import TestCase
@@ -93,9 +94,17 @@ class ProfileStartupTest(TestCase):
         tt.ipexec_validate(self.fname, output, "", options=self.options)
 
 def test_wierd():
-    td = Path(tempfile.mkdtemp(dir=TMP_TEST_DIR))
+    TMP = Path(tempfile.mkdtemp())
+    td = Path(tempfile.mkdtemp(dir=TMP))
     p = Path(td / "profile_ünicode2")
     p.mkdir(parents=True)
+
+    with open(td / "profile_file", "w", encoding="utf-8") as f:
+        f.write("I am not a profile directory")
+
+    things = os.scandir(td)
+    assert len(things) == 2
+
     shutil.rmtree(str(p))
 
 
