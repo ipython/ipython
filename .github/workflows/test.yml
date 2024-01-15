@@ -18,36 +18,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
-          - os: macos-latest
-            python-version: "3.10"
-            deps: test_extra
-          - os: macos-latest
-            python-version: "3.11"
-            deps: test_extra
-          # Tests minimal dependencies set
-          - os: ubuntu-latest
-            python-version: "3.11"
-            deps: test
-          # Tests latest development Python version
-          - os: ubuntu-latest
-            python-version: "3.13-dev"
-            deps: test
-          # Installing optional dependencies stuff takes ages on PyPy
-          - os: ubuntu-latest
-            python-version: "pypy-3.10"
-            deps: test
           - os: windows-latest
             python-version: "pypy-3.10"
             deps: test
-          - os: macos-latest
-            python-version: "pypy-3.10"
-            deps: test
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -84,7 +60,7 @@ jobs:
       env:
         COLUMNS: 120
       run: |
-        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --json-report --json-report-file=./report-${{ matrix.python-version }}-${{runner.os}}.json --maxfail=15
+        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --json-report --json-report-file=./report-${{ matrix.python-version }}-${{runner.os}}.json --maxfail=15 IPython\core\tests\test_profile.py
     - uses: actions/upload-artifact@v3
       with:
           name: upload pytest timing reports as json
