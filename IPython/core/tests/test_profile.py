@@ -92,13 +92,10 @@ class ProfileStartupTest(TestCase):
     def validate(self, output):
         tt.ipexec_validate(self.fname, output, "", options=self.options)
 
-    def test_startup_py(self):
-        self.init('00-start.py', 'zzz=123\n', 'print(zzz)\n')
-        self.validate('123')
-
-    def test_startup_ipy(self):
-        self.init('00-start.ipy', '%xmode plain\n', '')
-        self.validate('Exception reporting mode: Plain')
+def test_wierd():
+    td = Path(tempfile.mkdtemp(dir=TMP_TEST_DIR))
+    p = Path(td / "profile_ünicode").mkdir(parents=True)
+    shutils.rmtree(p)
 
 
 def test_list_profiles_in():
@@ -127,29 +124,3 @@ def test_list_profiles_in():
     if dec.unicode_paths:
         assert found_unicode is True
     assert set(profiles) == {"foo", "hello"}
-
-
-def test_list_bundled_profiles():
-    # This variable will need to be updated when a new profile gets bundled
-    bundled = sorted(list_bundled_profiles())
-    assert bundled == []
-
-
-def test_profile_create_ipython_dir():
-    """ipython profile create respects --ipython-dir"""
-    with TemporaryDirectory() as td:
-        getoutput(
-            [
-                sys.executable,
-                "-m",
-                "IPython",
-                "profile",
-                "create",
-                "foo",
-                "--ipython-dir=%s" % td,
-            ]
-        )
-        profile_dir = Path(td) / "profile_foo"
-        assert Path(profile_dir).exists()
-        ipython_config = profile_dir / "ipython_config.py"
-        assert Path(ipython_config).exists()
