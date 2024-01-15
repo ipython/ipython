@@ -103,7 +103,7 @@ def test_wierd():
         f.write("I am not a profile directory")
 
     things = list(os.scandir(td))
-    assert len(things) == 2
+    assert set(things) == {"profile_ünicode2", "profile_file"}
 
     shutil.rmtree(str(p))
 
