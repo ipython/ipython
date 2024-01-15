@@ -62,7 +62,7 @@ jobs:
       env:
         COLUMNS: 120
       run: |
-        pytest --color=yes -raXxs -v ${{ startsWith(matrix.python-version, 'pypy') && ' ' }} ${{runner.os}}.json --maxfail=15 IPython\core\tests\test_profile.py
+        pytest --color=yes -raXxs -v ${{ startsWith(matrix.python-version, 'pypy') && ' ' }} --maxfail=15 IPython\core\tests\test_profile.py
     - uses: actions/upload-artifact@v3
       with:
           name: upload pytest timing reports as json
