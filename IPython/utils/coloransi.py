@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tools for coloring text in ANSI terminals.
 """
 
@@ -9,11 +8,12 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-__all__ = ['TermColors','InputTermColors','ColorScheme','ColorSchemeTable']
 
 import os
 
 from IPython.utils.ipstruct import Struct
+
+__all__ = ["TermColors", "InputTermColors", "ColorScheme", "ColorSchemeTable"]
 
 color_templates = (
         # Dark colors
@@ -110,6 +110,10 @@ for name, value in color_templates:
 
 class ColorScheme:
     """Generic color scheme class. Just a name and a Struct."""
+
+    name: str
+    colors: Struct
+
     def __init__(self,__scheme_name_,colordict=None,**colormap):
         self.name = __scheme_name_
         if colordict is None:

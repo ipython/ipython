@@ -103,8 +103,8 @@ class RichPromptDisplayHook(DisplayHook):
 
         if self.do_full_cache:
             tokens = self.shell.prompts.out_prompt_tokens()
-            prompt_txt = ''.join(s for t, s in tokens)
-            if prompt_txt and not prompt_txt.endswith('\n'):
+            prompt_txt = "".join(s for _, s in tokens)
+            if prompt_txt and not prompt_txt.endswith("\n"):
                 # Ask for a newline before multiline output
                 self.prompt_end_newline = False
 
@@ -116,6 +116,7 @@ class RichPromptDisplayHook(DisplayHook):
                 sys.stdout.write(prompt_txt)
 
     def write_format_data(self, format_dict, md_dict=None) -> None:
+        assert self.shell is not None
         if self.shell.mime_renderers:
 
             for mime, handler in self.shell.mime_renderers.items():

@@ -3,7 +3,7 @@ requires = ["setuptools >= 51.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.mypy]
-python_version = 3.10
+python_version = "3.10"
 ignore_missing_imports = true
 follow_imports = 'silent'
 exclude = [
@@ -79,3 +79,6 @@ ipdoctest_optionflags = [
    "ELLIPSIS"
 ]
 asyncio_mode = "strict"
+
+[tool.pyright]
+pythonPlatform="All"
