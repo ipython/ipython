@@ -101,8 +101,11 @@ def list_profiles_in(path):
     # for python 3.6+ rewrite to: with os.scandir(path) as dirlist:
     files = os.scandir(path)
     for f in files:
-        if f.is_dir() and f.name.startswith('profile_'):
-            profiles.append(f.name.split('_', 1)[-1])
+        if f.is_dir() and f.name.startswith("profile_"):
+            print(f.name, "is profile")
+            profiles.append(f.name.split("_", 1)[-1])
+        else:
+            print(f.name, "is not profile")
     return profiles
 
 
