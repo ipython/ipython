@@ -98,6 +98,9 @@ def test_wierd():
     td = Path(tempfile.mkdtemp(dir=TMP))
     p = Path(td / "profile_ünicode2")
     p.mkdir(parents=True)
+    assert p.is_dir()
+    l = list(os.scandir(td))
+    assert l[0].is_dir(), ("l[0]", l[0], "should be dir is not")
 
     with open(td / "profile_file", "w", encoding="utf-8") as f:
         f.write("I am not a profile directory")
