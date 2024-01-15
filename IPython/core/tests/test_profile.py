@@ -102,7 +102,7 @@ def test_wierd():
     with open(td / "profile_file", "w", encoding="utf-8") as f:
         f.write("I am not a profile directory")
 
-    things = list(os.scandir(td))
+    things = [s.name for s in os.scandir(td)]
     assert set(things) == {"profile_ünicode2", "profile_file"}
 
     shutil.rmtree(str(p))
@@ -125,6 +125,7 @@ def test_list_profiles_in():
     # so only check for *nicode, and that creating a ProfileDir from the
     # name remains valid
     found_unicode = False
+    assert set(list(profiles)) == {"foo", "hello", "ünicode"}
     for p in list(profiles):
         if p.endswith('nicode'):
             pd = ProfileDir.find_profile_dir_by_name(td, p)
