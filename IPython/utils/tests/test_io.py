@@ -20,6 +20,7 @@ def test_tee_simple():
     tee = Tee(chan, channel='stdout')
     print(text, file=chan)
     assert chan.getvalue() == text + "\n"
+    tee.close()
 
 
 class TeeTestCase(unittest.TestCase):
