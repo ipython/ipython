@@ -577,8 +577,12 @@ class InteractiveShellTestCase(unittest.TestCase):
             self.assertEqual(res.success, True)
 
 
+@pytest.mark.skipif(
+    sys.implementation.name == "pypy"
+    and ((7, 3, 13) < sys.implementation.version < (7, 3, 16)),
+    reason="Unicode issues with scandir on PyPy, see https://github.com/pypy/pypy/issues/4860",
+)
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
-
     @onlyif_unicode_paths
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
