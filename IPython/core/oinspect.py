@@ -634,7 +634,7 @@ class Inspector(Colorable):
             if k in ("text/html", "text/plain"):
                 continue
             else:
-                new_b = bundle[k]  # type:ignore
+                new_b[k] = bundle[k]  # type:ignore
         return new_b
 
     def _append_info_field(
