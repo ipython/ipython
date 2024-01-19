@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tools for inspecting Python objects.
 
 Uses syntax highlighting for presenting the various information elements.
@@ -22,13 +21,14 @@ import inspect
 import io as stdlib_io
 import linecache
 import os
-import sys
 import types
 import warnings
 
 from typing import Any, Optional, Dict, Union, List, Tuple
 
 from typing import TypeAlias
+
+import traitlets
 
 # IPython's own
 from IPython.core import page
@@ -41,7 +41,7 @@ from IPython.utils.path import compress_user
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.wildcard import typestr2type
-from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
+from IPython.utils.coloransi import TermColors
 from IPython.utils.py3compat import cast_unicode
 from IPython.utils.colorable import Colorable
 from IPython.utils.decorators import undoc
@@ -145,7 +145,7 @@ def get_encoding(obj):
         # getsourcelines returns lineno with 1-offset and page() uses
         # 0-offset, so we must adjust.
         with stdlib_io.open(ofile, 'rb') as buffer:   # Tweaked to use io.open for Python 2
-            encoding, lines = openpy.detect_encoding(buffer.readline)
+            encoding, _lines = openpy.detect_encoding(buffer.readline)
         return encoding
 
 def getdoc(obj) -> Union[str,None]:
@@ -328,7 +328,7 @@ def _get_wrapped(obj):
             return orig_obj
     return obj
 
-def find_file(obj) -> str:
+def find_file(obj) -> Optional[str]:
     """Find the absolute path to the file where an object was defined.
 
     This is essentially a robust wrapper around `inspect.getabsfile`.
@@ -346,7 +346,7 @@ def find_file(obj) -> str:
     """
     obj = _get_wrapped(obj)
 
-    fname = None
+    fname: Optional[str] = None
     try:
         fname = inspect.getabsfile(obj)
     except TypeError:
@@ -360,7 +360,7 @@ def find_file(obj) -> str:
     except OSError:
         pass
 
-    return cast_unicode(fname)
+    return fname
 
 
 def find_source_lines(obj):
@@ -396,11 +396,20 @@ def find_source_lines(obj):
 
 class Inspector(Colorable):
 
-    def __init__(self, color_table=InspectColors,
-                 code_color_table=PyColorize.ANSICodeColors,
-                 scheme=None,
-                 str_detail_level=0,
-                 parent=None, config=None):
+    mime_hooks = traitlets.Dict(
+        config=True,
+        help="dictionary of mime to callable to add informations into help mimebundle dict",
+    ).tag(config=True)
+
+    def __init__(
+        self,
+        color_table=InspectColors,
+        code_color_table=PyColorize.ANSICodeColors,
+        scheme=None,
+        str_detail_level=0,
+        parent=None,
+        config=None,
+    ):
         super(Inspector, self).__init__(parent=parent, config=config)
         self.color_table = color_table
         self.parser = PyColorize.Parser(out='str', parent=self, style=scheme)
@@ -759,6 +768,10 @@ class Inspector(Colorable):
             detail_level=detail_level,
             omit_sections=omit_sections,
         )
+        for key, hook in self.mime_hooks.items():
+            res = hook(obj, info)
+            if res is not None:
+                bundle[key] = res
         return self.format_mime(bundle)
 
     def pinfo(
