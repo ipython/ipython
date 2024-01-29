@@ -35,7 +35,7 @@ class ExtensionManager(Configurable):
     the only argument.  You can do anything you want with IPython at
     that point, including defining new magic and aliases, adding new
     components, etc.
-    
+
     You can also optionally define an :func:`unload_ipython_extension(ipython)`
     function, which will be called if the user unloads or reloads the extension.
     The extension manager will only call :func:`load_ipython_extension` again
