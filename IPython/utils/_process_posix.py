@@ -20,8 +20,6 @@ import os
 import subprocess as sp
 import sys
 
-import pexpect
-
 # Our own
 from ._process_common import getoutput, arg_split
 from IPython.utils.encoding import DEFAULT_ENCODING
@@ -51,6 +49,7 @@ class ProcessHandler(object):
     @property
     def sh(self):
         if self._sh is None:
+            import pexpect
             shell_name = os.environ.get("SHELL", "sh")
             self._sh = pexpect.which(shell_name)
             if self._sh is None:
@@ -83,6 +82,7 @@ class ProcessHandler(object):
         file descriptors (so the order of the information in this string is the
         correct order as would be seen if running the command in a terminal).
         """
+        import pexpect
         try:
             return pexpect.run(self.sh, args=['-c', cmd]).replace('\r\n', '\n')
         except KeyboardInterrupt:
@@ -104,6 +104,7 @@ class ProcessHandler(object):
         file descriptors (so the order of the information in this string is the
         correct order as would be seen if running the command in a terminal).
         """
+        import pexpect
         try:
             return pexpect.run(self.sh, args=['-c', cmd]).replace('\r\n', '\n')
         except KeyboardInterrupt:
@@ -121,6 +122,8 @@ class ProcessHandler(object):
         -------
         int : child's exitstatus
         """
+        import pexpect
+
         # Get likely encoding for the output.
         enc = DEFAULT_ENCODING
         
