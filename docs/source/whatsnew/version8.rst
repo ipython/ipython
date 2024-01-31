@@ -3,6 +3,82 @@
 ============
 
 
+.. _version 8.21:
+
+IPython 8.21
+------------
+
+More substantial release of IPython slightly out of schedule as it was not
+possible for me to make a release last Friday.
+
+Few new features are present, but the codebase has been cleaned, and a couple
+of API are _considered_ for deprecation. They are not deprecated yet, but as
+they do not seem to be quite used, they may emit a warning, in which case please
+comment on the relevant issue to inform me of _which_ project use those feature
+and how you use them. Depending on the feedback I might change the timeline for
+deprecation.
+
+This release saw 14 PRs, with more outside contribution than usual,
+I'll note in particular PRs related to making IPython work on emscripten.
+
+I also want to point that we are _trying_ to keep compatibility with Python 3.13,
+but it's a cat and mouse game. Plus I am low on time, so I would appreciate any
+help with that.
+
+Deprecations
+~~~~~~~~~~~~
+
+ - :ghpull:`14307` Pending Deprecation of
+   ``ColorSchemeTable.set_active_scheme(...)``'s ``case_sensitive`` Parameter.
+ - :ghpull:`14305` Pending Deprecation of constructing ``ColorScheme`` via
+   ``kwargs``, in favor passing a single dict.
+
+
+Fixes
+~~~~~
+
+ - :ghpull:`14284` TerminalIPythonApp's would warn that ``auto_create`` option is not
+   recognized.
+ - :ghpull:`14286` Fix a crash with ``NotOneValueFound`` when rendering complex
+   tracebacks.
+
+ - :ghpull:`14287` Partial Python 3.13 compatibility
+ - :ghpull:`14290` Docs/Typos.
+
+Changes
+~~~~~~~
+
+ - :ghpull:`14289` ``ipdb.set_trace()`` now accepts ``header=`` for better
+   compatibility with ``pdb.set_trace()``
+
+ - :ghpull:`14300` and :ghpull:`14301` Add hooking ability to produce
+   mimebundle.
+
+We'll outline :ghpull:`14300`, it is now possible to extend the ``?/??``
+operator to return more mimetypes to render richer help in frontends that
+support it. In particular you could send a json representation of the help that
+could be displayed in a customizable way.
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+ - :ghpull:`14291` Misc Refactor of Color handling
+ - :ghpull:`14295` Misc test skip on problematic Pypy versions.
+
+
+Thanks
+~~~~~~
+
+Special thanks to all our contributors, and to the Pypy team that was extremely
+reactive in helping to investigate a fixing a rare unicode+windows bug.
+
+As usual you can find the full list of PRs on GitHub under `the 8.21
+<https://github.com/ipython/ipython/milestone/128?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 8.20:
 
 IPython 8.20
