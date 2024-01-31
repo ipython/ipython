@@ -59,6 +59,8 @@ jobs:
         # wheels from PyPI.
         # (Avoid 10.3b6 because of https://github.com/sagemath/sage/pull/37178)
         pip install --pre "sagemath-repl<10.3b6" "sagemath-environment<10.3b6"
+        # Install optionals that make more tests pass
+        pip install sagemath-categories pillow
         cd ..
     - name: Test sagemath-repl
       run: |
