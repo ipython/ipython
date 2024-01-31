@@ -10,6 +10,7 @@
 
 
 import os
+import warnings
 
 from IPython.utils.ipstruct import Struct
 
@@ -116,8 +117,18 @@ class ColorScheme:
     name: str
     colors: Struct
 
-    def __init__(self,__scheme_name_,colordict=None,**colormap):
+    def __init__(self, __scheme_name_, colordict=None, **colormap):
         self.name = __scheme_name_
+        if colormap:
+            warnings.warn(
+                "Passing each colors as a kwarg to ColorScheme is "
+                "considered for deprecation. Please pass a "
+                "a single dict as second parameter. If you are using this"
+                "feature, please comment an subscribe to issue "
+                "https://github.com/ipython/ipython/issues/14304",
+                PendingDeprecationWarning,
+                stacklevel=2,
+            )
         if colordict is None:
             self.colors = Struct(**colormap)
         else:
