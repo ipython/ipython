@@ -44,9 +44,23 @@ jobs:
         # we must install IPython after ipykernel to get the right versions.
         python -m pip install --upgrade --upgrade-strategy eager flaky ipyparallel
         python -m pip install --upgrade 'pytest<7'  'pytest_asyncio<0.21'
-    - name: pytest
+    - name: pytest ipykernel
       env:
         COLUMNS: 120
       run: |
         cd ../ipykernel
         pytest
+    - name: Install sagemath-repl
+      run: |
+        cd ..
+        git clone --depth 1 https://github.com/sagemath/sage
+        cd sage
+        # We cloned it for the tests, but for simplicity we install the
+        # wheels from PyPI.
+        pip install --pre sagemath-repl
+        pip install tox
+        cd ..
+    - name: tox sagemath-repl
+      run: |
+        cd ../sage/pkgs/sagemath-repl
+        tox -v -v --skip-pkg-install --sitepackages -e norequirements
