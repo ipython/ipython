@@ -1,3 +1,8 @@
+"""Emscripten-specific implementation of process utilities.
+
+This file is only meant to be imported by process.py, not by end-users.
+"""
+
 def system(cmd):
     raise OSError("Not available")
 
