@@ -554,7 +554,12 @@ class HistoryManager(HistoryAccessor):
 
         if self.enabled and self.hist_file != ':memory:':
             self.save_thread = HistorySavingThread(self)
-            self.save_thread.start()
+            try:
+                self.save_thread.start()
+            except RuntimeError:
+                self.log.error("Failed to start history saving thread. History will not be saved.",
+                               exc_info=True)
+                self.hist_file = ':memory:'
 
     def _get_hist_file_name(self, profile=None):
         """Get default history file name based on the Shell's profile.
@@ -880,10 +885,10 @@ class HistorySavingThread(threading.Thread):
         super(HistorySavingThread, self).__init__(name="IPythonHistorySavingThread")
         self.history_manager = history_manager
         self.enabled = history_manager.enabled
-        atexit.register(self.stop)
 
     @only_when_enabled
     def run(self):
+        atexit.register(self.stop)
         # We need a separate db connection per thread:
         try:
             self.db = sqlite3.connect(
