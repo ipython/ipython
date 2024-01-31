@@ -15,6 +15,8 @@ from IPython.utils.ipstruct import Struct
 
 __all__ = ["TermColors", "InputTermColors", "ColorScheme", "ColorSchemeTable"]
 
+_sentinel = object()
+
 color_templates = (
         # Dark colors
         ("Black"       , "0;30"),
@@ -159,17 +161,34 @@ class ColorSchemeTable(dict):
         """Return full copy of object"""
         return ColorSchemeTable(self.values(),self.active_scheme_name)
 
-    def add_scheme(self,new_scheme):
+    def __setitem__(self, key: str, value: ColorScheme):
+        assert isinstance(key, str)
+        assert isinstance(value, ColorScheme)
+        super().__setitem__(key, value)
+
+    def add_scheme(self, new_scheme):
         """Add a new color scheme to the table."""
-        if not isinstance(new_scheme,ColorScheme):
+        if not isinstance(new_scheme, ColorScheme):
             raise ValueError('ColorSchemeTable only accepts ColorScheme instances')
         self[new_scheme.name] = new_scheme
 
-    def set_active_scheme(self,scheme,case_sensitive=0):
+    def set_active_scheme(self, scheme, case_sensitive=_sentinel):
         """Set the currently active scheme.
 
         Names are by default compared in a case-insensitive way, but this can
         be changed by setting the parameter case_sensitive to true."""
+
+        if case_sensitive is _sentinel:
+            case_sensitive = False
+        else:
+            warnings.warn(
+                "set_active_scheme(case_sensitive=...) is Pending "
+                "deprecation. Please comment on "
+                "https://github.com/ipython/ipython/issues/14306 "
+                "to let the ipython maintainer that you are affected.",
+                PendingDeprecationWarning,
+                stacklevel=2,
+            )
 
         scheme_names = list(self.keys())
         if case_sensitive:
