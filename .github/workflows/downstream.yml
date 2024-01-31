@@ -57,11 +57,11 @@ jobs:
         cd sage
         # We cloned it for the tests, but for simplicity we install the
         # wheels from PyPI.
-        # (Avoid 10.3b5-10.3b6 because of https://github.com/sagemath/sage/pull/37178)
+        # (Avoid 10.3b6 because of https://github.com/sagemath/sage/pull/37178)
         pip install --pre "sagemath-repl<10.3b5"
-        pip install tox
         cd ..
-    - name: tox sagemath-repl
+    - name: Test sagemath-repl
       run: |
-        cd ../sage/pkgs/sagemath-repl
-        tox -v -v --skip-pkg-install --sitepackages -e norequirements
+        cd ../sage/
+        # From https://github.com/sagemath/sage/blob/develop/pkgs/sagemath-repl/tox.ini
+        sage-runtests -p --environment=sage.all__sagemath_repl --baseline-stats-path=pkgs/sagemath-repl/known-test-failures.json --initial --optional=sage src/sage/repl src/sage/doctest src/sage/misc/sage_input.py src/sage/misc/sage_eval.py
