@@ -121,8 +121,8 @@ class ColorScheme:
             warnings.warn(
                 "Passing each colors as a kwarg to ColorScheme is "
                 "considered for deprecation. Please pass a "
-                "dict as single dict as second parameter. If you are using this"
-                "Feature, please comment an subscribe to issue "
+                "a single dict as second parameter. If you are using this"
+                "feature, please comment an subscribe to issue "
                 "https://github.com/ipython/ipython/issues/14304",
                 PendingDeprecationWarning,
                 stacklevel=2,
