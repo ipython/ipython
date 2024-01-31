@@ -57,7 +57,8 @@ jobs:
         cd sage
         # We cloned it for the tests, but for simplicity we install the
         # wheels from PyPI.
-        pip install --pre sagemath-repl
+        # (Avoid 10.3b5-10.3b6 because of https://github.com/sagemath/sage/pull/37178)
+        pip install --pre "sagemath-repl<10.3b5"
         pip install tox
         cd ..
     - name: tox sagemath-repl
