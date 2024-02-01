@@ -6,15 +6,12 @@
 
 import atexit
 import datetime
-from pathlib import Path
 import re
 import sqlite3
 import threading
+from pathlib import Path
 
-from traitlets.config.configurable import LoggingConfigurable
 from decorator import decorator
-from IPython.utils.decorators import undoc
-from IPython.paths import locate_profile
 from traitlets import (
     Any,
     Bool,
@@ -22,12 +19,16 @@ from traitlets import (
     Instance,
     Integer,
     List,
+    TraitError,
     Unicode,
     Union,
-    TraitError,
     default,
     observe,
 )
+from traitlets.config.configurable import LoggingConfigurable
+
+from IPython.paths import locate_profile
+from IPython.utils.decorators import undoc
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -557,9 +558,11 @@ class HistoryManager(HistoryAccessor):
             try:
                 self.save_thread.start()
             except RuntimeError:
-                self.log.error("Failed to start history saving thread. History will not be saved.",
-                               exc_info=True)
-                self.hist_file = ':memory:'
+                self.log.error(
+                    "Failed to start history saving thread. History will not be saved.",
+                    exc_info=True,
+                )
+                self.hist_file = ":memory:"
 
     def _get_hist_file_name(self, profile=None):
         """Get default history file name based on the Shell's profile.
