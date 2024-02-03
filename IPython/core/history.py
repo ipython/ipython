@@ -908,6 +908,8 @@ class HistorySavingThread(threading.Thread):
         except Exception as e:
             print(("The history saving thread hit an unexpected error (%s)."
                    "History will not be written to the database.") % repr(e))
+        finally:
+            atexit.unregister(self.stop)
 
     def stop(self):
         """This can be called from the main thread to safely stop this thread.
