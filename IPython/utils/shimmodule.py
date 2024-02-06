@@ -53,6 +53,7 @@ class ShimModule(types.ModuleType):
     
     @property
     def __path__(self):
+        """Return an empty path list."""
         return []
     
     @property
@@ -61,6 +62,7 @@ class ShimModule(types.ModuleType):
         return import_module(self._mirror).__spec__
     
     def __dir__(self):
+        """Return the list of attributes of the mirrored module."""
         return dir(import_module(self._mirror))
     
     @property
