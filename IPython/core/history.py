@@ -6,15 +6,12 @@
 
 import atexit
 import datetime
-from pathlib import Path
 import re
 import sqlite3
 import threading
+from pathlib import Path
 
-from traitlets.config.configurable import LoggingConfigurable
 from decorator import decorator
-from IPython.utils.decorators import undoc
-from IPython.paths import locate_profile
 from traitlets import (
     Any,
     Bool,
@@ -22,12 +19,16 @@ from traitlets import (
     Instance,
     Integer,
     List,
+    TraitError,
     Unicode,
     Union,
-    TraitError,
     default,
     observe,
 )
+from traitlets.config.configurable import LoggingConfigurable
+
+from IPython.paths import locate_profile
+from IPython.utils.decorators import undoc
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -554,7 +555,14 @@ class HistoryManager(HistoryAccessor):
 
         if self.enabled and self.hist_file != ':memory:':
             self.save_thread = HistorySavingThread(self)
-            self.save_thread.start()
+            try:
+                self.save_thread.start()
+            except RuntimeError:
+                self.log.error(
+                    "Failed to start history saving thread. History will not be saved.",
+                    exc_info=True,
+                )
+                self.hist_file = ":memory:"
 
     def _get_hist_file_name(self, profile=None):
         """Get default history file name based on the Shell's profile.
@@ -880,10 +888,10 @@ class HistorySavingThread(threading.Thread):
         super(HistorySavingThread, self).__init__(name="IPythonHistorySavingThread")
         self.history_manager = history_manager
         self.enabled = history_manager.enabled
-        atexit.register(self.stop)
 
     @only_when_enabled
     def run(self):
+        atexit.register(self.stop)
         # We need a separate db connection per thread:
         try:
             self.db = sqlite3.connect(
@@ -900,6 +908,8 @@ class HistorySavingThread(threading.Thread):
         except Exception as e:
             print(("The history saving thread hit an unexpected error (%s)."
                    "History will not be written to the database.") % repr(e))
+        finally:
+            atexit.unregister(self.stop)
 
     def stop(self):
         """This can be called from the main thread to safely stop this thread.
