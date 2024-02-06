@@ -17,6 +17,7 @@ from warnings import warn
 warn(
     "The `IPython.utils.version` module has been deprecated since IPython 8.0.",
     DeprecationWarning,
+    stacklevel=2,
 )
 
 
