@@ -19,7 +19,6 @@ exclude = [
    'IPython/core/application.py',
    'IPython/core/completerlib.py',
    'IPython/core/displaypub.py',
-   'IPython/core/historyapp.py',
    #'IPython/core/interactiveshell.py',
    'IPython/core/magic.py',
    'IPython/core/profileapp.py',
@@ -30,8 +29,6 @@ exclude = [
    'IPython/terminal/ipapp.py',
    'IPython/utils/_process_win32.py',
    'IPython/utils/path.py',
-   'IPython/utils/timing.py',
-   'IPython/utils/text.py'
 ]
 
 [tool.pytest.ini_options]
