@@ -314,11 +314,12 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
 
-    ast_transformers = List([], help=
-        """
+    ast_transformers: List[ast.NodeTransformer] = List(
+        [],
+        help="""
         A list of ast.NodeTransformer subclass instances, which will be applied
         to user input before code is run.
-        """
+        """,
     ).tag(config=True)
 
     autocall = Enum((0,1,2), default_value=0, help=
@@ -553,14 +554,20 @@ class InteractiveShell(SingletonConfigurable):
                             ).tag(config=True)
 
     # Subcomponents of InteractiveShell
-    alias_manager = Instance('IPython.core.alias.AliasManager', allow_none=True)
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
-    builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap', allow_none=True)
-    display_trap = Instance('IPython.core.display_trap.DisplayTrap', allow_none=True)
-    extension_manager = Instance('IPython.core.extensions.ExtensionManager', allow_none=True)
-    payload_manager = Instance('IPython.core.payload.PayloadManager', allow_none=True)
-    history_manager = Instance('IPython.core.history.HistoryAccessorBase', allow_none=True)
-    magics_manager = Instance('IPython.core.magic.MagicsManager', allow_none=True)
+    alias_manager = Instance("IPython.core.alias.AliasManager", allow_none=True)
+    prefilter_manager = Instance(
+        "IPython.core.prefilter.PrefilterManager", allow_none=True
+    )
+    builtin_trap = Instance("IPython.core.builtin_trap.BuiltinTrap")
+    display_trap = Instance("IPython.core.display_trap.DisplayTrap")
+    extension_manager = Instance(
+        "IPython.core.extensions.ExtensionManager", allow_none=True
+    )
+    payload_manager = Instance("IPython.core.payload.PayloadManager", allow_none=True)
+    history_manager = Instance(
+        "IPython.core.history.HistoryAccessorBase", allow_none=True
+    )
+    magics_manager = Instance("IPython.core.magic.MagicsManager")
 
     profile_dir = Instance('IPython.core.application.ProfileDir', allow_none=True)
     @property
@@ -1396,6 +1403,7 @@ class InteractiveShell(SingletonConfigurable):
         If new_session is True, a new history session will be opened.
         """
         # Clear histories
+        assert self.history_manager is not None
         self.history_manager.reset(new_session)
         # Reset counter used to index all histories
         if new_session:
@@ -1482,6 +1490,7 @@ class InteractiveShell(SingletonConfigurable):
             except KeyError as e:
                 raise NameError("name '%s' is not defined" % varname) from e
             # Also check in output history
+            assert self.history_manager is not None
             ns_refs.append(self.history_manager.output_hist)
             for ns in ns_refs:
                 to_delete = [n for n, o in ns.items() if o is obj]
@@ -1801,7 +1810,7 @@ class InteractiveShell(SingletonConfigurable):
         """Find an object and return a struct with info about it."""
         return self._ofind(oname, namespaces)
 
-    def _inspect(self, meth, oname, namespaces=None, **kw):
+    def _inspect(self, meth, oname: str, namespaces=None, **kw):
         """Generic interface to the inspector system.
 
         This function is meant to be called by pdef, pdoc & friends.
@@ -2409,7 +2418,7 @@ class InteractiveShell(SingletonConfigurable):
         res = finder(magic_name)
         return res
 
-    def run_line_magic(self, magic_name: str, line, _stack_depth=1):
+    def run_line_magic(self, magic_name: str, line: str, _stack_depth=1):
         """Execute the given line magic.
 
         Parameters
@@ -3256,6 +3265,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Store raw and processed history
         if store_history:
+            assert self.history_manager is not None
             self.history_manager.store_inputs(self.execution_count, cell, raw_cell)
         if not silent:
             self.logger.log(cell, raw_cell)
@@ -3271,8 +3281,6 @@ class InteractiveShell(SingletonConfigurable):
         # run code with a separate __future__ environment, use the default
         # compiler
         compiler = self.compile if shell_futures else self.compiler_class()
-
-        _run_async = False
 
         with self.builtin_trap:
             cell_name = compiler.cache(cell, self.execution_count, raw_code=raw_cell)

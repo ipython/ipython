@@ -2550,7 +2550,7 @@ class IPCompleter(Completer):
             EvaluationContext(
                 globals=self.global_namespace,
                 locals=self.namespace,
-                evaluation=self.evaluation,
+                evaluation=self.evaluation,  # type: ignore
                 in_subscript=True,
             ),
         )

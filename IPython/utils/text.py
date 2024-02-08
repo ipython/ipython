@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Utilities for working with strings and text.
 
@@ -11,13 +10,12 @@ Inheritance diagram:
 import os
 import re
 import string
-import sys
 import textwrap
 import warnings
 from string import Formatter
 from pathlib import Path
 
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional, cast
 
 
 class LSString(str):
@@ -540,11 +538,12 @@ class FullEvalFormatter(Formatter):
     """
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
-    def vformat(self, format_string:str, args, kwargs)->str:
+    def vformat(self, format_string: str, args, kwargs) -> str:
         result = []
-        for literal_text, field_name, format_spec, conversion in \
-                self.parse(format_string):
-
+        conversion: Optional[str]
+        for literal_text, field_name, format_spec, conversion in self.parse(
+            format_string
+        ):
             # output the literal text
             if literal_text:
                 result.append(literal_text)
@@ -563,7 +562,8 @@ class FullEvalFormatter(Formatter):
                 obj = eval(field_name, kwargs)
 
                 # do any conversion on the resulting object
-                obj = self.convert_field(obj, conversion)
+                # type issue in typeshed, fined in https://github.com/python/typeshed/pull/11377
+                obj = self.convert_field(obj, conversion)  # type: ignore[arg-type]
 
                 # format the object and append to the result
                 result.append(self.format_field(obj, ''))
@@ -722,7 +722,13 @@ def compute_item_matrix(
         return ([[_get_or_default(items, c * nrow + r, default=empty) for c in range(ncol)] for r in range(nrow)], info)
 
 
-def columnize(items, row_first=False, separator="  ", displaywidth=80, spread=False):
+def columnize(
+    items: List[str],
+    row_first: bool = False,
+    separator: str = "  ",
+    displaywidth: int = 80,
+    spread: bool = False,
+):
     """Transform a list of strings into a single string with columns.
 
     Parameters
@@ -743,7 +749,7 @@ def columnize(items, row_first=False, separator="  ", displaywidth=80, spread=Fa
     """
     warnings.warn(
         "`columnize` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in future versions. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,
@@ -761,7 +767,7 @@ def columnize(items, row_first=False, separator="  ", displaywidth=80, spread=Fa
         separator = separator.ljust(int(info["optimal_separator_width"]))
     fmatrix: List[filter[int]] = [filter(None, x) for x in matrix]
     sjoin = lambda x: separator.join(
-        [y.ljust(w, " ") for y, w in zip(x, info["column_widths"])]
+        [y.ljust(w, " ") for y, w in zip(x, cast(List[int], info["column_widths"]))]
     )
     return "\n".join(map(sjoin, fmatrix)) + "\n"
 

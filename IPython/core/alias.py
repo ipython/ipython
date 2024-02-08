@@ -30,6 +30,9 @@ from .error import UsageError
 from traitlets import List, Instance
 from logging import error
 
+import typing as t
+
+
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
@@ -37,7 +40,7 @@ from logging import error
 # This is used as the pattern for calls to split_user_input.
 shell_line_split = re.compile(r'^(\s*)()(\S+)(.*$)')
 
-def default_aliases():
+def default_aliases() -> t.List[t.Tuple[str, str]]:
     """Return list of shell aliases to auto-define.
     """
     # Note: the aliases defined here should be safe to use on a kernel
