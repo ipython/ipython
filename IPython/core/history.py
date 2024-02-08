@@ -489,8 +489,9 @@ class HistoryManager(HistoryAccessor):
     input_hist_parsed = List([""])
     input_hist_raw = List([""])
     # A list of directories visited during session
-    dir_hist = List()
-    @default('dir_hist')
+    dir_hist: List = List()
+
+    @default("dir_hist")
     def _dir_hist_default(self):
         try:
             return [Path.cwd()]
@@ -514,8 +515,8 @@ class HistoryManager(HistoryAccessor):
         "Values of 1 or less effectively disable caching."
     ).tag(config=True)
     # The input and output caches
-    db_input_cache = List()
-    db_output_cache = List()
+    db_input_cache: List = List()
+    db_output_cache: List = List()
 
     # History saving in separate thread
     save_thread = Instance('IPython.core.history.HistorySavingThread',
@@ -526,10 +527,10 @@ class HistoryManager(HistoryAccessor):
     # Variables used to store the three last inputs from the user.  On each new
     # history update, we populate the user's namespace with these, shifted as
     # necessary.
-    _i00 = Unicode(u'')
-    _i = Unicode(u'')
-    _ii = Unicode(u'')
-    _iii = Unicode(u'')
+    _i00 = Unicode("")
+    _i = Unicode("")
+    _ii = Unicode("")
+    _iii = Unicode("")
 
     # A regex matching all forms of the exit command, so that we don't store
     # them in the history (it's annoying to rewind the first entry and land on

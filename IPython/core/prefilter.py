@@ -524,11 +524,14 @@ class AutocallChecker(PrefilterChecker):
 
 
 class PrefilterHandler(Configurable):
-
-    handler_name = Unicode('normal')
-    esc_strings = List([])
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
+    handler_name = Unicode("normal")
+    esc_strings: List = List([])
+    shell = Instance(
+        "IPython.core.interactiveshell.InteractiveShellABC", allow_none=True
+    )
+    prefilter_manager = Instance(
+        "IPython.core.prefilter.PrefilterManager", allow_none=True
+    )
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
         super(PrefilterHandler, self).__init__(

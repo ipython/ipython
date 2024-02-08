@@ -178,7 +178,17 @@ transforming:
 __skip_doctest__ = True
 
 
-from ast import NodeTransformer, Store, Load, Name, Expr, Assign, Module,  Import, ImportFrom
+from ast import (
+    NodeTransformer,
+    Store,
+    Load,
+    Name,
+    Expr,
+    Assign,
+    Module,
+    Import,
+    ImportFrom,
+)
 import ast
 import copy
 
@@ -231,13 +241,13 @@ class Mangler(NodeTransformer):
                 self.log("Not mangling function arg", arg.arg)
         return self.generic_visit(node)
 
-    def visit_ImportFrom(self, node:ImportFrom):
+    def visit_ImportFrom(self, node: ImportFrom):
         return self._visit_Import_and_ImportFrom(node)
 
-    def visit_Import(self, node:Import):
+    def visit_Import(self, node: Import):
         return self._visit_Import_and_ImportFrom(node)
 
-    def _visit_Import_and_ImportFrom(self, node:Union[Import, ImportFrom]):
+    def _visit_Import_and_ImportFrom(self, node: Union[Import, ImportFrom]):
         for alias in node.names:
             asname = alias.name if alias.asname is None else alias.asname
             if self.predicate(asname):

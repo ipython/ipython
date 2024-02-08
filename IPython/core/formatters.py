@@ -53,13 +53,13 @@ class DisplayFormatter(Configurable):
             else:
                 formatter.enabled = False
 
-    ipython_display_formatter = ForwardDeclaredInstance("FormatterABC")
+    ipython_display_formatter = ForwardDeclaredInstance("FormatterABC")  # type: ignore
 
     @default("ipython_display_formatter")
     def _default_formatter(self):
         return IPythonDisplayFormatter(parent=self)
 
-    mimebundle_formatter = ForwardDeclaredInstance("FormatterABC")
+    mimebundle_formatter = ForwardDeclaredInstance("FormatterABC")  # type: ignore
 
     @default("mimebundle_formatter")
     def _default_mime_formatter(self):
