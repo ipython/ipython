@@ -32,6 +32,7 @@ import tokenize
 import warnings
 
 from typing import List, Tuple, Union, Optional
+from typing_extensions import Self
 from types import CodeType
 
 from IPython.core.inputtransformer import (leading_indent,
@@ -637,9 +638,9 @@ class IPythonInputSplitter(InputSplitter):
                 # Nothing that calls reset() expects to handle transformer
                 # errors
                 pass
-    
-    def flush_transformers(self):
-        def _flush(transform, outs):
+
+    def flush_transformers(self: Self):
+        def _flush(transform, outs: List[str]):
             """yield transformed lines
 
             always strings, never None
