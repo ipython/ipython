@@ -47,16 +47,29 @@ except ModuleNotFoundError:
         def __init__(self, path):
             pass
 
-        def get(self, key, default):
+        def get(self, key, default=None):
             warn(
-                f"using {key} requires you to install the `pickleshare` library.",
+                f"This is now an optional IPython functionality, using {key} requires you to install the `pickleshare` library.",
                 stacklevel=2,
             )
             return default
 
+        def __getitem__(self, key):
+            warn(
+                f"This is now an optional IPython functionality, using {key} requires you to install the `pickleshare` library.",
+                stacklevel=2,
+            )
+            return None
+
         def __setitem__(self, key, value):
             warn(
-                f"using {key} requires you to install the `pickleshare` library.",
+                f"This is now an optional IPython functionality, setting {key} requires you to install the `pickleshare` library.",
+                stacklevel=2,
+            )
+
+        def __delitem__(self, key):
+            warn(
+                f"This is now an optional IPython functionality, deleting {key} requires you to install the `pickleshare` library.",
                 stacklevel=2,
             )
 
