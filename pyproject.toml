@@ -194,11 +194,11 @@ exclude = ["setupext"]
 namespaces = false
 
 [tool.setuptools.package-data]
-ipython = ["py.typed"]
-"ipython.core" = ["profile/README*"]
-"ipython.core.tests" = ["*.png", "*.jpg", "daft_extension/*.py"]
-"ipython.lib.tests" = ["*.wav"]
-"ipython.testing.plugin" = ["*.txt"]
+"IPython" = ["py.typed"]
+"IPython.core" = ["profile/README*"]
+"IPython.core.tests" = ["*.png", "*.jpg", "daft_extension/*.py"]
+"IPython.lib.tests" = ["*.wav"]
+"IPython.testing.plugin" = ["*.txt"]
 
 [tool.setuptools.dynamic]
 version = {attr = "IPython.core.release.__version__"}
