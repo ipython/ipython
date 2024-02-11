@@ -188,7 +188,6 @@ pythonPlatform="All"
 zip-safe = false
 platforms = ["Linux", "Mac OSX", "Windows"]
 license-files = ["LICENSE"]
-include-package-data = false
 
 [tool.setuptools.packages.find]
 exclude = ["setupext"]

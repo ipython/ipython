@@ -4,7 +4,6 @@ include LICENSE
 include setupbase.py
 include _build_meta.py
 include MANIFEST.in
-include py.typed
 include .mailmap
 include .flake8
 include .pre-commit-config.yaml
