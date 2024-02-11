@@ -66,28 +66,6 @@ setup_args = dict(
       license          = license,
       )
 
-
-#---------------------------------------------------------------------------
-# Find packages
-#---------------------------------------------------------------------------
-
-def find_packages():
-    """
-    Find all of IPython's packages.
-    """
-    excludes = ['deathrow', 'quarantine']
-    packages = []
-    for directory, subdirs, files in os.walk("IPython"):
-        package = directory.replace(os.path.sep, ".")
-        if any(package.startswith("IPython." + exc) for exc in excludes):
-            # package is to be excluded (e.g. deathrow)
-            continue
-        if '__init__.py' not in files:
-            # not a package
-            continue
-        packages.append(package)
-    return packages
-
 #---------------------------------------------------------------------------
 # Check package data
 #---------------------------------------------------------------------------
