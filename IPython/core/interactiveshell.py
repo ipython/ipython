@@ -3667,6 +3667,7 @@ class InteractiveShell(SingletonConfigurable):
         pt.activate_matplotlib(backend)
 
         from matplotlib_inline.backend_inline import configure_inline_support
+
         configure_inline_support(self, backend)
 
         # Now we must activate the gui pylab wants to use, and fix %run to take
