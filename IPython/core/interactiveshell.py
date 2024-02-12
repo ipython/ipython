@@ -3651,8 +3651,6 @@ class InteractiveShell(SingletonConfigurable):
             make sense in all contexts, for example a terminal ipython can't
             display figures inline.
         """
-        from matplotlib_inline.backend_inline import configure_inline_support
-
         from IPython.core import pylabtools as pt
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
@@ -3667,6 +3665,8 @@ class InteractiveShell(SingletonConfigurable):
                 gui, backend = pt.find_gui_and_backend(self.pylab_gui_select)
 
         pt.activate_matplotlib(backend)
+
+        from matplotlib_inline.backend_inline import configure_inline_support
         configure_inline_support(self, backend)
 
         # Now we must activate the gui pylab wants to use, and fix %run to take
