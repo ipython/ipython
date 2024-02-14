@@ -15,6 +15,7 @@ and stores the results.
 
 For more details, see the class docstrings below.
 """
+from __future__ import annotations
 
 from warnings import warn
 
