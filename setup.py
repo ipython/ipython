@@ -74,10 +74,6 @@ from setupbase import (
     check_package_data_first,
     find_data_files,
     git_prebuild,
-    install_symlinked,
-    install_lib_symlink,
-    install_scripts_for_symlink,
-    unsymlink,
 )
 
 #-------------------------------------------------------------------------------
@@ -135,10 +131,6 @@ setup_args['cmdclass'] = {
     'build_py': \
             check_package_data_first(git_prebuild('IPython')),
     'sdist' : git_prebuild('IPython', sdist),
-    'symlink': install_symlinked,
-    'install_lib_symlink': install_lib_symlink,
-    'install_scripts_sym': install_scripts_for_symlink,
-    'unsymlink': unsymlink,
 }
 
 setup_args["entry_points"] = {
