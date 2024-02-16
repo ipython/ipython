@@ -56,7 +56,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: pip
         cache-dependency-path: |
-          setup.cfg
+          pyproject.toml
     - name: Install latex
       if: runner.os == 'Linux' && matrix.deps == 'test_extra'
       run: echo "disable latex for now, issues in mirros" #sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng

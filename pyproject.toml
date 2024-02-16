@@ -1,9 +1,107 @@
 [build-system]
-requires = ["setuptools >= 51.0.0"]
+requires = ["setuptools>=61.2"]
 # We need access to the 'setupbase' module at build time.
 # Hence we declare a custom build backend.
 build-backend = "_build_meta"  # just re-exports setuptools.build_meta definitions
 backend-path = ["."]
+
+[project]
+name = "ipython"
+description = "IPython: Productive Interactive Computing"
+keywords = ["Interactive", "Interpreter", "Shell", "Embedding"]
+classifiers = [
+    "Framework :: IPython",
+    "Framework :: Jupyter",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: System :: Shells",
+]
+requires-python = ">=3.10"
+dependencies = [
+    'colorama; sys_platform == "win32"',
+    "decorator",
+    "exceptiongroup; python_version<'3.11'",
+    "jedi>=0.16",
+    "matplotlib-inline",
+    'pexpect>4.3; sys_platform != "win32" and sys_platform != "emscripten"',
+    "prompt_toolkit>=3.0.41,<3.1.0",
+    "pygments>=2.4.0",
+    "stack_data",
+    "traitlets>=5",
+    "typing_extensions; python_version<'3.10'",
+]
+dynamic = ["authors", "entry-points", "license", "scripts", "version"]
+
+[project.readme]
+file = "long_description.rst"
+content-type = "text/x-rst"
+
+[project.urls]
+Homepage = "https://ipython.org"
+Documentation = "https://ipython.readthedocs.io/"
+Funding = "https://numfocus.org/"
+Source = "https://github.com/ipython/ipython"
+Tracker = "https://github.com/ipython/ipython/issues"
+
+[project.optional-dependencies]
+black = [
+    "black",
+]
+doc = [
+    "ipykernel",
+    "setuptools>=18.5",
+    "sphinx>=1.3",
+    "sphinx-rtd-theme",
+    "docrepr",
+    "matplotlib",
+    "stack_data",
+    "typing_extensions",
+    "exceptiongroup",
+    "ipython[test]",
+]
+kernel = [
+    "ipykernel",
+]
+nbconvert = [
+    "nbconvert",
+]
+nbformat = [
+    "nbformat",
+]
+notebook = [
+    "ipywidgets",
+    "notebook",
+]
+parallel = [
+    "ipyparallel",
+]
+qtconsole = [
+    "qtconsole",
+]
+terminal = []
+test = [
+    "pytest<8",
+    "pytest-asyncio<0.22",
+    "testpath",
+    "pickleshare",
+]
+test_extra = [
+    "ipython[test]",
+    "curio",
+    "matplotlib!=3.2.0",
+    "nbformat",
+    "numpy>=1.23",
+    "pandas",
+    "trio",
+]
+all = [
+    "ipython[black,doc,kernel,nbconvert,nbformat,notebook,parallel,qtconsole,terminal]",
+    "ipython[test,test_extra]",
+]
 
 [tool.mypy]
 python_version = "3.10"
@@ -76,3 +174,23 @@ asyncio_mode = "strict"
 
 [tool.pyright]
 pythonPlatform="All"
+
+[tool.setuptools]
+zip-safe = false
+platforms = ["Linux", "Mac OSX", "Windows"]
+license-files = ["LICENSE"]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+exclude = ["setupext"]
+namespaces = false
+
+[tool.setuptools.package-data]
+"IPython" = ["py.typed"]
+"IPython.core" = ["profile/README*"]
+"IPython.core.tests" = ["*.png", "*.jpg", "daft_extension/*.py"]
+"IPython.lib.tests" = ["*.wav"]
+"IPython.testing.plugin" = ["*.txt"]
+
+[tool.setuptools.dynamic]
+version = {attr = "IPython.core.release.__version__"}

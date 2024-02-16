@@ -66,48 +66,9 @@ setup_args = dict(
       license          = license,
       )
 
-
 #---------------------------------------------------------------------------
-# Find packages
+# Check package data
 #---------------------------------------------------------------------------
-
-def find_packages():
-    """
-    Find all of IPython's packages.
-    """
-    excludes = ['deathrow', 'quarantine']
-    packages = []
-    for directory, subdirs, files in os.walk("IPython"):
-        package = directory.replace(os.path.sep, ".")
-        if any(package.startswith("IPython." + exc) for exc in excludes):
-            # package is to be excluded (e.g. deathrow)
-            continue
-        if '__init__.py' not in files:
-            # not a package
-            continue
-        packages.append(package)
-    return packages
-
-#---------------------------------------------------------------------------
-# Find package data
-#---------------------------------------------------------------------------
-
-def find_package_data():
-    """
-    Find IPython's package_data.
-    """
-    # This is not enough for these things to appear in an sdist.
-    # We need to muck with the MANIFEST to get this to work
-
-    package_data = {
-        'IPython.core' : ['profile/README*'],
-        'IPython.core.tests' : ['*.png', '*.jpg', 'daft_extension/*.py'],
-        'IPython.lib.tests' : ['*.wav'],
-        'IPython.testing.plugin' : ['*.txt'],
-    }
-
-    return package_data
-
 
 def check_package_data(package_data):
     """verify that package_data globs make sense"""
