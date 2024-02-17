@@ -162,26 +162,6 @@ def target_update(target,deps,cmd):
         os.system(cmd)
 
 #---------------------------------------------------------------------------
-# Find scripts
-#---------------------------------------------------------------------------
-
-def find_entry_points():
-    """Defines the command line entry points for IPython
-
-    This always uses setuptools-style entry points. When setuptools is not in
-    use, our own build_scripts_entrypt class below parses these and builds
-    command line scripts.
-
-    Each of our entry points gets a plain name, e.g. ipython, and a name
-    suffixed with the Python major version number, e.g. ipython3.
-    """
-    ep = [
-            'ipython%s = IPython:start_ipython',
-        ]
-    major_suffix = str(sys.version_info[0])
-    return [e % "" for e in ep] + [e % major_suffix for e in ep]
-
-#---------------------------------------------------------------------------
 # VCS related
 #---------------------------------------------------------------------------
 

@@ -67,7 +67,7 @@ from setuptools import setup
 
 # Our own imports
 
-from setupbase import target_update, find_entry_points
+from setupbase import target_update
 
 from setupbase import (
     setup_args,
@@ -131,15 +131,6 @@ setup_args['cmdclass'] = {
     'build_py': \
             check_package_data_first(git_prebuild('IPython')),
     'sdist' : git_prebuild('IPython', sdist),
-}
-
-setup_args["entry_points"] = {
-    "console_scripts": find_entry_points(),
-    "pygments.lexers": [
-        "ipythonconsole = IPython.lib.lexers:IPythonConsoleLexer",
-        "ipython = IPython.lib.lexers:IPythonLexer",
-        "ipython3 = IPython.lib.lexers:IPython3Lexer",
-    ],
 }
 
 #---------------------------------------------------------------------------
