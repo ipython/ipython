@@ -177,7 +177,9 @@ class BasicMagics(Magics):
                 magic_escapes['cell'], target, params_str))
 
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('-j', '--json', action="store_true", help="Output as JSON")
+    @magic_arguments.argument(
+        "-j", "--json", action="store_true", help="Output as JSON"
+    )
     @line_magic
     def lsmagic(self, parameter_s=''):
         """List currently available magic functions."""
