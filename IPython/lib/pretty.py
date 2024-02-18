@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Python advanced pretty printer.  This pretty printer is intended to
 replace the old `pprint` python module which does not allow developers
@@ -107,6 +106,8 @@ from warnings import warn
 
 from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY
+
+from typing import Dict
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name', 'RawText', 'RawStringLiteral', 'CallExpression']
@@ -807,6 +808,7 @@ def _exception_pprint(obj, p, cycle):
 
 
 #: the exception base
+_exception_base: type
 try:
     _exception_base = BaseException
 except NameError:
@@ -848,8 +850,8 @@ _type_pprinters[range] = _repr_pprint
 _type_pprinters[bytes] = _repr_pprint
 
 #: printers for types specified by name
-_deferred_type_pprinters = {
-}
+_deferred_type_pprinters: Dict = {}
+
 
 def for_type(typ, func):
     """

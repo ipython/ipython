@@ -281,13 +281,14 @@ class ExecutionInfo(object):
         )
 
 
-class ExecutionResult(object):
+class ExecutionResult:
     """The result of a call to :meth:`InteractiveShell.run_cell`
 
     Stores information about what took place.
     """
-    execution_count = None
-    error_before_exec = None
+
+    execution_count: Optional[int] = None
+    error_before_exec: Optional[bool] = None
     error_in_exec: Optional[BaseException] = None
     info = None
     result = None
@@ -477,7 +478,8 @@ class InteractiveShell(SingletonConfigurable):
     def input_transformers_cleanup(self):
         return self.input_transformer_manager.cleanup_transforms
 
-    input_transformers_post = List([],
+    input_transformers_post: List = List(
+        [],
         help="A list of string input transformers, to be applied after IPython's "
              "own input transformations."
     )
@@ -3340,6 +3342,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.displayhook.exec_result = None
 
         if store_history:
+            assert self.history_manager is not None
             # Write output to the database. Does nothing unless
             # history output logging is enabled.
             self.history_manager.store_output(self.execution_count)
@@ -3651,8 +3654,6 @@ class InteractiveShell(SingletonConfigurable):
             make sense in all contexts, for example a terminal ipython can't
             display figures inline.
         """
-        from matplotlib_inline.backend_inline import configure_inline_support
-
         from IPython.core import pylabtools as pt
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
@@ -3667,6 +3668,9 @@ class InteractiveShell(SingletonConfigurable):
                 gui, backend = pt.find_gui_and_backend(self.pylab_gui_select)
 
         pt.activate_matplotlib(backend)
+
+        from matplotlib_inline.backend_inline import configure_inline_support
+
         configure_inline_support(self, backend)
 
         # Now we must activate the gui pylab wants to use, and fix %run to take

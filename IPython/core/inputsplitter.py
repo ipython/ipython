@@ -15,6 +15,7 @@ and stores the results.
 
 For more details, see the class docstrings below.
 """
+from __future__ import annotations
 
 from warnings import warn
 
@@ -31,7 +32,7 @@ import sys
 import tokenize
 import warnings
 
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Union, Optional, TYPE_CHECKING
 from types import CodeType
 
 from IPython.core.inputtransformer import (leading_indent,
@@ -52,6 +53,8 @@ from IPython.core.inputtransformer import (ESC_SHELL, ESC_SH_CAP, ESC_HELP,
                                         ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,
                                         ESC_QUOTE, ESC_QUOTE2, ESC_PAREN, ESC_SEQUENCES)
 
+if TYPE_CHECKING:
+    from typing_extensions import Self
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
@@ -637,9 +640,9 @@ class IPythonInputSplitter(InputSplitter):
                 # Nothing that calls reset() expects to handle transformer
                 # errors
                 pass
-    
-    def flush_transformers(self):
-        def _flush(transform, outs):
+
+    def flush_transformers(self: Self):
+        def _flush(transform, outs: List[str]):
             """yield transformed lines
 
             always strings, never None

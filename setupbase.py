@@ -66,48 +66,9 @@ setup_args = dict(
       license          = license,
       )
 
-
 #---------------------------------------------------------------------------
-# Find packages
+# Check package data
 #---------------------------------------------------------------------------
-
-def find_packages():
-    """
-    Find all of IPython's packages.
-    """
-    excludes = ['deathrow', 'quarantine']
-    packages = []
-    for directory, subdirs, files in os.walk("IPython"):
-        package = directory.replace(os.path.sep, ".")
-        if any(package.startswith("IPython." + exc) for exc in excludes):
-            # package is to be excluded (e.g. deathrow)
-            continue
-        if '__init__.py' not in files:
-            # not a package
-            continue
-        packages.append(package)
-    return packages
-
-#---------------------------------------------------------------------------
-# Find package data
-#---------------------------------------------------------------------------
-
-def find_package_data():
-    """
-    Find IPython's package_data.
-    """
-    # This is not enough for these things to appear in an sdist.
-    # We need to muck with the MANIFEST to get this to work
-
-    package_data = {
-        'IPython.core' : ['profile/README*'],
-        'IPython.core.tests' : ['*.png', '*.jpg', 'daft_extension/*.py'],
-        'IPython.lib.tests' : ['*.wav'],
-        'IPython.testing.plugin' : ['*.txt'],
-    }
-
-    return package_data
-
 
 def check_package_data(package_data):
     """verify that package_data globs make sense"""
@@ -220,73 +181,9 @@ def find_entry_points():
     major_suffix = str(sys.version_info[0])
     return [e % "" for e in ep] + [e % major_suffix for e in ep]
 
-
-class install_lib_symlink(Command):
-    user_options = [
-        ('install-dir=', 'd', "directory to install to"),
-        ]
-
-    def initialize_options(self):
-        self.install_dir = None
-
-    def finalize_options(self):
-        self.set_undefined_options('symlink',
-                                   ('install_lib', 'install_dir'),
-                                  )
-
-    def run(self):
-        if sys.platform == 'win32':
-            raise Exception("This doesn't work on Windows.")
-        pkg = os.path.join(os.getcwd(), 'IPython')
-        dest = os.path.join(self.install_dir, 'IPython')
-        if os.path.islink(dest):
-            print('removing existing symlink at %s' % dest)
-            os.unlink(dest)
-        print('symlinking %s -> %s' % (pkg, dest))
-        os.symlink(pkg, dest)
-
-class unsymlink(install):
-    def run(self):
-        dest = os.path.join(self.install_lib, 'IPython')
-        if os.path.islink(dest):
-            print('removing symlink at %s' % dest)
-            os.unlink(dest)
-        else:
-            print('No symlink exists at %s' % dest)
-
-class install_symlinked(install):
-    def run(self):
-        if sys.platform == 'win32':
-            raise Exception("This doesn't work on Windows.")
-
-        # Run all sub-commands (at least those that need to be run)
-        for cmd_name in self.get_sub_commands():
-            self.run_command(cmd_name)
-
-    # 'sub_commands': a list of commands this command might have to run to
-    # get its work done.  See cmd.py for more info.
-    sub_commands = [('install_lib_symlink', lambda self:True),
-                    ('install_scripts_sym', lambda self:True),
-                   ]
-
-class install_scripts_for_symlink(install_scripts):
-    """Redefined to get options from 'symlink' instead of 'install'.
-
-    I love distutils almost as much as I love setuptools.
-    """
-    def finalize_options(self):
-        self.set_undefined_options('build', ('build_scripts', 'build_dir'))
-        self.set_undefined_options('symlink',
-                                   ('install_scripts', 'install_dir'),
-                                   ('force', 'force'),
-                                   ('skip_build', 'skip_build'),
-                                  )
-
-
 #---------------------------------------------------------------------------
 # VCS related
 #---------------------------------------------------------------------------
-
 
 def git_prebuild(pkg_dir, build_cmd=build_py):
     """Return extended build or sdist command class for recording commit
