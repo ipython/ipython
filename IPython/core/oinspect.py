@@ -145,12 +145,7 @@ class InspectorHookData:
 
 @undoc
 def object_info(**kw):
-    """DEPRECATED: Make an object info dict with all fields present."""
-    warnings.warn(
-        "IPython.core.oinspect.object_info has been deprecated since IPython 8.22 and will be removed in future versions",
-        DeprecationWarning,
-        stacklevel=2,
-    )
+    """Make an object info dict with all fields present."""
     infodict = {k: None for k in info_fields}
     infodict.update(kw)
     return infodict
