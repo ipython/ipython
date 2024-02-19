@@ -292,6 +292,8 @@ def target_outdated(target,deps):
 
     If target doesn't exist or is older than any file listed in deps, return
     true, otherwise return false.
+
+    .. deprecated:: 8.22
     """
     try:
         target_time = os.path.getmtime(target)
@@ -312,7 +314,10 @@ def target_update(target,deps,cmd):
     target_update(target,deps,cmd) -> runs cmd if target is outdated.
 
     This is just a wrapper around target_outdated() which calls the given
-    command if target is outdated."""
+    command if target is outdated.
+
+    .. deprecated:: 8.22
+    """
 
     if target_outdated(target,deps):
         system(cmd)
