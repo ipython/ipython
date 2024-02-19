@@ -71,19 +71,19 @@ exec(
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.doctest',
-    'sphinx.ext.inheritance_diagram',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.graphviz',
-    'sphinxcontrib.jquery',
-    'IPython.sphinxext.ipython_console_highlighting',
-    'IPython.sphinxext.ipython_directive',
-    'sphinx.ext.napoleon',  # to preprocess docstrings
-    'github',  # for easy GitHub links
-    'magics',
-    'configtraits',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.doctest",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.graphviz",
+    "sphinxcontrib.jquery",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.sphinxext.ipython_directive",
+    "sphinx.ext.napoleon",  # to preprocess docstrings
+    "github",  # for easy GitHub links
+    "magics",
+    "configtraits",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
