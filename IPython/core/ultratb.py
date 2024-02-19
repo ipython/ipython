@@ -743,6 +743,7 @@ class FrameInfo:
     lineno: Tuple[int]
     # number of context lines to use
     context: Optional[int]
+    raw_lines: List[str]
 
     @classmethod
     def _from_stack_data_FrameInfo(cls, frame_info):
@@ -777,8 +778,13 @@ class FrameInfo:
 
         # self.lines = []
         if sd is None:
-            ix = inspect.getsourcelines(frame)
-            self.raw_lines = ix[0]
+            try:
+                # return a list of source lines and a starting line number
+                self.raw_lines = inspect.getsourcelines(frame)[0]
+            except OSError:
+                self.raw_lines = [
+                    "'Could not get source, probably due dynamically evaluated source code.'"
+                ]
 
     @property
     def variables_in_executing_piece(self):
