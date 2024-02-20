@@ -24,7 +24,18 @@ import os
 import types
 import warnings
 
-from typing import cast, Any, Optional, Dict, Union, List, TypedDict, TypeAlias, Tuple
+
+from typing import (
+    cast,
+    Any,
+    Optional,
+    Dict,
+    Union,
+    List,
+    TypedDict,
+    TypeAlias,
+    Tuple,
+)
 
 import traitlets
 
@@ -32,13 +43,11 @@ import traitlets
 from IPython.core import page
 from IPython.lib.pretty import pretty
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import PyColorize
-from IPython.utils import openpy
+from IPython.utils import PyColorize, openpy
 from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.path import compress_user
 from IPython.utils.text import indent
-from IPython.utils.wildcard import list_namespace
-from IPython.utils.wildcard import typestr2type
+from IPython.utils.wildcard import list_namespace, typestr2type
 from IPython.utils.coloransi import TermColors
 from IPython.utils.colorable import Colorable
 from IPython.utils.decorators import undoc
@@ -129,7 +138,19 @@ class InfoDict(TypedDict):
     name: str
 
 
-info_fields = list(InfoDict.__annotations__.keys())
+_info_fields = list(InfoDict.__annotations__.keys())
+
+
+def __getattr__(name):
+    if name == "info_fields":
+        warnings.warn(
+            "IPython.core.oinspect's `info_fields` is considered for deprecation and may be removed in the Future. ",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return _info_fields
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 @dataclass
@@ -144,11 +165,25 @@ class InspectorHookData:
 
 
 @undoc
-def object_info(**kw):
+def object_info(
+    *,
+    name: str,
+    found: bool,
+    isclass: bool = False,
+    isalias: bool = False,
+    ismagic: bool = False,
+    **kw,
+) -> InfoDict:
     """Make an object info dict with all fields present."""
-    infodict = {k: None for k in info_fields}
-    infodict.update(kw)
-    return infodict
+    infodict = kw
+    infodict = {k: None for k in _info_fields if k not in infodict}
+    infodict["name"] = name  # type: ignore
+    infodict["found"] = found  # type: ignore
+    infodict["isclass"] = isclass  # type: ignore
+    infodict["isalias"] = isalias  # type: ignore
+    infodict["ismagic"] = ismagic  # type: ignore
+
+    return InfoDict(**infodict)  # type:ignore
 
 
 def get_encoding(obj):
@@ -175,7 +210,7 @@ def get_encoding(obj):
         return encoding
 
 
-def getdoc(obj) -> Union[str,None]:
+def getdoc(obj) -> Union[str, None]:
     """Stable wrapper around inspect.getdoc.
 
     This can't crash because of attribute problems.
@@ -581,8 +616,10 @@ class Inspector(Colorable):
         # run contents of file through pager starting at line where the object
         # is defined, as long as the file isn't binary and is actually on the
         # filesystem.
-        if ofile.endswith(('.so', '.dll', '.pyd')):
-            print('File %r is binary, not printing.' % ofile)
+        if ofile is None:
+            print("Could not find file for object")
+        elif ofile.endswith((".so", ".dll", ".pyd")):
+            print("File %r is binary, not printing." % ofile)
         elif not os.path.isfile(ofile):
             print('File %r does not exist, not printing.' % ofile)
         else:
@@ -670,7 +707,7 @@ class Inspector(Colorable):
         title: str,
         key: str,
         info,
-        omit_sections,
+        omit_sections: List[str],
         formatter,
     ):
         """Append an info value to the unformatted mimebundle being constructed by _make_info_unformatted"""
@@ -767,8 +804,8 @@ class Inspector(Colorable):
         oname: str = "",
         formatter=None,
         info: Optional[OInfo] = None,
-        detail_level=0,
-        omit_sections=(),
+        detail_level: int = 0,
+        omit_sections: Union[List[str], Tuple[()]] = (),
     ) -> Bundle:
         """Retrieve an info dict and format it.
 
@@ -783,11 +820,12 @@ class Inspector(Colorable):
             already computed information
         detail_level : integer
             Granularity of detail level, if set to 1, give more information.
-        omit_sections : container[str]
+        omit_sections : list[str]
             Titles or keys to omit from output (can be set, tuple, etc., anything supporting `in`)
         """
 
         info_dict = self.info(obj, oname=oname, info=info, detail_level=detail_level)
+        omit_sections = list(omit_sections)
 
         bundle = self._make_info_unformatted(
             obj,
@@ -804,7 +842,7 @@ class Inspector(Colorable):
                 detail_level=detail_level,
                 omit_sections=omit_sections,
             )
-            for key, hook in self.mime_hooks.items():
+            for key, hook in self.mime_hooks.items():  # type:ignore
                 required_parameters = [
                     parameter
                     for parameter in inspect.signature(hook).parameters.values()
@@ -920,7 +958,7 @@ class Inspector(Colorable):
         out: InfoDict = cast(
             InfoDict,
             {
-                **{field: None for field in info_fields},
+                **{field: None for field in _info_fields},
                 **{
                     "name": oname,
                     "found": True,
