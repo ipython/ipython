@@ -2,6 +2,60 @@
  8.x Series
 ============
 
+.. _version 8.22:
+
+IPython 8.22
+============
+
+Quick release of IPython for this short month of February, with quite a bit of
+activity with more than 15 PRs.
+
+I am not going to details all the changes, but among other we have :
+
+ - More compatibility with emscripten :ghpull:`14316`, :ghpull:`14318`,
+ - Test more downstream project to avoid breakage :ghpull:`14317`
+ - Fix recently introduced bug with the ``store`` magic.
+ - Fix issues with multiple call to ``matplotlib.pyplot.switch_backend``
+ - Fix crashing IPython when some tracebacks encounter dynamically evaluated
+   code.
+
+API changes
+-----------
+
+One of the largest change is the update the mimehooks and inspector API, see
+:ghpull:`14342`. It should be backward compatible, but many hooks now receive a
+single object with many fields allowing us flexibility to update the API later.
+
+
+Packaging changes
+-----------------
+
+Thanks to `@mkoppe <https://github.com/mkoeppe>`__, we are slowly getting rid of
+setup.py finally migrating to ``pyproject.toml``. There is still quite a bit of
+work, and please open an issue if you encounter any problem.
+
+
+Deprecation
+-----------
+
+A number of unused functions have been marked deprecated or pending deprecation.
+Please let us know if you encounter any of those deprecation messages for us to
+adjust the removal timeline.
+
+
+Thanks
+------
+
+Many thanks to `@mkoppe <https://github.com/mkoeppe>`__ and `@krassowski
+<https://github.com/krassowski>`__ for their multiple contributions and codebase
+cleanup.
+
+As usual you can find the full list of PRs on GitHub under `the 8.22
+<https://github.com/ipython/ipython/milestone/129?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 
 .. _version 8.21:
 
