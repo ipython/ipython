@@ -12,6 +12,7 @@ import errno
 import shutil
 import random
 import glob
+import warnings
 
 from IPython.utils.process import system
 
@@ -295,6 +296,11 @@ def target_outdated(target,deps):
 
     .. deprecated:: 8.22
     """
+    warnings.warn(
+        "`target_outdated` is deprecated since IPython 8.22 and will be removed in future versions",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     try:
         target_time = os.path.getmtime(target)
     except os.error:
@@ -319,7 +325,12 @@ def target_update(target,deps,cmd):
     .. deprecated:: 8.22
     """
 
-    if target_outdated(target,deps):
+    warnings.warn(
+        "`target_update` is deprecated since IPython 8.22 and will be removed in future versions",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    if target_outdated(target, deps):
         system(cmd)
 
 
