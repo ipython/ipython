@@ -1,11 +1,15 @@
 from contextlib import contextmanager
-from typing import NamedTuple
+from typing import NamedTuple, Literal, NewType
 from functools import partial
 from IPython.core.guarded_eval import (
     EvaluationContext,
     GuardRejection,
     guarded_eval,
     _unbind_method,
+)
+from typing_extensions import (
+    Self,  # Python >=3.10
+    TypeAliasType,  # Python >=3.12
 )
 from IPython.testing import decorators as dec
 import pytest
@@ -286,6 +290,35 @@ class StringAnnotation:
         return StringAnnotation()
 
 
+CustomIntType = NewType("CustomIntType", int)
+CustomHeapType = NewType("CustomHeapType", HeapType)
+IntTypeAlias = TypeAliasType("IntTypeAlias", int)
+HeapTypeAlias = TypeAliasType("HeapTypeAlias", HeapType)
+
+
+class SpecialTyping:
+    def custom_int_type(self) -> CustomIntType:
+        return CustomIntType(1)
+
+    def custom_heap_type(self) -> CustomHeapType:
+        return CustomHeapType(HeapType())
+
+    # TODO: remove type:ignore comment once mypy
+    # supports explicit calls to `TypeAliasType`, see:
+    # https://github.com/python/mypy/issues/16614
+    def int_type_alias(self) -> IntTypeAlias:  # type:ignore[valid-type]
+        return 1
+
+    def heap_type_alias(self) -> HeapTypeAlias:  # type:ignore[valid-type]
+        return 1
+
+    def literal(self) -> Literal[False]:
+        return False
+
+    def self(self) -> Self:
+        return self
+
+
 @pytest.mark.parametrize(
     "data,good,expected,equality",
     [
@@ -300,6 +333,13 @@ class StringAnnotation:
         [HeapType, "data()", HeapType, False],
         [InitReturnsFrozenset, "data()", frozenset, False],
         [HeapType(), "data.__class__()", HeapType, False],
+        # supported special cases for typing
+        [SpecialTyping(), "data.custom_int_type()", int, False],
+        [SpecialTyping(), "data.custom_heap_type()", HeapType, False],
+        [SpecialTyping(), "data.int_type_alias()", int, False],
+        [SpecialTyping(), "data.heap_type_alias()", HeapType, False],
+        [SpecialTyping(), "data.self()", SpecialTyping, False],
+        [SpecialTyping(), "data.literal()", False, True],
         # test cases for static methods
         [HasStaticMethod, "data.static_method()", HeapType, False],
     ],
