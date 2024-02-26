@@ -278,11 +278,21 @@ class InitReturnsFrozenset:
         return frozenset()
 
 
+class StringAnnotation:
+    def heap(self) -> "HeapType":
+        return HeapType()
+
+    def copy(self) -> "StringAnnotation":
+        return StringAnnotation()
+
+
 @pytest.mark.parametrize(
     "data,good,expected,equality",
     [
         [[1, 2, 3], "data.index(2)", 1, True],
         [{"a": 1}, "data.keys().isdisjoint({})", True, True],
+        [StringAnnotation(), "data.heap()", HeapType, False],
+        [StringAnnotation(), "data.copy()", StringAnnotation, False],
         # test cases for `__call__`
         [CallCreatesHeapType(), "data()", HeapType, False],
         [CallCreatesBuiltin(), "data()", frozenset, False],
@@ -290,12 +300,12 @@ class InitReturnsFrozenset:
         [HeapType, "data()", HeapType, False],
         [InitReturnsFrozenset, "data()", frozenset, False],
         [HeapType(), "data.__class__()", HeapType, False],
-        # test cases for static and class methods
+        # test cases for static methods
         [HasStaticMethod, "data.static_method()", HeapType, False],
     ],
 )
 def test_evaluates_calls(data, good, expected, equality):
-    context = limited(data=data)
+    context = limited(data=data, HeapType=HeapType, StringAnnotation=StringAnnotation)
     value = guarded_eval(good, context)
     if equality:
         assert value == expected

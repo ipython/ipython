@@ -1,6 +1,5 @@
 from inspect import isclass, signature, Signature
 from typing import (
-    Any,
     Callable,
     Dict,
     Set,
@@ -558,19 +557,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             f" not allowed in {context.evaluation} mode",
         )
     if isinstance(node, ast.Name):
-        if policy.allow_locals_access and node.id in context.locals:
-            return context.locals[node.id]
-        if policy.allow_globals_access and node.id in context.globals:
-            return context.globals[node.id]
-        if policy.allow_builtins_access and hasattr(builtins, node.id):
-            # note: do not use __builtins__, it is implementation detail of cPython
-            return getattr(builtins, node.id)
-        if not policy.allow_globals_access and not policy.allow_locals_access:
-            raise GuardRejection(
-                f"Namespace access not allowed in {context.evaluation} mode"
-            )
-        else:
-            raise NameError(f"{node.id} not found in locals, globals, nor builtins")
+        return _eval_node_name(node.id, policy, context)
     if isinstance(node, ast.Attribute):
         value = eval_node(node.value, context)
         if policy.can_get_attr(value, node.attr):
@@ -614,7 +601,9 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     raise ValueError("Unhandled node", ast.dump(node))
 
 
-def _eval_return_type(func, policy, node, context):
+def _eval_return_type(
+    func: Callable, policy: EvaluationPolicy, node: ast.Call, context: EvaluationContext
+):
     """Evaluate return type of a given callable function.
 
     Returns the built-in type, a duck or NOT_EVALUATED sentinel.
@@ -626,15 +615,36 @@ def _eval_return_type(func, policy, node, context):
     # if annotation was not stringized, or it was stringized
     # but resolved by signature call we know the return type
     not_empty = sig.return_annotation is not Signature.empty
-    not_stringized = not isinstance(sig.return_annotation, str)
-    if not_empty and not_stringized:
+    stringized = isinstance(sig.return_annotation, str)
+    if not_empty:
+        return_type = (
+            _eval_node_name(sig.return_annotation, policy, context)
+            if stringized
+            else sig.return_annotation
+        )
         # if allow-listed builtin is on type annotation, instantiate it
-        if policy.can_call(sig.return_annotation) and not node.keywords:
+        if policy.can_call(return_type) and not node.keywords:
             args = [eval_node(arg, context) for arg in node.args]
             # if custom class is in type annotation, mock it;
-            return sig.return_annotation(*args)
-        return _create_duck_for_type(sig.return_annotation)
+            return return_type(*args)
+        return _create_duck_for_type(return_type)
     return NOT_EVALUATED
+
+
+def _eval_node_name(node_id: str, policy: EvaluationPolicy, context: EvaluationContext):
+    if policy.allow_locals_access and node_id in context.locals:
+        return context.locals[node_id]
+    if policy.allow_globals_access and node_id in context.globals:
+        return context.globals[node_id]
+    if policy.allow_builtins_access and hasattr(builtins, node_id):
+        # note: do not use __builtins__, it is implementation detail of cPython
+        return getattr(builtins, node_id)
+    if not policy.allow_globals_access and not policy.allow_locals_access:
+        raise GuardRejection(
+            f"Namespace access not allowed in {context.evaluation} mode"
+        )
+    else:
+        raise NameError(f"{node_id} not found in locals, globals, nor builtins")
 
 
 def _create_duck_for_type(duck_type):
