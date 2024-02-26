@@ -267,22 +267,51 @@ class CallCreatesBuiltin:
         return frozenset()
 
 
+class HasStaticMethod:
+    @staticmethod
+    def static_method() -> HeapType:
+        return HeapType()
+
+
+class InitReturnsFrozenset:
+    def __new__(self) -> frozenset:  # type:ignore[misc]
+        return frozenset()
+
+
 @pytest.mark.parametrize(
-    "data,good,bad,expected, equality",
+    "data,good,expected,equality",
     [
-        [[1, 2, 3], "data.index(2)", "data.append(4)", 1, True],
-        [{"a": 1}, "data.keys().isdisjoint({})", "data.update()", True, True],
-        [CallCreatesHeapType(), "data()", "data.__class__()", HeapType, False],
-        [CallCreatesBuiltin(), "data()", "data.__class__()", frozenset, False],
+        [[1, 2, 3], "data.index(2)", 1, True],
+        [{"a": 1}, "data.keys().isdisjoint({})", True, True],
+        # test cases for `__call__`
+        [CallCreatesHeapType(), "data()", HeapType, False],
+        [CallCreatesBuiltin(), "data()", frozenset, False],
+        # Test cases for `__init__`
+        [HeapType, "data()", HeapType, False],
+        [InitReturnsFrozenset, "data()", frozenset, False],
+        [HeapType(), "data.__class__()", HeapType, False],
+        # test cases for static and class methods
+        [HasStaticMethod, "data.static_method()", HeapType, False],
     ],
 )
-def test_evaluates_calls(data, good, bad, expected, equality):
+def test_evaluates_calls(data, good, expected, equality):
     context = limited(data=data)
     value = guarded_eval(good, context)
     if equality:
         assert value == expected
     else:
         assert isinstance(value, expected)
+
+
+@pytest.mark.parametrize(
+    "data,bad",
+    [
+        [[1, 2, 3], "data.append(4)"],
+        [{"a": 1}, "data.update()"],
+    ],
+)
+def test_rejects_calls_with_side_effects(data, bad):
+    context = limited(data=data)
 
     with pytest.raises(GuardRejection):
         guarded_eval(bad, context)

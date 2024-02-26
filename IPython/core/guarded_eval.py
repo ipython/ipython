@@ -1,4 +1,4 @@
-from inspect import signature, Signature
+from inspect import isclass, signature, Signature
 from typing import (
     Any,
     Callable,
@@ -337,6 +337,7 @@ class _IdentitySubscript:
 IDENTITY_SUBSCRIPT = _IdentitySubscript()
 SUBSCRIPT_MARKER = "__SUBSCRIPT_SENTINEL__"
 UNKNOWN_SIGNATURE = Signature()
+NOT_EVALUATED = object()
 
 
 class GuardRejection(Exception):
@@ -590,33 +591,65 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         if policy.can_call(func) and not node.keywords:
             args = [eval_node(arg, context) for arg in node.args]
             return func(*args)
-        try:
-            sig = signature(func)
-        except ValueError:
-            sig = UNKNOWN_SIGNATURE
-        # if annotation was not stringized, or it was stringized
-        # but resolved by signature call we know the return type
-        not_empty = sig.return_annotation is not Signature.empty
-        not_stringized = not isinstance(sig.return_annotation, str)
-        if not_empty and not_stringized:
-            duck = Duck()
-            # if allow-listed builtin is on type annotation, instantiate it
-            if policy.can_call(sig.return_annotation) and not node.keywords:
-                args = [eval_node(arg, context) for arg in node.args]
-                return sig.return_annotation(*args)
-            try:
-                # if custom class is in type annotation, mock it;
-                # this only works for heap types, not builtins
-                duck.__class__ = sig.return_annotation
-                return duck
-            except TypeError:
-                pass
+        if isclass(func):
+            # this code path gets entered when calling class e.g. `MyClass()`
+            # or `my_instance.__class__()` - in both cases `func` is `MyClass`.
+            # Should return `MyClass` if `__new__` is not overridden,
+            # otherwise whatever `__new__` return type is.
+            overridden_return_type = _eval_return_type(
+                func.__new__, policy, node, context
+            )
+            if overridden_return_type is not NOT_EVALUATED:
+                return overridden_return_type
+            return _create_duck_for_type(func)
+        else:
+            return_type = _eval_return_type(func, policy, node, context)
+            if return_type is not NOT_EVALUATED:
+                return return_type
         raise GuardRejection(
             "Call for",
             func,  # not joined to avoid calling `repr`
             f"not allowed in {context.evaluation} mode",
         )
     raise ValueError("Unhandled node", ast.dump(node))
+
+
+def _eval_return_type(func, policy, node, context):
+    """Evaluate return type of a given callable function.
+
+    Returns the built-in type, a duck or NOT_EVALUATED sentinel.
+    """
+    try:
+        sig = signature(func)
+    except ValueError:
+        sig = UNKNOWN_SIGNATURE
+    # if annotation was not stringized, or it was stringized
+    # but resolved by signature call we know the return type
+    not_empty = sig.return_annotation is not Signature.empty
+    not_stringized = not isinstance(sig.return_annotation, str)
+    if not_empty and not_stringized:
+        # if allow-listed builtin is on type annotation, instantiate it
+        if policy.can_call(sig.return_annotation) and not node.keywords:
+            args = [eval_node(arg, context) for arg in node.args]
+            # if custom class is in type annotation, mock it;
+            return sig.return_annotation(*args)
+        return _create_duck_for_type(sig.return_annotation)
+    return NOT_EVALUATED
+
+
+def _create_duck_for_type(duck_type):
+    """Create an imitation of an object of a given type (a duck).
+
+    Returns the duck or NOT_EVALUATED sentinel if duck could not be created.
+    """
+    duck = Duck()
+    try:
+        # this only works for heap types, not builtins
+        duck.__class__ = duck_type
+        return duck
+    except TypeError:
+        pass
+    return NOT_EVALUATED
 
 
 SUPPORTED_EXTERNAL_GETITEM = {
