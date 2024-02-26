@@ -1,3 +1,4 @@
+import sys
 from contextlib import contextmanager
 from typing import NamedTuple, Literal, NewType
 from functools import partial
@@ -7,12 +8,19 @@ from IPython.core.guarded_eval import (
     guarded_eval,
     _unbind_method,
 )
-from typing_extensions import (
-    Self,  # Python >=3.10
-    TypeAliasType,  # Python >=3.12
-)
 from IPython.testing import decorators as dec
 import pytest
+
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
+
+if sys.version_info < (3, 12):
+    from typing_extensions import TypeAliasType
+else:
+    from typing import TypeAliasType
 
 
 def create_context(evaluation: str, **kwargs):

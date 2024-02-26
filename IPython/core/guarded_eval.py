@@ -14,10 +14,6 @@ from typing import (
     get_args,
     get_origin,
 )
-from typing_extensions import (
-    Self,  # Python >=3.10
-    TypeAliasType,  # Python >=3.12
-)
 import ast
 import builtins
 import collections
@@ -27,8 +23,18 @@ from functools import cached_property
 from dataclasses import dataclass, field
 from types import MethodDescriptorType, ModuleType
 
-
 from IPython.utils.decorators import undoc
+
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
+
+if sys.version_info < (3, 12):
+    from typing_extensions import TypeAliasType
+else:
+    from typing import TypeAliasType
 
 
 @undoc
