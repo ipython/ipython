@@ -32,7 +32,7 @@ dependencies = [
     "pygments>=2.4.0",
     "stack_data",
     "traitlets>=5.13.0",
-    "typing_extensions; python_version<'3.10'",
+    "typing_extensions; python_version<'3.12'",
 ]
 dynamic = ["authors", "license", "version"]
 
