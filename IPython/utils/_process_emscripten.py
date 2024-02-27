@@ -4,6 +4,9 @@ This file is only meant to be imported by process.py, not by end-users.
 """
 
 
+from ._process_common import arg_split
+
+
 def system(cmd):
     raise OSError("Not available")
 
@@ -16,6 +19,5 @@ def check_pid(cmd):
     raise OSError("Not available")
 
 
-def arg_split(s, posix=False, strict=True):
-    """This one could be made to work but it's not clear if it would be useful..."""
-    raise OSError("Not available")
+# `arg_split` is still used by magics regardless of whether we are on a posix/windows/emscipten
+__all__ = ["system", "getoutput", "check_pid", "arg_split"]
