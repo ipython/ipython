@@ -10,6 +10,7 @@ be accessed directly from the outside
 """
 import importlib.abc
 import sys
+import os
 import types
 from functools import partial, lru_cache
 import operator
@@ -24,6 +25,7 @@ QT_API_PYQT5 = 'pyqt5'
 QT_API_PYSIDE2 = 'pyside2'
 
 # Qt4
+# NOTE: Here for legacy matplotlib compatibility, but not really supported on the IPython side.
 QT_API_PYQT = "pyqt"  # Force version 2
 QT_API_PYQTv1 = "pyqtv1"  # Force version 2
 QT_API_PYSIDE = "pyside"
@@ -367,23 +369,32 @@ def load_qt(api_options):
         commit_api(api)
         return result
     else:
-        raise ImportError("""
+        # Clear the environment variable since it doesn't work.
+        if "QT_API" in os.environ:
+            del os.environ["QT_API"]
+
+        raise ImportError(
+            """
     Could not load requested Qt binding. Please ensure that
-    PyQt4 >= 4.7, PyQt5, PySide >= 1.0.3 or PySide2 is available,
-    and only one is imported per session.
+    PyQt4 >= 4.7, PyQt5, PyQt6, PySide >= 1.0.3, PySide2, or
+    PySide6 is available, and only one is imported per session.
 
     Currently-imported Qt library:                              %r
-    PyQt4 available (requires QtCore, QtGui, QtSvg):            %s
     PyQt5 available (requires QtCore, QtGui, QtSvg, QtWidgets): %s
-    PySide >= 1.0.3 installed:                                  %s
+    PyQt6 available (requires QtCore, QtGui, QtSvg, QtWidgets): %s
     PySide2 installed:                                          %s
+    PySide6 installed:                                          %s
     Tried to load:                                              %r
-    """ % (loaded_api(),
-           has_binding(QT_API_PYQT),
-           has_binding(QT_API_PYQT5),
-           has_binding(QT_API_PYSIDE),
-           has_binding(QT_API_PYSIDE2),
-           api_options))
+    """
+            % (
+                loaded_api(),
+                has_binding(QT_API_PYQT5),
+                has_binding(QT_API_PYQT6),
+                has_binding(QT_API_PYSIDE2),
+                has_binding(QT_API_PYSIDE6),
+                api_options,
+            )
+        )
 
 
 def enum_factory(QT_API, QtCore):

@@ -499,7 +499,7 @@ class AutocallChecker(PrefilterChecker):
             return None
 
         oinfo = line_info.ofind(self.shell) # This can mutate state via getattr
-        if not oinfo['found']:
+        if not oinfo.found:
             return None
 
         ignored_funs = ['b', 'f', 'r', 'u', 'br', 'rb', 'fr', 'rf']
@@ -508,10 +508,12 @@ class AutocallChecker(PrefilterChecker):
         if ifun.lower() in ignored_funs and (line.startswith(ifun + "'") or line.startswith(ifun + '"')):
             return None
 
-        if callable(oinfo['obj']) \
-               and (not self.exclude_regexp.match(line_info.the_rest)) \
-               and self.function_name_regexp.match(line_info.ifun):
-            return self.prefilter_manager.get_handler_by_name('auto')
+        if (
+            callable(oinfo.obj)
+            and (not self.exclude_regexp.match(line_info.the_rest))
+            and self.function_name_regexp.match(line_info.ifun)
+        ):
+            return self.prefilter_manager.get_handler_by_name("auto")
         else:
             return None
 
@@ -522,11 +524,14 @@ class AutocallChecker(PrefilterChecker):
 
 
 class PrefilterHandler(Configurable):
-
-    handler_name = Unicode('normal')
-    esc_strings = List([])
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
+    handler_name = Unicode("normal")
+    esc_strings: List = List([])
+    shell = Instance(
+        "IPython.core.interactiveshell.InteractiveShellABC", allow_none=True
+    )
+    prefilter_manager = Instance(
+        "IPython.core.prefilter.PrefilterManager", allow_none=True
+    )
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
         super(PrefilterHandler, self).__init__(
@@ -601,7 +606,7 @@ class AutoHandler(PrefilterHandler):
         the_rest = line_info.the_rest
         esc     = line_info.esc
         continue_prompt = line_info.continue_prompt
-        obj = line_info.ofind(self.shell)['obj']
+        obj = line_info.ofind(self.shell).obj
 
         # This should only be active for single-line input!
         if continue_prompt:

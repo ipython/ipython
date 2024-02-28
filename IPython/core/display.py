@@ -286,7 +286,7 @@ class DisplayObject(object):
         in the frontend. The MIME type of the data should match the
         subclasses used, so the Png subclass should be used for 'image/png'
         data. If the data is a URL, the data will first be downloaded
-        and then displayed. If
+        and then displayed.
 
         Parameters
         ----------
@@ -389,7 +389,19 @@ class DisplayObject(object):
 
 
 class TextDisplayObject(DisplayObject):
-    """Validate that display data is text"""
+    """Create a text display object given raw data.
+
+    Parameters
+    ----------
+    data : str or unicode
+        The raw data or a URL or file to load the data from.
+    url : unicode
+        A URL to download the data from.
+    filename : unicode
+        Path to a local file to load the data from.
+    metadata : dict
+        Dict of metadata associated to be the object when displayed
+    """
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, str):
             raise TypeError("%s expects text, not %r" % (self.__class__.__name__, self.data))
@@ -613,8 +625,9 @@ class JSON(DisplayObject):
     def _repr_json_(self):
         return self._data_and_metadata()
 
+
 _css_t = """var link = document.createElement("link");
-	link.ref = "stylesheet";
+	link.rel = "stylesheet";
 	link.type = "text/css";
 	link.href = "%s";
 	document.head.appendChild(link);
@@ -1029,7 +1042,7 @@ class Image(DisplayObject):
     def _data_and_metadata(self, always_both=False):
         """shortcut for returning metadata with shape information, if defined"""
         try:
-            b64_data = b2a_base64(self.data).decode('ascii')
+            b64_data = b2a_base64(self.data, newline=False).decode("ascii")
         except TypeError as e:
             raise FileNotFoundError(
                 "No such file or directory: '%s'" % (self.data)) from e
@@ -1185,7 +1198,7 @@ class Video(DisplayObject):
             # unicode input is already b64-encoded
             b64_video = video
         else:
-            b64_video = b2a_base64(video).decode('ascii').rstrip()
+            b64_video = b2a_base64(video, newline=False).decode("ascii").rstrip()
 
         output = """<video {0} {1} {2}>
  <source src="data:{3};base64,{4}" type="{3}">

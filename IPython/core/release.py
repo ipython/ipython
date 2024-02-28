@@ -16,7 +16,7 @@
 # release.  'dev' as a _version_extra string means this is a development
 # version
 _version_major = 8
-_version_minor = 6
+_version_minor = 23
 _version_patch = 0
 _version_extra = ".dev"
 # _version_extra = "rc1"
@@ -36,7 +36,7 @@ version_info = (_version_major, _version_minor, _version_patch, _version_extra)
 kernel_protocol_version_info = (5, 0)
 kernel_protocol_version = "%i.%i" % kernel_protocol_version_info
 
-license = 'BSD'
+license = "BSD-3-Clause"
 
 authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
            'Janko'    : ('Janko Hauser','jhauser@zscout.de'),

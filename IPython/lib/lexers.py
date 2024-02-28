@@ -194,6 +194,13 @@ class IPythonTracebackLexer(DelegatingLexer):
     aliases = ['ipythontb']
 
     def __init__(self, **options):
+        """
+        A subclass of `DelegatingLexer` which delegates to the appropriate to either IPyLexer,
+        IPythonPartialTracebackLexer.
+        """
+        # note we need a __init__ doc, as otherwise it inherits the doc from the super class
+        # which will fail the documentation build as it references section of the pygments docs that
+        # do not exists when building IPython's docs.
         self.python3 = get_bool_opt(options, 'python3', False)
         if self.python3:
             self.aliases = ['ipython3tb']
@@ -503,6 +510,13 @@ class IPyLexer(Lexer):
     aliases = ['ipy']
 
     def __init__(self, **options):
+        """
+        Create a new IPyLexer instance which dispatch to either an
+        IPythonCOnsoleLexer (if In prompts are present) or and IPythonLexer (if
+        In prompts are not present).
+        """
+        # init docstring is necessary for docs not to fail to build do to parent
+        # docs referenceing a section in pygments docs.
         self.python3 = get_bool_opt(options, 'python3', False)
         if self.python3:
             self.aliases = ['ipy3']

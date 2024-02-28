@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 """
 The :class:`~traitlets.config.application.Application` object for the command
@@ -156,7 +155,7 @@ frontend_flags['i'] = (
 flags.update(frontend_flags)
 
 aliases = dict(base_aliases)
-aliases.update(shell_aliases)
+aliases.update(shell_aliases)  # type: ignore[arg-type]
 
 #-----------------------------------------------------------------------------
 # Main classes and functions
@@ -178,9 +177,9 @@ class LocateIPythonApp(BaseIPythonApplication):
 
 
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
-    name = u'ipython'
+    name = "ipython"
     description = usage.cl_usage
-    crash_handler_class = IPAppCrashHandler
+    crash_handler_class = IPAppCrashHandler  # typing: ignore[assignment]
     examples = _examples
 
     flags = flags
@@ -197,7 +196,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     def _classes_default(self):
         """This has to be in a method, for TerminalIPythonApp to be available."""
         return [
-            InteractiveShellApp, # ShellApp comes before TerminalApp, because
+            InteractiveShellApp,  # ShellApp comes before TerminalApp, because
             self.__class__,      # it will also affect subclasses (e.g. QtConsole)
             TerminalInteractiveShell,
             HistoryManager,
@@ -225,9 +224,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ),
     )
 
-
     # *do* autocreate requested profile, but don't create the config file.
-    auto_create=Bool(True)
+    auto_create = Bool(True).tag(config=True)
+
     # configurables
     quick = Bool(False,
         help="""Start IPython quickly by skipping the loading of config files."""
@@ -318,6 +317,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.shell.mainloop()
         else:
             self.log.debug("IPython not interactive...")
+            self.shell.restore_term_title()
             if not self.shell.last_execution_succeeded:
                 sys.exit(1)
 
@@ -336,7 +336,3 @@ def load_default_config(ipython_dir=None):
     return app.config
 
 launch_new_instance = TerminalIPythonApp.launch_instance
-
-
-if __name__ == '__main__':
-    launch_new_instance()

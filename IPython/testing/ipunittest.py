@@ -36,6 +36,7 @@ Authors
 
 # Stdlib
 import re
+import sys
 import unittest
 from doctest import DocTestFinder, DocTestRunner, TestResults
 from IPython.terminal.interactiveshell import InteractiveShell
@@ -49,7 +50,14 @@ def count_failures(runner):
 
     Code modeled after the summarize() method in doctest.
     """
-    return [TestResults(f, t) for f, t in runner._name2ft.values() if f > 0 ]
+    if sys.version_info < (3, 13):
+        return [TestResults(f, t) for f, t in runner._name2ft.values() if f > 0]
+    else:
+        return [
+            TestResults(failure, try_)
+            for failure, try_, skip in runner._stats.values()
+            if failure > 0
+        ]
 
 
 class IPython2PythonConverter(object):

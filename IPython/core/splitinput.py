@@ -25,6 +25,7 @@ import sys
 
 from IPython.utils import py3compat
 from IPython.utils.encoding import get_stream_enc
+from IPython.core.oinspect import OInfo
 
 #-----------------------------------------------------------------------------
 # Main function
@@ -118,7 +119,7 @@ class LineInfo(object):
         else:
             self.pre_whitespace = self.pre
 
-    def ofind(self, ip):
+    def ofind(self, ip) -> OInfo:
         """Do a full, attribute-walking lookup of the ifun in the various
         namespaces for the given IPython InteractiveShell instance.
 

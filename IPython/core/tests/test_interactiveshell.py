@@ -17,12 +17,14 @@ import shutil
 import sys
 import tempfile
 import unittest
+import pytest
 from pathlib import Path
 from unittest import mock
 
 from IPython.core.error import InputRejected
 from IPython.core.inputtransformer import InputTransformer
 from IPython.core import interactiveshell
+from IPython.core.oinspect import OInfo
 from IPython.testing.decorators import (
     skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
 )
@@ -101,6 +103,18 @@ class InteractiveShellTestCase(unittest.TestCase):
     def test_syntax_error(self):
         res = ip.run_cell("raise = 3")
         self.assertIsInstance(res.error_before_exec, SyntaxError)
+
+    def test_open_standard_input_stream(self):
+        res = ip.run_cell("open(0)")
+        self.assertIsInstance(res.error_in_exec, ValueError)
+
+    def test_open_standard_output_stream(self):
+        res = ip.run_cell("open(1)")
+        self.assertIsInstance(res.error_in_exec, ValueError)
+
+    def test_open_standard_error_stream(self):
+        res = ip.run_cell("open(2)")
+        self.assertIsInstance(res.error_in_exec, ValueError)
 
     def test_In_variable(self):
         "Verify that In variable grows with user input (GH-284)"
@@ -346,7 +360,7 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         # Get info on line magic
         lfind = ip._ofind("lmagic")
-        info = dict(
+        info = OInfo(
             found=True,
             isalias=False,
             ismagic=True,
@@ -365,7 +379,7 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         # Get info on cell magic
         find = ip._ofind("cmagic")
-        info = dict(
+        info = OInfo(
             found=True,
             isalias=False,
             ismagic=True,
@@ -383,9 +397,15 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         a = A()
 
-        found = ip._ofind('a.foo', [('locals', locals())])
-        info = dict(found=True, isalias=False, ismagic=False,
-                    namespace='locals', obj=A.foo, parent=a)
+        found = ip._ofind("a.foo", [("locals", locals())])
+        info = OInfo(
+            found=True,
+            isalias=False,
+            ismagic=False,
+            namespace="locals",
+            obj=A.foo,
+            parent=a,
+        )
         self.assertEqual(found, info)
 
     def test_ofind_multiple_attribute_lookups(self):
@@ -398,9 +418,15 @@ class InteractiveShellTestCase(unittest.TestCase):
         a.a = A()
         a.a.a = A()
 
-        found = ip._ofind('a.a.a.foo', [('locals', locals())])
-        info = dict(found=True, isalias=False, ismagic=False,
-                    namespace='locals', obj=A.foo, parent=a.a.a)
+        found = ip._ofind("a.a.a.foo", [("locals", locals())])
+        info = OInfo(
+            found=True,
+            isalias=False,
+            ismagic=False,
+            namespace="locals",
+            obj=A.foo,
+            parent=a.a.a,
+        )
         self.assertEqual(found, info)
 
     def test_ofind_slotted_attributes(self):
@@ -410,15 +436,27 @@ class InteractiveShellTestCase(unittest.TestCase):
                 self.foo = 'bar'
 
         a = A()
-        found = ip._ofind('a.foo', [('locals', locals())])
-        info = dict(found=True, isalias=False, ismagic=False,
-                    namespace='locals', obj=a.foo, parent=a)
+        found = ip._ofind("a.foo", [("locals", locals())])
+        info = OInfo(
+            found=True,
+            isalias=False,
+            ismagic=False,
+            namespace="locals",
+            obj=a.foo,
+            parent=a,
+        )
         self.assertEqual(found, info)
 
-        found = ip._ofind('a.bar', [('locals', locals())])
-        info = dict(found=False, isalias=False, ismagic=False,
-                    namespace=None, obj=None, parent=a)
-        self.assertEqual(found, info)
+        found = ip._ofind("a.bar", [("locals", locals())])
+        expected = OInfo(
+            found=False,
+            isalias=False,
+            ismagic=False,
+            namespace=None,
+            obj=None,
+            parent=a,
+        )
+        assert found == expected
 
     def test_ofind_prefers_property_to_instance_level_attribute(self):
         class A(object):
@@ -429,7 +467,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         a.__dict__["foo"] = "baz"
         self.assertEqual(a.foo, "bar")
         found = ip._ofind("a.foo", [("locals", locals())])
-        self.assertIs(found["obj"], A.foo)
+        self.assertIs(found.obj, A.foo)
 
     def test_custom_syntaxerror_exception(self):
         called = []
@@ -538,8 +576,12 @@ class InteractiveShellTestCase(unittest.TestCase):
             self.assertEqual(res.success, True)
 
 
+@pytest.mark.skipif(
+    sys.implementation.name == "pypy"
+    and ((7, 3, 13) < sys.implementation.version < (7, 3, 16)),
+    reason="Unicode issues with scandir on PyPy, see https://github.com/pypy/pypy/issues/4860",
+)
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
-
     @onlyif_unicode_paths
     def setUp(self):
         self.BASETESTDIR = Path(tempfile.mkdtemp())
@@ -622,10 +664,23 @@ class TestSystemRaw(ExitCodeChecks):
             )
         self.assertEqual(ip.user_ns["_exit_code"], -signal.SIGINT)
 
-    def test_magic_warnings(self):
-        for magic_cmd in ("pip", "conda", "cd"):
-            with self.assertWarnsRegex(Warning, "You executed the system command"):
-                ip.system_raw(magic_cmd)
+
+@pytest.mark.parametrize("magic_cmd", ["pip", "conda", "cd"])
+def test_magic_warnings(magic_cmd):
+    if sys.platform == "win32":
+        to_mock = "os.system"
+        expected_arg, expected_kwargs = magic_cmd, dict()
+    else:
+        to_mock = "subprocess.call"
+        expected_arg, expected_kwargs = magic_cmd, dict(
+            shell=True, executable=os.environ.get("SHELL", None)
+        )
+
+    with mock.patch(to_mock, return_value=0) as mock_sub:
+        with pytest.warns(Warning, match=r"You executed the system command"):
+            ip.system_raw(magic_cmd)
+        mock_sub.assert_called_once_with(expected_arg, **expected_kwargs)
+
 
 # TODO: Exit codes are currently ignored on Windows.
 class TestSystemPipedExitCode(ExitCodeChecks):
@@ -661,12 +716,10 @@ class TestModules(tt.TempFileMixin):
 class Negator(ast.NodeTransformer):
     """Negates all number literals in an AST."""
 
-    # for python 3.7 and earlier
     def visit_Num(self, node):
         node.n = -node.n
         return node
 
-    # for python 3.8+
     def visit_Constant(self, node):
         if isinstance(node.value, int):
             return self.visit_Num(node)
@@ -848,7 +901,6 @@ class StringRejector(ast.NodeTransformer):
     not be executed by throwing an InputRejected.
     """
     
-    # 3.8 only
     def visit_Constant(self, node):
         if isinstance(node.value, str):
             raise InputRejected("test")
@@ -1076,9 +1128,12 @@ def test_run_cell_asyncio_run():
 
 
 def test_should_run_async():
-    assert not ip.should_run_async("a = 5")
-    assert ip.should_run_async("await x")
-    assert ip.should_run_async("import asyncio; await asyncio.sleep(1)")
+    assert not ip.should_run_async("a = 5", transformed_cell="a = 5")
+    assert ip.should_run_async("await x", transformed_cell="await x")
+    assert ip.should_run_async(
+        "import asyncio; await asyncio.sleep(1)",
+        transformed_cell="import asyncio; await asyncio.sleep(1)",
+    )
 
 
 def test_set_custom_completer():
@@ -1097,3 +1152,49 @@ def test_set_custom_completer():
 
     # clean up
     ip.Completer.custom_matchers.pop()
+
+
+class TestShowTracebackAttack(unittest.TestCase):
+    """Test that the interactive shell is resilient against the client attack of
+    manipulating the showtracebacks method. These attacks shouldn't result in an
+    unhandled exception in the kernel."""
+
+    def setUp(self):
+        self.orig_showtraceback = interactiveshell.InteractiveShell.showtraceback
+
+    def tearDown(self):
+        interactiveshell.InteractiveShell.showtraceback = self.orig_showtraceback
+
+    def test_set_show_tracebacks_none(self):
+        """Test the case of the client setting showtracebacks to None"""
+
+        result = ip.run_cell(
+            """
+            import IPython.core.interactiveshell
+            IPython.core.interactiveshell.InteractiveShell.showtraceback = None
+
+            assert False, "This should not raise an exception"
+        """
+        )
+        print(result)
+
+        assert result.result is None
+        assert isinstance(result.error_in_exec, TypeError)
+        assert str(result.error_in_exec) == "'NoneType' object is not callable"
+
+    def test_set_show_tracebacks_noop(self):
+        """Test the case of the client setting showtracebacks to a no op lambda"""
+
+        result = ip.run_cell(
+            """
+            import IPython.core.interactiveshell
+            IPython.core.interactiveshell.InteractiveShell.showtraceback = lambda *args, **kwargs: None
+
+            assert False, "This should not raise an exception"
+        """
+        )
+        print(result)
+
+        assert result.result is None
+        assert isinstance(result.error_in_exec, AssertionError)
+        assert str(result.error_in_exec) == "This should not raise an exception"

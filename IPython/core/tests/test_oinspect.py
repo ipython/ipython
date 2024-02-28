@@ -5,6 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 
+from contextlib import contextmanager
 from inspect import signature, Signature, Parameter
 import inspect
 import os
@@ -43,7 +44,7 @@ class SourceModuleMainTest:
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 46  # Put here the actual number of this line
+THIS_LINE_NUMBER = 47  # Put here the actual number of this line
 
 
 def test_find_source_lines():
@@ -63,7 +64,7 @@ def test_inspect_getfile_raises_exception():
     """Check oinspect.find_file/getsource/find_source_lines expectations"""
     with pytest.raises(TypeError):
         inspect.getfile(type)
-    with pytest.raises(OSError if sys.version_info >= (3, 10) else TypeError):
+    with pytest.raises(OSError):
         inspect.getfile(SourceModuleMainTest)
 
 
@@ -345,6 +346,87 @@ def test_pdef():
     inspector.pdef(foo, 'foo')
 
 
+@contextmanager
+def cleanup_user_ns(**kwargs):
+    """
+    On exit delete all the keys that were not in user_ns before entering.
+
+    It does not restore old values !
+
+    Parameters
+    ----------
+
+    **kwargs
+        used to update ip.user_ns
+
+    """
+    try:
+        known = set(ip.user_ns.keys())
+        ip.user_ns.update(kwargs)
+        yield
+    finally:
+        added = set(ip.user_ns.keys()) - known
+        for k in added:
+            del ip.user_ns[k]
+
+
+def test_pinfo_bool_raise():
+    """
+    Test that bool method is not called on parent.
+    """
+
+    class RaiseBool:
+        attr = None
+
+        def __bool__(self):
+            raise ValueError("pinfo should not access this method")
+
+    raise_bool = RaiseBool()
+
+    with cleanup_user_ns(raise_bool=raise_bool):
+        ip._inspect("pinfo", "raise_bool.attr", detail_level=0)
+
+
+def test_pinfo_getindex():
+    def dummy():
+        """
+        MARKER
+        """
+
+    container = [dummy]
+    with cleanup_user_ns(container=container):
+        with AssertPrints("MARKER"):
+            ip._inspect("pinfo", "container[0]", detail_level=0)
+    assert "container" not in ip.user_ns.keys()
+
+
+def test_qmark_getindex():
+    def dummy():
+        """
+        MARKER 2
+        """
+
+    container = [dummy]
+    with cleanup_user_ns(container=container):
+        with AssertPrints("MARKER 2"):
+            ip.run_cell("container[0]?")
+    assert "container" not in ip.user_ns.keys()
+
+
+def test_qmark_getindex_negatif():
+    def dummy():
+        """
+        MARKER 3
+        """
+
+    container = [dummy]
+    with cleanup_user_ns(container=container):
+        with AssertPrints("MARKER 3"):
+            ip.run_cell("container[-1]?")
+    assert "container" not in ip.user_ns.keys()
+
+
+
 def test_pinfo_nonascii():
     # See gh-1177
     from . import nonascii2
@@ -406,12 +488,49 @@ def test_pinfo_docstring_if_detail_and_no_source():
             ip._inspect('pinfo', 'foo.bar', detail_level=1)
 
 
-def test_pinfo_magic():
-    with AssertPrints('Docstring:'):
-        ip._inspect('pinfo', 'lsmagic', detail_level=0)
+def test_pinfo_docstring_dynamic():
+    obj_def = """class Bar:
+    __custom_documentations__ = {
+     "prop" : "cdoc for prop",
+     "non_exist" : "cdoc for non_exist",
+    }
+    @property
+    def prop(self):
+        '''
+        Docstring for prop
+        '''
+        return self._prop
+    
+    @prop.setter
+    def prop(self, v):
+        self._prop = v
+    """
+    ip.run_cell(obj_def)
 
-    with AssertPrints('Source:'):
-        ip._inspect('pinfo', 'lsmagic', detail_level=1)
+    ip.run_cell("b = Bar()")
+
+    with AssertPrints("Docstring:   cdoc for prop"):
+        ip.run_line_magic("pinfo", "b.prop")
+
+    with AssertPrints("Docstring:   cdoc for non_exist"):
+        ip.run_line_magic("pinfo", "b.non_exist")
+
+    with AssertPrints("Docstring:   cdoc for prop"):
+        ip.run_cell("b.prop?")
+
+    with AssertPrints("Docstring:   cdoc for non_exist"):
+        ip.run_cell("b.non_exist?")
+
+    with AssertPrints("Docstring:   <no docstring>"):
+        ip.run_cell("b.undefined?")
+
+
+def test_pinfo_magic():
+    with AssertPrints("Docstring:"):
+        ip._inspect("pinfo", "lsmagic", detail_level=0)
+
+    with AssertPrints("Source:"):
+        ip._inspect("pinfo", "lsmagic", detail_level=1)
 
 
 def test_init_colors():
@@ -449,28 +568,12 @@ def test_render_signature_long():
         signature(long_function),
         long_function.__name__,
     )
-    assert sig in [
-        # Python >=3.9
-        '''\
+    expected = """\
 long_function(
     a_really_long_parameter: int,
     and_another_long_one: bool = False,
     let_us_make_sure_this_is_looong: Optional[str] = None,
 ) -> bool\
-''',
-        # Python >=3.7
-        '''\
-long_function(
-    a_really_long_parameter: int,
-    and_another_long_one: bool = False,
-    let_us_make_sure_this_is_looong: Union[str, NoneType] = None,
-) -> bool\
-''',  # Python <=3.6
-        '''\
-long_function(
-    a_really_long_parameter:int,
-    and_another_long_one:bool=False,
-    let_us_make_sure_this_is_looong:Union[str, NoneType]=None,
-) -> bool\
-''',
-    ]
+"""
+
+    assert sig == expected

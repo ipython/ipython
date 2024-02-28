@@ -145,7 +145,7 @@ class StoreMagics(Magics):
             if args:
                 for arg in args:
                     try:
-                        obj = db['autorestore/' + arg]
+                        obj = db["autorestore/" + arg]
                     except KeyError:
                         try:
                             restore_aliases(ip, alias=arg)

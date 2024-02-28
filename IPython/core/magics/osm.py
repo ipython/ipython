@@ -468,9 +468,9 @@ class OSMagics(Magics):
         string.
 
         Usage:\\
-          %set_env var val: set value for var
-          %set_env var=val: set value for var
-          %set_env var=$val: set value for var, using python expansion if possible
+          :``%set_env var val``: set value for var
+          :``%set_env var=val``: set value for var
+          :``%set_env var=$val``: set value for var, using python expansion if possible
         """
         split = '=' if '=' in parameter_s else ' '
         bits = parameter_s.split(split, 1)

@@ -63,6 +63,7 @@ def inputhook(context):
         timer = QtCore.QTimer()
         timer.timeout.connect(event_loop.quit)
         while not context.input_is_ready():
+            # NOTE: run the event loop, and after 50 ms, call `quit` to exit it.
             timer.start(50)  # 50 ms
             _exec(event_loop)
             timer.stop()
@@ -83,3 +84,7 @@ def inputhook(context):
                 _exec(event_loop)
         finally:
             notifier.setEnabled(False)
+
+    # This makes sure that the event loop is garbage collected.
+    # See issue 14240.
+    event_loop.setParent(None)

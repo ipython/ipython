@@ -298,13 +298,18 @@ def test_find_assign_op_dedent():
     )
 
 
+extra_closing_paren_param = (
+    pytest.param("(\n))", "invalid", None)
+    if sys.version_info >= (3, 12)
+    else pytest.param("(\n))", "incomplete", 0)
+)
 examples = [
     pytest.param("a = 1", "complete", None),
     pytest.param("for a in range(5):", "incomplete", 4),
     pytest.param("for a in range(5):\n    if a > 0:", "incomplete", 8),
     pytest.param("raise = 2", "invalid", None),
     pytest.param("a = [1,\n2,", "incomplete", 0),
-    pytest.param("(\n))", "incomplete", 0),
+    extra_closing_paren_param,
     pytest.param("\\\r\n", "incomplete", 0),
     pytest.param("a = '''\n   hi", "incomplete", 3),
     pytest.param("def a():\n x=1\n global x", "invalid", None),
@@ -314,8 +319,7 @@ examples = [
         None,
         marks=pytest.mark.xfail(
             reason="Bug in python 3.9.8 – bpo 45738",
-            condition=sys.version_info
-            in [(3, 9, 8, "final", 0), (3, 11, 0, "alpha", 2)],
+            condition=sys.version_info in [(3, 11, 0, "alpha", 2)],
             raises=SystemError,
             strict=True,
         ),
@@ -333,7 +337,7 @@ def test_check_complete_param(code, expected, number):
 @pytest.mark.xfail(platform.python_implementation() == "PyPy", reason="fail on pypy")
 @pytest.mark.xfail(
     reason="Bug in python 3.9.8 – bpo 45738",
-    condition=sys.version_info in [(3, 9, 8, "final", 0), (3, 11, 0, "alpha", 2)],
+    condition=sys.version_info in [(3, 11, 0, "alpha", 2)],
     raises=SystemError,
     strict=True,
 )

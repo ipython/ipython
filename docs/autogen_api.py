@@ -24,8 +24,6 @@ if __name__ == '__main__':
     docwriter.package_skip_patterns += [r'\.external$',
                                         # Extensions are documented elsewhere.
                                         r'\.extensions',
-                                        # Magics are documented separately
-                                        r'\.core\.magics',
                                         # This isn't API
                                         r'\.sphinxext',
                                         # Shims
@@ -66,10 +64,13 @@ if __name__ == '__main__':
     # them as part of the public API. They must have __all__ defined. The
     # non-API modules they import from should be excluded by the skip patterns
     # above.
-    docwriter.names_from__all__.update({
-        'IPython.display',
-    })
-    
+    docwriter.names_from__all__.update(
+        {
+            "IPython",
+            "IPython.display",
+        }
+    )
+
     # Now, generate the outputs
     docwriter.write_api_docs(outdir)
     # Write index with .txt extension - we can include it, but Sphinx won't try

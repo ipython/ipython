@@ -26,15 +26,17 @@ Rich display
 
 Custom methods
 ----------------------
+
 IPython can display richer representations of objects.
-To do this, you can define ``_ipython_display_()``, or any of a number of 
-``_repr_*_()`` methods. 
+To do this, you can define ``_ipython_display_()``, or any of a number of
+``_repr_*_()`` methods.
 Note that these are surrounded by single, not double underscores.
+
 
 .. list-table:: Supported ``_repr_*_`` methods
    :widths: 20 15 15 15
    :header-rows: 1
-   
+
    * - Format
      - REPL
      - Notebook
@@ -76,14 +78,24 @@ Note that these are surrounded by single, not double underscores.
      - ?
      - ?
 
-If the methods don't exist, or return ``None``, the standard ``repr()`` is used.
+If the methods don't exist, the standard ``repr()`` is used.
+If a method exists and returns ``None``, it is treated the same as if it does not exist.
+In general, *all* available formatters will be called when an object is displayed,
+and it is up to the UI to select which to display.
+A given formatter should not generally change its output based on what other formats are available -
+that should be handled at a different level, such as the :class:`~.DisplayFormatter`, or configuration.
+
+``_repr_*_`` methods should *return* data of the expected format and have no side effects.
+For example, ``_repr_html_`` should return HTML as a `str` and ``_repr_png_`` should return PNG data as `bytes`.
+
+If you wish to take control of display via your own side effects, use ``_ipython_display_()``.
 
 For example::
 
     class Shout(object):
         def __init__(self, text):
             self.text = text
-        
+
         def _repr_html_(self):
             return "<h1>" + self.text + "</h1>"
 
@@ -95,7 +107,7 @@ Pretty printing
 """""""""""""""
 
 To customize how your object is pretty-printed, add a ``_repr_pretty_`` method
-to the class. 
+to the class.
 The method should accept a pretty printer, and a boolean that indicates whether
 the printer detected a cycle.
 The method should act on the printer to produce your customized pretty output.
@@ -121,14 +133,13 @@ More powerful methods
      Should return a dictionary of multiple formats, keyed by mimetype, or a tuple
      of two dictionaries: *data, metadata* (see :ref:`Metadata`).
      If this returns something, other ``_repr_*_`` methods are ignored.
-     The method should take keyword arguments ``include`` and ``exclude``, though 
+     The method should take keyword arguments ``include`` and ``exclude``, though
      it is not required to respect them.
 
    .. method:: _ipython_display_()
 
       Displays the object as a side effect; the return value is ignored. If this
       is defined, all other display methods are ignored.
-      This method is ignored in the REPL.
 
 
 Metadata

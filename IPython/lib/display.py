@@ -8,7 +8,7 @@ from os import walk, sep, fsdecode
 
 from IPython.core.display import DisplayObject, TextDisplayObject
 
-from typing import Tuple, Iterable
+from typing import Tuple, Iterable, Optional
 
 __all__ = ['Audio', 'IFrame', 'YouTubeVideo', 'VimeoVideo', 'ScribdDocument',
            'FileLink', 'FileLinks', 'Code']
@@ -272,7 +272,9 @@ class IFrame(object):
         ></iframe>
         """
 
-    def __init__(self, src, width, height, extras: Iterable[str] = None, **kwargs):
+    def __init__(
+        self, src, width, height, extras: Optional[Iterable[str]] = None, **kwargs
+    ):
         if extras is None:
             extras = []
 

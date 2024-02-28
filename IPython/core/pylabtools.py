@@ -23,9 +23,10 @@ backends = {
     "qt4": "Qt4Agg",
     "qt5": "Qt5Agg",
     "qt6": "QtAgg",
-    "qt": "Qt5Agg",
+    "qt": "QtAgg",
     "osx": "MacOSX",
     "nbagg": "nbAgg",
+    "webagg": "WebAgg",
     "notebook": "nbAgg",
     "agg": "agg",
     "svg": "svg",
@@ -52,8 +53,8 @@ backend2gui["CocoaAgg"] = "osx"
 # supports either Qt5 or Qt6 and the IPython qt event loop support Qt4, Qt5,
 # and Qt6.
 backend2gui["QtAgg"] = "qt"
-backend2gui["Qt4Agg"] = "qt"
-backend2gui["Qt5Agg"] = "qt"
+backend2gui["Qt4Agg"] = "qt4"
+backend2gui["Qt5Agg"] = "qt5"
 
 # And some backends that don't need GUI integration
 del backend2gui["nbAgg"]
@@ -153,7 +154,7 @@ def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
     if fmt == 'svg':
         data = data.decode('utf-8')
     elif base64:
-        data = b2a_base64(data).decode("ascii")
+        data = b2a_base64(data, newline=False).decode("ascii")
     return data
 
 def retina_figure(fig, base64=False, **kwargs):
@@ -173,7 +174,7 @@ def retina_figure(fig, base64=False, **kwargs):
     w, h = _pngxy(pngdata)
     metadata = {"width": w//2, "height":h//2}
     if base64:
-        pngdata = b2a_base64(pngdata).decode("ascii")
+        pngdata = b2a_base64(pngdata, newline=False).decode("ascii")
     return pngdata, metadata
 
 
@@ -207,10 +208,12 @@ def mpl_runner(safe_execfile):
 
         #print '*** Matplotlib runner ***' # dbg
         # turn off rendering until end of script
-        is_interactive = matplotlib.rcParams['interactive']
-        matplotlib.interactive(False)
-        safe_execfile(fname,*where,**kw)
-        matplotlib.interactive(is_interactive)
+        with matplotlib.rc_context({"interactive": False}):
+            safe_execfile(fname, *where, **kw)
+
+        if matplotlib.is_interactive():
+            plt.show()
+
         # make rendering call now, if the user tried to do it
         if plt.draw_if_interactive.called:
             plt.draw()
@@ -316,9 +319,15 @@ def find_gui_and_backend(gui=None, gui_select=None):
 
     import matplotlib
 
+    has_unified_qt_backend = getattr(matplotlib, "__version_info__", (0, 0)) >= (3, 5)
+
+    backends_ = dict(backends)
+    if not has_unified_qt_backend:
+        backends_["qt"] = "qt5agg"
+
     if gui and gui != 'auto':
         # select backend based on requested gui
-        backend = backends[gui]
+        backend = backends_[gui]
         if gui == 'agg':
             gui = None
     else:
@@ -335,7 +344,7 @@ def find_gui_and_backend(gui=None, gui_select=None):
         # ones allowed.
         if gui_select and gui != gui_select:
             gui = gui_select
-            backend = backends[gui]
+            backend = backends_[gui]
 
     return gui, backend
 

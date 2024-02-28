@@ -64,7 +64,8 @@ magic_run_re = re.compile(r'.*(\.ipy|\.ipynb|\.py[w]?)$')
 # Local utilities
 #-----------------------------------------------------------------------------
 
-def module_list(path):
+
+def module_list(path: str) -> List[str]:
     """
     Return the list containing the names of the modules available in the given
     folder.
@@ -80,7 +81,7 @@ def module_list(path):
         # Build a list of all files in the directory and all files
         # in its subdirectories. For performance reasons, do not
         # recurse more than one level into subdirectories.
-        files = []
+        files: List[str] = []
         for root, dirs, nondirs in os.walk(path, followlinks=True):
             subdir = root[len(path)+1:]
             if subdir:
@@ -91,8 +92,8 @@ def module_list(path):
 
     else:
         try:
-            files = list(zipimporter(path)._files.keys())
-        except:
+            files = list(zipimporter(path)._files.keys())  # type: ignore
+        except Exception:
             files = []
 
     # Build a list of modules which match the import_re regex.
@@ -117,7 +118,10 @@ def get_root_modules():
         # Don't try to scan for modules every time.
         return list(sys.builtin_module_names)
 
-    rootmodules_cache = ip.db.get('rootmodules_cache', {})
+    if getattr(ip.db, "_mock", False):
+        rootmodules_cache = {}
+    else:
+        rootmodules_cache = ip.db.get("rootmodules_cache", {})
     rootmodules = list(sys.builtin_module_names)
     start_time = time()
     store = False
@@ -190,7 +194,10 @@ def try_import(mod: str, only_modules=False) -> List[str]:
         completions.extend(m_all)
 
     if m_is_init:
-        completions.extend(module_list(os.path.dirname(m.__file__)))
+        file_ = m.__file__
+        file_path = os.path.dirname(file_)  # type: ignore
+        if file_path is not None:
+            completions.extend(module_list(file_path))
     completions_set = {c for c in completions if isinstance(c, str)}
     completions_set.discard('__init__')
     return list(completions_set)

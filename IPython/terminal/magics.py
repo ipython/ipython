@@ -41,7 +41,7 @@ class TerminalMagics(Magics):
     def __init__(self, shell):
         super(TerminalMagics, self).__init__(shell)
 
-    def store_or_execute(self, block, name):
+    def store_or_execute(self, block, name, store_history=False):
         """ Execute a block, or store it in a variable, per the user's request.
         """
         if name:
@@ -53,7 +53,7 @@ class TerminalMagics(Magics):
             self.shell.user_ns['pasted_block'] = b
             self.shell.using_paste_magics = True
             try:
-                self.shell.run_cell(b, store_history=True)
+                self.shell.run_cell(b, store_history)
             finally:
                 self.shell.using_paste_magics = False
 
@@ -147,7 +147,7 @@ class TerminalMagics(Magics):
 
         sentinel = opts.get('s', u'--')
         block = '\n'.join(get_pasted_lines(sentinel, quiet=quiet))
-        self.store_or_execute(block, name)
+        self.store_or_execute(block, name, store_history=True)
 
     @line_magic
     def paste(self, parameter_s=''):
@@ -203,7 +203,7 @@ class TerminalMagics(Magics):
                 sys.stdout.write("\n")
             sys.stdout.write("## -- End pasted text --\n")
 
-        self.store_or_execute(block, name)
+        self.store_or_execute(block, name, store_history=True)
 
     # Class-level: add a '%cls' magic only on Windows
     if sys.platform == 'win32':

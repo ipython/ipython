@@ -24,7 +24,9 @@ from traitlets import List
 # This used to be defined here - it is imported for backwards compatibility
 from .display_functions import publish_display_data
 
-#-----------------------------------------------------------------------------
+import typing as t
+
+# -----------------------------------------------------------------------------
 # Main payload class
 #-----------------------------------------------------------------------------
 
@@ -103,9 +105,9 @@ class DisplayPublisher(Configurable):
             rather than creating a new output.
         """
 
-        handlers = {}
+        handlers: t.Dict = {}
         if self.shell is not None:
-            handlers = getattr(self.shell, 'mime_renderers', {})
+            handlers = getattr(self.shell, "mime_renderers", {})
 
         for mime, handler in handlers.items():
             if mime in data:
@@ -125,11 +127,20 @@ class DisplayPublisher(Configurable):
 
 class CapturingDisplayPublisher(DisplayPublisher):
     """A DisplayPublisher that stores"""
-    outputs = List()
 
-    def publish(self, data, metadata=None, source=None, *, transient=None, update=False):
-        self.outputs.append({'data':data, 'metadata':metadata,
-                             'transient':transient, 'update':update})
+    outputs: List = List()
+
+    def publish(
+        self, data, metadata=None, source=None, *, transient=None, update=False
+    ):
+        self.outputs.append(
+            {
+                "data": data,
+                "metadata": metadata,
+                "transient": transient,
+                "update": update,
+            }
+        )
 
     def clear_output(self, wait=False):
         super(CapturingDisplayPublisher, self).clear_output(wait)

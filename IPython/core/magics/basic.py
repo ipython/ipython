@@ -109,12 +109,12 @@ class BasicMagics(Magics):
           Created `%%t` as an alias for `%%timeit`.
 
           In [2]: %t -n1 pass
-          1 loops, best of 3: 954 ns per loop
+          107 ns ± 43.6 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
           In [3]: %%t -n1
              ...: pass
              ...:
-          1 loops, best of 3: 954 ns per loop
+          107 ns ± 58.3 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
           In [4]: %alias_magic --cell whereami pwd
           UsageError: Cell magic function `%%pwd` not found.
@@ -122,9 +122,9 @@ class BasicMagics(Magics):
           Created `%whereami` as an alias for `%pwd`.
 
           In [6]: %whereami
-          Out[6]: u'/home/testuser'
+          Out[6]: '/home/testuser'
 
-          In [7]: %alias_magic h history "-p -l 30" --line
+          In [7]: %alias_magic h history -p "-l 30" --line
           Created `%h` as an alias for `%history -l 30`.
         """
 
@@ -296,8 +296,11 @@ Currently the magic system has the following functions:""",
 
         oname = args and args or '_'
         info = self.shell._ofind(oname)
-        if info['found']:
-            txt = (raw and str or pformat)( info['obj'] )
+        if info.found:
+            if raw:
+                txt = str(info.obj)
+            else:
+                txt = pformat(info.obj)
             page.page(txt)
         else:
             print('Object `%s` not found' % oname)
@@ -490,8 +493,10 @@ Currently the magic system has the following functions:""",
         are supported:  wxPython, PyQt4, PyGTK, Tk and Cocoa (OSX)::
 
             %gui wx      # enable wxPython event loop integration
-            %gui qt4|qt  # enable PyQt4 event loop integration
-            %gui qt5     # enable PyQt5 event loop integration
+            %gui qt      # enable PyQt/PySide event loop integration
+                         # with the latest version available.
+            %gui qt6     # enable PyQt6/PySide6 event loop integration
+            %gui qt5     # enable PyQt5/PySide2 event loop integration
             %gui gtk     # enable PyGTK event loop integration
             %gui gtk3    # enable Gtk3 event loop integration
             %gui gtk4    # enable Gtk4 event loop integration
@@ -532,25 +537,25 @@ Currently the magic system has the following functions:""",
             In [1]: from math import pi
 
             In [2]: %precision 3
-            Out[2]: u'%.3f'
+            Out[2]: '%.3f'
 
             In [3]: pi
             Out[3]: 3.142
 
             In [4]: %precision %i
-            Out[4]: u'%i'
+            Out[4]: '%i'
 
             In [5]: pi
             Out[5]: 3
 
             In [6]: %precision %e
-            Out[6]: u'%e'
+            Out[6]: '%e'
 
             In [7]: pi**10
             Out[7]: 9.364805e+04
 
             In [8]: %precision
-            Out[8]: u'%r'
+            Out[8]: '%r'
 
             In [9]: pi**10
             Out[9]: 93648.047476082982

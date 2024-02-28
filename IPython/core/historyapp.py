@@ -32,25 +32,21 @@ This is an handy alias to `ipython history trim --keep=0`
 
 class HistoryTrim(BaseIPythonApplication):
     description = trim_hist_help
-    
-    backup = Bool(False,
-        help="Keep the old history file as history.sqlite.<N>"
-        ).tag(config=True)
-    
-    keep = Int(1000,
-        help="Number of recent lines to keep in the database."
-        ).tag(config=True)
-    
-    flags = Dict(dict(
-        backup = ({'HistoryTrim' : {'backup' : True}},
-            backup.help
-        )
-    ))
 
-    aliases=Dict(dict(
-        keep = 'HistoryTrim.keep'
-    ))
-    
+    backup = Bool(False, help="Keep the old history file as history.sqlite.<N>").tag(
+        config=True
+    )
+
+    keep = Int(1000, help="Number of recent lines to keep in the database.").tag(
+        config=True
+    )
+
+    flags = Dict(  # type: ignore
+        dict(backup=({"HistoryTrim": {"backup": True}}, backup.help))
+    )
+
+    aliases = Dict(dict(keep="HistoryTrim.keep"))  # type: ignore
+
     def start(self):
         profile_dir = Path(self.profile_dir.location)
         hist_file = profile_dir / "history.sqlite"
@@ -114,34 +110,33 @@ class HistoryTrim(BaseIPythonApplication):
             print("Backed up longer history file to", backup_hist_file)
         else:
             hist_file.unlink()
-        
+
         new_hist_file.rename(hist_file)
+
 
 class HistoryClear(HistoryTrim):
     description = clear_hist_help
-    keep = Int(0,
-        help="Number of recent lines to keep in the database.")
-    
-    force = Bool(False,
-        help="Don't prompt user for confirmation"
-        ).tag(config=True)
-    
-    flags = Dict(dict(
-        force = ({'HistoryClear' : {'force' : True}},
-            force.help),
-        f = ({'HistoryTrim' : {'force' : True}},
-            force.help
+    keep = Int(0, help="Number of recent lines to keep in the database.")
+
+    force = Bool(False, help="Don't prompt user for confirmation").tag(config=True)
+
+    flags = Dict(  # type: ignore
+        dict(
+            force=({"HistoryClear": {"force": True}}, force.help),
+            f=({"HistoryTrim": {"force": True}}, force.help),
         )
-    ))
-    aliases = Dict()
+    )
+    aliases = Dict()  # type: ignore
 
     def start(self):
-        if self.force or ask_yes_no("Really delete all ipython history? ",
-                default="no", interrupt="no"):
+        if self.force or ask_yes_no(
+            "Really delete all ipython history? ", default="no", interrupt="no"
+        ):
             HistoryTrim.start(self)
 
+
 class HistoryApp(Application):
-    name = u'ipython-history'
+    name = "ipython-history"
     description = "Manage the IPython history database."
 
     subcommands = Dict(dict(

@@ -23,7 +23,7 @@ import sys
 #
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info < (3, 8):
+if sys.version_info < (3, 10):
     pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
     try:
         import pip
@@ -39,7 +39,9 @@ if sys.version_info < (3, 8):
 
 
     error = """
-IPython 8+ supports Python 3.8 and above, following NEP 29.
+IPython 8.19+ supports Python 3.10 and above, following SPEC0
+IPython 8.13+ supports Python 3.9 and above, following NEP 29.
+IPython 8.0-8.12 supports Python 3.8 and above, following NEP 29.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
 Python 3.3 and 3.4 were supported up to IPython 6.x.
 Python 3.5 was supported with IPython 7.0 to 7.9.
@@ -64,7 +66,6 @@ Python {py} detected.
 from setuptools import setup
 
 # Our own imports
-sys.path.insert(0, ".")
 
 from setupbase import target_update
 
@@ -73,10 +74,6 @@ from setupbase import (
     check_package_data_first,
     find_data_files,
     git_prebuild,
-    install_symlinked,
-    install_lib_symlink,
-    install_scripts_for_symlink,
-    unsymlink,
 )
 
 #-------------------------------------------------------------------------------
@@ -134,10 +131,6 @@ setup_args['cmdclass'] = {
     'build_py': \
             check_package_data_first(git_prebuild('IPython')),
     'sdist' : git_prebuild('IPython', sdist),
-    'symlink': install_symlinked,
-    'install_lib_symlink': install_lib_symlink,
-    'install_scripts_sym': install_scripts_for_symlink,
-    'unsymlink': unsymlink,
 }
 
 #---------------------------------------------------------------------------

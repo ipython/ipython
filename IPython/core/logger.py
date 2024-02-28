@@ -15,9 +15,13 @@
 # Python standard modules
 import glob
 import io
+import logging
 import os
 import time
 
+
+# prevent jedi/parso's debug messages pipe into interactiveshell
+logging.getLogger("parso").setLevel(logging.WARNING)
 
 #****************************************************************************
 # FIXME: This class isn't a mixin anymore, but it still needs attributes from
@@ -198,7 +202,16 @@ which already exists. But you must first start the logging process with
                 odata = u'\n'.join([u'#[Out]# %s' % s
                                    for s in data.splitlines()])
                 write(u'%s\n' % odata)
-            self.logfile.flush()
+            try:
+                self.logfile.flush()
+            except OSError:
+                print("Failed to flush the log file.")
+                print(
+                    f"Please check that {self.logfname} exists and have the right permissions."
+                )
+                print(
+                    "Also consider turning off the log with `%logstop` to avoid this warning."
+                )
 
     def logstop(self):
         """Fully stop logging and close log file.

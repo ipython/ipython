@@ -12,6 +12,7 @@ import errno
 import shutil
 import random
 import glob
+import warnings
 
 from IPython.utils.process import system
 
@@ -292,7 +293,14 @@ def target_outdated(target,deps):
 
     If target doesn't exist or is older than any file listed in deps, return
     true, otherwise return false.
+
+    .. deprecated:: 8.22
     """
+    warnings.warn(
+        "`target_outdated` is deprecated since IPython 8.22 and will be removed in future versions",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     try:
         target_time = os.path.getmtime(target)
     except os.error:
@@ -312,9 +320,17 @@ def target_update(target,deps,cmd):
     target_update(target,deps,cmd) -> runs cmd if target is outdated.
 
     This is just a wrapper around target_outdated() which calls the given
-    command if target is outdated."""
+    command if target is outdated.
 
-    if target_outdated(target,deps):
+    .. deprecated:: 8.22
+    """
+
+    warnings.warn(
+        "`target_update` is deprecated since IPython 8.22 and will be removed in future versions",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    if target_outdated(target, deps):
         system(cmd)
 
 

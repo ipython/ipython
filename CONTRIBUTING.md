@@ -66,8 +66,9 @@ Some guidelines on contributing to IPython:
   If you're making functional changes, you can clean up the specific pieces of
   code you're working on.
 
-[Travis](http://travis-ci.org/#!/ipython/ipython) does a pretty good job testing
-IPython and Pull Requests, but it may make sense to manually perform tests,
+[GitHub Actions](https://github.com/ipython/ipython/actions/workflows/test.yml) does
+a pretty good job testing IPython and Pull Requests,
+but it may make sense to manually perform tests,
 particularly for PRs that affect `IPython.parallel` or Windows.
 
 For more detailed information, see our [GitHub Workflow](https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow).
@@ -87,4 +88,30 @@ pytest IPython/core/tests/test_alias.py
 Only a single test (for example **test_alias_lifecycle**) within a single file can be run by adding the specific test after a `::` at the end:
 ```shell
 pytest IPython/core/tests/test_alias.py::test_alias_lifecycle
+```
+
+## Code style
+
+* Before committing, run `darker -r 60625f241f298b5039cb2debc365db38aa7bb522 <file path>` to apply selective `black` formatting on modified regions using [darker](https://github.com/akaihola/darker)==1.5.1 and black==22.10.0
+* As described in the pull requests section, please avoid excessive formatting changes; if a formatting-only commit is necessary, consider adding its hash to [`.git-blame-ignore-revs`](https://github.com/ipython/ipython/blob/main/.git-blame-ignore-revs) file.
+
+## Documentation
+
+Sphinx documentation can be built locally using standard sphinx `make` commands. To build HTML documentation from the root of the project, execute:
+
+```shell
+pip install -r docs/requirements.txt   # only needed once
+make -C docs/ html SPHINXOPTS="-W"
+```
+
+To force update of the API documentation, precede the `make` command with:
+
+```shell
+python3 docs/autogen_api.py
+```
+
+Similarly, to force-update the configuration, run:
+
+```shell
+python3 docs/autogen_config.py
 ```

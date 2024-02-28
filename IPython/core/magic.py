@@ -26,6 +26,8 @@ from ..utils.text import dedent
 from traitlets import Bool, Dict, Instance, observe
 from logging import error
 
+import typing as t
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -36,7 +38,7 @@ from logging import error
 # access to the class when they run.  See for more details:
 # http://stackoverflow.com/questions/2366713/can-a-python-decorator-of-an-instance-method-access-the-class
 
-magics = dict(line={}, cell={})
+magics: t.Dict = dict(line={}, cell={})
 
 magic_kinds = ('line', 'cell')
 magic_spec = ('line', 'cell', 'line_cell')
@@ -257,7 +259,8 @@ def _function_magic_marker(magic_kind):
     return magic_deco
 
 
-MAGIC_NO_VAR_EXPAND_ATTR = '_ipython_magic_no_var_expand'
+MAGIC_NO_VAR_EXPAND_ATTR = "_ipython_magic_no_var_expand"
+MAGIC_OUTPUT_CAN_BE_SILENCED = "_ipython_magic_output_can_be_silenced"
 
 
 def no_var_expand(magic_func):
@@ -275,6 +278,16 @@ def no_var_expand(magic_func):
     setattr(magic_func, MAGIC_NO_VAR_EXPAND_ATTR, True)
     return magic_func
 
+
+def output_can_be_silenced(magic_func):
+    """Mark a magic function so its output may be silenced.
+
+    The output is silenced if the Python code used as a parameter of
+    the magic ends in a semicolon, not counting a Python comment that can
+    follow it.
+    """
+    setattr(magic_func, MAGIC_OUTPUT_CAN_BE_SILENCED, True)
+    return magic_func
 
 # Create the actual decorators for public use
 

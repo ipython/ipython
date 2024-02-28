@@ -1,15 +1,7 @@
 # Simple tool to help for release
-# when releasing with bash, simple source it to get asked questions. 
+# when releasing with bash, simple source it to get asked questions.
 
 # misc check before starting
-
-python -c 'import keyring'
-python -c 'import twine'
-python -c 'import sphinx'
-python -c 'import sphinx_rtd_theme'
-python -c 'import pytest'
-
-
 BLACK=$(tput setaf 1)
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -19,6 +11,22 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 WHITE=$(tput setaf 7)
 NOR=$(tput sgr0)
+
+
+echo "Checking all tools are installed..."
+
+python -c 'import keyring'
+python -c 'import twine'
+python -c 'import sphinx'
+python -c 'import sphinx_rtd_theme'
+python -c 'import pytest'
+python -c 'import build'
+# those are necessary fo building the docs
+echo "Checking imports for docs"
+python -c 'import numpy'
+python -c 'import matplotlib'
+
+
 
 
 echo "Will use $BLUE'$EDITOR'$NOR to edit files when necessary"
@@ -54,7 +62,7 @@ ask_section(){
 
 maybe_edit(){
     echo
-    echo $BLUE"$1"$NOR 
+    echo $BLUE"$1"$NOR
     echo -n $GREEN"Press ${BLUE}e$GREEN to Edit ${BLUE}$1$GREEN, any other keys to skip: "$NOR
     if [ "$ZSH_NAME" = "zsh" ] ; then
         read -k1 value
@@ -63,7 +71,7 @@ maybe_edit(){
        read -n1 value
     fi
 
-    echo 
+    echo
     if [ $value = 'e' ]  ; then
         $=EDITOR $1
     fi
@@ -71,7 +79,7 @@ maybe_edit(){
 
 
 
-echo 
+echo
 if ask_section "Updating what's new with information from docs/source/whatsnew/pr"
 then
     python tools/update_whatsnew.py
@@ -85,11 +93,11 @@ fi
 if ask_section "Gen Stats, and authors"
 then
 
-    echo 
+    echo
     echo $BLUE"here are all the authors that contributed to this release:"$NOR
     git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
 
-    echo 
+    echo
     echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap."
     echo $GREEN"Press enter to continue:"$NOR
     read
@@ -107,12 +115,12 @@ fi
 if ask_section "Generate API difference (using frapuccino)"
 then
     echo $BLUE"Checking out $PREV_RELEASE"$NOR
-    git checkout $PREV_RELEASE
+    git checkout tags/$PREV_RELEASE
     sleep 1
     echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
     frappuccino IPython IPython.kernel IPython.lib IPython.qt IPython.lib.kernel IPython.html IPython.frontend IPython.external --save IPython-$PREV_RELEASE.json
     echo $BLUE"coming back to $BRANCH"$NOR
-    git checkout $BRANCH
+    git switch $BRANCH
     sleep 1
     echo $BLUE"comparing ..."$NOR
     frappuccino IPython IPython.kernel IPython.lib --compare IPython-$PREV_RELEASE.json
@@ -137,7 +145,7 @@ read
 if ask_section "Build the documentation ?"
 then
     make html -C docs
-    echo 
+    echo
     echo $GREEN"Check the docs, press enter to continue"$NOR
     read
 
@@ -150,27 +158,27 @@ then
    echo $GREEN"Press enter to commit"$NOR
    read
    git commit -am "release $VERSION" -S
-   
+
    echo
    echo $BLUE"git push origin \$BRANCH ($BRANCH)?"$NOR
    echo $GREEN"Make sure you can push"$NOR
    echo $GREEN"Press enter to continue"$NOR
    read
    git push origin $BRANCH
-   
+
    echo
    echo "Let's tag : git tag -am \"release $VERSION\" \"$VERSION\" -s"
    echo $GREEN"Press enter to tag commit"$NOR
    read
    git tag -am "release $VERSION" "$VERSION" -s
-   
+
    echo
    echo $BLUE"And push the tag: git push origin \$VERSION ?"$NOR
    echo $GREEN"Press enter to continue"$NOR
    read
    git push origin $VERSION
-   
-   
+
+
    echo $GREEN"please update version number and back to .dev in ${RED}IPython/core/release.py"
    echo $GREEN"I tried ${RED}sed -i bkp -e '/Uncomment/s/^/# /g' IPython/core/release.py${NOR}"
    sed -i bkp -e '/Uncomment/s/^/# /g' IPython/core/release.py
@@ -180,10 +188,10 @@ then
    maybe_edit IPython/core/release.py
    echo ${BLUE}"Do not commit yet – we'll do it later."$NOR
 
-   
+
    echo $GREEN"Press enter to continue"$NOR
    read
-   
+
    echo
    echo "Let's commit : "$BLUE"git commit -am \"back to dev\""$NOR
    echo $GREEN"Press enter to commit"$NOR
@@ -196,17 +204,17 @@ then
    read
    git push origin $BRANCH
 
-   
+
    echo
-   echo $BLUE"let's : git checkout $VERSION"$NOR
+   echo $BLUE"let's : git checkout tags/$VERSION"$NOR
    echo $GREEN"Press enter to continue"$NOR
    read
-   git checkout $VERSION
+   git checkout tags/$VERSION
 fi
 
 if ask_section "Should we build and release ?"
 then
-    
+
     echo $BLUE"going to set SOURCE_DATE_EPOCH"$NOR
     echo $BLUE'export SOURCE_DATE_EPOCH=$(git show -s --format=%ct HEAD)'$NOR
     echo $GREEN"Press enter to continue"$NOR
@@ -245,7 +253,7 @@ then
     echo $NOR
 
     if ask_section "upload packages ?"
-    then 
+    then
        tools/release upload
     fi
 fi

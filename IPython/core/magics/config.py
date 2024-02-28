@@ -68,92 +68,22 @@ class ConfigMagics(Magics):
         To view what is configurable on a given class, just pass the class
         name::
 
-            In [2]: %config IPCompleter
-            IPCompleter(Completer) options
-            ----------------------------
-            IPCompleter.backslash_combining_completions=<Bool>
-                Enable unicode completions, e.g. \\alpha<tab> . Includes completion of latex
-                commands, unicode names, and expanding unicode characters back to latex
-                commands.
-                Current: True
-            IPCompleter.debug=<Bool>
-                Enable debug for the Completer. Mostly print extra information for
-                experimental jedi integration.
+            In [2]: %config LoggingMagics
+            LoggingMagics(Magics) options
+            ---------------------------
+            LoggingMagics.quiet=<Bool>
+                Suppress output of log state when logging is enabled
                 Current: False
-            IPCompleter.disable_matchers=<list-item-1>...
-                List of matchers to disable.
-                Current: []
-            IPCompleter.greedy=<Bool>
-                Activate greedy completion
-                        PENDING DEPRECATION. this is now mostly taken care of with Jedi.
-                        This will enable completion on elements of lists, results of function calls, etc.,
-                        but can be unsafe because the code is actually evaluated on TAB.
-                Current: False
-            IPCompleter.jedi_compute_type_timeout=<Int>
-                Experimental: restrict time (in milliseconds) during which Jedi can compute types.
-                        Set to 0 to stop computing types. Non-zero value lower than 100ms may hurt
-                        performance by preventing jedi to build its cache.
-                Current: 400
-            IPCompleter.limit_to__all__=<Bool>
-                DEPRECATED as of version 5.0.
-                Instruct the completer to use __all__ for the completion
-                Specifically, when completing on ``object.<tab>``.
-                When True: only those names in obj.__all__ will be included.
-                When False [default]: the __all__ attribute is ignored
-                Current: False
-            IPCompleter.merge_completions=<Bool>
-                Whether to merge completion results into a single list
-                        If False, only the completion results from the first non-empty
-                        completer will be returned.
-                        As of version 8.6.0, setting the value to ``False`` is an alias for:
-                        ``IPCompleter.suppress_competing_matchers = True.``.
-                Current: True
-            IPCompleter.omit__names=<Enum>
-                Instruct the completer to omit private method names
-                        Specifically, when completing on ``object.<tab>``.
-                        When 2 [default]: all names that start with '_' will be excluded.
-                        When 1: all 'magic' names (``__foo__``) will be excluded.
-                        When 0: nothing will be excluded.
-                Choices: any of [0, 1, 2]
-                Current: 2
-            IPCompleter.profile_completions=<Bool>
-                If True, emit profiling data for completion subsystem using cProfile.
-                Current: False
-            IPCompleter.profiler_output_dir=<Unicode>
-                Template for path at which to output profile data for completions.
-                Current: '.completion_profiles'
-            IPCompleter.suppress_competing_matchers=<Union>
-                Whether to suppress completions from other *Matchers*.
-                When set to ``None`` (default) the matchers will attempt to auto-detect
-                whether suppression of other matchers is desirable. For example, at the
-                beginning of a line followed by `%` we expect a magic completion to be the
-                only applicable option, and after ``my_dict['`` we usually expect a
-                completion with an existing dictionary key.
-                If you want to disable this heuristic and see completions from all matchers,
-                set ``IPCompleter.suppress_competing_matchers = False``. To disable the
-                heuristic for specific matchers provide a dictionary mapping:
-                ``IPCompleter.suppress_competing_matchers = {'IPCompleter.dict_key_matcher':
-                False}``.
-                Set ``IPCompleter.suppress_competing_matchers = True`` to limit completions
-                to the set of matchers with the highest priority; this is equivalent to
-                ``IPCompleter.merge_completions`` and can be beneficial for performance, but
-                will sometimes omit relevant candidates from matchers further down the
-                priority list.
-                Current: None
-            IPCompleter.use_jedi=<Bool>
-                Experimental: Use Jedi to generate autocompletions. Default to True if jedi
-                is installed.
-                Current: True
 
         but the real use is in setting values::
 
-            In [3]: %config IPCompleter.greedy = True
+            In [3]: %config LoggingMagics.quiet = True
 
         and these values are read from the user_ns if they are variables::
 
-            In [4]: feeling_greedy=False
+            In [4]: feeling_quiet=False
 
-            In [5]: %config IPCompleter.greedy = feeling_greedy
+            In [5]: %config LoggingMagics.quiet = feeling_quiet
 
         """
         from traitlets.config.loader import Config

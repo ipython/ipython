@@ -1,9 +1,10 @@
 """IPython terminal interface using prompt_toolkit"""
 
-import asyncio
 import os
 import sys
+import inspect
 from warnings import warn
+from typing import Union as UnionType, Optional
 
 from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
@@ -15,6 +16,7 @@ from traitlets import (
     Unicode,
     Dict,
     Integer,
+    List,
     observe,
     Instance,
     Type,
@@ -28,7 +30,7 @@ from traitlets import (
 
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
+from prompt_toolkit.filters import HasFocus, Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.history import History
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
@@ -48,13 +50,24 @@ from .magics import TerminalMagics
 from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
-from .shortcuts import create_ipython_shortcuts
+from .shortcuts import (
+    KEY_BINDINGS,
+    create_ipython_shortcuts,
+    create_identifier,
+    RuntimeBinding,
+    add_binding,
+)
+from .shortcuts.filters import KEYBINDING_FILTERS, filter_from_string
+from .shortcuts.auto_suggest import (
+    NavigableAutoSuggestFromHistory,
+    AppendAutoSuggestionInAnyLine,
+)
 
 PTK3 = ptk_version.startswith('3.')
 
 
-class _NoStyle(Style): pass
-
+class _NoStyle(Style):
+    pass
 
 
 _style_overrides_light_bg = {
@@ -71,6 +84,20 @@ _style_overrides_linux = {
             Token.OutPromptNum: '#ansired bold',
 }
 
+
+def _backward_compat_continuation_prompt_tokens(method, width: int, *, lineno: int):
+    """
+    Sagemath use custom prompt and we broke them in 8.19.
+    """
+    sig = inspect.signature(method)
+    if "lineno" in inspect.signature(method).parameters or any(
+        [p.kind == p.VAR_KEYWORD for p in sig.parameters.values()]
+    ):
+        return method(width, lineno=lineno)
+    else:
+        return method(width)
+
+
 def get_default_editor():
     try:
         return os.environ['EDITOR']
@@ -83,7 +110,8 @@ def get_default_editor():
     if os.name == 'posix':
         return 'vi'  # the only one guaranteed to be there!
     else:
-        return 'notepad' # same in Windows!
+        return "notepad"  # same in Windows!
+
 
 # conservatively check for tty
 # overridden streams can result in things like:
@@ -183,7 +211,10 @@ class TerminalInteractiveShell(InteractiveShell):
                                      'menus, decrease for short and wide.'
                             ).tag(config=True)
 
-    pt_app = None
+    pt_app: UnionType[PromptSession, None] = None
+    auto_suggest: UnionType[
+        AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
+    ] = None
     debugger_history = None
 
     debugger_history_file = Unicode(
@@ -277,7 +308,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
         return self.editing_mode
 
-
     @observe('editing_mode')
     def _editing_mode(self, change):
         if self.pt_app:
@@ -305,7 +335,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def refresh_style(self):
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
-
 
     highlighting_style_overrides = Dict(
         help="Override highlighting format for specific tokens"
@@ -376,18 +405,27 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     autosuggestions_provider = Unicode(
-        "AutoSuggestFromHistory",
+        "NavigableAutoSuggestFromHistory",
         help="Specifies from which source automatic suggestions are provided. "
-        "Can be set to `'AutoSuggestFromHistory`' or `None` to disable"
-        "automatic suggestions. Default is `'AutoSuggestFromHistory`'.",
+        "Can be set to ``'NavigableAutoSuggestFromHistory'`` (:kbd:`up` and "
+        ":kbd:`down` swap suggestions), ``'AutoSuggestFromHistory'``, "
+        " or ``None`` to disable automatic suggestions. "
+        "Default is `'NavigableAutoSuggestFromHistory`'.",
         allow_none=True,
     ).tag(config=True)
 
     def _set_autosuggestions(self, provider):
+        # disconnect old handler
+        if self.auto_suggest and isinstance(
+            self.auto_suggest, NavigableAutoSuggestFromHistory
+        ):
+            self.auto_suggest.disconnect()
         if provider is None:
             self.auto_suggest = None
         elif provider == "AutoSuggestFromHistory":
             self.auto_suggest = AutoSuggestFromHistory()
+        elif provider == "NavigableAutoSuggestFromHistory":
+            self.auto_suggest = NavigableAutoSuggestFromHistory()
         else:
             raise ValueError("No valid provider.")
         if self.pt_app:
@@ -398,21 +436,193 @@ class TerminalInteractiveShell(InteractiveShell):
         provider = change.new
         self._set_autosuggestions(provider)
 
+    shortcuts = List(
+        trait=Dict(
+            key_trait=Enum(
+                [
+                    "command",
+                    "match_keys",
+                    "match_filter",
+                    "new_keys",
+                    "new_filter",
+                    "create",
+                ]
+            ),
+            per_key_traits={
+                "command": Unicode(),
+                "match_keys": List(Unicode()),
+                "match_filter": Unicode(),
+                "new_keys": List(Unicode()),
+                "new_filter": Unicode(),
+                "create": Bool(False),
+            },
+        ),
+        help="""Add, disable or modifying shortcuts.
+
+        Each entry on the list should be a dictionary with ``command`` key
+        identifying the target function executed by the shortcut and at least
+        one of the following:
+
+        - ``match_keys``: list of keys used to match an existing shortcut,
+        - ``match_filter``: shortcut filter used to match an existing shortcut,
+        - ``new_keys``: list of keys to set,
+        - ``new_filter``: a new shortcut filter to set
+
+        The filters have to be composed of pre-defined verbs and joined by one
+        of the following conjunctions: ``&`` (and), ``|`` (or), ``~`` (not).
+        The pre-defined verbs are:
+
+        {}
+
+
+        To disable a shortcut set ``new_keys`` to an empty list.
+        To add a shortcut add key ``create`` with value ``True``.
+
+        When modifying/disabling shortcuts, ``match_keys``/``match_filter`` can
+        be omitted if the provided specification uniquely identifies a shortcut
+        to be modified/disabled. When modifying a shortcut ``new_filter`` or
+        ``new_keys`` can be omitted which will result in reuse of the existing
+        filter/keys.
+
+        Only shortcuts defined in IPython (and not default prompt-toolkit
+        shortcuts) can be modified or disabled. The full list of shortcuts,
+        command identifiers and filters is available under
+        :ref:`terminal-shortcuts-list`.
+        """.format(
+            "\n        ".join([f"- `{k}`" for k in KEYBINDING_FILTERS])
+        ),
+    ).tag(config=True)
+
+    @observe("shortcuts")
+    def _shortcuts_changed(self, change):
+        if self.pt_app:
+            self.pt_app.key_bindings = self._merge_shortcuts(user_shortcuts=change.new)
+
+    def _merge_shortcuts(self, user_shortcuts):
+        # rebuild the bindings list from scratch
+        key_bindings = create_ipython_shortcuts(self)
+
+        # for now we only allow adding shortcuts for commands which are already
+        # registered; this is a security precaution.
+        known_commands = {
+            create_identifier(binding.command): binding.command
+            for binding in KEY_BINDINGS
+        }
+        shortcuts_to_skip = []
+        shortcuts_to_add = []
+
+        for shortcut in user_shortcuts:
+            command_id = shortcut["command"]
+            if command_id not in known_commands:
+                allowed_commands = "\n - ".join(known_commands)
+                raise ValueError(
+                    f"{command_id} is not a known shortcut command."
+                    f" Allowed commands are: \n - {allowed_commands}"
+                )
+            old_keys = shortcut.get("match_keys", None)
+            old_filter = (
+                filter_from_string(shortcut["match_filter"])
+                if "match_filter" in shortcut
+                else None
+            )
+            matching = [
+                binding
+                for binding in KEY_BINDINGS
+                if (
+                    (old_filter is None or binding.filter == old_filter)
+                    and (old_keys is None or [k for k in binding.keys] == old_keys)
+                    and create_identifier(binding.command) == command_id
+                )
+            ]
+
+            new_keys = shortcut.get("new_keys", None)
+            new_filter = shortcut.get("new_filter", None)
+
+            command = known_commands[command_id]
+
+            creating_new = shortcut.get("create", False)
+            modifying_existing = not creating_new and (
+                new_keys is not None or new_filter
+            )
+
+            if creating_new and new_keys == []:
+                raise ValueError("Cannot add a shortcut without keys")
+
+            if modifying_existing:
+                specification = {
+                    key: shortcut[key]
+                    for key in ["command", "filter"]
+                    if key in shortcut
+                }
+                if len(matching) == 0:
+                    raise ValueError(
+                        f"No shortcuts matching {specification} found in {KEY_BINDINGS}"
+                    )
+                elif len(matching) > 1:
+                    raise ValueError(
+                        f"Multiple shortcuts matching {specification} found,"
+                        f" please add keys/filter to select one of: {matching}"
+                    )
+
+                matched = matching[0]
+                old_filter = matched.filter
+                old_keys = list(matched.keys)
+                shortcuts_to_skip.append(
+                    RuntimeBinding(
+                        command,
+                        keys=old_keys,
+                        filter=old_filter,
+                    )
+                )
+
+            if new_keys != []:
+                shortcuts_to_add.append(
+                    RuntimeBinding(
+                        command,
+                        keys=new_keys or old_keys,
+                        filter=filter_from_string(new_filter)
+                        if new_filter is not None
+                        else (
+                            old_filter
+                            if old_filter is not None
+                            else filter_from_string("always")
+                        ),
+                    )
+                )
+
+        # rebuild the bindings list from scratch
+        key_bindings = create_ipython_shortcuts(self, skip=shortcuts_to_skip)
+        for binding in shortcuts_to_add:
+            add_binding(key_bindings, binding)
+
+        return key_bindings
+
     prompt_includes_vi_mode = Bool(True,
         help="Display the current vi mode (when using vi editing mode)."
+    ).tag(config=True)
+
+    prompt_line_number_format = Unicode(
+        "",
+        help="The format for line numbering, will be passed `line` (int, 1 based)"
+        " the current line number and `rel_line` the relative line number."
+        " for example to display both you can use the following template string :"
+        " c.TerminalInteractiveShell.prompt_line_number_format='{line: 4d}/{rel_line:+03d} | '"
+        " This will display the current line number, with leading space and a width of at least 4"
+        " character, as well as the relative line number 0 padded and always with a + or - sign."
+        " Note that when using Emacs mode the prompt of the first line may not update.",
     ).tag(config=True)
 
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
-        if self.term_title:
+        if self.term_title and _is_tty:
             toggle_set_term_title(True)
             set_term_title(self.term_title_format.format(cwd=abbrev_cwd()))
         else:
             toggle_set_term_title(False)
 
     def restore_term_title(self):
-        if self.term_title:
+        if self.term_title and _is_tty:
             restore_term_title()
 
     def init_display_formatter(self):
@@ -435,8 +645,7 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
         # Set up keyboard shortcuts
-        key_bindings = create_ipython_shortcuts(self)
-
+        key_bindings = self._merge_shortcuts(user_shortcuts=self.shortcuts)
 
         # Pre-populate history from IPython's history database
         history = PtkHistoryAdapter(self)
@@ -446,7 +655,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
-        self.pt_loop = asyncio.new_event_loop()
+        self._use_asyncio_inputhook = False
         self.pt_app = PromptSession(
             auto_suggest=self.auto_suggest,
             editing_mode=editing_mode,
@@ -460,8 +669,10 @@ class TerminalInteractiveShell(InteractiveShell):
             enable_open_in_editor=self.extra_open_editor_shortcuts,
             color_depth=self.color_depth,
             tempfile_suffix=".py",
-            **self._extra_prompt_options()
+            **self._extra_prompt_options(),
         )
+        if isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
+            self.auto_suggest.connect(self.pt_app)
 
     def _make_style_from_name_or_cls(self, name_or_cls):
         """
@@ -549,7 +760,7 @@ class TerminalInteractiveShell(InteractiveShell):
         def get_message():
             return PygmentsTokens(self.prompts.in_prompt_tokens())
 
-        if self.editing_mode == 'emacs':
+        if self.editing_mode == "emacs" and self.prompt_line_number_format == "":
             # with emacs mode the prompt is (usually) static, so we call only
             # the function once. With VI mode it can toggle between [ins] and
             # [nor] so we can't precompute.
@@ -560,23 +771,41 @@ class TerminalInteractiveShell(InteractiveShell):
             get_message = get_message()
 
         options = {
-                'complete_in_thread': False,
-                'lexer':IPythonPTLexer(),
-                'reserve_space_for_menu':self.space_for_menu,
-                'message': get_message,
-                'prompt_continuation': (
-                    lambda width, lineno, is_soft_wrap:
-                        PygmentsTokens(self.prompts.continuation_prompt_tokens(width))),
-                'multiline': True,
-                'complete_style': self.pt_complete_style,
-
+            "complete_in_thread": False,
+            "lexer": IPythonPTLexer(),
+            "reserve_space_for_menu": self.space_for_menu,
+            "message": get_message,
+            "prompt_continuation": (
+                lambda width, lineno, is_soft_wrap: PygmentsTokens(
+                    _backward_compat_continuation_prompt_tokens(
+                        self.prompts.continuation_prompt_tokens, width, lineno=lineno
+                    )
+                )
+            ),
+            "multiline": True,
+            "complete_style": self.pt_complete_style,
+            "input_processors": [
                 # Highlight matching brackets, but only when this setting is
                 # enabled, and only when the DEFAULT_BUFFER has the focus.
-                'input_processors': [ConditionalProcessor(
-                        processor=HighlightMatchingBracketProcessor(chars='[](){}'),
-                        filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
-                            Condition(lambda: self.highlight_matching_brackets))],
-                }
+                ConditionalProcessor(
+                    processor=HighlightMatchingBracketProcessor(chars="[](){}"),
+                    filter=HasFocus(DEFAULT_BUFFER)
+                    & ~IsDone()
+                    & Condition(lambda: self.highlight_matching_brackets),
+                ),
+                # Show auto-suggestion in lines other than the last line.
+                ConditionalProcessor(
+                    processor=AppendAutoSuggestionInAnyLine(),
+                    filter=HasFocus(DEFAULT_BUFFER)
+                    & ~IsDone()
+                    & Condition(
+                        lambda: isinstance(
+                            self.auto_suggest, NavigableAutoSuggestFromHistory
+                        )
+                    ),
+                ),
+            ],
+        }
         if not PTK3:
             options['inputhook'] = self.inputhook
 
@@ -595,24 +824,23 @@ class TerminalInteractiveShell(InteractiveShell):
         # If we don't do this, people could spawn coroutine with a
         # while/true inside which will freeze the prompt.
 
-        policy = asyncio.get_event_loop_policy()
-        old_loop = get_asyncio_loop()
-
-        # FIXME: prompt_toolkit is using the deprecated `asyncio.get_event_loop`
-        # to get the current event loop.
-        # This will probably be replaced by an attribute or input argument,
-        # at which point we can stop calling the soon-to-be-deprecated `set_event_loop` here.
-        if old_loop is not self.pt_loop:
-            policy.set_event_loop(self.pt_loop)
-        try:
-            with patch_stdout(raw=True):
+        with patch_stdout(raw=True):
+            if self._use_asyncio_inputhook:
+                # When we integrate the asyncio event loop, run the UI in the
+                # same event loop as the rest of the code. don't use an actual
+                # input hook. (Asyncio is not made for nesting event loops.)
+                asyncio_loop = get_asyncio_loop()
+                text = asyncio_loop.run_until_complete(
+                    self.pt_app.prompt_async(
+                        default=default, **self._extra_prompt_options()
+                    )
+                )
+            else:
                 text = self.pt_app.prompt(
                     default=default,
-                    **self._extra_prompt_options())
-        finally:
-            # Restore the original event loop.
-            if old_loop is not None and old_loop is not self.pt_loop:
-                policy.set_event_loop(old_loop)
+                    inputhook=self._inputhook,
+                    **self._extra_prompt_options(),
+                )
 
         return text
 
@@ -646,15 +874,13 @@ class TerminalInteractiveShell(InteractiveShell):
             for cmd in ('clear', 'more', 'less', 'man'):
                 self.alias_manager.soft_define_alias(cmd, cmd)
 
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
         self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()
         self.keep_running = True
         self._set_formatter(self.autoformatter)
-
 
     def ask_exit(self):
         self.keep_running = False
@@ -703,40 +929,50 @@ class TerminalInteractiveShell(InteractiveShell):
 
         self._atexit_once()
 
-
     _inputhook = None
     def inputhook(self, context):
         if self._inputhook is not None:
             self._inputhook(context)
 
-    active_eventloop = None
-    def enable_gui(self, gui=None):
-        if gui and (gui != 'inline') :
-            self.active_eventloop, self._inputhook =\
-                get_inputhook_name_and_func(gui)
+    active_eventloop: Optional[str] = None
+
+    def enable_gui(self, gui: Optional[str] = None) -> None:
+        if self.simple_prompt is True and gui is not None:
+            print(
+                f'Cannot install event loop hook for "{gui}" when running with `--simple-prompt`.'
+            )
+            print(
+                "NOTE: Tk is supported natively; use Tk apps and Tk backends with `--simple-prompt`."
+            )
+            return
+
+        if self._inputhook is None and gui is None:
+            print("No event loop hook running.")
+            return
+
+        if self._inputhook is not None and gui is not None:
+            newev, newinhook = get_inputhook_name_and_func(gui)
+            if self._inputhook == newinhook:
+                # same inputhook, do nothing
+                self.log.info(
+                    f"Shell is already running the {self.active_eventloop} eventloop. Doing nothing"
+                )
+                return
+            self.log.warning(
+                f"Shell is already running a different gui event loop for {self.active_eventloop}. "
+                "Call with no arguments to disable the current loop."
+            )
+            return
+        if self._inputhook is not None and gui is None:
+            self.active_eventloop = self._inputhook = None
+
+        if gui and (gui not in {"inline", "webagg"}):
+            # This hook runs with each cycle of the `prompt_toolkit`'s event loop.
+            self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
         else:
             self.active_eventloop = self._inputhook = None
 
-        # For prompt_toolkit 3.0. We have to create an asyncio event loop with
-        # this inputhook.
-        if PTK3:
-            import asyncio
-            from prompt_toolkit.eventloop import new_eventloop_with_inputhook
-
-            if gui == 'asyncio':
-                # When we integrate the asyncio event loop, run the UI in the
-                # same event loop as the rest of the code. don't use an actual
-                # input hook. (Asyncio is not made for nesting event loops.)
-                self.pt_loop = get_asyncio_loop()
-
-            elif self._inputhook:
-                # If an inputhook was set, create a new asyncio event loop with
-                # this inputhook for the prompt.
-                self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
-            else:
-                # When there's no inputhook, run the prompt in a separate
-                # asyncio event loop.
-                self.pt_loop = asyncio.new_event_loop()
+        self._use_asyncio_inputhook = gui == "asyncio"
 
     # Run !system commands directly, not through pipes, so terminal programs
     # work correctly.

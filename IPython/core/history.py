@@ -6,15 +6,12 @@
 
 import atexit
 import datetime
-from pathlib import Path
 import re
 import sqlite3
 import threading
+from pathlib import Path
 
-from traitlets.config.configurable import LoggingConfigurable
 from decorator import decorator
-from IPython.utils.decorators import undoc
-from IPython.paths import locate_profile
 from traitlets import (
     Any,
     Bool,
@@ -22,12 +19,16 @@ from traitlets import (
     Instance,
     Integer,
     List,
+    TraitError,
     Unicode,
     Union,
-    TraitError,
     default,
     observe,
 )
+from traitlets.config.configurable import LoggingConfigurable
+
+from IPython.paths import locate_profile
+from IPython.utils.decorators import undoc
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -176,6 +177,10 @@ class HistoryAccessor(HistoryAccessorBase):
         when establishing database connections.
         """
     ).tag(config=True)
+
+    @default("connection_options")
+    def _default_connection_options(self):
+        return dict(check_same_thread=False)
 
     # The SQLite database
     db = Any()
@@ -485,8 +490,9 @@ class HistoryManager(HistoryAccessor):
     input_hist_parsed = List([""])
     input_hist_raw = List([""])
     # A list of directories visited during session
-    dir_hist = List()
-    @default('dir_hist')
+    dir_hist: List = List()
+
+    @default("dir_hist")
     def _dir_hist_default(self):
         try:
             return [Path.cwd()]
@@ -510,8 +516,8 @@ class HistoryManager(HistoryAccessor):
         "Values of 1 or less effectively disable caching."
     ).tag(config=True)
     # The input and output caches
-    db_input_cache = List()
-    db_output_cache = List()
+    db_input_cache: List = List()
+    db_output_cache: List = List()
 
     # History saving in separate thread
     save_thread = Instance('IPython.core.history.HistorySavingThread',
@@ -522,10 +528,10 @@ class HistoryManager(HistoryAccessor):
     # Variables used to store the three last inputs from the user.  On each new
     # history update, we populate the user's namespace with these, shifted as
     # necessary.
-    _i00 = Unicode(u'')
-    _i = Unicode(u'')
-    _ii = Unicode(u'')
-    _iii = Unicode(u'')
+    _i00 = Unicode("")
+    _i = Unicode("")
+    _ii = Unicode("")
+    _iii = Unicode("")
 
     # A regex matching all forms of the exit command, so that we don't store
     # them in the history (it's annoying to rewind the first entry and land on
@@ -550,7 +556,14 @@ class HistoryManager(HistoryAccessor):
 
         if self.enabled and self.hist_file != ':memory:':
             self.save_thread = HistorySavingThread(self)
-            self.save_thread.start()
+            try:
+                self.save_thread.start()
+            except RuntimeError:
+                self.log.error(
+                    "Failed to start history saving thread. History will not be saved.",
+                    exc_info=True,
+                )
+                self.hist_file = ":memory:"
 
     def _get_hist_file_name(self, profile=None):
         """Get default history file name based on the Shell's profile.
@@ -567,17 +580,26 @@ class HistoryManager(HistoryAccessor):
             conn = self.db
 
         with conn:
-            cur = conn.execute("""INSERT INTO sessions VALUES (NULL, ?, NULL,
-                            NULL, "") """, (datetime.datetime.now(),))
+            cur = conn.execute(
+                """INSERT INTO sessions VALUES (NULL, ?, NULL,
+                            NULL, '') """,
+                (datetime.datetime.now().isoformat(" "),),
+            )
             self.session_number = cur.lastrowid
 
     def end_session(self):
         """Close the database session, filling in the end time and line count."""
         self.writeout_cache()
         with self.db:
-            self.db.execute("""UPDATE sessions SET end=?, num_cmds=? WHERE
-                            session==?""", (datetime.datetime.now(),
-                            len(self.input_hist_parsed)-1, self.session_number))
+            self.db.execute(
+                """UPDATE sessions SET end=?, num_cmds=? WHERE
+                            session==?""",
+                (
+                    datetime.datetime.now().isoformat(" "),
+                    len(self.input_hist_parsed) - 1,
+                    self.session_number,
+                ),
+            )
         self.session_number = 0
 
     def name_session(self, name):
@@ -867,10 +889,10 @@ class HistorySavingThread(threading.Thread):
         super(HistorySavingThread, self).__init__(name="IPythonHistorySavingThread")
         self.history_manager = history_manager
         self.enabled = history_manager.enabled
-        atexit.register(self.stop)
 
     @only_when_enabled
     def run(self):
+        atexit.register(self.stop)
         # We need a separate db connection per thread:
         try:
             self.db = sqlite3.connect(
@@ -887,6 +909,8 @@ class HistorySavingThread(threading.Thread):
         except Exception as e:
             print(("The history saving thread hit an unexpected error (%s)."
                    "History will not be written to the database.") % repr(e))
+        finally:
+            atexit.unregister(self.stop)
 
     def stop(self):
         """This can be called from the main thread to safely stop this thread.

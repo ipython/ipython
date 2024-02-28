@@ -4,6 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 import asyncio
+import asyncio.exceptions
 import atexit
 import errno
 import os
@@ -85,7 +86,7 @@ class ScriptMagics(Magics):
         """
     )
 
-    script_magics = List(
+    script_magics: List = List(
         help="""Extra script cell magics to define
         
         This generates simple wrappers of `%%script foo` as `%%foo`.
@@ -94,6 +95,7 @@ class ScriptMagics(Magics):
         specify them in script_paths
         """,
     ).tag(config=True)
+
     @default('script_magics')
     def _script_magics_default(self):
         """default to a common list of programs"""
@@ -208,15 +210,23 @@ class ScriptMagics(Magics):
             """Call a coroutine on the asyncio thread"""
             return asyncio.run_coroutine_threadsafe(coro, event_loop).result()
 
+        async def _readchunk(stream):
+            try:
+                return await stream.readuntil(b"\n")
+            except asyncio.exceptions.IncompleteReadError as e:
+                return e.partial
+            except asyncio.exceptions.LimitOverrunError as e:
+                return await stream.read(e.consumed)
+
         async def _handle_stream(stream, stream_arg, file_object):
             while True:
-                line = (await stream.readline()).decode("utf8")
-                if not line:
+                chunk = (await _readchunk(stream)).decode("utf8", errors="replace")
+                if not chunk:
                     break
                 if stream_arg:
-                    self.shell.user_ns[stream_arg] = line
+                    self.shell.user_ns[stream_arg] = chunk
                 else:
-                    file_object.write(line)
+                    file_object.write(chunk)
                     file_object.flush()
 
         async def _stream_communicate(process, cell):

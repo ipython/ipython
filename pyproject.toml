@@ -1,3 +1,206 @@
 [build-system]
-requires = ["setuptools >= 51.0.0"]
-build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61.2"]
+# We need access to the 'setupbase' module at build time.
+# Hence we declare a custom build backend.
+build-backend = "_build_meta"  # just re-exports setuptools.build_meta definitions
+backend-path = ["."]
+
+[project]
+name = "ipython"
+description = "IPython: Productive Interactive Computing"
+keywords = ["Interactive", "Interpreter", "Shell", "Embedding"]
+classifiers = [
+    "Framework :: IPython",
+    "Framework :: Jupyter",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: System :: Shells",
+]
+requires-python = ">=3.10"
+dependencies = [
+    'colorama; sys_platform == "win32"',
+    "decorator",
+    "exceptiongroup; python_version<'3.11'",
+    "jedi>=0.16",
+    "matplotlib-inline",
+    'pexpect>4.3; sys_platform != "win32" and sys_platform != "emscripten"',
+    "prompt_toolkit>=3.0.41,<3.1.0",
+    "pygments>=2.4.0",
+    "stack_data",
+    "traitlets>=5.13.0",
+    "typing_extensions; python_version<'3.12'",
+]
+dynamic = ["authors", "license", "version"]
+
+[project.entry-points."pygments.lexers"]
+ipythonconsole = "IPython.lib.lexers:IPythonConsoleLexer"
+ipython = "IPython.lib.lexers:IPythonLexer"
+ipython3 = "IPython.lib.lexers:IPython3Lexer"
+
+[project.scripts]
+ipython = "IPython:start_ipython"
+ipython3 = "IPython:start_ipython"
+
+[project.readme]
+file = "long_description.rst"
+content-type = "text/x-rst"
+
+[project.urls]
+Homepage = "https://ipython.org"
+Documentation = "https://ipython.readthedocs.io/"
+Funding = "https://numfocus.org/"
+Source = "https://github.com/ipython/ipython"
+Tracker = "https://github.com/ipython/ipython/issues"
+
+[project.optional-dependencies]
+black = [
+    "black",
+]
+doc = [
+    "ipykernel",
+    "setuptools>=18.5",
+    "sphinx>=1.3",
+    "sphinx-rtd-theme",
+    "sphinxcontrib-jquery",
+    "docrepr",
+    "matplotlib",
+    "stack_data",
+    "typing_extensions",
+    "exceptiongroup",
+    "ipython[test]",
+]
+kernel = [
+    "ipykernel",
+]
+nbconvert = [
+    "nbconvert",
+]
+nbformat = [
+    "nbformat",
+]
+notebook = [
+    "ipywidgets",
+    "notebook",
+]
+parallel = [
+    "ipyparallel",
+]
+qtconsole = [
+    "qtconsole",
+]
+terminal = []
+test = [
+    "pytest<8",
+    "pytest-asyncio<0.22",
+    "testpath",
+    "pickleshare",
+]
+test_extra = [
+    "ipython[test]",
+    "curio",
+    "matplotlib!=3.2.0",
+    "nbformat",
+    "numpy>=1.23",
+    "pandas",
+    "trio",
+]
+all = [
+    "ipython[black,doc,kernel,nbconvert,nbformat,notebook,parallel,qtconsole,terminal]",
+    "ipython[test,test_extra]",
+]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+follow_imports = 'silent'
+exclude = [
+   'test_\.+\.py',
+   'IPython.utils.tests.test_wildcard',
+   'testing',
+   'tests',
+   'PyColorize.py',
+   '_process_win32_controller.py',
+   'IPython/core/application.py',
+   'IPython/core/profileapp.py',
+   'IPython/lib/deepreload.py',
+   'IPython/sphinxext/ipython_directive.py',
+   'IPython/terminal/ipapp.py',
+   'IPython/utils/_process_win32.py',
+   'IPython/utils/path.py',
+]
+
+[tool.pytest.ini_options]
+addopts = [
+   "--durations=10",
+   "-pIPython.testing.plugin.pytest_ipdoctest",
+   "--ipdoctest-modules",
+   "--ignore=docs",
+   "--ignore=examples",
+   "--ignore=htmlcov",
+   "--ignore=ipython_kernel",
+   "--ignore=ipython_parallel",
+   "--ignore=results",
+   "--ignore=tmp",
+   "--ignore=tools",
+   "--ignore=traitlets",
+   "--ignore=IPython/core/tests/daft_extension",
+   "--ignore=IPython/sphinxext",
+   "--ignore=IPython/terminal/pt_inputhooks",
+   "--ignore=IPython/__main__.py",
+   "--ignore=IPython/external/qt_for_kernel.py",
+   "--ignore=IPython/html/widgets/widget_link.py",
+   "--ignore=IPython/html/widgets/widget_output.py",
+   "--ignore=IPython/terminal/console.py",
+   "--ignore=IPython/utils/_process_cli.py",
+   "--ignore=IPython/utils/_process_posix.py",
+   "--ignore=IPython/utils/_process_win32.py",
+   "--ignore=IPython/utils/_process_win32_controller.py",
+   "--ignore=IPython/utils/daemonize.py",
+   "--ignore=IPython/utils/eventful.py",
+   "--ignore=IPython/kernel",
+   "--ignore=IPython/consoleapp.py",
+   "--ignore=IPython/core/inputsplitter.py",
+   "--ignore=IPython/lib/kernel.py",
+   "--ignore=IPython/utils/jsonutil.py",
+   "--ignore=IPython/utils/localinterfaces.py",
+   "--ignore=IPython/utils/log.py",
+   "--ignore=IPython/utils/signatures.py",
+   "--ignore=IPython/utils/traitlets.py",
+   "--ignore=IPython/utils/version.py"
+]
+doctest_optionflags = [
+   "NORMALIZE_WHITESPACE",
+   "ELLIPSIS"
+]
+ipdoctest_optionflags = [
+   "NORMALIZE_WHITESPACE",
+   "ELLIPSIS"
+]
+asyncio_mode = "strict"
+
+[tool.pyright]
+pythonPlatform="All"
+
+[tool.setuptools]
+zip-safe = false
+platforms = ["Linux", "Mac OSX", "Windows"]
+license-files = ["LICENSE"]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+exclude = ["setupext"]
+namespaces = false
+
+[tool.setuptools.package-data]
+"IPython" = ["py.typed"]
+"IPython.core" = ["profile/README*"]
+"IPython.core.tests" = ["*.png", "*.jpg", "daft_extension/*.py"]
+"IPython.lib.tests" = ["*.wav"]
+"IPython.testing.plugin" = ["*.txt"]
+
+[tool.setuptools.dynamic]
+version = {attr = "IPython.core.release.__version__"}

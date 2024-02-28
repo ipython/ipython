@@ -278,7 +278,7 @@ class InteractiveShellApp(Configurable):
             )
             for ext in extensions:
                 try:
-                    self.log.info("Loading IPython extension: %s" % ext)
+                    self.log.info("Loading IPython extension: %s", ext)
                     self.shell.extension_manager.load_extension(ext)
                 except:
                     if self.reraise_ipython_extension_failures:

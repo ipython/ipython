@@ -9,10 +9,11 @@ import abc
 import functools
 import re
 import tokenize
-from tokenize import generate_tokens, untokenize, TokenError
+from tokenize import untokenize, TokenError
 from io import StringIO
 
 from IPython.core.splitinput import LineInfo
+from IPython.utils import tokenutil
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -70,8 +71,8 @@ class InputTransformer(metaclass=abc.ABCMeta):
         """
         @functools.wraps(func)
         def transformer_factory(**kwargs):
-            return cls(func, **kwargs)
-        
+            return cls(func, **kwargs)  # type: ignore [call-arg]
+
         return transformer_factory
 
 class StatelessInputTransformer(InputTransformer):
@@ -127,7 +128,7 @@ class TokenInputTransformer(InputTransformer):
 
     def reset_tokenizer(self):
         it = iter(self.buf)
-        self.tokenizer = generate_tokens(it.__next__)
+        self.tokenizer = tokenutil.generate_tokens_catch_errors(it.__next__)
 
     def push(self, line):
         self.buf.append(line + '\n')
@@ -193,7 +194,7 @@ def assemble_logical_lines():
         line = ''.join(parts)
 
 # Utilities
-def _make_help_call(target, esc, lspace):
+def _make_help_call(target: str, esc: str, lspace: str) -> str:
     """Prepares a pinfo(2)/psearch call from a target name and the escape
     (i.e. ? or ??)"""
     method  = 'pinfo2' if esc == '??' \
@@ -211,17 +212,19 @@ def _make_help_call(target, esc, lspace):
 
 
 # These define the transformations for the different escape characters.
-def _tr_system(line_info):
+def _tr_system(line_info: LineInfo):
     "Translate lines escaped with: !"
     cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
     return '%sget_ipython().system(%r)' % (line_info.pre, cmd)
 
-def _tr_system2(line_info):
+
+def _tr_system2(line_info: LineInfo):
     "Translate lines escaped with: !!"
     cmd = line_info.line.lstrip()[2:]
     return '%sget_ipython().getoutput(%r)' % (line_info.pre, cmd)
 
-def _tr_help(line_info):
+
+def _tr_help(line_info: LineInfo):
     "Translate lines escaped with: ?/??"
     # A naked help line should just fire the intro help screen
     if not line_info.line[1:]:
@@ -229,7 +232,8 @@ def _tr_help(line_info):
 
     return _make_help_call(line_info.ifun, line_info.esc, line_info.pre)
 
-def _tr_magic(line_info):
+
+def _tr_magic(line_info: LineInfo):
     "Translate lines escaped with: %"
     tpl = '%sget_ipython().run_line_magic(%r, %r)'
     if line_info.line.startswith(ESC_MAGIC2):
@@ -240,17 +244,20 @@ def _tr_magic(line_info):
     t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
     return tpl % (line_info.pre, t_magic_name, t_magic_arg_s)
 
-def _tr_quote(line_info):
+
+def _tr_quote(line_info: LineInfo):
     "Translate lines escaped with: ,"
     return '%s%s("%s")' % (line_info.pre, line_info.ifun,
                          '", "'.join(line_info.the_rest.split()) )
 
-def _tr_quote2(line_info):
+
+def _tr_quote2(line_info: LineInfo):
     "Translate lines escaped with: ;"
     return '%s%s("%s")' % (line_info.pre, line_info.ifun,
                            line_info.the_rest)
 
-def _tr_paren(line_info):
+
+def _tr_paren(line_info: LineInfo):
     "Translate lines escaped with: /"
     return '%s%s(%s)' % (line_info.pre, line_info.ifun,
                          ", ".join(line_info.the_rest.split()))
@@ -265,9 +272,8 @@ tr = { ESC_SHELL  : _tr_system,
        ESC_PAREN  : _tr_paren }
 
 @StatelessInputTransformer.wrap
-def escaped_commands(line):
-    """Transform escaped commands - %magic, !system, ?help + various autocalls.
-    """
+def escaped_commands(line: str):
+    """Transform escaped commands - %magic, !system, ?help + various autocalls."""
     if not line or line.isspace():
         return line
     lineinf = LineInfo(line)
@@ -295,7 +301,7 @@ def _line_tokens(line):
     readline = StringIO(line).readline
     toktypes = set()
     try:
-        for t in generate_tokens(readline):
+        for t in tokenutil.generate_tokens_catch_errors(readline):
             toktypes.add(t[0])
     except TokenError as e:
         # There are only two cases where a TokenError is raised.
@@ -341,20 +347,22 @@ def ends_in_comment_or_string(src):
         
 
 @StatelessInputTransformer.wrap
-def help_end(line):
+def help_end(line: str):
     """Translate lines with ?/?? at the end"""
     m = _help_end_re.search(line)
     if m is None or ends_in_comment_or_string(line):
         return line
     target = m.group(1)
     esc = m.group(3)
-    lspace = _initial_space_re.match(line).group(0)
+    match = _initial_space_re.match(line)
+    assert match is not None
+    lspace = match.group(0)
 
     return _make_help_call(target, esc, lspace)
 
 
 @CoroutineInputTransformer.wrap
-def cellmagic(end_on_blank_line=False):
+def cellmagic(end_on_blank_line: bool = False):
     """Captures & transforms cell magics.
 
     After a cell magic is started, this stores up any lines it gets until it is

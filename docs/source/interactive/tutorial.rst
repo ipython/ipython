@@ -120,7 +120,7 @@ IPython has a set of predefined 'magic functions' that you can call with a
 command line style syntax.  There are two kinds of magics, line-oriented and
 cell-oriented.  **Line magics** are prefixed with the ``%`` character and work
 much like OS command-line calls: they get as an argument the rest of the line,
-where arguments are passed without parentheses or quotes. **Lines magics** can
+where arguments are passed without parentheses or quotes. **Line magics** can
 return results and can be used in the right hand side of an assignment.  **Cell
 magics** are prefixed with a double ``%%``, and they are functions that get as
 an argument not only the rest of the line, but also the lines below it in a
@@ -133,12 +133,12 @@ The following examples show how to call the built-in :magic:`timeit` magic, both
 in line and cell mode::
 
       In [1]: %timeit range(1000)
-      100000 loops, best of 3: 7.76 us per loop
+      179 ns ± 2.66 ns per loop (mean ± std. dev. of 7 runs, 10000000 loops each)
 
       In [2]: %%timeit x = range(10000)
       ...: max(x)
       ...: 
-      1000 loops, best of 3: 223 us per loop
+      264 µs ± 1 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
 The built-in magics include:
 

@@ -173,8 +173,8 @@ class TestPylabSwitch(object):
         # Save rcParams since they get modified
         self._saved_rcParams = matplotlib.rcParams
         self._saved_rcParamsOrig = matplotlib.rcParamsOrig
-        matplotlib.rcParams = dict(backend='Qt4Agg')
-        matplotlib.rcParamsOrig = dict(backend='Qt4Agg')
+        matplotlib.rcParams = dict(backend="QtAgg")
+        matplotlib.rcParamsOrig = dict(backend="QtAgg")
 
         # Mock out functions
         self._save_am = pt.activate_matplotlib
@@ -193,7 +193,6 @@ class TestPylabSwitch(object):
         matplotlib.rcParamsOrig = self._saved_rcParamsOrig
 
     def test_qt(self):
-
         s = self.Shell()
         gui, backend = s.enable_matplotlib(None)
         assert gui == "qt"
