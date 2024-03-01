@@ -328,7 +328,7 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
 
-    ast_transformers: List[ast.NodeTransformer] = List(
+    ast_transformers: List = List(
         [],
         help="""
         A list of ast.NodeTransformer subclass instances, which will be applied
