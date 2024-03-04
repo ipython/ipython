@@ -4,8 +4,8 @@
 
 .. _version 8.22:
 
-IPython 8.22
-============
+IPython 8.22, 8.22.1 and 8.22.2
+===============================
 
 Quick release of IPython for this short month of February, with quite a bit of
 activity with more than 15 PRs.
@@ -18,6 +18,10 @@ I am not going to details all the changes, but among other we have :
  - Fix issues with multiple call to ``matplotlib.pyplot.switch_backend``
  - Fix crashing IPython when some tracebacks encounter dynamically evaluated
    code.
+
+IPython 8.22.1 increase the minimal traitlets version, and 8.22.2 fix a critical
+bug on emscripten  preventing to use some magics like ``%matplotlib`` on
+jupyter-light.
 
 API changes
 -----------
