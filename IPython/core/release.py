@@ -16,11 +16,11 @@
 # release.  'dev' as a _version_extra string means this is a development
 # version
 _version_major = 8
-_version_minor = 23
-_version_patch = 0
+_version_minor = 22
+_version_patch = 2
 _version_extra = ".dev"
 # _version_extra = "rc1"
-# _version_extra = ""  # Uncomment this for full releases
+_version_extra = ""  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor, _version_patch]
