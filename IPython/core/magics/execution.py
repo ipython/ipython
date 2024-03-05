@@ -1506,7 +1506,7 @@ class ExecutionMagics(Magics):
     @line_cell_magic
     def code_wrap(self, line, cell=None):
         """
-        Simple magic to quickly define a code transformer for all IPython's future imput.
+        Simple magic to quickly define a code transformer for all IPython's future input.
 
         ``__code__`` and ``__ret__`` are special variable that represent the code to run
         and the value of the last expression of ``__code__`` respectively.
