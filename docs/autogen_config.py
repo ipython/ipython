@@ -109,7 +109,7 @@ def write_doc(name, title, app, preamble=None):
         f.write("\n")
         if preamble is not None:
             f.write(preamble + '\n\n')
-        #f.write(app.document_config_options())
+        f.write(app.document_config_options())
 
         for c in app._classes_inc_parents():
             f.write(class_config_rst_doc(c, trait_aliases))
