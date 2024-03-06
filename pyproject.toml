@@ -108,8 +108,11 @@ test_extra = [
     "pandas",
     "trio",
 ]
+matplotlib = [
+   "matplotlib"
+]
 all = [
-    "ipython[black,doc,kernel,nbconvert,nbformat,notebook,parallel,qtconsole,terminal]",
+    "ipython[black,doc,kernel,nbconvert,nbformat,notebook,parallel,qtconsole,matplotlib]",
     "ipython[test,test_extra]",
 ]
 
