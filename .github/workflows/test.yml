@@ -15,6 +15,8 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    # Disable scheduled CI runs on forks
+    if: github.event_name != 'schedule' || github.repository_owner == 'ipython'
     strategy:
       fail-fast: false
       matrix:
