@@ -187,7 +187,8 @@ class BasicMagics(Magics):
         md = MagicsDisplay(self.shell.magics_manager, ignore=[])
         if args.json:
             return md._repr_json_()
-        return md
+        else:
+            return md
 
     def _magic_docs(self, brief=False, rest=False):
         """Return docstrings from magic functions."""
