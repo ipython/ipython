@@ -31,8 +31,7 @@ from IPython.terminal import pt_inputhooks
 
 gui_keys = tuple(sorted(pt_inputhooks.backends) + sorted(pt_inputhooks.aliases))
 
-backend_keys = sorted(pylabtools.backends.keys())
-backend_keys.insert(0, 'auto')
+backend_keys = []
 
 shell_flags = {}
 
