@@ -24,12 +24,13 @@ from warnings import warn
 #-----------------------------------------------------------------------------
 
 magic_gui_arg = magic_arguments.argument(
-        'gui', nargs='?',
-        help="""Name of the matplotlib backend to use such as 'qt' or 'widget'.
+    "gui",
+    nargs="?",
+    help="""Name of the matplotlib backend to use such as 'qt' or 'widget'.
         If given, the corresponding matplotlib backend is used,
         otherwise it will be matplotlib's default
         (which you can set in your matplotlib config file).
-        """
+        """,
 )
 
 
@@ -93,11 +94,14 @@ class PylabMagics(Magics):
         args = magic_arguments.parse_argstring(self.matplotlib, line)
         if args.list:
             from IPython.core.pylabtools import _matplotlib_manages_backends
+
             if _matplotlib_manages_backends():
                 from matplotlib.backends.registry import backend_registry
+
                 backends_list = backend_registry.list_all()
             else:
                 from IPython.core.pylabtools import backends
+
                 backends_list = list(backends.keys())
             print("Available matplotlib backends: %s" % backends_list)
         else:

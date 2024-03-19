@@ -31,7 +31,7 @@ from IPython.terminal import pt_inputhooks
 
 gui_keys = tuple(sorted(pt_inputhooks.backends) + sorted(pt_inputhooks.aliases))
 
-backend_keys = []
+backend_keys: list[str] = []
 
 shell_flags = {}
 
