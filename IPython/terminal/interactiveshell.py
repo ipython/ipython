@@ -966,7 +966,7 @@ class TerminalInteractiveShell(InteractiveShell):
         if self._inputhook is not None and gui is None:
             self.active_eventloop = self._inputhook = None
 
-        if gui and (gui not in {"inline", "webagg"}):
+        if gui and (gui not in {None, "webagg"}):
             # This hook runs with each cycle of the `prompt_toolkit`'s event loop.
             self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
         else:

@@ -199,7 +199,7 @@ class TestPylabSwitch(object):
         assert s.pylab_gui_select == "qt"
 
         gui, backend = s.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
         assert s.pylab_gui_select == "qt"
 
         gui, backend = s.enable_matplotlib("qt")
@@ -207,7 +207,7 @@ class TestPylabSwitch(object):
         assert s.pylab_gui_select == "qt"
 
         gui, backend = s.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
         assert s.pylab_gui_select == "qt"
 
         gui, backend = s.enable_matplotlib()
@@ -217,11 +217,11 @@ class TestPylabSwitch(object):
     def test_inline(self):
         s = self.Shell()
         gui, backend = s.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
         assert s.pylab_gui_select == None
 
         gui, backend = s.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
         assert s.pylab_gui_select == None
 
         gui, backend = s.enable_matplotlib("qt")
@@ -233,14 +233,14 @@ class TestPylabSwitch(object):
 
         ip = self.Shell()
         gui, backend = ip.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
 
         fmts =  {'png'}
         active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
         pt.select_figure_formats(ip, fmts)
 
         gui, backend = ip.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
 
         for mime, f in ip.display_formatter.formatters.items():
             if mime in active_mimes:
@@ -254,7 +254,7 @@ class TestPylabSwitch(object):
         assert gui == "qt"
         assert s.pylab_gui_select == "qt"
 
-        gui, backend = s.enable_matplotlib("gtk")
+        gui, backend = s.enable_matplotlib("gtk3")
         assert gui == "qt"
         assert s.pylab_gui_select == "qt"
 
