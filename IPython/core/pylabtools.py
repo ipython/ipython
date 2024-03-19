@@ -44,7 +44,9 @@ _deprecated_backends = {
 # GUI support to activate based on the desired matplotlib backend.  For the
 # most part it's just a reverse of the above dict, but we also need to add a
 # few others that map to the same GUI manually:
-_deprecated_backend2gui = dict(zip(_deprecated_backends.values(), _deprecated_backends.keys()))
+_deprecated_backend2gui = dict(
+    zip(_deprecated_backends.values(), _deprecated_backends.keys())
+)
 # In the reverse mapping, there are a few extra valid matplotlib backends that
 # map to the same GUI support
 _deprecated_backend2gui["GTK"] = _deprecated_backend2gui["GTKCairo"] = "gtk"
@@ -279,7 +281,7 @@ def select_figure_formats(shell, formats, **kwargs):
 
     [ f.pop(Figure, None) for f in shell.display_formatter.formatters.values() ]
     mplbackend = matplotlib.get_backend().lower()
-    if mplbackend in ('nbagg', 'ipympl', 'widget', 'module://ipympl.backend_nbagg'):
+    if mplbackend in ("nbagg", "ipympl", "widget", "module://ipympl.backend_nbagg"):
         formatter = shell.display_formatter.ipython_display_formatter
         formatter.for_type(Figure, _reshow_nbagg_figure)
 
@@ -330,15 +332,16 @@ def find_gui_and_backend(gui=None, gui_select=None):
     """
 
     import matplotlib
+
     if _matplotlib_manages_backends():
         backend_registry = matplotlib.backends.registry.backend_registry
 
         # gui argument may be a gui event loop or may be a backend name.
         if gui in ("auto", None):
-            backend = matplotlib.rcParamsOrig['backend']
+            backend = matplotlib.rcParamsOrig["backend"]
             backend, gui = backend_registry.resolve_backend(backend)
         else:
-             backend, gui = backend_registry.resolve_gui_or_backend(gui)
+            backend, gui = backend_registry.resolve_gui_or_backend(gui)
 
         return gui, backend
 
@@ -347,6 +350,7 @@ def find_gui_and_backend(gui=None, gui_select=None):
     has_unified_qt_backend = mpl_version_info >= (3, 5)
 
     from IPython.core.pylabtools import backends
+
     backends_ = dict(backends)
     if not has_unified_qt_backend:
         backends_["qt"] = "qt5agg"
@@ -466,5 +470,6 @@ def configure_inline_support(shell, backend):
 
 def _matplotlib_manages_backends():
     import matplotlib
+
     mpl_version_info = getattr(matplotlib, "__version_info__", (0, 0))
     return mpl_version_info >= (3, 9)
