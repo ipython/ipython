@@ -18,9 +18,8 @@ import sys
 import tempfile
 import unittest
 import pytest
+from pathlib import Path
 from unittest import mock
-
-from os.path import join
 
 from IPython.core.error import InputRejected
 from IPython.core.inputtransformer import InputTransformer
@@ -585,16 +584,16 @@ class InteractiveShellTestCase(unittest.TestCase):
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
     @onlyif_unicode_paths
     def setUp(self):
-        self.BASETESTDIR = tempfile.mkdtemp()
-        self.TESTDIR = join(self.BASETESTDIR, u"åäö")
-        os.mkdir(self.TESTDIR)
-        with open(
-            join(self.TESTDIR, "åäötestscript.py"), "w", encoding="utf-8"
-        ) as sfile:
-            sfile.write("pass\n")
+        self.BASETESTDIR = Path(tempfile.mkdtemp())
+        self.TESTDIR = self.BASETESTDIR / "åäö"
+        self.TESTDIR.mkdir()
+
+        self.fname = "åäötestscript.py"
+        self.TESTFILE = self.TESTDIR / self.fname
+        self.TESTFILE.write_text("pass\n", encoding="utf-8")
+
         self.oldpath = os.getcwd()
         os.chdir(self.TESTDIR)
-        self.fname = u"åäötestscript.py"
 
     def tearDown(self):
         os.chdir(self.oldpath)
