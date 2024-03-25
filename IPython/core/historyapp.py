@@ -10,8 +10,14 @@ from pathlib import Path
 
 from traitlets.config.application import Application
 from .application import BaseIPythonApplication
-from traitlets import Bool, Int, Dict
+from traitlets import Bool, Int, Dict, Unicode, CaselessStrEnum
 from ..utils.io import ask_yes_no
+
+show_hist_help = """Show recent entries from the IPython history database.
+
+Limited to the last 1000 unless `--limit=N` is supplied; `--limit=0` or `-1`
+prints all entries in the database.
+"""
 
 trim_hist_help = """Trim the IPython history database to the last 1000 entries.
 
@@ -28,6 +34,123 @@ prompt.
 
 This is an handy alias to `ipython history trim --keep=0`
 """
+
+
+class HistoryShow(BaseIPythonApplication):
+    description = show_hist_help
+    limit = Int(1000, help="Number of recent history entries to show.").tag(config=True)
+
+    delimiter = Unicode(
+        "\t", help="Delimiter for separating the columns of history output."
+    ).tag(config=True)
+
+    header = Bool(False, help="Include a header row in the output.").tag(config=True)
+
+    pretty = Bool(
+        False, help="Pretty-print the output using IPython.utils.PyColorize."
+    ).tag(config=True)
+
+    colors = CaselessStrEnum(
+        ("Neutral", "NoColor", "LightBG", "Linux"),
+        default_value="Neutral",
+        help="Set the color scheme (NoColor, Neutral, Linux, or LightBG).",
+    ).tag(config=True)
+
+    color = CaselessStrEnum(
+        ("Never", "Always", "Auto"),
+        default_value="Auto",
+        help="Choose when to display color; requires `--pretty`.",
+    ).tag(config=True)
+
+    flags = Dict(
+        {
+            "L": (
+                {"HistoryShow": {"limit": -1}},
+                "No limit; show all history entries.",
+            ),
+            "pretty": ({"HistoryShow": {"pretty": True}}, pretty.help),
+            "P": ({"HistoryShow": {"pretty": True}}, "An alias for `--pretty`."),
+            "header": ({"HistoryShow": {"header": True}}, header.help),
+            "headers": ({"HistoryShow": {"header": True}}, "An alias for `--header`."),
+            "H": ({"HistoryShow": {"header": True}}, "An alias for `--header`."),
+            "color-always": (
+                {"HistoryShow": {"color": "Always"}},
+                "Always output in color (e.g., when piping into `less -R`).",
+            ),
+            "C": (
+                {"HistoryShow": {"color": "Always"}},
+                "An alias for `--color-always`.",
+            ),
+            "color-never": (
+                {"HistoryShow": {"color": "Never"}},
+                "Never show color, even if the output is a terminal.",
+            ),
+        }
+    )
+
+    aliases = Dict(
+        dict(
+            l="HistoryShow.limit",
+            limit="HistoryShow.limit",
+            d="HistoryShow.delimiter",
+            delimiter="HistoryShow.delimiter",
+            header="HistoryShow.header",
+            pretty="HistoryShow.pretty",
+            colors="HistoryShow.colors",
+            color="HistoryShow.color",
+        )
+    )
+
+    def start(self):
+        profile_dir = Path(self.profile_dir.location)
+        hist_file = profile_dir / "history.sqlite"
+        con = sqlite3.connect(hist_file)
+
+        if not self.limit:
+            self.limit = -1
+
+        # Grab the recent history from the current database.
+        entries = list(
+            con.execute(
+                """SELECT session, line, source, source_raw FROM
+               history ORDER BY session DESC, line DESC LIMIT ?""",
+                (self.limit,),
+            )
+        )
+
+        # Emulate shell `history` command; newest at bottom
+        entries.reverse()
+
+        if self.pretty:
+            import sys
+            from IPython.utils import PyColorize
+
+            pyformat = PyColorize.Parser(style=self.colors, parent=self).format
+
+            for entry in entries:
+                header = f">>> # session {entry[0]}, line {entry[1]}\n"
+                entry = header + str(entry[3])
+
+                if (
+                    sys.stdout.isatty() or self.color == "Always"
+                ) and self.color != "Never":
+                    print(pyformat(entry, out="str"))
+                else:
+                    # could set self.colors='NoColor' and just use pyformat
+                    # here, too, but this is probably marginally faster
+                    print(entry, "\n")
+
+        else:
+            if self.header:
+                print(self.delimiter.join(["session", "line", "source", "source_raw"]))
+            for entry in entries:
+                # FIXME: even if you specify `-d,` this is not very
+                # CSV-friendly, since the outer quote character (single or
+                # double) depends on whether the history entry itself has
+                # embedded strings
+                print(self.delimiter.join([repr(x) for x in entry]))
+
+        con.close()
 
 
 class HistoryTrim(BaseIPythonApplication):
@@ -139,10 +262,13 @@ class HistoryApp(Application):
     name = "ipython-history"
     description = "Manage the IPython history database."
 
-    subcommands = Dict(dict(
-        trim = (HistoryTrim, HistoryTrim.description.splitlines()[0]),
-        clear = (HistoryClear, HistoryClear.description.splitlines()[0]),
-    ))
+    subcommands = Dict(
+        dict(
+            show=(HistoryShow, HistoryShow.description.splitlines()[0]),
+            trim=(HistoryTrim, HistoryTrim.description.splitlines()[0]),
+            clear=(HistoryClear, HistoryClear.description.splitlines()[0]),
+        )
+    )
 
     def start(self):
         if self.subapp is None:
