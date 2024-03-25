@@ -13,7 +13,6 @@ import os
 import struct
 import warnings
 from copy import deepcopy
-from os.path import splitext
 from pathlib import Path, PurePath
 
 from IPython.utils.py3compat import cast_unicode
@@ -57,7 +56,8 @@ def __getattr__(name):
 def _safe_exists(path):
     """Check path, but don't let exceptions raise"""
     try:
-        return os.path.exists(path)
+        filepath = Path(path)
+        return filepath.exists() and str(path) != ""
     except Exception:
         return False
 
@@ -1071,7 +1071,8 @@ class Image(DisplayObject):
             return self._data_and_metadata()
 
     def _find_ext(self, s):
-        base, ext = splitext(s)
+        path = Path(s)
+        base, ext = str(path.parent / path.stem), path.suffix
 
         if not ext:
             return base
@@ -1149,7 +1150,10 @@ class Video(DisplayObject):
         if url is None and isinstance(data, str) and data.startswith(('http:', 'https:')):
             url = data
             data = None
-        elif data is not None and os.path.exists(data):
+        elif (
+            data is not None
+            and Path(data.decode() if isinstance(data, bytes) else data).exists()
+        ):
             filename = data
             data = None
 
@@ -1190,8 +1194,7 @@ class Video(DisplayObject):
             if not mimetype:
                 mimetype, _ = mimetypes.guess_type(self.filename)
 
-            with open(self.filename, 'rb') as f:
-                video = f.read()
+            video = Path(self.filename).read_bytes()
         else:
             video = self.data
         if isinstance(video, str):

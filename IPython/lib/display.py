@@ -3,7 +3,7 @@
 Authors : MinRK, gregcaporaso, dannystaple
 """
 from html import escape as html_escape
-from os.path import exists, isfile, splitext, abspath, join, isdir
+from pathlib import Path
 from os import walk, sep, fsdecode
 
 from IPython.core.display import DisplayObject, TextDisplayObject
@@ -403,7 +403,7 @@ class FileLink(object):
         result_html_suffix : str
             text to append at the end of link [default: '<br>']
         """
-        if isdir(path):
+        if Path(path).is_dir():
             raise ValueError("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
         self.path = fsdecode(path)
@@ -412,27 +412,32 @@ class FileLink(object):
         self.result_html_suffix = result_html_suffix
 
     def _format_path(self):
-        fp = ''.join([self.url_prefix, html_escape(self.path)])
-        return ''.join([self.result_html_prefix,
-                        self.html_link_str % \
-                            (fp, html_escape(self.path, quote=False)),
-                        self.result_html_suffix])
+        fp = "".join([self.url_prefix, html_escape(self.path)])
+        return "".join(
+            [
+                self.result_html_prefix,
+                self.html_link_str % (fp, html_escape(self.path, quote=False)),
+                self.result_html_suffix,
+            ]
+        )
 
     def _repr_html_(self):
         """return html link to file
         """
-        if not exists(self.path):
-            return ("Path (<tt>%s</tt>) doesn't exist. "
-                    "It may still be in the process of "
-                    "being generated, or you may have the "
-                    "incorrect path." % self.path)
+        if not Path(self.path).exists():
+            return (
+                "Path (<tt>%s</tt>) doesn't exist. "
+                "It may still be in the process of "
+                "being generated, or you may have the "
+                "incorrect path." % self.path
+            )
 
         return self._format_path()
 
     def __repr__(self):
         """return absolute path to file
         """
-        return abspath(self.path)
+        return str(Path(self.path).absolute())
 
 class FileLinks(FileLink):
     """Class for embedding local file links in an IPython session, based on path
@@ -493,14 +498,14 @@ class FileLinks(FileLink):
         passed here to support alternative formatting.
 
         """
-        if isfile(path):
+        if Path(path).is_file():
             raise ValueError("Cannot display a file using FileLinks. "
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
         # remove trailing slashes for more consistent output formatting
         path = path.rstrip('/')
 
-        self.path = path
+        self.path = Path(path)
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
         self.result_html_suffix = result_html_suffix
@@ -538,10 +543,11 @@ class FileLinks(FileLink):
             # are going to be displayed
             display_fnames = []
             for fname in fnames:
-                if (isfile(join(dirname,fname)) and
-                       (included_suffixes is None or
-                        splitext(fname)[1] in included_suffixes)):
-                      display_fnames.append(fname)
+                fname = Path(fname)
+                if (dirname / fname).is_file() and (
+                    included_suffixes is None or fname.suffix in included_suffixes
+                ):
+                    display_fnames.append(str(fname))
 
             if len(display_fnames) == 0:
                 # if there are no filenames to display, don't print anything
@@ -550,10 +556,10 @@ class FileLinks(FileLink):
             else:
                 # otherwise print the formatted directory name followed by
                 # the formatted filenames
-                dirname_output_line = dirname_output_format % dirname
+                dirname_output_line = dirname_output_format % str(dirname)
                 result.append(dirname_output_line)
                 for fname in display_fnames:
-                    fp = fp_format % (dirname,fname)
+                    fp = fp_format % (str(dirname), fname)
                     if fp_cleaner is not None:
                         fp = fp_cleaner(fp)
                     try:
@@ -611,6 +617,7 @@ class FileLinks(FileLink):
             walked_dir = [next(walk(self.path))]
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
+            dirname = Path(dirname)
             result_lines += self.notebook_display_formatter(dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
 
@@ -624,6 +631,7 @@ class FileLinks(FileLink):
             walked_dir = [next(walk(self.path))]
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
+            dirname = Path(dirname)
             result_lines += self.terminal_display_formatter(dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
 
