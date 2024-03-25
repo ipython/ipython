@@ -596,6 +596,12 @@ Currently the magic system has the following functions:""",
 
 @magics_class
 class AsyncMagics(BasicMagics):
+    @line_magic
+    def infix(self, parameter_s):
+        func, as_, op, prec_, prec = parameter_s.strip().split()
+        self.shell.OPERATOR_NAME = op
+        self.shell.OP_FUNC_NAME = func
+        self.shell.OPERATOR_PREC = prec
 
     @line_magic
     def autoawait(self, parameter_s):
