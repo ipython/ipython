@@ -34,7 +34,7 @@ jobs:
       run: |
         darker -r 60625f241f298b5039cb2debc365db38aa7bb522 --check --diff . || (
         echo "Changes need auto-formatting. Run:"
-        echo "    darker -r 60625f241f298b5039cb2debc365db38aa7bb522"
+        echo "    darker -r 60625f241f298b5039cb2debc365db38aa7bb522 ."
         echo "then commit and push changes to fix."
         exit 1
         )
