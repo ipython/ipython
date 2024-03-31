@@ -2,6 +2,33 @@
  8.x Series
 ============
 
+.. _version 8.23:
+
+IPython 8.23
+============
+
+Super tiny release of IPython on Sunday – a bit later than usual, which is also
+`🏳️‍⚧️ International Transgender Day of Visibility🏳️‍⚧️ 
+<https://en.wikipedia.org/wiki/International_Transgender_Day_of_Visibility>`_ –
+so a though for you on this day, you matter and you are valid [1]_.
+
+This is a minuscule release with only 5 Pull requests.
+
+Main change is :ghpull:`14357` which improve inference from return type
+annotations in completer and the introduction of the optional target
+``ipython[matplotlib]`` to explicitly request the matplotlib optional
+dependencies.
+
+As usual you can find the full list of PRs on GitHub under `the 8.23
+<https://github.com/ipython/ipython/milestone/130?closed=1>`__ milestone.
+
+Thanks
+------
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 8.22:
 
 IPython 8.22, 8.22.1 and 8.22.2
@@ -2204,3 +2231,7 @@ The following attribute/methods have been removed::
     - IPython.terminal.ipapp.LocateIPythonApp.initialize_subcommand
     - IPython.terminal.ipapp.TerminalIPythonApp.deprecated_subcommands
     - IPython.terminal.ipapp.TerminalIPythonApp.initialize_subcommand
+
+------
+
+.. [1] If this make you incomfortable feel free to not use IPython 8.23.
