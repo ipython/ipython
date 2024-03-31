@@ -40,6 +40,9 @@ class MagicsDisplay(object):
     def _repr_pretty_(self, p, cycle):
         p.text(self._lsmagic())
     
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         return self._lsmagic()
     
