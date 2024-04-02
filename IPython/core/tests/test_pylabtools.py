@@ -268,3 +268,87 @@ def test_figure_no_canvas():
     fig = Figure()
     fig.canvas = None
     pt.print_figure(fig)
+
+
+@pytest.mark.parametrize(
+    "name, expected_gui, expected_backend",
+    [
+        # name is gui
+        ("gtk3", "gtk3", "gtk3agg"),
+        ("gtk4", "gtk4", "gtk4agg"),
+        ("headless", "headless", "agg"),
+        ("osx", "osx", "macosx"),
+        ("qt", "qt", "qtagg"),
+        ("qt5", "qt5", "qt5agg"),
+        ("qt6", "qt6", "qt6agg"),
+        ("tk", "tk", "tkagg"),
+        ("wx", "wx", "wxagg"),
+        # name is backend
+        ("agg", None, "agg"),
+        ("cairo", None, "cairo"),
+        ("pdf", None, "pdf"),
+        ("ps", None, "ps"),
+        ("svg", None, "svg"),
+        ("template", None, "template"),
+        ("gtk3agg", "gtk3", "gtk3agg"),
+        ("gtk3cairo", "gtk3", "gtk3cairo"),
+        ("gtk4agg", "gtk4", "gtk4agg"),
+        ("gtk4cairo", "gtk4", "gtk4cairo"),
+        ("macosx", "osx", "macosx"),
+        ("nbagg", "nbagg", "nbagg"),
+        ("notebook", "nbagg", "notebook"),
+        ("qtagg", "qt", "qtagg"),
+        ("qtcairo", "qt", "qtcairo"),
+        ("qt5agg", "qt5", "qt5agg"),
+        ("qt5cairo", "qt5", "qt5cairo"),
+        ("qt6agg", "qt", "qt6agg"),
+        ("qt6cairo", "qt", "qt6cairo"),
+        ("tkagg", "tk", "tkagg"),
+        ("tkcairo", "tk", "tkcairo"),
+        ("webagg", "webagg", "webagg"),
+        ("wxagg", "wx", "wxagg"),
+        ("wxcairo", "wx", "wxcairo"),
+    ],
+)
+def test_backend_builtin(name, expected_gui, expected_backend):
+    # Test correct identification of Matplotlib built-in backends without importing and using them,
+    # otherwise we would need to ensure all the complex dependencies such as windowing toolkits are
+    # installed.
+
+    mpl_manages_backends = pt._matplotlib_manages_backends()
+    if not mpl_manages_backends:
+        # Backends not supported before _matplotlib_manages_backends or supported
+        # but with different expected_gui or expected_backend.
+        if (
+            name.endswith("agg")
+            or name.endswith("cairo")
+            or name in ("headless", "macosx", "pdf", "ps", "svg", "template")
+        ):
+            pytest.skip()
+        elif name == "qt6":
+            expected_backend = "qtagg"
+        elif name == "notebook":
+            expected_backend, expected_gui = expected_gui, expected_backend
+
+    gui, backend = pt.find_gui_and_backend(name)
+    if not mpl_manages_backends:
+        gui = gui.lower() if gui else None
+        backend = backend.lower() if backend else None
+    assert gui == expected_gui
+    assert backend == expected_backend
+
+
+def test_backend_entry_point():
+    gui, backend = pt.find_gui_and_backend("inline")
+    assert gui is None
+    expected_backend = (
+        "inline"
+        if pt._matplotlib_manages_backends()
+        else "module://matplotlib_inline.backend_inline"
+    )
+    assert backend == expected_backend
+
+
+def test_backend_unknown():
+    with pytest.raises(RuntimeError if pt._matplotlib_manages_backends() else KeyError):
+        pt.find_gui_and_backend("name-does-not-exist")

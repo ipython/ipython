@@ -111,7 +111,7 @@ def display(
     display_id=None,
     raw=False,
     clear=False,
-    **kwargs
+    **kwargs,
 ):
     """Display a Python object in all frontends.
 

@@ -197,7 +197,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         dummy=None,
         stack_depth=1,
         compile_flags=None,
-        **kw
+        **kw,
     ):
         """Activate the interactive interpreter.
 
