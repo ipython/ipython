@@ -100,6 +100,8 @@ All the changes since then are under the same license as IPython.
 #
 #*****************************************************************************
 
+from __future__ import annotations
+
 import inspect
 import linecache
 import os
@@ -111,6 +113,12 @@ from functools import lru_cache
 from IPython import get_ipython
 from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize, coloransi, py3compat
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # otherwise circular import
+    from IPython.core.interactiveshell import InteractiveShell
 
 # skip module docstests
 __skip_doctest__ = True
@@ -189,6 +197,8 @@ class Pdb(OldPdb):
     See the `skip_predicates` commands.
 
     """
+
+    shell: InteractiveShell
 
     if CHAIN_EXCEPTIONS:
         MAX_CHAINED_EXCEPTION_DEPTH = 999
@@ -470,23 +480,10 @@ class Pdb(OldPdb):
 
         return line
 
-    def new_do_frame(self, arg):
-        OldPdb.do_frame(self, arg)
-
     def new_do_quit(self, arg):
-
-        if hasattr(self, 'old_all_completions'):
-            self.shell.Completer.all_completions = self.old_all_completions
-
         return OldPdb.do_quit(self, arg)
 
     do_q = do_quit = decorate_fn_with_doc(new_do_quit, OldPdb.do_quit)
-
-    def new_do_restart(self, arg):
-        """Restart command. In the context of ipython this is exactly the same
-        thing as 'quit'."""
-        self.msg("Restart doesn't make sense here. Using 'quit' instead.")
-        return self.do_quit(arg)
 
     def print_stack_trace(self, context=None):
         Colors = self.color_scheme_table.active_colors
