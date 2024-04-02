@@ -149,16 +149,6 @@ def make_arrow(pad):
     return ''
 
 
-def BdbQuit_excepthook(et, ev, tb, excepthook=None):
-    """Exception hook which handles `BdbQuit` exceptions.
-
-    All other exceptions are processed using the `excepthook`
-    parameter.
-    """
-    raise ValueError(
-        "`BdbQuit_excepthook` is deprecated since version 5.1",
-    )
-
 RGX_EXTRA_INDENT = re.compile(r'(?<=\n)\s+')
 
 
