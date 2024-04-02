@@ -159,13 +159,6 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
         "`BdbQuit_excepthook` is deprecated since version 5.1",
     )
 
-
-def BdbQuit_IPython_excepthook(self, et, ev, tb, tb_offset=None):
-    raise ValueError(
-        "`BdbQuit_IPython_excepthook` is deprecated since version 5.1",
-        DeprecationWarning, stacklevel=2)
-
-
 RGX_EXTRA_INDENT = re.compile(r'(?<=\n)\s+')
 
 
@@ -270,21 +263,6 @@ class Pdb(OldPdb):
         C = coloransi.TermColors
         cst = self.color_scheme_table
 
-        cst['NoColor'].colors.prompt = C.NoColor
-        cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-        cst['NoColor'].colors.breakpoint_disabled = C.NoColor
-
-        cst['Linux'].colors.prompt = C.Green
-        cst['Linux'].colors.breakpoint_enabled = C.LightRed
-        cst['Linux'].colors.breakpoint_disabled = C.Red
-
-        cst['LightBG'].colors.prompt = C.Blue
-        cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-        cst['LightBG'].colors.breakpoint_disabled = C.Red
-
-        cst['Neutral'].colors.prompt = C.Blue
-        cst['Neutral'].colors.breakpoint_enabled = C.LightRed
-        cst['Neutral'].colors.breakpoint_disabled = C.Red
 
         # Add a python parser so we can syntax highlight source while
         # debugging.

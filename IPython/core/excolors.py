@@ -34,9 +34,10 @@ def exception_colors():
     >>> ec.active_scheme_name
     'NoColor'
     >>> sorted(ec.active_colors.keys())
-    ['Normal', 'caret', 'em', 'excName', 'filename', 'filenameEm', 'line',
-    'lineno', 'linenoEm', 'name', 'nameEm', 'normalEm', 'topline', 'vName',
-    'val', 'valEm']
+    ['Normal', 'breakpoint_disabled', 'breakpoint_enabled', 'caret', 'em',
+    'excName', 'filename', 'filenameEm', 'line', 'lineno', 'linenoEm', 'name',
+    'nameEm', 'normalEm', 'prompt', 'topline', 'vName', 'val', 'valEm']
+
     """
 
     ex_colors = ColorSchemeTable()
@@ -70,6 +71,10 @@ def exception_colors():
                 "line": C.NoColor,
                 "caret": C.NoColor,
                 "Normal": C.NoColor,
+                # debugger
+                "prompt": C.NoColor,
+                "breakpoint_enabled": C.NoColor,
+                "breakpoint_disabled": C.NoColor,
             },
         )
     )
@@ -99,6 +104,10 @@ def exception_colors():
                 "line": C.Yellow,
                 "caret": C.White,
                 "Normal": C.Normal,
+                # debugger
+                "prompt": C.Green,
+                "breakpoint_enabled": C.LightRed,
+                "breakpoint_disabled": C.Red,
             },
         )
     )
@@ -132,6 +141,10 @@ def exception_colors():
                 "line": C.Red,
                 "caret": C.Normal,
                 "Normal": C.Normal,
+                # debugger
+                "prompt": C.Blue,
+                "breakpoint_enabled": C.LightRed,
+                "breakpoint_disabled": C.Red,
             },
         )
     )
@@ -161,6 +174,10 @@ def exception_colors():
                 "line": C.Red,
                 "caret": C.Normal,
                 "Normal": C.Normal,
+                # debugger
+                "prompt": C.Blue,
+                "breakpoint_enabled": C.LightRed,
+                "breakpoint_disabled": C.Red,
             },
         )
     )
