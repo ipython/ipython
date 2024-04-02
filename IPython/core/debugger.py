@@ -149,23 +149,6 @@ def make_arrow(pad):
     return ''
 
 
-def BdbQuit_excepthook(et, ev, tb, excepthook=None):
-    """Exception hook which handles `BdbQuit` exceptions.
-
-    All other exceptions are processed using the `excepthook`
-    parameter.
-    """
-    raise ValueError(
-        "`BdbQuit_excepthook` is deprecated since version 5.1",
-    )
-
-
-def BdbQuit_IPython_excepthook(self, et, ev, tb, tb_offset=None):
-    raise ValueError(
-        "`BdbQuit_IPython_excepthook` is deprecated since version 5.1",
-        DeprecationWarning, stacklevel=2)
-
-
 RGX_EXTRA_INDENT = re.compile(r'(?<=\n)\s+')
 
 
