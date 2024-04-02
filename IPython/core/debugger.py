@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Pdb debugger class.
 
@@ -103,15 +102,15 @@ All the changes since then are under the same license as IPython.
 
 import inspect
 import linecache
-import sys
-import re
 import os
+import re
+import sys
+from contextlib import contextmanager
+from functools import lru_cache
 
 from IPython import get_ipython
-from contextlib import contextmanager
-from IPython.utils import PyColorize
-from IPython.utils import coloransi, py3compat
 from IPython.core.excolors import exception_colors
+from IPython.utils import PyColorize, coloransi, py3compat
 
 # skip module docstests
 __skip_doctest__ = True
@@ -941,11 +940,14 @@ class Pdb(OldPdb):
         Utility to tell us whether we are in a decorator internal and should stop.
 
         """
-
         # if we are disabled don't skip
         if not self._predicates["debuggerskip"]:
             return False
 
+        return self._cachable_skip(frame)
+
+    @lru_cache
+    def _cachable_skip(self, frame):
         # if frame is tagged, skip by default.
         if DEBUGGERSKIP in frame.f_code.co_varnames:
             return True
