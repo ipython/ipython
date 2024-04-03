@@ -72,6 +72,7 @@ doc = [
     "typing_extensions",
     "exceptiongroup",
     "ipython[test]",
+    "toml",
 ]
 kernel = [
     "ipykernel",
