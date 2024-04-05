@@ -71,8 +71,34 @@ class TermColors:
     Normal = '\033[0m'   # Reset normal coloring
     _base  = '\033[%sm'  # Template for all other colors
 
-# Build the actual color table as a set of class attributes:
-make_color_table(TermColors)
+    Black = "0;30"
+    Red = "0;31"
+    Green = "0;32"
+    Brown = "0;33"
+    Blue = "0;34"
+    Purple = "0;35"
+    Cyan = "0;36"
+    LightGray = "0;37"
+    # Light colors
+    DarkGray = "1;31"
+    LightRed = "1;32"
+    LightGreen = "1;33"
+    Yellow = "1;34"
+    LightBlue = "1;35"
+    LightPurple = "1;36"
+    LightCyan = "1;37"
+    White = "1;38"
+    # Blinking colors.  Probably should not be used in anything serious.
+    BlinkBlack = "5;30"
+    BlinkRed = "5;31"
+    BlinkGreen = "5;32"
+    BlinkYellow = "5;33"
+    BlinkBlue = "5;34"
+    BlinkPurple = "5;35"
+    BlinkCyan = "5;36"
+    BlinkLightGray = "5;37"
+
+
 
 class InputTermColors:
     """Color escape sequences for input prompts.
