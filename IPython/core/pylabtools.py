@@ -472,8 +472,27 @@ def configure_inline_support(shell, backend):
     configure_inline_support_orig(shell, backend)
 
 
-def _matplotlib_manages_backends():
-    import matplotlib
+# Determine if Matplotlib manages backends only if needed, and cache result.
+# Do not read this directly, instead use _matplotlib_manages_backends().
+_matplotlib_manages_backends_value: bool | None = None
 
-    mpl_version_info = getattr(matplotlib, "__version_info__", (0, 0))
-    return mpl_version_info >= (3, 9)
+
+def _matplotlib_manages_backends() -> bool:
+    """Return True if Matplotlib manages backends, False otherwise.
+
+    If it returns True, the caller can be sure that
+    matplotlib.backends.registry.backend_registry is available along with
+    member functions resolve_gui_or_backend, resolve_backend and list_all.
+    """
+    global _matplotlib_manages_backends_value
+    if _matplotlib_manages_backends_value is None:
+        try:
+            from matplotlib.backends.registry import backend_registry
+
+            _matplotlib_manages_backends_value = hasattr(
+                backend_registry, "resolve_gui_or_backend"
+            )
+        except ImportError:
+            _matplotlib_manages_backends_value = False
+
+    return _matplotlib_manages_backends_value
