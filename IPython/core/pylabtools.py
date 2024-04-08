@@ -77,7 +77,8 @@ def __getattr__(name):
         warnings.warn(
             f"{name} is deprecated since IPython 8.24, backends are managed "
             "in matplotlib and can be externally registered.",
-            DeprecationWarning)
+            DeprecationWarning,
+        )
         return globals()[f"_deprecated_{name}"]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
