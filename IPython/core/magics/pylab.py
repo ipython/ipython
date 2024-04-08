@@ -93,17 +93,12 @@ class PylabMagics(Magics):
         """
         args = magic_arguments.parse_argstring(self.matplotlib, line)
         if args.list:
-            from IPython.core.pylabtools import _matplotlib_manages_backends
+            from IPython.core.pylabtools import _list_matplotlib_backends_and_gui_loops
 
-            if _matplotlib_manages_backends():
-                from matplotlib.backends.registry import backend_registry
-
-                backends_list = backend_registry.list_all()
-            else:
-                from IPython.core.pylabtools import backends
-
-                backends_list = list(backends.keys())
-            print("Available matplotlib backends: %s" % backends_list)
+            print(
+                "Available matplotlib backends: %s"
+                % _list_matplotlib_backends_and_gui_loops()
+            )
         else:
             gui, backend = self.shell.enable_matplotlib(args.gui.lower() if isinstance(args.gui, str) else args.gui)
             self._show_matplotlib_backend(args.gui, backend)

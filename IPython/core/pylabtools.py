@@ -483,7 +483,8 @@ def _matplotlib_manages_backends() -> bool:
 
     If it returns True, the caller can be sure that
     matplotlib.backends.registry.backend_registry is available along with
-    member functions resolve_gui_or_backend, resolve_backend and list_all.
+    member functions resolve_gui_or_backend, resolve_backend, list_all, and
+    list_gui_frameworks.
     """
     global _matplotlib_manages_backends_value
     if _matplotlib_manages_backends_value is None:
@@ -497,3 +498,21 @@ def _matplotlib_manages_backends() -> bool:
             _matplotlib_manages_backends_value = False
 
     return _matplotlib_manages_backends_value
+
+
+def _list_matplotlib_backends_and_gui_loops() -> list[str]:
+    """Return list of all Matplotlib backends and GUI event loops.
+
+    This is the list returned by
+        %matplotlib --list
+    """
+    if _matplotlib_manages_backends():
+        from matplotlib.backends.registry import backend_registry
+
+        ret = backend_registry.list_all() + backend_registry.list_gui_frameworks()
+    else:
+        from IPython.core import pylabtools
+
+        ret = list(pylabtools.backends.keys())
+
+    return sorted(["auto"] + ret)
