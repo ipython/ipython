@@ -14,7 +14,7 @@ from IPython.utils.decorators import flag_calls
 
 
 # Matplotlib backend resolution functionality moved from IPython to Matplotlib
-# in IPython 8.23 and Matplotlib 3.9. Need to keep `backends` and `backend2gui`
+# in IPython 8.24 and Matplotlib 3.9.1. Need to keep `backends` and `backend2gui`
 # here for earlier Matplotlib and for external backend libraries such as
 # mplcairo that might rely upon it.
 _deprecated_backends = {
@@ -74,7 +74,10 @@ del _deprecated_backend2gui["module://ipympl.backend_nbagg"]
 # Deprecated attributes backends and backend2gui mostly following PEP 562.
 def __getattr__(name):
     if name in ("backends", "backend2gui"):
-        warnings.warn(f"{name} is deprecated", DeprecationWarning)
+        warnings.warn(
+            f"{name} is deprecated since IPython 8.24, backends are managed "
+            "in matplotlib and can be externally registered.",
+            DeprecationWarning)
         return globals()[f"_deprecated_{name}"]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
@@ -377,7 +380,8 @@ def find_gui_and_backend(gui=None, gui_select=None):
             gui = gui_select
             backend = backends_[gui]
 
-    # Since IPython 8.23.0 use None for no gui event loop rather than "inline".
+    # Matplotlib before _matplotlib_manages_backends() can return "inline" for
+    # no gui event loop rather than the None that IPython >= 8.24.0 expects.
     if gui == "inline":
         gui = None
 
