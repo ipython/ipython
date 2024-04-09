@@ -69,34 +69,33 @@ class TermColors:
 
     NoColor = ''  # for color schemes in color-less terminals.
     Normal = '\033[0m'   # Reset normal coloring
-    _base  = '\033[%sm'  # Template for all other colors
 
-    Black = "0;30"
-    Red = "0;31"
-    Green = "0;32"
-    Brown = "0;33"
-    Blue = "0;34"
-    Purple = "0;35"
-    Cyan = "0;36"
-    LightGray = "0;37"
+    Black = "\033[0;30m"
+    Red = "\033[0;31m"
+    Green = "\033[0;32m"
+    Brown = "\033[0;33m"
+    Blue = "\033[0;34m"
+    Purple = "\033[0;35m"
+    Cyan = "\033[0;36m"
+    LightGray = "\033[0;37m"
     # Light colors
-    DarkGray = "1;31"
-    LightRed = "1;32"
-    LightGreen = "1;33"
-    Yellow = "1;34"
-    LightBlue = "1;35"
-    LightPurple = "1;36"
-    LightCyan = "1;37"
-    White = "1;38"
+    DarkGray = "\033[1;30m"
+    LightRed = "\033[1;31m"
+    LightGreen = "\033[1;32m"
+    Yellow = "\033[1;33m"
+    LightBlue = "\033[1;34m"
+    LightPurple = "\033[1;35m"
+    LightCyan = "\033[1;36m"
+    White = "\033[1;37m"
     # Blinking colors.  Probably should not be used in anything serious.
-    BlinkBlack = "5;30"
-    BlinkRed = "5;31"
-    BlinkGreen = "5;32"
-    BlinkYellow = "5;33"
-    BlinkBlue = "5;34"
-    BlinkPurple = "5;35"
-    BlinkCyan = "5;36"
-    BlinkLightGray = "5;37"
+    BlinkBlack = "\033[5;30m"
+    BlinkRed = "\033[5;31m"
+    BlinkGreen = "\033[5;32m"
+    BlinkYellow = "\033[5;33m"
+    BlinkBlue = "\033[5;34m"
+    BlinkPurple = "\033[5;35m"
+    BlinkCyan = "\033[5;36m"
+    BlinkLightGray = "\033[5;37m"
 
 
 
