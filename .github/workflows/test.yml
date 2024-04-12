@@ -49,6 +49,11 @@ jobs:
           - os: macos-latest
             python-version: "pypy-3.10"
             deps: test
+          # Temporary CI run to use entry point compatible code in matplotlib-inline.
+          - os: ubuntu-latest
+            python-version: "3.12"
+            deps: test_extra
+            want-latest-entry-point-code: true
 
     steps:
     - uses: actions/checkout@v3
@@ -82,6 +87,16 @@ jobs:
     - name: Check manifest
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: check-manifest
+
+    - name: Install entry point compatible code (TEMPORARY)
+      if: matrix.want-latest-entry-point-code
+      run: |
+        python -m pip list
+        # Not installing matplotlib's entry point code as building matplotlib from source is complex.
+        # Rely upon matplotlib to test all the latest entry point branches together.
+        python -m pip install --upgrade git+https://github.com/ipython/matplotlib-inline.git@main
+        python -m pip list
+
     - name: pytest
       env:
         COLUMNS: 120

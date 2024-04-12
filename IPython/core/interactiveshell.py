@@ -3657,7 +3657,7 @@ class InteractiveShell(SingletonConfigurable):
         from IPython.core import pylabtools as pt
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
-        if gui != 'inline':
+        if gui != None:
             # If we have our first gui selection, store it
             if self.pylab_gui_select is None:
                 self.pylab_gui_select = gui
