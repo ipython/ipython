@@ -224,8 +224,11 @@ class TerminalInteractiveShell(InteractiveShell):
     simple_prompt = Bool(_use_simple_prompt,
         help="""Use `raw_input` for the REPL, without completion and prompt colors.
 
-            Useful when controlling IPython as a subprocess, and piping STDIN/OUT/ERR. Known usage are:
-            IPython own testing machinery, and emacs inferior-python integration through elpy.
+            Useful when controlling IPython as a subprocess, and piping
+            STDIN/OUT/ERR. Known usage are: IPython's own testing machinery,
+            and emacs' inferior-python subprocess (assuming you have set
+            `python-shell-interpreter` to "ipython") available through the
+            built-in `M-x run-python` and third party packages such as elpy.
 
             This mode default to `True` if the `IPY_TEST_SIMPLE_PROMPT`
             environment variable is set, or the current terminal is not a tty.
