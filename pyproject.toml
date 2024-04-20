@@ -94,7 +94,7 @@ qtconsole = [
 ]
 terminal = []
 test = [
-    "pytest<8",
+    "pytest",
     "pytest-asyncio<0.22",
     "testpath",
     "pickleshare",
