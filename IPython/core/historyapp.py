@@ -146,9 +146,11 @@ class HistoryApp(Application):
 
     def start(self):
         if self.subapp is None:
-            print("No subcommand specified. Must specify one of: %s" % \
-                                                    (self.subcommands.keys()))
-            print()
+            print(
+                "No subcommand specified. Must specify one of: "
+                + ", ".join(map(repr, self.subcommands))
+                + ".\n"
+            )
             self.print_description()
             self.print_subcommands()
             self.exit(1)
