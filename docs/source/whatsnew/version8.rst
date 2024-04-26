@@ -2,13 +2,44 @@
  8.x Series
 ============
 
+.. _version 8.24:
+
+IPython 8.24
+============
+
+Back on regular release schedule, as usual month releases are relatively tiny.
+
+The biggest change is the move of the matplotlib backend handling from IPython
+to matplotlib. :ghpull:`14371`:ghpull:`14403`.
+
+We will note:
+
+ - pytest 8 compatibility :ghpull:`14413`
+ - ``typing-extension`` now needs 4.6 or newer. It was already the case, but not
+   explicated. :ghpull:`14380`
+ - Attempt to speed running code under debugger in some cases. :ghpull:`14386`
+   :ghpull:`14418`.
+ - Multiple fixes to documentation for ipyparallel, simple_prompt and emacs
+   :ghpull:`14384` :ghpull:`14404` :ghpull:`14407`
+ - Maintenance and cleanup of debugger :ghpull:`14387` :ghpull:`14393`
+
+As usual you can find the full list of PRs on GitHub under `the 8.24
+<https://github.com/ipython/ipython/milestone/131?closed=1>`__ milestone.
+
+Thanks
+------
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 8.23:
 
 IPython 8.23
 ============
 
 Super tiny release of IPython on Sunday – a bit later than usual, which is also
-`🏳️‍⚧️ International Transgender Day of Visibility🏳️‍⚧️ 
+`🏳️‍⚧️ International Transgender Day of Visibility🏳️‍⚧️
 <https://en.wikipedia.org/wiki/International_Transgender_Day_of_Visibility>`_ –
 so a though for you on this day, you matter and you are valid [1]_.
 
