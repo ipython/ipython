@@ -922,19 +922,31 @@ class Pdb(OldPdb):
 
         return self._cachable_skip(frame)
 
-    @lru_cache
+    @lru_cache(1024)
+    def _cached_one_parent_frame_debuggerskip(self, frame):
+        """
+        Cache looking up for DEBUGGERSKIP on parent frame.
+
+        This should speedup walking through deep frame when one of the highest
+        one does have a debugger skip.
+
+        This is likely to introduce fake positive though.
+        """
+        while getattr(frame, "f_back", None):
+            frame = frame.f_back
+            if self._get_frame_locals(frame).get(DEBUGGERSKIP):
+                return True
+        return None
+
+    @lru_cache(1024)
     def _cachable_skip(self, frame):
         # if frame is tagged, skip by default.
         if DEBUGGERSKIP in frame.f_code.co_varnames:
             return True
 
         # if one of the parent frame value set to True skip as well.
-
-        cframe = frame
-        while getattr(cframe, "f_back", None):
-            cframe = cframe.f_back
-            if self._get_frame_locals(cframe).get(DEBUGGERSKIP):
-                return True
+        if self._cached_one_parent_frame_debuggerskip(frame):
+            return True
 
         return False
 
