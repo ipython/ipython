@@ -35,17 +35,16 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
     - name: Install ipykernel
       run: |
-        cd .. 
+        cd ..
         git clone https://github.com/ipython/ipykernel
         cd ipykernel
-        pip install -e .[test] 
+        pip install -e .[test]
         cd ..
     - name: Install and update Python dependencies
       run: |
         python -m pip install --upgrade -e file://$PWD#egg=ipython[test]
         # we must install IPython after ipykernel to get the right versions.
         python -m pip install --upgrade --upgrade-strategy eager flaky ipyparallel
-        python -m pip install --upgrade 'pytest<7'  'pytest_asyncio<0.21'
     - name: pytest ipykernel
       env:
         COLUMNS: 120
