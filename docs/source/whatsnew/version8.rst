@@ -10,7 +10,7 @@ IPython 8.24
 Back on regular release schedule, as usual month releases are relatively tiny.
 
 The biggest change is the move of the matplotlib backend handling from IPython
-to matplotlib. :ghpull:`14371`:ghpull:`14403`.
+to matplotlib. :ghpull:`14371` :ghpull:`14403`.
 
 We will note:
 

@@ -14,7 +14,7 @@ from IPython.utils.decorators import flag_calls
 
 
 # Matplotlib backend resolution functionality moved from IPython to Matplotlib
-# in IPython 8.24 and Matplotlib 3.9.1. Need to keep `backends` and `backend2gui`
+# in IPython 8.24 and Matplotlib 3.9.0. Need to keep `backends` and `backend2gui`
 # here for earlier Matplotlib and for external backend libraries such as
 # mplcairo that might rely upon it.
 _deprecated_backends = {
@@ -485,6 +485,10 @@ def _matplotlib_manages_backends() -> bool:
     matplotlib.backends.registry.backend_registry is available along with
     member functions resolve_gui_or_backend, resolve_backend, list_all, and
     list_gui_frameworks.
+
+    This function can be removed as it will always return True when Python
+    3.12, the latest version supported by Matplotlib < 3.9, reaches
+    end-of-life in late 2028.
     """
     global _matplotlib_manages_backends_value
     if _matplotlib_manages_backends_value is None:

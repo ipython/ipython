@@ -16,6 +16,8 @@ difference as object are most of the time represented by text, but in notebook
 and similar interface you will get richer outputs.
 
 
+.. _matplotlib_magic:
+
 Plotting
 --------
 
@@ -27,41 +29,53 @@ Plotting
     advantages of working outside of IPython as well.
 
 
-One major feature of the IPython kernel is the ability to display plots that 
-are the output of running code cells. The IPython kernel is designed to work 
+One major feature of the IPython kernel is the ability to display plots that
+are the output of running code cells. The IPython kernel is designed to work
 seamlessly with the matplotlib_ plotting library to provide this functionality.
 
 To set this up, before any plotting or import of matplotlib is performed you
-must execute the ``%matplotlib``  :ref:`magic command <magics_explained>`. This
+may execute the ``%matplotlib`` :ref:`magic command <magics_explained>`. This
 performs the necessary behind-the-scenes setup for IPython to work correctly
 hand in hand with ``matplotlib``; it does *not*, however, actually execute any
 Python ``import`` commands, that is, no names are added to the namespace.
 
-If the ``%matplotlib`` magic is called without an argument, the
-output of a plotting command is displayed using the default ``matplotlib``
-backend in a separate window. Alternatively, the backend can be explicitly
-requested using, for example::
+If you do not use the ``%matplotlib`` magic or you call it without an argument,
+the output of a plotting command is displayed using the default ``matplotlib``
+backend, which may be different depending on Operating System and whether
+running within Jupyter or not.
+
+Alternatively, the backend can be explicitly requested using, for example::
 
   %matplotlib gtk
 
-A particularly interesting backend, provided by IPython, is the ``inline``
-backend.  This is available only for the Jupyter Notebook and the
-Jupyter QtConsole.  It can be invoked as follows::
+The argument passed to the ``%matplotlib`` magic command may be the name of any
+backend understood by ``matplotlib`` or it may the name of a GUI loop such as
+``qt`` or ``osx``, in which case an appropriate backend supporting that GUI
+loop will be selected. To obtain a full list of all backends and GUI loops
+understood by ``matplotlib`` use ``%matplotlib --list``.
 
-  %matplotlib inline
+There are some specific backends that are used in the Jupyter ecosystem:
 
-With this backend, the output of plotting commands is displayed *inline* within
-frontends like the Jupyter notebook, directly below the code cell that produced
-it. The resulting plots will then also be stored in the notebook document.
+- The ``inline`` backend is provided by IPython and can be used in Jupyter Lab,
+  Notebook and QtConsole; it is the default backend when using Jupyter. The
+  outputs of plotting commands are displayed *inline* within frontends like
+  Jupyter Notebook, directly below the code cells that produced them.
+  The resulting plots will then also be stored in the notebook document.
+
+- The ``notebook`` or ``nbagg`` backend is built into ``matplotlib`` and can be
+  used with Jupyter ``notebook <7`` and ``nbclassic``. Plots are interactive so
+  they can be zoomed and panned.
+
+- The ``ipympl`` or ``widget`` backend is for use with Jupyter ``lab`` and
+  ``notebook >=7``. It is in a separate ``ipympl`` module that must be
+  installed using ``pip`` or ``conda`` in the usual manner. Plots are
+  interactive so they can be zoomed and panned.
 
 .. seealso::
 
     `Plotting with Matplotlib`_  example notebook
 
-
-The matplotlib_ library also ships with ``%matplotlib notebook`` command that
-allows interactive figures if your environment allows it.
-
-See the matplotlib_ documentation for more information. 
+See the matplotlib_ documentation for more information, in particular the
+section on backends.
 
 .. include:: ../links.txt
