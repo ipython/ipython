@@ -22,10 +22,10 @@ from pathlib import Path
 config = toml.load("./sphinx.toml")
 
 # https://read-the-docs.readthedocs.io/en/latest/faq.html
-ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
+ON_RTD = os.environ.get("READTHEDOCS", None) == "True"
 
 if ON_RTD:
-    tags.add('rtd')
+    tags.add("rtd")
 
     # RTD doesn't use the Makefile, so re-run autogen_{things}.py here.
     for name in ("config", "api", "magics", "shortcuts"):
@@ -52,7 +52,7 @@ autodoc_type_aliases = {
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../sphinxext'))
+sys.path.insert(0, os.path.abspath("../sphinxext"))
 
 # We load the ipython release info into a dict by explicit execution
 iprelease = {}
@@ -94,10 +94,7 @@ modindex_common_prefix = config["sphinx"]["modindex_common_prefix"]
 intersphinx_mapping = config["intersphinx_mapping"]
 for k, v in intersphinx_mapping.items():
     intersphinx_mapping[k] = tuple(
-        [
-            intersphinx_mapping[k]['url'],
-            intersphinx_mapping[k]['fallback']
-        ]
+        [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"]]
     )
 
 # numpydoc config
@@ -164,30 +161,32 @@ texinfo_documents = [
 # other places throughout the built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = "%s" % iprelease['version']
+release = "%s" % iprelease["version"]
 # Just the X.Y.Z part, no '-dev'
-version = iprelease['version'].split('-', 1)[0]
+version = iprelease["version"].split("-", 1)[0]
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
-#today = ''
+# today = ''
 # Else, today_fmt is used as the format for a strftime call.
-today_fmt = '%B %d, %Y'
+today_fmt = "%B %d, %Y"
 
 rst_prolog = ""
 
+
 def is_stable(extra):
-    for ext in {'dev', 'b', 'rc'}:
+    for ext in {"dev", "b", "rc"}:
         if ext in extra:
             return False
     return True
 
-if is_stable(iprelease['_version_extra']):
-    tags.add('ipystable')
-    print('Adding Tag: ipystable')
+
+if is_stable(iprelease["_version_extra"]):
+    tags.add("ipystable")
+    print("Adding Tag: ipystable")
 else:
-    tags.add('ipydev')
-    print('Adding Tag: ipydev')
+    tags.add("ipydev")
+    print("Adding Tag: ipydev")
     rst_prolog += """
 .. warning::
 
@@ -210,6 +209,7 @@ rst_prolog += """
 
 import logging
 
+
 class ConfigtraitFilter(logging.Filter):
     """
     This is a filter to remove in sphinx 3+ the error about config traits being duplicated.
@@ -220,14 +220,20 @@ class ConfigtraitFilter(logging.Filter):
     """
 
     def filter(self, record):
-        if record.args and record.args[0] == 'configtrait' and 'duplicate' in record.msg:
+        if (
+            record.args
+            and record.args[0] == "configtrait"
+            and "duplicate" in record.msg
+        ):
             return False
         return True
+
 
 ct_filter = ConfigtraitFilter()
 
 import sphinx.util
-logger = sphinx.util.logging.getLogger('sphinx.domains.std').logger
+
+logger = sphinx.util.logging.getLogger("sphinx.domains.std").logger
 logger.addFilter(ct_filter)
 
 
