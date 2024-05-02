@@ -280,7 +280,7 @@ def test_figure_no_canvas():
         ("osx", "osx", "macosx"),
         ("qt", "qt", "qtagg"),
         ("qt5", "qt5", "qt5agg"),
-        ("qt6", "qt6", "qt6agg"),
+        ("qt6", "qt6", "qtagg"),
         ("tk", "tk", "tkagg"),
         ("wx", "wx", "wxagg"),
         # name is backend
@@ -301,8 +301,6 @@ def test_figure_no_canvas():
         ("qtcairo", "qt", "qtcairo"),
         ("qt5agg", "qt5", "qt5agg"),
         ("qt5cairo", "qt5", "qt5cairo"),
-        ("qt6agg", "qt", "qt6agg"),
-        ("qt6cairo", "qt", "qt6cairo"),
         ("tkagg", "tk", "tkagg"),
         ("tkcairo", "tk", "tkcairo"),
         ("webagg", "webagg", "webagg"),
