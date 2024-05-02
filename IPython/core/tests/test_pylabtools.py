@@ -276,7 +276,7 @@ def test_figure_no_canvas():
         # name is gui
         ("gtk3", "gtk3", "gtk3agg"),
         ("gtk4", "gtk4", "gtk4agg"),
-        ("headless", "headless", "agg"),
+        ("headless", None, "agg"),
         ("osx", "osx", "macosx"),
         ("qt", "qt", "qtagg"),
         ("qt5", "qt5", "qt5agg"),
