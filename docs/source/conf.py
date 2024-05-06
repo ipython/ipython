@@ -15,11 +15,17 @@
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
-import toml
+
 import sys, os
 from pathlib import Path
 
-config = toml.load("./sphinx.toml")
+if sys.version_info > (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
+with open("./sphinx.toml", "rb") as f:
+    config = tomllib.load(f)
 
 # https://read-the-docs.readthedocs.io/en/latest/faq.html
 ON_RTD = os.environ.get("READTHEDOCS", None) == "True"
@@ -68,28 +74,23 @@ exec(
 # General configuration
 # ---------------------
 
-# Add any paths that contain templates here, relative to this directory.
-templates_path = config["sphinx"]["templates_path"]
-# The master toctree document.
-master_doc = config["sphinx"]["master_doc"]
-# General substitutions.
-project = config["sphinx"]["project"]
-copyright = config["sphinx"]["copyright"]
-# ghissue config
-github_project_url = config["sphinx"]["github_project_url"]
-# The suffix of source filenames.
-source_suffix = config["sphinx"]["source_suffix"]
-# Exclude these glob-style patterns when looking for source files. They are
-# relative to the source/ directory.
-exclude_patterns = config["sphinx"]["exclude_patterns"]
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = config["sphinx"]["pygments_style"]
-# Add any Sphinx extension module names here, as strings. They can be extensions
-# coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = config["sphinx"]["extensions"]
-# Set the default role so we can use `foo` instead of ``foo``
-default_role = config["sphinx"]["default_role"]
-modindex_common_prefix = config["sphinx"]["modindex_common_prefix"]
+# - template_path: Add any paths that contain templates here, relative to this directory.
+# - master_doc: The master toctree document.
+# - project
+# - copyright
+# - github_project_url
+# - source_suffix = config["sphinx"]["source_suffix"]
+# - exclude_patterns:
+#       Exclude these glob-style patterns when looking for source files.
+#       They are relative to the source/ directory.
+# - pygments_style: The name of the Pygments (syntax highlighting) style to use.
+# - extensions:
+#        Add any Sphinx extension module names here, as strings. They can be extensions
+#        coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+# - default_role
+# - modindex_common_prefix
+
+locals().update(config["sphinx"])
 
 intersphinx_mapping = config["intersphinx_mapping"]
 for k, v in intersphinx_mapping.items():
@@ -106,20 +107,20 @@ warning_is_error = config["numpydoc"]["warning_is_error"]
 
 # Options for HTML output
 # -----------------------
-html_theme = config["html"]["html_theme"]
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = config["html"]["html_static_path"]
-# Favicon needs the directory name
-html_favicon = config["html"]["html_favicon"]
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
-html_last_updated_fmt = config["html"]["html_last_updated_fmt"]
-# Output file base name for HTML help builder.
-htmlhelp_basename = config["html"]["htmlhelp_basename"]
+# - html_theme
+# - html_static_path
+#     Add any paths that contain custom static files (such as style sheets) here,
+#     relative to this directory. They are copied after the builtin static files,
+#     so a file named "default.css" will overwrite the builtin "default.css".
+#     Favicon needs the directory name
+# - html_favicon
+# - html_last_updated_fmt = config["html"]["html_last_updated_fmt"]
+#     If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
+#     using the given strftime format.
+#     Output file base name for HTML help builder.
+# - htmlhelp_basename
+locals().update(config["html"])
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
