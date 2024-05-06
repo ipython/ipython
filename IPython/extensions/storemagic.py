@@ -25,7 +25,7 @@ def restore_aliases(ip, alias=None):
     staliases = ip.db.get('stored_aliases', {})
     if alias is None:
         for k,v in staliases.items():
-            #print "restore alias",k,v # dbg
+            # print("restore alias",k,v)  # dbg
             #self.alias_table[k] = v
             ip.alias_manager.define_alias(k,v)
     else:
@@ -43,7 +43,7 @@ def refresh_variables(ip):
             print("Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % justkey)
             print("The error was:", sys.exc_info()[0])
         else:
-            #print "restored",justkey,"=",obj #dbg
+            # print("restored",justkey,"=",obj)  # dbg
             ip.user_ns[justkey] = obj
 
 

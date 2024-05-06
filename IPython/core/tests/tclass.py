@@ -26,7 +26,7 @@ else:
     if name.startswith('C'):
         c = C(name)
 
-#print >> sys.stderr, "ARGV:", sys.argv  # dbg
+# print(>> sys.stderr, "ARGV:", sys.argv)  # dbg
 
 # This next print statement is NOT debugging, we're making the check on a
 # completely separate process so we verify by capturing stdout:

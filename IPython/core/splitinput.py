@@ -63,19 +63,19 @@ def split_user_input(line, pattern=None):
         pattern = line_split
     match = pattern.match(line)
     if not match:
-        # print "match failed for line '%s'" % line
+        # print("match failed for line '%s'" % line)
         try:
             ifun, the_rest = line.split(None,1)
         except ValueError:
-            # print "split failed for line '%s'" % line
+            # print("split failed for line '%s'" % line)
             ifun, the_rest = line, u''
         pre = re.match(r'^(\s*)(.*)',line).groups()[0]
         esc = ""
     else:
         pre, esc, ifun, the_rest = match.groups()
 
-    #print 'line:<%s>' % line # dbg
-    #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest) # dbg
+    # print('line:<%s>' % line)  # dbg
+    # print('pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest))  # dbg
     return pre, esc or '', ifun.strip(), the_rest.lstrip()
 
 

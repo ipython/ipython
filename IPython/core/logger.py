@@ -191,7 +191,7 @@ which already exists. But you must first start the logging process with
     def log_write(self, data, kind='input'):
         """Write data to the log file, if active"""
 
-        #print 'data: %r' % data # dbg
+        # print('data: %r' % data)  # dbg
         if self.log_active and data:
             write = self.logfile.write
             if kind=='input':

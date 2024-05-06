@@ -1256,7 +1256,7 @@ class ExecutionMagics(Magics):
           Wall time: 1.37
           Out[3]: 499999500000L
 
-          In [4]: %time print 'hello world'
+          In [4]: %time print('hello world')
           hello world
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
@@ -1406,9 +1406,9 @@ class ExecutionMagics(Magics):
           44: x=1
           45: y=3
           46: z=x+y
-          47: print x
+          47: print(x)
           48: a=5
-          49: print 'x',x,'y',y
+          49: print('x',x,'y',y)
 
         you can create a macro with lines 44 through 47 (included) and line 49
         called my_macro with::
@@ -1428,7 +1428,7 @@ class ExecutionMagics(Magics):
 
         You can view a macro's contents by explicitly printing it with::
 
-          print macro_name
+          print(macro_name)
 
         """
         opts,args = self.parse_options(parameter_s,'rq',mode='list')
@@ -1439,7 +1439,7 @@ class ExecutionMagics(Magics):
                 "%macro insufficient args; usage '%macro name n1-n2 n3-4...")
         name, codefrom = args[0], " ".join(args[1:])
 
-        #print 'rng',ranges  # dbg
+        # print('rng',ranges)  # dbg
         try:
             lines = self.shell.find_user_code(codefrom, 'r' in opts)
         except (ValueError, TypeError) as e:

@@ -108,7 +108,7 @@ class IPython2PythonConverter(object):
             
             newline(line)
         newline('')  # ensure a closing newline, needed by doctest
-        #print "PYSRC:", '\n'.join(out)  # dbg
+        # print("PYSRC:", '\n'.join(out))  # dbg
         return '\n'.join(out)
 
     #return dnew

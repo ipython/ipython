@@ -254,10 +254,10 @@ def test_get_xdg_dir_3():
 def test_filefind():
     """Various tests for filefind"""
     f = tempfile.NamedTemporaryFile()
-    # print 'fname:',f.name
+    # print('fname:',f.name)
     alt_dirs = paths.get_ipython_dir()
     t = path.filefind(f.name, alt_dirs)
-    # print 'found:',t
+    # print('found:',t)
 
 
 @dec.skip_if_not_win32

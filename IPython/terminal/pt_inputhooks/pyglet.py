@@ -53,11 +53,11 @@ def inputhook(context):
             # 0.05    0.5%
             used_time = clock() - t
             if used_time > 10.0:
-                # print 'Sleep for 1 s'  # dbg
+                # print('Sleep for 1 s')  # dbg
                 time.sleep(1.0)
             elif used_time > 0.1:
                 # Few GUI events coming in, so we can sleep longer
-                # print 'Sleep for 0.05 s'  # dbg
+                # print('Sleep for 0.05 s')  # dbg
                 time.sleep(0.05)
             else:
                 # Many GUI events coming in, so sleep only very little

@@ -48,7 +48,7 @@ class StrDispatch(object):
             if re.match(r, key):
                 yield obj
             else:
-                #print "nomatch",key  # dbg
+                # print("nomatch",key)  # dbg
                 pass
 
     def __repr__(self):

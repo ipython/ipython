@@ -43,7 +43,7 @@ def mini_interactive_loop(input_func):
     # Here we just return input so we can use it in a test suite, but a real
     # interpreter would instead send it for execution somewhere.
     src = isp.source_reset()
-    #print 'Input source was:\n', src  # dbg
+    # print('Input source was:\n', src)  # dbg
     return src
 
 #-----------------------------------------------------------------------------
