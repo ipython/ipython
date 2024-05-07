@@ -82,12 +82,14 @@ shell_flags['nosep']=(nosep_config, "Eliminate all spacing between prompts.")
 shell_flags['pylab'] = (
     {'InteractiveShellApp' : {'pylab' : 'auto'}},
     """Pre-load matplotlib and numpy for interactive use with
-    the default matplotlib backend."""
+    the default matplotlib backend. The exact options available
+    depend on what Matplotlib provides at runtime.""",
 )
 shell_flags['matplotlib'] = (
     {'InteractiveShellApp' : {'matplotlib' : 'auto'}},
     """Configure matplotlib for interactive use with
-    the default matplotlib backend."""
+    the default matplotlib backend. The exact options available
+    depend on what Matplotlib provides at runtime.""",
 )
 
 # it's possible we don't want short aliases for *all* of these:
@@ -114,7 +116,7 @@ shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
 class MatplotlibBackendCaselessStrEnum(CaselessStrEnum):
     """An enum of Matplotlib backend strings where the case should be ignored.
 
-    Prior to Matplotlib 3.9.1 the list of valid backends is hardcoded in
+    Prior to Matplotlib 3.9.0 the list of valid backends is hardcoded in
     pylabtools.backends. After that, Matplotlib manages backends.
 
     The list of valid backends is determined when it is first needed to avoid
@@ -205,12 +207,14 @@ class InteractiveShellApp(Configurable):
     matplotlib = MatplotlibBackendCaselessStrEnum(
         allow_none=True,
         help="""Configure matplotlib for interactive use with
-        the default matplotlib backend.""",
+        the default matplotlib backend. The exact options available
+        depend on what Matplotlib provides at runtime.""",
     ).tag(config=True)
     pylab = MatplotlibBackendCaselessStrEnum(
         allow_none=True,
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
+        The exact options available depend on what Matplotlib provides at runtime.
         """,
     ).tag(config=True)
     pylab_import_all = Bool(
