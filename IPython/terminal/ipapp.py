@@ -270,7 +270,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if self.subapp is not None:
             # don't bother initializing further, starting subapp
             return
-        # print self.extra_args
+        # print(self.extra_args)
         if self.extra_args and not self.something_to_run:
             self.file_to_run = self.extra_args[0]
         self.init_path()

@@ -456,13 +456,13 @@ class IPythonConsoleLexer(Lexer):
             # does not use the continuation marker cannot be detected.
             # For example, the 3 in the following is clearly output:
             #
-            #    In [1]: print 3
+            #    In [1]: print(3)
             #    3
             #
             # But the following second line is part of the input:
             #
             #    In [2]: while True:
-            #        print True
+            #        print(True)
             #
             # In both cases, the 2nd line will be 'output'.
             #

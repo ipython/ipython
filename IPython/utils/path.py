@@ -308,8 +308,8 @@ def target_outdated(target,deps):
     for dep in deps:
         dep_time = os.path.getmtime(dep)
         if dep_time > target_time:
-            #print "For target",target,"Dep failed:",dep # dbg
-            #print "times (dep,tar):",dep_time,target_time # dbg
+            # print("For target",target,"Dep failed:",dep)  # dbg
+            # print("times (dep,tar):",dep_time,target_time)  # dbg
             return 1
     return 0
 

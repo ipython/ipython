@@ -72,8 +72,8 @@ class LSString(str):
 
 # def print_lsstring(arg):
 #     """ Prettier (non-repr-like) and more informative printer for LSString """
-#     print "LSString (.p, .n, .l, .s available). Value:"
-#     print arg
+#     print("LSString (.p, .n, .l, .s available). Value:")
+#     print(arg)
 #
 #
 # print_lsstring = result_display.register(LSString)(print_lsstring)
@@ -231,7 +231,7 @@ class SList(list):
 
 # def print_slist(arg):
 #     """ Prettier (non-repr-like) and more informative printer for SList """
-#     print "SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):"
+#     print("SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):")
 #     if hasattr(arg,  'hideonce') and arg.hideonce:
 #         arg.hideonce = False
 #         return

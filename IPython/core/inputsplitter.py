@@ -320,7 +320,7 @@ class InputSplitter(object):
             prompt = '>>> ' + indent
             line = indent + raw_input(prompt)
             isp.push(line)
-        print 'Input source was:\n', isp.source_reset(),
+        print('Input source was:\n', isp.source_reset())
     """
     # A cache for storing the current indentation
     # The first value stores the most recently processed source input

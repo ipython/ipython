@@ -19,7 +19,7 @@ example, you could use a startup file like this::
 
     def calljed(self,filename, linenum):
         "My editor hook calls the jed editor directly."
-        print "Calling my own editor, jed ..."
+        print("Calling my own editor, jed ...")
         if os.system('jed +%d %s' % (linenum,filename)) != 0:
             raise TryNext()
 
@@ -111,7 +111,7 @@ class CommandChainDispatcher:
         TryNext"""
         last_exc = TryNext()
         for prio,cmd in self.chain:
-            #print "prio",prio,"cmd",cmd #dbg
+            # print("prio",prio,"cmd",cmd)  # dbg
             try:
                 return cmd(*args, **kw)
             except TryNext as exc:

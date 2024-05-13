@@ -43,7 +43,7 @@ class NamespaceMagics(Magics):
 
         '%pinfo object' is just a synonym for object? or ?object."""
 
-        #print 'pinfo par: <%s>' % parameter_s  # dbg
+        # print('pinfo par: <%s>' % parameter_s)  # dbg
         # detail_level: 0 -> obj? , 1 -> obj??
         detail_level = 0
         # We need to detect if we got called as 'pinfo pinfo foo', which can
