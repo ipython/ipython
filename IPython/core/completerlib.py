@@ -152,9 +152,14 @@ def get_root_modules():
     return rootmodules
 
 
-def is_importable(module, attr, only_modules):
+def is_importable(module, attr: str, only_modules) -> bool:
     if only_modules:
-        return inspect.ismodule(getattr(module, attr))
+        try:
+            mod = getattr(module, attr)
+        except ModuleNotFoundError:
+            # See gh-14434
+            return False
+        return inspect.ismodule(mod)
     else:
         return not(attr[:2] == '__' and attr[-2:] == '__')
 
