@@ -86,8 +86,8 @@ In case where executability of configuration can be problematic, or
 configurations need to be modified programmatically, IPython also support a
 limited set of functionalities via ``.json`` configuration files. 
 
-You can defined most of the configuration options via a json object which
-hierarchy represent the value you would normally set on the ``c`` object of
+You can define most of the configuration options via a JSON object whose
+hierarchy represents the value you would normally set on the ``c`` object of
 ``.py`` configuration files. The following ``ipython_config.json`` file::
 
     {
@@ -106,11 +106,10 @@ hierarchy represent the value you would normally set on the ``c`` object of
 
 Is equivalent to the following ``ipython_config.py``::
 
+    c.InteractiveShell.colors = 'LightBG'
     c.InteractiveShellApp.extensions = [
         'myextension'
     ]
-
-    c.InteractiveShell.colors = 'LightBG'
     c.TerminalInteractiveShell.editor = 'nano'
 
 
