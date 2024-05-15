@@ -1050,7 +1050,7 @@ class ExecutionMagics(Magics):
         provided, <N> is determined so as to get sufficient accuracy.
 
         -r<R>: number of repeats <R>, each consisting of <N> loops, and take the
-        best result.
+        average result.
         Default: 7
 
         -t: use time.time to measure the time, which is the default on Unix.
@@ -1256,7 +1256,7 @@ class ExecutionMagics(Magics):
           Wall time: 1.37
           Out[3]: 499999500000L
 
-          In [4]: %time print 'hello world'
+          In [4]: %time print('hello world')
           hello world
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
@@ -1406,9 +1406,9 @@ class ExecutionMagics(Magics):
           44: x=1
           45: y=3
           46: z=x+y
-          47: print x
+          47: print(x)
           48: a=5
-          49: print 'x',x,'y',y
+          49: print('x',x,'y',y)
 
         you can create a macro with lines 44 through 47 (included) and line 49
         called my_macro with::
@@ -1428,7 +1428,7 @@ class ExecutionMagics(Magics):
 
         You can view a macro's contents by explicitly printing it with::
 
-          print macro_name
+          print(macro_name)
 
         """
         opts,args = self.parse_options(parameter_s,'rq',mode='list')
@@ -1439,7 +1439,7 @@ class ExecutionMagics(Magics):
                 "%macro insufficient args; usage '%macro name n1-n2 n3-4...")
         name, codefrom = args[0], " ".join(args[1:])
 
-        #print 'rng',ranges  # dbg
+        # print('rng',ranges)  # dbg
         try:
             lines = self.shell.find_user_code(codefrom, 'r' in opts)
         except (ValueError, TypeError) as e:
@@ -1506,7 +1506,7 @@ class ExecutionMagics(Magics):
     @line_cell_magic
     def code_wrap(self, line, cell=None):
         """
-        Simple magic to quickly define a code transformer for all IPython's future imput.
+        Simple magic to quickly define a code transformer for all IPython's future input.
 
         ``__code__`` and ``__ret__`` are special variable that represent the code to run
         and the value of the last expression of ``__code__`` respectively.
@@ -1592,17 +1592,17 @@ def _format_time(timespan, precision=3):
                 break
         return " ".join(time)
 
-    
-    # Unfortunately the unicode 'micro' symbol can cause problems in
-    # certain terminals.  
+
+    # Unfortunately characters outside of range(128) can cause problems in
+    # certain terminals.
     # See bug: https://bugs.launchpad.net/ipython/+bug/348466
     # Try to prevent crashes by being more secure than it needs to
     # E.g. eclipse is able to print a µ, but has no sys.stdout.encoding set.
-    units = [u"s", u"ms",u'us',"ns"] # the save value   
-    if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
+    units = ["s", "ms", "us", "ns"]  # the safe value
+    if hasattr(sys.stdout, "encoding") and sys.stdout.encoding:
         try:
-            u'\xb5'.encode(sys.stdout.encoding)
-            units = [u"s", u"ms",u'\xb5s',"ns"]
+            "μ".encode(sys.stdout.encoding)
+            units = ["s", "ms", "μs", "ns"]
         except:
             pass
     scaling = [1, 1e3, 1e6, 1e9]

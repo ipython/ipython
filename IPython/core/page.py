@@ -122,8 +122,8 @@ def _detect_screen_size(screen_lines_def):
     termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
     # Now we have what we needed: the screen size in rows/columns
     return screen_lines_real
-    #print '***Screen size:',screen_lines_real,'lines x',\
-    #screen_cols,'columns.' # dbg
+    # print('***Screen size:',screen_lines_real,'lines x',
+    #       screen_cols,'columns.')  # dbg
 
 def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
     """Display a string, piping through a pager after a certain length.
@@ -179,9 +179,9 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
             print(str_toprint)
             return
 
-    #print 'numlines',numlines,'screenlines',screen_lines  # dbg
+    # print('numlines',numlines,'screenlines',screen_lines)  # dbg
     if numlines <= screen_lines :
-        #print '*** normal print'  # dbg
+        # print('*** normal print')  # dbg
         print(str_toprint)
     else:
         # Try to open pager and default to internal one if that fails.

@@ -331,7 +331,7 @@ Pull Requests (92):
 Issues (37):
 
 * :ghissue:`5364`: Horizontal scrollbar hides cell's last line on Firefox
-* :ghissue:`5192`: horisontal scrollbar overlaps output or touches next cell
+* :ghissue:`5192`: horizontal scrollbar overlaps output or touches next cell
 * :ghissue:`5840`: Third-party Windows kernels don't get interrupt signal
 * :ghissue:`2412`: print history to file using qtconsole and notebook
 * :ghissue:`5703`: Notebook doesn't render with "ask me every time" cookie setting in Firefox
@@ -592,7 +592,7 @@ Pull Requests (687):
 * :ghpull:`5209`: make input_area css generic to cells
 * :ghpull:`5246`: less %pylab, more cowbell!
 * :ghpull:`4895`: Improvements to %run completions
-* :ghpull:`5243`: Add Javscript to base display priority list.
+* :ghpull:`5243`: Add JavaScript to base display priority list.
 * :ghpull:`5175`: Audit .html() calls take #2
 * :ghpull:`5146`: Dual mode bug fixes.
 * :ghpull:`5207`: Children fire event
@@ -818,7 +818,7 @@ Pull Requests (687):
 * :ghpull:`4713`: Fix saving kernel history in Python 2
 * :ghpull:`4744`: don't use lazily-evaluated rc.ids in wait_for_idle
 * :ghpull:`4740`: %env can't set variables
-* :ghpull:`4737`: check every link when detecting virutalenv
+* :ghpull:`4737`: check every link when detecting virtualenv
 * :ghpull:`4738`: don't inject help into user_ns
 * :ghpull:`4739`: skip html nbconvert tests when their dependencies are missing
 * :ghpull:`4730`: Fix stripping continuation prompts when copying from Qt console
@@ -854,7 +854,7 @@ Pull Requests (687):
 * :ghpull:`4671`: Fix docstrings in utils.text
 * :ghpull:`4669`: add missing help strings to HistoryManager configurables
 * :ghpull:`4668`: Make non-ASCII docstring unicode
-* :ghpull:`4650`: added a note about sharing of nbconvert tempates
+* :ghpull:`4650`: added a note about sharing of nbconvert templates
 * :ghpull:`4646`: Fixing various output related things:
 * :ghpull:`4665`: check for libedit in readline on OS X
 * :ghpull:`4606`: Make running PYTHONSTARTUP optional

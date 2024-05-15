@@ -26,6 +26,8 @@ from ..utils.text import dedent
 from traitlets import Bool, Dict, Instance, observe
 from logging import error
 
+import typing as t
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -36,7 +38,7 @@ from logging import error
 # access to the class when they run.  See for more details:
 # http://stackoverflow.com/questions/2366713/can-a-python-decorator-of-an-instance-method-access-the-class
 
-magics = dict(line={}, cell={})
+magics: t.Dict = dict(line={}, cell={})
 
 magic_kinds = ('line', 'cell')
 magic_spec = ('line', 'cell', 'line_cell')

@@ -1,6 +1,522 @@
 ============
  8.x Series
 ============
+
+.. _version 8.24:
+
+IPython 8.24
+============
+
+Back on regular release schedule, as usual month releases are relatively tiny.
+
+The biggest change is the move of the matplotlib backend handling from IPython
+to matplotlib. :ghpull:`14371` :ghpull:`14403`.
+
+We will note:
+
+ - pytest 8 compatibility :ghpull:`14413`
+ - ``typing-extension`` now needs 4.6 or newer. It was already the case, but not
+   explicated. :ghpull:`14380`
+ - Attempt to speed running code under debugger in some cases. :ghpull:`14386`
+   :ghpull:`14418`.
+ - Multiple fixes to documentation for ipyparallel, simple_prompt and emacs
+   :ghpull:`14384` :ghpull:`14404` :ghpull:`14407`
+ - Maintenance and cleanup of debugger :ghpull:`14387` :ghpull:`14393`
+
+As usual you can find the full list of PRs on GitHub under `the 8.24
+<https://github.com/ipython/ipython/milestone/131?closed=1>`__ milestone.
+
+Thanks
+------
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 8.23:
+
+IPython 8.23
+============
+
+Super tiny release of IPython on Sunday – a bit later than usual, which is also
+`🏳️‍⚧️ International Transgender Day of Visibility🏳️‍⚧️
+<https://en.wikipedia.org/wiki/International_Transgender_Day_of_Visibility>`_ –
+so a though for you on this day, you matter and you are valid [1]_.
+
+This is a minuscule release with only 5 Pull requests.
+
+Main change is :ghpull:`14357` which improve inference from return type
+annotations in completer and the introduction of the optional target
+``ipython[matplotlib]`` to explicitly request the matplotlib optional
+dependencies.
+
+As usual you can find the full list of PRs on GitHub under `the 8.23
+<https://github.com/ipython/ipython/milestone/130?closed=1>`__ milestone.
+
+Thanks
+------
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 8.22:
+
+IPython 8.22, 8.22.1 and 8.22.2
+===============================
+
+Quick release of IPython for this short month of February, with quite a bit of
+activity with more than 15 PRs.
+
+I am not going to details all the changes, but among other we have :
+
+ - More compatibility with emscripten :ghpull:`14316`, :ghpull:`14318`,
+ - Test more downstream project to avoid breakage :ghpull:`14317`
+ - Fix recently introduced bug with the ``store`` magic.
+ - Fix issues with multiple call to ``matplotlib.pyplot.switch_backend``
+ - Fix crashing IPython when some tracebacks encounter dynamically evaluated
+   code.
+
+IPython 8.22.1 increase the minimal traitlets version, and 8.22.2 fix a critical
+bug on emscripten  preventing to use some magics like ``%matplotlib`` on
+jupyter-light.
+
+API changes
+-----------
+
+One of the largest change is the update the mimehooks and inspector API, see
+:ghpull:`14342`. It should be backward compatible, but many hooks now receive a
+single object with many fields allowing us flexibility to update the API later.
+
+
+Packaging changes
+-----------------
+
+Thanks to `@mkoppe <https://github.com/mkoeppe>`__, we are slowly getting rid of
+setup.py finally migrating to ``pyproject.toml``. There is still quite a bit of
+work, and please open an issue if you encounter any problem.
+
+
+Deprecation
+-----------
+
+A number of unused functions have been marked deprecated or pending deprecation.
+Please let us know if you encounter any of those deprecation messages for us to
+adjust the removal timeline.
+
+
+Thanks
+------
+
+Many thanks to `@mkoppe <https://github.com/mkoeppe>`__ and `@krassowski
+<https://github.com/krassowski>`__ for their multiple contributions and codebase
+cleanup.
+
+As usual you can find the full list of PRs on GitHub under `the 8.22
+<https://github.com/ipython/ipython/milestone/129?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 8.21:
+
+IPython 8.21
+------------
+
+More substantial release of IPython slightly out of schedule as it was not
+possible for me to make a release last Friday.
+
+Few new features are present, but the codebase has been cleaned, and a couple
+of API are _considered_ for deprecation. They are not deprecated yet, but as
+they do not seem to be quite used, they may emit a warning, in which case please
+comment on the relevant issue to inform me of _which_ project use those feature
+and how you use them. Depending on the feedback I might change the timeline for
+deprecation.
+
+This release saw 14 PRs, with more outside contribution than usual,
+I'll note in particular PRs related to making IPython work on emscripten.
+
+I also want to point that we are _trying_ to keep compatibility with Python 3.13,
+but it's a cat and mouse game. Plus I am low on time, so I would appreciate any
+help with that.
+
+Deprecations
+~~~~~~~~~~~~
+
+ - :ghpull:`14307` Pending Deprecation of
+   ``ColorSchemeTable.set_active_scheme(...)``'s ``case_sensitive`` Parameter.
+ - :ghpull:`14305` Pending Deprecation of constructing ``ColorScheme`` via
+   ``kwargs``, in favor passing a single dict.
+
+
+Fixes
+~~~~~
+
+ - :ghpull:`14284` TerminalIPythonApp's would warn that ``auto_create`` option is not
+   recognized.
+ - :ghpull:`14286` Fix a crash with ``NotOneValueFound`` when rendering complex
+   tracebacks.
+
+ - :ghpull:`14287` Partial Python 3.13 compatibility
+ - :ghpull:`14290` Docs/Typos.
+
+Changes
+~~~~~~~
+
+ - :ghpull:`14289` ``ipdb.set_trace()`` now accepts ``header=`` for better
+   compatibility with ``pdb.set_trace()``
+
+ - :ghpull:`14300` and :ghpull:`14301` Add hooking ability to produce
+   mimebundle.
+
+We'll outline :ghpull:`14300`, it is now possible to extend the ``?/??``
+operator to return more mimetypes to render richer help in frontends that
+support it. In particular you could send a json representation of the help that
+could be displayed in a customizable way.
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+ - :ghpull:`14291` Misc Refactor of Color handling
+ - :ghpull:`14295` Misc test skip on problematic Pypy versions.
+
+
+Thanks
+~~~~~~
+
+Special thanks to all our contributors, and to the Pypy team that was extremely
+reactive in helping to investigate a fixing a rare unicode+windows bug.
+
+As usual you can find the full list of PRs on GitHub under `the 8.21
+<https://github.com/ipython/ipython/milestone/128?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 8.20:
+
+IPython 8.20
+------------
+
+Quick IPython release in this beginning of 2024, barely 2 weeks after the previous
+release.
+
+This is mostly to fix a backward compatibility issue, I would have done a  patch
+release earlier if I could. As a few other cleanup are also part of this
+release, this will get a minor version bump.
+
+
+The crux of this release is :ghpull:`14274` (Inspect continuation prompt
+signature and pass only viable arguments), the rest of the changes are mostly
+type annotation, and a few compatibility issues with Python 3.13 that are
+getting addressed.
+
+Python 3.13 compatibility is still not complete (help welcomed).
+
+As usual you can find the full list of PRs on GitHub under `the 8.20
+<https://github.com/ipython/ipython/milestone/127?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 8.19:
+
+IPython 8.19
+------------
+
+New release of IPython a bit before the end of the month, and end of the year.
+
+Mostly cleanup and deprecation, due to upstream deprecation and removal.
+
+Remove of Python 3.9 support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A bit later than originally plan, IPython 8.19 does not support Python 3.9
+anymore, as well as the few conditional code that were executing only on Python
+3.9. :ghpull:`14254`
+
+We used the opportunity to deprecate ``IPython.utils.tz`` :ghpull:`14256`, due
+to upstream deprecation of some timezone utilities. It will be removed at a later
+date.
+
+We now also run CI on Python 3.12 (what I likely should have done before), but
+running on too many Python version uses a lot of CI time.
+
+Absolute and relative Line Numbers in Prompts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Thanks to the contribution of ``cohml``, IPython CLI now support absolute and
+relative line numbers in both vi and emacs prompt, use for example
+``c.TerminalInteractiveShell.prompt_line_number_format='{line: 4d}/{rel_line:+03d} | '``
+configuration option to display both in a custom format.
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+In addition to various bugfixes, I unpinned pytest, let me know if there are any
+issues and we'll re-pin.
+
+See you in 2024
+~~~~~~~~~~~~~~~
+
+As usual you can find the full list of PRs on GitHub under `the 8.19
+<https://github.com/ipython/ipython/milestone/126?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 8.18:
+
+IPython 8.18 and 8.18.1
+-----------------------
+
+8.18.1 is identical to 8.18 but pin ``prompt_toolkit`` to greater than ``3.0.41``
+
+Small release of IPython that fixes a small number of inconveniences.
+
+ - :ghpull:`14251` Fix a memory leak in qt event loop integration by setting
+   the Loop parent to None.
+ - :ghpull:`14252` Pickleshare was made an optional dependency in 8.17, this
+   leads to warnings in some installations when using modules completions. The
+   warning has been silenced.
+ - :ghpull:`14241` Update event loop code for compatibility with more recent
+   ``prompt_toolkit`` due to deprecations in Python 3.12.
+ - :ghpull:`14245` Fix doc example on Pygments styles
+ - :ghpull:`14238` Remove dependency on app_nope, this is actually only a
+   dependency of IPykernel.
+
+As usual you can find the full list of PRs on GitHub under `the 8.18
+<https://github.com/ipython/ipython/milestone/125?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 8.17.1:
+.. _version 8.17:
+
+IPython 8.17, 8.17.1
+--------------------
+
+Medium-sized release of IPython that includes some cleanup (backcall, python2 leftovers)
+and some refactoring improvements (typing, pathlib) and a fix on completion.
+
+  - :ghpull:`14216` remove backcall dependency
+  - :ghpull:`14217` make pickleshare dependency optional
+  - :ghpull:`14185` support completion based on type annotations of calls
+
+Reverted in 8.17.1:
+
+  - :ghpull:`14190` remove support for python 2 in lexers (reverted in 8.17.1 as it is imported by qtconsole/spyder)
+
+Mamba and Micromamba magic
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to the conda command to manage conda environment, mamba and
+micromamba can now be used using the corresponding magic in IPython.
+Since these commands are compatible with conda, they are following the
+same logic.
+
+These two magic require to have the corresponding commands available
+either in the conda environment or system wide.
+
+:ghpull:`14191`
+
+----
+
+As usual you can find the full list of PRs on GitHub under `the 8.17
+<https://github.com/ipython/ipython/milestone/123?closed=1>`__ milestone.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 8.16:
+.. _version 8.16.1:
+
+IPython 8.16, 8.16.1
+--------------------
+
+Small double release of IPython (with the 8.12.3 release notes just below).
+Mostly bug fixes and cleanups, and type annotations. Of interest for users:
+
+ - :ghpull:`14153` Fix a bug of the new iPdb chained traceback where some
+   Exception would not have any traceback. (see upstream fix in CPython for more
+   details).
+ - :ghpull:`14168` Fix case with spurious message about event loops when using
+   matplotlib.
+
+This PR is in 8.16.0 but reverted in 8.16.1, we'll  rework the fix for 8.17
+
+ - :ghpull:`14163` Fix an error where semicolon would not suppress output.
+
+As usual you can find the full list of PRs on GitHub under `the 8.16
+<https://github.com/ipython/ipython/milestone/121?closed=1>`__ and `8.16.1 milestone
+<https://github.com/ipython/ipython/milestone/124?closed=1>`__.
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 8.12.3:
+
+IPython 8.12.3
+--------------
+
+Tiny release of 8.12.3 that backport a small number of fixes for users still
+using Python 3.8.
+
+ - :ghpull:`14080` add passthrough filter shortcuts
+ - :ghpull:`14169` Fix `InteractiveShellEmbed`
+
+.. _version 8.15:
+
+IPython 8.15
+------------
+
+Medium release of IPython after a couple of month hiatus, and a bit
+off-schedule.
+
+Among other, IPython 8.15:
+
+ - Improve compatibility with future version of Python 3.12/3.13
+   :ghpull:`14107`, :ghpull:`14139`,
+ - Improve support for ``ExceptionGroups``, :ghpull:`14108`
+ - Fix hangs in ``%gui osx``, :ghpull:`14125`
+ - Fix memory lead with ``%reset``, :ghpull:`14133`
+ - Unstable config option to modify traceback highlighting that is sometime hard
+   to read :ghpull:`14138`
+ - Support ``.`` in ``ipdb`` as an argument to the ``list`` command
+   :ghpull:`14121`
+ - Workroud ``parso`` showing warning message when the default logger level is
+   changed :ghpull:`14119`
+ - Fix multiple issues with matplotlib interactive mode, qt5/qt6 :ghpull:`14128`
+
+Support for PEP-678 Exception Notes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ultratb now shows :pep:`678` notes, improving your debugging experience on
+Python 3.11+ or with libraries such as Pytest and Hypothesis.
+
+Native fallback for displaying ExceptionGroup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ExceptionGroups are now displayed with ``traceback.print_exc``, as a temporary fix until UltraTB properly supports displaying child exceptions.
+
+
+We have two larger features:
+
+AST-based macros
+~~~~~~~~~~~~~~~~
+
+:ghpull:`14100` introduce a new and efficient way to modify each execution block
+(cell) using an template-ast-based transform. Unlike IPython pre and post code
+execution hooks, this actually transform the code that is execute with as
+minimal as possible overhead. While it was already technically possible to
+register ast transformers for IPython this was far from evident.
+
+This should make it trivial to hook into IPython to implement custom hooks, that
+for example time or profile your code, catch exceptions to provide error
+messages for students or do any other kind of transformations.
+
+In addition to programmatic API there is also a magic to quickly register
+hooks::
+
+   In [1]: %%code_wrap before_after
+      ...: print('before')
+      ...: __code__
+      ...: print('after')
+      ...: __ret__
+
+This mean that  for any subsequent execution code will be executed.
+You can modify the above to print the date, compute the execution time,
+retry the code in a for loop....
+
+
+Allow IPdb/Pdb to move between chained exceptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The main change is the addition of the ability to move between chained
+exceptions when using IPdb, this feature was also contributed to upstream Pdb
+and is thus native to CPython in Python 3.13+ Though ipdb should support this
+feature in older version of Python. I invite you to look at the `CPython changes
+and docs <https://github.com/python/cpython/pull/106676>`__ for more details.
+
+In short, once in post-mortem debugger (``%debug``), you can use the ipdb
+``exceptions`` command to switch exceptions, for example:
+
+.. code-block:: ipython
+
+    In [1]: def foo(x):
+        ...:     try:
+        ...:         bar(x)
+        ...:     except Exception as e:
+        ...:         raise ValueError("foo (): bar failed") from e
+        ...:
+        ...: def bar(x):
+        ...:     1 / X
+        ...:
+
+    In [2]: foo(0)
+    ---------------------------------------------------------------------------
+    NameError                                 Traceback (most recent call last)
+    Cell In[1], line 3, in foo(x)
+          2 try:
+    ----> 3     bar(x)
+          4 except Exception as e:
+
+    Cell In[1], line 9, in bar(x)
+          8 def bar(x):
+    ----> 9     1 / X
+
+    NameError: name 'X' is not defined
+
+    The above exception was the direct cause of the following exception:
+
+    ValueError                                Traceback (most recent call last)
+    Cell In[2], line 1
+    ----> 1 foo(0)
+
+    Cell In[1], line 5, in foo(x)
+          3     bar(x)
+          4 except Exception as e:
+    ----> 5     raise ValueError("foo (): bar failed") from e
+
+    ValueError: foo (): bar failed
+
+    In [3]: %debug
+    > <ipython-input-1-b0bbdc271ffb>(5)foo()
+          3         bar(x)
+          4     except Exception as e:
+    ----> 5         raise ValueError("foo (): bar failed") from e
+
+In previous ipdb you could not go into the bar error, now from within pdb you
+can use ``exceptions``:
+
+.. code-block:: ipython
+
+    ipdb> exceptions
+        0 NameError("name 'X' is not defined")
+    >   1 ValueError('foo (): bar failed')
+
+    ipdb> exceptions 0
+    > <ipython-input-1-b0bbdc271ffb>(9)bar()
+          6
+          7
+          8 def bar(x):
+    ----> 9     1 / X
+         10
+
+    ipdb>
+
+In particular I want to thank the `D.E. Shaw group <https://www.deshaw.com/>`__
+for suggesting and funding the two largest feature as well as many bug fixes of
+this release.
+
+As usual you can find the full list of PRs on GitHub under `the 8.15 milestone
+<https://github.com/ipython/ipython/milestone/120?closed=1>`__.
+
+
+
 .. _version 8.14:
 
 IPython 8.14
@@ -22,7 +538,7 @@ SPEC 0 and SPEC 4
 You've heard about the NEPs, (NumPy enhancement Proposal), having a NEP for something non-numpy specific was sometime confusing.
 Long live the `SPECs <https://scientific-python.org/specs/>`_.
 
-We are now trying to follow SPEC 0 (aka old NEP 29) for of support of upstream libraries.
+We are now trying to follow SPEC 0 (aka old NEP 29) for support of upstream libraries.
 
 We also now try to follow SPEC 4 (test and publish nightly on a centralized nightly repository).
 We encourage you to do so as well in order to report breakage, and contribute to the SPEC process !
@@ -32,7 +548,7 @@ Python 3.12 compatibility ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Python 3.12 changed its tokenizer to have better support for f-strings and allow arbitrary expression.
-This is a great new feature and performance improvement in python 3.12.
+This is a great new feature and performance improvement in Python 3.12.
 
 Unfortunately this means the new tokenizer does not support incomplete or invalid Python which will
 break many features of IPython. Thus compatibility of IPython with Python 3.12 is not guarantied.
@@ -49,7 +565,7 @@ so if you plan to update to Python 3.12 after its release, we encourage for extr
 
 .. _version 8.13.1:
 .. _version 8.13.2:
-.. _version 8.12.3:
+.. _version 8.12.2:
 
 IPython 8.13.1, 8.13.2 and 8.12.2
 ---------------------------------
@@ -58,7 +574,7 @@ IPython 8.13.1, 8.13.2 and 8.12.2
 having been yanked.
 
 IPython 8.13.0 was improperly tagged as still compatible with Python 3.8, and
-still had some mention of compatibility woth 3.8. IPython 8.13.1 is identical to
+still had some mention of compatibility with 3.8. IPython 8.13.1 is identical to
 8.13 but with the exception of being correctly tagged. This release and yank was
 mostly done to fix CI.
 
@@ -79,19 +595,20 @@ for Python 3.8 as per NEP 29 (:ghpull:`14023`).
 All the critical bugfixes have been backported onto the 8.12.1 release (see
 below). In addition to that went into 8.12.1 you'll find:
 
- - Pretty reprensentation for ``Counter`` has been fixed to match the Python one
+ - Pretty representation for ``Counter`` has been fixed to match the Python one
    and be in decreasing order. :ghpull:`14032`
  - Module completion is better when jedi is disabled :ghpull:`14029`.
- - Improvment of ``%%bash`` magic that would get stuck :ghpull:`14019`
+ - Improvement of ``%%bash`` magic that would get stuck :ghpull:`14019`
 
 
 We hope you enjoy this release an will maybe see you at JupyterCon in less than
 two weeks.
 
-As usual you can find the full list of PRs on GitHub under `the 8.12.1 milestone
+As usual you can find the full list of PRs on GitHub under `the 8.13 milestone
 <https://github.com/ipython/ipython/milestone/115?closed=1>`__.
 
-Thanks to the D.E. Shaw group for the request and sponsoring the work.
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 
 .. _version 8.12.1:
@@ -117,7 +634,8 @@ per Nep 29 and this IPython 8.12.x will now only receive bugfixes.
 As usual you can find the full list of PRs on GitHub under `the 8.12.1 milestone
 <https://github.com/ipython/ipython/milestone/116?closed=1>`__.
 
-Thanks to the D.E. Shaw group for the request and sponsoring the work.
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 .. _version 8.12.0:
 
@@ -762,7 +1280,7 @@ features listed in :ref:`version 7.32`.
    :ghpull:`13471` Additionally the ability to use ``yapf`` as a code
    reformatter has been added :ghpull:`13528` . You can use
    ``TerminalInteractiveShell.autoformatter="black"``,
-   ``TerminalInteractiveShell.autoformatter="yapf"`` to re-enable auto formating
+   ``TerminalInteractiveShell.autoformatter="yapf"`` to re-enable auto formatting
    with black, or switch to yapf.
 
  - Fix and issue where ``display`` was not defined.
@@ -1744,3 +2262,7 @@ The following attribute/methods have been removed::
     - IPython.terminal.ipapp.LocateIPythonApp.initialize_subcommand
     - IPython.terminal.ipapp.TerminalIPythonApp.deprecated_subcommands
     - IPython.terminal.ipapp.TerminalIPythonApp.initialize_subcommand
+
+------
+
+.. [1] If this make you incomfortable feel free to not use IPython 8.23.

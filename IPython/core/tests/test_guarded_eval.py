@@ -1,5 +1,17 @@
+import sys
 from contextlib import contextmanager
-from typing import NamedTuple
+from typing import (
+    Annotated,
+    AnyStr,
+    NamedTuple,
+    Literal,
+    NewType,
+    Optional,
+    Protocol,
+    TypeGuard,
+    Union,
+    TypedDict,
+)
 from functools import partial
 from IPython.core.guarded_eval import (
     EvaluationContext,
@@ -9,6 +21,17 @@ from IPython.core.guarded_eval import (
 )
 from IPython.testing import decorators as dec
 import pytest
+
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self, LiteralString
+else:
+    from typing import Self, LiteralString
+
+if sys.version_info < (3, 12):
+    from typing_extensions import TypeAliasType
+else:
+    from typing import TypeAliasType
 
 
 def create_context(evaluation: str, **kwargs):
@@ -253,16 +276,196 @@ def test_method_descriptor():
     assert guarded_eval("list.copy.__name__", context) == "copy"
 
 
+class HeapType:
+    pass
+
+
+class CallCreatesHeapType:
+    def __call__(self) -> HeapType:
+        return HeapType()
+
+
+class CallCreatesBuiltin:
+    def __call__(self) -> frozenset:
+        return frozenset()
+
+
+class HasStaticMethod:
+    @staticmethod
+    def static_method() -> HeapType:
+        return HeapType()
+
+
+class InitReturnsFrozenset:
+    def __new__(self) -> frozenset:  # type:ignore[misc]
+        return frozenset()
+
+
+class StringAnnotation:
+    def heap(self) -> "HeapType":
+        return HeapType()
+
+    def copy(self) -> "StringAnnotation":
+        return StringAnnotation()
+
+
+CustomIntType = NewType("CustomIntType", int)
+CustomHeapType = NewType("CustomHeapType", HeapType)
+IntTypeAlias = TypeAliasType("IntTypeAlias", int)
+HeapTypeAlias = TypeAliasType("HeapTypeAlias", HeapType)
+
+
+class TestProtocol(Protocol):
+    def test_method(self) -> bool:
+        pass
+
+
+class TestProtocolImplementer(TestProtocol):
+    def test_method(self) -> bool:
+        return True
+
+
+class Movie(TypedDict):
+    name: str
+    year: int
+
+
+class SpecialTyping:
+    def custom_int_type(self) -> CustomIntType:
+        return CustomIntType(1)
+
+    def custom_heap_type(self) -> CustomHeapType:
+        return CustomHeapType(HeapType())
+
+    # TODO: remove type:ignore comment once mypy
+    # supports explicit calls to `TypeAliasType`, see:
+    # https://github.com/python/mypy/issues/16614
+    def int_type_alias(self) -> IntTypeAlias:  # type:ignore[valid-type]
+        return 1
+
+    def heap_type_alias(self) -> HeapTypeAlias:  # type:ignore[valid-type]
+        return 1
+
+    def literal(self) -> Literal[False]:
+        return False
+
+    def literal_string(self) -> LiteralString:
+        return "test"
+
+    def self(self) -> Self:
+        return self
+
+    def any_str(self, x: AnyStr) -> AnyStr:
+        return x
+
+    def annotated(self) -> Annotated[float, "positive number"]:
+        return 1
+
+    def annotated_self(self) -> Annotated[Self, "self with metadata"]:
+        self._metadata = "test"
+        return self
+
+    def int_type_guard(self, x) -> TypeGuard[int]:
+        return isinstance(x, int)
+
+    def optional_float(self) -> Optional[float]:
+        return 1.0
+
+    def union_str_and_int(self) -> Union[str, int]:
+        return ""
+
+    def protocol(self) -> TestProtocol:
+        return TestProtocolImplementer()
+
+    def typed_dict(self) -> Movie:
+        return {"name": "The Matrix", "year": 1999}
+
+
 @pytest.mark.parametrize(
-    "data,good,bad,expected",
+    "data,code,expected,equality",
     [
-        [[1, 2, 3], "data.index(2)", "data.append(4)", 1],
-        [{"a": 1}, "data.keys().isdisjoint({})", "data.update()", True],
+        [[1, 2, 3], "data.index(2)", 1, True],
+        [{"a": 1}, "data.keys().isdisjoint({})", True, True],
+        [StringAnnotation(), "data.heap()", HeapType, False],
+        [StringAnnotation(), "data.copy()", StringAnnotation, False],
+        # test cases for `__call__`
+        [CallCreatesHeapType(), "data()", HeapType, False],
+        [CallCreatesBuiltin(), "data()", frozenset, False],
+        # Test cases for `__init__`
+        [HeapType, "data()", HeapType, False],
+        [InitReturnsFrozenset, "data()", frozenset, False],
+        [HeapType(), "data.__class__()", HeapType, False],
+        # supported special cases for typing
+        [SpecialTyping(), "data.custom_int_type()", int, False],
+        [SpecialTyping(), "data.custom_heap_type()", HeapType, False],
+        [SpecialTyping(), "data.int_type_alias()", int, False],
+        [SpecialTyping(), "data.heap_type_alias()", HeapType, False],
+        [SpecialTyping(), "data.self()", SpecialTyping, False],
+        [SpecialTyping(), "data.literal()", False, True],
+        [SpecialTyping(), "data.literal_string()", str, False],
+        [SpecialTyping(), "data.any_str('a')", str, False],
+        [SpecialTyping(), "data.any_str(b'a')", bytes, False],
+        [SpecialTyping(), "data.annotated()", float, False],
+        [SpecialTyping(), "data.annotated_self()", SpecialTyping, False],
+        [SpecialTyping(), "data.int_type_guard()", int, False],
+        # test cases for static methods
+        [HasStaticMethod, "data.static_method()", HeapType, False],
     ],
 )
-def test_evaluates_calls(data, good, bad, expected):
+def test_evaluates_calls(data, code, expected, equality):
+    context = limited(data=data, HeapType=HeapType, StringAnnotation=StringAnnotation)
+    value = guarded_eval(code, context)
+    if equality:
+        assert value == expected
+    else:
+        assert isinstance(value, expected)
+
+
+@pytest.mark.parametrize(
+    "data,code,expected_attributes",
+    [
+        [SpecialTyping(), "data.optional_float()", ["is_integer"]],
+        [
+            SpecialTyping(),
+            "data.union_str_and_int()",
+            ["capitalize", "as_integer_ratio"],
+        ],
+        [SpecialTyping(), "data.protocol()", ["test_method"]],
+        [SpecialTyping(), "data.typed_dict()", ["keys", "values", "items"]],
+    ],
+)
+def test_mocks_attributes_of_call_results(data, code, expected_attributes):
+    context = limited(data=data, HeapType=HeapType, StringAnnotation=StringAnnotation)
+    result = guarded_eval(code, context)
+    for attr in expected_attributes:
+        assert hasattr(result, attr)
+        assert attr in dir(result)
+
+
+@pytest.mark.parametrize(
+    "data,code,expected_items",
+    [
+        [SpecialTyping(), "data.typed_dict()", {"year": int, "name": str}],
+    ],
+)
+def test_mocks_items_of_call_results(data, code, expected_items):
+    context = limited(data=data, HeapType=HeapType, StringAnnotation=StringAnnotation)
+    result = guarded_eval(code, context)
+    ipython_keys = result._ipython_key_completions_()
+    for key, value in expected_items.items():
+        assert isinstance(result[key], value)
+        assert key in ipython_keys
+
+
+@pytest.mark.parametrize(
+    "data,bad",
+    [
+        [[1, 2, 3], "data.append(4)"],
+        [{"a": 1}, "data.update()"],
+    ],
+)
+def test_rejects_calls_with_side_effects(data, bad):
     context = limited(data=data)
-    assert guarded_eval(good, context) == expected
 
     with pytest.raises(GuardRejection):
         guarded_eval(bad, context)
@@ -534,7 +737,7 @@ def test_unbind_method():
 def test_assumption_instance_attr_do_not_matter():
     """This is semi-specified in Python documentation.
 
-    However, since the specification says 'not guaranted
+    However, since the specification says 'not guaranteed
     to work' rather than 'is forbidden to work', future
     versions could invalidate this assumptions. This test
     is meant to catch such a change if it ever comes true.

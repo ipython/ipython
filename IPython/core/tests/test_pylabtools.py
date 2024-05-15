@@ -165,7 +165,7 @@ class TestPylabSwitch(object):
         def enable_gui(self, gui):
             pass
 
-    def setup(self):
+    def setup_method(self):
         import matplotlib
         def act_mpl(backend):
             matplotlib.rcParams['backend'] = backend
@@ -173,8 +173,8 @@ class TestPylabSwitch(object):
         # Save rcParams since they get modified
         self._saved_rcParams = matplotlib.rcParams
         self._saved_rcParamsOrig = matplotlib.rcParamsOrig
-        matplotlib.rcParams = dict(backend='Qt4Agg')
-        matplotlib.rcParamsOrig = dict(backend='Qt4Agg')
+        matplotlib.rcParams = dict(backend="QtAgg")
+        matplotlib.rcParamsOrig = dict(backend="QtAgg")
 
         # Mock out functions
         self._save_am = pt.activate_matplotlib
@@ -184,7 +184,7 @@ class TestPylabSwitch(object):
         self._save_cis = backend_inline.configure_inline_support
         backend_inline.configure_inline_support = lambda *a, **kw: None
 
-    def teardown(self):
+    def teardown_method(self):
         pt.activate_matplotlib = self._save_am
         pt.import_pylab = self._save_ip
         backend_inline.configure_inline_support = self._save_cis
@@ -199,7 +199,7 @@ class TestPylabSwitch(object):
         assert s.pylab_gui_select == "qt"
 
         gui, backend = s.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
         assert s.pylab_gui_select == "qt"
 
         gui, backend = s.enable_matplotlib("qt")
@@ -207,7 +207,7 @@ class TestPylabSwitch(object):
         assert s.pylab_gui_select == "qt"
 
         gui, backend = s.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
         assert s.pylab_gui_select == "qt"
 
         gui, backend = s.enable_matplotlib()
@@ -217,11 +217,11 @@ class TestPylabSwitch(object):
     def test_inline(self):
         s = self.Shell()
         gui, backend = s.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
         assert s.pylab_gui_select == None
 
         gui, backend = s.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
         assert s.pylab_gui_select == None
 
         gui, backend = s.enable_matplotlib("qt")
@@ -233,14 +233,14 @@ class TestPylabSwitch(object):
 
         ip = self.Shell()
         gui, backend = ip.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
 
         fmts =  {'png'}
         active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
         pt.select_figure_formats(ip, fmts)
 
         gui, backend = ip.enable_matplotlib("inline")
-        assert gui == "inline"
+        assert gui is None
 
         for mime, f in ip.display_formatter.formatters.items():
             if mime in active_mimes:
@@ -254,7 +254,7 @@ class TestPylabSwitch(object):
         assert gui == "qt"
         assert s.pylab_gui_select == "qt"
 
-        gui, backend = s.enable_matplotlib("gtk")
+        gui, backend = s.enable_matplotlib("gtk3")
         assert gui == "qt"
         assert s.pylab_gui_select == "qt"
 
@@ -268,3 +268,85 @@ def test_figure_no_canvas():
     fig = Figure()
     fig.canvas = None
     pt.print_figure(fig)
+
+
+@pytest.mark.parametrize(
+    "name, expected_gui, expected_backend",
+    [
+        # name is gui
+        ("gtk3", "gtk3", "gtk3agg"),
+        ("gtk4", "gtk4", "gtk4agg"),
+        ("headless", None, "agg"),
+        ("osx", "osx", "macosx"),
+        ("qt", "qt", "qtagg"),
+        ("qt5", "qt5", "qt5agg"),
+        ("qt6", "qt6", "qtagg"),
+        ("tk", "tk", "tkagg"),
+        ("wx", "wx", "wxagg"),
+        # name is backend
+        ("agg", None, "agg"),
+        ("cairo", None, "cairo"),
+        ("pdf", None, "pdf"),
+        ("ps", None, "ps"),
+        ("svg", None, "svg"),
+        ("template", None, "template"),
+        ("gtk3agg", "gtk3", "gtk3agg"),
+        ("gtk3cairo", "gtk3", "gtk3cairo"),
+        ("gtk4agg", "gtk4", "gtk4agg"),
+        ("gtk4cairo", "gtk4", "gtk4cairo"),
+        ("macosx", "osx", "macosx"),
+        ("nbagg", "nbagg", "nbagg"),
+        ("notebook", "nbagg", "notebook"),
+        ("qtagg", "qt", "qtagg"),
+        ("qtcairo", "qt", "qtcairo"),
+        ("qt5agg", "qt5", "qt5agg"),
+        ("qt5cairo", "qt5", "qt5cairo"),
+        ("tkagg", "tk", "tkagg"),
+        ("tkcairo", "tk", "tkcairo"),
+        ("webagg", "webagg", "webagg"),
+        ("wxagg", "wx", "wxagg"),
+        ("wxcairo", "wx", "wxcairo"),
+    ],
+)
+def test_backend_builtin(name, expected_gui, expected_backend):
+    # Test correct identification of Matplotlib built-in backends without importing and using them,
+    # otherwise we would need to ensure all the complex dependencies such as windowing toolkits are
+    # installed.
+
+    mpl_manages_backends = pt._matplotlib_manages_backends()
+    if not mpl_manages_backends:
+        # Backends not supported before _matplotlib_manages_backends or supported
+        # but with different expected_gui or expected_backend.
+        if (
+            name.endswith("agg")
+            or name.endswith("cairo")
+            or name in ("headless", "macosx", "pdf", "ps", "svg", "template")
+        ):
+            pytest.skip()
+        elif name == "qt6":
+            expected_backend = "qtagg"
+        elif name == "notebook":
+            expected_backend, expected_gui = expected_gui, expected_backend
+
+    gui, backend = pt.find_gui_and_backend(name)
+    if not mpl_manages_backends:
+        gui = gui.lower() if gui else None
+        backend = backend.lower() if backend else None
+    assert gui == expected_gui
+    assert backend == expected_backend
+
+
+def test_backend_entry_point():
+    gui, backend = pt.find_gui_and_backend("inline")
+    assert gui is None
+    expected_backend = (
+        "inline"
+        if pt._matplotlib_manages_backends()
+        else "module://matplotlib_inline.backend_inline"
+    )
+    assert backend == expected_backend
+
+
+def test_backend_unknown():
+    with pytest.raises(RuntimeError if pt._matplotlib_manages_backends() else KeyError):
+        pt.find_gui_and_backend("name-does-not-exist")

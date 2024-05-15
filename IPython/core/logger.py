@@ -15,9 +15,13 @@
 # Python standard modules
 import glob
 import io
+import logging
 import os
 import time
 
+
+# prevent jedi/parso's debug messages pipe into interactiveshell
+logging.getLogger("parso").setLevel(logging.WARNING)
 
 #****************************************************************************
 # FIXME: This class isn't a mixin anymore, but it still needs attributes from
@@ -187,7 +191,7 @@ which already exists. But you must first start the logging process with
     def log_write(self, data, kind='input'):
         """Write data to the log file, if active"""
 
-        #print 'data: %r' % data # dbg
+        # print('data: %r' % data)  # dbg
         if self.log_active and data:
             write = self.logfile.write
             if kind=='input':

@@ -9,8 +9,8 @@ jobs:
   upload_anaconda:
     name: Upload to Anaconda
     runs-on: ubuntu-latest
-    # The artifacts cannot be uploaded on PRs
-    if: github.event_name != 'pull_request'
+    # The artifacts cannot be uploaded on PRs, also disable scheduled CI runs on forks
+    if: github.event_name != 'pull_request' && (github.event_name != 'schedule' || github.repository_owner == 'ipython')
 
     steps:
       - uses: actions/checkout@v3
@@ -20,7 +20,7 @@ jobs:
           python-version: "3.10"
           cache: pip
           cache-dependency-path: |
-            setup.cfg
+            pyproject.toml
       - name: Try building with Python build
         if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
         run: |

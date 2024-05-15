@@ -297,8 +297,13 @@ class DisplayHook(Configurable):
         for n in range(1,self.prompt_count + 1):
             key = '_'+repr(n)
             try:
+                del self.shell.user_ns_hidden[key]
+            except KeyError:
+                pass
+            try:
                 del self.shell.user_ns[key]
-            except: pass
+            except KeyError:
+                pass
         # In some embedded circumstances, the user_ns doesn't have the
         # '_oh' key set up.
         oh = self.shell.user_ns.get('_oh', None)

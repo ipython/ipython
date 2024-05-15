@@ -530,6 +530,14 @@ def test_time_local_ns():
     del ip.user_ns["myvar"]
 
 
+def test_time_microseconds_display():
+    """Ensure ASCII is used when necessary"""
+    with mock.patch("sys.stdout", io.TextIOWrapper(StringIO(), encoding="utf-8")):
+        assert execution._format_time(0.000001) == "1 \u03bcs"
+    with mock.patch("sys.stdout", io.TextIOWrapper(StringIO(), encoding="ascii")):
+        assert execution._format_time(0.000001) == "1 us"
+
+
 # Test %%capture magic. Added to test issue #13926
 def test_capture():
     ip = get_ipython()

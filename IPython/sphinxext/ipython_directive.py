@@ -300,7 +300,7 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
 
                 nextline = lines[i]
                 matchout = rgxout.match(nextline)
-                #print "nextline=%s, continuation=%s, starts=%s"%(nextline, continuation, nextline.startswith(continuation))
+                # print("nextline=%s, continuation=%s, starts=%s"%(nextline, continuation, nextline.startswith(continuation)))
                 if matchout or nextline.startswith('#'):
                     break
                 elif nextline.startswith(continuation):
@@ -538,7 +538,7 @@ class EmbeddedSphinxShell(object):
             # When there is stdout from the input, it also has a '\n' at the
             # tail end, and so this ensures proper spacing as well. E.g.:
             #
-            #   In [1]: print x
+            #   In [1]: print(x)
             #   5
             #
             #   In [2]: x = 5
@@ -699,7 +699,7 @@ class EmbeddedSphinxShell(object):
         """
         self.ensure_pyplot()
         command = 'plt.gcf().savefig("%s")'%image_file
-        #print 'SAVEFIG', command  # dbg
+        # print('SAVEFIG', command)  # dbg
         self.process_input_line('bookmark ipy_thisdir', store_history=False)
         self.process_input_line('cd -b ipy_savedir', store_history=False)
         self.process_input_line(command, store_history=False)

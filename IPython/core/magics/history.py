@@ -128,7 +128,7 @@ class HistoryMagics(Magics):
 
           In [6]: %history -n 4-6
           4:a = 12
-          5:print a**2
+          5:print(a**2)
           6:%history -n 4-6
 
         """

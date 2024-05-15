@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tools for coloring text in ANSI terminals.
 """
 
@@ -9,11 +8,15 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-__all__ = ['TermColors','InputTermColors','ColorScheme','ColorSchemeTable']
 
 import os
+import warnings
 
 from IPython.utils.ipstruct import Struct
+
+__all__ = ["TermColors", "InputTermColors", "ColorScheme", "ColorSchemeTable"]
+
+_sentinel = object()
 
 color_templates = (
         # Dark colors
@@ -66,10 +69,35 @@ class TermColors:
 
     NoColor = ''  # for color schemes in color-less terminals.
     Normal = '\033[0m'   # Reset normal coloring
-    _base  = '\033[%sm'  # Template for all other colors
 
-# Build the actual color table as a set of class attributes:
-make_color_table(TermColors)
+    Black = "\033[0;30m"
+    Red = "\033[0;31m"
+    Green = "\033[0;32m"
+    Brown = "\033[0;33m"
+    Blue = "\033[0;34m"
+    Purple = "\033[0;35m"
+    Cyan = "\033[0;36m"
+    LightGray = "\033[0;37m"
+    # Light colors
+    DarkGray = "\033[1;30m"
+    LightRed = "\033[1;31m"
+    LightGreen = "\033[1;32m"
+    Yellow = "\033[1;33m"
+    LightBlue = "\033[1;34m"
+    LightPurple = "\033[1;35m"
+    LightCyan = "\033[1;36m"
+    White = "\033[1;37m"
+    # Blinking colors.  Probably should not be used in anything serious.
+    BlinkBlack = "\033[5;30m"
+    BlinkRed = "\033[5;31m"
+    BlinkGreen = "\033[5;32m"
+    BlinkYellow = "\033[5;33m"
+    BlinkBlue = "\033[5;34m"
+    BlinkPurple = "\033[5;35m"
+    BlinkCyan = "\033[5;36m"
+    BlinkLightGray = "\033[5;37m"
+
+
 
 class InputTermColors:
     """Color escape sequences for input prompts.
@@ -110,8 +138,22 @@ for name, value in color_templates:
 
 class ColorScheme:
     """Generic color scheme class. Just a name and a Struct."""
-    def __init__(self,__scheme_name_,colordict=None,**colormap):
+
+    name: str
+    colors: Struct
+
+    def __init__(self, __scheme_name_, colordict=None, **colormap):
         self.name = __scheme_name_
+        if colormap:
+            warnings.warn(
+                "Passing each colors as a kwarg to ColorScheme is "
+                "considered for deprecation. Please pass a "
+                "a single dict as second parameter. If you are using this"
+                "feature, please comment an subscribe to issue "
+                "https://github.com/ipython/ipython/issues/14304",
+                PendingDeprecationWarning,
+                stacklevel=2,
+            )
         if colordict is None:
             self.colors = Struct(**colormap)
         else:
@@ -155,17 +197,34 @@ class ColorSchemeTable(dict):
         """Return full copy of object"""
         return ColorSchemeTable(self.values(),self.active_scheme_name)
 
-    def add_scheme(self,new_scheme):
+    def __setitem__(self, key: str, value: ColorScheme):
+        assert isinstance(key, str)
+        assert isinstance(value, ColorScheme)
+        super().__setitem__(key, value)
+
+    def add_scheme(self, new_scheme):
         """Add a new color scheme to the table."""
-        if not isinstance(new_scheme,ColorScheme):
+        if not isinstance(new_scheme, ColorScheme):
             raise ValueError('ColorSchemeTable only accepts ColorScheme instances')
         self[new_scheme.name] = new_scheme
 
-    def set_active_scheme(self,scheme,case_sensitive=0):
+    def set_active_scheme(self, scheme, case_sensitive=_sentinel):
         """Set the currently active scheme.
 
         Names are by default compared in a case-insensitive way, but this can
         be changed by setting the parameter case_sensitive to true."""
+
+        if case_sensitive is _sentinel:
+            case_sensitive = False
+        else:
+            warnings.warn(
+                "set_active_scheme(case_sensitive=...) is Pending "
+                "deprecation. Please comment on "
+                "https://github.com/ipython/ipython/issues/14306 "
+                "to let the ipython maintainer that you are affected.",
+                PendingDeprecationWarning,
+                stacklevel=2,
+            )
 
         scheme_names = list(self.keys())
         if case_sensitive:

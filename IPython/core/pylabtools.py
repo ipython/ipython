@@ -12,9 +12,12 @@ import warnings
 from IPython.core.display import _pngxy
 from IPython.utils.decorators import flag_calls
 
-# If user specifies a GUI, that dictates the backend, otherwise we read the
-# user's mpl default from the mpl rc structure
-backends = {
+
+# Matplotlib backend resolution functionality moved from IPython to Matplotlib
+# in IPython 8.24 and Matplotlib 3.9.0. Need to keep `backends` and `backend2gui`
+# here for earlier Matplotlib and for external backend libraries such as
+# mplcairo that might rely upon it.
+_deprecated_backends = {
     "tk": "TkAgg",
     "gtk": "GTKAgg",
     "gtk3": "GTK3Agg",
@@ -23,7 +26,7 @@ backends = {
     "qt4": "Qt4Agg",
     "qt5": "Qt5Agg",
     "qt6": "QtAgg",
-    "qt": "Qt5Agg",
+    "qt": "QtAgg",
     "osx": "MacOSX",
     "nbagg": "nbAgg",
     "webagg": "WebAgg",
@@ -41,29 +44,44 @@ backends = {
 # GUI support to activate based on the desired matplotlib backend.  For the
 # most part it's just a reverse of the above dict, but we also need to add a
 # few others that map to the same GUI manually:
-backend2gui = dict(zip(backends.values(), backends.keys()))
+_deprecated_backend2gui = dict(
+    zip(_deprecated_backends.values(), _deprecated_backends.keys())
+)
 # In the reverse mapping, there are a few extra valid matplotlib backends that
 # map to the same GUI support
-backend2gui["GTK"] = backend2gui["GTKCairo"] = "gtk"
-backend2gui["GTK3Cairo"] = "gtk3"
-backend2gui["GTK4Cairo"] = "gtk4"
-backend2gui["WX"] = "wx"
-backend2gui["CocoaAgg"] = "osx"
+_deprecated_backend2gui["GTK"] = _deprecated_backend2gui["GTKCairo"] = "gtk"
+_deprecated_backend2gui["GTK3Cairo"] = "gtk3"
+_deprecated_backend2gui["GTK4Cairo"] = "gtk4"
+_deprecated_backend2gui["WX"] = "wx"
+_deprecated_backend2gui["CocoaAgg"] = "osx"
 # There needs to be a hysteresis here as the new QtAgg Matplotlib backend
 # supports either Qt5 or Qt6 and the IPython qt event loop support Qt4, Qt5,
 # and Qt6.
-backend2gui["QtAgg"] = "qt"
-backend2gui["Qt4Agg"] = "qt"
-backend2gui["Qt5Agg"] = "qt"
+_deprecated_backend2gui["QtAgg"] = "qt"
+_deprecated_backend2gui["Qt4Agg"] = "qt4"
+_deprecated_backend2gui["Qt5Agg"] = "qt5"
 
 # And some backends that don't need GUI integration
-del backend2gui["nbAgg"]
-del backend2gui["agg"]
-del backend2gui["svg"]
-del backend2gui["pdf"]
-del backend2gui["ps"]
-del backend2gui["module://matplotlib_inline.backend_inline"]
-del backend2gui["module://ipympl.backend_nbagg"]
+del _deprecated_backend2gui["nbAgg"]
+del _deprecated_backend2gui["agg"]
+del _deprecated_backend2gui["svg"]
+del _deprecated_backend2gui["pdf"]
+del _deprecated_backend2gui["ps"]
+del _deprecated_backend2gui["module://matplotlib_inline.backend_inline"]
+del _deprecated_backend2gui["module://ipympl.backend_nbagg"]
+
+
+# Deprecated attributes backends and backend2gui mostly following PEP 562.
+def __getattr__(name):
+    if name in ("backends", "backend2gui"):
+        warnings.warn(
+            f"{name} is deprecated since IPython 8.24, backends are managed "
+            "in matplotlib and can be externally registered.",
+            DeprecationWarning,
+        )
+        return globals()[f"_deprecated_{name}"]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 #-----------------------------------------------------------------------------
 # Matplotlib utilities
@@ -206,12 +224,14 @@ def mpl_runner(safe_execfile):
         import matplotlib
         import matplotlib.pyplot as plt
 
-        #print '*** Matplotlib runner ***' # dbg
+        # print('*** Matplotlib runner ***')  # dbg
         # turn off rendering until end of script
-        is_interactive = matplotlib.rcParams['interactive']
-        matplotlib.interactive(False)
-        safe_execfile(fname,*where,**kw)
-        matplotlib.interactive(is_interactive)
+        with matplotlib.rc_context({"interactive": False}):
+            safe_execfile(fname, *where, **kw)
+
+        if matplotlib.is_interactive():
+            plt.show()
+
         # make rendering call now, if the user tried to do it
         if plt.draw_if_interactive.called:
             plt.draw()
@@ -265,7 +285,7 @@ def select_figure_formats(shell, formats, **kwargs):
 
     [ f.pop(Figure, None) for f in shell.display_formatter.formatters.values() ]
     mplbackend = matplotlib.get_backend().lower()
-    if mplbackend == 'nbagg' or mplbackend == 'module://ipympl.backend_nbagg':
+    if mplbackend in ("nbagg", "ipympl", "widget", "module://ipympl.backend_nbagg"):
         formatter = shell.display_formatter.ipython_display_formatter
         formatter.for_type(Figure, _reshow_nbagg_figure)
 
@@ -317,9 +337,33 @@ def find_gui_and_backend(gui=None, gui_select=None):
 
     import matplotlib
 
+    if _matplotlib_manages_backends():
+        backend_registry = matplotlib.backends.registry.backend_registry
+
+        # gui argument may be a gui event loop or may be a backend name.
+        if gui in ("auto", None):
+            backend = matplotlib.rcParamsOrig["backend"]
+            backend, gui = backend_registry.resolve_backend(backend)
+        else:
+            gui = _convert_gui_to_matplotlib(gui)
+            backend, gui = backend_registry.resolve_gui_or_backend(gui)
+
+        gui = _convert_gui_from_matplotlib(gui)
+        return gui, backend
+
+    # Fallback to previous behaviour (Matplotlib < 3.9)
+    mpl_version_info = getattr(matplotlib, "__version_info__", (0, 0))
+    has_unified_qt_backend = mpl_version_info >= (3, 5)
+
+    from IPython.core.pylabtools import backends
+
+    backends_ = dict(backends)
+    if not has_unified_qt_backend:
+        backends_["qt"] = "qt5agg"
+
     if gui and gui != 'auto':
         # select backend based on requested gui
-        backend = backends[gui]
+        backend = backends_[gui]
         if gui == 'agg':
             gui = None
     else:
@@ -330,13 +374,19 @@ def find_gui_and_backend(gui=None, gui_select=None):
         backend = matplotlib.rcParamsOrig['backend']
         # In this case, we need to find what the appropriate gui selection call
         # should be for IPython, so we can activate inputhook accordingly
+        from IPython.core.pylabtools import backend2gui
         gui = backend2gui.get(backend, None)
 
         # If we have already had a gui active, we need it and inline are the
         # ones allowed.
         if gui_select and gui != gui_select:
             gui = gui_select
-            backend = backends[gui]
+            backend = backends_[gui]
+
+    # Matplotlib before _matplotlib_manages_backends() can return "inline" for
+    # no gui event loop rather than the None that IPython >= 8.24.0 expects.
+    if gui == "inline":
+        gui = None
 
     return gui, backend
 
@@ -423,3 +473,70 @@ def configure_inline_support(shell, backend):
     )
 
     configure_inline_support_orig(shell, backend)
+
+
+# Determine if Matplotlib manages backends only if needed, and cache result.
+# Do not read this directly, instead use _matplotlib_manages_backends().
+_matplotlib_manages_backends_value: bool | None = None
+
+
+def _matplotlib_manages_backends() -> bool:
+    """Return True if Matplotlib manages backends, False otherwise.
+
+    If it returns True, the caller can be sure that
+    matplotlib.backends.registry.backend_registry is available along with
+    member functions resolve_gui_or_backend, resolve_backend, list_all, and
+    list_gui_frameworks.
+
+    This function can be removed as it will always return True when Python
+    3.12, the latest version supported by Matplotlib < 3.9, reaches
+    end-of-life in late 2028.
+    """
+    global _matplotlib_manages_backends_value
+    if _matplotlib_manages_backends_value is None:
+        try:
+            from matplotlib.backends.registry import backend_registry
+
+            _matplotlib_manages_backends_value = hasattr(
+                backend_registry, "resolve_gui_or_backend"
+            )
+        except ImportError:
+            _matplotlib_manages_backends_value = False
+
+    return _matplotlib_manages_backends_value
+
+
+def _list_matplotlib_backends_and_gui_loops() -> list[str]:
+    """Return list of all Matplotlib backends and GUI event loops.
+
+    This is the list returned by
+        %matplotlib --list
+    """
+    if _matplotlib_manages_backends():
+        from matplotlib.backends.registry import backend_registry
+
+        ret = backend_registry.list_all() + [
+            _convert_gui_from_matplotlib(gui)
+            for gui in backend_registry.list_gui_frameworks()
+        ]
+    else:
+        from IPython.core import pylabtools
+
+        ret = list(pylabtools.backends.keys())
+
+    return sorted(["auto"] + ret)
+
+
+# Matplotlib and IPython do not always use the same gui framework name.
+# Always use the approprate one of these conversion functions when passing a
+# gui framework name to/from Matplotlib.
+def _convert_gui_to_matplotlib(gui: str | None) -> str | None:
+    if gui and gui.lower() == "osx":
+        return "macosx"
+    return gui
+
+
+def _convert_gui_from_matplotlib(gui: str | None) -> str | None:
+    if gui and gui.lower() == "macosx":
+        return "osx"
+    return gui

@@ -53,20 +53,23 @@ class DisplayFormatter(Configurable):
             else:
                 formatter.enabled = False
 
-    ipython_display_formatter = ForwardDeclaredInstance('FormatterABC')
-    @default('ipython_display_formatter')
+    ipython_display_formatter = ForwardDeclaredInstance("FormatterABC")  # type: ignore
+
+    @default("ipython_display_formatter")
     def _default_formatter(self):
         return IPythonDisplayFormatter(parent=self)
 
-    mimebundle_formatter = ForwardDeclaredInstance('FormatterABC')
-    @default('mimebundle_formatter')
+    mimebundle_formatter = ForwardDeclaredInstance("FormatterABC")  # type: ignore
+
+    @default("mimebundle_formatter")
     def _default_mime_formatter(self):
         return MimeBundleFormatter(parent=self)
 
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
     formatters = Dict()
-    @default('formatters')
+
+    @default("formatters")
     def _formatters_default(self):
         """Activate the default formatters."""
         formatter_classes = [

@@ -2,8 +2,8 @@ include README.rst
 include COPYING.rst
 include LICENSE
 include setupbase.py
+include _build_meta.py
 include MANIFEST.in
-include py.typed
 include .mailmap
 include .flake8
 include .pre-commit-config.yaml
@@ -14,6 +14,7 @@ exclude tools
 exclude CONTRIBUTING.md
 exclude .editorconfig
 exclude SECURITY.md
+exclude .readthedocs.yaml
 
 graft scripts
 

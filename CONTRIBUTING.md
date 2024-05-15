@@ -92,8 +92,7 @@ pytest IPython/core/tests/test_alias.py::test_alias_lifecycle
 
 ## Code style
 
-* Before committing, run `darker -r 60625f241f298b5039cb2debc365db38aa7bb522 <file path>` to apply selective `black` formatting on modified regions using [darker](https://github.com/akaihola/darker).
-* For newly added modules or refactors, please enable static typing analysis with `mypy` for the modified module by adding the file path in [`mypy.yml`](https://github.com/ipython/ipython/blob/main/.github/workflows/mypy.yml) workflow.
+* Before committing, run `darker -r 60625f241f298b5039cb2debc365db38aa7bb522 <file path>` to apply selective `black` formatting on modified regions using [darker](https://github.com/akaihola/darker)==1.5.1 and black==22.10.0
 * As described in the pull requests section, please avoid excessive formatting changes; if a formatting-only commit is necessary, consider adding its hash to [`.git-blame-ignore-revs`](https://github.com/ipython/ipython/blob/main/.git-blame-ignore-revs) file.
 
 ## Documentation

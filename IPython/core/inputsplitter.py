@@ -15,6 +15,7 @@ and stores the results.
 
 For more details, see the class docstrings below.
 """
+from __future__ import annotations
 
 from warnings import warn
 
@@ -31,7 +32,8 @@ import sys
 import tokenize
 import warnings
 
-from typing import List
+from typing import List, Tuple, Union, Optional, TYPE_CHECKING
+from types import CodeType
 
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
@@ -51,6 +53,8 @@ from IPython.core.inputtransformer import (ESC_SHELL, ESC_SH_CAP, ESC_HELP,
                                         ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,
                                         ESC_QUOTE, ESC_QUOTE2, ESC_PAREN, ESC_SEQUENCES)
 
+if TYPE_CHECKING:
+    from typing_extensions import Self
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
@@ -91,7 +95,13 @@ def num_ini_spaces(s):
     -------
     n : int
     """
-
+    warnings.warn(
+        "`num_ini_spaces` is Pending Deprecation since IPython 8.17."
+        "It is considered fro removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
     ini_spaces = ini_spaces_re.match(s)
     if ini_spaces:
         return ini_spaces.end()
@@ -144,7 +154,7 @@ def partial_tokens(s):
         else:
             raise
 
-def find_next_indent(code):
+def find_next_indent(code) -> int:
     """Find the number of spaces for the next line of indentation"""
     tokens = list(partial_tokens(code))
     if tokens[-1].type == tokenize.ENDMARKER:
@@ -310,7 +320,7 @@ class InputSplitter(object):
             prompt = '>>> ' + indent
             line = indent + raw_input(prompt)
             isp.push(line)
-        print 'Input source was:\n', isp.source_reset(),
+        print('Input source was:\n', isp.source_reset())
     """
     # A cache for storing the current indentation
     # The first value stores the most recently processed source input
@@ -318,7 +328,7 @@ class InputSplitter(object):
     # If self.source matches the first value, the second value is a valid
     # current indentation. Otherwise, the cache is invalid and the indentation
     # must be recalculated.
-    _indent_spaces_cache = None, None
+    _indent_spaces_cache: Union[Tuple[None, None], Tuple[str, int]] = None, None
     # String, indicating the default input encoding.  It is computed by default
     # at initialization time via get_input_encoding(), but it can be reset by a
     # client with specific knowledge of the encoding.
@@ -326,11 +336,11 @@ class InputSplitter(object):
     # String where the current full source input is stored, properly encoded.
     # Reading this attribute is the normal way of querying the currently pushed
     # source code, that has been properly encoded.
-    source = ''
+    source: str = ""
     # Code object corresponding to the current source.  It is automatically
     # synced to the source, so it can be queried at any time to obtain the code
     # object; it will be None if the source doesn't compile to valid Python.
-    code = None
+    code: Optional[CodeType] = None
 
     # Private attributes
 
@@ -339,9 +349,9 @@ class InputSplitter(object):
     # Command compiler
     _compile: codeop.CommandCompiler
     # Boolean indicating whether the current block is complete
-    _is_complete = None
+    _is_complete: Optional[bool] = None
     # Boolean indicating whether the current block has an unrecoverable syntax error
-    _is_invalid = False
+    _is_invalid: bool = False
 
     def __init__(self) -> None:
         """Create a new InputSplitter instance."""
@@ -511,9 +521,10 @@ class InputSplitter(object):
         # General fallback - accept more code
         return True
 
-    def get_indent_spaces(self):
+    def get_indent_spaces(self) -> int:
         sourcefor, n = self._indent_spaces_cache
         if sourcefor == self.source:
+            assert n is not None
             return n
 
         # self.source always has a trailing newline
@@ -562,7 +573,7 @@ class IPythonInputSplitter(InputSplitter):
     # Private attributes
 
     # List with lines of raw input accumulated so far.
-    _buffer_raw = None
+    _buffer_raw: List[str]
 
     def __init__(self, line_input_checker=True, physical_line_transforms=None,
                     logical_line_transforms=None, python_line_transforms=None):
@@ -629,9 +640,9 @@ class IPythonInputSplitter(InputSplitter):
                 # Nothing that calls reset() expects to handle transformer
                 # errors
                 pass
-    
-    def flush_transformers(self):
-        def _flush(transform, outs):
+
+    def flush_transformers(self: Self):
+        def _flush(transform, outs: List[str]):
             """yield transformed lines
 
             always strings, never None
@@ -652,8 +663,8 @@ class IPythonInputSplitter(InputSplitter):
             tmp = transform.reset()
             if tmp is not None:
                 yield tmp
-        
-        out = []
+
+        out: List[str] = []
         for t in self.transforms_in_use:
             out = _flush(t, out)
         

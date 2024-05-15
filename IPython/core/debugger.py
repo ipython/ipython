@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Pdb debugger class.
 
@@ -101,16 +100,25 @@ All the changes since then are under the same license as IPython.
 #
 #*****************************************************************************
 
+from __future__ import annotations
+
 import inspect
 import linecache
-import sys
-import re
 import os
+import re
+import sys
+from contextlib import contextmanager
+from functools import lru_cache
 
 from IPython import get_ipython
-from IPython.utils import PyColorize
-from IPython.utils import coloransi, py3compat
 from IPython.core.excolors import exception_colors
+from IPython.utils import PyColorize, coloransi, py3compat
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # otherwise circular import
+    from IPython.core.interactiveshell import InteractiveShell
 
 # skip module docstests
 __skip_doctest__ = True
@@ -125,6 +133,11 @@ from pdb import Pdb as OldPdb
 # the Tracer constructor.
 
 DEBUGGERSKIP = "__debuggerskip__"
+
+
+# this has been implemented in Pdb in Python 3.13 (https://github.com/python/cpython/pull/106676
+# on lower python versions, we backported the feature.
+CHAIN_EXCEPTIONS = sys.version_info < (3, 13)
 
 
 def make_arrow(pad):
@@ -143,14 +156,8 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     parameter.
     """
     raise ValueError(
-        "`BdbQuit_excepthook` is deprecated since version 5.1",
+        "`BdbQuit_excepthook` is deprecated since version 5.1. It is still arround only because it is still imported by ipdb.",
     )
-
-
-def BdbQuit_IPython_excepthook(self, et, ev, tb, tb_offset=None):
-    raise ValueError(
-        "`BdbQuit_IPython_excepthook` is deprecated since version 5.1",
-        DeprecationWarning, stacklevel=2)
 
 
 RGX_EXTRA_INDENT = re.compile(r'(?<=\n)\s+')
@@ -184,6 +191,11 @@ class Pdb(OldPdb):
     See the `skip_predicates` commands.
 
     """
+
+    shell: InteractiveShell
+
+    if CHAIN_EXCEPTIONS:
+        MAX_CHAINED_EXCEPTION_DEPTH = 999
 
     default_predicates = {
         "tbhide": True,
@@ -252,21 +264,6 @@ class Pdb(OldPdb):
         C = coloransi.TermColors
         cst = self.color_scheme_table
 
-        cst['NoColor'].colors.prompt = C.NoColor
-        cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-        cst['NoColor'].colors.breakpoint_disabled = C.NoColor
-
-        cst['Linux'].colors.prompt = C.Green
-        cst['Linux'].colors.breakpoint_enabled = C.LightRed
-        cst['Linux'].colors.breakpoint_disabled = C.Red
-
-        cst['LightBG'].colors.prompt = C.Blue
-        cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-        cst['LightBG'].colors.breakpoint_disabled = C.Red
-
-        cst['Neutral'].colors.prompt = C.Blue
-        cst['Neutral'].colors.breakpoint_enabled = C.LightRed
-        cst['Neutral'].colors.breakpoint_disabled = C.Red
 
         # Add a python parser so we can syntax highlight source while
         # debugging.
@@ -280,6 +277,10 @@ class Pdb(OldPdb):
 
         # list of predicates we use to skip frames
         self._predicates = self.default_predicates
+
+        if CHAIN_EXCEPTIONS:
+            self._chained_exceptions = tuple()
+            self._chained_exception_index = 0
 
     #
     def set_colors(self, scheme):
@@ -330,9 +331,119 @@ class Pdb(OldPdb):
             ip_hide = [h if i > ip_start[0] else True for (i, h) in enumerate(ip_hide)]
         return ip_hide
 
-    def interaction(self, frame, traceback):
+    if CHAIN_EXCEPTIONS:
+
+        def _get_tb_and_exceptions(self, tb_or_exc):
+            """
+            Given a tracecack or an exception, return a tuple of chained exceptions
+            and current traceback to inspect.
+            This will deal with selecting the right ``__cause__`` or ``__context__``
+            as well as handling cycles, and return a flattened list of exceptions we
+            can jump to with do_exceptions.
+            """
+            _exceptions = []
+            if isinstance(tb_or_exc, BaseException):
+                traceback, current = tb_or_exc.__traceback__, tb_or_exc
+
+                while current is not None:
+                    if current in _exceptions:
+                        break
+                    _exceptions.append(current)
+                    if current.__cause__ is not None:
+                        current = current.__cause__
+                    elif (
+                        current.__context__ is not None
+                        and not current.__suppress_context__
+                    ):
+                        current = current.__context__
+
+                    if len(_exceptions) >= self.MAX_CHAINED_EXCEPTION_DEPTH:
+                        self.message(
+                            f"More than {self.MAX_CHAINED_EXCEPTION_DEPTH}"
+                            " chained exceptions found, not all exceptions"
+                            "will be browsable with `exceptions`."
+                        )
+                        break
+            else:
+                traceback = tb_or_exc
+            return tuple(reversed(_exceptions)), traceback
+
+        @contextmanager
+        def _hold_exceptions(self, exceptions):
+            """
+            Context manager to ensure proper cleaning of exceptions references
+            When given a chained exception instead of a traceback,
+            pdb may hold references to many objects which may leak memory.
+            We use this context manager to make sure everything is properly cleaned
+            """
+            try:
+                self._chained_exceptions = exceptions
+                self._chained_exception_index = len(exceptions) - 1
+                yield
+            finally:
+                # we can't put those in forget as otherwise they would
+                # be cleared on exception change
+                self._chained_exceptions = tuple()
+                self._chained_exception_index = 0
+
+        def do_exceptions(self, arg):
+            """exceptions [number]
+            List or change current exception in an exception chain.
+            Without arguments, list all the current exception in the exception
+            chain. Exceptions will be numbered, with the current exception indicated
+            with an arrow.
+            If given an integer as argument, switch to the exception at that index.
+            """
+            if not self._chained_exceptions:
+                self.message(
+                    "Did not find chained exceptions. To move between"
+                    " exceptions, pdb/post_mortem must be given an exception"
+                    " object rather than a traceback."
+                )
+                return
+            if not arg:
+                for ix, exc in enumerate(self._chained_exceptions):
+                    prompt = ">" if ix == self._chained_exception_index else " "
+                    rep = repr(exc)
+                    if len(rep) > 80:
+                        rep = rep[:77] + "..."
+                    indicator = (
+                        "  -"
+                        if self._chained_exceptions[ix].__traceback__ is None
+                        else f"{ix:>3}"
+                    )
+                    self.message(f"{prompt} {indicator} {rep}")
+            else:
+                try:
+                    number = int(arg)
+                except ValueError:
+                    self.error("Argument must be an integer")
+                    return
+                if 0 <= number < len(self._chained_exceptions):
+                    if self._chained_exceptions[number].__traceback__ is None:
+                        self.error(
+                            "This exception does not have a traceback, cannot jump to it"
+                        )
+                        return
+
+                    self._chained_exception_index = number
+                    self.setup(None, self._chained_exceptions[number].__traceback__)
+                    self.print_stack_entry(self.stack[self.curindex])
+                else:
+                    self.error("No exception with that number")
+
+    def interaction(self, frame, tb_or_exc):
         try:
-            OldPdb.interaction(self, frame, traceback)
+            if CHAIN_EXCEPTIONS:
+                # this context manager is part of interaction in 3.13
+                _chained_exceptions, tb = self._get_tb_and_exceptions(tb_or_exc)
+                if isinstance(tb_or_exc, BaseException):
+                    assert tb is not None, "main exception must have a traceback"
+                with self._hold_exceptions(_chained_exceptions):
+                    OldPdb.interaction(self, frame, tb)
+            else:
+                OldPdb.interaction(self, frame, tb_or_exc)
+
         except KeyboardInterrupt:
             self.stdout.write("\n" + self.shell.get_exception_only())
 
@@ -348,23 +459,10 @@ class Pdb(OldPdb):
 
         return line
 
-    def new_do_frame(self, arg):
-        OldPdb.do_frame(self, arg)
-
     def new_do_quit(self, arg):
-
-        if hasattr(self, 'old_all_completions'):
-            self.shell.Completer.all_completions = self.old_all_completions
-
         return OldPdb.do_quit(self, arg)
 
     do_q = do_quit = decorate_fn_with_doc(new_do_quit, OldPdb.do_quit)
-
-    def new_do_restart(self, arg):
-        """Restart command. In the context of ipython this is exactly the same
-        thing as 'quit'."""
-        self.msg("Restart doesn't make sense here. Using 'quit' instead.")
-        return self.do_quit(arg)
 
     def print_stack_trace(self, context=None):
         Colors = self.color_scheme_table.active_colors
@@ -640,7 +738,7 @@ class Pdb(OldPdb):
         """
         self.lastcmd = 'list'
         last = None
-        if arg:
+        if arg and arg != ".":
             try:
                 x = eval(arg, {}, {})
                 if type(x) == type(()):
@@ -655,7 +753,7 @@ class Pdb(OldPdb):
             except:
                 print('*** Error in argument:', repr(arg), file=self.stdout)
                 return
-        elif self.lineno is None:
+        elif self.lineno is None or arg == ".":
             first = max(1, self.curframe.f_lineno - 5)
         else:
             first = self.lineno + 1
@@ -818,22 +916,37 @@ class Pdb(OldPdb):
         Utility to tell us whether we are in a decorator internal and should stop.
 
         """
-
         # if we are disabled don't skip
         if not self._predicates["debuggerskip"]:
             return False
 
+        return self._cachable_skip(frame)
+
+    @lru_cache(1024)
+    def _cached_one_parent_frame_debuggerskip(self, frame):
+        """
+        Cache looking up for DEBUGGERSKIP on parent frame.
+
+        This should speedup walking through deep frame when one of the highest
+        one does have a debugger skip.
+
+        This is likely to introduce fake positive though.
+        """
+        while getattr(frame, "f_back", None):
+            frame = frame.f_back
+            if self._get_frame_locals(frame).get(DEBUGGERSKIP):
+                return True
+        return None
+
+    @lru_cache(1024)
+    def _cachable_skip(self, frame):
         # if frame is tagged, skip by default.
         if DEBUGGERSKIP in frame.f_code.co_varnames:
             return True
 
         # if one of the parent frame value set to True skip as well.
-
-        cframe = frame
-        while getattr(cframe, "f_back", None):
-            cframe = cframe.f_back
-            if self._get_frame_locals(cframe).get(DEBUGGERSKIP):
-                return True
+        if self._cached_one_parent_frame_debuggerskip(frame):
+            return True
 
         return False
 
@@ -988,10 +1101,13 @@ class InterruptiblePdb(Pdb):
                 raise
 
 
-def set_trace(frame=None):
+def set_trace(frame=None, header=None):
     """
     Start debugging from `frame`.
 
     If frame is not specified, debugging starts from caller's frame.
     """
-    Pdb().set_trace(frame or sys._getframe().f_back)
+    pdb = Pdb()
+    if header is not None:
+        pdb.message(header)
+    pdb.set_trace(frame or sys._getframe().f_back)

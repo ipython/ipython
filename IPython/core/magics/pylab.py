@@ -18,19 +18,19 @@ from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from warnings import warn
-from IPython.core.pylabtools import backends
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
 magic_gui_arg = magic_arguments.argument(
-        'gui', nargs='?',
-        help="""Name of the matplotlib backend to use %s.
+    "gui",
+    nargs="?",
+    help="""Name of the matplotlib backend to use such as 'qt' or 'widget'.
         If given, the corresponding matplotlib backend is used,
         otherwise it will be matplotlib's default
         (which you can set in your matplotlib config file).
-        """ % str(tuple(sorted(backends.keys())))
+        """,
 )
 
 
@@ -93,8 +93,12 @@ class PylabMagics(Magics):
         """
         args = magic_arguments.parse_argstring(self.matplotlib, line)
         if args.list:
-            backends_list = list(backends.keys())
-            print("Available matplotlib backends: %s" % backends_list)
+            from IPython.core.pylabtools import _list_matplotlib_backends_and_gui_loops
+
+            print(
+                "Available matplotlib backends: %s"
+                % _list_matplotlib_backends_and_gui_loops()
+            )
         else:
             gui, backend = self.shell.enable_matplotlib(args.gui.lower() if isinstance(args.gui, str) else args.gui)
             self._show_matplotlib_backend(args.gui, backend)

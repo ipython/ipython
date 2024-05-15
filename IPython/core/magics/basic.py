@@ -40,6 +40,9 @@ class MagicsDisplay(object):
     def _repr_pretty_(self, p, cycle):
         p.text(self._lsmagic())
     
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         return self._lsmagic()
     
@@ -109,12 +112,12 @@ class BasicMagics(Magics):
           Created `%%t` as an alias for `%%timeit`.
 
           In [2]: %t -n1 pass
-          1 loops, best of 3: 954 ns per loop
+          107 ns ± 43.6 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
           In [3]: %%t -n1
              ...: pass
              ...:
-          1 loops, best of 3: 954 ns per loop
+          107 ns ± 58.3 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
           In [4]: %alias_magic --cell whereami pwd
           UsageError: Cell magic function `%%pwd` not found.
@@ -122,9 +125,9 @@ class BasicMagics(Magics):
           Created `%whereami` as an alias for `%pwd`.
 
           In [6]: %whereami
-          Out[6]: u'/home/testuser'
+          Out[6]: '/home/testuser'
 
-          In [7]: %alias_magic h history "-p -l 30" --line
+          In [7]: %alias_magic h history -p "-l 30" --line
           Created `%h` as an alias for `%history -l 30`.
         """
 
@@ -537,25 +540,25 @@ Currently the magic system has the following functions:""",
             In [1]: from math import pi
 
             In [2]: %precision 3
-            Out[2]: u'%.3f'
+            Out[2]: '%.3f'
 
             In [3]: pi
             Out[3]: 3.142
 
             In [4]: %precision %i
-            Out[4]: u'%i'
+            Out[4]: '%i'
 
             In [5]: pi
             Out[5]: 3
 
             In [6]: %precision %e
-            Out[6]: u'%e'
+            Out[6]: '%e'
 
             In [7]: pi**10
             Out[7]: 9.364805e+04
 
             In [8]: %precision
-            Out[8]: u'%r'
+            Out[8]: '%r'
 
             In [9]: pi**10
             Out[9]: 93648.047476082982

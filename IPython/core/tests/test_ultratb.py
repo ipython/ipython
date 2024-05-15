@@ -14,7 +14,7 @@ from tempfile import TemporaryDirectory
 
 from IPython.core.ultratb import ColorTB, VerboseTB
 from IPython.testing import tools as tt
-from IPython.testing.decorators import onlyif_unicode_paths
+from IPython.testing.decorators import onlyif_unicode_paths, skip_without
 from IPython.utils.syspathcontext import prepended_to_syspath
 
 file_1 = """1
@@ -176,6 +176,20 @@ class IndentationErrorTest(unittest.TestCase):
             with tt.AssertPrints("IndentationError"):
                 with tt.AssertPrints("zoon()", suppress=False):
                     ip.magic('run %s' % fname)
+
+@skip_without("pandas")
+def test_dynamic_code():
+    code = """
+    import pandas
+    df = pandas.DataFrame([])
+
+    # Important: only fails inside of an "exec" call:
+    exec("df.foobarbaz()")
+    """
+
+    with tt.AssertPrints("Could not get source"):
+        ip.run_cell(code)
+
 
 se_file_1 = """1
 2

@@ -116,11 +116,8 @@ def _wake(NSApp):
     msg(NSApp, n('postEvent:atStart:'), void_p(event), True)
 
 
-_triggered = Event()
-
 def _input_callback(fdref, flags, info):
     """Callback to fire when there's input to be read"""
-    _triggered.set()
     CFFileDescriptorInvalidate(fdref)
     CFRelease(fdref)
     NSApp = _NSApp()
@@ -134,7 +131,6 @@ _c_input_callback = _c_callback_func_type(_input_callback)
 
 def _stop_on_read(fd):
     """Register callback to stop eventloop when there's data on fd"""
-    _triggered.clear()
     fdref = CFFileDescriptorCreate(None, fd, False, _c_input_callback, None)
     CFFileDescriptorEnableCallBacks(fdref, kCFFileDescriptorReadCallBack)
     source = CFFileDescriptorCreateRunLoopSource(None, fdref, 0)
@@ -149,9 +145,3 @@ def inputhook(context):
     _stop_on_read(context.fileno())
     objc.objc_msgSend.argtypes = [void_p, void_p]
     msg(NSApp, n('run'))
-    if not _triggered.is_set():
-        # app closed without firing callback,
-        # probably due to last window being closed.
-        # Run the loop manually in this case,
-        # since there may be events still to process (#9734)
-        CoreFoundation.CFRunLoopRun()

@@ -11,37 +11,45 @@ import glob
 from itertools import chain
 import os
 import sys
+import typing as t
 
 from traitlets.config.application import boolean_flag
 from traitlets.config.configurable import Configurable
 from traitlets.config.loader import Config
 from IPython.core.application import SYSTEM_CONFIG_DIRS, ENV_CONFIG_DIRS
-from IPython.core import pylabtools
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
 from traitlets import (
-    Unicode, Instance, List, Bool, CaselessStrEnum, observe,
+    Unicode,
+    Instance,
+    List,
+    Bool,
+    CaselessStrEnum,
+    observe,
     DottedObjectName,
+    Undefined,
 )
 from IPython.terminal import pt_inputhooks
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Aliases and Flags
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 gui_keys = tuple(sorted(pt_inputhooks.backends) + sorted(pt_inputhooks.aliases))
-
-backend_keys = sorted(pylabtools.backends.keys())
-backend_keys.insert(0, 'auto')
 
 shell_flags = {}
 
 addflag = lambda *args: shell_flags.update(boolean_flag(*args))
-addflag('autoindent', 'InteractiveShell.autoindent',
-        'Turn on autoindenting.', 'Turn off autoindenting.'
+addflag(
+    "autoindent",
+    "InteractiveShell.autoindent",
+    "Turn on autoindenting.",
+    "Turn off autoindenting.",
 )
-addflag('automagic', 'InteractiveShell.automagic',
-        """Turn on the auto calling of magic commands. Type %%magic at the
+addflag(
+    "automagic",
+    "InteractiveShell.automagic",
+    """Turn on the auto calling of magic commands. Type %%magic at the
         IPython  prompt  for  more information.""",
         'Turn off the auto calling of magic commands.'
 )
@@ -74,12 +82,14 @@ shell_flags['nosep']=(nosep_config, "Eliminate all spacing between prompts.")
 shell_flags['pylab'] = (
     {'InteractiveShellApp' : {'pylab' : 'auto'}},
     """Pre-load matplotlib and numpy for interactive use with
-    the default matplotlib backend."""
+    the default matplotlib backend. The exact options available
+    depend on what Matplotlib provides at runtime.""",
 )
 shell_flags['matplotlib'] = (
     {'InteractiveShellApp' : {'matplotlib' : 'auto'}},
     """Configure matplotlib for interactive use with
-    the default matplotlib backend."""
+    the default matplotlib backend. The exact options available
+    depend on what Matplotlib provides at runtime.""",
 )
 
 # it's possible we don't want short aliases for *all* of these:
@@ -96,6 +106,37 @@ shell_aliases = dict(
     matplotlib='InteractiveShellApp.matplotlib',
 )
 shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
+
+
+# -----------------------------------------------------------------------------
+# Traitlets
+# -----------------------------------------------------------------------------
+
+
+class MatplotlibBackendCaselessStrEnum(CaselessStrEnum):
+    """An enum of Matplotlib backend strings where the case should be ignored.
+
+    Prior to Matplotlib 3.9.0 the list of valid backends is hardcoded in
+    pylabtools.backends. After that, Matplotlib manages backends.
+
+    The list of valid backends is determined when it is first needed to avoid
+    wasting unnecessary initialisation time.
+    """
+
+    def __init__(
+        self: CaselessStrEnum[t.Any],
+        default_value: t.Any = Undefined,
+        **kwargs: t.Any,
+    ) -> None:
+        super().__init__(None, default_value=default_value, **kwargs)
+
+    def __getattribute__(self, name):
+        if name == "values" and object.__getattribute__(self, name) is None:
+            from IPython.core.pylabtools import _list_matplotlib_backends_and_gui_loops
+
+            self.values = _list_matplotlib_backends_and_gui_loops()
+        return object.__getattribute__(self, name)
+
 
 #-----------------------------------------------------------------------------
 # Main classes and functions
@@ -156,30 +197,33 @@ class InteractiveShellApp(Configurable):
     exec_lines = List(Unicode(),
         help="""lines of code to run at IPython startup."""
     ).tag(config=True)
-    code_to_run = Unicode('',
-        help="Execute the given command string."
+    code_to_run = Unicode("", help="Execute the given command string.").tag(config=True)
+    module_to_run = Unicode("", help="Run the module as a script.").tag(config=True)
+    gui = CaselessStrEnum(
+        gui_keys,
+        allow_none=True,
+        help="Enable GUI event loop integration with any of {0}.".format(gui_keys),
     ).tag(config=True)
-    module_to_run = Unicode('',
-        help="Run the module as a script."
-    ).tag(config=True)
-    gui = CaselessStrEnum(gui_keys, allow_none=True,
-        help="Enable GUI event loop integration with any of {0}.".format(gui_keys)
-    ).tag(config=True)
-    matplotlib = CaselessStrEnum(backend_keys, allow_none=True,
+    matplotlib = MatplotlibBackendCaselessStrEnum(
+        allow_none=True,
         help="""Configure matplotlib for interactive use with
-        the default matplotlib backend."""
+        the default matplotlib backend. The exact options available
+        depend on what Matplotlib provides at runtime.""",
     ).tag(config=True)
-    pylab = CaselessStrEnum(backend_keys, allow_none=True,
+    pylab = MatplotlibBackendCaselessStrEnum(
+        allow_none=True,
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
-        """
+        The exact options available depend on what Matplotlib provides at runtime.
+        """,
     ).tag(config=True)
-    pylab_import_all = Bool(True,
+    pylab_import_all = Bool(
+        True,
         help="""If true, IPython will populate the user namespace with numpy, pylab, etc.
         and an ``import *`` is done from numpy and pylab, when using pylab mode.
 
         When False, pylab mode should not import any names into the user namespace.
-        """
+        """,
     ).tag(config=True)
     ignore_cwd = Bool(
         False,

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 """
 The :class:`~traitlets.config.application.Application` object for the command
@@ -178,7 +177,7 @@ class LocateIPythonApp(BaseIPythonApplication):
 
 
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
-    name = u'ipython'
+    name = "ipython"
     description = usage.cl_usage
     crash_handler_class = IPAppCrashHandler  # typing: ignore[assignment]
     examples = _examples
@@ -197,7 +196,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     def _classes_default(self):
         """This has to be in a method, for TerminalIPythonApp to be available."""
         return [
-            InteractiveShellApp, # ShellApp comes before TerminalApp, because
+            InteractiveShellApp,  # ShellApp comes before TerminalApp, because
             self.__class__,      # it will also affect subclasses (e.g. QtConsole)
             TerminalInteractiveShell,
             HistoryManager,
@@ -225,9 +224,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ),
     )
 
-
     # *do* autocreate requested profile, but don't create the config file.
-    auto_create=Bool(True)
+    auto_create = Bool(True).tag(config=True)
+
     # configurables
     quick = Bool(False,
         help="""Start IPython quickly by skipping the loading of config files."""
@@ -271,7 +270,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if self.subapp is not None:
             # don't bother initializing further, starting subapp
             return
-        # print self.extra_args
+        # print(self.extra_args)
         if self.extra_args and not self.something_to_run:
             self.file_to_run = self.extra_args[0]
         self.init_path()
@@ -337,7 +336,3 @@ def load_default_config(ipython_dir=None):
     return app.config
 
 launch_new_instance = TerminalIPythonApp.launch_instance
-
-
-if __name__ == '__main__':
-    launch_new_instance()

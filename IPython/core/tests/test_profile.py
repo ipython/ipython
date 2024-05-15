@@ -24,9 +24,10 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 
-from tempfile import TemporaryDirectory
+import pytest
 
 from IPython.core.profileapp import list_bundled_profiles, list_profiles_in
 from IPython.core.profiledir import ProfileDir
@@ -101,6 +102,11 @@ class ProfileStartupTest(TestCase):
         self.validate('Exception reporting mode: Plain')
 
 
+@pytest.mark.skipif(
+    sys.implementation.name == "pypy"
+    and ((7, 3, 13) < sys.implementation.version < (7, 3, 16)),
+    reason="Unicode issues with scandir on PyPy, see https://github.com/pypy/pypy/issues/4860",
+)
 def test_list_profiles_in():
     # No need to remove these directories and files, as they will get nuked in
     # the module-level teardown.

@@ -10,8 +10,7 @@ import sys
 from importlib import import_module, reload
 
 from traitlets.config.configurable import Configurable
-from IPython.utils.path import ensure_dir_exists, compress_user
-from IPython.utils.decorators import undoc
+from IPython.utils.path import ensure_dir_exists
 from traitlets import Instance
 
 
@@ -36,34 +35,21 @@ class ExtensionManager(Configurable):
     the only argument.  You can do anything you want with IPython at
     that point, including defining new magic and aliases, adding new
     components, etc.
-    
+
     You can also optionally define an :func:`unload_ipython_extension(ipython)`
     function, which will be called if the user unloads or reloads the extension.
     The extension manager will only call :func:`load_ipython_extension` again
     if the extension is reloaded.
 
     You can put your extension modules anywhere you want, as long as
-    they can be imported by Python's standard import mechanism.  However,
-    to make it easy to write extensions, you can also put your extensions
-    in ``os.path.join(self.ipython_dir, 'extensions')``.  This directory
-    is added to ``sys.path`` automatically.
+    they can be imported by Python's standard import mechanism.
     """
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
         super(ExtensionManager, self).__init__(shell=shell, **kwargs)
-        self.shell.observe(
-            self._on_ipython_dir_changed, names=('ipython_dir',)
-        )
         self.loaded = set()
-
-    @property
-    def ipython_extension_dir(self):
-        return os.path.join(self.shell.ipython_dir, u'extensions')
-
-    def _on_ipython_dir_changed(self, change):
-        ensure_dir_exists(self.ipython_extension_dir)
 
     def load_extension(self, module_str: str):
         """Load an IPython extension by its module name.
@@ -84,7 +70,7 @@ class ExtensionManager(Configurable):
         if module_str in self.loaded:
             return "already loaded"
 
-        from IPython.utils.syspathcontext import prepended_to_syspath
+        assert self.shell is not None
 
         with self.shell.builtin_trap:
             if module_str not in sys.modules:
@@ -125,7 +111,6 @@ class ExtensionManager(Configurable):
         :func:`reload` is called and then the :func:`load_ipython_extension`
         function of the module, if it exists is called.
         """
-        from IPython.utils.syspathcontext import prepended_to_syspath
 
         if BUILTINS_EXTS.get(module_str, False) is True:
             module_str = "IPython.extensions." + module_str
@@ -133,8 +118,7 @@ class ExtensionManager(Configurable):
         if (module_str in self.loaded) and (module_str in sys.modules):
             self.unload_extension(module_str)
             mod = sys.modules[module_str]
-            with prepended_to_syspath(self.ipython_extension_dir):
-                reload(mod)
+            reload(mod)
             if self._call_load_ipython_extension(mod):
                 self.loaded.add(module_str)
         else:

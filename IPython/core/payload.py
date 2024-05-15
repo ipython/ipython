@@ -26,8 +26,7 @@ from traitlets import List
 #-----------------------------------------------------------------------------
 
 class PayloadManager(Configurable):
-
-    _payload = List([])
+    _payload: List = List([])
 
     def write_payload(self, data, single=True):
         """Include or update the specified `data` payload in the PayloadManager.

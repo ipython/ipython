@@ -21,6 +21,7 @@ import inspect
 import os
 import re
 import runpy
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -36,7 +37,43 @@ from typing import List as ListType, Dict as DictType, Any as AnyType
 from typing import Optional, Sequence, Tuple
 from warnings import warn
 
-from pickleshare import PickleShareDB
+try:
+    from pickleshare import PickleShareDB
+except ModuleNotFoundError:
+
+    class PickleShareDB:  # type: ignore [no-redef]
+        _mock = True
+
+        def __init__(self, path):
+            pass
+
+        def get(self, key, default=None):
+            warn(
+                f"This is now an optional IPython functionality, using {key} requires you to install the `pickleshare` library.",
+                stacklevel=2,
+            )
+            return default
+
+        def __getitem__(self, key):
+            warn(
+                f"This is now an optional IPython functionality, using {key} requires you to install the `pickleshare` library.",
+                stacklevel=2,
+            )
+            return None
+
+        def __setitem__(self, key, value):
+            warn(
+                f"This is now an optional IPython functionality, setting {key} requires you to install the `pickleshare` library.",
+                stacklevel=2,
+            )
+
+        def __delitem__(self, key):
+            warn(
+                f"This is now an optional IPython functionality, deleting {key} requires you to install the `pickleshare` library.",
+                stacklevel=2,
+            )
+
+
 from tempfile import TemporaryDirectory
 from traitlets import (
     Any,
@@ -244,13 +281,14 @@ class ExecutionInfo(object):
         )
 
 
-class ExecutionResult(object):
+class ExecutionResult:
     """The result of a call to :meth:`InteractiveShell.run_cell`
 
     Stores information about what took place.
     """
-    execution_count = None
-    error_before_exec = None
+
+    execution_count: Optional[int] = None
+    error_before_exec: Optional[bool] = None
     error_in_exec: Optional[BaseException] = None
     info = None
     result = None
@@ -290,11 +328,12 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
 
-    ast_transformers = List([], help=
-        """
+    ast_transformers: List[ast.NodeTransformer] = List(
+        [],
+        help="""
         A list of ast.NodeTransformer subclass instances, which will be applied
         to user input before code is run.
-        """
+        """,
     ).tag(config=True)
 
     autocall = Enum((0,1,2), default_value=0, help=
@@ -439,7 +478,8 @@ class InteractiveShell(SingletonConfigurable):
     def input_transformers_cleanup(self):
         return self.input_transformer_manager.cleanup_transforms
 
-    input_transformers_post = List([],
+    input_transformers_post: List = List(
+        [],
         help="A list of string input transformers, to be applied after IPython's "
              "own input transformations."
     )
@@ -529,14 +569,20 @@ class InteractiveShell(SingletonConfigurable):
                             ).tag(config=True)
 
     # Subcomponents of InteractiveShell
-    alias_manager = Instance('IPython.core.alias.AliasManager', allow_none=True)
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
-    builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap', allow_none=True)
-    display_trap = Instance('IPython.core.display_trap.DisplayTrap', allow_none=True)
-    extension_manager = Instance('IPython.core.extensions.ExtensionManager', allow_none=True)
-    payload_manager = Instance('IPython.core.payload.PayloadManager', allow_none=True)
-    history_manager = Instance('IPython.core.history.HistoryAccessorBase', allow_none=True)
-    magics_manager = Instance('IPython.core.magic.MagicsManager', allow_none=True)
+    alias_manager = Instance("IPython.core.alias.AliasManager", allow_none=True)
+    prefilter_manager = Instance(
+        "IPython.core.prefilter.PrefilterManager", allow_none=True
+    )
+    builtin_trap = Instance("IPython.core.builtin_trap.BuiltinTrap")
+    display_trap = Instance("IPython.core.display_trap.DisplayTrap")
+    extension_manager = Instance(
+        "IPython.core.extensions.ExtensionManager", allow_none=True
+    )
+    payload_manager = Instance("IPython.core.payload.PayloadManager", allow_none=True)
+    history_manager = Instance(
+        "IPython.core.history.HistoryAccessorBase", allow_none=True
+    )
+    magics_manager = Instance("IPython.core.magic.MagicsManager")
 
     profile_dir = Instance('IPython.core.application.ProfileDir', allow_none=True)
     @property
@@ -1372,6 +1418,7 @@ class InteractiveShell(SingletonConfigurable):
         If new_session is True, a new history session will be opened.
         """
         # Clear histories
+        assert self.history_manager is not None
         self.history_manager.reset(new_session)
         # Reset counter used to index all histories
         if new_session:
@@ -1458,6 +1505,7 @@ class InteractiveShell(SingletonConfigurable):
             except KeyError as e:
                 raise NameError("name '%s' is not defined" % varname) from e
             # Also check in output history
+            assert self.history_manager is not None
             ns_refs.append(self.history_manager.output_hist)
             for ns in ns_refs:
                 to_delete = [n for n, o in ns.items() if o is obj]
@@ -1777,7 +1825,7 @@ class InteractiveShell(SingletonConfigurable):
         """Find an object and return a struct with info about it."""
         return self._ofind(oname, namespaces)
 
-    def _inspect(self, meth, oname, namespaces=None, **kw):
+    def _inspect(self, meth, oname: str, namespaces=None, **kw):
         """Generic interface to the inspector system.
 
         This function is meant to be called by pdef, pdoc & friends.
@@ -2385,7 +2433,7 @@ class InteractiveShell(SingletonConfigurable):
         res = finder(magic_name)
         return res
 
-    def run_line_magic(self, magic_name: str, line, _stack_depth=1):
+    def run_line_magic(self, magic_name: str, line: str, _stack_depth=1):
         """Execute the given line magic.
 
         Parameters
@@ -2615,7 +2663,10 @@ class InteractiveShell(SingletonConfigurable):
         """
         cmd = self.var_expand(cmd, depth=1)
         # warn if there is an IPython magic alternative.
-        main_cmd = cmd.split()[0]
+        if cmd == "":
+            main_cmd = ""
+        else:
+            main_cmd = cmd.split()[0]
         has_magic_alternatives = ("pip", "conda", "cd")
 
         if main_cmd in has_magic_alternatives:
@@ -3229,6 +3280,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Store raw and processed history
         if store_history:
+            assert self.history_manager is not None
             self.history_manager.store_inputs(self.execution_count, cell, raw_cell)
         if not silent:
             self.logger.log(cell, raw_cell)
@@ -3244,8 +3296,6 @@ class InteractiveShell(SingletonConfigurable):
         # run code with a separate __future__ environment, use the default
         # compiler
         compiler = self.compile if shell_futures else self.compiler_class()
-
-        _run_async = False
 
         with self.builtin_trap:
             cell_name = compiler.cache(cell, self.execution_count, raw_code=raw_cell)
@@ -3292,6 +3342,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.displayhook.exec_result = None
 
         if store_history:
+            assert self.history_manager is not None
             # Write output to the database. Does nothing unless
             # history output logging is enabled.
             self.history_manager.store_output(self.execution_count)
@@ -3577,7 +3628,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to GUI support and pylab
     #-------------------------------------------------------------------------
 
-    active_eventloop = None
+    active_eventloop: Optional[str] = None
 
     def enable_gui(self, gui=None):
         raise NotImplementedError('Implement enable_gui in a subclass')
@@ -3603,12 +3654,17 @@ class InteractiveShell(SingletonConfigurable):
             make sense in all contexts, for example a terminal ipython can't
             display figures inline.
         """
-        from matplotlib_inline.backend_inline import configure_inline_support
+        from .pylabtools import _matplotlib_manages_backends
+
+        if not _matplotlib_manages_backends() and gui in (None, "auto"):
+            # Early import of backend_inline required for its side effect of
+            # calling _enable_matplotlib_integration()
+            import matplotlib_inline.backend_inline
 
         from IPython.core import pylabtools as pt
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
-        if gui != 'inline':
+        if gui != None:
             # If we have our first gui selection, store it
             if self.pylab_gui_select is None:
                 self.pylab_gui_select = gui
@@ -3619,6 +3675,9 @@ class InteractiveShell(SingletonConfigurable):
                 gui, backend = pt.find_gui_and_backend(self.pylab_gui_select)
 
         pt.activate_matplotlib(backend)
+
+        from matplotlib_inline.backend_inline import configure_inline_support
+
         configure_inline_support(self, backend)
 
         # Now we must activate the gui pylab wants to use, and fix %run to take
@@ -3902,7 +3961,7 @@ class InteractiveShell(SingletonConfigurable):
         del self.tempfiles
         for tdir in self.tempdirs:
             try:
-                tdir.rmdir()
+                shutil.rmtree(tdir)
                 self.tempdirs.remove(tdir)
             except FileNotFoundError:
                 pass

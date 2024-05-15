@@ -172,10 +172,10 @@ Main features of the interactive shell
 .. sourcecode:: ipython
 
     In [1]: %timeit 1+1
-    10000000 loops, best of 3: 25.5 ns per loop
+    7.88 ns ± 0.0494 ns per loop (mean ± std. dev. of 7 runs, 100000000 loops each)
 
     In [2]: %timeit [math.sin(x) for x in range(5000)]
-    1000 loops, best of 3: 719 µs per loop
+    608 µs ± 5.57 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
 .. 
 

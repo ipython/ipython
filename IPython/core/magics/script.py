@@ -86,7 +86,7 @@ class ScriptMagics(Magics):
         """
     )
 
-    script_magics = List(
+    script_magics: List = List(
         help="""Extra script cell magics to define
         
         This generates simple wrappers of `%%script foo` as `%%foo`.
@@ -95,6 +95,7 @@ class ScriptMagics(Magics):
         specify them in script_paths
         """,
     ).tag(config=True)
+
     @default('script_magics')
     def _script_magics_default(self):
         """default to a common list of programs"""

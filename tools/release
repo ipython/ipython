@@ -7,28 +7,29 @@ from __future__ import print_function
 
 import os
 from glob import glob
+from pathlib import Path
 from subprocess import call
 import sys
 
-from toollib import (get_ipdir, pjoin, cd, execfile, sh, archive,
+from toollib import (get_ipdir, cd, execfile, sh, archive,
          archive_user, archive_dir)
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
 ipdir = get_ipdir()
-tooldir = pjoin(ipdir, 'tools')
-distdir = pjoin(ipdir, 'dist')
+tooldir = ipdir / 'tools'
+distdir = ipdir / 'dist'
 
 # Where I keep static backups of each release
-ipbackupdir = os.path.expanduser('~/ipython/backup')
-if not os.path.exists(ipbackupdir):
-    os.makedirs(ipbackupdir)
+ipbackupdir = Path('~/ipython/backup').expanduser()
+if not ipbackupdir.exists():
+    ipbackupdir.mkdir(parents=True, exist_ok=True)
 
 # Start in main IPython dir
 cd(ipdir)
 
 # Load release info
 version = None
-execfile(pjoin('IPython','core','release.py'), globals())
+execfile(Path('IPython','core','release.py'), globals())
 
 # Build site addresses for file uploads
 release_site = '%s/release/%s' % (archive, version)

@@ -743,6 +743,7 @@ class FrameInfo:
     lineno: Tuple[int]
     # number of context lines to use
     context: Optional[int]
+    raw_lines: List[str]
 
     @classmethod
     def _from_stack_data_FrameInfo(cls, frame_info):
@@ -777,8 +778,13 @@ class FrameInfo:
 
         # self.lines = []
         if sd is None:
-            ix = inspect.getsourcelines(frame)
-            self.raw_lines = ix[0]
+            try:
+                # return a list of source lines and a starting line number
+                self.raw_lines = inspect.getsourcelines(frame)[0]
+            except OSError:
+                self.raw_lines = [
+                    "'Could not get source, probably due dynamically evaluated source code.'"
+                ]
 
     @property
     def variables_in_executing_piece(self):
@@ -789,7 +795,20 @@ class FrameInfo:
 
     @property
     def lines(self):
-        return self._sd.lines
+        from executing.executing import NotOneValueFound
+
+        try:
+            return self._sd.lines
+        except NotOneValueFound:
+
+            class Dummy:
+                lineno = 0
+                is_current = False
+
+                def render(self, *, pygmented):
+                    return "<Error retrieving source code with stack_data see ipython/ipython#13598>"
+
+            return [Dummy()]
 
     @property
     def executing(self):
@@ -809,6 +828,7 @@ class VerboseTB(TBTools):
     would appear in the traceback)."""
 
     _tb_highlight = "bg:ansiyellow"
+    _tb_highlight_style = "default"
 
     def __init__(
         self,
@@ -1110,7 +1130,7 @@ class VerboseTB(TBTools):
         after = context // 2
         before = context - after
         if self.has_colors:
-            style = get_style_by_name("default")
+            style = get_style_by_name(self._tb_highlight_style)
             style = stack_data.style_with_executing_node(style, self._tb_highlight)
             formatter = Terminal256Formatter(style=style)
         else:
@@ -1245,7 +1265,13 @@ class VerboseTB(TBTools):
                 if etb and etb.tb_next:
                     etb = etb.tb_next
                 self.pdb.botframe = etb.tb_frame
-                self.pdb.interaction(None, etb)
+                # last_value should be deprecated, but last-exc sometimme not set
+                # please check why later and remove the getattr.
+                exc = sys.last_value if sys.version_info < (3, 12) else getattr(sys, "last_exc", sys.last_value)  # type: ignore[attr-defined]
+                if exc:
+                    self.pdb.interaction(None, exc)
+                else:
+                    self.pdb.interaction(None, etb)
 
         if hasattr(self, 'tb'):
             del self.tb

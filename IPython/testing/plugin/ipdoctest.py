@@ -68,7 +68,7 @@ class IPDoctestOutputChecker(doctest.OutputChecker):
         ret = doctest.OutputChecker.check_output(self, want, got,
                                                  optionflags)
         if not ret and self.random_re.search(want):
-            #print >> sys.stderr, 'RANDOM OK:',want  # dbg
+            # print('RANDOM OK:',want, file=sys.stderr)  # dbg
             return True
 
         return ret
@@ -141,7 +141,7 @@ class IPDocTestParser(doctest.DocTestParser):
         used for error messages.
         """
 
-        #print 'Parse string:\n',string # dbg
+        # print('Parse string:\n',string)  # dbg
 
         string = string.expandtabs()
         # If all lines begin with the same indentation, then strip it.

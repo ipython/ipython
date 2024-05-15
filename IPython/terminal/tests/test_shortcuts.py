@@ -12,12 +12,13 @@ from IPython.terminal.shortcuts.auto_suggest import (
     swap_autosuggestion_down,
 )
 from IPython.terminal.shortcuts.auto_match import skip_over
-from IPython.terminal.shortcuts import create_ipython_shortcuts
+from IPython.terminal.shortcuts import create_ipython_shortcuts, reset_search_buffer
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.enums import DEFAULT_BUFFER
 
 from unittest.mock import patch, Mock
 
@@ -196,6 +197,22 @@ def test_autosuggest_token_empty():
         accept_token(event)
         assert not event.current_buffer.insert_text.called
         assert forward_word.called
+
+
+def test_reset_search_buffer():
+    event_with_text = Mock()
+    event_with_text.current_buffer.document.text = "some text"
+    event_with_text.current_buffer.reset = Mock()
+
+    event_empty = Mock()
+    event_empty.current_buffer.document.text = ""
+    event_empty.app.layout.focus = Mock()
+
+    reset_search_buffer(event_with_text)
+    event_with_text.current_buffer.reset.assert_called_once()
+
+    reset_search_buffer(event_empty)
+    event_empty.app.layout.focus.assert_called_once_with(DEFAULT_BUFFER)
 
 
 def test_other_providers():

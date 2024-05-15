@@ -36,10 +36,10 @@ if ON_RTD:
                     "__name__": "__main__",
                 },
             )
-else:
-    import sphinx_rtd_theme
-    html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+import sphinx_rtd_theme
+
+html_theme = "sphinx_rtd_theme"
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Allow Python scripts to change behaviour during sphinx run
 os.environ["IN_SPHINX_RUN"] = "True"
@@ -71,18 +71,19 @@ exec(
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.doctest',
-    'sphinx.ext.inheritance_diagram',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.graphviz',
-    'IPython.sphinxext.ipython_console_highlighting',
-    'IPython.sphinxext.ipython_directive',
-    'sphinx.ext.napoleon',  # to preprocess docstrings
-    'github',  # for easy GitHub links
-    'magics',
-    'configtraits',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.doctest",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.graphviz",
+    "sphinxcontrib.jquery",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.sphinxext.ipython_directive",
+    "sphinx.ext.napoleon",  # to preprocess docstrings
+    "github",  # for easy GitHub links
+    "magics",
+    "configtraits",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
