@@ -909,7 +909,7 @@ class InteractiveShell(SingletonConfigurable):
         paths = self.get_path_links(p)
 
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
-        if p_venv.parts[1] == "cygdrive":
+        if len(p_venv.parts) > 2 and p_venv.parts[1] == "cygdrive":
             drive_name = p_venv.parts[2]
             p_venv = (drive_name + ":/") / Path(*p_venv.parts[3:])
 
