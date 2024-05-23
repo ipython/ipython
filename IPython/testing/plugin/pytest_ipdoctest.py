@@ -38,7 +38,11 @@ from _pytest._io import TerminalWriter
 from _pytest.compat import safe_getattr
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
-from _pytest.fixtures import FixtureRequest
+
+try:
+    from _pytest.fixtures import TopRequest as FixtureRequest
+except ImportError:
+    from _pytest.fixtures import FixtureRequest
 from _pytest.nodes import Collector
 from _pytest.outcomes import OutcomeException
 from _pytest.pathlib import fnmatch_ex, import_path
@@ -68,6 +72,8 @@ DOCTEST_REPORT_CHOICES = (
 RUNNER_CLASS = None
 # Lazy definition of output checker class
 CHECKER_CLASS: Optional[Type["IPDoctestOutputChecker"]] = None
+
+pytest_version = tuple([int(part) for part in pytest.__version__.split(".")])
 
 
 def pytest_addoption(parser: Parser) -> None:
@@ -143,7 +149,7 @@ def pytest_collect_file(
     return None
 
 
-if int(pytest.__version__.split(".")[0]) < 7:
+if pytest_version[0] < 7:
     _collect_file = pytest_collect_file
 
     def pytest_collect_file(
@@ -448,7 +454,7 @@ class IPDoctestItem(pytest.Item):
         assert self.dtest is not None
         return self.path, self.dtest.lineno, "[ipdoctest] %s" % self.name
 
-    if int(pytest.__version__.split(".")[0]) < 7:
+    if pytest_version[0] < 7:
 
         @property
         def path(self) -> Path:
@@ -521,7 +527,7 @@ class IPDoctestTextfile(pytest.Module):
                 self, name=test.name, runner=runner, dtest=test
             )
 
-    if int(pytest.__version__.split(".")[0]) < 7:
+    if pytest_version[0] < 7:
 
         @property
         def path(self) -> Path:
@@ -636,20 +642,26 @@ class IPDoctestModule(pytest.Module):
                     )
 
         if self.path.name == "conftest.py":
-            if int(pytest.__version__.split(".")[0]) < 7:
+            if pytest_version[0] < 7:
                 module = self.config.pluginmanager._importconftest(
                     self.path,
                     self.config.getoption("importmode"),
                 )
             else:
+                kwargs = {"rootpath": self.config.rootpath}
+                if pytest_version >= (8, 1):
+                    kwargs["consider_namespace_packages"] = False
                 module = self.config.pluginmanager._importconftest(
                     self.path,
                     self.config.getoption("importmode"),
-                    rootpath=self.config.rootpath,
+                    **kwargs,
                 )
         else:
             try:
-                module = import_path(self.path, root=self.config.rootpath)
+                kwargs = {"root": self.config.rootpath}
+                if pytest_version >= (8, 1):
+                    kwargs["consider_namespace_packages"] = False
+                module = import_path(self.path, **kwargs)
             except ImportError:
                 if self.config.getvalue("ipdoctest_ignore_import_errors"):
                     pytest.skip("unable to import module %r" % self.path)
@@ -671,7 +683,7 @@ class IPDoctestModule(pytest.Module):
                     self, name=test.name, runner=runner, dtest=test
                 )
 
-    if int(pytest.__version__.split(".")[0]) < 7:
+    if pytest_version[0] < 7:
 
         @property
         def path(self) -> Path:
@@ -701,11 +713,15 @@ def _setup_fixtures(doctest_item: IPDoctestItem) -> FixtureRequest:
 
     doctest_item.funcargs = {}  # type: ignore[attr-defined]
     fm = doctest_item.session._fixturemanager
+    kwargs = {"node": doctest_item, "func": func, "cls": None}
+    if pytest_version <= (8, 0):
+        kwargs["funcargs"] = False
     doctest_item._fixtureinfo = fm.getfixtureinfo(  # type: ignore[attr-defined]
-        node=doctest_item, func=func, cls=None, funcargs=False
+        **kwargs
     )
     fixture_request = FixtureRequest(doctest_item, _ispytest=True)
-    fixture_request._fillfixtures()
+    if pytest_version <= (8, 0):
+        fixture_request._fillfixtures()
     return fixture_request
 
 
