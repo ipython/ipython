@@ -61,17 +61,18 @@ black = [
     "black",
 ]
 doc = [
-    "ipykernel",
-    "setuptools>=18.5",
-    "sphinx>=1.3",
-    "sphinx-rtd-theme",
-    "sphinxcontrib-jquery",
     "docrepr",
-    "matplotlib",
-    "stack_data",
-    "typing_extensions",
     "exceptiongroup",
+    "ipykernel",
     "ipython[test]",
+    "matplotlib",
+    "setuptools>=18.5",
+    "sphinx-rtd-theme",
+    "sphinx>=1.3",
+    "sphinxcontrib-jquery",
+    "stack_data",
+    "tomli ; python_version<'3.11'",
+    "typing_extensions",
 ]
 kernel = [
     "ipykernel",
