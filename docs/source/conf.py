@@ -92,11 +92,35 @@ exec(
 
 locals().update(config["sphinx"])
 
-intersphinx_mapping = config["intersphinx_mapping"]
-for k, v in intersphinx_mapping.items():
-    intersphinx_mapping[k] = tuple(
-        [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"]]
+try:
+    from intersphinx_registry import get_intersphinx_mapping
+
+    intersphinx_mapping = get_intersphinx_mapping(
+        packages={
+            "python",
+            "rpy2",
+            "jupyterclient",
+            "jupyter",
+            "jedi",
+            "traitlets",
+            "ipykernel",
+            "prompt_toolkit",
+            "ipywidgets",
+            "ipyparallel",
+            "pip",
+        }
     )
+
+except ModuleNotFoundError:
+    # In case intersphinx_registry is not yet packages on current plaform
+    # as it is quite recent.
+    print("/!\\ intersphinx_registry not installed, relying on local mapping.")
+    intersphinx_mapping = config["intersphinx_mapping"]
+    for k, v in intersphinx_mapping.items():
+        intersphinx_mapping[k] = tuple(
+            [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"]]
+        )
+
 
 # numpydoc config
 numpydoc_show_class_members = config["numpydoc"][

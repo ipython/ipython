@@ -9,4 +9,4 @@ matplotlib
 docrepr
 prompt_toolkit
 ipykernel
-stack_data
+intersphinx_registry
