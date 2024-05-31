@@ -136,6 +136,164 @@ exclude = [
    'IPython/utils/_process_win32.py',
    'IPython/utils/path.py',
 ]
+disallow_untyped_defs = true
+# ignore_errors = false
+# ignore_missing_imports = false
+# disallow_untyped_calls = true
+disallow_incomplete_defs = true
+# check_untyped_defs = true
+# disallow_untyped_decorators = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = [
+    "IPython.utils.text",
+]
+disallow_untyped_defs = false
+check_untyped_defs = false
+disallow_untyped_decorators = false
+
+
+# gloabl ignore error
+[[tool.mypy.overrides]]
+module = [
+    "IPython",
+    "IPython.conftest",
+    "IPython.core.alias",
+    "IPython.core.async_helpers",
+    "IPython.core.autocall",
+    "IPython.core.builtin_trap",
+    "IPython.core.compilerop",
+    "IPython.core.completer",
+    "IPython.core.completerlib",
+    "IPython.core.crashhandler",
+    "IPython.core.debugger",
+    "IPython.core.display",
+    "IPython.core.display_functions",
+    "IPython.core.display_trap",
+    "IPython.core.displayhook",
+    "IPython.core.displaypub",
+    "IPython.core.events",
+    "IPython.core.excolors",
+    "IPython.core.extensions",
+    "IPython.core.formatters",
+    "IPython.core.getipython",
+    "IPython.core.guarded_eval",
+    "IPython.core.history",
+    "IPython.core.historyapp",
+    "IPython.core.hooks",
+    "IPython.core.inputsplitter",
+    "IPython.core.inputtransformer",
+    "IPython.core.inputtransformer2",
+    "IPython.core.interactiveshell",
+    "IPython.core.logger",
+    "IPython.core.macro",
+    "IPython.core.magic",
+    "IPython.core.magic_arguments",
+    "IPython.core.magics.ast_mod",
+    "IPython.core.magics.auto",
+    "IPython.core.magics.basic",
+    "IPython.core.magics.code",
+    "IPython.core.magics.config",
+    "IPython.core.magics.display",
+    "IPython.core.magics.execution",
+    "IPython.core.magics.extension",
+    "IPython.core.magics.history",
+    "IPython.core.magics.logging",
+    "IPython.core.magics.namespace",
+    "IPython.core.magics.osm",
+    "IPython.core.magics.packaging",
+    "IPython.core.magics.pylab",
+    "IPython.core.magics.script",
+    "IPython.core.oinspect",
+    "IPython.core.page",
+    "IPython.core.payload",
+    "IPython.core.payloadpage",
+    "IPython.core.prefilter",
+    "IPython.core.profiledir",
+    "IPython.core.prompts",
+    "IPython.core.pylabtools",
+    "IPython.core.shellapp",
+    "IPython.core.splitinput",
+    "IPython.core.ultratb",
+    "IPython.extensions.autoreload",
+    "IPython.extensions.storemagic",
+    "IPython.external.qt_for_kernel",
+    "IPython.external.qt_loaders",
+    "IPython.lib.backgroundjobs",
+    "IPython.lib.clipboard",
+    "IPython.lib.demo",
+    "IPython.lib.display",
+    "IPython.lib.editorhooks",
+    "IPython.lib.guisupport",
+    "IPython.lib.latextools",
+    "IPython.lib.lexers",
+    "IPython.lib.pretty",
+    "IPython.paths",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.terminal.debugger",
+    "IPython.terminal.embed",
+    "IPython.terminal.interactiveshell",
+    "IPython.terminal.magics",
+    "IPython.terminal.prompts",
+    "IPython.terminal.pt_inputhooks",
+    "IPython.terminal.pt_inputhooks.asyncio",
+    "IPython.terminal.pt_inputhooks.glut",
+    "IPython.terminal.pt_inputhooks.gtk",
+    "IPython.terminal.pt_inputhooks.gtk3",
+    "IPython.terminal.pt_inputhooks.gtk4",
+    "IPython.terminal.pt_inputhooks.osx",
+    "IPython.terminal.pt_inputhooks.pyglet",
+    "IPython.terminal.pt_inputhooks.qt",
+    "IPython.terminal.pt_inputhooks.tk",
+    "IPython.terminal.pt_inputhooks.wx",
+    "IPython.terminal.ptutils",
+    "IPython.terminal.shortcuts",
+    "IPython.terminal.shortcuts.auto_match",
+    "IPython.terminal.shortcuts.auto_suggest",
+    "IPython.terminal.shortcuts.filters",
+    "IPython.utils._process_cli",
+    "IPython.utils._process_common",
+    "IPython.utils._process_emscripten",
+    "IPython.utils._process_posix",
+    "IPython.utils.capture",
+    "IPython.utils.coloransi",
+    "IPython.utils.contexts",
+    "IPython.utils.data",
+    "IPython.utils.decorators",
+    "IPython.utils.dir2",
+    "IPython.utils.encoding",
+    "IPython.utils.frame",
+    "IPython.utils.generics",
+    "IPython.utils.importstring",
+    "IPython.utils.io",
+    "IPython.utils.ipstruct",
+    "IPython.utils.module_paths",
+    "IPython.utils.openpy",
+    "IPython.utils.process",
+    "IPython.utils.py3compat",
+    "IPython.utils.sentinel",
+    "IPython.utils.shimmodule",
+    "IPython.utils.strdispatch",
+    "IPython.utils.sysinfo",
+    "IPython.utils.syspathcontext",
+    "IPython.utils.tempdir",
+    "IPython.utils.terminal",
+    "IPython.utils.timing",
+    "IPython.utils.tokenutil",
+    "IPython.utils.tz",
+    "IPython.utils.ulinecache",
+    "IPython.utils.version",
+    "IPython.utils.wildcard",
+
+]
+disallow_untyped_defs = false
+ignore_errors = true
+ignore_missing_imports = true
+disallow_untyped_calls = false
+disallow_incomplete_defs = false
+check_untyped_defs = false
+disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
 addopts = [
