@@ -10,12 +10,18 @@ Inheritance diagram:
 import os
 import re
 import string
+import sys
 import textwrap
 import warnings
 from string import Formatter
 from pathlib import Path
 
-from typing import List, Dict, Tuple, Optional, cast
+from typing import List, Dict, Tuple, Optional, cast, Sequence, Mapping, Any
+
+if sys.version_info < (3, 12):
+    from typing_extensions import Self
+else:
+    from typing import Self
 
 
 class LSString(str):
@@ -34,7 +40,11 @@ class LSString(str):
     Such strings are very useful to efficiently interact with the shell, which
     typically only understands whitespace-separated options for commands."""
 
-    def get_list(self):
+    __list: List[str]
+    __spstr: str
+    __paths: List[Path]
+
+    def get_list(self) -> List[str]:
         try:
             return self.__list
         except AttributeError:
@@ -43,7 +53,7 @@ class LSString(str):
 
     l = list = property(get_list)
 
-    def get_spstr(self):
+    def get_spstr(self) -> str:
         try:
             return self.__spstr
         except AttributeError:
@@ -52,12 +62,12 @@ class LSString(str):
 
     s = spstr = property(get_spstr)
 
-    def get_nlstr(self):
+    def get_nlstr(self) -> Self:
         return self
 
     n = nlstr = property(get_nlstr)
 
-    def get_paths(self):
+    def get_paths(self) -> List[Path]:
         try:
             return self.__paths
         except AttributeError:
@@ -92,12 +102,16 @@ class SList(list):
     Any values which require transformations are computed only once and
     cached."""
 
-    def get_list(self):
+    __spstr: str
+    __nlstr: str
+    __paths: List[Path]
+
+    def get_list(self) -> Self:
         return self
 
     l = list = property(get_list)
 
-    def get_spstr(self):
+    def get_spstr(self) -> str:
         try:
             return self.__spstr
         except AttributeError:
@@ -106,7 +120,7 @@ class SList(list):
 
     s = spstr = property(get_spstr)
 
-    def get_nlstr(self):
+    def get_nlstr(self) -> str:
         try:
             return self.__nlstr
         except AttributeError:
@@ -115,7 +129,7 @@ class SList(list):
 
     n = nlstr = property(get_nlstr)
 
-    def get_paths(self):
+    def get_paths(self) -> List[Path]:
         try:
             return self.__paths
         except AttributeError:
@@ -538,7 +552,9 @@ class FullEvalFormatter(Formatter):
     """
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
-    def vformat(self, format_string: str, args, kwargs) -> str:
+    def vformat(
+        self, format_string: str, args: Sequence[Any], kwargs: Mapping[str, Any]
+    ) -> str:
         result = []
         conversion: Optional[str]
         for literal_text, field_name, format_spec, conversion in self.parse(
@@ -559,7 +575,7 @@ class FullEvalFormatter(Formatter):
 
                 # eval the contents of the field for the object
                 # to be formatted
-                obj = eval(field_name, kwargs)
+                obj = eval(field_name, dict(kwargs))
 
                 # do any conversion on the resulting object
                 # type issue in typeshed, fined in https://github.com/python/typeshed/pull/11377
@@ -629,7 +645,9 @@ def _col_chunks(l, max_rows, row_first=False):
             yield l[i:(i + max_rows)]
 
 
-def _find_optimal(rlist, row_first: bool, separator_size: int, displaywidth: int):
+def _find_optimal(
+    rlist: List[str], row_first: bool, separator_size: int, displaywidth: int
+) -> Dict[str, Any]:
     """Calculate optimal info to columnize a list of string"""
     for max_rows in range(1, len(rlist) + 1):
         col_widths = list(map(max, _col_chunks(rlist, max_rows, row_first)))
@@ -653,7 +671,12 @@ def _get_or_default(mylist, i, default=None):
 
 
 def compute_item_matrix(
-    items, row_first: bool = False, empty=None, *, separator_size=2, displaywidth=80
+    items: List[str],
+    row_first: bool = False,
+    empty: Optional[str] = None,
+    *,
+    separator_size: int = 2,
+    displaywidth: int = 80,
 ) -> Tuple[List[List[int]], Dict[str, int]]:
     """Returns a nested list, and info to columnize items
 
@@ -710,7 +733,7 @@ def compute_item_matrix(
         category=PendingDeprecationWarning,
     )
     info = _find_optimal(
-        list(map(len, items)),
+        list(map(len, items)),  # type: ignore[arg-type]
         row_first,
         separator_size=separator_size,
         displaywidth=displaywidth,
@@ -728,7 +751,7 @@ def columnize(
     separator: str = "  ",
     displaywidth: int = 80,
     spread: bool = False,
-):
+) -> str:
     """Transform a list of strings into a single string with columns.
 
     Parameters
