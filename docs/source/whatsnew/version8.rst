@@ -2,6 +2,34 @@
  8.x Series
 ============
 
+.. _version 8.25:
+
+IPython 8.25
+============
+
+Mostly internal changes for this end of may release of IPython.
+
+We'll count about a dozen PRs for this moth, with small bugfixes related to
+matplotlib fixes.
+
+Of notable interest,
+
+ - :ghpull:`14426` replaces the unicode micro symbol with greek letter mu,
+   visually identical but should fix nfkc normalisations issues.
+
+ - :ghpull:`14444` introduces ``intersphinx_registry``  as a new dependency
+   which is recommended only to build documentation.
+
+As usual you can find the full list of PRs on GitHub under `the 8.25
+<https://github.com/ipython/ipython/milestone/132?closed=1>`__ milestone.
+
+Thanks
+------
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 8.24:
 
 IPython 8.24
