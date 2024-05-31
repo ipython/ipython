@@ -5,6 +5,7 @@ directory, which we are removing.  For now putting this here ensures at least
 we do run the test, though ultimately this functionality should all be tested
 with better-isolated tests that don't rely on the global instance in iptest.
 """
+
 from IPython.core.splitinput import LineInfo
 from IPython.core.prefilter import AutocallChecker
 

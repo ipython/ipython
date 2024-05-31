@@ -10,7 +10,6 @@ explicitly to actually raise a SyntaxError and stay as close as possible to
 Python semantics.
 """
 
-
 import ast
 import asyncio
 import inspect

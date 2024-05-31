@@ -1,5 +1,6 @@
 """Tests for autoreload extension.
 """
+
 # -----------------------------------------------------------------------------
 #  Copyright (c) 2012 IPython Development Team.
 #
