@@ -147,10 +147,13 @@ skip_osx = skipif(sys.platform == 'darwin',"This test does not run under OS X")
 
 
 # Decorators to skip tests if not on specific platforms.
-skip_if_not_win32 = skipif(sys.platform != 'win32',
-                           "This test only runs under Windows")
-skip_if_not_linux = skipif(not sys.platform.startswith('linux'),
-                           "This test only runs under Linux")
+skip_if_not_win32 = skipif(sys.platform != "win32", "This test only runs under Windows")
+skip_if_not_linux = skipif(
+    not sys.platform.startswith("linux"), "This test only runs under Linux"
+)
+skip_if_not_osx = skipif(
+    not sys.platform.startswith("darwin"), "This test only runs under macOS"
+)
 
 _x11_skip_cond = (sys.platform not in ('darwin', 'win32') and
                   os.environ.get('DISPLAY', '') == '')

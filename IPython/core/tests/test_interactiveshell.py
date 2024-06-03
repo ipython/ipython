@@ -27,7 +27,11 @@ from IPython.core.inputtransformer import InputTransformer
 from IPython.core import interactiveshell
 from IPython.core.oinspect import OInfo
 from IPython.testing.decorators import (
-    skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
+    skipif,
+    skip_win32,
+    onlyif_unicode_paths,
+    onlyif_cmds_exist,
+    skip_if_not_osx,
 )
 from IPython.testing import tools as tt
 from IPython.utils.process import find_cmd
@@ -124,16 +128,16 @@ class InteractiveShellTestCase(unittest.TestCase):
         newlen = len(ip.user_ns['In'])
         self.assertEqual(oldlen+1, newlen)
         self.assertEqual(ip.user_ns['In'][-1],'1;')
-        
+
     def test_magic_names_in_string(self):
         ip.run_cell('a = """\n%exit\n"""')
         self.assertEqual(ip.user_ns['a'], '\n%exit\n')
-    
+
     def test_trailing_newline(self):
         """test that running !(command) does not raise a SyntaxError"""
         ip.run_cell('!(true)\n', False)
         ip.run_cell('!(true)\n\n\n', False)
-    
+
     def test_gh_597(self):
         """Pretty-printing lists of objects with non-ascii reprs may cause
         problems."""
@@ -142,8 +146,7 @@ class InteractiveShellTestCase(unittest.TestCase):
                 return "\xe9"*50
         import IPython.core.formatters
         f = IPython.core.formatters.PlainTextFormatter()
-        f([Spam(),Spam()])
-    
+        f([Spam(), Spam()])
 
     def test_future_flags(self):
         """Check that future flags are used for parsing code (gh-777)"""
@@ -163,9 +166,9 @@ class InteractiveShellTestCase(unittest.TestCase):
                      "    def __init__(self,x=[]):\n"
                      "        list.__init__(self,x)"))
         ip.run_cell("w=Mylist([1,2,3])")
-        
+
         from pickle import dumps
-        
+
         # We need to swap in our main module - this is only necessary
         # inside the test framework, because IPython puts the interactive module
         # in place (but the test framework undoes this).
@@ -176,7 +179,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         finally:
             sys.modules['__main__'] = _main
         self.assertTrue(isinstance(res, bytes))
-        
+
     def test_global_ns(self):
         "Code in functions must be able to access variables outside them."
         ip = get_ipython()
@@ -222,13 +225,13 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(ip.var_expand(u'echo {f}'), u'echo Ca\xf1o')
         self.assertEqual(ip.var_expand(u'echo {f[:-1]}'), u'echo Ca\xf1')
         self.assertEqual(ip.var_expand(u'echo {1*2}'), u'echo 2')
-        
+
         self.assertEqual(ip.var_expand(u"grep x | awk '{print $1}'"), u"grep x | awk '{print $1}'")
 
         ip.user_ns['f'] = b'Ca\xc3\xb1o'
         # This should not raise any exception:
         ip.var_expand(u'echo $f')
-   
+
     def test_var_expand_local(self):
         """Test local variable expansion in !system and %magic calls"""
         # !system
@@ -253,7 +256,7 @@ class InteractiveShellTestCase(unittest.TestCase):
 
     def test_var_expand_self(self):
         """Test variable expansion with the name 'self', which was failing.
-        
+
         See https://github.com/ipython/ipython/issues/1878#issuecomment-7698218
         """
         ip.run_cell(
@@ -273,7 +276,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(ip.var_expand(u"{asdf}"), u"{asdf}")
         # ZeroDivisionError
         self.assertEqual(ip.var_expand(u"{1/0}"), u"{1/0}")
-    
+
     def test_silent_postexec(self):
         """run_cell(silent=True) doesn't invoke pre/post_run_cell callbacks"""
         pre_explicit = mock.Mock()
@@ -281,12 +284,12 @@ class InteractiveShellTestCase(unittest.TestCase):
         post_explicit = mock.Mock()
         post_always = mock.Mock()
         all_mocks = [pre_explicit, pre_always, post_explicit, post_always]
-        
+
         ip.events.register('pre_run_cell', pre_explicit)
         ip.events.register('pre_execute', pre_always)
         ip.events.register('post_run_cell', post_explicit)
         ip.events.register('post_execute', post_always)
-        
+
         try:
             ip.run_cell("1", silent=True)
             assert pre_always.called
@@ -317,29 +320,29 @@ class InteractiveShellTestCase(unittest.TestCase):
             ip.events.unregister('pre_execute', pre_always)
             ip.events.unregister('post_run_cell', post_explicit)
             ip.events.unregister('post_execute', post_always)
-    
+
     def test_silent_noadvance(self):
         """run_cell(silent=True) doesn't advance execution_count"""
         ec = ip.execution_count
         # silent should force store_history=False
         ip.run_cell("1", store_history=True, silent=True)
-        
+
         self.assertEqual(ec, ip.execution_count)
         # double-check that non-silent exec did what we expected
         # silent to avoid
         ip.run_cell("1", store_history=True)
         self.assertEqual(ec+1, ip.execution_count)
-    
+
     def test_silent_nodisplayhook(self):
         """run_cell(silent=True) doesn't trigger displayhook"""
         d = dict(called=False)
-        
+
         trap = ip.display_trap
         save_hook = trap.hook
-        
+
         def failing_hook(*args, **kwargs):
             d['called'] = True
-        
+
         try:
             trap.hook = failing_hook
             res = ip.run_cell("1", silent=True)
@@ -354,7 +357,7 @@ class InteractiveShellTestCase(unittest.TestCase):
 
     def test_ofind_line_magic(self):
         from IPython.core.magic import register_line_magic
-        
+
         @register_line_magic
         def lmagic(line):
             "A line magic"
@@ -370,10 +373,10 @@ class InteractiveShellTestCase(unittest.TestCase):
             parent=None,
         )
         self.assertEqual(lfind, info)
-        
+
     def test_ofind_cell_magic(self):
         from IPython.core.magic import register_cell_magic
-        
+
         @register_cell_magic
         def cmagic(line, cell):
             "A cell magic"
@@ -490,7 +493,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         def my_handler(shell, etype, value, tb, tb_offset=None):
             called.append(etype)
             shell.showtraceback((etype, value, tb), tb_offset=tb_offset)
-        
+
         ip.set_custom_exc((ValueError,), my_handler)
         try:
             res = ip.run_cell("raise ValueError('test')")
@@ -501,7 +504,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         finally:
             # Reset the custom exception hook
             ip.set_custom_exc((), None)
-    
+
     @mock.patch("builtins.print")
     def test_showtraceback_with_surrogates(self, mocked_print):
         values = []
@@ -618,7 +621,7 @@ class ExitCodeChecks(tt.TempFileMixin):
     def test_exit_code_error(self):
         self.system('exit 1')
         self.assertEqual(ip.user_ns['_exit_code'], 1)
-    
+
     @skipif(not hasattr(signal, 'SIGALRM'))
     def test_exit_code_signal(self):
         self.mktmp("import signal, time\n"
@@ -626,7 +629,7 @@ class ExitCodeChecks(tt.TempFileMixin):
                    "time.sleep(1)\n")
         self.system("%s %s" % (sys.executable, self.fname))
         self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGALRM)
-    
+
     @onlyif_cmds_exist("csh")
     def test_exit_code_signal_csh(self):  # pragma: no cover
         SHELL = os.environ.get("SHELL", None)
@@ -730,7 +733,7 @@ class TestAstTransform(unittest.TestCase):
     def setUp(self):
         self.negator = Negator()
         ip.ast_transformers.append(self.negator)
-    
+
     def tearDown(self):
         ip.ast_transformers.remove(self.negator)
 
@@ -752,7 +755,7 @@ class TestAstTransform(unittest.TestCase):
         def f(x):
             called.add(x)
         ip.push({'f':f})
-        
+
         with tt.AssertPrints("std. dev. of"):
             ip.run_line_magic("timeit", "-n1 f(1)")
         self.assertEqual(called, {-1})
@@ -761,29 +764,29 @@ class TestAstTransform(unittest.TestCase):
         with tt.AssertPrints("std. dev. of"):
             ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
         self.assertEqual(called, {-2, -3})
-    
+
     def test_time(self):
         called = []
         def f(x):
             called.append(x)
         ip.push({'f':f})
-        
+
         # Test with an expression
         with tt.AssertPrints("Wall time: "):
             ip.run_line_magic("time", "f(5+9)")
         self.assertEqual(called, [-14])
         called[:] = []
-        
+
         # Test with a statement (different code path)
         with tt.AssertPrints("Wall time: "):
             ip.run_line_magic("time", "a = f(-3 + -2)")
         self.assertEqual(called, [5])
-    
+
     def test_macro(self):
         ip.push({'a':10})
         # The AST transformation makes this do a+=-1
         ip.define_macro("amacro", "a+=1\nprint(a)")
-        
+
         with tt.AssertPrints("9"):
             ip.run_cell("amacro")
         with tt.AssertPrints("8"):
@@ -836,21 +839,21 @@ class TestAstTransform2(unittest.TestCase):
     def setUp(self):
         self.intwrapper = IntegerWrapper()
         ip.ast_transformers.append(self.intwrapper)
-        
+
         self.calls = []
         def Integer(*args):
             self.calls.append(args)
             return args
         ip.push({"Integer": Integer})
-    
+
     def tearDown(self):
         ip.ast_transformers.remove(self.intwrapper)
         del ip.user_ns['Integer']
-    
+
     def test_run_cell(self):
         ip.run_cell("n = 2")
         self.assertEqual(self.calls, [(2,)])
-        
+
         # This shouldn't throw an error
         ip.run_cell("o = 2.0")
         self.assertEqual(ip.user_ns['o'], 2.0)
@@ -887,10 +890,10 @@ class TestAstTransformError(unittest.TestCase):
     def test_unregistering(self):
         err_transformer = ErrorTransformer()
         ip.ast_transformers.append(err_transformer)
-        
+
         with self.assertWarnsRegex(UserWarning, "It will be unregistered"):
             ip.run_cell("1 + 2")
-        
+
         # This should have been removed.
         self.assertNotIn(err_transformer, ip.ast_transformers)
 
@@ -901,7 +904,7 @@ class StringRejector(ast.NodeTransformer):
     Used to verify that NodeTransformers can signal that a piece of code should
     not be executed by throwing an InputRejected.
     """
-    
+
     def visit_Constant(self, node):
         if isinstance(node.value, str):
             raise InputRejected("test")
@@ -941,18 +944,18 @@ def test__IPYTHON__():
 class DummyRepr(object):
     def __repr__(self):
         return "DummyRepr"
-    
+
     def _repr_html_(self):
         return "<b>dummy</b>"
-    
+
     def _repr_javascript_(self):
         return "console.log('hi');", {'key': 'value'}
-    
+
 
 def test_user_variables():
     # enable all formatters
     ip.display_formatter.active_types = ip.display_formatter.format_types
-    
+
     ip.user_ns['dummy'] = d = DummyRepr()
     keys = {'dummy', 'doesnotexist'}
     r = ip.user_expressions({ key:key for key in keys})
@@ -974,7 +977,7 @@ def test_user_variables():
 
     # back to text only
     ip.display_formatter.active_types = ['text/plain']
-    
+
 def test_user_expression():
     # enable all formatters
     ip.display_formatter.active_types = ip.display_formatter.format_types
@@ -1199,3 +1202,20 @@ class TestShowTracebackAttack(unittest.TestCase):
         assert result.result is None
         assert isinstance(result.error_in_exec, AssertionError)
         assert str(result.error_in_exec) == "This should not raise an exception"
+
+
+@skip_if_not_osx
+def test_enable_gui_osx():
+    simple_prompt = ip.simple_prompt
+    ip.simple_prompt = False
+
+    ip.enable_gui("osx")
+    assert ip.active_eventloop == "osx"
+    ip.enable_gui()
+
+    # The following line fails for IPython <= 8.25.0
+    ip.enable_gui("macosx")
+    assert ip.active_eventloop == "osx"
+    ip.enable_gui()
+
+    ip.simple_prompt = simple_prompt
