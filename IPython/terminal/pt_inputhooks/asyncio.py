@@ -27,6 +27,7 @@ prompt_toolkit`s `patch_stdout`)::
     In [4]: asyncio.ensure_future(f())
 
 """
+
 from prompt_toolkit import __version__ as ptk_version
 
 from IPython.core.async_helpers import get_asyncio_loop
