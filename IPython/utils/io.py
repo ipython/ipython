@@ -75,6 +75,8 @@ class Tee(object):
         if not self._closed:
             self.close()
 
+    def isatty(self):
+        return False
 
 def ask_yes_no(prompt, default=None, interrupt=None):
     """Asks a question and returns a boolean (y/n) answer.
