@@ -2033,7 +2033,7 @@ class InteractiveShell(SingletonConfigurable):
                     print(self.InteractiveTB.stb2text(stb))
                     print("The original exception:")
                     stb = self.InteractiveTB.structured_traceback(
-                                            (etype,value,tb), tb_offset=tb_offset
+                        etype, value, tb, tb_offset=tb_offset
                     )
                 return stb
 
