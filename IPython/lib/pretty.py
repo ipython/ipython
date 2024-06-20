@@ -406,8 +406,7 @@ class RepresentationPrinter(PrettyPrinter):
                             meth = cls._repr_pretty_
                             if callable(meth):
                                 return meth(obj, self, cycle)
-                        if cls is not object \
-                                and callable(cls.__dict__.get('__repr__')):
+                        if cls is not object and callable(getattr(cls, '__repr__', None)):
                             return _repr_pprint(obj, self, cycle)
 
             return _default_pprint(obj, self, cycle)

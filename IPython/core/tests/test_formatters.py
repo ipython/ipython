@@ -529,3 +529,18 @@ def test_repr_mime_failure():
     obj = BadReprMime()
     d, md = f.format(obj)
     assert "text/plain" in d
+
+
+def test_custom_repr_namedtuple_partialmethod():
+    from functools import partialmethod
+    from typing import NamedTuple
+    
+    class Foo(NamedTuple):
+        ...
+
+    Foo.__repr__ = partialmethod(lambda obj: "Hello World")
+    foo = Foo()
+    
+    f = PlainTextFormatter()
+    assert f.pprint
+    assert f(foo) == "Hello World"
