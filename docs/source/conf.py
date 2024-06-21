@@ -18,6 +18,11 @@
 
 import sys, os
 from pathlib import Path
+from there import print
+
+from sphinx_toml import load_into_locals
+
+load_into_locals(locals())
 
 if sys.version_info > (3, 11):
     import tomllib
@@ -90,37 +95,8 @@ exec(
 # - default_role
 # - modindex_common_prefix
 
-locals().update(config["sphinx"])
-
-try:
-    from intersphinx_registry import get_intersphinx_mapping
-
-    intersphinx_mapping = get_intersphinx_mapping(
-        packages={
-            "python",
-            "rpy2",
-            "jupyterclient",
-            "jupyter",
-            "jedi",
-            "traitlets",
-            "ipykernel",
-            "prompt_toolkit",
-            "ipywidgets",
-            "ipyparallel",
-            "pip",
-        }
-    )
-
-except ModuleNotFoundError:
-    # In case intersphinx_registry is not yet packages on current plaform
-    # as it is quite recent.
-    print("/!\\ intersphinx_registry not installed, relying on local mapping.")
-    intersphinx_mapping = config["intersphinx_mapping"]
-    for k, v in intersphinx_mapping.items():
-        intersphinx_mapping[k] = tuple(
-            [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"]]
-        )
-
+for k, v in config["sphinx"].items():
+    assert v == locals()[k]
 
 # numpydoc config
 numpydoc_show_class_members = config["numpydoc"][
@@ -144,13 +120,8 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 #     using the given strftime format.
 #     Output file base name for HTML help builder.
 # - htmlhelp_basename
-locals().update(config["html"])
+# locals().update(config["html"])
 
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
-html_additional_pages = {}
-for item in config["html"]["html_additional_pages"]:
-    html_additional_pages[item[0]] = item[1]
 
 # Options for LaTeX output
 # ------------------------

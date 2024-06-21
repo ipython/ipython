@@ -1,5 +1,3 @@
-title = "Sphinx configuration"
-
 [sphinx]
 templates_path = ["_templates"]
 master_doc = "index"
@@ -27,18 +25,20 @@ extensions = [
 default_role = "literal"
 modindex_common_prefix = ["IPython."]
 
-[intersphinx_mapping]
-python = { url = 'https://docs.python.org/3/', fallback = '' }
-rpy2 = { url = 'https://rpy2.github.io/doc/latest/html/', fallback = '' }
-jupyterclient = { url = 'https://jupyter-client.readthedocs.io/en/latest/', fallback = '' }
-jupyter = { url = 'https://jupyter.readthedocs.io/en/latest/', fallback = '' }
-jedi = { url = 'https://jedi.readthedocs.io/en/latest/', fallback = '' }
-traitlets = { url = 'https://traitlets.readthedocs.io/en/latest/', fallback = '' }
-ipykernel = { url = 'https://ipykernel.readthedocs.io/en/latest/', fallback = '' }
-prompt_toolkit = { url = 'https://python-prompt-toolkit.readthedocs.io/en/stable/', fallback = '' }
-ipywidgets = { url = 'https://ipywidgets.readthedocs.io/en/stable/', fallback = '' }
-ipyparallel = { url = 'https://ipyparallel.readthedocs.io/en/stable/', fallback = '' }
-pip = { url = 'https://pip.pypa.io/en/stable/', fallback = '' }
+[intersphinx_registry]
+packages = [
+    "python",
+    "rpy2",
+    "jupyterclient",
+    "jupyter",
+    "jedi",
+    "traitlets",
+    "ipykernel",
+    "prompt_toolkit",
+    "ipywidgets",
+    "ipyparallel",
+    "pip"
+]
 
 [html]
 html_theme = "sphinx_rtd_theme"
