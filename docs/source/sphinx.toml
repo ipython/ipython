@@ -22,8 +22,13 @@ extensions = [
     "magics",
     "configtraits",
 ]
+today_fmt = "%B %d, %Y"
 default_role = "literal"
 modindex_common_prefix = ["IPython."]
+
+[sphinx.autodoc_type_aliases]
+Matcher= " IPython.core.completer.Matcher"
+MatcherAPIv1 = " IPython.core.completer.MatcherAPIv1"
 
 [intersphinx_registry]
 packages = [
@@ -54,17 +59,30 @@ html_additional_pages = [
 ]
 
 [numpydoc]
-numpydoc_show_class_members = "False"
-numpydoc_class_members_toctree = "False"
-warning_is_error = "True"
+numpydoc_show_class_members = false
+numpydoc_class_members_toctree = false
+warning_is_error = true
 
 [latex]
 latex_documents = [
     ['index', 'ipython.tex', 'IPython Documentation',
-     'The IPython Development Team', 'manual', 'True'],
+     'The IPython Development Team', 'manual', true],
     ['parallel/winhpc_index', 'winhpc_whitepaper.tex',
      'Using IPython on Windows HPC Server 2008',
-     "Brian E. Granger", 'manual', 'True']
+     "Brian E. Granger", 'manual', true]
 ]
-latex_use_modindex = "True"
+latex_use_modindex = true
 latex_font_size = "11pt"
+texinfo_documents = [
+    [
+        "index",
+        "ipython",
+        "IPython Documentation",
+        "The IPython Development Team",
+        "IPython",
+        "IPython Documentation",
+        "Programming",
+        1,
+    ]
+]
+
