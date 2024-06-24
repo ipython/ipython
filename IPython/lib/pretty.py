@@ -414,7 +414,7 @@ class RepresentationPrinter(PrettyPrinter):
                             # Note: we need to test getattr(cls, '__repr__')
                             #   instead of cls.__dict__['__repr__']
                             #   in order to work with descriptors like partialmethod,
-                            and callable(getattr(cls, "__repr__", None))
+                            and callable(_safe_getattr(cls, "__repr__", None))
                         ):
                             return _repr_pprint(obj, self, cycle)
 
