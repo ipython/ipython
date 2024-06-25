@@ -943,6 +943,11 @@ class TerminalInteractiveShell(InteractiveShell):
     active_eventloop: Optional[str] = None
 
     def enable_gui(self, gui: Optional[str] = None) -> None:
+        if gui:
+            from ..core.pylabtools import _convert_gui_from_matplotlib
+
+            gui = _convert_gui_from_matplotlib(gui)
+
         if self.simple_prompt is True and gui is not None:
             print(
                 f'Cannot install event loop hook for "{gui}" when running with `--simple-prompt`.'
