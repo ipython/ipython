@@ -488,6 +488,10 @@ def test_pinfo_docstring_if_detail_and_no_source():
             ip._inspect('pinfo', 'foo.bar', detail_level=1)
 
 
+@pytest.mark.xfail(
+    sys.version_info.releaselevel not in ("final", "candidate"),
+    reason="fails on 3.13.dev",
+)
 def test_pinfo_docstring_dynamic():
     obj_def = """class Bar:
     __custom_documentations__ = {
