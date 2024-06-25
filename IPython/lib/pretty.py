@@ -406,8 +406,16 @@ class RepresentationPrinter(PrettyPrinter):
                             meth = cls._repr_pretty_
                             if callable(meth):
                                 return meth(obj, self, cycle)
-                        if cls is not object \
-                                and callable(cls.__dict__.get('__repr__')):
+                        if (
+                            cls is not object
+                            # check if cls defines __repr__
+                            and "__repr__" in cls.__dict__
+                            # check if __repr__ is callable.
+                            # Note: we need to test getattr(cls, '__repr__')
+                            #   instead of cls.__dict__['__repr__']
+                            #   in order to work with descriptors like partialmethod,
+                            and callable(_safe_getattr(cls, "__repr__", None))
+                        ):
                             return _repr_pprint(obj, self, cycle)
 
             return _default_pprint(obj, self, cycle)

@@ -103,7 +103,7 @@ def test_bad_precision():
 
 def test_for_type():
     f = PlainTextFormatter()
-    
+
     # initial return, None
     assert f.for_type(C, foo_printer) is None
     # no func queries
@@ -116,9 +116,9 @@ def test_for_type():
 
 def test_for_type_string():
     f = PlainTextFormatter()
-    
+
     type_str = '%s.%s' % (C.__module__, 'C')
-    
+
     # initial return, None
     assert f.for_type(type_str, foo_printer) is None
     # no func queries
@@ -130,9 +130,9 @@ def test_for_type_string():
 
 def test_for_type_by_name():
     f = PlainTextFormatter()
-    
+
     mod = C.__module__
-    
+
     # initial return, None
     assert f.for_type_by_name(mod, "C", foo_printer) is None
     # no func queries
@@ -146,7 +146,7 @@ def test_for_type_by_name():
 
 def test_lookup():
     f = PlainTextFormatter()
-    
+
     f.for_type(C, foo_printer)
     assert f.lookup(C()) is foo_printer
     with pytest.raises(KeyError):
@@ -155,7 +155,7 @@ def test_lookup():
 def test_lookup_string():
     f = PlainTextFormatter()
     type_str = '%s.%s' % (C.__module__, 'C')
-    
+
     f.for_type(type_str, foo_printer)
     assert f.lookup(C()) is foo_printer
     # should move from deferred to imported dict
@@ -173,16 +173,16 @@ def test_lookup_by_type_string():
     f = PlainTextFormatter()
     type_str = '%s.%s' % (C.__module__, 'C')
     f.for_type(type_str, foo_printer)
-    
+
     # verify insertion
     assert _mod_name_key(C) in f.deferred_printers
     assert C not in f.type_printers
-    
+
     assert f.lookup_by_type(type_str) is foo_printer
     # lookup by string doesn't cause import
     assert _mod_name_key(C) in f.deferred_printers
     assert C not in f.type_printers
-    
+
     assert f.lookup_by_type(C) is foo_printer
     # should move from deferred to imported dict
     assert _mod_name_key(C) not in f.deferred_printers
@@ -220,10 +220,10 @@ def test_pop():
 def test_pop_string():
     f = PlainTextFormatter()
     type_str = '%s.%s' % (C.__module__, 'C')
-    
+
     with pytest.raises(KeyError):
         f.pop(type_str)
-    
+
     f.for_type(type_str, foo_printer)
     f.pop(type_str)
     with pytest.raises(KeyError):
@@ -238,7 +238,7 @@ def test_pop_string():
     with pytest.raises(KeyError):
         f.pop(type_str)
     assert f.pop(type_str, None) is None
-    
+
 
 def test_error_method():
     f = HTMLFormatter()
@@ -341,14 +341,14 @@ def test_print_method_weird():
     assert text_hat._repr_html_ == "_repr_html_"
     with capture_output() as captured:
         result = f(text_hat)
-    
+
     assert result is None
     assert "FormatterWarning" not in captured.stderr
 
     class CallableMagicHat(object):
         def __getattr__(self, key):
             return lambda : key
-    
+
     call_hat = CallableMagicHat()
     with capture_output() as captured:
         result = f(call_hat)
@@ -358,11 +358,11 @@ def test_print_method_weird():
     class BadReprArgs(object):
         def _repr_html_(self, extra, args):
             return "html"
-    
+
     bad = BadReprArgs()
     with capture_output() as captured:
         result = f(bad)
-    
+
     assert result is None
     assert "FormatterWarning" not in captured.stderr
 
@@ -406,13 +406,13 @@ def test_ipython_display_formatter():
     class NotSelfDisplaying(object):
         def __repr__(self):
             return "NotSelfDisplaying"
-        
+
         def _ipython_display_(self):
             raise NotImplementedError
-    
+
     save_enabled = f.ipython_display_formatter.enabled
     f.ipython_display_formatter.enabled = True
-    
+
     yes = SelfDisplaying()
     no = NotSelfDisplaying()
 
@@ -444,7 +444,7 @@ def test_repr_mime():
             return 'should-be-overwritten'
         def _repr_html_(self):
             return '<b>hi!</b>'
-    
+
     f = get_ipython().display_formatter
     html_f = f.formatters['text/html']
     save_enabled = html_f.enabled
@@ -507,7 +507,7 @@ def test_repr_mime_meta():
                 }
             }
             return (data, metadata)
-    
+
     f = get_ipython().display_formatter
     obj = HasReprMimeMeta()
     d, md = f.format(obj)
@@ -529,3 +529,18 @@ def test_repr_mime_failure():
     obj = BadReprMime()
     d, md = f.format(obj)
     assert "text/plain" in d
+
+
+def test_custom_repr_namedtuple_partialmethod():
+    from functools import partialmethod
+    from typing import NamedTuple
+
+    class Foo(NamedTuple):
+        ...
+
+    Foo.__repr__ = partialmethod(lambda obj: "Hello World")
+    foo = Foo()
+
+    f = PlainTextFormatter()
+    assert f.pprint
+    assert f(foo) == "Hello World"
