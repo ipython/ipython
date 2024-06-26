@@ -99,6 +99,7 @@ test = [
     "pytest-asyncio<0.22",
     "testpath",
     "pickleshare",
+    "packaging",
 ]
 test_extra = [
     "ipython[test]",

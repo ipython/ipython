@@ -10,6 +10,9 @@ import sys
 import textwrap
 import unittest
 
+from importlib.metadata import version
+
+
 from contextlib import contextmanager
 
 from traitlets.config.loader import Config
@@ -29,6 +32,9 @@ from IPython.core.completer import (
     SimpleCompletion,
     CompletionContext,
 )
+
+from packaging.version import parse
+
 
 # -----------------------------------------------------------------------------
 # Test functions
@@ -531,7 +537,9 @@ class TestCompleter(unittest.TestCase):
             c = next(completions)  # should be `%time` or similar
         assert c.type == "magic", "Type of magic was not assigned by completer"
 
-    @pytest.mark.xfail(reason="Known failure on jedi<=0.18.0")
+    @pytest.mark.xfail(
+        parse(version("jedi")) > parse("0.18.0"), reason="Known failure on jedi<=0.18.0"
+    )
     def test_deduplicate_completions(self):
         """
         Test that completions are correctly deduplicated (even if ranges are not the same)

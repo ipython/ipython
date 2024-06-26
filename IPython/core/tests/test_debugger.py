@@ -54,10 +54,6 @@ class PdbTestInput(object):
 # Tests
 #-----------------------------------------------------------------------------
 
-@pytest.mark.xfail(
-    sys.version_info.releaselevel not in ("final", "candidate"),
-    reason="fails on 3.13.dev",
-)
 def test_ipdb_magics():
     '''Test calling some IPython magics from ipdb.
 
@@ -454,6 +450,7 @@ def test_decorator_skip_disabled():
 @pytest.mark.xfail(
     sys.version_info.releaselevel not in ("final", "candidate"),
     reason="fails on 3.13.dev",
+    strict=True,
 )
 @pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32

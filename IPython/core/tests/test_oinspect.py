@@ -491,6 +491,7 @@ def test_pinfo_docstring_if_detail_and_no_source():
 @pytest.mark.xfail(
     sys.version_info.releaselevel not in ("final", "candidate"),
     reason="fails on 3.13.dev",
+    strict=True,
 )
 def test_pinfo_docstring_dynamic(capsys):
     obj_def = """class Bar:
