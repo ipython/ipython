@@ -538,7 +538,9 @@ class TestCompleter(unittest.TestCase):
         assert c.type == "magic", "Type of magic was not assigned by completer"
 
     @pytest.mark.xfail(
-        parse(version("jedi")) > parse("0.18.0"), reason="Known failure on jedi<=0.18.0"
+        parse(version("jedi")) <= parse("0.18.0"),
+        reason="Known failure on jedi<=0.18.0",
+        strict=True,
     )
     def test_deduplicate_completions(self):
         """
