@@ -447,6 +447,11 @@ def test_decorator_skip_disabled():
     child.close()
 
 
+@pytest.mark.xfail(
+    sys.version_info.releaselevel not in ("final", "candidate"),
+    reason="fails on 3.13.dev",
+    strict=True,
+)
 @pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32
 def test_decorator_skip_with_breakpoint():

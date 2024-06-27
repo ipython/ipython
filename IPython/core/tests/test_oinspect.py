@@ -488,7 +488,12 @@ def test_pinfo_docstring_if_detail_and_no_source():
             ip._inspect('pinfo', 'foo.bar', detail_level=1)
 
 
-def test_pinfo_docstring_dynamic():
+@pytest.mark.xfail(
+    sys.version_info.releaselevel not in ("final", "candidate"),
+    reason="fails on 3.13.dev",
+    strict=True,
+)
+def test_pinfo_docstring_dynamic(capsys):
     obj_def = """class Bar:
     __custom_documentations__ = {
      "prop" : "cdoc for prop",
@@ -509,20 +514,25 @@ def test_pinfo_docstring_dynamic():
 
     ip.run_cell("b = Bar()")
 
-    with AssertPrints("Docstring:   cdoc for prop"):
-        ip.run_line_magic("pinfo", "b.prop")
+    ip.run_line_magic("pinfo", "b.prop")
+    captured = capsys.readouterr()
+    assert "Docstring:   cdoc for prop" in captured.out
 
-    with AssertPrints("Docstring:   cdoc for non_exist"):
-        ip.run_line_magic("pinfo", "b.non_exist")
+    ip.run_line_magic("pinfo", "b.non_exist")
+    captured = capsys.readouterr()
+    assert "Docstring:   cdoc for non_exist" in captured.out
 
-    with AssertPrints("Docstring:   cdoc for prop"):
-        ip.run_cell("b.prop?")
+    ip.run_cell("b.prop?")
+    captured = capsys.readouterr()
+    assert "Docstring:   cdoc for prop" in captured.out
 
-    with AssertPrints("Docstring:   cdoc for non_exist"):
-        ip.run_cell("b.non_exist?")
+    ip.run_cell("b.non_exist?")
+    captured = capsys.readouterr()
+    assert "Docstring:   cdoc for non_exist" in captured.out
 
-    with AssertPrints("Docstring:   <no docstring>"):
-        ip.run_cell("b.undefined?")
+    ip.run_cell("b.undefined?")
+    captured = capsys.readouterr()
+    assert "Docstring:   <no docstring>" in captured.out
 
 
 def test_pinfo_magic():
