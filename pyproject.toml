@@ -367,3 +367,9 @@ namespaces = false
 
 [tool.setuptools.dynamic]
 version = {attr = "IPython.core.release.__version__"}
+
+[tool.coverage.run]
+omit = [
+    # omit everything in /tmp as we run tempfile
+    "/tmp/*",
+    ]
