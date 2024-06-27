@@ -6,7 +6,7 @@
 IPython 8.26
 ============
 
-Hey, the release of IPython for this month are here! (I know you were waiting for them)
+Hey, the release of IPython for this month is here! (I know you were waiting for it)
 
 - :ghpull:`14453` bugfix for call to structured_traceback
 
