@@ -5,11 +5,11 @@
 
 
 import atexit
-import datetime
 import re
 import sqlite3
 import threading
 from pathlib import Path
+from datetime import datetime
 
 from decorator import decorator
 from traitlets import (
@@ -29,6 +29,22 @@ from traitlets.config.configurable import LoggingConfigurable
 
 from IPython.paths import locate_profile
 from IPython.utils.decorators import undoc
+
+
+# get rid of :
+# Python/core/tests/test_history.py::test_timestamp_type
+# IPython/core/history.py:335: DeprecationWarning:
+#     The default timestamp converter is deprecated as of Python 3.12;
+#     see the sqlite3 documentation for suggested replacement recipes
+#        return self.db.execute(query, (session,)).fetchone()
+#
+#
+def convert_timestamp(val):
+    """Convert Unix epoch timestamp to datetime.datetime object."""
+    return datetime.fromtimestamp(val)
+
+
+sqlite3.register_converter("timestamp", convert_timestamp)
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -90,8 +106,8 @@ def catch_corrupt_db(f, self, *a, **kw):
                 size = self.hist_file.stat().st_size
                 if size >= _SAVE_DB_SIZE:
                     # if there's significant content, avoid clobbering
-                    now = datetime.datetime.now().isoformat().replace(':', '.')
-                    newpath = base + '-corrupt-' + now + ext
+                    now = datetime.now().isoformat().replace(":", ".")
+                    newpath = base + "-corrupt-" + now + ext
                     # don't clobber previous corrupt backups
                     for i in range(100):
                         if not Path(newpath).exists():
@@ -583,7 +599,7 @@ class HistoryManager(HistoryAccessor):
             cur = conn.execute(
                 """INSERT INTO sessions VALUES (NULL, ?, NULL,
                             NULL, '') """,
-                (datetime.datetime.now().isoformat(" "),),
+                (datetime.now().isoformat(" "),),
             )
             self.session_number = cur.lastrowid
 
@@ -595,7 +611,7 @@ class HistoryManager(HistoryAccessor):
                 """UPDATE sessions SET end=?, num_cmds=? WHERE
                             session==?""",
                 (
-                    datetime.datetime.now().isoformat(" "),
+                    datetime.now().isoformat(" "),
                     len(self.input_hist_parsed) - 1,
                     self.session_number,
                 ),
