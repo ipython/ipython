@@ -1,6 +1,28 @@
 ============
  8.x Series
 ============
+.. _version 8.26:
+
+IPython 8.26
+============
+
+Hey, the release of IPython for this month are here! (I know you were waiting for them)
+
+- :ghpull:`14453` bugfix for call to structured_traceback
+
+- :ghpull:`14466` fixed honoring custom repr for NamedTuple if assigned by partialmethod
+
+- :ghpull:`14451` Convert matplotlib gui name in enable_gui
+
+As usual you can find the full list of PRs on GitHub under `the 8.26
+<https://github.com/ipython/ipython/milestone/133?closed=1>`__ milestone.
+
+Thanks
+------
+
+Thanks to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 
 .. _version 8.25:
 
