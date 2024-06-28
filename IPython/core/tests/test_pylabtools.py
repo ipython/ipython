@@ -350,3 +350,27 @@ def test_backend_entry_point():
 def test_backend_unknown():
     with pytest.raises(RuntimeError if pt._matplotlib_manages_backends() else KeyError):
         pt.find_gui_and_backend("name-does-not-exist")
+
+
+@dec.skipif(not pt._matplotlib_manages_backends())
+def test_backend_module_name_case_sensitive():
+    # Matplotlib backend names are case insensitive unless explicitly specified using
+    # "module://some_module.some_name" syntax which are case sensitive for mpl >= 3.9.1
+    all_lowercase = "module://matplotlib_inline.backend_inline"
+    some_uppercase = "module://matplotlib_inline.Backend_inline"
+    ip = get_ipython()
+    mpl3_9_1 = matplotlib.__version_info__ >= (3, 9, 1)
+
+    ip.enable_matplotlib(all_lowercase)
+    if mpl3_9_1:
+        with pytest.raises(RuntimeError):
+            ip.enable_matplotlib(some_uppercase)
+    else:
+        ip.enable_matplotlib(some_uppercase)
+
+    ip.run_line_magic("matplotlib", all_lowercase)
+    if mpl3_9_1:
+        with pytest.raises(RuntimeError):
+            ip.run_line_magic("matplotlib", some_uppercase)
+    else:
+        ip.run_line_magic("matplotlib", some_uppercase)
