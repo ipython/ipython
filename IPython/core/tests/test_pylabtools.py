@@ -258,6 +258,29 @@ class TestPylabSwitch(object):
         assert gui == "qt"
         assert s.pylab_gui_select == "qt"
 
+    @dec.skipif(not pt._matplotlib_manages_backends())
+    def test_backend_module_name_case_sensitive(self):
+        # Matplotlib backend names are case insensitive unless explicitly specified using
+        # "module://some_module.some_name" syntax which are case sensitive for mpl >= 3.9.1
+        all_lowercase = "module://matplotlib_inline.backend_inline"
+        some_uppercase = "module://matplotlib_inline.Backend_inline"
+        mpl3_9_1 = matplotlib.__version_info__ >= (3, 9, 1)
+
+        s = self.Shell()
+        s.enable_matplotlib(all_lowercase)
+        if mpl3_9_1:
+            with pytest.raises(RuntimeError):
+                s.enable_matplotlib(some_uppercase)
+        else:
+            s.enable_matplotlib(some_uppercase)
+
+        s.run_line_magic("matplotlib", all_lowercase)
+        if mpl3_9_1:
+            with pytest.raises(RuntimeError):
+                s.run_line_magic("matplotlib", some_uppercase)
+        else:
+            s.run_line_magic("matplotlib", some_uppercase)
+
 
 def test_no_gui_backends():
     for k in ['agg', 'svg', 'pdf', 'ps']:

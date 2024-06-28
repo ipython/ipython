@@ -100,7 +100,7 @@ class PylabMagics(Magics):
                 % _list_matplotlib_backends_and_gui_loops()
             )
         else:
-            gui, backend = self.shell.enable_matplotlib(args.gui.lower() if isinstance(args.gui, str) else args.gui)
+            gui, backend = self.shell.enable_matplotlib(args.gui)
             self._show_matplotlib_backend(args.gui, backend)
 
     @skip_doctest
