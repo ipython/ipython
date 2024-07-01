@@ -2658,8 +2658,8 @@ class IPCompleter(Completer):
             try :
                 unic = unicodedata.lookup(s)
                 # allow combining chars
-                if ('a'+unic).isidentifier():
-                    return '\\'+s,[unic]
+                # if ('a'+unic).isidentifier():
+                return "\\" + s, [unic]
             except KeyError:
                 pass
         return '', []
