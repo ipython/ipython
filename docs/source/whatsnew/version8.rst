@@ -1,6 +1,37 @@
 ============
  8.x Series
 ============
+.. _version 8.27:
+
+IPython 8.27
+============
+
+New release of IPython after a month off (not enough changes). We can see a few
+important changes for this release.
+
+ - autocall was beeing  call getitem, :ghpull:`14486`
+ - Only copy files in startup dir if we just created it. :ghpull:`14497`
+ - Fix some tests on Python 3.13 RC1 :ghpull:`14504`; this one I guess make this
+   the first IPython release officially compatible with Python 3.13; you will
+   need the most recent ``executing`` and ``stack_data``, we won't pin to avoid
+   forcing user of older Python version to upgrade.
+
+
+As usual you can find the full list of PRs on GitHub under `the 8.27
+<https://github.com/ipython/ipython/milestone/134?closed=1>`__ milestone.
+
+Thanks
+------
+
+Many thanks to `@Kleirre <https://github.com/Kleirre>`__ our June intern for
+doing her first contribution to open source, doing the releases notes and
+release. I guess you didn't even notice it was not me who released :-). I wish
+her all the best in her future endeavor and look forward for her work in
+astrophysics.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 .. _version 8.26:
 
 IPython 8.26

@@ -80,7 +80,13 @@ def _set_term_title_xterm(title):
 def _restore_term_title_xterm():
     # Make sure the restore has at least one accompanying set.
     global _xterm_term_title_saved
-    assert _xterm_term_title_saved
+    if not _xterm_term_title_saved:
+        warnings.warn(
+            "Expecting xterm_term_title_saved to be True, but is not; will not restore terminal title.",
+            stacklevel=1,
+        )
+        return
+
     sys.stdout.write('\033[23;0t') 
     _xterm_term_title_saved = False
 
