@@ -100,6 +100,7 @@ import traceback
 import types
 from types import TracebackType
 from typing import Any, List, Optional, Tuple
+from warnings import warn
 
 import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
@@ -827,8 +828,50 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    _tb_highlight = "bg:ansiyellow"
-    _tb_highlight_style = "default"
+    tb_highlight = "bg:ansiyellow"
+
+    @property
+    def _tb_highlight(self):
+        warn(
+            "`_tb_highlight` is deprecated"
+            ", use tb_highlight.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.tb_highlight
+    
+    @_tb_highlight.setter
+    def _tb_highlight(self,value):
+        warn(
+            "`_tb_highlight` is deprecated"
+            ", use tb_highlight.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.tb_highlight=value
+
+
+    tb_highlight_style = "default"
+
+    @property
+    def _tb_highlight_style(self):
+        warn(
+            "`_tb_highlight_style` is deprecated"
+            ", use tb_highlight.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.tb_highlight_style
+    
+    @_tb_highlight_style.setter
+    def _tb_highlight_style(self,value):
+        warn(
+            "`_tb_highlight_style` is deprecated"
+            ", use tb_highlight_style.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.tb_highlight_style=value
 
     def __init__(
         self,
@@ -1130,8 +1173,8 @@ class VerboseTB(TBTools):
         after = context // 2
         before = context - after
         if self.has_colors:
-            style = get_style_by_name(self._tb_highlight_style)
-            style = stack_data.style_with_executing_node(style, self._tb_highlight)
+            style = get_style_by_name(self.tb_highlight_style)
+            style = stack_data.style_with_executing_node(style, self.tb_highlight)
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None
