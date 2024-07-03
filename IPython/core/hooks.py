@@ -35,9 +35,9 @@ example, you could use a startup file like this::
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-import os
 import subprocess
 import sys
+from pathlib import Path
 
 from .error import TryNext
 
@@ -75,7 +75,7 @@ def editor(self, filename, linenum=None, wait=True):
         linemark = '+%d' % int(linenum)
 
     # Enclose in quotes if necessary and legal
-    if ' ' in editor and os.path.isfile(editor) and editor[0] != '"':
+    if " " in editor and Path(editor).is_file() and editor[0] != '"':
         editor = '"%s"' % editor
 
     # Call the actual editor
