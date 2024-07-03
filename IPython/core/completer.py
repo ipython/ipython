@@ -1141,16 +1141,16 @@ class Completer(Configurable):
         """
         return self._attr_matches(text)[0]
 
-    def _attr_matches(self, text, include_prefix=True):
+    def _attr_matches(self, text, include_prefix=True) -> Tuple[Sequence[str], str]:
         m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
         if not m2:
-            return []
+            return [], ""
         expr, attr = m2.group(1, 2)
 
         obj = self._evaluate_expr(expr)
 
         if obj is not_found:
-            return []
+            return [], ""
 
         if self.limit_to__all__ and hasattr(obj, '__all__'):
             words = get__all__entries(obj)
