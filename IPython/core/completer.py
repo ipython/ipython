@@ -2353,6 +2353,7 @@ class IPCompleter(Completer):
                 return _convert_matcher_v1_result_to_v2(matches, type="attribute")
         else:
             matches = self.global_matches(context.token)
+            # TODO: maybe distinguish between functions, modules and just "variables"
             return _convert_matcher_v1_result_to_v2(matches, type="variable")
 
     @completion_matcher(api_version=1)
