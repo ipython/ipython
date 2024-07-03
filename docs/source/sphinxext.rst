@@ -62,9 +62,10 @@ The IPython directive takes a number of options detailed here.
 
       Used to indicate that the relevant code block does not have IPython prompts.
 
-   .. rst:directive:option:: okexcept
+   .. rst:directive:option:: okexcept [no_traceback]
 
-      Allow the code block to raise an exception.
+      Allow the code block to raise an exception. When the `no_traceback` argument
+      is given, only the exception without the traceback will be printed.
 
    .. rst:directive:option:: okwarning
 
@@ -82,7 +83,7 @@ The IPython directive takes a number of options detailed here.
 
       Save output from matplotlib to *outfile*.
 
-It's important to note that all of these options can be used for the entire
+It's important to note that most of these options can be used for the entire
 directive block or they can decorate individual lines of code as explained
 in :ref:`pseudo-decorators`.
 
@@ -477,6 +478,15 @@ line just below them (eg ``savefig``).
     generated at doc build time, and raise errors if they don't
     match. Also, can be applied to the entire ``.. ipython`` block as a
     directive option with ``:doctest:``.
+
+@okexcept [no_traceback]
+
+    Allow the decorated line of code to raise an exception. IPython prints
+    and formats the traceback unless the ``no_traceback`` argument is given.
+    In this case, only the exception without the traceback is printed.
+    Also, can be applied to the entire ``.. ipython`` block as a
+    directive option with ``:okexcept:``.
+
 
 Configuration Options
 =====================
