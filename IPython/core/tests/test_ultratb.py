@@ -442,3 +442,37 @@ def test_handlers():
     except:
         handler(*sys.exc_info())
     buff.write('')
+
+#----------------------------------------------------------------------------
+
+# module Test deprecated '_tb_highlight' & '_tb_highlight_style'
+
+def test_getter_deprecation_warning_tb_highlight(recwarn):
+    VerboseObj = VerboseTB()
+    value = VerboseObj._tb_highlight
+    w = recwarn.pop(DeprecationWarning)
+    assert issubclass(w.category, DeprecationWarning)
+    assert "`_tb_highlight` is deprecated, use tb_highlight instead." in str(w.message)
+
+def test_setter_deprecation_warning_tb_highlight(recwarn):
+    obj = VerboseTB()
+    obj._tb_highlight = "new_value"
+    w = recwarn.pop(DeprecationWarning)
+    assert issubclass(w.category, DeprecationWarning)
+    assert "`_tb_highlight` is deprecated, use tb_highlight instead." in str(w.message)
+    assert obj.tb_highlight == "new_value"
+
+def test_getter_deprecation_warning_tb_highlight_style(recwarn):
+    VerboseObj = VerboseTB()
+    value = VerboseObj._tb_highlight_style
+    w = recwarn.pop(DeprecationWarning)
+    assert issubclass(w.category, DeprecationWarning)
+    assert "`_tb_highlight_style` is deprecated, use tb_highlight_style instead." in str(w.message)
+
+def test_setter_deprecation_warning_tb_highlight_style(recwarn):
+    obj = VerboseTB()
+    obj._tb_highlight_style = "new_value"
+    w = recwarn.pop(DeprecationWarning)
+    assert issubclass(w.category, DeprecationWarning)
+    assert "`_tb_highlight_style` is deprecated, use tb_highlight_style instead." in str(w.message)
+    assert obj.tb_highlight == "new_value"

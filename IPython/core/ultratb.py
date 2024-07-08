@@ -844,7 +844,7 @@ class VerboseTB(TBTools):
     def _tb_highlight(self,value):
         warn(
             "`_tb_highlight` is deprecated"
-            ", use tb_highlight.",
+            ", use tb_highlight instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -857,7 +857,7 @@ class VerboseTB(TBTools):
     def _tb_highlight_style(self):
         warn(
             "`_tb_highlight_style` is deprecated"
-            ", use tb_highlight.",
+            ", use tb_highlight instead.",
             DeprecationWarning,
             stacklevel=2,
         )
