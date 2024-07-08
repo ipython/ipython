@@ -486,4 +486,4 @@ def test_setter_deprecation_warning_tb_highlight_style(recwarn):
         "`_tb_highlight_style` is deprecated, use tb_highlight_style instead."
         in str(w.message)
     )
-    assert obj.tb_highlight == "new_value"
+    assert obj.tb_highlight_style == "new_value"
