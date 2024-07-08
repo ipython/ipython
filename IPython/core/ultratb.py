@@ -848,7 +848,7 @@ class VerboseTB(TBTools):
             DeprecationWarning,
             stacklevel=2,
         )
-        self.tb_highlight=value
+        self.tb_highlight = value
 
 
     tb_highlight_style = "default"
@@ -871,7 +871,7 @@ class VerboseTB(TBTools):
             DeprecationWarning,
             stacklevel=2,
         )
-        self.tb_highlight_style=value
+        self.tb_highlight_style = value
 
     def __init__(
         self,
