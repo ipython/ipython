@@ -141,7 +141,7 @@ Accessing user namespace and local scope
 When creating line magics, you may need to access surrounding scope  to get user
 variables (e.g when called inside functions). IPython provides the
 ``@needs_local_scope`` decorator that can be imported from
-``IPython.core.magics``. When decorated with ``@needs_local_scope`` a magic will
+``IPython.core.magic``. When decorated with ``@needs_local_scope`` a magic will
 be passed ``local_ns`` as an argument. As a convenience ``@needs_local_scope``
 can also be applied to cell magics even if cell magics cannot appear at local
 scope context.
@@ -153,7 +153,7 @@ Sometimes it may be useful to define a magic that can be silenced the same way
 that non-magic expressions can, i.e., by appending a semicolon at the end of the Python
 code to be executed. That can be achieved by decorating the magic function with
 the decorator ``@output_can_be_silenced`` that can be imported from
-``IPython.core.magics``. When this decorator is used, IPython will parse the Python
+``IPython.core.magic``. When this decorator is used, IPython will parse the Python
 code used by the magic and, if the last token is a ``;``, the output created by the
 magic will not show up on the screen. If you want to see an example of this decorator
 in action, take a look on the ``time`` magic defined in
