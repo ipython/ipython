@@ -454,7 +454,9 @@ def test_getter_deprecation_warning_tb_highlight(recwarn):
     value = VerboseObj._tb_highlight
     w = recwarn.pop(DeprecationWarning)
     assert issubclass(w.category, DeprecationWarning)
-    assert "`_tb_highlight` is deprecated, use `tb_highlight` instead." in str(w.message)
+    assert "`_tb_highlight` is deprecated, use `tb_highlight` instead." in str(
+        w.message
+    )
 
 
 def test_setter_deprecation_warning_tb_highlight(recwarn):
@@ -462,7 +464,9 @@ def test_setter_deprecation_warning_tb_highlight(recwarn):
     obj._tb_highlight = "new_value"
     w = recwarn.pop(DeprecationWarning)
     assert issubclass(w.category, DeprecationWarning)
-    assert "`_tb_highlight` is deprecated, use `tb_highlight` instead." in str(w.message)
+    assert "`_tb_highlight` is deprecated, use `tb_highlight` instead." in str(
+        w.message
+    )
     assert obj.tb_highlight == "new_value"
 
 
