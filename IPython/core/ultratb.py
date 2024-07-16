@@ -820,6 +820,12 @@ class FrameInfo:
 
 
 # ----------------------------------------------------------------------------
+class classproperty(property):
+    def __get__(self, owner_self, owner_cls):
+        return self.fget(owner_cls)
+
+
+# ----------------------------------------------------------------------------
 class VerboseTB(TBTools):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead
     of HTML.  Requires inspect and pydoc.  Crazy, man.
@@ -830,7 +836,7 @@ class VerboseTB(TBTools):
 
     tb_highlight = "bg:ansiyellow"
 
-    @property
+    @classproperty
     def _tb_highlight(self):
         warn(
             "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
@@ -850,7 +856,7 @@ class VerboseTB(TBTools):
 
     tb_highlight_style = "default"
 
-    @property
+    @classproperty
     def _tb_highlight_style(self):
         warn(
             "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
