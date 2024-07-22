@@ -231,7 +231,7 @@ then
     echo
     echo $BLUE"Attempting to build package..."$NOR
 
-    tools/release
+    tools/build_release
 
 
     echo $RED'$ shasum -a 256 dist/*'
@@ -245,7 +245,7 @@ then
     echo
     echo $BLUE"Attempting to build package..."$NOR
 
-    tools/release
+    tools/build_release
 
     echo $RED"Check the shasum for SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
     echo $RED'$ shasum -a 256 dist/*'
@@ -254,6 +254,6 @@ then
 
     if ask_section "upload packages ?"
     then
-       tools/release upload
+       twine upload --verbose dist/*.tar.gz dist/*.whl
     fi
 fi
