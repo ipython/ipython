@@ -76,7 +76,7 @@ def split_user_input(line, pattern=None):
 
     # print('line:<%s>' % line)  # dbg
     # print('pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest))  # dbg
-    return pre, esc or '', ifun.strip(), the_rest.lstrip()
+    return pre, esc or "", ifun.strip(), the_rest
 
 
 class LineInfo(object):
@@ -107,11 +107,15 @@ class LineInfo(object):
 
     the_rest
       Everything else on the line.
+
+    raw_the_rest
+      the_rest without whitespace stripped.
     """
     def __init__(self, line, continue_prompt=False):
         self.line            = line
         self.continue_prompt = continue_prompt
-        self.pre, self.esc, self.ifun, self.the_rest = split_user_input(line)
+        self.pre, self.esc, self.ifun, self.raw_the_rest = split_user_input(line)
+        self.the_rest = self.raw_the_rest.lstrip()
 
         self.pre_char       = self.pre.strip()
         if self.pre_char:
@@ -136,3 +140,6 @@ class LineInfo(object):
 
     def __str__(self):
         return "LineInfo [%s|%s|%s|%s]" %(self.pre, self.esc, self.ifun, self.the_rest)
+
+    def __repr__(self):
+        return "<" + str(self) + ">"

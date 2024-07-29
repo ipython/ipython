@@ -1,7 +1,8 @@
 # coding: utf-8
 
 from IPython.core.splitinput import split_user_input, LineInfo
-from IPython.testing import tools as tt
+
+import pytest
 
 tests = [
     ("x=1", ("", "", "x", "=1")),
@@ -19,18 +20,19 @@ tests = [
     (";ls", ("", ";", "ls", "")),
     ("  ;ls", ("  ", ";", "ls", "")),
     ("f.g(x)", ("", "", "f.g", "(x)")),
-    ("f.g (x)", ("", "", "f.g", "(x)")),
+    ("f.g (x)", ("", "", "f.g", " (x)")),
     ("?%hist1", ("", "?", "%hist1", "")),
     ("?%%hist2", ("", "?", "%%hist2", "")),
     ("??%hist3", ("", "??", "%hist3", "")),
     ("??%%hist4", ("", "??", "%%hist4", "")),
     ("?x*", ("", "?", "x*", "")),
+    ("Pérez Fernando", ("", "", "Pérez", " Fernando")),
 ]
-tests.append(("Pérez Fernando", ("", "", "Pérez", "Fernando")))
 
 
-def test_split_user_input():
-    return tt.check_pairs(split_user_input, tests)
+@pytest.mark.parametrize("input, output", tests)
+def test_split_user_input(input, output):
+    assert split_user_input(input) == output
 
 
 def test_LineInfo():

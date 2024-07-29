@@ -476,8 +476,8 @@ class PythonOpsChecker(PrefilterChecker):
         any python operator, we should simply execute the line (regardless of
         whether or not there's a possible autocall expansion).  This avoids
         spurious (and very confusing) geattr() accesses."""
-        if line_info.the_rest and line_info.the_rest[0] in '!=()<>,+*/%^&|':
-            return self.prefilter_manager.get_handler_by_name('normal')
+        if line_info.the_rest and line_info.the_rest[0] in "!=()<>,+*/%^&|":
+            return self.prefilter_manager.get_handler_by_name("normal")
         else:
             return None
 
@@ -512,6 +512,8 @@ class AutocallChecker(PrefilterChecker):
             callable(oinfo.obj)
             and (not self.exclude_regexp.match(line_info.the_rest))
             and self.function_name_regexp.match(line_info.ifun)
+            and line_info.raw_the_rest.startswith(" ")
+            or not line_info.raw_the_rest.strip()
         ):
             return self.prefilter_manager.get_handler_by_name("auto")
         else:

@@ -48,7 +48,7 @@ def test_prefilter_shadowed():
 
 def test_autocall_binops():
     """See https://github.com/ipython/ipython/issues/81"""
-    ip.magic('autocall 2')
+    ip.run_line_magic("autocall", "2")
     f = lambda x: x
     ip.user_ns['f'] = f
     try:
@@ -71,8 +71,8 @@ def test_autocall_binops():
         finally:
             pm.unregister_checker(ac)
     finally:
-        ip.magic('autocall 0')
-        del ip.user_ns['f']
+        ip.run_line_magic("autocall", "0")
+        del ip.user_ns["f"]
 
 
 def test_issue_114():
@@ -105,23 +105,35 @@ def test_prefilter_attribute_errors():
             return x
 
     # Create a callable broken object
-    ip.user_ns['x'] = X()
-    ip.magic('autocall 2')
+    ip.user_ns["x"] = X()
+    ip.run_line_magic("autocall", "2")
     try:
         # Even if x throws an attribute error when looking at its rewrite
         # attribute, we should not crash.  So the test here is simply making
         # the prefilter call and not having an exception.
         ip.prefilter('x 1')
     finally:
-        del ip.user_ns['x']
-        ip.magic('autocall 0')
+        del ip.user_ns["x"]
+        ip.run_line_magic("autocall", "0")
+
+
+def test_autocall_type_ann():
+    ip.run_cell("import collections.abc")
+    ip.run_line_magic("autocall", "1")
+    try:
+        assert (
+            ip.prefilter("collections.abc.Callable[[int], None]")
+            == "collections.abc.Callable[[int], None]"
+        )
+    finally:
+        ip.run_line_magic("autocall", "0")
 
 
 def test_autocall_should_support_unicode():
-    ip.magic('autocall 2')
-    ip.user_ns['π'] = lambda x: x
+    ip.run_line_magic("autocall", "2")
+    ip.user_ns["π"] = lambda x: x
     try:
         assert ip.prefilter("π 3") == "π(3)"
     finally:
-        ip.magic('autocall 0')
-        del ip.user_ns['π']
+        ip.run_line_magic("autocall", "0")
+        del ip.user_ns["π"]
