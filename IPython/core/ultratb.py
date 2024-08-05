@@ -831,9 +831,9 @@ class DeprecatedMeta(type):
             return cls.tb_highlight
         if name == '_tb_highlight_style':
             warn(
-            "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
-            DeprecationWarning,
-            stacklevel=2,
+                "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
             return cls.tb_highlight_style
         return super().__getattr__(name)
@@ -848,9 +848,9 @@ class DeprecatedMeta(type):
             cls.tb_highlight = value
         if name == "_tb_highlight_style":
             warn(
-            "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
-            DeprecationWarning,
-            stacklevel=2,
+                "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
             cls.tb_highlight_style = value
         else:
@@ -858,7 +858,7 @@ class DeprecatedMeta(type):
 
 
 # ----------------------------------------------------------------------------
-class VerboseTB(TBTools):
+class VerboseTB(TBTools, metaclass=DeprecatedMeta):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead
     of HTML.  Requires inspect and pydoc.  Crazy, man.
 
