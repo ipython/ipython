@@ -823,7 +823,7 @@ class FrameInfo:
 class classproperty(property):
     def __get__(self, owner_self, owner_cls):
         return self.fget(owner_cls)
-    
+
     def __set__(self, owner_self, value):
         return self.fset(owner_self.__class__, value)
 
