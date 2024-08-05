@@ -4,6 +4,7 @@
 import io
 import os.path
 import platform
+import pytest
 import re
 import sys
 import traceback
@@ -451,43 +452,37 @@ def test_handlers():
 
 def test_getter_deprecation_warning_tb_highlight(recwarn):
     VerboseObj = VerboseTB()
-    value = VerboseObj._tb_highlight
-    w = recwarn.pop(DeprecationWarning)
-    assert issubclass(w.category, DeprecationWarning)
-    assert "`_tb_highlight` is deprecated, use `tb_highlight` instead." in str(
-        w.message
-    )
+    with pytest.warns(
+        DeprecationWarning,
+        match="`_tb_highlight` is deprecated, use `tb_highlight` instead.",
+    ):
+        value = VerboseObj._tb_highlight
 
 
 def test_setter_deprecation_warning_tb_highlight(recwarn):
     obj = VerboseTB()
-    obj._tb_highlight = "new_value"
-    w = recwarn.pop(DeprecationWarning)
-    assert issubclass(w.category, DeprecationWarning)
-    assert "`_tb_highlight` is deprecated, use `tb_highlight` instead." in str(
-        w.message
-    )
+    with pytest.warns(
+        DeprecationWarning,
+        match="`_tb_highlight` is deprecated, use `tb_highlight` instead.",
+    ):
+        obj._tb_highlight = "new_value"
     assert obj.tb_highlight == "new_value"
 
 
 def test_getter_deprecation_warning_tb_highlight_style(recwarn):
     VerboseObj = VerboseTB()
-    value = VerboseObj._tb_highlight_style
-    w = recwarn.pop(DeprecationWarning)
-    assert issubclass(w.category, DeprecationWarning)
-    assert (
-        "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead."
-        in str(w.message)
-    )
+    with pytest.warns(
+        DeprecationWarning,
+        match="`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
+    ):
+        value = VerboseObj._tb_highlight_style
 
 
 def test_setter_deprecation_warning_tb_highlight_style(recwarn):
     obj = VerboseTB()
-    obj._tb_highlight_style = "new_value"
-    w = recwarn.pop(DeprecationWarning)
-    assert issubclass(w.category, DeprecationWarning)
-    assert (
-        "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead."
-        in str(w.message)
-    )
+    with pytest.warns(
+        DeprecationWarning,
+        match="`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
+    ):
+        obj._tb_highlight_style = "new_value"
     assert obj.tb_highlight_style == "new_value"
