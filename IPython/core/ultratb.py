@@ -100,6 +100,7 @@ import traceback
 import types
 from types import TracebackType
 from typing import Any, List, Optional, Tuple
+from warnings import warn
 
 import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
@@ -819,7 +820,45 @@ class FrameInfo:
 
 
 # ----------------------------------------------------------------------------
-class VerboseTB(TBTools):
+class DeprecatedMeta(type):
+    def __getattr__(cls, name):
+        if name == '_tb_highlight':
+            warn(
+                "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return cls.tb_highlight
+        if name == '_tb_highlight_style':
+            warn(
+                "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return cls.tb_highlight_style
+        return super().__getattr__(name)
+
+    def __setattr__(cls, name, value):
+        if name == "_tb_highlight":
+            warn(
+                "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            cls.tb_highlight = value
+        if name == "_tb_highlight_style":
+            warn(
+                "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            cls.tb_highlight_style = value
+        else:
+            super().__setattr__(name, value)
+
+
+# ----------------------------------------------------------------------------
+class VerboseTB(TBTools, metaclass=DeprecatedMeta):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead
     of HTML.  Requires inspect and pydoc.  Crazy, man.
 
@@ -827,8 +866,8 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    _tb_highlight = "bg:ansiyellow"
-    _tb_highlight_style = "default"
+    tb_highlight = "bg:ansiyellow"
+    tb_highlight_style = "default"
 
     def __init__(
         self,
@@ -1130,8 +1169,8 @@ class VerboseTB(TBTools):
         after = context // 2
         before = context - after
         if self.has_colors:
-            style = get_style_by_name(self._tb_highlight_style)
-            style = stack_data.style_with_executing_node(style, self._tb_highlight)
+            style = get_style_by_name(self.tb_highlight_style)
+            style = stack_data.style_with_executing_node(style, self.tb_highlight)
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None
