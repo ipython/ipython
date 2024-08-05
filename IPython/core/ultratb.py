@@ -820,12 +820,41 @@ class FrameInfo:
 
 
 # ----------------------------------------------------------------------------
-class classproperty(property):
-    def __get__(self, owner_self, owner_cls):
-        return self.fget(owner_cls)
+class DeprecatedMeta(type):
+    def __getattr__(cls, name):
+        if name == '_tb_highlight':
+            warn(
+                "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return cls.tb_highlight
+        if name == '_tb_highlight_style':
+            warn(
+            "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+            )
+            return cls.tb_highlight_style
+        return super().__getattr__(name)
 
-    def __set__(self, owner_self, value):
-        return self.fset(owner_self.__class__, value)
+    def __setattr__(cls, name, value):
+        if name == '_tb_highlight':
+            warn(
+                "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            cls.tb_highlight = value
+        if name == '_tb_highlight_style':
+            warn(
+            "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+            )
+            cls.tb_highlight_style = value
+        else:
+            super().__setattr__(name, value)
 
 
 # ----------------------------------------------------------------------------
@@ -838,44 +867,7 @@ class VerboseTB(TBTools):
     would appear in the traceback)."""
 
     tb_highlight = "bg:ansiyellow"
-
-    @classproperty
-    def _tb_highlight(cls):
-        warn(
-            "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return cls.tb_highlight
-
-    @_tb_highlight.setter
-    def _tb_highlight(cls, value):
-        warn(
-            "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        cls.tb_highlight = value
-
     tb_highlight_style = "default"
-
-    @classproperty
-    def _tb_highlight_style(cls):
-        warn(
-            "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return cls.tb_highlight_style
-
-    @_tb_highlight_style.setter
-    def _tb_highlight_style(cls, value):
-        warn(
-            "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        cls.tb_highlight_style = value
 
     def __init__(
         self,
