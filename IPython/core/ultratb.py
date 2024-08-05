@@ -839,14 +839,14 @@ class DeprecatedMeta(type):
         return super().__getattr__(name)
 
     def __setattr__(cls, name, value):
-        if name == '_tb_highlight':
+        if name == "_tb_highlight":
             warn(
                 "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
             cls.tb_highlight = value
-        if name == '_tb_highlight_style':
+        if name == "_tb_highlight_style":
             warn(
             "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
             DeprecationWarning,
