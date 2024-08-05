@@ -21,17 +21,20 @@ from shutil import get_terminal_size as _get_terminal_size
 ignore_termtitle = True
 
 
+if os.name == "posix":
 
-if os.name == 'posix':
     def _term_clear():
-        os.system('clear')
-elif sys.platform == 'win32':
+        os.system("clear")
+
+elif sys.platform == "win32":
+
     def _term_clear():
-        os.system('cls')
+        os.system("cls")
+
 else:
+
     def _term_clear():
         pass
-
 
 
 def toggle_set_term_title(val):
@@ -50,10 +53,10 @@ def toggle_set_term_title(val):
         appropriate platform-specific module).  If False, it is a no-op.
     """
     global ignore_termtitle
-    ignore_termtitle = not(val)
+    ignore_termtitle = not (val)
 
 
-def _set_term_title(*args,**kw):
+def _set_term_title(*args, **kw):
     """Dummy no-op."""
     pass
 
@@ -66,7 +69,7 @@ _xterm_term_title_saved = False
 
 
 def _set_term_title_xterm(title):
-    """ Change virtual terminal title in xterm-workalikes """
+    """Change virtual terminal title in xterm-workalikes"""
     global _xterm_term_title_saved
     # Only save the title the first time we set, otherwise restore will only
     # go back one title (probably undoing a %cd title change).
@@ -74,23 +77,24 @@ def _set_term_title_xterm(title):
         # save the current title to the xterm "stack"
         sys.stdout.write("\033[22;0t")
         _xterm_term_title_saved = True
-    sys.stdout.write('\033]0;%s\007' % title)
+    sys.stdout.write("\033]0;%s\007" % title)
 
 
 def _restore_term_title_xterm():
     # Make sure the restore has at least one accompanying set.
     global _xterm_term_title_saved
     assert _xterm_term_title_saved
-    sys.stdout.write('\033[23;0t') 
+    sys.stdout.write("\033[23;0t")
     _xterm_term_title_saved = False
 
 
-if os.name == 'posix':
-    TERM = os.environ.get('TERM','')
-    if TERM.startswith('xterm'):
-        _set_term_title = _set_term_title_xterm
-        _restore_term_title = _restore_term_title_xterm
-elif sys.platform == 'win32':
+if os.name == "posix":
+    TERM = os.environ.get("TERM", "")
+    if TERM.startswith("xterm"):
+        if not os.path.isfile("/proc/sys/fs/binfmt_misc/WSLInterop"):
+            _set_term_title = _set_term_title_xterm
+            _restore_term_title = _restore_term_title_xterm
+elif sys.platform == "win32":
     import ctypes
 
     SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
