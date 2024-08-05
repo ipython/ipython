@@ -837,42 +837,42 @@ class VerboseTB(TBTools):
     tb_highlight = "bg:ansiyellow"
 
     @classproperty
-    def _tb_highlight(self):
+    def _tb_highlight(cls):
         warn(
             "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
             DeprecationWarning,
             stacklevel=2,
         )
-        return self.tb_highlight
+        return cls.tb_highlight
 
     @_tb_highlight.setter
-    def _tb_highlight(self, value):
+    def _tb_highlight(cls, value):
         warn(
             "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
             DeprecationWarning,
             stacklevel=2,
         )
-        self.tb_highlight = value
+        cls.tb_highlight = value
 
     tb_highlight_style = "default"
 
     @classproperty
-    def _tb_highlight_style(self):
+    def _tb_highlight_style(cls):
         warn(
             "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
             DeprecationWarning,
             stacklevel=2,
         )
-        return self.tb_highlight_style
+        return cls.tb_highlight_style
 
     @_tb_highlight_style.setter
-    def _tb_highlight_style(self, value):
+    def _tb_highlight_style(cls, value):
         warn(
             "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
             DeprecationWarning,
             stacklevel=2,
         )
-        self.tb_highlight_style = value
+        cls.tb_highlight_style = value
 
     def __init__(
         self,
