@@ -154,6 +154,8 @@ def strip_initial_indent(lines):
         for line in it:
             if line.startswith(indent):
                 yield line[len(indent):]
+            elif line in ('\n', '\r\n') or len(line) == 0:
+                yield line
             else:
                 # Less indented than the first line - stop dedenting
                 yield line
