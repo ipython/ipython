@@ -18,6 +18,11 @@
 
 import sys, os
 from pathlib import Path
+from there import print
+
+from sphinx_toml import load_into_locals
+
+load_into_locals(locals())
 
 if sys.version_info > (3, 11):
     import tomllib
@@ -50,11 +55,6 @@ import sphinx_rtd_theme
 # Allow Python scripts to change behaviour during sphinx run
 os.environ["IN_SPHINX_RUN"] = "True"
 
-autodoc_type_aliases = {
-    "Matcher": " IPython.core.completer.Matcher",
-    "MatcherAPIv1": " IPython.core.completer.MatcherAPIv1",
-}
-
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
@@ -71,114 +71,11 @@ exec(
     iprelease,
 )
 
-# General configuration
-# ---------------------
-
-# - template_path: Add any paths that contain templates here, relative to this directory.
-# - master_doc: The master toctree document.
-# - project
-# - copyright
-# - github_project_url
-# - source_suffix = config["sphinx"]["source_suffix"]
-# - exclude_patterns:
-#       Exclude these glob-style patterns when looking for source files.
-#       They are relative to the source/ directory.
-# - pygments_style: The name of the Pygments (syntax highlighting) style to use.
-# - extensions:
-#        Add any Sphinx extension module names here, as strings. They can be extensions
-#        coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-# - default_role
-# - modindex_common_prefix
-
-locals().update(config["sphinx"])
-
-try:
-    from intersphinx_registry import get_intersphinx_mapping
-
-    intersphinx_mapping = get_intersphinx_mapping(
-        packages={
-            "python",
-            "rpy2",
-            "jupyterclient",
-            "jupyter",
-            "jedi",
-            "traitlets",
-            "ipykernel",
-            "prompt_toolkit",
-            "ipywidgets",
-            "ipyparallel",
-            "pip",
-        }
-    )
-
-except ModuleNotFoundError:
-    # In case intersphinx_registry is not yet packages on current plaform
-    # as it is quite recent.
-    print("/!\\ intersphinx_registry not installed, relying on local mapping.")
-    intersphinx_mapping = config["intersphinx_mapping"]
-    for k, v in intersphinx_mapping.items():
-        intersphinx_mapping[k] = tuple(
-            [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"]]
-        )
-
-
-# numpydoc config
-numpydoc_show_class_members = config["numpydoc"][
-    "numpydoc_show_class_members"
-]  # Otherwise Sphinx emits thousands of warnings
-numpydoc_class_members_toctree = config["numpydoc"]["numpydoc_class_members_toctree"]
-warning_is_error = config["numpydoc"]["warning_is_error"]
-
 # Options for HTML output
 # -----------------------
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-# - html_theme
-# - html_static_path
-#     Add any paths that contain custom static files (such as style sheets) here,
-#     relative to this directory. They are copied after the builtin static files,
-#     so a file named "default.css" will overwrite the builtin "default.css".
-#     Favicon needs the directory name
-# - html_favicon
-# - html_last_updated_fmt = config["html"]["html_last_updated_fmt"]
-#     If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-#     using the given strftime format.
-#     Output file base name for HTML help builder.
-# - htmlhelp_basename
-locals().update(config["html"])
 
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
-html_additional_pages = {}
-for item in config["html"]["html_additional_pages"]:
-    html_additional_pages[item[0]] = item[1]
 
-# Options for LaTeX output
-# ------------------------
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, document class [howto/manual]).
-latex_documents = []
-for item in config["latex"]["latex_documents"]:
-    latex_documents.append(tuple(item))
-# If false, no module index is generated.
-latex_use_modindex = config["latex"]["latex_use_modindex"]
-# The font size ('10pt', '11pt' or '12pt').
-latex_font_size = config["latex"]["latex_font_size"]
-
-# Options for texinfo output
-# --------------------------
-texinfo_documents = [
-    (
-        master_doc,
-        "ipython",
-        "IPython Documentation",
-        "The IPython Development Team",
-        "IPython",
-        "IPython Documentation",
-        "Programming",
-        1,
-    ),
-]
 
 #########################################################################
 # Custom configuration
@@ -191,11 +88,6 @@ release = "%s" % iprelease["version"]
 version = iprelease["version"].split("-", 1)[0]
 
 # There are two options for replacing |today|: either, you set today to some
-# non-false value, then it is used:
-# today = ''
-# Else, today_fmt is used as the format for a strftime call.
-today_fmt = "%B %d, %Y"
-
 rst_prolog = ""
 
 
@@ -271,3 +163,5 @@ def setup(app):
 # delete release info to avoid pickling errors from sphinx
 
 del iprelease
+
+print(intersphinx_mapping)
