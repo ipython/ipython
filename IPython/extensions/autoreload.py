@@ -107,7 +107,7 @@ Some of the known remaining caveats are:
 
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
-
+from IPython.extensions.deduperreload.deduperreload import DeduperReloader
 __skip_doctest__ = True
 
 # -----------------------------------------------------------------------------
@@ -166,6 +166,9 @@ class ModuleReloader:
 
         # Reporting callable for verbosity
         self._report = lambda msg: None  # by default, be quiet.
+
+        # Deduper reloader
+        self.deduper_reloader = DeduperReloader()
 
         # Cache module modification times
         self.check(check_all=True, do_reload=False)
@@ -233,7 +236,7 @@ class ModuleReloader:
 
         return py_filename, pymtime
 
-    def check(self, check_all=False, do_reload=True):
+    def check(self, check_all=False, do_reload=True, use_deduper_reload=True):
         """Check whether some modules need to be reloaded."""
 
         if not self.enabled and not check_all:
@@ -270,7 +273,9 @@ class ModuleReloader:
             if do_reload:
                 self._report(f"Reloading '{modname}'.")
                 try:
-                    if self.autoload_obj:
+                    if use_deduper_reload and self.deduper_reloader.maybe_reload_module(m):
+                        pass
+                    elif self.autoload_obj:
                         superreload(m, reload, self.old_objects, self.shell)
                     else:
                         superreload(m, reload, self.old_objects)
@@ -285,6 +290,8 @@ class ModuleReloader:
                             file=sys.stderr,
                         )
                     self.failed[py_filename] = pymtime
+        if use_deduper_reload:
+            self.deduper_reloader.update_sources()
 
 
 # ------------------------------------------------------------------------------
