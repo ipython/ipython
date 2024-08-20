@@ -76,7 +76,7 @@ class ProfileDir(LoggingConfigurable):
 
         This is a version of os.mkdir, with the following differences:
 
-        - returns wether the directory has been created or not.
+        - returns whether the directory has been created or not.
         - ignores EEXIST, protecting against race conditions where
           the dir may have been created in between the check and
           the creation
@@ -130,14 +130,14 @@ class ProfileDir(LoggingConfigurable):
                 get_ipython_package_dir(), "core", "profile", "README_STARTUP"
             )
 
-            if not os.path.exists(src):
+            if os.path.exists(src):
+                if not os.path.exists(readme):
+                    shutil.copy(src, readme)
+            else:
                 self.log.warning(
                     "Could not copy README_STARTUP to startup dir. Source file %s does not exist.",
                     src,
                 )
-
-            if os.path.exists(src) and not os.path.exists(readme):
-                shutil.copy(src, readme)
 
     @observe('security_dir')
     def check_security_dir(self, change=None):
