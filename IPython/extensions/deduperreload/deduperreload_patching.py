@@ -17,8 +17,8 @@ else:
 class DeduperReloaderPatchingMixin:
     @staticmethod
     def infer_field_offset(
-            obj: object,
-            field: str,
+        obj: object,
+        field: str,
     ) -> int:
         field_value = getattr(obj, field, NOT_FOUND)
         if field_value is NOT_FOUND:
@@ -29,19 +29,23 @@ class DeduperReloaderPatchingMixin:
             return -1
         ret = -1
         for offset in range(1, _MAX_FIELD_SEARCH_OFFSET):
-            if (ctypes.cast(obj_addr + WORD_N_BYTES * offset,
-                            ctypes.POINTER(WORD_TYPE)).contents.value == field_addr):
+            if (
+                ctypes.cast(
+                    obj_addr + WORD_N_BYTES * offset, ctypes.POINTER(WORD_TYPE)
+                ).contents.value
+                == field_addr
+            ):
                 ret = offset
                 break
         return ret
 
     @classmethod
     def try_write_readonly_attr(
-            cls,
-            obj: object,
-            field: str,
-            new_value: object,
-            offset: int | None = None,
+        cls,
+        obj: object,
+        field: str,
+        new_value: object,
+        offset: int | None = None,
     ) -> None:
         prev_value = getattr(obj, field, NOT_FOUND)
         if prev_value is NOT_FOUND:
@@ -58,18 +62,20 @@ class DeduperReloaderPatchingMixin:
             ctypes.pythonapi.Py_DecRef(ctypes.py_object(prev_value))
         if new_value is not None:
             ctypes.pythonapi.Py_IncRef(ctypes.py_object(new_value))
-        ctypes.cast(obj_addr + WORD_N_BYTES * offset,
-                    ctypes.POINTER(WORD_TYPE)).contents.value = new_value_addr
+        ctypes.cast(
+            obj_addr + WORD_N_BYTES * offset, ctypes.POINTER(WORD_TYPE)
+        ).contents.value = new_value_addr
 
     @classmethod
     def try_patch_readonly_attr(
-            cls,
-            old: object,
-            new: object,
-            field: str,
-            new_is_value: bool = False,
-            offset: int = -1,
+        cls,
+        old: object,
+        new: object,
+        field: str,
+        new_is_value: bool = False,
+        offset: int = -1,
     ) -> None:
+
         old_value = getattr(old, field, NOT_FOUND)
         new_value = new if new_is_value else getattr(new, field, NOT_FOUND)
         if old_value is NOT_FOUND or new_value is NOT_FOUND:
@@ -86,12 +92,12 @@ class DeduperReloaderPatchingMixin:
 
     @classmethod
     def try_patch_attr(
-            cls,
-            old: object,
-            new: object,
-            field: str,
-            new_is_value: bool = False,
-            offset: int = -1,
+        cls,
+        old: object,
+        new: object,
+        field: str,
+        new_is_value: bool = False,
+        offset: int = -1,
     ) -> None:
         try:
             setattr(old, field, new if new_is_value else getattr(new, field))
@@ -99,7 +105,9 @@ class DeduperReloaderPatchingMixin:
             cls.try_patch_readonly_attr(old, new, field, new_is_value, offset)
 
     @classmethod
-    def patch_function(cls, to_patch_to: Any, to_patch_from: Any, is_method: bool) -> None:
+    def patch_function(
+        cls, to_patch_to: Any, to_patch_from: Any, is_method: bool
+    ) -> None:
         new_freevars = []
         new_closure = []
         for i, v in enumerate(to_patch_to.__code__.co_freevars):
@@ -110,9 +118,13 @@ class DeduperReloaderPatchingMixin:
             if v not in new_freevars:
                 new_freevars.append(v)
                 new_closure.append(to_patch_from.__closure__[i])
-        code_with_new_freevars = to_patch_from.__code__.replace(co_freevars=tuple(new_freevars))
+        code_with_new_freevars = to_patch_from.__code__.replace(
+            co_freevars=tuple(new_freevars)
+        )
         # lambdas may complain if there is more than one freevar
-        cls.try_patch_attr(to_patch_to, code_with_new_freevars, "__code__", new_is_value=True)
+        cls.try_patch_attr(
+            to_patch_to, code_with_new_freevars, "__code__", new_is_value=True
+        )
         offset = -1
         if to_patch_to.__closure__ is None and to_patch_from.__closure__ is not None:
             offset = cls.infer_field_offset(to_patch_from, "__closure__")
@@ -121,7 +133,8 @@ class DeduperReloaderPatchingMixin:
             tuple(new_closure) or None,
             "__closure__",
             new_is_value=True,
-            offset=offset)
+            offset=offset,
+        )
         for attr in ("__defaults__", "__kwdefaults__", "__doc__", "__dict__"):
             cls.try_patch_attr(to_patch_to, to_patch_from, attr)
         if is_method:
