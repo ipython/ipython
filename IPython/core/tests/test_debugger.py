@@ -497,11 +497,18 @@ def test_decorator_skip_with_breakpoint():
                 child.expect_exact(line)
             child.sendline("")
 
-        # as the filename does not exists, we'll rely on the filename prompt
-        child.expect_exact("47     bar(3, 4)")
+        # From 3.13, set_trace()/breakpoint() stop on the line where they're
+        # called, instead of the next line.
+        if sys.version_info >= (3, 13):
+            child.expect_exact("--> 46     ipdb.set_trace()")
+            extra_step = [("step", "--> 47     bar(3, 4)")]
+        else:
+            child.expect_exact("--> 47     bar(3, 4)")
+            extra_step = []
 
         for input_, expected in [
             (f"b {name}.py:3", ""),
+        ] + extra_step + [
             ("step", "1---> 3     pass # should not stop here except"),
             ("step", "---> 38 @pdb_skipped_decorator"),
             ("continue", ""),
