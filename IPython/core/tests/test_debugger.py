@@ -139,8 +139,8 @@ def test_ipdb_magics():
     <BLANKLINE>
     ipdb> continue
 
-    Restore previous trace function, e.g. for coverage.py    
-    
+    Restore previous trace function, e.g. for coverage.py
+
     In [6]: sys.settrace(old_trace)
     '''
 
@@ -506,13 +506,17 @@ def test_decorator_skip_with_breakpoint():
             child.expect_exact("--> 47     bar(3, 4)")
             extra_step = []
 
-        for input_, expected in [
-            (f"b {name}.py:3", ""),
-        ] + extra_step + [
-            ("step", "1---> 3     pass # should not stop here except"),
-            ("step", "---> 38 @pdb_skipped_decorator"),
-            ("continue", ""),
-        ]:
+        for input_, expected in (
+            [
+                (f"b {name}.py:3", ""),
+            ]
+            + extra_step
+            + [
+                ("step", "1---> 3     pass # should not stop here except"),
+                ("step", "---> 38 @pdb_skipped_decorator"),
+                ("continue", ""),
+            ]
+        ):
             child.expect("ipdb>")
             child.sendline(input_)
             child.expect_exact(input_)
