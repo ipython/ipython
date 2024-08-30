@@ -462,7 +462,10 @@ class TestCompleter(unittest.TestCase):
                 matches = c.all_completions("TestClass.")
                 assert len(matches) > 2, (jedi_status, matches)
                 matches = c.all_completions("TestClass.a")
-                assert matches == ['TestClass.a', 'TestClass.a1'], jedi_status
+                if jedi_status:
+                    assert matches == ["TestClass.a", "TestClass.a1"], jedi_status
+                else:
+                    assert matches == [".a", ".a1"], jedi_status
 
     @pytest.mark.xfail(
         sys.version_info.releaselevel in ("alpha",),
@@ -594,7 +597,7 @@ class TestCompleter(unittest.TestCase):
                 ip.Completer.use_jedi = True
                 with provisionalcompleter():
                     completions = ip.Completer.completions(line, cursor_pos)
-                self.assertIn(completion, completions)
+                self.assertIn(completion, list(completions))
 
         with provisionalcompleter():
             _(
@@ -622,7 +625,7 @@ class TestCompleter(unittest.TestCase):
             _(
                 "assert str.star",
                 14,
-                "str.startswith",
+                ".startswith",
                 "Should have completed on `assert str.star`: %s",
                 Completion(11, 14, "startswith"),
             )
@@ -632,6 +635,13 @@ class TestCompleter(unittest.TestCase):
                 ".strip",
                 "Should have completed on `d['a b'].str`: %s",
                 Completion(9, 12, "strip"),
+            )
+            _(
+                "a.app",
+                4,
+                ".append",
+                "Should have completed on `a.app`: %s",
+                Completion(2, 4, "append"),
             )
 
     def test_omit__names(self):
@@ -647,8 +657,8 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip.")
-            self.assertIn("ip.__str__", matches)
-            self.assertIn("ip._hidden_attr", matches)
+            self.assertIn(".__str__", matches)
+            self.assertIn("._hidden_attr", matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip.', 3))
@@ -661,7 +671,7 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip.")
-            self.assertNotIn("ip.__str__", matches)
+            self.assertNotIn(".__str__", matches)
             # self.assertIn('ip._hidden_attr', matches)
 
             # c.use_jedi = True
@@ -675,8 +685,8 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip.")
-            self.assertNotIn("ip.__str__", matches)
-            self.assertNotIn("ip._hidden_attr", matches)
+            self.assertNotIn(".__str__", matches)
+            self.assertNotIn("._hidden_attr", matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip.', 3))
@@ -686,7 +696,7 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip._x.")
-            self.assertIn("ip._x.keys", matches)
+            self.assertIn(".keys", matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip._x.', 6))
@@ -697,7 +707,7 @@ class TestCompleter(unittest.TestCase):
 
     def test_limit_to__all__False_ok(self):
         """
-        Limit to all is deprecated, once we remove it this test can go away. 
+        Limit to all is deprecated, once we remove it this test can go away.
         """
         ip = get_ipython()
         c = ip.Completer
@@ -708,7 +718,7 @@ class TestCompleter(unittest.TestCase):
         cfg.IPCompleter.limit_to__all__ = False
         c.update_config(cfg)
         s, matches = c.complete("d.")
-        self.assertIn("d.x", matches)
+        self.assertIn(".x", matches)
 
     def test_get__all__entries_ok(self):
         class A:
