@@ -302,6 +302,7 @@ def import_pyside6():
 
     ImportErrors raised within this function are non-recoverable
     """
+
     def get_attrs(module):
         return {
             name: getattr(module, name)
