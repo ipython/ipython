@@ -17,6 +17,8 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.lexers import Lexer
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.patch_stdout import patch_stdout
+from IPython.core.getipython import get_ipython
+
 
 import pygments.lexers as pygments_lexers
 import os
@@ -25,7 +27,22 @@ import traceback
 
 _completion_sentinel = object()
 
-def _elide_point(string:str, *, min_elide=30)->str:
+
+def _get_min_elide(min_elide):
+    """Render min_elide from value, config, or default to 30."""
+    # If min_elide is not provided, attempt to retrieve it from the IPython shell config
+    if min_elide is None:
+        shell = get_ipython()
+        if shell is not None:
+            min_elide = shell.min_elide
+        else:
+            # Fallback if shell is not available (e.g., not running in IPython)
+            min_elide = 30
+    return min_elide
+
+
+
+def _elide_point(string:str, *, min_elide=None)->str:
     """
     If a string is long enough, and has at least 3 dots,
     replace the middle part with ellipses.
@@ -37,6 +54,7 @@ def _elide_point(string:str, *, min_elide=30)->str:
     replaced by the equivalents HORIZONTAL ELLIPSIS or TWO DOT LEADER unicode
     equivalents
     """
+    min_elide = _get_min_elide(min_elide)
     string = string.replace('...','\N{HORIZONTAL ELLIPSIS}')
     string = string.replace('..','\N{TWO DOT LEADER}')
     if len(string) < min_elide:
@@ -62,10 +80,11 @@ def _elide_point(string:str, *, min_elide=30)->str:
 
     return string
 
-def _elide_typed(string:str, typed:str, *, min_elide:int=30)->str:
+def _elide_typed(string:str, typed:str, *, min_elide:int=None)->str:
     """
     Elide the middle of a long string if the beginning has already been typed.
     """
+    min_elide = _get_min_elide(min_elide)
 
     if len(string) < min_elide:
         return string
@@ -76,7 +95,8 @@ def _elide_typed(string:str, typed:str, *, min_elide:int=30)->str:
         return f"{string[:3]}\N{HORIZONTAL ELLIPSIS}{string[cut_how_much:]}"
     return string
 
-def _elide(string:str, typed:str, min_elide=30)->str:
+def _elide(string:str, typed:str, min_elide=None)->str:
+    min_elide = _get_min_elide(min_elide)
     return _elide_typed(
         _elide_point(string, min_elide=min_elide),
         typed, min_elide=min_elide)
