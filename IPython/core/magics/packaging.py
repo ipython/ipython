@@ -45,7 +45,7 @@ def _get_conda_like_executable(command):
     # Check for a environment variable bound to the base executable, both conda and mamba
     # set these when activating an environment.
     base_executable = "CONDA_EXE"
-    if 'mamba' in command.lower():
+    if "mamba" in command.lower():
         base_executable = "MAMBA_EXE"
     if base_executable in os.environ:
         executable = Path(os.environ[base_executable])
