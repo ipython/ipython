@@ -830,8 +830,8 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    _tb_highlight = "bg:ansiyellow"
-    _tb_highlight_style = "default"
+    tb_highlight = "bg:ansiyellow"
+    tb_highlight_style = "default"
 
     def __init__(
         self,
@@ -1133,8 +1133,8 @@ class VerboseTB(TBTools):
         after = context // 2
         before = context - after
         if self.has_colors:
-            style = get_style_by_name(self._tb_highlight_style)
-            style = stack_data.style_with_executing_node(style, self._tb_highlight)
+            style = get_style_by_name(self.tb_highlight_style)
+            style = stack_data.style_with_executing_node(style, self.tb_highlight)
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None
