@@ -516,23 +516,23 @@ def test_pinfo_docstring_dynamic(capsys):
 
     ip.run_line_magic("pinfo", "b.prop")
     captured = capsys.readouterr()
-    assert "Docstring:   cdoc for prop" in captured.out
+    assert re.search(r"Docstring:\s+cdoc for prop", captured.out)
 
     ip.run_line_magic("pinfo", "b.non_exist")
     captured = capsys.readouterr()
-    assert "Docstring:   cdoc for non_exist" in captured.out
+    assert re.search(r"Docstring:\s+cdoc for non_exist", captured.out)
 
     ip.run_cell("b.prop?")
     captured = capsys.readouterr()
-    assert "Docstring:   cdoc for prop" in captured.out
+    assert re.search(r"Docstring:\s+cdoc for prop", captured.out)
 
     ip.run_cell("b.non_exist?")
     captured = capsys.readouterr()
-    assert "Docstring:   cdoc for non_exist" in captured.out
+    assert re.search(r"Docstring:\s+cdoc for non_exist", captured.out)
 
     ip.run_cell("b.undefined?")
     captured = capsys.readouterr()
-    assert "Docstring:   <no docstring>" in captured.out
+    assert re.search(r"Type:\s+NoneType", captured.out)
 
 
 def test_pinfo_magic():

@@ -898,7 +898,7 @@ def rectify_completions(text: str, completions: _IC, *, _debug: bool = False) ->
         new_text = text[new_start:c.start] + c.text + text[c.end:new_end]
         if c._origin == 'jedi':
             seen_jedi.add(new_text)
-        elif c._origin == 'IPCompleter.python_matches':
+        elif c._origin == "IPCompleter.python_matcher":
             seen_python_matches.add(new_text)
         yield Completion(new_start, new_end, new_text, type=c.type, _origin=c._origin, signature=c.signature)
     diff = seen_python_matches.difference(seen_jedi)
@@ -1139,15 +1139,18 @@ class Completer(Configurable):
         with a __getattr__ hook is evaluated.
 
         """
+        return self._attr_matches(text)[0]
+
+    def _attr_matches(self, text, include_prefix=True) -> Tuple[Sequence[str], str]:
         m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
         if not m2:
-            return []
+            return [], ""
         expr, attr = m2.group(1, 2)
 
         obj = self._evaluate_expr(expr)
 
         if obj is not_found:
-            return []
+            return [], ""
 
         if self.limit_to__all__ and hasattr(obj, '__all__'):
             words = get__all__entries(obj)
@@ -1170,28 +1173,36 @@ class Completer(Configurable):
         # reconciliator would know that we intend to append to rather than
         # replace the input text; this requires refactoring to return range
         # which ought to be replaced (as does jedi).
-        tokens = _parse_tokens(expr)
-        rev_tokens = reversed(tokens)
-        skip_over = {tokenize.ENDMARKER, tokenize.NEWLINE}
-        name_turn = True
+        if include_prefix:
+            tokens = _parse_tokens(expr)
+            rev_tokens = reversed(tokens)
+            skip_over = {tokenize.ENDMARKER, tokenize.NEWLINE}
+            name_turn = True
 
-        parts = []
-        for token in rev_tokens:
-            if token.type in skip_over:
-                continue
-            if token.type == tokenize.NAME and name_turn:
-                parts.append(token.string)
-                name_turn = False
-            elif token.type == tokenize.OP and token.string == "." and not name_turn:
-                parts.append(token.string)
-                name_turn = True
-            else:
-                # short-circuit if not empty nor name token
-                break
+            parts = []
+            for token in rev_tokens:
+                if token.type in skip_over:
+                    continue
+                if token.type == tokenize.NAME and name_turn:
+                    parts.append(token.string)
+                    name_turn = False
+                elif (
+                    token.type == tokenize.OP and token.string == "." and not name_turn
+                ):
+                    parts.append(token.string)
+                    name_turn = True
+                else:
+                    # short-circuit if not empty nor name token
+                    break
 
-        prefix_after_space = "".join(reversed(parts))
+            prefix_after_space = "".join(reversed(parts))
+        else:
+            prefix_after_space = ""
 
-        return ["%s.%s" % (prefix_after_space, w) for w in words if w[:n] == attr]
+        return (
+            ["%s.%s" % (prefix_after_space, w) for w in words if w[:n] == attr],
+            "." + attr,
+        )
 
     def _evaluate_expr(self, expr):
         obj = not_found
@@ -1973,9 +1984,8 @@ class IPCompleter(Completer):
                 *self.magic_arg_matchers,
                 self.custom_completer_matcher,
                 self.dict_key_matcher,
-                # TODO: convert python_matches to v2 API
                 self.magic_matcher,
-                self.python_matches,
+                self.python_matcher,
                 self.file_matcher,
                 self.python_func_kw_matcher,
             ]
@@ -2316,9 +2326,42 @@ class IPCompleter(Completer):
             else:
                 return iter([])
 
+    @context_matcher()
+    def python_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
+        """Match attributes or global python names"""
+        text = context.line_with_cursor
+        if "." in text:
+            try:
+                matches, fragment = self._attr_matches(text, include_prefix=False)
+                if text.endswith(".") and self.omit__names:
+                    if self.omit__names == 1:
+                        # true if txt is _not_ a __ name, false otherwise:
+                        no__name = lambda txt: re.match(r".*\.__.*?__", txt) is None
+                    else:
+                        # true if txt is _not_ a _ name, false otherwise:
+                        no__name = (
+                            lambda txt: re.match(r"\._.*?", txt[txt.rindex(".") :])
+                            is None
+                        )
+                    matches = filter(no__name, matches)
+                return _convert_matcher_v1_result_to_v2(
+                    matches, type="attribute", fragment=fragment
+                )
+            except NameError:
+                # catches <undefined attributes>.<tab>
+                matches = []
+                return _convert_matcher_v1_result_to_v2(matches, type="attribute")
+        else:
+            matches = self.global_matches(context.token)
+            # TODO: maybe distinguish between functions, modules and just "variables"
+            return _convert_matcher_v1_result_to_v2(matches, type="variable")
+
     @completion_matcher(api_version=1)
     def python_matches(self, text: str) -> Iterable[str]:
-        """Match attributes or global python names"""
+        """Match attributes or global python names.
+
+        .. deprecated:: 8.27
+            You can use :meth:`python_matcher` instead."""
         if "." in text:
             try:
                 matches = self.attr_matches(text)
