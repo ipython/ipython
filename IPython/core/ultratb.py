@@ -100,7 +100,6 @@ import traceback
 import types
 from types import TracebackType
 from typing import Any, List, Optional, Tuple
-from warnings import warn
 
 import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
