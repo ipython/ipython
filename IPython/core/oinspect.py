@@ -175,8 +175,7 @@ def object_info(
     **kw,
 ) -> InfoDict:
     """Make an object info dict with all fields present."""
-    infodict = {}
-    infodict.update(kw)
+    infodict = dict(kw)
     infodict.update({k: None for k in _info_fields if k not in infodict})
     infodict["name"] = name  # type: ignore
     infodict["found"] = found  # type: ignore
