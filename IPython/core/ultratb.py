@@ -823,45 +823,7 @@ class FrameInfo:
 
 
 # ----------------------------------------------------------------------------
-class DeprecatedMeta(type):
-    def __getattr__(cls, name):
-        if name == '_tb_highlight':
-            warn(
-                "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            return cls.tb_highlight
-        if name == '_tb_highlight_style':
-            warn(
-                "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            return cls.tb_highlight_style
-        return super().__getattr__(name)
-
-    def __setattr__(cls, name, value):
-        if name == "_tb_highlight":
-            warn(
-                "`_tb_highlight` is deprecated, use `tb_highlight` instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            cls.tb_highlight = value
-        if name == "_tb_highlight_style":
-            warn(
-                "`_tb_highlight_style` is deprecated, use `tb_highlight_style` instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            cls.tb_highlight_style = value
-        else:
-            super().__setattr__(name, value)
-
-
-# ----------------------------------------------------------------------------
-class VerboseTB(TBTools, metaclass=DeprecatedMeta):
+class VerboseTB(TBTools):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead
     of HTML.  Requires inspect and pydoc.  Crazy, man.
 
