@@ -75,20 +75,29 @@ def teardown_module():
     shutil.rmtree(TMP_TEST_DIR)
 
 
-def setup_environment():
-    """Setup testenvironment for some functions that are tested
-    in this module. In particular this functions stores attributes
-    and other things that we need to stub in some test functions.
-    This needs to be done on a function level and not module level because
-    each testfunction needs a pristine environment.
-    """
+# Build decorator that uses the setup_environment/setup_environment
+@pytest.fixture
+def environment():
     global oldstuff, platformstuff
-    oldstuff = (env.copy(), os.name, sys.platform, path.get_home_dir, IPython.__file__, os.getcwd())
+    oldstuff = (
+        env.copy(),
+        os.name,
+        sys.platform,
+        path.get_home_dir,
+        IPython.__file__,
+        os.getcwd(),
+    )
 
-def teardown_environment():
-    """Restore things that were remembered by the setup_environment function
-    """
-    (oldenv, os.name, sys.platform, path.get_home_dir, IPython.__file__, old_wd) = oldstuff
+    yield
+
+    (
+        oldenv,
+        os.name,
+        sys.platform,
+        path.get_home_dir,
+        IPython.__file__,
+        old_wd,
+    ) = oldstuff
     os.chdir(old_wd)
     reload(path)
 
@@ -96,16 +105,7 @@ def teardown_environment():
         if key not in oldenv:
             del env[key]
     env.update(oldenv)
-    if hasattr(sys, 'frozen'):
-        del sys.frozen
-
-
-# Build decorator that uses the setup_environment/setup_environment
-@pytest.fixture
-def environment():
-    setup_environment()
-    yield
-    teardown_environment()
+    assert not hasattr(sys, "frozen")
 
 
 with_environment = pytest.mark.usefixtures("environment")
@@ -113,11 +113,11 @@ with_environment = pytest.mark.usefixtures("environment")
 
 @skip_if_not_win32
 @with_environment
-def test_get_home_dir_1():
+def test_get_home_dir_1(monkeypatch):
     """Testcase for py2exe logic, un-compressed lib
     """
     unfrozen = path.get_home_dir()
-    sys.frozen = True
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
 
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
@@ -128,13 +128,15 @@ def test_get_home_dir_1():
 
 @skip_if_not_win32
 @with_environment
-def test_get_home_dir_2():
+def test_get_home_dir_2(monkeypatch):
     """Testcase for py2exe logic, compressed lib
     """
     unfrozen = path.get_home_dir()
-    sys.frozen = True
-    #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    # fake filename for IPython.__init__
+    IPython.__file__ = abspath(
+        join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")
+    ).lower()
 
     home_dir = path.get_home_dir(True)
     assert home_dir == unfrozen
@@ -160,22 +162,22 @@ def test_get_home_dir_4():
 
 @skip_win32
 @with_environment
-def test_get_home_dir_5():
+def test_get_home_dir_5(monkeypatch):
     """raise HomeDirError if $HOME is specified, but not a writable dir"""
     env['HOME'] = abspath(HOME_TEST_DIR+'garbage')
     # set os.name = posix, to prevent My Documents fallback on Windows
-    os.name = 'posix'
+    monkeypatch.setattr(os, "name", "posix")
     pytest.raises(path.HomeDirError, path.get_home_dir, True)
 
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
 @with_environment
-def test_get_home_dir_8():
+def test_get_home_dir_8(monkeypatch):
     """Using registry hack for 'My Documents', os=='nt'
 
     HOMESHARE, HOMEDRIVE, HOMEPATH, USERPROFILE and others are missing.
     """
-    os.name = 'nt'
+    monkeypatch.setattr(os, "name", "nt")
     # Remove from stub environment all keys that may be set
     for key in ['HOME', 'HOMESHARE', 'HOMEDRIVE', 'HOMEPATH', 'USERPROFILE']:
         env.pop(key, None)
@@ -194,13 +196,12 @@ def test_get_home_dir_8():
     assert home_dir == abspath(HOME_TEST_DIR)
 
 @with_environment
-def test_get_xdg_dir_0():
+def test_get_xdg_dir_0(monkeypatch):
     """test_get_xdg_dir_0, check xdg_dir"""
-    reload(path)
-    path._writable_dir = lambda path: True
-    path.get_home_dir = lambda : 'somewhere'
-    os.name = "posix"
-    sys.platform = "linux2"
+    monkeypatch.setattr(path, "_writable_dir", lambda path: True)
+    monkeypatch.setattr(path, "get_home_dir", lambda: "somewhere")
+    monkeypatch.setattr(os, "name", "posix")
+    monkeypatch.setattr(sys, "platform", "linux2")
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
@@ -209,44 +210,41 @@ def test_get_xdg_dir_0():
 
 
 @with_environment
-def test_get_xdg_dir_1():
+def test_get_xdg_dir_1(monkeypatch):
     """test_get_xdg_dir_1, check nonexistent xdg_dir"""
-    reload(path)
-    path.get_home_dir = lambda : HOME_TEST_DIR
-    os.name = "posix"
-    sys.platform = "linux2"
-    env.pop('IPYTHON_DIR', None)
-    env.pop('IPYTHONDIR', None)
-    env.pop('XDG_CONFIG_HOME', None)
+    monkeypatch.setattr(path, "get_home_dir", lambda: HOME_TEST_DIR)
+    monkeypatch.setattr(os, "name", "posix")
+    monkeypatch.setattr(sys, "platform", "linux2")
+    env.pop("IPYTHON_DIR", None)
+    env.pop("IPYTHONDIR", None)
+    env.pop("XDG_CONFIG_HOME", None)
     assert path.get_xdg_dir() is None
 
 @with_environment
-def test_get_xdg_dir_2():
+def test_get_xdg_dir_2(monkeypatch):
     """test_get_xdg_dir_2, check xdg_dir default to ~/.config"""
-    reload(path)
-    path.get_home_dir = lambda : HOME_TEST_DIR
-    os.name = "posix"
-    sys.platform = "linux2"
-    env.pop('IPYTHON_DIR', None)
-    env.pop('IPYTHONDIR', None)
-    env.pop('XDG_CONFIG_HOME', None)
-    cfgdir=os.path.join(path.get_home_dir(), '.config')
+    monkeypatch.setattr(path, "get_home_dir", lambda: HOME_TEST_DIR)
+    monkeypatch.setattr(os, "name", "posix")
+    monkeypatch.setattr(sys, "platform", "linux2")
+    env.pop("IPYTHON_DIR", None)
+    env.pop("IPYTHONDIR", None)
+    env.pop("XDG_CONFIG_HOME", None)
+    cfgdir = os.path.join(path.get_home_dir(), ".config")
     if not os.path.exists(cfgdir):
         os.makedirs(cfgdir)
 
     assert path.get_xdg_dir() == cfgdir
 
 @with_environment
-def test_get_xdg_dir_3():
+def test_get_xdg_dir_3(monkeypatch):
     """test_get_xdg_dir_3, check xdg_dir not used on non-posix systems"""
-    reload(path)
-    path.get_home_dir = lambda : HOME_TEST_DIR
-    os.name = "nt"
-    sys.platform = "win32"
-    env.pop('IPYTHON_DIR', None)
-    env.pop('IPYTHONDIR', None)
-    env.pop('XDG_CONFIG_HOME', None)
-    cfgdir=os.path.join(path.get_home_dir(), '.config')
+    monkeypatch.setattr(path, "get_home_dir", lambda: HOME_TEST_DIR)
+    monkeypatch.setattr(os, "name", "nt")
+    monkeypatch.setattr(sys, "platform", "win32")
+    env.pop("IPYTHON_DIR", None)
+    env.pop("IPYTHONDIR", None)
+    env.pop("XDG_CONFIG_HOME", None)
+    cfgdir = os.path.join(path.get_home_dir(), ".config")
     os.makedirs(cfgdir, exist_ok=True)
 
     assert path.get_xdg_dir() is None
@@ -281,31 +279,30 @@ def test_get_long_path_name():
     assert p == "/usr/local"
 
 
-class TestRaiseDeprecation(unittest.TestCase):
+@dec.skip_win32  # can't create not-user-writable dir on win
+@with_environment
+def test_not_writable_ipdir():
+    tmpdir = tempfile.mkdtemp()
+    os.name = "posix"
+    env.pop("IPYTHON_DIR", None)
+    env.pop("IPYTHONDIR", None)
+    env.pop("XDG_CONFIG_HOME", None)
+    env["HOME"] = tmpdir
+    ipdir = os.path.join(tmpdir, ".ipython")
+    os.mkdir(ipdir, 0o555)
+    try:
+        open(os.path.join(ipdir, "_foo_"), "w", encoding="utf-8").close()
+    except IOError:
+        pass
+    else:
+        # I can still write to an unwritable dir,
+        # assume I'm root and skip the test
+        pytest.skip("I can't create directories that I can't write to")
 
-    @dec.skip_win32 # can't create not-user-writable dir on win
-    @with_environment
-    def test_not_writable_ipdir(self):
-        tmpdir = tempfile.mkdtemp()
-        os.name = "posix"
-        env.pop('IPYTHON_DIR', None)
-        env.pop('IPYTHONDIR', None)
-        env.pop('XDG_CONFIG_HOME', None)
-        env['HOME'] = tmpdir
-        ipdir = os.path.join(tmpdir, '.ipython')
-        os.mkdir(ipdir, 0o555)
-        try:
-            open(os.path.join(ipdir, "_foo_"), "w", encoding="utf-8").close()
-        except IOError:
-            pass
-        else:
-            # I can still write to an unwritable dir,
-            # assume I'm root and skip the test
-            pytest.skip("I can't create directories that I can't write to")
+    with pytest.warns(UserWarning, match="is not a writable location"):
+        ipdir = paths.get_ipython_dir()
+    env.pop("IPYTHON_DIR", None)
 
-        with self.assertWarnsRegex(UserWarning, 'is not a writable location'):
-            ipdir = paths.get_ipython_dir()
-        env.pop('IPYTHON_DIR', None)
 
 @with_environment
 def test_get_py_filename():
