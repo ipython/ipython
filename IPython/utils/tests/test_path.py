@@ -75,20 +75,29 @@ def teardown_module():
     shutil.rmtree(TMP_TEST_DIR)
 
 
-def setup_environment():
-    """Setup testenvironment for some functions that are tested
-    in this module. In particular this functions stores attributes
-    and other things that we need to stub in some test functions.
-    This needs to be done on a function level and not module level because
-    each testfunction needs a pristine environment.
-    """
+# Build decorator that uses the setup_environment/setup_environment
+@pytest.fixture
+def environment():
     global oldstuff, platformstuff
-    oldstuff = (env.copy(), os.name, sys.platform, path.get_home_dir, IPython.__file__, os.getcwd())
+    oldstuff = (
+        env.copy(),
+        os.name,
+        sys.platform,
+        path.get_home_dir,
+        IPython.__file__,
+        os.getcwd(),
+    )
 
-def teardown_environment():
-    """Restore things that were remembered by the setup_environment function
-    """
-    (oldenv, os.name, sys.platform, path.get_home_dir, IPython.__file__, old_wd) = oldstuff
+    yield
+
+    (
+        oldenv,
+        os.name,
+        sys.platform,
+        path.get_home_dir,
+        IPython.__file__,
+        old_wd,
+    ) = oldstuff
     os.chdir(old_wd)
     reload(path)
 
@@ -96,16 +105,7 @@ def teardown_environment():
         if key not in oldenv:
             del env[key]
     env.update(oldenv)
-    if hasattr(sys, 'frozen'):
-        del sys.frozen
-
-
-# Build decorator that uses the setup_environment/setup_environment
-@pytest.fixture
-def environment():
-    setup_environment()
-    yield
-    teardown_environment()
+    assert not hasattr(sys, "frozen")
 
 
 with_environment = pytest.mark.usefixtures("environment")
@@ -117,7 +117,7 @@ def test_get_home_dir_1(monkeypatch):
     """Testcase for py2exe logic, un-compressed lib
     """
     unfrozen = path.get_home_dir()
-    monkeypatch.setattr(sys, "frozen", True)
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
 
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
@@ -132,7 +132,7 @@ def test_get_home_dir_2(monkeypatch):
     """Testcase for py2exe logic, compressed lib
     """
     unfrozen = path.get_home_dir()
-    monkeypatch.setattr(sys, "frozen", True)
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
     # fake filename for IPython.__init__
     IPython.__file__ = abspath(
         join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")
@@ -279,31 +279,30 @@ def test_get_long_path_name():
     assert p == "/usr/local"
 
 
-class TestRaiseDeprecation(unittest.TestCase):
+@dec.skip_win32  # can't create not-user-writable dir on win
+@with_environment
+def test_not_writable_ipdir():
+    tmpdir = tempfile.mkdtemp()
+    os.name = "posix"
+    env.pop("IPYTHON_DIR", None)
+    env.pop("IPYTHONDIR", None)
+    env.pop("XDG_CONFIG_HOME", None)
+    env["HOME"] = tmpdir
+    ipdir = os.path.join(tmpdir, ".ipython")
+    os.mkdir(ipdir, 0o555)
+    try:
+        open(os.path.join(ipdir, "_foo_"), "w", encoding="utf-8").close()
+    except IOError:
+        pass
+    else:
+        # I can still write to an unwritable dir,
+        # assume I'm root and skip the test
+        pytest.skip("I can't create directories that I can't write to")
 
-    @dec.skip_win32 # can't create not-user-writable dir on win
-    @with_environment
-    def test_not_writable_ipdir(self):
-        tmpdir = tempfile.mkdtemp()
-        os.name = "posix"
-        env.pop('IPYTHON_DIR', None)
-        env.pop('IPYTHONDIR', None)
-        env.pop('XDG_CONFIG_HOME', None)
-        env['HOME'] = tmpdir
-        ipdir = os.path.join(tmpdir, '.ipython')
-        os.mkdir(ipdir, 0o555)
-        try:
-            open(os.path.join(ipdir, "_foo_"), "w", encoding="utf-8").close()
-        except IOError:
-            pass
-        else:
-            # I can still write to an unwritable dir,
-            # assume I'm root and skip the test
-            pytest.skip("I can't create directories that I can't write to")
+    with pytest.warns(UserWarning, match="is not a writable location"):
+        ipdir = paths.get_ipython_dir()
+    env.pop("IPYTHON_DIR", None)
 
-        with self.assertWarnsRegex(UserWarning, 'is not a writable location'):
-            ipdir = paths.get_ipython_dir()
-        env.pop('IPYTHON_DIR', None)
 
 @with_environment
 def test_get_py_filename():
