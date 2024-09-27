@@ -41,7 +41,11 @@ from warnings import warn
 
 def __getattr__(name):
     if name in _deprecated_names:
-        warn(f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython display", DeprecationWarning, stacklevel=2)
+        warn(
+            f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython.display",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return getattr(display_functions, name)
 
     if name in globals().keys():
