@@ -905,7 +905,7 @@ class Image(DisplayObject):
         metadata=None,
         alt=None,
     ):
-        """Create a PNG/JPEG/GIF image object given raw data.
+        """Create a PNG/JPEG/GIF/WEBP image object given raw data.
 
         When this object is returned by an input cell or passed to the
         display function, it will result in the image being displayed
