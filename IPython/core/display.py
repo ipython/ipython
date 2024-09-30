@@ -21,14 +21,35 @@ from IPython.testing.skipdoctest import skip_doctest
 from . import display_functions
 
 
-__all__ = ['display_pretty', 'display_html', 'display_markdown',
-           'display_svg', 'display_png', 'display_jpeg', 'display_webp',
-           'display_latex', 'display_json',
-           'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
-           'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'ProgressBar', 'JSON',
-           'GeoJSON', 'Javascript', 'Image', 'set_matplotlib_formats',
-           'set_matplotlib_close',
-           'Video']
+__all__ = [
+    "display_pretty",
+    "display_html",
+    "display_markdown",
+    "display_svg",
+    "display_png",
+    "display_jpeg",
+    "display_webp",
+    "display_latex",
+    "display_json",
+    "display_javascript",
+    "display_pdf",
+    "DisplayObject",
+    "TextDisplayObject",
+    "Pretty",
+    "HTML",
+    "Markdown",
+    "Math",
+    "Latex",
+    "SVG",
+    "ProgressBar",
+    "JSON",
+    "GeoJSON",
+    "Javascript",
+    "Image",
+    "set_matplotlib_formats",
+    "set_matplotlib_close",
+    "Video",
+]
 
 _deprecated_names = ["display", "clear_output", "publish_display_data", "update_display", "DisplayHandle"]
 
@@ -215,7 +236,7 @@ def display_webp(*objs, **kwargs):
     metadata : dict (optional)
         Metadata to be associated with the specific mimetype output.
     """
-    _display_mimetype('image/webp', objs, **kwargs)
+    _display_mimetype("image/webp", objs, **kwargs)
 
 
 def display_latex(*objs, **kwargs):
@@ -796,11 +817,11 @@ class Javascript(TextDisplayObject):
 
 
 # constants for identifying png/jpeg/gif/webp data
-_PNG = b'\x89PNG\r\n\x1a\n'
-_JPEG = b'\xff\xd8'
-_GIF1 = b'GIF87a'
-_GIF2 = b'GIF89a'
-_WEBP = b'WEBP'
+_PNG = b"\x89PNG\r\n\x1a\n"
+_JPEG = b"\xff\xd8"
+_GIF1 = b"GIF87a"
+_GIF2 = b"GIF89a"
+_WEBP = b"WEBP"
 
 
 def _pngxy(data):
