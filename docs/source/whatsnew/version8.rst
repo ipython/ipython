@@ -392,16 +392,29 @@ Reverted in 8.17.1:
 
   - :ghpull:`14190` remove support for python 2 in lexers (reverted in 8.17.1 as it is imported by qtconsole/spyder)
 
-Mamba and Micromamba magic
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _ref: mamba-and-micromamba-magic
+.. _ref: mamba-and-micromamba-magic-commands
 
-In addition to the conda command to manage conda environment, mamba and
-micromamba can now be used using the corresponding magic in IPython.
-Since these commands are compatible with conda, they are following the
-same logic.
+Mamba and Micromamba magic commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These two magic require to have the corresponding commands available
-either in the conda environment or system wide.
+In addition to the ``%conda`` magic command for calling ``conda`` in IPython,
+the ``%mamba`` and ``%micromamba`` magic commands now
+call ``mamba`` and ``micromamba`` if they are on ``sys.path``.
+
+.. code:: python
+
+   %mamba install pkgname
+   %micromamba install pkgname
+   %conda install pkgname
+   %pip install pkgname
+
+   %mamba --help
+   %micromamba --help
+   %conda --help
+   %pip --help    # works w/ JupyterLite
+   !pip --help
+
 
 :ghpull:`14191`
 
