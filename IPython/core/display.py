@@ -22,7 +22,8 @@ from . import display_functions
 
 
 __all__ = ['display_pretty', 'display_html', 'display_markdown',
-           'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
+           'display_svg', 'display_png', 'display_jpeg', 'display_webp',
+           'display_latex', 'display_json',
            'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
            'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'ProgressBar', 'JSON',
            'GeoJSON', 'Javascript', 'Image', 'set_matplotlib_formats',
@@ -198,6 +199,23 @@ def display_jpeg(*objs, **kwargs):
         Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('image/jpeg', objs, **kwargs)
+
+
+def display_webp(*objs, **kwargs):
+    """Display the WEBP representation of an object.
+
+    Parameters
+    ----------
+    *objs : object
+        The Python objects to display, or if raw=True raw JPEG data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
+    """
+    _display_mimetype('image/webp', objs, **kwargs)
 
 
 def display_latex(*objs, **kwargs):
@@ -776,9 +794,12 @@ class Javascript(TextDisplayObject):
         r += _lib_t2*len(self.lib)
         return r
 
-# constants for identifying png/jpeg data
+# constants for identifying png/jpeg/gif/webp data
 _PNG = b'\x89PNG\r\n\x1a\n'
 _JPEG = b'\xff\xd8'
+_GIF1 = b"GIF87a"
+_GIF2 = b"GIF89a"
+_WEBP = b'WEBP'
 
 def _pngxy(data):
     """read the (width, height) from a PNG header"""
@@ -809,6 +830,23 @@ def _gifxy(data):
     """read the (width, height) from a GIF header"""
     return struct.unpack('<HH', data[6:10])
 
+def _webpxy(data):
+    """read the (width, height) from a WEBP header"""
+    if data[12:16] == b"VP8 ":
+        width, height = struct.unpack('<HH', data[24:30])
+        width = (width & 0x3fff)
+        height = (height & 0x3fff)
+        return (width, height)
+    elif data[12:16] == b"VP8L":
+        size_info = struct.unpack('<I', data[21:25])[0]
+        width = 1 + ((size_info & 0x3F) << 8) | (size_info >> 24)
+        height = 1 + ((((size_info >> 8) & 0xF) << 10) |
+                      (((size_info >> 14) & 0x3FC) << 2) |
+                      ((size_info >> 22) & 0x3))
+        return (width, height)
+    else:
+        raise ValueError("Not a valid WEBP header")
+
 
 class Image(DisplayObject):
 
@@ -816,11 +854,13 @@ class Image(DisplayObject):
     _FMT_JPEG = u'jpeg'
     _FMT_PNG = u'png'
     _FMT_GIF = u'gif'
-    _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_GIF]
+    _FMT_WEBP = u'webp'
+    _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_GIF, _FMT_WEBP]
     _MIMETYPES = {
         _FMT_PNG: 'image/png',
         _FMT_JPEG: 'image/jpeg',
         _FMT_GIF: 'image/gif',
+        _FMT_WEBP: 'image/webp',
     }
 
     def __init__(
@@ -858,7 +898,7 @@ class Image(DisplayObject):
             Images from a file are always embedded.
 
         format : unicode
-            The format of the image data (png/jpeg/jpg/gif). If a filename or URL is given
+            The format of the image data (png/jpeg/jpg/gif/webp). If a filename or URL is given
             for format will be inferred from the filename extension.
 
         embed : bool
@@ -942,6 +982,8 @@ class Image(DisplayObject):
                     format = self._FMT_PNG
                 elif ext == u'gif':
                     format = self._FMT_GIF
+                elif ext == u'webp':
+                    format = self._FMT_WEBP
                 else:
                     format = ext.lower()
             elif isinstance(data, bytes):
@@ -949,6 +991,12 @@ class Image(DisplayObject):
                 # only if format has not been specified.
                 if data[:2] == _JPEG:
                     format = self._FMT_JPEG
+                elif data[:8] == _PNG:
+                    format = self._FMT_PNG
+                elif data[8:12] == _WEBP:
+                    format = self._FMT_WEBP
+                elif data[:6] == self._GIF1 or data[:6] == self._GIF2:
+                    format = self._FMT_GIF
 
         # failed to detect format, default png
         if format is None:
