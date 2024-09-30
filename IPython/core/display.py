@@ -794,6 +794,7 @@ class Javascript(TextDisplayObject):
         r += _lib_t2*len(self.lib)
         return r
 
+
 # constants for identifying png/jpeg/gif/webp data
 _PNG = b'\x89PNG\r\n\x1a\n'
 _JPEG = b'\xff\xd8'
@@ -801,11 +802,13 @@ _GIF1 = b"GIF87a"
 _GIF2 = b"GIF89a"
 _WEBP = b'WEBP'
 
+
 def _pngxy(data):
     """read the (width, height) from a PNG header"""
     ihdr = data.index(b'IHDR')
     # next 8 bytes are width/height
     return struct.unpack('>ii', data[ihdr+4:ihdr+12])
+
 
 def _jpegxy(data):
     """read the (width, height) from a JPEG header"""
@@ -826,9 +829,11 @@ def _jpegxy(data):
     h, w = struct.unpack('>HH', data[iSOF+5:iSOF+9])
     return w, h
 
+
 def _gifxy(data):
     """read the (width, height) from a GIF header"""
     return struct.unpack('<HH', data[6:10])
+
 
 def _webpxy(data):
     """read the (width, height) from a WEBP header"""
