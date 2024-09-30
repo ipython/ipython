@@ -1023,7 +1023,7 @@ class Image(DisplayObject):
                     format = self._FMT_PNG
                 elif data[8:12] == _WEBP:
                     format = self._FMT_WEBP
-                elif data[:6] == self._GIF1 or data[:6] == self._GIF2:
+                elif data[:6] == _GIF1 or data[:6] == _GIF2:
                     format = self._FMT_GIF
 
         # failed to detect format, default png
