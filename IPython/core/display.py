@@ -798,8 +798,8 @@ class Javascript(TextDisplayObject):
 # constants for identifying png/jpeg/gif/webp data
 _PNG = b'\x89PNG\r\n\x1a\n'
 _JPEG = b'\xff\xd8'
-_GIF1 = b"GIF87a"
-_GIF2 = b"GIF89a"
+_GIF1 = b'GIF87a'
+_GIF2 = b'GIF89a'
 _WEBP = b'WEBP'
 
 
@@ -838,16 +838,18 @@ def _gifxy(data):
 def _webpxy(data):
     """read the (width, height) from a WEBP header"""
     if data[12:16] == b"VP8 ":
-        width, height = struct.unpack('<HH', data[24:30])
-        width = (width & 0x3fff)
-        height = (height & 0x3fff)
+        width, height = struct.unpack("<HH", data[24:30])
+        width = width & 0x3FFF
+        height = height & 0x3FFF
         return (width, height)
     elif data[12:16] == b"VP8L":
-        size_info = struct.unpack('<I', data[21:25])[0]
+        size_info = struct.unpack("<I", data[21:25])[0]
         width = 1 + ((size_info & 0x3F) << 8) | (size_info >> 24)
-        height = 1 + ((((size_info >> 8) & 0xF) << 10) |
-                      (((size_info >> 14) & 0x3FC) << 2) |
-                      ((size_info >> 22) & 0x3))
+        height = 1 + (
+            (((size_info >> 8) & 0xF) << 10)
+            | (((size_info >> 14) & 0x3FC) << 2)
+            | ((size_info >> 22) & 0x3)
+        )
         return (width, height)
     else:
         raise ValueError("Not a valid WEBP header")
@@ -855,17 +857,17 @@ def _webpxy(data):
 
 class Image(DisplayObject):
 
-    _read_flags = 'rb'
-    _FMT_JPEG = u'jpeg'
-    _FMT_PNG = u'png'
-    _FMT_GIF = u'gif'
-    _FMT_WEBP = u'webp'
+    _read_flags = "rb"
+    _FMT_JPEG = "jpeg"
+    _FMT_PNG = "png"
+    _FMT_GIF = "gif"
+    _FMT_WEBP = "webp"
     _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_GIF, _FMT_WEBP]
     _MIMETYPES = {
-        _FMT_PNG: 'image/png',
-        _FMT_JPEG: 'image/jpeg',
-        _FMT_GIF: 'image/gif',
-        _FMT_WEBP: 'image/webp',
+        _FMT_PNG: "image/png",
+        _FMT_JPEG: "image/jpeg",
+        _FMT_GIF: "image/gif",
+        _FMT_WEBP: "image/webp",
     }
 
     def __init__(
@@ -987,7 +989,7 @@ class Image(DisplayObject):
                     format = self._FMT_PNG
                 elif ext == u'gif':
                     format = self._FMT_GIF
-                elif ext == u'webp':
+                elif ext == "webp":
                     format = self._FMT_WEBP
                 else:
                     format = ext.lower()
