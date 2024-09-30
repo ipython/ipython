@@ -102,7 +102,7 @@ jobs:
         COLUMNS: 120
       run: |
         pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --json-report --json-report-file=./report-${{ matrix.python-version }}-${{runner.os}}.json --maxfail=15
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
           name: upload pytest timing reports as json
           path: |
