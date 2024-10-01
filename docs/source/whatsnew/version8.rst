@@ -400,7 +400,7 @@ In addition to the ``%conda`` magic command for calling ``conda`` in IPython,
 the ``%mamba`` and ``%micromamba`` magic commands now
 call ``mamba`` and ``micromamba`` if they are on ``sys.path``.
 
-.. code:: python
+.. code::
 
    %mamba install pkgname
    %micromamba install pkgname
