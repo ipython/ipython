@@ -392,8 +392,6 @@ Reverted in 8.17.1:
 
   - :ghpull:`14190` remove support for python 2 in lexers (reverted in 8.17.1 as it is imported by qtconsole/spyder)
 
-.. _ref: mamba-and-micromamba-magic
-.. _ref: mamba-and-micromamba-magic-commands
 
 Mamba and Micromamba magic commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
