@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 import functools
+import os
 import re
 import shlex
 import sys
@@ -41,6 +42,16 @@ def _get_conda_like_executable(command):
     executable: string
         Value should be: conda, mamba or micromamba
     """
+    # Check for a environment variable bound to the base executable, both conda and mamba
+    # set these when activating an environment.
+    base_executable = "CONDA_EXE"
+    if "mamba" in command.lower():
+        base_executable = "MAMBA_EXE"
+    if base_executable in os.environ:
+        executable = Path(os.environ[base_executable])
+        if executable.is_file():
+            return str(executable.resolve())
+
     # Check if there is a conda executable in the same directory as the Python executable.
     # This is the case within conda's root environment.
     executable = Path(sys.executable).parent / command
@@ -48,10 +59,12 @@ def _get_conda_like_executable(command):
         return str(executable)
 
     # Otherwise, attempt to extract the executable from conda history.
-    # This applies in any conda environment.
+    # This applies in any conda environment. Parsing this way is error prone because
+    # different versions of conda and mamba include differing cmd values such as
+    # `conda`, `conda-script.py`, or `path/to/conda`, here use the raw command provided.
     history = Path(sys.prefix, "conda-meta", "history").read_text(encoding="utf-8")
     match = re.search(
-        rf"^#\s*cmd:\s*(?P<command>.*{executable})\s[create|install]",
+        rf"^#\s*cmd:\s*(?P<command>.*{command})\s[create|install]",
         history,
         flags=re.MULTILINE,
     )
