@@ -39,18 +39,6 @@ def execfile(fname, globs, locs=None):
     with open(fname, encoding="utf-8") as f:
         exec(compile(f.read(), fname, "exec"), globs, locs)
 
-# A little utility we'll need below, since glob() does NOT allow you to do
-# exclusion on multiple endings!
-def file_doesnt_endwith(test,endings):
-    """Return true if test is a file and its name does NOT end with any
-    of the strings listed in endings."""
-    if not isfile(test):
-        return False
-    for e in endings:
-        if test.endswith(e):
-            return False
-    return True
-
 #---------------------------------------------------------------------------
 # Basic project information
 #---------------------------------------------------------------------------
