@@ -30,12 +30,12 @@ python -c 'import matplotlib'
 
 
 echo "Will use $BLUE'$EDITOR'$NOR to edit files when necessary"
-echo -n "PREV_RELEASE (X.y.z) [$PREV_RELEASE]: "
-read input
-PREV_RELEASE=${input:-$PREV_RELEASE}
-echo -n "MILESTONE (X.y) [$MILESTONE]: "
-read input
-MILESTONE=${input:-$MILESTONE}
+# echo -n "PREV_RELEASE (X.y.z) [$PREV_RELEASE]: "
+# read input
+# PREV_RELEASE=${input:-$PREV_RELEASE}
+# echo -n "MILESTONE (X.y) [$MILESTONE]: "
+# read input
+# MILESTONE=${input:-$MILESTONE}
 echo -n "VERSION (X.y.z) [$VERSION]:"
 read input
 VERSION=${input:-$VERSION}
@@ -90,44 +90,44 @@ then
     read
 fi
 
-if ask_section "Gen Stats, and authors"
-then
+# if ask_section "Gen Stats, and authors"
+# then
+# 
+#     echo
+#     echo $BLUE"here are all the authors that contributed to this release:"$NOR
+#     git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
+# 
+#     echo
+#     echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap."
+#     echo $GREEN"Press enter to continue:"$NOR
+#     read
+# 
+#     echo $BLUE"generating stats"$NOR
+#     python tools/github_stats.py --milestone $MILESTONE > stats.rst
+# 
+#     echo $BLUE"stats.rst files generated."$NOR
+#     echo $GREEN"Please merge it with the right file (github-stats-X.rst) and commit."$NOR
+#     echo $GREEN"press enter to continue."$NOR
+#     read
+# 
+# fi
 
-    echo
-    echo $BLUE"here are all the authors that contributed to this release:"$NOR
-    git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
-
-    echo
-    echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap."
-    echo $GREEN"Press enter to continue:"$NOR
-    read
-
-    echo $BLUE"generating stats"$NOR
-    python tools/github_stats.py --milestone $MILESTONE > stats.rst
-
-    echo $BLUE"stats.rst files generated."$NOR
-    echo $GREEN"Please merge it with the right file (github-stats-X.rst) and commit."$NOR
-    echo $GREEN"press enter to continue."$NOR
-    read
-
-fi
-
-if ask_section "Generate API difference (using frapuccino)"
-then
-    echo $BLUE"Checking out $PREV_RELEASE"$NOR
-    git checkout tags/$PREV_RELEASE
-    sleep 1
-    echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
-    frappuccino IPython IPython.kernel IPython.lib IPython.qt IPython.lib.kernel IPython.html IPython.frontend IPython.external --save IPython-$PREV_RELEASE.json
-    echo $BLUE"coming back to $BRANCH"$NOR
-    git switch $BRANCH
-    sleep 1
-    echo $BLUE"comparing ..."$NOR
-    frappuccino IPython IPython.kernel IPython.lib --compare IPython-$PREV_RELEASE.json
-    echo $GREEN"Use the above guideline to write an API changelog ..."$NOR
-    echo $GREEN"Press any keys to continue"$NOR
-    read
-fi
+# if ask_section "Generate API difference (using frapuccino)"
+# then
+#     echo $BLUE"Checking out $PREV_RELEASE"$NOR
+#     git checkout tags/$PREV_RELEASE
+#     sleep 1
+#     echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
+#     frappuccino IPython IPython.kernel IPython.lib IPython.qt IPython.lib.kernel IPython.html IPython.frontend IPython.external --save IPython-$PREV_RELEASE.json
+#     echo $BLUE"coming back to $BRANCH"$NOR
+#     git switch $BRANCH
+#     sleep 1
+#     echo $BLUE"comparing ..."$NOR
+#     frappuccino IPython IPython.kernel IPython.lib --compare IPython-$PREV_RELEASE.json
+#     echo $GREEN"Use the above guideline to write an API changelog ..."$NOR
+#     echo $GREEN"Press any keys to continue"$NOR
+#     read
+# fi
 
 echo "Cleaning repository"
 git clean -xfdi

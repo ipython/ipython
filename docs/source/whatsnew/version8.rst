@@ -1,6 +1,43 @@
 ============
  8.x Series
 ============
+.. _version 8.28:
+
+IPython 8.28
+============
+
+Slight delay of this September release as I was busy at Pydata Paris last week.
+Not many user visible changes for this release, a couple of bug fixes and
+workaround:
+
+ - :ghpull:`14480` AssertionError: assert _xterm_term_title_saved in WSL – It is
+   unclear why the terminal title is not saved in WSL, if you've WSL experience
+   we'd love your feedback and help to not just ignore an error
+ - :ghpull:`14510` Fix use of pyside6 >= 6.7.0
+ - :ghpull:`14518` Make values public (_tb_highlight & _tb_highlight_style)
+ - :ghpull:`14515` Use environment variable to identify conda / mamba
+
+
+As usual you can find the full list of PRs on GitHub under `the 8.28
+<https://github.com/ipython/ipython/milestone/135?closed=1>`__ milestone.
+
+For something completely different
+----------------------------------
+
+One of the first works of Science Fiction (`Frankenstein
+<https://en.wikipedia.org/wiki/Frankenstein>`__), was written by `Mary Shelley
+<https://en.wikipedia.org/wiki/Mary_Shelley>`__ when she was 18, before being
+published in London on 1 January 1818 when she was 20. This is often overlooked,
+and the role of founders of science fiction attribute to Edgar Allan Poe and
+Jules Verne despite being published later.
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
 .. _version 8.27:
 
 IPython 8.27
