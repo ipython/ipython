@@ -1,5 +1,3 @@
-title = "Sphinx configuration"
-
 [sphinx]
 templates_path = ["_templates"]
 master_doc = "index"
@@ -24,21 +22,28 @@ extensions = [
     "magics",
     "configtraits",
 ]
+today_fmt = "%B %d, %Y"
 default_role = "literal"
 modindex_common_prefix = ["IPython."]
 
-[intersphinx_mapping]
-python = { url = 'https://docs.python.org/3/', fallback = '' }
-rpy2 = { url = 'https://rpy2.github.io/doc/latest/html/', fallback = '' }
-jupyterclient = { url = 'https://jupyter-client.readthedocs.io/en/latest/', fallback = '' }
-jupyter = { url = 'https://jupyter.readthedocs.io/en/latest/', fallback = '' }
-jedi = { url = 'https://jedi.readthedocs.io/en/latest/', fallback = '' }
-traitlets = { url = 'https://traitlets.readthedocs.io/en/latest/', fallback = '' }
-ipykernel = { url = 'https://ipykernel.readthedocs.io/en/latest/', fallback = '' }
-prompt_toolkit = { url = 'https://python-prompt-toolkit.readthedocs.io/en/stable/', fallback = '' }
-ipywidgets = { url = 'https://ipywidgets.readthedocs.io/en/stable/', fallback = '' }
-ipyparallel = { url = 'https://ipyparallel.readthedocs.io/en/stable/', fallback = '' }
-pip = { url = 'https://pip.pypa.io/en/stable/', fallback = '' }
+[sphinx.autodoc_type_aliases]
+Matcher= " IPython.core.completer.Matcher"
+MatcherAPIv1 = " IPython.core.completer.MatcherAPIv1"
+
+[intersphinx_registry]
+packages = [
+    "python",
+    "rpy2",
+    "jupyterclient",
+    "jupyter",
+    "jedi",
+    "traitlets",
+    "ipykernel",
+    "prompt_toolkit",
+    "ipywidgets",
+    "ipyparallel",
+    "pip"
+]
 
 [html]
 html_theme = "sphinx_rtd_theme"
@@ -54,17 +59,30 @@ html_additional_pages = [
 ]
 
 [numpydoc]
-numpydoc_show_class_members = "False"
-numpydoc_class_members_toctree = "False"
-warning_is_error = "True"
+numpydoc_show_class_members = false
+numpydoc_class_members_toctree = false
+warning_is_error = true
 
 [latex]
 latex_documents = [
     ['index', 'ipython.tex', 'IPython Documentation',
-     'The IPython Development Team', 'manual', 'True'],
+     'The IPython Development Team', 'manual', true],
     ['parallel/winhpc_index', 'winhpc_whitepaper.tex',
      'Using IPython on Windows HPC Server 2008',
-     "Brian E. Granger", 'manual', 'True']
+     "Brian E. Granger", 'manual', true]
 ]
-latex_use_modindex = "True"
+latex_use_modindex = true
 latex_font_size = "11pt"
+texinfo_documents = [
+    [
+        "index",
+        "ipython",
+        "IPython Documentation",
+        "The IPython Development Team",
+        "IPython",
+        "IPython Documentation",
+        "Programming",
+        1,
+    ]
+]
+
