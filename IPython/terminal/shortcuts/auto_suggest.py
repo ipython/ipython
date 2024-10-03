@@ -77,7 +77,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
     def connect(self, pt_app: PromptSession):
         self._connected_apps.append(pt_app)
         # note: `on_text_changed` could be used for a bit different behaviour
-        # on character deletion (i.e. reseting history position on backspace)
+        # on character deletion (i.e. resetting history position on backspace)
         pt_app.default_buffer.on_text_insert.add_handler(self.reset_history_position)
         pt_app.default_buffer.on_cursor_position_changed.add_handler(self._dismiss)
 
