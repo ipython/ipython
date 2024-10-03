@@ -191,7 +191,7 @@ Virtualenv handling fixes:
 
  - init_virtualenv now uses Pathlib :ghpull:`12548`
  - Fix Improper path comparison of virtualenv directories :ghpull:`13140`
- - Fix virtual environment user warning for lower case pathes :ghpull:`13094`
+ - Fix virtual environment user warning for lower case paths :ghpull:`13094`
  - Adapt to all sorts of drive names for cygwin :ghpull:`13153`
 
 New Features:
@@ -589,7 +589,7 @@ issues and pushing 8.0 forward.
 Here are thus some of the changes for IPython 7.20.
 
   - Support for PyQt5 >= 5.11 :ghpull:`12715`
-  - ``%reset`` remove imports more agressively :ghpull:`12718`
+  - ``%reset`` remove imports more aggressively :ghpull:`12718`
   - fix the ``%conda`` magic :ghpull:`12739`
   - compatibility with Jedi 0.18, and bump minimum Jedi version. :ghpull:`12793`
 
@@ -868,7 +868,7 @@ IPython.
 Increase Tab Completion Menu Height
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In terminal IPython it is possible to increase the hight of the tab-completion
+In terminal IPython it is possible to increase the height of the tab-completion
 menu. To do so set the value of
 :configtrait:`TerminalInteractiveShell.space_for_menu`, this will reserve more
 space at the bottom of the screen for various kind of menus in IPython including
@@ -1050,7 +1050,7 @@ IPython has decided to follow the informational `NEP 29
 policy as to which version of (C)Python and NumPy are supported.
 
 We thus dropped support for Python 3.5, and cleaned up a number of code path
-that were Python-version dependant. If you are on 3.5 or earlier pip should
+that were Python-version dependent. If you are on 3.5 or earlier pip should
 automatically give you the latest compatible version of IPython so you do not
 need to pin to a given version.
 
@@ -1117,7 +1117,7 @@ progressively enable these features by default in the next few releases, and
 contribution is welcomed.
 
 We welcome any feedback on the API. See :ref:`shell_mimerenderer` for more
-informations.
+information.
 
 This is originally based on work form in :ghpull:`10610` from @stephanh42
 started over two years ago, and still a lot need to be done.
@@ -1371,7 +1371,7 @@ IPython 7.3.0
 
 
 IPython 7.3.0 bring several bug fixes and small improvements that you will
-described bellow. 
+described below.
 
 The biggest change to this release is the implementation of the ``%conda`` and
 ``%pip`` magics, that will attempt to install packages in the **current
@@ -1456,7 +1456,7 @@ unwillingly relying on a bug in CPython.
 
 New Core Dev:
 
- - We welcome Jonathan Slenders to the commiters. Jonathan has done a fantastic
+ - We welcome Jonathan Slenders to the committers. Jonathan has done a fantastic
    work on prompt_toolkit, and we'd like to recognise his impact by giving him
    commit rights. :ghissue:`11397`
 
