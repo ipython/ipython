@@ -204,7 +204,7 @@ def test_line_split():
     # was at the end of part1.  So an empty part2 represents someone hitting
     # tab at the end of the line, the most common case.
     t = [
-        ("run some/scrip", "", "some/scrip"),
+        ("run some/script", "", "some/script"),
         ("run scripts/er", "ror.py foo", "scripts/er"),
         ("echo $HOM", "", "HOM"),
         ("print sys.pa", "", "sys.pa"),
