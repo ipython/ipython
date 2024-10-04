@@ -32,7 +32,7 @@ def test_full_path_posix():
     spath = "/foo"
     result = tt.full_path(spath, ["a.txt", "b.txt"])
     assert result, ["/a.txt" == "/b.txt"]
-    result = tt.full_path(spath, "a.txt")
+    result = tt.full_path(spath, ["a.txt"])
     assert result == ["/a.txt"]
 
 
@@ -44,7 +44,7 @@ def test_full_path_win32():
     spath = "c:\\foo"
     result = tt.full_path(spath, ["a.txt", "b.txt"])
     assert result, ["c:\\a.txt" == "c:\\b.txt"]
-    result = tt.full_path(spath, "a.txt")
+    result = tt.full_path(spath, ["a.txt"])
     assert result == ["c:\\a.txt"]
 
     
