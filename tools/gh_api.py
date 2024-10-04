@@ -48,7 +48,7 @@ def get_auth_token():
         return token
 
     print(
-        "Get a token fom https://github.com/settings/tokens with public repo and gist."
+        "Get a token from https://github.com/settings/tokens with public repo and gist."
     )
     token = getpass.getpass("Token: ", stream=sys.stderr)
 

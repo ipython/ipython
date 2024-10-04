@@ -158,14 +158,14 @@ class NestedGenExprTestCase(unittest.TestCase):
 
 
 indentationerror_file = """if True:
-zoon()
+zoom()
 """
 
 class IndentationErrorTest(unittest.TestCase):
     def test_indentationerror_shows_line(self):
         # See issue gh-2398
         with tt.AssertPrints("IndentationError"):
-            with tt.AssertPrints("zoon()", suppress=False):
+            with tt.AssertPrints("zoom()", suppress=False):
                 ip.run_cell(indentationerror_file)
 
         with TemporaryDirectory() as td:
@@ -174,7 +174,7 @@ class IndentationErrorTest(unittest.TestCase):
                 f.write(indentationerror_file)
 
             with tt.AssertPrints("IndentationError"):
-                with tt.AssertPrints("zoon()", suppress=False):
+                with tt.AssertPrints("zoom()", suppress=False):
                     ip.magic('run %s' % fname)
 
 @skip_without("pandas")

@@ -97,7 +97,7 @@ def num_ini_spaces(s):
     """
     warnings.warn(
         "`num_ini_spaces` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in in future version. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,

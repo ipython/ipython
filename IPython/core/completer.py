@@ -159,7 +159,7 @@ By default results from all matchers are combined, in the order determined by
 their priority. Matchers can request to suppress results from subsequent
 matchers by setting ``suppress`` to ``True`` in the ``MatcherResult``.
 
-When multiple matchers simultaneously request surpression, the results from of
+When multiple matchers simultaneously request suppression, the results from of
 the matcher with higher priority will be returned.
 
 Sometimes it is desirable to suppress most but not all other matchers;
@@ -2651,7 +2651,7 @@ class IPCompleter(Completer):
         )
         can_close_quote = can_close_quote and self.auto_close_dict_keys
 
-        # fast path if closing qoute should be appended but not suffix is allowed
+        # fast path if closing quote should be appended but not suffix is allowed
         if not can_close_quote and not can_close_bracket and closing_quote:
             return [leading + k for k in matches]
 

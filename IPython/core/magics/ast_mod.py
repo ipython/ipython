@@ -5,7 +5,7 @@ with ast-transformers it is not easy to directly manipulate ast.
 
 
 IPython has pre-code and post-code hooks, but are ran from within the IPython
-machinery so may be inappropriate, for example for performance mesurement.
+machinery so may be inappropriate, for example for performance measurement.
 
 This module give you tools to simplify this, and expose 2 classes:
 

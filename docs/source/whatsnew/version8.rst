@@ -46,7 +46,7 @@ IPython 8.27
 New release of IPython after a month off (not enough changes). We can see a few
 important changes for this release.
 
- - autocall was beeing  call getitem, :ghpull:`14486`
+ - autocall was being  call getitem, :ghpull:`14486`
  - Only copy files in startup dir if we just created it. :ghpull:`14497`
  - Fix some tests on Python 3.13 RC1 :ghpull:`14504`; this one I guess make this
    the first IPython release officially compatible with Python 3.13; you will
@@ -680,7 +680,7 @@ Python 3.12 changed its tokenizer to have better support for f-strings and allow
 This is a great new feature and performance improvement in Python 3.12.
 
 Unfortunately this means the new tokenizer does not support incomplete or invalid Python which will
-break many features of IPython. Thus compatibility of IPython with Python 3.12 is not guarantied.
+break many features of IPython. Thus compatibility of IPython with Python 3.12 is not guaranteed.
 It is unclear to which extent IPython is affected, and whether we can/should try to still support magics, shell
 escape (``! ....``), ...,  as well as how to do it if we can.
 
@@ -933,7 +933,7 @@ We introduce more descriptive names for the ``%autoreload`` parameter:
   whitelisted by ``%aimport`` statements.
 - ``%autoreload all`` (also ``%autoreload 2``) - turn on autoreload for all modules except those
   blacklisted by ``%aimport`` statements.
-- ``%autoreload complete`` (also ``%autoreload 3``) - all the fatures of ``all`` but also adding new
+- ``%autoreload complete`` (also ``%autoreload 3``) - all the features of ``all`` but also adding new
   objects from the imported modules (see
   IPython/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects).
 
@@ -1464,7 +1464,7 @@ values in order to prevent potential Execution with Unnecessary Privileges.
 Almost all version of IPython looks for configuration and profiles in current
 working directory. Since IPython was developed before pip and environments
 existed it was used a convenient way to load code/packages in a project
-dependant way.
+dependent way.
 
 In 2022, it is not necessary anymore, and can lead to confusing behavior where
 for example cloning a repository and starting IPython or loading a notebook from
@@ -2394,4 +2394,4 @@ The following attribute/methods have been removed::
 
 ------
 
-.. [1] If this make you incomfortable feel free to not use IPython 8.23.
+.. [1] If this make you uncomfortable feel free to not use IPython 8.23.

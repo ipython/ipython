@@ -660,7 +660,7 @@ class TestSystemRaw(ExitCodeChecks):
     @mock.patch('os.system', side_effect=KeyboardInterrupt)
     def test_control_c(self, *mocks):
         try:
-            self.system("sleep 1 # wont happen")
+            self.system("sleep 1 # won't happen")
         except KeyboardInterrupt:  # pragma: no cove
             self.fail(
                 "system call should intercept "

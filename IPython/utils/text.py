@@ -370,7 +370,7 @@ def num_ini_spaces(strng: str) -> int:
     """Return the number of initial spaces in a string"""
     warnings.warn(
         "`num_ini_spaces` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in in future version. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,
@@ -431,7 +431,7 @@ def wrap_paragraphs(text: str, ncols: int = 80) -> List[str]:
     """
     warnings.warn(
         "`wrap_paragraphs` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in in future version. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,
@@ -512,7 +512,7 @@ def strip_ansi(source: str) -> str:
     """
     warnings.warn(
         "`strip_ansi` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in in future version. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,
@@ -761,7 +761,7 @@ def compute_item_matrix(
     """
     warnings.warn(
         "`compute_item_matrix` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in in future version. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,

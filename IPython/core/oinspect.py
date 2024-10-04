@@ -460,7 +460,7 @@ class Inspector(Colorable):
 
     mime_hooks = traitlets.Dict(
         config=True,
-        help="dictionary of mime to callable to add informations into help mimebundle dict",
+        help="dictionary of mime to callable to add information into help mimebundle dict",
     ).tag(config=True)
 
     def __init__(
