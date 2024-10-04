@@ -155,7 +155,7 @@ check_untyped_defs = false
 disallow_untyped_decorators = false
 
 
-# gloabl ignore error
+# global ignore error
 [[tool.mypy.overrides]]
 module = [
     "IPython",

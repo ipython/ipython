@@ -1627,7 +1627,7 @@ class InteractiveShell(SingletonConfigurable):
         Returns
         -------
         parts_ok: bool
-            wether we were properly able to parse parts.
+            whether we were properly able to parse parts.
         parts: list of str
             extracted parts
 

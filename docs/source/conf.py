@@ -112,7 +112,7 @@ try:
     )
 
 except ModuleNotFoundError:
-    # In case intersphinx_registry is not yet packages on current plaform
+    # In case intersphinx_registry is not yet packages on current platform
     # as it is quite recent.
     print("/!\\ intersphinx_registry not installed, relying on local mapping.")
     intersphinx_mapping = config["intersphinx_mapping"]

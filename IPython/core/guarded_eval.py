@@ -132,7 +132,7 @@ def _get_external(module_name: str, access_path: Sequence[str]):
 
     Raises:
     * `KeyError` if module is removed not found, and
-    * `AttributeError` if acess path does not match an exported object
+    * `AttributeError` if access path does not match an exported object
     """
     member_type = sys.modules[module_name]
     for attr in access_path:
@@ -235,7 +235,7 @@ class SelectivePolicy(EvaluationPolicy):
             accept = has_original_attr and has_original_attribute
 
         if accept:
-            # We still need to check for overriden properties.
+            # We still need to check for overridden properties.
 
             value_class = type(value)
             if not hasattr(value_class, attr):
@@ -332,7 +332,7 @@ class EvaluationContext(NamedTuple):
     evaluation: Literal[
         "forbidden", "minimal", "limited", "unsafe", "dangerous"
     ] = "forbidden"
-    #: Whether the evalution of code takes place inside of a subscript.
+    #: Whether the evaluation of code takes place inside of a subscript.
     #: Useful for evaluating ``:-1, 'col'`` in ``df[:-1, 'col']``.
     in_subscript: bool = False
 
@@ -373,7 +373,7 @@ def guarded_eval(code: str, context: EvaluationContext):
     # getitem at all, for example it fails on simple `[0][1]`
 
     if context.in_subscript:
-        # syntatic sugar for ellipsis (:) is only available in susbcripts
+        # syntactic sugar for ellipsis (:) is only available in subscripts
         # so we need to trick the ast parser into thinking that we have
         # a subscript, but we need to be able to later recognise that we did
         # it so we can ignore the actual __getitem__ operation
