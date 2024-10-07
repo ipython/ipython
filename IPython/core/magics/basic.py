@@ -461,7 +461,7 @@ Currently the magic system has the following functions:""",
             ptformatter.pprint = False
             disp_formatter.active_types = ['text/plain']
 
-            shell.magic('xmode Plain')
+            shell.run_line_magic("xmode", "Plain")
         else:
             # turn off
             shell.separate_in = dstore.rc_separate_in
