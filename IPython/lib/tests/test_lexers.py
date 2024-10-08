@@ -7,6 +7,7 @@ from unittest import TestCase
 from pygments import __version__ as pygments_version
 from pygments.token import Token
 from pygments.lexers import BashLexer
+import pytest
 
 from .. import lexers
 
@@ -182,3 +183,42 @@ class TestLexers(TestCase):
             (Token.Text, '\n'),
         ]
         assert tokens == list(self.lexer.get_tokens(fragment))
+
+
+@pytest.mark.parametrize(
+    "fragment,expected",
+    [
+        (
+            "---\nZeroDivisionError: division by zero\n",
+            [
+                (Token.Generic.Output, ""),
+                (Token.Generic.Traceback, "---\n"),
+                (Token.Name.Exception, "ZeroDivisionError"),
+                (Token.Text, ": division by zero\n"),
+            ],
+        ),
+        (
+            '  File "x.py", line 1\nSyntaxError: xxx',
+            [
+                (Token.Generic.Output, ""),
+                (Token.Generic.Traceback, "  File"),
+                (Token.Name.Namespace, ' "x.py"'),
+                (Token.Generic.Traceback, ", line "),
+                (Token.Literal.Number.Integer, "1\n"),
+                (Token.Name.Exception, "SyntaxError"),
+                (Token.Text, ": xxx\n"),
+            ],
+        ),
+        (
+            "ZeroDivisionError: division by zero",
+            [
+                (Token.Generic.Output, ""),
+                (Token.Name.Exception, "ZeroDivisionError"),
+                (Token.Text, ": division by zero\n"),
+            ],
+        ),
+    ],
+    ids=["exception traceback", "syntax error traceback", "no traceback"],
+)
+def test_IPythonConsoleLexer(fragment, expected):
+    assert expected == list(lexers.IPythonConsoleLexer().get_tokens(fragment))
