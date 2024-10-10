@@ -63,9 +63,10 @@ doc = [
     "ipython[test]",
     "matplotlib",
     "setuptools>=18.5",
+    "sphinx_toml==0.0.4",
     "sphinx-rtd-theme",
     "sphinx>=1.3",
-    "sphinxcontrib-jquery",
+    "typing_extensions",
 ]
 test = [
     "pytest",
