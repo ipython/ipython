@@ -89,7 +89,6 @@ Inheritance diagram:
 #*****************************************************************************
 
 
-from collections.abc import Sequence
 import functools
 import inspect
 import linecache
@@ -98,6 +97,8 @@ import sys
 import time
 import traceback
 import types
+from collections.abc import Sequence
+from pathlib import Path
 from types import TracebackType
 from typing import Any, List, Optional, Tuple
 
@@ -106,14 +107,14 @@ from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.styles import get_style_by_name
 
 import IPython.utils.colorable as colorable
+
 # IPython's own modules
 from IPython import get_ipython
 from IPython.core import debugger
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
-from IPython.utils import PyColorize
+from IPython.utils import PyColorize, py3compat
 from IPython.utils import path as util_path
-from IPython.utils import py3compat
 from IPython.utils.terminal import get_terminal_size
 
 # Globals
@@ -139,23 +140,19 @@ FAST_THRESHOLD = 10_000
 @functools.lru_cache()
 def count_lines_in_py_file(filename: str) -> int:
     """
-    Given a filename, returns the number of lines in the file
-    if it ends with the extension ".py". Otherwise, returns 0.
+    Given a filename, returns the number of lines in the file. Returns 0 if the
+    filename does not end with the extension ".py".
     """
-    if not filename.endswith(".py"):
+    filepath = Path(filename)
+    if filepath.suffix != ".py":
         return 0
-    else:
-        try:
-            with open(filename, "r") as file:
-                s = sum(1 for line in file)
-        except UnicodeError:
-            return 0
-    return s
 
-    """
-    Given a frame object, returns the total number of lines in the file
-    if the filename ends with the extension ".py". Otherwise, returns 0.
-    """
+    try:
+        with open(filepath, "r") as file:
+            n_lines = sum(1 for line in file)
+    except UnicodeError:
+        return 0
+    return n_lines
 
 
 def get_line_number_of_frame(frame: types.FrameType) -> int:
@@ -1215,7 +1212,7 @@ class VerboseTB(TBTools):
                                                                      chained_exceptions_tb_offset)
             exception = self.get_parts_of_chained_exception(evalue)
 
-            if exception and not id(exception[1]) in chained_exc_ids:
+            if exception and id(exception[1]) not in chained_exc_ids:
                 chained_exc_ids.add(id(exception[1])) # trace exception to avoid infinite 'cause' loop
                 formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
                 etype, evalue, etb = exception
