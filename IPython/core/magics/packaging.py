@@ -162,3 +162,20 @@ class PackagingMagics(Magics):
         """
         micromamba = _get_conda_like_executable("micromamba")
         self._run_command(micromamba, line)
+
+    @line_magic
+    def uv(self, line):
+        """Run the uv package manager within the current kernel.
+
+        Usage:
+          %uv pip install [pkgs]
+        """
+        python = sys.executable
+        if sys.platform == "win32":
+            python = '"' + python + '"'
+        else:
+            python = shlex.quote(python)
+
+        self.shell.system(" ".join([python, "-m", "uv", line]))
+
+        print("Note: you may need to restart the kernel to use updated packages.")
