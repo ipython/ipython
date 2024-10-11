@@ -179,12 +179,11 @@ The following is a very simple example of a valid demo file.
 #
 #*****************************************************************************
 
-import os
 import re
 import shlex
 import sys
 import pygments
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from IPython.utils.text import marquee
 from IPython.utils import openpy
@@ -251,8 +250,7 @@ class Demo(object):
              # Assume it's a string or something that can be converted to one
             self.fname = src
             if title == '':
-                (filepath, filename) = os.path.split(src)
-                self.title = filename
+                self.title = PurePath(src).name
             else:
                 self.title = title
         self.sys_argv = [src] + shlex.split(arg_str)
@@ -405,7 +403,7 @@ class Demo(object):
 
         filename = self.shell.mktempfile(self.src_blocks[index])
         self.shell.hooks.editor(filename, 1)
-        with open(Path(filename), "r", encoding="utf-8") as f:
+        with Path(filename).open("r", encoding="utf-8") as f:
             new_block = f.read()
         # update the source and colored block
         self.src_blocks[index] = new_block
