@@ -33,18 +33,17 @@ from setuptools.command.install_scripts import install_scripts
 # A few handy globals
 repo_root = Path(__file__).resolve().parent
 
-def execfile(fname, globs, locs=None):
+def execfile(path, globs, locs=None):
     locs = locs or globs
-    with open(fname, encoding="utf-8") as f:
-        exec(compile(f.read(), fname, "exec"), globs, locs)
+    with path.open(encoding="utf-8") as f:
+        exec(compile(f.read(), str(path), "exec"), globs, locs)
 
 #---------------------------------------------------------------------------
 # Basic project information
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-with open(repo_root / "IPython" / "core" / "release.py", encoding="utf-8") as f:
-    exec(f.read(), globals())
+execfile(Path(repo_root, "IPython", "core", "release.py"), globals())
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
@@ -65,7 +64,7 @@ def check_package_data(package_data):
         pkg_root = Path(*pkg.split("."))
         for d in data:
             path = pkg_root / d
-            if '*' in path:
+            if "*" in str(path):
                 assert len(glob(path)) > 0, "No files match pattern %s" % path
             else:
                 assert path.exists(), f"Missing package data: {path}"
