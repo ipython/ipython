@@ -65,7 +65,7 @@ def check_package_data(package_data):
         for d in data:
             path = pkg_root / d
             if "*" in str(path):
-                assert len(glob(path)) > 0, "No files match pattern %s" % path
+                assert len(glob(str(path))) > 0, "No files match pattern %s" % path
             else:
                 assert path.exists(), f"Missing package data: {path}"
 
