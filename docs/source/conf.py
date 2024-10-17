@@ -131,7 +131,6 @@ warning_is_error = config["numpydoc"]["warning_is_error"]
 
 # Options for HTML output
 # -----------------------
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # - html_theme
 # - html_static_path
 #     Add any paths that contain custom static files (such as style sheets) here,
