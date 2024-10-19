@@ -13,8 +13,7 @@ information, check the :ref:`tips page <tips>`, or look at examples in the
 If you haven't done that yet see :ref:`how to install ipython <install>`.
 
 If you've never used Python before, you might want to look at `the official
-tutorial <http://docs.python.org/tutorial/>`_ or an alternative, `Dive into
-Python <https://www.diveinto.org/python3/table-of-contents.html>`_.
+tutorial <http://docs.python.org/tutorial/>`_.
 
 Start IPython by issuing the ``ipython`` command from your shell, you should be
 greeted by the following::
