@@ -1032,8 +1032,8 @@ class ExecutionMagics(Magics):
           %timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] statement
         or in cell mode:
           %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] setup_code
-          code
-          code...
+        code
+        code...
 
         Time execution of a Python statement or expression using the timeit
         module.  This function can be used both as a line and cell magic:
