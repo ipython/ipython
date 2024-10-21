@@ -512,8 +512,10 @@ class AutocallChecker(PrefilterChecker):
             callable(oinfo.obj)
             and (not self.exclude_regexp.match(line_info.the_rest))
             and self.function_name_regexp.match(line_info.ifun)
-            and line_info.raw_the_rest.startswith(" ")
-            or not line_info.raw_the_rest.strip()
+            and (
+                line_info.raw_the_rest.startswith(" ")
+                or not line_info.raw_the_rest.strip()
+            )
         ):
             return self.prefilter_manager.get_handler_by_name("auto")
         else:
