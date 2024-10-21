@@ -137,3 +137,13 @@ def test_autocall_should_support_unicode():
     finally:
         ip.run_line_magic("autocall", "0")
         del ip.user_ns["π"]
+
+
+def test_autocall_regression_gh_14513():
+    ip.run_line_magic("autocall", "2")
+    ip.user_ns["foo"] = dict()
+    try:
+        assert ip.prefilter("foo") == "foo"
+    finally:
+        ip.run_line_magic("autocall", "0")
+        del ip.user_ns["foo"]
