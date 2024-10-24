@@ -551,13 +551,13 @@ def system(cmd):
     Parameters
     ----------
     cmd : str
-      A command to be executed in the system shell.
+        A command to be executed in the system shell.
 
     Returns
     -------
     None : we explicitly do NOT return the subprocess status code, as this
     utility is meant to be used extensively in IPython, where any return value
-    would trigger :func:`sys.displayhook` calls.
+    would trigger : func:`sys.displayhook` calls.
     """
     with AvoidUNCPath() as path:
         if path is not None:

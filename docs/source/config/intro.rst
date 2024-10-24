@@ -86,8 +86,8 @@ In case where executability of configuration can be problematic, or
 configurations need to be modified programmatically, IPython also support a
 limited set of functionalities via ``.json`` configuration files. 
 
-You can defined most of the configuration options via a json object which
-hierarchy represent the value you would normally set on the ``c`` object of
+You can define most of the configuration options via a JSON object whose
+hierarchy represents the value you would normally set on the ``c`` object of
 ``.py`` configuration files. The following ``ipython_config.json`` file::
 
     {
@@ -106,11 +106,10 @@ hierarchy represent the value you would normally set on the ``c`` object of
 
 Is equivalent to the following ``ipython_config.py``::
 
+    c.InteractiveShell.colors = 'LightBG'
     c.InteractiveShellApp.extensions = [
         'myextension'
     ]
-
-    c.InteractiveShell.colors = 'LightBG'
     c.TerminalInteractiveShell.editor = 'nano'
 
 
@@ -153,7 +152,7 @@ Running IPython from Python
 
 If you are using :ref:`embedding` to start IPython from a normal 
 python file, you can set configuration options the same way as in a 
-config file by creating a traitlets config object and passing it to 
+config file by creating a traitlets :class:`Config` object and passing it to 
 start_ipython like in the example below.
 
 .. literalinclude:: ../../../examples/Embedding/start_ipython_config.py

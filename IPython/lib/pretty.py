@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Python advanced pretty printer.  This pretty printer is intended to
 replace the old `pprint` python module which does not allow developers
@@ -107,6 +106,8 @@ from warnings import warn
 
 from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY
+
+from typing import Dict
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name', 'RawText', 'RawStringLiteral', 'CallExpression']
@@ -405,8 +406,16 @@ class RepresentationPrinter(PrettyPrinter):
                             meth = cls._repr_pretty_
                             if callable(meth):
                                 return meth(obj, self, cycle)
-                        if cls is not object \
-                                and callable(cls.__dict__.get('__repr__')):
+                        if (
+                            cls is not object
+                            # check if cls defines __repr__
+                            and "__repr__" in cls.__dict__
+                            # check if __repr__ is callable.
+                            # Note: we need to test getattr(cls, '__repr__')
+                            #   instead of cls.__dict__['__repr__']
+                            #   in order to work with descriptors like partialmethod,
+                            and callable(_safe_getattr(cls, "__repr__", None))
+                        ):
                             return _repr_pprint(obj, self, cycle)
 
             return _default_pprint(obj, self, cycle)
@@ -532,7 +541,7 @@ class RawText:
 class CallExpression:
     """ Object which emits a line-wrapped call expression in the form `__name(*args, **kwargs)` """
     def __init__(__self, __name, *args, **kwargs):
-        # dunders are to avoid clashes with kwargs, as python's name manging
+        # dunders are to avoid clashes with kwargs, as python's name managing
         # will kick in.
         self = __self
         self.name = __name
@@ -546,7 +555,7 @@ class CallExpression:
         return inner
 
     def _repr_pretty_(self, p, cycle):
-        # dunders are to avoid clashes with kwargs, as python's name manging
+        # dunders are to avoid clashes with kwargs, as python's name managing
         # will kick in.
 
         started = False
@@ -626,7 +635,7 @@ def _default_pprint(obj, p, cycle):
 def _seq_pprinter_factory(start, end):
     """
     Factory that returns a pprint function useful for sequences.  Used by
-    the default pprint for tuples, dicts, and lists.
+    the default pprint for tuples and lists.
     """
     def inner(obj, p, cycle):
         if cycle:
@@ -807,6 +816,7 @@ def _exception_pprint(obj, p, cycle):
 
 
 #: the exception base
+_exception_base: type
 try:
     _exception_base = BaseException
 except NameError:
@@ -841,24 +851,15 @@ _env_type = type(os.environ)
 if _env_type is not dict:
     _type_pprinters[_env_type] = _dict_pprinter_factory('environ{', '}')
 
-try:
-    # In PyPy, types.DictProxyType is dict, setting the dictproxy printer
-    # using dict.setdefault avoids overwriting the dict printer
-    _type_pprinters.setdefault(types.DictProxyType,
-                               _dict_pprinter_factory('dict_proxy({', '})'))
-    _type_pprinters[types.ClassType] = _type_pprint
-    _type_pprinters[types.SliceType] = _repr_pprint
-except AttributeError: # Python 3
-    _type_pprinters[types.MappingProxyType] = \
-        _dict_pprinter_factory('mappingproxy({', '})')
-    _type_pprinters[slice] = _repr_pprint
+_type_pprinters[types.MappingProxyType] = _dict_pprinter_factory("mappingproxy({", "})")
+_type_pprinters[slice] = _repr_pprint
 
 _type_pprinters[range] = _repr_pprint
 _type_pprinters[bytes] = _repr_pprint
 
 #: printers for types specified by name
-_deferred_type_pprinters = {
-}
+_deferred_type_pprinters: Dict = {}
+
 
 def for_type(typ, func):
     """
@@ -908,6 +909,8 @@ def _deque_pprint(obj, p, cycle):
     cls_ctor = CallExpression.factory(obj.__class__.__name__)
     if cycle:
         p.pretty(cls_ctor(RawText("...")))
+    elif obj.maxlen is not None:
+        p.pretty(cls_ctor(list(obj), maxlen=obj.maxlen))
     else:
         p.pretty(cls_ctor(list(obj)))
 
@@ -916,14 +919,24 @@ def _counter_pprint(obj, p, cycle):
     if cycle:
         p.pretty(cls_ctor(RawText("...")))
     elif len(obj):
-        p.pretty(cls_ctor(dict(obj)))
+        p.pretty(cls_ctor(dict(obj.most_common())))
     else:
         p.pretty(cls_ctor())
+
+
+def _userlist_pprint(obj, p, cycle):
+    cls_ctor = CallExpression.factory(obj.__class__.__name__)
+    if cycle:
+        p.pretty(cls_ctor(RawText("...")))
+    else:
+        p.pretty(cls_ctor(obj.data))
+
 
 for_type_by_name('collections', 'defaultdict', _defaultdict_pprint)
 for_type_by_name('collections', 'OrderedDict', _ordereddict_pprint)
 for_type_by_name('collections', 'deque', _deque_pprint)
 for_type_by_name('collections', 'Counter', _counter_pprint)
+for_type_by_name("collections", "UserList", _userlist_pprint)
 
 if __name__ == '__main__':
     from random import randrange

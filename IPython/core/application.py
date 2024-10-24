@@ -14,7 +14,6 @@ object and then create the configurable objects, passing the config to them.
 
 import atexit
 from copy import deepcopy
-import glob
 import logging
 import os
 import shutil
@@ -34,9 +33,9 @@ from traitlets import (
 )
 
 if os.name == "nt":
-    programdata = Path(os.environ.get("PROGRAMDATA", None))
-    if programdata:
-        SYSTEM_CONFIG_DIRS = [str(programdata / "ipython")]
+    programdata = os.environ.get("PROGRAMDATA", None)
+    if programdata is not None:
+        SYSTEM_CONFIG_DIRS = [str(Path(programdata) / "ipython")]
     else:  # PROGRAMDATA is not defined by default on XP.
         SYSTEM_CONFIG_DIRS = []
 else:
@@ -66,26 +65,48 @@ else:
 
 # aliases and flags
 
-base_aliases = {
-    'profile-dir' : 'ProfileDir.location',
-    'profile' : 'BaseIPythonApplication.profile',
-    'ipython-dir' : 'BaseIPythonApplication.ipython_dir',
-    'log-level' : 'Application.log_level',
-    'config' : 'BaseIPythonApplication.extra_config_file',
-}
-
-base_flags = dict(
-    debug = ({'Application' : {'log_level' : logging.DEBUG}},
-            "set log level to logging.DEBUG (maximize logging output)"),
-    quiet = ({'Application' : {'log_level' : logging.CRITICAL}},
-            "set log level to logging.CRITICAL (minimize logging output)"),
-    init = ({'BaseIPythonApplication' : {
-                    'copy_config_files' : True,
-                    'auto_create' : True}
-            }, """Initialize profile with default config files.  This is equivalent
-            to running `ipython profile create <profile>` prior to startup.
-            """)
+base_aliases = {}
+if isinstance(Application.aliases, dict):
+    # traitlets 5
+    base_aliases.update(Application.aliases)
+base_aliases.update(
+    {
+        "profile-dir": "ProfileDir.location",
+        "profile": "BaseIPythonApplication.profile",
+        "ipython-dir": "BaseIPythonApplication.ipython_dir",
+        "log-level": "Application.log_level",
+        "config": "BaseIPythonApplication.extra_config_file",
+    }
 )
+
+base_flags = dict()
+if isinstance(Application.flags, dict):
+    # traitlets 5
+    base_flags.update(Application.flags)
+base_flags.update(
+    dict(
+        debug=(
+            {"Application": {"log_level": logging.DEBUG}},
+            "set log level to logging.DEBUG (maximize logging output)",
+        ),
+        quiet=(
+            {"Application": {"log_level": logging.CRITICAL}},
+            "set log level to logging.CRITICAL (minimize logging output)",
+        ),
+        init=(
+            {
+                "BaseIPythonApplication": {
+                    "copy_config_files": True,
+                    "auto_create": True,
+                }
+            },
+            """Initialize profile with default config files.  This is equivalent
+            to running `ipython profile create <profile>` prior to startup.
+            """,
+        ),
+    )
+)
+
 
 class ProfileAwareConfigLoader(PyFileConfigLoader):
     """A Python file config loader that is aware of IPython profiles."""
@@ -102,9 +123,8 @@ class ProfileAwareConfigLoader(PyFileConfigLoader):
         return super(ProfileAwareConfigLoader, self).load_subconfig(fname, path=path)
 
 class BaseIPythonApplication(Application):
-
-    name = u'ipython'
-    description = Unicode(u'IPython: an enhanced interactive Python shell.')
+    name = "ipython"
+    description = "IPython: an enhanced interactive Python shell."
     version = Unicode(release.version)
 
     aliases = base_aliases
@@ -135,7 +155,7 @@ class BaseIPythonApplication(Application):
     config_file_paths = List(Unicode())
     @default('config_file_paths')
     def _config_file_paths_default(self):
-        return [os.getcwd()]
+        return []
 
     extra_config_file = Unicode(
     help="""Path to an extra config file to load.
@@ -163,6 +183,17 @@ class BaseIPythonApplication(Application):
                 get_ipython_package_dir(), u'config', u'profile', change['new']
         )
 
+    add_ipython_dir_to_sys_path = Bool(
+        False,
+        """Should the IPython profile directory be added to sys path ?
+
+        This option was non-existing before IPython 8.0, and ipython_dir was added to
+        sys path to allow import of extensions present there. This was historical
+        baggage from when pip did not exist. This now default to false,
+        but can be set to true for legacy reasons.
+        """,
+    ).tag(config=True)
+
     ipython_dir = Unicode(
         help="""
         The name of the IPython directory. This directory is used for logging
@@ -182,7 +213,9 @@ class BaseIPythonApplication(Application):
         return d
     
     _in_init_profile_dir = False
+
     profile_dir = Instance(ProfileDir, allow_none=True)
+
     @default('profile_dir')
     def _profile_dir_default(self):
         # avoid recursion
@@ -195,11 +228,13 @@ class BaseIPythonApplication(Application):
     overwrite = Bool(False,
         help="""Whether to overwrite existing config files when copying"""
     ).tag(config=True)
+
     auto_create = Bool(False,
         help="""Whether to create profile dir if it doesn't exist"""
     ).tag(config=True)
 
     config_files = List(Unicode())
+
     @default('config_files')
     def _config_files_default(self):
         return [self.config_file_name]
@@ -234,16 +269,6 @@ class BaseIPythonApplication(Application):
     # Various stages of Application creation
     #-------------------------------------------------------------------------
     
-    deprecated_subcommands = {}
-    
-    def initialize_subcommand(self, subc, argv=None):
-        if subc in self.deprecated_subcommands:
-            self.log.warning("Subcommand `ipython {sub}` is deprecated and will be removed "
-                             "in future versions.".format(sub=subc))
-            self.log.warning("You likely want to use `jupyter {sub}` in the "
-                             "future".format(sub=subc))
-        return super(BaseIPythonApplication, self).initialize_subcommand(subc, argv)
-
     def init_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""
         self.crash_handler = self.crash_handler_class(self)
@@ -254,7 +279,7 @@ class BaseIPythonApplication(Application):
     
     def excepthook(self, etype, evalue, tb):
         """this is sys.excepthook after init_crashhandler
-        
+
         set self.verbose_crash=True to use our full crashhandler, instead of
         a regular traceback with a short message (crash_handler_lite)
         """
@@ -272,21 +297,24 @@ class BaseIPythonApplication(Application):
             str_old = os.path.abspath(old)
             if str_old in sys.path:
                 sys.path.remove(str_old)
-        str_path = os.path.abspath(new)
-        sys.path.append(str_path)
-        ensure_dir_exists(new)
-        readme = os.path.join(new, 'README')
-        readme_src = os.path.join(get_ipython_package_dir(), u'config', u'profile', 'README')
-        if not os.path.exists(readme) and os.path.exists(readme_src):
-            shutil.copy(readme_src, readme)
-        for d in ('extensions', 'nbextensions'):
-            path = os.path.join(new, d)
-            try:
-                ensure_dir_exists(path)
-            except OSError as e:
-                # this will not be EEXIST
-                self.log.error("couldn't create path %s: %s", path, e)
-        self.log.debug("IPYTHONDIR set to: %s" % new)
+        if self.add_ipython_dir_to_sys_path:
+            str_path = os.path.abspath(new)
+            sys.path.append(str_path)
+            ensure_dir_exists(new)
+            readme = os.path.join(new, "README")
+            readme_src = os.path.join(
+                get_ipython_package_dir(), "config", "profile", "README"
+            )
+            if not os.path.exists(readme) and os.path.exists(readme_src):
+                shutil.copy(readme_src, readme)
+            for d in ("extensions", "nbextensions"):
+                path = os.path.join(new, d)
+                try:
+                    ensure_dir_exists(path)
+                except OSError as e:
+                    # this will not be EEXIST
+                    self.log.error("couldn't create path %s: %s", path, e)
+            self.log.debug("IPYTHONDIR set to: %s", new)
 
     def load_config_file(self, suppress_errors=IPYTHON_SUPPRESS_CONFIG_ERRORS):
         """Load the config file.
@@ -376,7 +404,7 @@ class BaseIPythonApplication(Application):
                     self.log.fatal("Profile %r not found."%self.profile)
                     self.exit(1)
             else:
-                self.log.debug("Using existing profile dir: %r"%p.location)
+                self.log.debug("Using existing profile dir: %r", p.location)
         else:
             location = self.config.ProfileDir.location
             # location is fully specified
@@ -396,7 +424,7 @@ class BaseIPythonApplication(Application):
                     self.log.fatal("Profile directory %r not found."%location)
                     self.exit(1)
             else:
-                self.log.info("Using existing profile dir: %r"%location)
+                self.log.debug("Using existing profile dir: %r", p.location)
             # if profile_dir is specified explicitly, set profile name
             dir_name = os.path.basename(p.location)
             if dir_name.startswith('profile_'):
@@ -443,8 +471,8 @@ class BaseIPythonApplication(Application):
         s = self.generate_config_file()
         config_file = Path(self.profile_dir.location) / self.config_file_name
         if self.overwrite or not config_file.exists():
-            self.log.warning("Generating default config file: %r" % (config_file))
-            config_file.write_text(s)
+            self.log.warning("Generating default config file: %r", (config_file))
+            config_file.write_text(s, encoding="utf-8")
 
     @catch_config_error
     def initialize(self, argv=None):

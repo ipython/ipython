@@ -181,9 +181,10 @@ class ProfileList(Application):
         profiles = list_profiles_in(os.getcwd())
         if profiles:
             print()
-            print("Available profiles in current directory (%s):" % os.getcwd())
-            self._print_profiles(profiles)
-        
+            print(
+                "Profiles from CWD have been removed for security reason, see CVE-2022-21699:"
+            )
+
         print()
         print("To use any of the above profiles, start IPython with:")
         print("    ipython --profile=<name>")
@@ -208,7 +209,7 @@ class ProfileCreate(BaseIPythonApplication):
     name = u'ipython-profile'
     description = create_help
     examples = _create_examples
-    auto_create = Bool(True)
+    auto_create = Bool(True).tag(config=True)
     def _log_format_default(self):
         return "[%(name)s] %(message)s"
 
@@ -302,8 +303,11 @@ class ProfileApp(Application):
 
     def start(self):
         if self.subapp is None:
-            print("No subcommand specified. Must specify one of: %s"%(self.subcommands.keys()))
-            print()
+            print(
+                "No subcommand specified. Must specify one of: "
+                + ", ".join(map(repr, self.subcommands))
+                + ".\n"
+            )
             self.print_description()
             self.print_subcommands()
             self.exit(1)

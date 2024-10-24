@@ -24,14 +24,9 @@ import inspect
 import os
 import re
 from importlib import import_module
+from types import SimpleNamespace as Obj
 
 
-class Obj(object):
-    '''Namespace to hold arbitrary information.'''
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-                                        
 class FuncClsScanner(ast.NodeVisitor):
     """Scan a module for top-level functions and classes.
     
@@ -42,7 +37,7 @@ class FuncClsScanner(ast.NodeVisitor):
         self.classes = []
         self.classes_seen = set()
         self.functions = []
-    
+
     @staticmethod
     def has_undoc_decorator(node):
         return any(isinstance(d, ast.Name) and d.id == 'undoc' \
@@ -62,11 +57,15 @@ class FuncClsScanner(ast.NodeVisitor):
             self.functions.append(node.name)
     
     def visit_ClassDef(self, node):
-        if not (node.name.startswith('_') or self.has_undoc_decorator(node)) \
-                and node.name not in self.classes_seen:
-            cls = Obj(name=node.name)
-            cls.has_init = any(isinstance(n, ast.FunctionDef) and \
-                                n.name=='__init__' for n in node.body)
+        if (
+            not (node.name.startswith("_") or self.has_undoc_decorator(node))
+            and node.name not in self.classes_seen
+        ):
+            cls = Obj(name=node.name, sphinx_options={})
+            cls.has_init = any(
+                isinstance(n, ast.FunctionDef) and n.name == "__init__"
+                for n in node.body
+            )
             self.classes.append(cls)
             self.classes_seen.add(node.name)
     
@@ -221,7 +220,11 @@ class ApiDocWriter(object):
         funcs, classes = [], []
         for name, obj in ns.items():
             if inspect.isclass(obj):
-                cls = Obj(name=name, has_init='__init__' in obj.__dict__)
+                cls = Obj(
+                    name=name,
+                    has_init="__init__" in obj.__dict__,
+                    sphinx_options=getattr(obj, "_sphinx_options", {}),
+                )
                 classes.append(cls)
             elif inspect.isfunction(obj):
                 funcs.append(name)
@@ -279,10 +282,18 @@ class ApiDocWriter(object):
                   self.rst_section_levels[2] * len(subhead) + '\n'
 
         for c in classes:
-            ad += '\n.. autoclass:: ' + c.name + '\n'
+            opts = c.sphinx_options
+            ad += "\n.. autoclass:: " + c.name + "\n"
             # must NOT exclude from index to keep cross-refs working
-            ad += '  :members:\n' \
-                  '  :show-inheritance:\n'
+            ad += "  :members:\n"
+            if opts.get("show_inheritance", True):
+                ad += "  :show-inheritance:\n"
+            if opts.get("show_inherited_members", False):
+                exclusions_list = opts.get("exclude_inherited_from", [])
+                exclusions = (
+                    (" " + " ".join(exclusions_list)) if exclusions_list else ""
+                )
+                ad += f"  :inherited-members:{exclusions}\n"
             if c.has_init:
                   ad += '\n  .. automethod:: __init__\n'
         
@@ -390,9 +401,8 @@ class ApiDocWriter(object):
             if not api_str:
                 continue
             # write out to file
-            outfile = os.path.join(outdir,
-                                   m + self.rst_extension)
-            with open(outfile, 'wt') as fileobj:
+            outfile = os.path.join(outdir, m + self.rst_extension)
+            with open(outfile, "wt", encoding="utf-8") as fileobj:
                 fileobj.write(api_str)
             written_modules.append(m)
         self.written_modules = written_modules
@@ -444,7 +454,7 @@ class ApiDocWriter(object):
             relpath = outdir.replace(relative_to + os.path.sep, '')
         else:
             relpath = outdir
-        with open(path,'wt') as idx:
+        with open(path, "wt", encoding="utf-8") as idx:
             w = idx.write
             w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
             w('.. autosummary::\n'

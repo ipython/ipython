@@ -3,7 +3,7 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-import nose.tools as nt
+import pytest
 
 from IPython.core.prefilter import AutocallChecker
 
@@ -19,7 +19,7 @@ def test_prefilter():
              ]
 
     for raw, correct in pairs:
-        nt.assert_equal(ip.prefilter(raw), correct)
+        assert ip.prefilter(raw) == correct
 
 def test_prefilter_shadowed():
     def dummy_magic(line): pass
@@ -32,29 +32,29 @@ def test_prefilter_shadowed():
         # These should not be transformed - they are shadowed by other names
         for name in ['if', 'zip', 'get_ipython']: # keyword, builtin, global
             ip.register_magic_function(dummy_magic, magic_name=name)
-            res = ip.prefilter(name+' foo')
-            nt.assert_equal(res, name+' foo')
-            del ip.magics_manager.magics['line'][name]
+            res = ip.prefilter(name + " foo")
+            assert res == name + " foo"
+            del ip.magics_manager.magics["line"][name]
 
         # These should be transformed
         for name in ['fi', 'piz', 'nohtypi_teg']:
             ip.register_magic_function(dummy_magic, magic_name=name)
-            res = ip.prefilter(name+' foo')
-            nt.assert_not_equal(res, name+' foo')
-            del ip.magics_manager.magics['line'][name]
+            res = ip.prefilter(name + " foo")
+            assert res != name + " foo"
+            del ip.magics_manager.magics["line"][name]
 
     finally:
         ip.automagic = prev_automagic_state
 
 def test_autocall_binops():
     """See https://github.com/ipython/ipython/issues/81"""
-    ip.magic('autocall 2')
+    ip.run_line_magic("autocall", "2")
     f = lambda x: x
     ip.user_ns['f'] = f
     try:
-        nt.assert_equal(ip.prefilter('f 1'),'f(1)')
-        for t in ['f +1', 'f -1']:
-            nt.assert_equal(ip.prefilter(t), t)
+        assert ip.prefilter("f 1") == "f(1)"
+        for t in ["f +1", "f -1"]:
+            assert ip.prefilter(t) == t
 
         # Run tests again with a more permissive exclude_regexp, which will
         # allow transformation of binary operations ('f -1' -> 'f(-1)').
@@ -66,13 +66,13 @@ def test_autocall_binops():
             ac.exclude_regexp = r'^[,&^\|\*/]|^is |^not |^in |^and |^or '
             pm.sort_checkers()
 
-            nt.assert_equal(ip.prefilter('f -1'), 'f(-1)')
-            nt.assert_equal(ip.prefilter('f +1'), 'f(+1)')
+            assert ip.prefilter("f -1") == "f(-1)"
+            assert ip.prefilter("f +1") == "f(+1)"
         finally:
             pm.unregister_checker(ac)
     finally:
-        ip.magic('autocall 0')
-        del ip.user_ns['f']
+        ip.run_line_magic("autocall", "0")
+        del ip.user_ns["f"]
 
 
 def test_issue_114():
@@ -88,7 +88,7 @@ def test_issue_114():
     try:
         for mgk in ip.magics_manager.lsmagic()['line']:
             raw = template % mgk
-            nt.assert_equal(ip.prefilter(raw), raw)
+            assert ip.prefilter(raw) == raw
     finally:
         ip.prefilter_manager.multi_line_specials = msp
 
@@ -105,23 +105,45 @@ def test_prefilter_attribute_errors():
             return x
 
     # Create a callable broken object
-    ip.user_ns['x'] = X()
-    ip.magic('autocall 2')
+    ip.user_ns["x"] = X()
+    ip.run_line_magic("autocall", "2")
     try:
         # Even if x throws an attribute error when looking at its rewrite
         # attribute, we should not crash.  So the test here is simply making
         # the prefilter call and not having an exception.
         ip.prefilter('x 1')
     finally:
-        del ip.user_ns['x']
-        ip.magic('autocall 0')
+        del ip.user_ns["x"]
+        ip.run_line_magic("autocall", "0")
+
+
+def test_autocall_type_ann():
+    ip.run_cell("import collections.abc")
+    ip.run_line_magic("autocall", "1")
+    try:
+        assert (
+            ip.prefilter("collections.abc.Callable[[int], None]")
+            == "collections.abc.Callable[[int], None]"
+        )
+    finally:
+        ip.run_line_magic("autocall", "0")
 
 
 def test_autocall_should_support_unicode():
-    ip.magic('autocall 2')
-    ip.user_ns['π'] = lambda x: x
+    ip.run_line_magic("autocall", "2")
+    ip.user_ns["π"] = lambda x: x
     try:
-        nt.assert_equal(ip.prefilter('π 3'),'π(3)')
+        assert ip.prefilter("π 3") == "π(3)"
     finally:
-        ip.magic('autocall 0')
-        del ip.user_ns['π']
+        ip.run_line_magic("autocall", "0")
+        del ip.user_ns["π"]
+
+
+def test_autocall_regression_gh_14513():
+    ip.run_line_magic("autocall", "2")
+    ip.user_ns["foo"] = dict()
+    try:
+        assert ip.prefilter("foo") == "foo"
+    finally:
+        ip.run_line_magic("autocall", "0")
+        del ip.user_ns["foo"]

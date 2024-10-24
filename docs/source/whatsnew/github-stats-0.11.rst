@@ -51,9 +51,9 @@ Pull requests (226):
 * `542 <https://github.com/ipython/ipython/issues/542>`_: issue 440
 * `533 <https://github.com/ipython/ipython/issues/533>`_: Remove unused configobj and validate libraries from externals.
 * `538 <https://github.com/ipython/ipython/issues/538>`_: fix various tests on Windows
-* `540 <https://github.com/ipython/ipython/issues/540>`_: support `-pylab` flag with deprecation warning
+* `540 <https://github.com/ipython/ipython/issues/540>`_: support ``-pylab`` flag with deprecation warning
 * `537 <https://github.com/ipython/ipython/issues/537>`_: Docs update
-* `536 <https://github.com/ipython/ipython/issues/536>`_: `setup.py install` depends on setuptools on Windows
+* `536 <https://github.com/ipython/ipython/issues/536>`_: ``setup.py install`` depends on setuptools on Windows
 * `480 <https://github.com/ipython/ipython/issues/480>`_: Get help mid-command
 * `462 <https://github.com/ipython/ipython/issues/462>`_: Str and Bytes traitlets
 * `534 <https://github.com/ipython/ipython/issues/534>`_: Handle unicode properly in IPython.zmq.iostream

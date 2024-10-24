@@ -21,12 +21,9 @@ from logging import log
 from setuptools import Command
 from setuptools.command.build_py import build_py
 
-# TODO: Replacement for this?
-from distutils.command.build_scripts import build_scripts
 from setuptools.command.install import install
 from setuptools.command.install_scripts import install_scripts
 
-from setupext import install_data_ext
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions
@@ -39,20 +36,8 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 
 def execfile(fname, globs, locs=None):
     locs = locs or globs
-    with open(fname) as f:
+    with open(fname, encoding="utf-8") as f:
         exec(compile(f.read(), fname, "exec"), globs, locs)
-
-# A little utility we'll need below, since glob() does NOT allow you to do
-# exclusion on multiple endings!
-def file_doesnt_endwith(test,endings):
-    """Return true if test is a file and its name does NOT end with any
-    of the strings listed in endings."""
-    if not isfile(test):
-        return False
-    for e in endings:
-        if test.endswith(e):
-            return False
-    return True
 
 #---------------------------------------------------------------------------
 # Basic project information
@@ -64,68 +49,14 @@ execfile(pjoin(repo_root, 'IPython','core','release.py'), globals())
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
 setup_args = dict(
-      name             = name,
-      version          = version,
-      description      = description,
-      long_description = long_description,
       author           = author,
       author_email     = author_email,
-      url              = url,
       license          = license,
-      platforms        = platforms,
-      keywords         = keywords,
-      classifiers      = classifiers,
-      cmdclass         = {'install_data': install_data_ext},
-      project_urls={
-          'Documentation': 'https://ipython.readthedocs.io/',
-          'Funding'      : 'https://numfocus.org/',
-          'Source'       : 'https://github.com/ipython/ipython',
-          'Tracker'      : 'https://github.com/ipython/ipython/issues',
-      }
       )
 
-
 #---------------------------------------------------------------------------
-# Find packages
+# Check package data
 #---------------------------------------------------------------------------
-
-def find_packages():
-    """
-    Find all of IPython's packages.
-    """
-    excludes = ['deathrow', 'quarantine']
-    packages = []
-    for dir,subdirs,files in os.walk('IPython'):
-        package = dir.replace(os.path.sep, '.')
-        if any(package.startswith('IPython.'+exc) for exc in excludes):
-            # package is to be excluded (e.g. deathrow)
-            continue
-        if '__init__.py' not in files:
-            # not a package
-            continue
-        packages.append(package)
-    return packages
-
-#---------------------------------------------------------------------------
-# Find package data
-#---------------------------------------------------------------------------
-
-def find_package_data():
-    """
-    Find IPython's package_data.
-    """
-    # This is not enough for these things to appear in an sdist.
-    # We need to muck with the MANIFEST to get this to work
-
-    package_data = {
-        'IPython.core' : ['profile/README*'],
-        'IPython.core.tests' : ['*.png', '*.jpg', 'daft_extension/*.py'],
-        'IPython.lib.tests' : ['*.wav'],
-        'IPython.testing.plugin' : ['*.txt'],
-    }
-
-    return package_data
-
 
 def check_package_data(package_data):
     """verify that package_data globs make sense"""
@@ -201,8 +132,8 @@ def target_outdated(target,deps):
     for dep in deps:
         dep_time = os.path.getmtime(dep)
         if dep_time > target_time:
-            #print "For target",target,"Dep failed:",dep # dbg
-            #print "times (dep,tar):",dep_time,target_time # dbg
+            # print("For target",target,"Dep failed:",dep)  # dbg
+            # print("times (dep,tar):",dep_time,target_time)  # dbg
             return 1
     return 0
 
@@ -219,136 +150,8 @@ def target_update(target,deps,cmd):
         os.system(cmd)
 
 #---------------------------------------------------------------------------
-# Find scripts
-#---------------------------------------------------------------------------
-
-def find_entry_points():
-    """Defines the command line entry points for IPython
-
-    This always uses setuptools-style entry points. When setuptools is not in
-    use, our own build_scripts_entrypt class below parses these and builds
-    command line scripts.
-
-    Each of our entry points gets both a plain name, e.g. ipython, and one
-    suffixed with the Python major version number, e.g. ipython3.
-    """
-    ep = [
-            'ipython%s = IPython:start_ipython',
-            'iptest%s = IPython.testing.iptestcontroller:main',
-        ]
-    suffix = str(sys.version_info[0])
-    return [e % '' for e in ep] + [e % suffix for e in ep]
-
-script_src = """#!{executable}
-# This script was automatically generated by setup.py
-if __name__ == '__main__':
-    from {mod} import {func}
-    {func}()
-"""
-
-class build_scripts_entrypt(build_scripts):
-    """Build the command line scripts
-
-    Parse setuptools style entry points and write simple scripts to run the
-    target functions.
-
-    On Windows, this also creates .cmd wrappers for the scripts so that you can
-    easily launch them from a command line.
-    """
-    def run(self):
-        self.mkpath(self.build_dir)
-        outfiles = []
-        for script in find_entry_points():
-            name, entrypt = script.split('=')
-            name = name.strip()
-            entrypt = entrypt.strip()
-            outfile = os.path.join(self.build_dir, name)
-            outfiles.append(outfile)
-            print('Writing script to', outfile)
-
-            mod, func = entrypt.split(':')
-            with open(outfile, 'w') as f:
-                f.write(script_src.format(executable=sys.executable,
-                                          mod=mod, func=func))
-
-            if sys.platform == 'win32':
-                # Write .cmd wrappers for Windows so 'ipython' etc. work at the
-                # command line
-                cmd_file = os.path.join(self.build_dir, name + '.cmd')
-                cmd = r'@"{python}" "%~dp0\{script}" %*\r\n'.format(
-                        python=sys.executable, script=name)
-                log.info("Writing %s wrapper script" % cmd_file)
-                with open(cmd_file, 'w') as f:
-                    f.write(cmd)
-
-        return outfiles, outfiles
-
-class install_lib_symlink(Command):
-    user_options = [
-        ('install-dir=', 'd', "directory to install to"),
-        ]
-
-    def initialize_options(self):
-        self.install_dir = None
-
-    def finalize_options(self):
-        self.set_undefined_options('symlink',
-                                   ('install_lib', 'install_dir'),
-                                  )
-
-    def run(self):
-        if sys.platform == 'win32':
-            raise Exception("This doesn't work on Windows.")
-        pkg = os.path.join(os.getcwd(), 'IPython')
-        dest = os.path.join(self.install_dir, 'IPython')
-        if os.path.islink(dest):
-            print('removing existing symlink at %s' % dest)
-            os.unlink(dest)
-        print('symlinking %s -> %s' % (pkg, dest))
-        os.symlink(pkg, dest)
-
-class unsymlink(install):
-    def run(self):
-        dest = os.path.join(self.install_lib, 'IPython')
-        if os.path.islink(dest):
-            print('removing symlink at %s' % dest)
-            os.unlink(dest)
-        else:
-            print('No symlink exists at %s' % dest)
-
-class install_symlinked(install):
-    def run(self):
-        if sys.platform == 'win32':
-            raise Exception("This doesn't work on Windows.")
-
-        # Run all sub-commands (at least those that need to be run)
-        for cmd_name in self.get_sub_commands():
-            self.run_command(cmd_name)
-
-    # 'sub_commands': a list of commands this command might have to run to
-    # get its work done.  See cmd.py for more info.
-    sub_commands = [('install_lib_symlink', lambda self:True),
-                    ('install_scripts_sym', lambda self:True),
-                   ]
-
-class install_scripts_for_symlink(install_scripts):
-    """Redefined to get options from 'symlink' instead of 'install'.
-
-    I love distutils almost as much as I love setuptools.
-    """
-    def finalize_options(self):
-        self.set_undefined_options('build', ('build_scripts', 'build_dir'))
-        self.set_undefined_options('symlink',
-                                   ('install_scripts', 'install_dir'),
-                                   ('force', 'force'),
-                                   ('skip_build', 'skip_build'),
-                                  )
-
-
-#---------------------------------------------------------------------------
 # VCS related
 #---------------------------------------------------------------------------
-
 
 def git_prebuild(pkg_dir, build_cmd=build_py):
     """Return extended build or sdist command class for recording commit
@@ -399,10 +202,13 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
                 os.remove(out_pth)
             except (IOError, OSError):
                 pass
-            with open(out_pth, 'w') as out_file:
-                out_file.writelines([
-                    '# GENERATED BY setup.py\n',
-                    'commit = u"%s"\n' % repo_commit,
-                ])
+            with open(out_pth, "w", encoding="utf-8") as out_file:
+                out_file.writelines(
+                    [
+                        "# GENERATED BY setup.py\n",
+                        'commit = "%s"\n' % repo_commit,
+                    ]
+                )
+
     return MyBuildPy
 

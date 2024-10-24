@@ -14,12 +14,12 @@ For instructions on how to make a developer install see :ref:`devinstall`.
 Backporting Pull requests
 =========================
 
-All pull requests should usually be made against ``master``, if a Pull Request
+All pull requests should usually be made against ``main``, if a Pull Request
 need to be backported to an earlier release; then it should be tagged with the
 correct ``milestone``.
 
 If you tag a pull request with a milestone **before** merging the pull request,
-and the base ref is ``master``, then our backport bot should automatically create
+and the base ref is ``main``, then our backport bot should automatically create
 a corresponding pull-request that backport on the correct branch.
 
 If you have write access to the IPython repository you can also just mention the
@@ -78,7 +78,7 @@ for the release you are actually making::
     PREV_RELEASE=4.2.1
     MILESTONE=5.0
     VERSION=5.0.0
-    BRANCH=master
+    BRANCH=main
 
 For `reproducibility of builds <https://reproducible-builds.org/specs/source-date-epoch/>`_,
 we recommend setting ``SOURCE_DATE_EPOCH`` prior to running the build; record the used value

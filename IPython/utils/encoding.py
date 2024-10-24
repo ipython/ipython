@@ -37,10 +37,10 @@ def get_stream_enc(stream, default=None):
 # won't need to make changes all over IPython.
 def getdefaultencoding(prefer_stream=True):
     """Return IPython's guess for the default encoding for bytes as text.
-    
+
     If prefer_stream is True (default), asks for stdin.encoding first,
     to match the calling Terminal, but that is often None for subprocesses.
-    
+
     Then fall back on locale.getpreferredencoding(),
     which should be a sensible platform default (that respects LANG environment),
     and finally to sys.getdefaultencoding() which is the most conservative option,

@@ -1,9 +1,9 @@
 """Implementation of basic magic functions."""
 
 
-import argparse
 from logging import error
 import io
+import os
 from pprint import pformat
 import sys
 from warnings import warn
@@ -40,12 +40,15 @@ class MagicsDisplay(object):
     def _repr_pretty_(self, p, cycle):
         p.text(self._lsmagic())
     
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         return self._lsmagic()
     
     def _jsonable(self):
         """turn magics dict into jsonable dict of the same structure
-        
+
         replaces object instances with their class names as strings
         """
         magic_dict = {}
@@ -74,6 +77,7 @@ class BasicMagics(Magics):
     These are various magics that don't fit into specific categories but that
     are all part of the base 'IPython experience'."""
 
+    @skip_doctest
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         '-l', '--line', action='store_true',
@@ -108,12 +112,12 @@ class BasicMagics(Magics):
           Created `%%t` as an alias for `%%timeit`.
 
           In [2]: %t -n1 pass
-          1 loops, best of 3: 954 ns per loop
+          107 ns ± 43.6 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
           In [3]: %%t -n1
              ...: pass
              ...:
-          1 loops, best of 3: 954 ns per loop
+          107 ns ± 58.3 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
           In [4]: %alias_magic --cell whereami pwd
           UsageError: Cell magic function `%%pwd` not found.
@@ -121,9 +125,9 @@ class BasicMagics(Magics):
           Created `%whereami` as an alias for `%pwd`.
 
           In [6]: %whereami
-          Out[6]: u'/home/testuser'
-          
-          In [7]: %alias_magic h history "-p -l 30" --line
+          Out[6]: '/home/testuser'
+
+          In [7]: %alias_magic h history -p "-l 30" --line
           Created `%h` as an alias for `%history -l 30`.
         """
 
@@ -295,8 +299,11 @@ Currently the magic system has the following functions:""",
 
         oname = args and args or '_'
         info = self.shell._ofind(oname)
-        if info['found']:
-            txt = (raw and str or pformat)( info['obj'] )
+        if info.found:
+            if raw:
+                txt = str(info.obj)
+            else:
+                txt = pformat(info.obj)
             page.page(txt)
         else:
             print('Object `%s` not found' % oname)
@@ -366,7 +373,7 @@ Currently the magic system has the following functions:""",
 
         If called without arguments, acts as a toggle.
 
-        When in verbose mode the value --show (and --hide) 
+        When in verbose mode the value `--show` (and `--hide`)
         will respectively show (or hide) frames with ``__tracebackhide__ =
         True`` value set.
         """
@@ -489,10 +496,13 @@ Currently the magic system has the following functions:""",
         are supported:  wxPython, PyQt4, PyGTK, Tk and Cocoa (OSX)::
 
             %gui wx      # enable wxPython event loop integration
-            %gui qt4|qt  # enable PyQt4 event loop integration
-            %gui qt5     # enable PyQt5 event loop integration
+            %gui qt      # enable PyQt/PySide event loop integration
+                         # with the latest version available.
+            %gui qt6     # enable PyQt6/PySide6 event loop integration
+            %gui qt5     # enable PyQt5/PySide2 event loop integration
             %gui gtk     # enable PyGTK event loop integration
             %gui gtk3    # enable Gtk3 event loop integration
+            %gui gtk4    # enable Gtk4 event loop integration
             %gui tk      # enable Tk event loop integration
             %gui osx     # enable Cocoa event loop integration
                          # (requires %matplotlib 1.1)
@@ -530,25 +540,25 @@ Currently the magic system has the following functions:""",
             In [1]: from math import pi
 
             In [2]: %precision 3
-            Out[2]: u'%.3f'
+            Out[2]: '%.3f'
 
             In [3]: pi
             Out[3]: 3.142
 
             In [4]: %precision %i
-            Out[4]: u'%i'
+            Out[4]: '%i'
 
             In [5]: pi
             Out[5]: 3
 
             In [6]: %precision %e
-            Out[6]: u'%e'
+            Out[6]: '%e'
 
             In [7]: pi**10
             Out[7]: 9.364805e+04
 
             In [8]: %precision
-            Out[8]: u'%r'
+            Out[8]: '%r'
 
             In [9]: pi**10
             Out[9]: 93648.047476082982
@@ -559,10 +569,6 @@ Currently the magic system has the following functions:""",
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
-        '-e', '--export', action='store_true', default=False,
-        help=argparse.SUPPRESS
-    )
-    @magic_arguments.argument(
         'filename', type=str,
         help='Notebook name or filename'
     )
@@ -572,11 +578,9 @@ Currently the magic system has the following functions:""",
 
         This function can export the current IPython history to a notebook file.
         For example, to export the history to "foo.ipynb" do "%notebook foo.ipynb".
-
-        The -e or --export flag is deprecated in IPython 5.2, and will be
-        removed in the future.
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
+        outfname = os.path.expanduser(args.filename)
 
         from nbformat import write, v4
 
@@ -590,7 +594,7 @@ Currently the magic system has the following functions:""",
                 source=source
             ))
         nb = v4.new_notebook(cells=cells)
-        with io.open(args.filename, 'w', encoding='utf-8') as f:
+        with io.open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
 
 @magics_class
@@ -621,12 +625,11 @@ class AsyncMagics(BasicMagics):
 
         If the passed parameter does not match any of the above and is a python
         identifier, get said object from user namespace and set it as the
-        runner, and activate autoawait. 
+        runner, and activate autoawait.
 
         If the object is a fully qualified object name, attempt to import it and
         set it as the runner, and activate autoawait.
-        
-        
+
         The exact behavior of autoawait is experimental and subject to change
         across version of IPython and Python.
         """

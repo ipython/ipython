@@ -20,7 +20,7 @@ import re
 import sys
 import ast
 from itertools import chain
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 from urllib.parse import urlencode
 from pathlib import Path
 
@@ -29,6 +29,7 @@ from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
 from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
+from IPython.core.release import version
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import get_py_filename
@@ -184,7 +185,7 @@ class CodeMagics(Magics):
         """Save a set of lines or a macro to a given filename.
 
         Usage:\\
-          %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
+          %save [options] filename [history]
 
         Options:
 
@@ -198,8 +199,11 @@ class CodeMagics(Magics):
 
           -a: append to the file instead of overwriting it.
 
-        This function uses the same syntax as %history for input ranges,
+        The history argument uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
+
+        If no ranges are specified, saves history of the current session up to
+        this point.
 
         It adds a '.py' extension to the file if you don't do so yourself, and
         it asks for confirmation before overwriting existing files.
@@ -218,6 +222,7 @@ class CodeMagics(Magics):
         fname, codefrom = args[0], " ".join(args[1:])
         if not fname.endswith(('.py','.ipy')):
             fname += ext
+        fname = os.path.expanduser(fname)
         file_exists = os.path.isfile(fname)
         if file_exists and not force and not append:
             try:
@@ -245,20 +250,25 @@ class CodeMagics(Magics):
 
     @line_magic
     def pastebin(self, parameter_s=''):
-        """Upload code to dpaste's paste bin, returning the URL.
+        """Upload code to dpaste.com, returning the URL.
 
         Usage:\\
-          %pastebin [-d "Custom description"] 1-7
+          %pastebin [-d "Custom description"][-e 24] 1-7
 
         The argument can be an input history range, a filename, or the name of a
         string or macro.
 
+        If no arguments are given, uploads the history of this session up to
+        this point.
+
         Options:
 
-          -d: Pass a custom description for the gist. The default will say
+          -d: Pass a custom description. The default will say
               "Pasted from IPython".
+          -e: Pass number of days for the link to be expired.
+              The default will be 7 days.
         """
-        opts, args = self.parse_options(parameter_s, 'd:')
+        opts, args = self.parse_options(parameter_s, "d:e:")
 
         try:
             code = self.shell.find_user_code(args)
@@ -266,13 +276,30 @@ class CodeMagics(Magics):
             print(e.args[0])
             return
 
-        post_data = urlencode({
-          "title": opts.get('d', "Pasted from IPython"),
-          "syntax": "python3",
-          "content": code
-        }).encode('utf-8')
+        expiry_days = 7
+        try:
+            expiry_days = int(opts.get("e", 7))
+        except ValueError as e:
+            print(e.args[0].capitalize())
+            return
+        if expiry_days < 1 or expiry_days > 365:
+            print("Expiry days should be in range of 1 to 365")
+            return
 
-        response = urlopen("http://dpaste.com/api/v2/", post_data)
+        post_data = urlencode(
+            {
+                "title": opts.get("d", "Pasted from IPython"),
+                "syntax": "python",
+                "content": code,
+                "expiry_days": expiry_days,
+            }
+        ).encode("utf-8")
+
+        request = Request(
+            "https://dpaste.com/api/v2/",
+            headers={"User-Agent": "IPython v{}".format(version)},
+        )
+        response = urlopen(request, post_data)
         return response.headers.get('Location')
 
     @line_magic
@@ -295,6 +322,9 @@ class CodeMagics(Magics):
           where source can be a filename, URL, input history range, macro, or
           element in the user namespace
 
+        If no arguments are given, loads the history of this session up to this
+        point.
+
         Options:
 
           -r <lines>: Specify lines or ranges of lines to load from the source.
@@ -313,6 +343,7 @@ class CodeMagics(Magics):
         confirmation before loading source with more than 200 000 characters, unless
         -y flag is passed or if the frontend does not support raw_input::
 
+        %load
         %load myscript.py
         %load 7-27
         %load myMacro
@@ -324,13 +355,7 @@ class CodeMagics(Magics):
         %load -n my_module.wonder_function
         """
         opts,args = self.parse_options(arg_s,'yns:r:')
-
-        if not args:
-            raise UsageError('Missing filename, URL, input history range, '
-                             'macro, or element in the user namespace.')
-
         search_ns = 'n' in opts
-
         contents = self.shell.find_user_code(args, search_ns=search_ns)
 
         if 's' in opts:
@@ -427,7 +452,7 @@ class CodeMagics(Magics):
                     # Load the parameter given as a variable. If not a string,
                     # process it as an object instead (below)
 
-                    #print '*** args',args,'type',type(args)  # dbg
+                    # print('*** args',args,'type',type(args))  # dbg
                     data = eval(args, shell.user_ns)
                     if not isinstance(data, str):
                         raise DataIsObject
@@ -513,7 +538,7 @@ class CodeMagics(Magics):
         self.shell.hooks.editor(filename)
 
         # and make a new macro object, to replace the old one
-        mvalue = Path(filename).read_text()
+        mvalue = Path(filename).read_text(encoding="utf-8")
         self.shell.user_ns[mname] = Macro(mvalue)
 
     @skip_doctest
@@ -611,8 +636,8 @@ class CodeMagics(Magics):
 
           In [1]: edit
           Editing... done. Executing edited code...
-          Out[1]: 'def foo():\\n    print "foo() was defined in an editing
-          session"\\n'
+          Out[1]: 'def foo():\\n    print("foo() was defined in an editing
+          session")\\n'
 
         We can then call the function foo()::
 
@@ -636,21 +661,21 @@ class CodeMagics(Magics):
           In [5]: edit
           Editing... done. Executing edited code...
           hello
-          Out[5]: "print 'hello'\\n"
+          Out[5]: "print('hello')\\n"
 
         Now we call it again with the previous output (stored in _)::
 
           In [6]: edit _
           Editing... done. Executing edited code...
           hello world
-          Out[6]: "print 'hello world'\\n"
+          Out[6]: "print('hello world')\\n"
 
         Now we call it with the output #8 (stored in _8, also as Out[8])::
 
           In [7]: edit _8
           Editing... done. Executing edited code...
           hello again
-          Out[7]: "print 'hello again'\\n"
+          Out[7]: "print('hello again')\\n"
 
 
         Changing the default editor hook:
@@ -703,7 +728,7 @@ class CodeMagics(Magics):
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste
         if args.strip() == "pasted_block":
-            self.shell.user_ns["pasted_block"] = filepath.read_text()
+            self.shell.user_ns["pasted_block"] = filepath.read_text(encoding="utf-8")
 
         if 'x' in opts:  # -x prevents actual execution
             print()
@@ -711,9 +736,9 @@ class CodeMagics(Magics):
             print('done. Executing edited code...')
             with preserve_keys(self.shell.user_ns, '__file__'):
                 if not is_temp:
-                    self.shell.user_ns['__file__'] = filename
-                if 'r' in opts:    # Untranslated IPython code
-                    source = filepath.read_text()
+                    self.shell.user_ns["__file__"] = filename
+                if "r" in opts:  # Untranslated IPython code
+                    source = filepath.read_text(encoding="utf-8")
                     self.shell.run_cell(source, store_history=False)
                 else:
                     self.shell.safe_execfile(filename, self.shell.user_ns,
@@ -721,7 +746,7 @@ class CodeMagics(Magics):
 
         if is_temp:
             try:
-                return filepath.read_text()
+                return filepath.read_text(encoding="utf-8")
             except IOError as msg:
                 if Path(msg.filename) == filepath:
                     warn('File not found. Did you forget to save?')

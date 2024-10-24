@@ -5,27 +5,24 @@
 from contextlib import contextmanager
 from unittest.mock import patch
 
-import nose.tools as nt
 import pytest
 
 from IPython.lib import latextools
 from IPython.testing.decorators import (
     onlyif_cmds_exist,
     skipif_not_matplotlib,
-    skip_iptest_but_not_pytest,
 )
 from IPython.utils.process import FindCmdError
 
 
 @pytest.mark.parametrize('command', ['latex', 'dvipng'])
-@skip_iptest_but_not_pytest
 def test_check_latex_to_png_dvipng_fails_when_no_cmd(command):
     def mock_find_cmd(arg):
         if arg == command:
             raise FindCmdError
 
     with patch.object(latextools, "find_cmd", mock_find_cmd):
-        assert latextools.latex_to_png_dvipng("whatever", True) == None
+        assert latextools.latex_to_png_dvipng("whatever", True) is None
 
 
 @contextmanager
@@ -33,9 +30,8 @@ def no_op(*args, **kwargs):
     yield
 
 
-@skip_iptest_but_not_pytest
 @onlyif_cmds_exist("latex", "dvipng")
-@pytest.mark.parametrize("s, wrap", [(u"$$x^2$$", False), (u"x^2", True)])
+@pytest.mark.parametrize("s, wrap", [("$$x^2$$", False), ("x^2", True)])
 def test_latex_to_png_dvipng_runs(s, wrap):
     """
     Test that latex_to_png_dvipng just runs without error.
@@ -61,7 +57,6 @@ def patch_latextool(mock=mock_kpsewhich):
 
 @pytest.mark.parametrize('context', [no_op, patch_latextool])
 @pytest.mark.parametrize('s_wrap', [("$x^2$", False), ("x^2", True)])
-@skip_iptest_but_not_pytest
 def test_latex_to_png_mpl_runs(s_wrap, context):
     """
     Test that latex_to_png_mpl just runs without error.
@@ -185,7 +180,13 @@ def test_latex_to_png_invalid_hex_colors():
     Test that invalid hex colors provided to dvipng gives an exception.
     """
     latex_string = "$x^2$"
-    nt.assert_raises(ValueError, lambda: latextools.latex_to_png(latex_string,
-                                        backend='dvipng', color="#f00bar"))
-    nt.assert_raises(ValueError, lambda: latextools.latex_to_png(latex_string,
-                                        backend='dvipng', color="#f00"))
+    pytest.raises(
+        ValueError,
+        lambda: latextools.latex_to_png(
+            latex_string, backend="dvipng", color="#f00bar"
+        ),
+    )
+    pytest.raises(
+        ValueError,
+        lambda: latextools.latex_to_png(latex_string, backend="dvipng", color="#f00"),
+    )

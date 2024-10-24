@@ -3,9 +3,8 @@
 """
 import os
 import sys
-from shutil import rmtree
 
-from toollib import sh, pjoin, get_ipdir, cd, sdists, buildwheels
+from toollib import sh, get_ipdir, cd, build_command
 
 def build_release():
 
@@ -14,8 +13,8 @@ def build_release():
     cd(ipdir)
 
     # Build source and binary distros
-    sh(sdists)
-    buildwheels()
+    sh(build_command)
+    # don't try to change, xz, bz2 deprecated.
     sh(' '.join([sys.executable, 'tools/retar.py', 'dist/*.gz']))
 
 if __name__ == '__main__':

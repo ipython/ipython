@@ -37,10 +37,3 @@ def doctest_ivars():
     In [6]: zz
     Out[6]: 1
     """
-
-def doctest_refs():
-    """DocTest reference holding issues when running scripts.
-
-    In [32]: run show_refs.py
-    c referrers: [<... 'dict'>]
-    """

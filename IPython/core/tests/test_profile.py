@@ -23,19 +23,17 @@ Authors
 import shutil
 import sys
 import tempfile
-
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 
-import nose.tools as nt
+import pytest
 
-from IPython.core.profileapp import list_profiles_in, list_bundled_profiles
+from IPython.core.profileapp import list_bundled_profiles, list_profiles_in
 from IPython.core.profiledir import ProfileDir
-
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils.process import getoutput
-from IPython.utils.tempdir import TemporaryDirectory
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -72,15 +70,6 @@ def teardown_module():
 #-----------------------------------------------------------------------------
 # Test functions
 #-----------------------------------------------------------------------------
-def win32_without_pywin32():
-    if sys.platform == 'win32':
-        try:
-            import pywin32
-        except ImportError:
-            return True
-    return False
-    
-
 class ProfileStartupTest(TestCase):
     def setUp(self):
         # create profile dir
@@ -95,26 +84,29 @@ class ProfileStartupTest(TestCase):
 
     def init(self, startup_file, startup, test):
         # write startup python file
-        with open(Path(self.pd.startup_dir) / startup_file, "w") as f:
+        with open(Path(self.pd.startup_dir) / startup_file, "w", encoding="utf-8") as f:
             f.write(startup)
         # write simple test file, to check that the startup file was run
-        with open(self.fname, 'w') as f:
+        with open(self.fname, "w", encoding="utf-8") as f:
             f.write(test)
 
     def validate(self, output):
-        tt.ipexec_validate(self.fname, output, '', options=self.options)
+        tt.ipexec_validate(self.fname, output, "", options=self.options)
 
-    @dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
     def test_startup_py(self):
         self.init('00-start.py', 'zzz=123\n', 'print(zzz)\n')
         self.validate('123')
 
-    @dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
     def test_startup_ipy(self):
         self.init('00-start.ipy', '%xmode plain\n', '')
         self.validate('Exception reporting mode: Plain')
 
-    
+
+@pytest.mark.skipif(
+    sys.implementation.name == "pypy"
+    and ((7, 3, 13) < sys.implementation.version < (7, 3, 16)),
+    reason="Unicode issues with scandir on PyPy, see https://github.com/pypy/pypy/issues/4860",
+)
 def test_list_profiles_in():
     # No need to remove these directories and files, as they will get nuked in
     # the module-level teardown.
@@ -122,12 +114,12 @@ def test_list_profiles_in():
     for name in ("profile_foo", "profile_hello", "not_a_profile"):
         Path(td / name).mkdir(parents=True)
     if dec.unicode_paths:
-        Path(td / u"profile_ünicode").mkdir(parents=True)
+        Path(td / "profile_ünicode").mkdir(parents=True)
 
-    with open(td / "profile_file", "w") as f:
+    with open(td / "profile_file", "w", encoding="utf-8") as f:
         f.write("I am not a profile directory")
     profiles = list_profiles_in(td)
-    
+
     # unicode normalization can turn u'ünicode' into u'u\0308nicode',
     # so only check for *nicode, and that creating a ProfileDir from the
     # name remains valid
@@ -139,14 +131,14 @@ def test_list_profiles_in():
             found_unicode = True
             break
     if dec.unicode_paths:
-        nt.assert_true(found_unicode)
-    nt.assert_equal(set(profiles), {'foo', 'hello'})
+        assert found_unicode is True
+    assert set(profiles) == {"foo", "hello"}
 
 
 def test_list_bundled_profiles():
     # This variable will need to be updated when a new profile gets bundled
     bundled = sorted(list_bundled_profiles())
-    nt.assert_equal(bundled, [])
+    assert bundled == []
 
 
 def test_profile_create_ipython_dir():
@@ -167,4 +159,3 @@ def test_profile_create_ipython_dir():
         assert Path(profile_dir).exists()
         ipython_config = profile_dir / "ipython_config.py"
         assert Path(ipython_config).exists()
-        

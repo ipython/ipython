@@ -11,7 +11,6 @@ Inheritance diagram:
 # Distributed under the terms of the Modified BSD License.
 
 import abc
-import json
 import sys
 import traceback
 import warnings
@@ -29,6 +28,8 @@ from traitlets import (
     ForwardDeclaredInstance,
     default, observe,
 )
+
+from typing import Any
 
 
 class DisplayFormatter(Configurable):
@@ -52,20 +53,23 @@ class DisplayFormatter(Configurable):
             else:
                 formatter.enabled = False
 
-    ipython_display_formatter = ForwardDeclaredInstance('FormatterABC')
-    @default('ipython_display_formatter')
+    ipython_display_formatter = ForwardDeclaredInstance("FormatterABC")  # type: ignore
+
+    @default("ipython_display_formatter")
     def _default_formatter(self):
         return IPythonDisplayFormatter(parent=self)
 
-    mimebundle_formatter = ForwardDeclaredInstance('FormatterABC')
-    @default('mimebundle_formatter')
+    mimebundle_formatter = ForwardDeclaredInstance("FormatterABC")  # type: ignore
+
+    @default("mimebundle_formatter")
     def _default_mime_formatter(self):
         return MimeBundleFormatter(parent=self)
 
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
     formatters = Dict()
-    @default('formatters')
+
+    @default("formatters")
     def _formatters_default(self):
         """Activate the default formatters."""
         formatter_classes = [
@@ -121,19 +125,17 @@ class DisplayFormatter(Configurable):
         Returns
         -------
         (format_dict, metadata_dict) : tuple of two dicts
-        
             format_dict is a dictionary of key/value pairs, one of each format that was
             generated for the object. The keys are the format types, which
             will usually be MIME type strings and the values and JSON'able
             data structure containing the raw data for the representation in
             that format.
-            
+
             metadata_dict is a dictionary of metadata about each mime-type output.
             Its keys will be a strict subset of the keys in format_dict.
 
         Notes
         -----
-
             If an object implement `_repr_mimebundle_` as well as various
             `_repr_*_`, the data returned by `_repr_mimebundle_` will take
             precedence and the corresponding `_repr_*_` for this mimetype will
@@ -263,7 +265,7 @@ class FormatterABC(metaclass=abc.ABCMeta):
 
 def _mod_name_key(typ):
     """Return a (__module__, __name__) tuple for a type.
-    
+
     Used as key in Formatter.deferred_printers.
     """
     module = getattr(typ, '__module__', None)
@@ -309,8 +311,8 @@ class BaseFormatter(Configurable):
     returned and this format type is not used.
     """
 
-    format_type = Unicode('text/plain')
-    _return_type = str
+    format_type = Unicode("text/plain")
+    _return_type: Any = str
 
     enabled = Bool(True).tag(config=True)
 
@@ -358,7 +360,7 @@ class BaseFormatter(Configurable):
     
     def _check_return(self, r, obj):
         """Check that a return value is appropriate
-        
+
         Return the value if so, None otherwise, warning if invalid.
         """
         if r is None or isinstance(r, self._return_type) or \
@@ -373,10 +375,10 @@ class BaseFormatter(Configurable):
     
     def lookup(self, obj):
         """Look up the formatter for a given instance.
-        
+
         Parameters
         ----------
-        obj  : object instance
+        obj : object instance
 
         Returns
         -------
@@ -399,7 +401,7 @@ class BaseFormatter(Configurable):
 
         Parameters
         ----------
-        typ  : type or '__module__.__name__' string for a type
+        typ : type or '__module__.__name__' string for a type
 
         Returns
         -------
@@ -430,21 +432,22 @@ class BaseFormatter(Configurable):
 
     def for_type(self, typ, func=None):
         """Add a format function for a given type.
-        
+
         Parameters
         ----------
         typ : type or '__module__.__name__' string for a type
             The class of the object that will be formatted using `func`.
+
         func : callable
             A callable for computing the format data.
             `func` will be called with the object to be formatted,
             and will return the raw data in this formatter's format.
             Subclasses may use a different call signature for the
             `func` argument.
-            
+
             If `func` is None or not specified, there will be no change,
             only returning the current value.
-        
+
         Returns
         -------
         oldfunc : callable
@@ -476,18 +479,20 @@ class BaseFormatter(Configurable):
         type_module : str
             The full dotted name of the module the type is defined in, like
             ``numpy``.
+
         type_name : str
             The name of the type (the class name), like ``dtype``
+
         func : callable
             A callable for computing the format data.
             `func` will be called with the object to be formatted,
             and will return the raw data in this formatter's format.
             Subclasses may use a different call signature for the
             `func` argument.
-            
+
             If `func` is None or unspecified, there will be no change,
             only returning the current value.
-        
+
         Returns
         -------
         oldfunc : callable
@@ -636,7 +641,6 @@ class PlainTextFormatter(BaseFormatter):
 
         This parameter can be set via the '%precision' magic.
         """
-
         new = change['new']
         if '%' in new:
             # got explicit format string
@@ -678,6 +682,11 @@ class PlainTextFormatter(BaseFormatter):
     def _type_printers_default(self):
         d = pretty._type_pprinters.copy()
         d[float] = lambda obj,p,cycle: p.text(self.float_format%obj)
+        # if NumPy is used, set precision for its float64 type
+        if "numpy" in sys.modules:
+            import numpy
+
+            d[numpy.float64] = lambda obj, p, cycle: p.text(self.float_format % obj)
         return d
 
     @default('deferred_printers')
@@ -823,7 +832,7 @@ class JSONFormatter(BaseFormatter):
     
     def _check_return(self, r, obj):
         """Check that a return value is appropriate
-        
+
         Return the value if so, None otherwise, warning if invalid.
         """
         if r is None:
@@ -832,13 +841,11 @@ class JSONFormatter(BaseFormatter):
         if isinstance(r, tuple):
             # unpack data, metadata tuple for type checking on first element
             r, md = r
-        
-        # handle deprecated JSON-as-string form from IPython < 3
-        if isinstance(r, str):
-            warnings.warn("JSON expects JSONable list/dict containers, not JSON strings",
-            FormatterWarning)
-            r = json.loads(r)
-        
+
+        assert not isinstance(
+            r, str
+        ), "JSON-as-string has been deprecated since IPython < 3"
+
         if md is not None:
             # put the tuple back together
             r = (r, md)

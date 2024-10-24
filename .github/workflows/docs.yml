@@ -1,0 +1,39 @@
+name: Build docs
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.x
+    - name: Install Graphviz
+      run: |
+        sudo apt-get update
+        sudo apt-get install graphviz
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools coverage rstvalidator
+        pip install -r docs/requirements.txt
+    - name: Build docs
+      run: |
+        python -m rstvalidator long_description.rst
+        python tools/fixup_whats_new_pr.py
+        make -C docs/ html SPHINXOPTS="-W" \
+          PYTHON="coverage run -a" \
+          SPHINXBUILD="coverage run -a -m sphinx.cmd.build"
+    - name: Generate coverage xml
+      run: |
+        coverage combine `find . -name .coverage\*` && coverage xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        name: Docs

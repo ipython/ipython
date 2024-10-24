@@ -116,7 +116,7 @@ class BackgroundJobManager(object):
         The given expression is passed to eval(), along with the optional
         global/local dicts provided.  If no dicts are given, they are
         extracted automatically from the caller's frame.
-        
+
         A Python statement is NOT a valid eval() expression.  Basically, you
         can only use as an eval() argument something which can go on the right
         of an '=' sign and be assigned to a variable.
@@ -135,7 +135,7 @@ class BackgroundJobManager(object):
 
           job_manager.new(myfunc, x, y, kw=dict(z=1))
 
-        The reason for this assymmetry is that the new() method needs to
+        The reason for this asymmetry is that the new() method needs to
         maintain access to its own keywords, and this prevents name collisions
         between arguments to new() and arguments to your own functions.
 

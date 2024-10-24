@@ -6,7 +6,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import nose.tools as nt
+import pytest
 from IPython.core.error import TryNext
 from IPython.core.hooks import CommandChainDispatcher
 
@@ -38,27 +38,23 @@ class Fail(object):
 
 def test_command_chain_dispatcher_ff():
     """Test two failing hooks"""
-    fail1 = Fail(u'fail1')
-    fail2 = Fail(u'fail2')
-    dp = CommandChainDispatcher([(0, fail1),
-                                 (10, fail2)])
+    fail1 = Fail("fail1")
+    fail2 = Fail("fail2")
+    dp = CommandChainDispatcher([(0, fail1), (10, fail2)])
 
-    try:
+    with pytest.raises(TryNext) as e:
         dp()
-    except TryNext as e:
-        nt.assert_equal(str(e), u'fail2')
-    else:
-        assert False, "Expected exception was not raised."
+    assert str(e.value) == "fail2"
 
-    nt.assert_true(fail1.called)
-    nt.assert_true(fail2.called)
+    assert fail1.called is True
+    assert fail2.called is True
 
 def test_command_chain_dispatcher_fofo():
     """Test a mixture of failing and succeeding hooks."""
-    fail1 = Fail(u'fail1')
-    fail2 = Fail(u'fail2')
-    okay1 = Okay(u'okay1')
-    okay2 = Okay(u'okay2')
+    fail1 = Fail("fail1")
+    fail2 = Fail("fail2")
+    okay1 = Okay("okay1")
+    okay2 = Okay("okay2")
 
     dp = CommandChainDispatcher([(0, fail1),
                                  # (5, okay1), # add this later
@@ -66,12 +62,12 @@ def test_command_chain_dispatcher_fofo():
                                  (15, okay2)])
     dp.add(okay1, 5)
 
-    nt.assert_equal(dp(), u'okay1')
+    assert dp() == "okay1"
 
-    nt.assert_true(fail1.called)
-    nt.assert_true(okay1.called)
-    nt.assert_false(fail2.called)
-    nt.assert_false(okay2.called)
+    assert fail1.called is True
+    assert okay1.called is True
+    assert fail2.called is False
+    assert okay2.called is False
 
 def test_command_chain_dispatcher_eq_priority():
     okay1 = Okay(u'okay1')

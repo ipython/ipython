@@ -309,7 +309,7 @@ be started by calling ``ipython qtconsole``. The protocol is :ref:`documented
 <messaging>`.
 
 The parallel computing framework has also been rewritten using ZMQ. The
-protocol is described :ref:`here <parallel_messages>`, and the code is in the
+protocol is described in the ipyparallel documentation, and the code is in the
 new :mod:`IPython.parallel` module.
 
 .. _python3_011:

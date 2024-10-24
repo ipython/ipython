@@ -12,15 +12,13 @@ It is a bit ridiculous that we need these.
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+from warnings import warn
 
-from distutils.version import LooseVersion
+warn(
+    "The `IPython.utils.version` module has been deprecated since IPython 8.0.",
+    DeprecationWarning,
+)
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 def check_version(v, check):
     """check version string v >= check
@@ -29,6 +27,15 @@ def check_version(v, check):
     it is assumed that the dependency is satisfied.
     Users on dev branches are responsible for keeping their own packages up to date.
     """
+    warn(
+        "`check_version` function is deprecated as of IPython 8.0"
+        "and will be removed in future versions.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    from distutils.version import LooseVersion
+
     try:
         return LooseVersion(v) >= LooseVersion(check)
     except TypeError:

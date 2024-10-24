@@ -37,6 +37,38 @@ arguments::
           -o OPTION, --option OPTION
                                 An optional argument.
 
+Here is an elaborated example that uses default parameters in `argument` and calls the `args` in the cell magic::
+
+    from IPython.core.magic import register_cell_magic
+    from IPython.core.magic_arguments import (argument, magic_arguments,
+                                            parse_argstring)
+
+
+    @magic_arguments()
+    @argument(
+        "--option",
+        "-o",
+        help=("Add an option here"),
+    )
+    @argument(
+        "--style",
+        "-s",
+        default="foo",
+        help=("Add some style arguments"),
+    )
+    @register_cell_magic
+    def my_cell_magic(line, cell):
+        args = parse_argstring(my_cell_magic, line)
+        print(f"{args.option=}")
+        print(f"{args.style=}")
+        print(f"{cell=}")
+
+In a jupyter notebook, this cell magic can be executed like this::
+
+    %%my_cell_magic -o Hello
+    print("bar")
+    i = 42
+
 Inheritance diagram:
 
 .. inheritance-diagram:: IPython.core.magic_arguments
@@ -219,7 +251,7 @@ class ArgMethodWrapper(ArgDecorator):
 
     """
 
-    _method_name = None
+    _method_name: str
 
     def __init__(self, *args, **kwds):
         self.args = args

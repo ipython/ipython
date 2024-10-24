@@ -63,4 +63,4 @@ for name, func in sorted(magics["cell"].items(), key=sortkey):
 
 src_path = Path(__file__).parent
 dest = src_path.joinpath("source", "interactive", "magics-generated.txt")
-dest.write_text("\n".join(output))
+dest.write_text("\n".join(output), encoding="utf-8")

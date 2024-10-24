@@ -16,12 +16,12 @@ def import_item(name):
     Parameters
     ----------
     name : string
-      The fully qualified name of the module/package being imported.
+        The fully qualified name of the module/package being imported.
 
     Returns
     -------
     mod : module object
-       The module that was imported.
+        The module that was imported.
     """
     
     parts = name.rsplit('.', 1)

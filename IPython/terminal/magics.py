@@ -11,6 +11,7 @@ import sys
 from IPython.core.error import TryNext, UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.lib.clipboard import ClipboardEmpty
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.text import SList, strip_email_quotes
 from IPython.utils import py3compat
 
@@ -40,7 +41,7 @@ class TerminalMagics(Magics):
     def __init__(self, shell):
         super(TerminalMagics, self).__init__(shell)
 
-    def store_or_execute(self, block, name):
+    def store_or_execute(self, block, name, store_history=False):
         """ Execute a block, or store it in a variable, per the user's request.
         """
         if name:
@@ -52,7 +53,7 @@ class TerminalMagics(Magics):
             self.shell.user_ns['pasted_block'] = b
             self.shell.using_paste_magics = True
             try:
-                self.shell.run_cell(b)
+                self.shell.run_cell(b, store_history)
             finally:
                 self.shell.using_paste_magics = False
 
@@ -83,6 +84,7 @@ class TerminalMagics(Magics):
         self.shell.set_autoindent()
         print("Automatic indentation is:",['OFF','ON'][self.shell.autoindent])
 
+    @skip_doctest
     @line_magic
     def cpaste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
@@ -109,11 +111,11 @@ class TerminalMagics(Magics):
         Just press enter and type -- (and press enter again) and the block
         will be what was just pasted.
 
-        IPython statements (magics, shell escapes) are not supported (yet).
+        Shell escapes are not supported (yet).
 
-        See also
+        See Also
         --------
-        paste: automatically pull code from clipboard.
+        paste : automatically pull code from clipboard.
 
         Examples
         --------
@@ -122,9 +124,19 @@ class TerminalMagics(Magics):
           In [8]: %cpaste
           Pasting code; enter '--' alone on the line to stop.
           :>>> a = ["world!", "Hello"]
-          :>>> print " ".join(sorted(a))
+          :>>> print(" ".join(sorted(a)))
           :--
           Hello world!
+
+        ::
+          In [8]: %cpaste
+          Pasting code; enter '--' alone on the line to stop.
+          :>>> %alias_magic t timeit
+          :>>> %t -n1 pass
+          :--
+          Created `%t` as an alias for `%timeit`.
+          Created `%%t` as an alias for `%%timeit`.
+          354 ns ± 224 ns per loop (mean ± std. dev. of 7 runs, 1 loop each)
         """
         opts, name = self.parse_options(parameter_s, 'rqs:', mode='string')
         if 'r' in opts:
@@ -135,7 +147,7 @@ class TerminalMagics(Magics):
 
         sentinel = opts.get('s', u'--')
         block = '\n'.join(get_pasted_lines(sentinel, quiet=quiet))
-        self.store_or_execute(block, name)
+        self.store_or_execute(block, name, store_history=True)
 
     @line_magic
     def paste(self, parameter_s=''):
@@ -164,9 +176,9 @@ class TerminalMagics(Magics):
 
         IPython statements (magics, shell escapes) are not supported (yet).
 
-        See also
+        See Also
         --------
-        cpaste: manually paste code into terminal until you mark its end.
+        cpaste : manually paste code into terminal until you mark its end.
         """
         opts, name = self.parse_options(parameter_s, 'rq', mode='string')
         if 'r' in opts:
@@ -186,13 +198,12 @@ class TerminalMagics(Magics):
 
         # By default, echo back to terminal unless quiet mode is requested
         if 'q' not in opts:
-            write = self.shell.write
-            write(self.shell.pycolorize(block))
-            if not block.endswith('\n'):
-                write('\n')
-            write("## -- End pasted text --\n")
+            sys.stdout.write(self.shell.pycolorize(block))
+            if not block.endswith("\n"):
+                sys.stdout.write("\n")
+            sys.stdout.write("## -- End pasted text --\n")
 
-        self.store_or_execute(block, name)
+        self.store_or_execute(block, name, store_history=True)
 
     # Class-level: add a '%cls' magic only on Windows
     if sys.platform == 'win32':

@@ -2,19 +2,19 @@ include README.rst
 include COPYING.rst
 include LICENSE
 include setupbase.py
-include setupegg.py
+include _build_meta.py
 include MANIFEST.in
-include pytest.ini
-include mypy.ini
 include .mailmap
 include .flake8
+include .pre-commit-config.yaml
+include long_description.rst
 
 recursive-exclude tools *
 exclude tools
 exclude CONTRIBUTING.md
 exclude .editorconfig
-
-graft setupext
+exclude SECURITY.md
+exclude .readthedocs.yaml
 
 graft scripts
 

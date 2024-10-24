@@ -4,12 +4,14 @@ Test for async helpers.
 Should only trigger on python 3.5+ or will have syntax errors.
 """
 from itertools import chain, repeat
-import nose.tools as nt
 from textwrap import dedent, indent
-from unittest import TestCase
-from IPython.testing.decorators import skip_without
-import sys
 from typing import TYPE_CHECKING
+from unittest import TestCase
+
+import pytest
+
+from IPython.core.async_helpers import _should_be_async
+from IPython.testing.decorators import skip_without
 
 if TYPE_CHECKING:
     from IPython import get_ipython
@@ -17,17 +19,20 @@ if TYPE_CHECKING:
     ip = get_ipython()
 
 
-iprc = lambda x: ip.run_cell(dedent(x)).raise_error()
-iprc_nr = lambda x: ip.run_cell(dedent(x))
+def iprc(x):
+    return ip.run_cell(dedent(x)).raise_error()
 
-from IPython.core.async_helpers import _should_be_async
+
+def iprc_nr(x):
+    return ip.run_cell(dedent(x))
+
 
 class AsyncTest(TestCase):
     def test_should_be_async(self):
-        nt.assert_false(_should_be_async("False"))
-        nt.assert_true(_should_be_async("await bar()"))
-        nt.assert_true(_should_be_async("x = await bar()"))
-        nt.assert_false(
+        self.assertFalse(_should_be_async("False"))
+        self.assertTrue(_should_be_async("await bar()"))
+        self.assertTrue(_should_be_async("x = await bar()"))
+        self.assertFalse(
             _should_be_async(
                 dedent(
                     """
@@ -276,14 +281,18 @@ class AsyncTest(TestCase):
         """
         )
 
-    if sys.version_info < (3,9):
-        # new pgen parser in 3.9 does not raise MemoryError on too many nested
-        # parens anymore
-        def test_memory_error(self):
-            with self.assertRaises(MemoryError):
-                iprc("(" * 200 + ")" * 200)
+    def test_memory_error(self):
+        """
+        The pgen parser in 3.8 or before use to raise MemoryError on too many
+        nested parens anymore"""
 
-    @skip_without('curio')
+        iprc("(" * 200 + ")" * 200)
+
+    @pytest.mark.xfail(reason="fail on curio 1.6 and before on Python 3.12")
+    @pytest.mark.skip(
+        reason="skip_without(curio) fails on 3.12 for now even with other skip so must uncond skip"
+    )
+    # @skip_without("curio")
     def test_autoawait_curio(self):
         iprc("%autoawait curio")
 
@@ -298,7 +307,7 @@ class AsyncTest(TestCase):
         import asyncio
         await asyncio.sleep(0)
         """)
-        with nt.assert_raises(TypeError):
+        with self.assertRaises(TypeError):
             res.raise_error()
 
     @skip_without('trio')
@@ -308,7 +317,7 @@ class AsyncTest(TestCase):
         import trio
         await trio.sleep(0)
         """)
-        with nt.assert_raises(RuntimeError):
+        with self.assertRaises(RuntimeError):
             res.raise_error()
 
 

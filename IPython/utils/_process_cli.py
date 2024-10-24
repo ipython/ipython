@@ -19,17 +19,8 @@ import System
 import os
 
 # Import IPython libraries:
-from IPython.utils import py3compat
 from ._process_common import arg_split
 
-def _find_cmd(cmd):
-    """Find the full path to a command using which."""
-    paths = System.Environment.GetEnvironmentVariable("PATH").Split(os.pathsep)
-    for path in paths:
-        filename = os.path.join(path, cmd)
-        if System.IO.File.Exists(filename):
-            return py3compat.decode(filename)
-    raise OSError("command %r not found" % cmd)
 
 def system(cmd):
     """

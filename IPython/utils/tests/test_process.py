@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Tests for platutils.py
 """
@@ -20,9 +19,8 @@ import os
 import time
 from _thread import interrupt_main  # Py 3
 import threading
-from unittest import SkipTest
 
-import nose.tools as nt
+import pytest
 
 from IPython.utils.process import (find_cmd, FindCmdError, arg_split,
                                    system, getoutput, getoutputerror,
@@ -41,58 +39,53 @@ python = os.path.basename(sys.executable)
 @dec.skip_win32
 def test_find_cmd_ls():
     """Make sure we can find the full path to ls."""
-    path = find_cmd('ls')
-    nt.assert_true(path.endswith('ls'))
+    path = find_cmd("ls")
+    assert path.endswith("ls")
 
     
-def has_pywin32():
-    try:
-        import win32api
-    except ImportError:
-        return False
-    return True
-
-
-@dec.onlyif(has_pywin32, "This test requires win32api to run")
+@dec.skip_if_not_win32
 def test_find_cmd_pythonw():
     """Try to find pythonw on Windows."""
     path = find_cmd('pythonw')
     assert path.lower().endswith('pythonw.exe'), path
 
 
-@dec.onlyif(lambda : sys.platform != 'win32' or has_pywin32(),
-            "This test runs on posix or in win32 with win32api installed")
 def test_find_cmd_fail():
     """Make sure that FindCmdError is raised if we can't find the cmd."""
-    nt.assert_raises(FindCmdError,find_cmd,'asdfasdf')
+    pytest.raises(FindCmdError, find_cmd, "asdfasdf")
 
-    
+
 @dec.skip_win32
-def test_arg_split():
+@pytest.mark.parametrize(
+    "argstr, argv",
+    [
+        ("hi", ["hi"]),
+        ("hello there", ["hello", "there"]),
+        # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
+        # Do not use \N because the tests crash with syntax error in
+        # some cases, for example windows python2.6.
+        ("h\u01cello", ["h\u01cello"]),
+        ('something "with quotes"', ["something", '"with quotes"']),
+    ],
+)
+def test_arg_split(argstr, argv):
     """Ensure that argument lines are correctly split like in a shell."""
-    tests = [['hi', ['hi']],
-             [u'hi', [u'hi']],
-             ['hello there', ['hello', 'there']],
-             # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
-             # Do not use \N because the tests crash with syntax error in
-             # some cases, for example windows python2.6.
-             [u'h\u01cello', [u'h\u01cello']],
-             ['something "with quotes"', ['something', '"with quotes"']],
-             ]
-    for argstr, argv in tests:
-        nt.assert_equal(arg_split(argstr), argv)
-    
+    assert arg_split(argstr) == argv
+
+
 @dec.skip_if_not_win32
-def test_arg_split_win32():
+@pytest.mark.parametrize(
+    "argstr,argv",
+    [
+        ("hi", ["hi"]),
+        ("hello there", ["hello", "there"]),
+        ("h\u01cello", ["h\u01cello"]),
+        ('something "with quotes"', ["something", "with quotes"]),
+    ],
+)
+def test_arg_split_win32(argstr, argv):
     """Ensure that argument lines are correctly split like in a shell."""
-    tests = [['hi', ['hi']],
-             [u'hi', [u'hi']],
-             ['hello there', ['hello', 'there']],
-             [u'h\u01cello', [u'h\u01cello']],
-             ['something "with quotes"', ['something', 'with quotes']],
-             ]
-    for argstr, argv in tests:
-        nt.assert_equal(arg_split(argstr), argv)
+    assert arg_split(argstr) == argv
 
 
 class SubProcessTestCase(tt.TempFileMixin):
@@ -106,7 +99,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.mktmp('\n'.join(lines))
 
     def test_system(self):
-        status = system('%s "%s"' % (python, self.fname))
+        status = system(f'{python} "{self.fname}"')
         self.assertEqual(status, 0)
 
     def test_system_quotes(self):
@@ -118,7 +111,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         Interrupt a subprocess after a second.
         """
         if threading.main_thread() != threading.current_thread():
-            raise nt.SkipTest("Can't run this test if not in main thread.")
+            raise pytest.skip("Can't run this test if not in main thread.")
 
         # Some tests can overwrite SIGINT handler (by using pdb for example),
         # which then breaks this test, so just make sure it's operating
@@ -153,11 +146,11 @@ class SubProcessTestCase(tt.TempFileMixin):
 
         status = self.assert_interrupts(command)
         self.assertNotEqual(
-            status, 0, "The process wasn't interrupted. Status: %s" % (status,)
+            status, 0, f"The process wasn't interrupted. Status: {status}"
         )
 
     def test_getoutput(self):
-        out = getoutput('%s "%s"' % (python, self.fname))
+        out = getoutput(f'{python} "{self.fname}"')
         # we can't rely on the order the line buffered streams are flushed
         try:
             self.assertEqual(out, 'on stderron stdout')
@@ -177,7 +170,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertEqual(out.strip(), '1')
 
     def test_getoutput_error(self):
-        out, err = getoutputerror('%s "%s"' % (python, self.fname))
+        out, err = getoutputerror(f'{python} "{self.fname}"')
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
 
@@ -187,7 +180,7 @@ class SubProcessTestCase(tt.TempFileMixin):
         self.assertEqual(out, '')
         self.assertEqual(err, '')
         self.assertEqual(code, 1)
-        out, err, code = get_output_error_code('%s "%s"' % (python, self.fname))
+        out, err, code = get_output_error_code(f'{python} "{self.fname}"')
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
         self.assertEqual(code, 0)

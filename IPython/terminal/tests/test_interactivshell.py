@@ -7,34 +7,60 @@ import sys
 import unittest
 import os
 
-from IPython.core.inputtransformer import InputTransformer
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+
+
 from IPython.testing import tools as tt
-from IPython.utils.capture import capture_output
 
 from IPython.terminal.ptutils import _elide, _adjust_completion_text_based_on_context
-import nose.tools as nt
+from IPython.terminal.shortcuts.auto_suggest import NavigableAutoSuggestFromHistory
+
+
+class TestAutoSuggest(unittest.TestCase):
+    def test_changing_provider(self):
+        ip = get_ipython()
+        ip.autosuggestions_provider = None
+        self.assertEqual(ip.auto_suggest, None)
+        ip.autosuggestions_provider = "AutoSuggestFromHistory"
+        self.assertIsInstance(ip.auto_suggest, AutoSuggestFromHistory)
+        ip.autosuggestions_provider = "NavigableAutoSuggestFromHistory"
+        self.assertIsInstance(ip.auto_suggest, NavigableAutoSuggestFromHistory)
+
 
 class TestElide(unittest.TestCase):
-
     def test_elide(self):
-        _elide('concatenate((a1, a2, ...), axis', '') # do not raise
-        _elide('concatenate((a1, a2, ..), . axis', '') # do not raise
-        nt.assert_equal(_elide('aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh',''), 'aaaa.b…g.hhhhhh')
+        _elide("concatenate((a1, a2, ...), axis", "")  # do not raise
+        _elide("concatenate((a1, a2, ..), . axis", "")  # do not raise
+        self.assertEqual(
+            _elide("aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh", ""),
+            "aaaa.b…g.hhhhhh",
+        )
 
-        test_string = os.sep.join(['', 10*'a', 10*'b', 10*'c', ''])
-        expect_stirng = os.sep + 'a' + '\N{HORIZONTAL ELLIPSIS}' + 'b' + os.sep + 10*'c'
-        nt.assert_equal(_elide(test_string, ''), expect_stirng)
+        test_string = os.sep.join(["", 10 * "a", 10 * "b", 10 * "c", ""])
+        expect_string = (
+            os.sep + "a" + "\N{HORIZONTAL ELLIPSIS}" + "b" + os.sep + 10 * "c"
+        )
+        self.assertEqual(_elide(test_string, ""), expect_string)
 
     def test_elide_typed_normal(self):
-        nt.assert_equal(_elide('the quick brown fox jumped over the lazy dog', 'the quick brown fox', min_elide=10), 'the…fox jumped over the lazy dog')
-
+        self.assertEqual(
+            _elide(
+                "the quick brown fox jumped over the lazy dog",
+                "the quick brown fox",
+                min_elide=10,
+            ),
+            "the…fox jumped over the lazy dog",
+        )
 
     def test_elide_typed_short_match(self):
         """
         if the match is too short we don't elide.
         avoid the "the...the"
         """
-        nt.assert_equal(_elide('the quick brown fox jumped over the lazy dog', 'the', min_elide=10), 'the quick brown fox jumped over the lazy dog')
+        self.assertEqual(
+            _elide("the quick brown fox jumped over the lazy dog", "the", min_elide=10),
+            "the quick brown fox jumped over the lazy dog",
+        )
 
     def test_elide_typed_no_match(self):
         """
@@ -42,21 +68,40 @@ class TestElide(unittest.TestCase):
         avoid the "the...the"
         """
         # here we typed red instead of brown
-        nt.assert_equal(_elide('the quick brown fox jumped over the lazy dog', 'the quick red fox', min_elide=10), 'the quick brown fox jumped over the lazy dog')
+        self.assertEqual(
+            _elide(
+                "the quick brown fox jumped over the lazy dog",
+                "the quick red fox",
+                min_elide=10,
+            ),
+            "the quick brown fox jumped over the lazy dog",
+        )
+
 
 class TestContextAwareCompletion(unittest.TestCase):
-
     def test_adjust_completion_text_based_on_context(self):
         # Adjusted case
-        nt.assert_equal(_adjust_completion_text_based_on_context('arg1=', 'func1(a=)', 7), 'arg1')
+        self.assertEqual(
+            _adjust_completion_text_based_on_context("arg1=", "func1(a=)", 7), "arg1"
+        )
 
         # Untouched cases
-        nt.assert_equal(_adjust_completion_text_based_on_context('arg1=', 'func1(a)', 7), 'arg1=')
-        nt.assert_equal(_adjust_completion_text_based_on_context('arg1=', 'func1(a', 7), 'arg1=')
-        nt.assert_equal(_adjust_completion_text_based_on_context('%magic', 'func1(a=)', 7), '%magic')
-        nt.assert_equal(_adjust_completion_text_based_on_context('func2', 'func1(a=)', 7), 'func2')
+        self.assertEqual(
+            _adjust_completion_text_based_on_context("arg1=", "func1(a)", 7), "arg1="
+        )
+        self.assertEqual(
+            _adjust_completion_text_based_on_context("arg1=", "func1(a", 7), "arg1="
+        )
+        self.assertEqual(
+            _adjust_completion_text_based_on_context("%magic", "func1(a=)", 7), "%magic"
+        )
+        self.assertEqual(
+            _adjust_completion_text_based_on_context("func2", "func1(a=)", 7), "func2"
+        )
+
 
 # Decorator for interaction loop tests -----------------------------------------
+
 
 class mock_input_helper(object):
     """Machinery for tests of the main interact loop.
@@ -135,11 +180,14 @@ class InteractiveShellTestCase(unittest.TestCase):
         finally:
             ip.input_transformers_post.remove(syntax_error_transformer)
 
-    def test_plain_text_only(self):
+    def test_repl_not_plain_text(self):
         ip = get_ipython()
         formatter = ip.display_formatter
         assert formatter.active_types == ['text/plain']
-        assert not formatter.ipython_display_formatter.enabled
+
+        # terminal may have arbitrary mimetype handler to open external viewer
+        # or inline images.
+        assert formatter.ipython_display_formatter.enabled
 
         class Test(object):
             def __repr__(self):
@@ -155,16 +203,30 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         class Test2(Test):
             def _ipython_display_(self):
-                from IPython.display import display
-                display('<custom>')
+                from IPython.display import display, HTML
 
-        # verify that _ipython_display_ shortcut isn't called
-        obj = Test2()
-        with capture_output() as captured:
-            data, _ = formatter.format(obj)
+                display(HTML("<custom>"))
 
-        self.assertEqual(data, {'text/plain': repr(obj)})
-        assert captured.stdout == ''
+        # verify that mimehandlers are called
+        called = False
+
+        def handler(data, metadata):
+            print("Handler called")
+            nonlocal called
+            called = True
+
+        ip.display_formatter.active_types.append("text/html")
+        ip.display_formatter.formatters["text/html"].enabled = True
+        ip.mime_renderers["text/html"] = handler
+        try:
+            obj = Test()
+            display(obj)
+        finally:
+            ip.display_formatter.formatters["text/html"].enabled = False
+            del ip.mime_renderers["text/html"]
+
+        assert called == True
+
 
 def syntax_error_transformer(lines):
     """Transformer that throws SyntaxError if 'syntaxerror' is in the code."""

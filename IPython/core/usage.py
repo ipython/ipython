@@ -305,7 +305,7 @@ History:
 
 _i, _ii, _iii    : Previous, next previous, next next previous input
 _i4, _ih[2:5]    : Input history line 4, lines 2-4
-exec _i81        : Execute input history line #81 again
+exec(_i81)       : Execute input history line #81 again
 %rep 81          : Edit input history line #81
 _, __, ___       : previous, next previous, next next previous output
 _dh              : Directory history

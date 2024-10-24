@@ -1,0 +1,70 @@
+title = "Sphinx configuration"
+
+[sphinx]
+templates_path = ["_templates"]
+master_doc = "index"
+project = "IPython"
+copyright = "The IPython Development Team"
+github_project_url = "https://github.com/ipython/ipython"
+source_suffix = ".rst"
+exclude_patterns = ["**.ipynb_checkpoints"]
+pygments_style = "sphinx"
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.doctest",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.graphviz",
+    "sphinxcontrib.jquery",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.sphinxext.ipython_directive",
+    "sphinx.ext.napoleon",  # to preprocess docstrings
+    "github",  # for easy GitHub links
+    "magics",
+    "configtraits",
+]
+default_role = "literal"
+modindex_common_prefix = ["IPython."]
+
+[intersphinx_mapping]
+python = { url = 'https://docs.python.org/3/', fallback = '' }
+rpy2 = { url = 'https://rpy2.github.io/doc/latest/html/', fallback = '' }
+jupyterclient = { url = 'https://jupyter-client.readthedocs.io/en/latest/', fallback = '' }
+jupyter = { url = 'https://jupyter.readthedocs.io/en/latest/', fallback = '' }
+jedi = { url = 'https://jedi.readthedocs.io/en/latest/', fallback = '' }
+traitlets = { url = 'https://traitlets.readthedocs.io/en/latest/', fallback = '' }
+ipykernel = { url = 'https://ipykernel.readthedocs.io/en/latest/', fallback = '' }
+prompt_toolkit = { url = 'https://python-prompt-toolkit.readthedocs.io/en/stable/', fallback = '' }
+ipywidgets = { url = 'https://ipywidgets.readthedocs.io/en/stable/', fallback = '' }
+ipyparallel = { url = 'https://ipyparallel.readthedocs.io/en/stable/', fallback = '' }
+pip = { url = 'https://pip.pypa.io/en/stable/', fallback = '' }
+
+[html]
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
+html_favicon = "_static/favicon.ico"
+html_last_updated_fmt = "%b %d, %Y"
+htmlhelp_basename = "ipythondoc"
+html_additional_pages = [
+    ["interactive/htmlnotebook", "notebook_redirect.html"],
+    ["interactive/notebook", "notebook_redirect.html"],
+    ["interactive/nbconvert", "notebook_redirect.html"],
+    ["interactive/public_server", "notebook_redirect.html"]
+]
+
+[numpydoc]
+numpydoc_show_class_members = "False"
+numpydoc_class_members_toctree = "False"
+warning_is_error = "True"
+
+[latex]
+latex_documents = [
+    ['index', 'ipython.tex', 'IPython Documentation',
+     'The IPython Development Team', 'manual', 'True'],
+    ['parallel/winhpc_index', 'winhpc_whitepaper.tex',
+     'Using IPython on Windows HPC Server 2008',
+     "Brian E. Granger", 'manual', 'True']
+]
+latex_use_modindex = "True"
+latex_font_size = "11pt"

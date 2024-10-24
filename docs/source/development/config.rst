@@ -81,8 +81,8 @@ profile with:
     $ ipython locate profile foo
     /home/you/.ipython/profile_foo
 
-These map to the utility functions: :func:`IPython.utils.path.get_ipython_dir`
-and :func:`IPython.utils.path.locate_profile` respectively.
+These map to the utility functions: :func:`IPython.paths.get_ipython_dir`
+and :func:`IPython.paths.locate_profile` respectively.
 
 
 .. _profiles_dev:
@@ -118,11 +118,6 @@ The general pattern is this: simply create a new profile with:
 which adds a directory called ``profile_<name>`` to your IPython directory. Then
 you can load this profile by adding ``--profile=<name>`` to your command line
 options. Profiles are supported by all IPython applications.
-
-IPython ships with some sample profiles in :file:`IPython/config/profile`. If
-you create profiles with the name of one of our shipped profiles, these config
-files will be copied over instead of starting with the automatically generated
-config files.
 
 IPython extends the config loader for Python files so that you can inherit
 config from another profile. To do this, use a line like this in your Python

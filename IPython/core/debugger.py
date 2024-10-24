@@ -1,6 +1,96 @@
-# -*- coding: utf-8 -*-
 """
 Pdb debugger class.
+
+
+This is an extension to PDB which adds a number of new features.
+Note that there is also the `IPython.terminal.debugger` class which provides UI
+improvements.
+
+We also strongly recommend to use this via the `ipdb` package, which provides
+extra configuration options.
+
+Among other things, this subclass of PDB:
+ - supports many IPython magics like pdef/psource
+ - hide frames in tracebacks based on `__tracebackhide__`
+ - allows to skip frames based on `__debuggerskip__`
+
+
+Global Configuration
+--------------------
+
+The IPython debugger will by read the global ``~/.pdbrc`` file.
+That is to say you can list all commands supported by ipdb in your `~/.pdbrc`
+configuration file, to globally configure pdb.
+
+Example::
+
+   # ~/.pdbrc
+   skip_predicates debuggerskip false
+   skip_hidden false
+   context 25
+
+Features
+--------
+
+The IPython debugger can hide and skip frames when printing or moving through
+the stack. This can have a performance impact, so can be configures.
+
+The skipping and hiding frames are configurable via the `skip_predicates`
+command.
+
+By default, frames from readonly files will be hidden, frames containing
+``__tracebackhide__ = True`` will be hidden.
+
+Frames containing ``__debuggerskip__`` will be stepped over, frames whose parent
+frames value of ``__debuggerskip__`` is ``True`` will also be skipped.
+
+    >>> def helpers_helper():
+    ...     pass
+    ...
+    ... def helper_1():
+    ...     print("don't step in me")
+    ...     helpers_helpers() # will be stepped over unless breakpoint set.
+    ...
+    ...
+    ... def helper_2():
+    ...     print("in me neither")
+    ...
+
+One can define a decorator that wraps a function between the two helpers:
+
+    >>> def pdb_skipped_decorator(function):
+    ...
+    ...
+    ...     def wrapped_fn(*args, **kwargs):
+    ...         __debuggerskip__ = True
+    ...         helper_1()
+    ...         __debuggerskip__ = False
+    ...         result = function(*args, **kwargs)
+    ...         __debuggerskip__ = True
+    ...         helper_2()
+    ...         # setting __debuggerskip__ to False again is not necessary
+    ...         return result
+    ...
+    ...     return wrapped_fn
+
+When decorating a function, ipdb will directly step into ``bar()`` by
+default:
+
+    >>> @foo_decorator
+    ... def bar(x, y):
+    ...     return x * y
+
+
+You can toggle the behavior with
+
+    ipdb> skip_predicates debuggerskip false
+
+or configure it in your ``.pdbrc``
+
+
+
+License
+-------
 
 Modified from the standard pdb.Pdb class to avoid including readline, so that
 the command line completion of other programs which include this isn't
@@ -9,11 +99,16 @@ damaged.
 In the future, this class will be expanded with improvements over the standard
 pdb.
 
-The code in this file is mainly lifted out of cmd.py in Python 2.2, with minor
-changes. Licensing should therefore be under the standard Python terms.  For
-details on the PSF (Python Software Foundation) standard license, see:
+The original code in this file is mainly lifted out of cmd.py in Python 2.2,
+with minor changes. Licensing should therefore be under the standard Python
+terms.  For details on the PSF (Python Software Foundation) standard license,
+see:
 
 https://docs.python.org/2/license.html
+
+
+All the changes since then are under the same license as IPython.
+
 """
 
 #*****************************************************************************
@@ -26,29 +121,45 @@ https://docs.python.org/2/license.html
 #
 #*****************************************************************************
 
-import bdb
-import functools
+from __future__ import annotations
+
 import inspect
 import linecache
-import sys
-import warnings
+import os
 import re
+import sys
+from contextlib import contextmanager
+from functools import lru_cache
 
 from IPython import get_ipython
-from IPython.utils import PyColorize
-from IPython.utils import coloransi, py3compat
 from IPython.core.excolors import exception_colors
-from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils import PyColorize, coloransi, py3compat
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # otherwise circular import
+    from IPython.core.interactiveshell import InteractiveShell
+
+# skip module docstests
+__skip_doctest__ = True
 
 prompt = 'ipdb> '
 
-#We have to check this directly from sys.argv, config struct not yet available
+# We have to check this directly from sys.argv, config struct not yet available
 from pdb import Pdb as OldPdb
 
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
 # the Tracer constructor.
+
+DEBUGGERSKIP = "__debuggerskip__"
+
+
+# this has been implemented in Pdb in Python 3.13 (https://github.com/python/cpython/pull/106676
+# on lower python versions, we backported the feature.
+CHAIN_EXCEPTIONS = sys.version_info < (3, 13)
+
 
 def make_arrow(pad):
     """generate the leading arrow in front of traceback or debugger"""
@@ -65,112 +176,9 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     All other exceptions are processed using the `excepthook`
     parameter.
     """
-    warnings.warn("`BdbQuit_excepthook` is deprecated since version 5.1",
-                  DeprecationWarning, stacklevel=2)
-    if et==bdb.BdbQuit:
-        print('Exiting Debugger.')
-    elif excepthook is not None:
-        excepthook(et, ev, tb)
-    else:
-        # Backwards compatibility. Raise deprecation warning?
-        BdbQuit_excepthook.excepthook_ori(et,ev,tb)
-
-
-def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
-    warnings.warn(
-        "`BdbQuit_IPython_excepthook` is deprecated since version 5.1",
-        DeprecationWarning, stacklevel=2)
-    print('Exiting Debugger.')
-
-
-class Tracer(object):
-    """
-    DEPRECATED
-
-    Class for local debugging, similar to pdb.set_trace.
-
-    Instances of this class, when called, behave like pdb.set_trace, but
-    providing IPython's enhanced capabilities.
-
-    This is implemented as a class which must be initialized in your own code
-    and not as a standalone function because we need to detect at runtime
-    whether IPython is already active or not.  That detection is done in the
-    constructor, ensuring that this code plays nicely with a running IPython,
-    while functioning acceptably (though with limitations) if outside of it.
-    """
-
-    @skip_doctest
-    def __init__(self, colors=None):
-        """
-        DEPRECATED
-
-        Create a local debugger instance.
-
-        Parameters
-        ----------
-
-        colors : str, optional
-            The name of the color scheme to use, it must be one of IPython's
-            valid color schemes.  If not given, the function will default to
-            the current IPython scheme when running inside IPython, and to
-            'NoColor' otherwise.
-
-        Examples
-        --------
-        ::
-
-            from IPython.core.debugger import Tracer; debug_here = Tracer()
-
-        Later in your code::
-
-            debug_here()  # -> will open up the debugger at that point.
-
-        Once the debugger activates, you can use all of its regular commands to
-        step through code, set breakpoints, etc.  See the pdb documentation
-        from the Python standard library for usage details.
-        """
-        warnings.warn("`Tracer` is deprecated since version 5.1, directly use "
-                      "`IPython.core.debugger.Pdb.set_trace()`",
-                      DeprecationWarning, stacklevel=2)
-
-        ip = get_ipython()
-        if ip is None:
-            # Outside of ipython, we set our own exception hook manually
-            sys.excepthook = functools.partial(BdbQuit_excepthook,
-                                               excepthook=sys.excepthook)
-            def_colors = 'NoColor'
-        else:
-            # In ipython, we use its custom exception handler mechanism
-            def_colors = ip.colors
-            ip.set_custom_exc((bdb.BdbQuit,), BdbQuit_IPython_excepthook)
-
-        if colors is None:
-            colors = def_colors
-
-        # The stdlib debugger internally uses a modified repr from the `repr`
-        # module, that limits the length of printed strings to a hardcoded
-        # limit of 30 characters.  That much trimming is too aggressive, let's
-        # at least raise that limit to 80 chars, which should be enough for
-        # most interactive uses.
-        try:
-            from reprlib import aRepr
-            aRepr.maxstring = 80
-        except:
-            # This is only a user-facing convenience, so any error we encounter
-            # here can be warned about but can be otherwise ignored.  These
-            # printouts will tell us about problems if this API changes
-            import traceback
-            traceback.print_exc()
-
-        self.debugger = Pdb(colors)
-
-    def __call__(self):
-        """Starts an interactive debugger at the point where called.
-
-        This is similar to the pdb.set_trace() function from the std lib, but
-        using IPython's enhanced debugger."""
-
-        self.debugger.set_trace(sys._getframe().f_back)
+    raise ValueError(
+        "`BdbQuit_excepthook` is deprecated since version 5.1. It is still around only because it is still imported by ipdb.",
+    )
 
 
 RGX_EXTRA_INDENT = re.compile(r'(?<=\n)\s+')
@@ -198,21 +206,46 @@ class Pdb(OldPdb):
     for a standalone version that uses prompt_toolkit, see
     `IPython.terminal.debugger.TerminalPdb` and
     `IPython.terminal.debugger.set_trace()`
+
+
+    This debugger can hide and skip frames that are tagged according to some predicates.
+    See the `skip_predicates` commands.
+
     """
 
-    def __init__(self, color_scheme=None, completekey=None,
-                 stdin=None, stdout=None, context=5, **kwargs):
+    shell: InteractiveShell
+
+    if CHAIN_EXCEPTIONS:
+        MAX_CHAINED_EXCEPTION_DEPTH = 999
+
+    default_predicates = {
+        "tbhide": True,
+        "readonly": False,
+        "ipython_internal": True,
+        "debuggerskip": True,
+    }
+
+    def __init__(self, completekey=None, stdin=None, stdout=None, context=5, **kwargs):
         """Create a new IPython debugger.
-        
-        :param color_scheme: Deprecated, do not use.
-        :param completekey: Passed to pdb.Pdb.
-        :param stdin: Passed to pdb.Pdb.
-        :param stdout: Passed to pdb.Pdb.
-        :param context: Number of lines of source code context to show when
+
+        Parameters
+        ----------
+        completekey : default None
+            Passed to pdb.Pdb.
+        stdin : default None
+            Passed to pdb.Pdb.
+        stdout : default None
+            Passed to pdb.Pdb.
+        context : int
+            Number of lines of source code context to show when
             displaying stacktrace information.
-        :param kwargs: Passed to pdb.Pdb.
-            The possibilities are python version dependent, see the python
-            docs for more info.
+        **kwargs
+            Passed to pdb.Pdb.
+
+        Notes
+        -----
+        The possibilities are python version dependent, see the python
+        docs for more info.
         """
 
         # Parent constructor:
@@ -237,14 +270,10 @@ class Pdb(OldPdb):
             self.shell = TerminalInteractiveShell.instance()
             # needed by any code which calls __import__("__main__") after
             # the debugger was entered. See also #9941.
-            sys.modules['__main__'] = save_main 
+            sys.modules["__main__"] = save_main
 
-        if color_scheme is not None:
-            warnings.warn(
-                "The `color_scheme` argument is deprecated since version 5.1",
-                DeprecationWarning, stacklevel=2)
-        else:
-            color_scheme = self.shell.colors
+
+        color_scheme = self.shell.colors
 
         self.aliases = {}
 
@@ -256,22 +285,6 @@ class Pdb(OldPdb):
         C = coloransi.TermColors
         cst = self.color_scheme_table
 
-        cst['NoColor'].colors.prompt = C.NoColor
-        cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-        cst['NoColor'].colors.breakpoint_disabled = C.NoColor
-
-        cst['Linux'].colors.prompt = C.Green
-        cst['Linux'].colors.breakpoint_enabled = C.LightRed
-        cst['Linux'].colors.breakpoint_disabled = C.Red
-
-        cst['LightBG'].colors.prompt = C.Blue
-        cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-        cst['LightBG'].colors.breakpoint_disabled = C.Red
-
-        cst['Neutral'].colors.prompt = C.Blue
-        cst['Neutral'].colors.breakpoint_enabled = C.LightRed
-        cst['Neutral'].colors.breakpoint_disabled = C.Red
-
 
         # Add a python parser so we can syntax highlight source while
         # debugging.
@@ -281,7 +294,16 @@ class Pdb(OldPdb):
         # Set the prompt - the default prompt is '(Pdb)'
         self.prompt = prompt
         self.skip_hidden = True
+        self.report_skipped = True
 
+        # list of predicates we use to skip frames
+        self._predicates = self.default_predicates
+
+        if CHAIN_EXCEPTIONS:
+            self._chained_exceptions = tuple()
+            self._chained_exception_index = 0
+
+    #
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
@@ -293,6 +315,27 @@ class Pdb(OldPdb):
         self.initial_frame = frame
         return super().set_trace(frame)
 
+    def _hidden_predicate(self, frame):
+        """
+        Given a frame return whether it it should be hidden or not by IPython.
+        """
+
+        if self._predicates["readonly"]:
+            fname = frame.f_code.co_filename
+            # we need to check for file existence and interactively define
+            # function would otherwise appear as RO.
+            if os.path.isfile(fname) and not os.access(fname, os.W_OK):
+                return True
+
+        if self._predicates["tbhide"]:
+            if frame in (self.curframe, getattr(self, "initial_frame", None)):
+                return False
+            frame_locals = self._get_frame_locals(frame)
+            if "__tracebackhide__" not in frame_locals:
+                return False
+            return frame_locals["__tracebackhide__"]
+        return False
+
     def hidden_frames(self, stack):
         """
         Given an index in the stack return whether it should be skipped.
@@ -302,41 +345,145 @@ class Pdb(OldPdb):
         # The f_locals dictionary is updated from the actual frame
         # locals whenever the .f_locals accessor is called, so we
         # avoid calling it here to preserve self.curframe_locals.
-        # Futhermore, there is no good reason to hide the current frame.
-        ip_hide = [
-            False
-            if s[0] in (self.curframe, getattr(self, "initial_frame", None))
-            else s[0].f_locals.get("__tracebackhide__", False)
-            for s in stack
-        ]
+        # Furthermore, there is no good reason to hide the current frame.
+        ip_hide = [self._hidden_predicate(s[0]) for s in stack]
         ip_start = [i for i, s in enumerate(ip_hide) if s == "__ipython_bottom__"]
-        if ip_start:
+        if ip_start and self._predicates["ipython_internal"]:
             ip_hide = [h if i > ip_start[0] else True for (i, h) in enumerate(ip_hide)]
         return ip_hide
 
-    def interaction(self, frame, traceback):
+    if CHAIN_EXCEPTIONS:
+
+        def _get_tb_and_exceptions(self, tb_or_exc):
+            """
+            Given a tracecack or an exception, return a tuple of chained exceptions
+            and current traceback to inspect.
+            This will deal with selecting the right ``__cause__`` or ``__context__``
+            as well as handling cycles, and return a flattened list of exceptions we
+            can jump to with do_exceptions.
+            """
+            _exceptions = []
+            if isinstance(tb_or_exc, BaseException):
+                traceback, current = tb_or_exc.__traceback__, tb_or_exc
+
+                while current is not None:
+                    if current in _exceptions:
+                        break
+                    _exceptions.append(current)
+                    if current.__cause__ is not None:
+                        current = current.__cause__
+                    elif (
+                        current.__context__ is not None
+                        and not current.__suppress_context__
+                    ):
+                        current = current.__context__
+
+                    if len(_exceptions) >= self.MAX_CHAINED_EXCEPTION_DEPTH:
+                        self.message(
+                            f"More than {self.MAX_CHAINED_EXCEPTION_DEPTH}"
+                            " chained exceptions found, not all exceptions"
+                            "will be browsable with `exceptions`."
+                        )
+                        break
+            else:
+                traceback = tb_or_exc
+            return tuple(reversed(_exceptions)), traceback
+
+        @contextmanager
+        def _hold_exceptions(self, exceptions):
+            """
+            Context manager to ensure proper cleaning of exceptions references
+            When given a chained exception instead of a traceback,
+            pdb may hold references to many objects which may leak memory.
+            We use this context manager to make sure everything is properly cleaned
+            """
+            try:
+                self._chained_exceptions = exceptions
+                self._chained_exception_index = len(exceptions) - 1
+                yield
+            finally:
+                # we can't put those in forget as otherwise they would
+                # be cleared on exception change
+                self._chained_exceptions = tuple()
+                self._chained_exception_index = 0
+
+        def do_exceptions(self, arg):
+            """exceptions [number]
+            List or change current exception in an exception chain.
+            Without arguments, list all the current exception in the exception
+            chain. Exceptions will be numbered, with the current exception indicated
+            with an arrow.
+            If given an integer as argument, switch to the exception at that index.
+            """
+            if not self._chained_exceptions:
+                self.message(
+                    "Did not find chained exceptions. To move between"
+                    " exceptions, pdb/post_mortem must be given an exception"
+                    " object rather than a traceback."
+                )
+                return
+            if not arg:
+                for ix, exc in enumerate(self._chained_exceptions):
+                    prompt = ">" if ix == self._chained_exception_index else " "
+                    rep = repr(exc)
+                    if len(rep) > 80:
+                        rep = rep[:77] + "..."
+                    indicator = (
+                        "  -"
+                        if self._chained_exceptions[ix].__traceback__ is None
+                        else f"{ix:>3}"
+                    )
+                    self.message(f"{prompt} {indicator} {rep}")
+            else:
+                try:
+                    number = int(arg)
+                except ValueError:
+                    self.error("Argument must be an integer")
+                    return
+                if 0 <= number < len(self._chained_exceptions):
+                    if self._chained_exceptions[number].__traceback__ is None:
+                        self.error(
+                            "This exception does not have a traceback, cannot jump to it"
+                        )
+                        return
+
+                    self._chained_exception_index = number
+                    self.setup(None, self._chained_exceptions[number].__traceback__)
+                    self.print_stack_entry(self.stack[self.curindex])
+                else:
+                    self.error("No exception with that number")
+
+    def interaction(self, frame, tb_or_exc):
         try:
-            OldPdb.interaction(self, frame, traceback)
+            if CHAIN_EXCEPTIONS:
+                # this context manager is part of interaction in 3.13
+                _chained_exceptions, tb = self._get_tb_and_exceptions(tb_or_exc)
+                if isinstance(tb_or_exc, BaseException):
+                    assert tb is not None, "main exception must have a traceback"
+                with self._hold_exceptions(_chained_exceptions):
+                    OldPdb.interaction(self, frame, tb)
+            else:
+                OldPdb.interaction(self, frame, tb_or_exc)
+
         except KeyboardInterrupt:
             self.stdout.write("\n" + self.shell.get_exception_only())
 
-    def new_do_frame(self, arg):
-        OldPdb.do_frame(self, arg)
+    def precmd(self, line):
+        """Perform useful escapes on the command before it is executed."""
+
+        if line.endswith("??"):
+            line = "pinfo2 " + line[:-2]
+        elif line.endswith("?"):
+            line = "pinfo " + line[:-1]
+
+        line = super().precmd(line)
+
+        return line
 
     def new_do_quit(self, arg):
-
-        if hasattr(self, 'old_all_completions'):
-            self.shell.Completer.all_completions=self.old_all_completions
-
         return OldPdb.do_quit(self, arg)
 
     do_q = do_quit = decorate_fn_with_doc(new_do_quit, OldPdb.do_quit)
-
-    def new_do_restart(self, arg):
-        """Restart command. In the context of ipython this is exactly the same
-        thing as 'quit'."""
-        self.msg("Restart doesn't make sense here. Using 'quit' instead.")
-        return self.do_quit(arg)
 
     def print_stack_trace(self, context=None):
         Colors = self.color_scheme_table.active_colors
@@ -344,7 +491,7 @@ class Pdb(OldPdb):
         if context is None:
             context = self.context
         try:
-            context=int(context)
+            context = int(context)
             if context <= 0:
                 raise ValueError("Context must be a positive integer")
         except (TypeError, ValueError) as e:
@@ -373,7 +520,7 @@ class Pdb(OldPdb):
         if context is None:
             context = self.context
         try:
-            context=int(context)
+            context = int(context)
             if context <= 0:
                 raise ValueError("Context must be a positive integer")
         except (TypeError, ValueError) as e:
@@ -386,11 +533,33 @@ class Pdb(OldPdb):
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds: <<
 
+    def _get_frame_locals(self, frame):
+        """ "
+        Accessing f_local of current frame reset the namespace, so we want to avoid
+        that or the following can happen
+
+        ipdb> foo
+        "old"
+        ipdb> foo = "new"
+        ipdb> foo
+        "new"
+        ipdb> where
+        ipdb> foo
+        "old"
+
+        So if frame is self.current_frame we instead return self.curframe_locals
+
+        """
+        if frame is self.curframe:
+            return self.curframe_locals
+        else:
+            return frame.f_locals
+
     def format_stack_entry(self, frame_lineno, lprefix=': ', context=None):
         if context is None:
             context = self.context
         try:
-            context=int(context)
+            context = int(context)
             if context <= 0:
                 print("Context must be a positive integer", file=self.stdout)
         except (TypeError, ValueError):
@@ -402,19 +571,19 @@ class Pdb(OldPdb):
 
         Colors = self.color_scheme_table.active_colors
         ColorsNormal = Colors.Normal
-        tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
-                                            ColorsNormal)
+        tpl_link = "%s%%s%s" % (Colors.filenameEm, ColorsNormal)
+        tpl_call = "%s%%s%s%%s%s" % (Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_line = "%%s%s%%s %s%%s" % (Colors.lineno, ColorsNormal)
+        tpl_line_em = "%%s%s%%s %s%%s%s" % (Colors.linenoEm, Colors.line, ColorsNormal)
 
         frame, lineno = frame_lineno
 
         return_value = ''
-        if '__return__' in frame.f_locals:
-            rv = frame.f_locals['__return__']
-            #return_value += '->'
-            return_value += reprlib.repr(rv) + '\n'
+        loc_frame = self._get_frame_locals(frame)
+        if "__return__" in loc_frame:
+            rv = loc_frame["__return__"]
+            # return_value += '->'
+            return_value += reprlib.repr(rv) + "\n"
         ret.append(return_value)
 
         #s = filename + '(' + `lineno` + ')'
@@ -426,10 +595,10 @@ class Pdb(OldPdb):
         else:
             func = "<lambda>"
 
-        call = ''
-        if func != '?':
-            if '__args__' in frame.f_locals:
-                args = reprlib.repr(frame.f_locals['__args__'])
+        call = ""
+        if func != "?":
+            if "__args__" in loc_frame:
+                args = reprlib.repr(loc_frame["__args__"])
             else:
                 args = '()'
             call = tpl_call % (func, args)
@@ -439,8 +608,8 @@ class Pdb(OldPdb):
         if frame is self.curframe:
             ret.append('> ')
         else:
-            ret.append('  ')
-        ret.append(u'%s(%s)%s\n' % (link,lineno,call))
+            ret.append("  ")
+        ret.append("%s(%s)%s\n" % (link, lineno, call))
 
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
@@ -448,17 +617,17 @@ class Pdb(OldPdb):
         start = max(start, 0)
         lines = lines[start : start + context]
 
-        for i,line in enumerate(lines):
-            show_arrow = (start + 1 + i == lineno)
-            linetpl = (frame is self.curframe or show_arrow) \
-                      and tpl_line_em \
-                      or tpl_line
-            ret.append(self.__format_line(linetpl, filename,
-                                          start + 1 + i, line,
-                                          arrow = show_arrow) )
-        return ''.join(ret)
+        for i, line in enumerate(lines):
+            show_arrow = start + 1 + i == lineno
+            linetpl = (frame is self.curframe or show_arrow) and tpl_line_em or tpl_line
+            ret.append(
+                self.__format_line(
+                    linetpl, filename, start + 1 + i, line, arrow=show_arrow
+                )
+            )
+        return "".join(ret)
 
-    def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
+    def __format_line(self, tpl_line, filename, lineno, line, arrow=False):
         bp_mark = ""
         bp_mark_color = ""
 
@@ -488,7 +657,6 @@ class Pdb(OldPdb):
 
         return tpl_line % (bp_mark_color + bp_mark, num, line)
 
-
     def print_list_lines(self, filename, first, last):
         """The printing (as opposed to the parsing part of a 'list'
         command."""
@@ -507,9 +675,13 @@ class Pdb(OldPdb):
                     break
 
                 if lineno == self.curframe.f_lineno:
-                    line = self.__format_line(tpl_line_em, filename, lineno, line, arrow = True)
+                    line = self.__format_line(
+                        tpl_line_em, filename, lineno, line, arrow=True
+                    )
                 else:
-                    line = self.__format_line(tpl_line, filename, lineno, line, arrow = False)
+                    line = self.__format_line(
+                        tpl_line, filename, lineno, line, arrow=False
+                    )
 
                 src.append(line)
                 self.lineno = lineno
@@ -519,22 +691,75 @@ class Pdb(OldPdb):
         except KeyboardInterrupt:
             pass
 
+    def do_skip_predicates(self, args):
+        """
+        Turn on/off individual predicates as to whether a frame should be hidden/skip.
+
+        The global option to skip (or not) hidden frames is set with skip_hidden
+
+        To change the value of a predicate
+
+            skip_predicates key [true|false]
+
+        Call without arguments to see the current values.
+
+        To permanently change the value of an option add the corresponding
+        command to your ``~/.pdbrc`` file. If you are programmatically using the
+        Pdb instance you can also change the ``default_predicates`` class
+        attribute.
+        """
+        if not args.strip():
+            print("current predicates:")
+            for p, v in self._predicates.items():
+                print("   ", p, ":", v)
+            return
+        type_value = args.strip().split(" ")
+        if len(type_value) != 2:
+            print(
+                f"Usage: skip_predicates <type> <value>, with <type> one of {set(self._predicates.keys())}"
+            )
+            return
+
+        type_, value = type_value
+        if type_ not in self._predicates:
+            print(f"{type_!r} not in {set(self._predicates.keys())}")
+            return
+        if value.lower() not in ("true", "yes", "1", "no", "false", "0"):
+            print(
+                f"{value!r} is invalid - use one of ('true', 'yes', '1', 'no', 'false', '0')"
+            )
+            return
+
+        self._predicates[type_] = value.lower() in ("true", "yes", "1")
+        if not any(self._predicates.values()):
+            print(
+                "Warning, all predicates set to False, skip_hidden may not have any effects."
+            )
+
     def do_skip_hidden(self, arg):
         """
         Change whether or not we should skip frames with the
         __tracebackhide__ attribute.
         """
-        if arg.strip().lower() in ("true", "yes"):
+        if not arg.strip():
+            print(
+                f"skip_hidden = {self.skip_hidden}, use 'yes','no', 'true', or 'false' to change."
+            )
+        elif arg.strip().lower() in ("true", "yes"):
             self.skip_hidden = True
         elif arg.strip().lower() in ("false", "no"):
             self.skip_hidden = False
+        if not any(self._predicates.values()):
+            print(
+                "Warning, all predicates set to False, skip_hidden may not have any effects."
+            )
 
     def do_list(self, arg):
         """Print lines of code from the current stack frame
         """
         self.lastcmd = 'list'
         last = None
-        if arg:
+        if arg and arg != ".":
             try:
                 x = eval(arg, {}, {})
                 if type(x) == type(()):
@@ -549,7 +774,7 @@ class Pdb(OldPdb):
             except:
                 print('*** Error in argument:', repr(arg), file=self.stdout)
                 return
-        elif self.lineno is None:
+        elif self.lineno is None or arg == ".":
             first = max(1, self.curframe.f_lineno - 5)
         else:
             first = self.lineno + 1
@@ -567,7 +792,7 @@ class Pdb(OldPdb):
 
     def getsourcelines(self, obj):
         lines, lineno = inspect.findsource(obj)
-        if inspect.isframe(obj) and obj.f_globals is obj.f_locals:
+        if inspect.isframe(obj) and obj.f_globals is self._get_frame_locals(obj):
             # must be a module frame: do not try to cut a block out of it
             return lines, 1
         elif inspect.ismodule(obj):
@@ -688,15 +913,78 @@ class Pdb(OldPdb):
 
     do_w = do_where
 
+    def break_anywhere(self, frame):
+        """
+        _stop_in_decorator_internals is overly restrictive, as we may still want
+        to trace function calls, so we need to also update break_anywhere so
+        that is we don't `stop_here`, because of debugger skip, we may still
+        stop at any point inside the function
+
+        """
+
+        sup = super().break_anywhere(frame)
+        if sup:
+            return sup
+        if self._predicates["debuggerskip"]:
+            if DEBUGGERSKIP in frame.f_code.co_varnames:
+                return True
+            if frame.f_back and self._get_frame_locals(frame.f_back).get(DEBUGGERSKIP):
+                return True
+        return False
+
+    def _is_in_decorator_internal_and_should_skip(self, frame):
+        """
+        Utility to tell us whether we are in a decorator internal and should stop.
+
+        """
+        # if we are disabled don't skip
+        if not self._predicates["debuggerskip"]:
+            return False
+
+        return self._cachable_skip(frame)
+
+    @lru_cache(1024)
+    def _cached_one_parent_frame_debuggerskip(self, frame):
+        """
+        Cache looking up for DEBUGGERSKIP on parent frame.
+
+        This should speedup walking through deep frame when one of the highest
+        one does have a debugger skip.
+
+        This is likely to introduce fake positive though.
+        """
+        while getattr(frame, "f_back", None):
+            frame = frame.f_back
+            if self._get_frame_locals(frame).get(DEBUGGERSKIP):
+                return True
+        return None
+
+    @lru_cache(1024)
+    def _cachable_skip(self, frame):
+        # if frame is tagged, skip by default.
+        if DEBUGGERSKIP in frame.f_code.co_varnames:
+            return True
+
+        # if one of the parent frame value set to True skip as well.
+        if self._cached_one_parent_frame_debuggerskip(frame):
+            return True
+
+        return False
+
     def stop_here(self, frame):
+        if self._is_in_decorator_internal_and_should_skip(frame) is True:
+            return False
+
         hidden = False
         if self.skip_hidden:
-            hidden = frame.f_locals.get("__tracebackhide__", False)
+            hidden = self._hidden_predicate(frame)
         if hidden:
-            Colors = self.color_scheme_table.active_colors
-            ColorsNormal = Colors.Normal
-            print(f"{Colors.excName}    [... skipped 1 hidden frame]{ColorsNormal}\n")
-
+            if self.report_skipped:
+                Colors = self.color_scheme_table.active_colors
+                ColorsNormal = Colors.Normal
+                print(
+                    f"{Colors.excName}    [... skipped 1 hidden frame]{ColorsNormal}\n"
+                )
         return super().stop_here(frame)
 
     def do_up(self, arg):
@@ -706,8 +994,8 @@ class Pdb(OldPdb):
 
         Will skip hidden frames.
         """
-        ## modified version of upstream that skips
-        # frames with __tracebackide__
+        # modified version of upstream that skips
+        # frames with __tracebackhide__
         if self.curindex == 0:
             self.error("Oldest frame")
             return
@@ -720,11 +1008,9 @@ class Pdb(OldPdb):
         if count < 0:
             _newframe = 0
         else:
-            _newindex = self.curindex
             counter = 0
             hidden_frames = self.hidden_frames(self.stack)
             for i in range(self.curindex - 1, -1, -1):
-                frame = self.stack[i][0]
                 if hidden_frames[i] and self.skip_hidden:
                     skipped += 1
                     continue
@@ -732,7 +1018,7 @@ class Pdb(OldPdb):
                 if counter >= count:
                     break
             else:
-                # if no break occured.
+                # if no break occurred.
                 self.error(
                     "all frames above hidden, use `skip_hidden False` to get get into those."
                 )
@@ -765,12 +1051,10 @@ class Pdb(OldPdb):
         if count < 0:
             _newframe = len(self.stack) - 1
         else:
-            _newindex = self.curindex
             counter = 0
             skipped = 0
             hidden_frames = self.hidden_frames(self.stack)
             for i in range(self.curindex + 1, len(self.stack)):
-                frame = self.stack[i][0]
                 if hidden_frames[i] and self.skip_hidden:
                     skipped += 1
                     continue
@@ -779,7 +1063,7 @@ class Pdb(OldPdb):
                     break
             else:
                 self.error(
-                    "all frames bellow hidden, use `skip_hidden False` to get get into those."
+                    "all frames below hidden, use `skip_hidden False` to get get into those."
                 )
                 return
 
@@ -796,13 +1080,29 @@ class Pdb(OldPdb):
     do_d = do_down
     do_u = do_up
 
+    def do_context(self, context):
+        """context number_of_lines
+        Set the number of lines of source code to show when displaying
+        stacktrace information.
+        """
+        try:
+            new_context = int(context)
+            if new_context <= 0:
+                raise ValueError()
+            self.context = new_context
+        except ValueError:
+            self.error(
+                f"The 'context' command requires a positive integer argument (current value {self.context})."
+            )
+
+
 class InterruptiblePdb(Pdb):
     """Version of debugger where KeyboardInterrupt exits the debugger altogether."""
 
-    def cmdloop(self):
+    def cmdloop(self, intro=None):
         """Wrap cmdloop() such that KeyboardInterrupt stops the debugger."""
         try:
-            return OldPdb.cmdloop(self)
+            return OldPdb.cmdloop(self, intro=intro)
         except KeyboardInterrupt:
             self.stop_here = lambda frame: False
             self.do_quit("")
@@ -824,10 +1124,13 @@ class InterruptiblePdb(Pdb):
                 raise
 
 
-def set_trace(frame=None):
+def set_trace(frame=None, header=None):
     """
     Start debugging from `frame`.
 
     If frame is not specified, debugging starts from caller's frame.
     """
-    Pdb().set_trace(frame or sys._getframe().f_back)
+    pdb = Pdb()
+    if header is not None:
+        pdb.message(header)
+    pdb.set_trace(frame or sys._getframe().f_back)

@@ -2,9 +2,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import nose.tools as nt
 import pytest
-from IPython.testing.decorators import skip_iptest_but_not_pytest
 
 from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
 
@@ -17,13 +15,16 @@ def expect_token(expected, cell, cursor_pos):
         else:
             offset += len(line)+1
     column = cursor_pos - offset
-    line_with_cursor = '%s|%s' % (line[:column], line[column:])
-    nt.assert_equal(token, expected,
-        "Expected %r, got %r in: %r (pos %i)" % (
-        expected, token, line_with_cursor, cursor_pos)
+    line_with_cursor = "%s|%s" % (line[:column], line[column:])
+    assert token == expected, "Expected %r, got %r in: %r (pos %i)" % (
+        expected,
+        token,
+        line_with_cursor,
+        cursor_pos,
     )
 
-def test_simple(): 
+
+def test_simple():
     cell = "foo"
     for i in range(len(cell)):
         expect_token("foo", cell, i)
@@ -107,20 +108,20 @@ def test_attrs():
 def test_line_at_cursor():
     cell = ""
     (line, offset) = line_at_cursor(cell, cursor_pos=11)
-    nt.assert_equal(line, "")
-    nt.assert_equal(offset, 0)
+    assert line == ""
+    assert offset == 0
 
     # The position after a newline should be the start of the following line.
     cell = "One\nTwo\n"
     (line, offset) = line_at_cursor(cell, cursor_pos=4)
-    nt.assert_equal(line, "Two\n")
-    nt.assert_equal(offset, 4)
+    assert line == "Two\n"
+    assert offset == 4
 
     # The end of a cell should be on the last line
     cell = "pri\npri"
     (line, offset) = line_at_cursor(cell, cursor_pos=7)
-    nt.assert_equal(line, "pri")
-    nt.assert_equal(offset, 4)
+    assert line == "pri"
+    assert offset == 4
 
 
 @pytest.mark.parametrize(
@@ -130,7 +131,6 @@ def test_line_at_cursor():
         ["int"] * (22 - 16) + ["map"] * (28 - 22),
     ),
 )
-@skip_iptest_but_not_pytest
 def test_multiline_statement(c, token):
     cell = """a = (1,
     3)

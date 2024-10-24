@@ -91,7 +91,13 @@ class DisplayHook(Configurable):
             # some uses of ipshellembed may fail here
             return False
         
-        sio = _io.StringIO(cell)
+        return self.semicolon_at_end_of_expression(cell)
+
+    @staticmethod
+    def semicolon_at_end_of_expression(expression):
+        """Parse Python expression and detects whether last token is ';'"""
+
+        sio = _io.StringIO(expression)
         tokens = list(tokenize.generate_tokens(sio.readline))
 
         for token in reversed(tokens):
@@ -146,7 +152,7 @@ class DisplayHook(Configurable):
             MIME type representation of the object.
             md_dict is a :class:`dict` with the same MIME type keys
             of metadata associated with each output.
-            
+
         """
         return self.shell.display_formatter.format(result)
 
@@ -291,8 +297,13 @@ class DisplayHook(Configurable):
         for n in range(1,self.prompt_count + 1):
             key = '_'+repr(n)
             try:
+                del self.shell.user_ns_hidden[key]
+            except KeyError:
+                pass
+            try:
                 del self.shell.user_ns[key]
-            except: pass
+            except KeyError:
+                pass
         # In some embedded circumstances, the user_ns doesn't have the
         # '_oh' key set up.
         oh = self.shell.user_ns.get('_oh', None)

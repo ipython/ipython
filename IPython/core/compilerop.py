@@ -73,25 +73,10 @@ class CachingCompiler(codeop.Compile):
     def __init__(self):
         codeop.Compile.__init__(self)
 
-        # This is ugly, but it must be done this way to allow multiple
-        # simultaneous ipython instances to coexist.  Since Python itself
-        # directly accesses the data structures in the linecache module, and
-        # the cache therein is global, we must work with that data structure.
-        # We must hold a reference to the original checkcache routine and call
-        # that in our own check_cache() below, but the special IPython cache
-        # must also be shared by all IPython instances.  If we were to hold
-        # separate caches (one in each CachingCompiler instance), any call made
-        # by Python itself to linecache.checkcache() would obliterate the
-        # cached data from the other IPython instances.
-        if not hasattr(linecache, '_ipython_cache'):
-            linecache._ipython_cache = {}
-        if not hasattr(linecache, '_checkcache_ori'):
-            linecache._checkcache_ori = linecache.checkcache
-        # Now, we must monkeypatch the linecache directly so that parts of the
-        # stdlib that call it outside our control go through our codepath
-        # (otherwise we'd lose our tracebacks).
-        linecache.checkcache = check_linecache_ipython
-
+        # Caching a dictionary { filename: execution_count } for nicely
+        # rendered tracebacks. The filename corresponds to the filename
+        # argument used for the builtins.compile function.
+        self._filename_map = {}
 
     def ast_parse(self, source, filename='<unknown>', symbol='exec'):
         """Parse code to an AST with the current compiler flags active.
@@ -99,7 +84,7 @@ class CachingCompiler(codeop.Compile):
         Arguments are exactly the same as ast.parse (in the standard library),
         and are passed to the built-in compile function."""
         return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
-    
+
     def reset_compiler_flags(self):
         """Reset compiler flags to default state."""
         # This value is copied from codeop.Compile.__init__, so if that ever
@@ -112,27 +97,84 @@ class CachingCompiler(codeop.Compile):
         """
         return self.flags
 
-    def cache(self, code, number=0):
+    def get_code_name(self, raw_code, transformed_code, number):
+        """Compute filename given the code, and the cell number.
+
+        Parameters
+        ----------
+        raw_code : str
+            The raw cell code.
+        transformed_code : str
+            The executable Python source code to cache and compile.
+        number : int
+            A number which forms part of the code's name. Used for the execution
+            counter.
+
+        Returns
+        -------
+        The computed filename.
+        """
+        return code_name(transformed_code, number)
+
+    def format_code_name(self, name):
+        """Return a user-friendly label and name for a code block.
+
+        Parameters
+        ----------
+        name : str
+            The name for the code block returned from get_code_name
+
+        Returns
+        -------
+        A (label, name) pair that can be used in tracebacks, or None if the default formatting should be used.
+        """
+        if name in self._filename_map:
+            return "Cell", "In[%s]" % self._filename_map[name]
+
+    def cache(self, transformed_code, number=0, raw_code=None):
         """Make a name for a block of code, and cache the code.
 
         Parameters
         ----------
-        code : str
-          The Python source code to cache.
+        transformed_code : str
+            The executable Python source code to cache and compile.
         number : int
-          A number which forms part of the code's name. Used for the execution
-          counter.
+            A number which forms part of the code's name. Used for the execution
+            counter.
+        raw_code : str
+            The raw code before transformation, if None, set to `transformed_code`.
 
         Returns
         -------
         The name of the cached code (as a string). Pass this as the filename
         argument to compilation, so that tracebacks are correctly hooked up.
         """
-        name = code_name(code, number)
-        entry = (len(code), time.time(),
-                 [line+'\n' for line in code.splitlines()], name)
+        if raw_code is None:
+            raw_code = transformed_code
+
+        name = self.get_code_name(raw_code, transformed_code, number)
+
+        # Save the execution count
+        self._filename_map[name] = number
+
+        # Since Python 2.5, setting mtime to `None` means the lines will
+        # never be removed by `linecache.checkcache`.  This means all the
+        # monkeypatching has *never* been necessary, since this code was
+        # only added in 2010, at which point IPython had already stopped
+        # supporting Python 2.4.
+        #
+        # Note that `linecache.clearcache` and `linecache.updatecache` may
+        # still remove our code from the cache, but those show explicit
+        # intent, and we should not try to interfere.  Normally the former
+        # is never called except when out of memory, and the latter is only
+        # called for lines *not* in the cache.
+        entry = (
+            len(transformed_code),
+            None,
+            [line + "\n" for line in transformed_code.splitlines()],
+            name,
+        )
         linecache.cache[name] = entry
-        linecache._ipython_cache[name] = entry
         return name
 
     @contextmanager
@@ -146,15 +188,27 @@ class CachingCompiler(codeop.Compile):
             yield
         finally:
             # turn off only the bits we turned on so that something like
-            # __future__ that set flags stays. 
+            # __future__ that set flags stays.
             self.flags &= ~turn_on_bits
 
 
 def check_linecache_ipython(*args):
-    """Call linecache.checkcache() safely protecting our cached values.
+    """Deprecated since IPython 8.6.  Call linecache.checkcache() directly.
+
+    It was already not necessary to call this function directly.  If no
+    CachingCompiler had been created, this function would fail badly.  If
+    an instance had been created, this function would've been monkeypatched
+    into place.
+
+    As of IPython 8.6, the monkeypatching has gone away entirely.  But there
+    were still internal callers of this function, so maybe external callers
+    also existed?
     """
-    # First call the original checkcache as intended
-    linecache._checkcache_ori(*args)
-    # Then, update back the cache with our data, so that tracebacks related
-    # to our compiled codes can be produced.
-    linecache.cache.update(linecache._ipython_cache)
+    import warnings
+
+    warnings.warn(
+        "Deprecated Since IPython 8.6, Just call linecache.checkcache() directly.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    linecache.checkcache()

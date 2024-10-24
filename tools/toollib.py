@@ -5,8 +5,9 @@
 import os
 import sys
 
+from pathlib import Path
+
 # Useful shorthands
-pjoin = os.path.join
 cd = os.chdir
 
 # Constants
@@ -18,10 +19,8 @@ archive = '%s:%s' % (archive_user, archive_dir)
 
 # Build commands
 # Source dists
-sdists = './setup.py sdist --formats=gztar'
-# Binary dists
-def buildwheels():
-    sh('{python} setupegg.py bdist_wheel'.format(python=sys.executable))
+build_command = "{python} -m build".format(python=sys.executable)
+
 
 # Utility functions
 def sh(cmd):
@@ -36,15 +35,14 @@ def get_ipdir():
     """Get IPython directory from command line, or assume it's the one above."""
 
     # Initialize arguments and check location
-    ipdir = pjoin(os.path.dirname(__file__), os.pardir)
-
-    ipdir = os.path.abspath(ipdir)
+    ipdir = Path(__file__).parent / os.pardir
+    ipdir = ipdir.resolve()
 
     cd(ipdir)
-    if not os.path.isdir('IPython') and os.path.isfile('setup.py'):
-        raise SystemExit('Invalid ipython directory: %s' % ipdir)
+    if not Path("IPython").is_dir() and Path("setup.py").is_file():
+        raise SystemExit("Invalid ipython directory: %s" % ipdir)
     return ipdir
 
 def execfile(fname, globs, locs=None):
     locs = locs or globs
-    exec(compile(open(fname).read(), fname, "exec"), globs, locs)
+    exec(compile(open(fname, encoding="utf-8").read(), fname, "exec"), globs, locs)

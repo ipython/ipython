@@ -19,7 +19,7 @@ example, you could use a startup file like this::
 
     def calljed(self,filename, linenum):
         "My editor hook calls the jed editor directly."
-        print "Calling my own editor, jed ..."
+        print("Calling my own editor, jed ...")
         if os.system('jed +%d %s' % (linenum,filename)) != 0:
             raise TryNext()
 
@@ -44,10 +44,13 @@ from .error import TryNext
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
 
-__all__ = ['editor', 'synchronize_with_editor',
-           'shutdown_hook', 'late_startup_hook',
-           'show_in_pager','pre_prompt_hook',
-           'pre_run_code_hook', 'clipboard_get']
+__all__ = [
+    "editor",
+    "synchronize_with_editor",
+    "show_in_pager",
+    "pre_prompt_hook",
+    "clipboard_get",
+]
 
 deprecated = {'pre_run_code_hook': "a callback for the 'pre_execute' or 'pre_run_cell' event",
               'late_startup_hook': "a callback for the 'shell_initialized' event",
@@ -108,7 +111,7 @@ class CommandChainDispatcher:
         TryNext"""
         last_exc = TryNext()
         for prio,cmd in self.chain:
-            #print "prio",prio,"cmd",cmd #dbg
+            # print("prio",prio,"cmd",cmd)  # dbg
             try:
                 return cmd(*args, **kw)
             except TryNext as exc:
@@ -132,23 +135,6 @@ class CommandChainDispatcher:
         return iter(self.chain)
 
 
-def shutdown_hook(self):
-    """ default shutdown hook
-
-    Typically, shutdown hooks should raise TryNext so all shutdown ops are done
-    """
-
-    #print "default shutdown hook ok" # dbg
-    return
-
-
-def late_startup_hook(self):
-    """ Executed after ipython has been constructed and configured
-
-    """
-    #print "default startup hook ok" # dbg
-
-
 def show_in_pager(self, data, start, screen_lines):
     """ Run a string through pager """
     # raising TryNext here will use the default paging functionality
@@ -165,24 +151,21 @@ def pre_prompt_hook(self):
     return None
 
 
-def pre_run_code_hook(self):
-    """ Executed before running the (prefiltered) code in IPython """
-    return None
-
-
 def clipboard_get(self):
     """ Get text from the clipboard.
     """
     from ..lib.clipboard import (
-        osx_clipboard_get, tkinter_clipboard_get,
-        win32_clipboard_get
+        osx_clipboard_get,
+        tkinter_clipboard_get,
+        win32_clipboard_get,
+        wayland_clipboard_get,
     )
     if sys.platform == 'win32':
         chain = [win32_clipboard_get, tkinter_clipboard_get]
     elif sys.platform == 'darwin':
         chain = [osx_clipboard_get, tkinter_clipboard_get]
     else:
-        chain = [tkinter_clipboard_get]
+        chain = [wayland_clipboard_get, tkinter_clipboard_get]
     dispatcher = CommandChainDispatcher()
     for func in chain:
         dispatcher.add(func)

@@ -1,8 +1,12 @@
--e .
-ipykernel
-setuptools>=18.5
-sphinx
-sphinx-rtd-theme
-docrepr
+-e .[doc]
+sphinx>7
+setuptools
+sphinx_rtd_theme>=1.2.0
+numpy
+exceptiongroup
+testpath
 matplotlib
-stack_data
+docrepr
+prompt_toolkit
+ipykernel
+intersphinx_registry

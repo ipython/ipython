@@ -19,34 +19,11 @@ Limitations:
 # Module imports
 
 # From the standard library
-import builtins as builtin_mod
 import doctest
-import inspect
 import logging
-import os
 import re
-import sys
-from importlib import import_module
-from io import StringIO
 
 from testpath import modified_env
-
-from inspect import getmodule
-
-from pathlib import Path, PurePath
-
-# We are overriding the default doctest runner, so we need to import a few
-# things from doctest directly
-from doctest import (REPORTING_FLAGS, REPORT_ONLY_FIRST_FAILURE,
-                     _unittest_reportflags, DocTestRunner,
-                     _extract_future_flags, pdb, _OutputRedirectingPdb,
-                     _exception_traceback,
-                     linecache)
-
-# Third-party modules
-
-from nose.plugins import doctests, Plugin
-from nose.util import anyp, tolist
 
 #-----------------------------------------------------------------------------
 # Module globals and other constants
@@ -59,114 +36,16 @@ log = logging.getLogger(__name__)
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-def is_extension_module(filename):
-    """Return whether the given filename is an extension module.
 
-    This simply checks that the extension is either .so or .pyd.
-    """
-    return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
-
-
-class DocTestSkip(object):
-    """Object wrapper for doctests to be skipped."""
-
-    ds_skip = """Doctest to skip.
-    >>> 1 #doctest: +SKIP
-    """
-
-    def __init__(self,obj):
-        self.obj = obj
-
-    def __getattribute__(self,key):
-        if key == '__doc__':
-            return DocTestSkip.ds_skip
-        else:
-            return getattr(object.__getattribute__(self,'obj'),key)
-
-# Modified version of the one in the stdlib, that fixes a python bug (doctests
-# not found in extension modules, http://bugs.python.org/issue3158)
 class DocTestFinder(doctest.DocTestFinder):
+    def _get_test(self, obj, name, module, globs, source_lines):
+        test = super()._get_test(obj, name, module, globs, source_lines)
 
-    def _from_module(self, module, object):
-        """
-        Return true if the given object is defined in the given
-        module.
-        """
-        if module is None:
-            return True
-        elif inspect.isfunction(object):
-            return module.__dict__ is object.__globals__
-        elif inspect.isbuiltin(object):
-            return module.__name__ == object.__module__
-        elif inspect.isclass(object):
-            return module.__name__ == object.__module__
-        elif inspect.ismethod(object):
-            # This one may be a bug in cython that fails to correctly set the
-            # __module__ attribute of methods, but since the same error is easy
-            # to make by extension code writers, having this safety in place
-            # isn't such a bad idea
-            return module.__name__ == object.__self__.__class__.__module__
-        elif inspect.getmodule(object) is not None:
-            return module is inspect.getmodule(object)
-        elif hasattr(object, '__module__'):
-            return module.__name__ == object.__module__
-        elif isinstance(object, property):
-            return True # [XX] no way not be sure.
-        elif inspect.ismethoddescriptor(object):
-            # Unbound PyQt signals reach this point in Python 3.4b3, and we want
-            # to avoid throwing an error. See also http://bugs.python.org/issue3158
-            return False
-        else:
-            raise ValueError("object must be a class or function, got %r" % object)
+        if bool(getattr(obj, "__skip_doctest__", False)) and test is not None:
+            for example in test.examples:
+                example.options[doctest.SKIP] = True
 
-    def _find(self, tests, obj, name, module, source_lines, globs, seen):
-        """
-        Find tests for the given object and any contained objects, and
-        add them to `tests`.
-        """
-        print('_find for:', obj, name, module)  # dbg
-        if hasattr(obj,"skip_doctest"):
-            #print 'SKIPPING DOCTEST FOR:',obj  # dbg
-            obj = DocTestSkip(obj)
-        
-        doctest.DocTestFinder._find(self,tests, obj, name, module,
-                                    source_lines, globs, seen)
-
-        # Below we re-run pieces of the above method with manual modifications,
-        # because the original code is buggy and fails to correctly identify
-        # doctests in extension modules.
-
-        # Local shorthands
-        from inspect import isroutine, isclass
-
-        # Look for tests in a module's contained objects.
-        if inspect.ismodule(obj) and self._recurse:
-            for valname, val in obj.__dict__.items():
-                valname1 = '%s.%s' % (name, valname)
-                if ( (isroutine(val) or isclass(val))
-                     and self._from_module(module, val) ):
-
-                    self._find(tests, val, valname1, module, source_lines,
-                               globs, seen)
-
-        # Look for tests in a class's contained objects.
-        if inspect.isclass(obj) and self._recurse:
-            #print 'RECURSE into class:',obj  # dbg
-            for valname, val in obj.__dict__.items():
-                # Special handling for staticmethod/classmethod.
-                if isinstance(val, staticmethod):
-                    val = getattr(obj, valname)
-                if isinstance(val, classmethod):
-                    val = getattr(obj, valname).__func__
-
-                # Recurse to methods, properties, and nested classes.
-                if ((inspect.isfunction(val) or inspect.isclass(val) or
-                     inspect.ismethod(val) or
-                      isinstance(val, property)) and
-                      self._from_module(module, val)):
-                    valname = '%s.%s' % (name, valname)
-                    self._find(tests, val, valname, module, source_lines,
-                               globs, seen)
+        return test
 
 
 class IPDoctestOutputChecker(doctest.OutputChecker):
@@ -189,150 +68,15 @@ class IPDoctestOutputChecker(doctest.OutputChecker):
         ret = doctest.OutputChecker.check_output(self, want, got,
                                                  optionflags)
         if not ret and self.random_re.search(want):
-            #print >> sys.stderr, 'RANDOM OK:',want  # dbg
+            # print('RANDOM OK:',want, file=sys.stderr)  # dbg
             return True
 
         return ret
 
 
-class DocTestCase(doctests.DocTestCase):
-    """Proxy for DocTestCase: provides an address() method that
-    returns the correct address for the doctest case. Otherwise
-    acts as a proxy to the test case. To provide hints for address(),
-    an obj may also be passed -- this will be used as the test object
-    for purposes of determining the test address, if it is provided.
-    """
-
-    # Note: this method was taken from numpy's nosetester module.
-
-    # Subclass nose.plugins.doctests.DocTestCase to work around a bug in
-    # its constructor that blocks non-default arguments from being passed
-    # down into doctest.DocTestCase
-
-    def __init__(self, test, optionflags=0, setUp=None, tearDown=None,
-                 checker=None, obj=None, result_var='_'):
-        self._result_var = result_var
-        doctests.DocTestCase.__init__(self, test,
-                                      optionflags=optionflags,
-                                      setUp=setUp, tearDown=tearDown,
-                                      checker=checker)
-        # Now we must actually copy the original constructor from the stdlib
-        # doctest class, because we can't call it directly and a bug in nose
-        # means it never gets passed the right arguments.
-
-        self._dt_optionflags = optionflags
-        self._dt_checker = checker
-        self._dt_test = test
-        self._dt_test_globs_ori = test.globs
-        self._dt_setUp = setUp
-        self._dt_tearDown = tearDown
-
-        # XXX - store this runner once in the object!
-        runner = IPDocTestRunner(optionflags=optionflags,
-                                 checker=checker, verbose=False)
-        self._dt_runner = runner
-
-
-        # Each doctest should remember the directory it was loaded from, so
-        # things like %run work without too many contortions
-        self._ori_dir = os.path.dirname(test.filename)
-
-    # Modified runTest from the default stdlib
-    def runTest(self):
-        test = self._dt_test
-        runner = self._dt_runner
-
-        old = sys.stdout
-        new = StringIO()
-        optionflags = self._dt_optionflags
-
-        if not (optionflags & REPORTING_FLAGS):
-            # The option flags don't include any reporting flags,
-            # so add the default reporting flags
-            optionflags |= _unittest_reportflags
-
-        try:
-            # Save our current directory and switch out to the one where the
-            # test was originally created, in case another doctest did a
-            # directory change.  We'll restore this in the finally clause.
-            curdir = os.getcwd()
-            #print 'runTest in dir:', self._ori_dir  # dbg
-            os.chdir(self._ori_dir)
-
-            runner.DIVIDER = "-"*70
-            failures, tries = runner.run(test,out=new.write,
-                                         clear_globs=False)
-        finally:
-            sys.stdout = old
-            os.chdir(curdir)
-
-        if failures:
-            raise self.failureException(self.format_failure(new.getvalue()))
-
-    def setUp(self):
-        """Modified test setup that syncs with ipython namespace"""
-        #print "setUp test", self._dt_test.examples # dbg
-        if isinstance(self._dt_test.examples[0], IPExample):
-            # for IPython examples *only*, we swap the globals with the ipython
-            # namespace, after updating it with the globals (which doctest
-            # fills with the necessary info from the module being tested).
-            self.user_ns_orig = {}
-            self.user_ns_orig.update(_ip.user_ns)
-            _ip.user_ns.update(self._dt_test.globs)
-            # We must remove the _ key in the namespace, so that Python's
-            # doctest code sets it naturally
-            _ip.user_ns.pop('_', None)
-            _ip.user_ns['__builtins__'] = builtin_mod
-            self._dt_test.globs = _ip.user_ns
-
-        super(DocTestCase, self).setUp()
-
-    def tearDown(self):
-
-        # Undo the test.globs reassignment we made, so that the parent class
-        # teardown doesn't destroy the ipython namespace
-        if isinstance(self._dt_test.examples[0], IPExample):
-            self._dt_test.globs = self._dt_test_globs_ori
-            _ip.user_ns.clear()
-            _ip.user_ns.update(self.user_ns_orig)
-
-        # XXX - fperez: I am not sure if this is truly a bug in nose 0.11, but
-        # it does look like one to me: its tearDown method tries to run
-        #
-        # delattr(builtin_mod, self._result_var)
-        #
-        # without checking that the attribute really is there; it implicitly
-        # assumes it should have been set via displayhook.  But if the
-        # displayhook was never called, this doesn't necessarily happen.  I
-        # haven't been able to find a little self-contained example outside of
-        # ipython that would show the problem so I can report it to the nose
-        # team, but it does happen a lot in our code.
-        #
-        # So here, we just protect as narrowly as possible by trapping an
-        # attribute error whose message would be the name of self._result_var,
-        # and letting any other error propagate.
-        try:
-            super(DocTestCase, self).tearDown()
-        except AttributeError as exc:
-            if exc.args[0] != self._result_var:
-                raise
-
-
 # A simple subclassing of the original with a different class name, so we can
 # distinguish and treat differently IPython examples from pure python ones.
 class IPExample(doctest.Example): pass
-
-
-class IPExternalExample(doctest.Example):
-    """Doctest examples to be run in an external process."""
-
-    def __init__(self, source, want, exc_msg=None, lineno=0, indent=0,
-                 options=None):
-        # Parent constructor
-        doctest.Example.__init__(self,source,want,exc_msg,lineno,indent,options)
-
-        # An EXTRA newline is needed to prevent pexpect hangs
-        self.source += '\n'
 
 
 class IPDocTestParser(doctest.DocTestParser):
@@ -380,9 +124,6 @@ class IPDocTestParser(doctest.DocTestParser):
     # we don't need to modify any other code.
     _RANDOM_TEST = re.compile(r'#\s*all-random\s+')
 
-    # Mark tests to be executed in an external process - currently unsupported.
-    _EXTERNAL_IP = re.compile(r'#\s*ipdoctest:\s*EXTERNAL')
-
     def ip2py(self,source):
         """Convert input IPython source into valid Python."""
         block = _ip.input_transformer_manager.transform_cell(source)
@@ -400,7 +141,7 @@ class IPDocTestParser(doctest.DocTestParser):
         used for error messages.
         """
 
-        #print 'Parse string:\n',string # dbg
+        # print('Parse string:\n',string)  # dbg
 
         string = string.expandtabs()
         # If all lines begin with the same indentation, then strip it.
@@ -425,27 +166,12 @@ class IPDocTestParser(doctest.DocTestParser):
         terms = list(self._EXAMPLE_RE_PY.finditer(string))
         if terms:
             # Normal Python example
-            #print '-'*70  # dbg
-            #print 'PyExample, Source:\n',string  # dbg
-            #print '-'*70  # dbg
             Example = doctest.Example
         else:
-            # It's an ipython example.  Note that IPExamples are run
-            # in-process, so their syntax must be turned into valid python.
-            # IPExternalExamples are run out-of-process (via pexpect) so they
-            # don't need any filtering (a real ipython will be executing them).
+            # It's an ipython example.
             terms = list(self._EXAMPLE_RE_IP.finditer(string))
-            if self._EXTERNAL_IP.search(string):
-                #print '-'*70  # dbg
-                #print 'IPExternalExample, Source:\n',string  # dbg
-                #print '-'*70  # dbg
-                Example = IPExternalExample
-            else:
-                #print '-'*70  # dbg
-                #print 'IPExample, Source:\n',string  # dbg
-                #print '-'*70  # dbg
-                Example = IPExample
-                ip2py = True
+            Example = IPExample
+            ip2py = True
 
         for m in terms:
             # Add the pre-example text to `output`.
@@ -459,10 +185,6 @@ class IPDocTestParser(doctest.DocTestParser):
             # Append the random-output marker (it defaults to empty in most
             # cases, it's only non-empty for 'all-random' tests):
             want += random_marker
-
-            if Example is IPExternalExample:
-                options[doctest.NORMALIZE_WHITESPACE] = True
-                want += '\n'
 
             # Create an Example, and add it to the list.
             if not self._IS_BLANK_OR_COMMENT(source):
@@ -571,192 +293,7 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
     """
 
     def run(self, test, compileflags=None, out=None, clear_globs=True):
-
-        # Hack: ipython needs access to the execution context of the example,
-        # so that it can propagate user variables loaded by %run into
-        # test.globs.  We put them here into our modified %run as a function
-        # attribute.  Our new %run will then only make the namespace update
-        # when called (rather than unconditionally updating test.globs here
-        # for all examples, most of which won't be calling %run anyway).
-        #_ip._ipdoctest_test_globs = test.globs
-        #_ip._ipdoctest_test_filename = test.filename
-
-        test.globs.update(_ip.user_ns)
-
         # Override terminal size to standardise traceback format
         with modified_env({'COLUMNS': '80', 'LINES': '24'}):
             return super(IPDocTestRunner,self).run(test,
                                                    compileflags,out,clear_globs)
-
-
-class DocFileCase(doctest.DocFileCase):
-    """Overrides to provide filename
-    """
-    def address(self):
-        return (self._dt_test.filename, None, None)
-
-
-class ExtensionDoctest(doctests.Doctest):
-    """Nose Plugin that supports doctests in extension modules.
-    """
-    name = 'extdoctest'   # call nosetests with --with-extdoctest
-    enabled = True
-
-    def options(self, parser, env=os.environ):
-        Plugin.options(self, parser, env)
-        parser.add_option('--doctest-tests', action='store_true',
-                          dest='doctest_tests',
-                          default=env.get('NOSE_DOCTEST_TESTS',True),
-                          help="Also look for doctests in test modules. "
-                          "Note that classes, methods and functions should "
-                          "have either doctests or non-doctest tests, "
-                          "not both. [NOSE_DOCTEST_TESTS]")
-        parser.add_option('--doctest-extension', action="append",
-                          dest="doctestExtension",
-                          help="Also look for doctests in files with "
-                          "this extension [NOSE_DOCTEST_EXTENSION]")
-        # Set the default as a list, if given in env; otherwise
-        # an additional value set on the command line will cause
-        # an error.
-        env_setting = env.get('NOSE_DOCTEST_EXTENSION')
-        if env_setting is not None:
-            parser.set_defaults(doctestExtension=tolist(env_setting))
-
-
-    def configure(self, options, config):
-        Plugin.configure(self, options, config)
-        # Pull standard doctest plugin out of config; we will do doctesting
-        config.plugins.plugins = [p for p in config.plugins.plugins
-                                  if p.name != 'doctest']
-        self.doctest_tests = options.doctest_tests
-        self.extension = tolist(options.doctestExtension)
-
-        self.parser = doctest.DocTestParser()
-        self.finder = DocTestFinder()
-        self.checker = IPDoctestOutputChecker()
-        self.globs = None
-        self.extraglobs = None
-
-
-    def loadTestsFromExtensionModule(self,filename):
-        bpath,mod = os.path.split(filename)
-        modname = os.path.splitext(mod)[0]
-        try:
-            sys.path.append(bpath)
-            module = import_module(modname)
-            tests = list(self.loadTestsFromModule(module))
-        finally:
-            sys.path.pop()
-        return tests
-
-    # NOTE: the method below is almost a copy of the original one in nose, with
-    # a  few modifications to control output checking.
-
-    def loadTestsFromModule(self, module):
-        #print '*** ipdoctest - lTM',module  # dbg
-
-        if not self.matches(module.__name__):
-            log.debug("Doctest doesn't want module %s", module)
-            return
-
-        tests = self.finder.find(module,globs=self.globs,
-                                 extraglobs=self.extraglobs)
-        if not tests:
-            return
-
-        # always use whitespace and ellipsis options
-        optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-
-        tests.sort()
-        module_file = module.__file__
-        if module_file[-4:] in ('.pyc', '.pyo'):
-            module_file = module_file[:-1]
-        for test in tests:
-            if not test.examples:
-                continue
-            if not test.filename:
-                test.filename = module_file
-
-            yield DocTestCase(test,
-                              optionflags=optionflags,
-                              checker=self.checker)
-
-
-    def loadTestsFromFile(self, filename):
-        #print "ipdoctest - from file", filename # dbg
-        if is_extension_module(filename):
-            for t in self.loadTestsFromExtensionModule(filename):
-                yield t
-        else:
-            if self.extension and anyp(filename.endswith, self.extension):
-                name = PurePath(filename).name
-                doc = Path(filename).read_text()
-                test = self.parser.get_doctest(
-                    doc, globs={'__file__': filename}, name=name,
-                    filename=filename, lineno=0)
-                if test.examples:
-                    #print 'FileCase:',test.examples  # dbg
-                    yield DocFileCase(test)
-                else:
-                    yield False # no tests to load
-
-
-class IPythonDoctest(ExtensionDoctest):
-    """Nose Plugin that supports doctests in extension modules.
-    """
-    name = 'ipdoctest'   # call nosetests with --with-ipdoctest
-    enabled = True
-
-    def makeTest(self, obj, parent):
-        """Look for doctests in the given object, which will be a
-        function, method or class.
-        """
-        #print 'Plugin analyzing:', obj, parent  # dbg
-        # always use whitespace and ellipsis options
-        optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-
-        doctests = self.finder.find(obj, module=getmodule(parent))
-        if doctests:
-            for test in doctests:
-                if len(test.examples) == 0:
-                    continue
-
-                yield DocTestCase(test, obj=obj,
-                                  optionflags=optionflags,
-                                  checker=self.checker)
-
-    def options(self, parser, env=os.environ):
-        #print "Options for nose plugin:", self.name # dbg
-        Plugin.options(self, parser, env)
-        parser.add_option('--ipdoctest-tests', action='store_true',
-                          dest='ipdoctest_tests',
-                          default=env.get('NOSE_IPDOCTEST_TESTS',True),
-                          help="Also look for doctests in test modules. "
-                          "Note that classes, methods and functions should "
-                          "have either doctests or non-doctest tests, "
-                          "not both. [NOSE_IPDOCTEST_TESTS]")
-        parser.add_option('--ipdoctest-extension', action="append",
-                          dest="ipdoctest_extension",
-                          help="Also look for doctests in files with "
-                          "this extension [NOSE_IPDOCTEST_EXTENSION]")
-        # Set the default as a list, if given in env; otherwise
-        # an additional value set on the command line will cause
-        # an error.
-        env_setting = env.get('NOSE_IPDOCTEST_EXTENSION')
-        if env_setting is not None:
-            parser.set_defaults(ipdoctest_extension=tolist(env_setting))
-
-    def configure(self, options, config):
-        #print "Configuring nose plugin:", self.name # dbg
-        Plugin.configure(self, options, config)
-        # Pull standard doctest plugin out of config; we will do doctesting
-        config.plugins.plugins = [p for p in config.plugins.plugins
-                                  if p.name != 'doctest']
-        self.doctest_tests = options.ipdoctest_tests
-        self.extension = tolist(options.ipdoctest_extension)
-
-        self.parser = IPDocTestParser()
-        self.finder = DocTestFinder(parser=self.parser)
-        self.checker = IPDoctestOutputChecker()
-        self.globs = None
-        self.extraglobs = None

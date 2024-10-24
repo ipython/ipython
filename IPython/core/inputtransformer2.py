@@ -10,11 +10,15 @@ deprecated in 7.0.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from codeop import compile_command
+import ast
+from codeop import CommandCompiler, Compile
 import re
+import sys
 import tokenize
 from typing import List, Tuple, Optional, Any
 import warnings
+
+from IPython.utils import tokenutil
 
 _indent_re = re.compile(r'^[ \t]+')
 
@@ -89,7 +93,30 @@ classic_prompt = PromptStripper(
     initial_re=re.compile(r'^>>>( |$)')
 )
 
-ipython_prompt = PromptStripper(re.compile(r'^(In \[\d+\]: |\s*\.{3,}: ?)'))
+ipython_prompt = PromptStripper(
+    re.compile(
+        r"""
+        ^(                         # Match from the beginning of a line, either:
+
+                                   # 1. First-line prompt:
+        ((\[nav\]|\[ins\])?\ )?    # Vi editing mode prompt, if it's there
+        In\                        # The 'In' of the prompt, with a space
+        \[\d+\]:                   # Command index, as displayed in the prompt
+        \                          # With a mandatory trailing space
+
+        |                          # ... or ...
+
+                                   # 2. The three dots of the multiline prompt
+        \s*                        # All leading whitespace characters
+        \.{3,}:                    # The three (or more) dots
+        \ ?                        # With an optional trailing space
+
+        )
+        """,
+        re.VERBOSE,
+    )
+)
+
 
 def cell_magic(lines):
     if not lines or not lines[0].startswith('%%'):
@@ -245,9 +272,7 @@ class MagicAssign(TokenTransformBase):
 class SystemAssign(TokenTransformBase):
     """Transformer for assignments from system commands (a = !foo)"""
     @classmethod
-    def find(cls, tokens_by_line):
-        """Find the first system assignment (a = !foo) in the cell.
-        """
+    def find_pre_312(cls, tokens_by_line):
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
             if (assign_ix is not None) \
@@ -262,6 +287,26 @@ class SystemAssign(TokenTransformBase):
                     elif not line[ix].string.isspace():
                         break
                     ix += 1
+
+    @classmethod
+    def find_post_312(cls, tokens_by_line):
+        for line in tokens_by_line:
+            assign_ix = _find_assign_op(line)
+            if (
+                (assign_ix is not None)
+                and not line[assign_ix].line.strip().startswith("=")
+                and (len(line) >= assign_ix + 2)
+                and (line[assign_ix + 1].type == tokenize.OP)
+                and (line[assign_ix + 1].string == "!")
+            ):
+                return cls(line[assign_ix + 1].start)
+
+    @classmethod
+    def find(cls, tokens_by_line):
+        """Find the first system assignment (a = !foo) in the cell."""
+        if sys.version_info < (3, 12):
+            return cls.find_pre_312(tokens_by_line)
+        return cls.find_post_312(tokens_by_line)
 
     def transform(self, lines: List[str]):
         """Transform a system assignment found by the ``find()`` classmethod.
@@ -300,7 +345,7 @@ ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
 ESCAPE_SINGLES = {'!', '?', '%', ',', ';', '/'}
 ESCAPE_DOUBLES = {'!!', '??'}  # %% (cell magic) is handled separately
 
-def _make_help_call(target, esc, next_input=None):
+def _make_help_call(target, esc):
     """Prepares a pinfo(2)/psearch call from a target name and the escape
     (i.e. ? or ??)"""
     method  = 'pinfo2' if esc == '??' \
@@ -310,11 +355,8 @@ def _make_help_call(target, esc, next_input=None):
     #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
     t_magic_name, _, t_magic_arg_s = arg.partition(' ')
     t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
-    if next_input is None:
-        return 'get_ipython().run_line_magic(%r, %r)' % (t_magic_name, t_magic_arg_s)
-    else:
-        return 'get_ipython().set_next_input(%r);get_ipython().run_line_magic(%r, %r)' % \
-           (next_input, t_magic_name, t_magic_arg_s)
+    return "get_ipython().run_line_magic(%r, %r)" % (t_magic_name, t_magic_arg_s)
+
 
 def _tr_help(content):
     """Translate lines escaped with: ?
@@ -408,13 +450,17 @@ class EscapedCommand(TokenTransformBase):
 
         return lines_before + [new_line] + lines_after
 
-_help_end_re = re.compile(r"""(%{0,2}
-                              (?!\d)[\w*]+            # Variable name
-                              (\.(?!\d)[\w*]+)*       # .etc.etc
-                              )
-                              (\?\??)$                # ? or ??
-                              """,
-                              re.VERBOSE)
+
+_help_end_re = re.compile(
+    r"""(%{0,2}
+    (?!\d)[\w*]+            # Variable name
+    (\.(?!\d)[\w*]+|\[-?[0-9]+\])*       # .etc.etc or [0], we only support literal integers.
+    )
+    (\?\??)$                # ? or ??
+    """,
+    re.VERBOSE,
+)
+
 
 class HelpEnd(TokenTransformBase):
     """Transformer for help syntax: obj? and obj??"""
@@ -443,10 +489,11 @@ class HelpEnd(TokenTransformBase):
     def transform(self, lines):
         """Transform a help command found by the ``find()`` classmethod.
         """
-        piece = ''.join(lines[self.start_line:self.q_line+1])
-        indent, content = piece[:self.start_col], piece[self.start_col:]
-        lines_before = lines[:self.start_line]
-        lines_after = lines[self.q_line + 1:]
+
+        piece = "".join(lines[self.start_line : self.q_line + 1])
+        indent, content = piece[: self.start_col], piece[self.start_col :]
+        lines_before = lines[: self.start_line]
+        lines_after = lines[self.q_line + 1 :]
 
         m = _help_end_re.search(content)
         if not m:
@@ -455,13 +502,8 @@ class HelpEnd(TokenTransformBase):
         target = m.group(1)
         esc = m.group(3)
 
-        # If we're mid-command, put it back on the next prompt for the user.
-        next_input = None
-        if (not lines_before) and (not lines_after) \
-                and content.strip() != m.group(0):
-            next_input = content.rstrip('?\n')
 
-        call = _make_help_call(target, esc, next_input=next_input)
+        call = _make_help_call(target, esc)
         new_line = indent + call + '\n'
 
         return lines_before + [new_line] + lines_after
@@ -482,12 +524,17 @@ def make_tokens_by_line(lines:List[str]):
 
     #   reexported from token on 3.7+
     NEWLINE, NL = tokenize.NEWLINE, tokenize.NL  # type: ignore
-    tokens_by_line:List[List[Any]] = [[]]
-    if len(lines) > 1 and not lines[0].endswith(('\n', '\r', '\r\n', '\x0b', '\x0c')):
-        warnings.warn("`make_tokens_by_line` received a list of lines which do not have lineending markers ('\\n', '\\r', '\\r\\n', '\\x0b', '\\x0c'), behavior will be unspecified")
+    tokens_by_line: List[List[Any]] = [[]]
+    if len(lines) > 1 and not lines[0].endswith(("\n", "\r", "\r\n", "\x0b", "\x0c")):
+        warnings.warn(
+            "`make_tokens_by_line` received a list of lines which do not have lineending markers ('\\n', '\\r', '\\r\\n', '\\x0b', '\\x0c'), behavior will be unspecified",
+            stacklevel=2,
+        )
     parenlev = 0
     try:
-        for token in tokenize.generate_tokens(iter(lines).__next__):
+        for token in tokenutil.generate_tokens_catch_errors(
+            iter(lines).__next__, extra_errors_to_catch=["expected EOF"]
+        ):
             tokens_by_line[-1].append(token)
             if (token.type == NEWLINE) \
                     or ((token.type == NL) and (parenlev <= 0)):
@@ -508,10 +555,29 @@ def make_tokens_by_line(lines:List[str]):
 
     return tokens_by_line
 
+
+def has_sunken_brackets(tokens: List[tokenize.TokenInfo]):
+    """Check if the depth of brackets in the list of tokens drops below 0"""
+    parenlev = 0
+    for token in tokens:
+        if token.string in {"(", "[", "{"}:
+            parenlev += 1
+        elif token.string in {")", "]", "}"}:
+            parenlev -= 1
+            if parenlev < 0:
+                return True
+    return False
+
+
 def show_linewise_tokens(s: str):
     """For investigation and debugging"""
-    if not s.endswith('\n'):
-        s += '\n'
+    warnings.warn(
+        "show_linewise_tokens is deprecated since IPython 8.6",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    if not s.endswith("\n"):
+        s += "\n"
     lines = s.splitlines(keepends=True)
     for line in make_tokens_by_line(lines):
         print("Line -------")
@@ -601,17 +667,17 @@ class TransformerManager:
 
         Parameters
         ----------
-        source : string
-          Python input code, which can be multiline.
+        cell : string
+            Python input code, which can be multiline.
 
         Returns
         -------
         status : str
-          One of 'complete', 'incomplete', or 'invalid' if source is not a
-          prefix of valid code.
+            One of 'complete', 'incomplete', or 'invalid' if source is not a
+            prefix of valid code.
         indent_spaces : int or None
-          The number of spaces by which to indent the next line of code. If
-          status is not 'incomplete', this is None.
+            The number of spaces by which to indent the next line of code. If
+            status is not 'incomplete', this is None.
         """
         # Remember if the lines ends in a new line.
         ends_with_newline = False
@@ -634,9 +700,13 @@ class TransformerManager:
         if not lines:
             return 'complete', None
 
-        if lines[-1].endswith('\\'):
-            # Explicit backslash continuation
-            return 'incomplete', find_last_indent(lines)
+        for line in reversed(lines):
+            if not line.strip():
+                continue
+            elif line.strip("\n").endswith("\\"):
+                return "incomplete", find_last_indent(lines)
+            else:
+                break
 
         try:
             for transform in self.cleanup_transforms:
@@ -662,10 +732,22 @@ class TransformerManager:
 
         tokens_by_line = make_tokens_by_line(lines)
 
+        # Bail if we got one line and there are more closing parentheses than
+        # the opening ones
+        if (
+            len(lines) == 1
+            and tokens_by_line
+            and has_sunken_brackets(tokens_by_line[0])
+        ):
+            return "invalid", None
+
         if not tokens_by_line:
             return 'incomplete', find_last_indent(lines)
 
-        if tokens_by_line[-1][-1].type != tokenize.ENDMARKER:
+        if (
+            tokens_by_line[-1][-1].type != tokenize.ENDMARKER
+            and tokens_by_line[-1][-1].type != tokenize.ERRORTOKEN
+        ):
             # We're in a multiline string or expression
             return 'incomplete', find_last_indent(lines)
 
@@ -727,3 +809,19 @@ def find_last_indent(lines):
     if not m:
         return 0
     return len(m.group(0).replace('\t', ' '*4))
+
+
+class MaybeAsyncCompile(Compile):
+    def __init__(self, extra_flags=0):
+        super().__init__()
+        self.flags |= extra_flags
+
+
+class MaybeAsyncCommandCompiler(CommandCompiler):
+    def __init__(self, extra_flags=0):
+        self.compiler = MaybeAsyncCompile(extra_flags=extra_flags)
+
+
+_extra_flags = ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
+
+compile_command = MaybeAsyncCommandCompiler(extra_flags=_extra_flags)

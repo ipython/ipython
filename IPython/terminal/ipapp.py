@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # encoding: utf-8
 """
-The :class:`~IPython.core.application.Application` object for the command
+The :class:`~traitlets.config.application.Application` object for the command
 line :command:`ipython` program.
 """
 
@@ -25,6 +24,7 @@ from IPython.core.history import HistoryManager
 from IPython.core.application import (
     ProfileDir, BaseIPythonApplication, base_flags, base_aliases
 )
+from IPython.core.magic import MagicsManager
 from IPython.core.magics import (
     ScriptMagics, LoggingMagics
 )
@@ -155,7 +155,7 @@ frontend_flags['i'] = (
 flags.update(frontend_flags)
 
 aliases = dict(base_aliases)
-aliases.update(shell_aliases)
+aliases.update(shell_aliases)  # type: ignore[arg-type]
 
 #-----------------------------------------------------------------------------
 # Main classes and functions
@@ -177,9 +177,9 @@ class LocateIPythonApp(BaseIPythonApplication):
 
 
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
-    name = u'ipython'
+    name = "ipython"
     description = usage.cl_usage
-    crash_handler_class = IPAppCrashHandler
+    crash_handler_class = IPAppCrashHandler  # typing: ignore[assignment]
     examples = _examples
 
     flags = flags
@@ -196,10 +196,11 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     def _classes_default(self):
         """This has to be in a method, for TerminalIPythonApp to be available."""
         return [
-            InteractiveShellApp, # ShellApp comes before TerminalApp, because
+            InteractiveShellApp,  # ShellApp comes before TerminalApp, because
             self.__class__,      # it will also affect subclasses (e.g. QtConsole)
             TerminalInteractiveShell,
             HistoryManager,
+            MagicsManager,
             ProfileDir,
             PlainTextFormatter,
             IPCompleter,
@@ -208,26 +209,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             StoreMagics,
         ]
 
-    deprecated_subcommands = dict(
-        qtconsole=('qtconsole.qtconsoleapp.JupyterQtConsoleApp',
-            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter Qt Console."""
-        ),
-        notebook=('notebook.notebookapp.NotebookApp',
-            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter HTML Notebook Server."""
-        ),
-        console=('jupyter_console.app.ZMQTerminalIPythonApp',
-            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter terminal-based Console."""
-        ),
-        nbconvert=('nbconvert.nbconvertapp.NbConvertApp',
-            "DEPRECATED, Will be removed in IPython 6.0 : Convert notebooks to/from other formats."
-        ),
-        trust=('nbformat.sign.TrustNotebookApp',
-            "DEPRECATED, Will be removed in IPython 6.0 : Sign notebooks to trust their potentially unsafe contents at load."
-        ),
-        kernelspec=('jupyter_client.kernelspecapp.KernelSpecApp',
-            "DEPRECATED, Will be removed in IPython 6.0 : Manage Jupyter kernel specifications."
-        ),
-    )
     subcommands = dict(
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles."
@@ -242,14 +223,10 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             "Manage the IPython history database."
         ),
     )
-    deprecated_subcommands['install-nbextension'] = (
-        "notebook.nbextensions.InstallNBExtensionApp",
-        "DEPRECATED, Will be removed in IPython 6.0 : Install Jupyter notebook extension files"
-    )
-    subcommands.update(deprecated_subcommands)
 
     # *do* autocreate requested profile, but don't create the config file.
-    auto_create=Bool(True)
+    auto_create = Bool(True).tag(config=True)
+
     # configurables
     quick = Bool(False,
         help="""Start IPython quickly by skipping the loading of config files."""
@@ -286,22 +263,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     # internal, not-configurable
     something_to_run=Bool(False)
 
-    def parse_command_line(self, argv=None):
-        """override to allow old '-pylab' flag with deprecation warning"""
-
-        argv = sys.argv[1:] if argv is None else argv
-
-        if '-pylab' in argv:
-            # deprecated `-pylab` given,
-            # warn and transform into current syntax
-            argv = argv[:] # copy, don't clobber
-            idx = argv.index('-pylab')
-            warnings.warn("`-pylab` flag has been deprecated.\n"
-            "    Use `--matplotlib <backend>` and import pylab manually.")
-            argv[idx] = '--pylab'
-
-        return super(TerminalIPythonApp, self).parse_command_line(argv)
-    
     @catch_config_error
     def initialize(self, argv=None):
         """Do actions after construct, but before starting the app."""
@@ -309,7 +270,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if self.subapp is not None:
             # don't bother initializing further, starting subapp
             return
-        # print self.extra_args
+        # print(self.extra_args)
         if self.extra_args and not self.something_to_run:
             self.file_to_run = self.extra_args[0]
         self.init_path()
@@ -356,6 +317,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.shell.mainloop()
         else:
             self.log.debug("IPython not interactive...")
+            self.shell.restore_term_title()
             if not self.shell.last_execution_succeeded:
                 sys.exit(1)
 
@@ -374,7 +336,3 @@ def load_default_config(ipython_dir=None):
     return app.config
 
 launch_new_instance = TerminalIPythonApp.launch_instance
-
-
-if __name__ == '__main__':
-    launch_new_instance()

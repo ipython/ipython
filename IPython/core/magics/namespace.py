@@ -43,7 +43,7 @@ class NamespaceMagics(Magics):
 
         '%pinfo object' is just a synonym for object? or ?object."""
 
-        #print 'pinfo par: <%s>' % parameter_s  # dbg
+        # print('pinfo par: <%s>' % parameter_s)  # dbg
         # detail_level: 0 -> obj? , 1 -> obj??
         detail_level = 0
         # We need to detect if we got called as 'pinfo pinfo foo', which can
@@ -173,7 +173,7 @@ class NamespaceMagics(Magics):
           'builtin', 'user', 'user_global','internal', 'alias', where
           'builtin' and 'user' are the search defaults.  Note that you should
           not use quotes when specifying namespaces.
-          
+
           -l: List all available object types for object matching. This function
           can be used without arguments.
 
@@ -203,9 +203,9 @@ class NamespaceMagics(Magics):
         Show objects beginning with a single _::
 
           %psearch -a _*         list objects beginning with a single underscore
-          
+
         List available objects::
-        
+
           %psearch -l            list all available object types
         """
         # default namespaces to be searched
@@ -252,7 +252,6 @@ class NamespaceMagics(Magics):
 
         Examples
         --------
-
         Define two variables and list them with who_ls::
 
           In [1]: alpha = 123
@@ -367,7 +366,6 @@ class NamespaceMagics(Magics):
 
         Examples
         --------
-
         Define two variables and list them with whos::
 
           In [1]: alpha = 123
@@ -484,24 +482,26 @@ class NamespaceMagics(Magics):
 
         Parameters
         ----------
-        -f : force reset without asking for confirmation.
-
-        -s : 'Soft' reset: Only clears your namespace, leaving history intact.
+        -f
+            force reset without asking for confirmation.
+        -s
+            'Soft' reset: Only clears your namespace, leaving history intact.
             References to objects may be kept. By default (without this option),
             we do a 'hard' reset, giving you a new session and removing all
             references to objects from the current session.
-
-        --aggressive: Try to aggressively remove modules from sys.modules ; this
+        --aggressive
+            Try to aggressively remove modules from sys.modules ; this
             may allow you to reimport Python modules that have been updated and
-            pick up changes, but can have unattended consequences.
+            pick up changes, but can have unintended consequences.
 
-        in : reset input history
-
-        out : reset output history
-
-        dhist : reset directory history
-
-        array : reset only variables that are NumPy arrays
+        in
+            reset input history
+        out
+            reset output history
+        dhist
+            reset directory history
+        array
+            reset only variables that are NumPy arrays
 
         See Also
         --------
@@ -624,7 +624,6 @@ class NamespaceMagics(Magics):
 
         Examples
         --------
-
         We first fully reset the namespace so your output looks identical to
         this example for pedagogical reasons; in practice you do not need a
         full reset::

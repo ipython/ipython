@@ -19,10 +19,10 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import sys
 import traceback
 from pprint import pformat
+from pathlib import Path
 
 from IPython.core import ultratb
 from IPython.core.release import author_email
@@ -30,6 +30,8 @@ from IPython.utils.sysinfo import sys_info
 from IPython.utils.py3compat import input
 
 from IPython.core.release import __version__ as version
+
+from typing import Optional
 
 #-----------------------------------------------------------------------------
 # Code
@@ -94,34 +96,40 @@ class CrashHandler(object):
     message_template = _default_message_template
     section_sep = '\n\n'+'*'*75+'\n\n'
 
-    def __init__(self, app, contact_name=None, contact_email=None,
-                 bug_tracker=None, show_crash_traceback=True, call_pdb=False):
+    def __init__(
+        self,
+        app,
+        contact_name: Optional[str] = None,
+        contact_email: Optional[str] = None,
+        bug_tracker: Optional[str] = None,
+        show_crash_traceback: bool = True,
+        call_pdb: bool = False,
+    ):
         """Create a new crash handler
 
         Parameters
         ----------
-        app :  Application
+        app : Application
             A running :class:`Application` instance, which will be queried at
             crash time for internal information.
-
         contact_name : str
             A string with the name of the person to contact.
-
         contact_email : str
             A string with the email address of the contact.
-
         bug_tracker : str
             A string with the URL for your project's bug tracker.
-
         show_crash_traceback : bool
             If false, don't print the crash traceback on stderr, only generate
             the on-disk report
+        call_pdb
+            Whether to call pdb on crash
 
-        Non-argument instance attributes:
-
+        Attributes
+        ----------
         These instances contain some non-argument attributes which allow for
         further customization of the crash handler's behavior. Please see the
         source for further details.
+
         """
         self.crash_report_fname = "Crash_report_%s.txt" % app.name
         self.app = app
@@ -151,10 +159,10 @@ class CrashHandler(object):
         try:
             rptdir = self.app.ipython_dir
         except:
-            rptdir = os.getcwd()
-        if rptdir is None or not os.path.isdir(rptdir):
-            rptdir = os.getcwd()
-        report_name = os.path.join(rptdir,self.crash_report_fname)
+            rptdir = Path.cwd()
+        if rptdir is None or not Path.is_dir(rptdir):
+            rptdir = Path.cwd()
+        report_name = rptdir / self.crash_report_fname
         # write the report filename into the instance dict so it can get
         # properly expanded out in the user message template
         self.crash_report_fname = report_name
@@ -176,7 +184,7 @@ class CrashHandler(object):
 
         # and generate a complete report on disk
         try:
-            report = open(report_name,'w')
+            report = open(report_name, "w", encoding="utf-8")
         except:
             print('Could not create crash report on disk.', file=sys.stderr)
             return

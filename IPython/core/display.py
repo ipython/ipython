@@ -6,6 +6,7 @@
 
 
 from binascii import b2a_base64, hexlify
+import html
 import json
 import mimetypes
 import os
@@ -40,7 +41,11 @@ from warnings import warn
 
 def __getattr__(name):
     if name in _deprecated_names:
-        warn(f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython display", DeprecationWarning, stacklevel=2)
+        warn(
+            f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython.display",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return getattr(display_functions, name)
 
     if name in globals().keys():
@@ -82,7 +87,7 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
     if raw:
         # turn list of pngdata into list of { 'image/png': pngdata }
         objs = [ {mimetype: obj} for obj in objs ]
-    display(*objs, raw=raw, metadata=metadata, include=[mimetype])
+    display_functions.display(*objs, raw=raw, metadata=metadata, include=[mimetype])
 
 #-----------------------------------------------------------------------------
 # Main functions
@@ -285,7 +290,7 @@ class DisplayObject(object):
         in the frontend. The MIME type of the data should match the
         subclasses used, so the Png subclass should be used for 'image/png'
         data. If the data is a URL, the data will first be downloaded
-        and then displayed. If
+        and then displayed.
 
         Parameters
         ----------
@@ -348,7 +353,8 @@ class DisplayObject(object):
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.filename is not None:
-            with open(self.filename, self._read_flags) as f:
+            encoding = None if "b" in self._read_flags else "utf-8"
+            with open(self.filename, self._read_flags, encoding=encoding) as f:
                 self.data = f.read()
         elif self.url is not None:
             # Deferred import
@@ -368,10 +374,14 @@ class DisplayObject(object):
                 if 'gzip' in response.headers['content-encoding']:
                     import gzip
                     from io import BytesIO
-                    with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
+
+                    # assume utf-8 if encoding is not specified
+                    with gzip.open(
+                        BytesIO(data), "rt", encoding=encoding or "utf-8"
+                    ) as fp:
                         encoding = None
                         data = fp.read()
-                    
+
             # decode data, if an encoding was specified
             # We only touch self.data once since
             # subclasses such as SVG have @data.setter methods
@@ -383,7 +393,19 @@ class DisplayObject(object):
 
 
 class TextDisplayObject(DisplayObject):
-    """Validate that display data is text"""
+    """Create a text display object given raw data.
+
+    Parameters
+    ----------
+    data : str or unicode
+        The raw data or a URL or file to load the data from.
+    url : unicode
+        A URL to download the data from.
+    filename : unicode
+        Path to a local file to load the data from.
+    metadata : dict
+        Dict of metadata associated to be the object when displayed
+    """
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, str):
             raise TypeError("%s expects text, not %r" % (self.__class__.__name__, self.data))
@@ -516,10 +538,10 @@ class ProgressBar(DisplayObject):
             self.html_width, self.total, self.progress)
 
     def display(self):
-        display(self, display_id=self._display_id)
+        display_functions.display(self, display_id=self._display_id)
 
     def update(self):
-        display(self, display_id=self._display_id, update=True)
+        display_functions.display(self, display_id=self._display_id, update=True)
 
     @property
     def progress(self):
@@ -567,7 +589,7 @@ class JSON(DisplayObject):
             Path to a local file to load the data from.
         expanded : boolean
             Metadata to control whether a JSON display component is expanded.
-        metadata: dict
+        metadata : dict
             Specify extra metadata to attach to the json display object.
         root : str
             The name of the root element of the JSON tree
@@ -607,8 +629,9 @@ class JSON(DisplayObject):
     def _repr_json_(self):
         return self._data_and_metadata()
 
+
 _css_t = """var link = document.createElement("link");
-	link.ref = "stylesheet";
+	link.rel = "stylesheet";
 	link.type = "text/css";
 	link.href = "%s";
 	document.head.appendChild(link);
@@ -651,12 +674,11 @@ class GeoJSON(JSON):
             A URL to download the data from.
         filename : unicode
             Path to a local file to load the data from.
-        metadata: dict
+        metadata : dict
             Specify extra metadata to attach to the json display object.
 
         Examples
         --------
-
         The following will display an interactive map of Mars with a point of
         interest on frontend that do support GeoJSON display.
 
@@ -694,7 +716,7 @@ class GeoJSON(JSON):
         metadata = {
             'application/geo+json': self.metadata
         }
-        display(bundle, metadata=metadata, raw=True)
+        display_functions.display(bundle, metadata=metadata, raw=True)
 
 class Javascript(TextDisplayObject):
 
@@ -723,7 +745,7 @@ class Javascript(TextDisplayObject):
             running the source code. The full URLs of the libraries should
             be given. A single Javascript library URL can also be given as a
             string.
-        css: : list or str
+        css : list or str
             A sequence of css files to load before running the source code.
             The full URLs of the css files should be given. A single css URL
             can also be given as a string.
@@ -801,9 +823,20 @@ class Image(DisplayObject):
         _FMT_GIF: 'image/gif',
     }
 
-    def __init__(self, data=None, url=None, filename=None, format=None,
-                 embed=None, width=None, height=None, retina=False,
-                 unconfined=False, metadata=None):
+    def __init__(
+        self,
+        data=None,
+        url=None,
+        filename=None,
+        format=None,
+        embed=None,
+        width=None,
+        height=None,
+        retina=False,
+        unconfined=False,
+        metadata=None,
+        alt=None,
+    ):
         """Create a PNG/JPEG/GIF image object given raw data.
 
         When this object is returned by an input cell or passed to the
@@ -815,15 +848,19 @@ class Image(DisplayObject):
         data : unicode, str or bytes
             The raw image data or a URL or filename to load the data from.
             This always results in embedded image data.
+
         url : unicode
             A URL to download the data from. If you specify `url=`,
             the image data will not be embedded unless you also specify `embed=True`.
+
         filename : unicode
             Path to a local file to load the data from.
             Images from a file are always embedded.
+
         format : unicode
             The format of the image data (png/jpeg/jpg/gif). If a filename or URL is given
             for format will be inferred from the filename extension.
+
         embed : bool
             Should the image data be embedded using a data URI (True) or be
             loaded using an <img> tag. Set this to True if you want the image
@@ -833,10 +870,13 @@ class Image(DisplayObject):
             default value is `False`.
 
             Note that QtConsole is not able to display images if `embed` is set to `False`
+
         width : int
             Width in pixels to which to constrain the image in html
+
         height : int
             Height in pixels to which to constrain the image in html
+
         retina : bool
             Automatically set the width and height to half of the measured
             width and height.
@@ -844,25 +884,38 @@ class Image(DisplayObject):
             from image data.
             For non-embedded images, you can just set the desired display width
             and height directly.
-        unconfined: bool
+
+        unconfined : bool
             Set unconfined=True to disable max-width confinement of the image.
-        metadata: dict
+
+        metadata : dict
             Specify extra metadata to attach to the image.
+
+        alt : unicode
+            Alternative text for the image, for use by screen readers.
 
         Examples
         --------
-        # embedded image data, works in qtconsole and notebook
-        # when passed positionally, the first arg can be any of raw image data,
-        # a URL, or a filename from which to load image data.
-        # The result is always embedding image data for inline images.
-        Image('http://www.google.fr/images/srpr/logo3w.png')
-        Image('/path/to/image.jpg')
-        Image(b'RAW_PNG_DATA...')
+        embedded image data, works in qtconsole and notebook
+        when passed positionally, the first arg can be any of raw image data,
+        a URL, or a filename from which to load image data.
+        The result is always embedding image data for inline images.
 
-        # Specifying Image(url=...) does not embed the image data,
-        # it only generates `<img>` tag with a link to the source.
-        # This will not work in the qtconsole or offline.
-        Image(url='http://www.google.fr/images/srpr/logo3w.png')
+        >>> Image('https://www.google.fr/images/srpr/logo3w.png') # doctest: +SKIP
+        <IPython.core.display.Image object>
+
+        >>> Image('/path/to/image.jpg')
+        <IPython.core.display.Image object>
+
+        >>> Image(b'RAW_PNG_DATA...')
+        <IPython.core.display.Image object>
+
+        Specifying Image(url=...) does not embed the image data,
+        it only generates ``<img>`` tag with a link to the source.
+        This will not work in the qtconsole or offline.
+
+        >>> Image(url='https://www.google.fr/images/srpr/logo3w.png')
+        <IPython.core.display.Image object>
 
         """
         if isinstance(data, (Path, PurePath)):
@@ -917,6 +970,7 @@ class Image(DisplayObject):
         self.height = height
         self.retina = retina
         self.unconfined = unconfined
+        self.alt = alt
         super(Image, self).__init__(data=data, url=url, filename=filename,
                 metadata=metadata)
 
@@ -925,6 +979,9 @@ class Image(DisplayObject):
 
         if self.height is None and self.metadata.get('height', {}):
             self.height = metadata['height']
+
+        if self.alt is None and self.metadata.get("alt", {}):
+            self.alt = metadata["alt"]
 
         if retina:
             self._retina_shape()
@@ -955,18 +1012,21 @@ class Image(DisplayObject):
 
     def _repr_html_(self):
         if not self.embed:
-            width = height = klass = ''
+            width = height = klass = alt = ""
             if self.width:
                 width = ' width="%d"' % self.width
             if self.height:
                 height = ' height="%d"' % self.height
             if self.unconfined:
                 klass = ' class="unconfined"'
-            return u'<img src="{url}"{width}{height}{klass}/>'.format(
+            if self.alt:
+                alt = ' alt="%s"' % html.escape(self.alt)
+            return '<img src="{url}"{width}{height}{klass}{alt}/>'.format(
                 url=self.url,
                 width=width,
                 height=height,
                 klass=klass,
+                alt=alt,
             )
 
     def _repr_mimebundle_(self, include=None, exclude=None):
@@ -986,7 +1046,7 @@ class Image(DisplayObject):
     def _data_and_metadata(self, always_both=False):
         """shortcut for returning metadata with shape information, if defined"""
         try:
-            b64_data = b2a_base64(self.data).decode('ascii')
+            b64_data = b2a_base64(self.data, newline=False).decode("ascii")
         except TypeError as e:
             raise FileNotFoundError(
                 "No such file or directory: '%s'" % (self.data)) from e
@@ -999,6 +1059,8 @@ class Image(DisplayObject):
             md['height'] = self.height
         if self.unconfined:
             md['unconfined'] = self.unconfined
+        if self.alt:
+            md["alt"] = self.alt
         if md or always_both:
             return b64_data, md
         else:
@@ -1036,42 +1098,47 @@ class Video(DisplayObject):
         ----------
         data : unicode, str or bytes
             The raw video data or a URL or filename to load the data from.
-            Raw data will require passing `embed=True`.
+            Raw data will require passing ``embed=True``.
+
         url : unicode
-            A URL for the video. If you specify `url=`,
+            A URL for the video. If you specify ``url=``,
             the image data will not be embedded.
+
         filename : unicode
             Path to a local file containing the video.
-            Will be interpreted as a local URL unless `embed=True`.
+            Will be interpreted as a local URL unless ``embed=True``.
+
         embed : bool
             Should the video be embedded using a data URI (True) or be
             loaded using a <video> tag (False).
 
             Since videos are large, embedding them should be avoided, if possible.
-            You must confirm embedding as your intention by passing `embed=True`.
+            You must confirm embedding as your intention by passing ``embed=True``.
 
             Local files can be displayed with URLs without embedding the content, via::
 
                 Video('./video.mp4')
 
-        mimetype: unicode
+        mimetype : unicode
             Specify the mimetype for embedded videos.
             Default will be guessed from file extension, if available.
+
         width : int
             Width in pixels to which to constrain the video in HTML.
             If not supplied, defaults to the width of the video.
+
         height : int
             Height in pixels to which to constrain the video in html.
             If not supplied, defaults to the height of the video.
+
         html_attributes : str
-            Attributes for the HTML `<video>` block.
-            Default: `"controls"` to get video controls.
-            Other examples: `"controls muted"` for muted video with controls,
-            `"loop autoplay"` for looping autoplaying video without controls.
+            Attributes for the HTML ``<video>`` block.
+            Default: ``"controls"`` to get video controls.
+            Other examples: ``"controls muted"`` for muted video with controls,
+            ``"loop autoplay"`` for looping autoplaying video without controls.
 
         Examples
         --------
-
         ::
 
             Video('https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_small.mp4')
@@ -1135,7 +1202,7 @@ class Video(DisplayObject):
             # unicode input is already b64-encoded
             b64_video = video
         else:
-            b64_video = b2a_base64(video).decode('ascii').rstrip()
+            b64_video = b2a_base64(video, newline=False).decode("ascii").rstrip()
 
         output = """<video {0} {1} {2}>
  <source src="data:{3};base64,{4}" type="{3}">
@@ -1150,7 +1217,12 @@ class Video(DisplayObject):
 
 @skip_doctest
 def set_matplotlib_formats(*formats, **kwargs):
-    """Select figure formats for the inline backend. Optionally pass quality for JPEG.
+    """
+    .. deprecated:: 7.23
+
+       use `matplotlib_inline.backend_inline.set_matplotlib_formats()`
+
+    Select figure formats for the inline backend. Optionally pass quality for JPEG.
 
     For example, this enables PNG and JPEG output with a JPEG quality of 90%::
 
@@ -1165,23 +1237,30 @@ def set_matplotlib_formats(*formats, **kwargs):
     ----------
     *formats : strs
         One or more figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
-    **kwargs :
+    **kwargs
         Keyword args will be relayed to ``figure.canvas.print_figure``.
     """
-    from IPython.core.interactiveshell import InteractiveShell
-    from IPython.core.pylabtools import select_figure_formats
-    # build kwargs, starting with InlineBackend config
-    kw = {}
-    from ipykernel.pylab.config import InlineBackend
-    cfg = InlineBackend.instance()
-    kw.update(cfg.print_figure_kwargs)
-    kw.update(**kwargs)
-    shell = InteractiveShell.instance()
-    select_figure_formats(shell, formats, **kw)
+    warnings.warn(
+        "`set_matplotlib_formats` is deprecated since IPython 7.23, directly "
+        "use `matplotlib_inline.backend_inline.set_matplotlib_formats()`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    from matplotlib_inline.backend_inline import (
+        set_matplotlib_formats as set_matplotlib_formats_orig,
+    )
+
+    set_matplotlib_formats_orig(*formats, **kwargs)
 
 @skip_doctest
 def set_matplotlib_close(close=True):
-    """Set whether the inline backend closes all figures automatically or not.
+    """
+    .. deprecated:: 7.23
+
+        use `matplotlib_inline.backend_inline.set_matplotlib_close()`
+
+    Set whether the inline backend closes all figures automatically or not.
 
     By default, the inline backend used in the IPython Notebook will close all
     matplotlib figures automatically after each cell is run. This means that
@@ -1201,6 +1280,15 @@ def set_matplotlib_close(close=True):
         Should all matplotlib figures be automatically closed after each cell is
         run?
     """
-    from ipykernel.pylab.config import InlineBackend
-    cfg = InlineBackend.instance()
-    cfg.close_figures = close
+    warnings.warn(
+        "`set_matplotlib_close` is deprecated since IPython 7.23, directly "
+        "use `matplotlib_inline.backend_inline.set_matplotlib_close()`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    from matplotlib_inline.backend_inline import (
+        set_matplotlib_close as set_matplotlib_close_orig,
+    )
+
+    set_matplotlib_close_orig(close)

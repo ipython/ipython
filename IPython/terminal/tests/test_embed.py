@@ -14,7 +14,7 @@
 import os
 import subprocess
 import sys
-import nose.tools as nt
+
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython.testing.decorators import skip_win32
 from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
@@ -55,12 +55,13 @@ def test_ipython_embed():
         out, err = p.communicate(_exit)
         std = out.decode('UTF-8')
 
-        nt.assert_equal(p.returncode, 0)
-        nt.assert_in('3 . 14', std)
-        if os.name != 'nt':
+        assert p.returncode == 0
+        assert "3 . 14" in std
+        if os.name != "nt":
             # TODO: Fix up our different stdout references, see issue gh-14
-            nt.assert_in('IPython', std)
-        nt.assert_in('bye!', std)
+            assert "IPython" in std
+        assert "bye!" in std
+
 
 @skip_win32
 def test_nest_embed():
@@ -73,8 +74,9 @@ def test_nest_embed():
 
     child = pexpect.spawn(sys.executable, ['-m', 'IPython', '--colors=nocolor'],
                           env=env)
-    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
+    child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
     child.expect(ipy_prompt)
+    child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
     child.sendline("import IPython")
     child.expect(ipy_prompt)
     child.sendline("ip0 = get_ipython()")

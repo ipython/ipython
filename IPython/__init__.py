@@ -1,4 +1,4 @@
-# encoding: utf-8
+# PYTHON_ARGCOMPLETE_OK
 """
 IPython: tools for interactive and parallel computing in Python.
 
@@ -19,7 +19,6 @@ https://ipython.org
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import sys
 
 #-----------------------------------------------------------------------------
@@ -27,24 +26,24 @@ import sys
 #-----------------------------------------------------------------------------
 
 # Don't forget to also update setup.py when this changes!
-if sys.version_info < (3, 6):
+if sys.version_info < (3, 10):
     raise ImportError(
-"""
-IPython 7.10+ supports Python 3.6 and above.
+        """
+IPython 8.19+ supports Python 3.10 and above, following SPEC0.
+IPython 8.13+ supports Python 3.9 and above, following NEP 29.
+IPython 8.0-8.12 supports Python 3.8 and above, following NEP 29.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
 Python 3.3 and 3.4 were supported up to IPython 6.x.
 Python 3.5 was supported with IPython 7.0 to 7.9.
+Python 3.6 was supported with IPython up to 7.16.
+Python 3.7 was still supported with the 7.x branch.
 
 See IPython `README.rst` file for more information:
 
-    https://github.com/ipython/ipython/blob/master/README.rst
+    https://github.com/ipython/ipython/blob/main/README.rst
 
-""")
-
-# Make it easy to import extensions - they are always directly on pythonpath.
-# Therefore, non-IPython modules can be added to extensions directory.
-# This should probably be in ipapp.py.
-sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
+"""
+    )
 
 #-----------------------------------------------------------------------------
 # Setup the top level names
@@ -56,34 +55,39 @@ from .core.application import Application
 from .terminal.embed import embed
 
 from .core.interactiveshell import InteractiveShell
-from .testing import test
 from .utils.sysinfo import sys_info
 from .utils.frame import extract_module_locals
+
+__all__ = ["start_ipython", "embed", "start_kernel", "embed_kernel"]
 
 # Release data
 __author__ = '%s <%s>' % (release.author, release.author_email)
 __license__  = release.license
 __version__  = release.version
 version_info = release.version_info
+# list of CVEs that should have been patched in this release.
+# this is informational and should not be relied upon.
+__patched_cves__ = {"CVE-2022-21699", "CVE-2023-24816"}
+
 
 def embed_kernel(module=None, local_ns=None, **kwargs):
     """Embed and start an IPython kernel in a given scope.
-    
+
     If you don't want the kernel to initialize the namespace
     from the scope of the surrounding function,
     and/or you want to load full IPython configuration,
     you probably want `IPython.start_kernel()` instead.
-    
+
     Parameters
     ----------
     module : types.ModuleType, optional
         The module to load into IPython globals (default: caller)
     local_ns : dict, optional
         The namespace to load into IPython user namespace (default: caller)
-    
-    kwargs : various, optional
+    **kwargs : various, optional
         Further keyword args are relayed to the IPKernelApp constructor,
-        allowing configuration of the Kernel.  Will only have an effect
+        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
+        allowing configuration of the kernel (see :ref:`kernel_options`).  Will only have an effect
         on the first embed_kernel call for a given process.
     """
     
@@ -99,54 +103,61 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
 
 def start_ipython(argv=None, **kwargs):
     """Launch a normal IPython instance (as opposed to embedded)
-    
+
     `IPython.embed()` puts a shell in a particular calling scope,
     such as a function or method for debugging purposes,
     which is often not desirable.
-    
+
     `start_ipython()` does full, regular IPython initialization,
     including loading startup files, configuration, etc.
     much of which is skipped by `embed()`.
-    
+
     This is a public API method, and will survive implementation changes.
-    
+
     Parameters
     ----------
-    
     argv : list or None, optional
         If unspecified or None, IPython will parse command-line options from sys.argv.
         To prevent any command-line parsing, pass an empty list: `argv=[]`.
     user_ns : dict, optional
         specify this dictionary to initialize the IPython user namespace with particular values.
-    kwargs : various, optional
+    **kwargs : various, optional
         Any other kwargs will be passed to the Application constructor,
-        such as `config`.
+        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
+        allowing configuration of the instance (see :ref:`terminal_options`).
     """
     from IPython.terminal.ipapp import launch_new_instance
     return launch_new_instance(argv=argv, **kwargs)
 
 def start_kernel(argv=None, **kwargs):
     """Launch a normal IPython kernel instance (as opposed to embedded)
-    
+
     `IPython.embed_kernel()` puts a shell in a particular calling scope,
     such as a function or method for debugging purposes,
     which is often not desirable.
-    
+
     `start_kernel()` does full, regular IPython initialization,
     including loading startup files, configuration, etc.
-    much of which is skipped by `embed()`.
-    
+    much of which is skipped by `embed_kernel()`.
+
     Parameters
     ----------
-    
     argv : list or None, optional
         If unspecified or None, IPython will parse command-line options from sys.argv.
         To prevent any command-line parsing, pass an empty list: `argv=[]`.
     user_ns : dict, optional
         specify this dictionary to initialize the IPython user namespace with particular values.
-    kwargs : various, optional
+    **kwargs : various, optional
         Any other kwargs will be passed to the Application constructor,
-        such as `config`.
+        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
+        allowing configuration of the kernel (see :ref:`kernel_options`).
     """
-    from IPython.kernel.zmq.kernelapp import launch_new_instance
+    import warnings
+
+    warnings.warn(
+        "start_kernel is deprecated since IPython 8.0, use from `ipykernel.kernelapp.launch_new_instance`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    from ipykernel.kernelapp import launch_new_instance
     return launch_new_instance(argv=argv, **kwargs)

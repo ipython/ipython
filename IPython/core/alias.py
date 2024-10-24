@@ -30,6 +30,9 @@ from .error import UsageError
 from traitlets import List, Instance
 from logging import error
 
+import typing as t
+
+
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
@@ -37,7 +40,7 @@ from logging import error
 # This is used as the pattern for calls to split_user_input.
 shell_line_split = re.compile(r'^(\s*)()(\S+)(.*$)')
 
-def default_aliases():
+def default_aliases() -> t.List[t.Tuple[str, str]]:
     """Return list of shell aliases to auto-define.
     """
     # Note: the aliases defined here should be safe to use on a kernel
@@ -190,22 +193,28 @@ class Alias(object):
 #-----------------------------------------------------------------------------
 
 class AliasManager(Configurable):
-
-    default_aliases = List(default_aliases()).tag(config=True)
-    user_aliases = List(default_value=[]).tag(config=True)
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
+    default_aliases: List = List(default_aliases()).tag(config=True)
+    user_aliases: List = List(default_value=[]).tag(config=True)
+    shell = Instance(
+        "IPython.core.interactiveshell.InteractiveShellABC", allow_none=True
+    )
 
     def __init__(self, shell=None, **kwargs):
         super(AliasManager, self).__init__(shell=shell, **kwargs)
         # For convenient access
-        self.linemagics = self.shell.magics_manager.magics['line']
-        self.init_aliases()
+        if self.shell is not None:
+            self.linemagics = self.shell.magics_manager.magics["line"]
+            self.init_aliases()
 
     def init_aliases(self):
         # Load default & user aliases
         for name, cmd in self.default_aliases + self.user_aliases:
-            if cmd.startswith('ls ') and self.shell.colors == 'NoColor':
-                cmd = cmd.replace(' --color', '')
+            if (
+                cmd.startswith("ls ")
+                and self.shell is not None
+                and self.shell.colors == "NoColor"
+            ):
+                cmd = cmd.replace(" --color", "")
             self.soft_define_alias(name, cmd)
 
     @property
@@ -246,7 +255,7 @@ class AliasManager(Configurable):
             raise ValueError('%s is not an alias' % name)
 
     def clear_aliases(self):
-        for name, cmd in self.aliases:
+        for name, _ in self.aliases:
             self.undefine_alias(name)
 
     def retrieve_alias(self, name):

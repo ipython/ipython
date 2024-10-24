@@ -54,54 +54,36 @@ class ConfigMagics(Magics):
 
             In [1]: %config
             Available objects for config:
-                TerminalInteractiveShell
-                HistoryManager
-                PrefilterManager
                 AliasManager
-                IPCompleter
                 DisplayFormatter
+                HistoryManager
+                IPCompleter
+                LoggingMagics
+                MagicsManager
+                OSMagics
+                PrefilterManager
+                ScriptMagics
+                TerminalInteractiveShell
 
         To view what is configurable on a given class, just pass the class
         name::
 
-            In [2]: %config IPCompleter
-            IPCompleter options
-            -----------------
-            IPCompleter.omit__names=<Enum>
-                Current: 2
-                Choices: (0, 1, 2)
-                Instruct the completer to omit private method names
-                Specifically, when completing on ``object.<tab>``.
-                When 2 [default]: all names that start with '_' will be excluded.
-                When 1: all 'magic' names (``__foo__``) will be excluded.
-                When 0: nothing will be excluded.
-            IPCompleter.merge_completions=<CBool>
-                Current: True
-                Whether to merge completion results into a single list
-                If False, only the completion results from the first non-empty
-                completer will be returned.
-            IPCompleter.limit_to__all__=<CBool>
+            In [2]: %config LoggingMagics
+            LoggingMagics(Magics) options
+            ---------------------------
+            LoggingMagics.quiet=<Bool>
+                Suppress output of log state when logging is enabled
                 Current: False
-                Instruct the completer to use __all__ for the completion
-                Specifically, when completing on ``object.<tab>``.
-                When True: only those names in obj.__all__ will be included.
-                When False [default]: the __all__ attribute is ignored
-            IPCompleter.greedy=<CBool>
-                Current: False
-                Activate greedy completion
-                This will enable completion on elements of lists, results of
-                function calls, etc., but can be unsafe because the code is
-                actually evaluated on TAB.
 
         but the real use is in setting values::
 
-            In [3]: %config IPCompleter.greedy = True
+            In [3]: %config LoggingMagics.quiet = True
 
         and these values are read from the user_ns if they are variables::
 
-            In [4]: feeling_greedy=False
+            In [4]: feeling_quiet=False
 
-            In [5]: %config IPCompleter.greedy = feeling_greedy
+            In [5]: %config LoggingMagics.quiet = feeling_quiet
 
         """
         from traitlets.config.loader import Config
@@ -118,7 +100,7 @@ class ConfigMagics(Magics):
             # print available configurable names
             print("Available objects for config:")
             for name in classnames:
-                print("    ", name)
+                print("   ", name)
             return
         elif line in classnames:
             # `%config TerminalInteractiveShell` will print trait info for

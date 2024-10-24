@@ -18,19 +18,19 @@ from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from warnings import warn
-from IPython.core.pylabtools import backends
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
 magic_gui_arg = magic_arguments.argument(
-        'gui', nargs='?',
-        help="""Name of the matplotlib backend to use %s.
+    "gui",
+    nargs="?",
+    help="""Name of the matplotlib backend to use such as 'qt' or 'widget'.
         If given, the corresponding matplotlib backend is used,
         otherwise it will be matplotlib's default
         (which you can set in your matplotlib config file).
-        """ % str(tuple(sorted(backends.keys())))
+        """,
 )
 
 
@@ -54,7 +54,7 @@ class PylabMagics(Magics):
         If you are using the inline matplotlib backend in the IPython Notebook
         you can set which figure formats are enabled using the following::
 
-            In [1]: from IPython.display import set_matplotlib_formats
+            In [1]: from matplotlib_inline.backend_inline import set_matplotlib_formats
 
             In [2]: set_matplotlib_formats('pdf', 'svg')
 
@@ -65,9 +65,9 @@ class PylabMagics(Magics):
 
             In [3]: %config InlineBackend.print_figure_kwargs = {'bbox_inches':None}
 
-        In addition, see the docstring of
-        `IPython.display.set_matplotlib_formats` and
-        `IPython.display.set_matplotlib_close` for more information on
+        In addition, see the docstrings of
+        `matplotlib_inline.backend_inline.set_matplotlib_formats` and
+        `matplotlib_inline.backend_inline.set_matplotlib_close` for more information on
         changing additional behaviors of the inline backend.
 
         Examples
@@ -88,15 +88,19 @@ class PylabMagics(Magics):
         You can list the available backends using the -l/--list option::
 
            In [4]: %matplotlib --list
-           Available matplotlib backends: ['osx', 'qt4', 'qt5', 'gtk3', 'notebook', 'wx', 'qt', 'nbagg',
+           Available matplotlib backends: ['osx', 'qt4', 'qt5', 'gtk3', 'gtk4', 'notebook', 'wx', 'qt', 'nbagg',
            'gtk', 'tk', 'inline']
         """
         args = magic_arguments.parse_argstring(self.matplotlib, line)
         if args.list:
-            backends_list = list(backends.keys())
-            print("Available matplotlib backends: %s" % backends_list)
+            from IPython.core.pylabtools import _list_matplotlib_backends_and_gui_loops
+
+            print(
+                "Available matplotlib backends: %s"
+                % _list_matplotlib_backends_and_gui_loops()
+            )
         else:
-            gui, backend = self.shell.enable_matplotlib(args.gui.lower() if isinstance(args.gui, str) else args.gui)
+            gui, backend = self.shell.enable_matplotlib(args.gui)
             self._show_matplotlib_backend(args.gui, backend)
 
     @skip_doctest

@@ -2,6 +2,598 @@
  7.x Series
 ============
 
+.. _version 7.34:
+
+IPython 7.34
+============
+
+This version contains a single fix:  fix uncaught BdbQuit exceptions on ipdb
+exit :ghpull:`13668`
+
+
+.. _version 7.33:
+
+IPython 7.33
+============
+
+ - Allow IPython hooks to receive current cell ids when frontend support it. See
+   :ghpull:`13600`
+
+ - ``?`` does not trigger the insertion of a new cell anymore as most frontend
+   allow proper multiline edition. :ghpull:`13625`
+
+
+.. _version 7.32:
+
+IPython 7.32
+============
+
+
+
+Autoload magic lazily
+---------------------
+
+The ability to configure magics to be lazily loaded has been added to IPython.
+See the ``ipython --help-all`` section on ``MagicsManager.lazy_magic``.
+One can now use::
+
+    c.MagicsManager.lazy_magics = {
+              "my_magic": "slow.to.import",
+              "my_other_magic": "also.slow",
+    }
+
+And on first use of ``%my_magic``, or corresponding cell magic, or other line magic,
+the corresponding ``load_ext`` will be called just before trying to invoke the magic.
+
+Misc
+----
+
+ - Update sphinxify  for Docrepr 0.2.0  :ghpull:`13503`.
+ - Set co_name for cells run line by line (to fix debugging with Python 3.10)
+   :ghpull:`13535`
+
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/99>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 7.31:
+
+IPython 7.31
+============
+
+IPython 7.31 brings a couple of backports and fixes from the 8.0 branches,
+it is likely one of the last releases of the 7.x series, as 8.0 will probably be released
+between this release and what would have been 7.32.
+
+Please test 8.0 beta/rc releases in addition to this release.
+
+This Releases:
+ - Backport some fixes for Python 3.10 (:ghpull:`13412`)
+ - use full-alpha transparency on dvipng rendered LaTeX (:ghpull:`13372`)
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/95>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.30:
+
+IPython 7.30
+============
+
+IPython 7.30 fixes a couple of bugs introduce in previous releases (in
+particular with respect to path handling), and introduce a few features and
+improvements:
+
+Notably we will highlight :ghpull:`13267` "Document that ``%run`` can execute
+notebooks and ipy scripts.", which is the first commit of Fernando Pérez since
+mid 2016 (IPython 5.1). If you are new to IPython, Fernando created IPython in
+2001. The other most recent contribution of Fernando to IPython itself was
+May 2018, by reviewing and merging PRs. I want to note that Fernando is still
+active but mostly as a mentor and leader of the whole Jupyter organisation, but
+we're still happy to see him contribute code !
+
+:ghpull:`13290` "Use sphinxify (if available) in object_inspect_mime path"
+should allow richer Repr of docstrings when using jupyterlab inspector.
+
+:ghpull:`13311` make the debugger use ``ThreadPoolExecutor`` for debugger cmdloop.
+This should fix some issues/infinite loop, but let us know if you come across
+any regressions. In particular this fixes issues with `kmaork/madbg <https://github.com/kmaork/madbg>`_,
+a remote debugger for IPython.
+
+Note that this is likely the ante-penultimate release of IPython 7.x as a stable
+branch, as I hope to release IPython 8.0 as well as IPython 7.31 next
+month/early 2022.
+
+IPython 8.0 will drop support for Python 3.7, removed nose as a dependency, and
+7.x will only get critical bug fixes with 8.x becoming the new stable. This will
+not be possible without `NumFOCUS Small Development Grants
+<https://numfocus.org/programs/small-development-grants>`_ Which allowed us to
+hire `Nikita Kniazev <https://github.com/Kojoley>`_ who provide Python and C++
+help and contracting work.
+
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/94?closed=1>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.29:
+
+IPython 7.29
+============
+
+
+IPython 7.29 brings a couple of new functionalities to IPython and a number of bugfixes.
+It is one of the largest recent release, relatively speaking, with close to 15 Pull Requests.
+
+
+ - fix an issue where base64 was returned instead of bytes when showing figures :ghpull:`13162`
+ - fix compatibility with PyQt6, PySide 6 :ghpull:`13172`. This may be of
+   interest if you are running on Apple Silicon as only qt6.2+ is natively
+   compatible.
+ - fix matplotlib qtagg eventloop :ghpull:`13179`
+ - Multiple docs fixes, typos, ... etc.
+ - Debugger will now exit by default on SigInt :ghpull:`13218`, this will be
+   useful in notebook/lab if you forgot to exit the debugger. "Interrupt Kernel"
+   will now exist the debugger.
+
+It give Pdb the ability to skip code in decorators. If functions contain a
+special value names ``__debuggerskip__ = True|False``, the function will not be
+stepped into, and Pdb will step into lower frames only if the value is set to
+``False``. The exact behavior is still likely to have corner cases and will be
+refined in subsequent releases. Feedback welcome. See the debugger module
+documentation for more info. Thanks to the `D. E. Shaw
+group <https://deshaw.com/>`__ for funding this feature.
+
+The main branch of IPython is receiving a number of changes as we received a
+`NumFOCUS SDG <https://numfocus.org/programs/small-development-grants>`__
+($4800), to help us finish replacing ``nose`` by ``pytest``, and make IPython
+future proof with an 8.0 release.
+
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/93>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.28:
+
+IPython 7.28
+============
+
+
+IPython 7.28 is again a minor release that mostly bring bugfixes, and couple of
+improvement. Many thanks to MrMino, who again did all the work this month, and
+made a number of documentation improvements.
+
+Here is a non-exhaustive list of changes,
+
+Fixes:
+
+ - async with doesn't allow newlines :ghpull:`13090`
+ - Dynamically changing to vi mode via %config magic) :ghpull:`13091`
+
+Virtualenv handling fixes:
+
+ - init_virtualenv now uses Pathlib :ghpull:`12548`
+ - Fix Improper path comparison of virtualenv directories :ghpull:`13140`
+ - Fix virtual environment user warning for lower case paths :ghpull:`13094`
+ - Adapt to all sorts of drive names for cygwin :ghpull:`13153`
+
+New Features:
+
+ - enable autoplay in embed YouTube player :ghpull:`13133`
+
+ Documentation:
+
+ - Fix formatting for the core.interactiveshell documentation :ghpull:`13118`
+ - Fix broken ipyparallel's refs :ghpull:`13138`
+ - Improve formatting of %time documentation :ghpull:`13125`
+ - Reword the YouTubeVideo autoplay WN :ghpull:`13147`
+
+
+Highlighted features
+--------------------
+
+
+``YouTubeVideo`` autoplay and the ability to add extra attributes to ``IFrame``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can add any extra attributes to the ``<iframe>`` tag using the new
+``extras`` argument in the ``IFrame`` class. For example::
+
+    In [1]: from IPython.display import IFrame
+
+    In [2]: IFrame(src="src", width=300, height=300, extras=['loading="eager"'])
+
+The above cells will result in the following HTML code being displayed in a
+notebook::
+
+    <iframe
+        width="300"
+        height="300"
+        src="src"
+        frameborder="0"
+        allowfullscreen
+        loading="eager"
+    ></iframe>
+
+Related to the above, the ``YouTubeVideo`` class now takes an
+``allow_autoplay`` flag, which sets up the iframe of the embedded YouTube video
+such that it allows autoplay.
+
+.. note::
+    Whether this works depends on the autoplay policy of the browser rendering
+    the HTML allowing it. It also could get blocked by some browser extensions.
+
+Try it out!
+
+::
+
+    In [1]: from IPython.display import YouTubeVideo
+
+    In [2]: YouTubeVideo("dQw4w9WgXcQ", allow_autoplay=True)
+
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/92>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.27:
+
+IPython 7.27
+============
+
+IPython 7.27 is a minor release that fixes a couple of issues and compatibility.
+
+- Add support for GTK4 :ghpull:`131011`
+- Add support for Qt6 :ghpull:`13085`
+- Fix an issue with pip magic on windows :ghpull:`13093`
+
+Thanks
+------
+
+Many thanks to all the contributors to this release. You can find all individual
+contributions to this milestone `on github
+<https://github.com/ipython/ipython/milestone/91>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 7.26:
+
+IPython 7.26
+============
+
+IPython 7.26 is a minor release that fixes a couple of issues, updates in API
+and Copyright/Licenses issues around various part of the codebase.
+
+We'll highlight `this issue <https://github.com/ipython/ipython/issues/13039>`
+pointing out we were including and refereeing to code from Stack Overflow which
+was CC-BY-SA, hence incompatible with the BSD license of IPython. This lead us
+to a rewriting of the corresponding logic which in our case was done in a more
+efficient way (in our case we were searching string prefixes instead of full
+strings).
+
+You will notice also a number of documentation improvements and cleanup.
+
+Of particular interest are the following Pull-requests:
+
+
+ - The IPython directive now uses Sphinx logging for warnings. :ghpull:`13030`.
+ - Add expiry days option to pastebin magic and change http protocol to https.
+   :ghpull:`13056`
+ - Make Ipython.utils.timing work with jupyterlite :ghpull:`13050`.
+
+Pastebin magic expiry days option
+---------------------------------
+
+The Pastebin magic now has ``-e`` option to determine 
+the number of days for paste expiration. For example
+the paste that created with ``%pastebin -e 20 1`` magic will
+be available for next 20 days.
+
+
+
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release and in particular MrMino who
+is doing most of the work those days. You can find all individual contributions
+to this milestone `on github <https://github.com/ipython/ipython/milestone/90>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.25:
+
+IPython 7.25
+============
+
+IPython 7.25 is a minor release that contains a single bugfix, which is highly
+recommended for all users of ipdb, ipython debugger %debug magic and similar.
+
+Issuing commands like ``where`` from within the debugger would reset the
+local variables changes made by the user. It is interesting to look at the root
+cause of the issue as accessing an attribute (``frame.f_locals``) would trigger
+this side effects.
+
+Thanks in particular to the patience from the reporters at D.E. Shaw for their
+initial bug report that was due to a similar coding oversight in an extension,
+and who took time to debug and narrow down the problem.
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/89>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 7.24:
+
+IPython 7.24
+============
+
+Third release of IPython for 2021, mostly containing bug fixes. A couple of not
+typical updates:
+
+Misc
+----
+
+
+ - Fix an issue where ``%recall`` would both succeeded and print an error message
+   it failed. :ghpull:`12952`
+ - Drop support for NumPy 1.16 – practically has no effect beyond indicating in
+   package metadata that we do not support it. :ghpull:`12937`
+
+Debugger improvements
+---------------------
+
+The debugger (and ``%debug`` magic) have been improved and can skip or hide frames
+originating from files that are not writable to the user, as these are less
+likely to be the source of errors, or be part of system files this can be a useful
+addition when debugging long errors.
+
+In addition to the global ``skip_hidden True|False`` command, the debugger has
+gained finer grained control of predicates as to whether to a frame should be
+considered hidden. So far 3 predicates are available :
+
+  - ``tbhide``: frames containing the local variable ``__tracebackhide__`` set to
+    True.
+  - ``readonly``: frames originating from readonly files, set to False.
+  - ``ipython_internal``: frames that are likely to be from IPython internal
+    code, set to True.
+
+You can toggle individual predicates during a session with
+
+.. code-block::
+
+   ipdb> skip_predicates readonly True
+
+Read-only files will now be considered hidden frames.
+
+
+You can call ``skip_predicates`` without arguments to see the states of current
+predicates:
+
+.. code-block::
+
+    ipdb> skip_predicates
+    current predicates:
+        tbhide : True
+        readonly : False
+        ipython_internal : True
+
+If all predicates are set to ``False``,  ``skip_hidden`` will practically have
+no effect. We attempt to warn you when all predicates are False.
+
+Note that the ``readonly`` predicate may increase disk access as we check for
+file access permission for all frames on many command invocation, but is usually
+cached by operating systems. Let us know if you encounter any issues.
+
+As the IPython debugger does not use the traitlets infrastructure for
+configuration, by editing your ``.pdbrc`` files and appending commands you would
+like to be executed just before entering the interactive prompt. For example:
+
+
+.. code::
+
+    # file : ~/.pdbrc
+    skip_predicates readonly True
+    skip_predicates tbhide False
+
+Will hide read only frames by default and show frames marked with
+``__tracebackhide__``.
+
+
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/87>`__.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries, in particular above mentioned
+improvements to the debugger.
+
+
+
+
+.. _version 7.23:
+
+IPython 7.23 and 7.23.1
+=======================
+
+
+Third release of IPython for 2021, mostly containing bug fixes. A couple of not
+typical updates:
+
+ - We moved to GitHub actions away from Travis-CI, the transition may not be
+   100% complete (not testing on nightly anymore), but as we ran out of
+   Travis-Ci hours on the IPython organisation that was a necessary step.
+   :ghpull:`12900`.
+
+ - We have a new dependency: ``matplotlib-inline``, which try to extract
+   matplotlib inline backend specific behavior. It is available on PyPI and
+   conda-forge thus should not be a problem to upgrade to this version. If you
+   are a package maintainer that might be an extra dependency to package first.
+   :ghpull:`12817` (IPython 7.23.1 fix a typo that made this change fail)
+
+In the addition/new feature category, ``display()`` now have a ``clear=True``
+option to clear the display if any further outputs arrives, allowing users to
+avoid having to use ``clear_output()`` directly. :ghpull:`12823`.
+
+In bug fixes category, this release fix an issue when printing tracebacks
+containing Unicode characters :ghpull:`12758`.
+
+In code cleanup category :ghpull:`12932` remove usage of some deprecated
+functionality for compatibility with Python 3.10.
+
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/86>`__.
+In particular MrMino for responding to almost all new issues, and triaging many
+of the old ones, as well as takluyver, minrk, willingc for reacting quikly when
+we ran out of CI Hours.
+
+Thanks as well to organisations, QuantStack (martinRenou and SylvainCorlay) for
+extracting matplotlib inline backend into its own package, and the `D. E. Shaw group
+<https://deshaw.com/>`__ for sponsoring work on IPython and related libraries.
+
+
+.. _version 7.22:
+
+IPython 7.22
+============
+
+Second release of IPython for 2021, mostly containing bug fixes. Here is a quick
+rundown of the few changes.
+
+- Fix some ``sys.excepthook`` shenanigan when embedding with qt, recommended if
+  you – for example – use `napari <https://napari.org>`__. :ghpull:`12842`.
+- Fix bug when using the new ipdb ``%context`` magic :ghpull:`12844`
+- Couples of deprecation cleanup :ghpull:`12868`
+- Update for new dpast.com api if you use the ``%pastbin`` magic. :ghpull:`12712`
+- Remove support for numpy before 1.16. :ghpull:`12836`
+
+
+Thanks
+------
+
+We have a new team member that you should see more often on the IPython
+repository, Błażej Michalik (@MrMino) have been doing regular contributions to
+IPython, and spent time replying to many issues and guiding new users to the
+codebase; they now have triage permissions to the IPython repository and we'll
+work toward giving them more permission in the future.
+
+Many thanks to all the contributors to this release you can find all individual
+contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/84>`__.
+
+Thanks as well to organisations, QuantStack for working on debugger
+compatibility for Xeus_python, and the `D. E. Shaw group
+<https://deshaw.com/>`__ for sponsoring work on IPython and related libraries.
+
+.. _version 721:
+
+IPython 7.21
+============
+
+IPython 7.21 is the first release we have back on schedule of one release every
+month; it contains a number of minor fixes and improvements, notably, the new
+context command for ipdb
+
+
+New "context" command in ipdb
+-----------------------------
+
+It is now possible to change the number of lines shown in the backtrace
+information in ipdb using "context" command. :ghpull:`12826`
+
+(thanks @MrMino, there are other improvement from them on master).
+
+Other notable changes in IPython 7.21
+-------------------------------------
+
+- Fix some issues on new osx-arm64 :ghpull:`12804`, :ghpull:`12807`. 
+- Compatibility with Xeus-Python for debugger protocol, :ghpull:`12809`
+- Misc docs fixes for compatibility and uniformity with Numpydoc.
+  :ghpull:`12824`
+
+
+Thanks
+------
+
+Many thanks to all the contributors to this release you can find all individual
+contribution to this milestone `on github <https://github.com/ipython/ipython/milestone/83>`__.
+
+
+.. _version 720:
+
+IPython 7.20
+============
+
+IPython 7.20 is the accumulation of 3 month of work on IPython, spacing between
+IPython release have been increased from the usual once a month for various
+reason.
+
+   - Mainly as I'm too busy and the effectively sole maintainer, and
+   - Second because not much changes happened before mid December.
+
+The main driver for this release was the new version of Jedi 0.18 breaking API;
+which was taken care of in the master branch early in 2020 but not in 7.x as I
+though that by now 8.0 would be out.
+
+The inclusion of a resolver in pip did not help and actually made things worse.
+If usually I would have simply pinned Jedi to ``<0.18``; this is not a solution
+anymore as now pip is free to install Jedi 0.18, and downgrade IPython.
+
+I'll do my best to keep the regular release, but as the 8.0-dev branch and 7.x
+are starting to diverge this is becoming difficult in particular with my limited
+time, so if you have any cycles to spare I'll appreciate your help to respond to
+issues and pushing 8.0 forward.
+
+Here are thus some of the changes for IPython 7.20.
+
+  - Support for PyQt5 >= 5.11 :ghpull:`12715`
+  - ``%reset`` remove imports more aggressively :ghpull:`12718`
+  - fix the ``%conda`` magic :ghpull:`12739`
+  - compatibility with Jedi 0.18, and bump minimum Jedi version. :ghpull:`12793`
+
+
 .. _version 719:
 
 IPython 7.19
@@ -15,14 +607,14 @@ was exceptionally no release last month.
   - Docs docs formatting that make the install commands work on zsh
     :ghpull:`12587`
   - Always display the last frame in tracebacks even if hidden with
-    ``__traceback_hide__`` :ghpull:`12601`
+    ``__tracebackhide__`` :ghpull:`12601`
   - Avoid an issue where a callback can be registered multiple times.
     :ghpull:`12625`
   - Avoid an issue in debugger mode where frames changes could be lost.
     :ghpull:`12627`
 
   - Never hide the frames that invoke a debugger, even if marked as hidden by
-    ``__traceback_hide__`` :ghpull:`12631`
+    ``__tracebackhide__`` :ghpull:`12631`
   - Fix calling the debugger in a recursive manner :ghpull:`12659`
 
 
@@ -55,7 +647,7 @@ IPython 7.17
 ============
 
 IPython 7.17 brings a couple of new improvements to API and a couple of user
-facing changes to make the terminal experience more user friendly. 
+facing changes to make the terminal experience more user friendly.
 
 :ghpull:`12407` introduces the ability to pass extra argument to the IPython
 debugger class; this is to help a new project from ``kmaork``
@@ -131,6 +723,19 @@ Which is now also present on subclasses::
 
 .. _version 716:
 
+IPython 7.16.1, 7.16.2
+======================
+
+IPython 7.16.1 was release immediately after 7.16.0 to fix a conda packaging issue.
+The source is identical to 7.16.0 but the file permissions in the tar are different.
+
+IPython 7.16.2 pins jedi dependency to "<=0.17.2" which should prevent some
+issues for users still on python 3.6. This may not be sufficient as pip may
+still allow to downgrade IPython.
+
+Compatibility with Jedi > 0.17.2 was not added as this would have meant bumping
+the minimal version to >0.16.
+
 IPython 7.16
 ============
 
@@ -173,7 +778,7 @@ Change of API and exposed objects automatically detected using `frappuccino
 <https://pypi.org/project/frappuccino/>`_ (still in beta):
 
 
-The following items are new and mostly related to understanding ``__tracebackbhide__``::
+The following items are new and mostly related to understanding ``__tracebackhide__``::
 
     + IPython.core.debugger.Pdb.do_down(self, arg)
     + IPython.core.debugger.Pdb.do_skip_hidden(self, arg)
@@ -263,7 +868,7 @@ IPython.
 Increase Tab Completion Menu Height
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In terminal IPython it is possible to increase the hight of the tab-completion
+In terminal IPython it is possible to increase the height of the tab-completion
 menu. To do so set the value of
 :configtrait:`TerminalInteractiveShell.space_for_menu`, this will reserve more
 space at the bottom of the screen for various kind of menus in IPython including
@@ -445,7 +1050,7 @@ IPython has decided to follow the informational `NEP 29
 policy as to which version of (C)Python and NumPy are supported.
 
 We thus dropped support for Python 3.5, and cleaned up a number of code path
-that were Python-version dependant. If you are on 3.5 or earlier pip should
+that were Python-version dependent. If you are on 3.5 or earlier pip should
 automatically give you the latest compatible version of IPython so you do not
 need to pin to a given version.
 
@@ -512,7 +1117,7 @@ progressively enable these features by default in the next few releases, and
 contribution is welcomed.
 
 We welcome any feedback on the API. See :ref:`shell_mimerenderer` for more
-informations.
+information.
 
 This is originally based on work form in :ghpull:`10610` from @stephanh42
 started over two years ago, and still a lot need to be done.
@@ -764,10 +1369,9 @@ Miscellaneous
 IPython 7.3.0
 =============
 
-.. _whatsnew720:
 
 IPython 7.3.0 bring several bug fixes and small improvements that you will
-described bellow. 
+described below.
 
 The biggest change to this release is the implementation of the ``%conda`` and
 ``%pip`` magics, that will attempt to install packages in the **current
@@ -789,6 +1393,8 @@ Misc bug fixes and improvements:
  - Re-initialize posix aliases after a ``%reset`` :ghpull:`11528`
  - Allow the IPython command line to run ``*.ipynb`` files :ghpull:`11529`
 
+.. _whatsnew720:
+   
 IPython 7.2.0
 =============
 
@@ -819,8 +1425,7 @@ and we're now proud to have code contributed by Chris in IPython.
 OSMagics.cd_force_quiet configuration option
 --------------------------------------------
 
-You can set this option to force the %cd magic to behave as if ``-q`` was passed:
-::
+You can set this option to force the %cd magic to behave as if ``-q`` was passed::
 
     In [1]: cd /
     /
@@ -851,7 +1456,7 @@ unwillingly relying on a bug in CPython.
 
 New Core Dev:
 
- - We welcome Jonathan Slenders to the commiters. Jonathan has done a fantastic
+ - We welcome Jonathan Slenders to the committers. Jonathan has done a fantastic
    work on prompt_toolkit, and we'd like to recognise his impact by giving him
    commit rights. :ghissue:`11397`
 

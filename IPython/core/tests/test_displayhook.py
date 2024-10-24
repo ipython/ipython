@@ -28,7 +28,7 @@ def test_output_quiet():
     with AssertNotPrints('2'):
         ip.run_cell('1+1;\n#commented_out_function()', store_history=True)
 
-def test_underscore_no_overrite_user():
+def test_underscore_no_overwrite_user():
     ip.run_cell('_ = 42', store_history=True)
     ip.run_cell('1+1', store_history=True)
 
@@ -41,7 +41,7 @@ def test_underscore_no_overrite_user():
         ip.run_cell('_', store_history=True)
 
 
-def test_underscore_no_overrite_builtins():
+def test_underscore_no_overwrite_builtins():
     ip.run_cell("import gettext ; gettext.install('foo')", store_history=True)
     ip.run_cell('3+3', store_history=True)
 

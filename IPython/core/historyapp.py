@@ -5,8 +5,8 @@ An application for managing IPython history.
 To be invoked as the `ipython history` subcommand.
 """
 
-import os
 import sqlite3
+from pathlib import Path
 
 from traitlets.config.application import Application
 from .application import BaseIPythonApplication
@@ -32,28 +32,24 @@ This is an handy alias to `ipython history trim --keep=0`
 
 class HistoryTrim(BaseIPythonApplication):
     description = trim_hist_help
-    
-    backup = Bool(False,
-        help="Keep the old history file as history.sqlite.<N>"
-        ).tag(config=True)
-    
-    keep = Int(1000,
-        help="Number of recent lines to keep in the database."
-        ).tag(config=True)
-    
-    flags = Dict(dict(
-        backup = ({'HistoryTrim' : {'backup' : True}},
-            backup.help
-        )
-    ))
 
-    aliases=Dict(dict(
-        keep = 'HistoryTrim.keep'
-    ))
-    
+    backup = Bool(False, help="Keep the old history file as history.sqlite.<N>").tag(
+        config=True
+    )
+
+    keep = Int(1000, help="Number of recent lines to keep in the database.").tag(
+        config=True
+    )
+
+    flags = Dict(  # type: ignore
+        dict(backup=({"HistoryTrim": {"backup": True}}, backup.help))
+    )
+
+    aliases = Dict(dict(keep="HistoryTrim.keep"))  # type: ignore
+
     def start(self):
-        profile_dir = self.profile_dir.location
-        hist_file = os.path.join(profile_dir, 'history.sqlite')
+        profile_dir = Path(self.profile_dir.location)
+        hist_file = profile_dir / "history.sqlite"
         con = sqlite3.connect(hist_file)
 
         # Grab the recent history from the current database.
@@ -77,12 +73,12 @@ class HistoryTrim(BaseIPythonApplication):
         con.close()
         
         # Create the new history database.
-        new_hist_file = os.path.join(profile_dir, 'history.sqlite.new')
+        new_hist_file = profile_dir / "history.sqlite.new"
         i = 0
-        while os.path.exists(new_hist_file):
+        while new_hist_file.exists():
             # Make sure we don't interfere with an existing file.
             i += 1
-            new_hist_file = os.path.join(profile_dir, 'history.sqlite.new'+str(i))
+            new_hist_file = profile_dir / ("history.sqlite.new" + str(i))
         new_db = sqlite3.connect(new_hist_file)
         new_db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
                             primary key autoincrement, start timestamp,
@@ -106,42 +102,41 @@ class HistoryTrim(BaseIPythonApplication):
 
         if self.backup:
             i = 1
-            backup_hist_file = os.path.join(profile_dir, 'history.sqlite.old.%d' % i)
-            while os.path.exists(backup_hist_file):
+            backup_hist_file = profile_dir / ("history.sqlite.old.%d" % i)
+            while backup_hist_file.exists():
                 i += 1
-                backup_hist_file = os.path.join(profile_dir, 'history.sqlite.old.%d' % i)
-            os.rename(hist_file, backup_hist_file)
+                backup_hist_file = profile_dir / ("history.sqlite.old.%d" % i)
+            hist_file.rename(backup_hist_file)
             print("Backed up longer history file to", backup_hist_file)
         else:
-            os.remove(hist_file)
-        
-        os.rename(new_hist_file, hist_file)
+            hist_file.unlink()
+
+        new_hist_file.rename(hist_file)
+
 
 class HistoryClear(HistoryTrim):
     description = clear_hist_help
-    keep = Int(0,
-        help="Number of recent lines to keep in the database.")
-    
-    force = Bool(False,
-        help="Don't prompt user for confirmation"
-        ).tag(config=True)
-    
-    flags = Dict(dict(
-        force = ({'HistoryClear' : {'force' : True}},
-            force.help),
-        f = ({'HistoryTrim' : {'force' : True}},
-            force.help
+    keep = Int(0, help="Number of recent lines to keep in the database.")
+
+    force = Bool(False, help="Don't prompt user for confirmation").tag(config=True)
+
+    flags = Dict(  # type: ignore
+        dict(
+            force=({"HistoryClear": {"force": True}}, force.help),
+            f=({"HistoryTrim": {"force": True}}, force.help),
         )
-    ))
-    aliases = Dict()
+    )
+    aliases = Dict()  # type: ignore
 
     def start(self):
-        if self.force or ask_yes_no("Really delete all ipython history? ",
-                default="no", interrupt="no"):
+        if self.force or ask_yes_no(
+            "Really delete all ipython history? ", default="no", interrupt="no"
+        ):
             HistoryTrim.start(self)
 
+
 class HistoryApp(Application):
-    name = u'ipython-history'
+    name = "ipython-history"
     description = "Manage the IPython history database."
 
     subcommands = Dict(dict(
@@ -151,9 +146,11 @@ class HistoryApp(Application):
 
     def start(self):
         if self.subapp is None:
-            print("No subcommand specified. Must specify one of: %s" % \
-                                                    (self.subcommands.keys()))
-            print()
+            print(
+                "No subcommand specified. Must specify one of: "
+                + ", ".join(map(repr, self.subcommands))
+                + ".\n"
+            )
             self.print_description()
             self.print_subcommands()
             self.exit(1)

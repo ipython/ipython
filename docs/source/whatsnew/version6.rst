@@ -277,7 +277,7 @@ automatically upgrade to the latest version compatible with your system.
 
 The ability to use only Python 3 on the code base of IPython brings a number
 of advantages. Most of the newly written code make use of `optional function type
-annotation <https://www.python.org/dev/peps/pep-0484/>`_ leading to clearer code
+annotation <https://peps.python.org/pep-0484/>`_ leading to clearer code
 and better documentation.
 
 The total size of the repository has also decreased by about 1500 lines (for the 

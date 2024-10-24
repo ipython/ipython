@@ -49,18 +49,16 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
     Parameters
     ----------
     cmd : str or list
-      A command to be executed by the system, using :class:`subprocess.Popen`.
-      If a string is passed, it will be run in the system shell. If a list is
-      passed, it will be used directly as arguments.
-
+        A command to be executed by the system, using :class:`subprocess.Popen`.
+        If a string is passed, it will be run in the system shell. If a list is
+        passed, it will be used directly as arguments.
     callback : callable
-      A one-argument function that will be called with the Popen object.
-
+        A one-argument function that will be called with the Popen object.
     stderr : file descriptor number, optional
-      By default this is set to ``subprocess.PIPE``, but you can also pass the
-      value ``subprocess.STDOUT`` to force the subprocess' stderr to go into
-      the same file descriptor as its stdout.  This is useful to read stdout
-      and stderr combined in the order they are generated.
+        By default this is set to ``subprocess.PIPE``, but you can also pass the
+        value ``subprocess.STDOUT`` to force the subprocess' stderr to go into
+        the same file descriptor as its stdout.  This is useful to read stdout
+        and stderr combined in the order they are generated.
 
     Returns
     -------
@@ -117,12 +115,12 @@ def getoutput(cmd):
     Parameters
     ----------
     cmd : str or list
-      A command to be executed in the system shell.
+        A command to be executed in the system shell.
 
     Returns
     -------
     output : str
-      A string containing the combination of stdout and stderr from the
+        A string containing the combination of stdout and stderr from the
     subprocess, in whatever order the subprocess originally wrote to its
     file descriptors (so the order of the information in this string is the
     correct order as would be seen if running the command in a terminal).
@@ -141,7 +139,7 @@ def getoutputerror(cmd):
     Parameters
     ----------
     cmd : str or list
-      A command to be executed in the system shell.
+        A command to be executed in the system shell.
 
     Returns
     -------
@@ -159,7 +157,7 @@ def get_output_error_code(cmd):
     Parameters
     ----------
     cmd : str or list
-      A command to be executed in the system shell.
+        A command to be executed in the system shell.
 
     Returns
     -------

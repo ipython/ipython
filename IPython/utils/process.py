@@ -15,6 +15,8 @@ if sys.platform == 'win32':
     from ._process_win32 import system, getoutput, arg_split, check_pid
 elif sys.platform == 'cli':
     from ._process_cli import system, getoutput, arg_split, check_pid
+elif sys.platform == "emscripten":
+    from ._process_emscripten import system, getoutput, arg_split, check_pid
 else:
     from ._process_posix import system, getoutput, arg_split, check_pid
 

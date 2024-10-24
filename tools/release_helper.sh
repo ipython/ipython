@@ -1,15 +1,7 @@
 # Simple tool to help for release
-# when releasing with bash, simple source it to get asked questions. 
+# when releasing with bash, simple source it to get asked questions.
 
 # misc check before starting
-
-python -c 'import keyring'
-python -c 'import twine'
-python -c 'import sphinx'
-python -c 'import sphinx_rtd_theme'
-python -c 'import nose'
-
-
 BLACK=$(tput setaf 1)
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -21,35 +13,74 @@ WHITE=$(tput setaf 7)
 NOR=$(tput sgr0)
 
 
-echo -n "PREV_RELEASE (X.y.z) [$PREV_RELEASE]: "
-read input
-PREV_RELEASE=${input:-$PREV_RELEASE}
-echo -n "MILESTONE (X.y) [$MILESTONE]: "
-read input
-MILESTONE=${input:-$MILESTONE}
+echo "Checking all tools are installed..."
+
+python -c 'import keyring'
+python -c 'import twine'
+python -c 'import sphinx'
+python -c 'import sphinx_rtd_theme'
+python -c 'import pytest'
+python -c 'import build'
+# those are necessary fo building the docs
+echo "Checking imports for docs"
+python -c 'import numpy'
+python -c 'import matplotlib'
+
+
+
+
+echo "Will use $BLUE'$EDITOR'$NOR to edit files when necessary"
+# echo -n "PREV_RELEASE (X.y.z) [$PREV_RELEASE]: "
+# read input
+# PREV_RELEASE=${input:-$PREV_RELEASE}
+# echo -n "MILESTONE (X.y) [$MILESTONE]: "
+# read input
+# MILESTONE=${input:-$MILESTONE}
 echo -n "VERSION (X.y.z) [$VERSION]:"
 read input
 VERSION=${input:-$VERSION}
-echo -n "BRANCH (master|X.y) [$BRANCH]:"
+echo -n "BRANCH (main|X.y) [$BRANCH]:"
 read input
 BRANCH=${input:-$BRANCH}
 
 ask_section(){
     echo
-    echo $BLUE"$1"$NOR 
+    echo $BLUE"$1"$NOR
     echo -n $GREEN"Press Enter to continue, S to skip: "$NOR
-    read -n1 value
-    echo 
-    if [ -z $value ] || [ $value = 'y' ]  ; then
+    if [ "$ZSH_NAME" = "zsh" ] ; then
+        read -k1 value
+        value=${value%$'\n'}
+    else
+       read -n1 value
+    fi
+    if [ -z "$value" ] || [ $value = 'y' ]; then
         return 0
     fi
     return 1
 }
 
 
+maybe_edit(){
+    echo
+    echo $BLUE"$1"$NOR
+    echo -n $GREEN"Press ${BLUE}e$GREEN to Edit ${BLUE}$1$GREEN, any other keys to skip: "$NOR
+    if [ "$ZSH_NAME" = "zsh" ] ; then
+        read -k1 value
+        value=${value%$'\n'}
+    else
+       read -n1 value
+    fi
 
-echo 
-if ask_section "Updating what's new with informations from docs/source/whatsnew/pr"
+    echo
+    if [ $value = 'e' ]  ; then
+        $=EDITOR $1
+    fi
+}
+
+
+
+echo
+if ask_section "Updating what's new with information from docs/source/whatsnew/pr"
 then
     python tools/update_whatsnew.py
 
@@ -59,42 +90,44 @@ then
     read
 fi
 
-if ask_section "Gen Stats, and authors"
-then
+# if ask_section "Gen Stats, and authors"
+# then
+# 
+#     echo
+#     echo $BLUE"here are all the authors that contributed to this release:"$NOR
+#     git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
+# 
+#     echo
+#     echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap."
+#     echo $GREEN"Press enter to continue:"$NOR
+#     read
+# 
+#     echo $BLUE"generating stats"$NOR
+#     python tools/github_stats.py --milestone $MILESTONE > stats.rst
+# 
+#     echo $BLUE"stats.rst files generated."$NOR
+#     echo $GREEN"Please merge it with the right file (github-stats-X.rst) and commit."$NOR
+#     echo $GREEN"press enter to continue."$NOR
+#     read
+# 
+# fi
 
-    echo 
-    echo $BLUE"here are all the authors that contributed to this release:"$NOR
-    git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
-
-    echo 
-    echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap."
-    echo $GREEN"Press enter to continue:"$NOR
-    read
-
-    echo $BLUE"generating stats"$NOR
-    python tools/github_stats.py --milestone $MILESTONE > stats.rst
-
-    echo $BLUE"stats.rst files generated."$NOR
-    echo $GREEN"Please merge it with the right file (github-stats-X.rst) and commit."$NOR
-    echo $GREEN"press enter to continue."$NOR
-    read
-
-fi
-
-if ask_section "Generate API difference (using frapuccino)"
-then
-    echo $BLUE"Checking out $PREV_RELEASE"$NOR
-    git checkout $PREV_RELEASE
-    echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
-    frappuccino IPython --save IPython-$PREV_RELEASE.json
-    echo $BLUE"comming back to $BRANCH"$NOR
-    git checkout $BRANCH
-    echo $BLUE"comparing ..."$NOR
-    frappuccino IPython --compare IPython-$PREV_RELEASE.json
-    echo $GREEN"Use the above guideline to write an API changelog ..."$NOR
-    echo $GREEN"Press any keys to continue"$NOR
-    read
-fi
+# if ask_section "Generate API difference (using frapuccino)"
+# then
+#     echo $BLUE"Checking out $PREV_RELEASE"$NOR
+#     git checkout tags/$PREV_RELEASE
+#     sleep 1
+#     echo $BLUE"Saving API to file $PREV_RELEASE"$NOR
+#     frappuccino IPython IPython.kernel IPython.lib IPython.qt IPython.lib.kernel IPython.html IPython.frontend IPython.external --save IPython-$PREV_RELEASE.json
+#     echo $BLUE"coming back to $BRANCH"$NOR
+#     git switch $BRANCH
+#     sleep 1
+#     echo $BLUE"comparing ..."$NOR
+#     frappuccino IPython IPython.kernel IPython.lib --compare IPython-$PREV_RELEASE.json
+#     echo $GREEN"Use the above guideline to write an API changelog ..."$NOR
+#     echo $GREEN"Press any keys to continue"$NOR
+#     read
+# fi
 
 echo "Cleaning repository"
 git clean -xfdi
@@ -103,7 +136,8 @@ echo $GREEN"please update version number in ${RED}IPython/core/release.py${NOR} 
 echo $GREEN"I tried ${RED}sed -i bkp -e '/Uncomment/s/^# //g' IPython/core/release.py${NOR}"
 sed -i bkp -e '/Uncomment/s/^# //g' IPython/core/release.py
 rm IPython/core/release.pybkp
-git diff
+git diff | cat
+maybe_edit IPython/core/release.py
 
 echo $GREEN"Press enter to continue"$NOR
 read
@@ -111,7 +145,7 @@ read
 if ask_section "Build the documentation ?"
 then
     make html -C docs
-    echo 
+    echo
     echo $GREEN"Check the docs, press enter to continue"$NOR
     read
 
@@ -124,39 +158,40 @@ then
    echo $GREEN"Press enter to commit"$NOR
    read
    git commit -am "release $VERSION" -S
-   
+
    echo
    echo $BLUE"git push origin \$BRANCH ($BRANCH)?"$NOR
    echo $GREEN"Make sure you can push"$NOR
    echo $GREEN"Press enter to continue"$NOR
    read
    git push origin $BRANCH
-   
+
    echo
    echo "Let's tag : git tag -am \"release $VERSION\" \"$VERSION\" -s"
    echo $GREEN"Press enter to tag commit"$NOR
    read
    git tag -am "release $VERSION" "$VERSION" -s
-   
+
    echo
    echo $BLUE"And push the tag: git push origin \$VERSION ?"$NOR
    echo $GREEN"Press enter to continue"$NOR
    read
    git push origin $VERSION
-   
-   
+
+
    echo $GREEN"please update version number and back to .dev in ${RED}IPython/core/release.py"
    echo $GREEN"I tried ${RED}sed -i bkp -e '/Uncomment/s/^/# /g' IPython/core/release.py${NOR}"
    sed -i bkp -e '/Uncomment/s/^/# /g' IPython/core/release.py
    rm IPython/core/release.pybkp
-   git diff
+   git diff | cat
    echo $GREEN"Please bump ${RED}the minor version number${NOR}"
+   maybe_edit IPython/core/release.py
    echo ${BLUE}"Do not commit yet – we'll do it later."$NOR
 
-   
+
    echo $GREEN"Press enter to continue"$NOR
    read
-   
+
    echo
    echo "Let's commit : "$BLUE"git commit -am \"back to dev\""$NOR
    echo $GREEN"Press enter to commit"$NOR
@@ -169,17 +204,17 @@ then
    read
    git push origin $BRANCH
 
-   
+
    echo
-   echo $BLUE"let's : git checkout $VERSION"$NOR
+   echo $BLUE"let's : git checkout tags/$VERSION"$NOR
    echo $GREEN"Press enter to continue"$NOR
    read
-   git checkout $VERSION
+   git checkout tags/$VERSION
 fi
 
 if ask_section "Should we build and release ?"
 then
-    
+
     echo $BLUE"going to set SOURCE_DATE_EPOCH"$NOR
     echo $BLUE'export SOURCE_DATE_EPOCH=$(git show -s --format=%ct HEAD)'$NOR
     echo $GREEN"Press enter to continue"$NOR
@@ -196,7 +231,7 @@ then
     echo
     echo $BLUE"Attempting to build package..."$NOR
 
-    tools/release
+    tools/build_release
 
 
     echo $RED'$ shasum -a 256 dist/*'
@@ -210,7 +245,7 @@ then
     echo
     echo $BLUE"Attempting to build package..."$NOR
 
-    tools/release
+    tools/build_release
 
     echo $RED"Check the shasum for SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
     echo $RED'$ shasum -a 256 dist/*'
@@ -218,7 +253,7 @@ then
     echo $NOR
 
     if ask_section "upload packages ?"
-    then 
-       tools/release upload
+    then
+       twine upload --verbose dist/*.tar.gz dist/*.whl
     fi
 fi

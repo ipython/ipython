@@ -81,7 +81,7 @@ New features
   :mod:`IPython.kernel`, :mod:`IPython.kernel.core`, :mod:`traitlets.config`,
   :mod:`IPython.tools` and :mod:`IPython.testing`.
 
-* As part of merging in the `ipython1-dev` stuff, the `setup.py` script and
+* As part of merging in the `ipython1-dev` stuff, the ``setup.py`` script and
   friends have been completely refactored.  Now we are checking for
   dependencies using the approach that matplotlib uses.
 
@@ -161,7 +161,7 @@ Backwards incompatible changes
   `'basic'` to `'b'`.
 
 * IPython has a larger set of dependencies if you want all of its capabilities.
-  See the `setup.py` script for details.
+  See the ``setup.py`` script for details.
 
 * The constructors for :class:`IPython.kernel.client.MultiEngineClient` and 
   :class:`IPython.kernel.client.TaskClient` no longer take the (ip,port) tuple.
@@ -221,7 +221,7 @@ New features
 * Gather/scatter are now implemented in the client to reduce the work load
   of the controller and improve performance.
 
-* Complete rewrite of the IPython docuementation.  All of the documentation
+* Complete rewrite of the IPython documentation.  All of the documentation
   from the IPython website has been moved into docs/source as restructured
   text documents.  PDF and HTML documentation are being generated using 
   Sphinx.

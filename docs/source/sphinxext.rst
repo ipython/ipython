@@ -204,7 +204,7 @@ suppress the seed line so it doesn't show up in the rendered output
           [0.22591016, 0.77731835],
           [0.0072729 , 0.34273127]])
 
-For more information on @supress and @doctest decorators, please refer to the end of this file in
+For more information on @suppress and @doctest decorators, please refer to the end of this file in
 Pseudo-Decorators section.
 
 Another demonstration of multi-line input and output

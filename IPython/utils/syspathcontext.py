@@ -15,12 +15,21 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import sys
+import warnings
 
 
 class appended_to_syspath(object):
-    """A context for appending a directory to sys.path for a second."""
+    """
+    Deprecated since IPython 8.1, no replacements.
+
+    A context for appending a directory to sys.path for a second."""
 
     def __init__(self, dir):
+        warnings.warn(
+            "`appended_to_syspath` is deprecated since IPython 8.1, and has no replacements",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.dir = dir
 
     def __enter__(self):

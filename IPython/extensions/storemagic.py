@@ -17,6 +17,7 @@ import inspect, os, sys, textwrap
 
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.testing.skipdoctest import skip_doctest
 from traitlets import Bool
 
 
@@ -24,7 +25,7 @@ def restore_aliases(ip, alias=None):
     staliases = ip.db.get('stored_aliases', {})
     if alias is None:
         for k,v in staliases.items():
-            #print "restore alias",k,v # dbg
+            # print("restore alias",k,v)  # dbg
             #self.alias_table[k] = v
             ip.alias_manager.define_alias(k,v)
     else:
@@ -42,7 +43,7 @@ def refresh_variables(ip):
             print("Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % justkey)
             print("The error was:", sys.exc_info()[0])
         else:
-            #print "restored",justkey,"=",obj #dbg
+            # print("restored",justkey,"=",obj)  # dbg
             ip.user_ns[justkey] = obj
 
 
@@ -74,6 +75,7 @@ class StoreMagics(Magics):
         if self.autorestore:
             restore_data(self.shell)
 
+    @skip_doctest
     @line_magic
     def store(self, parameter_s=''):
         """Lightweight persistence for python variables.
@@ -82,6 +84,7 @@ class StoreMagics(Magics):
 
           In [1]: l = ['hello',10,'world']
           In [2]: %store l
+          Stored 'l' (list)
           In [3]: exit
 
           (IPython session is closed and started again...)
@@ -142,7 +145,7 @@ class StoreMagics(Magics):
             if args:
                 for arg in args:
                     try:
-                        obj = db['autorestore/' + arg]
+                        obj = db["autorestore/" + arg]
                     except KeyError:
                         try:
                             restore_aliases(ip, alias=arg)
@@ -173,12 +176,12 @@ class StoreMagics(Magics):
         # default action - store the variable
         else:
             # %store foo >file.txt or >>file.txt
-            if len(args) > 1 and args[1].startswith('>'):
-                fnam = os.path.expanduser(args[1].lstrip('>').lstrip())
-                if args[1].startswith('>>'):
-                    fil = open(fnam, 'a')
+            if len(args) > 1 and args[1].startswith(">"):
+                fnam = os.path.expanduser(args[1].lstrip(">").lstrip())
+                if args[1].startswith(">>"):
+                    fil = open(fnam, "a", encoding="utf-8")
                 else:
-                    fil = open(fnam, 'w')
+                    fil = open(fnam, "w", encoding="utf-8")
                 with fil:
                     obj = ip.ev(args[0])
                     print("Writing '%s' (%s) to file '%s'." % (args[0],

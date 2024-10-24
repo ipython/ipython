@@ -3,6 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import pytest
 import IPython.testing.tools as tt
 
 
@@ -25,4 +26,5 @@ def test_locate_profile_help():
     tt.help_all_output_test("locate profile")
 
 def test_trust_help():
+    pytest.importorskip("nbformat")
     tt.help_all_output_test("trust")

@@ -12,7 +12,7 @@ import subprocess
 from base64 import encodebytes
 import textwrap
 
-from pathlib import Path, PurePath
+from pathlib import Path
 
 from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config
@@ -77,7 +77,6 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
         format, e.g. '#AA20FA'.
     scale : float
         Scale factor for the resulting PNG.
-
     None is returned when the backend cannot be used.
 
     """
@@ -111,7 +110,8 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
 
 def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
     try:
-        from matplotlib import mathtext
+        from matplotlib import figure, font_manager, mathtext
+        from matplotlib.backends import backend_agg
         from pyparsing import ParseFatalException
     except ImportError:
         return None
@@ -122,11 +122,18 @@ def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
         s = u'${0}$'.format(s)
 
     try:
-        mt = mathtext.MathTextParser('bitmap')
-        f = BytesIO()
-        dpi = 120*scale
-        mt.to_png(f, s, fontsize=12, dpi=dpi, color=color)
-        return f.getvalue()
+        prop = font_manager.FontProperties(size=12)
+        dpi = 120 * scale
+        buffer = BytesIO()
+
+        # Adapted from mathtext.math_to_image
+        parser = mathtext.MathTextParser("path")
+        width, height, depth, _, _ = parser.parse(s, dpi=72, prop=prop)
+        fig = figure.Figure(figsize=(width / 72, height / 72))
+        fig.text(0, depth / height, s, fontproperties=prop, color=color)
+        backend_agg.FigureCanvasAgg(fig)
+        fig.savefig(buffer, dpi=dpi, format="png", transparent=True)
+        return buffer.getvalue()
     except (ValueError, RuntimeError, ParseFatalException):
         return None
 
@@ -137,27 +144,55 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
         find_cmd('dvipng')
     except FindCmdError:
         return None
+
+    startupinfo = None
+    if os.name == "nt":
+        # prevent popup-windows
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
     try:
         workdir = Path(tempfile.mkdtemp())
-        tmpfile = workdir.joinpath("tmp.tex")
-        dvifile = workdir.joinpath("tmp.dvi")
-        outfile = workdir.joinpath("tmp.png")
+        tmpfile = "tmp.tex"
+        dvifile = "tmp.dvi"
+        outfile = "tmp.png"
 
-        with tmpfile.open("w", encoding="utf8") as f:
+        with workdir.joinpath(tmpfile).open("w", encoding="utf8") as f:
             f.writelines(genelatex(s, wrap))
 
-        with open(os.devnull, 'wb') as devnull:
-            subprocess.check_call(
-                ["latex", "-halt-on-error", "-interaction", "batchmode", tmpfile],
-                cwd=workdir, stdout=devnull, stderr=devnull)
+        subprocess.check_call(
+            ["latex", "-halt-on-error", "-interaction", "batchmode", tmpfile],
+            cwd=workdir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            startupinfo=startupinfo,
+        )
 
-            resolution = round(150*scale)
-            subprocess.check_call(
-                ["dvipng", "-T", "tight", "-D", str(resolution), "-z", "9",
-                 "-bg", "transparent", "-o", outfile, dvifile, "-fg", color],
-                 cwd=workdir, stdout=devnull, stderr=devnull)
+        resolution = round(150 * scale)
+        subprocess.check_call(
+            [
+                "dvipng",
+                "-T",
+                "tight",
+                "-D",
+                str(resolution),
+                "-z",
+                "9",
+                "-bg",
+                "Transparent",
+                "-o",
+                outfile,
+                dvifile,
+                "-fg",
+                color,
+            ],
+            cwd=workdir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            startupinfo=startupinfo,
+        )
 
-        with outfile.open("rb") as f:
+        with workdir.joinpath(outfile).open("rb") as f:
             return f.read()
     except subprocess.CalledProcessError:
         return None

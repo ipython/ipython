@@ -19,6 +19,8 @@ from IPython.terminal.ipapp import load_default_config
 from traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
+from typing import Set
+
 class KillEmbedded(Exception):pass
 
 # kept for backward compatibility as IPython 6 was released with
@@ -46,7 +48,6 @@ class EmbeddedMagics(Magics):
         called inside a loop: once you've figured out what you needed from it,
         you may then kill it and the program will then continue to run without
         the interactive shell interfering again.
-
 
         Kill Instance Option:
 
@@ -106,6 +107,14 @@ class EmbeddedMagics(Magics):
         self.shell.ask_exit()
 
 
+class _Sentinel:
+    def __init__(self, repr):
+        assert isinstance(repr, str)
+        self.repr = repr
+
+    def __repr__(self):
+        return repr
+
 
 class InteractiveShellEmbed(TerminalInteractiveShell):
 
@@ -123,16 +132,16 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         help="Automatically set the terminal title"
     ).tag(config=True)
 
-    _inactive_locations = set()
+    _inactive_locations: Set[str] = set()
+
+    def _disable_init_location(self):
+        """Disable the current Instance creation location"""
+        InteractiveShellEmbed._inactive_locations.add(self._init_location_id)
 
     @property
     def embedded_active(self):
         return (self._call_location_id not in InteractiveShellEmbed._inactive_locations)\
             and (self._init_location_id not in InteractiveShellEmbed._inactive_locations)
-
-    def _disable_init_location(self):
-        """Disable the current Instance creation location"""
-        InteractiveShellEmbed._inactive_locations.add(self._init_location_id)
 
     @embedded_active.setter
     def embedded_active(self, value):
@@ -146,9 +155,15 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
                 self._call_location_id)
 
     def __init__(self, **kw):
-        if kw.get('user_global_ns', None) is not None:
-            raise DeprecationWarning(
-                "Key word argument `user_global_ns` has been replaced by `user_module` since IPython 4.0.")
+        assert (
+            "user_global_ns" not in kw
+        ), "Key word argument `user_global_ns` has been replaced by `user_module` since IPython 4.0."
+        # temporary fix for https://github.com/ipython/ipython/issues/14164
+        cls = type(self)
+        if cls._instance is None:
+            for subclass in cls._walk_mro():
+                subclass._instance = self
+            cls._instance = self
 
         clid = kw.pop('_init_location_id', None)
         if not clid:
@@ -174,8 +189,16 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         super(InteractiveShellEmbed, self).init_magics()
         self.register_magics(EmbeddedMagics)
 
-    def __call__(self, header='', local_ns=None, module=None, dummy=None,
-                 stack_depth=1, global_ns=None, compile_flags=None, **kw):
+    def __call__(
+        self,
+        header="",
+        local_ns=None,
+        module=None,
+        dummy=None,
+        stack_depth=1,
+        compile_flags=None,
+        **kw,
+    ):
         """Activate the interactive interpreter.
 
         __call__(self,header='',local_ns=None,module=None,dummy=None) -> Start
@@ -225,8 +248,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.mainloop(local_ns, module, stack_depth=stack_depth,
-                      global_ns=global_ns, compile_flags=compile_flags)
+        self.mainloop(
+            local_ns, module, stack_depth=stack_depth, compile_flags=compile_flags
+        )
 
         self.banner2 = self.old_banner2
 
@@ -236,40 +260,35 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         if self.should_raise:
             raise KillEmbedded('Embedded IPython raising error, as user requested.')
 
-
-    def mainloop(self, local_ns=None, module=None, stack_depth=0,
-                 display_banner=None, global_ns=None, compile_flags=None):
+    def mainloop(
+        self,
+        local_ns=None,
+        module=None,
+        stack_depth=0,
+        compile_flags=None,
+    ):
         """Embeds IPython into a running python program.
 
         Parameters
         ----------
-
         local_ns, module
-          Working local namespace (a dict) and module (a module or similar
-          object). If given as None, they are automatically taken from the scope
-          where the shell was called, so that program variables become visible.
-
+            Working local namespace (a dict) and module (a module or similar
+            object). If given as None, they are automatically taken from the scope
+            where the shell was called, so that program variables become visible.
         stack_depth : int
-          How many levels in the stack to go to looking for namespaces (when
-          local_ns or module is None). This allows an intermediate caller to
-          make sure that this function gets the namespace from the intended
-          level in the stack. By default (0) it will get its locals and globals
-          from the immediate caller.
-
+            How many levels in the stack to go to looking for namespaces (when
+            local_ns or module is None). This allows an intermediate caller to
+            make sure that this function gets the namespace from the intended
+            level in the stack. By default (0) it will get its locals and globals
+            from the immediate caller.
         compile_flags
-          A bit field identifying the __future__ features
-          that are enabled, as passed to the builtin :func:`compile` function.
-          If given as None, they are automatically taken from the scope where
-          the shell was called.
+            A bit field identifying the __future__ features
+            that are enabled, as passed to the builtin :func:`compile` function.
+            If given as None, they are automatically taken from the scope where
+            the shell was called.
 
         """
         
-        if (global_ns is not None) and (module is None):
-            raise DeprecationWarning("'global_ns' keyword argument is deprecated, and has been removed in IPython 5.0 use `module` keyword argument instead.")
-
-        if (display_banner is not None):
-            warnings.warn("The display_banner parameter is deprecated since IPython 4.0", DeprecationWarning)
-
         # Get locals and globals from caller
         if ((local_ns is None or module is None or compile_flags is None)
             and self.default_user_namespaces):
@@ -334,10 +353,10 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         self.compile.flags = orig_compile_flags
 
 
-def embed(**kwargs):
+def embed(*, header="", compile_flags=None, **kwargs):
     """Call this to embed IPython at the current point in your program.
 
-    The first invocation of this will create an :class:`InteractiveShellEmbed`
+    The first invocation of this will create a :class:`terminal.embed.InteractiveShellEmbed`
     instance and then call it.  Consecutive calls just call the already
     created instance.
 
@@ -356,12 +375,20 @@ def embed(**kwargs):
         d = 40
         embed()
 
-    Full customization can be done by passing a :class:`Config` in as the
-    config argument.
+    Parameters
+    ----------
+
+    header : str
+        Optional header string to print at startup.
+    compile_flags
+        Passed to the `compile_flags` parameter of :py:meth:`terminal.embed.InteractiveShellEmbed.mainloop()`,
+        which is called when the :class:`terminal.embed.InteractiveShellEmbed` instance is called.
+    **kwargs : various, optional
+        Any other kwargs will be passed to the :class:`terminal.embed.InteractiveShellEmbed` constructor.
+        Full customization can be done by passing a traitlets :class:`Config` in as the
+        `config` argument (see :ref:`configure_start_ipython` and :ref:`terminal_options`).
     """
     config = kwargs.get('config')
-    header = kwargs.pop('header', u'')
-    compile_flags = kwargs.pop('compile_flags', None)
     if config is None:
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell

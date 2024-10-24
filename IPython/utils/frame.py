@@ -15,6 +15,7 @@ Utilities for working with stack frames.
 #-----------------------------------------------------------------------------
 
 import sys
+from typing import Any
 
 #-----------------------------------------------------------------------------
 # Code
@@ -28,11 +29,9 @@ def extract_vars(*names,**kw):
     *names : str
         One or more variable names which will be extracted from the caller's
         frame.
-
-    depth : integer, optional
+    **kw : integer, optional
         How many frames in the stack to walk when looking for your variables.
         The default is 0, which will use the frame where the call was made.
-
 
     Examples
     --------
@@ -53,7 +52,7 @@ def extract_vars(*names,**kw):
     return dict((k,callerNS[k]) for k in names)
 
 
-def extract_vars_above(*names):
+def extract_vars_above(*names: list[str]):
     """Extract a set of variables by name from another frame.
 
     Similar to extractVars(), but with a specified depth of 1, so that names
@@ -67,7 +66,7 @@ def extract_vars_above(*names):
     return dict((k,callerNS[k]) for k in names)
 
 
-def debugx(expr,pre_msg=''):
+def debugx(expr: str, pre_msg: str = ""):
     """Print the value of an expression from the caller's frame.
 
     Takes an expression, evaluates it in the caller's frame and prints both
@@ -86,7 +85,8 @@ def debugx(expr,pre_msg=''):
 # deactivate it by uncommenting the following line, which makes it a no-op
 #def debugx(expr,pre_msg=''): pass
 
-def extract_module_locals(depth=0):
+
+def extract_module_locals(depth: int = 0) -> tuple[Any, Any]:
     """Returns (module, locals) of the function `depth` frames away from the caller"""
     f = sys._getframe(depth + 1)
     global_ns = f.f_globals

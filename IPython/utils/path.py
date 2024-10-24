@@ -12,10 +12,9 @@ import errno
 import shutil
 import random
 import glob
-from warnings import warn
+import warnings
 
 from IPython.utils.process import system
-from IPython.utils.decorators import undoc
 
 #-----------------------------------------------------------------------------
 # Code
@@ -33,7 +32,7 @@ if sys.platform == 'win32':
         Examples
         --------
 
-        >>> get_long_path_name('c:\\docume~1')
+        >>> get_long_path_name('c:\\\\docume~1')
         'c:\\\\Documents and Settings'
 
         """
@@ -67,20 +66,6 @@ def get_long_path_name(path):
     return _get_long_path_name(path)
 
 
-def unquote_filename(name, win32=(sys.platform=='win32')):
-    """ On Windows, remove leading and trailing quotes from filenames.
-
-    This function has been deprecated and should not be used any more:
-    unquoting is now taken care of by :func:`IPython.utils.process.arg_split`.
-    """
-    warn("'unquote_filename' is deprecated since IPython 5.0 and should not "
-         "be used anymore", DeprecationWarning, stacklevel=2)
-    if win32:
-        if name.startswith(("'", '"')) and name.endswith(("'", '"')):
-            name = name[1:-1]
-    return name
-
-
 def compress_user(path):
     """Reverse of :func:`os.path.expanduser`
     """
@@ -89,7 +74,7 @@ def compress_user(path):
         path =  "~" + path[len(home):]
     return path
 
-def get_py_filename(name, force_win32=None):
+def get_py_filename(name):
     """Return a valid python filename in the current directory.
 
     If the given name is not a file, it adds '.py' and searches again.
@@ -97,19 +82,16 @@ def get_py_filename(name, force_win32=None):
     """
 
     name = os.path.expanduser(name)
-    if force_win32 is not None:
-        warn("The 'force_win32' argument to 'get_py_filename' is deprecated "
-             "since IPython 5.0 and should not be used anymore",
-            DeprecationWarning, stacklevel=2)
-    if not os.path.isfile(name) and not name.endswith('.py'):
-        name += '.py'
     if os.path.isfile(name):
         return name
-    else:
-        raise IOError('File `%r` not found.' % name)
+    if not name.endswith(".py"):
+        py_name = name + ".py"
+        if os.path.isfile(py_name):
+            return py_name
+    raise IOError("File `%r` not found." % name)
 
 
-def filefind(filename, path_dirs=None):
+def filefind(filename: str, path_dirs=None) -> str:
     """Find a file by looking through a sequence of paths.
 
     This iterates through a sequence of paths looking for a file and returns
@@ -139,7 +121,12 @@ def filefind(filename, path_dirs=None):
 
     Returns
     -------
-    Raises :exc:`IOError` or returns absolute path to file.
+    path : str
+        returns absolute path to file.
+
+    Raises
+    ------
+    IOError
     """
 
     # If paths are quoted, abspath gets confused, strip them...
@@ -178,7 +165,6 @@ def get_home_dir(require_writable=False) -> str:
 
     Parameters
     ----------
-
     require_writable : bool [default: False]
         if True:
             guarantees the return value is a writable directory, otherwise
@@ -205,7 +191,7 @@ def get_home_dir(require_writable=False) -> str:
             pass
 
     if (not require_writable) or _writable_dir(homedir):
-        assert isinstance(homedir, str), "Homedir shoudl be unicode not bytes"
+        assert isinstance(homedir, str), "Homedir should be unicode not bytes"
         return homedir
     else:
         raise HomeDirError('%s is not a writable dir, '
@@ -219,7 +205,7 @@ def get_xdg_dir():
 
     env = os.environ
 
-    if os.name == 'posix' and sys.platform != 'darwin':
+    if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.config if empty OR not set
         xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
@@ -238,7 +224,7 @@ def get_xdg_cache_dir():
 
     env = os.environ
 
-    if os.name == 'posix' and sys.platform != 'darwin':
+    if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.cache if empty OR not set
         xdg = env.get("XDG_CACHE_HOME", None) or os.path.join(get_home_dir(), '.cache')
@@ -248,36 +234,6 @@ def get_xdg_cache_dir():
 
     return None
 
-
-@undoc
-def get_ipython_dir():
-    warn("get_ipython_dir has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import get_ipython_dir
-    return get_ipython_dir()
-
-@undoc
-def get_ipython_cache_dir():
-    warn("get_ipython_cache_dir has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import get_ipython_cache_dir
-    return get_ipython_cache_dir()
-
-@undoc
-def get_ipython_package_dir():
-    warn("get_ipython_package_dir has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import get_ipython_package_dir
-    return get_ipython_package_dir()
-
-@undoc
-def get_ipython_module_path(module_str):
-    warn("get_ipython_module_path has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import get_ipython_module_path
-    return get_ipython_module_path(module_str)
-
-@undoc
-def locate_profile(profile='default'):
-    warn("locate_profile has moved to the IPython.paths module since IPython 4.0.", DeprecationWarning, stacklevel=2)
-    from IPython.paths import locate_profile
-    return locate_profile(profile=profile)
 
 def expand_path(s):
     """Expand $VARS and ~names in a string, like a shell
@@ -337,7 +293,14 @@ def target_outdated(target,deps):
 
     If target doesn't exist or is older than any file listed in deps, return
     true, otherwise return false.
+
+    .. deprecated:: 8.22
     """
+    warnings.warn(
+        "`target_outdated` is deprecated since IPython 8.22 and will be removed in future versions",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     try:
         target_time = os.path.getmtime(target)
     except os.error:
@@ -345,8 +308,8 @@ def target_outdated(target,deps):
     for dep in deps:
         dep_time = os.path.getmtime(dep)
         if dep_time > target_time:
-            #print "For target",target,"Dep failed:",dep # dbg
-            #print "times (dep,tar):",dep_time,target_time # dbg
+            # print("For target",target,"Dep failed:",dep)  # dbg
+            # print("times (dep,tar):",dep_time,target_time)  # dbg
             return 1
     return 0
 
@@ -357,9 +320,17 @@ def target_update(target,deps,cmd):
     target_update(target,deps,cmd) -> runs cmd if target is outdated.
 
     This is just a wrapper around target_outdated() which calls the given
-    command if target is outdated."""
+    command if target is outdated.
 
-    if target_outdated(target,deps):
+    .. deprecated:: 8.22
+    """
+
+    warnings.warn(
+        "`target_update` is deprecated since IPython 8.22 and will be removed in future versions",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    if target_outdated(target, deps):
         system(cmd)
 
 

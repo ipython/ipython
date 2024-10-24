@@ -8,31 +8,47 @@ bindings, which is unstable and likely to crash
 This is used primarily by qt and qt_for_kernel, and shouldn't
 be accessed directly from the outside
 """
+import importlib.abc
 import sys
+import os
 import types
-from functools import partial
-from importlib import import_module
+from functools import partial, lru_cache
+import operator
 
-from IPython.utils.version import check_version
+# ### Available APIs.
+# Qt6
+QT_API_PYQT6 = "pyqt6"
+QT_API_PYSIDE6 = "pyside6"
 
-# Available APIs.
-QT_API_PYQT = 'pyqt' # Force version 2
+# Qt5
 QT_API_PYQT5 = 'pyqt5'
-QT_API_PYQTv1 = 'pyqtv1' # Force version 2
-QT_API_PYQT_DEFAULT = 'pyqtdefault' # use system default for version 1 vs. 2
-QT_API_PYSIDE = 'pyside'
 QT_API_PYSIDE2 = 'pyside2'
 
-api_to_module = {QT_API_PYSIDE2: 'PySide2',
-                 QT_API_PYSIDE: 'PySide',
-                 QT_API_PYQT: 'PyQt4',
-                 QT_API_PYQTv1: 'PyQt4',
-                 QT_API_PYQT5: 'PyQt5',
-                 QT_API_PYQT_DEFAULT: 'PyQt4',
-                }
+# Qt4
+# NOTE: Here for legacy matplotlib compatibility, but not really supported on the IPython side.
+QT_API_PYQT = "pyqt"  # Force version 2
+QT_API_PYQTv1 = "pyqtv1"  # Force version 2
+QT_API_PYSIDE = "pyside"
+
+QT_API_PYQT_DEFAULT = "pyqtdefault"  # use system default for version 1 vs. 2
+
+api_to_module = {
+    # Qt6
+    QT_API_PYQT6: "PyQt6",
+    QT_API_PYSIDE6: "PySide6",
+    # Qt5
+    QT_API_PYQT5: "PyQt5",
+    QT_API_PYSIDE2: "PySide2",
+    # Qt4
+    QT_API_PYSIDE: "PySide",
+    QT_API_PYQT: "PyQt4",
+    QT_API_PYQTv1: "PyQt4",
+    # default
+    QT_API_PYQT_DEFAULT: "PyQt6",
+}
 
 
-class ImportDenier(object):
+class ImportDenier(importlib.abc.MetaPathFinder):
     """Import Hook that will guard against bad Qt imports
     once IPython commits to a specific binding
     """
@@ -44,17 +60,18 @@ class ImportDenier(object):
         sys.modules.pop(module_name, None)
         self.__forbidden.add(module_name)
 
-    def find_module(self, fullname, path=None):
+    def find_spec(self, fullname, path, target=None):
         if path:
             return
         if fullname in self.__forbidden:
-            return self
-
-    def load_module(self, fullname):
-        raise ImportError("""
+            raise ImportError(
+                """
     Importing %s disabled by IPython, which has
     already imported an Incompatible QT Binding: %s
-    """ % (fullname, loaded_api()))
+    """
+                % (fullname, loaded_api())
+            )
+
 
 ID = ImportDenier()
 sys.meta_path.insert(0, ID)
@@ -62,24 +79,12 @@ sys.meta_path.insert(0, ID)
 
 def commit_api(api):
     """Commit to a particular API, and trigger ImportErrors on subsequent
-       dangerous imports"""
+    dangerous imports"""
+    modules = set(api_to_module.values())
 
-    if api == QT_API_PYSIDE2:
-        ID.forbid('PySide')
-        ID.forbid('PyQt4')
-        ID.forbid('PyQt5')
-    elif api == QT_API_PYSIDE:
-        ID.forbid('PySide2')
-        ID.forbid('PyQt4')
-        ID.forbid('PyQt5')
-    elif api == QT_API_PYQT5:
-        ID.forbid('PySide2')
-        ID.forbid('PySide')
-        ID.forbid('PyQt4')
-    else:   # There are three other possibilities, all representing PyQt4
-        ID.forbid('PyQt5')
-        ID.forbid('PySide2')
-        ID.forbid('PySide')
+    modules.remove(api_to_module[api])
+    for mod in modules:
+        ID.forbid(mod)
 
 
 def loaded_api():
@@ -90,39 +95,44 @@ def loaded_api():
 
     Returns
     -------
-    None, 'pyside2', 'pyside', 'pyqt', 'pyqt5', or 'pyqtv1'
+    None, 'pyside6', 'pyqt6', 'pyside2', 'pyside', 'pyqt', 'pyqt5', 'pyqtv1'
     """
-    if 'PyQt4.QtCore' in sys.modules:
+    if sys.modules.get("PyQt6.QtCore"):
+        return QT_API_PYQT6
+    elif sys.modules.get("PySide6.QtCore"):
+        return QT_API_PYSIDE6
+    elif sys.modules.get("PyQt5.QtCore"):
+        return QT_API_PYQT5
+    elif sys.modules.get("PySide2.QtCore"):
+        return QT_API_PYSIDE2
+    elif sys.modules.get("PyQt4.QtCore"):
         if qtapi_version() == 2:
             return QT_API_PYQT
         else:
             return QT_API_PYQTv1
-    elif 'PySide.QtCore' in sys.modules:
+    elif sys.modules.get("PySide.QtCore"):
         return QT_API_PYSIDE
-    elif 'PySide2.QtCore' in sys.modules:
-        return QT_API_PYSIDE2
-    elif 'PyQt5.QtCore' in sys.modules:
-        return QT_API_PYQT5
+
     return None
 
 
 def has_binding(api):
     """Safely check for PyQt4/5, PySide or PySide2, without importing submodules
 
-        Parameters
-        ----------
-        api : str [ 'pyqtv1' | 'pyqt' | 'pyqt5' | 'pyside' | 'pyside2' | 'pyqtdefault']
-             Which module to check for
+    Parameters
+    ----------
+    api : str [ 'pyqtv1' | 'pyqt' | 'pyqt5' | 'pyside' | 'pyside2' | 'pyqtdefault']
+        Which module to check for
 
-        Returns
-        -------
-        True if the relevant module appears to be importable
-     """
+    Returns
+    -------
+    True if the relevant module appears to be importable
+    """
     module_name = api_to_module[api]
     from importlib.util import find_spec
 
     required = ['QtCore', 'QtGui', 'QtSvg']
-    if api in (QT_API_PYQT5, QT_API_PYSIDE2):
+    if api in (QT_API_PYQT5, QT_API_PYSIDE2, QT_API_PYQT6, QT_API_PYSIDE6):
         # QT5 requires QtWidgets too
         required.append('QtWidgets')
 
@@ -140,7 +150,8 @@ def has_binding(api):
     if api == QT_API_PYSIDE:
         # We can also safely check PySide version
         import PySide
-        return check_version(PySide.__version__, '1.0.3')
+
+        return PySide.__version_info__ >= (1, 0, 3)
 
     return True
 
@@ -174,7 +185,7 @@ def can_import(api):
 
     current = loaded_api()
     if api == QT_API_PYQT_DEFAULT:
-        return current in [QT_API_PYQT, QT_API_PYQTv1, None]
+        return current in [QT_API_PYQT6, None]
     else:
         return current in [api, None]
 
@@ -186,10 +197,9 @@ def import_pyqt4(version=2):
     Parameters
     ----------
     version : 1, 2, or None
-      Which QString/QVariant API to use. Set to None to use the system
-      default
-
-    ImportErrors rasied within this function are non-recoverable
+        Which QString/QVariant API to use. Set to None to use the system
+        default
+    ImportErrors raised within this function are non-recoverable
     """
     # The new-style string API (version=2) automatically
     # converts QStrings to Unicode Python strings. Also, automatically unpacks
@@ -202,7 +212,7 @@ def import_pyqt4(version=2):
 
     from PyQt4 import QtGui, QtCore, QtSvg
 
-    if not check_version(QtCore.PYQT_VERSION_STR, '4.7'):
+    if QtCore.PYQT_VERSION < 0x040700:
         raise ImportError("IPython requires PyQt4 >= 4.7, found %s" %
                           QtCore.PYQT_VERSION_STR)
 
@@ -220,11 +230,11 @@ def import_pyqt5():
     """
     Import PyQt5
 
-    ImportErrors rasied within this function are non-recoverable
+    ImportErrors raised within this function are non-recoverable
     """
 
     from PyQt5 import QtCore, QtSvg, QtWidgets, QtGui
-    
+
     # Alias PyQt-specific functions for PySide compatibility.
     QtCore.Signal = QtCore.pyqtSignal
     QtCore.Slot = QtCore.pyqtSlot
@@ -235,6 +245,28 @@ def import_pyqt5():
     QtGuiCompat.__dict__.update(QtWidgets.__dict__)
 
     api = QT_API_PYQT5
+    return QtCore, QtGuiCompat, QtSvg, api
+
+
+def import_pyqt6():
+    """
+    Import PyQt6
+
+    ImportErrors raised within this function are non-recoverable
+    """
+
+    from PyQt6 import QtCore, QtSvg, QtWidgets, QtGui
+
+    # Alias PyQt-specific functions for PySide compatibility.
+    QtCore.Signal = QtCore.pyqtSignal
+    QtCore.Slot = QtCore.pyqtSlot
+
+    # Join QtGui and QtWidgets for Qt4 compatibility.
+    QtGuiCompat = types.ModuleType("QtGuiCompat")
+    QtGuiCompat.__dict__.update(QtGui.__dict__)
+    QtGuiCompat.__dict__.update(QtWidgets.__dict__)
+
+    api = QT_API_PYQT6
     return QtCore, QtGuiCompat, QtSvg, api
 
 
@@ -264,6 +296,35 @@ def import_pyside2():
     return QtCore, QtGuiCompat, QtSvg, QT_API_PYSIDE2
 
 
+def import_pyside6():
+    """
+    Import PySide6
+
+    ImportErrors raised within this function are non-recoverable
+    """
+
+    def get_attrs(module):
+        return {
+            name: getattr(module, name)
+            for name in dir(module)
+            if not name.startswith("_")
+        }
+
+    from PySide6 import QtGui, QtCore, QtSvg, QtWidgets, QtPrintSupport
+
+    # Join QtGui and QtWidgets for Qt4 compatibility.
+    QtGuiCompat = types.ModuleType("QtGuiCompat")
+    QtGuiCompat.__dict__.update(QtGui.__dict__)
+    if QtCore.__version_info__ < (6, 7):
+        QtGuiCompat.__dict__.update(QtWidgets.__dict__)
+        QtGuiCompat.__dict__.update(QtPrintSupport.__dict__)
+    else:
+        QtGuiCompat.__dict__.update(get_attrs(QtWidgets))
+        QtGuiCompat.__dict__.update(get_attrs(QtPrintSupport))
+
+    return QtCore, QtGuiCompat, QtSvg, QT_API_PYSIDE6
+
+
 def load_qt(api_options):
     """
     Attempt to import Qt, given a preference list
@@ -273,13 +334,12 @@ def load_qt(api_options):
 
     Parameters
     ----------
-    api_options: List of strings
+    api_options : List of strings
         The order of APIs to try. Valid items are 'pyside', 'pyside2',
         'pyqt', 'pyqt5', 'pyqtv1' and 'pyqtdefault'
 
     Returns
     -------
-
     A tuple of QtCore, QtGui, QtSvg, QT_API
     The first three are the Qt modules. The last is the
     string indicating which module was loaded.
@@ -291,13 +351,19 @@ def load_qt(api_options):
     an incompatible library has already been installed)
     """
     loaders = {
-               QT_API_PYSIDE2: import_pyside2,
-               QT_API_PYSIDE: import_pyside,
-               QT_API_PYQT: import_pyqt4,
-               QT_API_PYQT5: import_pyqt5,
-               QT_API_PYQTv1: partial(import_pyqt4, version=1),
-               QT_API_PYQT_DEFAULT: partial(import_pyqt4, version=None)
-              }
+        # Qt6
+        QT_API_PYQT6: import_pyqt6,
+        QT_API_PYSIDE6: import_pyside6,
+        # Qt5
+        QT_API_PYQT5: import_pyqt5,
+        QT_API_PYSIDE2: import_pyside2,
+        # Qt4
+        QT_API_PYSIDE: import_pyside,
+        QT_API_PYQT: import_pyqt4,
+        QT_API_PYQTv1: partial(import_pyqt4, version=1),
+        # default
+        QT_API_PYQT_DEFAULT: import_pyqt6,
+    }
 
     for api in api_options:
 
@@ -315,20 +381,42 @@ def load_qt(api_options):
         commit_api(api)
         return result
     else:
-        raise ImportError("""
+        # Clear the environment variable since it doesn't work.
+        if "QT_API" in os.environ:
+            del os.environ["QT_API"]
+
+        raise ImportError(
+            """
     Could not load requested Qt binding. Please ensure that
-    PyQt4 >= 4.7, PyQt5, PySide >= 1.0.3 or PySide2 is available,
-    and only one is imported per session.
+    PyQt4 >= 4.7, PyQt5, PyQt6, PySide >= 1.0.3, PySide2, or
+    PySide6 is available, and only one is imported per session.
 
     Currently-imported Qt library:                              %r
-    PyQt4 available (requires QtCore, QtGui, QtSvg):            %s
     PyQt5 available (requires QtCore, QtGui, QtSvg, QtWidgets): %s
-    PySide >= 1.0.3 installed:                                  %s
+    PyQt6 available (requires QtCore, QtGui, QtSvg, QtWidgets): %s
     PySide2 installed:                                          %s
+    PySide6 installed:                                          %s
     Tried to load:                                              %r
-    """ % (loaded_api(),
-           has_binding(QT_API_PYQT),
-           has_binding(QT_API_PYQT5),
-           has_binding(QT_API_PYSIDE),
-           has_binding(QT_API_PYSIDE2),
-           api_options))
+    """
+            % (
+                loaded_api(),
+                has_binding(QT_API_PYQT5),
+                has_binding(QT_API_PYQT6),
+                has_binding(QT_API_PYSIDE2),
+                has_binding(QT_API_PYSIDE6),
+                api_options,
+            )
+        )
+
+
+def enum_factory(QT_API, QtCore):
+    """Construct an enum helper to account for PyQt5 <-> PyQt6 changes."""
+
+    @lru_cache(None)
+    def _enum(name):
+        # foo.bar.Enum.Entry (PyQt6) <=> foo.bar.Entry (non-PyQt6).
+        return operator.attrgetter(
+            name if QT_API == QT_API_PYQT6 else name.rpartition(".")[0]
+        )(sys.modules[QtCore.__package__])
+
+    return _enum

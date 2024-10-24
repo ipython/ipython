@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Setup script for IPython.
 
@@ -19,13 +18,12 @@ requires utilities which are not available under Windows."""
 
 import os
 import sys
-from pathlib import Path
 
 # **Python version check**
 #
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info < (3, 7):
+if sys.version_info < (3, 10):
     pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
     try:
         import pip
@@ -41,48 +39,41 @@ if sys.version_info < (3, 7):
 
 
     error = """
-IPython 7.17+ supports Python 3.7 and above, following NEP 29.
+IPython 8.19+ supports Python 3.10 and above, following SPEC0
+IPython 8.13+ supports Python 3.9 and above, following NEP 29.
+IPython 8.0-8.12 supports Python 3.8 and above, following NEP 29.
 When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
 Python 3.3 and 3.4 were supported up to IPython 6.x.
 Python 3.5 was supported with IPython 7.0 to 7.9.
 Python 3.6 was supported with IPython up to 7.16.
+Python 3.7 was still supported with the 7.x branch.
 
 See IPython `README.rst` file for more information:
 
-    https://github.com/ipython/ipython/blob/master/README.rst
+    https://github.com/ipython/ipython/blob/main/README.rst
 
 Python {py} detected.
 {pip}
-""".format(py=sys.version_info, pip=pip_message )
+""".format(
+        py=sys.version_info, pip=pip_message
+    )
 
     print(error, file=sys.stderr)
     sys.exit(1)
 
 # At least we're on the python version we need, move on.
 
-# BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
-# update it when the contents of directories change.
-if Path("MANIFEST").exists():
-    Path("MANIFEST").unlink()
-
-from distutils.core import setup
+from setuptools import setup
 
 # Our own imports
+
 from setupbase import target_update
 
 from setupbase import (
     setup_args,
-    find_packages,
-    find_package_data,
     check_package_data_first,
-    find_entry_points,
-    build_scripts_entrypt,
     find_data_files,
     git_prebuild,
-    install_symlinked,
-    install_lib_symlink,
-    install_scripts_for_symlink,
-    unsymlink,
 )
 
 #-------------------------------------------------------------------------------
@@ -112,10 +103,12 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     # List of things to be updated. Each entry is a triplet of args for
     # target_update()
     to_update = [
-                 ('docs/man/ipython.1.gz',
-                  ['docs/man/ipython.1'],
-                  'cd docs/man && gzip -9c ipython.1 > ipython.1.gz'),
-                 ]
+        (
+            "docs/man/ipython.1.gz",
+            ["docs/man/ipython.1"],
+            "cd docs/man && python -m gzip --best ipython.1",
+        ),
+    ]
 
 
     [ target_update(*t) for t in to_update ]
@@ -124,140 +117,25 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
 # Find all the packages, package data, and data_files
 #---------------------------------------------------------------------------
 
-packages = find_packages()
-package_data = find_package_data()
-
 data_files = find_data_files()
 
-setup_args['packages'] = packages
-setup_args['package_data'] = package_data
 setup_args['data_files'] = data_files
 
 #---------------------------------------------------------------------------
 # custom distutils commands
 #---------------------------------------------------------------------------
 # imports here, so they are after setuptools import if there was one
-from distutils.command.sdist import sdist
+from setuptools.command.sdist import sdist
 
 setup_args['cmdclass'] = {
     'build_py': \
             check_package_data_first(git_prebuild('IPython')),
     'sdist' : git_prebuild('IPython', sdist),
-    'symlink': install_symlinked,
-    'install_lib_symlink': install_lib_symlink,
-    'install_scripts_sym': install_scripts_for_symlink,
-    'unsymlink': unsymlink,
 }
-
-
-#---------------------------------------------------------------------------
-# Handle scripts, dependencies, and setuptools specific things
-#---------------------------------------------------------------------------
-
-# For some commands, use setuptools.  Note that we do NOT list install here!
-# If you want a setuptools-enhanced install, just run 'setupegg.py install'
-needs_setuptools = {'develop', 'release', 'bdist_egg', 'bdist_rpm',
-           'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
-           'egg_info', 'easy_install', 'upload', 'install_egg_info',
-          }
-
-if len(needs_setuptools.intersection(sys.argv)) > 0:
-    import setuptools
-
-# This dict is used for passing extra arguments that are setuptools
-# specific to setup
-setuptools_extra_args = {}
-
-# setuptools requirements
-
-extras_require = dict(
-    parallel = ['ipyparallel'],
-    qtconsole = ['qtconsole'],
-    doc = ['Sphinx>=1.3'],
-    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'nbformat', 'ipykernel', 'numpy>=1.14'],
-    terminal = [],
-    kernel = ['ipykernel'],
-    nbformat = ['nbformat'],
-    notebook = ['notebook', 'ipywidgets'],
-    nbconvert = ['nbconvert'],
-)
-
-install_requires = [
-    'setuptools>=18.5',
-    'jedi>=0.16',
-    'decorator',
-    'pickleshare',
-    'traitlets>=4.2',
-    'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
-    'pygments',
-    'backcall',
-    'stack_data',
-]
-
-# Platform-specific dependencies:
-# This is the correct way to specify these,
-# but requires pip >= 6. pip < 6 ignores these.
-
-extras_require.update(
-    {
-        ':sys_platform != "win32"': ["pexpect>4.3"],
-        ':sys_platform == "darwin"': ["appnope"],
-        ':sys_platform == "win32"': ["colorama"],
-    }
-)
-# FIXME: re-specify above platform dependencies for pip < 6
-# These would result in non-portable bdists.
-if not any(arg.startswith('bdist') for arg in sys.argv):
-    if sys.platform == 'darwin':
-        install_requires.extend(['appnope'])
-
-    if not sys.platform.startswith("win"):
-        install_requires.append("pexpect>4.3")
-
-    # workaround pypa/setuptools#147, where setuptools misspells
-    # platform_python_implementation as python_implementation
-    if 'setuptools' in sys.modules:
-        for key in list(extras_require):
-            if 'platform_python_implementation' in key:
-                new_key = key.replace('platform_python_implementation', 'python_implementation')
-                extras_require[new_key] = extras_require.pop(key)
-
-everything = set()
-for key, deps in extras_require.items():
-    if ':' not in key:
-        everything.update(deps)
-extras_require['all'] = list(sorted(everything))
-
-if 'setuptools' in sys.modules:
-    setuptools_extra_args['python_requires'] = '>=3.7'
-    setuptools_extra_args['zip_safe'] = False
-    setuptools_extra_args['entry_points'] = {
-        'console_scripts': find_entry_points(),
-        'pygments.lexers': [
-            'ipythonconsole = IPython.lib.lexers:IPythonConsoleLexer',
-            'ipython = IPython.lib.lexers:IPythonLexer',
-            'ipython3 = IPython.lib.lexers:IPython3Lexer',
-        ],
-    }
-    setup_args['extras_require'] = extras_require
-    setup_args['install_requires'] = install_requires
-
-else:
-    # scripts has to be a non-empty list, or install_scripts isn't called
-    setup_args['scripts'] = [e.split('=')[0].strip() for e in find_entry_points()]
-
-    setup_args['cmdclass']['build_scripts'] = build_scripts_entrypt
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
 #---------------------------------------------------------------------------
 
-setup_args.update(setuptools_extra_args)
-
-
-
-def main():
+if __name__ == "__main__":
     setup(**setup_args)
-
-if __name__ == '__main__':
-    main()

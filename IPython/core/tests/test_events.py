@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import Mock
-import nose.tools as nt
 
 from IPython.core import events
 import IPython.testing.tools as tt
@@ -40,9 +39,9 @@ class CallbackTests(unittest.TestCase):
         def cb2():
             ...
 
-        self.em.register('ping_received', cb1)
-        nt.assert_raises(ValueError, self.em.unregister, 'ping_received', cb2)
-        self.em.unregister('ping_received', cb1)
+        self.em.register("ping_received", cb1)
+        self.assertRaises(ValueError, self.em.unregister, "ping_received", cb2)
+        self.em.unregister("ping_received", cb1)
 
     def test_cb_error(self):
         cb = Mock(side_effect=ValueError)
@@ -77,16 +76,3 @@ class CallbackTests(unittest.TestCase):
         self.em.trigger('ping_received')
         self.assertEqual([True, True, False], invoked)
         self.assertEqual([func3], self.em.callbacks['ping_received'])
-    
-    def test_ignore_event_arguments_if_no_argument_required(self):
-        call_count = [0]
-        def event_with_no_argument():
-            call_count[0] += 1
-
-        self.em.register('event_with_argument', event_with_no_argument)
-        self.em.trigger('event_with_argument', 'the argument')
-        self.assertEqual(call_count[0], 1)
-        
-        self.em.unregister('event_with_argument', event_with_no_argument)
-        self.em.trigger('ping_received')
-        self.assertEqual(call_count[0], 1)

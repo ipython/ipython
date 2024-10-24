@@ -15,6 +15,7 @@ and stores the results.
 
 For more details, see the class docstrings below.
 """
+from __future__ import annotations
 
 from warnings import warn
 
@@ -31,6 +32,9 @@ import sys
 import tokenize
 import warnings
 
+from typing import List, Tuple, Union, Optional, TYPE_CHECKING
+from types import CodeType
+
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
                                            ipy_prompt,
@@ -42,12 +46,15 @@ from IPython.core.inputtransformer import (leading_indent,
                                            assign_from_system,
                                            assemble_python_lines,
                                            )
+from IPython.utils import tokenutil
 
 # These are available in this module for backwards compatibility.
 from IPython.core.inputtransformer import (ESC_SHELL, ESC_SH_CAP, ESC_HELP,
                                         ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,
                                         ESC_QUOTE, ESC_QUOTE2, ESC_PAREN, ESC_SEQUENCES)
 
+if TYPE_CHECKING:
+    from typing_extensions import Self
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
@@ -88,7 +95,13 @@ def num_ini_spaces(s):
     -------
     n : int
     """
-
+    warnings.warn(
+        "`num_ini_spaces` is Pending Deprecation since IPython 8.17."
+        "It is considered for removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
     ini_spaces = ini_spaces_re.match(s)
     if ini_spaces:
         return ini_spaces.end()
@@ -126,7 +139,7 @@ def partial_tokens(s):
     readline = io.StringIO(s).readline
     token = tokenize.TokenInfo(tokenize.NEWLINE, '', (1, 0), (1, 0), '')
     try:
-        for token in tokenize.generate_tokens(readline):
+        for token in tokenutil.generate_tokens_catch_errors(readline):
             yield token
     except tokenize.TokenError as e:
         # catch EOF error
@@ -141,15 +154,28 @@ def partial_tokens(s):
         else:
             raise
 
-def find_next_indent(code):
+def find_next_indent(code) -> int:
     """Find the number of spaces for the next line of indentation"""
     tokens = list(partial_tokens(code))
     if tokens[-1].type == tokenize.ENDMARKER:
         tokens.pop()
     if not tokens:
         return 0
-    while (tokens[-1].type in {tokenize.DEDENT, tokenize.NEWLINE, tokenize.COMMENT}):
+
+    while tokens[-1].type in {
+        tokenize.DEDENT,
+        tokenize.NEWLINE,
+        tokenize.COMMENT,
+        tokenize.ERRORTOKEN,
+    }:
         tokens.pop()
+
+    # Starting in Python 3.12, the tokenize module adds implicit newlines at the end
+    # of input. We need to remove those if we're in a multiline statement
+    if tokens[-1].type == IN_MULTILINE_STATEMENT:
+        while tokens[-2].type in {tokenize.NL}:
+            tokens.pop(-2)
+
 
     if tokens[-1].type == INCOMPLETE_STRING:
         # Inside a multiline string
@@ -210,7 +236,7 @@ def last_blank(src):
     Parameters
     ----------
     src : string
-      A single or multiline string.
+        A single or multiline string.
     """
     if not src: return False
     ll  = src.splitlines()[-1]
@@ -228,7 +254,7 @@ def last_two_blanks(src):
     Parameters
     ----------
     src : string
-      A single or multiline string.
+        A single or multiline string.
     """
     if not src: return False
     # The logic here is tricky: I couldn't get a regexp to work and pass all
@@ -251,7 +277,7 @@ def remove_comments(src):
     Parameters
     ----------
     src : string
-      A single or multiline input string.
+        A single or multiline input string.
 
     Returns
     -------
@@ -294,7 +320,7 @@ class InputSplitter(object):
             prompt = '>>> ' + indent
             line = indent + raw_input(prompt)
             isp.push(line)
-        print 'Input source was:\n', isp.source_reset(),
+        print('Input source was:\n', isp.source_reset())
     """
     # A cache for storing the current indentation
     # The first value stores the most recently processed source input
@@ -302,7 +328,7 @@ class InputSplitter(object):
     # If self.source matches the first value, the second value is a valid
     # current indentation. Otherwise, the cache is invalid and the indentation
     # must be recalculated.
-    _indent_spaces_cache = None, None
+    _indent_spaces_cache: Union[Tuple[None, None], Tuple[str, int]] = None, None
     # String, indicating the default input encoding.  It is computed by default
     # at initialization time via get_input_encoding(), but it can be reset by a
     # client with specific knowledge of the encoding.
@@ -310,26 +336,25 @@ class InputSplitter(object):
     # String where the current full source input is stored, properly encoded.
     # Reading this attribute is the normal way of querying the currently pushed
     # source code, that has been properly encoded.
-    source = ''
+    source: str = ""
     # Code object corresponding to the current source.  It is automatically
     # synced to the source, so it can be queried at any time to obtain the code
     # object; it will be None if the source doesn't compile to valid Python.
-    code = None
+    code: Optional[CodeType] = None
 
     # Private attributes
 
     # List with lines of input accumulated so far
-    _buffer = None
+    _buffer: List[str]
     # Command compiler
-    _compile = None
+    _compile: codeop.CommandCompiler
     # Boolean indicating whether the current block is complete
-    _is_complete = None
+    _is_complete: Optional[bool] = None
     # Boolean indicating whether the current block has an unrecoverable syntax error
-    _is_invalid = False
+    _is_invalid: bool = False
 
-    def __init__(self):
-        """Create a new InputSplitter instance.
-        """
+    def __init__(self) -> None:
+        """Create a new InputSplitter instance."""
         self._buffer = []
         self._compile = codeop.CommandCompiler()
         self.encoding = get_input_encoding()
@@ -351,22 +376,22 @@ class InputSplitter(object):
 
     def check_complete(self, source):
         """Return whether a block of code is ready to execute, or should be continued
-        
+
         This is a non-stateful API, and will reset the state of this InputSplitter.
-        
+
         Parameters
         ----------
         source : string
-          Python input code, which can be multiline.
-        
+            Python input code, which can be multiline.
+
         Returns
         -------
         status : str
-          One of 'complete', 'incomplete', or 'invalid' if source is not a
-          prefix of valid code.
+            One of 'complete', 'incomplete', or 'invalid' if source is not a
+            prefix of valid code.
         indent_spaces : int or None
-          The number of spaces by which to indent the next line of code. If
-          status is not 'incomplete', this is None.
+            The number of spaces by which to indent the next line of code. If
+            status is not 'incomplete', this is None.
         """
         self.reset()
         try:
@@ -397,15 +422,15 @@ class InputSplitter(object):
         Parameters
         ----------
         lines : string
-          One or more lines of Python input.
+            One or more lines of Python input.
 
         Returns
         -------
         is_complete : boolean
-          True if the current input source (the result of the current input
-          plus prior inputs) forms a complete Python execution block.  Note that
-          this value is also stored as a private attribute (``_is_complete``), so it
-          can be queried at any time.
+            True if the current input source (the result of the current input
+            plus prior inputs) forms a complete Python execution block.  Note that
+            this value is also stored as a private attribute (``_is_complete``), so it
+            can be queried at any time.
         """
         assert isinstance(lines, str)
         self._store(lines)
@@ -448,7 +473,7 @@ class InputSplitter(object):
         guess whether a block is complete or not based solely on prior and
         current input lines.  The InputSplitter considers it has a complete
         interactive block and will not accept more input when either:
-        
+
         * A SyntaxError is raised
 
         * The code is complete and consists of a single line or a single
@@ -483,7 +508,7 @@ class InputSplitter(object):
                 return False
             
             try:
-                code_ast = ast.parse(u''.join(self._buffer))
+                code_ast = ast.parse("".join(self._buffer))
             except Exception:
                 #print("Can't parse AST")  # debug
                 return False
@@ -496,9 +521,10 @@ class InputSplitter(object):
         # General fallback - accept more code
         return True
 
-    def get_indent_spaces(self):
+    def get_indent_spaces(self) -> int:
         sourcefor, n = self._indent_spaces_cache
         if sourcefor == self.source:
+            assert n is not None
             return n
 
         # self.source always has a trailing newline
@@ -547,7 +573,7 @@ class IPythonInputSplitter(InputSplitter):
     # Private attributes
 
     # List with lines of raw input accumulated so far.
-    _buffer_raw = None
+    _buffer_raw: List[str]
 
     def __init__(self, line_input_checker=True, physical_line_transforms=None,
                     logical_line_transforms=None, python_line_transforms=None):
@@ -614,13 +640,13 @@ class IPythonInputSplitter(InputSplitter):
                 # Nothing that calls reset() expects to handle transformer
                 # errors
                 pass
-    
-    def flush_transformers(self):
-        def _flush(transform, outs):
+
+    def flush_transformers(self: Self):
+        def _flush(transform, outs: List[str]):
             """yield transformed lines
-            
+
             always strings, never None
-            
+
             transform: the current transform
             outs: an iterable of previously transformed inputs.
                  Each may be multiline, which will be passed
@@ -637,8 +663,8 @@ class IPythonInputSplitter(InputSplitter):
             tmp = transform.reset()
             if tmp is not None:
                 yield tmp
-        
-        out = []
+
+        out: List[str] = []
         for t in self.transforms_in_use:
             out = _flush(t, out)
         
@@ -690,15 +716,15 @@ class IPythonInputSplitter(InputSplitter):
         Parameters
         ----------
         lines : string
-          One or more lines of Python input.
+            One or more lines of Python input.
 
         Returns
         -------
         is_complete : boolean
-          True if the current input source (the result of the current input
-          plus prior inputs) forms a complete Python execution block.  Note that
-          this value is also stored as a private attribute (_is_complete), so it
-          can be queried at any time.
+            True if the current input source (the result of the current input
+            plus prior inputs) forms a complete Python execution block.  Note that
+            this value is also stored as a private attribute (_is_complete), so it
+            can be queried at any time.
         """
         assert isinstance(lines, str)
         # We must ensure all input is pure unicode
@@ -728,10 +754,10 @@ class IPythonInputSplitter(InputSplitter):
 
     def _transform_line(self, line):
         """Push a line of input code through the various transformers.
-        
+
         Returns any output from the transformers, or None if a transformer
         is accumulating lines.
-        
+
         Sets self.transformer_accumulating as a side effect.
         """
         def _accumulating(dbg):

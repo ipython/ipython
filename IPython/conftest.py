@@ -1,12 +1,30 @@
-import types
-import sys
 import builtins
+import inspect
 import os
-import pytest
 import pathlib
 import shutil
+import sys
+import types
+
+import pytest
+
+# Must register before it gets imported
+pytest.register_assert_rewrite("IPython.testing.tools")
 
 from .testing import tools
+
+
+def pytest_collection_modifyitems(items):
+    """This function is automatically run by pytest passing all collected test
+    functions.
+
+    We use it to add asyncio marker to all async tests and assert we don't use
+    test functions that are async generators which wouldn't make sense.
+    """
+    for item in items:
+        if inspect.iscoroutinefunction(item.obj):
+            item.add_marker("asyncio")
+        assert not inspect.isasyncgenfunction(item.obj)
 
 
 def get_ipython():
@@ -29,7 +47,7 @@ def work_path():
     if path.exists():
         raise ValueError('IPython dir temporary path already exists ! Did previous test run exit successfully ?')
     path.mkdir()
-    yield 
+    yield
     shutil.rmtree(str(path.resolve()))
 
 

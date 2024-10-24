@@ -8,12 +8,14 @@ from io import StringIO
 from keyword import iskeyword
 
 import tokenize
+from tokenize import TokenInfo
+from typing import List, Optional
 
 
 Token = namedtuple('Token', ['token', 'text', 'start', 'end', 'line'])
 
 def generate_tokens(readline):
-    """wrap generate_tokens to catch EOF errors"""
+    """wrap generate_tkens to catch EOF errors"""
     try:
         for token in tokenize.generate_tokens(readline):
             yield token
@@ -21,22 +23,52 @@ def generate_tokens(readline):
         # catch EOF error
         return
 
+
+def generate_tokens_catch_errors(
+    readline, extra_errors_to_catch: Optional[List[str]] = None
+):
+    default_errors_to_catch = [
+        "unterminated string literal",
+        "invalid non-printable character",
+        "after line continuation character",
+    ]
+    assert extra_errors_to_catch is None or isinstance(extra_errors_to_catch, list)
+    errors_to_catch = default_errors_to_catch + (extra_errors_to_catch or [])
+
+    tokens: List[TokenInfo] = []
+    try:
+        for token in tokenize.generate_tokens(readline):
+            tokens.append(token)
+            yield token
+    except tokenize.TokenError as exc:
+        if any(error in exc.args[0] for error in errors_to_catch):
+            if tokens:
+                start = tokens[-1].start[0], tokens[-1].end[0]
+                end = start
+                line = tokens[-1].line
+            else:
+                start = end = (1, 0)
+                line = ""
+            yield tokenize.TokenInfo(tokenize.ERRORTOKEN, "", start, end, line)
+        else:
+            # Catch EOF
+            raise
+
+
 def line_at_cursor(cell, cursor_pos=0):
     """Return the line in a cell at a given cursor position
-    
+
     Used for calling line-based APIs that don't support multi-line input, yet.
-    
+
     Parameters
     ----------
-    
-    cell: str
+    cell : str
         multiline block of text
-    cursor_pos: integer
+    cursor_pos : integer
         the cursor position
-    
+
     Returns
     -------
-    
     (line, offset): (string, integer)
         The line with the current cursor, and the character offset of the start of the line.
     """
@@ -56,24 +88,24 @@ def line_at_cursor(cell, cursor_pos=0):
         line = ""
     return (line, offset)
 
-def token_at_cursor(cell, cursor_pos=0):
+
+def token_at_cursor(cell: str, cursor_pos: int = 0):
     """Get the token at a given cursor
-    
+
     Used for introspection.
-    
+
     Function calls are prioritized, so the token for the callable will be returned
     if the cursor is anywhere inside the call.
-    
+
     Parameters
     ----------
-    
-    cell : unicode
+    cell : str
         A block of Python code
     cursor_pos : int
         The location of the cursor in the block where the token should be found
     """
-    names = []
-    tokens = []
+    names: List[str] = []
+    tokens: List[Token] = []
     call_names = []
     
     offsets = {1: 0} # lines start at 1
@@ -126,5 +158,3 @@ def token_at_cursor(cell, cursor_pos=0):
         return names[-1]
     else:
         return ''
-    
-

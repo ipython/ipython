@@ -10,8 +10,7 @@ from tempfile import TemporaryDirectory
 
 
 class NamedFileInTemporaryDirectory(object):
-
-    def __init__(self, filename, mode='w+b', bufsize=-1, **kwds):
+    def __init__(self, filename, mode="w+b", bufsize=-1, add_to_syspath=False, **kwds):
         """
         Open a file named `filename` in a temporary directory.
 
@@ -24,7 +23,8 @@ class NamedFileInTemporaryDirectory(object):
         """
         self._tmpdir = TemporaryDirectory(**kwds)
         path = Path(self._tmpdir.name) / filename
-        self.file = open(path, mode, bufsize)
+        encoding = None if "b" in mode else "utf-8"
+        self.file = open(path, mode, bufsize, encoding=encoding)
 
     def cleanup(self):
         self.file.close()
@@ -48,6 +48,7 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
         with TemporaryWorkingDirectory() as tmpdir:
             ...
     """
+
     def __enter__(self):
         self.old_wd = Path.cwd()
         _os.chdir(self.name)

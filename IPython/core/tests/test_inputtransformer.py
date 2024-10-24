@@ -1,5 +1,4 @@
 import tokenize
-import nose.tools as nt
 
 from IPython.testing import tools as tt
 
@@ -25,7 +24,7 @@ def transform_checker(tests, transformer, **kwargs):
                 out = transformer.reset()
             else:
                 out = transformer.push(inp)
-            nt.assert_equal(out, tr)
+            assert out == tr
     finally:
         transformer.reset()
 
@@ -60,108 +59,93 @@ syntax = \
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
         ("a, b = %foo", "a, b = get_ipython().run_line_magic('foo', '')"),
-        ],
-
-       classic_prompt =
-       [('>>> x=1', 'x=1'),
-        ('x=1', 'x=1'), # normal input is unmodified
-        ('    ', '    '),  # blank lines are kept intact
-        ],
-
-       ipy_prompt =
-       [('In [1]: x=1', 'x=1'),
-        ('x=1', 'x=1'), # normal input is unmodified
-        ('    ','    '),  # blank lines are kept intact
-        ],
-
-       # Tests for the escape transformer to leave normal code alone
-       escaped_noesc =
-       [ ('    ', '    '),
-         ('x=1', 'x=1'),
-         ],
-
-       # System calls
-       escaped_shell =
-       [ ('!ls', "get_ipython().system('ls')"),
-         # Double-escape shell, this means to capture the output of the
-         # subprocess and return it
-         ('!!ls', "get_ipython().getoutput('ls')"),
-         ],
-
-       # Help/object info
-       escaped_help =
-       [ ('?', 'get_ipython().show_usage()'),
-         ('?x1', "get_ipython().run_line_magic('pinfo', 'x1')"),
-         ('??x2', "get_ipython().run_line_magic('pinfo2', 'x2')"),
-         ('?a.*s', "get_ipython().run_line_magic('psearch', 'a.*s')"),
-         ('?%hist1', "get_ipython().run_line_magic('pinfo', '%hist1')"),
-         ('?%%hist2', "get_ipython().run_line_magic('pinfo', '%%hist2')"),
-         ('?abc = qwe', "get_ipython().run_line_magic('pinfo', 'abc')"),
-         ],
-
-      end_help =
-      [ ('x3?', "get_ipython().run_line_magic('pinfo', 'x3')"),
-        ('x4??', "get_ipython().run_line_magic('pinfo2', 'x4')"),
-        ('%hist1?', "get_ipython().run_line_magic('pinfo', '%hist1')"),
-        ('%hist2??', "get_ipython().run_line_magic('pinfo2', '%hist2')"),
-        ('%%hist3?', "get_ipython().run_line_magic('pinfo', '%%hist3')"),
-        ('%%hist4??', "get_ipython().run_line_magic('pinfo2', '%%hist4')"),
-        ('π.foo?', "get_ipython().run_line_magic('pinfo', 'π.foo')"),
-        ('f*?', "get_ipython().run_line_magic('psearch', 'f*')"),
-        ('ax.*aspe*?', "get_ipython().run_line_magic('psearch', 'ax.*aspe*')"),
-        ('a = abc?', "get_ipython().set_next_input('a = abc');"
-                      "get_ipython().run_line_magic('pinfo', 'abc')"),
-        ('a = abc.qe??', "get_ipython().set_next_input('a = abc.qe');"
-                          "get_ipython().run_line_magic('pinfo2', 'abc.qe')"),
-        ('a = *.items?', "get_ipython().set_next_input('a = *.items');"
-                          "get_ipython().run_line_magic('psearch', '*.items')"),
-        ('plot(a?', "get_ipython().set_next_input('plot(a');"
-                     "get_ipython().run_line_magic('pinfo', 'a')"),
-        ('a*2 #comment?', 'a*2 #comment?'),
-        ],
-
-       # Explicit magic calls
-       escaped_magic =
-       [ ('%cd', "get_ipython().run_line_magic('cd', '')"),
-         ('%cd /home', "get_ipython().run_line_magic('cd', '/home')"),
-         # Backslashes need to be escaped.
-         ('%cd C:\\User', "get_ipython().run_line_magic('cd', 'C:\\\\User')"),
-         ('    %magic', "    get_ipython().run_line_magic('magic', '')"),
-         ],
-
-       # Quoting with separate arguments
-       escaped_quote =
-       [ (',f', 'f("")'),
-         (',f x', 'f("x")'),
-         ('  ,f y', '  f("y")'),
-         (',f a b', 'f("a", "b")'),
-         ],
-
-       # Quoting with single argument
-       escaped_quote2 =
-       [ (';f', 'f("")'),
-         (';f x', 'f("x")'),
-         ('  ;f y', '  f("y")'),
-         (';f a b', 'f("a b")'),
-         ],
-
-       # Simply apply parens
-       escaped_paren =
-       [ ('/f', 'f()'),
-         ('/f x', 'f(x)'),
-         ('  /f y', '  f(y)'),
-         ('/f a b', 'f(a, b)'),
-         ],
-
-       # Check that we transform prompts before other transforms
-       mixed =
-       [ ('In [1]: %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
-         ('>>> %lsmagic', "get_ipython().run_line_magic('lsmagic', '')"),
-         ('In [2]: !ls', "get_ipython().system('ls')"),
-         ('In [3]: abs?', "get_ipython().run_line_magic('pinfo', 'abs')"),
-         ('In [4]: b = %who', "b = get_ipython().run_line_magic('who', '')"),
-         ],
-       )
+    ],
+    classic_prompt=[
+        (">>> x=1", "x=1"),
+        ("x=1", "x=1"),  # normal input is unmodified
+        ("    ", "    "),  # blank lines are kept intact
+    ],
+    ipy_prompt=[
+        ("In [1]: x=1", "x=1"),
+        ("x=1", "x=1"),  # normal input is unmodified
+        ("    ", "    "),  # blank lines are kept intact
+    ],
+    # Tests for the escape transformer to leave normal code alone
+    escaped_noesc=[
+        ("    ", "    "),
+        ("x=1", "x=1"),
+    ],
+    # System calls
+    escaped_shell=[
+        ("!ls", "get_ipython().system('ls')"),
+        # Double-escape shell, this means to capture the output of the
+        # subprocess and return it
+        ("!!ls", "get_ipython().getoutput('ls')"),
+    ],
+    # Help/object info
+    escaped_help=[
+        ("?", "get_ipython().show_usage()"),
+        ("?x1", "get_ipython().run_line_magic('pinfo', 'x1')"),
+        ("??x2", "get_ipython().run_line_magic('pinfo2', 'x2')"),
+        ("?a.*s", "get_ipython().run_line_magic('psearch', 'a.*s')"),
+        ("?%hist1", "get_ipython().run_line_magic('pinfo', '%hist1')"),
+        ("?%%hist2", "get_ipython().run_line_magic('pinfo', '%%hist2')"),
+        ("?abc = qwe", "get_ipython().run_line_magic('pinfo', 'abc')"),
+    ],
+    end_help=[
+        ("x3?", "get_ipython().run_line_magic('pinfo', 'x3')"),
+        ("x4??", "get_ipython().run_line_magic('pinfo2', 'x4')"),
+        ("%hist1?", "get_ipython().run_line_magic('pinfo', '%hist1')"),
+        ("%hist2??", "get_ipython().run_line_magic('pinfo2', '%hist2')"),
+        ("%%hist3?", "get_ipython().run_line_magic('pinfo', '%%hist3')"),
+        ("%%hist4??", "get_ipython().run_line_magic('pinfo2', '%%hist4')"),
+        ("π.foo?", "get_ipython().run_line_magic('pinfo', 'π.foo')"),
+        ("f*?", "get_ipython().run_line_magic('psearch', 'f*')"),
+        ("ax.*aspe*?", "get_ipython().run_line_magic('psearch', 'ax.*aspe*')"),
+        ("a = abc?", "get_ipython().run_line_magic('pinfo', 'abc')"),
+        ("a = abc.qe??", "get_ipython().run_line_magic('pinfo2', 'abc.qe')"),
+        ("a = *.items?", "get_ipython().run_line_magic('psearch', '*.items')"),
+        ("plot(a?", "get_ipython().run_line_magic('pinfo', 'a')"),
+        ("a*2 #comment?", "a*2 #comment?"),
+    ],
+    # Explicit magic calls
+    escaped_magic=[
+        ("%cd", "get_ipython().run_line_magic('cd', '')"),
+        ("%cd /home", "get_ipython().run_line_magic('cd', '/home')"),
+        # Backslashes need to be escaped.
+        ("%cd C:\\User", "get_ipython().run_line_magic('cd', 'C:\\\\User')"),
+        ("    %magic", "    get_ipython().run_line_magic('magic', '')"),
+    ],
+    # Quoting with separate arguments
+    escaped_quote=[
+        (",f", 'f("")'),
+        (",f x", 'f("x")'),
+        ("  ,f y", '  f("y")'),
+        (",f a b", 'f("a", "b")'),
+    ],
+    # Quoting with single argument
+    escaped_quote2=[
+        (";f", 'f("")'),
+        (";f x", 'f("x")'),
+        ("  ;f y", '  f("y")'),
+        (";f a b", 'f("a b")'),
+    ],
+    # Simply apply parens
+    escaped_paren=[
+        ("/f", "f()"),
+        ("/f x", "f(x)"),
+        ("  /f y", "  f(y)"),
+        ("/f a b", "f(a, b)"),
+    ],
+    # Check that we transform prompts before other transforms
+    mixed=[
+        ("In [1]: %lsmagic", "get_ipython().run_line_magic('lsmagic', '')"),
+        (">>> %lsmagic", "get_ipython().run_line_magic('lsmagic', '')"),
+        ("In [2]: !ls", "get_ipython().system('ls')"),
+        ("In [3]: abs?", "get_ipython().run_line_magic('pinfo', 'abs')"),
+        ("In [4]: b = %who", "b = get_ipython().run_line_magic('who', '')"),
+    ],
+)
 
 # multiline syntax examples.  Each of these should be a list of lists, with
 # each entry itself having pairs of raw/transformed input.  The union (with

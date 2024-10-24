@@ -1,7 +1,6 @@
 """Find files and directories which IPython uses.
 """
 import os.path
-import shutil
 import tempfile
 from warnings import warn
 
@@ -54,8 +53,7 @@ def get_ipython_dir() -> str:
                     warn(('{0} is deprecated. Move link to {1} to '
                         'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
                 else:
-                    warn('Moving {0} to {1}'.format(cu(xdg_ipdir), cu(ipdir)))
-                    shutil.move(xdg_ipdir, ipdir)
+                    ipdir = xdg_ipdir
 
     ipdir = os.path.normpath(os.path.expanduser(ipdir))
 
@@ -71,6 +69,8 @@ def get_ipython_dir() -> str:
             warn("IPython parent '{0}' is not a writable location,"
                     " using a temp directory.".format(parent))
             ipdir = tempfile.mkdtemp()
+        else:
+            os.makedirs(ipdir, exist_ok=True)
     assert isinstance(ipdir, str), "all path manipulation should be str(unicode), but are not."
     return ipdir
 

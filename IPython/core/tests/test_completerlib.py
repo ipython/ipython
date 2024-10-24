@@ -14,10 +14,9 @@ import tempfile
 import unittest
 from os.path import join
 
-import nose.tools as nt
+from tempfile import TemporaryDirectory
 
 from IPython.core.completerlib import magic_run_completer, module_completion, try_import
-from IPython.utils.tempdir import TemporaryDirectory
 from IPython.testing.decorators import onlyif_unicode_paths
 
 
@@ -35,7 +34,7 @@ class Test_magic_run_completer(unittest.TestCase):
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
         for fil in self.files:
-            with open(join(self.BASETESTDIR, fil), "w") as sfile:
+            with open(join(self.BASETESTDIR, fil), "w", encoding="utf-8") as sfile:
                 sfile.write("pass\n")
         for d in self.dirs:
             os.mkdir(join(self.BASETESTDIR, d))
@@ -91,7 +90,7 @@ class Test_magic_run_completer_nonascii(unittest.TestCase):
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
         for fil in [u"aaø.py", u"a.py", u"b.py"]:
-            with open(join(self.BASETESTDIR, fil), "w") as sfile:
+            with open(join(self.BASETESTDIR, fil), "w", encoding="utf-8") as sfile:
                 sfile.write("pass\n")
         self.oldpath = os.getcwd()
         os.chdir(self.BASETESTDIR)
@@ -135,12 +134,12 @@ def test_import_invalid_module():
     with TemporaryDirectory() as tmpdir:
         sys.path.insert( 0, tmpdir )
         for name in invalid_module_names | valid_module_names:
-            filename = os.path.join(tmpdir, name + '.py')
-            open(filename, 'w').close()
+            filename = os.path.join(tmpdir, name + ".py")
+            open(filename, "w", encoding="utf-8").close()
 
         s = set( module_completion('import foo') )
         intersection = s.intersection(invalid_module_names)
-        nt.assert_equal(intersection, set())
+        assert intersection == set()
 
         assert valid_module_names.issubset(s), valid_module_names.intersection(s)
 
@@ -153,10 +152,15 @@ def test_bad_module_all():
     testsdir = os.path.dirname(__file__)
     sys.path.insert(0, testsdir)
     try:
-        results = module_completion('from bad_all import ')
-        nt.assert_in('puppies', results)
+        results = module_completion("from bad_all import ")
+        assert "puppies" in results
         for r in results:
-            nt.assert_is_instance(r, str)
+            assert isinstance(r, str)
+
+        # bad_all doesn't contain submodules, but this completion
+        # should finish without raising an exception:
+        results = module_completion("import bad_all.")
+        assert results == []
     finally:
         sys.path.remove(testsdir)
 
@@ -173,6 +177,17 @@ def test_module_without_init():
         try:
             os.makedirs(os.path.join(tmpdir, fake_module_name))
             s = try_import(mod=fake_module_name)
-            assert s == []
+            assert s == [], f"for module {fake_module_name}"
         finally:
             sys.path.remove(tmpdir)
+
+
+def test_valid_exported_submodules():
+    """
+    Test checking exported (__all__) objects are submodules
+    """
+    results = module_completion("import os.pa")
+    # ensure we get a valid submodule:
+    assert "os.path" in results
+    # ensure we don't get objects that aren't submodules:
+    assert "os.pathconf" not in results

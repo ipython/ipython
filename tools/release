@@ -1,93 +1,10 @@
 #!/usr/bin/env python3
 """IPython release script.
 
-This should ONLY be run at real release time.
+Deprecated
+
 """
-from __future__ import print_function
-
-import os
-from glob import glob
-from subprocess import call
-import sys
-
-from toollib import (get_ipdir, pjoin, cd, execfile, sh, archive,
-        sdists, archive_user, archive_dir, buildwheels)
-from gh_api import post_download
-
-# Get main ipython dir, this will raise if it doesn't pass some checks
-ipdir = get_ipdir()
-tooldir = pjoin(ipdir, 'tools')
-distdir = pjoin(ipdir, 'dist')
-
-# Where I keep static backups of each release
-ipbackupdir = os.path.expanduser('~/ipython/backup')
-if not os.path.exists(ipbackupdir):
-    os.makedirs(ipbackupdir)
-
-# Start in main IPython dir
-cd(ipdir)
-
-# Load release info
-version = None
-execfile(pjoin('IPython','core','release.py'), globals())
-
-# Build site addresses for file uploads
-release_site = '%s/release/%s' % (archive, version)
-backup_site =  '%s/backup/' % archive
-
-# Start actual release process
-print()
-print('Releasing IPython')
-print('=================')
-print()
-print('Version:', version)
-print()
-print('Source IPython directory:', ipdir)
-print()
-
-# Perform local backup, go to tools dir to run it.
-cd(tooldir)
-
-if 'upload' in sys.argv:
-    cd(distdir)
-
-    # do not upload OS specific files like .DS_Store
-    to_upload = glob('*.whl')+glob('*.tar.gz')
-    for fname in to_upload:
-        # TODO: update to GitHub releases API
-        continue
-        print('uploading %s to GitHub' % fname)
-        desc = "IPython %s source distribution" % version
-        post_download("ipython/ipython", fname, description=desc)
-
-    # Make target dir if it doesn't exist
-    print('1. Uploading IPython to archive.ipython.org')
-    sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
-    sh('scp *.tar.gz *.whl %s' % release_site)
-
-    print('2. Uploading backup files...')
-    cd(ipbackupdir)
-    sh('scp `ls -1tr *tgz | tail -1` %s' % backup_site)
-
-    print('3. Uploading to PyPI using twine')
-    cd(distdir)
-    call(['twine', 'upload'] + to_upload)
-
-else:
-    # Build, but don't upload
-
-    # Make backup tarball
-    sh('./make_tarball.py')
-    sh('mv ipython-*.tgz %s' % ipbackupdir)
-
-    # Build release files
-    sh('./build_release')
-
-    cd(ipdir)
-
-    buildwheels()
-    print("`./release upload` to upload source distribution on PyPI and ipython archive")
-    sys.exit(0)
+sys.exit("deprecated")
 
 
 

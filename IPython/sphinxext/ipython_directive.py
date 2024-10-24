@@ -19,7 +19,7 @@ Here is an example of how the IPython directive can
    In [1]: 1+1
 
    In [1]: import datetime
-      ...: datetime.datetime.now()
+      ...: datetime.date.fromisoformat('2022-02-22')
 
 It supports IPython construct that plain
 Python does not understand (like magics):
@@ -28,7 +28,7 @@ Python does not understand (like magics):
 
    In [0]: import time
 
-   In [0]: %timeit time.sleep(0.05)
+   In [0]: %pdoc time.sleep
 
 This will also support top-level async when using IPython 7.0+
 
@@ -200,6 +200,7 @@ from io import StringIO
 # Third-party
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
+from sphinx.util import logging
 
 # Our own
 from traitlets.config import Config
@@ -218,6 +219,8 @@ except Exception:
 #-----------------------------------------------------------------------------
 # for tokenizing blocks
 COMMENT, INPUT, OUTPUT =  range(3)
+
+PSEUDO_DECORATORS = ["suppress", "verbatim", "savefig", "doctest"]
 
 #-----------------------------------------------------------------------------
 # Functions and class declarations
@@ -262,11 +265,17 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
             block.append((COMMENT, line))
             continue
 
-        if line_stripped.startswith('@'):
-            # Here is where we assume there is, at most, one decorator.
-            # Might need to rethink this.
-            decorator = line_stripped
-            continue
+        if any(
+            line_stripped.startswith("@" + pseudo_decorator)
+            for pseudo_decorator in PSEUDO_DECORATORS
+        ):
+            if decorator:
+                raise RuntimeError(
+                    "Applying multiple pseudo-decorators on one line is not supported"
+                )
+            else:
+                decorator = line_stripped
+                continue
 
         # does this look like an input line?
         matchin = rgxin.match(line)
@@ -291,7 +300,7 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
 
                 nextline = lines[i]
                 matchout = rgxout.match(nextline)
-                #print "nextline=%s, continuation=%s, starts=%s"%(nextline, continuation, nextline.startswith(continuation))
+                # print("nextline=%s, continuation=%s, starts=%s"%(nextline, continuation, nextline.startswith(continuation)))
                 if matchout or nextline.startswith('#'):
                     break
                 elif nextline.startswith(continuation):
@@ -529,7 +538,7 @@ class EmbeddedSphinxShell(object):
             # When there is stdout from the input, it also has a '\n' at the
             # tail end, and so this ensures proper spacing as well. E.g.:
             #
-            #   In [1]: print x
+            #   In [1]: print(x)
             #   5
             #
             #   In [2]: x = 5
@@ -557,33 +566,42 @@ class EmbeddedSphinxShell(object):
             filename = self.directive.state.document.current_source
             lineno = self.directive.state.document.current_line
 
+        # Use sphinx logger for warnings
+        logger = logging.getLogger(__name__)
+
         # output any exceptions raised during execution to stdout
         # unless :okexcept: has been specified.
-        if not is_okexcept and (("Traceback" in processed_output) or ("SyntaxError" in processed_output)):
-            s =  "\nException in %s at block ending on line %s\n" % (filename, lineno)
+        if not is_okexcept and (
+            ("Traceback" in processed_output) or ("SyntaxError" in processed_output)
+        ):
+            s = "\n>>>" + ("-" * 73) + "\n"
+            s += "Exception in %s at block ending on line %s\n" % (filename, lineno)
             s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
-            sys.stdout.write('\n\n>>>' + ('-' * 73))
-            sys.stdout.write(s)
-            sys.stdout.write(processed_output)
-            sys.stdout.write('<<<' + ('-' * 73) + '\n\n')
+            s += processed_output + "\n"
+            s += "<<<" + ("-" * 73)
+            logger.warning(s)
             if self.warning_is_error:
-                raise RuntimeError('Non Expected exception in `{}` line {}'.format(filename, lineno))
+                raise RuntimeError(
+                    "Unexpected exception in `{}` line {}".format(filename, lineno)
+                )
 
         # output any warning raised during execution to stdout
         # unless :okwarning: has been specified.
         if not is_okwarning:
             for w in ws:
-                s =  "\nWarning in %s at block ending on line %s\n" % (filename, lineno)
+                s = "\n>>>" + ("-" * 73) + "\n"
+                s += "Warning in %s at block ending on line %s\n" % (filename, lineno)
                 s += "Specify :okwarning: as an option in the ipython:: block to suppress this message\n"
-                sys.stdout.write('\n\n>>>' + ('-' * 73))
-                sys.stdout.write(s)
-                sys.stdout.write(('-' * 76) + '\n')
-                s=warnings.formatwarning(w.message, w.category,
-                                         w.filename, w.lineno, w.line)
-                sys.stdout.write(s)
-                sys.stdout.write('<<<' + ('-' * 73) + '\n')
+                s += ("-" * 76) + "\n"
+                s += warnings.formatwarning(
+                    w.message, w.category, w.filename, w.lineno, w.line
+                )
+                s += "<<<" + ("-" * 73)
+                logger.warning(s)
                 if self.warning_is_error:
-                    raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
+                    raise RuntimeError(
+                        "Unexpected warning in `{}` line {}".format(filename, lineno)
+                    )
 
         self.clear_cout()
         return (ret, input_lines, processed_output,
@@ -681,7 +699,7 @@ class EmbeddedSphinxShell(object):
         """
         self.ensure_pyplot()
         command = 'plt.gcf().savefig("%s")'%image_file
-        #print 'SAVEFIG', command  # dbg
+        # print('SAVEFIG', command)  # dbg
         self.process_input_line('bookmark ipy_thisdir', store_history=False)
         self.process_input_line('cd -b ipy_savedir', store_history=False)
         self.process_input_line(command, store_history=False)
@@ -807,8 +825,11 @@ class EmbeddedSphinxShell(object):
                 output.append(line)
                 continue
 
-            # handle decorators
-            if line_stripped.startswith('@'):
+            # handle pseudo-decorators, whilst ensuring real python decorators are treated as input
+            if any(
+                line_stripped.startswith("@" + pseudo_decorator)
+                for pseudo_decorator in PSEUDO_DECORATORS
+            ):
                 output.extend([line])
                 if 'savefig' in line:
                     savefig = True # and need to clear figure
@@ -964,8 +985,9 @@ class IPythonDirective(Directive):
         self.shell.warning_is_error = warning_is_error
 
         # setup bookmark for saving figures directory
-        self.shell.process_input_line('bookmark ipy_savedir %s'%savefig_dir,
-                                      store_history=False)
+        self.shell.process_input_line(
+            'bookmark ipy_savedir "%s"' % savefig_dir, store_history=False
+        )
         self.shell.clear_cout()
 
         return rgxin, rgxout, promptin, promptout
@@ -1002,6 +1024,9 @@ class IPythonDirective(Directive):
         lines = ['.. code-block:: ipython', '']
         figures = []
 
+        # Use sphinx logger for warnings
+        logger = logging.getLogger(__name__)
+
         for part in parts:
             block = block_parser(part, rgxin, rgxout, promptin, promptout)
             if len(block):
@@ -1020,7 +1045,7 @@ class IPythonDirective(Directive):
                 if self.shell.warning_is_error:
                     raise RuntimeError(message)
                 else:
-                    warnings.warn(message)
+                    logger.warning(message)
 
         for figure in figures:
             lines.append('')

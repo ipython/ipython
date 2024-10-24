@@ -27,15 +27,12 @@ prompt_toolkit`s `patch_stdout`)::
     In [4]: asyncio.ensure_future(f())
 
 """
-import asyncio
+
 from prompt_toolkit import __version__ as ptk_version
 
-PTK3 = ptk_version.startswith('3.')
+from IPython.core.async_helpers import get_asyncio_loop
 
-
-# Keep reference to the original asyncio loop, because getting the event loop
-# within the input hook would return the other loop.
-loop = asyncio.get_event_loop()
+PTK3 = ptk_version.startswith("3.")
 
 
 def inputhook(context):
@@ -52,6 +49,9 @@ def inputhook(context):
     # For prompt_toolkit 2.0, we can run the current asyncio event loop,
     # because prompt_toolkit 2.0 uses a different event loop internally.
 
+    # get the persistent asyncio event loop
+    loop = get_asyncio_loop()
+
     def stop():
         loop.stop()
 
@@ -61,4 +61,3 @@ def inputhook(context):
         loop.run_forever()
     finally:
         loop.remove_reader(fileno)
-

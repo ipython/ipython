@@ -7,7 +7,7 @@ You can now re-use the kernel machinery in IPython to easily make new kernels.
 This is useful for languages that have Python bindings, such as `Octave
 <http://www.gnu.org/software/octave/>`_ (via
 `Oct2Py <http://blink1073.github.io/oct2py/>`_), or languages
-where the REPL can be controlled in a tty using `pexpect <http://pexpect.readthedocs.io/en/latest/>`_,
+where the REPL can be controlled in a tty using `pexpect <https://pexpect.readthedocs.io/en/latest/>`_,
 such as bash.
 
 .. seealso::

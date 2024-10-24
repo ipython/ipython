@@ -5,17 +5,17 @@
 # Distributed under the terms of the Modified BSD License.
 
 
-from collections import Counter, defaultdict, deque, OrderedDict
+from collections import Counter, defaultdict, deque, OrderedDict, UserList
 import os
+import pytest
 import types
 import string
+import sys
 import unittest
 
-import nose.tools as nt
 import pytest
 
 from IPython.lib import pretty
-from IPython.testing.decorators import skip_without, skip_iptest_but_not_pytest
 
 from io import StringIO
 
@@ -70,7 +70,6 @@ class BreakingRepr(object):
         return "Breaking(\n)"
 
 class BadRepr(object):
-    
     def __repr__(self):
         return 1/0
 
@@ -81,7 +80,7 @@ def test_indentation():
     gotoutput = pretty.pretty(MyList(range(count)))
     expectedoutput = "MyList(\n" + ",\n".join("   %d" % i for i in range(count)) + ")"
 
-    nt.assert_equal(gotoutput, expectedoutput)
+    assert gotoutput == expectedoutput
 
 
 def test_dispatch():
@@ -92,7 +91,7 @@ def test_dispatch():
     gotoutput = pretty.pretty(MyDict())
     expectedoutput = "MyDict(...)"
 
-    nt.assert_equal(gotoutput, expectedoutput)
+    assert gotoutput == expectedoutput
 
 
 def test_callability_checking():
@@ -103,7 +102,7 @@ def test_callability_checking():
     gotoutput = pretty.pretty(Dummy2())
     expectedoutput = "Dummy1(...)"
 
-    nt.assert_equal(gotoutput, expectedoutput)
+    assert gotoutput == expectedoutput
 
 
 @pytest.mark.parametrize(
@@ -129,38 +128,42 @@ def test_callability_checking():
         ],
     ),
 )
-@skip_iptest_but_not_pytest
 def test_sets(obj, expected_output):
     """
     Test that set and frozenset use Python 3 formatting.
     """
     got_output = pretty.pretty(obj)
-    nt.assert_equal(got_output, expected_output)
+    assert got_output == expected_output
 
 
-@skip_without('xxlimited')
 def test_pprint_heap_allocated_type():
     """
     Test that pprint works for heap allocated types.
     """
-    import xxlimited
+    module_name = "xxlimited_35"
+    expected_output = (
+        "xxlimited.Null" if sys.version_info < (3, 10, 6) else "xxlimited_35.Null"
+    )
+    xxlimited = pytest.importorskip(module_name)
     output = pretty.pretty(xxlimited.Null)
-    nt.assert_equal(output, 'xxlimited.Null')
+    assert output == expected_output
+
 
 def test_pprint_nomod():
     """
     Test that pprint works for classes with no __module__.
     """
     output = pretty.pretty(NoModule)
-    nt.assert_equal(output, 'NoModule')
-    
+    assert output == "NoModule"
+
+
 def test_pprint_break():
     """
     Test that p.break_ produces expected output
     """
     output = pretty.pretty(Breaking())
     expected = "TG: Breaking(\n    ):"
-    nt.assert_equal(output, expected)
+    assert output == expected
 
 def test_pprint_break_repr():
     """
@@ -168,15 +171,15 @@ def test_pprint_break_repr():
     """
     output = pretty.pretty([[BreakingRepr()]])
     expected = "[[Breaking(\n  )]]"
-    nt.assert_equal(output, expected)
+    assert output == expected
 
     output = pretty.pretty([[BreakingRepr()]*2])
     expected = "[[Breaking(\n  ),\n  Breaking(\n  )]]"
-    nt.assert_equal(output, expected)
+    assert output == expected
 
 def test_bad_repr():
     """Don't catch bad repr errors"""
-    with nt.assert_raises(ZeroDivisionError):
+    with pytest.raises(ZeroDivisionError):
         pretty.pretty(BadRepr())
 
 class BadException(Exception):
@@ -188,12 +191,12 @@ class ReallyBadRepr(object):
     @property
     def __class__(self):
         raise ValueError("I am horrible")
-    
+
     def __repr__(self):
         raise BadException()
 
 def test_really_bad_repr():
-    with nt.assert_raises(BadException):
+    with pytest.raises(BadException):
         pretty.pretty(ReallyBadRepr())
 
 
@@ -258,22 +261,22 @@ ClassWithMeta = MetaClass('ClassWithMeta')
 
 def test_metaclass_repr():
     output = pretty.pretty(ClassWithMeta)
-    nt.assert_equal(output, "[CUSTOM REPR FOR CLASS ClassWithMeta]")
+    assert output == "[CUSTOM REPR FOR CLASS ClassWithMeta]"
 
 
 def test_unicode_repr():
     u = u"üniçodé"
     ustr = u
-    
+
     class C(object):
         def __repr__(self):
             return ustr
-    
+
     c = C()
     p = pretty.pretty(c)
-    nt.assert_equal(p, u)
+    assert p == u
     p = pretty.pretty([c])
-    nt.assert_equal(p, u'[%s]' % u)
+    assert p == "[%s]" % u
 
 
 def test_basic_class():
@@ -290,10 +293,47 @@ def test_basic_class():
     printer.flush()
     output = stream.getvalue()
 
-    nt.assert_equal(output, '%s.MyObj' % __name__)
-    nt.assert_true(type_pprint_wrapper.called)
+    assert output == "%s.MyObj" % __name__
+    assert type_pprint_wrapper.called is True
 
 
+def test_collections_userlist():
+    # Create userlist with cycle
+    a = UserList()
+    a.append(a)
+
+    cases = [
+        (UserList(), "UserList([])"),
+        (
+            UserList(i for i in range(1000, 1020)),
+            "UserList([1000,\n"
+            "          1001,\n"
+            "          1002,\n"
+            "          1003,\n"
+            "          1004,\n"
+            "          1005,\n"
+            "          1006,\n"
+            "          1007,\n"
+            "          1008,\n"
+            "          1009,\n"
+            "          1010,\n"
+            "          1011,\n"
+            "          1012,\n"
+            "          1013,\n"
+            "          1014,\n"
+            "          1015,\n"
+            "          1016,\n"
+            "          1017,\n"
+            "          1018,\n"
+            "          1019])",
+        ),
+        (a, "UserList([UserList(...)])"),
+    ]
+    for obj, expected in cases:
+        assert pretty.pretty(obj) == expected
+
+
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_collections_defaultdict():
     # Create defaultdicts with cycles
     a = defaultdict()
@@ -311,9 +351,10 @@ def test_collections_defaultdict():
         (b, "defaultdict(list, {'key': defaultdict(...)})"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
 
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_collections_ordereddict():
     # Create OrderedDict with cycle
     a = OrderedDict()
@@ -335,9 +376,10 @@ def test_collections_ordereddict():
         (a, "OrderedDict([('key', OrderedDict(...))])"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
 
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_collections_deque():
     # Create deque with cycle
     a = deque()
@@ -369,8 +411,10 @@ def test_collections_deque():
         (a, 'deque([deque(...)])'),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
+
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_collections_counter():
     class MyCounter(Counter):
         pass
@@ -378,10 +422,12 @@ def test_collections_counter():
         (Counter(), 'Counter()'),
         (Counter(a=1), "Counter({'a': 1})"),
         (MyCounter(a=1), "MyCounter({'a': 1})"),
+        (Counter(a=1, c=22), "Counter({'c': 22, 'a': 1})"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_mappingproxy():
     MP = types.MappingProxyType
     underlying_dict = {}
@@ -424,9 +470,10 @@ def test_mappingproxy():
          "{2: mappingproxy({2: {...}, 3: {...}}), 3: {...}}"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
 
+# TODO : pytest.mark.parametrise once nose is gone.
 def test_simplenamespace():
     SN = types.SimpleNamespace
 
@@ -444,7 +491,7 @@ def test_simplenamespace():
         (sn_recursive, "namespace(first=namespace(...), second=namespace(...))"),
     ]
     for obj, expected in cases:
-        nt.assert_equal(pretty.pretty(obj), expected)
+        assert pretty.pretty(obj) == expected
 
 
 def test_pretty_environ():
@@ -452,7 +499,7 @@ def test_pretty_environ():
     # reindent to align with 'environ' prefix
     dict_indented = dict_repr.replace('\n', '\n' + (' ' * len('environ')))
     env_repr = pretty.pretty(os.environ)
-    nt.assert_equal(env_repr, 'environ' + dict_indented)
+    assert env_repr == "environ" + dict_indented
 
 
 def test_function_pretty():
@@ -460,15 +507,16 @@ def test_function_pretty():
     # posixpath is a pure python module, its interface is consistent
     # across Python distributions
     import posixpath
-    nt.assert_equal(pretty.pretty(posixpath.join), '<function posixpath.join(a, *p)>')
- 
+
+    assert pretty.pretty(posixpath.join) == "<function posixpath.join(a, *p)>"
+
     # custom function
     def meaning_of_life(question=None):
         if question:
             return 42
         return "Don't panic"
 
-    nt.assert_in('meaning_of_life(question=None)', pretty.pretty(meaning_of_life))
+    assert "meaning_of_life(question=None)" in pretty.pretty(meaning_of_life)
 
 
 class OrderedCounter(Counter, OrderedDict):
@@ -487,6 +535,6 @@ class MySet(set):  # Override repr of a basic type
 def test_custom_repr():
     """A custom repr should override a pretty printer for a parent type"""
     oc = OrderedCounter("abracadabra")
-    nt.assert_in("OrderedCounter(OrderedDict", pretty.pretty(oc))
+    assert "OrderedCounter(OrderedDict" in pretty.pretty(oc)
 
-    nt.assert_equal(pretty.pretty(MySet()), 'mine')
+    assert pretty.pretty(MySet()) == "mine"

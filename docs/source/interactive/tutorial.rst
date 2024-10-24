@@ -13,8 +13,7 @@ information, check the :ref:`tips page <tips>`, or look at examples in the
 If you haven't done that yet see :ref:`how to install ipython <install>`.
 
 If you've never used Python before, you might want to look at `the official
-tutorial <http://docs.python.org/tutorial/>`_ or an alternative, `Dive into
-Python <https://www.diveinto.org/python3/table-of-contents.html>`_.
+tutorial <http://docs.python.org/tutorial/>`_.
 
 Start IPython by issuing the ``ipython`` command from your shell, you should be
 greeted by the following::
@@ -59,7 +58,7 @@ while some other do not. We'll come to this later.
 Depending on the exact command you are typing you might realize that sometimes
 :kbd:`Enter` will add a new line, and sometimes it will execute the current
 statement. IPython tries to guess what you are doing, so most of the time you
-should not have to care. Though if by any chance IPython does not the right
+should not have to care. Though if by any chance IPython does not do the right
 thing you can force execution of the current code block by pressing in sequence
 :kbd:`Esc` and :kbd:`Enter`. You can also force the insertion of a new line at
 the position of the cursor by using :kbd:`Ctrl-o`.
@@ -90,7 +89,7 @@ completion also works on file and directory names.
 Starting with IPython 6.0, if ``jedi`` is installed, IPython will try to pull
 completions from Jedi as well. This allows to not only inspect currently
 existing objects, but also to infer completion statically without executing
-code. There is nothing particular need to get this to work, simply use tab
+code. There is nothing particular needed to get this to work, simply use tab
 completion on more complex expressions like the following::
 
     >>> data = ['Number of users', 123456]
@@ -120,7 +119,7 @@ IPython has a set of predefined 'magic functions' that you can call with a
 command line style syntax.  There are two kinds of magics, line-oriented and
 cell-oriented.  **Line magics** are prefixed with the ``%`` character and work
 much like OS command-line calls: they get as an argument the rest of the line,
-where arguments are passed without parentheses or quotes. **Lines magics** can
+where arguments are passed without parentheses or quotes. **Line magics** can
 return results and can be used in the right hand side of an assignment.  **Cell
 magics** are prefixed with a double ``%%``, and they are functions that get as
 an argument not only the rest of the line, but also the lines below it in a
@@ -133,12 +132,12 @@ The following examples show how to call the built-in :magic:`timeit` magic, both
 in line and cell mode::
 
       In [1]: %timeit range(1000)
-      100000 loops, best of 3: 7.76 us per loop
+      179 ns ± 2.66 ns per loop (mean ± std. dev. of 7 runs, 10000000 loops each)
 
       In [2]: %%timeit x = range(10000)
       ...: max(x)
       ...: 
-      1000 loops, best of 3: 223 us per loop
+      264 µs ± 1 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
 The built-in magics include:
 

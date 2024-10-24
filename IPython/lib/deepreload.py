@@ -28,7 +28,7 @@ re-implementation of hierarchical module import.
 
 import builtins as builtin_mod
 from contextlib import contextmanager
-import imp
+import importlib
 import sys
 
 from types import ModuleType
@@ -174,33 +174,17 @@ def import_submodule(mod, subname, fullname):
         print('Reloading', fullname)
         found_now[fullname] = 1
         oldm = sys.modules.get(fullname, None)
-
-        if mod is None:
-            path = None
-        elif hasattr(mod, '__path__'):
-            path = mod.__path__
-        else:
-            return None
-
         try:
-            # This appears to be necessary on Python 3, because imp.find_module()
-            # tries to import standard libraries (like io) itself, and we don't
-            # want them to be processed by our deep_import_hook.
-            with replace_import_hook(original_import):
-                fp, filename, stuff = imp.find_module(subname, path)
-        except ImportError:
-            return None
-
-        try:
-            m = imp.load_module(fullname, fp, filename, stuff)
+            if oldm is not None:
+                m = importlib.reload(oldm)
+            else:
+                m = importlib.import_module(subname, mod)
         except:
             # load_module probably removed name from modules because of
             # the error.  Put back the original module object.
             if oldm:
                 sys.modules[fullname] = oldm
             raise
-        finally:
-            if fp: fp.close()
 
         add_submodule(mod, m, fullname, subname)
 
@@ -285,50 +269,35 @@ def deep_reload_hook(m):
     except:
         modules_reloading[name] = m
 
-    dot = name.rfind('.')
-    if dot < 0:
-        subname = name
-        path = None
-    else:
-        try:
-            parent = sys.modules[name[:dot]]
-        except KeyError as e:
-            modules_reloading.clear()
-            raise ImportError("reload(): parent %.200s not in sys.modules" % name[:dot]) from e
-        subname = name[dot+1:]
-        path = getattr(parent, "__path__", None)
-
     try:
-        # This appears to be necessary on Python 3, because imp.find_module()
-        # tries to import standard libraries (like io) itself, and we don't
-        # want them to be processed by our deep_import_hook.
-        with replace_import_hook(original_import):
-            fp, filename, stuff  = imp.find_module(subname, path)
-    finally:
-        modules_reloading.clear()
-
-    try:
-        newm = imp.load_module(name, fp, filename, stuff)
+        newm = importlib.reload(m)
     except:
-         # load_module probably removed name from modules because of
-         # the error.  Put back the original module object.
         sys.modules[name] = m
         raise
     finally:
-        if fp: fp.close()
-
-    modules_reloading.clear()
+        modules_reloading.clear()
     return newm
 
 # Save the original hooks
-original_reload = imp.reload
+original_reload = importlib.reload
 
 # Replacement for reload()
-def reload(module, exclude=('sys', 'os.path', 'builtins', '__main__',
-                            'numpy', 'numpy._globals')):
+def reload(
+    module,
+    exclude=(
+        *sys.builtin_module_names,
+        "sys",
+        "os.path",
+        "builtins",
+        "__main__",
+        "numpy",
+        "numpy._globals",
+    ),
+):
     """Recursively reload all modules used in the given module.  Optionally
     takes a list of modules to exclude from reloading.  The default exclude
-    list contains sys, __main__, and __builtin__, to prevent, e.g., resetting
+    list contains modules listed in sys.builtin_module_names with additional
+    sys, os.path, builtins and __main__, to prevent, e.g., resetting
     display, exception, and io hooks.
     """
     global found_now

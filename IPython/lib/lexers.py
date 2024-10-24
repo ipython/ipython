@@ -194,6 +194,13 @@ class IPythonTracebackLexer(DelegatingLexer):
     aliases = ['ipythontb']
 
     def __init__(self, **options):
+        """
+        A subclass of `DelegatingLexer` which delegates to the appropriate to either IPyLexer,
+        IPythonPartialTracebackLexer.
+        """
+        # note we need a __init__ doc, as otherwise it inherits the doc from the super class
+        # which will fail the documentation build as it references section of the pygments docs that
+        # do not exists when building IPython's docs.
         self.python3 = get_bool_opt(options, 'python3', False)
         if self.python3:
             self.aliases = ['ipython3tb']
@@ -221,10 +228,8 @@ class IPythonConsoleLexer(Lexer):
             In [2]: a
             Out[2]: 'foo'
 
-            In [3]: print a
+            In [3]: print(a)
             foo
-
-            In [4]: 1 / 0
 
 
     Support is also provided for IPython exceptions:
@@ -234,13 +239,9 @@ class IPythonConsoleLexer(Lexer):
         .. code-block:: ipythonconsole
 
             In [1]: raise Exception
-
-            ---------------------------------------------------------------------------
-            Exception                                 Traceback (most recent call last)
-            <ipython-input-1-fca2ab0ca76b> in <module>
-            ----> 1 raise Exception
-
-            Exception:
+            Traceback (most recent call last):
+            ...
+            Exception
 
     """
     name = 'IPython console session'
@@ -455,13 +456,13 @@ class IPythonConsoleLexer(Lexer):
             # does not use the continuation marker cannot be detected.
             # For example, the 3 in the following is clearly output:
             #
-            #    In [1]: print 3
+            #    In [1]: print(3)
             #    3
             #
             # But the following second line is part of the input:
             #
             #    In [2]: while True:
-            #        print True
+            #        print(True)
             #
             # In both cases, the 2nd line will be 'output'.
             #
@@ -509,6 +510,13 @@ class IPyLexer(Lexer):
     aliases = ['ipy']
 
     def __init__(self, **options):
+        """
+        Create a new IPyLexer instance which dispatch to either an
+        IPythonCOnsoleLexer (if In prompts are present) or and IPythonLexer (if
+        In prompts are not present).
+        """
+        # init docstring is necessary for docs not to fail to build do to parent
+        # docs referenceing a section in pygments docs.
         self.python3 = get_bool_opt(options, 'python3', False)
         if self.python3:
             self.aliases = ['ipy3']

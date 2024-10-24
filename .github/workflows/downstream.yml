@@ -1,0 +1,73 @@
+name: Run Downstream tests
+
+on:
+  push:
+  pull_request:
+  # Run weekly on Monday at 1:23 UTC
+  schedule:
+  - cron:  '23 1 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    # Disable scheduled CI runs on forks
+    if: github.event_name != 'schedule' || github.repository_owner == 'ipython'
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+        include:
+          - os: macos-13
+            python-version: "3.10"
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Update Python installer
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+    - name: Install ipykernel
+      run: |
+        cd ..
+        git clone https://github.com/ipython/ipykernel
+        cd ipykernel
+        pip install -e .[test]
+        cd ..
+    - name: Install and update Python dependencies
+      run: |
+        python -m pip install --upgrade -e file://$PWD#egg=ipython[test]
+        # we must install IPython after ipykernel to get the right versions.
+        python -m pip install --upgrade --upgrade-strategy eager flaky ipyparallel
+    - name: pytest ipykernel
+      env:
+        COLUMNS: 120
+      run: |
+        cd ../ipykernel
+        pytest
+    - name: Install sagemath-repl
+      run: |
+        # Sept 2024, sage has been failing for a while, 
+        # Skipping.
+        # cd ..
+        # git clone --depth 1 https://github.com/sagemath/sage
+        # cd sage
+        # # We cloned it for the tests, but for simplicity we install the
+        # # wheels from PyPI.
+        # # (Avoid 10.3b6 because of https://github.com/sagemath/sage/pull/37178)
+        # pip install --pre sagemath-repl sagemath-environment
+        # # Install optionals that make more tests pass
+        # pip install pillow
+        # pip install --pre sagemath-categories
+        # cd ..
+    - name: Test sagemath-repl
+      run: |
+        # cd ../sage/
+        # # From https://github.com/sagemath/sage/blob/develop/pkgs/sagemath-repl/tox.ini
+        # sage-runtests -p --environment=sage.all__sagemath_repl --baseline-stats-path=pkgs/sagemath-repl/known-test-failures.json --initial --optional=sage src/sage/repl src/sage/doctest src/sage/misc/sage_input.py src/sage/misc/sage_eval.py

@@ -11,8 +11,11 @@ You start IPython with the command::
 
     $ ipython [options] files
 
-If invoked with no options, it executes all the files listed in sequence and
-exits. If you add the ``-i`` flag, it drops you into the interpreter while still
+If invoked with no options, it executes the file and exits, passing the
+remaining arguments to the script, just as if you had specified the same
+command with python. You may need to specify `--` before args to be passed
+to the script, to prevent IPython from attempting to parse them.
+If you add the ``-i`` flag, it drops you into the interpreter while still
 acknowledging any options you may have set in your ``ipython_config.py``. This
 behavior is different from standard Python, which when called as python ``-i``
 will only execute one file and ignore your configuration setup.
@@ -41,7 +44,7 @@ the command-line by passing the full class name and a corresponding value; type
     <...snip...>
     --matplotlib=<CaselessStrEnum> (InteractiveShellApp.matplotlib)
         Default: None
-        Choices: ['auto', 'gtk', 'gtk3', 'inline', 'nbagg', 'notebook', 'osx', 'qt', 'qt4', 'qt5', 'tk', 'wx']
+        Choices: ['auto', 'gtk3', 'gtk4', 'inline', 'nbagg', 'notebook', 'osx', 'qt', 'qt5', 'qt6', 'tk', 'wx']
         Configure matplotlib for interactive use with the default matplotlib
         backend.
     <...snip...>
@@ -114,7 +117,7 @@ The following uses the builtin :magic:`timeit` in cell mode::
       ...: min(x)
       ...: max(x)
       ...:
-  1000 loops, best of 3: 438 us per loop
+  518 µs ± 4.39 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
 In this case, ``x = range(10000)`` is called as the line argument, and the
 block with ``min(x)`` and ``max(x)`` is called as the cell body.  The
@@ -620,11 +623,11 @@ code snippet::
   a = 42
   IPython.embed()
 
-and within the IPython shell, you reassign `a` to `23` to do further testing of 
+and within the IPython shell, you reassign `a` to `23` to do further testing of
 some sort, you can then exit::
 
   >>> IPython.embed()
-  Python 3.6.2 (default, Jul 17 2017, 16:44:45) 
+  Python 3.6.2 (default, Jul 17 2017, 16:44:45)
   Type 'copyright', 'credits' or 'license' for more information
   IPython 6.2.0.dev -- An enhanced Interactive Python. Type '?' for help.
 
@@ -638,9 +641,9 @@ Once you exit and print `a`, the value 23 will be shown::
   In: print(a)
   23
 
-It's important to note that the code run in the embedded IPython shell will 
-*not* change the state of your code and variables, **unless** the shell is 
-contained within the global namespace. In the above example, `a` is changed 
+It's important to note that the code run in the embedded IPython shell will
+*not* change the state of your code and variables, **unless** the shell is
+contained within the global namespace. In the above example, `a` is changed
 because this is true.
 
 To further exemplify this, consider the following example::
@@ -654,7 +657,7 @@ To further exemplify this, consider the following example::
 
 Now if call the function and complete the state changes as we did above, the
 value `42` will be printed. Again, this is because it's not in the global
-namespace:: 
+namespace::
 
   do()
 
@@ -662,7 +665,7 @@ Running a file with the above code can lead to the following session::
 
   >>> do()
   42
-  Python 3.6.2 (default, Jul 17 2017, 16:44:45) 
+  Python 3.6.2 (default, Jul 17 2017, 16:44:45)
   Type 'copyright', 'credits' or 'license' for more information
   IPython 6.2.0.dev -- An enhanced Interactive Python. Type '?' for help.
 
@@ -889,7 +892,7 @@ GUI event loop support
 ======================
 
 IPython has excellent support for working interactively with Graphical User
-Interface (GUI) toolkits, such as wxPython, PyQt4/PySide, PyGTK and Tk. This is
+Interface (GUI) toolkits, such as wxPython, PyQt/PySide, PyGTK and Tk. This is
 implemented by running the toolkit's event loop while IPython is waiting for
 input.
 
@@ -899,7 +902,8 @@ For users, enabling GUI event loop integration is simple.  You simple use the
     %gui [GUINAME]
 
 With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
-arguments include ``wx``, ``qt``, ``qt5``, ``gtk``, ``gtk3`` and ``tk``.
+arguments include ``wx``, ``qt``, ``qt5``, ``qt6``, ``gtk3`` ``gtk4``, and
+``tk``.
 
 Thus, to use wxPython interactively and create a running :class:`wx.App`
 object, do::
@@ -932,37 +936,13 @@ PyQt and PySide
 .. attempt at explanation of the complete mess that is Qt support
 
 When you use ``--gui=qt`` or ``--matplotlib=qt``, IPython can work with either
-PyQt4 or PySide.  There are three options for configuration here, because
-PyQt4 has two APIs for QString and QVariant: v1, which is the default on
-Python 2, and the more natural v2, which is the only API supported by PySide.
-v2 is also the default for PyQt4 on Python 3.  IPython's code for the QtConsole
-uses v2, but you can still use any interface in your code, since the
-Qt frontend is in a different process.
+PyQt or PySide.  ``qt`` implies "use the latest version available", and it favors
+PyQt over PySide. To request a specific version, use ``qt5`` or ``qt6``.
 
-The default will be to import PyQt4 without configuration of the APIs, thus
-matching what most applications would expect. It will fall back to PySide if
-PyQt4 is unavailable.
-
-If specified, IPython will respect the environment variable ``QT_API`` used
-by ETS.  ETS 4.0 also works with both PyQt4 and PySide, but it requires
-PyQt4 to use its v2 API.  So if ``QT_API=pyside`` PySide will be used,
-and if ``QT_API=pyqt`` then PyQt4 will be used *with the v2 API* for
-QString and QVariant, so ETS codes like MayaVi will also work with IPython.
-
-If you launch IPython in matplotlib mode with ``ipython --matplotlib=qt``,
-then IPython will ask matplotlib which Qt library to use (only if QT_API is
-*not set*), via the 'backend.qt4' rcParam.  If matplotlib is version 1.0.1 or
-older, then IPython will always use PyQt4 without setting the v2 APIs, since
-neither v2 PyQt nor PySide work.
-
-.. warning::
-
-    Note that this means for ETS 4 to work with PyQt4, ``QT_API`` *must* be set
-    to work with IPython's qt integration, because otherwise PyQt4 will be
-    loaded in an incompatible mode.
-
-    It also means that you must *not* have ``QT_API`` set if you want to
-    use ``--gui=qt`` with code that requires PyQt4 API v1.
+If specified, IPython will respect the environment variable ``QT_API``. If
+``QT_API`` is not specified and you launch IPython in matplotlib mode with
+``ipython --matplotlib=qt`` then IPython will ask matplotlib which Qt library
+to use. See the matplotlib_ documentation on ``QT_API`` for further details.
 
 
 .. _matplotlib_support:
@@ -972,19 +952,16 @@ Plotting with matplotlib
 
 matplotlib_ provides high quality 2D and 3D plotting for Python. matplotlib_
 can produce plots on screen using a variety of GUI toolkits, including Tk,
-PyGTK, PyQt4 and wxPython. It also provides a number of commands useful for
+PyGTK, PyQt6 and wxPython. It also provides a number of commands useful for
 scientific computing, all with a syntax compatible with that of the popular
 Matlab program.
 
 To start IPython with matplotlib support, use the ``--matplotlib`` switch. If
 IPython is already running, you can run the :magic:`matplotlib` magic.  If no
 arguments are given, IPython will automatically detect your choice of
-matplotlib backend.  You can also request a specific backend with
-``%matplotlib backend``, where ``backend`` must be one of: 'tk', 'qt', 'wx',
-'gtk', 'osx'.  In the web notebook and Qt console, 'inline' is also a valid
-backend value, which produces static figures inlined inside the application
-window instead of matplotlib's interactive figures that live in separate
-windows.
+matplotlib backend. For information on matplotlib backends see
+:ref:`matplotlib_magic`.
+
 
 .. _interactive_demos:
 

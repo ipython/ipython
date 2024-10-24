@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Utilities for working with strings and text.
 
@@ -10,17 +9,33 @@ Inheritance diagram:
 
 import os
 import re
+import string
 import sys
 import textwrap
+import warnings
 from string import Formatter
 from pathlib import Path
 
+from typing import (
+    List,
+    Dict,
+    Tuple,
+    Optional,
+    cast,
+    Sequence,
+    Mapping,
+    Any,
+    Union,
+    Callable,
+    Iterator,
+    TypeVar,
+)
 
-# datetime.strftime date format for ipython
-if sys.platform == 'win32':
-    date_format = "%B %d, %Y"
+if sys.version_info < (3, 12):
+    from typing_extensions import Self
 else:
-    date_format = "%B %-d, %Y"
+    from typing import Self
+
 
 class LSString(str):
     """String derivative with a special access attributes.
@@ -38,7 +53,11 @@ class LSString(str):
     Such strings are very useful to efficiently interact with the shell, which
     typically only understands whitespace-separated options for commands."""
 
-    def get_list(self):
+    __list: List[str]
+    __spstr: str
+    __paths: List[Path]
+
+    def get_list(self) -> List[str]:
         try:
             return self.__list
         except AttributeError:
@@ -47,7 +66,7 @@ class LSString(str):
 
     l = list = property(get_list)
 
-    def get_spstr(self):
+    def get_spstr(self) -> str:
         try:
             return self.__spstr
         except AttributeError:
@@ -56,12 +75,12 @@ class LSString(str):
 
     s = spstr = property(get_spstr)
 
-    def get_nlstr(self):
+    def get_nlstr(self) -> Self:
         return self
 
     n = nlstr = property(get_nlstr)
 
-    def get_paths(self):
+    def get_paths(self) -> List[Path]:
         try:
             return self.__paths
         except AttributeError:
@@ -76,8 +95,8 @@ class LSString(str):
 
 # def print_lsstring(arg):
 #     """ Prettier (non-repr-like) and more informative printer for LSString """
-#     print "LSString (.p, .n, .l, .s available). Value:"
-#     print arg
+#     print("LSString (.p, .n, .l, .s available). Value:")
+#     print(arg)
 #
 #
 # print_lsstring = result_display.register(LSString)(print_lsstring)
@@ -96,12 +115,16 @@ class SList(list):
     Any values which require transformations are computed only once and
     cached."""
 
-    def get_list(self):
+    __spstr: str
+    __nlstr: str
+    __paths: List[Path]
+
+    def get_list(self) -> Self:
         return self
 
     l = list = property(get_list)
 
-    def get_spstr(self):
+    def get_spstr(self) -> str:
         try:
             return self.__spstr
         except AttributeError:
@@ -110,7 +133,7 @@ class SList(list):
 
     s = spstr = property(get_spstr)
 
-    def get_nlstr(self):
+    def get_nlstr(self) -> str:
         try:
             return self.__nlstr
         except AttributeError:
@@ -119,7 +142,7 @@ class SList(list):
 
     n = nlstr = property(get_nlstr)
 
-    def get_paths(self):
+    def get_paths(self) -> List[Path]:
         try:
             return self.__paths
         except AttributeError:
@@ -128,8 +151,13 @@ class SList(list):
 
     p = paths = property(get_paths)
 
-    def grep(self, pattern, prune = False, field = None):
-        """ Return all strings matching 'pattern' (a regex or callable)
+    def grep(
+        self,
+        pattern: Union[str, Callable[[Any], re.Match[str] | None]],
+        prune: bool = False,
+        field: Optional[int] = None,
+    ) -> Self:
+        """Return all strings matching 'pattern' (a regex or callable)
 
         This is case-insensitive. If prune is true, return all items
         NOT matching the pattern.
@@ -144,7 +172,7 @@ class SList(list):
             a.grep('chm', field=-1)
         """
 
-        def match_target(s):
+        def match_target(s: str) -> str:
             if field is None:
                 return s
             parts = s.split()
@@ -159,12 +187,12 @@ class SList(list):
         else:
             pred = pattern
         if not prune:
-            return SList([el for el in self if pred(match_target(el))])
+            return type(self)([el for el in self if pred(match_target(el))])
         else:
-            return SList([el for el in self if not pred(match_target(el))])
+            return type(self)([el for el in self if not pred(match_target(el))])
 
-    def fields(self, *fields):
-        """ Collect whitespace-separated fields from string list
+    def fields(self, *fields: List[str]) -> List[List[str]]:
+        """Collect whitespace-separated fields from string list
 
         Allows quick awk-like usage of string lists.
 
@@ -199,8 +227,12 @@ class SList(list):
 
         return res
 
-    def sort(self,field= None,  nums = False):
-        """ sort by specified fields (see fields())
+    def sort(  # type:ignore[override]
+        self,
+        field: Optional[List[str]] = None,
+        nums: bool = False,
+    ) -> Self:
+        """sort by specified fields (see fields())
 
         Example::
 
@@ -226,7 +258,7 @@ class SList(list):
 
 
         dsu.sort()
-        return SList([t[1] for t in dsu])
+        return type(self)([t[1] for t in dsu])
 
 
 # FIXME: We need to reimplement type specific displayhook and then add this
@@ -235,7 +267,7 @@ class SList(list):
 
 # def print_slist(arg):
 #     """ Prettier (non-repr-like) and more informative printer for SList """
-#     print "SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):"
+#     print("SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):")
 #     if hasattr(arg,  'hideonce') and arg.hideonce:
 #         arg.hideonce = False
 #         return
@@ -245,14 +277,13 @@ class SList(list):
 # print_slist = result_display.register(SList)(print_slist)
 
 
-def indent(instr,nspaces=4, ntabs=0, flatten=False):
+def indent(instr: str, nspaces: int = 4, ntabs: int = 0, flatten: bool = False) -> str:
     """Indent a string a given number of spaces or tabstops.
 
     indent(str,nspaces=4,ntabs=0) -> indent str by ntabs+nspaces.
 
     Parameters
     ----------
-
     instr : basestring
         The string to be indented.
     nspaces : int (default: 4)
@@ -266,8 +297,7 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
 
     Returns
     -------
-
-    str|unicode : string indented by ntabs and nspaces.
+    str : string indented by ntabs and nspaces.
 
     """
     if instr is None:
@@ -284,7 +314,7 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
         return outstr
 
 
-def list_strings(arg):
+def list_strings(arg: Union[str, List[str]]) -> List[str]:
     """Always return a list of strings, given a string or list of strings
     as input.
 
@@ -308,7 +338,7 @@ def list_strings(arg):
         return arg
 
 
-def marquee(txt='',width=78,mark='*'):
+def marquee(txt: str = "", width: int = 78, mark: str = "*") -> str:
     """Return the input string centered in a 'marquee'.
 
     Examples
@@ -335,9 +365,16 @@ def marquee(txt='',width=78,mark='*'):
 
 ini_spaces_re = re.compile(r'^(\s+)')
 
-def num_ini_spaces(strng):
-    """Return the number of initial spaces in a string"""
 
+def num_ini_spaces(strng: str) -> int:
+    """Return the number of initial spaces in a string"""
+    warnings.warn(
+        "`num_ini_spaces` is Pending Deprecation since IPython 8.17."
+        "It is considered for removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
     ini_spaces = ini_spaces_re.match(strng)
     if ini_spaces:
         return ini_spaces.end()
@@ -345,7 +382,7 @@ def num_ini_spaces(strng):
         return 0
 
 
-def format_screen(strng):
+def format_screen(strng: str) -> str:
     """Format a string for screen printing.
 
     This removes some latex-type format codes."""
@@ -355,7 +392,7 @@ def format_screen(strng):
     return strng
 
 
-def dedent(text):
+def dedent(text: str) -> str:
     """Equivalent of textwrap.dedent that ignores unindented first line.
 
     This means it will still dedent strings like:
@@ -382,7 +419,7 @@ def dedent(text):
     return '\n'.join([first, rest])
 
 
-def wrap_paragraphs(text, ncols=80):
+def wrap_paragraphs(text: str, ncols: int = 80) -> List[str]:
     """Wrap multiple paragraphs to fit a specified width.
 
     This is equivalent to textwrap.wrap, but with support for multiple
@@ -390,9 +427,15 @@ def wrap_paragraphs(text, ncols=80):
 
     Returns
     -------
-
     list of complete paragraphs, wrapped to fill `ncols` columns.
     """
+    warnings.warn(
+        "`wrap_paragraphs` is Pending Deprecation since IPython 8.17."
+        "It is considered for removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
     paragraph_re = re.compile(r'\n(\s*\n)+', re.MULTILINE)
     text = dedent(text).strip()
     paragraphs = paragraph_re.split(text)[::2] # every other entry is space
@@ -408,23 +451,7 @@ def wrap_paragraphs(text, ncols=80):
     return out_ps
 
 
-def long_substr(data):
-    """Return the longest common substring in a list of strings.
-    
-    Credit: http://stackoverflow.com/questions/2892931/longest-common-substring-from-more-than-two-strings-python
-    """
-    substr = ''
-    if len(data) > 1 and len(data[0]) > 0:
-        for i in range(len(data[0])):
-            for j in range(len(data[0])-i+1):
-                if j > len(substr) and all(data[0][i:i+j] in x for x in data):
-                    substr = data[0][i:i+j]
-    elif len(data) == 1:
-        substr = data[0]
-    return substr
-
-
-def strip_email_quotes(text):
+def strip_email_quotes(text: str) -> str:
     """Strip leading email quotation characters ('>').
 
     Removes any combination of leading '>' interspersed with whitespace that
@@ -450,46 +477,57 @@ def strip_email_quotes(text):
         In [4]: strip_email_quotes('> > text\\n> > more\\n> more...')
         Out[4]: '> text\\n> more\\nmore...'
 
-    So if any line has no quote marks ('>') , then none are stripped from any
+    So if any line has no quote marks ('>'), then none are stripped from any
     of them ::
-    
+
         In [5]: strip_email_quotes('> > text\\n> > more\\nlast different')
         Out[5]: '> > text\\n> > more\\nlast different'
     """
     lines = text.splitlines()
-    matches = set()
-    for line in lines:
-        prefix = re.match(r'^(\s*>[ >]*)', line)
-        if prefix:
-            matches.add(prefix.group(1))
+    strip_len = 0
+
+    for characters in zip(*lines):
+        # Check if all characters in this position are the same
+        if len(set(characters)) > 1:
+            break
+        prefix_char = characters[0]
+
+        if prefix_char in string.whitespace or prefix_char == ">":
+            strip_len += 1
         else:
             break
-    else:
-        prefix = long_substr(list(matches))
-        if prefix:
-            strip = len(prefix)
-            text = '\n'.join([ ln[strip:] for ln in lines])
+
+    text = "\n".join([ln[strip_len:] for ln in lines])
     return text
 
-def strip_ansi(source):
+
+def strip_ansi(source: str) -> str:
     """
     Remove ansi escape codes from text.
-    
+
     Parameters
     ----------
     source : str
         Source to remove the ansi from
     """
+    warnings.warn(
+        "`strip_ansi` is Pending Deprecation since IPython 8.17."
+        "It is considered for removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
+
     return re.sub(r'\033\[(\d|;)+?m', '', source)
 
 
 class EvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
-    
-    Note that this version interprets a : as specifying a format string (as per
+
+    Note that this version interprets a `:`  as specifying a format string (as per
     standard string formatting), so if slicing is required, you must explicitly
     create a slice.
-    
+
     This is to be used in templating cases, such as the parallel batch
     script templates, where simple arithmetic on arguments is useful.
 
@@ -504,7 +542,8 @@ class EvalFormatter(Formatter):
         In [3]: f.format("{greeting[slice(2,4)]}", greeting="Hello")
         Out[3]: 'll'
     """
-    def get_field(self, name, args, kwargs):
+
+    def get_field(self, name: str, args: Any, kwargs: Any) -> Tuple[Any, str]:
         v = eval(name, kwargs)
         return v, name
 
@@ -537,11 +576,14 @@ class FullEvalFormatter(Formatter):
     """
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
-    def vformat(self, format_string:str, args, kwargs)->str:
+    def vformat(
+        self, format_string: str, args: Sequence[Any], kwargs: Mapping[str, Any]
+    ) -> str:
         result = []
-        for literal_text, field_name, format_spec, conversion in \
-                self.parse(format_string):
-
+        conversion: Optional[str]
+        for literal_text, field_name, format_spec, conversion in self.parse(
+            format_string
+        ):
             # output the literal text
             if literal_text:
                 result.append(literal_text)
@@ -557,10 +599,11 @@ class FullEvalFormatter(Formatter):
 
                 # eval the contents of the field for the object
                 # to be formatted
-                obj = eval(field_name, kwargs)
+                obj = eval(field_name, dict(kwargs))
 
                 # do any conversion on the resulting object
-                obj = self.convert_field(obj, conversion)
+                # type issue in typeshed, fined in https://github.com/python/typeshed/pull/11377
+                obj = self.convert_field(obj, conversion)  # type: ignore[arg-type]
 
                 # format the object and append to the result
                 result.append(self.format_field(obj, ''))
@@ -587,11 +630,15 @@ class DollarFormatter(FullEvalFormatter):
         In [4]: f.format('$a or {b}', a=1, b=2)
         Out[4]: '1 or 2'
     """
-    _dollar_pattern_ignore_single_quote = re.compile(r"(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)")
-    def parse(self, fmt_string):
-        for literal_txt, field_name, format_spec, conversion \
-                    in Formatter.parse(self, fmt_string):
-            
+
+    _dollar_pattern_ignore_single_quote = re.compile(
+        r"(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)"
+    )
+
+    def parse(self, fmt_string: str) -> Iterator[Tuple[Any, Any, Any, Any]]:  # type: ignore
+        for literal_txt, field_name, format_spec, conversion in Formatter.parse(
+            self, fmt_string
+        ):
             # Find $foo patterns in the literal text.
             continue_from = 0
             txt = ""
@@ -608,11 +655,17 @@ class DollarFormatter(FullEvalFormatter):
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
 
+    def __repr__(self) -> str:
+        return "<DollarFormatter>"
+
 #-----------------------------------------------------------------------------
 # Utils to columnize a list of string
 #-----------------------------------------------------------------------------
 
-def _col_chunks(l, max_rows, row_first=False):
+
+def _col_chunks(
+    l: List[int], max_rows: int, row_first: bool = False
+) -> Iterator[List[int]]:
     """Yield successive max_rows-sized column chunks from l."""
     if row_first:
         ncols = (len(l) // max_rows) + (len(l) % max_rows > 0)
@@ -623,7 +676,9 @@ def _col_chunks(l, max_rows, row_first=False):
             yield l[i:(i + max_rows)]
 
 
-def _find_optimal(rlist, row_first=False, separator_size=2, displaywidth=80):
+def _find_optimal(
+    rlist: List[int], row_first: bool, separator_size: int, displaywidth: int
+) -> Dict[str, Any]:
     """Calculate optimal info to columnize a list of string"""
     for max_rows in range(1, len(rlist) + 1):
         col_widths = list(map(max, _col_chunks(rlist, max_rows, row_first)))
@@ -638,7 +693,10 @@ def _find_optimal(rlist, row_first=False, separator_size=2, displaywidth=80):
             }
 
 
-def _get_or_default(mylist, i, default=None):
+T = TypeVar("T")
+
+
+def _get_or_default(mylist: List[T], i: int, default: T) -> T:
     """return list item number, or default if don't exist"""
     if i >= len(mylist):
         return default
@@ -646,12 +704,18 @@ def _get_or_default(mylist, i, default=None):
         return mylist[i]
 
 
-def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
+def compute_item_matrix(
+    items: List[str],
+    row_first: bool = False,
+    empty: Optional[str] = None,
+    *,
+    separator_size: int = 2,
+    displaywidth: int = 80,
+) -> Tuple[List[List[int]], Dict[str, int]]:
     """Returns a nested list, and info to columnize items
 
     Parameters
     ----------
-
     items
         list of strings to columize
     row_first : (default False)
@@ -666,14 +730,11 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
 
     Returns
     -------
-
     strings_matrix
-
         nested list of string, the outer most list contains as many list as
         rows, the innermost lists have each as many element as columns. If the
         total number of elements in `items` does not equal the product of
         rows*columns, the last element of some lists are filled with `None`.
-
     dict_info
         some info to make columnize easier:
 
@@ -698,29 +759,66 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
         In [5]: all((info[k] == ideal[k] for k in ideal.keys()))
         Out[5]: True
     """
-    info = _find_optimal(list(map(len, items)), row_first, *args, **kwargs)
-    nrow, ncol = info['max_rows'], info['num_columns']
+    warnings.warn(
+        "`compute_item_matrix` is Pending Deprecation since IPython 8.17."
+        "It is considered for removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
+    info = _find_optimal(
+        list(map(len, items)),  # type: ignore[arg-type]
+        row_first,
+        separator_size=separator_size,
+        displaywidth=displaywidth,
+    )
+    nrow, ncol = info["max_rows"], info["num_columns"]
     if row_first:
-        return ([[_get_or_default(items, r * ncol + c, default=empty) for c in range(ncol)] for r in range(nrow)], info)
+        return (
+            [
+                [
+                    _get_or_default(
+                        items, r * ncol + c, default=empty
+                    )  # type:ignore[misc]
+                    for c in range(ncol)
+                ]
+                for r in range(nrow)
+            ],
+            info,
+        )
     else:
-        return ([[_get_or_default(items, c * nrow + r, default=empty) for c in range(ncol)] for r in range(nrow)], info)
+        return (
+            [
+                [
+                    _get_or_default(
+                        items, c * nrow + r, default=empty
+                    )  # type:ignore[misc]
+                    for c in range(ncol)
+                ]
+                for r in range(nrow)
+            ],
+            info,
+        )
 
 
-def columnize(items, row_first=False, separator='  ', displaywidth=80, spread=False):
-    """ Transform a list of strings into a single string with columns.
+def columnize(
+    items: List[str],
+    row_first: bool = False,
+    separator: str = "  ",
+    displaywidth: int = 80,
+    spread: bool = False,
+) -> str:
+    """Transform a list of strings into a single string with columns.
 
     Parameters
     ----------
     items : sequence of strings
         The strings to process.
-
     row_first : (default False)
         Whether to compute columns for a row-first matrix instead of
         column-first (default).
-
     separator : str, optional [default is two spaces]
         The string that separates columns.
-
     displaywidth : int, optional [default is 80]
         Width of the display in number of characters.
 
@@ -728,17 +826,34 @@ def columnize(items, row_first=False, separator='  ', displaywidth=80, spread=Fa
     -------
     The formatted string.
     """
+    warnings.warn(
+        "`columnize` is Pending Deprecation since IPython 8.17."
+        "It is considered for removal in future versions. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
     if not items:
-        return '\n'
-    matrix, info = compute_item_matrix(items, row_first=row_first, separator_size=len(separator), displaywidth=displaywidth)
+        return "\n"
+    matrix: List[List[int]]
+    matrix, info = compute_item_matrix(
+        items,
+        row_first=row_first,
+        separator_size=len(separator),
+        displaywidth=displaywidth,
+    )
     if spread:
-        separator = separator.ljust(int(info['optimal_separator_width']))
-    fmatrix = [filter(None, x) for x in matrix]
-    sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['column_widths'])])
-    return '\n'.join(map(sjoin, fmatrix))+'\n'
+        separator = separator.ljust(int(info["optimal_separator_width"]))
+    fmatrix: List[filter[int]] = [filter(None, x) for x in matrix]
+    sjoin = lambda x: separator.join(
+        [y.ljust(w, " ") for y, w in zip(x, cast(List[int], info["column_widths"]))]
+    )
+    return "\n".join(map(sjoin, fmatrix)) + "\n"
 
 
-def get_text_list(list_, last_sep=' and ', sep=", ", wrap_item_with=""):
+def get_text_list(
+    list_: List[str], last_sep: str = " and ", sep: str = ", ", wrap_item_with: str = ""
+) -> str:
     """
     Return a string with a natural enumeration of items
 

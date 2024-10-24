@@ -9,7 +9,7 @@ import ctypes
 import ctypes.util
 from threading import Event
 
-objc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('objc'))
+objc = ctypes.cdll.LoadLibrary(ctypes.util.find_library("objc"))  # type: ignore
 
 void_p = ctypes.c_void_p
 
@@ -37,11 +37,11 @@ def C(classname):
 # end obj-c boilerplate from appnope
 
 # CoreFoundation C-API calls we will use:
-CoreFoundation = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreFoundation'))
+CoreFoundation = ctypes.cdll.LoadLibrary(ctypes.util.find_library("CoreFoundation"))  # type: ignore
 
 CFFileDescriptorCreate = CoreFoundation.CFFileDescriptorCreate
 CFFileDescriptorCreate.restype = void_p
-CFFileDescriptorCreate.argtypes = [void_p, ctypes.c_int, ctypes.c_bool, void_p]
+CFFileDescriptorCreate.argtypes = [void_p, ctypes.c_int, ctypes.c_bool, void_p, void_p]
 
 CFFileDescriptorGetNativeDescriptor = CoreFoundation.CFFileDescriptorGetNativeDescriptor
 CFFileDescriptorGetNativeDescriptor.restype = ctypes.c_int
@@ -77,35 +77,51 @@ kCFRunLoopCommonModes = void_p.in_dll(CoreFoundation, 'kCFRunLoopCommonModes')
 
 def _NSApp():
     """Return the global NSApplication instance (NSApp)"""
+    objc.objc_msgSend.argtypes = [void_p, void_p]
     return msg(C('NSApplication'), n('sharedApplication'))
 
 
 def _wake(NSApp):
     """Wake the Application"""
-    event = msg(C('NSEvent'),
-        n('otherEventWithType:location:modifierFlags:'
-          'timestamp:windowNumber:context:subtype:data1:data2:'),
-        15, # Type
-        0, # location
-        0, # flags
-        0, # timestamp
-        0, # window
-        None, # context
-        0, # subtype
-        0, # data1
-        0, # data2
+    objc.objc_msgSend.argtypes = [
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+    ]
+    event = msg(
+        C("NSEvent"),
+        n(
+            "otherEventWithType:location:modifierFlags:"
+            "timestamp:windowNumber:context:subtype:data1:data2:"
+        ),
+        15,  # Type
+        0,  # location
+        0,  # flags
+        0,  # timestamp
+        0,  # window
+        None,  # context
+        0,  # subtype
+        0,  # data1
+        0,  # data2
     )
+    objc.objc_msgSend.argtypes = [void_p, void_p, void_p, void_p]
     msg(NSApp, n('postEvent:atStart:'), void_p(event), True)
 
 
-_triggered = Event()
-
 def _input_callback(fdref, flags, info):
     """Callback to fire when there's input to be read"""
-    _triggered.set()
     CFFileDescriptorInvalidate(fdref)
     CFRelease(fdref)
     NSApp = _NSApp()
+    objc.objc_msgSend.argtypes = [void_p, void_p, void_p]
     msg(NSApp, n('stop:'), NSApp)
     _wake(NSApp)
 
@@ -115,7 +131,6 @@ _c_input_callback = _c_callback_func_type(_input_callback)
 
 def _stop_on_read(fd):
     """Register callback to stop eventloop when there's data on fd"""
-    _triggered.clear()
     fdref = CFFileDescriptorCreate(None, fd, False, _c_input_callback, None)
     CFFileDescriptorEnableCallBacks(fdref, kCFFileDescriptorReadCallBack)
     source = CFFileDescriptorCreateRunLoopSource(None, fdref, 0)
@@ -128,10 +143,5 @@ def inputhook(context):
     """Inputhook for Cocoa (NSApp)"""
     NSApp = _NSApp()
     _stop_on_read(context.fileno())
+    objc.objc_msgSend.argtypes = [void_p, void_p]
     msg(NSApp, n('run'))
-    if not _triggered.is_set():
-        # app closed without firing callback,
-        # probably due to last window being closed.
-        # Run the loop manually in this case,
-        # since there may be events still to process (#9734)
-        CoreFoundation.CFRunLoopRun()
