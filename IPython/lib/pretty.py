@@ -726,7 +726,7 @@ class _ReFlags:
         done_one = False
         for flag in ('TEMPLATE', 'IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL',
             'UNICODE', 'VERBOSE', 'DEBUG'):
-            if self.value & getattr(re, flag):
+            if self.value & getattr(re, flag, 0):
                 if done_one:
                     p.text('|')
                 p.text('re.' + flag)
