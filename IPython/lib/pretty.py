@@ -724,7 +724,7 @@ class _ReFlags:
 
     def _repr_pretty_(self, p, cycle):
         done_one = False
-        for flag in ('TEMPLATE', 'IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL',
+        for flag in ('IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL',
             'UNICODE', 'VERBOSE', 'DEBUG'):
             if self.value & getattr(re, flag):
                 if done_one:
