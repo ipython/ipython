@@ -7,8 +7,44 @@
 IPython 8.29
 ============
 
+Medium release for this end of october;
 
+ - Misc Python 3.13 compatibility :ghpull:`14536`, :ghpull:`14559`
+ - Add a ``uv`` line magic :ghpull:`14537`
  - Add support for WEBP to ``IPython.display.Image``. :ghpull:`14526`
+ - And many more bugfixes and quality of life improvements.
+
+As usual you can find the full list of PRs on GitHub under `the 8.29
+<https://github.com/ipython/ipython/milestone/136?closed=1>`__ milestone.
+
+Preparing for 9.0
+-----------------
+
+IPython 3.13 was released earlier this month, and this means that according to
+`Spec-0 <https://scientific-python.org/specs/spec-0000/>`__, support for 3.10
+will end soon.
+
+There have been many minor version of IPython 8.x, so it is likely that one of
+the next version will simply bump to 9.0 and remove a lot of code mark as
+deprecated, and documentation/examples not relevant for terminal IPython.
+
+The frequency of release and my time reviewing will also likely decrease more
+than it has already.
+
+
+For something completely different
+----------------------------------
+
+`Rosalind Franklin <https://en.wikipedia.org/wiki/Rosalind_Franklin>`__ made
+some of the biggest contribution to the discovery of the helix structure of DNA.
+Unfortunately her work was `not recognized
+<https://www.nature.com/scitable/topicpage/rosalind-franklin-a-crucial-contribution-6538012/>`__
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
 
 .. _version 8.28:
 
