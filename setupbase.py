@@ -13,6 +13,7 @@ This includes:
 # Distributed under the terms of the Modified BSD License.
 
 import os
+from pathlib import Path
 import re
 import sys
 from glob import glob
@@ -30,21 +31,19 @@ from setuptools.command.install_scripts import install_scripts
 #-------------------------------------------------------------------------------
 
 # A few handy globals
-isfile = os.path.isfile
-pjoin = os.path.join
-repo_root = os.path.dirname(os.path.abspath(__file__))
+repo_root = Path(__file__).resolve().parent
 
-def execfile(fname, globs, locs=None):
+def execfile(path, globs, locs=None):
     locs = locs or globs
-    with open(fname, encoding="utf-8") as f:
-        exec(compile(f.read(), fname, "exec"), globs, locs)
+    with path.open(encoding="utf-8") as f:
+        exec(compile(f.read(), str(path), "exec"), globs, locs)
 
 #---------------------------------------------------------------------------
 # Basic project information
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-execfile(pjoin(repo_root, 'IPython','core','release.py'), globals())
+execfile(Path(repo_root, "IPython", "core", "release.py"), globals())
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
@@ -62,13 +61,13 @@ def check_package_data(package_data):
     """verify that package_data globs make sense"""
     print("checking package data")
     for pkg, data in package_data.items():
-        pkg_root = pjoin(*pkg.split('.'))
+        pkg_root = Path(*pkg.split("."))
         for d in data:
-            path = pjoin(pkg_root, d)
-            if '*' in path:
-                assert len(glob(path)) > 0, "No files match pattern %s" % path
+            path = pkg_root / d
+            if "*" in str(path):
+                assert len(glob(str(path))) > 0, "No files match pattern %s" % path
             else:
-                assert os.path.exists(path), "Missing package data: %s" % path
+                assert path.exists(), f"Missing package data: {path}"
 
 
 def check_package_data_first(command):
@@ -95,18 +94,18 @@ def find_data_files():
     """
 
     if "freebsd" in sys.platform:
-        manpagebase = pjoin('man', 'man1')
+        manpagebase = Path("man") / "man1"
     else:
-        manpagebase = pjoin('share', 'man', 'man1')
+        manpagebase = Path("share") / "man" / "man1"
 
     # Simple file lists can be made by hand
-    manpages = [f for f in glob(pjoin('docs','man','*.1.gz')) if isfile(f)]
+    manpages = [f for f in Path("docs/man").glob("*.1.gz") if f.is_file()]
     if not manpages:
         # When running from a source tree, the manpages aren't gzipped
-        manpages = [f for f in glob(pjoin('docs','man','*.1')) if isfile(f)]
+        manpages = [f for f in Path("docs/man").glob("*.1") if f.is_file()]
 
     # And assemble the entire output list
-    data_files = [ (manpagebase, manpages) ]
+    data_files = [(str(manpagebase), [str(f) for f in manpages])]
 
     return data_files
 
@@ -114,7 +113,7 @@ def find_data_files():
 # The two functions below are copied from IPython.utils.path, so we don't need
 # to import IPython during setup, which fails on Python 3.
 
-def target_outdated(target,deps):
+def target_outdated(target, deps):
     """Determine whether a target is out of date.
 
     target_outdated(target,deps) -> 1/0
@@ -126,11 +125,11 @@ def target_outdated(target,deps):
     true, otherwise return false.
     """
     try:
-        target_time = os.path.getmtime(target)
-    except os.error:
+        target_time = Path(target).stat().st_mtime
+    except FileNotFoundError:
         return 1
     for dep in deps:
-        dep_time = os.path.getmtime(dep)
+        dep_time = Path(dep).stat().st_mtime
         if dep_time > target_time:
             # print("For target",target,"Dep failed:",dep)  # dbg
             # print("times (dep,tar):",dep_time,target_time)  # dbg
@@ -138,7 +137,7 @@ def target_outdated(target,deps):
     return 0
 
 
-def target_update(target,deps,cmd):
+def target_update(target, deps, cmd):
     """Update a target with a given command given a list of dependencies.
 
     target_update(target,deps,cmd) -> runs cmd if target is outdated.
@@ -146,7 +145,7 @@ def target_update(target,deps,cmd):
     This is just a wrapper around target_outdated() which calls the given
     command if target is outdated."""
 
-    if target_outdated(target,deps):
+    if target_outdated(target, deps):
         os.system(cmd)
 
 #---------------------------------------------------------------------------
@@ -190,25 +189,24 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
             repo_commit, _ = proc.communicate()
             repo_commit = repo_commit.strip().decode("ascii")
 
-            out_pth = pjoin(base_dir, pkg_dir, 'utils', '_sysinfo.py')
-            if os.path.isfile(out_pth) and not repo_commit:
+            out_pth = Path(base_dir) / pkg_dir / "utils" / "_sysinfo.py"
+            if out_pth.is_file() and not repo_commit:
                 # nothing to write, don't clobber
                 return
 
-            print("writing git commit '%s' to %s" % (repo_commit, out_pth))
+            print(f"writing git commit '{repo_commit}' to {out_pth}")
 
             # remove to avoid overwriting original via hard link
             try:
-                os.remove(out_pth)
-            except (IOError, OSError):
+                out_pth.unlink()
+            except FileNotFoundError:
                 pass
-            with open(out_pth, "w", encoding="utf-8") as out_file:
+            with out_pth.open("w", encoding="utf-8") as out_file:
                 out_file.writelines(
                     [
                         "# GENERATED BY setup.py\n",
-                        'commit = "%s"\n' % repo_commit,
+                        f'commit = "{repo_commit}"\n',
                     ]
                 )
 
     return MyBuildPy
-
