@@ -44,20 +44,17 @@ else:
 
 @undoc
 class HasGetItem(Protocol):
-    def __getitem__(self, key) -> None:
-        ...
+    def __getitem__(self, key) -> None: ...
 
 
 @undoc
 class InstancesHaveGetItem(Protocol):
-    def __call__(self, *args, **kwargs) -> HasGetItem:
-        ...
+    def __call__(self, *args, **kwargs) -> HasGetItem: ...
 
 
 @undoc
 class HasGetAttr(Protocol):
-    def __getattr__(self, key) -> None:
-        ...
+    def __getattr__(self, key) -> None: ...
 
 
 @undoc
@@ -329,9 +326,9 @@ class EvaluationContext(NamedTuple):
     #: Global namespace
     globals: dict
     #: Evaluation policy identifier
-    evaluation: Literal[
-        "forbidden", "minimal", "limited", "unsafe", "dangerous"
-    ] = "forbidden"
+    evaluation: Literal["forbidden", "minimal", "limited", "unsafe", "dangerous"] = (
+        "forbidden"
+    )
     #: Whether the evaluation of code takes place inside of a subscript.
     #: Useful for evaluating ``:-1, 'col'`` in ``df[:-1, 'col']``.
     in_subscript: bool = False

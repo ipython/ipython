@@ -535,8 +535,7 @@ def test_custom_repr_namedtuple_partialmethod():
     from functools import partialmethod
     from typing import NamedTuple
 
-    class Foo(NamedTuple):
-        ...
+    class Foo(NamedTuple): ...
 
     Foo.__repr__ = partialmethod(lambda obj: "Hello World")
     foo = Foo()

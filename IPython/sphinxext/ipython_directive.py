@@ -904,15 +904,16 @@ class IPythonDirective(Directive):
 
     has_content: bool = True
     required_arguments: int = 0
-    optional_arguments: int = 4 # python, suppress, verbatim, doctest
+    optional_arguments: int = 4  # python, suppress, verbatim, doctest
     final_argumuent_whitespace: bool = True
-    option_spec: Dict[str, Any] = { 'python': directives.unchanged,
-                    'suppress' : directives.flag,
-                    'verbatim' : directives.flag,
-                    'doctest' : directives.flag,
-                    'okexcept': directives.flag,
-                    'okwarning': directives.flag
-                  }
+    option_spec: Dict[str, Any] = {
+        "python": directives.unchanged,
+        "suppress": directives.flag,
+        "verbatim": directives.flag,
+        "doctest": directives.flag,
+        "okexcept": directives.flag,
+        "okwarning": directives.flag,
+    }
 
     shell = None
 
