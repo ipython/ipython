@@ -395,7 +395,10 @@ def _tr_quote2(content):
 
 def _tr_paren(content):
     "Translate lines escaped with a slash: /"
-    name, _, args = content.partition(' ')
+    name, _, args = content.partition(" ")
+    if name == "":
+        raise SyntaxError(f'"{ESC_SHELL}" must be followed by a callable name')
+
     return '%s(%s)' % (name, ", ".join(args.split()))
 
 tr = { ESC_SHELL  : 'get_ipython().system({!r})'.format,
