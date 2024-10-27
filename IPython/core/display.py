@@ -16,7 +16,8 @@ from copy import deepcopy
 from os.path import splitext
 from pathlib import Path, PurePath
 
-from IPython.utils.py3compat import cast_unicode
+from typing import Optional
+
 from IPython.testing.skipdoctest import skip_doctest
 from . import display_functions
 
@@ -518,7 +519,7 @@ class SVG(DisplayObject):
     _read_flags = 'rb'
     # wrap data in a property, which extracts the <svg> tag, discarding
     # document headers
-    _data = None
+    _data: Optional[str] = None
 
     @property
     def data(self):
@@ -540,8 +541,10 @@ class SVG(DisplayObject):
             # fallback on the input, trust the user
             # but this is probably an error.
             pass
-        svg = cast_unicode(svg)
-        self._data = svg
+        if isinstance(svg, bytes):
+            self._data = svg.decode(errors="replace")
+        else:
+            self._data = svg
 
     def _repr_svg_(self):
         return self._data_and_metadata()

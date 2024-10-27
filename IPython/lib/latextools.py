@@ -18,7 +18,6 @@ from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config
 from traitlets.config.configurable import SingletonConfigurable
 from traitlets import List, Bool, Unicode
-from IPython.utils.py3compat import cast_unicode
 
 
 class LaTeXTool(SingletonConfigurable):
@@ -58,8 +57,9 @@ class LaTeXTool(SingletonConfigurable):
         ).tag(config=True)
 
 
-def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
-                 scale=1.0):
+def latex_to_png(
+    s: str, encode=False, backend=None, wrap=False, color="Black", scale=1.0
+):
     """Render a LaTeX string to PNG.
 
     Parameters
@@ -80,7 +80,7 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
     None is returned when the backend cannot be used.
 
     """
-    s = cast_unicode(s)
+    assert isinstance(s, str)
     allowed_backends = LaTeXTool.instance().backends
     if backend is None:
         backend = allowed_backends[0]
