@@ -628,3 +628,11 @@ KEY_BINDINGS = [
     *SIMPLE_CONTROL_BINDINGS,
     *ALT_AND_COMOBO_CONTROL_BINDINGS,
 ]
+
+UNASSIGNED_ALLOWED_COMMANDS = [
+    nc.beginning_of_buffer,
+    nc.end_of_buffer,
+    nc.end_of_line,
+    nc.forward_word,
+    nc.unix_line_discard,
+]
