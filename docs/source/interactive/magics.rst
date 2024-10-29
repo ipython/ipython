@@ -16,7 +16,7 @@ Here is the help auto-generated from the docstrings of all the available Magics
 functions that IPython ships with. 
 
 You can create and register your own Magics with IPython. You can find many user
-defined Magics on `PyPI <https://pypi.io>`_. Feel free to publish your own and
+defined Magics on `PyPI <https://pypi.org>`_. Feel free to publish your own and
 use the ``Framework :: IPython`` trove classifier. 
 
 
