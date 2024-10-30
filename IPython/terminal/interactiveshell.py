@@ -515,10 +515,12 @@ class TerminalInteractiveShell(InteractiveShell):
             create_identifier(binding.command): binding.command
             for binding in KEY_BINDINGS
         }
-        allowed_commands.update({
+        allowed_commands.update(
+            {
                 create_identifier(command): command
                 for command in UNASSIGNED_ALLOWED_COMMANDS
-        })
+            }
+        )
         shortcuts_to_skip = []
         shortcuts_to_add = []
 
@@ -591,12 +593,14 @@ class TerminalInteractiveShell(InteractiveShell):
                     RuntimeBinding(
                         command,
                         keys=new_keys or old_keys,
-                        filter=filter_from_string(new_filter)
-                        if new_filter is not None
-                        else (
-                            old_filter
-                            if old_filter is not None
-                            else filter_from_string("always")
+                        filter=(
+                            filter_from_string(new_filter)
+                            if new_filter is not None
+                            else (
+                                old_filter
+                                if old_filter is not None
+                                else filter_from_string("always")
+                            )
                         ),
                     )
                 )
