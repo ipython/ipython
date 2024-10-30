@@ -170,7 +170,7 @@ try:
             # not really a cl-arg, fallback on _process_common
             return py_arg_split(commandline, posix=posix, strict=strict)
         argvn = c_int()
-        result_pointer = CommandLineToArgvW(py3compat.cast_unicode(commandline.lstrip()), ctypes.byref(argvn))
+        result_pointer = CommandLineToArgvW(commandline.lstrip(), ctypes.byref(argvn))
         result_array_type = LPCWSTR * argvn.value
         result = [arg for arg in result_array_type.from_address(ctypes.addressof(result_pointer.contents))]
         retval = LocalFree(result_pointer)
