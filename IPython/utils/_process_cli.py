@@ -35,6 +35,7 @@ def system(cmd):
     # Start up process:
     reg = System.Diagnostics.Process.Start(psi)
 
+
 def getoutput(cmd):
     """
     getoutput(cmd) should work in a cli environment on Mac OSX, Linux,
@@ -53,6 +54,7 @@ def getoutput(cmd):
     error = myError.ReadToEnd()
     return output
 
+
 def check_pid(pid):
     """
     Check if a process with the given PID (pid) exists
@@ -66,4 +68,4 @@ def check_pid(pid):
         return True
     except System.ArgumentException:
         # process with given pid isn't running
-        return False 
+        return False
