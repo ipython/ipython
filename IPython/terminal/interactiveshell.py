@@ -586,12 +586,14 @@ class TerminalInteractiveShell(InteractiveShell):
                     RuntimeBinding(
                         command,
                         keys=new_keys or old_keys,
-                        filter=filter_from_string(new_filter)
-                        if new_filter is not None
-                        else (
-                            old_filter
-                            if old_filter is not None
-                            else filter_from_string("always")
+                        filter=(
+                            filter_from_string(new_filter)
+                            if new_filter is not None
+                            else (
+                                old_filter
+                                if old_filter is not None
+                                else filter_from_string("always")
+                            )
                         ),
                     )
                 )

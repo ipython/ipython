@@ -160,14 +160,16 @@ def test_get_ipython_dir_8():
         # test only when HOME directory actually writable
         return
 
-    with patch.object(paths, "_writable_dir", lambda path: bool(path)), patch.object(
-        paths, "get_xdg_dir", return_value=None
-    ), modified_env(
-        {
-            "IPYTHON_DIR": None,
-            "IPYTHONDIR": None,
-            "HOME": "/",
-        }
+    with (
+        patch.object(paths, "_writable_dir", lambda path: bool(path)),
+        patch.object(paths, "get_xdg_dir", return_value=None),
+        modified_env(
+            {
+                "IPYTHON_DIR": None,
+                "IPYTHONDIR": None,
+                "HOME": "/",
+            }
+        ),
     ):
         assert paths.get_ipython_dir() == "/.ipython"
 
