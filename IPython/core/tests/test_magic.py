@@ -827,7 +827,7 @@ def test_prun_special_syntax():
 @dec.skipif(execution.profile is None)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
-    _ip.magic(r"prun -q x = '\t'")
+    _ip.run_line_magic("prun", r"-q x = '\t'")
     assert _ip.user_ns["x"] == "\t"
 
 
@@ -838,7 +838,7 @@ def test_extension():
         print(' ', p)
     print('CWD', os.getcwd())
 
-    pytest.raises(ImportError, _ip.magic, "load_ext daft_extension")
+    pytest.raises(ImportError, _ip.run_line_magic, "load_ext", "daft_extension")
     daft_path = os.path.join(os.path.dirname(__file__), "daft_extension")
     sys.path.insert(0, daft_path)
     try:
