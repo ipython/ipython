@@ -4,6 +4,7 @@ Utilities function for keybinding with prompt toolkit.
 This will be bound to specific key press and filter modes,
 like whether we are in edit mode, and whether the completer is open.
 """
+
 import re
 from prompt_toolkit.key_binding import KeyPressEvent
 

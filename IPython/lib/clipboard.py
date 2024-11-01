@@ -1,5 +1,6 @@
 """ Utilities for accessing the platform's clipboard.
 """
+
 import os
 import subprocess
 

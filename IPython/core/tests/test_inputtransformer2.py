@@ -4,6 +4,7 @@ Line-based transformers are the simpler ones; token-based transformers are
 more complex. See test_inputtransformer2_line for tests for line-based
 transformations.
 """
+
 import platform
 import string
 import sys
