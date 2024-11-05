@@ -84,7 +84,7 @@ mathematical frameworks that want to handle e.g. ``1/3`` as a precise fraction::
     class IntegerWrapper(ast.NodeTransformer):
         """Wraps all integers in a call to Integer()"""
         def visit_Num(self, node):
-            if isinstance(node.n, int):
+            if isinstance(node.value, int):
                 return ast.Call(func=ast.Name(id='Integer', ctx=ast.Load()),
                                 args=[node], keywords=[])
             return node

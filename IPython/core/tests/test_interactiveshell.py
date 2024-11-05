@@ -721,7 +721,7 @@ class Negator(ast.NodeTransformer):
     """Negates all number literals in an AST."""
 
     def visit_Num(self, node):
-        node.n = -node.n
+        node.value = -node.value
         return node
 
     def visit_Constant(self, node):
