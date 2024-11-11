@@ -157,10 +157,10 @@ class CrashHandler(object):
         # Use this ONLY for developer debugging (keep commented out for release)
         #color_scheme = 'Linux'   # dbg
         try:
-            rptdir = self.app.ipython_dir
+            rptdir = Path(self.app.ipython_dir)
         except:
             rptdir = Path.cwd()
-        if rptdir is None or not Path.is_dir(rptdir):
+        if not rptdir.is_dir():
             rptdir = Path.cwd()
         report_name = rptdir / self.crash_report_fname
         # write the report filename into the instance dict so it can get
