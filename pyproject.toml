@@ -137,14 +137,26 @@ exclude = [
    'IPython/utils/_process_win32.py',
    'IPython/utils/path.py',
 ]
-disallow_untyped_defs = true
+# check_untyped_defs = true
+# disallow_untyped_calls = true
+# disallow_untyped_decorators = true
 # ignore_errors = false
 # ignore_missing_imports = false
-# disallow_untyped_calls = true
 disallow_incomplete_defs = true
-# check_untyped_defs = true
-# disallow_untyped_decorators = true
+disallow_untyped_defs = true
 warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = [
+    "IPython.core.crashhandler",
+]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+ignore_errors = false
+ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
 module = [
@@ -165,6 +177,7 @@ disallow_incomplete_defs = false
 check_untyped_defs = false
 disallow_untyped_decorators = false
 
+
 # gloabl ignore error
 [[tool.mypy.overrides]]
 module = [
@@ -177,7 +190,6 @@ module = [
     "IPython.core.compilerop",
     "IPython.core.completer",
     "IPython.core.completerlib",
-    "IPython.core.crashhandler",
     "IPython.core.debugger",
     "IPython.core.display",
     "IPython.core.display_functions",
