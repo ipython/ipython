@@ -164,7 +164,7 @@ class CrashHandler:
 
         # Use this ONLY for developer debugging (keep commented out for release)
         # color_scheme = 'Linux'   # dbg
-        ipython_dir = getattr(self.app, "ipython_dir")
+        ipython_dir = getattr(self.app, "ipython_dir", None)
         if ipython_dir is not None:
             assert isinstance(ipython_dir, str)
             rptdir = Path(ipython_dir)
