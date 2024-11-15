@@ -24,14 +24,17 @@ import traceback
 from pprint import pformat
 from pathlib import Path
 
+import builtins as builtin_mod
+
 from IPython.core import ultratb
+from IPython.core.application import Application
 from IPython.core.release import author_email
 from IPython.utils.sysinfo import sys_info
-from IPython.utils.py3compat import input
 
 from IPython.core.release import __version__ as version
 
-from typing import Optional
+from typing import Optional, Dict
+import types
 
 #-----------------------------------------------------------------------------
 # Code
@@ -84,7 +87,7 @@ Extra-detailed tracebacks for bug-reporting purposes can be enabled via:
 """
 
 
-class CrashHandler(object):
+class CrashHandler:
     """Customizable crash handlers for IPython applications.
 
     Instances of this class provide a :meth:`__call__` method which can be
@@ -95,10 +98,11 @@ class CrashHandler(object):
 
     message_template = _default_message_template
     section_sep = '\n\n'+'*'*75+'\n\n'
+    info: Dict[str, Optional[str]]
 
     def __init__(
         self,
-        app,
+        app: Application,
         contact_name: Optional[str] = None,
         contact_email: Optional[str] = None,
         bug_tracker: Optional[str] = None,
@@ -142,10 +146,14 @@ class CrashHandler(object):
                     bug_tracker = bug_tracker,
                     crash_report_fname = self.crash_report_fname)
 
-
-    def __call__(self, etype, evalue, etb):
+    def __call__(
+        self,
+        etype: type[BaseException],
+        evalue: BaseException,
+        etb: types.TracebackType,
+    ) -> None:
         """Handle an exception, call for compatible with sys.excepthook"""
-        
+
         # do not allow the crash handler to be called twice without reinstalling it
         # this prevents unlikely errors in the crash handling from entering an
         # infinite loop.
@@ -155,21 +163,23 @@ class CrashHandler(object):
         color_scheme = 'NoColor'
 
         # Use this ONLY for developer debugging (keep commented out for release)
-        #color_scheme = 'Linux'   # dbg
-        try:
-            rptdir = self.app.ipython_dir
-        except:
+        # color_scheme = 'Linux'   # dbg
+        ipython_dir = getattr(self.app, "ipython_dir", None)
+        if ipython_dir is not None:
+            assert isinstance(ipython_dir, str)
+            rptdir = Path(ipython_dir)
+        else:
             rptdir = Path.cwd()
-        if rptdir is None or not Path.is_dir(rptdir):
+        if not rptdir.is_dir():
             rptdir = Path.cwd()
         report_name = rptdir / self.crash_report_fname
         # write the report filename into the instance dict so it can get
         # properly expanded out in the user message template
-        self.crash_report_fname = report_name
-        self.info['crash_report_fname'] = report_name
+        self.crash_report_fname = str(report_name)
+        self.info["crash_report_fname"] = str(report_name)
         TBhandler = ultratb.VerboseTB(
             color_scheme=color_scheme,
-            long_header=1,
+            long_header=True,
             call_pdb=self.call_pdb,
         )
         if self.call_pdb:
@@ -195,11 +205,11 @@ class CrashHandler(object):
             print(self.message_template.format(**self.info), file=sys.stderr)
 
             # Construct report on disk
-            report.write(self.make_report(traceback))
+            report.write(self.make_report(str(traceback)))
 
-        input("Hit <Enter> to quit (your terminal may close):")
+        builtin_mod.input("Hit <Enter> to quit (your terminal may close):")
 
-    def make_report(self,traceback):
+    def make_report(self, traceback: str) -> str:
         """Return a string containing a crash report."""
 
         sec_sep = self.section_sep
@@ -211,8 +221,8 @@ class CrashHandler(object):
         try:
             config = pformat(self.app.config)
             rpt_add(sec_sep)
-            rpt_add('Application name: %s\n\n' % self.app_name)
-            rpt_add('Current user configuration structure:\n\n')
+            rpt_add("Application name: %s\n\n" % self.app.name)
+            rpt_add("Current user configuration structure:\n\n")
             rpt_add(config)
         except:
             pass
@@ -221,7 +231,9 @@ class CrashHandler(object):
         return ''.join(report)
 
 
-def crash_handler_lite(etype, evalue, tb):
+def crash_handler_lite(
+    etype: type[BaseException], evalue: BaseException, tb: types.TracebackType
+) -> None:
     """a light excepthook, adding a small message to the usual traceback"""
     traceback.print_exception(etype, evalue, tb)
     
