@@ -1,5 +1,3 @@
-title = "Sphinx configuration"
-
 [sphinx]
 templates_path = ["_templates"]
 master_doc = "index"
@@ -28,17 +26,17 @@ default_role = "literal"
 modindex_common_prefix = ["IPython."]
 
 [intersphinx_mapping]
-python = { url = 'https://docs.python.org/3/', fallback = '' }
-rpy2 = { url = 'https://rpy2.github.io/doc/latest/html/', fallback = '' }
-jupyterclient = { url = 'https://jupyter-client.readthedocs.io/en/latest/', fallback = '' }
-jupyter = { url = 'https://jupyter.readthedocs.io/en/latest/', fallback = '' }
-jedi = { url = 'https://jedi.readthedocs.io/en/latest/', fallback = '' }
-traitlets = { url = 'https://traitlets.readthedocs.io/en/latest/', fallback = '' }
-ipykernel = { url = 'https://ipykernel.readthedocs.io/en/latest/', fallback = '' }
-prompt_toolkit = { url = 'https://python-prompt-toolkit.readthedocs.io/en/stable/', fallback = '' }
-ipywidgets = { url = 'https://ipywidgets.readthedocs.io/en/stable/', fallback = '' }
-ipyparallel = { url = 'https://ipyparallel.readthedocs.io/en/stable/', fallback = '' }
-pip = { url = 'https://pip.pypa.io/en/stable/', fallback = '' }
+python = { url = 'https://docs.python.org/3', fallback = '' }
+rpy2 = { url = 'https://rpy2.github.io/doc/latest/html', fallback = '' }
+jupyterclient = { url = 'https://jupyter-client.readthedocs.io/en/latest', fallback = '' }
+jupyter = { url = 'https://jupyter.readthedocs.io/en/latest', fallback = '' }
+jedi = { url = 'https://jedi.readthedocs.io/en/latest', fallback = '' }
+traitlets = { url = 'https://traitlets.readthedocs.io/en/latest', fallback = '' }
+ipykernel = { url = 'https://ipykernel.readthedocs.io/en/latest', fallback = '' }
+prompt_toolkit = { url = 'https://python-prompt-toolkit.readthedocs.io/en/stable', fallback = '' }
+ipywidgets = { url = 'https://ipywidgets.readthedocs.io/en/stable', fallback = '' }
+ipyparallel = { url = 'https://ipyparallel.readthedocs.io/en/stable', fallback = '' }
+pip = { url = 'https://pip.pypa.io/en/stable', fallback = '' }
 
 [html]
 html_theme = "sphinx_rtd_theme"
@@ -60,11 +58,8 @@ warning_is_error = "True"
 
 [latex]
 latex_documents = [
-    ['index', 'ipython.tex', 'IPython Documentation',
-     'The IPython Development Team', 'manual', 'True'],
-    ['parallel/winhpc_index', 'winhpc_whitepaper.tex',
-     'Using IPython on Windows HPC Server 2008',
-     "Brian E. Granger", 'manual', 'True']
+    ['index', 'ipython.tex', 'IPython Documentation', 'The IPython Development Team', 'manual', 'True'],
+    ['parallel/winhpc_index', 'winhpc_whitepaper.tex', 'Using IPython on Windows HPC Server 2008', "Brian E. Granger", 'manual', 'True']
 ]
 latex_use_modindex = "True"
 latex_font_size = "11pt"
