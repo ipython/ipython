@@ -149,8 +149,6 @@ try:
 except ImportError:
     sphinxify = None
 
-if sys.version_info[:2] < (3, 11):
-    from exceptiongroup import BaseExceptionGroup
 
 class ProvisionalWarning(DeprecationWarning):
     """

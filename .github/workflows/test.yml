@@ -21,13 +21,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12","3.13"]
+        python-version: ["3.11", "3.12","3.13"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
-          - os: macos-latest
-            python-version: "3.10"
-            deps: test_extra
           - os: macos-latest
             python-version: "3.11"
             deps: test_extra
@@ -41,13 +38,13 @@ jobs:
             deps: test
           # Installing optional dependencies stuff takes ages on PyPy
           - os: ubuntu-latest
-            python-version: "pypy-3.10"
+            python-version: "pypy-3.11"
             deps: test
           - os: windows-latest
-            python-version: "pypy-3.10"
+            python-version: "pypy-3.11"
             deps: test
           - os: macos-latest
-            python-version: "pypy-3.10"
+            python-version: "pypy-3.11"
             deps: test
           # Temporary CI run to use entry point compatible code in matplotlib-inline.
           - os: ubuntu-latest

@@ -242,6 +242,10 @@ from traitlets.config.configurable import Configurable
 
 import __main__
 
+from typing import cast
+from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
+
+
 # skip module docstests
 __skip_doctest__ = True
 
@@ -256,22 +260,7 @@ except ImportError:
     JEDI_INSTALLED = False
 
 
-if TYPE_CHECKING or GENERATING_DOCUMENTATION and sys.version_info >= (3, 11):
-    from typing import cast
-    from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
-else:
-    from typing import Generic
 
-    def cast(type_, obj):
-        """Workaround for `TypeError: MatcherAPIv2() takes no arguments`"""
-        return obj
-
-    # do not require on runtime
-    NotRequired = Tuple  # requires Python >=3.11
-    TypedDict = Dict  # by extension of `NotRequired` requires 3.11 too
-    Protocol = object  # requires Python >=3.8
-    TypeAlias = Any  # requires Python >=3.10
-    TypeGuard = Generic  # requires Python >=3.10
 if GENERATING_DOCUMENTATION:
     from typing import TypedDict
 
