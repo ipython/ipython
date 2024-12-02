@@ -118,7 +118,7 @@ except ModuleNotFoundError:
     intersphinx_mapping = config["intersphinx_mapping"]
     for k, v in intersphinx_mapping.items():
         intersphinx_mapping[k] = tuple(
-            [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"]]
+            [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"] or None]
         )
 
 
