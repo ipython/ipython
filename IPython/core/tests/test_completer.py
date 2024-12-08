@@ -9,9 +9,9 @@ import pytest
 import sys
 import textwrap
 import unittest
+import random
 
 from importlib.metadata import version
-
 
 from contextlib import contextmanager
 
@@ -21,6 +21,7 @@ from IPython.core import completer
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
 from IPython.testing import decorators as dec
+from IPython.core.latex_symbols import latex_symbols
 
 from IPython.core.completer import (
     Completion,
@@ -31,9 +32,22 @@ from IPython.core.completer import (
     completion_matcher,
     SimpleCompletion,
     CompletionContext,
+    _unicode_name_compute,
+    _UNICODE_RANGES,
 )
 
 from packaging.version import parse
+
+
+@contextmanager
+def jedi_status(status: bool):
+    completer = get_ipython().Completer
+    try:
+        old = completer.use_jedi
+        completer.use_jedi = status
+        yield
+    finally:
+        completer.use_jedi = old
 
 
 # -----------------------------------------------------------------------------
@@ -66,7 +80,7 @@ def recompute_unicode_ranges():
     rg = list(ranges(valid))
     lens = []
     gap_lens = []
-    pstart, pstop = 0, 0
+    _pstart, pstop = 0, 0
     for start, stop in rg:
         lens.append(stop - start)
         gap_lens.append(
@@ -77,7 +91,7 @@ def recompute_unicode_ranges():
                 f"{round((start - pstop)/0xe01f0*100)}%",
             )
         )
-        pstart, pstop = start, stop
+        _pstart, pstop = start, stop
 
     return sorted(gap_lens)[-1]
 
@@ -87,7 +101,6 @@ def test_unicode_range():
     Test that the ranges we test for unicode names give the same number of
     results than testing the full length.
     """
-    from IPython.core.completer import _unicode_name_compute, _UNICODE_RANGES
 
     expected_list = _unicode_name_compute([(0, 0x110000)])
     test = _unicode_name_compute(_UNICODE_RANGES)
@@ -148,45 +161,45 @@ def custom_matchers(matchers):
         ip.Completer.custom_matchers.clear()
 
 
-def test_protect_filename():
-    if sys.platform == "win32":
-        pairs = [
-            ("abc", "abc"),
-            (" abc", '" abc"'),
-            ("a bc", '"a bc"'),
-            ("a  bc", '"a  bc"'),
-            ("  bc", '"  bc"'),
-        ]
-    else:
-        pairs = [
-            ("abc", "abc"),
-            (" abc", r"\ abc"),
-            ("a bc", r"a\ bc"),
-            ("a  bc", r"a\ \ bc"),
-            ("  bc", r"\ \ bc"),
-            # On posix, we also protect parens and other special characters.
-            ("a(bc", r"a\(bc"),
-            ("a)bc", r"a\)bc"),
-            ("a( )bc", r"a\(\ \)bc"),
-            ("a[1]bc", r"a\[1\]bc"),
-            ("a{1}bc", r"a\{1\}bc"),
-            ("a#bc", r"a\#bc"),
-            ("a?bc", r"a\?bc"),
-            ("a=bc", r"a\=bc"),
-            ("a\\bc", r"a\\bc"),
-            ("a|bc", r"a\|bc"),
-            ("a;bc", r"a\;bc"),
-            ("a:bc", r"a\:bc"),
-            ("a'bc", r"a\'bc"),
-            ("a*bc", r"a\*bc"),
-            ('a"bc', r"a\"bc"),
-            ("a^bc", r"a\^bc"),
-            ("a&bc", r"a\&bc"),
-        ]
-    # run the actual tests
-    for s1, s2 in pairs:
-        s1p = completer.protect_filename(s1)
-        assert s1p == s2
+if sys.platform == "win32":
+    pairs = [
+        ("abc", "abc"),
+        (" abc", '" abc"'),
+        ("a bc", '"a bc"'),
+        ("a  bc", '"a  bc"'),
+        ("  bc", '"  bc"'),
+    ]
+else:
+    pairs = [
+        ("abc", "abc"),
+        (" abc", r"\ abc"),
+        ("a bc", r"a\ bc"),
+        ("a  bc", r"a\ \ bc"),
+        ("  bc", r"\ \ bc"),
+        # On posix, we also protect parens and other special characters.
+        ("a(bc", r"a\(bc"),
+        ("a)bc", r"a\)bc"),
+        ("a( )bc", r"a\(\ \)bc"),
+        ("a[1]bc", r"a\[1\]bc"),
+        ("a{1}bc", r"a\{1\}bc"),
+        ("a#bc", r"a\#bc"),
+        ("a?bc", r"a\?bc"),
+        ("a=bc", r"a\=bc"),
+        ("a\\bc", r"a\\bc"),
+        ("a|bc", r"a\|bc"),
+        ("a;bc", r"a\;bc"),
+        ("a:bc", r"a\:bc"),
+        ("a'bc", r"a\'bc"),
+        ("a*bc", r"a\*bc"),
+        ('a"bc', r"a\"bc"),
+        ("a^bc", r"a\^bc"),
+        ("a&bc", r"a\&bc"),
+    ]
+
+
+@pytest.mark.parametrize("s1,expected", pairs)
+def test_protect_filename(s1, expected):
+    assert completer.protect_filename(s1) == expected
 
 
 def check_line_split(splitter, test_specs):
@@ -297,8 +310,6 @@ class TestCompleter(unittest.TestCase):
             self.assertIsInstance(matches, list)
 
     def test_latex_completions(self):
-        from IPython.core.latex_symbols import latex_symbols
-        import random
 
         ip = get_ipython()
         # Test some random unicode symbols
@@ -1732,6 +1743,45 @@ class TestCompleter(unittest.TestCase):
             _(["completion_b"])
             a_matcher.matcher_priority = 3
             _(["completion_a"])
+
+
+@pytest.mark.parametrize(
+    "setup,code,expected,not_expected",
+    [
+        ('a="str"; b=1', "(a, b.", [".bit_count", ".conjugate"], [".count"]),
+        ('a="str"; b=1', "(a, b).", [".count"], [".bit_count", ".capitalize"]),
+        ('x="str"; y=1', "x = {1, y.", [".bit_count"], [".count"]),
+        ('x="str"; y=1', "x = [1, y.", [".bit_count"], [".count"]),
+        ('x="str"; y=1; fun=lambda x:x', "x = fun(1, y.", [".bit_count"], [".count"]),
+    ],
+)
+def test_misc_no_jedi_completions(setup, code, expected, not_expected):
+    ip = get_ipython()
+    c = ip.Completer
+    ip.ex(setup)
+    with provisionalcompleter(), jedi_status(False):
+        matches = c.all_completions(code)
+        assert set(expected) - set(matches) == set(), set(matches)
+        assert set(matches).intersection(set(not_expected)) == set()
+
+
+@pytest.mark.parametrize(
+    "code,expected",
+    [
+        (" (a, b", "b"),
+        ("(a, b", "b"),
+        ("(a, b)", ""),  # trim always start by trimming
+        (" (a, b)", "(a, b)"),
+        (" [a, b]", "[a, b]"),
+        (" a, b", "b"),
+        ("x = {1, y", "y"),
+        ("x = [1, y", "y"),
+        ("x = fun(1, y", "y"),
+    ],
+)
+def test_trim_expr(code, expected):
+    c = get_ipython().Completer
+    assert c._trim_expr(code) == expected
 
 
 @pytest.mark.parametrize(
