@@ -184,6 +184,7 @@ import glob
 import inspect
 import itertools
 import keyword
+import ast
 import os
 import re
 import string
@@ -347,7 +348,7 @@ def provisionalcompleter(action='ignore'):
         yield
 
 
-def has_open_quotes(s):
+def has_open_quotes(s: str) -> Union[str, bool]:
     """Return whether a string has open quotes.
 
     This simply counts whether the number of quote characters of either type in
@@ -368,7 +369,7 @@ def has_open_quotes(s):
         return False
 
 
-def protect_filename(s, protectables=PROTECTABLES):
+def protect_filename(s: str, protectables: str = PROTECTABLES) -> str:
     """Escape a string to protect certain characters."""
     if set(s) & set(protectables):
         if sys.platform == "win32":
@@ -449,11 +450,11 @@ def completions_sorting_key(word):
 
     if word.startswith('%%'):
         # If there's another % in there, this is something else, so leave it alone
-        if not "%" in word[2:]:
+        if "%" not in word[2:]:
             word = word[2:]
             prio2 = 2
     elif word.startswith('%'):
-        if not "%" in word[1:]:
+        if "%" not in word[1:]:
             word = word[1:]
             prio2 = 1
 
@@ -752,7 +753,7 @@ def completion_matcher(
     priority: Optional[float] = None,
     identifier: Optional[str] = None,
     api_version: int = 1,
-):
+) -> Callable[[Matcher], Matcher]:
     """Adds attributes describing the matcher.
 
     Parameters
@@ -961,8 +962,8 @@ class CompletionSplitter(object):
     def split_line(self, line, cursor_pos=None):
         """Split a line of text with a cursor at the given position.
         """
-        l = line if cursor_pos is None else line[:cursor_pos]
-        return self._delim_re.split(l)[-1]
+        cut_line = line if cursor_pos is None else line[:cursor_pos]
+        return self._delim_re.split(cut_line)[-1]
 
 
 
@@ -1141,8 +1142,13 @@ class Completer(Configurable):
         """
         return self._attr_matches(text)[0]
 
-    def _attr_matches(self, text, include_prefix=True) -> Tuple[Sequence[str], str]:
-        m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
+    # we simple attribute matching with normal identifiers.
+    _ATTR_MATCH_RE = re.compile(r"(.+)\.(\w*)$")
+
+    def _attr_matches(
+        self, text: str, include_prefix: bool = True
+    ) -> Tuple[Sequence[str], str]:
+        m2 = self._ATTR_MATCH_RE.match(self.line_buffer)
         if not m2:
             return [], ""
         expr, attr = m2.group(1, 2)
@@ -1204,6 +1210,30 @@ class Completer(Configurable):
             "." + attr,
         )
 
+    def _trim_expr(self, code: str) -> str:
+        """
+        Trim the code until it is a valid expression and not a tuple;
+
+        return the trimmed expression for guarded_eval.
+        """
+        while code:
+            code = code[1:]
+            try:
+                res = ast.parse(code)
+            except SyntaxError:
+                continue
+
+            assert res is not None
+            if len(res.body) != 1:
+                continue
+            expr = res.body[0].value
+            if isinstance(expr, ast.Tuple) and not code[-1] == ")":
+                # we skip implicit tuple, like when trimming `fun(a,b`<completion>
+                # as `a,b` would be a tuple, and we actually expect to get only `b`
+                continue
+            return code
+        return ""
+
     def _evaluate_expr(self, expr):
         obj = not_found
         done = False
@@ -1225,14 +1255,14 @@ class Completer(Configurable):
                 # e.g. user starts `(d[`, so we get `expr = '(d'`,
                 # where parenthesis is not closed.
                 # TODO: make this faster by reusing parts of the computation?
-                expr = expr[1:]
+                expr = self._trim_expr(expr)
         return obj
 
 def get__all__entries(obj):
     """returns the strings in the __all__ attribute"""
     try:
         words = getattr(obj, '__all__')
-    except:
+    except Exception:
         return []
 
     return [w for w in words if isinstance(w, str)]
@@ -1447,7 +1477,7 @@ def match_dict_keys(
         try:
             if not str_key.startswith(prefix_str):
                 continue
-        except (AttributeError, TypeError, UnicodeError) as e:
+        except (AttributeError, TypeError, UnicodeError):
             # Python 3+ TypeError on b'a'.startswith('a') or vice-versa
             continue
 
@@ -1495,7 +1525,7 @@ def cursor_to_position(text:str, line:int, column:int)->int:
     lines = text.split('\n')
     assert line <= len(lines), '{} <= {}'.format(str(line), str(len(lines)))
 
-    return sum(len(l) + 1 for l in lines[:line]) + column
+    return sum(len(line) + 1 for line in lines[:line]) + column
 
 def position_to_cursor(text:str, offset:int)->Tuple[int, int]:
     """
@@ -2112,7 +2142,7 @@ class IPCompleter(Completer):
         result["suppress"] = is_magic_prefix and bool(result["completions"])
         return result
 
-    def magic_matches(self, text: str):
+    def magic_matches(self, text: str) -> List[str]:
         """Match magics.
 
         .. deprecated:: 8.6
@@ -2469,7 +2499,8 @@ class IPCompleter(Completer):
         # parenthesis before the cursor
         # e.g. for "foo (1+bar(x), pa<cursor>,a=1)", the candidate is "foo"
         tokens = regexp.findall(self.text_until_cursor)
-        iterTokens = reversed(tokens); openPar = 0
+        iterTokens = reversed(tokens)
+        openPar = 0
 
         for token in iterTokens:
             if token == ')':
@@ -2489,7 +2520,8 @@ class IPCompleter(Completer):
             try:
                 ids.append(next(iterTokens))
                 if not isId(ids[-1]):
-                    ids.pop(); break
+                    ids.pop()
+                    break
                 if not next(iterTokens) == '.':
                     break
             except StopIteration:
@@ -3215,7 +3247,7 @@ class IPCompleter(Completer):
                 else:
                     api_version = _get_matcher_api_version(matcher)
                     raise ValueError(f"Unsupported API version {api_version}")
-            except:
+            except BaseException:
                 # Show the ugly traceback if the matcher causes an
                 # exception, but do NOT crash the kernel!
                 sys.excepthook(*sys.exc_info())
