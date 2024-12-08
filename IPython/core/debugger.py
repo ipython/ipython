@@ -550,7 +550,7 @@ class Pdb(OldPdb):
         So if frame is self.current_frame we instead return self.curframe_locals
 
         """
-        if frame is self.curframe:
+        if frame is getattr(self, "curframe", None):
             return self.curframe_locals
         else:
             return frame.f_locals
