@@ -348,7 +348,7 @@ def provisionalcompleter(action='ignore'):
         yield
 
 
-def has_open_quotes(s):
+def has_open_quotes(s: str) -> Union[str, bool]:
     """Return whether a string has open quotes.
 
     This simply counts whether the number of quote characters of either type in
@@ -369,7 +369,7 @@ def has_open_quotes(s):
         return False
 
 
-def protect_filename(s, protectables=PROTECTABLES):
+def protect_filename(s: str, protectables: str = PROTECTABLES) -> str:
     """Escape a string to protect certain characters."""
     if set(s) & set(protectables):
         if sys.platform == "win32":
@@ -753,7 +753,7 @@ def completion_matcher(
     priority: Optional[float] = None,
     identifier: Optional[str] = None,
     api_version: int = 1,
-):
+) -> Callable[[Matcher], Matcher]:
     """Adds attributes describing the matcher.
 
     Parameters
@@ -1145,8 +1145,9 @@ class Completer(Configurable):
     # we simple attribute matching with normal identifiers.
     _ATTR_MATCH_RE = re.compile(r"(.+)\.(\w*)$")
 
-    def _attr_matches(self, text, include_prefix=True) -> Tuple[Sequence[str], str]:
-
+    def _attr_matches(
+        self, text: str, include_prefix: bool = True
+    ) -> Tuple[Sequence[str], str]:
         m2 = self._ATTR_MATCH_RE.match(self.line_buffer)
         if not m2:
             return [], ""
@@ -2141,7 +2142,7 @@ class IPCompleter(Completer):
         result["suppress"] = is_magic_prefix and bool(result["completions"])
         return result
 
-    def magic_matches(self, text: str):
+    def magic_matches(self, text: str) -> List[str]:
         """Match magics.
 
         .. deprecated:: 8.6
