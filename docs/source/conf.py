@@ -19,10 +19,7 @@
 import sys, os
 from pathlib import Path
 
-if sys.version_info > (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
+import tomllib
 
 with open("./sphinx.toml", "rb") as f:
     config = tomllib.load(f)

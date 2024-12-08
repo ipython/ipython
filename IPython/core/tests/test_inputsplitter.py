@@ -320,12 +320,6 @@ class InputSplitterTestCase(unittest.TestCase):
         self.isp.push(u'\xc3\xa9')
         self.isp.push(u"u'\xc3\xa9'")
 
-    @pytest.mark.xfail(
-        reason="Bug in python 3.9.8 – bpo 45738",
-        condition=sys.version_info in [(3, 11, 0, "alpha", 2)],
-        raises=SystemError,
-        strict=True,
-    )
     def test_line_continuation(self):
         """ Test issue #2108."""
         isp = self.isp
