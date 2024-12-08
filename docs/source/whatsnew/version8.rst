@@ -8,8 +8,8 @@ IPython 8.30
 
 Small release for this end of november;
 
- - :ghpull:`14579` improve the documentatation for cutom IPython formatters, and how
-   you can register formatters for custo mime types.
+ - :ghpull:`14579` improve the documentatation for custom IPython formatters, and how
+   you can register formatters for custom mime types.
  - :ghpull:`14580` fix a bug in which commands that were not assigned a shortcut
    could not be assigned one.
  - :ghpull:`12690` fix a bug in which a single ``/`` on an empty line would not be
