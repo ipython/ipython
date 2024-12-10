@@ -37,15 +37,15 @@ jobs:
             python-version: "3.13"
             deps: test
           # Installing optional dependencies stuff takes ages on PyPy
-          - os: ubuntu-latest
-            python-version: "pypy-3.11"
-            deps: test
-          - os: windows-latest
-            python-version: "pypy-3.11"
-            deps: test
-          - os: macos-latest
-            python-version: "pypy-3.11"
-            deps: test
+          # - os: ubuntu-latest
+          #   python-version: "pypy-3.11"
+          #   deps: test
+          # - os: windows-latest
+          #   python-version: "pypy-3.11"
+          #   deps: test
+          # - os: macos-latest
+          #   python-version: "pypy-3.11"
+          #   deps: test
           # Temporary CI run to use entry point compatible code in matplotlib-inline.
           - os: ubuntu-latest
             python-version: "3.12"
@@ -85,7 +85,7 @@ jobs:
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: check-manifest
 
-    - name: Install entry point compatible code (TEMPORARY)
+    - name: Install entry point compatible code (TEMPORARY, April 2024)
       if: matrix.want-latest-entry-point-code
       run: |
         python -m pip list
