@@ -132,22 +132,3 @@ def temp_pyfile(src, ext='.py'):
         f.write(src)
         f.flush()
     return fname
-
-
-@undoc
-def raw_print(*args, **kw):
-    """DEPRECATED: Raw print to sys.__stdout__, otherwise identical interface to print()."""
-    warn("IPython.utils.io.raw_print has been deprecated since IPython 7.0", DeprecationWarning, stacklevel=2)
-
-    print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
-          file=sys.__stdout__)
-    sys.__stdout__.flush()
-
-@undoc
-def raw_print_err(*args, **kw):
-    """DEPRECATED: Raw print to sys.__stderr__, otherwise identical interface to print()."""
-    warn("IPython.utils.io.raw_print_err has been deprecated since IPython 7.0", DeprecationWarning, stacklevel=2)
-
-    print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
-          file=sys.__stderr__)
-    sys.__stderr__.flush()
