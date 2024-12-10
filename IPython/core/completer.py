@@ -260,7 +260,6 @@ except ImportError:
     JEDI_INSTALLED = False
 
 
-
 if GENERATING_DOCUMENTATION:
     from typing import TypedDict
 
