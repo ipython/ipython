@@ -348,7 +348,6 @@ addopts = [
    "--ignore=IPython/utils/localinterfaces.py",
    "--ignore=IPython/utils/log.py",
    "--ignore=IPython/utils/signatures.py",
-   "--ignore=IPython/utils/traitlets.py",
    "--ignore=IPython/utils/version.py"
 ]
 doctest_optionflags = [
