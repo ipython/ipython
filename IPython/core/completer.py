@@ -243,7 +243,11 @@ from traitlets.config.configurable import Configurable
 import __main__
 
 from typing import cast
-from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
+
+if sys.version_info < (3, 12):
+    from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
+else:
+    from typing import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 
 
 # skip module docstests
@@ -260,8 +264,6 @@ except ImportError:
     JEDI_INSTALLED = False
 
 
-if GENERATING_DOCUMENTATION:
-    from typing import TypedDict
 
 # -----------------------------------------------------------------------------
 # Globals
