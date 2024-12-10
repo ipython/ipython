@@ -17,7 +17,6 @@ codecov:
 ignore:
   - IPython/kernel/*
   - IPython/consoleapp.py
-  - IPython/core/inputsplitter.py
   - IPython/lib/kernel.py
   - IPython/utils/jsonutil.py
   - IPython/utils/localinterfaces.py
