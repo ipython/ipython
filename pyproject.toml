@@ -292,7 +292,6 @@ module = [
     "IPython.utils.process",
     "IPython.utils.py3compat",
     "IPython.utils.sentinel",
-    "IPython.utils.shimmodule",
     "IPython.utils.strdispatch",
     "IPython.utils.sysinfo",
     "IPython.utils.syspathcontext",
