@@ -19,10 +19,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10"]
+        python-version: ["3.13"]
         include:
           - os: macos-13
-            python-version: "3.10"
+            python-version: "3.13"
 
     steps:
     - uses: actions/checkout@v4

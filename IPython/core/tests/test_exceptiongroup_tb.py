@@ -13,7 +13,6 @@ def _exceptiongroup_common(
     native: bool,
 ) -> None:
     pre_raise = "exceptiongroup." if not native else ""
-    pre_catch = pre_raise if sys.version_info < (3, 11) else ""
     filestr = f"""
     {"import exceptiongroup" if not native else ""}
     import pytest
@@ -42,7 +41,7 @@ def _exceptiongroup_common(
     def outer(outer_chain, inner_chain):
         try:
             inner(inner_chain)
-        except {pre_catch}BaseExceptionGroup as e:
+        except BaseExceptionGroup as e:
             if outer_chain == "none":
                 raise
             if outer_chain == "from":
@@ -68,7 +67,7 @@ def _exceptiongroup_common(
 
     match_lines += [
         "  + Exception Group Traceback (most recent call last):",
-        f"  | {pre_catch}BaseExceptionGroup: Oops (2 sub-exceptions)",
+        "  | BaseExceptionGroup: Oops (2 sub-exceptions)",
         "    | ValueError: From f()",
         "    | BaseException: From g()",
     ]
@@ -96,9 +95,6 @@ def _exceptiongroup_common(
             assert False, f"{expected} not found in cap.stderr"
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 11), reason="Native ExceptionGroup not implemented"
-)
 @pytest.mark.parametrize("outer_chain", ["none", "from", "another"])
 @pytest.mark.parametrize("inner_chain", ["none", "from", "another"])
 def test_native_exceptiongroup(outer_chain, inner_chain) -> None:

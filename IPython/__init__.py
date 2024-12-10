@@ -26,9 +26,10 @@ import sys
 #-----------------------------------------------------------------------------
 
 # Don't forget to also update setup.py when this changes!
-if sys.version_info < (3, 10):
+if sys.version_info < (3, 11):
     raise ImportError(
         """
+IPython 8.31+ supports Python 3.11 and above, following SPEC0
 IPython 8.19+ supports Python 3.10 and above, following SPEC0.
 IPython 8.13+ supports Python 3.9 and above, following NEP 29.
 IPython 8.0-8.12 supports Python 3.8 and above, following NEP 29.

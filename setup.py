@@ -23,7 +23,7 @@ import sys
 #
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info < (3, 10):
+if sys.version_info < (3, 11):
     pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
     try:
         import pip
@@ -39,18 +39,10 @@ if sys.version_info < (3, 10):
 
 
     error = """
+(information not available for more recent version of IPython)
 IPython 8.19+ supports Python 3.10 and above, following SPEC0
 IPython 8.13+ supports Python 3.9 and above, following NEP 29.
 IPython 8.0-8.12 supports Python 3.8 and above, following NEP 29.
-When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
-Python 3.3 and 3.4 were supported up to IPython 6.x.
-Python 3.5 was supported with IPython 7.0 to 7.9.
-Python 3.6 was supported with IPython up to 7.16.
-Python 3.7 was still supported with the 7.x branch.
-
-See IPython `README.rst` file for more information:
-
-    https://github.com/ipython/ipython/blob/main/README.rst
 
 Python {py} detected.
 {pip}

@@ -20,11 +20,10 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: System :: Shells",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     'colorama; sys_platform == "win32"',
     "decorator",
-    "exceptiongroup; python_version<'3.11'",
     "jedi>=0.16",
     "matplotlib-inline",
     'pexpect>4.3; sys_platform != "win32" and sys_platform != "emscripten"',
@@ -71,8 +70,6 @@ doc = [
     "sphinx-rtd-theme",
     "sphinx>=1.3",
     "sphinxcontrib-jquery",
-    "tomli ; python_version<'3.11'",
-    "typing_extensions",
 ]
 kernel = [
     "ipykernel",
