@@ -9,6 +9,7 @@ import abc
 import functools
 import re
 import tokenize
+import warnings
 from tokenize import untokenize, TokenError
 from io import StringIO
 
@@ -42,7 +43,16 @@ ESC_SEQUENCES = [ESC_SHELL, ESC_SH_CAP, ESC_HELP ,\
 
 class InputTransformer(metaclass=abc.ABCMeta):
     """Abstract base class for line-based input transformers."""
-    
+
+    def __init__(self):
+        warnings.warn(
+            "`InputTransformer` has been deprecated since IPython 7.0"
+            " and emit a warnig since IPython 8.31, it"
+            " will be removed in the future",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     @abc.abstractmethod
     def push(self, line):
         """Send a line of input to the transformer, returning the transformed
@@ -78,6 +88,14 @@ class InputTransformer(metaclass=abc.ABCMeta):
 class StatelessInputTransformer(InputTransformer):
     """Wrapper for a stateless input transformer implemented as a function."""
     def __init__(self, func):
+        super().__init__()
+        warnings.warn(
+            "`StatelessInputTransformer` has been deprecated since IPython 7.0"
+            " and emit a warnig since IPython 8.31, it"
+            " will be removed in the future",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.func = func
     
     def __repr__(self):
@@ -96,6 +114,14 @@ class CoroutineInputTransformer(InputTransformer):
     """Wrapper for an input transformer implemented as a coroutine."""
     def __init__(self, coro, **kwargs):
         # Prime it
+        super().__init__()
+        warnings.warn(
+            "`CoroutineInputTransformer` has been deprecated since IPython 7.0"
+            " and emit a warnig since IPython 8.31, it"
+            " will be removed in the future",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.coro = coro(**kwargs)
         next(self.coro)
     
@@ -122,6 +148,13 @@ class TokenInputTransformer(InputTransformer):
     return an iterable which can be passed to tokenize.untokenize().
     """
     def __init__(self, func):
+        warnings.warn(
+            "`CoroutineInputTransformer` has been deprecated since IPython 7.0"
+            " and emit a warnig since IPython 8.31, it"
+            " will be removed in the future",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.func = func
         self.buf = []
         self.reset_tokenizer()
@@ -167,7 +200,7 @@ class TokenInputTransformer(InputTransformer):
 
 class assemble_python_lines(TokenInputTransformer):
     def __init__(self):
-        super(assemble_python_lines, self).__init__(None)
+        super().__init__(None)
     
     def output(self, tokens):
         return self.reset()
