@@ -301,7 +301,6 @@ module = [
     "IPython.utils.terminal",
     "IPython.utils.timing",
     "IPython.utils.tokenutil",
-    "IPython.utils.tz",
     "IPython.utils.ulinecache",
     "IPython.utils.version",
     "IPython.utils.wildcard",
