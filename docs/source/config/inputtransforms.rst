@@ -13,7 +13,7 @@ interactive interface. Using them carelessly can easily break IPython!
 String based transformations
 ============================
 
-.. currentmodule:: IPython.core.inputtransforms
+.. currentmodule:: IPython.core.inputtransformers2
 
 When the user enters code, it is first processed as a string. By the
 end of this stage, it must be valid Python syntax.
