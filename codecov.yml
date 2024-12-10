@@ -23,4 +23,3 @@ ignore:
   - IPython/utils/localinterfaces.py
   - IPython/utils/log.py
   - IPython/utils/signatures.py
-  - IPython/utils/traitlets.py
