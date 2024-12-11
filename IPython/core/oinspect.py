@@ -299,42 +299,6 @@ def is_simple_callable(obj):
     return (inspect.isfunction(obj) or inspect.ismethod(obj) or \
             isinstance(obj, _builtin_func_type) or isinstance(obj, _builtin_meth_type))
 
-@undoc
-def getargspec(obj):
-    """Wrapper around :func:`inspect.getfullargspec`
-
-    In addition to functions and methods, this can also handle objects with a
-    ``__call__`` attribute.
-
-    DEPRECATED: Deprecated since 7.10. Do not use, will be removed.
-    """
-
-    warnings.warn('`getargspec` function is deprecated as of IPython 7.10'
-                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
-
-    if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
-        obj = obj.__call__
-
-    return inspect.getfullargspec(obj)
-
-@undoc
-def format_argspec(argspec):
-    """Format argspect, convenience wrapper around inspect's.
-
-    This takes a dict instead of ordered arguments and calls
-    inspect.format_argspec with the arguments in the necessary order.
-
-    DEPRECATED (since 7.10): Do not use; will be removed in future versions.
-    """
-    
-    warnings.warn('`format_argspec` function is deprecated as of IPython 7.10'
-                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
-
-
-    return inspect.formatargspec(argspec['args'], argspec['varargs'],
-                                 argspec['varkw'], argspec['defaults'])
-
-
 def _get_wrapped(obj):
     """Get the original object if wrapped in one or more @decorators
 
