@@ -90,28 +90,6 @@ then
     read
 fi
 
-# if ask_section "Gen Stats, and authors"
-# then
-# 
-#     echo
-#     echo $BLUE"here are all the authors that contributed to this release:"$NOR
-#     git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
-# 
-#     echo
-#     echo $BLUE"If you see any duplicates cancel (Ctrl-C), then edit .mailmap."
-#     echo $GREEN"Press enter to continue:"$NOR
-#     read
-# 
-#     echo $BLUE"generating stats"$NOR
-#     python tools/github_stats.py --milestone $MILESTONE > stats.rst
-# 
-#     echo $BLUE"stats.rst files generated."$NOR
-#     echo $GREEN"Please merge it with the right file (github-stats-X.rst) and commit."$NOR
-#     echo $GREEN"press enter to continue."$NOR
-#     read
-# 
-# fi
-
 # if ask_section "Generate API difference (using frapuccino)"
 # then
 #     echo $BLUE"Checking out $PREV_RELEASE"$NOR

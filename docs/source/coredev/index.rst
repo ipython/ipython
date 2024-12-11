@@ -116,21 +116,6 @@ If a major release:
     - move the contents of ``development.rst`` to ``versionX.rst`` where ``X`` is
       the numerical release version
 
-    - generate summary of GitHub contributions, which can be done with::
-
-          python tools/github_stats.py --milestone $MILESTONE > stats.rst
-
-      which may need some manual cleanup of ``stats.rst``. Add the cleaned
-      ``stats.rst`` results to ``docs/source/whatsnew/github-stats-X.rst``
-      where ``X`` is the numerical release version (don't forget to add it to
-      the git repository as well). If creating a major release, make a new
-      ``github-stats-X.rst`` file; if creating a minor release, the content
-      from ``stats.rst`` may simply be added to the top of an existing
-      ``github-stats-X.rst`` file.
-
-    - Edit ``docs/source/whatsnew/index.rst`` to list the new ``github-stats-X``
-      file you just created.
-
     - You do not need to temporarily remove the first entry called
       ``development``, nor re-add it after the release, it will automatically be
       hidden when releasing a stable version of IPython (if ``_version_extra``
