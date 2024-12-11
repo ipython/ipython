@@ -12,20 +12,20 @@ from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
+    Any,
     Bool,
-    Unicode,
     Dict,
+    Enum,
+    Float,
+    Instance,
     Integer,
     List,
-    observe,
-    Instance,
     Type,
-    default,
-    Enum,
+    Unicode,
     Union,
-    Any,
+    default,
+    observe,
     validate,
-    Float,
 )
 
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -858,13 +858,6 @@ class TerminalInteractiveShell(InteractiveShell):
                 )
 
         return text
-
-    def enable_win_unicode_console(self):
-        # Since IPython 7.10 doesn't support python < 3.6 and PEP 528, Python uses the unicode APIs for the Windows
-        # console by default, so WUC shouldn't be needed.
-        warn("`enable_win_unicode_console` is deprecated since IPython 7.10, does not do anything and will be removed in the future",
-             DeprecationWarning,
-             stacklevel=2)
 
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
