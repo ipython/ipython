@@ -199,7 +199,6 @@ module = [
     "IPython.core.formatters",
     "IPython.core.getipython",
     "IPython.core.guarded_eval",
-    "IPython.core.history",
     "IPython.core.historyapp",
     "IPython.core.hooks",
     "IPython.core.inputtransformer",
