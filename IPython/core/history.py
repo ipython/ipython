@@ -1066,6 +1066,9 @@ def extract_hist_ranges(ranges_str: str) -> Iterable[Tuple[int, int, Optional[in
         return
 
     for range_str in ranges_str.split():
+        if re.match(r'~\d+', range_str):
+            yield (int(range_str.replace("~", "-")), 1, None)
+            continue
         rmatch = range_re.match(range_str)
         if not rmatch:
             continue
