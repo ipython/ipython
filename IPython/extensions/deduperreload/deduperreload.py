@@ -123,6 +123,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 (fname := get_module_file_name(new_module)) is None
                 or "site-packages" in fname
                 or "dist-packages" in fname
+                or not os.access(fname, os.R_OK)
             ):
                 self.source_by_modname[new_modname] = ""
                 continue
