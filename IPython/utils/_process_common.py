@@ -14,18 +14,19 @@ of subprocess utilities, and it contains tools that are common to all of them.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-import subprocess
-import shlex
-import sys
 import os
-from typing import Callable, Optional, Union, List
+import shlex
+import subprocess
+import sys
+from typing import IO, Any, Callable, List, Union
+
 from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Function definitions
 #-----------------------------------------------------------------------------
 
-def read_no_interrupt(p: subprocess.Popen) -> str:
+def read_no_interrupt(stream: IO[Any]) -> bytes:
     """Read from a pipe ignoring EINTR errors.
 
     This is necessary because when reading from pipes with GUI event loops
@@ -34,7 +35,7 @@ def read_no_interrupt(p: subprocess.Popen) -> str:
     import errno
 
     try:
-        return p.read()
+        return stream.read()
     except IOError as err:
         if err.errno != errno.EINTR:
             raise

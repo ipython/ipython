@@ -15,23 +15,23 @@ This file is only meant to be imported by process.py, not by end-users.
 #-----------------------------------------------------------------------------
 
 # stdlib
-import os
-import sys
 import ctypes
-import time
-
-from ctypes import c_int, POINTER
-from ctypes.wintypes import LPCWSTR, HLOCAL
-from subprocess import STDOUT, TimeoutExpired
-from threading import Thread
+import os
 import subprocess
+import sys
+import time
+from ctypes import POINTER, c_int
+from ctypes.wintypes import HLOCAL, LPCWSTR
+from subprocess import STDOUT
+from threading import Thread
+from types import TracebackType
+from typing import IO, Any, List, Optional
 
-from typing import Optional, List
-import traceback
+from . import py3compat
+from ._process_common import arg_split as py_arg_split
 
 # our own imports
-from ._process_common import read_no_interrupt, process_handler, arg_split as py_arg_split
-from . import py3compat
+from ._process_common import process_handler, read_no_interrupt
 from .encoding import DEFAULT_ENCODING
 
 #-----------------------------------------------------------------------------
@@ -72,7 +72,7 @@ class AvoidUNCPath:
             return None
 
     def __exit__(
-        self, exc_type: Optional[type], exc_value: Optional[BaseException], traceback
+        self, exc_type: Optional[type[BaseException]], exc_value: Optional[BaseException], traceback:TracebackType
     ) -> None:
         if self.is_unc_path:
             os.chdir(self.path)
@@ -82,18 +82,23 @@ def _system_body(p: subprocess.Popen) -> int:
     """Callback for _system."""
     enc = DEFAULT_ENCODING
 
+    # Dec 2024: in both of these functions, I'm not sure why we .splitlines()
+    # the bytes and then decode each line individually instead of just decoding
+    # the whole thing at once.
     def stdout_read() -> None:
         try:
-            for line in read_no_interrupt(p.stdout).splitlines():
-                line = line.decode(enc, "replace")
+            assert p.stdout is not None
+            for byte_line in read_no_interrupt(p.stdout).splitlines():
+                line = byte_line.decode(enc, "replace")
                 print(line, file=sys.stdout)
         except Exception as e:
             print(f"Error reading stdout: {e}", file=sys.stderr)
 
     def stderr_read() -> None:
         try:
-            for line in read_no_interrupt(p.stderr).splitlines():
-                line = line.decode(enc, "replace")
+            assert p.stderr is not None
+            for byte_line in read_no_interrupt(p.stderr).splitlines():
+                line = byte_line.decode(enc, "replace")
                 print(line, file=sys.stderr)
         except Exception as e:
             print(f"Error reading stderr: {e}", file=sys.stderr)
@@ -204,7 +209,7 @@ try:
             )
             if arg is not None
         ]
-        retval = LocalFree(result_pointer)
+        LocalFree(result_pointer)
         return result
 except AttributeError:
     arg_split = py_arg_split
