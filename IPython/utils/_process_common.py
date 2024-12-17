@@ -25,7 +25,7 @@ from IPython.utils import py3compat
 # Function definitions
 #-----------------------------------------------------------------------------
 
-def read_no_interrupt(p: subprocess.Popen):
+def read_no_interrupt(p: subprocess.Popen) -> str:
     """Read from a pipe ignoring EINTR errors.
 
     This is necessary because when reading from pipes with GUI event loops
@@ -40,7 +40,11 @@ def read_no_interrupt(p: subprocess.Popen):
             raise
 
 
-def process_handler(cmd:Union[str, List[str]], callback:Callable[[subprocess.Popen], int], stderr=subprocess.PIPE) -> Optional[int]:
+def process_handler(
+    cmd: Union[str, List[str]],
+    callback: Callable[[subprocess.Popen], int],
+    stderr=subprocess.PIPE,
+) -> int:
     """Open a command in a shell subprocess and execute a callback.
 
     This function provides common scaffolding for creating subprocess.Popen()
