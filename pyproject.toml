@@ -131,7 +131,6 @@ exclude = [
    'IPython/lib/deepreload.py',
    'IPython/sphinxext/ipython_directive.py',
    'IPython/terminal/ipapp.py',
-   'IPython/utils/_process_win32.py',
    'IPython/utils/path.py',
 ]
 # check_untyped_defs = true
@@ -334,7 +333,6 @@ addopts = [
    "--ignore=IPython/terminal/console.py",
    "--ignore=IPython/utils/_process_cli.py",
    "--ignore=IPython/utils/_process_posix.py",
-   "--ignore=IPython/utils/_process_win32.py",
    "--ignore=IPython/utils/_process_win32_controller.py",
    "--ignore=IPython/utils/daemonize.py",
    "--ignore=IPython/utils/eventful.py",
