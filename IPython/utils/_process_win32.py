@@ -190,16 +190,18 @@ try:
             return py_arg_split(commandline, posix=posix, strict=strict)
         argvn = c_int()
         result_pointer = CommandLineToArgvW(commandline.lstrip(), ctypes.byref(argvn))
-        result_array_type = LPCWSTR * argvn.value
-        result = [
-            arg
-            for arg in result_array_type.from_address(
-                ctypes.addressof(result_pointer.contents)
-            )
-            if arg is not None
-        ]
-        # for side effects
-        _ = LocalFree(result_pointer)
+        try:
+            result_array_type = LPCWSTR * argvn.value
+            result = [
+                arg
+                for arg in result_array_type.from_address(
+                    ctypes.addressof(result_pointer.contents)
+                )
+                if arg is not None
+            ]
+        finally:
+            # for side effects
+            _ = LocalFree(result_pointer)
         return result
 except AttributeError:
     arg_split = py_arg_split
