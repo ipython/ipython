@@ -24,6 +24,7 @@ from ctypes import c_int, POINTER
 from ctypes.wintypes import LPCWSTR, HLOCAL
 from subprocess import STDOUT, TimeoutExpired
 from threading import Thread
+import subprocess
 
 # our own imports
 from ._process_common import read_no_interrupt, process_handler, arg_split as py_arg_split
@@ -34,7 +35,7 @@ from .encoding import DEFAULT_ENCODING
 # Function definitions
 #-----------------------------------------------------------------------------
 
-class AvoidUNCPath(object):
+class AvoidUNCPath:
     """A context manager to protect command execution from UNC paths.
 
     In the Win32 API, commands can't be invoked with the cwd being a UNC path.
@@ -71,35 +72,50 @@ class AvoidUNCPath(object):
             os.chdir(self.path)
 
 
-def _system_body(p):
+def _system_body(p: subprocess.Popen) -> int:
     """Callback for _system."""
     enc = DEFAULT_ENCODING
 
     def stdout_read():
-        for line in read_no_interrupt(p.stdout).splitlines():
-            line = line.decode(enc, 'replace')
-            print(line, file=sys.stdout)
+        try:
+            for line in read_no_interrupt(p.stdout).splitlines():
+                line = line.decode(enc, 'replace')
+                print(line, file=sys.stdout)
+        except Exception as e:
+            print(f"Error reading stdout: {e}", file=sys.stderr)
 
     def stderr_read():
-        for line in read_no_interrupt(p.stderr).splitlines():
-            line = line.decode(enc, 'replace')
-            print(line, file=sys.stderr)
+        try:
+            for line in read_no_interrupt(p.stderr).splitlines():
+                line = line.decode(enc, 'replace')
+                print(line, file=sys.stderr)
+        except Exception as e:
+            print(f"Error reading stderr: {e}", file=sys.stderr)
 
-    Thread(target=stdout_read).start()
-    Thread(target=stderr_read).start()
+    stdout_thread = Thread(target=stdout_read)
+    stderr_thread = Thread(target=stderr_read)
+
+    stdout_thread.start()
+    stderr_thread.start()
 
     # Wait to finish for returncode. Unfortunately, Python has a bug where
     # wait() isn't interruptible (https://bugs.python.org/issue28168) so poll in
-    # a loop instead of just doing `return p.wait()`.
+    # a loop instead of just doing `return p.wait()`
     while True:
         result = p.poll()
         if result is None:
             time.sleep(0.01)
         else:
-            return result
+            break
+
+    # Join the threads to ensure they complete before returning
+    stdout_thread.join()
+    stderr_thread.join()
+
+    return result
 
 
-def system(cmd):
+def system(cmd: str):
     """Win32 version of os.system() that works with network shares.
 
     Note that this implementation returns None, as meant for use in IPython.
