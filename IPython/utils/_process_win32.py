@@ -2,6 +2,7 @@
 
 This file is only meant to be imported by process.py, not by end-users.
 """
+
 import ctypes
 import os
 import subprocess
@@ -19,7 +20,6 @@ from ._process_common import arg_split as py_arg_split
 
 from ._process_common import process_handler, read_no_interrupt
 from .encoding import DEFAULT_ENCODING
-
 
 
 class AvoidUNCPath:
