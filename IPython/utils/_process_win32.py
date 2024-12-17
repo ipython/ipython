@@ -2,19 +2,6 @@
 
 This file is only meant to be imported by process.py, not by end-users.
 """
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# stdlib
 import ctypes
 import os
 import subprocess
@@ -25,18 +12,15 @@ from ctypes.wintypes import HLOCAL, LPCWSTR
 from subprocess import STDOUT
 from threading import Thread
 from types import TracebackType
-from typing import IO, Any, List, Optional
+from typing import List, Optional
 
 from . import py3compat
 from ._process_common import arg_split as py_arg_split
 
-# our own imports
 from ._process_common import process_handler, read_no_interrupt
 from .encoding import DEFAULT_ENCODING
 
-#-----------------------------------------------------------------------------
-# Function definitions
-#-----------------------------------------------------------------------------
+
 
 class AvoidUNCPath:
     """A context manager to protect command execution from UNC paths.
@@ -72,7 +56,10 @@ class AvoidUNCPath:
             return None
 
     def __exit__(
-        self, exc_type: Optional[type[BaseException]], exc_value: Optional[BaseException], traceback:TracebackType
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: TracebackType,
     ) -> None:
         if self.is_unc_path:
             os.chdir(self.path)
@@ -142,13 +129,14 @@ def system(cmd: str) -> Optional[int]:
     """
     # The controller provides interactivity with both
     # stdin and stdout
-    #import _process_win32_controller
-    #_process_win32_controller.system(cmd)
+    # import _process_win32_controller
+    # _process_win32_controller.system(cmd)
 
     with AvoidUNCPath() as path:
         if path is not None:
             cmd = '"pushd %s &&"%s' % (path, cmd)
         return process_handler(cmd, _system_body)
+
 
 def getoutput(cmd: str) -> str:
     """Return standard output of executing cmd in a shell.
@@ -171,8 +159,9 @@ def getoutput(cmd: str) -> str:
         out = process_handler(cmd, lambda p: p.communicate()[0], STDOUT)
 
     if out is None:
-        out = b''
+        out = b""
     return py3compat.decode(out)
+
 
 try:
     windll = ctypes.windll  # type: ignore [attr-defined]
@@ -193,7 +182,7 @@ try:
 
         If strict=False, process_common.arg_split(...strict=False) is used instead.
         """
-        #CommandLineToArgvW returns path to executable if called with empty string.
+        # CommandLineToArgvW returns path to executable if called with empty string.
         if commandline.strip() == "":
             return []
         if not strict:
@@ -209,10 +198,12 @@ try:
             )
             if arg is not None
         ]
-        LocalFree(result_pointer)
+        # for side effects
+        _ = LocalFree(result_pointer)
         return result
 except AttributeError:
     arg_split = py_arg_split
+
 
 def check_pid(pid: int) -> bool:
     # OpenProcess returns 0 if no such process (of ours) exists
