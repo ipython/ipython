@@ -37,20 +37,69 @@ class AppendAutoSuggestionInAnyLine(Processor):
         self.style = style
 
     def apply_transformation(self, ti: TransformationInput) -> Transformation:
-        is_last_line = ti.lineno == ti.document.line_count - 1
-        is_active_line = ti.lineno == ti.document.cursor_position_row
+        """
+        Apply transformation to the line that is currently being edited.
 
-        if not is_last_line and is_active_line:
-            buffer = ti.buffer_control.buffer
+        This is a variation of the original implementation in prompt toolkit
+        that allows to not only append suggestions to any line, but also to shom multi-line
+        suggestions.
 
-            if buffer.suggestion and ti.document.is_cursor_at_the_end_of_line:
-                suggestion = buffer.suggestion.text
-            else:
-                suggestion = ""
+        As transformation are applied on a line-by-line basis; we need to trick a bit, and elide any line
+        that is after the line we are currently editing, until we run out of completions. We cannot shift the existing lines
 
+        There are multiple cases to handle:
+        - the completions ends before the end of the buffer:
+           We can resume showing the normal line, and say that some code may be hidden.
+        - the completions ends at the end of the buffer
+           We can just say that some code may be hidden.
+        
+        And separately:
+
+        - the completions ends beyond the end of the buffer
+           We need to both say that some code may be hidden, and that some lines are not shown.
+        
+        """
+        last_line_number = ti.document.line_count - 1
+        is_last_line = ti.lineno == last_line_number
+
+        noop = Transformation(fragments=ti.fragments)
+
+        # first everything before the current line is unchanged.
+        if ti.lineno < ti.document.cursor_position_row:
+            return noop
+
+        buffer = ti.buffer_control.buffer
+        if not buffer.suggestion or not ti.document.is_cursor_at_the_end_of_line:
+            return noop
+
+        delta = ti.lineno - ti.document.cursor_position_row
+        suggestions = buffer.suggestion.text.splitlines()
+        suggestions_longer_than_buffer:bool = (len(suggestions) + ti.document.cursor_position_row > ti.document.line_count)
+
+
+
+        if delta == 0:
+            suggestion = suggestions[0]
             return Transformation(fragments=ti.fragments + [(self.style, suggestion)])
+        if is_last_line:
+            if delta < len(suggestions):
+                extra = f"; {len(suggestions) - delta} lines not shown"
+                suggestion = f"<existing code hidden for brevity{extra}...|"
+                return Transformation([(self.style, suggestion)] + ti.fragments)
+            else:
+                return noop
+
+
+        elif delta < len(suggestions):
+            suggestion = suggestions[delta]
+            return Transformation([(self.style, suggestion)])
+        elif delta == len(suggestions):
+            suggestion = f"<existing code may be ellided for brevity>"
+            return Transformation([(self.style, suggestion)] + ti.fragments)
         else:
-            return Transformation(fragments=ti.fragments)
+            return noop
+
+
 
 
 class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
@@ -90,7 +139,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             for suggestion, _ in self._find_next_match(
                 text, self.skip_lines, buffer.history
             ):
-                return Suggestion(suggestion)
+                return Suggestion(suggestion + "\nalso\nin\nhere")
 
         return None
 
