@@ -383,3 +383,42 @@ omit = [
     # omit everything in /tmp as we run tempfile
     "/tmp/*",
     ]
+
+[tool.ruff.lint]
+extend-select = [
+#  "B",           # flake8-bugbear
+#  "I",           # isort
+# that will be a problem for pytest fixture unless you swap with the usefixture decorator https://docs.pytest.org/en/7.1.x/how-to/fixtures.html#use-fixtures-in-classes-and-modules-with-usefixtures
+#  "ARG",         # flake8-unused-arguments
+#  "C4",          # flake8-comprehensions
+#  "EM",          # flake8-errmsg
+#  "ICN",         # flake8-import-conventions
+#  "G",           # flake8-logging-format
+#  "PGH",         # pygrep-hooks
+#  "PIE",         # flake8-pie
+#  "PL",          # pylint
+#  "PTH",         # flake8-use-pathlib
+#  "PT",          # flake8-pytest-style
+#  "RET",         # flake8-return
+#  "RUF",         # Ruff-specific
+#  "SIM",         # flake8-simplify
+#  "T20",         # flake8-print
+#  "UP",          # pyupgrade
+#  "YTT",         # flake8-2020
+#  "EXE",         # flake8-executable
+#  "PYI",         # flake8-pyi
+#  "S",           # flake8-bandit
+]
+ignore = [
+#  "E501",     # E501 Line too long (158 > 100 characters)
+#  "SIM105",   # SIM105 Use `contextlib.suppress(...)`
+#  "PLR",      # Design related pylint codes
+#  "S101",     # Use of `assert` detected
+]
+unfixable = [
+  # Don't touch print statements
+  "T201",
+  # Don't touch noqa lines
+  "RUF100",
+]
+
