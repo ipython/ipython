@@ -120,19 +120,17 @@ def onlyif(condition, msg):
 
 #-----------------------------------------------------------------------------
 # Utility functions for decorators
-def module_not_available(module):
+def module_available(module):
     """Can module be imported?  Returns true if module does NOT import.
 
     This is used to make a decorator to skip tests that require module to be
     available, but delay the 'import numpy' to test execution time.
     """
     try:
-        mod = import_module(module)
-        mod_not_avail = False
+        import_module(module)
+        return True
     except ImportError:
-        mod_not_avail = True
-
-    return mod_not_avail
+        return False
 
 
 #-----------------------------------------------------------------------------
@@ -164,7 +162,9 @@ skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
 # Other skip decorators
 
 # generic skip without module
-skip_without = lambda mod: skipif(module_not_available(mod), "This test requires %s" % mod)
+skip_without = lambda mod: skipif(
+    not module_available(mod), "This test requires %s" % mod
+)
 
 skipif_not_numpy = skip_without('numpy')
 

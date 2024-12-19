@@ -429,7 +429,7 @@ class Demo(object):
     def show_all(self):
         """Show entire demo on screen, block by block"""
 
-        fname = self.title
+        self.title
         title = self.title
         nblocks = self.nblocks
         silent = self._silent
