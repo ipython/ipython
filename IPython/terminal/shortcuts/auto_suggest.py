@@ -81,25 +81,24 @@ class AppendAutoSuggestionInAnyLine(Processor):
         if delta == 0:
             suggestion = suggestions[0]
             return Transformation(fragments=ti.fragments + [(self.style, suggestion)])
+        if is_last_line and delta < len(suggestions):
+            extra = f"; {len(suggestions) - delta} lines not shown"
+            suggestion = f"<existing code hidden for brevity{extra}...|"
+            return Transformation([(self.style, suggestion)] + ti.fragments)
         if is_last_line:
-            if delta < len(suggestions):
-                extra = f"; {len(suggestions) - delta} lines not shown"
-                suggestion = f"<existing code hidden for brevity{extra}...|"
-                return Transformation([(self.style, suggestion)] + ti.fragments)
-            else:
-                return noop
-
+            return Transformation(
+                [(self.style, f"... {len(suggestions)} line elidded")]
+            )
 
         elif delta < len(suggestions):
             suggestion = suggestions[delta]
             return Transformation([(self.style, suggestion)])
-        elif delta == len(suggestions):
-            suggestion = f"<existing code may be ellided for brevity>"
-            return Transformation([(self.style, suggestion)] + ti.fragments)
+        # elif delta == len(suggestions):
+        # return Transformation(ti.fragments)
         else:
-            return noop
-
-
+            gl = getattr(ti, "get_line", lambda x: [("", "no_getline")])
+            shift = ti.lineno - len(suggestions) + 1
+            return Transformation(gl(shift))
 
 
 class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
@@ -139,7 +138,10 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             for suggestion, _ in self._find_next_match(
                 text, self.skip_lines, buffer.history
             ):
-                return Suggestion(suggestion + "\nalso\nin\nhere")
+                return Suggestion(
+                    suggestion
+                    + "\n    while True:\n        yield a\n        a,b = b, a+b"
+                )
 
         return None
 
