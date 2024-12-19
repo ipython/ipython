@@ -35,9 +35,7 @@ from IPython.utils.process import find_cmd
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.syspathcontext import prepended_to_syspath
 
-from .test_debugger import PdbTestInput
 
-from tempfile import NamedTemporaryFile
 
 @magic.magics_class
 class DummyMagics(magic.Magics): pass

@@ -1,10 +1,5 @@
-import unittest
-import re
 from IPython.utils.capture import capture_output
-import sys
 import pytest
-from tempfile import TemporaryDirectory
-from IPython.testing import tools as tt
 
 
 def _exceptiongroup_common(

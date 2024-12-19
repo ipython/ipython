@@ -937,7 +937,6 @@ class HistoryManager(HistoryAccessor):
         """
         if (not self.db_log_output) or (line_num not in self.output_hist_reprs):
             return
-        lnum: int = line_num
         output = self.output_hist_reprs[line_num]
 
         with self.db_output_cache_lock:

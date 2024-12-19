@@ -120,7 +120,7 @@ class IPythonPTCompleter(Completer):
             offset = cursor_to_position(body, cursor_row, cursor_col)
             try:
                 yield from self._get_completions(body, offset, cursor_position, self.ipy_completer)
-            except Exception as e:
+            except Exception:
                 try:
                     exc_type, exc_value, exc_tb = sys.exc_info()
                     traceback.print_exception(exc_type, exc_value, exc_tb)
@@ -132,7 +132,6 @@ class IPythonPTCompleter(Completer):
         """
         Private equivalent of get_completions() use only for unit_testing.
         """
-        debug = getattr(ipyc, 'debug', False)
         completions = _deduplicate_completions(
             body, ipyc.completions(body, offset))
         for c in completions:
