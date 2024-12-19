@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     ip = get_ipython()
 
-    if not '_refbug_cache' in ip.user_ns:
+    if '_refbug_cache' not in ip.user_ns:
         ip.user_ns['_refbug_cache'] = []
 
 

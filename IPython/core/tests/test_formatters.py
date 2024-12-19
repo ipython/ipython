@@ -12,7 +12,6 @@ from IPython import get_ipython
 from traitlets.config import Config
 from IPython.core.formatters import (
     PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key,
-    DisplayFormatter, JSONFormatter,
 )
 from IPython.utils.io import capture_output
 

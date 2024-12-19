@@ -426,7 +426,7 @@ class OSMagics(Magics):
             if oldcwd != cwd:
                 dhist.append(cwd)
                 self.shell.db['dhist'] = compress_dhist(dhist)[-100:]
-        if not 'q' in opts and not self.cd_force_quiet and self.shell.user_ns['_dh']:
+        if 'q' not in opts and not self.cd_force_quiet and self.shell.user_ns['_dh']:
             print(self.shell.user_ns['_dh'][-1])
 
     @line_magic

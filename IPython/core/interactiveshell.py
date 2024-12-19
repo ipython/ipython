@@ -33,7 +33,7 @@ from io import open as io_open
 from logging import error
 from pathlib import Path
 from typing import Callable
-from typing import List as ListType, Dict as DictType, Any as AnyType
+from typing import List as ListType, Any as AnyType
 from typing import Optional, Sequence, Tuple
 from warnings import warn
 
@@ -118,7 +118,7 @@ from IPython.core.usage import default_banner
 from IPython.display import display
 from IPython.paths import get_ipython_dir
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import PyColorize, io, openpy, py3compat
+from IPython.utils import PyColorize, openpy, py3compat
 from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct

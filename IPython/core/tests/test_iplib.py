@@ -2,7 +2,6 @@
 """
 
 import stack_data
-import sys
 
 SV_VERSION = tuple([int(x) for x in stack_data.__version__.split(".")[0:2]])
 
