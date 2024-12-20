@@ -133,7 +133,7 @@ from functools import lru_cache
 
 from IPython import get_ipython
 from IPython.core.excolors import exception_colors
-from IPython.utils import PyColorize, coloransi, py3compat
+from IPython.utils import PyColorize, py3compat
 
 from typing import TYPE_CHECKING
 
@@ -280,11 +280,6 @@ class Pdb(OldPdb):
         # Create color table: we copy the default one from the traceback
         # module and add a few attributes needed for debugging
         self.color_scheme_table = exception_colors()
-
-        # shorthands
-        C = coloransi.TermColors
-        cst = self.color_scheme_table
-
 
         # Add a python parser so we can syntax highlight source while
         # debugging.

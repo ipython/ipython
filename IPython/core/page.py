@@ -223,7 +223,6 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None) -> None:
                     io.TextIOWrapper(proc.stdin, encoding="utf-8"), proc
                 )
                 try:
-                    pager_encoding = pager.encoding or sys.stdout.encoding
                     pager.write(strng)
                 finally:
                     retval = pager.close()

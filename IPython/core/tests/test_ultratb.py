@@ -257,7 +257,6 @@ bar()
             with tt.AssertPrints('QWERTY'):
                 ip.showsyntaxerror()
 
-import sys
 
 if platform.python_implementation() != "PyPy":
     """

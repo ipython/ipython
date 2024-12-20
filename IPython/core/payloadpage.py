@@ -3,7 +3,6 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import warnings
 from IPython.core.getipython import get_ipython
 
 # see https://github.com/ipython/ipykernel/issues/1304
