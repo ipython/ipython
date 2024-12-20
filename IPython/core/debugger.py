@@ -133,7 +133,7 @@ from functools import lru_cache
 
 from IPython import get_ipython
 from IPython.core.excolors import exception_colors
-from IPython.utils import PyColorize, coloransi, py3compat
+from IPython.utils import PyColorize, py3compat
 
 from typing import TYPE_CHECKING
 
