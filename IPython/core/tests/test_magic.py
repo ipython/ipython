@@ -35,6 +35,8 @@ from IPython.utils.process import find_cmd
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.syspathcontext import prepended_to_syspath
 
+# import needed by doctest
+from .test_debugger import PdbTestInput  # noqa: F401
 
 
 @magic.magics_class
