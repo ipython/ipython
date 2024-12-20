@@ -255,7 +255,6 @@ def getsource(obj, oname='') -> Union[str,None]:
         for attrname in ['fget', 'fset', 'fdel']:
             fn = getattr(obj, attrname)
             if fn is not None:
-                encoding = get_encoding(fn)
                 oname_prefix = ('%s.' % oname) if oname else ''
                 sources.append(''.join(('# ', oname_prefix, attrname)))
                 if inspect.isfunction(fn):
@@ -298,79 +297,6 @@ def is_simple_callable(obj):
     """True if obj is a function ()"""
     return (inspect.isfunction(obj) or inspect.ismethod(obj) or \
             isinstance(obj, _builtin_func_type) or isinstance(obj, _builtin_meth_type))
-
-@undoc
-def getargspec(obj):
-    """Wrapper around :func:`inspect.getfullargspec`
-
-    In addition to functions and methods, this can also handle objects with a
-    ``__call__`` attribute.
-
-    DEPRECATED: Deprecated since 7.10. Do not use, will be removed.
-    """
-
-    warnings.warn('`getargspec` function is deprecated as of IPython 7.10'
-                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
-
-    if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
-        obj = obj.__call__
-
-    return inspect.getfullargspec(obj)
-
-@undoc
-def format_argspec(argspec):
-    """Format argspect, convenience wrapper around inspect's.
-
-    This takes a dict instead of ordered arguments and calls
-    inspect.format_argspec with the arguments in the necessary order.
-
-    DEPRECATED (since 7.10): Do not use; will be removed in future versions.
-    """
-    
-    warnings.warn('`format_argspec` function is deprecated as of IPython 7.10'
-                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
-
-
-    return inspect.formatargspec(argspec['args'], argspec['varargs'],
-                                 argspec['varkw'], argspec['defaults'])
-
-@undoc
-def call_tip(oinfo, format_call=True):
-    """DEPRECATED since 6.0. Extract call tip data from an oinfo dict."""
-    warnings.warn(
-        "`call_tip` function is deprecated as of IPython 6.0"
-        "and will be removed in future versions.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    # Get call definition
-    argspec = oinfo.get('argspec')
-    if argspec is None:
-        call_line = None
-    else:
-        # Callable objects will have 'self' as their first argument, prune
-        # it out if it's there for clarity (since users do *not* pass an
-        # extra first argument explicitly).
-        try:
-            has_self = argspec['args'][0] == 'self'
-        except (KeyError, IndexError):
-            pass
-        else:
-            if has_self:
-                argspec['args'] = argspec['args'][1:]
-
-        call_line = oinfo['name']+format_argspec(argspec)
-
-    # Now get docstring.
-    # The priority is: call docstring, constructor docstring, main one.
-    doc = oinfo.get('call_docstring')
-    if doc is None:
-        doc = oinfo.get('init_docstring')
-    if doc is None:
-        doc = oinfo.get('docstring','')
-
-    return call_line, doc
-
 
 def _get_wrapped(obj):
     """Get the original object if wrapped in one or more @decorators
@@ -460,7 +386,7 @@ class Inspector(Colorable):
 
     mime_hooks = traitlets.Dict(
         config=True,
-        help="dictionary of mime to callable to add informations into help mimebundle dict",
+        help="dictionary of mime to callable to add information into help mimebundle dict",
     ).tag(config=True)
 
     def __init__(

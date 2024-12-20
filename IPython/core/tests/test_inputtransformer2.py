@@ -4,6 +4,7 @@ Line-based transformers are the simpler ones; token-based transformers are
 more complex. See test_inputtransformer2_line for tests for line-based
 transformations.
 """
+
 import platform
 import string
 import sys
@@ -313,17 +314,7 @@ examples = [
     pytest.param("\\\r\n", "incomplete", 0),
     pytest.param("a = '''\n   hi", "incomplete", 3),
     pytest.param("def a():\n x=1\n global x", "invalid", None),
-    pytest.param(
-        "a \\ ",
-        "invalid",
-        None,
-        marks=pytest.mark.xfail(
-            reason="Bug in python 3.9.8 – bpo 45738",
-            condition=sys.version_info in [(3, 11, 0, "alpha", 2)],
-            raises=SystemError,
-            strict=True,
-        ),
-    ),  # Nothing allowed after backslash,
+    pytest.param("a \\ ", "invalid", None),  # Nothing allowed after backslash,
     pytest.param("1\\\n+2", "complete", None),
 ]
 
@@ -335,12 +326,6 @@ def test_check_complete_param(code, expected, number):
 
 
 @pytest.mark.xfail(platform.python_implementation() == "PyPy", reason="fail on pypy")
-@pytest.mark.xfail(
-    reason="Bug in python 3.9.8 – bpo 45738",
-    condition=sys.version_info in [(3, 11, 0, "alpha", 2)],
-    raises=SystemError,
-    strict=True,
-)
 def test_check_complete():
     cc = ipt2.TransformerManager().check_complete
 

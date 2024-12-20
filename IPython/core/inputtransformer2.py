@@ -395,7 +395,10 @@ def _tr_quote2(content):
 
 def _tr_paren(content):
     "Translate lines escaped with a slash: /"
-    name, _, args = content.partition(' ')
+    name, _, args = content.partition(" ")
+    if name == "":
+        raise SyntaxError(f'"{ESC_SHELL}" must be followed by a callable name')
+
     return '%s(%s)' % (name, ", ".join(args.split()))
 
 tr = { ESC_SHELL  : 'get_ipython().system({!r})'.format,
@@ -567,22 +570,6 @@ def has_sunken_brackets(tokens: List[tokenize.TokenInfo]):
             if parenlev < 0:
                 return True
     return False
-
-
-def show_linewise_tokens(s: str):
-    """For investigation and debugging"""
-    warnings.warn(
-        "show_linewise_tokens is deprecated since IPython 8.6",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    if not s.endswith("\n"):
-        s += "\n"
-    lines = s.splitlines(keepends=True)
-    for line in make_tokens_by_line(lines):
-        print("Line -------")
-        for tokinfo in line:
-            print(" ", tokinfo)
 
 # Arbitrary limit to prevent getting stuck in infinite loops
 TRANSFORM_LOOP_LIMIT = 500

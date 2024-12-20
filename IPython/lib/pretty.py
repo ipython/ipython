@@ -541,7 +541,7 @@ class RawText:
 class CallExpression:
     """ Object which emits a line-wrapped call expression in the form `__name(*args, **kwargs)` """
     def __init__(__self, __name, *args, **kwargs):
-        # dunders are to avoid clashes with kwargs, as python's name manging
+        # dunders are to avoid clashes with kwargs, as python's name managing
         # will kick in.
         self = __self
         self.name = __name
@@ -555,7 +555,7 @@ class CallExpression:
         return inner
 
     def _repr_pretty_(self, p, cycle):
-        # dunders are to avoid clashes with kwargs, as python's name manging
+        # dunders are to avoid clashes with kwargs, as python's name managing
         # will kick in.
 
         started = False
@@ -724,8 +724,15 @@ class _ReFlags:
 
     def _repr_pretty_(self, p, cycle):
         done_one = False
-        for flag in ('TEMPLATE', 'IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL',
-            'UNICODE', 'VERBOSE', 'DEBUG'):
+        for flag in (
+            "IGNORECASE",
+            "LOCALE",
+            "MULTILINE",
+            "DOTALL",
+            "UNICODE",
+            "VERBOSE",
+            "DEBUG",
+        ):
             if self.value & getattr(re, flag):
                 if done_one:
                     p.text('|')

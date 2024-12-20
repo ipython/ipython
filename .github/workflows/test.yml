@@ -21,13 +21,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12","3.13"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
-          - os: macos-latest
-            python-version: "3.10"
-            deps: test_extra
           - os: macos-latest
             python-version: "3.11"
             deps: test_extra
@@ -37,18 +34,18 @@ jobs:
             deps: test
           # Tests latest development Python version
           - os: ubuntu-latest
-            python-version: "3.13-dev"
+            python-version: "3.13"
             deps: test
           # Installing optional dependencies stuff takes ages on PyPy
-          - os: ubuntu-latest
-            python-version: "pypy-3.10"
-            deps: test
-          - os: windows-latest
-            python-version: "pypy-3.10"
-            deps: test
-          - os: macos-latest
-            python-version: "pypy-3.10"
-            deps: test
+          # - os: ubuntu-latest
+          #   python-version: "pypy-3.11"
+          #   deps: test
+          # - os: windows-latest
+          #   python-version: "pypy-3.11"
+          #   deps: test
+          # - os: macos-latest
+          #   python-version: "pypy-3.11"
+          #   deps: test
           # Temporary CI run to use entry point compatible code in matplotlib-inline.
           - os: ubuntu-latest
             python-version: "3.12"
@@ -56,9 +53,9 @@ jobs:
             want-latest-entry-point-code: true
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -72,14 +69,13 @@ jobs:
       run: |
         python -m pip install --only-binary ':all:' --upgrade pip setuptools wheel build
         python -m pip install --only-binary ':all:' --no-binary curio --upgrade -e .[${{ matrix.deps }}]
-        python -m pip install --only-binary ':all:' --upgrade check-manifest pytest-cov  pytest-json-report 'pytest<8'
+        python -m pip install --only-binary ':all:' --upgrade check-manifest pytest-cov  'pytest<8'
     - name: Install and update Python dependencies (dev?)
       if: ${{ contains( matrix.python-version, 'dev' ) }}
       run: |
         python -m pip install --pre --upgrade pip setuptools wheel build
         python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --no-binary curio --upgrade -e .[${{ matrix.deps }}]
-        python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --upgrade check-manifest pytest-cov  pytest-json-report
-        python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple git+https://github.com/alexmojaki/executing.git@3.13
+        python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --upgrade check-manifest pytest-cov
     - name: Try building with Python build
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: |
@@ -89,7 +85,7 @@ jobs:
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: check-manifest
 
-    - name: Install entry point compatible code (TEMPORARY)
+    - name: Install entry point compatible code (TEMPORARY, April 2024)
       if: matrix.want-latest-entry-point-code
       run: |
         python -m pip list
@@ -102,15 +98,9 @@ jobs:
       env:
         COLUMNS: 120
       run: |
-        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --json-report --json-report-file=./report-${{ matrix.python-version }}-${{runner.os}}.json --maxfail=15
-    - uses: actions/upload-artifact@v3
-      with:
-          name: upload pytest timing reports as json
-          path: |
-            ./report-*.json
-
+        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --maxfail=15
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
          name: Test
          files: /home/runner/work/ipython/ipython/coverage.xml

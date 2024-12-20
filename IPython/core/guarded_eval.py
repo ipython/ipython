@@ -31,10 +31,7 @@ from types import MethodDescriptorType, ModuleType
 from IPython.utils.decorators import undoc
 
 
-if sys.version_info < (3, 11):
-    from typing_extensions import Self, LiteralString
-else:
-    from typing import Self, LiteralString
+from typing import Self, LiteralString
 
 if sys.version_info < (3, 12):
     from typing_extensions import TypeAliasType
@@ -44,20 +41,17 @@ else:
 
 @undoc
 class HasGetItem(Protocol):
-    def __getitem__(self, key) -> None:
-        ...
+    def __getitem__(self, key) -> None: ...
 
 
 @undoc
 class InstancesHaveGetItem(Protocol):
-    def __call__(self, *args, **kwargs) -> HasGetItem:
-        ...
+    def __call__(self, *args, **kwargs) -> HasGetItem: ...
 
 
 @undoc
 class HasGetAttr(Protocol):
-    def __getattr__(self, key) -> None:
-        ...
+    def __getattr__(self, key) -> None: ...
 
 
 @undoc
@@ -132,7 +126,7 @@ def _get_external(module_name: str, access_path: Sequence[str]):
 
     Raises:
     * `KeyError` if module is removed not found, and
-    * `AttributeError` if acess path does not match an exported object
+    * `AttributeError` if access path does not match an exported object
     """
     member_type = sys.modules[module_name]
     for attr in access_path:
@@ -235,7 +229,7 @@ class SelectivePolicy(EvaluationPolicy):
             accept = has_original_attr and has_original_attribute
 
         if accept:
-            # We still need to check for overriden properties.
+            # We still need to check for overridden properties.
 
             value_class = type(value)
             if not hasattr(value_class, attr):
@@ -329,10 +323,10 @@ class EvaluationContext(NamedTuple):
     #: Global namespace
     globals: dict
     #: Evaluation policy identifier
-    evaluation: Literal[
-        "forbidden", "minimal", "limited", "unsafe", "dangerous"
-    ] = "forbidden"
-    #: Whether the evalution of code takes place inside of a subscript.
+    evaluation: Literal["forbidden", "minimal", "limited", "unsafe", "dangerous"] = (
+        "forbidden"
+    )
+    #: Whether the evaluation of code takes place inside of a subscript.
     #: Useful for evaluating ``:-1, 'col'`` in ``df[:-1, 'col']``.
     in_subscript: bool = False
 
@@ -373,7 +367,7 @@ def guarded_eval(code: str, context: EvaluationContext):
     # getitem at all, for example it fails on simple `[0][1]`
 
     if context.in_subscript:
-        # syntatic sugar for ellipsis (:) is only available in susbcripts
+        # syntactic sugar for ellipsis (:) is only available in subscripts
         # so we need to trick the ast parser into thinking that we have
         # a subscript, but we need to be able to later recognise that we did
         # it so we can ignore the actual __getitem__ operation

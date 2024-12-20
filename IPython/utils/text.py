@@ -16,7 +16,20 @@ import warnings
 from string import Formatter
 from pathlib import Path
 
-from typing import List, Dict, Tuple, Optional, cast, Sequence, Mapping, Any
+from typing import (
+    List,
+    Dict,
+    Tuple,
+    Optional,
+    cast,
+    Sequence,
+    Mapping,
+    Any,
+    Union,
+    Callable,
+    Iterator,
+    TypeVar,
+)
 
 if sys.version_info < (3, 12):
     from typing_extensions import Self
@@ -138,8 +151,13 @@ class SList(list):
 
     p = paths = property(get_paths)
 
-    def grep(self, pattern, prune = False, field = None):
-        """ Return all strings matching 'pattern' (a regex or callable)
+    def grep(
+        self,
+        pattern: Union[str, Callable[[Any], re.Match[str] | None]],
+        prune: bool = False,
+        field: Optional[int] = None,
+    ) -> Self:
+        """Return all strings matching 'pattern' (a regex or callable)
 
         This is case-insensitive. If prune is true, return all items
         NOT matching the pattern.
@@ -154,7 +172,7 @@ class SList(list):
             a.grep('chm', field=-1)
         """
 
-        def match_target(s):
+        def match_target(s: str) -> str:
             if field is None:
                 return s
             parts = s.split()
@@ -169,12 +187,12 @@ class SList(list):
         else:
             pred = pattern
         if not prune:
-            return SList([el for el in self if pred(match_target(el))])
+            return type(self)([el for el in self if pred(match_target(el))])
         else:
-            return SList([el for el in self if not pred(match_target(el))])
+            return type(self)([el for el in self if not pred(match_target(el))])
 
-    def fields(self, *fields):
-        """ Collect whitespace-separated fields from string list
+    def fields(self, *fields: List[str]) -> List[List[str]]:
+        """Collect whitespace-separated fields from string list
 
         Allows quick awk-like usage of string lists.
 
@@ -209,8 +227,12 @@ class SList(list):
 
         return res
 
-    def sort(self,field= None,  nums = False):
-        """ sort by specified fields (see fields())
+    def sort(  # type:ignore[override]
+        self,
+        field: Optional[List[str]] = None,
+        nums: bool = False,
+    ) -> Self:
+        """sort by specified fields (see fields())
 
         Example::
 
@@ -236,7 +258,7 @@ class SList(list):
 
 
         dsu.sort()
-        return SList([t[1] for t in dsu])
+        return type(self)([t[1] for t in dsu])
 
 
 # FIXME: We need to reimplement type specific displayhook and then add this
@@ -255,7 +277,7 @@ class SList(list):
 # print_slist = result_display.register(SList)(print_slist)
 
 
-def indent(instr,nspaces=4, ntabs=0, flatten=False):
+def indent(instr: str, nspaces: int = 4, ntabs: int = 0, flatten: bool = False) -> str:
     """Indent a string a given number of spaces or tabstops.
 
     indent(str,nspaces=4,ntabs=0) -> indent str by ntabs+nspaces.
@@ -275,7 +297,7 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
 
     Returns
     -------
-    str|unicode : string indented by ntabs and nspaces.
+    str : string indented by ntabs and nspaces.
 
     """
     if instr is None:
@@ -292,7 +314,7 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
         return outstr
 
 
-def list_strings(arg):
+def list_strings(arg: Union[str, List[str]]) -> List[str]:
     """Always return a list of strings, given a string or list of strings
     as input.
 
@@ -316,7 +338,7 @@ def list_strings(arg):
         return arg
 
 
-def marquee(txt='',width=78,mark='*'):
+def marquee(txt: str = "", width: int = 78, mark: str = "*") -> str:
     """Return the input string centered in a 'marquee'.
 
     Examples
@@ -343,11 +365,12 @@ def marquee(txt='',width=78,mark='*'):
 
 ini_spaces_re = re.compile(r'^(\s+)')
 
-def num_ini_spaces(strng):
+
+def num_ini_spaces(strng: str) -> int:
     """Return the number of initial spaces in a string"""
     warnings.warn(
         "`num_ini_spaces` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in in future version. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,
@@ -359,7 +382,7 @@ def num_ini_spaces(strng):
         return 0
 
 
-def format_screen(strng):
+def format_screen(strng: str) -> str:
     """Format a string for screen printing.
 
     This removes some latex-type format codes."""
@@ -396,7 +419,7 @@ def dedent(text: str) -> str:
     return '\n'.join([first, rest])
 
 
-def wrap_paragraphs(text, ncols=80):
+def wrap_paragraphs(text: str, ncols: int = 80) -> List[str]:
     """Wrap multiple paragraphs to fit a specified width.
 
     This is equivalent to textwrap.wrap, but with support for multiple
@@ -408,7 +431,7 @@ def wrap_paragraphs(text, ncols=80):
     """
     warnings.warn(
         "`wrap_paragraphs` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in in future version. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,
@@ -428,7 +451,7 @@ def wrap_paragraphs(text, ncols=80):
     return out_ps
 
 
-def strip_email_quotes(text):
+def strip_email_quotes(text: str) -> str:
     """Strip leading email quotation characters ('>').
 
     Removes any combination of leading '>' interspersed with whitespace that
@@ -478,7 +501,7 @@ def strip_email_quotes(text):
     return text
 
 
-def strip_ansi(source):
+def strip_ansi(source: str) -> str:
     """
     Remove ansi escape codes from text.
 
@@ -489,7 +512,7 @@ def strip_ansi(source):
     """
     warnings.warn(
         "`strip_ansi` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in in future version. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,
@@ -519,7 +542,8 @@ class EvalFormatter(Formatter):
         In [3]: f.format("{greeting[slice(2,4)]}", greeting="Hello")
         Out[3]: 'll'
     """
-    def get_field(self, name, args, kwargs):
+
+    def get_field(self, name: str, args: Any, kwargs: Any) -> Tuple[Any, str]:
         v = eval(name, kwargs)
         return v, name
 
@@ -606,11 +630,15 @@ class DollarFormatter(FullEvalFormatter):
         In [4]: f.format('$a or {b}', a=1, b=2)
         Out[4]: '1 or 2'
     """
-    _dollar_pattern_ignore_single_quote = re.compile(r"(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)")
-    def parse(self, fmt_string):
-        for literal_txt, field_name, format_spec, conversion \
-                    in Formatter.parse(self, fmt_string):
-            
+
+    _dollar_pattern_ignore_single_quote = re.compile(
+        r"(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)"
+    )
+
+    def parse(self, fmt_string: str) -> Iterator[Tuple[Any, Any, Any, Any]]:  # type: ignore
+        for literal_txt, field_name, format_spec, conversion in Formatter.parse(
+            self, fmt_string
+        ):
             # Find $foo patterns in the literal text.
             continue_from = 0
             txt = ""
@@ -627,14 +655,17 @@ class DollarFormatter(FullEvalFormatter):
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<DollarFormatter>"
 
 #-----------------------------------------------------------------------------
 # Utils to columnize a list of string
 #-----------------------------------------------------------------------------
 
-def _col_chunks(l, max_rows, row_first=False):
+
+def _col_chunks(
+    l: List[int], max_rows: int, row_first: bool = False
+) -> Iterator[List[int]]:
     """Yield successive max_rows-sized column chunks from l."""
     if row_first:
         ncols = (len(l) // max_rows) + (len(l) % max_rows > 0)
@@ -646,7 +677,7 @@ def _col_chunks(l, max_rows, row_first=False):
 
 
 def _find_optimal(
-    rlist: List[str], row_first: bool, separator_size: int, displaywidth: int
+    rlist: List[int], row_first: bool, separator_size: int, displaywidth: int
 ) -> Dict[str, Any]:
     """Calculate optimal info to columnize a list of string"""
     for max_rows in range(1, len(rlist) + 1):
@@ -662,7 +693,10 @@ def _find_optimal(
             }
 
 
-def _get_or_default(mylist, i, default=None):
+T = TypeVar("T")
+
+
+def _get_or_default(mylist: List[T], i: int, default: T) -> T:
     """return list item number, or default if don't exist"""
     if i >= len(mylist):
         return default
@@ -727,7 +761,7 @@ def compute_item_matrix(
     """
     warnings.warn(
         "`compute_item_matrix` is Pending Deprecation since IPython 8.17."
-        "It is considered fro removal in in future version. "
+        "It is considered for removal in in future version. "
         "Please open an issue if you believe it should be kept.",
         stacklevel=2,
         category=PendingDeprecationWarning,
@@ -740,9 +774,31 @@ def compute_item_matrix(
     )
     nrow, ncol = info["max_rows"], info["num_columns"]
     if row_first:
-        return ([[_get_or_default(items, r * ncol + c, default=empty) for c in range(ncol)] for r in range(nrow)], info)
+        return (
+            [
+                [
+                    _get_or_default(
+                        items, r * ncol + c, default=empty
+                    )  # type:ignore[misc]
+                    for c in range(ncol)
+                ]
+                for r in range(nrow)
+            ],
+            info,
+        )
     else:
-        return ([[_get_or_default(items, c * nrow + r, default=empty) for c in range(ncol)] for r in range(nrow)], info)
+        return (
+            [
+                [
+                    _get_or_default(
+                        items, c * nrow + r, default=empty
+                    )  # type:ignore[misc]
+                    for c in range(ncol)
+                ]
+                for r in range(nrow)
+            ],
+            info,
+        )
 
 
 def columnize(
@@ -795,7 +851,9 @@ def columnize(
     return "\n".join(map(sjoin, fmatrix)) + "\n"
 
 
-def get_text_list(list_, last_sep=' and ', sep=", ", wrap_item_with=""):
+def get_text_list(
+    list_: List[str], last_sep: str = " and ", sep: str = ", ", wrap_item_with: str = ""
+) -> str:
     """
     Return a string with a natural enumeration of items
 

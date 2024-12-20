@@ -59,40 +59,43 @@ def test_ipdb_magics():
 
     First, set up some test functions and classes which we can inspect.
 
-    >>> class ExampleClass(object):
-    ...    """Docstring for ExampleClass."""
-    ...    def __init__(self):
-    ...        """Docstring for ExampleClass.__init__"""
-    ...        pass
-    ...    def __str__(self):
-    ...        return "ExampleClass()"
+    In [1]: class ExampleClass(object):
+       ...:    """Docstring for ExampleClass."""
+       ...:    def __init__(self):
+       ...:        """Docstring for ExampleClass.__init__"""
+       ...:        pass
+       ...:    def __str__(self):
+       ...:        return "ExampleClass()"
 
-    >>> def example_function(x, y, z="hello"):
-    ...     """Docstring for example_function."""
-    ...     pass
+    In [2]: def example_function(x, y, z="hello"):
+       ...:     """Docstring for example_function."""
+       ...:     pass
 
-    >>> old_trace = sys.gettrace()
+    In [3]: old_trace = sys.gettrace()
 
     Create a function which triggers ipdb.
 
-    >>> def trigger_ipdb():
-    ...    a = ExampleClass()
-    ...    debugger.Pdb().set_trace()
+    In [4]: def trigger_ipdb():
+       ...:    a = ExampleClass()
+       ...:    debugger.Pdb().set_trace()
 
-    >>> with PdbTestInput([
-    ...    'pdef example_function',
-    ...    'pdoc ExampleClass',
-    ...    'up',
-    ...    'down',
-    ...    'list',
-    ...    'pinfo a',
-    ...    'll',
-    ...    'continue',
-    ... ]):
-    ...     trigger_ipdb()
-    --Return--
-    None
-    > <doctest ...>(3)trigger_ipdb()
+    Run ipdb with faked input & check output. Because of a difference between
+    Python 3.13 & older versions, the first bit of the output is inconsistent.
+    We need to use ... to accommodate that, so the examples have to use IPython
+    prompts so that ... is distinct from the Python PS2 prompt.
+
+    In [5]: with PdbTestInput([
+       ...:    'pdef example_function',
+       ...:    'pdoc ExampleClass',
+       ...:    'up',
+       ...:    'down',
+       ...:    'list',
+       ...:    'pinfo a',
+       ...:    'll',
+       ...:    'continue',
+       ...: ]):
+       ...:     trigger_ipdb()
+    ...> <doctest ...>(3)trigger_ipdb()
           1 def trigger_ipdb():
           2    a = ExampleClass()
     ----> 3    debugger.Pdb().set_trace()
@@ -112,8 +115,7 @@ def test_ipdb_magics():
          10 ]):
     ---> 11     trigger_ipdb()
     <BLANKLINE>
-    ipdb> down
-    None
+    ipdb> down...
     > <doctest ...>(3)trigger_ipdb()
           1 def trigger_ipdb():
           2    a = ExampleClass()
@@ -136,10 +138,10 @@ def test_ipdb_magics():
     ----> 3    debugger.Pdb().set_trace()
     <BLANKLINE>
     ipdb> continue
-    
-    Restore previous trace function, e.g. for coverage.py    
-    
-    >>> sys.settrace(old_trace)
+
+    Restore previous trace function, e.g. for coverage.py
+
+    In [6]: sys.settrace(old_trace)
     '''
 
 def test_ipdb_magics2():
@@ -495,15 +497,26 @@ def test_decorator_skip_with_breakpoint():
                 child.expect_exact(line)
             child.sendline("")
 
-        # as the filename does not exists, we'll rely on the filename prompt
-        child.expect_exact("47     bar(3, 4)")
+        # From 3.13, set_trace()/breakpoint() stop on the line where they're
+        # called, instead of the next line.
+        if sys.version_info >= (3, 13):
+            child.expect_exact("--> 46     ipdb.set_trace()")
+            extra_step = [("step", "--> 47     bar(3, 4)")]
+        else:
+            child.expect_exact("--> 47     bar(3, 4)")
+            extra_step = []
 
-        for input_, expected in [
-            (f"b {name}.py:3", ""),
-            ("step", "1---> 3     pass # should not stop here except"),
-            ("step", "---> 38 @pdb_skipped_decorator"),
-            ("continue", ""),
-        ]:
+        for input_, expected in (
+            [
+                (f"b {name}.py:3", ""),
+            ]
+            + extra_step
+            + [
+                ("step", "1---> 3     pass # should not stop here except"),
+                ("step", "---> 38 @pdb_skipped_decorator"),
+                ("continue", ""),
+            ]
+        ):
             child.expect("ipdb>")
             child.sendline(input_)
             child.expect_exact(input_)

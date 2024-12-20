@@ -1,6 +1,202 @@
 ============
  8.x Series
 ============
+.. _version 8.31:
+
+IPython 8.31
+============
+
+Small release for this end of december; This release contains only two notable changes:
+
+  - :ghpull:`14594` Fix completion in tuples, where the completion was
+    suggesting tuples methods instead of methods and attributes of the current
+    element.
+  - :ghpull:`14598` Fix  pdb issue with Python 3.13.1, this fix is not perfect
+    (see :ghissue:`14620`) but should be sufficient for now.
+
+
+As usual you can find the full list of PRs on GitHub under `the 8.31
+<https://github.com/ipython/ipython/milestone/138?closed=1>`__ milestone.
+
+
+Road to 9.0
+-----------
+
+The current main branch is now on it's way to be 9.0; do not expect many new
+features but a large codebase refactor, and cleanup with many deprecated code
+removed, and more agressive codestyle enforcement.
+
+For something completely different
+----------------------------------
+
+`Emmy Noether <https://en.wikipedia.org/wiki/Emmy_Noether>`__ was a German
+mathematician who made groundbreaking contributions to abstract algebra and
+theoretical physics. Her work on Noether's theorem, which describes the
+relationship between symmetries and conservation laws, has had a profound impact
+on the development of modern physics. Noether's work was largely overlooked
+during her lifetime, but her legacy as one of the most important mathematicians
+of the 20th century has been recognized and celebrated in recent years.
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 8.30:
+
+IPython 8.30
+============
+
+Small release for this end of november;
+
+ - :ghpull:`14579` improve the documentatation for custom IPython formatters, and how
+   you can register formatters for custom mime types.
+ - :ghpull:`14580` fix a bug in which commands that were not assigned a shortcut
+   could not be assigned one.
+ - :ghpull:`12690` fix a bug in which a single ``/`` on an empty line would not be
+   an error. This is due to the ``autocall`` behavior that we are thinking of
+   deprecating.
+
+The rest of the PRs are mostly maintenance and documentation improvements.
+
+As usual you can find the full list of PRs on GitHub under `the 8.30
+<https://github.com/ipython/ipython/milestone/137?closed=1>`__ milestone.
+
+
+For something completely different
+----------------------------------
+
+`Ada Lovelace <https://en.wikipedia.org/wiki/Ada_Lovelace>`__ is considered the
+first computer programmer. In the 1840s, she wrote what is recognized as the
+first algorithm intended to be processed by a machine - Charles Babbage's
+proposed Analytical Engine. Her notes included what would today be called a
+computer program, making her the first programmer in history. She also uniquely
+understood that computers could go beyond mere calculation and could be used to
+create music or art - a visionary insight that was far ahead of her time.
+Despite living in an era when women had limited access to scientific education,
+she made groundbreaking contributions that laid the foundation for modern
+computing.
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 8.29:
+
+IPython 8.29
+============
+
+Medium release for this end of october;
+
+ - Misc Python 3.13 compatibility :ghpull:`14536`, :ghpull:`14559`
+ - Add a ``uv`` line magic :ghpull:`14537`
+ - Add support for WEBP to ``IPython.display.Image``. :ghpull:`14526`
+ - And many more bugfixes and quality of life improvements.
+
+As usual you can find the full list of PRs on GitHub under `the 8.29
+<https://github.com/ipython/ipython/milestone/136?closed=1>`__ milestone.
+
+Preparing for 9.0
+-----------------
+
+IPython 3.13 was released earlier this month, and this means that according to
+`Spec-0 <https://scientific-python.org/specs/spec-0000/>`__, support for 3.10
+will end soon.
+
+There have been many minor version of IPython 8.x, so it is likely that one of
+the next version will simply bump to 9.0 and remove a lot of code mark as
+deprecated, and documentation/examples not relevant for terminal IPython.
+
+The frequency of release and my time reviewing will also likely decrease more
+than it has already.
+
+
+For something completely different
+----------------------------------
+
+`Rosalind Franklin <https://en.wikipedia.org/wiki/Rosalind_Franklin>`__ made
+some of the biggest contribution to the discovery of the helix structure of DNA.
+Unfortunately her work was `not recognized
+<https://www.nature.com/scitable/topicpage/rosalind-franklin-a-crucial-contribution-6538012/>`__
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+.. _version 8.28:
+
+IPython 8.28
+============
+
+Slight delay of this September release as I was busy at Pydata Paris last week.
+Not many user visible changes for this release, a couple of bug fixes and
+workaround:
+
+ - :ghpull:`14480` AssertionError: assert _xterm_term_title_saved in WSL – It is
+   unclear why the terminal title is not saved in WSL, if you've WSL experience
+   we'd love your feedback and help to not just ignore an error
+ - :ghpull:`14510` Fix use of pyside6 >= 6.7.0
+ - :ghpull:`14518` Make values public (_tb_highlight & _tb_highlight_style)
+ - :ghpull:`14515` Use environment variable to identify conda / mamba
+
+
+As usual you can find the full list of PRs on GitHub under `the 8.28
+<https://github.com/ipython/ipython/milestone/135?closed=1>`__ milestone.
+
+For something completely different
+----------------------------------
+
+One of the first works of Science Fiction (`Frankenstein
+<https://en.wikipedia.org/wiki/Frankenstein>`__), was written by `Mary Shelley
+<https://en.wikipedia.org/wiki/Mary_Shelley>`__ when she was 18, before being
+published in London on 1 January 1818 when she was 20. This is often overlooked,
+and the role of founders of science fiction attribute to Edgar Allan Poe and
+Jules Verne despite being published later.
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
+
+.. _version 8.27:
+
+IPython 8.27
+============
+
+New release of IPython after a month off (not enough changes). We can see a few
+important changes for this release.
+
+ - autocall was being  call getitem, :ghpull:`14486`
+ - Only copy files in startup dir if we just created it. :ghpull:`14497`
+ - Fix some tests on Python 3.13 RC1 :ghpull:`14504`; this one I guess make this
+   the first IPython release officially compatible with Python 3.13; you will
+   need the most recent ``executing`` and ``stack_data``, we won't pin to avoid
+   forcing user of older Python version to upgrade.
+
+
+As usual you can find the full list of PRs on GitHub under `the 8.27
+<https://github.com/ipython/ipython/milestone/134?closed=1>`__ milestone.
+
+Thanks
+------
+
+Many thanks to `@Kleirre <https://github.com/Kleirre>`__ our June intern for
+doing her first contribution to open source, doing the releases notes and
+release. I guess you didn't even notice it was not me who released :-). I wish
+her all the best in her future endeavor and look forward for her work in
+astrophysics.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 .. _version 8.26:
 
 IPython 8.26
@@ -172,7 +368,7 @@ work on IPython and related libraries.
 .. _version 8.21:
 
 IPython 8.21
-------------
+============
 
 More substantial release of IPython slightly out of schedule as it was not
 possible for me to make a release last Friday.
@@ -192,7 +388,7 @@ but it's a cat and mouse game. Plus I am low on time, so I would appreciate any
 help with that.
 
 Deprecations
-~~~~~~~~~~~~
+------------
 
  - :ghpull:`14307` Pending Deprecation of
    ``ColorSchemeTable.set_active_scheme(...)``'s ``case_sensitive`` Parameter.
@@ -201,7 +397,7 @@ Deprecations
 
 
 Fixes
-~~~~~
+-----
 
  - :ghpull:`14284` TerminalIPythonApp's would warn that ``auto_create`` option is not
    recognized.
@@ -226,7 +422,7 @@ support it. In particular you could send a json representation of the help that
 could be displayed in a customizable way.
 
 Miscellaneous
-~~~~~~~~~~~~~
+-------------
 
  - :ghpull:`14291` Misc Refactor of Color handling
  - :ghpull:`14295` Misc test skip on problematic Pypy versions.
@@ -248,7 +444,7 @@ work on IPython and related libraries.
 .. _version 8.20:
 
 IPython 8.20
-------------
+============
 
 Quick IPython release in this beginning of 2024, barely 2 weeks after the previous
 release.
@@ -275,14 +471,14 @@ work on IPython and related libraries.
 .. _version 8.19:
 
 IPython 8.19
-------------
+============
 
 New release of IPython a bit before the end of the month, and end of the year.
 
 Mostly cleanup and deprecation, due to upstream deprecation and removal.
 
 Remove of Python 3.9 support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 A bit later than originally plan, IPython 8.19 does not support Python 3.9
 anymore, as well as the few conditional code that were executing only on Python
@@ -296,7 +492,7 @@ We now also run CI on Python 3.12 (what I likely should have done before), but
 running on too many Python version uses a lot of CI time.
 
 Absolute and relative Line Numbers in Prompts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------
 
 Thanks to the contribution of ``cohml``, IPython CLI now support absolute and
 relative line numbers in both vi and emacs prompt, use for example
@@ -304,13 +500,13 @@ relative line numbers in both vi and emacs prompt, use for example
 configuration option to display both in a custom format.
 
 Miscellaneous
-~~~~~~~~~~~~~
+-------------
 
 In addition to various bugfixes, I unpinned pytest, let me know if there are any
 issues and we'll re-pin.
 
 See you in 2024
-~~~~~~~~~~~~~~~
+---------------
 
 As usual you can find the full list of PRs on GitHub under `the 8.19
 <https://github.com/ipython/ipython/milestone/126?closed=1>`__ milestone.
@@ -321,7 +517,7 @@ work on IPython and related libraries.
 .. _version 8.18:
 
 IPython 8.18 and 8.18.1
------------------------
+=======================
 
 8.18.1 is identical to 8.18 but pin ``prompt_toolkit`` to greater than ``3.0.41``
 
@@ -348,7 +544,7 @@ work on IPython and related libraries.
 .. _version 8.17:
 
 IPython 8.17, 8.17.1
---------------------
+====================
 
 Medium-sized release of IPython that includes some cleanup (backcall, python2 leftovers)
 and some refactoring improvements (typing, pathlib) and a fix on completion.
@@ -361,16 +557,27 @@ Reverted in 8.17.1:
 
   - :ghpull:`14190` remove support for python 2 in lexers (reverted in 8.17.1 as it is imported by qtconsole/spyder)
 
-Mamba and Micromamba magic
-~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In addition to the conda command to manage conda environment, mamba and
-micromamba can now be used using the corresponding magic in IPython.
-Since these commands are compatible with conda, they are following the
-same logic.
+Mamba and Micromamba magic commands
+------------------------------------
 
-These two magic require to have the corresponding commands available
-either in the conda environment or system wide.
+In addition to the ``%conda`` magic command for calling ``conda`` in IPython,
+the ``%mamba`` and ``%micromamba`` magic commands now
+call ``mamba`` and ``micromamba`` if they are on ``sys.path``.
+
+.. code::
+
+   %mamba install pkgname
+   %micromamba install pkgname
+   %conda install pkgname
+   %pip install pkgname
+
+   %mamba --help
+   %micromamba --help
+   %conda --help
+   %pip --help    # works w/ JupyterLite
+   !pip --help
+
 
 :ghpull:`14191`
 
@@ -386,7 +593,7 @@ work on IPython and related libraries.
 .. _version 8.16.1:
 
 IPython 8.16, 8.16.1
---------------------
+====================
 
 Small double release of IPython (with the 8.12.3 release notes just below).
 Mostly bug fixes and cleanups, and type annotations. Of interest for users:
@@ -411,7 +618,7 @@ work on IPython and related libraries.
 .. _version 8.12.3:
 
 IPython 8.12.3
---------------
+==============
 
 Tiny release of 8.12.3 that backport a small number of fixes for users still
 using Python 3.8.
@@ -422,7 +629,7 @@ using Python 3.8.
 .. _version 8.15:
 
 IPython 8.15
-------------
+============
 
 Medium release of IPython after a couple of month hiatus, and a bit
 off-schedule.
@@ -443,20 +650,20 @@ Among other, IPython 8.15:
  - Fix multiple issues with matplotlib interactive mode, qt5/qt6 :ghpull:`14128`
 
 Support for PEP-678 Exception Notes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------
 
 Ultratb now shows :pep:`678` notes, improving your debugging experience on
 Python 3.11+ or with libraries such as Pytest and Hypothesis.
 
 Native fallback for displaying ExceptionGroup
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------
 ExceptionGroups are now displayed with ``traceback.print_exc``, as a temporary fix until UltraTB properly supports displaying child exceptions.
 
 
 We have two larger features:
 
 AST-based macros
-~~~~~~~~~~~~~~~~
+----------------
 
 :ghpull:`14100` introduce a new and efficient way to modify each execution block
 (cell) using an template-ast-based transform. Unlike IPython pre and post code
@@ -483,7 +690,7 @@ retry the code in a for loop....
 
 
 Allow IPdb/Pdb to move between chained exceptions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------
 
 The main change is the addition of the ability to move between chained
 exceptions when using IPdb, this feature was also contributed to upstream Pdb
@@ -570,7 +777,7 @@ As usual you can find the full list of PRs on GitHub under `the 8.15 milestone
 .. _version 8.14:
 
 IPython 8.14
-------------
+============
 
 Small release of IPython.
 
@@ -583,7 +790,7 @@ Small release of IPython.
 
 
 SPEC 0 and SPEC 4
-~~~~~~~~~~~~~~~~~
+-----------------
 
 You've heard about the NEPs, (NumPy enhancement Proposal), having a NEP for something non-numpy specific was sometime confusing.
 Long live the `SPECs <https://scientific-python.org/specs/>`_.
@@ -595,13 +802,13 @@ We encourage you to do so as well in order to report breakage, and contribute to
 
 
 Python 3.12 compatibility ?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 Python 3.12 changed its tokenizer to have better support for f-strings and allow arbitrary expression.
 This is a great new feature and performance improvement in Python 3.12.
 
 Unfortunately this means the new tokenizer does not support incomplete or invalid Python which will
-break many features of IPython. Thus compatibility of IPython with Python 3.12 is not guarantied.
+break many features of IPython. Thus compatibility of IPython with Python 3.12 is not guaranteed.
 It is unclear to which extent IPython is affected, and whether we can/should try to still support magics, shell
 escape (``! ....``), ...,  as well as how to do it if we can.
 
@@ -618,7 +825,7 @@ so if you plan to update to Python 3.12 after its release, we encourage for extr
 .. _version 8.12.2:
 
 IPython 8.13.1, 8.13.2 and 8.12.2
----------------------------------
+=================================
 
 3 quick in succession patch release of IPython in addition to IPython 8.13.0
 having been yanked.
@@ -636,7 +843,7 @@ method of modules) for tab completion.
 .. _version 8.13:
 
 IPython 8.13
-------------
+============
 
 As usual for the end of the month, minor release of IPython. This release is
 significant in that it not only has a number of bugfixes, but also drop support
@@ -664,7 +871,7 @@ work on IPython and related libraries.
 .. _version 8.12.1:
 
 IPython 8.12.1
---------------
+==============
 
 This is the twin release of IPython 8.13 that contain only critical UI and bug
 fixes. The next minor version of IPython has dropped support for Python 3.8 – as
@@ -690,7 +897,7 @@ work on IPython and related libraries.
 .. _version 8.12.0:
 
 IPython 8.12
-------------
+============
 
 Hopefully slightly early release for IPython 8.12. Last Thursday of the month,
 even if I guess it's likely already Friday somewhere in the pacific ocean.
@@ -744,7 +951,7 @@ the following big feature. We had productive discussions on how to best expose
 this feature
 
 Dynamic documentation dispatch
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 We are experimenting with dynamic documentation dispatch for object attribute.
 See :ghissue:`13860`. The goal is to allow object to define documentation for
@@ -820,7 +1027,7 @@ object.
 .. _version 8.11.0:
 
 IPython 8.11
-------------
+============
 
 Back on almost regular monthly schedule for IPython with end-of-month
 really-late-Friday release to make sure some bugs are properly fixed.
@@ -829,7 +1036,7 @@ Small addition of with a few new features, bugfix and UX improvements.
 This is a non-exhaustive list, but among other you will find:
 
 Faster Traceback Highlighting
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 Resurrection of pre-IPython-8 traceback highlighting code.
 
@@ -844,7 +1051,7 @@ This can be configures by setting the value of
 
 
 Autoreload verbosity
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 We introduce more descriptive names for the ``%autoreload`` parameter:
 
@@ -854,7 +1061,7 @@ We introduce more descriptive names for the ``%autoreload`` parameter:
   whitelisted by ``%aimport`` statements.
 - ``%autoreload all`` (also ``%autoreload 2``) - turn on autoreload for all modules except those
   blacklisted by ``%aimport`` statements.
-- ``%autoreload complete`` (also ``%autoreload 3``) - all the fatures of ``all`` but also adding new
+- ``%autoreload complete`` (also ``%autoreload 3``) - all the features of ``all`` but also adding new
   objects from the imported modules (see
   IPython/extensions/tests/test_autoreload.py::test_autoload_newly_added_objects).
 
@@ -869,7 +1076,7 @@ blacklisted in the same line, e.g. it's now possible to call ``%aimport os, -mat
 ``os`` for ``%autoreload explicit`` and exclude ``math`` for modes ``all`` and ``complete``.
 
 Terminal shortcuts customization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 Previously modifying shortcuts was only possible by hooking into startup files
 and practically limited to adding new shortcuts or removing all shortcuts bound
@@ -891,7 +1098,7 @@ You can learn more in :std:configtrait:`TerminalInteractiveShell.shortcuts`
 configuration reference.
 
 Miscellaneous
-~~~~~~~~~~~~~
+-------------
 
  - ``%gui`` should now support PySide6. :ghpull:`13864`
  - Cli shortcuts can now be configured :ghpull:`13928`, see above.
@@ -911,7 +1118,7 @@ work on IPython and related libraries.
 .. _version 8.10.0:
 
 IPython 8.10
-------------
+============
 
 Out of schedule release of IPython with minor fixes to patch a potential CVE-2023-24816.
 This is a really low severity CVE that you most likely are not affected by unless:
@@ -947,7 +1154,7 @@ about 2 weeks.
 .. _version 8.9.0:
 
 IPython 8.9.0
--------------
+=============
 
 Second release of IPython in 2023, last Friday of the month, we are back on
 track. This is a small release with a few bug-fixes, and improvements, mostly
@@ -956,7 +1163,7 @@ with respect to terminal shortcuts.
 
 The biggest improvement for 8.9 is a drastic amelioration of the
 auto-suggestions sponsored by D.E. Shaw and implemented by the more and more
-active contributor `@krassowski <https://github.com/krassowski>`.
+active contributor `@krassowski <https://github.com/krassowski>`__.
 
 - ``right`` accepts a single character from suggestion
 - ``ctrl+right`` accepts a semantic token (macos default shortcuts take
@@ -968,7 +1175,7 @@ active contributor `@krassowski <https://github.com/krassowski>`.
 - ``up`` moves to suggestion from earlier in history when no lines are present above the cursor.
 
 This is best described by the Gif posted by `@krassowski
-<https://github.com/krassowski>`, and in the PR itself :ghpull:`13888`.
+<https://github.com/krassowski>`__, and in the PR itself :ghpull:`13888`.
 
 .. image:: ../_images/autosuggest.gif
 
@@ -995,7 +1202,7 @@ work on IPython and related libraries.
 .. _version 8.8.0:
 
 IPython 8.8.0
--------------
+=============
 
 First release of IPython in 2023 as there was no release at the end of
 December.
@@ -1034,7 +1241,7 @@ work on IPython and related libraries.
 .. _version 8.7.0:
 
 IPython 8.7.0
--------------
+=============
 
 
 Small release of IPython with a couple of bug fixes and new features for this
@@ -1059,7 +1266,7 @@ work on IPython and related libraries.
 .. _version 8.6.0:
 
 IPython 8.6.0
--------------
+=============
 
 Back to a more regular release schedule (at least I try), as Friday is
 already over by more than 24h hours. This is a slightly bigger release with a
@@ -1123,7 +1330,7 @@ work on IPython and related libraries.
 .. _version 8.5.0:
 
 IPython 8.5.0
--------------
+=============
 
 First release since a couple of month due to various reasons and timing preventing
 me for sticking to the usual monthly release the last Friday of each month. This
@@ -1167,7 +1374,7 @@ Here is a non-exhaustive list of changes that have been implemented for IPython
  - show maxlen in deque's repr. :ghpull:`13648`
 
 Restore line numbers for Input
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 Line number information in tracebacks from input are restored.
 Line numbers from input were removed during the transition to v8 enhanced traceback reporting.
@@ -1220,7 +1427,7 @@ or, with xmode=Plain::
 :ghpull:`13560`
 
 New setting to silence warning if working inside a virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------------------------------------
 
 Previously, when starting IPython in a virtual environment without IPython installed (so IPython from the global environment is used), the following warning was printed:
 
@@ -1239,7 +1446,7 @@ work on IPython and related libraries.
 .. _version 8.4.0:
 
 IPython 8.4.0
--------------
+=============
 
 As for 7.34, this version contains a single fix:  fix uncaught BdbQuit exceptions on ipdb
 exit :ghpull:`13668`, and a single typo fix in documentation: :ghpull:`13682`
@@ -1251,7 +1458,7 @@ work on IPython and related libraries.
 .. _version 8.3.0:
 
 IPython 8.3.0
--------------
+=============
 
  - :ghpull:`13625`, using ``?``, ``??``, ``*?`` will not call
    ``set_next_input`` as most frontend allow proper multiline editing and it was
@@ -1269,7 +1476,7 @@ IPython 8.3.0
 .. _version 8.2.0:
 
 IPython 8.2.0
--------------
+=============
 
 IPython 8.2 mostly bring bugfixes to IPython.
 
@@ -1299,7 +1506,7 @@ work on IPython and related libraries.
 .. _version 8.1.1:
 
 IPython 8.1.1
--------------
+=============
 
 Fix an issue with virtualenv and Python 3.8 introduced in 8.1
 
@@ -1309,7 +1516,7 @@ error in Python 3.8, and fixed in a different way in :ghpull:`13559`.
 .. _version 8.1:
 
 IPython 8.1.0
--------------
+=============
 
 IPython 8.1 is the first minor release after 8.0 and fixes a number of bugs and
 updates a few behaviors that were problematic with the 8.0 as with many new major
@@ -1377,7 +1584,7 @@ magics that you will find described in the 7.32 release notes.
 .. _version 8.0.1:
 
 IPython 8.0.1 (CVE-2022-21699)
-------------------------------
+==============================
 
 IPython 8.0.1, 7.31.1 and 5.11 are security releases that change some default
 values in order to prevent potential Execution with Unnecessary Privileges.
@@ -1385,7 +1592,7 @@ values in order to prevent potential Execution with Unnecessary Privileges.
 Almost all version of IPython looks for configuration and profiles in current
 working directory. Since IPython was developed before pip and environments
 existed it was used a convenient way to load code/packages in a project
-dependant way.
+dependent way.
 
 In 2022, it is not necessary anymore, and can lead to confusing behavior where
 for example cloning a repository and starting IPython or loading a notebook from
@@ -1421,7 +1628,7 @@ Further details can be read on the `GitHub Advisory <https://github.com/ipython/
 .. _version 8.0:
 
 IPython 8.0
------------
+===========
 
 IPython 8.0 is bringing a large number of new features and improvements to both the
 user of the terminal and of the kernel via Jupyter. The removal of compatibility
@@ -2315,4 +2522,4 @@ The following attribute/methods have been removed::
 
 ------
 
-.. [1] If this make you incomfortable feel free to not use IPython 8.23.
+.. [1] If this make you uncomfortable feel free to not use IPython 8.23.

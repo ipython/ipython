@@ -461,7 +461,7 @@ Currently the magic system has the following functions:""",
             ptformatter.pprint = False
             disp_formatter.active_types = ['text/plain']
 
-            shell.magic('xmode Plain')
+            shell.run_line_magic("xmode", "Plain")
         else:
             # turn off
             shell.separate_in = dstore.rc_separate_in
@@ -472,7 +472,7 @@ Currently the magic system has the following functions:""",
             ptformatter.pprint = dstore.rc_pprint
             disp_formatter.active_types = dstore.rc_active_types
 
-            shell.magic('xmode ' + dstore.xmode)
+            shell.run_line_magic("xmode", dstore.xmode)
 
         # mode here is the state before we switch; switch_doctest_mode takes
         # the mode we're switching to.

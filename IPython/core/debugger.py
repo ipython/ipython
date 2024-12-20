@@ -14,14 +14,35 @@ Among other things, this subclass of PDB:
  - hide frames in tracebacks based on `__tracebackhide__`
  - allows to skip frames based on `__debuggerskip__`
 
+
+Global Configuration
+--------------------
+
+The IPython debugger will by read the global ``~/.pdbrc`` file.
+That is to say you can list all commands supported by ipdb in your `~/.pdbrc`
+configuration file, to globally configure pdb.
+
+Example::
+
+   # ~/.pdbrc
+   skip_predicates debuggerskip false
+   skip_hidden false
+   context 25
+
+Features
+--------
+
+The IPython debugger can hide and skip frames when printing or moving through
+the stack. This can have a performance impact, so can be configures.
+
 The skipping and hiding frames are configurable via the `skip_predicates`
 command.
 
 By default, frames from readonly files will be hidden, frames containing
-``__tracebackhide__=True`` will be hidden.
+``__tracebackhide__ = True`` will be hidden.
 
-Frames containing ``__debuggerskip__`` will be stepped over, frames who's parent
-frames value of ``__debuggerskip__`` is ``True`` will be skipped.
+Frames containing ``__debuggerskip__`` will be stepped over, frames whose parent
+frames value of ``__debuggerskip__`` is ``True`` will also be skipped.
 
     >>> def helpers_helper():
     ...     pass
@@ -112,7 +133,7 @@ from functools import lru_cache
 
 from IPython import get_ipython
 from IPython.core.excolors import exception_colors
-from IPython.utils import PyColorize, coloransi, py3compat
+from IPython.utils import PyColorize, py3compat
 
 from typing import TYPE_CHECKING
 
@@ -156,7 +177,7 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     parameter.
     """
     raise ValueError(
-        "`BdbQuit_excepthook` is deprecated since version 5.1. It is still arround only because it is still imported by ipdb.",
+        "`BdbQuit_excepthook` is deprecated since version 5.1. It is still around only because it is still imported by ipdb.",
     )
 
 
@@ -259,11 +280,6 @@ class Pdb(OldPdb):
         # Create color table: we copy the default one from the traceback
         # module and add a few attributes needed for debugging
         self.color_scheme_table = exception_colors()
-
-        # shorthands
-        C = coloransi.TermColors
-        cst = self.color_scheme_table
-
 
         # Add a python parser so we can syntax highlight source while
         # debugging.
@@ -529,7 +545,7 @@ class Pdb(OldPdb):
         So if frame is self.current_frame we instead return self.curframe_locals
 
         """
-        if frame is self.curframe:
+        if frame is getattr(self, "curframe", None):
             return self.curframe_locals
         else:
             return frame.f_locals
@@ -1070,7 +1086,9 @@ class Pdb(OldPdb):
                 raise ValueError()
             self.context = new_context
         except ValueError:
-            self.error("The 'context' command requires a positive integer argument.")
+            self.error(
+                f"The 'context' command requires a positive integer argument (current value {self.context})."
+            )
 
 
 class InterruptiblePdb(Pdb):

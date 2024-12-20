@@ -271,10 +271,10 @@ class TestMagicRunSimple(tt.TempFileMixin):
                 "ip = get_ipython()\n"
                 "for i in range(5):\n"
                 "   try:\n"
-                "       ip.magic(%r)\n"
+                "       ip.run_line_magic(%r, %r)\n"
                 "   except NameError as e:\n"
                 "       print(i)\n"
-                "       break\n" % ("run " + empty.fname)
+                "       break\n" % ("run", empty.fname)
             )
             self.mktmp(src)
             _ip.run_line_magic("run", str(self.fname))
@@ -339,7 +339,7 @@ tclass.py: deleting object: C-third
         """Check that files in odd encodings are accepted."""
         mydir = os.path.dirname(__file__)
         na = os.path.join(mydir, "nonascii.py")
-        _ip.magic('run "%s"' % na)
+        _ip.run_line_magic("run", na)
         assert _ip.user_ns["u"] == "Ўт№Ф"
 
     def test_run_py_file_attribute(self):
@@ -579,7 +579,7 @@ def test_run_tb():
 def test_multiprocessing_run():
     """Set we can run mutiprocesgin without messing up up main namespace
 
-    Note that import `nose.tools as nt` mdify the value s
+    Note that import `nose.tools as nt` modify the values
     sys.module['__mp_main__'] so we need to temporarily set it to None to test
     the issue.
     """

@@ -79,7 +79,6 @@ def ghissue_role(name, rawtext, text, lineno, inliner, options=None, content=Non
             '"%s" is invalid.' % text, line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
-    app = inliner.document.settings.env.app
     #info('issue %r' % text)
     if 'pull' in name.lower():
         category = 'pull'
@@ -91,6 +90,7 @@ def ghissue_role(name, rawtext, text, lineno, inliner, options=None, content=Non
             '"%s" is invalid.' % name, line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
+    app = inliner.document.settings.env.app
     node = make_link_node(rawtext, app, category, str(issue_num), options)
     return [node], []
 
@@ -112,7 +112,6 @@ def ghuser_role(name, rawtext, text, lineno, inliner, options=None, content=None
     if options is None:
         options = {}
 
-    app = inliner.document.settings.env.app
     #info('user link %r' % text)
     ref = 'https://www.github.com/' + text
     node = nodes.reference(rawtext, text, refuri=ref, **options)
@@ -136,7 +135,6 @@ def ghcommit_role(name, rawtext, text, lineno, inliner, options=None, content=No
     if options is None:
         options = {}
 
-    app = inliner.document.settings.env.app
     #info('user link %r' % text)
     try:
         base = app.config.github_project_url

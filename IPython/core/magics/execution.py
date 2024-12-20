@@ -8,7 +8,6 @@
 import ast
 import bdb
 import builtins as builtin_mod
-import copy
 import cProfile as profile
 import gc
 import itertools
@@ -22,25 +21,16 @@ import time
 import timeit
 from typing import Dict, Any
 from ast import (
-    Assign,
-    Call,
-    Expr,
-    Load,
     Module,
-    Name,
-    NodeTransformer,
-    Store,
-    parse,
-    unparse,
 )
 from io import StringIO
 from logging import error
 from pathlib import Path
 from pdb import Restart
-from textwrap import dedent, indent
+from textwrap import indent
 from warnings import warn
 
-from IPython.core import magic_arguments, oinspect, page
+from IPython.core import magic_arguments, page
 from IPython.core.displayhook import DisplayHook
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro
@@ -195,12 +185,16 @@ class ExecutionMagics(Magics):
 
         """Run a statement through the python code profiler.
 
-        Usage, in line mode:
+        **Usage, in line mode:**
+
           %prun [options] statement
 
-        Usage, in cell mode:
+        **Usage, in cell mode:**
+
           %%prun [options] [statement]
+
           code...
+
           code...
 
         In cell mode, the additional code lines are appended to the (possibly
@@ -1028,11 +1022,16 @@ class ExecutionMagics(Magics):
     def timeit(self, line='', cell=None, local_ns=None):
         """Time execution of a Python statement or expression
 
-        Usage, in line mode:
+        **Usage, in line mode:**
+
           %timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] statement
-        or in cell mode:
+
+        **or in cell mode:**
+
           %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] setup_code
+
           code
+
           code...
 
         Time execution of a Python statement or expression using the timeit
@@ -1046,6 +1045,7 @@ class ExecutionMagics(Magics):
           body has access to any variables created in the setup code.
 
         Options:
+
         -n<N>: execute the given statement <N> times in a loop. If <N> is not
         provided, <N> is determined so as to get sufficient accuracy.
 
@@ -1066,7 +1066,7 @@ class ExecutionMagics(Magics):
         -q: Quiet, do not print result.
 
         -o: return a TimeitResult that can be stored in a variable to inspect
-            the result in more details.
+        the result in more details.
 
         .. versionchanged:: 7.3
             User variables are no longer expanded,
@@ -1447,10 +1447,12 @@ class ExecutionMagics(Magics):
             return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
-        if not ( 'q' in opts) : 
-            print('Macro `%s` created. To execute, type its name (without quotes).' % name)
-            print('=== Macro contents: ===')
-            print(macro, end=' ')
+        if "q" not in opts:
+            print(
+                "Macro `%s` created. To execute, type its name (without quotes)." % name
+            )
+            print("=== Macro contents: ===")
+            print(macro, end=" ")
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('output', type=str, default='', nargs='?',

@@ -393,7 +393,7 @@ def reformat_text_before_cursor(buffer, document, shell):
     try:
         formatted_text = shell.reformat_handler(text)
         buffer.insert_text(formatted_text)
-    except Exception as e:
+    except Exception:
         buffer.insert_text(text)
 
 
@@ -627,4 +627,12 @@ KEY_BINDINGS = [
     Binding(win_paste, ["c-v"], "default_buffer_focused & ~vi_mode & is_windows_os"),
     *SIMPLE_CONTROL_BINDINGS,
     *ALT_AND_COMOBO_CONTROL_BINDINGS,
+]
+
+UNASSIGNED_ALLOWED_COMMANDS = [
+    nc.beginning_of_buffer,
+    nc.end_of_buffer,
+    nc.end_of_line,
+    nc.forward_word,
+    nc.unix_line_discard,
 ]

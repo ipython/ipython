@@ -23,10 +23,7 @@ from IPython.testing import decorators as dec
 import pytest
 
 
-if sys.version_info < (3, 11):
-    from typing_extensions import Self, LiteralString
-else:
-    from typing import Self, LiteralString
+from typing import Self, LiteralString
 
 if sys.version_info < (3, 12):
     from typing_extensions import TypeAliasType

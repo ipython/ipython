@@ -14,10 +14,11 @@ of subprocess utilities, and it contains tools that are common to all of them.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-import subprocess
-import shlex
-import sys
 import os
+import shlex
+import subprocess
+import sys
+from typing import IO, Any, Callable, List, Union
 
 from IPython.utils import py3compat
 
@@ -25,7 +26,7 @@ from IPython.utils import py3compat
 # Function definitions
 #-----------------------------------------------------------------------------
 
-def read_no_interrupt(p):
+def read_no_interrupt(stream: IO[Any]) -> bytes:
     """Read from a pipe ignoring EINTR errors.
 
     This is necessary because when reading from pipes with GUI event loops
@@ -34,13 +35,17 @@ def read_no_interrupt(p):
     import errno
 
     try:
-        return p.read()
+        return stream.read()
     except IOError as err:
         if err.errno != errno.EINTR:
             raise
 
 
-def process_handler(cmd, callback, stderr=subprocess.PIPE):
+def process_handler(
+    cmd: Union[str, List[str]],
+    callback: Callable[[subprocess.Popen], int],
+    stderr=subprocess.PIPE,
+) -> int:
     """Open a command in a shell subprocess and execute a callback.
 
     This function provides common scaffolding for creating subprocess.Popen()
@@ -67,7 +72,10 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
     sys.stdout.flush()
     sys.stderr.flush()
     # On win32, close_fds can't be true when using pipes for stdin/out/err
-    close_fds = sys.platform != 'win32'
+    if sys.platform == "win32" and stderr != subprocess.PIPE:
+        close_fds = False
+    else:
+        close_fds = True
     # Determine if cmd should be run with system shell.
     shell = isinstance(cmd, str)
     # On POSIX systems run shell commands with user-preferred shell.

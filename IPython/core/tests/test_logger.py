@@ -21,7 +21,7 @@ def test_logstart_unicode():
         logfname = os.path.join(tdir, "test_unicode.log")
         _ip.run_cell("'abc€'")
         try:
-            _ip.magic("logstart -to %s" % logfname)
+            _ip.run_line_magic("logstart", "-to %s" % logfname)
             _ip.run_cell("'abc€'")
         finally:
             _ip.logger.logstop()

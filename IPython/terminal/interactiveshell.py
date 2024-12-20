@@ -12,20 +12,20 @@ from IPython.utils.py3compat import input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
+    Any,
     Bool,
-    Unicode,
     Dict,
+    Enum,
+    Float,
+    Instance,
     Integer,
     List,
-    observe,
-    Instance,
     Type,
-    default,
-    Enum,
+    Unicode,
     Union,
-    Any,
+    default,
+    observe,
     validate,
-    Float,
 )
 
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -52,6 +52,7 @@ from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import (
     KEY_BINDINGS,
+    UNASSIGNED_ALLOWED_COMMANDS,
     create_ipython_shortcuts,
     create_identifier,
     RuntimeBinding,
@@ -508,19 +509,25 @@ class TerminalInteractiveShell(InteractiveShell):
         # rebuild the bindings list from scratch
         key_bindings = create_ipython_shortcuts(self)
 
-        # for now we only allow adding shortcuts for commands which are already
-        # registered; this is a security precaution.
-        known_commands = {
+        # for now we only allow adding shortcuts for a specific set of
+        # commands; this is a security precution.
+        allowed_commands = {
             create_identifier(binding.command): binding.command
             for binding in KEY_BINDINGS
         }
+        allowed_commands.update(
+            {
+                create_identifier(command): command
+                for command in UNASSIGNED_ALLOWED_COMMANDS
+            }
+        )
         shortcuts_to_skip = []
         shortcuts_to_add = []
 
         for shortcut in user_shortcuts:
             command_id = shortcut["command"]
-            if command_id not in known_commands:
-                allowed_commands = "\n - ".join(known_commands)
+            if command_id not in allowed_commands:
+                allowed_commands = "\n - ".join(allowed_commands)
                 raise ValueError(
                     f"{command_id} is not a known shortcut command."
                     f" Allowed commands are: \n - {allowed_commands}"
@@ -544,7 +551,7 @@ class TerminalInteractiveShell(InteractiveShell):
             new_keys = shortcut.get("new_keys", None)
             new_filter = shortcut.get("new_filter", None)
 
-            command = known_commands[command_id]
+            command = allowed_commands[command_id]
 
             creating_new = shortcut.get("create", False)
             modifying_existing = not creating_new and (
@@ -586,12 +593,14 @@ class TerminalInteractiveShell(InteractiveShell):
                     RuntimeBinding(
                         command,
                         keys=new_keys or old_keys,
-                        filter=filter_from_string(new_filter)
-                        if new_filter is not None
-                        else (
-                            old_filter
-                            if old_filter is not None
-                            else filter_from_string("always")
+                        filter=(
+                            filter_from_string(new_filter)
+                            if new_filter is not None
+                            else (
+                                old_filter
+                                if old_filter is not None
+                                else filter_from_string("always")
+                            )
                         ),
                     )
                 )
@@ -849,13 +858,6 @@ class TerminalInteractiveShell(InteractiveShell):
                 )
 
         return text
-
-    def enable_win_unicode_console(self):
-        # Since IPython 7.10 doesn't support python < 3.6 and PEP 528, Python uses the unicode APIs for the Windows
-        # console by default, so WUC shouldn't be needed.
-        warn("`enable_win_unicode_console` is deprecated since IPython 7.10, does not do anything and will be removed in the future",
-             DeprecationWarning,
-             stacklevel=2)
 
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:

@@ -12,7 +12,6 @@ from IPython import get_ipython
 from traitlets.config import Config
 from IPython.core.formatters import (
     PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key,
-    DisplayFormatter, JSONFormatter,
 )
 from IPython.utils.io import capture_output
 
@@ -535,8 +534,7 @@ def test_custom_repr_namedtuple_partialmethod():
     from functools import partialmethod
     from typing import NamedTuple
 
-    class Foo(NamedTuple):
-        ...
+    class Foo(NamedTuple): ...
 
     Foo.__repr__ = partialmethod(lambda obj: "Hello World")
     foo = Foo()

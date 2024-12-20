@@ -188,7 +188,7 @@ def _safe_string(value, what, func=str):
     # Copied from cpython/Lib/traceback.py
     try:
         return func(value)
-    except:
+    except Exception:
         return f"<{what} {func.__name__}() failed>"
 
 
@@ -552,28 +552,31 @@ class ListTB(TBTools):
         lines = ''.join(self._format_exception_only(etype, evalue))
         out_list.append(lines)
 
-        exception = self.get_parts_of_chained_exception(evalue)
+        # Find chained exceptions if we have a traceback (not for exception-only mode)
+        if etb is not None:
+            exception = self.get_parts_of_chained_exception(evalue)
 
-        if exception and (id(exception[1]) not in chained_exc_ids):
-            chained_exception_message = (
-                self.prepare_chained_exception_message(evalue.__cause__)[0]
-                if evalue is not None
-                else ""
-            )
-            etype, evalue, etb = exception
-            # Trace exception to avoid infinite 'cause' loop
-            chained_exc_ids.add(id(exception[1]))
-            chained_exceptions_tb_offset = 0
-            out_list = (
-                self.structured_traceback(
-                    etype,
-                    evalue,
-                    (etb, chained_exc_ids),  # type: ignore
-                    chained_exceptions_tb_offset,
-                    context,
+            if exception and (id(exception[1]) not in chained_exc_ids):
+                chained_exception_message = (
+                    self.prepare_chained_exception_message(evalue.__cause__)[0]
+                    if evalue is not None
+                    else ""
                 )
-                + chained_exception_message
-                + out_list)
+                etype, evalue, etb = exception
+                # Trace exception to avoid infinite 'cause' loop
+                chained_exc_ids.add(id(exception[1]))
+                chained_exceptions_tb_offset = 0
+                out_list = (
+                    self.structured_traceback(
+                        etype,
+                        evalue,
+                        (etb, chained_exc_ids),  # type: ignore
+                        chained_exceptions_tb_offset,
+                        context,
+                    )
+                    + chained_exception_message
+                    + out_list
+                )
 
         return out_list
 
@@ -727,9 +730,9 @@ class ListTB(TBTools):
     def _some_str(self, value):
         # Lifted from traceback.py
         try:
-            return py3compat.cast_unicode(str(value))
+            return str(value)
         except:
-            return u'<unprintable %s object>' % type(value).__name__
+            return "<unprintable %s object>" % type(value).__name__
 
 
 class FrameInfo:
@@ -827,8 +830,8 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    _tb_highlight = "bg:ansiyellow"
-    _tb_highlight_style = "default"
+    tb_highlight = "bg:ansiyellow"
+    tb_highlight_style = "default"
 
     def __init__(
         self,
@@ -1045,7 +1048,7 @@ class VerboseTB(TBTools):
                 colors.excName,
                 etype_str,
                 colorsnormal,
-                py3compat.cast_unicode(evalue_str),
+                evalue_str,
             ),
             *(
                 "{}{}".format(
@@ -1068,8 +1071,6 @@ class VerboseTB(TBTools):
         This may be called multiple times by Python 3 exception chaining
         (PEP 3134).
         """
-        # some locals
-        orig_etype = etype
         try:
             etype = etype.__name__  # type: ignore
         except AttributeError:
@@ -1130,8 +1131,8 @@ class VerboseTB(TBTools):
         after = context // 2
         before = context - after
         if self.has_colors:
-            style = get_style_by_name(self._tb_highlight_style)
-            style = stack_data.style_with_executing_node(style, self._tb_highlight)
+            style = get_style_by_name(self.tb_highlight_style)
+            style = stack_data.style_with_executing_node(style, self.tb_highlight)
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None
@@ -1212,7 +1213,7 @@ class VerboseTB(TBTools):
                                                                      chained_exceptions_tb_offset)
             exception = self.get_parts_of_chained_exception(evalue)
 
-            if exception and not id(exception[1]) in chained_exc_ids:
+            if exception and id(exception[1]) not in chained_exc_ids:
                 chained_exc_ids.add(id(exception[1])) # trace exception to avoid infinite 'cause' loop
                 formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
                 etype, evalue, etb = exception
@@ -1407,7 +1408,7 @@ class AutoFormattedTB(FormattedTB):
         AutoTB = AutoFormattedTB(mode = 'Verbose',color_scheme='Linux')
         try:
           ...
-        except:
+        except Exception:
           AutoTB()  # or AutoTB(out=logfile) where logfile is an open file object
     """
 
@@ -1514,12 +1515,12 @@ def text_repr(value):
         return pydoc.text.repr(value)  # type: ignore[call-arg]
     except KeyboardInterrupt:
         raise
-    except:
+    except Exception:
         try:
             return repr(value)
         except KeyboardInterrupt:
             raise
-        except:
+        except Exception:
             try:
                 # all still in an except block so we catch
                 # getattr raising
@@ -1532,7 +1533,7 @@ def text_repr(value):
                     return '%s instance' % text_repr(klass)
             except KeyboardInterrupt:
                 raise
-            except:
+            except Exception:
                 return 'UNRECOVERABLE REPR FAILURE'
 
 

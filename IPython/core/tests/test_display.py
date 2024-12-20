@@ -140,7 +140,7 @@ def test_image_filename_defaults():
         format="badformat",
         embed=True,
     )
-    # check boths paths to allow packages to test at build and install time
+    # check both paths to allow packages to test at build and install time
     imgfile = os.path.join(tpath, 'core/tests/2x2.png')
     img = display.Image(filename=imgfile)
     assert "png" == img.format

@@ -221,7 +221,7 @@ New features
 * Gather/scatter are now implemented in the client to reduce the work load
   of the controller and improve performance.
 
-* Complete rewrite of the IPython docuementation.  All of the documentation
+* Complete rewrite of the IPython documentation.  All of the documentation
   from the IPython website has been moved into docs/source as restructured
   text documents.  PDF and HTML documentation are being generated using 
   Sphinx.

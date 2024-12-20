@@ -19,10 +19,7 @@
 import sys, os
 from pathlib import Path
 
-if sys.version_info > (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
+import tomllib
 
 with open("./sphinx.toml", "rb") as f:
     config = tomllib.load(f)
@@ -112,13 +109,13 @@ try:
     )
 
 except ModuleNotFoundError:
-    # In case intersphinx_registry is not yet packages on current plaform
+    # In case intersphinx_registry is not yet packages on current platform
     # as it is quite recent.
     print("/!\\ intersphinx_registry not installed, relying on local mapping.")
     intersphinx_mapping = config["intersphinx_mapping"]
     for k, v in intersphinx_mapping.items():
         intersphinx_mapping[k] = tuple(
-            [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"]]
+            [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"] or None]
         )
 
 
@@ -131,7 +128,6 @@ warning_is_error = config["numpydoc"]["warning_is_error"]
 
 # Options for HTML output
 # -----------------------
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # - html_theme
 # - html_static_path
 #     Add any paths that contain custom static files (such as style sheets) here,

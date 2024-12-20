@@ -528,7 +528,7 @@ def _list_matplotlib_backends_and_gui_loops() -> list[str]:
 
 
 # Matplotlib and IPython do not always use the same gui framework name.
-# Always use the approprate one of these conversion functions when passing a
+# Always use the appropriate one of these conversion functions when passing a
 # gui framework name to/from Matplotlib.
 def _convert_gui_to_matplotlib(gui: str | None) -> str | None:
     if gui and gui.lower() == "osx":

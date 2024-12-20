@@ -1,4 +1,4 @@
 # coding: iso-8859-5
 # (Unlikely to be the default encoding for most testers.)
-# ааббббббббббббббббб <- Cyrillic characters
-'абтаЄ'
+# БЖџрстуфхцчшщъыьэюя <- Cyrillic characters
+"Ўт№Ф"

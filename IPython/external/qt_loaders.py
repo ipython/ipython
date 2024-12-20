@@ -8,6 +8,7 @@ bindings, which is unstable and likely to crash
 This is used primarily by qt and qt_for_kernel, and shouldn't
 be accessed directly from the outside
 """
+
 import importlib.abc
 import sys
 import os
@@ -302,13 +303,25 @@ def import_pyside6():
 
     ImportErrors raised within this function are non-recoverable
     """
+
+    def get_attrs(module):
+        return {
+            name: getattr(module, name)
+            for name in dir(module)
+            if not name.startswith("_")
+        }
+
     from PySide6 import QtGui, QtCore, QtSvg, QtWidgets, QtPrintSupport
 
     # Join QtGui and QtWidgets for Qt4 compatibility.
     QtGuiCompat = types.ModuleType("QtGuiCompat")
     QtGuiCompat.__dict__.update(QtGui.__dict__)
-    QtGuiCompat.__dict__.update(QtWidgets.__dict__)
-    QtGuiCompat.__dict__.update(QtPrintSupport.__dict__)
+    if QtCore.__version_info__ < (6, 7):
+        QtGuiCompat.__dict__.update(QtWidgets.__dict__)
+        QtGuiCompat.__dict__.update(QtPrintSupport.__dict__)
+    else:
+        QtGuiCompat.__dict__.update(get_attrs(QtWidgets))
+        QtGuiCompat.__dict__.update(get_attrs(QtPrintSupport))
 
     return QtCore, QtGuiCompat, QtSvg, QT_API_PYSIDE6
 

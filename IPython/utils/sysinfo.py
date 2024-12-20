@@ -99,7 +99,7 @@ def get_sys_info() -> dict:
     path = Path(__file__, "..").resolve().parent
     return pkg_info(str(path))
 
-def sys_info():
+def sys_info() -> str:
     """Return useful information about IPython and the system, as a string.
 
     Examples

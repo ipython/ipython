@@ -23,7 +23,6 @@ from unittest import mock
 from os.path import join
 
 from IPython.core.error import InputRejected
-from IPython.core.inputtransformer import InputTransformer
 from IPython.core import interactiveshell
 from IPython.core.oinspect import OInfo
 from IPython.testing.decorators import (
@@ -660,7 +659,7 @@ class TestSystemRaw(ExitCodeChecks):
     @mock.patch('os.system', side_effect=KeyboardInterrupt)
     def test_control_c(self, *mocks):
         try:
-            self.system("sleep 1 # wont happen")
+            self.system("sleep 1 # won't happen")
         except KeyboardInterrupt:  # pragma: no cove
             self.fail(
                 "system call should intercept "
@@ -721,7 +720,7 @@ class Negator(ast.NodeTransformer):
     """Negates all number literals in an AST."""
 
     def visit_Num(self, node):
-        node.n = -node.n
+        node.value = -node.value
         return node
 
     def visit_Constant(self, node):

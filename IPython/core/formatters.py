@@ -1,6 +1,61 @@
 # -*- coding: utf-8 -*-
 """Display formatters.
 
+This module defines the base instances in order to implement custom
+formatters/mimetypes
+got objects:
+
+As we want to see internal IPython working we are going to use the following
+function to diaply objects instead of the normal print or display method:
+
+    >>> ip = get_ipython()
+    >>> ip.display_formatter.format(...)
+    ({'text/plain': 'Ellipsis'}, {})
+
+This return a tuple with the mimebumdle for the current object, and the
+associated metadata.
+
+
+We can now define our own formatter and register it:
+
+
+    >>> from IPython.core.formatters import BaseFormatter, FormatterABC
+
+
+    >>> class LLMFormatter(BaseFormatter):
+    ...
+    ...     format_type = 'x-vendor/llm'
+    ...     print_method = '_repr_llm_'
+    ...     _return_type = (dict, str)
+
+    >>> llm_formatter = LLMFormatter(parent=ip.display_formatter)
+
+    >>> ip.display_formatter.formatters[LLMFormatter.format_type] = llm_formatter
+
+Now any class that define `_repr_llm_` will return a x-vendor/llm as part of
+it's display data:
+
+    >>> class A:
+    ...
+    ...     def _repr_llm_(self, *kwargs):
+    ...         return 'This a A'
+    ...
+
+    >>> ip.display_formatter.format(A())
+    ({'text/plain': '<IPython.core.formatters.A at ...>', 'x-vendor/llm': 'This a A'}, {})
+
+As usual, you can register methods for third party types (see
+:ref:`third_party_formatting`)
+
+    >>> def llm_int(obj):
+    ...      return 'This is the integer %s, in between %s and %s'%(obj, obj-1, obj+1)
+
+    >>> llm_formatter.for_type(int, llm_int)
+
+    >>> ip.display_formatter.format(42)
+    ({'text/plain': '42', 'x-vendor/llm': 'This is the integer 42, in between 41 and 43'}, {})
+
+
 Inheritance diagram:
 
 .. inheritance-diagram:: IPython.core.formatters
@@ -37,9 +92,10 @@ class DisplayFormatter(Configurable):
     active_types = List(Unicode(),
         help="""List of currently active mime-types to display.
         You can use this to set a white-list for formats to display.
-        
+
         Most users will not need to change this value.
-        """).tag(config=True)
+        """,
+    ).tag(config=True)
 
     @default('active_types')
     def _active_types_default(self):
@@ -144,7 +200,7 @@ class DisplayFormatter(Configurable):
         """
         format_dict = {}
         md_dict = {}
-        
+
         if self.ipython_display_formatter(obj):
             # object handled itself, don't proceed
             return {}, {}
@@ -176,18 +232,18 @@ class DisplayFormatter(Configurable):
                 continue
             if exclude and format_type in exclude:
                 continue
-            
+
             md = None
             try:
                 data = formatter(obj)
             except:
                 # FIXME: log the exception
                 raise
-            
+
             # formatters can return raw data or (data, metadata)
             if isinstance(data, tuple) and len(data) == 2:
                 data, md = data
-            
+
             if data is not None:
                 format_dict[format_type] = data
             if md is not None:
@@ -252,7 +308,7 @@ class FormatterABC(metaclass=abc.ABCMeta):
 
     # Is the formatter enabled...
     enabled = True
-    
+
     @abc.abstractmethod
     def __call__(self, obj):
         """Return a JSON'able representation of the object.
@@ -278,12 +334,15 @@ def _get_type(obj):
     return getattr(obj, '__class__', None) or type(obj)
 
 
-_raise_key_error = Sentinel('_raise_key_error', __name__, 
-"""
+_raise_key_error = Sentinel(
+    "_raise_key_error",
+    __name__,
+    """
 Special value to raise a KeyError
 
 Raise KeyError in `BaseFormatter.pop` if passed as the default value to `pop`
-""")
+""",
+)
 
 
 class BaseFormatter(Configurable):
@@ -329,7 +388,7 @@ class BaseFormatter(Configurable):
     # The deferred-import type-specific printers.
     # Map (modulename, classname) pairs to the format functions.
     deferred_printers = Dict().tag(config=True)
-    
+
     @catch_format_error
     def __call__(self, obj):
         """Compute the format for an object."""
@@ -348,7 +407,7 @@ class BaseFormatter(Configurable):
             return None
         else:
             return None
-    
+
     def __contains__(self, typ):
         """map in to lookup_by_type"""
         try:
@@ -357,7 +416,7 @@ class BaseFormatter(Configurable):
             return False
         else:
             return True
-    
+
     def _check_return(self, r, obj):
         """Check that a return value is appropriate
 
@@ -372,7 +431,7 @@ class BaseFormatter(Configurable):
                 (self.format_type, type(r), self._return_type, _safe_repr(obj)),
                 FormatterWarning
             )
-    
+
     def lookup(self, obj):
         """Look up the formatter for a given instance.
 
@@ -395,7 +454,7 @@ class BaseFormatter(Configurable):
             return self.singleton_printers[obj_id]
         # then lookup by type
         return self.lookup_by_type(_get_type(obj))
-    
+
     def lookup_by_type(self, typ):
         """Look up the registered formatter for a type.
 
@@ -426,7 +485,7 @@ class BaseFormatter(Configurable):
             for cls in pretty._get_mro(typ):
                 if cls in self.type_printers or self._in_deferred_types(cls):
                     return self.type_printers[cls]
-        
+
         # If we have reached here, the lookup failed.
         raise KeyError("No registered printer for {0!r}".format(typ))
 
@@ -459,15 +518,15 @@ class BaseFormatter(Configurable):
         if isinstance(typ, str):
             type_module, type_name = typ.rsplit('.', 1)
             return self.for_type_by_name(type_module, type_name, func)
-        
+
         try:
             oldfunc = self.lookup_by_type(typ)
         except KeyError:
             oldfunc = None
-        
+
         if func is not None:
             self.type_printers[typ] = func
-        
+
         return oldfunc
 
     def for_type_by_name(self, type_module, type_name, func=None):
@@ -501,16 +560,16 @@ class BaseFormatter(Configurable):
             this will be the previous value (to enable restoring later).
         """
         key = (type_module, type_name)
-        
+
         try:
             oldfunc = self.lookup_by_type("%s.%s" % key)
         except KeyError:
             oldfunc = None
-        
+
         if func is not None:
             self.deferred_printers[key] = func
         return oldfunc
-    
+
     def pop(self, typ, default=_raise_key_error):
         """Pop a formatter for the given type.
 
@@ -529,7 +588,7 @@ class BaseFormatter(Configurable):
         ------
         KeyError if the type is not registered and default is not specified.
         """
-        
+
         if isinstance(typ, str):
             typ_key = tuple(typ.rsplit('.',1))
             if typ_key not in self.deferred_printers:
@@ -599,14 +658,14 @@ class PlainTextFormatter(BaseFormatter):
     # This subclass ignores this attribute as it always need to return
     # something.
     enabled = Bool(True).tag(config=False)
-    
+
     max_seq_length = Integer(pretty.MAX_SEQ_LENGTH,
         help="""Truncate large collections (lists, dicts, tuples, sets) to this size.
-        
+
         Set to 0 to disable truncation.
-        """
+        """,
     ).tag(config=True)
-    
+
     # Look for a _repr_pretty_ methods to use for pretty printing.
     print_method = ObjectName('_repr_pretty_')
 
@@ -775,7 +834,7 @@ class PNGFormatter(BaseFormatter):
     format_type = Unicode('image/png')
 
     print_method = ObjectName('_repr_png_')
-    
+
     _return_type = (bytes, str)
 
 
@@ -829,7 +888,7 @@ class JSONFormatter(BaseFormatter):
     _return_type = (list, dict)
 
     print_method = ObjectName('_repr_json_')
-    
+
     def _check_return(self, r, obj):
         """Check that a return value is appropriate
 
@@ -887,19 +946,19 @@ class PDFFormatter(BaseFormatter):
 
 class IPythonDisplayFormatter(BaseFormatter):
     """An escape-hatch Formatter for objects that know how to display themselves.
-    
+
     To define the callables that compute the representation of your
     objects, define a :meth:`_ipython_display_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this. Unlike mime-type displays, this method should not return anything,
     instead calling any appropriate display methods itself.
-    
+
     This display formatter has highest priority.
     If it fires, no other display formatter will be called.
 
     Prior to IPython 6.1, `_ipython_display_` was the only way to display custom mime-types
     without registering a new Formatter.
-    
+
     IPython 6.1 introduces `_repr_mimebundle_` for displaying custom mime-types,
     so `_ipython_display_` should only be used for objects that require unusual
     display patterns, such as multiple display calls.
@@ -943,7 +1002,7 @@ class MimeBundleFormatter(BaseFormatter):
     """
     print_method = ObjectName('_repr_mimebundle_')
     _return_type = dict
-    
+
     def _check_return(self, r, obj):
         r = super(MimeBundleFormatter, self)._check_return(r, obj)
         # always return (data, metadata):

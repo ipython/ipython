@@ -9,9 +9,9 @@ import pytest
 import sys
 import textwrap
 import unittest
+import random
 
 from importlib.metadata import version
-
 
 from contextlib import contextmanager
 
@@ -21,6 +21,7 @@ from IPython.core import completer
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
 from IPython.testing import decorators as dec
+from IPython.core.latex_symbols import latex_symbols
 
 from IPython.core.completer import (
     Completion,
@@ -31,9 +32,22 @@ from IPython.core.completer import (
     completion_matcher,
     SimpleCompletion,
     CompletionContext,
+    _unicode_name_compute,
+    _UNICODE_RANGES,
 )
 
 from packaging.version import parse
+
+
+@contextmanager
+def jedi_status(status: bool):
+    completer = get_ipython().Completer
+    try:
+        old = completer.use_jedi
+        completer.use_jedi = status
+        yield
+    finally:
+        completer.use_jedi = old
 
 
 # -----------------------------------------------------------------------------
@@ -66,7 +80,7 @@ def recompute_unicode_ranges():
     rg = list(ranges(valid))
     lens = []
     gap_lens = []
-    pstart, pstop = 0, 0
+    _pstart, pstop = 0, 0
     for start, stop in rg:
         lens.append(stop - start)
         gap_lens.append(
@@ -77,7 +91,7 @@ def recompute_unicode_ranges():
                 f"{round((start - pstop)/0xe01f0*100)}%",
             )
         )
-        pstart, pstop = start, stop
+        _pstart, pstop = start, stop
 
     return sorted(gap_lens)[-1]
 
@@ -87,7 +101,6 @@ def test_unicode_range():
     Test that the ranges we test for unicode names give the same number of
     results than testing the full length.
     """
-    from IPython.core.completer import _unicode_name_compute, _UNICODE_RANGES
 
     expected_list = _unicode_name_compute([(0, 0x110000)])
     test = _unicode_name_compute(_UNICODE_RANGES)
@@ -148,45 +161,45 @@ def custom_matchers(matchers):
         ip.Completer.custom_matchers.clear()
 
 
-def test_protect_filename():
-    if sys.platform == "win32":
-        pairs = [
-            ("abc", "abc"),
-            (" abc", '" abc"'),
-            ("a bc", '"a bc"'),
-            ("a  bc", '"a  bc"'),
-            ("  bc", '"  bc"'),
-        ]
-    else:
-        pairs = [
-            ("abc", "abc"),
-            (" abc", r"\ abc"),
-            ("a bc", r"a\ bc"),
-            ("a  bc", r"a\ \ bc"),
-            ("  bc", r"\ \ bc"),
-            # On posix, we also protect parens and other special characters.
-            ("a(bc", r"a\(bc"),
-            ("a)bc", r"a\)bc"),
-            ("a( )bc", r"a\(\ \)bc"),
-            ("a[1]bc", r"a\[1\]bc"),
-            ("a{1}bc", r"a\{1\}bc"),
-            ("a#bc", r"a\#bc"),
-            ("a?bc", r"a\?bc"),
-            ("a=bc", r"a\=bc"),
-            ("a\\bc", r"a\\bc"),
-            ("a|bc", r"a\|bc"),
-            ("a;bc", r"a\;bc"),
-            ("a:bc", r"a\:bc"),
-            ("a'bc", r"a\'bc"),
-            ("a*bc", r"a\*bc"),
-            ('a"bc', r"a\"bc"),
-            ("a^bc", r"a\^bc"),
-            ("a&bc", r"a\&bc"),
-        ]
-    # run the actual tests
-    for s1, s2 in pairs:
-        s1p = completer.protect_filename(s1)
-        assert s1p == s2
+if sys.platform == "win32":
+    pairs = [
+        ("abc", "abc"),
+        (" abc", '" abc"'),
+        ("a bc", '"a bc"'),
+        ("a  bc", '"a  bc"'),
+        ("  bc", '"  bc"'),
+    ]
+else:
+    pairs = [
+        ("abc", "abc"),
+        (" abc", r"\ abc"),
+        ("a bc", r"a\ bc"),
+        ("a  bc", r"a\ \ bc"),
+        ("  bc", r"\ \ bc"),
+        # On posix, we also protect parens and other special characters.
+        ("a(bc", r"a\(bc"),
+        ("a)bc", r"a\)bc"),
+        ("a( )bc", r"a\(\ \)bc"),
+        ("a[1]bc", r"a\[1\]bc"),
+        ("a{1}bc", r"a\{1\}bc"),
+        ("a#bc", r"a\#bc"),
+        ("a?bc", r"a\?bc"),
+        ("a=bc", r"a\=bc"),
+        ("a\\bc", r"a\\bc"),
+        ("a|bc", r"a\|bc"),
+        ("a;bc", r"a\;bc"),
+        ("a:bc", r"a\:bc"),
+        ("a'bc", r"a\'bc"),
+        ("a*bc", r"a\*bc"),
+        ('a"bc', r"a\"bc"),
+        ("a^bc", r"a\^bc"),
+        ("a&bc", r"a\&bc"),
+    ]
+
+
+@pytest.mark.parametrize("s1,expected", pairs)
+def test_protect_filename(s1, expected):
+    assert completer.protect_filename(s1) == expected
 
 
 def check_line_split(splitter, test_specs):
@@ -204,7 +217,7 @@ def test_line_split():
     # was at the end of part1.  So an empty part2 represents someone hitting
     # tab at the end of the line, the most common case.
     t = [
-        ("run some/scrip", "", "some/scrip"),
+        ("run some/script", "", "some/script"),
         ("run scripts/er", "ror.py foo", "scripts/er"),
         ("echo $HOM", "", "HOM"),
         ("print sys.pa", "", "sys.pa"),
@@ -297,8 +310,6 @@ class TestCompleter(unittest.TestCase):
             self.assertIsInstance(matches, list)
 
     def test_latex_completions(self):
-        from IPython.core.latex_symbols import latex_symbols
-        import random
 
         ip = get_ipython()
         # Test some random unicode symbols
@@ -462,7 +473,10 @@ class TestCompleter(unittest.TestCase):
                 matches = c.all_completions("TestClass.")
                 assert len(matches) > 2, (jedi_status, matches)
                 matches = c.all_completions("TestClass.a")
-                assert matches == ['TestClass.a', 'TestClass.a1'], jedi_status
+                if jedi_status:
+                    assert matches == ["TestClass.a", "TestClass.a1"], jedi_status
+                else:
+                    assert matches == [".a", ".a1"], jedi_status
 
     @pytest.mark.xfail(
         sys.version_info.releaselevel in ("alpha",),
@@ -594,7 +608,7 @@ class TestCompleter(unittest.TestCase):
                 ip.Completer.use_jedi = True
                 with provisionalcompleter():
                     completions = ip.Completer.completions(line, cursor_pos)
-                self.assertIn(completion, completions)
+                self.assertIn(completion, list(completions))
 
         with provisionalcompleter():
             _(
@@ -622,7 +636,7 @@ class TestCompleter(unittest.TestCase):
             _(
                 "assert str.star",
                 14,
-                "str.startswith",
+                ".startswith",
                 "Should have completed on `assert str.star`: %s",
                 Completion(11, 14, "startswith"),
             )
@@ -632,6 +646,13 @@ class TestCompleter(unittest.TestCase):
                 ".strip",
                 "Should have completed on `d['a b'].str`: %s",
                 Completion(9, 12, "strip"),
+            )
+            _(
+                "a.app",
+                4,
+                ".append",
+                "Should have completed on `a.app`: %s",
+                Completion(2, 4, "append"),
             )
 
     def test_omit__names(self):
@@ -647,8 +668,8 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip.")
-            self.assertIn("ip.__str__", matches)
-            self.assertIn("ip._hidden_attr", matches)
+            self.assertIn(".__str__", matches)
+            self.assertIn("._hidden_attr", matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip.', 3))
@@ -661,7 +682,7 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip.")
-            self.assertNotIn("ip.__str__", matches)
+            self.assertNotIn(".__str__", matches)
             # self.assertIn('ip._hidden_attr', matches)
 
             # c.use_jedi = True
@@ -675,8 +696,8 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip.")
-            self.assertNotIn("ip.__str__", matches)
-            self.assertNotIn("ip._hidden_attr", matches)
+            self.assertNotIn(".__str__", matches)
+            self.assertNotIn("._hidden_attr", matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip.', 3))
@@ -686,7 +707,7 @@ class TestCompleter(unittest.TestCase):
         with provisionalcompleter():
             c.use_jedi = False
             s, matches = c.complete("ip._x.")
-            self.assertIn("ip._x.keys", matches)
+            self.assertIn(".keys", matches)
 
             # c.use_jedi = True
             # completions = set(c.completions('ip._x.', 6))
@@ -697,7 +718,7 @@ class TestCompleter(unittest.TestCase):
 
     def test_limit_to__all__False_ok(self):
         """
-        Limit to all is deprecated, once we remove it this test can go away. 
+        Limit to all is deprecated, once we remove it this test can go away.
         """
         ip = get_ipython()
         c = ip.Completer
@@ -708,7 +729,7 @@ class TestCompleter(unittest.TestCase):
         cfg.IPCompleter.limit_to__all__ = False
         c.update_config(cfg)
         s, matches = c.complete("d.")
-        self.assertIn("d.x", matches)
+        self.assertIn(".x", matches)
 
     def test_get__all__entries_ok(self):
         class A:
@@ -1722,6 +1743,45 @@ class TestCompleter(unittest.TestCase):
             _(["completion_b"])
             a_matcher.matcher_priority = 3
             _(["completion_a"])
+
+
+@pytest.mark.parametrize(
+    "setup,code,expected,not_expected",
+    [
+        ('a="str"; b=1', "(a, b.", [".bit_count", ".conjugate"], [".count"]),
+        ('a="str"; b=1', "(a, b).", [".count"], [".bit_count", ".capitalize"]),
+        ('x="str"; y=1', "x = {1, y.", [".bit_count"], [".count"]),
+        ('x="str"; y=1', "x = [1, y.", [".bit_count"], [".count"]),
+        ('x="str"; y=1; fun=lambda x:x', "x = fun(1, y.", [".bit_count"], [".count"]),
+    ],
+)
+def test_misc_no_jedi_completions(setup, code, expected, not_expected):
+    ip = get_ipython()
+    c = ip.Completer
+    ip.ex(setup)
+    with provisionalcompleter(), jedi_status(False):
+        matches = c.all_completions(code)
+        assert set(expected) - set(matches) == set(), set(matches)
+        assert set(matches).intersection(set(not_expected)) == set()
+
+
+@pytest.mark.parametrize(
+    "code,expected",
+    [
+        (" (a, b", "b"),
+        ("(a, b", "b"),
+        ("(a, b)", ""),  # trim always start by trimming
+        (" (a, b)", "(a, b)"),
+        (" [a, b]", "[a, b]"),
+        (" a, b", "b"),
+        ("x = {1, y", "y"),
+        ("x = [1, y", "y"),
+        ("x = fun(1, y", "y"),
+    ],
+)
+def test_trim_expr(code, expected):
+    c = get_ipython().Completer
+    assert c._trim_expr(code) == expected
 
 
 @pytest.mark.parametrize(

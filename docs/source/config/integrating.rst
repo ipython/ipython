@@ -9,7 +9,7 @@ Tab completion
 
 To change the attributes displayed by tab-completing your object, define a
 ``__dir__(self)`` method for it. For more details, see the documentation of the
-built-in `dir() function <http://docs.python.org/library/functions.html#dir>`_.
+built-in :external+python:py:func:`dir`
 
 You can also customise key completions for your objects, e.g. pressing tab after
 ``obj["a``. To do so, define a method ``_ipython_key_completions_()``, which
@@ -25,7 +25,7 @@ Rich display
 ============
 
 Custom methods
-----------------------
+--------------
 
 IPython can display richer representations of objects.
 To do this, you can define ``_ipython_display_()``, or any of a number of
@@ -153,6 +153,8 @@ be set to return a jpeg image and a ``{'height': 400, 'width': 600}`` dictionary
 to inform the frontend how to size the image.
 
 
+
+.. _third_party_formatting:
 
 Formatters for third-party types
 --------------------------------

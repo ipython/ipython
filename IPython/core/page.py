@@ -125,7 +125,7 @@ def _detect_screen_size(screen_lines_def):
     # print('***Screen size:',screen_lines_real,'lines x',
     #       screen_cols,'columns.')  # dbg
 
-def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
+def pager_page(strng, start=0, screen_lines=0, pager_cmd=None) -> None:
     """Display a string, piping through a pager after a certain length.
 
     strng can be a mime-bundle dict, supplying multiple representations,
@@ -223,7 +223,6 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                     io.TextIOWrapper(proc.stdin, encoding="utf-8"), proc
                 )
                 try:
-                    pager_encoding = pager.encoding or sys.stdout.encoding
                     pager.write(strng)
                 finally:
                     retval = pager.close()
@@ -239,7 +238,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
             page_dumb(strng,screen_lines=screen_lines)
 
 
-def page(data, start=0, screen_lines=0, pager_cmd=None):
+def page(data, start: int = 0, screen_lines: int = 0, pager_cmd=None):
     """Display content in a pager, piping through a pager after a certain length.
 
     data can be a mime-bundle dict, supplying multiple representations,

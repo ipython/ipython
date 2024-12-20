@@ -41,7 +41,7 @@ def dir2(obj):
         # TypeError: dir(obj) does not return a list
         words = set()
 
-    if safe_hasattr(obj, '__class__'):
+    if safe_hasattr(obj, "__class__"):
         words |= set(dir(obj.__class__))
 
     # filter out non-string attributes which may be stuffed by dir() calls
@@ -62,7 +62,7 @@ def get_real_method(obj, name):
     Returns the method or None.
     """
     try:
-        canary = getattr(obj, '_ipython_canary_method_should_not_exist_', None)
+        canary = getattr(obj, "_ipython_canary_method_should_not_exist_", None)
     except Exception:
         return None
 
