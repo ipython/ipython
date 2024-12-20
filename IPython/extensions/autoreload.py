@@ -632,7 +632,7 @@ class AutoreloadMagics(Magics):
         """
         args = magic_arguments.parse_argstring(self.autoreload, line)
         mode = args.mode.lower()
-        
+
         enable_deduperreload = True
         if mode.endswith("-"):
             enable_deduperreload = False

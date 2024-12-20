@@ -114,11 +114,11 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         self.source_by_modname: dict[str, str] = {}
         self.dependency_graph: dict[tuple[str, ...], list[DependencyNode]] = {}
         self._enabled = True
-        
+
     @property
     def enabled(self) -> bool:
         return self._enabled and platform.python_implementation() == "CPython"
-    
+
     @enabled.setter
     def enabled(self, value: bool) -> None:
         self._enabled = value
