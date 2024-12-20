@@ -1,6 +1,48 @@
 ============
  8.x Series
 ============
+.. _version 8.31:
+
+IPython 8.31
+============
+
+Small release for this end of december; This release contains only two notable changes:
+
+  - :ghpull:`14594` Fix completion in tuples, where the completion was
+    suggesting tuples methods instead of methods and attributes of the current
+    element.
+  - :ghpull:`14598` Fix  pdb issue with Python 3.13.1, this fix is not perfect
+    (see :ghissue:`14620`) but should be sufficient for now.
+
+
+As usual you can find the full list of PRs on GitHub under `the 8.31
+<https://github.com/ipython/ipython/milestone/138?closed=1>`__ milestone.
+
+
+Road to 9.0
+-----------
+
+The current main branch is now on it's way to be 9.0; do not expect many new
+features but a large codebase refactor, and cleanup with many deprecated code
+removed, and more agressive codestyle enforcement.
+
+For something completely different
+----------------------------------
+
+`Emmy Noether <https://en.wikipedia.org/wiki/Emmy_Noether>`__ was a German
+mathematician who made groundbreaking contributions to abstract algebra and
+theoretical physics. Her work on Noether's theorem, which describes the
+relationship between symmetries and conservation laws, has had a profound impact
+on the development of modern physics. Noether's work was largely overlooked
+during her lifetime, but her legacy as one of the most important mathematicians
+of the 20th century has been recognized and celebrated in recent years.
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries.
+
 .. _version 8.30:
 
 IPython 8.30
