@@ -21,25 +21,16 @@ import time
 import timeit
 from typing import Dict, Any
 from ast import (
-    Assign,
-    Call,
-    Expr,
-    Load,
     Module,
-    Name,
-    NodeTransformer,
-    Store,
-    parse,
-    unparse,
 )
 from io import StringIO
 from logging import error
 from pathlib import Path
 from pdb import Restart
-from textwrap import dedent, indent
+from textwrap import indent
 from warnings import warn
 
-from IPython.core import magic_arguments, oinspect, page
+from IPython.core import magic_arguments, page
 from IPython.core.displayhook import DisplayHook
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro
