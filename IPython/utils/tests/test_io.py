@@ -36,7 +36,7 @@ class TeeTestCase(unittest.TestCase):
         tee = Tee(chan, channel=channel)
 
         print(text, end='', file=chan)
-        trap_val = trap.getvalue()
+        _trap_val = trap.getvalue()
         self.assertEqual(chan.getvalue(), text)
 
         tee.close()
