@@ -38,9 +38,11 @@ from IPython.utils.syspathcontext import prepended_to_syspath
 # import needed by doctest
 from .test_debugger import PdbTestInput  # noqa: F401
 
+_ip = get_ipython()
 
 @magic.magics_class
-class DummyMagics(magic.Magics): pass
+class DummyMagics(magic.Magics):
+    pass
 
 def test_extract_code_ranges():
     instr = "1 3 5-6 7-9 10:15 17: :10 10- -13 :"
@@ -476,13 +478,13 @@ def test_time_no_output_with_semicolon():
 
 
 def test_time_last_not_expression():
-    ip.run_cell("%%time\n"
+    _ip.run_cell("%%time\n"
                 "var_1 = 1\n"
                 "var_2 = 2\n")
-    assert ip.user_ns['var_1'] == 1
-    del ip.user_ns['var_1']
-    assert ip.user_ns['var_2'] == 2
-    del ip.user_ns['var_2']
+    assert _ip.user_ns['var_1'] == 1
+    del _ip.user_ns['var_1']
+    assert _ip.user_ns['var_2'] == 2
+    del _ip.user_ns['var_2']
 
 
 @dec.skip_win32
@@ -964,7 +966,7 @@ class CellMagicTestCase(TestCase):
         self.check_ident('cellm4')
         # Check that nothing is registered as 'cellm33'
         c33 = _ip.find_cell_magic('cellm33')
-        assert c33 == None
+        assert c33 is None
 
 def test_file():
     """Basic %%writefile"""
@@ -1097,7 +1099,7 @@ def test_file_amend():
 def test_file_spaces():
     """%%file with spaces in filename"""
     ip = get_ipython()
-    with TemporaryWorkingDirectory() as td:
+    with TemporaryWorkingDirectory():
         fname = "file name"
         ip.run_cell_magic(
             "file",
@@ -1502,18 +1504,16 @@ def load_ipython_extension(ipython):
 
 def test_lazy_magics():
     with pytest.raises(UsageError):
-        ip.run_line_magic("lazy_line", "")
-
-    startdir = os.getcwd()
+        _ip.run_line_magic("lazy_line", "")
 
     with TemporaryDirectory() as tmpdir:
         with prepended_to_syspath(tmpdir):
             ptempdir = Path(tmpdir)
             tf = ptempdir / "lazy_magic_module.py"
             tf.write_text(MINIMAL_LAZY_MAGIC)
-            ip.magics_manager.register_lazy("lazy_line", Path(tf.name).name[:-3])
+            _ip.magics_manager.register_lazy("lazy_line", Path(tf.name).name[:-3])
             with tt.AssertPrints("Lazy Line"):
-                ip.run_line_magic("lazy_line", "")
+                _ip.run_line_magic("lazy_line", "")
 
 
 TEST_MODULE = """

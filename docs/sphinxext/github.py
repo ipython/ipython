@@ -90,6 +90,7 @@ def ghissue_role(name, rawtext, text, lineno, inliner, options=None, content=Non
             '"%s" is invalid.' % name, line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
+    app = inliner.document.settings.env.app
     node = make_link_node(rawtext, app, category, str(issue_num), options)
     return [node], []
 
