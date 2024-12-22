@@ -152,13 +152,7 @@ This allows to execute simple commands when present in beginning of the line:
     In[1]: !pwd
     /User/home/
 
-Change directory:
-
-.. code-block:: ipython
-
-    In[1]: !cd /var/etc
-
-Or edit file:
+Edit file:
 
 .. code-block:: ipython
 
@@ -196,6 +190,10 @@ You can combine the different possibilities in for loops, conditions, functions.
     for i, file in enumerate(my_files):
         raw = !echo $backup $file
         !cp $file {file.split('.')[0] + '.bak'}
+
+
+Each ``!`` gets executed in a separate shell, so changing directory by ``!cd`` or env vars ``!export FOO=bar`` will have no effect.
+Use instead the built-in magics ``%cd DIR/`` (there are also ``%pushd DIR/``, ``%dirs``, ``%popd``) and ``%env FOO=bar``.
 
 
 Magics
