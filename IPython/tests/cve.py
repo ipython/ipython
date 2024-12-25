@@ -30,7 +30,7 @@ def test_cve_2022_21699():
         [random.choice(string.ascii_letters) for i in range(10)]
     )
 
-    with TemporaryWorkingDirectory():
+    with TemporaryWorkingDirectory() as t:
         dangerous_startup_dir.mkdir(parents=True)
         (dangerous_startup_dir / "foo.py").write_text(
             f'print("{dangerous_expected}")', encoding="utf-8"

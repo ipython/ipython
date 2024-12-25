@@ -2,7 +2,7 @@
 requires = ["setuptools>=61.2"]
 # We need access to the 'setupbase' module at build time.
 # Hence we declare a custom build backend.
-build-backend = "_build_meta" # just re-exports setuptools.build_meta definitions
+build-backend = "_build_meta"  # just re-exports setuptools.build_meta definitions
 backend-path = ["."]
 
 [project]
@@ -56,7 +56,9 @@ Source = "https://github.com/ipython/ipython"
 Tracker = "https://github.com/ipython/ipython/issues"
 
 [project.optional-dependencies]
-black = ["black"]
+black = [
+    "black",
+]
 doc = [
     "docrepr",
     "exceptiongroup",
@@ -69,14 +71,33 @@ doc = [
     "sphinx>=1.3",
     "sphinxcontrib-jquery",
 ]
-kernel = ["ipykernel"]
-nbconvert = ["nbconvert"]
-nbformat = ["nbformat"]
-notebook = ["ipywidgets", "notebook"]
-parallel = ["ipyparallel"]
-qtconsole = ["qtconsole"]
+kernel = [
+    "ipykernel",
+]
+nbconvert = [
+    "nbconvert",
+]
+nbformat = [
+    "nbformat",
+]
+notebook = [
+    "ipywidgets",
+    "notebook",
+]
+parallel = [
+    "ipyparallel",
+]
+qtconsole = [
+    "qtconsole",
+]
 terminal = []
-test = ["pytest", "pytest-asyncio<0.22", "testpath", "pickleshare", "packaging"]
+test = [
+    "pytest",
+    "pytest-asyncio<0.22",
+    "testpath",
+    "pickleshare",
+    "packaging",
+]
 test_extra = [
     "ipython[test]",
     "curio",
@@ -86,7 +107,9 @@ test_extra = [
     "pandas",
     "trio",
 ]
-matplotlib = ["matplotlib"]
+matplotlib = [
+   "matplotlib"
+]
 all = [
     "ipython[black,doc,kernel,nbconvert,nbformat,notebook,parallel,qtconsole,matplotlib]",
     "ipython[test,test_extra]",
@@ -97,18 +120,18 @@ python_version = "3.10"
 ignore_missing_imports = true
 follow_imports = 'silent'
 exclude = [
-    'test_\.+\.py',
-    'IPython.utils.tests.test_wildcard',
-    'testing',
-    'tests',
-    'PyColorize.py',
-    '_process_win32_controller.py',
-    'IPython/core/application.py',
-    'IPython/core/profileapp.py',
-    'IPython/lib/deepreload.py',
-    'IPython/sphinxext/ipython_directive.py',
-    'IPython/terminal/ipapp.py',
-    'IPython/utils/path.py',
+   'test_\.+\.py',
+   'IPython.utils.tests.test_wildcard',
+   'testing',
+   'tests',
+   'PyColorize.py',
+   '_process_win32_controller.py',
+   'IPython/core/application.py',
+   'IPython/core/profileapp.py',
+   'IPython/lib/deepreload.py',
+   'IPython/sphinxext/ipython_directive.py',
+   'IPython/terminal/ipapp.py',
+   'IPython/utils/path.py',
 ]
 # check_untyped_defs = true
 # disallow_untyped_calls = true
@@ -120,7 +143,9 @@ disallow_untyped_defs = true
 warn_redundant_casts = true
 
 [[tool.mypy.overrides]]
-module = ["IPython.core.crashhandler"]
+module = [
+    "IPython.core.crashhandler",
+]
 check_untyped_defs = true
 disallow_incomplete_defs = true
 disallow_untyped_calls = true
@@ -130,13 +155,16 @@ ignore_errors = false
 ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
-module = ["IPython.utils.text"]
+module = [
+    "IPython.utils.text",
+]
 disallow_untyped_defs = true
 check_untyped_defs = false
 disallow_untyped_decorators = true
 
 [[tool.mypy.overrides]]
-module = []
+module = [
+]
 disallow_untyped_defs = false
 ignore_errors = true
 ignore_missing_imports = true
@@ -283,46 +311,52 @@ disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
 addopts = [
-    "--durations=10",
-    "-pIPython.testing.plugin.pytest_ipdoctest",
-    "--ipdoctest-modules",
-    "--ignore=docs",
-    "--ignore=examples",
-    "--ignore=htmlcov",
-    "--ignore=ipython_kernel",
-    "--ignore=ipython_parallel",
-    "--ignore=results",
-    "--ignore=tmp",
-    "--ignore=tools",
-    "--ignore=traitlets",
-    "--ignore=IPython/core/tests/daft_extension",
-    "--ignore=IPython/sphinxext",
-    "--ignore=IPython/terminal/pt_inputhooks",
-    "--ignore=IPython/__main__.py",
-    "--ignore=IPython/external/qt_for_kernel.py",
-    "--ignore=IPython/html/widgets/widget_link.py",
-    "--ignore=IPython/html/widgets/widget_output.py",
-    "--ignore=IPython/terminal/console.py",
-    "--ignore=IPython/utils/_process_cli.py",
-    "--ignore=IPython/utils/_process_posix.py",
-    "--ignore=IPython/utils/_process_win32_controller.py",
-    "--ignore=IPython/utils/daemonize.py",
-    "--ignore=IPython/utils/eventful.py",
-    "--ignore=IPython/kernel",
-    "--ignore=IPython/consoleapp.py",
-    "--ignore=IPython/lib/kernel.py",
-    "--ignore=IPython/utils/jsonutil.py",
-    "--ignore=IPython/utils/localinterfaces.py",
-    "--ignore=IPython/utils/log.py",
-    "--ignore=IPython/utils/signatures.py",
-    "--ignore=IPython/utils/version.py",
+   "--durations=10",
+   "-pIPython.testing.plugin.pytest_ipdoctest",
+   "--ipdoctest-modules",
+   "--ignore=docs",
+   "--ignore=examples",
+   "--ignore=htmlcov",
+   "--ignore=ipython_kernel",
+   "--ignore=ipython_parallel",
+   "--ignore=results",
+   "--ignore=tmp",
+   "--ignore=tools",
+   "--ignore=traitlets",
+   "--ignore=IPython/core/tests/daft_extension",
+   "--ignore=IPython/sphinxext",
+   "--ignore=IPython/terminal/pt_inputhooks",
+   "--ignore=IPython/__main__.py",
+   "--ignore=IPython/external/qt_for_kernel.py",
+   "--ignore=IPython/html/widgets/widget_link.py",
+   "--ignore=IPython/html/widgets/widget_output.py",
+   "--ignore=IPython/terminal/console.py",
+   "--ignore=IPython/utils/_process_cli.py",
+   "--ignore=IPython/utils/_process_posix.py",
+   "--ignore=IPython/utils/_process_win32_controller.py",
+   "--ignore=IPython/utils/daemonize.py",
+   "--ignore=IPython/utils/eventful.py",
+   "--ignore=IPython/kernel",
+   "--ignore=IPython/consoleapp.py",
+   "--ignore=IPython/lib/kernel.py",
+   "--ignore=IPython/utils/jsonutil.py",
+   "--ignore=IPython/utils/localinterfaces.py",
+   "--ignore=IPython/utils/log.py",
+   "--ignore=IPython/utils/signatures.py",
+   "--ignore=IPython/utils/version.py"
 ]
-doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
-ipdoctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
+doctest_optionflags = [
+   "NORMALIZE_WHITESPACE",
+   "ELLIPSIS"
+]
+ipdoctest_optionflags = [
+   "NORMALIZE_WHITESPACE",
+   "ELLIPSIS"
+]
 asyncio_mode = "strict"
 
 [tool.pyright]
-pythonPlatform = "All"
+pythonPlatform="All"
 
 [tool.setuptools]
 zip-safe = false
@@ -342,51 +376,49 @@ namespaces = false
 "IPython.testing.plugin" = ["*.txt"]
 
 [tool.setuptools.dynamic]
-version = { attr = "IPython.core.release.__version__" }
+version = {attr = "IPython.core.release.__version__"}
 
 [tool.coverage.run]
 omit = [
     # omit everything in /tmp as we run tempfile
     "/tmp/*",
-]
+    ]
 
 [tool.ruff.lint]
 extend-select = [
-    #  "B",           # flake8-bugbear
-    #  "I",           # isort
-    # that will be a problem for pytest fixture unless you swap with the usefixture decorator https://docs.pytest.org/en/7.1.x/how-to/fixtures.html#use-fixtures-in-classes-and-modules-with-usefixtures
-    #  "ARG",         # flake8-unused-arguments
-    #  "C4",          # flake8-comprehensions
-    #  "EM",          # flake8-errmsg
-    #  "ICN",         # flake8-import-conventions
-    #  "G",           # flake8-logging-format
-    #  "PGH",         # pygrep-hooks
-    #  "PIE",         # flake8-pie
-    #  "PL",          # pylint
-    #  "PTH",         # flake8-use-pathlib
-    #  "PT",          # flake8-pytest-style
-    #  "RET",         # flake8-return
-    #  "RUF",         # Ruff-specific
-    #  "SIM",         # flake8-simplify
-    #  "T20",         # flake8-print
-    #  "UP",          # pyupgrade
-    #  "YTT",         # flake8-2020
-    #  "EXE",         # flake8-executable
-    #  "PYI",         # flake8-pyi
-    #  "S",           # flake8-bandit
+#  "B",           # flake8-bugbear
+#  "I",           # isort
+# that will be a problem for pytest fixture unless you swap with the usefixture decorator https://docs.pytest.org/en/7.1.x/how-to/fixtures.html#use-fixtures-in-classes-and-modules-with-usefixtures
+#  "ARG",         # flake8-unused-arguments
+#  "C4",          # flake8-comprehensions
+#  "EM",          # flake8-errmsg
+#  "ICN",         # flake8-import-conventions
+#  "G",           # flake8-logging-format
+#  "PGH",         # pygrep-hooks
+#  "PIE",         # flake8-pie
+#  "PL",          # pylint
+#  "PTH",         # flake8-use-pathlib
+#  "PT",          # flake8-pytest-style
+#  "RET",         # flake8-return
+#  "RUF",         # Ruff-specific
+#  "SIM",         # flake8-simplify
+#  "T20",         # flake8-print
+#  "UP",          # pyupgrade
+#  "YTT",         # flake8-2020
+#  "EXE",         # flake8-executable
+#  "PYI",         # flake8-pyi
+#  "S",           # flake8-bandit
 ]
 ignore = [
-    #  "E501",     # E501 Line too long (158 > 100 characters)
-    #  "SIM105",   # SIM105 Use `contextlib.suppress(...)`
-    #  "PLR",      # Design related pylint codes
-    #  "S101",     # Use of `assert` detected
+#  "E501",     # E501 Line too long (158 > 100 characters)
+#  "SIM105",   # SIM105 Use `contextlib.suppress(...)`
+#  "PLR",      # Design related pylint codes
+#  "S101",     # Use of `assert` detected
 ]
 unfixable = [
-    # Don't touch print statements
-    "T201",
-    # Don't touch noqa lines
-    "RUF100",
+  # Don't touch print statements
+  "T201",
+  # Don't touch noqa lines
+  "RUF100",
 ]
 
-[tool.ruff]
-extend-exclude = ["tests"]
