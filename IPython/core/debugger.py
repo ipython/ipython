@@ -281,6 +281,11 @@ class Pdb(OldPdb):
         # module and add a few attributes needed for debugging
         self.color_scheme_table = exception_colors()
 
+        # shorthands
+        C = coloransi.TermColors
+        cst = self.color_scheme_table
+
+
         # Add a python parser so we can syntax highlight source while
         # debugging.
         self.parser = PyColorize.Parser(style=color_scheme)

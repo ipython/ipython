@@ -188,7 +188,7 @@ def _safe_string(value, what, func=str):
     # Copied from cpython/Lib/traceback.py
     try:
         return func(value)
-    except Exception:
+    except:
         return f"<{what} {func.__name__}() failed>"
 
 
@@ -730,9 +730,9 @@ class ListTB(TBTools):
     def _some_str(self, value):
         # Lifted from traceback.py
         try:
-            return str(value)
+            return py3compat.cast_unicode(str(value))
         except:
-            return "<unprintable %s object>" % type(value).__name__
+            return u'<unprintable %s object>' % type(value).__name__
 
 
 class FrameInfo:
@@ -1048,7 +1048,7 @@ class VerboseTB(TBTools):
                 colors.excName,
                 etype_str,
                 colorsnormal,
-                evalue_str,
+                py3compat.cast_unicode(evalue_str),
             ),
             *(
                 "{}{}".format(
@@ -1071,6 +1071,8 @@ class VerboseTB(TBTools):
         This may be called multiple times by Python 3 exception chaining
         (PEP 3134).
         """
+        # some locals
+        orig_etype = etype
         try:
             etype = etype.__name__  # type: ignore
         except AttributeError:
@@ -1408,7 +1410,7 @@ class AutoFormattedTB(FormattedTB):
         AutoTB = AutoFormattedTB(mode = 'Verbose',color_scheme='Linux')
         try:
           ...
-        except Exception:
+        except:
           AutoTB()  # or AutoTB(out=logfile) where logfile is an open file object
     """
 
@@ -1515,12 +1517,12 @@ def text_repr(value):
         return pydoc.text.repr(value)  # type: ignore[call-arg]
     except KeyboardInterrupt:
         raise
-    except Exception:
+    except:
         try:
             return repr(value)
         except KeyboardInterrupt:
             raise
-        except Exception:
+        except:
             try:
                 # all still in an except block so we catch
                 # getattr raising
@@ -1533,7 +1535,7 @@ def text_repr(value):
                     return '%s instance' % text_repr(klass)
             except KeyboardInterrupt:
                 raise
-            except Exception:
+            except:
                 return 'UNRECOVERABLE REPR FAILURE'
 
 

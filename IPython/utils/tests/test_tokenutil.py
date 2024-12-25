@@ -31,6 +31,7 @@ def test_simple():
 
 def test_function():
     cell = "foo(a=5, b='10')"
+    expected = 'foo'
     # up to `foo(|a=`
     for i in range(cell.find('a=') + 1):
         expect_token("foo", cell, i)

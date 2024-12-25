@@ -100,7 +100,7 @@ def test_get_ipython_dir_4():
             'IPYTHONDIR': None,
             'XDG_CONFIG_HOME': XDG_TEST_DIR,
         }), warnings.catch_warnings(record=True) as w:
-            _ipdir = paths.get_ipython_dir()
+            ipdir = paths.get_ipython_dir()
 
         assert len(w) == 1
         assert "Ignoring" in str(w[0])
