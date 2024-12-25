@@ -214,7 +214,7 @@ class DisplayHook(Configurable):
             # by the user.
             update_unders = True
             for unders in ['_'*i for i in range(1,4)]:
-                if unders not in self.shell.user_ns:
+                if not unders in self.shell.user_ns:
                     continue
                 if getattr(self, unders) is not self.shell.user_ns.get(unders):
                     update_unders = False

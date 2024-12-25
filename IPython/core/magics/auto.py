@@ -118,14 +118,14 @@ class AutoMagics(Magics):
             return error
 
         if parameter_s:
-            if parameter_s not in map(str, valid_modes.keys()):
+            if not parameter_s in map(str, valid_modes.keys()):
                 error(errorMessage())
                 return
             arg = int(parameter_s)
         else:
             arg = 'toggle'
 
-        if arg not in (*list(valid_modes.keys()), "toggle"):
+        if not arg in (*list(valid_modes.keys()), "toggle"):
             error(errorMessage())
             return
 

@@ -158,7 +158,7 @@ def test_get_home_dir_4():
 
     if 'HOME' in env: del env['HOME']
     # this should still succeed, but we don't care what the answer is
-    _home = path.get_home_dir(False)
+    home = path.get_home_dir(False)
 
 @skip_win32
 @with_environment
@@ -254,7 +254,7 @@ def test_filefind():
     f = tempfile.NamedTemporaryFile()
     # print('fname:',f.name)
     alt_dirs = paths.get_ipython_dir()
-    _t = path.filefind(f.name, alt_dirs)
+    t = path.filefind(f.name, alt_dirs)
     # print('found:',t)
 
 

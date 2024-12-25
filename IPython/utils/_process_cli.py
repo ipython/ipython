@@ -22,7 +22,7 @@ import os
 from ._process_common import arg_split
 
 
-def system(cmd: str):
+def system(cmd):
     """
     system(cmd) should work in a cli environment on Mac OSX, Linux,
     and Windows
@@ -33,10 +33,10 @@ def system(cmd: str):
     psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal
     psi.UseShellExecute = False
     # Start up process:
-    _reg = System.Diagnostics.Process.Start(psi)
+    reg = System.Diagnostics.Process.Start(psi)
 
 
-def getoutput(cmd: str):
+def getoutput(cmd):
     """
     getoutput(cmd) should work in a cli environment on Mac OSX, Linux,
     and Windows
@@ -51,11 +51,11 @@ def getoutput(cmd: str):
     myOutput = reg.StandardOutput
     output = myOutput.ReadToEnd()
     myError = reg.StandardError
-    _error = myError.ReadToEnd()
+    error = myError.ReadToEnd()
     return output
 
 
-def check_pid(pid: int):
+def check_pid(pid):
     """
     Check if a process with the given PID (pid) exists
     """

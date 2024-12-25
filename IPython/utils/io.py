@@ -8,11 +8,15 @@ IO related utilities.
 
 
 
+import atexit
+import os
 import sys
 import tempfile
 from pathlib import Path
+from warnings import warn
 
-from .capture import capture_output as capture_output
+from IPython.utils.decorators import undoc
+from .capture import CapturedIO, capture_output
 
 class Tee(object):
     """A class to duplicate an output stream to stdout/err.
