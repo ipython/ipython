@@ -380,6 +380,24 @@ ignore = [
     #  "SIM105",   # SIM105 Use `contextlib.suppress(...)`
     #  "PLR",      # Design related pylint codes
     #  "S101",     # Use of `assert` detected
+    "E712", #   1
+    "E713", #   1
+    "E902", #   2
+    "E702", #   3
+    "E721", #   3
+    "E401", #   5
+    "E711", #  14      Comparison to `None` should be `cond is None`
+    "E701", #  19      Multiple statements on one line (colon)
+    "E741", #  25      Ambiguous variable name: `<one letter>`
+    "E731", #  27      Do not assign a `lambda` expression, use a `def`
+    "E402", #  28      Module level import not at top of file
+    "E722", #  75      Do not use bare `except`
+    "F523", #   1
+    "F811", #   3
+    "F403", #   7
+    "F841", #  38       Local variable `...` is assigned to but never used
+    "F401", #  69       imported but unused
+    "F821", # 624  F821 Undefined name
 ]
 unfixable = [
     # Don't touch print statements
