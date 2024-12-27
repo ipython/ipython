@@ -4,6 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 from __future__ import annotations
 
+import itertools
 import tokenize
 from io import StringIO
 from keyword import iskeyword
@@ -19,12 +20,8 @@ class Token(NamedTuple):
     line: str
 
 
-def generate_tokens(text_or_readline) -> Generator[TokenInfo, None, None]:
+def generate_tokens(readline) -> Generator[TokenInfo, None, None]:
     """wrap generate_tkens to catch EOF errors"""
-    if isinstance(text_or_readline, str):
-        readline = StringIO(text_or_readline).readline
-    else:
-        readline = text_or_readline
     try:
         for token in tokenize.generate_tokens(readline):
             yield token
@@ -85,7 +82,7 @@ def line_at_cursor(cell: str, cursor_pos: int = 0) -> tuple[str, int]:
     lines = cell.splitlines(True)
     for line in lines:
         next_offset = offset + len(line)
-        if not line.endswith('\n'):
+        if not line.endswith("\n"):
             # If the last line doesn't have a trailing newline, treat it as if
             # it does so that the cursor at the end of the line still counts
             # as being on that line.
@@ -98,7 +95,7 @@ def line_at_cursor(cell: str, cursor_pos: int = 0) -> tuple[str, int]:
     return line, offset
 
 
-def token_at_cursor(cell: str, cursor_pos: int = 0):
+def token_at_cursor(cell: str, cursor_pos: int = 0) -> str:
     """Get the token at a given cursor
 
     Used for introspection.
@@ -121,11 +118,12 @@ def token_at_cursor(cell: str, cursor_pos: int = 0):
     offsets = {1: 0}  # lines start at 1
     intersects_with_cursor = False
     cur_token_is_name = False
-    tokens: list[Token] = [Token(*tup) for tup in generate_tokens(cell)]
+    tokens: list[Token | None] = [
+        Token(*tup) for tup in generate_tokens(StringIO(cell).readline)
+    ]
     if not tokens:
         return ""
-    next_tokens: list[Token | None] = tokens[1:] + [None]
-    for tok, next_tok in zip(tokens, next_tokens):
+    for tok, next_tok in itertools.pairwise(tokens + [None]):
         # token, text, start, end, line = tup
         start_line, start_col = tok.start
         end_line, end_col = tok.end
@@ -137,13 +135,13 @@ def token_at_cursor(cell: str, cursor_pos: int = 0):
                     offsets[lineno] = offsets[lineno - 1] + len(line)
 
         closing_call_name = None
-        
+
         offset = offsets[start_line]
         if offset + start_col > cursor_pos:
             # current token starts after the cursor,
             # don't consume it
             break
-        
+
         if cur_token_is_name := tok.token == tokenize.NAME and not iskeyword(tok.text):
             if (
                 names
@@ -171,15 +169,15 @@ def token_at_cursor(cell: str, cursor_pos: int = 0):
             elif tok.text == ")" and call_names:
                 # keep track of the most recently popped call_name from the stack
                 closing_call_name = call_names.pop(-1)
-        
+
         tokens.append(tok)
-        
+
         if offsets[end_line] + end_col > cursor_pos:
             # we found the cursor, stop reading
             # if the current token intersects directly, use it instead of the call token
             intersects_with_cursor = offsets[start_line] + start_col <= cursor_pos
             break
-        
+
     if cur_token_is_name and intersects_with_cursor:
         return names[-1]
     # if the cursor isn't directly over a name token, use the most recent

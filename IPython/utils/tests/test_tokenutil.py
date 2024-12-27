@@ -1,8 +1,10 @@
 """Tests for tokenutil"""
+
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
 import pytest
+import textwrap
 
 from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
 
@@ -53,16 +55,17 @@ def test_function():
     "cell",
     [
         "\n".join(["a = 5", "b = hello('string', there)"]),
-        "\n".join(
-            [
-                '"""\n\nxxxxxxxxxx\n\n"""',
-                '5, """',
-                "docstring",
-                "multiline token",
-                '""", [',
-                '2, 3, "complicated"]',
-                'b = hello("string", there)',
-            ]
+        textwrap.dedent(
+            '''
+            """\n\nxxxxxxxxxx\n\n"""
+            5, """
+            """\n\nxxxxxxxxxx\n\n"""
+            docstring
+            multiline token
+            """, [
+            2, 3, "complicated"]
+            b = hello("string", there)
+        '''
         ),
     ],
 )
@@ -125,16 +128,16 @@ def test_outer_name():
 
 def test_attrs():
     cell = "a = obj.attr.subattr"
-    expected = 'obj'
-    idx = cell.find('obj') + 1
+    expected = "obj"
+    idx = cell.find("obj") + 1
     for i in range(idx, idx + 3):
         expect_token(expected, cell, i)
-    idx = cell.find('.attr') + 2
-    expected = 'obj.attr'
+    idx = cell.find(".attr") + 2
+    expected = "obj.attr"
     for i in range(idx, idx + 4):
         expect_token(expected, cell, i)
-    idx = cell.find('.subattr') + 2
-    expected = 'obj.attr.subattr'
+    idx = cell.find(".subattr") + 2
+    expected = "obj.attr.subattr"
     for i in range(idx, len(cell)):
         expect_token(expected, cell, i)
 

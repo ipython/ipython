@@ -304,7 +304,7 @@ def accept_token(event: KeyPressEvent):
         substrings = [""]
         i = 0
 
-        for token in generate_tokens(text):
+        for token in generate_tokens(StringIO(text).readline):
             if token.type == tokenize.NEWLINE:
                 index = len(text)
             else:
