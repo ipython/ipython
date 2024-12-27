@@ -15,6 +15,7 @@ def expect_token(expected: str, cell: str, cursor_pos: int | None = None) -> Non
     Assert that the token at the cursor position is `expected`.
     """
     if cursor_pos is None:
+        assert cell.count("|") == 1, "Cursor position not specified and no | found"
         cursor_pos = cell.index("|")
         cell = cell.replace("|", "")
     token = token_at_cursor(cell, cursor_pos)
