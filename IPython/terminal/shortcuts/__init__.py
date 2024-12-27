@@ -393,7 +393,7 @@ def reformat_text_before_cursor(buffer, document, shell):
     try:
         formatted_text = shell.reformat_handler(text)
         buffer.insert_text(formatted_text)
-    except Exception:
+    except Exception as e:
         buffer.insert_text(text)
 
 

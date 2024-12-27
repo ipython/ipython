@@ -33,7 +33,7 @@ from io import open as io_open
 from logging import error
 from pathlib import Path
 from typing import Callable
-from typing import List as ListType, Any as AnyType
+from typing import List as ListType, Dict as DictType, Any as AnyType
 from typing import Optional, Sequence, Tuple
 from warnings import warn
 
@@ -118,7 +118,7 @@ from IPython.core.usage import default_banner
 from IPython.display import display
 from IPython.paths import get_ipython_dir
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import PyColorize, openpy, py3compat
+from IPython.utils import PyColorize, io, openpy, py3compat
 from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
@@ -129,18 +129,6 @@ from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 from IPython.core.oinspect import OInfo
 
-from ast import Module
-
-# we still need to run things using the asyncio eventloop, but there is no
-# async integration
-
-from .async_helpers import (
-    _asyncio_runner,
-    _curio_runner,
-    _pseudo_sync_runner,
-    _should_be_async,
-    _trio_runner,
-)
 
 sphinxify: Optional[Callable]
 
@@ -168,9 +156,24 @@ class ProvisionalWarning(DeprecationWarning):
     """
     pass
 
+from ast import Module
 
 _assign_nodes = (ast.AugAssign, ast.AnnAssign, ast.Assign)
 _single_targets_nodes = (ast.AugAssign, ast.AnnAssign)
+
+#-----------------------------------------------------------------------------
+# Await Helpers
+#-----------------------------------------------------------------------------
+
+# we still need to run things using the asyncio eventloop, but there is no
+# async integration
+from .async_helpers import (
+    _asyncio_runner,
+    _curio_runner,
+    _pseudo_sync_runner,
+    _should_be_async,
+    _trio_runner,
+)
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -217,8 +220,7 @@ def no_op(*a, **kw):
     pass
 
 
-class SpaceInInput(Exception):
-    pass
+class SpaceInInput(Exception): pass
 
 
 class SeparateUnicode(Unicode):
@@ -228,9 +230,8 @@ class SeparateUnicode(Unicode):
     """
 
     def validate(self, obj, value):
-        if value == "0":
-            value = ""
-        value = value.replace("\\n", "\n")
+        if value == '0': value = ''
+        value = value.replace('\\n','\n')
         return super(SeparateUnicode, self).validate(obj, value)
 
 
@@ -1571,7 +1572,7 @@ class InteractiveShell(SingletonConfigurable):
             for name in vlist:
                 try:
                     vdict[name] = eval(name, cf.f_globals, cf.f_locals)
-                except Exception:
+                except:
                     print('Could not get variable %s from %s' %
                            (name,cf.f_code.co_name))
         else:
@@ -1730,7 +1731,7 @@ class InteractiveShell(SingletonConfigurable):
                                 obj = obj[int(part)]
                             else:
                                 obj = getattr(obj, part)
-                    except Exception:
+                    except:
                         # Blanket except b/c some badly implemented objects
                         # allow __getattr__ to raise exceptions other than
                         # AttributeError, which then crashes IPython.
@@ -2021,7 +2022,7 @@ class InteractiveShell(SingletonConfigurable):
                 try:
                     stb = handler(self,etype,value,tb,tb_offset=tb_offset)
                     return validate_stb(stb)
-                except Exception:
+                except:
                     # clear custom handler immediately
                     self.set_custom_exc((), None)
                     print("Custom TB Handler failed, unregistering", file=sys.stderr)
@@ -2214,7 +2215,7 @@ class InteractiveShell(SingletonConfigurable):
         if filename and issubclass(etype, SyntaxError):
             try:
                 value.filename = filename
-            except Exception:
+            except:
                 # Not the format we expect; leave it alone
                 pass
 
@@ -2860,7 +2861,7 @@ class InteractiveShell(SingletonConfigurable):
         for key, expr in expressions.items():
             try:
                 value = self._format_user_obj(eval(expr, global_ns, user_ns))
-            except Exception:
+            except:
                 value = self._user_obj_error()
             out[key] = value
         return out
@@ -2914,7 +2915,7 @@ class InteractiveShell(SingletonConfigurable):
         try:
             with fname.open("rb"):
                 pass
-        except Exception:
+        except:
             warn('Could not open file <%s> for safe execution.' % fname)
             return
 
@@ -2944,7 +2945,7 @@ class InteractiveShell(SingletonConfigurable):
                         raise
                     if not exit_ignore:
                         self.showtraceback(exception_only=True)
-            except Exception:
+            except:
                 if raise_exceptions:
                     raise
                 # tb offset is 2 because we wrap execfile
@@ -2972,7 +2973,7 @@ class InteractiveShell(SingletonConfigurable):
         try:
             with fname.open("rb"):
                 pass
-        except Exception:
+        except:
             warn('Could not open file <%s> for safe execution.' % fname)
             return
 
@@ -3002,7 +3003,7 @@ class InteractiveShell(SingletonConfigurable):
                         result.raise_error()
                     elif not result.success:
                         break
-            except Exception:
+            except:
                 if raise_exceptions:
                     raise
                 self.showtraceback()
@@ -3032,7 +3033,7 @@ class InteractiveShell(SingletonConfigurable):
             except SystemExit as status:
                 if status.code:
                     raise
-        except Exception:
+        except:
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
@@ -3518,7 +3519,7 @@ class InteractiveShell(SingletonConfigurable):
             if softspace(sys.stdout, 0):
                 print()
 
-        except Exception:
+        except:
             # It's possible to have exceptions raised here, typically by
             # compilation of odd code (such as a naked 'return' outside a
             # function) that did parse but isn't valid. Typically the exception
@@ -3590,7 +3591,7 @@ class InteractiveShell(SingletonConfigurable):
             if result is not None:
                 result.error_in_exec = value
             self.CustomTB(etype, value, tb)
-        except Exception:
+        except:
             if result is not None:
                 result.error_in_exec = sys.exc_info()[1]
             self.showtraceback(running_compiled_code=True)
@@ -3656,12 +3657,12 @@ class InteractiveShell(SingletonConfigurable):
         if not _matplotlib_manages_backends() and gui in (None, "auto"):
             # Early import of backend_inline required for its side effect of
             # calling _enable_matplotlib_integration()
-            import matplotlib_inline.backend_inline  # noqa : F401
+            import matplotlib_inline.backend_inline
 
         from IPython.core import pylabtools as pt
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
-        if gui is not None:
+        if gui != None:
             # If we have our first gui selection, store it
             if self.pylab_gui_select is None:
                 self.pylab_gui_select = gui

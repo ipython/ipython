@@ -6,6 +6,7 @@
 
 # our own packages
 from IPython.core import autocall
+from IPython.testing import tools as tt
 import pytest
 from collections.abc import Callable
 

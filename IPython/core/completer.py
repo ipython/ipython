@@ -226,6 +226,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import generics
 from IPython.utils.decorators import sphinx_options
 from IPython.utils.dir2 import dir2, get_real_method
+from IPython.utils.docs import GENERATING_DOCUMENTATION
 from IPython.utils.path import ensure_dir_exists
 from IPython.utils.process import arg_split
 from traitlets import (
