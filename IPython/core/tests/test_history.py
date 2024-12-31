@@ -15,6 +15,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 # our own packages
 from traitlets.config.loader import Config
+import pytest
 
 from IPython.core.history import HistoryAccessor, HistoryManager, extract_hist_ranges
 
@@ -152,16 +153,21 @@ def test_history():
             ip.history_manager = hist_manager_ori
 
 
-def test_extract_hist_ranges():
-    instr = "1 2/3 ~4/5-6 ~4/7-~4/9 ~9/2-~7/5 ~10/"
-    expected = [(0, 1, 2),  # 0 == current session
-                (2, 3, 4),
-                (-4, 5, 7),
-                (-4, 7, 10),
-                (-9, 2, None),  # None == to end
-                (-8, 1, None),
-                (-7, 1, 6),
-                (-10, 1, None)]
+
+
+@pytest.mark.parametrize(
+    "instr, expected",
+    [
+        ("1", [(0, 1, 2)]),
+        ("2/3", [(2, 3, 4)]),
+        ("~4/5-6", [(-4, 5, 7)]),
+        ("~4/7-~4/9", [(-4, 7, 10)]),
+        ("~9/2-~7/5", [(-9, 2, None)]),
+        ("~10/", [(-10, 1, None)]),
+        ("~4", [(-4, 1, None)]),
+    ],
+)
+def test_extract_hist_ranges(instr, expected):
     actual = list(extract_hist_ranges(instr))
     assert actual == expected
 
