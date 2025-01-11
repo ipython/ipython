@@ -900,7 +900,7 @@ class InteractiveShell(SingletonConfigurable):
             return
 
         p = Path(sys.executable)
-        p_venv = Path(os.environ["VIRTUAL_ENV"])
+        p_venv = Path(os.environ["VIRTUAL_ENV"]).resolve()
 
         # fallback venv detection:
         # stdlib venv may symlink sys.executable, so we can't use realpath.
@@ -913,7 +913,7 @@ class InteractiveShell(SingletonConfigurable):
             drive_name = p_venv.parts[2]
             p_venv = (drive_name + ":/") / Path(*p_venv.parts[3:])
 
-        if any(p_venv == p.parents[1] for p in paths):
+        if any(p_venv == p.parents[1].resolve() for p in paths):
             # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
 
