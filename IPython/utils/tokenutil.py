@@ -123,8 +123,9 @@ def token_at_cursor(cell: str, cursor_pos: int = 0) -> str:
     ]
     if not tokens:
         return ""
-    last_token: Token | None = None
-    for tok, next_tok in itertools.pairwise(tokens + [None]):
+    for prev_tok, (tok, next_tok) in zip(
+        [None] + tokens, itertools.pairwise(tokens + [None])
+    ):
         # token, text, start, end, line = tup
         start_line, start_col = tok.start
         end_line, end_col = tok.end
@@ -146,9 +147,9 @@ def token_at_cursor(cell: str, cursor_pos: int = 0) -> str:
         if cur_token_is_name := tok.token == tokenize.NAME and not iskeyword(tok.text):
             if (
                 names
-                and last_token
-                and last_token.token == tokenize.OP
-                and last_token.text == "."
+                and prev_tok
+                and prev_tok.token == tokenize.OP
+                and prev_tok.text == "."
             ):
                 names[-1] = "%s.%s" % (names[-1], tok.text)
             else:
@@ -170,8 +171,6 @@ def token_at_cursor(cell: str, cursor_pos: int = 0) -> str:
             elif tok.text == ")" and call_names:
                 # keep track of the most recently popped call_name from the stack
                 closing_call_name = call_names.pop(-1)
-
-        last_token = tok
 
         if offsets[end_line] + end_col > cursor_pos:
             # we found the cursor, stop reading
