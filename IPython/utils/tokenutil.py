@@ -170,8 +170,6 @@ def token_at_cursor(cell: str, cursor_pos: int = 0) -> str:
                 # keep track of the most recently popped call_name from the stack
                 closing_call_name = call_names.pop(-1)
 
-        tokens.append(tok)
-
         if offsets[end_line] + end_col > cursor_pos:
             # we found the cursor, stop reading
             # if the current token intersects directly, use it instead of the call token
