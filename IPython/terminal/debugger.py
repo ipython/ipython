@@ -17,10 +17,6 @@ from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.history import InMemoryHistory, FileHistory
 from concurrent.futures import ThreadPoolExecutor
 
-from prompt_toolkit import __version__ as ptk_version
-PTK3 = ptk_version.startswith('3.')
-
-
 # we want to avoid ptk as much as possible when using subprocesses
 # as it uses cursor positioning requests, deletes color ....
 _use_simple_prompt = "IPY_TEST_SIMPLE_PROMPT" in os.environ
@@ -89,8 +85,6 @@ class TerminalPdb(Pdb):
             color_depth=self.shell.color_depth,
         )
 
-        if not PTK3:
-            options['inputhook'] = self.shell.inputhook
         options.update(pt_session_options)
         if not _use_simple_prompt:
             self.pt_loop = asyncio.new_event_loop()
