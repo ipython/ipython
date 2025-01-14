@@ -60,6 +60,8 @@ from .shortcuts.filters import KEYBINDING_FILTERS, filter_from_string
 from .shortcuts.auto_suggest import (
     NavigableAutoSuggestFromHistory,
     AppendAutoSuggestionInAnyLine,
+    MultilineAutosuggest,
+    NoOpProcessor,
 )
 
 
@@ -210,7 +212,10 @@ class TerminalInteractiveShell(InteractiveShell):
 
     pt_app: UnionType[PromptSession, None] = None
     auto_suggest: UnionType[
-        AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
+        AutoSuggestFromHistory,
+        NavigableAutoSuggestFromHistory,
+        None,
+        MultilineAutosuggest,
     ] = None
     debugger_history = None
 
@@ -429,6 +434,8 @@ class TerminalInteractiveShell(InteractiveShell):
             self.auto_suggest = AutoSuggestFromHistory()
         elif provider == "NavigableAutoSuggestFromHistory":
             self.auto_suggest = NavigableAutoSuggestFromHistory()
+        elif provider == "LLM":
+            self.auto_suggest = MultilineAutosuggest()
         else:
             raise ValueError("No valid provider.")
         if self.pt_app:
@@ -781,6 +788,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # work around this.
             get_message = get_message()
 
+
         options = {
             "complete_in_thread": False,
             "lexer": IPythonPTLexer(),
@@ -811,11 +819,13 @@ class TerminalInteractiveShell(InteractiveShell):
                     & ~IsDone()
                     & Condition(
                         lambda: isinstance(
-                            self.auto_suggest, NavigableAutoSuggestFromHistory
+                            self.auto_suggest,
+                            (NavigableAutoSuggestFromHistory, MultilineAutosuggest),
                         )
                     ),
                 ),
             ],
+            # "append_autosuggestion_class": NoOpProcessor,
         }
 
         return options

@@ -7,7 +7,7 @@ import warnings
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding import KeyPressEvent
 from prompt_toolkit.key_binding.bindings import named_commands as nc
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, Suggestion
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, Suggestion, AutoSuggest
 from prompt_toolkit.document import Document
 from prompt_toolkit.history import History
 from prompt_toolkit.shortcuts import PromptSession
@@ -27,6 +27,37 @@ def _get_query(document: Document):
     return document.lines[document.cursor_position_row]
 
 
+class MultilineAutosuggest(AutoSuggest):
+    _last_sugg: Suggestion | None = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._last_sugg = None
+
+    async def get_suggestion_async(self, buffer, document):
+        if document.line_count == 1:
+            # TODO : fallback to history if only one line,
+            # or see how to cut the suggestion.
+            return None
+        cursor_line = document.cursor_position_row
+        text = document.text.split("\n")[cursor_line]
+        self._last_sugg = Suggestion(
+            text
+            + "... that can\n be completed by llm, but\n we need to see how to do that."
+        )
+        return self._last_sugg
+
+    def get_suggestion(self, buffer, document):
+        # todo; see when this is called in IPython and if we can do something.
+        return self._last_sugg
+
+
+class NoOpProcessor(Processor):
+    def apply_transformation(self, ti: TransformationInput) -> Transformation:
+        return Transformation(fragments=ti.fragments)
+
+
 class AppendAutoSuggestionInAnyLine(Processor):
     """
     Append the auto suggestion to lines other than the last (appending to the
@@ -37,20 +68,90 @@ class AppendAutoSuggestionInAnyLine(Processor):
         self.style = style
 
     def apply_transformation(self, ti: TransformationInput) -> Transformation:
-        is_last_line = ti.lineno == ti.document.line_count - 1
-        is_active_line = ti.lineno == ti.document.cursor_position_row
+        """
+         Apply transformation to the line that is currently being edited.
 
-        if not is_last_line and is_active_line:
-            buffer = ti.buffer_control.buffer
+         This is a variation of the original implementation in prompt toolkit
+         that allows to not only append suggestions to any line, but also to show
+         multi-line suggestions.
 
-            if buffer.suggestion and ti.document.is_cursor_at_the_end_of_line:
-                suggestion = buffer.suggestion.text
+         As transformation are applied on a line-by-line basis; we need to trick
+         a bit, and elide any line that is after the line we are currently
+         editing, until we run out of completions. We cannot shift the existing
+         lines
+
+         There are multiple cases to handle:
+
+         The completions ends before the end of the buffer:
+             We can resume showing the normal line, and say that some code may
+             be hidden.
+
+        The completions ends at the end of the buffer
+             We can just say that some code may be hidden.
+
+         And separately:
+
+         The completions ends beyond the end of the buffer
+             We need to both say that some code may be hidden, and that some
+             lines are not shown.
+
+        """
+        last_line_number = ti.document.line_count - 1
+        is_last_line = ti.lineno == last_line_number
+
+        noop = lambda text: Transformation(fragments=[(self.style, "")] + ti.fragments)
+
+        # if is_last_line:
+        #    # prompt toolkit already happens something; just leave it be
+        #    return noop("last line")
+
+        # first everything before the current line is unchanged.
+        if ti.lineno < ti.document.cursor_position_row:
+            return noop("before cursor")
+
+        buffer = ti.buffer_control.buffer
+        if not buffer.suggestion or not ti.document.is_cursor_at_the_end_of_line:
+            return noop("not eol")
+
+        delta = ti.lineno - ti.document.cursor_position_row
+        suggestions = buffer.suggestion.text.splitlines()
+        suggestions_longer_than_buffer: bool = (
+            len(suggestions) + ti.document.cursor_position_row > ti.document.line_count
+        )
+
+        if delta == 0:
+            suggestion = suggestions[0]
+            return Transformation(
+                fragments=ti.fragments + [(self.style, "0;" + suggestion)]
+            )
+        if is_last_line and delta < len(suggestions):
+            extra = f"; {len(suggestions) - delta} lines not shown"
+            suggestion = f"<existing code hidden for brevity{extra}...|"
+            return Transformation([(self.style, "1:" + suggestion)] + ti.fragments)
+        if is_last_line:
+            n_elided = len(suggestions)
+            for i in range(len(suggestions)):
+                ll = ti.get_line(last_line_number - i)
+                el = "".join(l[1] for l in ll)
+                if el:
+                    break
+                else:
+                    n_elided -= 1
+            if n_elided:
+                return Transformation(
+                    [(self.style, f"... {n_elided} {el!r} line elided")]
+                )
             else:
-                suggestion = ""
+                return Transformation(ti.get_line(last_line_number - len(suggestions)))
 
-            return Transformation(fragments=ti.fragments + [(self.style, suggestion)])
+        elif delta < len(suggestions):
+            suggestion = suggestions[delta]
+            return Transformation([(self.style, "2:" + suggestion)])
         else:
-            return Transformation(fragments=ti.fragments)
+            # TODO, checl ptk version.
+            gl = getattr(ti, "get_line", lambda x: [("GL:", "no_getline")])
+            shift = ti.lineno - len(suggestions) + 1
+            return Transformation(gl(shift))
 
 
 class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
