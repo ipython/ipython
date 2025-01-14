@@ -28,6 +28,13 @@ def _get_query(document: Document):
 
 
 class MultilineAutosuggest(AutoSuggest):
+    _last_sugg: Suggestion | None = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._last_sugg = None
+
     async def get_suggestion_async(self, buffer, document):
         if document.line_count == 1:
             # TODO : fallback to history if only one line,
@@ -35,14 +42,15 @@ class MultilineAutosuggest(AutoSuggest):
             return None
         cursor_line = document.cursor_position_row
         text = document.text.split("\n")[cursor_line]
-        return Suggestion(
+        self._last_sugg = Suggestion(
             text
             + "... that can\n be completed by llm, but\n we need to see how to do that."
         )
+        return self._last_sugg
 
     def get_suggestion(self, buffer, document):
         # todo; see when this is called in IPython and if we can do something.
-        return Suggestion("Not async")
+        return self._last_sugg
 
 
 class NoOpProcessor(Processor):
@@ -91,15 +99,19 @@ class AppendAutoSuggestionInAnyLine(Processor):
         last_line_number = ti.document.line_count - 1
         is_last_line = ti.lineno == last_line_number
 
-        noop = Transformation(fragments=ti.fragments)
+        noop = lambda text: Transformation(fragments=[(self.style, "")] + ti.fragments)
+
+        # if is_last_line:
+        #    # prompt toolkit already happens something; just leave it be
+        #    return noop("last line")
 
         # first everything before the current line is unchanged.
         if ti.lineno < ti.document.cursor_position_row:
-            return noop
+            return noop("before cursor")
 
         buffer = ti.buffer_control.buffer
         if not buffer.suggestion or not ti.document.is_cursor_at_the_end_of_line:
-            return noop
+            return noop("not eol")
 
         delta = ti.lineno - ti.document.cursor_position_row
         suggestions = buffer.suggestion.text.splitlines()
@@ -117,9 +129,20 @@ class AppendAutoSuggestionInAnyLine(Processor):
             suggestion = f"<existing code hidden for brevity{extra}...|"
             return Transformation([(self.style, "1:" + suggestion)] + ti.fragments)
         if is_last_line:
-            return Transformation(
-                [(self.style, f"... {len(suggestions)} line elidded")]
-            )
+            n_elided = len(suggestions)
+            for i in range(len(suggestions)):
+                ll = ti.get_line(last_line_number - i)
+                el = "".join(l[1] for l in ll)
+                if el:
+                    break
+                else:
+                    n_elided -= 1
+            if n_elided:
+                return Transformation(
+                    [(self.style, f"... {n_elided} {el!r} line elided")]
+                )
+            else:
+                return Transformation(ti.get_line(last_line_number - len(suggestions)))
 
         elif delta < len(suggestions):
             suggestion = suggestions[delta]
