@@ -144,10 +144,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             for suggestion, _ in self._find_next_match(
                 text, self.skip_lines, buffer.history
             ):
-                return Suggestion(
-                    suggestion
-                    # + "\n    while True:\n        yield a\n        a,b = b, a+b"
-                )
+                return Suggestion(suggestion)
 
         return None
 
