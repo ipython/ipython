@@ -33,7 +33,6 @@ class MultilineAutosuggest(AutoSuggest):
             # TODO : fallback to history if only one line,
             # or see how to cut the suggestion.
             return None
-        print("multiline")
         cursor_line = document.cursor_position_row
         text = document.text.split("\n")[cursor_line]
         return Suggestion(

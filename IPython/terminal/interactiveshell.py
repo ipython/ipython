@@ -823,12 +823,13 @@ class TerminalInteractiveShell(InteractiveShell):
                     & ~IsDone()
                     & Condition(
                         lambda: isinstance(
-                            self.auto_suggest, NavigableAutoSuggestFromHistory
+                            self.auto_suggest,
+                            (NavigableAutoSuggestFromHistory, MultilineAutosuggest),
                         )
                     ),
                 ),
             ],
-            "append_autosuggestion_class": NoOpProcessor,
+            # "append_autosuggestion_class": NoOpProcessor,
         }
         if not PTK3:
             options['inputhook'] = self.inputhook
@@ -856,15 +857,14 @@ class TerminalInteractiveShell(InteractiveShell):
                 asyncio_loop = get_asyncio_loop()
                 text = asyncio_loop.run_until_complete(
                     self.pt_app.prompt_async(
-                        default=default,
-                        # **self._extra_prompt_options()
+                        default=default, **self._extra_prompt_options()
                     )
                 )
             else:
                 text = self.pt_app.prompt(
                     default=default,
-                    inputhook=self._inputhook
-                    # **self._extra_prompt_options(),
+                    inputhook=self._inputhook,
+                    **self._extra_prompt_options(),
                 )
 
         return text
