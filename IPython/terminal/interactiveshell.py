@@ -404,7 +404,9 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     enable_history_search = Bool(True,
-        help="Allows to enable/disable the prompt toolkit history search"
+        help="Allows to enable/disable the prompt toolkit history search. "
+             "This option conflicts with `complete_while_typing`. "
+             "If this is set to `True`, the option `complete_while_typing` will be ignored"
     ).tag(config=True)
 
     autosuggestions_provider = Unicode(
@@ -415,6 +417,12 @@ class TerminalInteractiveShell(InteractiveShell):
         " or ``None`` to disable automatic suggestions. "
         "Default is `'NavigableAutoSuggestFromHistory`'.",
         allow_none=True,
+    ).tag(config=True)
+
+    complete_while_typing = Bool(False,
+        help="Generate autocompletions while typing or when the tab key is pressed. "
+             "This option conflicts with `enable_history_search`. "
+             "If `enable_history_search` is `True`, this option will not take effect."
     ).tag(config=True)
 
     def _set_autosuggestions(self, provider):
@@ -674,6 +682,7 @@ class TerminalInteractiveShell(InteractiveShell):
             history=history,
             completer=IPythonPTCompleter(shell=self),
             enable_history_search=self.enable_history_search,
+            complete_while_typing=self.complete_while_typing,
             style=self.style,
             include_default_pygments_style=False,
             mouse_support=self.mouse_support,
