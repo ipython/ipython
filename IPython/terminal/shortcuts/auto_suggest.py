@@ -7,7 +7,7 @@ import warnings
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding import KeyPressEvent
 from prompt_toolkit.key_binding.bindings import named_commands as nc
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, Suggestion
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, Suggestion, AutoSuggest
 from prompt_toolkit.document import Document
 from prompt_toolkit.history import History
 from prompt_toolkit.shortcuts import PromptSession
@@ -25,6 +25,30 @@ from .filters import pass_through
 
 def _get_query(document: Document):
     return document.lines[document.cursor_position_row]
+
+
+class MultilineAutosuggest(AutoSuggest):
+    async def get_suggestion_async(self, buffer, document):
+        if document.line_count == 1:
+            # TODO : fallback to history if only one line,
+            # or see how to cut the suggestion.
+            return None
+        print("multiline")
+        cursor_line = document.cursor_position_row
+        text = document.text.split("\n")[cursor_line]
+        return Suggestion(
+            text
+            + "... that can\n be completed by llm, but\n we need to see how to do that."
+        )
+
+    def get_suggestion(self, buffer, document):
+        # todo; see when this is called in IPython and if we can do something.
+        return Suggestion("Not async")
+
+
+class NoOpProcessor(Processor):
+    def apply_transformation(self, ti: TransformationInput) -> Transformation:
+        return Transformation(fragments=ti.fragments)
 
 
 class AppendAutoSuggestionInAnyLine(Processor):
@@ -86,11 +110,13 @@ class AppendAutoSuggestionInAnyLine(Processor):
 
         if delta == 0:
             suggestion = suggestions[0]
-            return Transformation(fragments=ti.fragments + [(self.style, suggestion)])
+            return Transformation(
+                fragments=ti.fragments + [(self.style, "0;" + suggestion)]
+            )
         if is_last_line and delta < len(suggestions):
             extra = f"; {len(suggestions) - delta} lines not shown"
             suggestion = f"<existing code hidden for brevity{extra}...|"
-            return Transformation([(self.style, suggestion)] + ti.fragments)
+            return Transformation([(self.style, "1:" + suggestion)] + ti.fragments)
         if is_last_line:
             return Transformation(
                 [(self.style, f"... {len(suggestions)} line elidded")]
@@ -98,11 +124,10 @@ class AppendAutoSuggestionInAnyLine(Processor):
 
         elif delta < len(suggestions):
             suggestion = suggestions[delta]
-            return Transformation([(self.style, suggestion)])
-        # elif delta == len(suggestions):
-        # return Transformation(ti.fragments)
+            return Transformation([(self.style, "2:" + suggestion)])
         else:
-            gl = getattr(ti, "get_line", lambda x: [("", "no_getline")])
+            # TODO, checl ptk version.
+            gl = getattr(ti, "get_line", lambda x: [("GL:", "no_getline")])
             shift = ti.lineno - len(suggestions) + 1
             return Transformation(gl(shift))
 

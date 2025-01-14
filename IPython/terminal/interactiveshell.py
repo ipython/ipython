@@ -62,6 +62,8 @@ from .shortcuts.filters import KEYBINDING_FILTERS, filter_from_string
 from .shortcuts.auto_suggest import (
     NavigableAutoSuggestFromHistory,
     AppendAutoSuggestionInAnyLine,
+    MultilineAutosuggest,
+    NoOpProcessor,
 )
 
 PTK3 = ptk_version.startswith('3.')
@@ -214,7 +216,10 @@ class TerminalInteractiveShell(InteractiveShell):
 
     pt_app: UnionType[PromptSession, None] = None
     auto_suggest: UnionType[
-        AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
+        AutoSuggestFromHistory,
+        NavigableAutoSuggestFromHistory,
+        None,
+        MultilineAutosuggest,
     ] = None
     debugger_history = None
 
@@ -433,6 +438,8 @@ class TerminalInteractiveShell(InteractiveShell):
             self.auto_suggest = AutoSuggestFromHistory()
         elif provider == "NavigableAutoSuggestFromHistory":
             self.auto_suggest = NavigableAutoSuggestFromHistory()
+        elif provider == "LLM":
+            self.auto_suggest = MultilineAutosuggest()
         else:
             raise ValueError("No valid provider.")
         if self.pt_app:
@@ -785,6 +792,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # work around this.
             get_message = get_message()
 
+
         options = {
             "complete_in_thread": False,
             "lexer": IPythonPTLexer(),
@@ -820,6 +828,7 @@ class TerminalInteractiveShell(InteractiveShell):
                     ),
                 ),
             ],
+            "append_autosuggestion_class": NoOpProcessor,
         }
         if not PTK3:
             options['inputhook'] = self.inputhook
@@ -847,14 +856,15 @@ class TerminalInteractiveShell(InteractiveShell):
                 asyncio_loop = get_asyncio_loop()
                 text = asyncio_loop.run_until_complete(
                     self.pt_app.prompt_async(
-                        default=default, **self._extra_prompt_options()
+                        default=default,
+                        # **self._extra_prompt_options()
                     )
                 )
             else:
                 text = self.pt_app.prompt(
                     default=default,
-                    inputhook=self._inputhook,
-                    **self._extra_prompt_options(),
+                    inputhook=self._inputhook
+                    # **self._extra_prompt_options(),
                 )
 
         return text
