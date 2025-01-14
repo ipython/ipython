@@ -38,25 +38,31 @@ class AppendAutoSuggestionInAnyLine(Processor):
 
     def apply_transformation(self, ti: TransformationInput) -> Transformation:
         """
-        Apply transformation to the line that is currently being edited.
+         Apply transformation to the line that is currently being edited.
 
-        This is a variation of the original implementation in prompt toolkit
-        that allows to not only append suggestions to any line, but also to shom multi-line
-        suggestions.
+         This is a variation of the original implementation in prompt toolkit
+         that allows to not only append suggestions to any line, but also to show
+         multi-line suggestions.
 
-        As transformation are applied on a line-by-line basis; we need to trick a bit, and elide any line
-        that is after the line we are currently editing, until we run out of completions. We cannot shift the existing lines
+         As transformation are applied on a line-by-line basis; we need to trick
+         a bit, and elide any line that is after the line we are currently
+         editing, until we run out of completions. We cannot shift the existing
+         lines
 
-        There are multiple cases to handle:
-        - the completions ends before the end of the buffer:
-           We can resume showing the normal line, and say that some code may be hidden.
-        - the completions ends at the end of the buffer
-           We can just say that some code may be hidden.
+         There are multiple cases to handle:
 
-        And separately:
+         The completions ends before the end of the buffer:
+             We can resume showing the normal line, and say that some code may
+             be hidden.
 
-        - the completions ends beyond the end of the buffer
-           We need to both say that some code may be hidden, and that some lines are not shown.
+        The completions ends at the end of the buffer
+             We can just say that some code may be hidden.
+
+         And separately:
+
+         The completions ends beyond the end of the buffer
+             We need to both say that some code may be hidden, and that some
+             lines are not shown.
 
         """
         last_line_number = ti.document.line_count - 1
