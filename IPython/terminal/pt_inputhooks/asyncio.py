@@ -28,13 +28,6 @@ prompt_toolkit`s `patch_stdout`)::
 
 """
 
-from prompt_toolkit import __version__ as ptk_version
-
-from IPython.core.async_helpers import get_asyncio_loop
-
-PTK3 = ptk_version.startswith("3.")
-
-
 def inputhook(context):
     """
     Inputhook for asyncio event loop integration.
@@ -43,21 +36,4 @@ def inputhook(context):
     # The event loop integration here is implemented in `interactiveshell.py`
     # by running the prompt itself in the current asyncio loop. The main reason
     # for this is that nesting asyncio event loops is unreliable.
-    if PTK3:
-        return
-
-    # For prompt_toolkit 2.0, we can run the current asyncio event loop,
-    # because prompt_toolkit 2.0 uses a different event loop internally.
-
-    # get the persistent asyncio event loop
-    loop = get_asyncio_loop()
-
-    def stop():
-        loop.stop()
-
-    fileno = context.fileno()
-    loop.add_reader(fileno, stop)
-    try:
-        loop.run_forever()
-    finally:
-        loop.remove_reader(fileno)
+    return

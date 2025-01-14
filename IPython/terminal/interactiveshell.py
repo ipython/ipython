@@ -39,8 +39,6 @@ from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
 from prompt_toolkit.styles import DynamicStyle, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
-from prompt_toolkit import __version__ as ptk_version
-
 from pygments.styles import get_style_by_name
 from pygments.style import Style
 from pygments.token import Token
@@ -63,8 +61,6 @@ from .shortcuts.auto_suggest import (
     NavigableAutoSuggestFromHistory,
     AppendAutoSuggestionInAnyLine,
 )
-
-PTK3 = ptk_version.startswith('3.')
 
 
 class _NoStyle(Style):
@@ -821,8 +817,6 @@ class TerminalInteractiveShell(InteractiveShell):
                 ),
             ],
         }
-        if not PTK3:
-            options['inputhook'] = self.inputhook
 
         return options
 
