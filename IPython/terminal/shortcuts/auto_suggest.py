@@ -52,12 +52,12 @@ class AppendAutoSuggestionInAnyLine(Processor):
            We can resume showing the normal line, and say that some code may be hidden.
         - the completions ends at the end of the buffer
            We can just say that some code may be hidden.
-        
+
         And separately:
 
         - the completions ends beyond the end of the buffer
            We need to both say that some code may be hidden, and that some lines are not shown.
-        
+
         """
         last_line_number = ti.document.line_count - 1
         is_last_line = ti.lineno == last_line_number
@@ -74,9 +74,9 @@ class AppendAutoSuggestionInAnyLine(Processor):
 
         delta = ti.lineno - ti.document.cursor_position_row
         suggestions = buffer.suggestion.text.splitlines()
-        suggestions_longer_than_buffer:bool = (len(suggestions) + ti.document.cursor_position_row > ti.document.line_count)
-
-
+        suggestions_longer_than_buffer: bool = (
+            len(suggestions) + ti.document.cursor_position_row > ti.document.line_count
+        )
 
         if delta == 0:
             suggestion = suggestions[0]
