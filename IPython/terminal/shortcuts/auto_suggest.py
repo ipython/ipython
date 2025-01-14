@@ -146,7 +146,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             ):
                 return Suggestion(
                     suggestion
-                    + "\n    while True:\n        yield a\n        a,b = b, a+b"
+                    # + "\n    while True:\n        yield a\n        a,b = b, a+b"
                 )
 
         return None
