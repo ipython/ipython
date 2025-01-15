@@ -24,6 +24,7 @@ requires-python = ">=3.11"
 dependencies = [
     'colorama; sys_platform == "win32"',
     "decorator",
+    "ipython-pygments-lexers",
     "jedi>=0.16",
     "matplotlib-inline",
     'pexpect>4.3; sys_platform != "win32" and sys_platform != "emscripten"',
@@ -34,11 +35,6 @@ dependencies = [
     "typing_extensions>=4.6; python_version<'3.12'",
 ]
 dynamic = ["authors", "license", "version"]
-
-[project.entry-points."pygments.lexers"]
-ipythonconsole = "IPython.lib.lexers:IPythonConsoleLexer"
-ipython = "IPython.lib.lexers:IPythonLexer"
-ipython3 = "IPython.lib.lexers:IPython3Lexer"
 
 [project.scripts]
 ipython = "IPython:start_ipython"

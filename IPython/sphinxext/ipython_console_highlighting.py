@@ -4,7 +4,7 @@ reST directive for syntax-highlighting ipython interactive sessions.
 """
 
 from sphinx import highlighting
-from IPython.lib.lexers import IPyLexer
+from ipython_pygments_lexers import IPyLexer
 
 def setup(app):
     """Setup as a sphinx extension."""
@@ -20,9 +20,7 @@ def setup(app):
 # Alternatively, we could register the lexer with pygments instead. This would
 # require using setuptools entrypoints: http://pygments.org/docs/plugins
 
-ipy2 = IPyLexer(python3=False)
-ipy3 = IPyLexer(python3=True)
+ipy3 = IPyLexer()
 
-highlighting.lexers['ipython'] = ipy2
-highlighting.lexers['ipython2'] = ipy2
-highlighting.lexers['ipython3'] = ipy3
+highlighting.lexers["ipython"] = ipy3
+highlighting.lexers["ipython3"] = ipy3

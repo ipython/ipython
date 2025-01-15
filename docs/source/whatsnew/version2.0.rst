@@ -235,8 +235,7 @@ New IPython console lexer
 -------------------------
 
 The IPython console lexer has been rewritten and now supports tracebacks
-and customized input/output prompts. See the :ref:`new lexer docs <console_lexer>`
-for details.
+and customized input/output prompts.
 
 DisplayFormatter changes
 ------------------------

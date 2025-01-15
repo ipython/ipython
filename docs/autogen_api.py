@@ -37,8 +37,6 @@ if __name__ == '__main__':
         r"\.lib\.inputhook.+",
         r"\.ipdoctest",
         r"\.testing\.plugin",
-        # Backwards compat import for lib.lexers
-        r"\.nbconvert\.utils\.lexers",
         # We document this manually.
         r"\.utils\.py3compat",
         # These are exposed in display
