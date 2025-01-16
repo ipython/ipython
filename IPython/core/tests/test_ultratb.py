@@ -94,10 +94,10 @@ class NonAsciiTest(unittest.TestCase):
                 f.write(file_1)
 
             with prepended_to_syspath(td):
-                ip.run_cell("import foo")
+                ip.run_cell("import fooé")
 
             with tt.AssertPrints("ZeroDivisionError"):
-                ip.run_cell("foo.f()")
+                ip.run_cell("fooé.f()")
 
     def test_iso8859_5(self):
         with TemporaryDirectory() as td:
