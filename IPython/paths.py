@@ -32,10 +32,7 @@ def get_ipython_dir() -> str:
     home_dir = get_home_dir()
     xdg_dir = get_xdg_dir()
 
-    if 'IPYTHON_DIR' in env:
-        warn('The environment variable IPYTHON_DIR is deprecated since IPython 3.0. '
-                'Please use IPYTHONDIR instead.', DeprecationWarning)
-    ipdir = env.get('IPYTHONDIR', env.get('IPYTHON_DIR', None))
+    ipdir = env.get("IPYTHONDIR", None)
     if ipdir is None:
         # not set explicitly, use ~/.ipython
         ipdir = pjoin(home_dir, ipdir_def)
