@@ -142,22 +142,9 @@ class ColorScheme:
     name: str
     colors: Struct
 
-    def __init__(self, __scheme_name_, colordict=None, **colormap):
+    def __init__(self, __scheme_name_, colordict=None):
         self.name = __scheme_name_
-        if colormap:
-            warnings.warn(
-                "Passing each colors as a kwarg to ColorScheme is "
-                "considered for deprecation. Please pass a "
-                "a single dict as second parameter. If you are using this"
-                "feature, please comment an subscribe to issue "
-                "https://github.com/ipython/ipython/issues/14304",
-                PendingDeprecationWarning,
-                stacklevel=2,
-            )
-        if colordict is None:
-            self.colors = Struct(**colormap)
-        else:
-            self.colors = Struct(colordict)
+        self.colors = Struct(colordict)
 
     def copy(self,name=None):
         """Return a full copy of the object, optionally renaming it."""
@@ -208,31 +195,16 @@ class ColorSchemeTable(dict):
             raise ValueError('ColorSchemeTable only accepts ColorScheme instances')
         self[new_scheme.name] = new_scheme
 
-    def set_active_scheme(self, scheme, case_sensitive=_sentinel):
+    def set_active_scheme(self, scheme):
         """Set the currently active scheme.
 
-        Names are by default compared in a case-insensitive way, but this can
-        be changed by setting the parameter case_sensitive to true."""
+        Names are compared in a case-insensitive way.
+        """
 
-        if case_sensitive is _sentinel:
-            case_sensitive = False
-        else:
-            warnings.warn(
-                "set_active_scheme(case_sensitive=...) is Pending "
-                "deprecation. Please comment on "
-                "https://github.com/ipython/ipython/issues/14306 "
-                "to let the ipython maintainer that you are affected.",
-                PendingDeprecationWarning,
-                stacklevel=2,
-            )
 
         scheme_names = list(self.keys())
-        if case_sensitive:
-            valid_schemes = scheme_names
-            scheme_test = scheme
-        else:
-            valid_schemes = [s.lower() for s in scheme_names]
-            scheme_test = scheme.lower()
+        valid_schemes = [s.lower() for s in scheme_names]
+        scheme_test = scheme.lower()
         try:
             scheme_idx = valid_schemes.index(scheme_test)
         except ValueError as e:
