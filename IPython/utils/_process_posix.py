@@ -4,13 +4,6 @@ This file is only meant to be imported by process.py, not by end-users.
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
 
@@ -21,8 +14,10 @@ import subprocess as sp
 import sys
 
 # Our own
-from ._process_common import getoutput, arg_split
+from ._process_common import getoutput as getoutput, arg_split
 from IPython.utils.encoding import DEFAULT_ENCODING
+
+__all__ = ["getoutput", "arg_split", "system", "check_pid"]
 
 #-----------------------------------------------------------------------------
 # Function definitions

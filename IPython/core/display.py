@@ -51,16 +51,6 @@ __all__ = [
     "Video",
 ]
 
-_deprecated_names = ["display", "clear_output", "publish_display_data", "update_display", "DisplayHandle"]
-
-__all__ = __all__ + _deprecated_names
-
-
-# ----- warn to import from IPython.display -----
-
-from warnings import warn
-
-
 #-----------------------------------------------------------------------------
 # utility functions
 #-----------------------------------------------------------------------------
