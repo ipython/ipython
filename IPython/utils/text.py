@@ -363,25 +363,6 @@ def marquee(txt: str = "", width: int = 78, mark: str = "*") -> str:
     return '%s %s %s' % (marks,txt,marks)
 
 
-ini_spaces_re = re.compile(r'^(\s+)')
-
-
-def num_ini_spaces(strng: str) -> int:
-    """Return the number of initial spaces in a string"""
-    warnings.warn(
-        "`num_ini_spaces` is Pending Deprecation since IPython 8.17."
-        "It is considered for removal in in future version. "
-        "Please open an issue if you believe it should be kept.",
-        stacklevel=2,
-        category=PendingDeprecationWarning,
-    )
-    ini_spaces = ini_spaces_re.match(strng)
-    if ini_spaces:
-        return ini_spaces.end()
-    else:
-        return 0
-
-
 def format_screen(strng: str) -> str:
     """Format a string for screen printing.
 
@@ -499,26 +480,6 @@ def strip_email_quotes(text: str) -> str:
 
     text = "\n".join([ln[strip_len:] for ln in lines])
     return text
-
-
-def strip_ansi(source: str) -> str:
-    """
-    Remove ansi escape codes from text.
-
-    Parameters
-    ----------
-    source : str
-        Source to remove the ansi from
-    """
-    warnings.warn(
-        "`strip_ansi` is Pending Deprecation since IPython 8.17."
-        "It is considered for removal in in future version. "
-        "Please open an issue if you believe it should be kept.",
-        stacklevel=2,
-        category=PendingDeprecationWarning,
-    )
-
-    return re.sub(r'\033\[(\d|;)+?m', '', source)
 
 
 class EvalFormatter(Formatter):
@@ -702,153 +663,6 @@ def _get_or_default(mylist: List[T], i: int, default: T) -> T:
         return default
     else :
         return mylist[i]
-
-
-def compute_item_matrix(
-    items: List[str],
-    row_first: bool = False,
-    empty: Optional[str] = None,
-    *,
-    separator_size: int = 2,
-    displaywidth: int = 80,
-) -> Tuple[List[List[int]], Dict[str, int]]:
-    """Returns a nested list, and info to columnize items
-
-    Parameters
-    ----------
-    items
-        list of strings to columize
-    row_first : (default False)
-        Whether to compute columns for a row-first matrix instead of
-        column-first (default).
-    empty : (default None)
-        default value to fill list if needed
-    separator_size : int (default=2)
-        How much characters will be used as a separation between each columns.
-    displaywidth : int (default=80)
-        The width of the area onto which the columns should enter
-
-    Returns
-    -------
-    strings_matrix
-        nested list of string, the outer most list contains as many list as
-        rows, the innermost lists have each as many element as columns. If the
-        total number of elements in `items` does not equal the product of
-        rows*columns, the last element of some lists are filled with `None`.
-    dict_info
-        some info to make columnize easier:
-
-        num_columns
-          number of columns
-        max_rows
-          maximum number of rows (final number may be less)
-        column_widths
-          list of with of each columns
-        optimal_separator_width
-          best separator width between columns
-
-    Examples
-    --------
-    ::
-
-        In [1]: l = ['aaa','b','cc','d','eeeee','f','g','h','i','j','k','l']
-        In [2]: list, info = compute_item_matrix(l, displaywidth=12)
-        In [3]: list
-        Out[3]: [['aaa', 'f', 'k'], ['b', 'g', 'l'], ['cc', 'h', None], ['d', 'i', None], ['eeeee', 'j', None]]
-        In [4]: ideal = {'num_columns': 3, 'column_widths': [5, 1, 1], 'optimal_separator_width': 2, 'max_rows': 5}
-        In [5]: all((info[k] == ideal[k] for k in ideal.keys()))
-        Out[5]: True
-    """
-    warnings.warn(
-        "`compute_item_matrix` is Pending Deprecation since IPython 8.17."
-        "It is considered for removal in in future version. "
-        "Please open an issue if you believe it should be kept.",
-        stacklevel=2,
-        category=PendingDeprecationWarning,
-    )
-    info = _find_optimal(
-        list(map(len, items)),  # type: ignore[arg-type]
-        row_first,
-        separator_size=separator_size,
-        displaywidth=displaywidth,
-    )
-    nrow, ncol = info["max_rows"], info["num_columns"]
-    if row_first:
-        return (
-            [
-                [
-                    _get_or_default(
-                        items, r * ncol + c, default=empty
-                    )  # type:ignore[misc]
-                    for c in range(ncol)
-                ]
-                for r in range(nrow)
-            ],
-            info,
-        )
-    else:
-        return (
-            [
-                [
-                    _get_or_default(
-                        items, c * nrow + r, default=empty
-                    )  # type:ignore[misc]
-                    for c in range(ncol)
-                ]
-                for r in range(nrow)
-            ],
-            info,
-        )
-
-
-def columnize(
-    items: List[str],
-    row_first: bool = False,
-    separator: str = "  ",
-    displaywidth: int = 80,
-    spread: bool = False,
-) -> str:
-    """Transform a list of strings into a single string with columns.
-
-    Parameters
-    ----------
-    items : sequence of strings
-        The strings to process.
-    row_first : (default False)
-        Whether to compute columns for a row-first matrix instead of
-        column-first (default).
-    separator : str, optional [default is two spaces]
-        The string that separates columns.
-    displaywidth : int, optional [default is 80]
-        Width of the display in number of characters.
-
-    Returns
-    -------
-    The formatted string.
-    """
-    warnings.warn(
-        "`columnize` is Pending Deprecation since IPython 8.17."
-        "It is considered for removal in future versions. "
-        "Please open an issue if you believe it should be kept.",
-        stacklevel=2,
-        category=PendingDeprecationWarning,
-    )
-    if not items:
-        return "\n"
-    matrix: List[List[int]]
-    matrix, info = compute_item_matrix(
-        items,
-        row_first=row_first,
-        separator_size=len(separator),
-        displaywidth=displaywidth,
-    )
-    if spread:
-        separator = separator.ljust(int(info["optimal_separator_width"]))
-    fmatrix: List[filter[int]] = [filter(None, x) for x in matrix]
-    sjoin = lambda x: separator.join(
-        [y.ljust(w, " ") for y, w in zip(x, cast(List[int], info["column_widths"]))]
-    )
-    return "\n".join(map(sjoin, fmatrix)) + "\n"
 
 
 def get_text_list(
