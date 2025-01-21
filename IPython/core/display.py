@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Top-level display functions for displaying object in different formats."""
 
 # Copyright (c) IPython Development Team.
@@ -60,21 +59,6 @@ __all__ = __all__ + _deprecated_names
 # ----- warn to import from IPython.display -----
 
 from warnings import warn
-
-
-def __getattr__(name):
-    if name in _deprecated_names:
-        warn(
-            f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython.display",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return getattr(display_functions, name)
-
-    if name in globals().keys():
-        return globals()[name]
-    else:
-        raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
 #-----------------------------------------------------------------------------
