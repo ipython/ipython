@@ -178,6 +178,7 @@ _fmt_mime_map = {
 @dec.skip_without('matplotlib')
 def test_set_matplotlib_formats():
     from matplotlib.figure import Figure
+    from matplotlib_inline.backend_inline import set_matplotlib_formats
     formatters = get_ipython().display_formatter.formatters
     for formats in [
         ('png',),
@@ -186,8 +187,7 @@ def test_set_matplotlib_formats():
         (),
     ]:
         active_mimes = {_fmt_mime_map[fmt] for fmt in formats}
-        with pytest.deprecated_call():
-            display.set_matplotlib_formats(*formats)
+        set_matplotlib_formats(*formats)
         for mime, f in formatters.items():
             if mime in active_mimes:
                 assert Figure in f
@@ -198,12 +198,12 @@ def test_set_matplotlib_formats():
 @dec.skip_without("matplotlib")
 def test_set_matplotlib_formats_kwargs():
     from matplotlib.figure import Figure
+    from matplotlib_inline.backend_inline import set_matplotlib_formats
     ip = get_ipython()
     cfg = _get_inline_config()
     cfg.print_figure_kwargs.update(dict(foo='bar'))
     kwargs = dict(dpi=150)
-    with pytest.deprecated_call():
-        display.set_matplotlib_formats("png", **kwargs)
+    set_matplotlib_formats("png", **kwargs)
     formatter = ip.display_formatter.formatters["image/png"]
     f = formatter.lookup_by_type(Figure)
     formatter_kwargs = f.keywords

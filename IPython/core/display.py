@@ -47,7 +47,6 @@ __all__ = [
     "GeoJSON",
     "Javascript",
     "Image",
-    "set_matplotlib_formats",
     "set_matplotlib_close",
     "Video",
 ]
@@ -1293,44 +1292,6 @@ class Video(DisplayObject):
         # TODO
         pass
 
-
-@skip_doctest
-def set_matplotlib_formats(*formats, **kwargs):
-    """
-    .. deprecated:: 7.23
-
-       use `matplotlib_inline.backend_inline.set_matplotlib_formats()`
-
-    Select figure formats for the inline backend. Optionally pass quality for JPEG.
-
-    For example, this enables PNG and JPEG output with a JPEG quality of 90%::
-
-        In [1]: set_matplotlib_formats('png', 'jpeg', quality=90)
-
-    To set this in your config files use the following::
-
-        c.InlineBackend.figure_formats = {'png', 'jpeg'}
-        c.InlineBackend.print_figure_kwargs.update({'quality' : 90})
-
-    Parameters
-    ----------
-    *formats : strs
-        One or more figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
-    **kwargs
-        Keyword args will be relayed to ``figure.canvas.print_figure``.
-    """
-    warnings.warn(
-        "`set_matplotlib_formats` is deprecated since IPython 7.23, directly "
-        "use `matplotlib_inline.backend_inline.set_matplotlib_formats()`",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    from matplotlib_inline.backend_inline import (
-        set_matplotlib_formats as set_matplotlib_formats_orig,
-    )
-
-    set_matplotlib_formats_orig(*formats, **kwargs)
 
 @skip_doctest
 def set_matplotlib_close(close=True):
