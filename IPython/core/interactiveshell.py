@@ -3686,7 +3686,7 @@ class InteractiveShell(SingletonConfigurable):
 
         return gui, backend
 
-    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
+    def enable_pylab(self, gui=None, import_all=True):
         """Activate pylab support at runtime.
 
         This turns on support for matplotlib, preloads into the interactive
@@ -3709,8 +3709,6 @@ class InteractiveShell(SingletonConfigurable):
         import_all : optional, bool, default: True
             Whether to do `from numpy import *` and `from pylab import *`
             in addition to module imports.
-        welcome_message : deprecated
-            This argument is ignored, no welcome message will be displayed.
         """
         from IPython.core.pylabtools import import_pylab
 
