@@ -199,15 +199,6 @@ def accept_or_jump_to_end(event: KeyPressEvent):
         nc.end_of_line(event)
 
 
-def _deprected_accept_in_vi_insert_mode(event: KeyPressEvent):
-    """Accept autosuggestion or jump to end of line.
-
-    .. deprecated:: 8.12
-        Use `accept_or_jump_to_end` instead.
-    """
-    return accept_or_jump_to_end(event)
-
-
 def accept(event: KeyPressEvent):
     """Accept autosuggestion"""
     buffer = event.current_buffer
@@ -390,16 +381,3 @@ def swap_autosuggestion_down(event: KeyPressEvent):
         provider=provider,
         direction_method=provider.down,
     )
-
-
-def __getattr__(key):
-    if key == "accept_in_vi_insert_mode":
-        warnings.warn(
-            "`accept_in_vi_insert_mode` is deprecated since IPython 8.12 and "
-            "renamed to `accept_or_jump_to_end`. Please update your configuration "
-            "accordingly",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return _deprected_accept_in_vi_insert_mode
-    raise AttributeError
