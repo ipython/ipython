@@ -282,58 +282,6 @@ def shellglob(args):
         expanded.extend(glob.glob(a) or [unescape(a)])
     return expanded
 
-
-def target_outdated(target,deps):
-    """Determine whether a target is out of date.
-
-    target_outdated(target,deps) -> 1/0
-
-    deps: list of filenames which MUST exist.
-    target: single filename which may or may not exist.
-
-    If target doesn't exist or is older than any file listed in deps, return
-    true, otherwise return false.
-
-    .. deprecated:: 8.22
-    """
-    warnings.warn(
-        "`target_outdated` is deprecated since IPython 8.22 and will be removed in future versions",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    try:
-        target_time = os.path.getmtime(target)
-    except os.error:
-        return 1
-    for dep in deps:
-        dep_time = os.path.getmtime(dep)
-        if dep_time > target_time:
-            # print("For target",target,"Dep failed:",dep)  # dbg
-            # print("times (dep,tar):",dep_time,target_time)  # dbg
-            return 1
-    return 0
-
-
-def target_update(target,deps,cmd):
-    """Update a target with a given command given a list of dependencies.
-
-    target_update(target,deps,cmd) -> runs cmd if target is outdated.
-
-    This is just a wrapper around target_outdated() which calls the given
-    command if target is outdated.
-
-    .. deprecated:: 8.22
-    """
-
-    warnings.warn(
-        "`target_update` is deprecated since IPython 8.22 and will be removed in future versions",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    if target_outdated(target, deps):
-        system(cmd)
-
-
 ENOLINK = 1998
 
 def link(src, dst):
