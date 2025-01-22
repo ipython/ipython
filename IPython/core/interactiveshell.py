@@ -1035,14 +1035,6 @@ class InteractiveShell(SingletonConfigurable):
             print("Warning! Hook '%s' is not one of %s" % \
                   (name, IPython.core.hooks.__all__ ))
 
-        if name in IPython.core.hooks.deprecated:
-            alternative = IPython.core.hooks.deprecated[name]
-            raise ValueError(
-                "Hook {} has been deprecated since IPython 5.0. Use {} instead.".format(
-                    name, alternative
-                )
-            )
-
         if not dp:
             dp = IPython.core.hooks.CommandChainDispatcher()
 
