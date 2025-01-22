@@ -158,13 +158,13 @@ def _get_inline_config():
 
 @dec.skip_without("matplotlib")
 def test_set_matplotlib_close():
+    from matplotlib_inline.backend_inline import set_matplotlib_close
     cfg = _get_inline_config()
     cfg.close_figures = False
-    with pytest.deprecated_call():
-        display.set_matplotlib_close()
+
+    set_matplotlib_close()
     assert cfg.close_figures
-    with pytest.deprecated_call():
-        display.set_matplotlib_close(False)
+    set_matplotlib_close(False)
     assert not cfg.close_figures
 
 _fmt_mime_map = {
