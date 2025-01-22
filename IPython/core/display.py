@@ -46,7 +46,6 @@ __all__ = [
     "GeoJSON",
     "Javascript",
     "Image",
-    "set_matplotlib_close",
     "Video",
 ]
 
@@ -1265,44 +1264,3 @@ class Video(DisplayObject):
     def reload(self):
         # TODO
         pass
-
-
-@skip_doctest
-def set_matplotlib_close(close=True):
-    """
-    .. deprecated:: 7.23
-
-        use `matplotlib_inline.backend_inline.set_matplotlib_close()`
-
-    Set whether the inline backend closes all figures automatically or not.
-
-    By default, the inline backend used in the IPython Notebook will close all
-    matplotlib figures automatically after each cell is run. This means that
-    plots in different cells won't interfere. Sometimes, you may want to make
-    a plot in one cell and then refine it in later cells. This can be accomplished
-    by::
-
-        In [1]: set_matplotlib_close(False)
-
-    To set this in your config files use the following::
-
-        c.InlineBackend.close_figures = False
-
-    Parameters
-    ----------
-    close : bool
-        Should all matplotlib figures be automatically closed after each cell is
-        run?
-    """
-    warnings.warn(
-        "`set_matplotlib_close` is deprecated since IPython 7.23, directly "
-        "use `matplotlib_inline.backend_inline.set_matplotlib_close()`",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    from matplotlib_inline.backend_inline import (
-        set_matplotlib_close as set_matplotlib_close_orig,
-    )
-
-    set_matplotlib_close_orig(close)
