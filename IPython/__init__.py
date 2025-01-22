@@ -59,7 +59,7 @@ from .core.interactiveshell import InteractiveShell
 from .utils.sysinfo import sys_info
 from .utils.frame import extract_module_locals
 
-__all__ = ["start_ipython", "embed", "start_kernel", "embed_kernel"]
+__all__ = ["start_ipython", "embed" "embed_kernel"]
 
 # Release data
 __author__ = '%s <%s>' % (release.author, release.author_email)
@@ -128,37 +128,4 @@ def start_ipython(argv=None, **kwargs):
         allowing configuration of the instance (see :ref:`terminal_options`).
     """
     from IPython.terminal.ipapp import launch_new_instance
-    return launch_new_instance(argv=argv, **kwargs)
-
-def start_kernel(argv=None, **kwargs):
-    """Launch a normal IPython kernel instance (as opposed to embedded)
-
-    `IPython.embed_kernel()` puts a shell in a particular calling scope,
-    such as a function or method for debugging purposes,
-    which is often not desirable.
-
-    `start_kernel()` does full, regular IPython initialization,
-    including loading startup files, configuration, etc.
-    much of which is skipped by `embed_kernel()`.
-
-    Parameters
-    ----------
-    argv : list or None, optional
-        If unspecified or None, IPython will parse command-line options from sys.argv.
-        To prevent any command-line parsing, pass an empty list: `argv=[]`.
-    user_ns : dict, optional
-        specify this dictionary to initialize the IPython user namespace with particular values.
-    **kwargs : various, optional
-        Any other kwargs will be passed to the Application constructor,
-        such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
-        allowing configuration of the kernel (see :ref:`kernel_options`).
-    """
-    import warnings
-
-    warnings.warn(
-        "start_kernel is deprecated since IPython 8.0, use from `ipykernel.kernelapp.launch_new_instance`",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    from ipykernel.kernelapp import launch_new_instance
     return launch_new_instance(argv=argv, **kwargs)
