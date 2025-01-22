@@ -831,21 +831,6 @@ class Inspector(Colorable):
             del info_b["text/html"]
         page.page(info_b)
 
-    def _info(self, obj, oname="", info=None, detail_level=0):
-        """
-        Inspector.info() was likely improperly marked as deprecated
-        while only a parameter was deprecated. We "un-deprecate" it.
-        """
-
-        warnings.warn(
-            "The `Inspector.info()` method has been un-deprecated as of 8.0 "
-            "and the `formatter=` keyword removed. `Inspector._info` is now "
-            "an alias, and you can just call `.info()` directly.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.info(obj, oname=oname, info=info, detail_level=detail_level)
-
     def info(self, obj, oname="", info=None, detail_level=0) -> InfoDict:
         """Compute a dict with detailed information about an object.
 
