@@ -1063,16 +1063,6 @@ class InteractiveShell(SingletonConfigurable):
 
         self.events.register("pre_execute", self._clear_warning_registry)
 
-    def register_post_execute(self, func):
-        """DEPRECATED: Use ip.events.register('post_run_cell', func)
-
-        Register a function for calling after code execution.
-        """
-        raise ValueError(
-            "ip.register_post_execute is deprecated since IPython 1.0, use "
-            "ip.events.register('post_run_cell', func) instead."
-        )
-
     def _clear_warning_registry(self):
         # clear the warning registry, so that different code blocks with
         # overlapping line number ranges don't cause spurious suppression of
@@ -2244,10 +2234,6 @@ class InteractiveShell(SingletonConfigurable):
             In [2]: Hello Word_  # cursor is here
         """
         self.rl_next_input = s
-
-    def _indent_current_str(self):
-        """return the current level of indentation as a string"""
-        return self.input_splitter.get_indent_spaces() * ' '
 
     #-------------------------------------------------------------------------
     # Things related to text completion
