@@ -55,15 +55,15 @@ class ChangedPyFileTest(unittest.TestCase):
         https://github.com/ipython/ipython/issues/1456
         """
         with TemporaryDirectory() as td:
-            fname = os.path.join(td, "foo.py")
+            fname = os.path.join(td, "foo_1456.py")
             with open(fname, "w", encoding="utf-8") as f:
                 f.write(file_1)
 
             with prepended_to_syspath(td):
-                ip.run_cell("import foo")
+                ip.run_cell("import foo_1456")
 
             with tt.AssertPrints("ZeroDivisionError"):
-                ip.run_cell("foo.f()")
+                ip.run_cell("foo_1456.f()")
 
             # Make the file shorter, so the line of the error is missing.
             with open(fname, "w", encoding="utf-8") as f:
@@ -73,9 +73,9 @@ class ChangedPyFileTest(unittest.TestCase):
             # changing the file, so we call f() twice.
             with tt.AssertNotPrints("Internal Python error", channel='stderr'):
                 with tt.AssertPrints("ZeroDivisionError"):
-                    ip.run_cell("foo.f()")
+                    ip.run_cell("foo_1456.f()")
                 with tt.AssertPrints("ZeroDivisionError"):
-                    ip.run_cell("foo.f()")
+                    ip.run_cell("foo_1456.f()")
 
 iso_8859_5_file = u'''# coding: iso-8859-5
 
@@ -94,10 +94,10 @@ class NonAsciiTest(unittest.TestCase):
                 f.write(file_1)
 
             with prepended_to_syspath(td):
-                ip.run_cell("import foo")
+                ip.run_cell("import fooé")
 
             with tt.AssertPrints("ZeroDivisionError"):
-                ip.run_cell("foo.f()")
+                ip.run_cell("fooé.f()")
 
     def test_iso8859_5(self):
         with TemporaryDirectory() as td:
@@ -147,10 +147,10 @@ class NestedGenExprTestCase(unittest.TestCase):
             class SpecificException(Exception):
                 pass
 
-            def foo(x):
+            def foo_8293(x):
                 raise SpecificException("Success!")
 
-            sum(sum(foo(x) for _ in [0]) for x in [0])
+            sum(sum(foo_8293(x) for _ in [0]) for x in [0])
             """
         )
         with tt.AssertPrints('SpecificException: Success!', suppress=False):
@@ -169,7 +169,7 @@ class IndentationErrorTest(unittest.TestCase):
                 ip.run_cell(indentationerror_file)
 
         with TemporaryDirectory() as td:
-            fname = os.path.join(td, "foo.py")
+            fname = os.path.join(td, "foo_2398.py")
             with open(fname, "w", encoding="utf-8") as f:
                 f.write(indentationerror_file)
 
@@ -204,36 +204,38 @@ class SyntaxErrorTest(unittest.TestCase):
 
     def test_syntaxerror_no_stacktrace_at_compile_time(self):
         syntax_error_at_compile_time = """
-def foo():
+def foo_syntax_error_test():
     ..
 """
         with tt.AssertPrints("SyntaxError"):
             ip.run_cell(syntax_error_at_compile_time)
 
-        with tt.AssertNotPrints("foo()"):
+        with tt.AssertNotPrints("foo_syntax_error_test()"):
             ip.run_cell(syntax_error_at_compile_time)
 
     def test_syntaxerror_stacktrace_when_running_compiled_code(self):
         syntax_error_at_runtime = """
-def foo():
+def foo_syntax_error_test_2():
     eval("..")
 
-def bar():
-    foo()
+def bar_syntax_error_test_2():
+    foo_syntax_error_test_2()
 
-bar()
+bar_syntax_error_test_2()
 """
         with tt.AssertPrints("SyntaxError"):
             ip.run_cell(syntax_error_at_runtime)
         # Assert syntax error during runtime generate stacktrace
-        with tt.AssertPrints(["foo()", "bar()"]):
+        with tt.AssertPrints(
+            ["foo_syntax_error_test_2()", "bar_syntax_error_test_2()"]
+        ):
             ip.run_cell(syntax_error_at_runtime)
-        del ip.user_ns['bar']
-        del ip.user_ns['foo']
+        del ip.user_ns["bar_syntax_error_test_2"]
+        del ip.user_ns["foo_syntax_error_test_2"]
 
     def test_changing_py_file(self):
         with TemporaryDirectory() as td:
-            fname = os.path.join(td, "foo.py")
+            fname = os.path.join(td, "foo_test_changing_py_file.py")
             with open(fname, "w", encoding="utf-8") as f:
                 f.write(se_file_1)
 
