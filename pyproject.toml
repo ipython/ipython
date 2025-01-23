@@ -196,7 +196,6 @@ module = [
     "IPython.core.guarded_eval",
     "IPython.core.historyapp",
     "IPython.core.hooks",
-    "IPython.core.inputtransformer",
     "IPython.core.inputtransformer2",
     "IPython.core.interactiveshell",
     "IPython.core.logger",
