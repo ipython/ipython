@@ -47,17 +47,6 @@ from .ipunittest import ipdoctest, ipdocstring
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-# Simple example of the basic idea
-def as_unittest(func):
-    """Decorator to make a simple function into a normal test via unittest."""
-    class Tester(unittest.TestCase):
-        def test(self):
-            func()
-
-    Tester.__name__ = func.__name__
-
-    return Tester
-
 # Utility functions
 
 
@@ -192,9 +181,6 @@ def onlyif_cmds_exist(*commands):
     """
     Decorator to skip test when at least one of `commands` is not found.
     """
-    assert (
-        os.environ.get("IPTEST_WORKING_DIR", None) is None
-    ), "iptest deprecated since IPython 8.0"
     for cmd in commands:
         reason = f"This test runs only if command '{cmd}' is installed"
         if not shutil.which(cmd):

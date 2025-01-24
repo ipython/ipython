@@ -120,12 +120,5 @@ def restore_term_title():
         return
     _restore_term_title()
 
-
-def freeze_term_title():
-    warnings.warn("This function is deprecated, use toggle_set_term_title()")
-    global ignore_termtitle
-    ignore_termtitle = True
-
-
 def get_terminal_size(defaultx=80, defaulty=25):
     return _get_terminal_size((defaultx, defaulty))
