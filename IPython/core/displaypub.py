@@ -28,7 +28,9 @@ import typing as t
 
 # -----------------------------------------------------------------------------
 # Main payload class
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+_sentinel = object()
 
 
 class DisplayPublisher(Configurable):
@@ -54,13 +56,22 @@ class DisplayPublisher(Configurable):
         """
 
         if not isinstance(data, dict):
-            raise TypeError('data must be a dict, got: %r' % data)
+            raise TypeError("data must be a dict, got: %r" % data)
         if metadata is not None:
             if not isinstance(metadata, dict):
-                raise TypeError('metadata must be a dict, got: %r' % data)
+                raise TypeError("metadata must be a dict, got: %r" % data)
 
     # use * to indicate transient, update are keyword-only
-    def publish(self, data, metadata=None, source=None, *, transient=None, update=False, **kwargs) -> None:
+    def publish(
+        self,
+        data,
+        metadata=None,
+        source=_sentinel,
+        *,
+        transient=None,
+        update=False,
+        **kwargs,
+    ) -> None:
         """Publish data and metadata to all frontends.
 
         See the ``display_data`` message in the messaging documentation for
@@ -105,6 +116,16 @@ class DisplayPublisher(Configurable):
             rather than creating a new output.
         """
 
+        if source is not _sentinel:
+            import warnings
+
+            warnings.warn(
+                "The 'source' parameter is deprecated since IPython 3.0 and will be ignored "
+                "(this warning is present since 9.0). `source` parameter will be removed in the future.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         handlers: t.Dict = {}
         if self.shell is not None:
             handlers = getattr(self.shell, "mime_renderers", {})
@@ -114,14 +135,14 @@ class DisplayPublisher(Configurable):
                 handler(data[mime], metadata.get(mime, None))
                 return
 
-        if 'text/plain' in data:
-            print(data['text/plain'])
+        if "text/plain" in data:
+            print(data["text/plain"])
 
     def clear_output(self, wait=False):
         """Clear the output of the cell receiving output."""
-        print('\033[2K\r', end='')
+        print("\033[2K\r", end="")
         sys.stdout.flush()
-        print('\033[2K\r', end='')
+        print("\033[2K\r", end="")
         sys.stderr.flush()
 
 

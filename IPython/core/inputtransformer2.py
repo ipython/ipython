@@ -4,7 +4,7 @@ This includes the machinery to recognise and transform ``%magic`` commands,
 ``!system`` commands, ``help?`` querying, prompt stripping, and so forth.
 
 Added: IPython 7.0. Replaces inputsplitter and inputtransformer which were
-deprecated in 7.0.
+deprecated in 7.0 and removed in 9.0
 """
 
 # Copyright (c) IPython Development Team.

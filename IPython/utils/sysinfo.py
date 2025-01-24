@@ -118,26 +118,3 @@ def sys_info() -> str:
          'sys_version': '2.6.6 (r266:84292, Sep 15 2010, 15:52:39) \\n[GCC 4.4.5]'}
     """
     return pprint.pformat(get_sys_info())
-
-
-def num_cpus():
-    """DEPRECATED
-
-    Return the effective number of CPUs in the system as an integer.
-
-    This cross-platform function makes an attempt at finding the total number of
-    available CPUs in the system, as returned by various underlying system and
-    python calls.
-
-    If it can't find a sensible answer, it returns 1 (though an error *may* make
-    it return a large positive number that's actually incorrect).
-    """
-    import warnings
-
-    warnings.warn(
-        "`num_cpus` is deprecated since IPython 8.0. Use `os.cpu_count` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    return os.cpu_count() or 1
