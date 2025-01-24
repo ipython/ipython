@@ -127,14 +127,6 @@ def _safe_getattr(obj, attr, default=None):
     except Exception:
         return default
 
-@undoc
-class CUnicodeIO(StringIO):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        warn(("CUnicodeIO is deprecated since IPython 6.0. "
-              "Please use io.StringIO instead."),
-             DeprecationWarning, stacklevel=2)
-
 def _sorted_for_pprint(items):
     """
     Sort the given items for pretty printing. Since some predictable
