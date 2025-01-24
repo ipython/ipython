@@ -72,12 +72,6 @@ NoColor = ColorScheme(
         token.ERRORTOKEN: Colors.NoColor,
         _KEYWORD: Colors.NoColor,
         _TEXT: Colors.NoColor,
-        "in_prompt": InputTermColors.NoColor,  # Input prompt
-        "in_number": InputTermColors.NoColor,  # Input prompt number
-        "in_prompt2": InputTermColors.NoColor,  # Continuation prompt
-        "in_normal": InputTermColors.NoColor,  # color off (usu. Colors.Normal)
-        "out_prompt": Colors.NoColor,  # Output prompt
-        "out_number": Colors.NoColor,  # Output prompt number
         "normal": Colors.NoColor,  # color off (usu. Colors.Normal)
     },
 )
@@ -94,12 +88,6 @@ LinuxColors = ColorScheme(
         token.ERRORTOKEN: Colors.Red,
         _KEYWORD: Colors.LightGreen,
         _TEXT: Colors.Yellow,
-        "in_prompt": InputTermColors.Green,
-        "in_number": InputTermColors.LightGreen,
-        "in_prompt2": InputTermColors.Green,
-        "in_normal": InputTermColors.Normal,  # color off (usu. Colors.Normal)
-        "out_prompt": Colors.Red,
-        "out_number": Colors.LightRed,
         "normal": Colors.Normal,  # color off (usu. Colors.Normal)
     },
 )
@@ -116,12 +104,6 @@ NeutralColors = ColorScheme(
         token.ERRORTOKEN: Colors.Red,
         _KEYWORD: Colors.Green,
         _TEXT: Colors.Blue,
-        "in_prompt": InputTermColors.Blue,
-        "in_number": InputTermColors.LightBlue,
-        "in_prompt2": InputTermColors.Blue,
-        "in_normal": InputTermColors.Normal,  # color off (usu. Colors.Normal)
-        "out_prompt": Colors.Red,
-        "out_number": Colors.LightRed,
         "normal": Colors.Normal,  # color off (usu. Colors.Normal)
     },
 )
@@ -148,12 +130,6 @@ LightBGColors = ColorScheme(
         token.ERRORTOKEN: Colors.Red,
         _KEYWORD: Colors.Green,
         _TEXT: Colors.Blue,
-        "in_prompt": InputTermColors.Blue,
-        "in_number": InputTermColors.LightBlue,
-        "in_prompt2": InputTermColors.Blue,
-        "in_normal": InputTermColors.Normal,  # color off (usu. Colors.Normal)
-        "out_prompt": Colors.Red,
-        "out_number": Colors.LightRed,
         "normal": Colors.Normal,  # color off (usu. Colors.Normal)
     },
 )
