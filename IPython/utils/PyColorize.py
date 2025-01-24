@@ -163,19 +163,13 @@ class Parser(Colorable):
             self.style = style
 
 
-    def format(self, raw, out=None, scheme=Undefined):
-        import warnings
-        if scheme is not Undefined:
-            warnings.warn('The `scheme` argument of IPython.utils.PyColorize:Parser.format is deprecated since IPython 6.0.'
-                          'It will have no effect. Set the parser `style` directly.',
-                          stacklevel=2)
+    def format(self, raw, out=None):
         return self.format2(raw, out)[0]
 
-    def format2(self, raw, out = None):
-        """ Parse and send the colored source.
+    def format2(self, raw, out=None):
+        """Parse and send the colored source.
 
-        If out and scheme are not specified, the defaults (given to
-        constructor) are used.
+        If out is not specified, the defaults (given to constructor) are used.
 
         out should be a file-type object. Optionally, out can be given as the
         string 'str' and the parser will automatically return the output in a
