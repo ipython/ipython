@@ -82,17 +82,31 @@ _style_overrides_linux = {
 }
 
 
-def _backward_compat_continuation_prompt_tokens(method, width: int, *, lineno: int):
+def _backward_compat_continuation_prompt_tokens(
+    method, width: int, *, lineno: int, wrap_count: int
+):
     """
     Sagemath use custom prompt and we broke them in 8.19.
+
+    make sure to pass only width if method only support width
     """
     sig = inspect.signature(method)
+    extra = {}
+    params = inspect.signature(method).parameters
     if "lineno" in inspect.signature(method).parameters or any(
         [p.kind == p.VAR_KEYWORD for p in sig.parameters.values()]
     ):
-        return method(width, lineno=lineno)
-    else:
-        return method(width)
+        extra["lineno"] = lineno
+    if "line_number" in inspect.signature(method).parameters or any(
+        [p.kind == p.VAR_KEYWORD for p in sig.parameters.values()]
+    ):
+        extra["line_number"] = lineno
+
+    if "wrap_count" in inspect.signature(method).parameters or any(
+        [p.kind == p.VAR_KEYWORD for p in sig.parameters.values()]
+    ):
+        extra["wrap_count"] = wrap_count
+    return method(width, **extra)
 
 
 def get_default_editor():
@@ -648,10 +662,13 @@ class TerminalInteractiveShell(InteractiveShell):
             def prompt():
                 prompt_text = "".join(x[1] for x in self.prompts.in_prompt_tokens())
                 lines = [input(prompt_text)]
-                prompt_continuation = "".join(x[1] for x in self.prompts.continuation_prompt_tokens())
-                while self.check_complete('\n'.join(lines))[0] == 'incomplete':
-                    lines.append( input(prompt_continuation) )
-                return '\n'.join(lines)
+                prompt_continuation = "".join(
+                    x[1] for x in self.prompts.continuation_prompt_tokens()
+                )
+                while self.check_complete("\n".join(lines))[0] == "incomplete":
+                    lines.append(input(prompt_continuation))
+                return "\n".join(lines)
+
             self.prompt_for_code = prompt
             return
 
@@ -764,6 +781,16 @@ class TerminalInteractiveShell(InteractiveShell):
     def color_depth(self):
         return (ColorDepth.TRUE_COLOR if self.true_color else None)
 
+    def _ptk_prompt_cont(self, width: int, line_number: int, wrap_count: int):
+        return PygmentsTokens(
+            _backward_compat_continuation_prompt_tokens(
+                self.prompts.continuation_prompt_tokens,
+                width,
+                lineno=line_number,
+                wrap_count=wrap_count,
+            )
+        )
+
     def _extra_prompt_options(self):
         """
         Return the current layout option for the current Terminal InteractiveShell
@@ -786,13 +813,7 @@ class TerminalInteractiveShell(InteractiveShell):
             "lexer": IPythonPTLexer(),
             "reserve_space_for_menu": self.space_for_menu,
             "message": get_message,
-            "prompt_continuation": (
-                lambda width, lineno, is_soft_wrap: PygmentsTokens(
-                    _backward_compat_continuation_prompt_tokens(
-                        self.prompts.continuation_prompt_tokens, width, lineno=lineno
-                    )
-                )
-            ),
+            "prompt_continuation": self._ptk_prompt_cont,
             "multiline": True,
             "complete_style": self.pt_complete_style,
             "input_processors": [
