@@ -376,6 +376,8 @@ def format_screen(strng: str) -> str:
 def dedent(text: str) -> str:
     """Equivalent of textwrap.dedent that ignores unindented first line.
 
+    .. deprecated:: 9.0
+
     This means it will still dedent strings like:
     '''foo
     is a bar
@@ -383,6 +385,14 @@ def dedent(text: str) -> str:
 
     For use in wrap_paragraphs.
     """
+    # used to be used in a deprecated / removed function.
+    warnings.warn(
+        "`ipython.utils.text.dedent` is Pending Deprecation since IPython 9.0."
+        "It is considered for removal in in future version. "
+        "Please open an issue if you believe it should be kept.",
+        stacklevel=2,
+        category=PendingDeprecationWarning,
+    )
 
     if text.startswith('\n'):
         # text starts with blank line, don't ignore the first line
@@ -398,38 +408,6 @@ def dedent(text: str) -> str:
     # dedent everything but the first line
     rest = textwrap.dedent(rest)
     return '\n'.join([first, rest])
-
-
-def wrap_paragraphs(text: str, ncols: int = 80) -> List[str]:
-    """Wrap multiple paragraphs to fit a specified width.
-
-    This is equivalent to textwrap.wrap, but with support for multiple
-    paragraphs, as separated by empty lines.
-
-    Returns
-    -------
-    list of complete paragraphs, wrapped to fill `ncols` columns.
-    """
-    warnings.warn(
-        "`wrap_paragraphs` is Pending Deprecation since IPython 8.17."
-        "It is considered for removal in in future version. "
-        "Please open an issue if you believe it should be kept.",
-        stacklevel=2,
-        category=PendingDeprecationWarning,
-    )
-    paragraph_re = re.compile(r'\n(\s*\n)+', re.MULTILINE)
-    text = dedent(text).strip()
-    paragraphs = paragraph_re.split(text)[::2] # every other entry is space
-    out_ps = []
-    indent_re = re.compile(r'\n\s+', re.MULTILINE)
-    for p in paragraphs:
-        # presume indentation that survives dedent is meaningful formatting,
-        # so don't fill unless text is flush.
-        if indent_re.search(p) is None:
-            # wrap paragraph
-            p = textwrap.fill(p, ncols)
-        out_ps.append(p)
-    return out_ps
 
 
 def strip_email_quotes(text: str) -> str:

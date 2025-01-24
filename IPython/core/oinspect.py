@@ -79,13 +79,14 @@ class OInfo:
         """
         # We need to deprecate this at some point, but the warning will show in completion.
         # Let's comment this for now and uncomment end of 2023 ish
-        #        warnings.warn(
-        #            f"OInfo dataclass with fields access since IPython 8.12 please use OInfo.{field} instead."
-        #            "OInfo used to be a dict but a dataclass provide static fields verification with mypy."
-        #            "This warning and backward compatibility `get()` method were added in 8.13.",
-        #            DeprecationWarning,
-        #            stacklevel=2,
-        #        )
+        # Jan 2025: decomenting for IPython 9.0
+        warnings.warn(
+            f"OInfo dataclass with fields access since IPython 8.12 please use OInfo.{field} instead."
+            "OInfo used to be a dict but a dataclass provide static fields verification with mypy."
+            "This warning and backward compatibility `get()` method were added in 8.13.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return getattr(self, field)
 
 
