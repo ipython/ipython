@@ -10,7 +10,7 @@ from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.enums import EditingMode
 
 
-class Prompts(object):
+class Prompts:
     def __init__(self, shell):
         self.shell = shell
 
@@ -47,10 +47,24 @@ class Prompts(object):
     def _width(self):
         return fragment_list_width(self.in_prompt_tokens())
 
-    def continuation_prompt_tokens(self, width=None, *, lineno=None):
+    def continuation_prompt_tokens(
+        self,
+        width: int | None = None,
+        *,
+        lineno: int | None = None,
+        wrap_count: int | None = None,
+    ):
         if width is None:
             width = self._width()
         line = lineno + 1 if lineno is not None else 0
+        if wrap_count:
+            return [
+                (
+                    Token.Prompt,
+                    # (" " * (width - 2)) + "\N{HORIZONTAL ELLIPSIS} ",
+                    (" " * (width - 2)) + "\N{Vertical ELLIPSIS} ",
+                ),
+            ]
         prefix = " " * len(
             self.vi_mode()
         ) + self.shell.prompt_line_number_format.format(
