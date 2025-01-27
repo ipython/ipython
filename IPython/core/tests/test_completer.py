@@ -905,19 +905,19 @@ class TestCompleter(unittest.TestCase):
         c = ip.Completer
 
         s, matches = c.complete(None, "colo")
-        self.assertIn("%colors", matches)
+        assert "%colors" in matches
         s, matches = c.complete(None, "colo")
-        self.assertNotIn("NoColor", matches)
+        assert "nocolor" not in matches
         s, matches = c.complete(None, "%colors")  # No trailing space
-        self.assertNotIn("NoColor", matches)
+        assert "nocolor" not in matches
         s, matches = c.complete(None, "colors ")
-        self.assertIn("NoColor", matches)
+        assert "nocolor" in matches
         s, matches = c.complete(None, "%colors ")
-        self.assertIn("NoColor", matches)
-        s, matches = c.complete(None, "colors NoCo")
-        self.assertListEqual(["NoColor"], matches)
-        s, matches = c.complete(None, "%colors NoCo")
-        self.assertListEqual(["NoColor"], matches)
+        assert "nocolor" in matches
+        s, matches = c.complete(None, "colors noco")
+        assert ["nocolor"] == matches
+        s, matches = c.complete(None, "%colors noco")
+        assert ["nocolor"] == matches
 
     def test_match_dict_keys(self):
         """

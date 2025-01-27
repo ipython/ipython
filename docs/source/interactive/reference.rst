@@ -834,6 +834,7 @@ command, or you can start IPython with the ``--pdb`` option.
 For a post-mortem debugger in your programs outside IPython,
 put the following lines toward the top of your 'main' routine::
 
+    # TODO: theme
     import sys
     from IPython.core import ultratb
     sys.excepthook = ultratb.FormattedTB(mode='Verbose',
@@ -841,7 +842,7 @@ put the following lines toward the top of your 'main' routine::
 
 The mode keyword can be either 'Verbose' or 'Plain', giving either very
 detailed or normal tracebacks respectively. The color_scheme keyword can
-be one of 'NoColor', 'Linux' (default) or 'LightBG'. These are the same
+be one of 'nocolor', 'linux' (default) or 'lightbg'. These are the same
 options which can be set in IPython with ``--colors`` and ``--xmode``.
 
 This will give any of your programs detailed, colored tracebacks with

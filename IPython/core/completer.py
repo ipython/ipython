@@ -221,9 +221,9 @@ from IPython.core.guarded_eval import guarded_eval, EvaluationContext
 from IPython.core.error import TryNext
 from IPython.core.inputtransformer2 import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
-from IPython.core.oinspect import InspectColors
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import generics
+from IPython.utils.PyColorize import theme_table
 from IPython.utils.decorators import sphinx_options
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.docs import GENERATING_DOCUMENTATION
@@ -2240,8 +2240,7 @@ class IPCompleter(Completer):
 
         if len(texts) == 2 and (texts[0] == 'colors' or texts[0] == '%colors'):
             prefix = texts[1]
-            return [ color for color in InspectColors.keys()
-                     if color.startswith(prefix) ]
+            return [color for color in theme_table.keys() if color.startswith(prefix)]
         return []
 
     @context_matcher(identifier="IPCompleter.jedi_matcher")

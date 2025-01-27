@@ -404,9 +404,9 @@ class BackgroundJobBase(threading.Thread):
         try:
             make_tb = get_ipython().InteractiveTB.text
         except:
-            make_tb = AutoFormattedTB(mode = 'Context',
-                                      color_scheme='NoColor',
-                                      tb_offset = 1).text
+            make_tb = AutoFormattedTB(
+                mode="Context", color_scheme="nocolor", tb_offset=1
+            ).text
         # Note that the actual API for text() requires the three args to be
         # passed in, so we wrap it in a simple lambda.
         self._make_tb = lambda : make_tb(None, None, None)

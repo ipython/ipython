@@ -32,7 +32,7 @@ from io import open as io_open
 from logging import error
 from pathlib import Path
 from typing import Callable
-from typing import List as ListType, Dict as DictType, Any as AnyType
+from typing import List as ListType, Any as AnyType
 from typing import Optional, Sequence, Tuple
 from warnings import warn
 
@@ -290,6 +290,8 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
 
+    inspector: oinspect.Inspector
+
     ast_transformers: List[ast.NodeTransformer] = List(
         [],
         help="""
@@ -365,26 +367,16 @@ class InteractiveShell(SingletonConfigurable):
         help="""The part of the banner to be printed after the profile"""
     ).tag(config=True)
 
-    cache_size = Integer(1000, help=
-        """
+    cache_size = Integer(
+        1000,
+        help="""
         Set the size of the output cache.  The default is 1000, you can
         change it permanently in your config file.  Setting it to 0 completely
         disables the caching system, and the minimum value accepted is 3 (if
         you provide a value less than 3, it is reset to 0 and a warning is
         issued).  This limit is defined because otherwise you'll spend more
         time re-flushing a too small cache than working
-        """
-    ).tag(config=True)
-    color_info = Bool(True, help=
-        """
-        Use colors for displaying information about objects. Because this
-        information is passed through a pager (like 'less'), and some pagers
-        get confused with color codes, this capability can be turned off.
-        """
-    ).tag(config=True)
-    colors = CaselessStrEnum(('Neutral', 'NoColor','LightBG','Linux'),
-                             default_value='Neutral',
-        help="Set the color scheme (NoColor, Neutral, Linux, or LightBG)."
+        """,
     ).tag(config=True)
     debug = Bool(False).tag(config=True)
     display_formatter = Instance(DisplayFormatter, allow_none=True)
@@ -594,7 +586,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_builtins()
 
         # The following was in post_config_initialization
-        self.init_inspector()
         self.raw_input_original = input
         self.init_completer()
         # TODO: init_io() needs to happen before init_traceback handlers
@@ -706,12 +697,45 @@ class InteractiveShell(SingletonConfigurable):
         except AttributeError:
             self.stdin_encoding = 'ascii'
 
+    colors = Unicode(
+        "neutral", help="Set the color scheme (nocolor, neutral, linux, lightbg)."
+    ).tag(config=True)
 
-    @observe('colors')
+    @validate("colors")
+    def _check_colors(self, proposal):
+        new = proposal["value"]
+        if not new == new.lower():
+            warn(
+                f"`TerminalInteractiveShell.colors` is now lowercase: `{new.lower()}`,"
+                " non lowercase, may invalid in the future."
+            )
+        return new.lower()
+
+    @observe("colors")
     def init_syntax_highlighting(self, changes=None):
         # Python source parser/formatter for syntax highlighting
-        pyformat = PyColorize.Parser(style=self.colors, parent=self).format
-        self.pycolorize = lambda src: pyformat(src,'str')
+        pyformat = PyColorize.Parser(theme_name=self.colors).format
+        self.pycolorize = lambda src: pyformat(src, "str")
+        if not hasattr(self, "inspector"):
+            self.inspector = self.inspector_class(
+                theme_name=self.colors,
+                str_detail_level=self.object_info_string_level,
+                parent=self,
+            )
+
+        try:
+            self.inspector.set_theme_name(self.colors)
+        except Exception:
+            warn(
+                "Error changing object inspector color schemes.\n%s"
+                % (sys.exc_info()[1]),
+                stacklevel=2,
+            )
+        if hasattr(self, "InteractiveTB"):
+            self.InteractiveTB.set_theme_name(self.colors)
+        if hasattr(self, "SyntaxTB"):
+            self.SyntaxTB.set_theme_name(self.colors)
+        self.refresh_style()
 
     def refresh_style(self):
         # No-op here, used in subclass
@@ -748,15 +772,6 @@ class InteractiveShell(SingletonConfigurable):
 
         self.builtin_trap = BuiltinTrap(shell=self)
 
-    @observe('colors')
-    def init_inspector(self, changes=None):
-        # Object inspector
-        self.inspector = self.inspector_class(
-            color_table=oinspect.InspectColors,
-            scheme=self.colors,
-            str_detail_level=self.object_info_string_level,
-            parent=self,
-        )
 
     def init_io(self):
         # implemented in subclasses, TerminalInteractiveShell does call
@@ -1839,17 +1854,19 @@ class InteractiveShell(SingletonConfigurable):
 
     debugger_cls = InterruptiblePdb
 
-    def init_traceback_handlers(self, custom_exceptions):
+    def init_traceback_handlers(self, custom_exceptions) -> None:
         # Syntax error handler.
-        self.SyntaxTB = ultratb.SyntaxTB(color_scheme='NoColor', parent=self)
+        self.SyntaxTB = ultratb.SyntaxTB(theme_name=self.colors)
 
         # The interactive one is initialized with an offset, meaning we always
         # want to remove the topmost item in the traceback, which is our own
         # internal code. Valid modes: ['Plain','Context','Verbose','Minimal']
-        self.InteractiveTB = ultratb.AutoFormattedTB(mode = 'Plain',
-                                                     color_scheme='NoColor',
-                                                     tb_offset = 1,
-                                   debugger_cls=self.debugger_cls, parent=self)
+        self.InteractiveTB = ultratb.AutoFormattedTB(
+            mode=self.xmode,
+            theme_name=self.colors,
+            tb_offset=1,
+            debugger_cls=self.debugger_cls,
+        )
 
         # The instance will store a pointer to the system-wide exception hook,
         # so that runtime code (such as magics) can access it.  This is because

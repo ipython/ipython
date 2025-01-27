@@ -385,14 +385,6 @@ def dedent(text: str) -> str:
 
     For use in wrap_paragraphs.
     """
-    # used to be used in a deprecated / removed function.
-    warnings.warn(
-        "`ipython.utils.text.dedent` is Pending Deprecation since IPython 9.0."
-        "It is considered for removal in in future version. "
-        "Please open an issue if you believe it should be kept.",
-        stacklevel=2,
-        category=PendingDeprecationWarning,
-    )
 
     if text.startswith('\n'):
         # text starts with blank line, don't ignore the first line

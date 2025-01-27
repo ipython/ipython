@@ -120,5 +120,6 @@ def restore_term_title():
         return
     _restore_term_title()
 
-def get_terminal_size(defaultx=80, defaulty=25):
+
+def get_terminal_size(defaultx: int = 80, defaulty: int = 25) -> tuple[int, int]:
     return _get_terminal_size((defaultx, defaulty))

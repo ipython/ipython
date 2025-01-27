@@ -9,6 +9,7 @@ from typing import Union as UnionType, Optional
 from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils.py3compat import input
+from IPython.utils.PyColorize import theme_table
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
@@ -44,7 +45,6 @@ from prompt_toolkit.styles import DynamicStyle, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
 from pygments.styles import get_style_by_name
 from pygments.style import Style
-from pygments.token import Token
 
 from .debugger import TerminalPdb, Pdb
 from .magics import TerminalMagics
@@ -69,20 +69,6 @@ from .shortcuts.auto_suggest import (
 class _NoStyle(Style):
     pass
 
-
-_style_overrides_light_bg = {
-            Token.Prompt: '#ansibrightblue',
-            Token.PromptNum: '#ansiblue bold',
-            Token.OutPrompt: '#ansibrightred',
-            Token.OutPromptNum: '#ansired bold',
-}
-
-_style_overrides_linux = {
-            Token.Prompt: '#ansibrightgreen',
-            Token.PromptNum: '#ansigreen bold',
-            Token.OutPrompt: '#ansibrightred',
-            Token.OutPromptNum: '#ansired bold',
-}
 
 
 def _backward_compat_continuation_prompt_tokens(
@@ -313,9 +299,12 @@ class TerminalInteractiveShell(InteractiveShell):
 
     # We don't load the list of styles for the help string, because loading
     # Pygments plugins takes time and can cause unexpected errors.
-    highlighting_style = Union([Unicode('legacy'), Type(klass=Style)],
-        help="""The name or class of a Pygments style to use for syntax
-        highlighting. To see available styles, run `pygmentize -L styles`."""
+    highlighting_style = Union(
+        [Unicode("legacy"), Type(klass=Style)],
+        help="""Deprecated, and has not effect, use IPython themes
+
+        The name or class of a Pygments style to use for syntax
+        highlighting. To see available styles, run `pygmentize -L styles`.""",
     ).tag(config=True)
 
     @validate('editing_mode')
@@ -353,11 +342,17 @@ class TerminalInteractiveShell(InteractiveShell):
     @observe('highlighting_style')
     @observe('colors')
     def _highlighting_style_changed(self, change):
-        self.refresh_style()
+        assert change.new == change.new.lower()
+        if change.new != "legacy":
+            warn(
+                "highlighting_style is deprecated since 9.0 and have no effect, use themeing."
+            )
+            return
 
     def refresh_style(self):
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
 
+    # TODO: deprecate this
     highlighting_style_overrides = Dict(
         help="Override highlighting format for specific tokens"
     ).tag(config=True)
@@ -749,8 +744,8 @@ class TerminalInteractiveShell(InteractiveShell):
         # Pre-populate history from IPython's history database
         history = PtkHistoryAdapter(self)
 
-        self._style = self._make_style_from_name_or_cls(self.highlighting_style)
-        self.style = DynamicStyle(lambda: self._style)
+        self.refresh_style()
+        ptk_s = DynamicStyle(lambda: self._style)
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
@@ -762,7 +757,7 @@ class TerminalInteractiveShell(InteractiveShell):
             history=history,
             completer=IPythonPTCompleter(shell=self),
             enable_history_search=self.enable_history_search,
-            style=self.style,
+            style=ptk_s,
             include_default_pygments_style=False,
             mouse_support=self.mouse_support,
             enable_open_in_editor=self.extra_open_editor_shortcuts,
@@ -779,64 +774,28 @@ class TerminalInteractiveShell(InteractiveShell):
 
         We need that to add style for prompt ... etc.
         """
-        style_overrides = {}
-        if name_or_cls == 'legacy':
-            legacy = self.colors.lower()
-            if legacy == 'linux':
-                style_cls = get_style_by_name('monokai')
-                style_overrides = _style_overrides_linux
-            elif legacy == 'lightbg':
-                style_overrides = _style_overrides_light_bg
-                style_cls = get_style_by_name('pastie')
-            elif legacy == 'neutral':
-                # The default theme needs to be visible on both a dark background
-                # and a light background, because we can't tell what the terminal
-                # looks like. These tweaks to the default theme help with that.
-                style_cls = get_style_by_name('default')
-                style_overrides.update({
-                    Token.Number: '#ansigreen',
-                    Token.Operator: 'noinherit',
-                    Token.String: '#ansiyellow',
-                    Token.Name.Function: '#ansiblue',
-                    Token.Name.Class: 'bold #ansiblue',
-                    Token.Name.Namespace: 'bold #ansiblue',
-                    Token.Name.Variable.Magic: '#ansiblue',
-                    Token.Prompt: '#ansigreen',
-                    Token.PromptNum: '#ansibrightgreen bold',
-                    Token.OutPrompt: '#ansired',
-                    Token.OutPromptNum: '#ansibrightred bold',
-                })
+        assert name_or_cls == "legacy"
+        legacy = self.colors.lower()
 
-                # Hack: Due to limited color support on the Windows console
-                # the prompt colors will be wrong without this
-                if os.name == 'nt':
-                    style_overrides.update({
-                        Token.Prompt: '#ansidarkgreen',
-                        Token.PromptNum: '#ansigreen bold',
-                        Token.OutPrompt: '#ansidarkred',
-                        Token.OutPromptNum: '#ansired bold',
-                    })
-            elif legacy =='nocolor':
-                style_cls=_NoStyle
-                style_overrides = {}
-            else :
-                raise ValueError('Got unknown colors: ', legacy)
-        else :
-            if isinstance(name_or_cls, str):
-                style_cls = get_style_by_name(name_or_cls)
+        theme = theme_table.get(legacy, None)
+        assert theme is not None, legacy
+
+        if legacy == "nocolor":
+            style_overrides = {}
+            style_cls = _NoStyle
+        else:
+            style_overrides = {**theme.extra_style, **self.highlighting_style_overrides}
+            if theme.base is not None:
+                style_cls = get_style_by_name(theme.base)
             else:
-                style_cls = name_or_cls
-            style_overrides = {
-                Token.Prompt: '#ansigreen',
-                Token.PromptNum: '#ansibrightgreen bold',
-                Token.OutPrompt: '#ansired',
-                Token.OutPromptNum: '#ansibrightred bold',
-            }
-        style_overrides.update(self.highlighting_style_overrides)
-        style = merge_styles([
-            style_from_pygments_cls(style_cls),
-            style_from_pygments_dict(style_overrides),
-        ])
+                style_cls = _NoStyle
+
+        style = merge_styles(
+            [
+                style_from_pygments_cls(style_cls),
+                style_from_pygments_dict(style_overrides),
+            ]
+        )
 
         return style
 

@@ -318,11 +318,7 @@ Currently the magic system has the following functions:""",
 
     @line_magic
     def colors(self, parameter_s=''):
-        """Switch color scheme for prompts, info system and exception handlers.
-
-        Currently implemented schemes: NoColor, Linux, LightBG.
-
-        Color scheme names are not case-sensitive.
+        """Switch color scheme/theme globally for IPython
 
         Examples
         --------
@@ -330,40 +326,18 @@ Currently the magic system has the following functions:""",
 
           %colors nocolor
         """
-        def color_switch_err(name):
-            warn('Error changing %s color schemes.\n%s' %
-                 (name, sys.exc_info()[1]), stacklevel=2)
 
 
-        new_scheme = parameter_s.strip()
-        if not new_scheme:
+        new_theme = parameter_s.strip()
+        if not new_theme:
+            from IPython.utils.PyColorize import theme_table
+
             raise UsageError(
-                "%colors: you must specify a color scheme. See '%colors?'")
-        # local shortcut
-        shell = self.shell
+                "%colors: you must specify a color theme. See '%colors?'."
+                f" Available themes: {list(theme_table.keys())}"
+            )
 
-        # Set shell colour scheme
-        try:
-            shell.colors = new_scheme
-            shell.refresh_style()
-        except:
-            color_switch_err('shell')
-
-        # Set exception colors
-        try:
-            shell.InteractiveTB.set_colors(scheme = new_scheme)
-            shell.SyntaxTB.set_colors(scheme = new_scheme)
-        except:
-            color_switch_err('exception')
-
-        # Set info (for 'object?') colors
-        if shell.color_info:
-            try:
-                shell.inspector.set_active_scheme(new_scheme)
-            except:
-                color_switch_err('object inspector')
-        else:
-            shell.inspector.set_active_scheme('NoColor')
+        self.shell.colors = new_theme
 
     @line_magic
     def xmode(self, parameter_s=''):

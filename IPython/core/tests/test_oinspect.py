@@ -29,7 +29,7 @@ inspector = None
 
 def setup_module():
     global inspector
-    inspector = oinspect.Inspector()
+    inspector = oinspect.Inspector(theme_name="nocolor")
 
 
 class SourceModuleMainTest:

@@ -12,7 +12,7 @@ from textwrap import dedent
 
 from tempfile import TemporaryDirectory
 
-from IPython.core.ultratb import ColorTB, VerboseTB
+from IPython.core.ultratb import VerboseTB, FormattedTB
 from IPython.testing import tools as tt
 from IPython.testing.decorators import onlyif_unicode_paths, skip_without
 from IPython.utils.syspathcontext import prepended_to_syspath
@@ -442,8 +442,8 @@ def test_handlers():
     except:
         traceback.print_exc(file=buff)
 
-    handler = ColorTB(ostream=buff)
-    buff.write('*** ColorTB ***')
+    handler = FormattedTB(ostream=buff)
+    buff.write("*** FormattedTB ***")
     try:
         buff.write(spam(1, (2, 3)))
     except:

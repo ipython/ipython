@@ -116,19 +116,23 @@ parse_test_output.__test__ = False
 def default_argv():
     """Return a valid default argv for creating testing instances of ipython"""
 
-    return ['--quick', # so no config file is loaded
-            # Other defaults to minimize side effects on stdout
-            '--colors=NoColor', '--no-term-title','--no-banner',
-            '--autocall=0']
+    return [
+        "--quick",  # so no config file is loaded
+        # Other defaults to minimize side effects on stdout
+        "--colors=nocolor",
+        "--no-term-title",
+        "--no-banner",
+        "--autocall=0",
+    ]
 
 
 def default_config():
     """Return a config object with good defaults for testing."""
     config = Config()
-    config.TerminalInteractiveShell.colors = 'NoColor'
-    config.TerminalTerminalInteractiveShell.term_title = False,
+    config.TerminalInteractiveShell.colors = "nocolor"
+    config.TerminalTerminalInteractiveShell.term_title = (False,)
     config.TerminalInteractiveShell.autocall = 0
-    f = tempfile.NamedTemporaryFile(suffix=u'test_hist.sqlite', delete=False)
+    f = tempfile.NamedTemporaryFile(suffix="test_hist.sqlite", delete=False)
     config.HistoryManager.hist_file = Path(f.name)
     f.close()
     config.HistoryManager.db_cache_size = 10000
@@ -292,37 +296,6 @@ class TempFileMixin(unittest.TestCase):
         self.tearDown()
 
 
-pair_fail_msg = ("Testing {0}\n\n"
-                "In:\n"
-                "  {1!r}\n"
-                "Expected:\n"
-                "  {2!r}\n"
-                "Got:\n"
-                "  {3!r}\n")
-def check_pairs(func, pairs):
-    """Utility function for the common case of checking a function with a
-    sequence of input/output pairs.
-
-    Parameters
-    ----------
-    func : callable
-      The function to be tested. Should accept a single argument.
-    pairs : iterable
-      A list of (input, expected_output) tuples.
-
-    Returns
-    -------
-    None. Raises an AssertionError if any output does not match the expected
-    value.
-    """
-    __tracebackhide__ = True
-
-    name = getattr(func, "func_name", getattr(func, "__name__", "<unknown>"))
-    for inp, expected in pairs:
-        out = func(inp)
-        assert out == expected, pair_fail_msg.format(name, inp, expected, out)
-
-
 MyStringIO = StringIO
 
 _re_type = type(re.compile(r''))
@@ -408,16 +381,6 @@ class AssertNotPrints(AssertPrints):
             return False
         finally:
             self.tee.close()
-
-@contextmanager
-def mute_warn():
-    from IPython.utils import warn
-    save_warn = warn.warn
-    warn.warn = lambda *a, **kw: None
-    try:
-        yield
-    finally:
-        warn.warn = save_warn
 
 @contextmanager
 def make_tempfile(name):

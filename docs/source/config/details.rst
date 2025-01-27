@@ -183,32 +183,51 @@ style; see below for more details. The tokens used in the default prompts are
 Terminal Colors
 ===============
 
-.. versionchanged:: 5.0
+.. versionchanged:: 9.0
 
-There are two main configuration options controlling colours.
+IPython 9.0 changed almost all of the  color handling, which is now referred to
+as **themes**. A Theme can do a bit more than purely colors, as it can handle
+bold, italic and basically any style that ``pygments`` support.  Themes also
+support a number of ``Symbols``, which allows you to – for example – change the
+shape of the arrow that mark the current frame and line numbers in the debugger
+and the tracebacks. 
 
-``InteractiveShell.colors`` sets the colour of tracebacks and object info (the
-output from e.g. ``zip?``). It may also affect other things if the option below
-is set to ``'legacy'``. It has four case-insensitive values:
-``'nocolor', 'neutral', 'linux', 'lightbg'``. The default is *neutral*, which
-should be legible on either dark or light terminal backgrounds. *linux* is
-optimised for dark backgrounds and *lightbg* for light ones.
+Most of the various IPython options that were used pre 9.0 have been renamed,
+with a exceptions a few, and most classes  that deal with themes can, now take a
+``theme_name`` parameter.
 
-``TerminalInteractiveShell.highlighting_style`` determines prompt colours and
-syntax highlighting. It takes the name (as a string) or class (as a subclass of
-``pygments.style.Style``) of a Pygments style, or the special value ``'legacy'``
-to pick a style in accordance with ``InteractiveShell.colors``.
+To reflect this, the  ``--colors`` flag now is also aliased to ``--theme``.
 
-You can see the Pygments styles available on your system by running::
+The default themes included are the same, except lowercase, for ease of typing. 
 
-    from pygments.styles import get_all_styles
-    list(get_all_styles())
+``'nocolor', 'neutral', 'linux', 'lightbg'``, with the addition of ``'pride'``
+to celebrate the inclusively of this project (I welcome update to the pride
+theme as I'm not a designer myself). 
 
-Additionally, ``TerminalInteractiveShell.highlighting_style_overrides`` can override
-specific styles in the highlighting. It should be a dictionary mapping Pygments
-token types to strings defining the style. See `Pygments' documentation
-<http://pygments.org/docs/styles/#creating-own-styles>`__ for the language used
-to define styles.
+In addition, the ``--theme=pride`` theme, is the first to make use of unicode
+symbols for the traceback separation line, and the debugger and traceback arrow, 
+as well as making some use of ``bold``, and ``italic`` formatting, and not limit
+itself to the 16 base ANSI colors.
+
+Theme details
+-------------
+
+We encourage you to contribute themes, and to distribute them, 
+while currently you need to modify source code to add a theme, it should be
+possible to load theme from Json, Yaml, or any other declarative file type. 
+
+Since IPython 9.0, most of IPython internal code emit a sequence of `(Token
+Type, string)`, which is fed through pygments, and a theme is mapping from those
+token types to a style. For example: ``Token.Prompt : '#ansired underline'``, or
+``Token.Filename : 'bg:#A30262``.
+
+For simplicity, a theme can be derived from from a pygments style (which will
+give the basic code highlighting).
+
+A theme can also define a few symbols (see the source for how), for example
+``arrow_body``, and ``arrow_head``, can help customising line indicators.
+
+
 
 Colors in the pager
 -------------------
