@@ -971,7 +971,7 @@ class IPythonDirective(Directive):
         # reset the execution count if we haven't processed this doc
         #NOTE: this may be borked if there are multiple seen_doc tmp files
         #check time stamp?
-        if not self.state.document.current_source in self.seen_docs:
+        if self.state.document.current_source not in self.seen_docs:
             self.shell.IP.history_manager.reset()
             self.shell.IP.execution_count = 1
             self.seen_docs.add(self.state.document.current_source)
