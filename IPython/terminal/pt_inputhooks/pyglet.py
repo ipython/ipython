@@ -1,5 +1,4 @@
-"""Enable pyglet to be used interactively with prompt_toolkit
-"""
+"""Enable pyglet to be used interactively with prompt_toolkit"""
 
 import sys
 import time
@@ -10,13 +9,15 @@ import pyglet
 # window close.  For details, see:
 # http://groups.google.com/group/pyglet-users/browse_thread/thread/47c1aab9aa4a3d23/c22f9e819826799e?#c22f9e819826799e
 
-if sys.platform.startswith('linux'):
+if sys.platform.startswith("linux"):
+
     def flip(window):
         try:
             window.flip()
         except AttributeError:
             pass
 else:
+
     def flip(window):
         window.flip()
 
@@ -38,7 +39,7 @@ def inputhook(context):
             for window in pyglet.app.windows:
                 window.switch_to()
                 window.dispatch_events()
-                window.dispatch_event('on_draw')
+                window.dispatch_event("on_draw")
                 flip(window)
 
             # We need to sleep at this point to keep the idle CPU load

@@ -16,6 +16,7 @@ This script is a simple demonstration of HistoryAccessor. It should be possible
 to build much more flexible and powerful tools to browse and pull from the
 history database.
 """
+
 import sys
 from pathlib import Path
 
@@ -37,4 +38,4 @@ with dest:
     hist = HistoryAccessor()
 
     for session, lineno, cell in hist.get_range(session=session_number, raw=raw):
-      dest.write(cell + '\n')
+        dest.write(cell + "\n")

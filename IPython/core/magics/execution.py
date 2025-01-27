@@ -1457,10 +1457,12 @@ class ExecutionMagics(Magics):
             return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
-        if not ( 'q' in opts) : 
-            print('Macro `%s` created. To execute, type its name (without quotes).' % name)
-            print('=== Macro contents: ===')
-            print(macro, end=' ')
+        if "q" not in opts:
+            print(
+                "Macro `%s` created. To execute, type its name (without quotes)." % name
+            )
+            print("=== Macro contents: ===")
+            print(macro, end=" ")
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('output', type=str, default='', nargs='?',

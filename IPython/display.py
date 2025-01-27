@@ -1,5 +1,4 @@
-"""Public API for display tools in IPython.
-"""
+"""Public API for display tools in IPython."""
 
 # -----------------------------------------------------------------------------
 #       Copyright (C) 2012 The IPython Development Team

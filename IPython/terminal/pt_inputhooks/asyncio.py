@@ -28,6 +28,7 @@ prompt_toolkit`s `patch_stdout`)::
 
 """
 
+
 def inputhook(context):
     """
     Inputhook for asyncio event loop integration.
