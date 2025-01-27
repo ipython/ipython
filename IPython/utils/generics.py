@@ -1,6 +1,5 @@
 # encoding: utf-8
-"""Generic functions for extending IPython.
-"""
+"""Generic functions for extending IPython."""
 
 from IPython.core.error import TryNext
 from functools import singledispatch

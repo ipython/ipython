@@ -1,6 +1,7 @@
 import sys
 import warnings
 
+
 class prepended_to_syspath(object):
     """A context for prepending a directory to sys.path for a second."""
 
@@ -9,7 +10,7 @@ class prepended_to_syspath(object):
 
     def __enter__(self):
         if self.dir not in sys.path:
-            sys.path.insert(0,self.dir)
+            sys.path.insert(0, self.dir)
             self.added = True
         else:
             self.added = False

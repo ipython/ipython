@@ -11,6 +11,6 @@
 
 
 def setup(app):
-    app.add_object_type('configtrait', 'configtrait', objname='Config option')
-    metadata = {'parallel_read_safe': True, 'parallel_write_safe': True}
+    app.add_object_type("configtrait", "configtrait", objname="Config option")
+    metadata = {"parallel_read_safe": True, "parallel_write_safe": True}
     return metadata

@@ -1,5 +1,4 @@
-"""prompt_toolkit input hook for GTK 3
-"""
+"""prompt_toolkit input hook for GTK 3"""
 
 from gi.repository import Gtk, GLib
 

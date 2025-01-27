@@ -606,10 +606,7 @@ KEY_BINDINGS = [
     Binding(
         indent_buffer,
         ["tab"],  # Ctrl+I == Tab
-        "default_buffer_focused"
-        " & ~has_selection"
-        " & insert_mode"
-        " & cursor_in_leading_ws",
+        "default_buffer_focused & ~has_selection & insert_mode & cursor_in_leading_ws",
     ),
     Binding(newline_autoindent, ["c-o"], "default_buffer_focused & emacs_insert_mode"),
     Binding(open_input_in_editor, ["f2"], "default_buffer_focused"),

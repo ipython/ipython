@@ -1,6 +1,5 @@
 # encoding: utf-8
-"""A fancy version of Python's builtin :func:`dir` function.
-"""
+"""A fancy version of Python's builtin :func:`dir` function."""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
