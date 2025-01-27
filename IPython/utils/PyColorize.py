@@ -138,8 +138,6 @@ LightBGColors = ColorScheme(
 ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors, NeutralColors],
                                   _scheme_default)
 
-Undefined = object()
-
 class Parser(Colorable):
     """ Format colored Python source.
     """
