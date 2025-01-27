@@ -2060,6 +2060,8 @@ class InteractiveShell(SingletonConfigurable):
         sys.last_type = etype
         sys.last_value = value
         sys.last_traceback = tb
+        if sys.version_info >= (3, 12):
+            sys.last_exc = value
 
         return etype, value, tb
 
