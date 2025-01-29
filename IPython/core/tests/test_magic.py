@@ -1229,12 +1229,14 @@ def test_script_defaults():
 
 async def test_script_streams_continiously(capsys):
     ip = get_ipython()
-    code = dedent("""\
+    code = dedent(
+        """\
     import time
     for _ in range(6):
         time.sleep(0.25)
         print(".", flush=True, end="")
-    """)
+    """
+    )
 
     def print_numbers():
         for i in range(6):
@@ -1250,7 +1252,7 @@ async def test_script_streams_continiously(capsys):
     captured = capsys.readouterr()
     # If the streaming was line-wise or broken
     # we would get `012345......`
-    assert captured.out == '0.1.2.3.4.5.'
+    assert captured.out == "0.1.2.3.4.5."
 
 
 @magics_class
