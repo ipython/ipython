@@ -1137,9 +1137,7 @@ def test_script_raise_on_interrupt():
         thread = Thread(target=_interrupt_after_1s)
         thread.start()
         ip.run_cell_magic(
-            "script",
-            f"{sys.executable}",
-            "from time import sleep; sleep(2)"
+            "script", f"{sys.executable}", "from time import sleep; sleep(2)"
         )
         thread.join()
 
@@ -1152,7 +1150,7 @@ def test_script_do_not_raise_on_interrupt():
     ip.run_cell_magic(
         "script",
         f"--no-raise-error {sys.executable}",
-        "from time import sleep; sleep(2)"
+        "from time import sleep; sleep(2)",
     )
     thread.join()
 
