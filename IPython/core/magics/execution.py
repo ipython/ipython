@@ -977,7 +977,15 @@ class ExecutionMagics(Magics):
                     break
                 finally:
                     sys.settrace(trace)
-            
+
+            # Perform proper cleanup of the session in case if
+            # it exited with "continue" and not "quit" command
+            deb.set_quit()
+            deb.rcLines.extend(["q"])
+            try:
+                deb.run("", code_ns, local_ns)
+            except StopIteration:
+                pass
 
         except:
             etype, value, tb = sys.exc_info()
