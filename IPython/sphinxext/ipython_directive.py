@@ -183,7 +183,7 @@ To Do
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
+# ''''''''''''''''''can be implite use css'''''''''''''''''
 # Stdlib
 import atexit
 import errno
@@ -1276,3 +1276,111 @@ if __name__=='__main__':
         os.mkdir('_static')
     test()
     print('All OK? Check figures in _static/')
+
+
+# as per mentioned to don't use very light or very dark color;
+/*here css code that i wrote as per the requirement*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f2f4f8;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  padding: 20px;
+}
+
+header {
+  background-color: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  border-radius: 8px;
+}
+
+header h1 {
+  font-size: 2.5rem;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.container {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+}
+
+h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #495057;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+  transition: border 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border: 1px solid #007bff;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+footer {
+  text-align: center;
+  margin-top: 30px;
+  color: #6c757d;
+}
+
+footer a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+#i am sure the color arevnot too dark used a medium shades
