@@ -6,12 +6,16 @@ import io
 import os
 import re
 import shlex
+import signal
 import sys
 import warnings
 from importlib import invalidate_caches
 from io import StringIO
 from pathlib import Path
+from subprocess import CalledProcessError
 from textwrap import dedent
+from time import sleep
+from threading import Thread
 from unittest import TestCase, mock
 
 import pytest
@@ -1119,6 +1123,38 @@ def test_script_config():
     ip.config.ScriptMagics.script_magics = ['whoda']
     sm = script.ScriptMagics(shell=ip)
     assert "whoda" in sm.magics["cell"]
+
+
+def _interrupt_after_1s():
+    sleep(1)
+    signal.raise_signal(signal.SIGINT)
+
+
+def test_script_raise_on_interrupt():
+    ip = get_ipython()
+
+    with pytest.raises(CalledProcessError):
+        thread = Thread(target=_interrupt_after_1s)
+        thread.start()
+        ip.run_cell_magic(
+            "script",
+            f"{sys.executable}",
+            "from time import sleep; sleep(2)"
+        )
+        thread.join()
+
+
+def test_script_do_not_raise_on_interrupt():
+    ip = get_ipython()
+
+    thread = Thread(target=_interrupt_after_1s)
+    thread.start()
+    ip.run_cell_magic(
+        "script",
+        f"--no-raise-error {sys.executable}",
+        "from time import sleep; sleep(2)"
+    )
+    thread.join()
 
 
 def test_script_out():
