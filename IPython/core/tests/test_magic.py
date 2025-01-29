@@ -728,6 +728,34 @@ def doctest_precision():
     """
 
 
+def test_debug_magic():
+    """Test debugging a small code with %debug
+
+    In [1]: with PdbTestInput(['c']):
+       ...:     %debug print("a b") #doctest: +ELLIPSIS
+       ...:
+    ...
+    ipdb> c
+    a b
+    In [2]:
+    """
+
+
+def test_debug_magic_locals():
+    """Test debugging a small code with %debug with locals
+
+    In [1]: with PdbTestInput(['c']):
+       ...:     def fun():
+       ...:         res = 1
+       ...:         %debug print(res)
+       ...:     fun()
+       ...:
+    ...
+    ipdb> c
+    1
+    In [2]:
+    """
+
 def test_psearch():
     with tt.AssertPrints("dict.fromkeys"):
         _ip.run_cell("dict.fr*?")
