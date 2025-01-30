@@ -63,8 +63,8 @@ def inputhook(context):
         timer = QtCore.QTimer()
         timer.timeout.connect(event_loop.quit)
         while not context.input_is_ready():
-            # NOTE: run the event loop, and after 50 ms, call `quit` to exit it.
-            timer.start(50)  # 50 ms
+            # NOTE: run the event loop, and after 10 ms, call `quit` to exit it.
+            timer.start(10)  # 10 ms
             _exec(event_loop)
             timer.stop()
     else:
