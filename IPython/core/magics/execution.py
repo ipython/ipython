@@ -977,7 +977,21 @@ class ExecutionMagics(Magics):
                     break
                 finally:
                     sys.settrace(trace)
-            
+
+            # Perform proper cleanup of the session in case if
+            # it exited with "continue" and not "quit" command
+            if hasattr(deb, "rcLines"):
+                # Run this code defensively in case if custom debugger
+                # class does not implement rcLines, which although public
+                # is an implementation detail of `pdb.Pdb` and not part of
+                # the more generic basic debugger framework (`bdb.Bdb`).
+                deb.set_quit()
+                deb.rcLines.extend(["q"])
+                try:
+                    deb.run("", code_ns, local_ns)
+                except StopIteration:
+                    # Stop iteration is raised on quit command
+                    pass
 
         except:
             etype, value, tb = sys.exc_info()
