@@ -1285,7 +1285,6 @@ async def test_script_streams_continiously(capsys):
     sleep(step / 2)
     ip.run_cell_magic("script", f"{sys.executable}", code)
     thread.join()
-    # It is hard to get the intermediate output,
 
     captured = capsys.readouterr()
     # If the streaming was line-wise or broken
