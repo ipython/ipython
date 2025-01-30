@@ -1267,19 +1267,19 @@ async def test_script_streams_continiously(capsys):
         """\
     import time
     for _ in range(6):
-        time.sleep(0.2)
+        time.sleep(0.5)
         print(".", flush=True, end="")
     """
     )
 
     def print_numbers():
         for i in range(6):
-            sleep(0.2)
+            sleep(0.5)
             print(i, flush=True, end="")
 
     thread = Thread(target=print_numbers)
     thread.start()
-    sleep(0.1)
+    sleep(0.25)
     ip.run_cell_magic("script", f"{sys.executable}", code)
     thread.join()
     # It is hard to get the intermediate output,
