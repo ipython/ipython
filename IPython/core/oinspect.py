@@ -394,7 +394,6 @@ class Inspector(Colorable):
     def __init__(
         self,
         color_table=InspectColors,
-        code_color_table=PyColorize.ANSICodeColors,
         scheme=None,
         str_detail_level=0,
         parent=None,

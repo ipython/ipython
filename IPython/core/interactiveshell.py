@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Main IPython class."""
 
 #-----------------------------------------------------------------------------
@@ -794,10 +793,10 @@ class InteractiveShell(SingletonConfigurable):
     def init_inspector(self, changes=None):
         # Object inspector
         self.inspector = self.inspector_class(
-            oinspect.InspectColors,
-            PyColorize.ANSICodeColors,
-            self.colors,
-            self.object_info_string_level,
+            color_table=oinspect.InspectColors,
+            scheme=self.colors,
+            str_detail_level=self.object_info_string_level,
+            parent=self,
         )
 
     def init_io(self):
