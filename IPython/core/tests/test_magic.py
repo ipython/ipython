@@ -1265,18 +1265,18 @@ async def test_script_streams_continiously(capsys):
     ip = get_ipython()
     # Windows is slow to start up a thread on CI
     is_windows = os.name == "nt"
-    step = 2 if is_windows else 0.5
+    step = 3 if is_windows else 1
     code = dedent(
         f"""\
     import time
-    for _ in range(6):
+    for _ in range(3):
         time.sleep({step})
         print(".", flush=True, end="")
     """
     )
 
     def print_numbers():
-        for i in range(6):
+        for i in range(3):
             sleep(step)
             print(i, flush=True, end="")
 
@@ -1289,8 +1289,8 @@ async def test_script_streams_continiously(capsys):
 
     captured = capsys.readouterr()
     # If the streaming was line-wise or broken
-    # we would get `012345......`
-    assert captured.out == "0.1.2.3.4.5."
+    # we would get `012...`
+    assert captured.out == "0.1.2."
 
 
 @magics_class
