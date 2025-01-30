@@ -482,19 +482,6 @@ class InteractiveShell(SingletonConfigurable):
              "own input transformations."
     )
 
-    @property
-    def input_splitter(self):
-        """Make this available for backward compatibility (pre-7.0 release) with existing code.
-
-        For example, ipykernel ipykernel currently uses
-        `shell.input_splitter.check_complete`
-        """
-        from warnings import warn
-        warn("`input_splitter` is deprecated since IPython 7.0, prefer `input_transformer_manager`.",
-             DeprecationWarning, stacklevel=2
-        )
-        return self.input_transformer_manager
-
     logstart = Bool(False, help=
         """
         Start logging to the default log file in overwrite mode.
@@ -898,7 +885,7 @@ class InteractiveShell(SingletonConfigurable):
             return
 
         p = Path(sys.executable)
-        p_venv = Path(os.environ["VIRTUAL_ENV"])
+        p_venv = Path(os.environ["VIRTUAL_ENV"]).resolve()
 
         # fallback venv detection:
         # stdlib venv may symlink sys.executable, so we can't use realpath.
@@ -911,7 +898,7 @@ class InteractiveShell(SingletonConfigurable):
             drive_name = p_venv.parts[2]
             p_venv = (drive_name + ":/") / Path(*p_venv.parts[3:])
 
-        if any(p_venv == p.parents[1] for p in paths):
+        if any(p_venv == p.parents[1].resolve() for p in paths):
             # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
 
@@ -1035,14 +1022,6 @@ class InteractiveShell(SingletonConfigurable):
             print("Warning! Hook '%s' is not one of %s" % \
                   (name, IPython.core.hooks.__all__ ))
 
-        if name in IPython.core.hooks.deprecated:
-            alternative = IPython.core.hooks.deprecated[name]
-            raise ValueError(
-                "Hook {} has been deprecated since IPython 5.0. Use {} instead.".format(
-                    name, alternative
-                )
-            )
-
         if not dp:
             dp = IPython.core.hooks.CommandChainDispatcher()
 
@@ -1062,16 +1041,6 @@ class InteractiveShell(SingletonConfigurable):
         self.events = EventManager(self, available_events)
 
         self.events.register("pre_execute", self._clear_warning_registry)
-
-    def register_post_execute(self, func):
-        """DEPRECATED: Use ip.events.register('post_run_cell', func)
-
-        Register a function for calling after code execution.
-        """
-        raise ValueError(
-            "ip.register_post_execute is deprecated since IPython 1.0, use "
-            "ip.events.register('post_run_cell', func) instead."
-        )
 
     def _clear_warning_registry(self):
         # clear the warning registry, so that different code blocks with
@@ -2091,6 +2060,8 @@ class InteractiveShell(SingletonConfigurable):
         sys.last_type = etype
         sys.last_value = value
         sys.last_traceback = tb
+        if sys.version_info >= (3, 12):
+            sys.last_exc = value
 
         return etype, value, tb
 
@@ -2244,10 +2215,6 @@ class InteractiveShell(SingletonConfigurable):
             In [2]: Hello Word_  # cursor is here
         """
         self.rl_next_input = s
-
-    def _indent_current_str(self):
-        """return the current level of indentation as a string"""
-        return self.input_splitter.get_indent_spaces() * ' '
 
     #-------------------------------------------------------------------------
     # Things related to text completion
@@ -3686,7 +3653,7 @@ class InteractiveShell(SingletonConfigurable):
 
         return gui, backend
 
-    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
+    def enable_pylab(self, gui=None, import_all=True):
         """Activate pylab support at runtime.
 
         This turns on support for matplotlib, preloads into the interactive
@@ -3709,8 +3676,6 @@ class InteractiveShell(SingletonConfigurable):
         import_all : optional, bool, default: True
             Whether to do `from numpy import *` and `from pylab import *`
             in addition to module imports.
-        welcome_message : deprecated
-            This argument is ignored, no welcome message will be displayed.
         """
         from IPython.core.pylabtools import import_pylab
 

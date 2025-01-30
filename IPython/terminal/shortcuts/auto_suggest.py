@@ -60,21 +60,25 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
     state need to carefully be cleared on the right events.
     """
 
+    skip_lines: int
+    _connected_apps: list[PromptSession]
+
     def __init__(
         self,
     ):
+        super().__init__()
         self.skip_lines = 0
         self._connected_apps = []
 
-    def reset_history_position(self, _: Buffer):
+    def reset_history_position(self, _: Buffer) -> None:
         self.skip_lines = 0
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         for pt_app in self._connected_apps:
             text_insert_event = pt_app.default_buffer.on_text_insert
             text_insert_event.remove_handler(self.reset_history_position)
 
-    def connect(self, pt_app: PromptSession):
+    def connect(self, pt_app: PromptSession) -> None:
         self._connected_apps.append(pt_app)
         # note: `on_text_changed` could be used for a bit different behaviour
         # on character deletion (i.e. resetting history position on backspace)
@@ -94,7 +98,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
         return None
 
-    def _dismiss(self, buffer, *args, **kwargs):
+    def _dismiss(self, buffer, *args, **kwargs) -> None:
         buffer.suggestion = None
 
     def _find_match(
@@ -193,15 +197,6 @@ def accept_or_jump_to_end(event: KeyPressEvent):
         buffer.insert_text(suggestion.text)
     else:
         nc.end_of_line(event)
-
-
-def _deprected_accept_in_vi_insert_mode(event: KeyPressEvent):
-    """Accept autosuggestion or jump to end of line.
-
-    .. deprecated:: 8.12
-        Use `accept_or_jump_to_end` instead.
-    """
-    return accept_or_jump_to_end(event)
 
 
 def accept(event: KeyPressEvent):
@@ -386,16 +381,3 @@ def swap_autosuggestion_down(event: KeyPressEvent):
         provider=provider,
         direction_method=provider.down,
     )
-
-
-def __getattr__(key):
-    if key == "accept_in_vi_insert_mode":
-        warnings.warn(
-            "`accept_in_vi_insert_mode` is deprecated since IPython 8.12 and "
-            "renamed to `accept_or_jump_to_end`. Please update your configuration "
-            "accordingly",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return _deprected_accept_in_vi_insert_mode
-    raise AttributeError

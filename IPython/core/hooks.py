@@ -48,14 +48,8 @@ __all__ = [
     "editor",
     "synchronize_with_editor",
     "show_in_pager",
-    "pre_prompt_hook",
     "clipboard_get",
 ]
-
-deprecated = {'pre_run_code_hook': "a callback for the 'pre_execute' or 'pre_run_cell' event",
-              'late_startup_hook': "a callback for the 'shell_initialized' event",
-              'shutdown_hook': "the atexit module",
-             }
 
 def editor(self, filename, linenum=None, wait=True):
     """Open the default editor at the given filename and linenumber.
@@ -140,15 +134,6 @@ def show_in_pager(self, data, start, screen_lines):
     # raising TryNext here will use the default paging functionality
     raise TryNext
 
-
-def pre_prompt_hook(self):
-    """ Run before displaying the next prompt
-
-    Use this e.g. to display output from asynchronous operations (in order
-    to not mess up text entry)
-    """
-
-    return None
 
 
 def clipboard_get(self):

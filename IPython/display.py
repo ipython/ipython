@@ -1,5 +1,4 @@
-"""Public API for display tools in IPython.
-"""
+"""Public API for display tools in IPython."""
 
 # -----------------------------------------------------------------------------
 #       Copyright (C) 2012 The IPython Development Team
@@ -37,8 +36,6 @@ from IPython.core.display import (
     GeoJSON as GeoJSON,
     Javascript as Javascript,
     Image as Image,
-    set_matplotlib_formats as set_matplotlib_formats,
-    set_matplotlib_close as set_matplotlib_close,
     Video as Video,
 )
 from IPython.lib.display import *

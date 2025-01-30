@@ -230,7 +230,14 @@ def _format_traceback_lines(lines, Colors, has_colors: bool, lvals):
             res.append(lvals + '\n')
     return res
 
-def _simple_format_traceback_lines(lnum, index, lines, Colors, lvals, _line_format):
+
+def _simple_format_traceback_lines(
+    lnum: int,
+    index: int,
+    lines: list[str, tuple[str, bool]],
+    Colors,
+    lvals: str,
+) -> list[str]:
     """
     Format tracebacks lines with pointing arrow, leading numbers...
 
@@ -246,16 +253,11 @@ def _simple_format_traceback_lines(lnum, index, lines, Colors, lvals, _line_form
         ColorScheme used.
     lvals: bytes
         Values of local variables, already colored, to inject just after the error line.
-    _line_format: f (str) -> (str, bool)
-        return (colorized version of str, failure to do so)
     """
     numbers_width = INDENT_SIZE - 1
     res = []
-    for i, line in enumerate(lines, lnum - index):
-        # assert isinstance(line, str)
-        line = py3compat.cast_unicode(line)
+    for i, (line, (new_line, err)) in enumerate(lines, lnum - index):
 
-        new_line, err = _line_format(line, "str")
         if not err:
             line = new_line
 
@@ -972,18 +974,20 @@ class VerboseTB(TBTools):
                 stop = index + frame_info.context
             raw_lines = raw_lines[start:stop]
 
+            # Jan 2025: may need _line_format(py3ompat.cast_unicode(s))
+            raw_color_err = [(s, _line_format(s, "str")) for s in raw_lines]
+
+            _tb_lines: list[str] = _simple_format_traceback_lines(
+                current_line,
+                index,
+                raw_color_err,
+                Colors,
+                lvals,
+            )
+
             return "%s%s" % (
                 level,
-                "".join(
-                    _simple_format_traceback_lines(
-                        current_line,
-                        index,
-                        raw_lines,
-                        Colors,
-                        lvals,
-                        _line_format,
-                    )
-                ),
+                "".join(_tb_lines),
             )
             # result += "\n".join(frame_info.raw_lines)
         else:
@@ -1215,7 +1219,7 @@ class VerboseTB(TBTools):
                                                                      chained_exceptions_tb_offset)
             exception = self.get_parts_of_chained_exception(evalue)
 
-            if exception and not id(exception[1]) in chained_exc_ids:
+            if exception and id(exception[1]) not in chained_exc_ids:
                 chained_exc_ids.add(id(exception[1])) # trace exception to avoid infinite 'cause' loop
                 formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
                 etype, evalue, etb = exception

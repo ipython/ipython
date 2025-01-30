@@ -61,76 +61,52 @@ Colors = TermColors  # just a shorthand
 
 # Build a few color schemes
 NoColor = ColorScheme(
-    'NoColor',{
-    'header'         : Colors.NoColor,
-    token.NUMBER     : Colors.NoColor,
-    token.OP         : Colors.NoColor,
-    token.STRING     : Colors.NoColor,
-    tokenize.COMMENT : Colors.NoColor,
-    token.NAME       : Colors.NoColor,
-    token.ERRORTOKEN : Colors.NoColor,
-
-    _KEYWORD         : Colors.NoColor,
-    _TEXT            : Colors.NoColor,
-
-    'in_prompt'      : InputTermColors.NoColor,  # Input prompt
-    'in_number'      : InputTermColors.NoColor,  # Input prompt number
-    'in_prompt2'     : InputTermColors.NoColor, # Continuation prompt
-    'in_normal'      : InputTermColors.NoColor,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.NoColor, # Output prompt
-    'out_number'     : Colors.NoColor, # Output prompt number
-
-    'normal'         : Colors.NoColor  # color off (usu. Colors.Normal)
-    }  )
+    "NoColor",
+    {
+        "header": Colors.NoColor,
+        token.NUMBER: Colors.NoColor,
+        token.OP: Colors.NoColor,
+        token.STRING: Colors.NoColor,
+        token.COMMENT: Colors.NoColor,
+        token.NAME: Colors.NoColor,
+        token.ERRORTOKEN: Colors.NoColor,
+        _KEYWORD: Colors.NoColor,
+        _TEXT: Colors.NoColor,
+        "normal": Colors.NoColor,  # color off (usu. Colors.Normal)
+    },
+)
 
 LinuxColors = ColorScheme(
-    'Linux',{
-    'header'         : Colors.LightRed,
-    token.NUMBER     : Colors.LightCyan,
-    token.OP         : Colors.Yellow,
-    token.STRING     : Colors.LightBlue,
-    tokenize.COMMENT : Colors.LightRed,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
-
-    _KEYWORD         : Colors.LightGreen,
-    _TEXT            : Colors.Yellow,
-
-    'in_prompt'      : InputTermColors.Green,
-    'in_number'      : InputTermColors.LightGreen,
-    'in_prompt2'     : InputTermColors.Green,
-    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.Red,
-    'out_number'     : Colors.LightRed,
-
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    } )
+    "Linux",
+    {
+        "header": Colors.LightRed,
+        token.NUMBER: Colors.LightCyan,
+        token.OP: Colors.Yellow,
+        token.STRING: Colors.LightBlue,
+        token.COMMENT: Colors.LightRed,
+        token.NAME: Colors.Normal,
+        token.ERRORTOKEN: Colors.Red,
+        _KEYWORD: Colors.LightGreen,
+        _TEXT: Colors.Yellow,
+        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
+    },
+)
 
 NeutralColors = ColorScheme(
-    'Neutral',{
-    'header'         : Colors.Red,
-    token.NUMBER     : Colors.Cyan,
-    token.OP         : Colors.Blue,
-    token.STRING     : Colors.Blue,
-    tokenize.COMMENT : Colors.Red,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
-
-    _KEYWORD         : Colors.Green,
-    _TEXT            : Colors.Blue,
-
-    'in_prompt'      : InputTermColors.Blue,
-    'in_number'      : InputTermColors.LightBlue,
-    'in_prompt2'     : InputTermColors.Blue,
-    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.Red,
-    'out_number'     : Colors.LightRed,
-
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    }  )
+    "Neutral",
+    {
+        "header": Colors.Red,
+        token.NUMBER: Colors.Cyan,
+        token.OP: Colors.Blue,
+        token.STRING: Colors.Blue,
+        token.COMMENT: Colors.Red,
+        token.NAME: Colors.Normal,
+        token.ERRORTOKEN: Colors.Red,
+        _KEYWORD: Colors.Green,
+        _TEXT: Colors.Blue,
+        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
+    },
+)
 
 # Hack: the 'neutral' colours are not very visible on a dark background on
 # Windows. Since Windows command prompts have a dark background by default, and
@@ -143,35 +119,24 @@ if os.name == 'nt':
     NeutralColors = LinuxColors.copy(name='Neutral')
 
 LightBGColors = ColorScheme(
-    'LightBG',{
-    'header'         : Colors.Red,
-    token.NUMBER     : Colors.Cyan,
-    token.OP         : Colors.Blue,
-    token.STRING     : Colors.Blue,
-    tokenize.COMMENT : Colors.Red,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
-
-
-    _KEYWORD         : Colors.Green,
-    _TEXT            : Colors.Blue,
-
-    'in_prompt'      : InputTermColors.Blue,
-    'in_number'      : InputTermColors.LightBlue,
-    'in_prompt2'     : InputTermColors.Blue,
-    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.Red,
-    'out_number'     : Colors.LightRed,
-
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    }  )
+    "LightBG",
+    {
+        "header": Colors.Red,
+        token.NUMBER: Colors.Cyan,
+        token.OP: Colors.Blue,
+        token.STRING: Colors.Blue,
+        token.COMMENT: Colors.Red,
+        token.NAME: Colors.Normal,
+        token.ERRORTOKEN: Colors.Red,
+        _KEYWORD: Colors.Green,
+        _TEXT: Colors.Blue,
+        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
+    },
+)
 
 # Build table of color schemes (needed by the parser)
 ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors, NeutralColors],
                                   _scheme_default)
-
-Undefined = object()
 
 class Parser(Colorable):
     """ Format colored Python source.
@@ -196,19 +161,13 @@ class Parser(Colorable):
             self.style = style
 
 
-    def format(self, raw, out=None, scheme=Undefined):
-        import warnings
-        if scheme is not Undefined:
-            warnings.warn('The `scheme` argument of IPython.utils.PyColorize:Parser.format is deprecated since IPython 6.0.'
-                          'It will have no effect. Set the parser `style` directly.',
-                          stacklevel=2)
+    def format(self, raw, out=None):
         return self.format2(raw, out)[0]
 
-    def format2(self, raw, out = None):
-        """ Parse and send the colored source.
+    def format2(self, raw, out=None):
+        """Parse and send the colored source.
 
-        If out and scheme are not specified, the defaults (given to
-        constructor) are used.
+        If out is not specified, the defaults (given to constructor) are used.
 
         out should be a file-type object. Optionally, out can be given as the
         string 'str' and the parser will automatically return the output in a

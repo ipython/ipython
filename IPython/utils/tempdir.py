@@ -1,4 +1,4 @@
-""" This module contains classes - NamedFileInTemporaryDirectory, TemporaryWorkingDirectory.
+"""This module contains classes - NamedFileInTemporaryDirectory, TemporaryWorkingDirectory.
 
 These classes add extra features such as creating a named file in temporary directory and
 creating a context manager for the working directory which is also temporary.

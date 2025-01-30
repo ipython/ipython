@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Top-level display functions for displaying object in different formats."""
 
 # Copyright (c) IPython Development Team.
@@ -47,35 +46,8 @@ __all__ = [
     "GeoJSON",
     "Javascript",
     "Image",
-    "set_matplotlib_formats",
-    "set_matplotlib_close",
     "Video",
 ]
-
-_deprecated_names = ["display", "clear_output", "publish_display_data", "update_display", "DisplayHandle"]
-
-__all__ = __all__ + _deprecated_names
-
-
-# ----- warn to import from IPython.display -----
-
-from warnings import warn
-
-
-def __getattr__(name):
-    if name in _deprecated_names:
-        warn(
-            f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython.display",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return getattr(display_functions, name)
-
-    if name in globals().keys():
-        return globals()[name]
-    else:
-        raise AttributeError(f"module {__name__} has no attribute {name}")
-
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -1292,82 +1264,3 @@ class Video(DisplayObject):
     def reload(self):
         # TODO
         pass
-
-
-@skip_doctest
-def set_matplotlib_formats(*formats, **kwargs):
-    """
-    .. deprecated:: 7.23
-
-       use `matplotlib_inline.backend_inline.set_matplotlib_formats()`
-
-    Select figure formats for the inline backend. Optionally pass quality for JPEG.
-
-    For example, this enables PNG and JPEG output with a JPEG quality of 90%::
-
-        In [1]: set_matplotlib_formats('png', 'jpeg', quality=90)
-
-    To set this in your config files use the following::
-
-        c.InlineBackend.figure_formats = {'png', 'jpeg'}
-        c.InlineBackend.print_figure_kwargs.update({'quality' : 90})
-
-    Parameters
-    ----------
-    *formats : strs
-        One or more figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
-    **kwargs
-        Keyword args will be relayed to ``figure.canvas.print_figure``.
-    """
-    warnings.warn(
-        "`set_matplotlib_formats` is deprecated since IPython 7.23, directly "
-        "use `matplotlib_inline.backend_inline.set_matplotlib_formats()`",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    from matplotlib_inline.backend_inline import (
-        set_matplotlib_formats as set_matplotlib_formats_orig,
-    )
-
-    set_matplotlib_formats_orig(*formats, **kwargs)
-
-@skip_doctest
-def set_matplotlib_close(close=True):
-    """
-    .. deprecated:: 7.23
-
-        use `matplotlib_inline.backend_inline.set_matplotlib_close()`
-
-    Set whether the inline backend closes all figures automatically or not.
-
-    By default, the inline backend used in the IPython Notebook will close all
-    matplotlib figures automatically after each cell is run. This means that
-    plots in different cells won't interfere. Sometimes, you may want to make
-    a plot in one cell and then refine it in later cells. This can be accomplished
-    by::
-
-        In [1]: set_matplotlib_close(False)
-
-    To set this in your config files use the following::
-
-        c.InlineBackend.close_figures = False
-
-    Parameters
-    ----------
-    close : bool
-        Should all matplotlib figures be automatically closed after each cell is
-        run?
-    """
-    warnings.warn(
-        "`set_matplotlib_close` is deprecated since IPython 7.23, directly "
-        "use `matplotlib_inline.backend_inline.set_matplotlib_close()`",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    from matplotlib_inline.backend_inline import (
-        set_matplotlib_close as set_matplotlib_close_orig,
-    )
-
-    set_matplotlib_close_orig(close)

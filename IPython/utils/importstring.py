@@ -23,8 +23,8 @@ def import_item(name):
     mod : module object
         The module that was imported.
     """
-    
-    parts = name.rsplit('.', 1)
+
+    parts = name.rsplit(".", 1)
     if len(parts) == 2:
         # called with 'foo.bar....'
         package, obj = parts
@@ -32,7 +32,7 @@ def import_item(name):
         try:
             pak = getattr(module, obj)
         except AttributeError as e:
-            raise ImportError('No module named %s' % obj) from e
+            raise ImportError("No module named %s" % obj) from e
         return pak
     else:
         # called with un-dotted string

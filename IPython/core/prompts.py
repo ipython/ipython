@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Being removed
-"""
+"""Being removed"""
 
 
 class LazyEvaluate(object):

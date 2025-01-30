@@ -1,6 +1,5 @@
 # encoding: utf-8
-"""Miscellaneous context managers.
-"""
+"""Miscellaneous context managers."""
 
 import warnings
 

@@ -13,6 +13,7 @@ notes.
 
 from pathlib import Path
 
+
 def main():
     folder = Path("docs/source/whatsnew/pr/")
     files = list(folder.glob("*.rst"))
@@ -24,7 +25,7 @@ def main():
 
         data = filepath.read_text(encoding="utf-8")
         try:
-            if data and data.splitlines()[1].startswith('='):
+            if data and data.splitlines()[1].startswith("="):
                 continue
         except IndexError:
             pass
@@ -34,6 +35,6 @@ def main():
             f.write("=" * len(title) + "\n\n")
             f.write(data)
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == "__main__":
+    main()

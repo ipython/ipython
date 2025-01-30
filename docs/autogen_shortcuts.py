@@ -107,8 +107,8 @@ def sentencize(s) -> str:
 
 
 class _DummyTerminal:
-    """Used as a buffer to get prompt_toolkit bindings
-    """
+    """Used as a buffer to get prompt_toolkit bindings"""
+
     handle_return = None
     input_transformer_manager = None
     display_completions = None
@@ -180,7 +180,7 @@ def format_prompt_keys(keys: str, add_alternatives=True) -> str:
     return result
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     here = Path(__file__).parent
     dest = here / "source" / "config" / "shortcuts"
 

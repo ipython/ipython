@@ -8,7 +8,7 @@ This file is only meant to be imported by process.py, not by end-users.
 
 This file is largely untested. To become a full drop-in process
 interface for IronPython will probably require you to help fill
-in the details. 
+in the details.
 """
 
 # Import cli libraries:

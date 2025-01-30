@@ -8,9 +8,9 @@ permissions:
 
 on:
   push:
-    branches: [ main, 7.x ]
+    branches: [ main, 7.x, 8.x ]
   pull_request:
-    branches: [ main, 7.x ]
+    branches: [ main, 7.x, 8.x ]
 
 jobs:
   formatting:

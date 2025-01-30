@@ -38,10 +38,12 @@ way we don't block the UI of for instance ``turtle`` and other Tk libraries.
 in readline. ``prompt-toolkit`` doesn't understand that input hook, but this
 will fix it for Tk.)
 """
+
 import time
 
 import _tkinter
 import tkinter
+
 
 def inputhook(inputhook_context):
     """
@@ -59,6 +61,7 @@ def inputhook(inputhook_context):
         # Add a handler that sets the stop flag when `prompt-toolkit` has input
         # to process.
         stop = [False]
+
         def done(*a):
             stop[0] = True
 
@@ -78,13 +81,13 @@ def inputhook(inputhook_context):
         """
         while not inputhook_context.input_is_ready():
             while root.dooneevent(_tkinter.ALL_EVENTS | _tkinter.DONT_WAIT):
-                 pass
+                pass
             # Sleep to make the CPU idle, but not too long, so that the UI
             # stays responsive.
-            time.sleep(.01)
+            time.sleep(0.01)
 
     if root is not None:
-        if hasattr(root, 'createfilehandler'):
+        if hasattr(root, "createfilehandler"):
             wait_using_filehandler()
         else:
             wait_using_polling()

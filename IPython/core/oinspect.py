@@ -79,13 +79,14 @@ class OInfo:
         """
         # We need to deprecate this at some point, but the warning will show in completion.
         # Let's comment this for now and uncomment end of 2023 ish
-        #        warnings.warn(
-        #            f"OInfo dataclass with fields access since IPython 8.12 please use OInfo.{field} instead."
-        #            "OInfo used to be a dict but a dataclass provide static fields verification with mypy."
-        #            "This warning and backward compatibility `get()` method were added in 8.13.",
-        #            DeprecationWarning,
-        #            stacklevel=2,
-        #        )
+        # Jan 2025: decomenting for IPython 9.0
+        warnings.warn(
+            f"OInfo dataclass with fields access since IPython 8.12 please use OInfo.{field} instead."
+            "OInfo used to be a dict but a dataclass provide static fields verification with mypy."
+            "This warning and backward compatibility `get()` method were added in 8.13.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return getattr(self, field)
 
 
@@ -830,21 +831,6 @@ class Inspector(Colorable):
         if not enable_html_pager:
             del info_b["text/html"]
         page.page(info_b)
-
-    def _info(self, obj, oname="", info=None, detail_level=0):
-        """
-        Inspector.info() was likely improperly marked as deprecated
-        while only a parameter was deprecated. We "un-deprecate" it.
-        """
-
-        warnings.warn(
-            "The `Inspector.info()` method has been un-deprecated as of 8.0 "
-            "and the `formatter=` keyword removed. `Inspector._info` is now "
-            "an alias, and you can just call `.info()` directly.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.info(obj, oname=oname, info=info, detail_level=detail_level)
 
     def info(self, obj, oname="", info=None, detail_level=0) -> InfoDict:
         """Compute a dict with detailed information about an object.

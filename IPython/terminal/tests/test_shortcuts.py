@@ -23,13 +23,6 @@ from prompt_toolkit.enums import DEFAULT_BUFFER
 from unittest.mock import patch, Mock
 
 
-def test_deprected():
-    import IPython.terminal.shortcuts.auto_suggest as iptsa
-
-    with pytest.warns(DeprecationWarning, match=r"8\.12.+accept_or_jump_to_end"):
-        iptsa.accept_in_vi_insert_mode
-
-
 def make_event(text, cursor, suggestion):
     event = Mock()
     event.current_buffer = Mock()

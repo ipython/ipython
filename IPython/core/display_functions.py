@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Top-level display functions for displaying object in different formats."""
 
 # Copyright (c) IPython Development Team.
@@ -34,17 +33,8 @@ def _merge(d1, d2):
 # Main functions
 #-----------------------------------------------------------------------------
 
-class _Sentinel:
-    def __repr__(self):
-        return "<deprecated>"
-
-
-_sentinel = _Sentinel()
-
 # use * to indicate transient is keyword-only
-def publish_display_data(
-    data, metadata=None, source=_sentinel, *, transient=None, **kwargs
-):
+def publish_display_data(data, metadata=None, *, transient=None, **kwargs):
     """Publish data and metadata to all frontends.
 
     See the ``display_data`` message in the messaging documentation for
@@ -67,21 +57,11 @@ def publish_display_data(
         arbitrary key, value pairs that frontends can use to interpret
         the data. mime-type keys matching those in data can be used
         to specify metadata about particular representations.
-    source : str, deprecated
-        Unused.
     transient : dict, keyword-only
         A dictionary of transient data, such as display_id.
     """
     from IPython.core.interactiveshell import InteractiveShell
 
-    if source is not _sentinel:
-        warnings.warn(
-            "The `source` parameter emit a  deprecation warning since"
-            " IPython 8.0, it had no effects for a long time and will "
-            " be removed in future versions.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
     display_pub = InteractiveShell.instance().display_pub
 
     # only pass transient if supplied,

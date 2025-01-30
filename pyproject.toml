@@ -24,6 +24,7 @@ requires-python = ">=3.11"
 dependencies = [
     'colorama; sys_platform == "win32"',
     "decorator",
+    "ipython-pygments-lexers",
     "jedi>=0.16",
     "matplotlib-inline",
     'pexpect>4.3; sys_platform != "win32" and sys_platform != "emscripten"',
@@ -34,11 +35,6 @@ dependencies = [
     "typing_extensions>=4.6; python_version<'3.12'",
 ]
 dynamic = ["authors", "license", "version"]
-
-[project.entry-points."pygments.lexers"]
-ipythonconsole = "IPython.lib.lexers:IPythonConsoleLexer"
-ipython = "IPython.lib.lexers:IPythonLexer"
-ipython3 = "IPython.lib.lexers:IPython3Lexer"
 
 [project.scripts]
 ipython = "IPython:start_ipython"
@@ -116,7 +112,7 @@ all = [
 ]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 ignore_missing_imports = true
 follow_imports = 'silent'
 exclude = [
@@ -200,7 +196,6 @@ module = [
     "IPython.core.guarded_eval",
     "IPython.core.historyapp",
     "IPython.core.hooks",
-    "IPython.core.inputtransformer",
     "IPython.core.inputtransformer2",
     "IPython.core.interactiveshell",
     "IPython.core.logger",
@@ -414,24 +409,22 @@ ignore = [
     #  "SIM105",   # SIM105 Use `contextlib.suppress(...)`
     #  "PLR",      # Design related pylint codes
     #  "S101",     # Use of `assert` detected
-    "E712", #   1
-    "E713", #   1
-    "E902", #   2
-    "E702", #   3
-    "E721", #   3
-    "E401", #   5
+    "E713", #   1      Test for membership should be `not in`
+    "F601", #   3      Dictionary key literal `True` repeated (`True` hashes to the same value as `1`)
+    "E702", #   3      Multiple statements on one line (semicolon)
+    "E721", #   3      Use `is` and `is not` for type comparisons, or `isinstance()` for isinstance checks
+    "E401", #   5      Multiple imports on one line
     "E711", #  14      Comparison to `None` should be `cond is None`
     "E701", #  19      Multiple statements on one line (colon)
     "E741", #  25      Ambiguous variable name: `<one letter>`
     "E731", #  27      Do not assign a `lambda` expression, use a `def`
     "E402", #  28      Module level import not at top of file
     "E722", #  75      Do not use bare `except`
-    "F523", #   1
-    "F811", #   3
-    "F403", #   7
-    "F841", #  38       Local variable `...` is assigned to but never used
-    "F401", #  69       imported but unused
-    "F821", # 624  F821 Undefined name
+    "F523", #   1      ; at end of line
+    "F403", #   7      import *` used; unable to detect undefined names
+    "F841", #  38      Local variable `...` is assigned to but never used
+    "F401", #  69      imported but unused
+    "F821", # 624      Undefined name
 ]
 unfixable = [
     # Don't touch print statements

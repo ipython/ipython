@@ -342,7 +342,7 @@ class BaseIPythonApplication(Application):
         try:
             if suppress_errors is not None:
                 old_value = Application.raise_config_file_errors
-                Application.raise_config_file_errors = not suppress_errors;
+                Application.raise_config_file_errors = not suppress_errors
             Application.load_config_file(
                 self,
                 base_config,

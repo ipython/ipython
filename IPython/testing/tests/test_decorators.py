@@ -39,8 +39,7 @@ def getargspec(obj):
 #-----------------------------------------------------------------------------
 # Testing functions
 
-@dec.as_unittest
-def trivial():
+def test_trivial():
     """A trivial test"""
     pass
 
