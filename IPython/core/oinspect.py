@@ -106,8 +106,6 @@ _builtin_meth_type = type(str.upper)  # Bound methods have the same type as buil
 #****************************************************************************
 # Builtin color schemes
 
-Colors = TermColors  # just a shorthand
-
 InspectColors = PyColorize.ANSICodeColors
 
 #****************************************************************************
@@ -256,7 +254,6 @@ def getsource(obj, oname='') -> Union[str,None]:
         for attrname in ['fget', 'fset', 'fdel']:
             fn = getattr(obj, attrname)
             if fn is not None:
-                encoding = get_encoding(fn)
                 oname_prefix = ('%s.' % oname) if oname else ''
                 sources.append(''.join(('# ', oname_prefix, attrname)))
                 if inspect.isfunction(fn):
