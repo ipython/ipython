@@ -1263,23 +1263,26 @@ def test_script_defaults():
 
 async def test_script_streams_continiously(capsys):
     ip = get_ipython()
+    # Windows is slow to start up a thread on CI
+    is_windows = os.name == "nt"
+    step = 2 if is_windows else 0.5
     code = dedent(
-        """\
+        f"""\
     import time
     for _ in range(6):
-        time.sleep(0.5)
+        time.sleep({step})
         print(".", flush=True, end="")
     """
     )
 
     def print_numbers():
         for i in range(6):
-            sleep(0.5)
+            sleep(step)
             print(i, flush=True, end="")
 
     thread = Thread(target=print_numbers)
     thread.start()
-    sleep(0.25)
+    sleep(step / 2)
     ip.run_cell_magic("script", f"{sys.executable}", code)
     thread.join()
     # It is hard to get the intermediate output,
