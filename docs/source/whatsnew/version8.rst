@@ -1,6 +1,55 @@
 ============
  8.x Series
 ============
+
+.. _version 8.32:
+
+IPython 8.32
+============
+
+Medium release of IPython for this end of January and this new year 2025.
+This is now a different branch than the main branch, and will only accumulate
+bugfixes and small improvements and requested backports, while 9.0 forges ahead.
+
+
+We'll not 4 bugfixes and an and unstable preview feature.
+
+- :ghpull:`14640` Fixes an error were a warning about virtualenvs was incrrectly triggered.
+- :ghpull:`14684` Fixes an issue on Python  3.12+ with post mortem debugging.
+- :ghpull:`14693` Fixes a bug where magics were ignoreing SIGINT
+- :ghpull:`14695` Fixes and issue where magics woudl not display all subprocess output.
+
+
+As a preview feature, look into the ``examples`` folder on how to configure
+autosuggestion using a large language model. This is not yet ready for
+production use, have only partial documentation and can change without warnings,
+but should allow you to hook in a Jupyter-ai LLM provider to suggest code in the
+CLI (currently only via a keyboard shortcut). See :ghpull:`14623` for more details
+until further documentation is available in 9.0. 
+
+
+As usual you can find the full list of PRs on GitHub under `the 8.32
+<https://github.com/ipython/ipython/milestone/140?closed=1>`__ milestone.
+
+For something completely different
+----------------------------------
+
+Dora Rudolfine Richter 1892–1966 was a German trans woman and the first known
+person to undergo complete male-to-female gender-affirming surgery. After
+fleeing Nazi Germany, she lived in  Czechoslovakia where shw obtained her full
+legal name change in April 1934. She moved back to germany in 1946 with the
+expulsion of Germans from Czechoslovakia where she lived until her death at the
+age of 74 on 26 April 1966
+
+Thanks
+------
+
+Thanks to everyone who helped for the 8.32 release and working toward 9.0.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
+work on IPython and related libraries, in particular the work arround LLM
+integration.
+
 .. _version 8.31:
 
 IPython 8.31
