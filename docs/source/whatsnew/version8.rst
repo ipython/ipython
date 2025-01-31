@@ -34,7 +34,7 @@ As usual you can find the full list of PRs on GitHub under `the 8.32
 For something completely different
 ----------------------------------
 
-Dora Rudolfine Richter 1892–1966 was a German trans woman and the first known
+`Dora Rudolfine Richter <https://en.wikipedia.org/wiki/Dora_Richter>`__ 1892–1966 was a German trans woman and the first known
 person to undergo complete male-to-female gender-affirming surgery. After
 fleeing Nazi Germany, she lived in  Czechoslovakia where shw obtained her full
 legal name change in April 1934. She moved back to germany in 1946 with the
