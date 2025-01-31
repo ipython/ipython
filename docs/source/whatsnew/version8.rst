@@ -14,10 +14,11 @@ bugfixes and small improvements and requested backports, while 9.0 forges ahead.
 
 We'll not 4 bugfixes and an and unstable preview feature.
 
-- :ghpull:`14640` Fixes an error were a warning about virtualenvs was incrrectly triggered.
+- :ghpull:`14640` Fixes an error were a warning about virtualenvs was incorrectly triggered.
+
 - :ghpull:`14684` Fixes an issue on Python  3.12+ with post mortem debugging.
-- :ghpull:`14693` Fixes a bug where magics were ignoreing SIGINT
-- :ghpull:`14695` Fixes and issue where magics woudl not display all subprocess output.
+- :ghpull:`14693` Fixes a bug where magics were ignoring SIGINT
+- :ghpull:`14695` Fixes and issue where magics would not display all subprocess output.
 
 
 As a preview feature, look into the ``examples`` folder on how to configure
@@ -34,12 +35,12 @@ As usual you can find the full list of PRs on GitHub under `the 8.32
 For something completely different
 ----------------------------------
 
-`Dora Rudolfine Richter <https://en.wikipedia.org/wiki/Dora_Richter>`__ 1892–1966 was a German trans woman and the first known
-person to undergo complete male-to-female gender-affirming surgery. After
-fleeing Nazi Germany, she lived in  Czechoslovakia where shw obtained her full
-legal name change in April 1934. She moved back to germany in 1946 with the
-expulsion of Germans from Czechoslovakia where she lived until her death at the
-age of 74 on 26 April 1966
+`Dora Rudolfine Richter <https://en.wikipedia.org/wiki/Dora_Richter>`__
+1892–1966 was a German trans woman and the first known person to undergo
+complete male-to-female gender-affirming surgery. After fleeing Nazi Germany,
+she lived in Czechoslovakia where she obtained her full legal name change in
+April 1934. She moved back to Germany in 1946 with the expulsion of Germans from
+Czechoslovakia where she lived until her death at the age of 74 in April 1966.
 
 Thanks
 ------
@@ -47,7 +48,7 @@ Thanks
 Thanks to everyone who helped for the 8.32 release and working toward 9.0.
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
-work on IPython and related libraries, in particular the work arround LLM
+work on IPython and related libraries, in particular the work around LLM
 integration.
 
 .. _version 8.31:
@@ -55,7 +56,7 @@ integration.
 IPython 8.31
 ============
 
-Small release for this end of december; This release contains only two notable changes:
+Small release for this end of December; This release contains only two notable changes:
 
   - :ghpull:`14594` Fix completion in tuples, where the completion was
     suggesting tuples methods instead of methods and attributes of the current
