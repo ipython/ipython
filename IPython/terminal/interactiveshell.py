@@ -26,7 +26,10 @@ from traitlets import (
     Any,
     validate,
     Float,
+    DottedObjectName,
 )
+from traitlets.utils.importstring import import_item
+
 
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -214,7 +217,9 @@ class TerminalInteractiveShell(InteractiveShell):
 
     pt_app: UnionType[PromptSession, None] = None
     auto_suggest: UnionType[
-        AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None
+        AutoSuggestFromHistory,
+        NavigableAutoSuggestFromHistory,
+        None,
     ] = None
     debugger_history = None
 
@@ -421,6 +426,37 @@ class TerminalInteractiveShell(InteractiveShell):
         allow_none=True,
     ).tag(config=True)
 
+    llm_provider_class = DottedObjectName(
+        None,
+        allow_none=True,
+        help="""\
+        Provisional:
+            This is a provisinal API in IPython 8.32, before stabilisation
+            in 9.0, it may change without warnings.
+
+        class to use for the `NavigableAutoSuggestFromHistory` to request
+        completions from a LLM, this should inherit from
+        `jupyter_ai_magics:BaseProvider` and implement
+        `stream_inline_completions`
+    """,
+    ).tag(config=True)
+
+    @observe("llm_provider_class")
+    def _llm_provider_class_changed(self, change):
+        provider_class = change.new
+        if provider_class is not None:
+            warn(
+                "TerminalInteractiveShell.llm_provider_class is a provisional"
+                "  API as of IPython 8.32, and may change without warnings."
+            )
+            if isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
+                self.auto_suggest._llm_provider = provider_class()
+            else:
+                self.log.warn(
+                    "llm_provider_class only has effects when using"
+                    "`NavigableAutoSuggestFromHistory` as auto_suggest."
+                )
+
     def _set_autosuggestions(self, provider):
         # disconnect old handler
         if self.auto_suggest and isinstance(
@@ -432,7 +468,15 @@ class TerminalInteractiveShell(InteractiveShell):
         elif provider == "AutoSuggestFromHistory":
             self.auto_suggest = AutoSuggestFromHistory()
         elif provider == "NavigableAutoSuggestFromHistory":
+            # LLM stuff are all Provisional in 8.32
+            if self.llm_provider_class:
+                llm_provider_constructor = import_item(self.llm_provider_class)
+                llm_provider = llm_provider_constructor()
+            else:
+                llm_provider = None
             self.auto_suggest = NavigableAutoSuggestFromHistory()
+            # Provisinal in 8.32
+            self.auto_suggest._llm_provider = llm_provider
         else:
             raise ValueError("No valid provider.")
         if self.pt_app:
@@ -815,7 +859,8 @@ class TerminalInteractiveShell(InteractiveShell):
                     & ~IsDone()
                     & Condition(
                         lambda: isinstance(
-                            self.auto_suggest, NavigableAutoSuggestFromHistory
+                            self.auto_suggest,
+                            NavigableAutoSuggestFromHistory,
                         )
                     ),
                 ),
