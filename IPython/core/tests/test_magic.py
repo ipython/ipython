@@ -12,6 +12,8 @@ import warnings
 from importlib import invalidate_caches
 from io import StringIO
 from pathlib import Path
+from time import sleep
+from threading import Thread
 from subprocess import CalledProcessError
 from textwrap import dedent
 from time import sleep
@@ -1257,6 +1259,37 @@ def test_script_defaults():
             pass
         else:
             assert cmd in ip.magics_manager.magics["cell"]
+
+
+async def test_script_streams_continiously(capsys):
+    ip = get_ipython()
+    # Windows is slow to start up a thread on CI
+    is_windows = os.name == "nt"
+    step = 3 if is_windows else 1
+    code = dedent(
+        f"""\
+    import time
+    for _ in range(3):
+        time.sleep({step})
+        print(".", flush=True, end="")
+    """
+    )
+
+    def print_numbers():
+        for i in range(3):
+            sleep(step)
+            print(i, flush=True, end="")
+
+    thread = Thread(target=print_numbers)
+    thread.start()
+    sleep(step / 2)
+    ip.run_cell_magic("script", f"{sys.executable}", code)
+    thread.join()
+
+    captured = capsys.readouterr()
+    # If the streaming was line-wise or broken
+    # we would get `012...`
+    assert captured.out == "0.1.2."
 
 
 @magics_class

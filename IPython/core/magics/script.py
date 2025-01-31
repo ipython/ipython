@@ -220,7 +220,7 @@ class ScriptMagics(Magics):
 
         async def _readchunk(stream):
             try:
-                return await stream.readuntil(b"\n")
+                return await stream.read(100)
             except asyncio.exceptions.IncompleteReadError as e:
                 return e.partial
             except asyncio.exceptions.LimitOverrunError as e:
