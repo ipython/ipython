@@ -12,18 +12,18 @@ This is now a different branch than the main branch, and will only accumulate
 bugfixes and small improvements and requested backports, while 9.0 forges ahead.
 
 
-We'll not 4 bugfixes and an and unstable preview feature.
+We'll note 4 bugfixes and an and unstable preview feature.
 
 - :ghpull:`14640` Fixes an error were a warning about virtualenvs was incorrectly triggered.
 
-- :ghpull:`14684` Fixes an issue on Python  3.12+ with post mortem debugging.
+- :ghpull:`14684` Fixes an issue on Python 3.12+ with post mortem debugging.
 - :ghpull:`14693` Fixes a bug where magics were ignoring SIGINT
-- :ghpull:`14695` Fixes and issue where magics would not display all subprocess output.
+- :ghpull:`14695` Fixes an issue where magics would not display all subprocess output.
 
 
 As a preview feature, look into the ``examples`` folder on how to configure
 autosuggestion using a large language model. This is not yet ready for
-production use, have only partial documentation and can change without warnings,
+production use, has only partial documentation and can change without warning,
 but should allow you to hook in a Jupyter-ai LLM provider to suggest code in the
 CLI (currently only via a keyboard shortcut). See :ghpull:`14623` for more details
 until further documentation is available in 9.0. 
@@ -45,7 +45,7 @@ Czechoslovakia where she lived until her death at the age of 74 in April 1966.
 Thanks
 ------
 
-Thanks to everyone who helped for the 8.32 release and working toward 9.0.
+Thanks to everyone who helped with the 8.32 release and working toward 9.0.
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`__ for sponsoring
 work on IPython and related libraries, in particular the work around LLM
@@ -74,7 +74,7 @@ Road to 9.0
 
 The current main branch is now on it's way to be 9.0; do not expect many new
 features but a large codebase refactor, and cleanup with many deprecated code
-removed, and more agressive codestyle enforcement.
+removed, and more aggressive codestyle enforcement.
 
 For something completely different
 ----------------------------------
@@ -1069,7 +1069,7 @@ properties:
 Note that while in the above example we use a static dictionary, libraries may
 decide to use a custom object that define ``__getitem__``, we caution against
 using objects that would trigger computation to show documentation, but it is
-sometime preferable for highly dynamic code that for example export ans API as
+sometime preferable for highly dynamic code that for example export an API as
 object.
 
 
