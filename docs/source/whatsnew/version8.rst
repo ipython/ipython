@@ -23,7 +23,7 @@ We'll note 4 bugfixes and an and unstable preview feature.
 
 As a preview feature, look into the ``examples`` folder on how to configure
 autosuggestion using a large language model. This is not yet ready for
-production use, had only partial documentation and can change without warnings,
+production use, has only partial documentation and can change without warning,
 but should allow you to hook in a Jupyter-ai LLM provider to suggest code in the
 CLI (currently only via a keyboard shortcut). See :ghpull:`14623` for more details
 until further documentation is available in 9.0. 
