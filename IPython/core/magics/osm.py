@@ -38,10 +38,6 @@ class OSMagics(Magics):
         help="Force %cd magic to be quiet even if -q is not passed."
     ).tag(config=True)
 
-    suppress_pickleshare_warning = Bool(False,
-        help="Suppress the warning about pickleshare dependency when changing directory."
-    ).tag(config=True)
-
     def __init__(self, shell=None, **kwargs):
 
         # Now define isexec in a cross platform manner.
@@ -78,7 +74,7 @@ class OSMagics(Magics):
         return False
 
 
-    
+
     def _isexec_WIN(self, file):
         """
         Test for executable file on non POSIX system
@@ -196,7 +192,7 @@ class OSMagics(Magics):
             return
         
         stored = self.shell.db.get('stored_aliases', {} )
-        if (aname in stored) and not self.suppress_pickleshare_warning:
+        if aname in stored:
             print("Removing %stored alias",aname)
             del stored[aname]
             self.shell.db['stored_aliases'] = stored
@@ -418,8 +414,7 @@ class OSMagics(Magics):
                 dhist = self.shell.user_ns['_dh']
                 if oldcwd != cwd:
                     dhist.append(cwd)
-                    if not self.suppress_pickleshare_warning:
-                        self.shell.db['dhist'] = compress_dhist(dhist)[-100:]
+                    self.shell.db['dhist'] = compress_dhist(dhist)[-100:]
 
         else:
             os.chdir(self.shell.home_dir)
@@ -430,8 +425,7 @@ class OSMagics(Magics):
 
             if oldcwd != cwd:
                 dhist.append(cwd)
-                if not self.suppress_pickleshare_warning:
-                    self.shell.db["dhist"] = compress_dhist(dhist)[-100:]
+                self.shell.db["dhist"] = compress_dhist(dhist)[-100:]
         if "q" not in opts and not self.cd_force_quiet and self.shell.user_ns["_dh"]:
             print(self.shell.user_ns["_dh"][-1])
 
