@@ -36,42 +36,7 @@ from typing import List as ListType, Dict as DictType, Any as AnyType
 from typing import Optional, Sequence, Tuple
 from warnings import warn
 
-try:
-    from pickleshare import PickleShareDB
-except ModuleNotFoundError:
-
-    class PickleShareDB:  # type: ignore [no-redef]
-        _mock = True
-
-        def __init__(self, path):
-            pass
-
-        def get(self, key, default=None):
-            warn(
-                f"This is now an optional IPython functionality, using {key} requires you to install the `pickleshare` library.",
-                stacklevel=2,
-            )
-            return default
-
-        def __getitem__(self, key):
-            warn(
-                f"This is now an optional IPython functionality, using {key} requires you to install the `pickleshare` library.",
-                stacklevel=2,
-            )
-            return None
-
-        def __setitem__(self, key, value):
-            warn(
-                f"This is now an optional IPython functionality, setting {key} requires you to install the `pickleshare` library.",
-                stacklevel=2,
-            )
-
-        def __delitem__(self, key):
-            warn(
-                f"This is now an optional IPython functionality, deleting {key} requires you to install the `pickleshare` library.",
-                stacklevel=2,
-            )
-
+from IPython.external.pickleshare import PickleShareDB
 
 from tempfile import TemporaryDirectory
 from traitlets import (
