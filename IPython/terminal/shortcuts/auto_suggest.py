@@ -112,20 +112,27 @@ class AppendAutoSuggestionInAnyLine(Processor):
         suggestions_longer_than_buffer: bool = (
             len(suggestions) + ti.document.cursor_position_row > ti.document.line_count
         )
+        if prompt_toolkit.VERSION < (3, 0, 49):
+            if len(suggestions) > 1 and prompt_toolkit.VERSION < (3, 0, 49):
+                if ti.lineno == ti.document.cursor_position_row:
+                    return Transformation(
+                        fragments=ti.fragments
+                        + [
+                            (
+                                "red",
+                                "(Cannot show multiline suggestion; requires prompt_toolkit > 3.0.49)",
+                            )
+                        ]
+                    )
+                else:
+                    return Transformation(fragments=ti.fragments)
+            elif len(suggestions) == 1:
+                if ti.lineno == ti.document.cursor_position_row:
+                    return Transformation(
+                        fragments=ti.fragments + [(self.style, suggestions[0])]
+                    )
+            return Transformation(fragments=ti.fragments)
 
-        if len(suggestions) >= 1 and prompt_toolkit.VERSION < (3, 0, 49):
-            if ti.lineno == ti.document.cursor_position_row:
-                return Transformation(
-                    fragments=ti.fragments
-                    + [
-                        (
-                            "red",
-                            "(Cannot show multiline suggestion; requires prompt_toolkit > 3.0.49)",
-                        )
-                    ]
-                )
-            else:
-                return Transformation(fragments=ti.fragments)
         if delta == 0:
             suggestion = suggestions[0]
             return Transformation(fragments=ti.fragments + [(self.style, suggestion)])
