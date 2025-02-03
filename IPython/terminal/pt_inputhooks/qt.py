@@ -3,9 +3,11 @@ import os
 from IPython.external.qt_for_kernel import QtCore, QtGui, enum_helper
 from IPython import get_ipython
 
-# If we create a QApplication, keep a reference to it so that it doesn't get
-# garbage collected.
+# If we create a QApplication, QEventLoop, or a QTimer, keep a reference to them
+# so that they don't get garbage collected or leak memory when created multiple times.
 _appref = None
+_eventloop = None
+_timer = None
 _already_warned = False
 
 
@@ -21,7 +23,7 @@ def _reclaim_excepthook():
 
 
 def inputhook(context):
-    global _appref
+    global _appref, _eventloop, _timer
     app = QtCore.QCoreApplication.instance()
     if not app:
         if sys.platform == 'linux':
@@ -48,6 +50,7 @@ def inputhook(context):
         except AttributeError:  # Only for Qt>=5.14.
             pass
         _appref = app = QtGui.QApplication([" "])
+        _eventloop = QtCore.QEventLoop(app)
 
         # "reclaim" IPython sys.excepthook after event loop starts
         # without this, it defaults back to BaseIPythonApplication.excepthook
@@ -55,18 +58,17 @@ def inputhook(context):
         # formatting and look like "bug in IPython".
         QtCore.QTimer.singleShot(0, _reclaim_excepthook)
 
-    event_loop = QtCore.QEventLoop(app)
-
     if sys.platform == 'win32':
         # The QSocketNotifier method doesn't appear to work on Windows.
         # Use polling instead.
-        timer = QtCore.QTimer()
-        timer.timeout.connect(event_loop.quit)
+        if _timer is None:
+            _timer = QtCore.QTimer()
+            _timer.timeout.connect(_eventloop.quit)
         while not context.input_is_ready():
-            # NOTE: run the event loop, and after 50 ms, call `quit` to exit it.
-            timer.start(50)  # 50 ms
-            _exec(event_loop)
-            timer.stop()
+            # NOTE: run the event loop, and after 10 ms, call `quit` to exit it.
+            _timer.start(10)  # 10 ms
+            _exec(_eventloop)
+            _timer.stop()
     else:
         # On POSIX platforms, we can use a file descriptor to quit the event
         # loop when there is input ready to read.
@@ -77,14 +79,10 @@ def inputhook(context):
             # connect the callback we care about before we turn it on
             # lambda is necessary as PyQT inspect the function signature to know
             # what arguments to pass to. See https://github.com/ipython/ipython/pull/12355
-            notifier.activated.connect(lambda: event_loop.exit())
+            notifier.activated.connect(lambda: _eventloop.exit())
             notifier.setEnabled(True)
             # only start the event loop we are not already flipped
             if not context.input_is_ready():
-                _exec(event_loop)
+                _exec(_eventloop)
         finally:
             notifier.setEnabled(False)
-
-    # This makes sure that the event loop is garbage collected.
-    # See issue 14240.
-    event_loop.setParent(None)
