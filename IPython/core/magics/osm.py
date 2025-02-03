@@ -74,7 +74,7 @@ class OSMagics(Magics):
         return False
 
 
-    
+
     def _isexec_WIN(self, file):
         """
         Test for executable file on non POSIX system
@@ -320,9 +320,9 @@ class OSMagics(Magics):
         Options:
 
         -q               Be quiet. Do not print the working directory after the
-                         cd command is executed. By default IPython's cd
-                         command does print this directory, since the default
-                         prompts do not display path information.
+                          cd command is executed. By default IPython's cd
+                          command does print this directory, since the default
+                          prompts do not display path information.
 
         .. note::
            Note that ``!cd`` doesn't work for this purpose because the shell
