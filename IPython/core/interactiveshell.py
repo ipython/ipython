@@ -557,9 +557,6 @@ class InteractiveShell(SingletonConfigurable):
         # This is where traits with a config_key argument are updated
         # from the values on config.
         super(InteractiveShell, self).__init__(**kwargs)
-        if 'PromptManager' in self.config:
-            warn('As of IPython 5.0 `PromptManager` config will have no effect'
-                 ' and has been replaced by TerminalInteractiveShell.prompts_class')
         self.configurables = [self]
 
         # These are relatively independent and stateless
