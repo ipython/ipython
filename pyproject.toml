@@ -91,7 +91,6 @@ test = [
     "pytest",
     "pytest-asyncio<0.22",
     "testpath",
-    "pickleshare",
     "packaging",
 ]
 test_extra = [
@@ -230,6 +229,7 @@ module = [
     "IPython.core.ultratb",
     "IPython.extensions.autoreload",
     "IPython.extensions.storemagic",
+    "IPython.external.pickleshare",
     "IPython.external.qt_for_kernel",
     "IPython.external.qt_loaders",
     "IPython.lib.backgroundjobs",
