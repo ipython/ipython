@@ -404,7 +404,6 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         return
 
 
-_MIN_LINES = 5
 
 
 async def llm_autosuggestion(event: KeyPressEvent):
@@ -417,6 +416,7 @@ async def llm_autosuggestion(event: KeyPressEvent):
     Provisional as of 8.32, may change without warnigns
 
     """
+    _MIN_LINES = 5
     provider = get_ipython().auto_suggest
     if not isinstance(provider, NavigableAutoSuggestFromHistory):
         return

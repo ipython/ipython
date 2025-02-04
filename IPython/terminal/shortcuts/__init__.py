@@ -24,9 +24,9 @@ from prompt_toolkit.key_binding.vi_state import InputMode, ViState
 from prompt_toolkit.filters import Condition
 
 from IPython.core.getipython import get_ipython
-from IPython.terminal.shortcuts import auto_match as match
-from IPython.terminal.shortcuts import auto_suggest
-from IPython.terminal.shortcuts.filters import filter_from_string
+from . import auto_match as match
+from . import auto_suggest
+from .filters import filter_from_string
 from IPython.utils.decorators import undoc
 
 from prompt_toolkit.enums import DEFAULT_BUFFER
@@ -627,6 +627,7 @@ KEY_BINDINGS = [
 ]
 
 UNASSIGNED_ALLOWED_COMMANDS = [
+    auto_suggest.llm_autosuggestion,
     nc.beginning_of_buffer,
     nc.end_of_buffer,
     nc.end_of_line,
