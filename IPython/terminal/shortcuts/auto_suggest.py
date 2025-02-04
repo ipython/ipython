@@ -404,8 +404,6 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         return
 
 
-
-
 async def llm_autosuggestion(event: KeyPressEvent):
     """
     Ask the AutoSuggester from history to delegate to ask an LLM for completion
