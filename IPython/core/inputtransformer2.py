@@ -44,7 +44,7 @@ def leading_indent(lines):
     if not lines:
         return lines
     m = _indent_re.match(lines[0])
-    if not m:
+    if not m or lines[0].strip().startswith("#"):
         return lines
     space = m.group(0)
     n = len(space)
