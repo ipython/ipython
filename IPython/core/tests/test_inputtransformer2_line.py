@@ -129,25 +129,32 @@ def test_leading_indent():
         ) == expected.splitlines(keepends=True)
 
 
-INDENT_SPACES_COMMENT = ("""\
+INDENT_SPACES_COMMENT = (
+    """\
     # comment
 if True:
     a = 3
-""", """\
+""",
+    """\
     # comment
 if True:
    a = 3
-""")
+""",
+)
 
-INDENT_TABS_COMMENT = ("""\
+INDENT_TABS_COMMENT = (
+    """\
 \t# comment
 if True:
 \tb = 4
-""", """\
+""",
+    """\
 \t# comment
 if True:
 \tb = 4
-""")
+""",
+)
+
 
 def test_leading_indent():
     for sample, expected in [INDENT_SPACES, INDENT_TABS]:
