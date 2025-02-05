@@ -128,6 +128,40 @@ def test_leading_indent():
             sample.splitlines(keepends=True)
         ) == expected.splitlines(keepends=True)
 
+
+INDENT_SPACES_COMMENT = (
+    """\
+    # comment
+if True:
+    a = 3
+""",
+    """\
+    # comment
+if True:
+   a = 3
+""",
+)
+
+INDENT_TABS_COMMENT = (
+    """\
+\t# comment
+if True:
+\tb = 4
+""",
+    """\
+\t# comment
+if True:
+\tb = 4
+""",
+)
+
+
+def test_leading_indent():
+    for sample, expected in [INDENT_SPACES, INDENT_TABS]:
+        assert ipt2.leading_indent(
+            sample.splitlines(keepends=True)
+        ) == expected.splitlines(keepends=True)
+
 LEADING_EMPTY_LINES = ("""\
     \t
 
