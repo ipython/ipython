@@ -116,6 +116,12 @@ addflag('confirm-exit', 'TerminalInteractiveShell.confirm_exit',
     you can force a direct exit without any confirmation.""",
     "Don't prompt the user when exiting."
 )
+addflag(
+    "tip",
+    "TerminalInteractiveShell.enable_tip",
+    """Shows a tip when IPython starts.""",
+    "Don't show tip when IPython starts.",
+)
 addflag('term-title', 'TerminalInteractiveShell.term_title',
     "Enable auto setting the terminal title.",
     "Disable auto setting the terminal title."
