@@ -24,12 +24,6 @@ from IPython.utils.tokenutil import generate_tokens
 
 from .filters import pass_through
 
-try:
-    import jupyter_ai_magics
-    import jupyter_ai.completions.models as jai_models
-except ModuleNotFoundError:
-    jai_models = None
-
 
 def _get_query(document: Document):
     return document.lines[document.cursor_position_row]
@@ -325,6 +319,11 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         If there is a currently running llm task, it will cancel it.
         """
         # we likely want to store the current cursor position, and cancel if the cursor has moved.
+        try:
+            import jupyter_ai_magics
+            import jupyter_ai.completions.models as jai_models
+        except ModuleNotFoundError:
+            jai_models = None
         if not self._llm_provider:
             warnings.warn("No LLM provider found, cannot trigger LLM completions")
             return
@@ -374,6 +373,11 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         stream_inline_completions, I'm not sure it is the case for all
         providers.
         """
+        try:
+            import jupyter_ai_magics
+            import jupyter_ai.completions.models as jai_models
+        except ModuleNotFoundError:
+            jai_models = None
 
         request = jai_models.InlineCompletionRequest(
             number=0,
