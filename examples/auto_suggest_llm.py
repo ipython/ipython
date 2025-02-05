@@ -1,5 +1,7 @@
 """
-This is an example of Fake LLM Completer for IPython 
+This is an example of Fake LLM Completer for IPython, as
+well as example on how to configure IPython for LLMs.
+
 8.32 – this is provisional and may change.
 
 To test this you can run the following command from the root of IPython 
@@ -7,15 +9,29 @@ directory:
 
     $ ipython --TerminalInteractiveShell.llm_provider_class=examples.auto_suggest_llm.ExampleCompletionProvider
 
-Or you can set the value in your config file
+Or you can set the value in your config file, which also allows you to set a
+keyboard shortcut::
 
-    c.TerminalInteractiveShell.llm_provider_class="fully.qualified.name.ToYourCompleter"
+    c.TerminalInteractiveShell.llm_provider_class = "examples.auto_suggest_llm.ExampleCompletionProvider"
+    c.TerminalInteractiveShell.shortcuts = [
+        {
+            "new_keys": ["c-q"],
+            "command": "IPython:auto_suggest.llm_autosuggestion",
+            "new_filter": "navigable_suggestions & default_buffer_focused",
+            "create": True,
+        },
+    ]
 
-And at runtime bing for example `ctrl-q` to triger autosugges:
+
+You can use the following configuration option to::
+
+    c.TerminalInteractiveShell.llm_constructor_kwargs = {"model_id": "mymodel"}
+
+
+For convenience and testing you can bind a  shortcut at runtime::
 
     In [1]: from examples.auto_suggest_llm import setup_shortcut
        ...: setup_shortcut('c-q')
-
 
 """
 

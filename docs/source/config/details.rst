@@ -1,6 +1,101 @@
-=======================
-Specific config details
-=======================
+==============================
+Specific configuration details
+==============================
+
+.. _llm_suggestions:
+
+LLM Suggestions
+===============
+
+Starting with 9.0, IPython will be able to use LLM providers to suggest code in
+the terminal. This requires a recent version of prompt_toolkit in order to allow
+multiline suggestions. There are currently a number of limitations, and feedback
+on the API is welcome.
+
+Unlike many of IPython features, this is not enabled by default and requires
+multiple configuration options to be set to properly work:
+
+ - Set a keybinding to trigger LLM suggestions. Due to terminal limitations
+   across platforms and emulators, it is difficult to provide a default
+   keybinding. Note that not all keybindings are availables, in particular all
+   the `Ctrl-Enter`, `Alt-backslash` and `Ctrl-Shift-Enter` are not available
+   without integration with your terminal emulator.
+
+ - Chose a LLM `provider`, usually from Jupyter-AI. This will be the interface
+   between IPython itself, and the LLM – that may be local or in on a server.
+
+ - Configure said provider with models, API keys, etc – this will depend on the
+   provider, and you will have to refer to Jupyter-AI documentation, and/or your
+   LLM documenatation.
+
+
+While setting up IPython to use a real LLM, you can refer to
+``examples/auto_suggest_llm.py`` that both provide an example of how to set up
+IPython to use a Fake LLM provider, this can help ensure that the full setup is
+working before switching to a real LLM provider.
+
+
+Setup a keybinding
+------------------
+
+You may want to refer on how to setup a keybinding in IPython, but in short you
+want to bind the ``IPython:auto_suggest.llm_autosuggestion`` command to a
+keybinding, and have it active only when the default buffer isi focused, and
+when using the NavigableSuggestions suggestter (this is the default suggestter,
+the one that is history and LLM aware). Thus the ``navigable_suggestions &
+default_buffer_focused`` filter should be used.
+
+Usually ``Ctrl-Q`` on macos is an available shortcut, note that is does use
+``Ctrl``, and not ``Command``.
+
+The following example will bind ``Ctrl-Q`` to the ``llm_autosuggestion``
+command, with the suggested filter::
+
+    c.TerminalInteractiveShell.shortcuts = [
+        {
+            "new_keys": ["c-q"],
+            "command": "IPython:auto_suggest.llm_autosuggestion",
+            "new_filter": "navigable_suggestions & default_buffer_focused",
+            "create": True,
+        },
+    ]
+
+
+Choose a LLM provider
+---------------------
+
+Set the  ``TerminalInteractiveShell.llm_provider_class`` trait to the fully
+qualified name of the Provider you like, when testing from inside the IPython
+source tree, you can use
+``"examples.auto_suggest_llm.ExampleCompletionProvider"`` This will always
+stream an extract of the Little Prince by Antoine de Saint-Exupéry, and will not
+require any API key or real LLM.
+
+
+In your configuration file adapt the following line to your needs:
+
+.. code-block:: python
+
+    c.TerminalInteractiveShell.llm_provider_class = "examples.auto_suggest_llm.ExampleCompletionProvider"
+
+Configure the provider
+----------------------
+
+It the provider needs to be passed parameters at initialization, you can do so
+by setting the ``llm_provider_kwargs`` traitlet.
+
+.. code-block:: python
+
+    c.TerminalInteractiveShell.llm_provider_kwargs = {"model": "skynet"}
+
+This will depdend on the provider you chose, and you will have to refer to
+the provider documentation.
+
+Extra configuration may be needed by setting environment variables, this will
+again depend on the provider you chose, and you will have to refer to the
+provider documentation.
+
+
 
 .. _custom_prompts:
 

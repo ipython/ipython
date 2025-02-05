@@ -87,7 +87,7 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     **kwargs : various, optional
         Further keyword args are relayed to the IPKernelApp constructor,
         such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
-        allowing configuration of the kernel (see :ref:`kernel_options`).  Will only have an effect
+        allowing configuration of the kernel.  Will only have an effect
         on the first embed_kernel call for a given process.
     """
     
