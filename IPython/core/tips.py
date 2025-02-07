@@ -14,7 +14,11 @@ _tips: Any = {
         "Run your doctests from within IPython for development and debugging. The special %doctest_mode command toggles a mode where the prompt, output and exceptions display matches as closely as possible that of the default Python interpreter.",
         "You can use `files = !ls *.png`",
         "Use the IPython.lib.demo.Demo class to load any Python script as an interactive demo.",
-        "Put a ‘;’ at the end of a line to suppress the printing of output.",
+        "Put a ‘;’ at the end of a line to suppress the printing of output.",   
+        "You can use Ctrl-O to force a new line in terminal IPython",
+        "Use `object?` to see the help on `object`, `object??` to view it's source",
+        "`?` alone on a line will brings up IPython's help",
+        "You can use `%hist` to view history, the the options with `%history?`",
     ],
 }
 
