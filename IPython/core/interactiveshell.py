@@ -387,9 +387,6 @@ class InteractiveShell(SingletonConfigurable):
         help="Set the color scheme (NoColor, Neutral, Linux, or LightBG)."
     ).tag(config=True)
     debug = Bool(False).tag(config=True)
-    disable_failing_post_execute = Bool(False,
-        help="Don't call post-execute functions that have failed in the past."
-    ).tag(config=True)
     display_formatter = Instance(DisplayFormatter, allow_none=True)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
