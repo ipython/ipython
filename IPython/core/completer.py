@@ -189,6 +189,7 @@ import os
 import re
 import string
 import sys
+import token
 import tokenize
 import time
 import unicodedata
@@ -1175,16 +1176,16 @@ class Completer(Configurable):
             name_turn = True
 
             parts = []
-            for token in rev_tokens:
-                if token.type in skip_over:
+            for tok in rev_tokens:
+                if tok.type in skip_over:
                     continue
-                if token.type == tokenize.NAME and name_turn:
-                    parts.append(token.string)
+                if tok.type == tokenize.NAME and name_turn:
+                    parts.append(tok.string)
                     name_turn = False
                 elif (
-                    token.type == tokenize.OP and token.string == "." and not name_turn
+                    tok.type == token.OP and tok.string == "." and not name_turn
                 ):
-                    parts.append(token.string)
+                    parts.append(tok.string)
                     name_turn = True
                 else:
                     # short-circuit if not empty nor name token
@@ -1298,23 +1299,23 @@ def _match_number_in_dict_key_prefix(prefix: str) -> Union[str, None]:
         return None
     tokens = _parse_tokens(prefix)
     rev_tokens = reversed(tokens)
-    skip_over = {tokenize.ENDMARKER, tokenize.NEWLINE}
+    skip_over = {token.ENDMARKER, token.NEWLINE}
     number = None
-    for token in rev_tokens:
-        if token.type in skip_over:
+    for tok in rev_tokens:
+        if tok.type in skip_over:
             continue
         if number is None:
-            if token.type == tokenize.NUMBER:
-                number = token.string
+            if tok.type == token.NUMBER:
+                number = tok.string
                 continue
             else:
                 # we did not match a number
                 return None
-        if token.type == tokenize.OP:
-            if token.string == ",":
+        if tok.type == tokenize.OP:
+            if tok.string == ",":
                 break
-            if token.string in {"+", "-"}:
-                number = token.string + number
+            if tok.string in {"+", "-"}:
+                number = tok.string + number
         else:
             return None
     return number
@@ -2491,10 +2492,10 @@ class IPCompleter(Completer):
         iterTokens = reversed(tokens)
         openPar = 0
 
-        for token in iterTokens:
-            if token == ')':
+        for tok in iterTokens:
+            if tok == ')':
                 openPar -= 1
-            elif token == '(':
+            elif tok == '(':
                 openPar += 1
                 if openPar > 0:
                     # found the last unclosed parenthesis
@@ -2520,10 +2521,10 @@ class IPCompleter(Completer):
         # them again
         usedNamedArgs = set()
         par_level = -1
-        for token, next_token in zip(tokens, tokens[1:]):
-            if token == '(':
+        for tok, next_token in zip(tokens, tokens[1:]):
+            if tok == '(':
                 par_level += 1
-            elif token == ')':
+            elif tok == ')':
                 par_level -= 1
 
             if par_level != 0:
@@ -2532,7 +2533,7 @@ class IPCompleter(Completer):
             if next_token != '=':
                 continue
 
-            usedNamedArgs.add(token)
+            usedNamedArgs.add(tok)
 
         argMatches = []
         try:

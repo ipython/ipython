@@ -14,6 +14,7 @@ import ast
 from codeop import CommandCompiler, Compile
 import re
 import sys
+import token
 import tokenize
 from typing import List, Tuple, Optional, Any
 import warnings
@@ -170,7 +171,7 @@ def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
         if (assign_ix is not None) \
              and (len(line) >= assign_ix + 2) \
              and (line[assign_ix+1].string == '%') \
-             and (line[assign_ix+2].type == tokenize.NAME):
+             and (line[assign_ix+2].type == token.NAME):
 
     This statement contains four continued line pieces.
     Assembling these pieces into a single line would give::
@@ -248,7 +249,7 @@ class MagicAssign(TokenTransformBase):
             if (assign_ix is not None) \
                     and (len(line) >= assign_ix + 2) \
                     and (line[assign_ix+1].string == '%') \
-                    and (line[assign_ix+2].type == tokenize.NAME):
+                    and (line[assign_ix+2].type == token.NAME):
                 return cls(line[assign_ix+1].start)
 
     def transform(self, lines: List[str]):
@@ -278,10 +279,10 @@ class SystemAssign(TokenTransformBase):
             if (assign_ix is not None) \
                     and not line[assign_ix].line.strip().startswith('=') \
                     and (len(line) >= assign_ix + 2) \
-                    and (line[assign_ix + 1].type == tokenize.ERRORTOKEN):
+                    and (line[assign_ix + 1].type == token.ERRORTOKEN):
                 ix = assign_ix + 1
 
-                while ix < len(line) and line[ix].type == tokenize.ERRORTOKEN:
+                while ix < len(line) and line[ix].type == token.ERRORTOKEN:
                     if line[ix].string == '!':
                         return cls(line[ix].start)
                     elif not line[ix].string.isspace():
@@ -296,7 +297,7 @@ class SystemAssign(TokenTransformBase):
                 (assign_ix is not None)
                 and not line[assign_ix].line.strip().startswith("=")
                 and (len(line) >= assign_ix + 2)
-                and (line[assign_ix + 1].type == tokenize.OP)
+                and (line[assign_ix + 1].type == token.OP)
                 and (line[assign_ix + 1].string == "!")
             ):
                 return cls(line[assign_ix + 1].start)
@@ -421,7 +422,7 @@ class EscapedCommand(TokenTransformBase):
                 continue
             ix = 0
             ll = len(line)
-            while ll > ix and line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
+            while ll > ix and line[ix].type in {token.INDENT, token.DEDENT}:
                 ix += 1
             if ix >= ll:
                 continue
@@ -485,7 +486,7 @@ class HelpEnd(TokenTransformBase):
             if len(line) > 2 and line[-2].string == '?':
                 # Find the first token that's not INDENT/DEDENT
                 ix = 0
-                while line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
+                while line[ix].type in {token.INDENT, token.DEDENT}:
                     ix += 1
                 return cls(line[ix].start, line[-2].start)
 
@@ -525,8 +526,6 @@ def make_tokens_by_line(lines:List[str]):
     # We want to group the former case together but split the latter, so we
     # track parentheses level, similar to the internals of tokenize.
 
-    #   reexported from token on 3.7+
-    NEWLINE, NL = tokenize.NEWLINE, tokenize.NL  # type: ignore
     tokens_by_line: List[List[Any]] = [[]]
     if len(lines) > 1 and not lines[0].endswith(("\n", "\r", "\r\n", "\x0b", "\x0c")):
         warnings.warn(
@@ -535,16 +534,15 @@ def make_tokens_by_line(lines:List[str]):
         )
     parenlev = 0
     try:
-        for token in tokenutil.generate_tokens_catch_errors(
+        for tok in tokenutil.generate_tokens_catch_errors(
             iter(lines).__next__, extra_errors_to_catch=["expected EOF"]
         ):
-            tokens_by_line[-1].append(token)
-            if (token.type == NEWLINE) \
-                    or ((token.type == NL) and (parenlev <= 0)):
+            tokens_by_line[-1].append(tok)
+            if (tok.type == NEWLINE) or ((tok.type == NL) and (parenlev <= 0)):
                 tokens_by_line.append([])
-            elif token.string in {'(', '[', '{'}:
+            elif tok.string in {'(', '[', '{'}:
                 parenlev += 1
-            elif token.string in {')', ']', '}'}:
+            elif tok.string in {')', ']', '}'}:
                 if parenlev > 0:
                     parenlev -= 1
     except tokenize.TokenError:
@@ -562,10 +560,10 @@ def make_tokens_by_line(lines:List[str]):
 def has_sunken_brackets(tokens: List[tokenize.TokenInfo]):
     """Check if the depth of brackets in the list of tokens drops below 0"""
     parenlev = 0
-    for token in tokens:
-        if token.string in {"(", "[", "{"}:
+    for tok in tokens:
+        if tok.string in {"(", "[", "{"}:
             parenlev += 1
-        elif token.string in {")", "]", "}"}:
+        elif tok.string in {")", "]", "}"}:
             parenlev -= 1
             if parenlev < 0:
                 return True
@@ -732,19 +730,19 @@ class TransformerManager:
             return 'incomplete', find_last_indent(lines)
 
         if (
-            tokens_by_line[-1][-1].type != tokenize.ENDMARKER
-            and tokens_by_line[-1][-1].type != tokenize.ERRORTOKEN
+            tokens_by_line[-1][-1].type != token.ENDMARKER
+            and tokens_by_line[-1][-1].type != token.ERRORTOKEN
         ):
             # We're in a multiline string or expression
             return 'incomplete', find_last_indent(lines)
 
-        newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER} # type: ignore
+        newline_types = {token.NEWLINE, token.COMMENT, token.ENDMARKER} # type: ignore
 
         # Pop the last line which only contains DEDENTs and ENDMARKER
         last_token_line = None
         if {t.type for t in tokens_by_line[-1]} in [
-            {tokenize.DEDENT, tokenize.ENDMARKER},
-            {tokenize.ENDMARKER}
+            {token.DEDENT, token.ENDMARKER},
+            {token.ENDMARKER}
         ] and len(tokens_by_line) > 1:
             last_token_line = tokens_by_line.pop()
 
@@ -757,7 +755,7 @@ class TransformerManager:
         if tokens_by_line[-1][-1].string == ':':
             # The last line starts a block (e.g. 'if foo:')
             ix = 0
-            while tokens_by_line[-1][ix].type in {tokenize.INDENT, tokenize.DEDENT}:
+            while tokens_by_line[-1][ix].type in {token.INDENT, token.DEDENT}:
                 ix += 1
 
             indent = tokens_by_line[-1][ix].start[1]
@@ -779,7 +777,7 @@ class TransformerManager:
             if res is None:
                 return 'incomplete', find_last_indent(lines)
 
-        if last_token_line and last_token_line[0].type == tokenize.DEDENT:
+        if last_token_line and last_token_line[0].type == token.DEDENT:
             if ends_with_newline:
                 return 'complete', None
             return 'incomplete', find_last_indent(lines)

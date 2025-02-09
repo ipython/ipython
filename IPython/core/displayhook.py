@@ -10,6 +10,7 @@ This defines a callable class that IPython uses for `sys.displayhook`.
 import builtins as builtin_mod
 import sys
 import io as _io
+import token
 import tokenize
 
 from traitlets.config.configurable import Configurable
@@ -100,10 +101,10 @@ class DisplayHook(Configurable):
         sio = _io.StringIO(expression)
         tokens = list(tokenize.generate_tokens(sio.readline))
 
-        for token in reversed(tokens):
-            if token[0] in (tokenize.ENDMARKER, tokenize.NL, tokenize.NEWLINE, tokenize.COMMENT):
+        for tok in reversed(tokens):
+            if tok[0] in (token.ENDMARKER, token.NL, token.NEWLINE, token.COMMENT):
                 continue
-            if (token[0] == tokenize.OP) and (token[1] == ';'):
+            if (tok[0] == token.OP) and (tok[1] == ';'):
                 return True
             else:
                 return False
