@@ -2025,13 +2025,6 @@ class IPCompleter(Completer):
 
     @context_matcher()
     def file_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
-        """Same as :any:`file_matches`, but adopted to new Matcher API."""
-        matches = self.file_matches(context.token)
-        # TODO: add a heuristic for suppressing (e.g. if it has OS-specific delimiter,
-        #  starts with `/home/`, `C:\`, etc)
-        return _convert_matcher_v1_result_to_v2(matches, type="path")
-
-    def file_matches(self, text: str) -> List[str]:
         """Match filenames, expanding ~USER type strings.
 
         Most of the seemingly convoluted logic in this completer is an
@@ -2044,10 +2037,11 @@ class IPCompleter(Completer):
         full completions, as is normally done).  I don't think with the
         current (as of Python 2.3) Python readline it's possible to do
         better.
-
-        .. deprecated:: 8.6
-            You can use :meth:`file_matcher` instead.
         """
+        # TODO: add a heuristic for suppressing (e.g. if it has OS-specific delimiter,
+        #  starts with `/home/`, `C:\`, etc)
+
+        text = context.token
 
         # chars that require escaping with backslash - i.e. chars
         # that readline treats incorrectly as delimiters, but we
@@ -2074,7 +2068,10 @@ class IPCompleter(Completer):
                 if open_quotes:
                     lsplit = text_until_cursor.split(open_quotes)[-1]
                 else:
-                    return []
+                    return {
+                        "completions": [],
+                        "suppress": False,
+                    }
             except IndexError:
                 # tab pressed on empty line
                 lsplit = ""
@@ -2088,7 +2085,15 @@ class IPCompleter(Completer):
             text = os.path.expanduser(text)
 
         if text == "":
-            return [text_prefix + protect_filename(f) for f in self.glob("*")]
+            return {
+                "completions": [
+                    SimpleCompletion(
+                        text=text_prefix + protect_filename(f), type="path"
+                    )
+                    for f in self.glob("*")
+                ],
+                "suppress": False,
+            }
 
         # Compute the matches from the filesystem
         if sys.platform == 'win32':
@@ -2115,26 +2120,21 @@ class IPCompleter(Completer):
                            protect_filename(f) for f in m0]
 
         # Mark directories in input list by appending '/' to their names.
-        return [x+'/' if os.path.isdir(x) else x for x in matches]
+        return {
+            "completions": [
+                SimpleCompletion(text=x + "/" if os.path.isdir(x) else x, type="path")
+                for x in matches
+            ],
+            "suppress": False,
+        }
 
     @context_matcher()
     def magic_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match magics."""
-        text = context.token
-        matches = self.magic_matches(text)
-        result = _convert_matcher_v1_result_to_v2(matches, type="magic")
-        is_magic_prefix = len(text) > 0 and text[0] == "%"
-        result["suppress"] = is_magic_prefix and bool(result["completions"])
-        return result
 
-    def magic_matches(self, text: str) -> List[str]:
-        """Match magics.
-
-        .. deprecated:: 8.6
-            You can use :meth:`magic_matcher` instead.
-        """
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too.
+        text = context.token
         lsm = self.shell.magics_manager.lsmagic()
         line_magics = lsm['line']
         cell_magics = lsm['cell']
@@ -2167,11 +2167,18 @@ class IPCompleter(Completer):
             def matches(magic):
                 return magic.startswith(bare_text)
 
-        comp = [ pre2+m for m in cell_magics if matches(m)]
+        completions = [pre2 + m for m in cell_magics if matches(m)]
         if not text.startswith(pre2):
-            comp += [ pre+m for m in line_magics if matches(m)]
+            completions += [pre + m for m in line_magics if matches(m)]
 
-        return comp
+        is_magic_prefix = len(text) > 0 and text[0] == "%"
+
+        return {
+            "completions": [
+                SimpleCompletion(text=comp, type="magic") for comp in completions
+            ],
+            "suppress": is_magic_prefix and len(completions) > 0,
+        }
 
     @context_matcher()
     def magic_config_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
