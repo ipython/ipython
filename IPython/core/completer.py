@@ -1615,45 +1615,41 @@ def back_unicode_name_matches(text: str) -> Tuple[str, Sequence[str]]:
 
 
 @context_matcher()
-def back_latex_name_matcher(context: CompletionContext):
-    """Match latex characters back to unicode name
-
-    Same as :any:`back_latex_name_matches`, but adopted to new Matcher API.
-    """
-    fragment, matches = back_latex_name_matches(context.text_until_cursor)
-    return _convert_matcher_v1_result_to_v2(
-        matches, type="latex", fragment=fragment, suppress_if_matches=True
-    )
-
-
-def back_latex_name_matches(text: str) -> Tuple[str, Sequence[str]]:
+def back_latex_name_matcher(context: CompletionContext) -> SimpleMatcherResult:
     """Match latex characters back to unicode name
 
     This does ``\\ℵ`` -> ``\\aleph``
-
-    .. deprecated:: 8.6
-        You can use :meth:`back_latex_name_matcher` instead.
     """
+
+    text = context.text_until_cursor
+    no_match = {
+        "completions": [],
+        "suppress": False,
+    }
+
     if len(text)<2:
-        return '', ()
+        return no_match
     maybe_slash = text[-2]
     if maybe_slash != '\\':
-        return '', ()
-
+        return no_match
 
     char = text[-1]
     # no expand on quote for completion in strings.
     # nor backcomplete standard ascii keys
     if char in string.ascii_letters or char in ('"',"'"):
-        return '', ()
+        return no_match
     try :
         latex = reverse_latex_symbol[char]
         # '\\' replace the \ as well
-        return '\\'+char,[latex]
+        return {
+            "completions": [SimpleCompletion(text=latex, type="latex")],
+            "suppress": True,
+            "matched_fragment": "\\" + char,
+        }
     except KeyError:
         pass
-    return '', ()
 
+    return no_match
 
 def _formatparamchildren(parameter) -> str:
     """
@@ -2699,15 +2695,7 @@ class IPCompleter(Completer):
         return results
 
     @context_matcher()
-    def unicode_name_matcher(self, context: CompletionContext):
-        """Same as :any:`unicode_name_matches`, but adopted to new Matcher API."""
-        fragment, matches = self.unicode_name_matches(context.text_until_cursor)
-        return _convert_matcher_v1_result_to_v2(
-            matches, type="unicode", fragment=fragment, suppress_if_matches=True
-        )
-
-    @staticmethod
-    def unicode_name_matches(text: str) -> Tuple[str, List[str]]:
+    def unicode_name_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match Latex-like syntax for unicode characters base
         on the name of the character.
 
@@ -2716,6 +2704,9 @@ class IPCompleter(Completer):
         Works only on valid python 3 identifier, or on combining characters that
         will combine to form a valid identifier.
         """
+
+        text = context.text_until_cursor
+
         slashpos = text.rfind('\\')
         if slashpos > -1:
             s = text[slashpos+1:]
@@ -2723,10 +2714,17 @@ class IPCompleter(Completer):
                 unic = unicodedata.lookup(s)
                 # allow combining chars
                 if ('a'+unic).isidentifier():
-                    return '\\'+s,[unic]
+                    return {
+                        "completions": [SimpleCompletion(text=unic, type="unicode")],
+                        "suppress": True,
+                        "matched_fragment": "\\" + s,
+                    }
             except KeyError:
                 pass
-        return '', []
+        return {
+            "completions": [],
+            "suppress": False,
+        }
 
     @context_matcher()
     def latex_name_matcher(self, context: CompletionContext):
