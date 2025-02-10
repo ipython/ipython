@@ -376,8 +376,6 @@ def format_screen(strng: str) -> str:
 def dedent(text: str) -> str:
     """Equivalent of textwrap.dedent that ignores unindented first line.
 
-    .. deprecated:: 9.0
-
     This means it will still dedent strings like:
     '''foo
     is a bar
@@ -385,14 +383,6 @@ def dedent(text: str) -> str:
 
     For use in wrap_paragraphs.
     """
-    # used to be used in a deprecated / removed function.
-    warnings.warn(
-        "`ipython.utils.text.dedent` is Pending Deprecation since IPython 9.0."
-        "It is considered for removal in in future version. "
-        "Please open an issue if you believe it should be kept.",
-        stacklevel=2,
-        category=PendingDeprecationWarning,
-    )
 
     if text.startswith('\n'):
         # text starts with blank line, don't ignore the first line
