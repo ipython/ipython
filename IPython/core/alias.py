@@ -212,7 +212,7 @@ class AliasManager(Configurable):
             if (
                 cmd.startswith("ls ")
                 and self.shell is not None
-                and self.shell.colors == "NoColor"
+                and self.shell.colors == "nocolor"
             ):
                 cmd = cmd.replace(" --color", "")
             self.soft_define_alias(name, cmd)

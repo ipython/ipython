@@ -159,14 +159,27 @@ disallow_untyped_decorators = true
 
 [[tool.mypy.overrides]]
 module = [
+    "IPython.core.ultratb",
 ]
 disallow_untyped_defs = false
-ignore_errors = true
+ignore_errors = false
+ignore_missing_imports = false
+disallow_untyped_calls = false
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+
+[[tool.mypy.overrides]]
+module = [
+    "IPython.core.debugger",
+]
+disallow_untyped_defs = false
+ignore_errors = false
 ignore_missing_imports = true
 disallow_untyped_calls = false
 disallow_incomplete_defs = false
-check_untyped_defs = false
-disallow_untyped_decorators = false
+check_untyped_defs = true
+disallow_untyped_decorators = true
 
 
 # gloabl ignore error
@@ -181,7 +194,6 @@ module = [
     "IPython.core.compilerop",
     "IPython.core.completer",
     "IPython.core.completerlib",
-    "IPython.core.debugger",
     "IPython.core.display",
     "IPython.core.display_functions",
     "IPython.core.display_trap",
@@ -226,7 +238,6 @@ module = [
     "IPython.core.pylabtools",
     "IPython.core.shellapp",
     "IPython.core.splitinput",
-    "IPython.core.ultratb",
     "IPython.extensions.autoreload",
     "IPython.extensions.storemagic",
     "IPython.external.pickleshare",

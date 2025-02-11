@@ -1,4 +1,3 @@
-# encoding: utf-8
 """sys.excepthook for IPython itself, leaves a detailed report on disk.
 
 Authors:
@@ -159,11 +158,8 @@ class CrashHandler:
         # infinite loop.
         sys.excepthook = sys.__excepthook__
         
-        # Report tracebacks shouldn't use color in general (safer for users)
-        color_scheme = 'NoColor'
 
         # Use this ONLY for developer debugging (keep commented out for release)
-        # color_scheme = 'Linux'   # dbg
         ipython_dir = getattr(self.app, "ipython_dir", None)
         if ipython_dir is not None:
             assert isinstance(ipython_dir, str)
@@ -178,7 +174,7 @@ class CrashHandler:
         self.crash_report_fname = str(report_name)
         self.info["crash_report_fname"] = str(report_name)
         TBhandler = ultratb.VerboseTB(
-            color_scheme=color_scheme,
+            theme_name="nocolor",
             long_header=True,
             call_pdb=self.call_pdb,
         )

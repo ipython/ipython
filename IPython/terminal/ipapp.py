@@ -129,12 +129,14 @@ addflag('term-title', 'TerminalInteractiveShell.term_title',
 classic_config = Config()
 classic_config.InteractiveShell.cache_size = 0
 classic_config.PlainTextFormatter.pprint = False
-classic_config.TerminalInteractiveShell.prompts_class='IPython.terminal.prompts.ClassicPrompts'
-classic_config.InteractiveShell.separate_in = ''
-classic_config.InteractiveShell.separate_out = ''
-classic_config.InteractiveShell.separate_out2 = ''
-classic_config.InteractiveShell.colors = 'NoColor'
-classic_config.InteractiveShell.xmode = 'Plain'
+classic_config.TerminalInteractiveShell.prompts_class = (
+    "IPython.terminal.prompts.ClassicPrompts"
+)
+classic_config.InteractiveShell.separate_in = ""
+classic_config.InteractiveShell.separate_out = ""
+classic_config.InteractiveShell.separate_out2 = ""
+classic_config.InteractiveShell.colors = "nocolor"
+classic_config.InteractiveShell.xmode = "Plain"
 
 frontend_flags['classic']=(
     classic_config,

@@ -94,12 +94,13 @@ shell_flags['matplotlib'] = (
 
 # it's possible we don't want short aliases for *all* of these:
 shell_aliases = dict(
-    autocall='InteractiveShell.autocall',
-    colors='InteractiveShell.colors',
-    logfile='InteractiveShell.logfile',
-    logappend='InteractiveShell.logappend',
-    c='InteractiveShellApp.code_to_run',
-    m='InteractiveShellApp.module_to_run',
+    autocall="InteractiveShell.autocall",
+    colors="InteractiveShell.colors",
+    theme="InteractiveShell.colors",
+    logfile="InteractiveShell.logfile",
+    logappend="InteractiveShell.logappend",
+    c="InteractiveShellApp.code_to_run",
+    m="InteractiveShellApp.module_to_run",
     ext="InteractiveShellApp.extra_extensions",
     gui='InteractiveShellApp.gui',
     pylab='InteractiveShellApp.pylab',

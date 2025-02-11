@@ -9,7 +9,7 @@ reference the name under which an object is being read.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-__all__ = ['Inspector','InspectColors']
+__all__ = ["Inspector"]
 
 # stdlib modules
 from dataclasses import dataclass
@@ -23,6 +23,7 @@ import linecache
 import os
 import types
 import warnings
+from pygments.token import Token
 
 
 from typing import (
@@ -38,6 +39,7 @@ from typing import (
 )
 
 import traitlets
+from traitlets.config import Configurable
 
 # IPython's own
 from IPython.core import page
@@ -48,8 +50,6 @@ from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.path import compress_user
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace, typestr2type
-from IPython.utils.coloransi import TermColors
-from IPython.utils.colorable import Colorable
 from IPython.utils.decorators import undoc
 
 from pygments import highlight
@@ -106,7 +106,6 @@ _builtin_meth_type = type(str.upper)  # Bound methods have the same type as buil
 #****************************************************************************
 # Builtin color schemes
 
-InspectColors = PyColorize.ANSICodeColors
 
 #****************************************************************************
 # Auxiliary functions and objects
@@ -381,27 +380,36 @@ def find_source_lines(obj):
 
     return lineno
 
-class Inspector(Colorable):
+
+_sentinel = object()
+
+
+class Inspector(Configurable):
 
     mime_hooks = traitlets.Dict(
         config=True,
         help="dictionary of mime to callable to add information into help mimebundle dict",
     ).tag(config=True)
 
+    _theme_name: str
+
     def __init__(
         self,
-        color_table=InspectColors,
-        scheme=None,
+        *,
+        theme_name: str,
         str_detail_level=0,
         parent=None,
         config=None,
     ):
+        assert theme_name == theme_name.lower(), theme_name
+        self._theme_name = theme_name
         super(Inspector, self).__init__(parent=parent, config=config)
-        self.color_table = color_table
-        self.parser = PyColorize.Parser(out='str', parent=self, style=scheme)
-        self.format = self.parser.format
+        self.parser = PyColorize.Parser(out="str", theme_name=theme_name)
         self.str_detail_level = str_detail_level
-        self.set_active_scheme(scheme)
+        self.set_theme_name(theme_name)
+
+    def format(self, *args, **kwargs):
+        return self.parser.format(*args, **kwargs)
 
     def _getdef(self,obj,oname='') -> Union[str,None]:
         """Return the call signature for any callable object.
@@ -415,15 +423,26 @@ class Inspector(Colorable):
         except:
             return None
 
-    def __head(self,h) -> str:
+    def __head(self, h: str) -> str:
         """Return a header string with proper colors."""
-        return '%s%s%s' % (self.color_table.active_colors.header,h,
-                           self.color_table.active_colors.normal)
+        return PyColorize.theme_table[self._theme_name].format([(Token.Header, h)])
 
-    def set_active_scheme(self, scheme):
-        if scheme is not None:
-            self.color_table.set_active_scheme(scheme)
-            self.parser.color_table.set_active_scheme(scheme)
+    def set_theme_name(self, name: str):
+        assert name == name.lower()
+        assert name in PyColorize.theme_table.keys()
+        self._theme_name = name
+        self.parser.theme_name = name
+
+    def set_active_scheme(self, scheme: str):
+        warnings.warn(
+            "set_active_scheme is deprecated and replaced by set_theme_name as of IPython 9.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        assert scheme == scheme.lower()
+        if scheme is not None and self._theme_name != scheme:
+            self._theme_name = scheme
+            self.parser.theme_name = scheme
 
     def noinfo(self, msg, oname):
         """Generic message when no information is found."""
@@ -489,23 +508,22 @@ class Inspector(Colorable):
         No documentation found for obj2
         """
 
-        head = self.__head  # For convenience
         lines = []
         ds = getdoc(obj)
         if formatter:
             ds = formatter(ds).get('plain/text', ds)
         if ds:
-            lines.append(head("Class docstring:"))
+            lines.append(self.__head("Class docstring:"))
             lines.append(indent(ds))
         if inspect.isclass(obj) and hasattr(obj, '__init__'):
             init_ds = getdoc(obj.__init__)
             if init_ds is not None:
-                lines.append(head("Init docstring:"))
+                lines.append(self.__head("Init docstring:"))
                 lines.append(indent(init_ds))
         elif hasattr(obj,'__call__'):
             call_ds = getdoc(obj.__call__)
             if call_ds:
-                lines.append(head("Call docstring:"))
+                lines.append(self.__head("Call docstring:"))
                 lines.append(indent(call_ds))
 
         if not lines:

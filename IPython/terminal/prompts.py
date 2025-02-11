@@ -32,9 +32,9 @@ class Prompts:
 
     def in_prompt_tokens(self):
         return [
-            (Token.Prompt, self.vi_mode()),
+            (Token.Prompt.Mode, self.vi_mode()),
             (
-                Token.Prompt,
+                Token.Prompt.LineNumber,
                 self.shell.prompt_line_number_format.format(
                     line=1, rel_line=-self.current_line()
                 ),
@@ -60,7 +60,7 @@ class Prompts:
         if wrap_count:
             return [
                 (
-                    Token.Prompt,
+                    Token.Prompt.Wrap,
                     # (" " * (width - 2)) + "\N{HORIZONTAL ELLIPSIS} ",
                     (" " * (width - 2)) + "\N{Vertical ELLIPSIS} ",
                 ),
@@ -72,9 +72,10 @@ class Prompts:
         )
         return [
             (
-                Token.Prompt,
-                prefix + (" " * (width - len(prefix) - 5)) + "...: ",
+                getattr(Token.Prompt.Continuation, f"L{lineno}"),
+                prefix + (" " * (width - len(prefix) - 5)) + "...:",
             ),
+            (Token.Prompt.Padding, " "),
         ]
 
     def rewrite_prompt_tokens(self):
@@ -97,9 +98,7 @@ class ClassicPrompts(Prompts):
         ]
 
     def continuation_prompt_tokens(self, width=None):
-        return [
-            (Token.Prompt, '... ')
-        ]
+        return [(Token.Prompt.Continuation, "... ")]
 
     def rewrite_prompt_tokens(self):
         return []

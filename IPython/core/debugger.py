@@ -111,7 +111,7 @@ All the changes since then are under the same license as IPython.
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #
 #       This file is licensed under the PSF license.
 #
@@ -119,7 +119,7 @@ All the changes since then are under the same license as IPython.
 #       Copyright (C) 2005-2006 Fernando Perez. <fperez@colorado.edu>
 #
 #
-#*****************************************************************************
+# *****************************************************************************
 
 from __future__ import annotations
 
@@ -128,14 +128,20 @@ import linecache
 import os
 import re
 import sys
+import warnings
 from contextlib import contextmanager
 from functools import lru_cache
 
 from IPython import get_ipython
-from IPython.core.excolors import exception_colors
-from IPython.utils import PyColorize, coloransi, py3compat
+from IPython.utils import PyColorize
+from IPython.utils.PyColorize import TokenStream
 
 from typing import TYPE_CHECKING
+from types import FrameType
+
+# We have to check this directly from sys.argv, config struct not yet available
+from pdb import Pdb as OldPdb
+from pygments.token import Token
 
 if TYPE_CHECKING:
     # otherwise circular import
@@ -144,10 +150,8 @@ if TYPE_CHECKING:
 # skip module docstests
 __skip_doctest__ = True
 
-prompt = 'ipdb> '
+prompt = "ipdb> "
 
-# We have to check this directly from sys.argv, config struct not yet available
-from pdb import Pdb as OldPdb
 
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
@@ -161,15 +165,6 @@ DEBUGGERSKIP = "__debuggerskip__"
 CHAIN_EXCEPTIONS = sys.version_info < (3, 13)
 
 
-def make_arrow(pad):
-    """generate the leading arrow in front of traceback or debugger"""
-    if pad >= 2:
-        return '-'*(pad-2) + '> '
-    elif pad == 1:
-        return '>'
-    return ''
-
-
 def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     """Exception hook which handles `BdbQuit` exceptions.
 
@@ -181,11 +176,11 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     )
 
 
-RGX_EXTRA_INDENT = re.compile(r'(?<=\n)\s+')
+RGX_EXTRA_INDENT = re.compile(r"(?<=\n)\s+")
 
 
 def strip_indentation(multiline_string):
-    return RGX_EXTRA_INDENT.sub('', multiline_string)
+    return RGX_EXTRA_INDENT.sub("", multiline_string)
 
 
 def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
@@ -193,8 +188,10 @@ def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     for the ``do_...`` commands that hook into the help system.
     Adapted from from a comp.lang.python posting
     by Duncan Booth."""
+
     def wrapper(*args, **kw):
         return new_fn(*args, **kw)
+
     if old_fn.__doc__:
         wrapper.__doc__ = strip_indentation(old_fn.__doc__) + additional_text
     return wrapper
@@ -214,6 +211,11 @@ class Pdb(OldPdb):
     """
 
     shell: InteractiveShell
+    _theme_name: str
+    _context: int
+
+    _chained_exceptions: tuple[Exception, ...]
+    _chained_exception_index: int
 
     if CHAIN_EXCEPTIONS:
         MAX_CHAINED_EXCEPTION_DEPTH = 999
@@ -225,7 +227,9 @@ class Pdb(OldPdb):
         "debuggerskip": True,
     }
 
-    def __init__(self, completekey=None, stdin=None, stdout=None, context=5, **kwargs):
+    def __init__(
+        self, completekey=None, stdin=None, stdout=None, context: int = 5, **kwargs
+    ):
         """Create a new IPython debugger.
 
         Parameters
@@ -248,13 +252,7 @@ class Pdb(OldPdb):
         docs for more info.
         """
 
-        # Parent constructor:
-        try:
-            self.context = int(context)
-            if self.context <= 0:
-                raise ValueError("Context must be a positive integer")
-        except (TypeError, ValueError) as e:
-                raise ValueError("Context must be a positive integer") from e
+        self.context = context
 
         # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
         OldPdb.__init__(self, completekey, stdin, stdout, **kwargs)
@@ -263,33 +261,25 @@ class Pdb(OldPdb):
         self.shell = get_ipython()
 
         if self.shell is None:
-            save_main = sys.modules['__main__']
+            save_main = sys.modules["__main__"]
             # No IPython instance running, we must create one
-            from IPython.terminal.interactiveshell import \
-                TerminalInteractiveShell
+            from IPython.terminal.interactiveshell import TerminalInteractiveShell
+
             self.shell = TerminalInteractiveShell.instance()
             # needed by any code which calls __import__("__main__") after
             # the debugger was entered. See also #9941.
             sys.modules["__main__"] = save_main
 
-
-        color_scheme = self.shell.colors
-
         self.aliases = {}
 
-        # Create color table: we copy the default one from the traceback
-        # module and add a few attributes needed for debugging
-        self.color_scheme_table = exception_colors()
-
-        # shorthands
-        C = coloransi.TermColors
-        cst = self.color_scheme_table
-
+        theme_name = self.shell.colors
+        assert isinstance(theme_name, str)
+        assert theme_name.lower() == theme_name
 
         # Add a python parser so we can syntax highlight source while
         # debugging.
-        self.parser = PyColorize.Parser(style=color_scheme)
-        self.set_colors(color_scheme)
+        self.parser = PyColorize.Parser(theme_name=theme_name)
+        self.set_theme_name(theme_name)
 
         # Set the prompt - the default prompt is '(Pdb)'
         self.prompt = prompt
@@ -303,11 +293,37 @@ class Pdb(OldPdb):
             self._chained_exceptions = tuple()
             self._chained_exception_index = 0
 
+    @property
+    def context(self) -> int:
+        return self._context
+
+    @context.setter
+    def context(self, value: int) -> None:
+        assert isinstance(value, int)
+        assert value >= 0
+        self._context = value
+
+    def set_theme_name(self, name):
+        assert name.lower() == name
+        assert isinstance(name, str)
+        self._theme_name = name
+        self.parser.theme_name = name
+
+    @property
+    def theme(self):
+        return PyColorize.theme_table[self._theme_name]
+
     #
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
-        self.color_scheme_table.set_active_scheme(scheme)
-        self.parser.style = scheme
+        warnings.warn(
+            "set_colors is deprecated since IPython 9.0, use set_theme_name instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        assert scheme == scheme.lower()
+        self._theme_name = scheme.lower()
+        self.parser.theme_name = scheme.lower()
 
     def set_trace(self, frame=None):
         if frame is None:
@@ -485,53 +501,54 @@ class Pdb(OldPdb):
 
     do_q = do_quit = decorate_fn_with_doc(new_do_quit, OldPdb.do_quit)
 
-    def print_stack_trace(self, context=None):
-        Colors = self.color_scheme_table.active_colors
-        ColorsNormal = Colors.Normal
+    def print_stack_trace(self, context: int | None = None):
         if context is None:
             context = self.context
         try:
-            context = int(context)
-            if context <= 0:
-                raise ValueError("Context must be a positive integer")
-        except (TypeError, ValueError) as e:
-                raise ValueError("Context must be a positive integer") from e
-        try:
             skipped = 0
+            to_print = ""
             for hidden, frame_lineno in zip(self.hidden_frames(self.stack), self.stack):
                 if hidden and self.skip_hidden:
                     skipped += 1
                     continue
                 if skipped:
-                    print(
-                        f"{Colors.excName}    [... skipping {skipped} hidden frame(s)]{ColorsNormal}\n"
+                    to_print += self.theme.format(
+                        [
+                            (
+                                Token.ExcName,
+                                f"    [... skipping {skipped} hidden frame(s)]",
+                            ),
+                            (Token, "\n"),
+                        ]
                     )
+
                     skipped = 0
-                self.print_stack_entry(frame_lineno, context=context)
+                to_print += self.format_stack_entry(frame_lineno)
             if skipped:
-                print(
-                    f"{Colors.excName}    [... skipping {skipped} hidden frame(s)]{ColorsNormal}\n"
+                to_print += self.theme.format(
+                    [
+                        (
+                            Token.ExcName,
+                            f"    [... skipping {skipped} hidden frame(s)]",
+                        ),
+                        (Token, "\n"),
+                    ]
                 )
+            print(to_print, file=self.stdout)
         except KeyboardInterrupt:
             pass
 
-    def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
-                          context=None):
-        if context is None:
-            context = self.context
-        try:
-            context = int(context)
-            if context <= 0:
-                raise ValueError("Context must be a positive integer")
-        except (TypeError, ValueError) as e:
-                raise ValueError("Context must be a positive integer") from e
-        print(self.format_stack_entry(frame_lineno, '', context), file=self.stdout)
+    def print_stack_entry(
+        self, frame_lineno: tuple[FrameType, int], prompt_prefix: str = "\n-> "
+    ) -> None:
+        """
+        Overwrite print_stack_entry from superclass (PDB)
+        """
+        print(self.format_stack_entry(frame_lineno, ""), file=self.stdout)
 
-        # vds: >>
         frame, lineno = frame_lineno
         filename = frame.f_code.co_filename
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds: <<
 
     def _get_frame_locals(self, frame):
         """ "
@@ -555,63 +572,72 @@ class Pdb(OldPdb):
         else:
             return frame.f_locals
 
-    def format_stack_entry(self, frame_lineno, lprefix=': ', context=None):
-        if context is None:
-            context = self.context
+    def format_stack_entry(
+        self,
+        frame_lineno: tuple[FrameType, int],  # type: ignore[override] # stubs are wrong
+        lprefix: str = ": ",
+    ) -> str:
+        """
+        overwrite from super class so must -> str
+        """
+        context = self.context
         try:
             context = int(context)
             if context <= 0:
                 print("Context must be a positive integer", file=self.stdout)
         except (TypeError, ValueError):
-                print("Context must be a positive integer", file=self.stdout)
+            print("Context must be a positive integer", file=self.stdout)
 
         import reprlib
 
-        ret = []
-
-        Colors = self.color_scheme_table.active_colors
-        ColorsNormal = Colors.Normal
-        tpl_link = "%s%%s%s" % (Colors.filenameEm, ColorsNormal)
-        tpl_call = "%s%%s%s%%s%s" % (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_line = "%%s%s%%s %s%%s" % (Colors.lineno, ColorsNormal)
-        tpl_line_em = "%%s%s%%s %s%%s%s" % (Colors.linenoEm, Colors.line, ColorsNormal)
+        ret_tok = []
 
         frame, lineno = frame_lineno
 
-        return_value = ''
+        return_value = ""
         loc_frame = self._get_frame_locals(frame)
         if "__return__" in loc_frame:
             rv = loc_frame["__return__"]
             # return_value += '->'
             return_value += reprlib.repr(rv) + "\n"
-        ret.append(return_value)
+            ret_tok.extend([(Token, return_value)])
 
-        #s = filename + '(' + `lineno` + ')'
+        # s = filename + '(' + `lineno` + ')'
         filename = self.canonic(frame.f_code.co_filename)
-        link = tpl_link % py3compat.cast_unicode(filename)
+        link_tok = (Token.FilenameEm, filename)
 
         if frame.f_code.co_name:
             func = frame.f_code.co_name
         else:
             func = "<lambda>"
 
-        call = ""
+        call_toks = []
         if func != "?":
             if "__args__" in loc_frame:
                 args = reprlib.repr(loc_frame["__args__"])
             else:
-                args = '()'
-            call = tpl_call % (func, args)
+                args = "()"
+            call_toks = [(Token.VName, func), (Token.ValEm, args)]
 
         # The level info should be generated in the same format pdb uses, to
         # avoid breaking the pdbtrack functionality of python-mode in *emacs.
         if frame is self.curframe:
-            ret.append('> ')
+            ret_tok.append((Token.CurrentFrame, self.theme.make_arrow(2)))
         else:
-            ret.append("  ")
-        ret.append("%s(%s)%s\n" % (link, lineno, call))
+            ret_tok.append((Token, "  "))
 
-        start = lineno - 1 - context//2
+        ret_tok.extend(
+            [
+                link_tok,
+                (Token, "("),
+                (Token.Lineno, str(lineno)),
+                (Token, ")"),
+                *call_toks,
+                (Token, "\n"),
+            ]
+        )
+
+        start = lineno - 1 - context // 2
         lines = linecache.getlines(filename)
         start = min(start, len(lines) - context)
         start = max(start, 0)
@@ -619,19 +645,46 @@ class Pdb(OldPdb):
 
         for i, line in enumerate(lines):
             show_arrow = start + 1 + i == lineno
-            linetpl = (frame is self.curframe or show_arrow) and tpl_line_em or tpl_line
-            ret.append(
-                self.__format_line(
-                    linetpl, filename, start + 1 + i, line, arrow=show_arrow
-                )
+
+            bp, num, colored_line = self.__line_content(
+                filename,
+                start + 1 + i,
+                line,
+                arrow=show_arrow,
             )
-        return "".join(ret)
+            if frame is self.curframe or show_arrow:
+                rlt = [
+                    bp,
+                    (Token.LinenoEm, num),
+                    (Token, " "),
+                    # TODO: investigate Toke.Line here, likely LineEm,
+                    # Token is problematic here as line is already colored, a
+                    # and this changes the full style of the colored line.
+                    # ideally, __line_content returns the token and we modify the style.
+                    (Token, colored_line),
+                ]
+            else:
+                rlt = [
+                    bp,
+                    (Token.Lineno, num),
+                    (Token, " "),
+                    # TODO: investigate Toke.Line here, likely Line
+                    # Token is problematic here as line is already colored, a
+                    # and this changes the full style of the colored line.
+                    # ideally, __line_content returns the token and we modify the style.
+                    (Token.Line, colored_line),
+                ]
+            ret_tok.extend(rlt)
 
-    def __format_line(self, tpl_line, filename, lineno, line, arrow=False):
+        return self.theme.format(ret_tok)
+
+    def __line_content(
+        self, filename: str, lineno: int, line: str, arrow: bool = False
+    ):
         bp_mark = ""
-        bp_mark_color = ""
+        BreakpointToken = Token.Breakpoint
 
-        new_line, err = self.parser.format2(line, 'str')
+        new_line, err = self.parser.format2(line, "str")
         if not err:
             line = new_line
 
@@ -641,52 +694,64 @@ class Pdb(OldPdb):
             bp = bps[-1]
 
         if bp:
-            Colors = self.color_scheme_table.active_colors
             bp_mark = str(bp.number)
-            bp_mark_color = Colors.breakpoint_enabled
+            BreakpointToken = Token.Breakpoint.Enabled
             if not bp.enabled:
-                bp_mark_color = Colors.breakpoint_disabled
-
+                BreakpointToken = Token.Breakpoint.Disabled
         numbers_width = 7
         if arrow:
             # This is the line with the error
             pad = numbers_width - len(str(lineno)) - len(bp_mark)
-            num = '%s%s' % (make_arrow(pad), str(lineno))
+            num = "%s%s" % (self.theme.make_arrow(pad), str(lineno))
         else:
-            num = '%*s' % (numbers_width - len(bp_mark), str(lineno))
+            num = "%*s" % (numbers_width - len(bp_mark), str(lineno))
+        bp_str = (BreakpointToken, bp_mark)
+        return (bp_str, num, line)
 
-        return tpl_line % (bp_mark_color + bp_mark, num, line)
-
-    def print_list_lines(self, filename, first, last):
+    def print_list_lines(self, filename: str, first: int, last: int) -> None:
         """The printing (as opposed to the parsing part of a 'list'
         command."""
+        toks: TokenStream = []
         try:
-            Colors = self.color_scheme_table.active_colors
-            ColorsNormal = Colors.Normal
-            tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-            tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
-            src = []
             if filename == "<string>" and hasattr(self, "_exec_filename"):
                 filename = self._exec_filename
 
-            for lineno in range(first, last+1):
+            for lineno in range(first, last + 1):
                 line = linecache.getline(filename, lineno)
                 if not line:
                     break
 
+                assert self.curframe is not None
+
                 if lineno == self.curframe.f_lineno:
-                    line = self.__format_line(
-                        tpl_line_em, filename, lineno, line, arrow=True
+                    bp, num, colored_line = self.__line_content(
+                        filename, lineno, line, arrow=True
+                    )
+                    toks.extend(
+                        [
+                            bp,
+                            (Token.LinenoEm, num),
+                            (Token, " "),
+                            # TODO: invsetigate Toke.Line here
+                            (Token, colored_line),
+                        ]
                     )
                 else:
-                    line = self.__format_line(
-                        tpl_line, filename, lineno, line, arrow=False
+                    bp, num, colored_line = self.__line_content(
+                        filename, lineno, line, arrow=False
+                    )
+                    toks.extend(
+                        [
+                            bp,
+                            (Token.Lineno, num),
+                            (Token, " "),
+                            (Token, colored_line),
+                        ]
                     )
 
-                src.append(line)
                 self.lineno = lineno
 
-            print(''.join(src), file=self.stdout)
+            print(self.theme.format(toks), file=self.stdout)
 
         except KeyboardInterrupt:
             pass
@@ -755,9 +820,8 @@ class Pdb(OldPdb):
             )
 
     def do_list(self, arg):
-        """Print lines of code from the current stack frame
-        """
-        self.lastcmd = 'list'
+        """Print lines of code from the current stack frame"""
+        self.lastcmd = "list"
         last = None
         if arg and arg != ".":
             try:
@@ -772,21 +836,21 @@ class Pdb(OldPdb):
                 else:
                     first = max(1, int(x) - 5)
             except:
-                print('*** Error in argument:', repr(arg), file=self.stdout)
+                print("*** Error in argument:", repr(arg), file=self.stdout)
                 return
         elif self.lineno is None or arg == ".":
+            assert self.curframe is not None
             first = max(1, self.curframe.f_lineno - 5)
         else:
             first = self.lineno + 1
         if last is None:
             last = first + 10
+        assert self.curframe is not None
         self.print_list_lines(self.curframe.f_code.co_filename, first, last)
 
-        # vds: >>
         lineno = first
         filename = self.curframe.f_code.co_filename
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds: <<
 
     do_l = do_list
 
@@ -797,21 +861,23 @@ class Pdb(OldPdb):
             return lines, 1
         elif inspect.ismodule(obj):
             return lines, 1
-        return inspect.getblock(lines[lineno:]), lineno+1
+        return inspect.getblock(lines[lineno:]), lineno + 1
 
     def do_longlist(self, arg):
         """Print lines of code from the current stack frame.
 
         Shows more lines than 'list' does.
         """
-        self.lastcmd = 'longlist'
+        self.lastcmd = "longlist"
         try:
             lines, lineno = self.getsourcelines(self.curframe)
         except OSError as err:
-            self.error(err)
+            self.error(str(err))
             return
         last = lineno + len(lines)
+        assert self.curframe is not None
         self.print_list_lines(self.curframe.f_code.co_filename, lineno, last)
+
     do_ll = do_longlist
 
     def do_debug(self, arg):
@@ -822,10 +888,12 @@ class Pdb(OldPdb):
         """
         trace_function = sys.gettrace()
         sys.settrace(None)
+        assert self.curframe is not None
         globals = self.curframe.f_globals
         locals = self.curframe_locals
-        p = self.__class__(completekey=self.completekey,
-                           stdin=self.stdin, stdout=self.stdout)
+        p = self.__class__(
+            completekey=self.completekey, stdin=self.stdin, stdout=self.stdout
+        )
         p.use_rawinput = self.use_rawinput
         p.prompt = "(%s) " % self.prompt.strip()
         self.message("ENTERING RECURSIVE DEBUGGER")
@@ -838,6 +906,7 @@ class Pdb(OldPdb):
         """Print the call signature for any callable object.
 
         The debugger interface to %pdef"""
+        assert self.curframe is not None
         namespaces = [
             ("Locals", self.curframe_locals),
             ("Globals", self.curframe.f_globals),
@@ -848,6 +917,7 @@ class Pdb(OldPdb):
         """Print the docstring for an object.
 
         The debugger interface to %pdoc."""
+        assert self.curframe is not None
         namespaces = [
             ("Locals", self.curframe_locals),
             ("Globals", self.curframe.f_globals),
@@ -859,6 +929,7 @@ class Pdb(OldPdb):
 
         The debugger interface to %pfile.
         """
+        assert self.curframe is not None
         namespaces = [
             ("Locals", self.curframe_locals),
             ("Globals", self.curframe.f_globals),
@@ -869,6 +940,7 @@ class Pdb(OldPdb):
         """Provide detailed information about an object.
 
         The debugger interface to %pinfo, i.e., obj?."""
+        assert self.curframe is not None
         namespaces = [
             ("Locals", self.curframe_locals),
             ("Globals", self.curframe.f_globals),
@@ -879,6 +951,7 @@ class Pdb(OldPdb):
         """Provide extra detailed information about an object.
 
         The debugger interface to %pinfo2, i.e., obj??."""
+        assert self.curframe is not None
         namespaces = [
             ("Locals", self.curframe_locals),
             ("Globals", self.curframe.f_globals),
@@ -887,13 +960,14 @@ class Pdb(OldPdb):
 
     def do_psource(self, arg):
         """Print (or run through pager) the source code for an object."""
+        assert self.curframe is not None
         namespaces = [
             ("Locals", self.curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
         self.shell.find_line_magic("psource")(arg, namespaces=namespaces)
 
-    def do_where(self, arg):
+    def do_where(self, arg: str):
         """w(here)
         Print a stack trace, with the most recent frame at the bottom.
         An arrow indicates the "current frame", which determines the
@@ -905,7 +979,7 @@ class Pdb(OldPdb):
             try:
                 context = int(arg)
             except ValueError as err:
-                self.error(err)
+                self.error(str(err))
                 return
             self.print_stack_trace(context)
         else:
@@ -980,10 +1054,16 @@ class Pdb(OldPdb):
             hidden = self._hidden_predicate(frame)
         if hidden:
             if self.report_skipped:
-                Colors = self.color_scheme_table.active_colors
-                ColorsNormal = Colors.Normal
                 print(
-                    f"{Colors.excName}    [... skipped 1 hidden frame]{ColorsNormal}\n"
+                    self.theme.format(
+                        [
+                            (
+                                Token.ExcName,
+                                "    [... skipped 1 hidden frame(s)]",
+                            ),
+                            (Token, "\n"),
+                        ]
+                    )
                 )
         return super().stop_here(frame)
 
@@ -1024,13 +1104,19 @@ class Pdb(OldPdb):
                 )
                 return
 
-            Colors = self.color_scheme_table.active_colors
-            ColorsNormal = Colors.Normal
             _newframe = i
         self._select_frame(_newframe)
         if skipped:
             print(
-                f"{Colors.excName}    [... skipped {skipped} hidden frame(s)]{ColorsNormal}\n"
+                self.theme.format(
+                    [
+                        (
+                            Token.ExcName,
+                            f"    [... skipped {skipped} hidden frame(s)]",
+                        ),
+                        (Token, "\n"),
+                    ]
+                )
             )
 
     def do_down(self, arg):
@@ -1067,11 +1153,17 @@ class Pdb(OldPdb):
                 )
                 return
 
-            Colors = self.color_scheme_table.active_colors
-            ColorsNormal = Colors.Normal
             if skipped:
                 print(
-                    f"{Colors.excName}    [... skipped {skipped} hidden frame(s)]{ColorsNormal}\n"
+                    self.theme.format(
+                        [
+                            (
+                                Token.ExcName,
+                                f"    [... skipped {skipped} hidden frame(s)]",
+                            ),
+                            (Token, "\n"),
+                        ]
+                    )
                 )
             _newframe = i
 
@@ -1080,7 +1172,7 @@ class Pdb(OldPdb):
     do_d = do_down
     do_u = do_up
 
-    def do_context(self, context):
+    def do_context(self, context: str):
         """context number_of_lines
         Set the number of lines of source code to show when displaying
         stacktrace information.
@@ -1104,7 +1196,7 @@ class InterruptiblePdb(Pdb):
         try:
             return OldPdb.cmdloop(self, intro=intro)
         except KeyboardInterrupt:
-            self.stop_here = lambda frame: False
+            self.stop_here = lambda frame: False  # type: ignore[method-assign]
             self.do_quit("")
             sys.settrace(None)
             self.quitting = False
@@ -1120,7 +1212,7 @@ class InterruptiblePdb(Pdb):
                 self.allow_kbdint = False
                 break
             except KeyboardInterrupt:
-                self.message('--KeyboardInterrupt--')
+                self.message("--KeyboardInterrupt--")
                 raise
 
 

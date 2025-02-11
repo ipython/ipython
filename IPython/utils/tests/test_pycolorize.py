@@ -24,8 +24,8 @@ import io
 import pytest
 
 
-@pytest.fixture(scope="module", params=("Linux", "NoColor", "LightBG", "Neutral"))
-def style(request):
+@pytest.fixture(scope="module", params=("linux", "nocolor", "lightbg", "neutral"))
+def theme_name(request):
     yield request.param
 
 #-----------------------------------------------------------------------------
@@ -52,10 +52,10 @@ class Bar(Super):
 """
 
 
-def test_parse_sample(style):
+def test_parse_sample(theme_name):
     """and test writing to a buffer"""
     buf = io.StringIO()
-    p = Parser(style=style)
+    p = Parser(theme_name=theme_name)
     p.format(sample, buf)
     buf.seek(0)
     f1 = buf.read()
@@ -63,8 +63,8 @@ def test_parse_sample(style):
     assert "ERROR" not in f1
 
 
-def test_parse_error(style):
-    p = Parser(style=style)
+def test_parse_error(theme_name):
+    p = Parser(theme_name=theme_name)
     f1 = p.format(r"\ " if sys.version_info >= (3, 12) else ")", "str")
-    if style != "NoColor":
+    if theme_name != "nocolor":
         assert "ERROR" in f1

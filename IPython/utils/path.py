@@ -66,10 +66,9 @@ def get_long_path_name(path):
     return _get_long_path_name(path)
 
 
-def compress_user(path):
-    """Reverse of :func:`os.path.expanduser`
-    """
-    home = os.path.expanduser('~')
+def compress_user(path: str) -> str:
+    """Reverse of :func:`os.path.expanduser`"""
+    home = os.path.expanduser("~")
     if path.startswith(home):
         path =  "~" + path[len(home):]
     return path

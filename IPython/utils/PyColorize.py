@@ -1,112 +1,185 @@
-# -*- coding: utf-8 -*-
-"""
-Class and program to colorize python source code for ANSI terminals.
-
-Based on an HTML code highlighter by Jurgen Hermann found at:
-http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52298
-
-Modifications by Fernando Perez (fperez@colorado.edu).
-
-Information on the original HTML highlighter follows:
-
-MoinMoin - Python Source Parser
-
-Title: Colorize Python source using the built-in tokenizer
-
-Submitter: Jurgen Hermann
-Last Updated:2001/04/06
-
-Version no:1.2
-
-Description:
-
-This code is part of MoinMoin (http://moin.sourceforge.net/) and converts
-Python source code to HTML markup, rendering comments, keywords,
-operators, numeric and string literals in different colors.
-
-It shows how to use the built-in keyword, token and tokenize modules to
-scan Python source code and re-emit it with no changes to its original
-formatting (which is the hard part).
-"""
-
-__all__ = ['ANSICodeColors', 'Parser']
-
-_scheme_default = 'Linux'
-
-
-# Imports
 import keyword
 import os
 import sys
 import token
 import tokenize
+from io import StringIO
+from typing import TypeAlias
+
+import pygments
+from pygments.formatters.terminal256 import Terminal256Formatter
+from pygments.style import Style
+from pygments.styles import get_style_by_name
+from pygments.token import Token, _TokenType
+from functools import cache
+
+from typing import TypedDict
+
+
+TokenStream: TypeAlias = list[tuple[_TokenType, str]]
+
+
+__all__ = ["Parser", "Theme"]
+
+
+class Symbols(TypedDict):
+    top_line: str
+    arrow_body: str
+    arrow_head: str
+
+
+_default_symbols: Symbols = {
+    "top_line": "-",
+    "arrow_body": "-",
+    "arrow_head": ">",
+}
+
+
+class Theme:
+    name: str
+    base: str | None
+    extra_style: dict[_TokenType, str]
+    symbols: Symbols
+
+    def __init__(self, name, base, extra_style, *, symbols={}):
+        self.name = name
+        self.base = base
+        self.extra_style = extra_style
+        self.symbols = {**_default_symbols, **symbols}
+
+    @cache
+    def as_pygments_style(self):
+        if self.base is not None:
+            base_styles = get_style_by_name(self.base).styles
+        else:
+            base_styles = {}
+
+        class MyStyle(Style):
+            styles = {**base_styles, **self.extra_style}
+
+        return MyStyle
+
+    def format(self, stream: TokenStream) -> str:
+        style = self.as_pygments_style()
+
+        return pygments.format(stream, Terminal256Formatter(style=style))
+
+    def make_arrow(self, width: int):
+        """generate the leading arrow in front of traceback or debugger"""
+        if width >= 2:
+            return (
+                self.symbols["arrow_body"] * (width - 2)
+                + self.symbols["arrow_head"]
+                + " "
+            )
+        elif width == 1:
+            return self.symbols["arrow_head"]
+        return ""
+
 
 generate_tokens = tokenize.generate_tokens
 
-from IPython.utils.coloransi import TermColors, InputTermColors,ColorScheme, ColorSchemeTable
-from .colorable import Colorable
-from io import StringIO
 
 #############################################################################
 ### Python Source Parser (does Highlighting)
 #############################################################################
 
 _KEYWORD = token.NT_OFFSET + 1
-_TEXT    = token.NT_OFFSET + 2
+_TEXT = token.NT_OFFSET + 2
 
-#****************************************************************************
-# Builtin color schemes
+# ****************************************************************************
 
-Colors = TermColors  # just a shorthand
+_pygment_token_mapping: dict[int, _TokenType] = {
+    token.NUMBER: Token.Literal.Number,
+    token.OP: Token.Operator,
+    token.STRING: Token.Literal.String,
+    token.COMMENT: Token.Comment,
+    token.NAME: Token.Name,
+    token.ERRORTOKEN: Token.Error,
+    _KEYWORD: Token.Keyword,
+    _TEXT: Token.Text,
+}
 
-# Build a few color schemes
-NoColor = ColorScheme(
-    "NoColor",
+# technically BW is not nocolor, we should have a no-style, style
+nocolors_theme = Theme("nocolor", None, {})
+
+
+linux_theme = Theme(
+    "linux",
+    "monokai",
     {
-        "header": Colors.NoColor,
-        token.NUMBER: Colors.NoColor,
-        token.OP: Colors.NoColor,
-        token.STRING: Colors.NoColor,
-        token.COMMENT: Colors.NoColor,
-        token.NAME: Colors.NoColor,
-        token.ERRORTOKEN: Colors.NoColor,
-        _KEYWORD: Colors.NoColor,
-        _TEXT: Colors.NoColor,
-        "normal": Colors.NoColor,  # color off (usu. Colors.Normal)
+        Token.Header: "ansibrightred",
+        Token.LinenoEm: "ansibrightgreen",
+        Token.Lineno: "ansigreen",
+        Token.ValEm: "ansibrightblue",
+        Token.VName: "ansicyan",
+        Token.Caret: "",
+        Token.Filename: "ansibrightgreen",
+        Token.ExcName: "ansibrightred",
+        Token.Topline: "ansibrightred",
+        Token.FilenameEm: "ansigreen",
+        Token.Normal: "",
+        Token.NormalEm: "ansibrightcyan",
+        Token.Line: "ansiyellow",
+        Token.TB.Name: "ansimagenta",
+        Token.TB.NameEm: "ansibrightmagenta",
+        Token.Breakpoint: "",
+        Token.Breakpoint.Enabled: "ansibrightred",
+        Token.Breakpoint.Disabled: "ansired",
+        Token.Prompt: "ansibrightgreen",
+        Token.PromptNum: "ansigreen bold",
+        Token.OutPrompt: "ansibrightred",
+        Token.OutPromptNum: "ansired bold",
     },
 )
 
-LinuxColors = ColorScheme(
-    "Linux",
-    {
-        "header": Colors.LightRed,
-        token.NUMBER: Colors.LightCyan,
-        token.OP: Colors.Yellow,
-        token.STRING: Colors.LightBlue,
-        token.COMMENT: Colors.LightRed,
-        token.NAME: Colors.Normal,
-        token.ERRORTOKEN: Colors.Red,
-        _KEYWORD: Colors.LightGreen,
-        _TEXT: Colors.Yellow,
-        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
-    },
-)
+neutral_pygments_equiv = {
+    Token.Header: "ansired",
+    Token.LinenoEm: "ansigreen",
+    Token.Lineno: "ansibrightgreen",
+    Token.ValEm: "ansiblue",
+    Token.VName: "ansicyan",
+    Token.Caret: "",
+    Token.Filename: "ansibrightgreen",
+    Token.FilenameEm: "ansigreen",
+    Token.ExcName: "ansired",
+    Token.Topline: "ansired",
+    Token.Normal: "",
+    Token.NormalEm: "ansicyan",
+    Token.Line: "ansired",
+    Token.TB.Name: "ansibrightmagenta",
+    Token.TB.NameEm: "ansimagenta",
+    Token.Breakpoint: "",
+    Token.Breakpoint.Enabled: "ansibrightred",
+    Token.Breakpoint.Disabled: "ansired",
+    ## specific override of pygments defaults for visibility
+    Token.Number: "ansigreen",
+    Token.Operator: "noinherit",
+    Token.String: "ansiyellow",
+    Token.Name.Function: "ansiblue",
+    Token.Name.Class: "bold ansiblue",
+    Token.Name.Namespace: "bold ansiblue",
+    Token.Name.Variable.Magic: "ansiblue",
+    Token.Prompt: "ansigreen",
+    Token.OutPrompt: "ansired",
+}
 
-NeutralColors = ColorScheme(
-    "Neutral",
-    {
-        "header": Colors.Red,
-        token.NUMBER: Colors.Cyan,
-        token.OP: Colors.Blue,
-        token.STRING: Colors.Blue,
-        token.COMMENT: Colors.Red,
-        token.NAME: Colors.Normal,
-        token.ERRORTOKEN: Colors.Red,
-        _KEYWORD: Colors.Green,
-        _TEXT: Colors.Blue,
-        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
-    },
-)
+
+neutral_pygments_nt = {
+    **neutral_pygments_equiv,
+    Token.PromptNum: "ansigreen bold",
+    Token.OutPromptNum: "ansired bold",
+}
+neutral_pygments_posix = {
+    **neutral_pygments_equiv,
+    Token.PromptNum: "ansibrightgreen bold",
+    Token.OutPromptNum: "ansibrightred bold",
+}
+
+
+neutral_nt = Theme("neutral:nt", "default", neutral_pygments_nt)
+neutral_posix = Theme("neutral:posix", "default", neutral_pygments_posix)
+
 
 # Hack: the 'neutral' colours are not very visible on a dark background on
 # Windows. Since Windows command prompts have a dark background by default, and
@@ -114,52 +187,205 @@ NeutralColors = ColorScheme(
 # designed for a dark background, as the default on Windows. Changing it here
 # avoids affecting the prompt colours rendered by prompt_toolkit, where the
 # neutral defaults do work OK.
+if os.name == "nt":
+    neutral_theme = neutral_nt
+else:
+    neutral_theme = neutral_posix
 
-if os.name == 'nt':
-    NeutralColors = LinuxColors.copy(name='Neutral')
 
-LightBGColors = ColorScheme(
-    "LightBG",
+lightbg_theme = Theme(
+    "lightbg",
+    "pastie",
     {
-        "header": Colors.Red,
-        token.NUMBER: Colors.Cyan,
-        token.OP: Colors.Blue,
-        token.STRING: Colors.Blue,
-        token.COMMENT: Colors.Red,
-        token.NAME: Colors.Normal,
-        token.ERRORTOKEN: Colors.Red,
-        _KEYWORD: Colors.Green,
-        _TEXT: Colors.Blue,
-        "normal": Colors.Normal,  # color off (usu. Colors.Normal)
+        Token.Header: "ansired",
+        Token.LinenoEm: "ansigreen",
+        Token.Lineno: "ansibrightgreen",
+        Token.ValEm: "ansiblue",
+        Token.VName: "ansicyan",
+        Token.Caret: "",
+        Token.Filename: "ansigreen",
+        Token.FilenameEm: "ansibrightgreen",
+        Token.ExcName: "ansired",
+        Token.Topline: "ansired",
+        Token.Normal: "",
+        Token.NormalEm: "ansicyan",
+        Token.Line: "ansired",
+        Token.TB.Name: "ansibrightmagenta",
+        Token.TB.NameEm: "ansimagenta",
+        Token.Breakpoint: "",
+        Token.Breakpoint.Enabled: "ansibrightred",
+        Token.Breakpoint.Disabled: "ansired",
+        Token.Prompt: "ansibrightblue",
+        Token.PromptNum: "ansiblue bold",
+        Token.OutPrompt: "ansibrightred",
+        Token.OutPromptNum: "ansired bold",
     },
 )
 
-# Build table of color schemes (needed by the parser)
-ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors, NeutralColors],
-                                  _scheme_default)
+PRIDE_RED = "#E40303"
+PRIDE_ORANGE = "#FF8C00"
+PRIDE_YELLOW = "#FFED00"
+PRIDE_GREEN = "#008026"
+PRIDE_INDIGO = "#004CFF"
+PRIDE_VIOLET = "#732982"
+pride_theme = Theme(
+    "pride",
+    "pastie",
+    {
+        Token.Header: PRIDE_INDIGO,
+        Token.LinenoEm: f"{PRIDE_GREEN} italic",
+        Token.Lineno: f"{PRIDE_GREEN} bold",
+        Token.ValEm: f"{PRIDE_INDIGO} italic",
+        Token.VName: "ansicyan",
+        Token.Caret: "",
+        Token.Filename: f"{PRIDE_YELLOW}",
+        Token.FilenameEm: f"bg:{PRIDE_VIOLET}",
+        Token.ExcName: f"{PRIDE_ORANGE}",
+        Token.Topline: f"{PRIDE_RED}",
+        Token.Normal: "",
+        Token.NormalEm: "bold",
+        Token.Line: "ansired",
+        Token.TB.Name: "ansibrightmagenta",
+        Token.TB.NameEm: "ansimagenta",
+        Token.Breakpoint: "",
+        Token.Breakpoint.Enabled: "ansibrightred",
+        Token.Breakpoint.Disabled: "ansired",
+        Token.Prompt: "ansibrightblue",
+        Token.Prompt.Continuation.L1: f"ansiwhite bg:{PRIDE_RED}",
+        Token.Prompt.Continuation.L2: f"ansiwhite bg:{PRIDE_ORANGE}",
+        Token.Prompt.Continuation.L3: f"ansiblack bg:{PRIDE_YELLOW}",
+        Token.Prompt.Continuation.L4: f"ansiwhite bg:{PRIDE_GREEN}",
+        Token.Prompt.Continuation.L5: f"ansiwhite bg:{PRIDE_INDIGO}",
+        Token.Prompt.Continuation.L6: f"ansiwhite bg:{PRIDE_VIOLET}",
+        Token.PromptNum: "ansiblue bold",
+        Token.OutPrompt: "ansibrightred",
+        Token.OutPromptNum: "ansired bold",
+    },
+    symbols={"arrow_body": "\u2500", "arrow_head": "\u25B6", "top_line": "\u2500"},
+)
 
-class Parser(Colorable):
-    """ Format colored Python source.
-    """
 
-    def __init__(self, color_table=None, out = sys.stdout, parent=None, style=None):
-        """ Create a parser with a specified color table and output channel.
+C1 = "#D52D00"
+C2 = "#EF7627"
+C3 = "#FF9A56"
+White = "#FFFFFF"
+C5 = "#D162A4"
+C6 = "#B55690"
+C7 = "#A30262"
+
+pl = {
+    # Token.Whitespace: "#bbbbbb",
+    Token.Comment: "#888888",
+    Token.String: C5,
+    Token.String.Escape: C1,
+    Token.Keyword: f"italic {C2}",
+    Token.Name.Class: C2,
+    Token.Name.Exception: C1,
+    Token.Name.Builtin: C3,
+    Token.Name.Variable: C6,
+    Token.Name.Constant: C7,
+    Token.Name.Decorator: C2,
+    Token.Number: C7,
+    Token.Generic.Deleted: f"bg:{C1} #000000",
+    Token.Generic.Emph: "italic",
+    Token.Generic.Strong: "bold",
+    Token.Generic.EmphStrong: "bold italic",
+}
+
+pridel_theme = Theme(
+    "pride:l",
+    None,
+    {
+        Token.Header: C3,
+        Token.LinenoEm: C3,
+        Token.Lineno: C2,
+        Token.ValEm: C2,
+        Token.VName: C2,
+        Token.Caret: "",
+        Token.Filename: C2,
+        Token.FilenameEm: C3,
+        Token.ExcName: C1,
+        Token.Topline: C1,
+        Token.Normal: "",
+        Token.NormalEm: "bold",
+        Token.Line: C2,
+        Token.TB.Name: C6,
+        Token.TB.NameEm: C7,
+        Token.Breakpoint: "",
+        Token.Breakpoint.Enabled: C1,
+        Token.Breakpoint.Disabled: C7,
+        Token.Prompt: C1,
+        Token.PromptNum: C2,
+        Token.Prompt.Continuation: C7,
+        Token.Prompt.Continuation.L1: C2,
+        Token.Prompt.Continuation.L2: C3,
+        Token.Prompt.Continuation.L3: White,
+        Token.Prompt.Continuation.L4: C5,
+        Token.Prompt.Continuation.L5: C6,
+        Token.Prompt.Continuation.L6: C7,
+        Token.OutPrompt: C6,
+        Token.OutPromptNum: C5,
+        **pl,
+    },
+    symbols={"arrow_body": "\u2500", "arrow_head": "\u25B6", "top_line": "\u2500"},
+)
+
+theme_table: dict[str, Theme] = {
+    "nocolor": nocolors_theme,
+    "linux": linux_theme,
+    "neutral": neutral_theme,
+    "neutral:nt": neutral_nt,
+    "neutral:posix": neutral_posix,
+    "lightbg": lightbg_theme,
+    "pride": pride_theme,
+    "pride:l": pridel_theme,
+}
+
+
+class Parser:
+    """Format colored Python source."""
+
+    _theme_name: str
+
+    def __init__(self, out=sys.stdout, *, theme_name: str = None):
+        """Create a parser with a specified color table and output channel.
 
         Call format() to process code.
         """
 
-        super(Parser, self).__init__(parent=parent)
 
-        self.color_table = color_table if color_table else ANSICodeColors
+        assert theme_name is not None
+
         self.out = out
         self.pos = None
         self.lines = None
         self.raw = None
-        if not style:
-            self.style = self.default_style
+        if theme_name is not None:
+            assert theme_name == theme_name.lower()
+        if not theme_name:
+            self.theme_name = "nocolor"
         else:
-            self.style = style
+            self.theme_name = theme_name
 
+    @property
+    def theme_name(self):
+        return self._theme_name
+
+    @theme_name.setter
+    def theme_name(self, value):
+        assert value == value.lower()
+        self._theme_name = value
+
+    @property
+    def style(self):
+        assert False
+        return self._theme_name
+
+    @style.setter
+    def set(self, val):
+        assert False
+        assert val == val.lower()
+        self._theme_name = val
 
     def format(self, raw, out=None):
         return self.format2(raw, out)[0]
@@ -174,8 +400,7 @@ class Parser(Colorable):
         string."""
 
         string_output = 0
-        if out == 'str' or self.out == 'str' or \
-           isinstance(self.out, StringIO):
+        if out == "str" or self.out == "str" or isinstance(self.out, StringIO):
             # XXX - I don't really like this state handling logic, but at this
             # point I don't want to make major changes, so adding the
             # isinstance() check is the simplest I can do to ensure correct
@@ -186,10 +411,13 @@ class Parser(Colorable):
         elif out is not None:
             self.out = out
         else:
-            raise ValueError('`out` or `self.out` should be file-like or the value `"str"`')
+            raise ValueError(
+                '`out` or `self.out` should be file-like or the value `"str"`'
+            )
 
-        # Fast return of the unmodified input for NoColor scheme
-        if self.style == 'NoColor':
+        # Fast return of the unmodified input for nocolor scheme
+        # TODO:
+        if self.theme_name == "nocolor":
             error = False
             self.out.write(raw)
             if string_output:
@@ -197,8 +425,6 @@ class Parser(Colorable):
             return None, error
 
         # local shorthands
-        colors = self.color_table[self.style].colors
-        self.colors = colors # put in object so __call__ sees it
 
         # Remove trailing whitespace and normalize tabs
         self.raw = raw.expandtabs().rstrip()
@@ -209,7 +435,7 @@ class Parser(Colorable):
         raw_find = self.raw.find
         lines_append = self.lines.append
         while True:
-            pos = raw_find('\n', pos) + 1
+            pos = raw_find("\n", pos) + 1
             if not pos:
                 break
             lines_append(pos)
@@ -226,29 +452,36 @@ class Parser(Colorable):
         except tokenize.TokenError as ex:
             msg = ex.args[0]
             line = ex.args[1][0]
-            self.out.write("%s\n\n*** ERROR: %s%s%s\n" %
-                           (colors[token.ERRORTOKEN],
-                            msg, self.raw[self.lines[line]:],
-                            colors.normal)
-                           )
+            self.out.write(
+                theme_table[self.theme_name].format(
+                    [
+                        (Token, "\n\n"),
+                        (
+                            Token.Error,
+                            f"*** ERROR: {msg}{self.raw[self.lines[line] :]}",
+                        ),
+                        (Token, "\n"),
+                    ]
+                )
+            )
             error = True
-        self.out.write(colors.normal+'\n')
+        self.out.write(
+            theme_table[self.theme_name].format(
+                [
+                    (Token, "\n"),
+                ]
+            )
+        )
+
         if string_output:
             output = self.out.getvalue()
             self.out = out_old
             return (output, error)
         return (None, error)
 
-
     def _inner_call_(self, toktype, toktext, start_pos):
         """like call but write to a temporary buffer"""
-        buff = StringIO()
         srow, scol = start_pos
-        colors = self.colors
-        owrite = buff.write
-
-        # line separator, so this works across platforms
-        linesep = os.linesep
 
         # calculate new positions
         oldpos = self.pos
@@ -257,34 +490,27 @@ class Parser(Colorable):
 
         # send the original whitespace, if needed
         if newpos > oldpos:
-            owrite(self.raw[oldpos:newpos])
+            acc = self.raw[oldpos:newpos]
+        else:
+            acc = ""
 
         # skip indenting tokens
         if toktype in [token.INDENT, token.DEDENT]:
             self.pos = newpos
-            buff.seek(0)
-            return buff.read()
+            return acc
 
         # map token type to a color group
         if token.LPAR <= toktype <= token.OP:
             toktype = token.OP
         elif toktype == token.NAME and keyword.iskeyword(toktext):
             toktype = _KEYWORD
-        color = colors.get(toktype, colors[_TEXT])
+        pyg_tok_type = _pygment_token_mapping.get(toktype, Token.Text)
 
-        # Triple quoted strings must be handled carefully so that backtracking
-        # in pagers works correctly. We need color terminators on _each_ line.
-        if linesep in toktext:
-            toktext = toktext.replace(linesep, '%s%s%s' %
-                                      (colors.normal,linesep,color))
-
-        # send text
-        owrite('%s%s%s' % (color,toktext,colors.normal))
-        buff.seek(0)
-        return buff.read()
-
+        # send text, pygments should take care of splitting on newline and resending
+        # the correct self.colors after the new line, which is necessary for pagers
+        acc += theme_table[self.theme_name].format([(pyg_tok_type, toktext)])
+        return acc
 
     def __call__(self, toktype, toktext, start_pos, end_pos, line):
-        """ Token handler, with syntax highlighting."""
-        self.out.write(
-            self._inner_call_(toktype, toktext, start_pos))
+        """Token handler, with syntax highlighting."""
+        self.out.write(self._inner_call_(toktype, toktext, start_pos))

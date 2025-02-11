@@ -175,9 +175,11 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped
-        sys.excepthook = ultratb.FormattedTB(color_scheme=self.colors,
-                                             mode=self.xmode,
-                                             call_pdb=self.pdb)
+        sys.excepthook = ultratb.FormattedTB(
+            theme_name=self.colors,
+            mode=self.xmode,
+            call_pdb=self.pdb,
+        )
 
     def init_sys_modules(self):
         """
@@ -392,11 +394,19 @@ def embed(*, header="", compile_flags=None, **kwargs):
     if config is None:
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
-        kwargs['config'] = config
-    using = kwargs.get('using', 'sync')
-    if using :
-        kwargs['config'].update({'TerminalInteractiveShell':{'loop_runner':using, 'colors':'NoColor', 'autoawait': using!='sync'}})
-    #save ps1/ps2 if defined
+        kwargs["config"] = config
+    using = kwargs.get("using", "sync")
+    if using:
+        kwargs["config"].update(
+            {
+                "TerminalInteractiveShell": {
+                    "loop_runner": using,
+                    "colors": "nocolor",
+                    "autoawait": using != "sync",
+                }
+            }
+        )
+    # save ps1/ps2 if defined
     ps1 = None
     ps2 = None
     try:
