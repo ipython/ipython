@@ -82,11 +82,11 @@ Configure the provider
 ----------------------
 
 It the provider needs to be passed parameters at initialization, you can do so
-by setting the ``llm_provider_kwargs`` traitlet.
+by setting the ``llm_construction_kwargs`` traitlet.
 
 .. code-block:: python
 
-    c.TerminalInteractiveShell.llm_provider_kwargs = {"model": "skynet"}
+    c.TerminalInteractiveShell.llm_constructor_kwargs = {"model": "skynet"}
 
 This will depdend on the provider you chose, and you will have to refer to
 the provider documentation.
