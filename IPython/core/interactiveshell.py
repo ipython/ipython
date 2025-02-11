@@ -78,6 +78,7 @@ from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
+from IPython.core.tips import pick_tip
 from IPython.core.usage import default_banner
 from IPython.display import display
 from IPython.paths import get_ipython_dir
@@ -356,6 +357,12 @@ class InteractiveShell(SingletonConfigurable):
         """
         Enable magic commands to be called without the leading %.
         """
+    ).tag(config=True)
+
+    enable_tip = Bool(
+        True,
+        help="""
+        Set to show a tip when IPython starts.""",
     ).tag(config=True)
 
     banner1 = Unicode(default_banner,
@@ -923,6 +930,8 @@ class InteractiveShell(SingletonConfigurable):
             banner += '\nIPython profile: %s\n' % self.profile
         if self.banner2:
             banner += '\n' + self.banner2
+        elif self.enable_tip:
+            banner += "Tip: {tip}\n".format(tip=pick_tip())
         return banner
 
     def show_banner(self, banner=None):
