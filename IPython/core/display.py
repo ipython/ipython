@@ -461,6 +461,9 @@ class HTML(TextDisplayObject):
 
 class Markdown(TextDisplayObject):
 
+    def __repr__(self):
+        return self.data
+    
     def _repr_markdown_(self):
         return self._data_and_metadata()
 
@@ -617,6 +620,9 @@ class JSON(DisplayObject):
         if kwargs:
             self.metadata.update(kwargs)
         super(JSON, self).__init__(data=data, url=url, filename=filename)
+    
+    def __repr__(self):
+        return self.data
 
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, (dict, list)):
