@@ -8,7 +8,7 @@
 from contextlib import contextmanager
 from inspect import signature, Signature, Parameter
 import inspect
-import os
+from pathlib import Path
 import pytest
 import re
 import sys
@@ -71,7 +71,7 @@ def test_inspect_getfile_raises_exception():
 # A couple of utilities to ensure these tests work the same from a source or a
 # binary install
 def pyfile(fname):
-    return os.path.normcase(re.sub('.py[co]$', '.py', fname))
+    return fname.with_suffix(re.sub(r"\.py[co]$", ".py", fname.suffix))
 
 
 def match_pyfiles(f1, f2):
@@ -79,7 +79,7 @@ def match_pyfiles(f1, f2):
 
 
 def test_find_file():
-    match_pyfiles(oinspect.find_file(test_find_file), os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(test_find_file), Path(__file__).absolute())
     assert oinspect.find_file(type) is None
     assert oinspect.find_file(SourceModuleMainTest) is None
     assert oinspect.find_file(SourceModuleMainTest()) is None
@@ -97,7 +97,7 @@ def test_find_file_decorated1():
     def f(x):
         "My docstring"
 
-    match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(f), Path(__file__).absolute())
     assert f.__doc__ == "My docstring"
 
 
@@ -113,7 +113,7 @@ def test_find_file_decorated2():
     def f(x):
         "My docstring 2"
 
-    match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(f), Path(__file__).absolute())
     assert f.__doc__ == "My docstring 2"
 
 

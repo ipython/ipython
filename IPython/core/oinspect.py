@@ -14,6 +14,7 @@ __all__ = ["Inspector"]
 # stdlib modules
 from dataclasses import dataclass
 from inspect import signature
+from pathlib import Path
 from textwrap import dedent
 import ast
 import html
@@ -195,15 +196,17 @@ def get_encoding(obj):
     # filesystem.
     if ofile is None:
         return None
-    elif ofile.endswith(('.so', '.dll', '.pyd')):
+    elif ofile.suffix in (".so", ".dll", ".pyd"):
         return None
-    elif not os.path.isfile(ofile):
+    elif not ofile.is_file():
         return None
     else:
         # Print only text files, not extension binaries.  Note that
         # getsourcelines returns lineno with 1-offset and page() uses
         # 0-offset, so we must adjust.
-        with stdlib_io.open(ofile, 'rb') as buffer:   # Tweaked to use io.open for Python 2
+        with stdlib_io.open(
+            str(ofile), "rb"
+        ) as buffer:  # Tweaked to use io.open for Python 2
             encoding, _lines = openpy.detect_encoding(buffer.readline)
         return encoding
 
@@ -314,7 +317,7 @@ def _get_wrapped(obj):
             return orig_obj
     return obj
 
-def find_file(obj) -> Optional[str]:
+def find_file(obj) -> Optional[Path]:
     """Find the absolute path to the file where an object was defined.
 
     This is essentially a robust wrapper around `inspect.getabsfile`.
@@ -327,7 +330,7 @@ def find_file(obj) -> Optional[str]:
 
     Returns
     -------
-    fname : str
+    fname : Optional[Path]
         The absolute path to the file where the object was defined.
     """
     obj = _get_wrapped(obj)
@@ -346,7 +349,7 @@ def find_file(obj) -> Optional[str]:
     except OSError:
         pass
 
-    return fname
+    return Path(fname) if fname is not None else None
 
 
 def find_source_lines(obj):
@@ -560,10 +563,10 @@ class Inspector(Configurable):
         # filesystem.
         if ofile is None:
             print("Could not find file for object")
-        elif ofile.endswith((".so", ".dll", ".pyd")):
-            print("File %r is binary, not printing." % ofile)
-        elif not os.path.isfile(ofile):
-            print('File %r does not exist, not printing.' % ofile)
+        elif ofile.suffix in (".so", ".dll", ".pyd"):
+            print("File %r is binary, not printing." % str(ofile))
+        elif not ofile.is_file():
+            print("File %r does not exist, not printing." % str(ofile))
         else:
             # Print only text files, not extension binaries.  Note that
             # getsourcelines returns lineno with 1-offset and page() uses
@@ -967,11 +970,12 @@ class Inspector(Configurable):
             # if the file was binary
             binary_file = True
         else:
-            if fname.endswith(('.so', '.dll', '.pyd')):
+            fname_msg = str(fname)
+            if fname.suffix in (".so", ".dll", ".pyd"):
                 binary_file = True
-            elif fname.endswith('<string>'):
-                fname = 'Dynamically generated function. No source code available.'
-            out['file'] = compress_user(fname)
+            elif fname.name.endswith("<string>"):
+                fname_msg = "Dynamically generated function. No source code available."
+            out["file"] = compress_user(fname_msg)
 
         # Original source code for a callable, class or property.
         if detail_level:
