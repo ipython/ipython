@@ -93,6 +93,13 @@ def a():
 """,
 )
 
+AUTOBALANCE = (
+    ("(1+1)/2", "(1+1)/2"),
+    ("1+1)/2", "(1+1)/2"),
+    ("1+1/(2+3", "1+1/(2+3)"),
+    ("i+1)/2 for i in range(10)]", "[(i+1)/2 for i in range(10)]"),
+)
+
 
 def test_ipython_prompt():
     for sample, expected in [
@@ -199,3 +206,15 @@ CRLF_MAGIC = ([
 def test_crlf_magic():
     for sample, expected in [CRLF_MAGIC]:
         assert ipt2.cell_magic(sample) == expected
+
+
+def test_autobalance_no_changes():
+    autobalance = ipt2.AutoBalancer(default=False)
+    for sample, _ in AUTOBALANCE:
+        assert autobalance([sample]) == [sample]
+
+
+def test_autobalance_changes():
+    autobalance = ipt2.AutoBalancer(default=True)
+    for sample, expected in AUTOBALANCE:
+        assert autobalance([sample]) == [expected]

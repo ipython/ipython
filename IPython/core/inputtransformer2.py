@@ -15,8 +15,12 @@ from codeop import CommandCompiler, Compile
 import re
 import sys
 import tokenize
-from typing import List, Tuple, Optional, Any
+from typing import List, Tuple, Optional, Any, TYPE_CHECKING
 import warnings
+import io
+
+if TYPE_CHECKING:
+    from IPython.core.interactiveshell import InteractiveShell
 
 from IPython.utils import tokenutil
 
@@ -34,6 +38,7 @@ def leading_empty_lines(lines):
         if line and not line.isspace():
             return lines[i:]
     return lines
+
 
 def leading_indent(lines):
     """Remove leading indentation.
@@ -185,6 +190,84 @@ def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
     parts = [lines[start[0]][start[1]:]] + lines[start[0]+1:end_line+1]
     return ' '.join([p.rstrip()[:-1] for p in parts[:-1]]  # Strip backslash+newline
                     + [parts[-1].rstrip()])         # Strip newline from last line
+
+_AUTOBALANCE_MARKERS = (("(", ")"), ("{", "}"), ("[", "]"))
+_AUTOBALANCE_OPEN = {x: i for i, (x, _) in enumerate(_AUTOBALANCE_MARKERS)}
+_AUTOBALANCE_CLOSE = {x: i for i, (_, x) in enumerate(_AUTOBALANCE_MARKERS)}
+
+
+def _autobalance_line(inpt_code):
+    """Add necessary [{( in the begin of the expr and )}] at the end to balance."""
+
+    tokens = tokenize.generate_tokens(io.StringIO(inpt_code).readline)
+    closed_without_open = []
+    opened_without_close = []
+    begin_expr = 0
+    while True:
+        try:
+            token = next(tokens)
+        except (StopIteration, tokenize.TokenError):
+            break
+        if token.type == tokenize.OP:
+            if token.string in _AUTOBALANCE_OPEN:
+                opened_without_close.append(_AUTOBALANCE_OPEN[token.string])
+            elif token.string in _AUTOBALANCE_CLOSE:
+                if opened_without_close:
+                    last_opened = opened_without_close.pop(-1)
+                    if last_opened != _AUTOBALANCE_CLOSE[token.string]:
+                        # can not be balanced only adding in the begin and end
+                        # of expr
+                        return (False, inpt_code)
+                else:
+                    closed_without_open.append(_AUTOBALANCE_CLOSE[token.string])
+            elif token.string == "=":
+                if not opened_without_close:
+                    # this is a assigment
+                    begin_expr = token.end[1]
+
+    if not opened_without_close and not closed_without_open:
+        # no needed changes
+        return (False, inpt_code)
+
+    new_code = (
+        inpt_code[:begin_expr]
+        + (" " if begin_expr else "")
+        + "".join(_AUTOBALANCE_MARKERS[k][0] for k in closed_without_open[::-1])
+        + inpt_code[begin_expr:].strip()
+        + "".join(_AUTOBALANCE_MARKERS[k][1] for k in opened_without_close)
+    )
+    return (True, new_code)
+
+
+class AutoBalancer:
+    """Callable class, for single line cell, add necessary [{( and )}] to balance."""
+
+    has_side_effects: bool = True
+
+    def __init__(self, shell=None, default=False):
+        self._shell = shell
+        self._default = default
+
+    def __call__(self, lines):
+        """For single line cell, add necessary [{( and )}] to balance."""
+
+        if len(lines) != 1:
+            # apply only for single line cell
+            return lines
+
+        if self._shell is None:
+            if not self._default:
+                return lines
+        elif not self._shell.autobalance:
+            return lines
+
+        modified, new_line = _autobalance_line(lines[0])
+        if modified:
+            if self._shell is not None:
+                self._shell.auto_rewrite_input(new_line)
+            return [new_line]
+        return lines
+
 
 class TokenTransformBase:
     """Base class for transformations which examine tokens.
@@ -580,7 +663,10 @@ class TransformerManager:
     The key methods for external use are ``transform_cell()``
     and ``check_complete()``.
     """
-    def __init__(self):
+
+    shell: Optional["InteractiveShell"]
+
+    def __init__(self, shell=None):
         self.cleanup_transforms = [
             leading_empty_lines,
             leading_indent,
@@ -589,6 +675,7 @@ class TransformerManager:
         ]
         self.line_transforms = [
             cell_magic,
+            AutoBalancer(shell),
         ]
         self.token_transformers = [
             MagicAssign,

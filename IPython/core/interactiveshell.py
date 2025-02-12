@@ -72,7 +72,7 @@ from IPython.core.events import EventManager, available_events
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
-from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
+from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2, TransformerManager
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
@@ -312,6 +312,16 @@ class InteractiveShell(SingletonConfigurable):
         """
     ).tag(config=True)
 
+    autobalance = Bool(
+        False,
+        help="""
+        Add automatically opening and closing parenthesis, braces and brackets
+        at the begin matching respectively closing and opening ones. Opening
+        symbols are added in the begin of the expression, and closings symbols
+        at the end of the line. E.g. `1+2)/2]*(2+3` becomes `[(1+2)/2]*(2+3)`.
+        """,
+    ).tag(config=True)
+
     autoindent = Bool(True, help=
         """
         Autoindent IPython code entered interactively.
@@ -429,8 +439,9 @@ class InteractiveShell(SingletonConfigurable):
     ipython_dir= Unicode('').tag(config=True) # Set to get_ipython_dir() in __init__
 
     # Used to transform cells before running them, and check whether code is complete
-    input_transformer_manager = Instance('IPython.core.inputtransformer2.TransformerManager',
-                                         ())
+    input_transformer_manager = Instance(
+        "IPython.core.inputtransformer2.TransformerManager", allow_none=True
+    )
 
     @property
     def input_transformers_cleanup(self):
@@ -471,9 +482,8 @@ class InteractiveShell(SingletonConfigurable):
         will be displayed as regular output instead."""
     ).tag(config=True)
 
-
-    show_rewritten_input = Bool(True,
-        help="Show rewritten input, e.g. for autocall."
+    show_rewritten_input = Bool(
+        True, help="Show rewritten input, e.g. for autocall and autobalance."
     ).tag(config=True)
 
     quiet = Bool(False).tag(config=True)
@@ -583,6 +593,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_history()
         self.init_encoding()
         self.init_prefilter()
+        self.init_input_transformer_manager()
 
         self.init_syntax_highlighting()
         self.init_hooks()
@@ -2755,6 +2766,13 @@ class InteractiveShell(SingletonConfigurable):
         print("------> " + cmd)
 
     #-------------------------------------------------------------------------
+    # Things related to input_transformer_manager
+    # -------------------------------------------------------------------------
+
+    def init_input_transformer_manager(self):
+        self.input_transformer_manager = TransformerManager(shell=self)
+
+    # -------------------------------------------------------------------------
     # Things related to extracting values/expressions from kernel and user_ns
     #-------------------------------------------------------------------------
 

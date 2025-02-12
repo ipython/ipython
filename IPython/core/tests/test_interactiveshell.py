@@ -797,6 +797,7 @@ class TestMiscTransform(unittest.TestCase):
     def test_transform_only_once(self):
         cleanup = 0
         line_t = 0
+
         def count_cleanup(lines):
             nonlocal cleanup
             cleanup += 1
