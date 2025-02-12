@@ -20,6 +20,7 @@ https://ipython.org
 #-----------------------------------------------------------------------------
 
 import sys
+import warnings
 
 #-----------------------------------------------------------------------------
 # Setup everything
@@ -91,7 +92,14 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
         allowing configuration of the kernel.  Will only have an effect
         on the first embed_kernel call for a given process.
     """
-    
+
+    warnings.warn(
+        "import embed_kernel from ipykernel.embed directly (since 2013)."
+        " Importing from IPython will be removed in the future",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     (caller_module, caller_locals) = extract_module_locals(1)
     if module is None:
         module = caller_module
