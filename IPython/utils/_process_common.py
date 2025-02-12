@@ -91,8 +91,6 @@ def process_handler(
 
     try:
         out = callback(p)
-        if close_fds:
-            stderr.close()
     except KeyboardInterrupt:
         print('^C')
         sys.stdout.flush()
