@@ -135,7 +135,7 @@ def system(cmd: str) -> Optional[int]:
     with AvoidUNCPath() as path:
         if path is not None:
             cmd = '"pushd %s &&"%s' % (path, cmd)
-        return process_handler(cmd, _system_body)
+        return process_handler(cmd, callback=_system_body)
 
 
 def getoutput(cmd: str) -> str:
@@ -156,7 +156,7 @@ def getoutput(cmd: str) -> str:
     with AvoidUNCPath() as path:
         if path is not None:
             cmd = '"pushd %s &&"%s' % (path, cmd)
-        out = process_handler(cmd, lambda p: p.communicate()[0], STDOUT)
+        out = process_handler(cmd, callback=lambda p: p.communicate()[0], stderr=STDOUT)
 
     if out is None:
         out = b""
@@ -203,6 +203,7 @@ try:
             # for side effects
             _ = LocalFree(result_pointer)
         return result
+
 except AttributeError:
     arg_split = py_arg_split
 
