@@ -4,7 +4,7 @@ import os.path
 from IPython.utils import openpy
 
 mydir = os.path.dirname(__file__)
-nonascii_path = os.path.join(mydir, "../../core/tests/nonascii.py")
+nonascii_path = os.path.join(mydir, "nonascii.py")
 
 
 def test_detect_encoding():
