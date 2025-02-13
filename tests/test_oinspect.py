@@ -1,10 +1,3 @@
-"""Tests for the object inspection functionality.
-"""
-
-# Copyright (c) IPython Development Team.
-# Distributed under the terms of the Modified BSD License.
-
-
 from contextlib import contextmanager
 from inspect import signature, Signature, Parameter
 import inspect
@@ -45,7 +38,7 @@ class SourceModuleMainTest:
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 47  # Put here the actual number of this line
+THIS_LINE_NUMBER = 41  # Put here the actual number of this line
 
 
 def test_find_source_lines():
@@ -201,7 +194,7 @@ def test_info():
     expected_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
     assert i["base_class"] == expected_class
     assert re.search(
-        "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>",
+        "<class 'tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>",
         i["string_form"],
     )
     fname = __file__

@@ -550,7 +550,7 @@ class InteractiveShellTestCase(unittest.TestCase):
             raise DerivedInterrupt("foo")
         except KeyboardInterrupt:
             msg = ip.get_exception_only()
-        self.assertEqual(msg, 'IPython.core.tests.test_interactiveshell.DerivedInterrupt: foo\n')
+        self.assertEqual(msg, "tests.test_interactiveshell.DerivedInterrupt: foo\n")
 
     def test_inspect_text(self):
         ip.run_cell('a = 5')
