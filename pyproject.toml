@@ -377,8 +377,6 @@ namespaces = false
 [tool.setuptools.package-data]
 "IPython" = ["py.typed"]
 "IPython.core" = ["profile/README*"]
-"IPython.core.tests" = ["*.png", "*.jpg", "daft_extension/*.py"]
-"IPython.lib.tests" = ["*.wav"]
 "IPython.testing.plugin" = ["*.txt"]
 
 [tool.setuptools.dynamic]
