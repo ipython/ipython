@@ -327,7 +327,15 @@ def test_numpy_reset_array_undec():
     assert "a" not in _ip.user_ns
 
 
-def test_reset_out():
+@pytest.fixture()
+def underscore_not_in_builtins():
+    import builtins
+
+    if "_" in builtins.__dict__:
+        del builtins.__dict__["_"]
+
+
+def test_reset_out(underscore_not_in_builtins):
     "Test '%reset out' magic"
     _ip.run_cell("parrot = 'dead'", store_history=True)
     # test '%reset -f out', make an Out prompt
@@ -508,7 +516,7 @@ def test_time3():
                     "run = 0\n"
                     "run += 1")
 
-def test_multiline_time():
+def test_multiline_time(underscore_not_in_builtins):
     """Make sure last statement from time return a value."""
     ip = get_ipython()
     ip.user_ns.pop('run', None)
@@ -919,58 +927,63 @@ class TestEnv(TestCase):
         self.assertRaises(UsageError, lambda: _ip.run_line_magic("env", "var A=B"))
 
 
-class CellMagicTestCase(TestCase):
 
-    def check_ident(self, magic):
-        # Manually called, we get the result
-        out = _ip.run_cell_magic(magic, "a", "b")
-        assert out == ("a", "b")
-        # Via run_cell, it goes into the user's namespace via displayhook
-        _ip.run_cell("%%" + magic + " c\nd\n")
-        assert _ip.user_ns["_"] == ("c", "d\n")
+def check_ident(magic):
+    # Manually called, we get the result
+    out = _ip.run_cell_magic(magic, "a", "b")
+    assert out == ("a", "b")
+    # Via run_cell, it goes into the user's namespace via displayhook
+    _ip.run_cell("%%" + magic + " c\nd\n")
+    assert _ip.user_ns["_"] == ("c", "d\n")
 
-    def test_cell_magic_func_deco(self):
-        "Cell magic using simple decorator"
-        @register_cell_magic
-        def cellm(line, cell):
+
+def test_cell_magic_func_deco(underscore_not_in_builtins):
+    "Cell magic using simple decorator"
+
+    @register_cell_magic
+    def cellm(line, cell):
+        return line, cell
+
+    check_ident("cellm")
+
+
+def test_cell_magic_reg(underscore_not_in_builtins):
+    "Cell magic manually registered"
+
+    def cellm(line, cell):
+        return line, cell
+
+    _ip.register_magic_function(cellm, "cell", "cellm2")
+    check_ident("cellm2")
+
+
+def test_cell_magic_class(underscore_not_in_builtins):
+    "Cell magics declared via a class"
+
+    @magics_class
+    class MyMagics(Magics):
+        @cell_magic
+        def cellm3(self, line, cell):
             return line, cell
 
-        self.check_ident('cellm')
+    _ip.register_magics(MyMagics)
+    check_ident("cellm3")
 
-    def test_cell_magic_reg(self):
-        "Cell magic manually registered"
-        def cellm(line, cell):
+
+def test_cell_magic_class2(underscore_not_in_builtins):
+    "Cell magics declared via a class, #2"
+
+    @magics_class
+    class MyMagics2(Magics):
+        @cell_magic("cellm4")
+        def cellm33(self, line, cell):
             return line, cell
 
-        _ip.register_magic_function(cellm, 'cell', 'cellm2')
-        self.check_ident('cellm2')
-
-    def test_cell_magic_class(self):
-        "Cell magics declared via a class"
-        @magics_class
-        class MyMagics(Magics):
-
-            @cell_magic
-            def cellm3(self, line, cell):
-                return line, cell
-
-        _ip.register_magics(MyMagics)
-        self.check_ident('cellm3')
-
-    def test_cell_magic_class2(self):
-        "Cell magics declared via a class, #2"
-        @magics_class
-        class MyMagics2(Magics):
-
-            @cell_magic('cellm4')
-            def cellm33(self, line, cell):
-                return line, cell
-
-        _ip.register_magics(MyMagics2)
-        self.check_ident('cellm4')
-        # Check that nothing is registered as 'cellm33'
-        c33 = _ip.find_cell_magic('cellm33')
-        assert c33 == None
+    _ip.register_magics(MyMagics2)
+    check_ident("cellm4")
+    # Check that nothing is registered as 'cellm33'
+    c33 = _ip.find_cell_magic("cellm33")
+    assert c33 == None
 
 def test_file():
     """Basic %%writefile"""
@@ -1265,7 +1278,7 @@ async def test_script_streams_continiously(capsys):
     ip = get_ipython()
     # Windows is slow to start up a thread on CI
     is_windows = os.name == "nt"
-    step = 3 if is_windows else 1
+    step = 3 if is_windows else 0.3
     code = dedent(
         f"""\
     import time
