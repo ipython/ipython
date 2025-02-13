@@ -290,6 +290,7 @@ class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
 
     _instance = None
+    _user_ns: dict
 
     inspector: oinspect.Inspector
 
@@ -620,6 +621,16 @@ class InteractiveShell(SingletonConfigurable):
         # inside a single Trio event loop. If used, it is set from
         # `ipykernel.kernelapp`.
         self.trio_runner = None
+
+    @property
+    def user_ns(self):
+        return self._user_ns
+
+    @user_ns.setter
+    def user_ns(self, ns: dict):
+        assert hasattr(ns, "clear")
+        assert isinstance(ns, dict)
+        self._user_ns = ns
 
     def get_ipython(self):
         """Return the currently running IPython instance."""
@@ -1268,7 +1279,6 @@ class InteractiveShell(SingletonConfigurable):
 
         if user_ns is None:
             user_ns = user_module.__dict__
-
         return user_module, user_ns
 
     def init_sys_modules(self):
