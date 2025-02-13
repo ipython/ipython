@@ -852,7 +852,7 @@ def test_extension():
         print(' ', p)
     print('CWD', os.getcwd())
 
-    pytest.raises(ImportError, _ip.run_line_magic, "load_ext", "daft_extension")
+    pytest.raises(ModuleNotFoundError, _ip.run_line_magic, "load_ext", "daft_extension")
     daft_path = os.path.join(os.path.dirname(__file__), "fake_ext_dir")
     sys.path.insert(0, daft_path)
     try:
