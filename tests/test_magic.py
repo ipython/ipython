@@ -848,7 +848,10 @@ def test_prun_quotes():
 def test_extension():
     # Debugging information for failures of this test
     daft_path = os.path.join(os.path.dirname(__file__), "fake_ext_dir")
-    assert daft_path not in sys.path
+    if daft_path in sys.path:
+        # it is likely pytest added this path
+        # when scanning for tests
+        sys.path.remove(daft_path)
     print('sys.path:')
     for p in sys.path:
         print(" ", p)
