@@ -849,12 +849,17 @@ def test_extension():
     # Debugging information for failures of this test
     print('sys.path:')
     for p in sys.path:
-        print(' ', p)
-    print('CWD', os.getcwd())
+        print(" ", p)
+    print("CWD", os.getcwd())
 
-    pytest.raises(ModuleNotFoundError, _ip.run_line_magic, "load_ext", "daft_extension")
+    with pytest.raises(ModuleNotFoundError):
+        import daft_extension
+
+    with pytest.raises(ModuleNotFoundError):
+        _ip.run_line_magic("load_ext", "daft_extension")
     daft_path = os.path.join(os.path.dirname(__file__), "fake_ext_dir")
     sys.path.insert(0, daft_path)
+    import daft_extension
     try:
         _ip.user_ns.pop('arq', None)
         invalidate_caches()   # Clear import caches
