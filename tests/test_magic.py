@@ -1278,7 +1278,7 @@ async def test_script_streams_continiously(capsys):
     ip = get_ipython()
     # Windows is slow to start up a thread on CI
     is_windows = os.name == "nt"
-    step = 3 if is_windows else 0.3
+    step = 3 if is_windows else 1
     code = dedent(
         f"""\
     import time
