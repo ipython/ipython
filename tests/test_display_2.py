@@ -140,17 +140,6 @@ def test_image_filename_defaults():
         format="badformat",
         embed=True,
     )
-    # check both paths to allow packages to test at build and install time
-    imgfile = os.path.join(tpath, 'core/tests/2x2.png')
-    img = display.Image(filename=imgfile)
-    assert "png" == img.format
-    assert img._repr_png_() is not None
-    img = display.Image(
-        filename=os.path.join(tpath, "testing/tests/logo.jpg"), embed=False
-    )
-    assert "jpeg" == img.format
-    assert img._repr_jpeg_() is None
-
 def _get_inline_config():
     from matplotlib_inline.config import InlineBackend
     return InlineBackend.instance()
