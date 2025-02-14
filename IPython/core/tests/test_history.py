@@ -7,6 +7,8 @@
 
 # stdlib
 import io
+import gc
+import os
 import sys
 import tempfile
 from datetime import datetime
@@ -18,16 +20,46 @@ from traitlets.config.loader import Config
 
 from IPython.core.history import HistoryAccessor, HistoryManager, extract_hist_ranges
 
+import pytest
 
 def test_proper_default_encoding():
     assert sys.getdefaultencoding() == "utf-8"
 
-def test_history():
+
+def hmmax_instance_maker(N: int):
+    if os.name == "nt":
+
+        @pytest.fixture()
+        def inner():
+            pass
+
+    else:
+
+        @pytest.fixture()
+        def inner():
+            assert HistoryManager._max_inst == 1
+            HistoryManager._max_inst = N
+            lh = len(HistoryManager._instances)
+            try:
+                yield
+                gc.collect()
+                assert len(HistoryManager._instances) == lh
+            finally:
+                HistoryManager._max_inst = 1
+
+    return inner
+
+
+hmmax2 = hmmax_instance_maker(2)
+hmmax3 = hmmax_instance_maker(3)
+
+
+def test_history(hmmax2):
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir)
         hist_manager_ori = ip.history_manager
-        hist_file = tmp_path / "history.sqlite"
+        hist_file = tmp_path / "history_test_history1.sqlite"
         try:
             ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
             hist = ["a=1", "def f():\n    test = 1\n    return test", "b='€Æ¾÷ß'"]
@@ -145,10 +177,11 @@ def test_history():
             assert hist[1:] == (lineno, entry)
         finally:
             # Ensure saving thread is shut down before we try to clean up the files
-            ip.history_manager.save_thread.stop()
+            ip.history_manager.end_session()
             # Forcibly close database rather than relying on garbage collection
+            ip.history_manager.save_thread.stop()
             ip.history_manager.db.close()
-            # Restore history manager
+            # swap back
             ip.history_manager = hist_manager_ori
 
 
@@ -187,7 +220,7 @@ def test_timestamp_type():
     info = ip.history_manager.get_session_info()
     assert isinstance(info[1], datetime)
 
-def test_hist_file_config():
+def test_hist_file_config(hmmax3):
     cfg = Config()
     tfile = tempfile.NamedTemporaryFile(delete=False)
     cfg.HistoryManager.hist_file = Path(tfile.name)
@@ -202,8 +235,9 @@ def test_hist_file_config():
             # On Windows, even though we close the file, we still can't
             # delete it.  I have no clue why
             pass
+            HistoryManager.__max_inst = 1
 
-def test_histmanager_disabled():
+def test_histmanager_disabled(hmmax2):
     """Ensure that disabling the history manager doesn't create a database."""
     cfg = Config()
     cfg.HistoryAccessor.enabled = False
@@ -228,14 +262,14 @@ def test_histmanager_disabled():
     assert hist_file.exists() is False
 
 
-def test_get_tail_session_awareness():
+def test_get_tail_session_awareness(hmmax3):
     """Test .get_tail() is:
         - session specific in HistoryManager
         - session agnostic in HistoryAccessor
     same for .get_last_session_id()
     """
-    ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
+        ip = get_ipython()
         tmp_path = Path(tmpdir)
         hist_file = tmp_path / "history.sqlite"
         get_source = lambda x: x[2]

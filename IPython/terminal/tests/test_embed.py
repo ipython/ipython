@@ -78,6 +78,8 @@ def test_nest_embed():
     child.expect(ipy_prompt)
     child.timeout = 5 * IPYTHON_TESTING_TIMEOUT_SCALE
     child.sendline("import IPython")
+    child.sendline("from IPython.core.history import HistoryManager")
+    child.sendline("HistoryManager._max_inst = 3")
     child.expect(ipy_prompt)
     child.sendline("ip0 = get_ipython()")
     #enter first nested embed
