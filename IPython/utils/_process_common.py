@@ -97,6 +97,9 @@ def process_handler(
         sys.stderr.flush()
         out = None
     finally:
+        del callback
+        import gc
+        gc.collect()
         # Make really sure that we don't leave processes behind, in case the
         # call above raises an exception
         # We start by assuming the subprocess finished (to avoid NameErrors
