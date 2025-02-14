@@ -107,6 +107,7 @@ Some of the known remaining caveats are:
 
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.extensions.deduperreload.deduperreload import DeduperReloader
 
 __skip_doctest__ = True
 
@@ -166,6 +167,9 @@ class ModuleReloader:
 
         # Reporting callable for verbosity
         self._report = lambda msg: None  # by default, be quiet.
+
+        # Deduper reloader
+        self.deduper_reloader = DeduperReloader()
 
         # Cache module modification times
         self.check(check_all=True, do_reload=False)
@@ -270,7 +274,10 @@ class ModuleReloader:
             if do_reload:
                 self._report(f"Reloading '{modname}'.")
                 try:
-                    if self.autoload_obj:
+                    # check if deduperreload is viable for this module
+                    if self.deduper_reloader.maybe_reload_module(m):
+                        pass
+                    elif self.autoload_obj:
                         superreload(m, reload, self.old_objects, self.shell)
                     else:
                         superreload(m, reload, self.old_objects)
@@ -285,6 +292,7 @@ class ModuleReloader:
                             file=sys.stderr,
                         )
                     self.failed[py_filename] = pymtime
+        self.deduper_reloader.update_sources()
 
 
 # ------------------------------------------------------------------------------
@@ -541,6 +549,10 @@ class AutoreloadMagics(Magics):
 
              '3' or 'complete' - Same as 2/all, but also but also adds any new
              objects in the module.
+             
+             By default, a newer autoreload algorithm that diffs the module's source code
+             with the previous version and only reloads changed parts is applied. To use
+             the original algorithm, add the `-` suffix to the mode, e.g. '%autoreload 2-'.
              """,
     )
     @magic_arguments.argument(
@@ -620,6 +632,12 @@ class AutoreloadMagics(Magics):
         """
         args = magic_arguments.parse_argstring(self.autoreload, line)
         mode = args.mode.lower()
+
+        enable_deduperreload = True
+        if mode.endswith("-"):
+            enable_deduperreload = False
+            mode = mode[:-1]
+        self._reloader.deduper_reloader.enabled = enable_deduperreload
 
         p = print
 
