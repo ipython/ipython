@@ -856,9 +856,14 @@ def test_extension():
     for p in sys.path:
         print(" ", p)
     print("CWD", os.getcwd())
+    assert daft_extension not in sys.modules
 
-    with pytest.raises(ModuleNotFoundError):
+    try:
         import daft_extension
+
+        assert False, (daft_extension.__file__, sys.path)
+    except ModuleNotFoundError:
+        pass
 
     with pytest.raises(ModuleNotFoundError):
         _ip.run_line_magic("load_ext", "daft_extension")
