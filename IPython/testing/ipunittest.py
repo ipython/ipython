@@ -38,6 +38,7 @@ Authors
 import re
 import sys
 import unittest
+import builtins
 from doctest import DocTestFinder, DocTestRunner, TestResults
 from IPython.terminal.interactiveshell import InteractiveShell
 
