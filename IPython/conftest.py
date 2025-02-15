@@ -81,6 +81,12 @@ def inject():
     from .core import page
 
     page.pager_page = nopage
+
+    from IPython.core.history import HistoryManager
+
+    # ensure we don't leak History managers
+    if os.name != "nt":
+        HistoryManager._max_inst = 1
     # yield
 
 

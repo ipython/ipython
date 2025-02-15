@@ -1333,14 +1333,15 @@ class InteractiveShell(SingletonConfigurable):
         ns = {}
 
         # make global variables for user access to the histories
-        ns['_ih'] = self.history_manager.input_hist_parsed
-        ns['_oh'] = self.history_manager.output_hist
-        ns['_dh'] = self.history_manager.dir_hist
+        if self.history_manager is not None:
+            ns["_ih"] = self.history_manager.input_hist_parsed
+            ns["_oh"] = self.history_manager.output_hist
+            ns["_dh"] = self.history_manager.dir_hist
 
-        # user aliases to input and output histories.  These shouldn't show up
-        # in %who, as they can have very large reprs.
-        ns['In']  = self.history_manager.input_hist_parsed
-        ns['Out'] = self.history_manager.output_hist
+            # user aliases to input and output histories.  These shouldn't show up
+            # in %who, as they can have very large reprs.
+            ns["In"] = self.history_manager.input_hist_parsed
+            ns["Out"] = self.history_manager.output_hist
 
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
@@ -1377,8 +1378,8 @@ class InteractiveShell(SingletonConfigurable):
         If new_session is True, a new history session will be opened.
         """
         # Clear histories
-        assert self.history_manager is not None
-        self.history_manager.reset(new_session)
+        if self.history_manager is not None:
+            self.history_manager.reset(new_session)
         # Reset counter used to index all histories
         if new_session:
             self.execution_count = 1
@@ -3889,8 +3890,9 @@ class InteractiveShell(SingletonConfigurable):
             # Close the history session (this stores the end time and line count)
             # this must be *before* the tempfile cleanup, in case of temporary
             # history db
-            self.history_manager.end_session()
-            self.history_manager = None
+            if self.history_manager is not None:
+                self.history_manager.end_session()
+                self.history_manager = None
 
     #-------------------------------------------------------------------------
     # Things related to IPython exiting

@@ -14,6 +14,7 @@ import re
 import threading
 from pathlib import Path
 
+from contextlib import contextmanager
 from decorator import decorator
 from traitlets import (
     Any,
@@ -35,6 +36,7 @@ from IPython.utils.decorators import undoc
 from typing import Iterable, Tuple, Optional, TYPE_CHECKING
 import typing
 from warnings import warn
+from weakref import ref, WeakSet
 
 if TYPE_CHECKING:
     from IPython.core.interactiveshell import InteractiveShell
@@ -620,7 +622,12 @@ class HistoryManager(HistoryAccessor):
 
     # History saving in separate thread
     save_thread = Instance("IPython.core.history.HistorySavingThread", allow_none=True)
-    save_flag = Instance(threading.Event, allow_none=False)
+
+    @property
+    def save_flag(self) -> threading.Event | None:
+        if self.save_thread is not None:
+            return self.save_thread.save_flag
+        return None
 
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new
@@ -636,6 +643,9 @@ class HistoryManager(HistoryAccessor):
     # an exit call).
     _exit_re = re.compile(r"(exit|quit)(\s*\(.*\))?$")
 
+    _instances: WeakSet[HistoryManager] = WeakSet()
+    _max_inst: int | float = float("inf")
+
     def __init__(
         self,
         shell: InteractiveShell,
@@ -644,7 +654,6 @@ class HistoryManager(HistoryAccessor):
     ):
         """Create a new history manager associated with a shell instance."""
         super().__init__(shell=shell, config=config, **traits)
-        self.save_flag = threading.Event()
         self.db_input_cache_lock = threading.Lock()
         self.db_output_cache_lock = threading.Lock()
 
@@ -668,6 +677,15 @@ class HistoryManager(HistoryAccessor):
                     exc_info=True,
                 )
                 self.hist_file = ":memory:"
+        self._instances.add(self)
+        assert len(HistoryManager._instances) <= HistoryManager._max_inst, (
+            len(HistoryManager._instances),
+            HistoryManager._max_inst,
+        )
+
+    def __del__(self) -> None:
+        if self.save_thread is not None:
+            self.save_thread.stop()
 
     def _get_hist_file_name(self, profile: Optional[str] = None) -> Path:
         """Get default history file name based on the Shell's profile.
@@ -927,7 +945,8 @@ class HistoryManager(HistoryAccessor):
             self.db_input_cache.append((line_num, source, source_raw))
             # Trigger to flush cache and write to DB.
             if len(self.db_input_cache) >= self.db_cache_size:
-                self.save_flag.set()
+                if self.save_flag:
+                    self.save_flag.set()
 
         # update the auto _i variables
         self._iii = self._ii
@@ -959,7 +978,7 @@ class HistoryManager(HistoryAccessor):
 
         with self.db_output_cache_lock:
             self.db_output_cache.append((line_num, output))
-        if self.db_cache_size <= 1:
+        if self.db_cache_size <= 1 and self.save_flag is not None:
             self.save_flag.set()
 
     def _writeout_input_cache(self, conn: sqlite3.Connection) -> None:
@@ -1015,6 +1034,21 @@ class HistoryManager(HistoryAccessor):
                 self.db_output_cache = []
 
 
+from typing import Callable, Iterator
+from weakref import ReferenceType
+
+
+@contextmanager
+def hold(ref: ReferenceType[HistoryManager]) -> Iterator[ReferenceType[HistoryManager]]:
+    """
+    Context manger that hold a reference to a weak ref to make sure it
+    is not GC'd during it's context.
+    """
+    r = ref()
+    yield ref
+    del r
+
+
 class HistorySavingThread(threading.Thread):
     """This thread takes care of writing history to the database, so that
     the UI isn't held up while that happens.
@@ -1023,32 +1057,43 @@ class HistorySavingThread(threading.Thread):
     the history cache. The main thread is responsible for setting the flag when
     the cache size reaches a defined threshold."""
 
-    daemon = True
-    stop_now = False
-    enabled = True
-    history_manager: HistoryManager
+    save_flag: threading.Event
+    daemon: bool = True
+    _stop_now: bool = False
+    enabled: bool = True
+    history_manager: ref[HistoryManager]
+    _stopped = False
 
     def __init__(self, history_manager: HistoryManager) -> None:
         super(HistorySavingThread, self).__init__(name="IPythonHistorySavingThread")
-        self.history_manager = history_manager
+        self.history_manager = ref(history_manager)
         self.enabled = history_manager.enabled
+        self.save_flag = threading.Event()
 
     @only_when_enabled
     def run(self) -> None:
         atexit.register(self.stop)
         # We need a separate db connection per thread:
         try:
-            self.db = sqlite3.connect(
-                str(self.history_manager.hist_file),
-                **self.history_manager.connection_options,
-            )
+            hm: ReferenceType[HistoryManager]
+            with hold(self.history_manager) as hm:
+                if hm() is not None:
+                    self.db = sqlite3.connect(
+                        str(hm().hist_file),  # type: ignore [union-attr]
+                        **hm().connection_options,  # type: ignore [union-attr]
+                    )
             while True:
-                self.history_manager.save_flag.wait()
-                if self.stop_now:
-                    self.db.close()
-                    return
-                self.history_manager.save_flag.clear()
-                self.history_manager.writeout_cache(self.db)
+                self.save_flag.wait()
+                with hold(self.history_manager) as hm:
+                    if hm() is None:
+                        self._stop_now = True
+                    if self._stop_now:
+                        self.db.close()
+                        return
+                    self.save_flag.clear()
+                    if hm() is not None:
+                        hm().writeout_cache(self.db)  # type: ignore [union-attr]
+
         except Exception as e:
             print(
                 (
@@ -1066,9 +1111,17 @@ class HistorySavingThread(threading.Thread):
         Note that it does not attempt to write out remaining history before
         exiting. That should be done by calling the HistoryManager's
         end_session method."""
-        self.stop_now = True
-        self.history_manager.save_flag.set()
-        self.join()
+        if self._stopped:
+            return
+        self._stop_now = True
+
+        self.save_flag.set()
+        self._stopped = True
+        if self != threading.current_thread():
+            self.join()
+
+    def __del__(self) -> None:
+        self.stop()
 
 
 # To match, e.g. ~5/8-~2/3

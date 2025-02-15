@@ -24,6 +24,7 @@ from IPython.core.display import _PNG, _JPEG
 from .. import pylabtools as pt
 
 from IPython.testing import decorators as dec
+from IPython.core.tests.test_history import hmmax3
 
 
 def test_figure_to_svg():
@@ -142,11 +143,12 @@ def test_select_figure_formats_set():
 def test_select_figure_formats_bad():
     ip = get_ipython()
     with pytest.raises(ValueError):
-        pt.select_figure_formats(ip, 'foo')
+        pt.select_figure_formats(ip, "foo")
     with pytest.raises(ValueError):
-        pt.select_figure_formats(ip, {'png', 'foo'})
+        pt.select_figure_formats(ip, {"png", "foo"})
     with pytest.raises(ValueError):
-        pt.select_figure_formats(ip, ['retina', 'pdf', 'bar', 'bad'])
+        pt.select_figure_formats(ip, ["retina", "pdf", "bar", "bad"])
+
 
 def test_import_pylab():
     ns = {}
@@ -155,128 +157,142 @@ def test_import_pylab():
     assert ns["np"] == np
 
 
-class TestPylabSwitch(object):
-    class Shell(InteractiveShell):
-        def init_history(self):
-            """Sets up the command history, and starts regular autosaves."""
-            self.config.HistoryManager.hist_file = ":memory:"
-            super().init_history()
+@pytest.fixture
+def shell_pylab_fixture(hmmax3):
+    import matplotlib
 
-        def enable_gui(self, gui):
-            pass
+    def act_mpl(backend):
+        matplotlib.rcParams["backend"] = backend
 
-    def setup_method(self):
-        import matplotlib
-        def act_mpl(backend):
-            matplotlib.rcParams['backend'] = backend
+    # Save rcParams since they get modified
+    _saved_rcParams = matplotlib.rcParams
+    _saved_rcParamsOrig = matplotlib.rcParamsOrig
+    matplotlib.rcParams = dict(backend="QtAgg")
+    matplotlib.rcParamsOrig = dict(backend="QtAgg")
 
-        # Save rcParams since they get modified
-        self._saved_rcParams = matplotlib.rcParams
-        self._saved_rcParamsOrig = matplotlib.rcParamsOrig
-        matplotlib.rcParams = dict(backend="QtAgg")
-        matplotlib.rcParamsOrig = dict(backend="QtAgg")
+    # Mock out functions
+    _save_am = pt.activate_matplotlib
+    pt.activate_matplotlib = act_mpl
+    _save_ip = pt.import_pylab
+    pt.import_pylab = lambda *a, **kw: None
+    s = Shell()
+    yield s
+    s.configurables = []
+    s.history_manager = None
+    pt.activate_matplotlib = _save_am
+    pt.import_pylab = _save_ip
+    matplotlib.rcParams = _saved_rcParams
+    matplotlib.rcParamsOrig = _saved_rcParamsOrig
 
-        # Mock out functions
-        self._save_am = pt.activate_matplotlib
-        pt.activate_matplotlib = act_mpl
-        self._save_ip = pt.import_pylab
-        pt.import_pylab = lambda *a,**kw:None
 
-    def teardown_method(self):
-        pt.activate_matplotlib = self._save_am
-        pt.import_pylab = self._save_ip
-        import matplotlib
-        matplotlib.rcParams = self._saved_rcParams
-        matplotlib.rcParamsOrig = self._saved_rcParamsOrig
+class Shell(InteractiveShell):
+    def init_history(self):
+        """Sets up the command history, and starts regular autosaves."""
+        self.config.HistoryManager.hist_file = ":memory:"
+        super().init_history()
 
-    def test_qt(self):
-        s = self.Shell()
-        gui, backend = s.enable_matplotlib(None)
-        assert gui == "qt"
-        assert s.pylab_gui_select == "qt"
+    def enable_gui(self, gui):
+        pass
 
-        gui, backend = s.enable_matplotlib("inline")
-        assert gui is None
-        assert s.pylab_gui_select == "qt"
 
-        gui, backend = s.enable_matplotlib("qt")
-        assert gui == "qt"
-        assert s.pylab_gui_select == "qt"
+def test_just_shell_no_leak(shell_pylab_fixture):
+    s = shell_pylab_fixture
 
-        gui, backend = s.enable_matplotlib("inline")
-        assert gui is None
-        assert s.pylab_gui_select == "qt"
 
-        gui, backend = s.enable_matplotlib()
-        assert gui == "qt"
-        assert s.pylab_gui_select == "qt"
+def test_qt(shell_pylab_fixture):
+    s = shell_pylab_fixture
+    gui, backend = s.enable_matplotlib(None)
+    assert gui == "qt"
+    assert s.pylab_gui_select == "qt"
 
-    def test_inline(self):
-        s = self.Shell()
-        gui, backend = s.enable_matplotlib("inline")
-        assert gui is None
-        assert s.pylab_gui_select == None
+    gui, backend = s.enable_matplotlib("inline")
+    assert gui is None
+    assert s.pylab_gui_select == "qt"
 
-        gui, backend = s.enable_matplotlib("inline")
-        assert gui is None
-        assert s.pylab_gui_select == None
+    gui, backend = s.enable_matplotlib("qt")
+    assert gui == "qt"
+    assert s.pylab_gui_select == "qt"
 
-        gui, backend = s.enable_matplotlib("qt")
-        assert gui == "qt"
-        assert s.pylab_gui_select == "qt"
+    gui, backend = s.enable_matplotlib("inline")
+    assert gui is None
+    assert s.pylab_gui_select == "qt"
 
-    def test_inline_twice(self):
-        "Using '%matplotlib inline' twice should not reset formatters"
+    gui, backend = s.enable_matplotlib()
+    assert gui == "qt"
+    assert s.pylab_gui_select == "qt"
+    s.configurables = []
+    s.history_manager = None
 
-        ip = self.Shell()
-        gui, backend = ip.enable_matplotlib("inline")
-        assert gui is None
 
-        fmts =  {'png'}
-        active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
-        pt.select_figure_formats(ip, fmts)
+def test_inline(shell_pylab_fixture):
+    s = shell_pylab_fixture
+    gui, backend = s.enable_matplotlib("inline")
+    assert gui is None
+    assert s.pylab_gui_select == None
 
-        gui, backend = ip.enable_matplotlib("inline")
-        assert gui is None
+    gui, backend = s.enable_matplotlib("inline")
+    assert gui is None
+    assert s.pylab_gui_select == None
 
-        for mime, f in ip.display_formatter.formatters.items():
-            if mime in active_mimes:
-                assert Figure in f
-            else:
-                assert Figure not in f
+    gui, backend = s.enable_matplotlib("qt")
+    assert gui == "qt"
+    assert s.pylab_gui_select == "qt"
 
-    def test_qt_gtk(self):
-        s = self.Shell()
-        gui, backend = s.enable_matplotlib("qt")
-        assert gui == "qt"
-        assert s.pylab_gui_select == "qt"
 
-        gui, backend = s.enable_matplotlib("gtk3")
-        assert gui == "qt"
-        assert s.pylab_gui_select == "qt"
+def test_inline_twice(shell_pylab_fixture):
+    "Using '%matplotlib inline' twice should not reset formatters"
 
-    @dec.skipif(not pt._matplotlib_manages_backends())
-    def test_backend_module_name_case_sensitive(self):
-        # Matplotlib backend names are case insensitive unless explicitly specified using
-        # "module://some_module.some_name" syntax which are case sensitive for mpl >= 3.9.1
-        all_lowercase = "module://matplotlib_inline.backend_inline"
-        some_uppercase = "module://matplotlib_inline.Backend_inline"
-        mpl3_9_1 = matplotlib.__version_info__ >= (3, 9, 1)
+    ip = shell_pylab_fixture
+    gui, backend = ip.enable_matplotlib("inline")
+    assert gui is None
 
-        s = self.Shell()
-        s.enable_matplotlib(all_lowercase)
-        if mpl3_9_1:
-            with pytest.raises(RuntimeError):
-                s.enable_matplotlib(some_uppercase)
+    fmts = {"png"}
+    active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
+    pt.select_figure_formats(ip, fmts)
+
+    gui, backend = ip.enable_matplotlib("inline")
+    assert gui is None
+
+    for mime, f in ip.display_formatter.formatters.items():
+        if mime in active_mimes:
+            assert Figure in f
         else:
+            assert Figure not in f
+
+
+def test_qt_gtk(shell_pylab_fixture):
+    s = shell_pylab_fixture
+    gui, backend = s.enable_matplotlib("qt")
+    assert gui == "qt"
+    assert s.pylab_gui_select == "qt"
+
+    gui, backend = s.enable_matplotlib("gtk3")
+    assert gui == "qt"
+    assert s.pylab_gui_select == "qt"
+
+
+@dec.skipif(not pt._matplotlib_manages_backends())
+def test_backend_module_name_case_sensitive(shell_pylab_fixture):
+    # Matplotlib backend names are case insensitive unless explicitly specified using
+    # "module://some_module.some_name" syntax which are case sensitive for mpl >= 3.9.1
+    all_lowercase = "module://matplotlib_inline.backend_inline"
+    some_uppercase = "module://matplotlib_inline.Backend_inline"
+    mpl3_9_1 = matplotlib.__version_info__ >= (3, 9, 1)
+
+    s = shell_pylab_fixture
+    s.enable_matplotlib(all_lowercase)
+    if mpl3_9_1:
+        with pytest.raises(RuntimeError):
             s.enable_matplotlib(some_uppercase)
+    else:
+        s.enable_matplotlib(some_uppercase)
 
-        s.run_line_magic("matplotlib", all_lowercase)
-        if mpl3_9_1:
-            with pytest.raises(RuntimeError):
-                s.run_line_magic("matplotlib", some_uppercase)
-        else:
+    s.run_line_magic("matplotlib", all_lowercase)
+    if mpl3_9_1:
+        with pytest.raises(RuntimeError):
             s.run_line_magic("matplotlib", some_uppercase)
+    else:
+        s.run_line_magic("matplotlib", some_uppercase)
 
 
 def test_no_gui_backends():
