@@ -95,7 +95,7 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     if module is None:
         module = caller_module
     if local_ns is None:
-        local_ns = caller_locals
+        local_ns = dict(**caller_locals)
     
     # Only import .zmq when we really need it
     from ipykernel.embed import embed_kernel as real_embed_kernel
