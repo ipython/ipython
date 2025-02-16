@@ -46,6 +46,10 @@ try:
     from sqlite3 import DatabaseError, OperationalError
     import sqlite3
 
+    sqlite3.register_converter(
+        "timestamp", lambda val: datetime.datetime.fromisoformat(val.decode())
+    )
+
     sqlite3_found = True
 except ModuleNotFoundError:
     sqlite3_found = False
@@ -124,7 +128,11 @@ def catch_corrupt_db(f, self, *a, **kw):  # type: ignore [no-untyped-def]
                 size = self.hist_file.stat().st_size
                 if size >= _SAVE_DB_SIZE:
                     # if there's significant content, avoid clobbering
-                    now = datetime.datetime.now().isoformat().replace(":", ".")
+                    now = (
+                        datetime.datetime.now(datetime.timezone.utc)
+                        .isoformat()
+                        .replace(":", ".")
+                    )
                     newpath = base + "-corrupt-" + now + ext
                     # don't clobber previous corrupt backups
                     for i in range(100):
@@ -718,7 +726,7 @@ class HistoryManager(HistoryAccessor):
                 """UPDATE sessions SET end=?, num_cmds=? WHERE
                             session==?""",
                 (
-                    datetime.datetime.now().isoformat(" "),
+                    datetime.datetime.now(datetime.timezone.utc).isoformat(" "),
                     len(self.input_hist_parsed) - 1,
                     self.session_number,
                 ),
