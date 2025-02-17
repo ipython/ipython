@@ -54,6 +54,10 @@ def test_ipython_embed():
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate(_exit)
         std = out.decode('UTF-8')
+        try:
+            std = out.decode("UTF-8")
+        except UnicodeDecodeError as e:
+            raise UnicodeDecodeError(f"Error decoding {out!r}") from e
 
         assert p.returncode == 0
         assert "3 . 14" in std
