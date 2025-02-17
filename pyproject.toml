@@ -329,7 +329,7 @@ addopts = [
    "--ignore=tmp",
    "--ignore=tools",
    "--ignore=traitlets",
-   "--ignore=IPython/core/tests/daft_extension",
+   "--ignore=tests/fake_ext_dir/",
    "--ignore=IPython/sphinxext",
    "--ignore=IPython/terminal/pt_inputhooks",
    "--ignore=IPython/__main__.py",
@@ -377,8 +377,6 @@ namespaces = false
 [tool.setuptools.package-data]
 "IPython" = ["py.typed"]
 "IPython.core" = ["profile/README*"]
-"IPython.core.tests" = ["*.png", "*.jpg", "daft_extension/*.py"]
-"IPython.lib.tests" = ["*.wav"]
 "IPython.testing.plugin" = ["*.txt"]
 
 [tool.setuptools.dynamic]
