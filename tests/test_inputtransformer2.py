@@ -75,16 +75,24 @@ g()
     ),
 )
 
-MULTILINE_SYSTEM_ASSIGN = ("""\
+MULTILINE_SYSTEM_ASSIGN = (
+    """\
 a = f()
 b = !foo \\
   bar
 g()
-""".splitlines(keepends=True), (2, 4), """\
+""".splitlines(
+        keepends=True
+    ),
+    (2, 4),
+    """\
 a = f()
 b = get_ipython().getoutput('foo    bar')
 g()
-""".splitlines(keepends=True))
+""".splitlines(
+        keepends=True
+    ),
+)
 
 #####
 

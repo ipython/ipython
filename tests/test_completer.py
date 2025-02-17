@@ -209,6 +209,7 @@ def check_line_split(splitter, test_specs):
         out = splitter.split_line(line, cursor_pos)
         assert out == split
 
+
 def test_line_split():
     """Basic line splitter test with default specs."""
     sp = completer.CompletionSplitter()
@@ -285,15 +286,15 @@ class TestCompleter(unittest.TestCase):
         """Test that errors from custom attribute completers are silenced."""
         ip = get_ipython()
 
-        _, matches = ip.complete('in')
-        assert matches.index('input') < matches.index('int')
+        _, matches = ip.complete("in")
+        assert matches.index("input") < matches.index("int")
 
         def complete_example(a):
-            return ['example2', 'example1']
+            return ["example2", "example1"]
 
-        ip.Completer.custom_completers.add_re('ex*', complete_example)
-        _, matches = ip.complete('ex')
-        assert matches.index('example2') < matches.index('example1')
+        ip.Completer.custom_completers.add_re("ex*", complete_example)
+        _, matches = ip.complete("ex")
+        assert matches.index("example2") < matches.index("example1")
 
     def test_unicode_completions(self):
         ip = get_ipython()
@@ -973,7 +974,7 @@ class TestCompleter(unittest.TestCase):
         """
         delims = " \t\n`!@#$^&*()=+[{]}\\|;:'\",<>?"
 
-        keys = [("foo", "bar"), ("foo", "oof"), ("foo", b"bar"), ('other', 'test')]
+        keys = [("foo", "bar"), ("foo", "oof"), ("foo", b"bar"), ("other", "test")]
 
         def match(*args, extra=None, **kwargs):
             quote, offset, matches = match_dict_keys(
@@ -1107,7 +1108,7 @@ class TestCompleter(unittest.TestCase):
             object(): None,
             5: None,
             ("abe", None): None,
-            (None, "abf"): None
+            (None, "abf"): None,
         }
 
         _, matches = complete(line_buffer="d['a")
@@ -1150,7 +1151,7 @@ class TestCompleter(unittest.TestCase):
             self.assertIn("before-after", matches)
 
         # check completion on tuple-of-string keys at different stage - on first key
-        ip.user_ns["d"] = {('foo', 'bar'): None}
+        ip.user_ns["d"] = {("foo", "bar"): None}
         _, matches = complete(line_buffer="d[")
         self.assertIn("'foo'", matches)
         self.assertNotIn("'foo']", matches)
@@ -1202,7 +1203,7 @@ class TestCompleter(unittest.TestCase):
         self.assertNotIn("bar", matches)
 
         # Can complete with longer tuple keys
-        ip.user_ns["d"] = {('foo', 'bar', 'foobar'): None}
+        ip.user_ns["d"] = {("foo", "bar", "foobar"): None}
 
         # - can complete second key
         _, matches = complete(line_buffer="d['foo', 'b")
@@ -1383,6 +1384,7 @@ class TestCompleter(unittest.TestCase):
             _, matches = complete(line_buffer="d[1]['my_head']['")
             self.assertTrue(any(["my_dt" in m for m in matches]))
             self.assertTrue(any(["my_df" in m for m in matches]))
+
         # complete on a nested level
         with greedy_completion():
             completes_on_nested()

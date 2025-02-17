@@ -9,12 +9,13 @@ from tempfile import TemporaryDirectory
 
 def test_logstart_inaccessible_file():
     with pytest.raises(IOError):
-        _ip.logger.logstart(logfname="/")   # Opening that filename will fail.
+        _ip.logger.logstart(logfname="/")  # Opening that filename will fail.
 
     try:
-        _ip.run_cell("a=1")                 # Check it doesn't try to log this
+        _ip.run_cell("a=1")  # Check it doesn't try to log this
     finally:
         _ip.logger.log_active = False  # If this fails, don't let later tests fail
+
 
 def test_logstart_unicode():
     with TemporaryDirectory() as tdir:

@@ -1,17 +1,18 @@
 """Tests for various magic functions specific to the terminal frontend."""
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import sys
 from io import StringIO
 from unittest import TestCase
 
 from IPython.testing import tools as tt
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Test functions begin
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 MINIMAL_LAZY_MAGIC = """
@@ -38,15 +39,16 @@ def load_ipython_extension(ipython):
     ipython.register_magics(LazyMagics)
 """
 
+
 def check_cpaste(code, should_fail=False):
     """Execute code via 'cpaste' and ensure it was executed, unless
     should_fail is set.
     """
-    ip.user_ns['code_ran'] = False
+    ip.user_ns["code_ran"] = False
 
     src = StringIO()
     src.write(code)
-    src.write('\n--\n')
+    src.write("\n--\n")
     src.seek(0)
 
     stdin_save = sys.stdin
@@ -58,45 +60,47 @@ def check_cpaste(code, should_fail=False):
             ip.run_line_magic("cpaste", "")
 
         if not should_fail:
-            assert ip.user_ns['code_ran'], "%r failed" % code
+            assert ip.user_ns["code_ran"], "%r failed" % code
     finally:
         sys.stdin = stdin_save
+
 
 def test_cpaste():
     """Test cpaste magic"""
 
     def runf():
-        """Marker function: sets a flag when executed.
-        """
-        ip.user_ns['code_ran'] = True
-        return 'runf' # return string so '+ runf()' doesn't result in success
+        """Marker function: sets a flag when executed."""
+        ip.user_ns["code_ran"] = True
+        return "runf"  # return string so '+ runf()' doesn't result in success
 
-    tests = {'pass': ["runf()",
-                      "In [1]: runf()",
-                      "In [1]: if 1:\n   ...:     runf()",
-                      "> > > runf()",
-                      ">>> runf()",
-                      "   >>> runf()",
-                      ],
+    tests = {
+        "pass": [
+            "runf()",
+            "In [1]: runf()",
+            "In [1]: if 1:\n   ...:     runf()",
+            "> > > runf()",
+            ">>> runf()",
+            "   >>> runf()",
+        ],
+        "fail": [
+            "1 + runf()",
+            "++ runf()",
+        ],
+    }
 
-             'fail': ["1 + runf()",
-                      "++ runf()",
-             ]}
+    ip.user_ns["runf"] = runf
 
-    ip.user_ns['runf'] = runf
-
-    for code in tests['pass']:
+    for code in tests["pass"]:
         check_cpaste(code)
 
-    for code in tests['fail']:
+    for code in tests["fail"]:
         check_cpaste(code, should_fail=True)
-
 
 
 class PasteTestCase(TestCase):
     """Multiple tests for clipboard pasting"""
 
-    def paste(self, txt, flags='-q'):
+    def paste(self, txt, flags="-q"):
         """Paste input text, by default in quiet mode"""
         ip.hooks.clipboard_get = lambda: txt
         ip.run_line_magic("paste", flags)
@@ -105,10 +109,10 @@ class PasteTestCase(TestCase):
         # Inject fake clipboard hook but save original so we can restore it later
         self.original_clip = ip.hooks.clipboard_get
 
-    def tearDown(self): 
+    def tearDown(self):
         # Restore original hook
         ip.hooks.clipboard_get = self.original_clip
-       
+
     def test_paste(self):
         ip.user_ns.pop("x", None)
         self.paste("x = 1")
@@ -184,7 +188,7 @@ class PasteTestCase(TestCase):
         a = 100
         b = 200"""
         try:
-            self.paste(code,'')
+            self.paste(code, "")
             out = w.getvalue()
         finally:
             sys.stdout.write = old_write
@@ -194,7 +198,7 @@ class PasteTestCase(TestCase):
 
     def test_paste_leading_commas(self):
         "Test multiline strings with leading commas"
-        tm = ip.magics_manager.registry['TerminalMagics']
+        tm = ip.magics_manager.registry["TerminalMagics"]
         s = '''\
 a = """
 ,1,2,3
@@ -205,12 +209,12 @@ a = """
 
     def test_paste_trailing_question(self):
         "Test pasting sources with trailing question marks"
-        tm = ip.magics_manager.registry['TerminalMagics']
-        s = '''\
+        tm = ip.magics_manager.registry["TerminalMagics"]
+        s = """\
 def funcfoo():
    if True: #am i true?
        return 'fooresult'
-'''
-        ip.user_ns.pop('funcfoo', None)
+"""
+        ip.user_ns.pop("funcfoo", None)
         self.paste(s)
         self.assertEqual(ip.user_ns["funcfoo"](), "fooresult")

@@ -19,10 +19,10 @@ def test_reset():
     nvars_hidden = len(ip.user_ns_hidden)
 
     # Now add a few variables to user_ns, and check that reset clears them
-    ip.user_ns['x'] = 1
-    ip.user_ns['y'] = 1
+    ip.user_ns["x"] = 1
+    ip.user_ns["y"] = 1
     ip.reset()
-    
+
     # Finally, check that all namespaces have only as many variables as we
     # expect to find in them:
     assert len(ip.user_ns) == nvars_user_ns

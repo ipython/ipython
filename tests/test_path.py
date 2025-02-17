@@ -32,8 +32,9 @@ from IPython.utils import path
 try:
     import winreg as wreg
 except ImportError:
-    #Fake _winreg module on non-windows platforms
+    # Fake _winreg module on non-windows platforms
     import types
+
     wr_name = "winreg"
     sys.modules[wr_name] = types.ModuleType(wr_name)
     try:
@@ -41,18 +42,22 @@ except ImportError:
     except ImportError:
         import _winreg as wreg
 
-        #Add entries that needs to be stubbed by the testing code
-        (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
+        # Add entries that needs to be stubbed by the testing code
+        (
+            wreg.OpenKey,
+            wreg.QueryValueEx,
+        ) = (None, None)
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Globals
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 env = os.environ
 TMP_TEST_DIR = tempfile.mkdtemp()
 HOME_TEST_DIR = join(TMP_TEST_DIR, "home_test_dir")
 #
 # Setup/teardown functions/decorators
 #
+
 
 def setup_module():
     """Setup testenvironment for the module:
@@ -61,7 +66,7 @@ def setup_module():
     """
     # Do not mask exceptions here.  In particular, catching WindowsError is a
     # problem because that exception is only defined on Windows...
-    os.makedirs(os.path.join(HOME_TEST_DIR, 'ipython'))
+    os.makedirs(os.path.join(HOME_TEST_DIR, "ipython"))
 
 
 def teardown_module():
@@ -114,12 +119,11 @@ with_environment = pytest.mark.usefixtures("environment")
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_1(monkeypatch):
-    """Testcase for py2exe logic, un-compressed lib
-    """
+    """Testcase for py2exe logic, un-compressed lib"""
     unfrozen = path.get_home_dir()
     monkeypatch.setattr(sys, "frozen", True, raising=False)
 
-    #fake filename for IPython.__init__
+    # fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
 
     home_dir = path.get_home_dir()
@@ -129,8 +133,7 @@ def test_get_home_dir_1(monkeypatch):
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_2(monkeypatch):
-    """Testcase for py2exe logic, compressed lib
-    """
+    """Testcase for py2exe logic, compressed lib"""
     unfrozen = path.get_home_dir()
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     # fake filename for IPython.__init__
@@ -156,18 +159,21 @@ def test_get_home_dir_3():
 def test_get_home_dir_4():
     """get_home_dir() still works if $HOME is not set"""
 
-    if 'HOME' in env: del env['HOME']
+    if "HOME" in env:
+        del env["HOME"]
     # this should still succeed, but we don't care what the answer is
     home = path.get_home_dir(False)
+
 
 @skip_win32
 @with_environment
 def test_get_home_dir_5(monkeypatch):
     """raise HomeDirError if $HOME is specified, but not a writable dir"""
-    env['HOME'] = abspath(HOME_TEST_DIR+'garbage')
+    env["HOME"] = abspath(HOME_TEST_DIR + "garbage")
     # set os.name = posix, to prevent My Documents fallback on Windows
     monkeypatch.setattr(os, "name", "posix")
     pytest.raises(path.HomeDirError, path.get_home_dir, True)
+
 
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
@@ -179,21 +185,26 @@ def test_get_home_dir_8(monkeypatch):
     """
     monkeypatch.setattr(os, "name", "nt")
     # Remove from stub environment all keys that may be set
-    for key in ['HOME', 'HOMESHARE', 'HOMEDRIVE', 'HOMEPATH', 'USERPROFILE']:
+    for key in ["HOME", "HOMESHARE", "HOMEDRIVE", "HOMEPATH", "USERPROFILE"]:
         env.pop(key, None)
 
     class key:
         def __enter__(self):
             pass
+
         def Close(self):
             pass
+
         def __exit__(*args, **kwargs):
             pass
 
-    with patch.object(wreg, 'OpenKey', return_value=key()), \
-         patch.object(wreg, 'QueryValueEx', return_value=[abspath(HOME_TEST_DIR)]):
+    with (
+        patch.object(wreg, "OpenKey", return_value=key()),
+        patch.object(wreg, "QueryValueEx", return_value=[abspath(HOME_TEST_DIR)]),
+    ):
         home_dir = path.get_home_dir()
     assert home_dir == abspath(HOME_TEST_DIR)
+
 
 @with_environment
 def test_get_xdg_dir_0(monkeypatch):
@@ -202,9 +213,9 @@ def test_get_xdg_dir_0(monkeypatch):
     monkeypatch.setattr(path, "get_home_dir", lambda: "somewhere")
     monkeypatch.setattr(os, "name", "posix")
     monkeypatch.setattr(sys, "platform", "linux2")
-    env.pop('IPYTHON_DIR', None)
-    env.pop('IPYTHONDIR', None)
-    env.pop('XDG_CONFIG_HOME', None)
+    env.pop("IPYTHON_DIR", None)
+    env.pop("IPYTHONDIR", None)
+    env.pop("XDG_CONFIG_HOME", None)
 
     assert path.get_xdg_dir() == os.path.join("somewhere", ".config")
 
@@ -219,6 +230,7 @@ def test_get_xdg_dir_1(monkeypatch):
     env.pop("IPYTHONDIR", None)
     env.pop("XDG_CONFIG_HOME", None)
     assert path.get_xdg_dir() is None
+
 
 @with_environment
 def test_get_xdg_dir_2(monkeypatch):
@@ -235,6 +247,7 @@ def test_get_xdg_dir_2(monkeypatch):
 
     assert path.get_xdg_dir() == cfgdir
 
+
 @with_environment
 def test_get_xdg_dir_3(monkeypatch):
     """test_get_xdg_dir_3, check xdg_dir not used on non-posix systems"""
@@ -248,6 +261,7 @@ def test_get_xdg_dir_3(monkeypatch):
     os.makedirs(cfgdir, exist_ok=True)
 
     assert path.get_xdg_dir() is None
+
 
 def test_filefind():
     """Various tests for filefind"""
@@ -264,11 +278,13 @@ def test_get_long_path_name_win32():
 
         # Make a long path. Expands the path of tmpdir prematurely as it may already have a long
         # path component, so ensure we include the long form of it
-        long_path = os.path.join(path.get_long_path_name(tmpdir), 'this is my long path name')
+        long_path = os.path.join(
+            path.get_long_path_name(tmpdir), "this is my long path name"
+        )
         os.makedirs(long_path)
 
         # Test to see if the short path evaluates correctly.
-        short_path = os.path.join(tmpdir, 'THISIS~1')
+        short_path = os.path.join(tmpdir, "THISIS~1")
         evaluated_path = path.get_long_path_name(short_path)
         assert evaluated_path.lower() == long_path.lower()
 
@@ -322,6 +338,7 @@ def test_get_py_filename():
         pytest.raises(IOError, path.get_py_filename, '"foo with spaces.py"')
         pytest.raises(IOError, path.get_py_filename, "'foo with spaces.py'")
 
+
 @onlyif_unicode_paths
 def test_unicode_in_filename():
     """When a file doesn't exist, the exception raised should be safe to call
@@ -331,7 +348,7 @@ def test_unicode_in_filename():
     """
     try:
         # these calls should not throw unicode encode exceptions
-        path.get_py_filename('fooéè.py')
+        path.get_py_filename("fooéè.py")
     except IOError as ex:
         str(ex)
 
@@ -340,8 +357,8 @@ class TestShellGlob(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.filenames_start_with_a = ['a0', 'a1', 'a2']
-        cls.filenames_end_with_b = ['0b', '1b', '2b']
+        cls.filenames_start_with_a = ["a0", "a1", "a2"]
+        cls.filenames_end_with_b = ["0b", "1b", "2b"]
         cls.filenames = cls.filenames_start_with_a + cls.filenames_end_with_b
         cls.tempdir = TemporaryDirectory()
         td = cls.tempdir.name
@@ -372,34 +389,37 @@ class TestShellGlob(unittest.TestCase):
 
     def common_cases(self):
         return [
-            (['*'], self.filenames),
-            (['a*'], self.filenames_start_with_a),
-            (['*c'], ['*c']),
-            (['*', 'a*', '*b', '*c'], self.filenames
-                                      + self.filenames_start_with_a
-                                      + self.filenames_end_with_b
-                                      + ['*c']),
-            (['a[012]'], self.filenames_start_with_a),
+            (["*"], self.filenames),
+            (["a*"], self.filenames_start_with_a),
+            (["*c"], ["*c"]),
+            (
+                ["*", "a*", "*b", "*c"],
+                self.filenames
+                + self.filenames_start_with_a
+                + self.filenames_end_with_b
+                + ["*c"],
+            ),
+            (["a[012]"], self.filenames_start_with_a),
         ]
 
     @skip_win32
     def test_match_posix(self):
-        for (patterns, matches) in self.common_cases() + [
-                ([r'\*'], ['*']),
-                ([r'a\*', 'a*'], ['a*'] + self.filenames_start_with_a),
-                ([r'a\[012]'], ['a[012]']),
-                ]:
+        for patterns, matches in self.common_cases() + [
+            ([r"\*"], ["*"]),
+            ([r"a\*", "a*"], ["a*"] + self.filenames_start_with_a),
+            ([r"a\[012]"], ["a[012]"]),
+        ]:
             self.check_match(patterns, matches)
 
     @skip_if_not_win32
     def test_match_windows(self):
-        for (patterns, matches) in self.common_cases() + [
-                # In windows, backslash is interpreted as path
-                # separator.  Therefore, you can't escape glob
-                # using it.
-                ([r'a\*', 'a*'], [r'a\*'] + self.filenames_start_with_a),
-                ([r'a\[012]'], [r'a\[012]']),
-                ]:
+        for patterns, matches in self.common_cases() + [
+            # In windows, backslash is interpreted as path
+            # separator.  Therefore, you can't escape glob
+            # using it.
+            ([r"a\*", "a*"], [r"a\*"] + self.filenames_start_with_a),
+            ([r"a\[012]"], [r"a\[012]"]),
+        ]:
             self.check_match(patterns, matches)
 
 
@@ -420,14 +440,15 @@ def test_unescape_glob(globstr, unescaped_globstr):
 @onlyif_unicode_paths
 def test_ensure_dir_exists():
     with TemporaryDirectory() as td:
-        d = os.path.join(td, '∂ir')
-        path.ensure_dir_exists(d) # create it
+        d = os.path.join(td, "∂ir")
+        path.ensure_dir_exists(d)  # create it
         assert os.path.isdir(d)
         path.ensure_dir_exists(d)  # no-op
         f = os.path.join(td, "ƒile")
         open(f, "w", encoding="utf-8").close()  # touch
         with pytest.raises(IOError):
             path.ensure_dir_exists(f)
+
 
 class TestLinkOrCopy(unittest.TestCase):
     def setUp(self):
@@ -499,7 +520,7 @@ class TestLinkOrCopy(unittest.TestCase):
     def test_link_twice(self):
         # Linking the same file twice shouldn't leave duplicates around.
         # See https://github.com/ipython/ipython/issues/6450
-        dst = self.dst('target')
+        dst = self.dst("target")
         path.link_or_copy(self.src, dst)
         path.link_or_copy(self.src, dst)
         self.assert_inode_equal(self.src, dst)

@@ -53,6 +53,7 @@ def test_store_restore():
 
     os.rmdir(tmpd)
 
+
 def test_autorestore():
     ip.user_ns["foo"] = 95
     ip.run_line_magic("store", "foo")

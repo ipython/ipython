@@ -1,16 +1,16 @@
 # encoding: utf-8
 """Tests for IPython.utils.text"""
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 import math
@@ -22,13 +22,13 @@ import pytest
 
 from IPython.utils import text
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Globals
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def eval_formatter_check(f):
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os, u=u"café", b="café")
+    ns = dict(n=12, pi=math.pi, stuff="hello there", os=os, u="café", b="café")
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     assert s == "12 3 hello"
     s = f.format(" ".join(["{n//%i}" % i for i in range(1, 8)]), **ns)
@@ -50,7 +50,7 @@ def eval_formatter_check(f):
 
 
 def eval_formatter_slicing_check(f):
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
+    ns = dict(n=12, pi=math.pi, stuff="hello there", os=os)
     s = f.format(" {stuff.split()[:]} ", **ns)
     assert s == " ['hello', 'there'] "
     s = f.format(" {stuff.split()[::-1]} ", **ns)
@@ -59,6 +59,7 @@ def eval_formatter_slicing_check(f):
     assert s == ns["stuff"][::2]
 
     pytest.raises(SyntaxError, f.format, "{n:x}", **ns)
+
 
 def eval_formatter_no_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff="hello there", os=os)
@@ -72,22 +73,25 @@ def eval_formatter_no_slicing_check(f):
     s = f.format("{a[:]}", a=[1, 2])
     assert s == "[1, 2]"
 
+
 def test_eval_formatter():
     f = text.EvalFormatter()
     eval_formatter_check(f)
     eval_formatter_no_slicing_check(f)
+
 
 def test_full_eval_formatter():
     f = text.FullEvalFormatter()
     eval_formatter_check(f)
     eval_formatter_slicing_check(f)
 
+
 def test_dollar_formatter():
     f = text.DollarFormatter()
     eval_formatter_check(f)
     eval_formatter_slicing_check(f)
-    
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
+
+    ns = dict(n=12, pi=math.pi, stuff="hello there", os=os)
     s = f.format("$n", **ns)
     assert s == "12"
     s = f.format("$n.real", **ns)

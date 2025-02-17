@@ -1,21 +1,27 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (C) 2010-2011, IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import argparse
 import sys
 
-from IPython.core.magic_arguments import (argument, argument_group, kwds,
-    magic_arguments, parse_argstring, real_name)
+from IPython.core.magic_arguments import (
+    argument,
+    argument_group,
+    kwds,
+    magic_arguments,
+    parse_argstring,
+    real_name,
+)
 
 LEADING_SPACE = "" if sys.version_info > (3, 13) else " "
 
-#We do test docstring behavior here.
-#fmt: off
+# We do test docstring behavior here.
+# fmt: off
 
 @magic_arguments()
 @argument('-f', '--foo', help="an argument")

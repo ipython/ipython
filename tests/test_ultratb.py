@@ -71,25 +71,27 @@ class ChangedPyFileTest(unittest.TestCase):
 
             # For some reason, this was failing on the *second* call after
             # changing the file, so we call f() twice.
-            with tt.AssertNotPrints("Internal Python error", channel='stderr'):
+            with tt.AssertNotPrints("Internal Python error", channel="stderr"):
                 with tt.AssertPrints("ZeroDivisionError"):
                     ip.run_cell("foo_1456.f()")
                 with tt.AssertPrints("ZeroDivisionError"):
                     ip.run_cell("foo_1456.f()")
 
-iso_8859_5_file = u'''# coding: iso-8859-5
+
+iso_8859_5_file = '''# coding: iso-8859-5
 
 def fail():
     """дбИЖ"""
     1/0     # дбИЖ
 '''
 
+
 class NonAsciiTest(unittest.TestCase):
     @onlyif_unicode_paths
     def test_nonascii_path(self):
         # Non-ascii directory name as well.
-        with TemporaryDirectory(suffix=u'é') as td:
-            fname = os.path.join(td, u"fooé.py")
+        with TemporaryDirectory(suffix="é") as td:
+            fname = os.path.join(td, "fooé.py")
             with open(fname, "w", encoding="utf-8") as f:
                 f.write(file_1)
 
@@ -101,21 +103,21 @@ class NonAsciiTest(unittest.TestCase):
 
     def test_iso8859_5(self):
         with TemporaryDirectory() as td:
-            fname = os.path.join(td, 'dfghjkl.py')
+            fname = os.path.join(td, "dfghjkl.py")
 
-            with io.open(fname, 'w', encoding='iso-8859-5') as f:
+            with io.open(fname, "w", encoding="iso-8859-5") as f:
                 f.write(iso_8859_5_file)
 
             with prepended_to_syspath(td):
                 ip.run_cell("from dfghjkl import fail")
 
             with tt.AssertPrints("ZeroDivisionError"):
-                with tt.AssertPrints(u'дбИЖ', suppress=False):
-                    ip.run_cell('fail()')
+                with tt.AssertPrints("дбИЖ", suppress=False):
+                    ip.run_cell("fail()")
 
     def test_nonascii_msg(self):
-        cell = u"raise Exception('é')"
-        expected = u"Exception('é')"
+        cell = "raise Exception('é')"
+        expected = "Exception('é')"
         ip.run_cell("%xmode plain")
         with tt.AssertPrints(expected):
             ip.run_cell(cell)
@@ -129,11 +131,12 @@ class NonAsciiTest(unittest.TestCase):
             ip.run_cell(cell)
 
         ip.run_cell("%xmode minimal")
-        with tt.AssertPrints(u"Exception: é"):
+        with tt.AssertPrints("Exception: é"):
             ip.run_cell(cell)
 
         # Put this back into Context mode for later tests.
         ip.run_cell("%xmode context")
+
 
 class NestedGenExprTestCase(unittest.TestCase):
     """
@@ -141,6 +144,7 @@ class NestedGenExprTestCase(unittest.TestCase):
     https://github.com/ipython/ipython/issues/8293
     https://github.com/ipython/ipython/issues/8205
     """
+
     def test_nested_genexpr(self):
         code = dedent(
             """\
@@ -153,13 +157,14 @@ class NestedGenExprTestCase(unittest.TestCase):
             sum(sum(foo_8293(x) for _ in [0]) for x in [0])
             """
         )
-        with tt.AssertPrints('SpecificException: Success!', suppress=False):
+        with tt.AssertPrints("SpecificException: Success!", suppress=False):
             ip.run_cell(code)
 
 
 indentationerror_file = """if True:
 zoom()
 """
+
 
 class IndentationErrorTest(unittest.TestCase):
     def test_indentationerror_shows_line(self):
@@ -199,6 +204,7 @@ se_file_1 = """1
 
 se_file_2 = """7/
 """
+
 
 class SyntaxErrorTest(unittest.TestCase):
 
@@ -254,10 +260,11 @@ bar_syntax_error_test_2()
         # SyntaxTB may be called with an error other than a SyntaxError
         # See e.g. gh-4361
         try:
-            raise ValueError('QWERTY')
+            raise ValueError("QWERTY")
         except ValueError:
-            with tt.AssertPrints('QWERTY'):
+            with tt.AssertPrints("QWERTY"):
                 ip.showsyntaxerror()
+
 
 import sys
 
@@ -265,6 +272,7 @@ if platform.python_implementation() != "PyPy":
     """
     New 3.9 Pgen Parser does not raise Memory error, except on failed malloc.
     """
+
     class MemoryErrorTest(unittest.TestCase):
         def test_memoryerror(self):
             memoryerror_code = "(" * 200 + ")" * 200
@@ -322,8 +330,10 @@ except Exception as e:
                 ip.run_cell(self.SYS_EXIT_WITH_CONTEXT_CODE)
 
     def test_suppress_exception_chaining(self):
-        with tt.AssertNotPrints("ZeroDivisionError"), \
-             tt.AssertPrints("ValueError", suppress=False):
+        with (
+            tt.AssertNotPrints("ZeroDivisionError"),
+            tt.AssertPrints("ValueError", suppress=False),
+        ):
             ip.run_cell(self.SUPPRESS_CHAINING_CODE)
 
     def test_plain_direct_cause_error(self):
@@ -339,8 +349,10 @@ except Exception as e:
             ip.run_cell("%xmode Verbose")
 
     def test_plain_suppress_exception_chaining(self):
-        with tt.AssertNotPrints("ZeroDivisionError"), \
-             tt.AssertPrints("ValueError", suppress=False):
+        with (
+            tt.AssertNotPrints("ZeroDivisionError"),
+            tt.AssertPrints("ValueError", suppress=False),
+        ):
             ip.run_cell("%xmode Plain")
             ip.run_cell(self.SUPPRESS_CHAINING_CODE)
             ip.run_cell("%xmode Verbose")
@@ -369,6 +381,7 @@ def r3o1():
 def r3o2():
     r3o1()
 """
+
     def setUp(self):
         ip.run_cell(self.DEFINITIONS)
 
@@ -378,17 +391,27 @@ def r3o2():
 
     @recursionlimit(200)
     def test_recursion_one_frame(self):
-        with tt.AssertPrints(re.compile(
-            r"\[\.\.\. skipping similar frames: r1 at line 5 \(\d{2,3} times\)\]")
+        with tt.AssertPrints(
+            re.compile(
+                r"\[\.\.\. skipping similar frames: r1 at line 5 \(\d{2,3} times\)\]"
+            )
         ):
             ip.run_cell("r1()")
 
     @recursionlimit(160)
     def test_recursion_three_frames(self):
-        with tt.AssertPrints("[... skipping similar frames: "), \
-                tt.AssertPrints(re.compile(r"r3a at line 8 \(\d{2} times\)"), suppress=False), \
-                tt.AssertPrints(re.compile(r"r3b at line 11 \(\d{2} times\)"), suppress=False), \
-                tt.AssertPrints(re.compile(r"r3c at line 14 \(\d{2} times\)"), suppress=False):
+        with (
+            tt.AssertPrints("[... skipping similar frames: "),
+            tt.AssertPrints(
+                re.compile(r"r3a at line 8 \(\d{2} times\)"), suppress=False
+            ),
+            tt.AssertPrints(
+                re.compile(r"r3b at line 11 \(\d{2} times\)"), suppress=False
+            ),
+            tt.AssertPrints(
+                re.compile(r"r3c at line 14 \(\d{2} times\)"), suppress=False
+            ),
+        ):
             ip.run_cell("r3o2()")
 
 
@@ -415,7 +438,8 @@ except Exception as e:
             ip.run_cell("%xmode Verbose")
 
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 # module testing (minimal)
 def test_handlers():
@@ -435,8 +459,8 @@ def test_handlers():
 
     buff = io.StringIO()
 
-    buff.write('')
-    buff.write('*** Before ***')
+    buff.write("")
+    buff.write("*** Before ***")
     try:
         buff.write(spam(1, (2, 3)))
     except:
@@ -448,12 +472,12 @@ def test_handlers():
         buff.write(spam(1, (2, 3)))
     except:
         handler(*sys.exc_info())
-    buff.write('')
+    buff.write("")
 
     handler = VerboseTB(ostream=buff)
-    buff.write('*** VerboseTB ***')
+    buff.write("*** VerboseTB ***")
     try:
         buff.write(spam(1, (2, 3)))
     except:
         handler(*sys.exc_info())
-    buff.write('')
+    buff.write("")

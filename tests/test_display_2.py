@@ -18,12 +18,13 @@ from IPython.testing.tools import AssertNotPrints
 
 import IPython.testing.decorators as dec
 
+
 def test_image_size():
     """Simple test for display.Image(args, width=x,height=y)"""
-    thisurl = 'http://www.google.fr/images/srpr/logo3w.png'
+    thisurl = "http://www.google.fr/images/srpr/logo3w.png"
     img = display.Image(url=thisurl, width=200, height=200)
     assert '<img src="%s" width="200" height="200"/>' % (thisurl) == img._repr_html_()
-    img = display.Image(url=thisurl, metadata={'width':200, 'height':200})
+    img = display.Image(url=thisurl, metadata={"width": 200, "height": 200})
     assert '<img src="%s" width="200" height="200"/>' % (thisurl) == img._repr_html_()
     img = display.Image(url=thisurl, width=200)
     assert '<img src="%s" width="200"/>' % (thisurl) == img._repr_html_()
@@ -37,22 +38,18 @@ def test_image_mimes():
     fmt = get_ipython().display_formatter.format
     for format in display.Image._ACCEPTABLE_EMBEDDINGS:
         mime = display.Image._MIMETYPES[format]
-        img = display.Image(b'garbage', format=format)
+        img = display.Image(b"garbage", format=format)
         data, metadata = fmt(img)
         assert sorted(data) == sorted([mime, "text/plain"])
 
 
 def test_geojson():
 
-    gj = display.GeoJSON(data={
+    gj = display.GeoJSON(
+        data={
             "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-81.327, 296.038]
-            },
-            "properties": {
-                "name": "Inca City"
-            }
+            "geometry": {"type": "Point", "coordinates": [-81.327, 296.038]},
+            "properties": {"name": "Inca City"},
         },
         url_template="http://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/{basemap_id}/{z}/{x}/{y}.png",
         layer_options={
@@ -78,11 +75,12 @@ def test_retina_png():
 def test_embed_svg_url():
     import gzip
     from io import BytesIO
+
     svg_data = b'<svg><circle x="0" y="0" r="1"/></svg>'
-    url = 'http://test.com/circle.svg'
+    url = "http://test.com/circle.svg"
 
     gzip_svg = BytesIO()
-    with gzip.open(gzip_svg, 'wb') as fp:
+    with gzip.open(gzip_svg, "wb") as fp:
         fp.write(svg_data)
     gzip_svg = gzip_svg.getvalue()
 
@@ -90,7 +88,7 @@ def test_embed_svg_url():
         class MockResponse:
             def __init__(self, svg):
                 self._svg_data = svg
-                self.headers = {'content-type': 'image/svg+xml'}
+                self.headers = {"content-type": "image/svg+xml"}
 
             def read(self):
                 return self._svg_data
@@ -103,7 +101,7 @@ def test_embed_svg_url():
             return ret
         return MockResponse(None)
 
-    with mock.patch('urllib.request.urlopen', side_effect=mocked_urlopen):
+    with mock.patch("urllib.request.urlopen", side_effect=mocked_urlopen):
         svg = display.SVG(url=url)
         assert svg._repr_svg_().startswith("<svg") is True
         svg = display.SVG(url=url + "z")
@@ -121,10 +119,13 @@ def test_retina_jpeg():
 
 
 def test_base64image():
-    display.Image("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB94BCRQnOqNu0b4AAAAKSURBVAjXY2AAAAACAAHiIbwzAAAAAElFTkSuQmCC")
+    display.Image(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB94BCRQnOqNu0b4AAAAKSURBVAjXY2AAAAACAAHiIbwzAAAAAElFTkSuQmCC"
+    )
+
 
 def test_image_filename_defaults():
-    '''test format constraint, and validity of jpeg and png'''
+    """test format constraint, and validity of jpeg and png"""
     tpath = ipath.get_ipython_package_dir()
     pytest.raises(
         ValueError,
@@ -140,14 +141,18 @@ def test_image_filename_defaults():
         format="badformat",
         embed=True,
     )
+
+
 def _get_inline_config():
     from matplotlib_inline.config import InlineBackend
+
     return InlineBackend.instance()
 
 
 @dec.skip_without("matplotlib")
 def test_set_matplotlib_close():
     from matplotlib_inline.backend_inline import set_matplotlib_close
+
     cfg = _get_inline_config()
     cfg.close_figures = False
 
@@ -156,23 +161,26 @@ def test_set_matplotlib_close():
     set_matplotlib_close(False)
     assert not cfg.close_figures
 
+
 _fmt_mime_map = {
-    'png': 'image/png',
-    'jpeg': 'image/jpeg',
-    'pdf': 'application/pdf',
-    'retina': 'image/png',
-    'svg': 'image/svg+xml',
+    "png": "image/png",
+    "jpeg": "image/jpeg",
+    "pdf": "application/pdf",
+    "retina": "image/png",
+    "svg": "image/svg+xml",
 }
 
-@dec.skip_without('matplotlib')
+
+@dec.skip_without("matplotlib")
 def test_set_matplotlib_formats():
     from matplotlib.figure import Figure
     from matplotlib_inline.backend_inline import set_matplotlib_formats
+
     formatters = get_ipython().display_formatter.formatters
     for formats in [
-        ('png',),
-        ('pdf', 'svg'),
-        ('jpeg', 'retina', 'png'),
+        ("png",),
+        ("pdf", "svg"),
+        ("jpeg", "retina", "png"),
         (),
     ]:
         active_mimes = {_fmt_mime_map[fmt] for fmt in formats}
@@ -188,9 +196,10 @@ def test_set_matplotlib_formats():
 def test_set_matplotlib_formats_kwargs():
     from matplotlib.figure import Figure
     from matplotlib_inline.backend_inline import set_matplotlib_formats
+
     ip = get_ipython()
     cfg = _get_inline_config()
-    cfg.print_figure_kwargs.update(dict(foo='bar'))
+    cfg.print_figure_kwargs.update(dict(foo="bar"))
     kwargs = dict(dpi=150)
     set_matplotlib_formats("png", **kwargs)
     formatter = ip.display_formatter.formatters["image/png"]
@@ -202,6 +211,7 @@ def test_set_matplotlib_formats_kwargs():
     expected.update(cfg.print_figure_kwargs)
     assert formatter_kwargs == expected
 
+
 def test_display_available():
     """
     Test that display is available without import
@@ -210,15 +220,16 @@ def test_display_available():
     always be available.
     """
     ip = get_ipython()
-    with AssertNotPrints('NameError'):
-        ip.run_cell('display')
+    with AssertNotPrints("NameError"):
+        ip.run_cell("display")
     try:
-        ip.run_cell('del display')
+        ip.run_cell("del display")
     except NameError:
-        pass # it's ok, it might be in builtins
+        pass  # it's ok, it might be in builtins
     # even if deleted it should be back
-    with AssertNotPrints('NameError'):
-        ip.run_cell('display')
+    with AssertNotPrints("NameError"):
+        ip.run_cell("display")
+
 
 def test_textdisplayobj_pretty_repr():
     p = display.Pretty("This is a simple test")
@@ -244,23 +255,27 @@ def test_displayobject_repr():
     j._show_mem_addr = False
     assert repr(j) == "<IPython.core.display.Javascript object>"
 
-@mock.patch('warnings.warn')
+
+@mock.patch("warnings.warn")
 def test_encourage_iframe_over_html(m_warn):
     display.HTML()
     m_warn.assert_not_called()
 
-    display.HTML('<br />')
+    display.HTML("<br />")
     m_warn.assert_not_called()
 
-    display.HTML('<html><p>Lots of content here</p><iframe src="http://a.com"></iframe>')
+    display.HTML(
+        '<html><p>Lots of content here</p><iframe src="http://a.com"></iframe>'
+    )
     m_warn.assert_not_called()
 
     display.HTML('<iframe src="http://a.com"></iframe>')
-    m_warn.assert_called_with('Consider using IPython.display.IFrame instead')
+    m_warn.assert_called_with("Consider using IPython.display.IFrame instead")
 
     m_warn.reset_mock()
     display.HTML('<IFRAME SRC="http://a.com"></IFRAME>')
-    m_warn.assert_called_with('Consider using IPython.display.IFrame instead')
+    m_warn.assert_called_with("Consider using IPython.display.IFrame instead")
+
 
 def test_progress():
     p = display.ProgressBar(10)
@@ -282,19 +297,19 @@ def test_progress_iter():
 
 
 def test_json():
-    d = {'a': 5}
+    d = {"a": 5}
     lis = [d]
     metadata = [
-        {'expanded': False, 'root': 'root'},
-        {'expanded': True,  'root': 'root'},
-        {'expanded': False, 'root': 'custom'},
-        {'expanded': True,  'root': 'custom'},
+        {"expanded": False, "root": "root"},
+        {"expanded": True, "root": "root"},
+        {"expanded": False, "root": "custom"},
+        {"expanded": True, "root": "custom"},
     ]
     json_objs = [
         display.JSON(d),
         display.JSON(d, expanded=True),
-        display.JSON(d, root='custom'),
-        display.JSON(d, expanded=True, root='custom'),
+        display.JSON(d, root="custom"),
+        display.JSON(d, expanded=True, root="custom"),
     ]
     for j, md in zip(json_objs, metadata):
         assert j._repr_json_() == (d, md)
@@ -308,8 +323,8 @@ def test_json():
     json_objs = [
         display.JSON(lis),
         display.JSON(lis, expanded=True),
-        display.JSON(lis, root='custom'),
-        display.JSON(lis, expanded=True, root='custom'),
+        display.JSON(lis, root="custom"),
+        display.JSON(lis, expanded=True, root="custom"),
     ]
     for j, md in zip(json_objs, metadata):
         assert j._repr_json_() == (lis, md)
@@ -330,10 +345,10 @@ def test_video_embedding():
     assert 'src="http://ignored"' in html
 
     with pytest.raises(ValueError):
-        v = display.Video(b'abc')
+        v = display.Video(b"abc")
 
-    with NamedFileInTemporaryDirectory('test.mp4') as f:
-        f.write(b'abc')
+    with NamedFileInTemporaryDirectory("test.mp4") as f:
+        f.write(b"abc")
         f.close()
 
         v = display.Video(f.name)
@@ -345,17 +360,18 @@ def test_video_embedding():
         html = v._repr_html_()
         assert 'src="data:video/mp4;base64,YWJj"' in html
 
-        v = display.Video(f.name, embed=True, mimetype='video/other')
+        v = display.Video(f.name, embed=True, mimetype="video/other")
         html = v._repr_html_()
         assert 'src="data:video/other;base64,YWJj"' in html
 
-        v = display.Video(b'abc', embed=True, mimetype='video/mp4')
+        v = display.Video(b"abc", embed=True, mimetype="video/mp4")
         html = v._repr_html_()
         assert 'src="data:video/mp4;base64,YWJj"' in html
 
-        v = display.Video(u'YWJj', embed=True, mimetype='video/xyz')
+        v = display.Video("YWJj", embed=True, mimetype="video/xyz")
         html = v._repr_html_()
         assert 'src="data:video/xyz;base64,YWJj"' in html
+
 
 def test_html_metadata():
     s = "<h1>Test</h1>"
@@ -365,12 +381,12 @@ def test_html_metadata():
 
 def test_display_id():
     ip = get_ipython()
-    with mock.patch.object(ip.display_pub, 'publish') as pub:
-        handle = display.display('x')
+    with mock.patch.object(ip.display_pub, "publish") as pub:
+        handle = display.display("x")
         assert handle is None
-        handle = display.display('y', display_id='secret')
+        handle = display.display("y", display_id="secret")
         assert isinstance(handle, display.DisplayHandle)
-        handle2 = display.display('z', display_id=True)
+        handle2 = display.display("z", display_id=True)
         assert isinstance(handle2, display.DisplayHandle)
     assert handle.display_id != handle2.display_id
 
@@ -378,65 +394,55 @@ def test_display_id():
     args, kwargs = pub.call_args_list[0]
     assert args == ()
     assert kwargs == {
-        'data': {
-            'text/plain': repr('x')
-        },
-        'metadata': {},
+        "data": {"text/plain": repr("x")},
+        "metadata": {},
     }
     args, kwargs = pub.call_args_list[1]
     assert args == ()
     assert kwargs == {
-        'data': {
-            'text/plain': repr('y')
-        },
-        'metadata': {},
-        'transient': {
-            'display_id': handle.display_id,
+        "data": {"text/plain": repr("y")},
+        "metadata": {},
+        "transient": {
+            "display_id": handle.display_id,
         },
     }
     args, kwargs = pub.call_args_list[2]
     assert args == ()
     assert kwargs == {
-        'data': {
-            'text/plain': repr('z')
-        },
-        'metadata': {},
-        'transient': {
-            'display_id': handle2.display_id,
+        "data": {"text/plain": repr("z")},
+        "metadata": {},
+        "transient": {
+            "display_id": handle2.display_id,
         },
     }
 
 
 def test_update_display():
     ip = get_ipython()
-    with mock.patch.object(ip.display_pub, 'publish') as pub:
+    with mock.patch.object(ip.display_pub, "publish") as pub:
         with pytest.raises(TypeError):
-            display.update_display('x')
-        display.update_display('x', display_id='1')
-        display.update_display('y', display_id='2')
+            display.update_display("x")
+        display.update_display("x", display_id="1")
+        display.update_display("y", display_id="2")
     args, kwargs = pub.call_args_list[0]
     assert args == ()
     assert kwargs == {
-        'data': {
-            'text/plain': repr('x')
+        "data": {"text/plain": repr("x")},
+        "metadata": {},
+        "transient": {
+            "display_id": "1",
         },
-        'metadata': {},
-        'transient': {
-            'display_id': '1',
-        },
-        'update': True,
+        "update": True,
     }
     args, kwargs = pub.call_args_list[1]
     assert args == ()
     assert kwargs == {
-        'data': {
-            'text/plain': repr('y')
+        "data": {"text/plain": repr("y")},
+        "metadata": {},
+        "transient": {
+            "display_id": "2",
         },
-        'metadata': {},
-        'transient': {
-            'display_id': '2',
-        },
-        'update': True,
+        "update": True,
     }
 
 
@@ -453,25 +459,21 @@ def test_display_handle():
     args, kwargs = pub.call_args_list[0]
     assert args == ()
     assert kwargs == {
-        'data': {
-            'text/plain': repr('x')
+        "data": {"text/plain": repr("x")},
+        "metadata": {},
+        "transient": {
+            "display_id": handle.display_id,
         },
-        'metadata': {},
-        'transient': {
-            'display_id': handle.display_id,
-        }
     }
     args, kwargs = pub.call_args_list[1]
     assert args == ()
     assert kwargs == {
-        'data': {
-            'text/plain': repr('y')
+        "data": {"text/plain": repr("y")},
+        "metadata": {},
+        "transient": {
+            "display_id": handle.display_id,
         },
-        'metadata': {},
-        'transient': {
-            'display_id': handle.display_id,
-        },
-        'update': True,
+        "update": True,
     }
 
 

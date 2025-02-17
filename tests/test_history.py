@@ -1,9 +1,9 @@
 # coding: utf-8
 """Tests for the IPython tab-completion machinery.
 """
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Module imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # stdlib
 import io
@@ -15,12 +15,14 @@ from datetime import datetime
 from pathlib import Path
 
 from tempfile import TemporaryDirectory
+
 # our own packages
 from traitlets.config.loader import Config
 
 from IPython.core.history import HistoryAccessor, HistoryManager, extract_hist_ranges
 
 import pytest
+
 
 def test_proper_default_encoding():
     assert sys.getdefaultencoding() == "utf-8"
@@ -105,10 +107,10 @@ def test_history(hmmax2):
             newhist = [(2, i, c) for (i, c) in enumerate(newcmds, 1)]
 
             # Check get_hist_tail
-            gothist = ip.history_manager.get_tail(5, output=True,
-                                                    include_latest=True)
-            expected = [(1, 3, (hist[-1], "spam"))] \
-                + [(s, n, (c, None)) for (s, n, c) in newhist]
+            gothist = ip.history_manager.get_tail(5, output=True, include_latest=True)
+            expected = [(1, 3, (hist[-1], "spam"))] + [
+                (s, n, (c, None)) for (s, n, c) in newhist
+            ]
             assert list(gothist) == expected
 
             gothist = ip.history_manager.get_tail(2)
@@ -187,14 +189,16 @@ def test_history(hmmax2):
 
 def test_extract_hist_ranges():
     instr = "1 2/3 ~4/5-6 ~4/7-~4/9 ~9/2-~7/5 ~10/"
-    expected = [(0, 1, 2),  # 0 == current session
-                (2, 3, 4),
-                (-4, 5, 7),
-                (-4, 7, 10),
-                (-9, 2, None),  # None == to end
-                (-8, 1, None),
-                (-7, 1, 6),
-                (-10, 1, None)]
+    expected = [
+        (0, 1, 2),  # 0 == current session
+        (2, 3, 4),
+        (-4, 5, 7),
+        (-4, 7, 10),
+        (-9, 2, None),  # None == to end
+        (-8, 1, None),
+        (-7, 1, 6),
+        (-10, 1, None),
+    ]
     actual = list(extract_hist_ranges(instr))
     assert actual == expected
 
@@ -215,10 +219,12 @@ def test_magic_rerun():
     ip.run_cell("%rerun", store_history=True)
     assert ip.user_ns["a"] == 12
 
+
 def test_timestamp_type():
     ip = get_ipython()
     info = ip.history_manager.get_session_info()
     assert isinstance(info[1], datetime)
+
 
 def test_hist_file_config(hmmax3):
     cfg = Config()
@@ -236,6 +242,7 @@ def test_hist_file_config(hmmax3):
             # delete it.  I have no clue why
             pass
             HistoryManager.__max_inst = 1
+
 
 def test_histmanager_disabled(hmmax2):
     """Ensure that disabling the history manager doesn't create a database."""

@@ -11,8 +11,9 @@ from IPython.testing import decorators as dec
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.text import dedent
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Utilities
+
 
 # Note: copied from OInspect, kept here so the testing stuff doesn't create
 # circular dependencies and is easier to reuse.
@@ -32,12 +33,14 @@ def getargspec(obj):
     elif inspect.ismethod(obj):
         func_obj = obj.__func__
     else:
-        raise TypeError('arg is not a Python function')
+        raise TypeError("arg is not a Python function")
     args, varargs, varkw = inspect.getargs(func_obj.__code__)
     return args, varargs, varkw, func_obj.__defaults__
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Testing functions
+
 
 def test_trivial():
     """A trivial test"""
@@ -47,31 +50,32 @@ def test_trivial():
 @dec.skip()
 def test_deliberately_broken():
     """A deliberately broken test - we want to skip this one."""
-    1/0
+    1 / 0
 
-@dec.skip('Testing the skip decorator')
+
+@dec.skip("Testing the skip decorator")
 def test_deliberately_broken2():
     """Another deliberately broken test - we want to skip this one."""
-    1/0
+    1 / 0
 
 
 # Verify that we can correctly skip the doctest for a function at will, but
 # that the docstring itself is NOT destroyed by the decorator.
 @skip_doctest
-def doctest_bad(x,y=1,**k):
+def doctest_bad(x, y=1, **k):
     """A function whose doctest we need to skip.
 
     >>> 1+1
     3
     """
-    print('x:',x)
-    print('y:',y)
-    print('k:',k)
+    print("x:", x)
+    print("y:", y)
+    print("k:", k)
 
 
 def call_doctest_bad():
     """Check that we can still call the decorated functions.
-    
+
     >>> doctest_bad(3,y=4)
     x: 3
     y: 4
@@ -81,8 +85,7 @@ def call_doctest_bad():
 
 
 def test_skip_dt_decorator():
-    """Doctest-skipping decorator should preserve the docstring.
-    """
+    """Doctest-skipping decorator should preserve the docstring."""
     # Careful: 'check' must be a *verbatim* copy of the doctest_bad docstring!
     check = """A function whose doctest we need to skip.
 
@@ -107,7 +110,7 @@ class FooClass(object):
     """
 
     @skip_doctest
-    def __init__(self,x):
+    def __init__(self, x):
         """Make a FooClass.
 
         Example:
@@ -115,11 +118,11 @@ class FooClass(object):
         >>> f = FooClass(3)
         junk
         """
-        print('Making a FooClass.')
+        print("Making a FooClass.")
         self.x = x
-        
+
     @skip_doctest
-    def bar(self,y):
+    def bar(self, y):
         """Example:
 
         >>> ff = FooClass(3)
@@ -128,9 +131,9 @@ class FooClass(object):
         >>> 1/0
         bam!
         """
-        return 1/y
+        return 1 / y
 
-    def baz(self,y):
+    def baz(self, y):
         """Example:
 
         >>> ff2 = FooClass(3)
@@ -138,18 +141,18 @@ class FooClass(object):
         >>> ff2.baz(3)
         True
         """
-        return self.x==y
+        return self.x == y
 
 
 def test_skip_dt_decorator2():
-    """Doctest-skipping decorator should preserve function signature.
-    """
+    """Doctest-skipping decorator should preserve function signature."""
     # Hardcoded correct answer
-    dtargs = (['x', 'y'], None, 'k', (1,))
+    dtargs = (["x", "y"], None, "k", (1,))
     # Introspect out the value
     dtargsr = getargspec(doctest_bad)
-    assert dtargsr==dtargs, \
-           "Incorrectly reconstructed args for doctest_bad: %s" % (dtargsr,)
+    assert dtargsr == dtargs, "Incorrectly reconstructed args for doctest_bad: %s" % (
+        dtargsr,
+    )
 
 
 @dec.skip_linux
