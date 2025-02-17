@@ -62,7 +62,7 @@ def doctest_tb_context():
     <BLANKLINE>
     ...
          32     except IndexError:
-         33         mode = 'div'
+         33         mode = "div"
     ---> 35     bar(mode)
     <BLANKLINE>
     ... in bar(mode)
@@ -91,7 +91,7 @@ def doctest_tb_verbose():
     <BLANKLINE>
     ...
          32     except IndexError:
-         33         mode = 'div'
+         33         mode = "div"
     ---> 35     bar(mode)
             mode = 'div'
     <BLANKLINE>
@@ -150,7 +150,7 @@ def doctest_tb_sysexit():
     ---> ...     exec(compiler(f.read(), fname, "exec"), glob, loc)
     ...
          32     except IndexError:
-         33         mode = 'div'
+         33         mode = "div"
     ---> 35     bar(mode)
     <BLANKLINE>
     ...bar(mode)
@@ -189,7 +189,7 @@ if SV_VERSION < (0, 6):
         <BLANKLINE>
         ...
             32     except IndexError:
-            33         mode = 'div'
+            33         mode = "div"
         ---> 35     bar(mode)
                 mode = "exit"
         <BLANKLINE>

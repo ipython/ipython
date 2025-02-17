@@ -30,6 +30,6 @@ if __name__ == "__main__":
     try:
         mode = sys.argv[1]
     except IndexError:
-        mode = 'div'
+        mode = "div"
 
     bar(mode)
