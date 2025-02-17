@@ -158,7 +158,7 @@ def doctest_tb_sysexit():
          22             stat = 1
     ---> 23         sysexit(stat, mode)
          24     else:
-         25         raise ValueError('Unknown mode')
+         25         raise ValueError("Unknown mode")
     <BLANKLINE>
     ...sysexit(stat, mode)
          10 def sysexit(stat, mode):
@@ -200,7 +200,7 @@ if SV_VERSION < (0, 6):
                 mode = 'exit'
                 stat = 2
             ...     else:
-            ...         raise ValueError('Unknown mode')
+            ...         raise ValueError("Unknown mode")
         <BLANKLINE>
         ... in sysexit(stat=2, mode='exit')
             10 def sysexit(stat, mode):

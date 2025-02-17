@@ -22,7 +22,7 @@ def bar(mode):
             stat = 1
         sysexit(stat, mode)
     else:
-        raise ValueError('Unknown mode')
+        raise ValueError("Unknown mode")
 
 if __name__ == '__main__':
     try:
