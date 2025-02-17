@@ -371,7 +371,8 @@ license-files = ["LICENSE"]
 include-package-data = false
 
 [tool.setuptools.packages.find]
-exclude = ["setupext"]
+include = ["IPython*"]
+exclude = ["setupext", "tests*"]
 namespaces = false
 
 [tool.setuptools.package-data]

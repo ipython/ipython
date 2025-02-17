@@ -9,8 +9,10 @@ include .flake8
 include .pre-commit-config.yaml
 include long_description.rst
 
+recursive-include tests *
+
 recursive-exclude tools *
-recursive-exclude tests *
+
 exclude tools
 exclude CONTRIBUTING.md
 exclude .editorconfig
