@@ -7,6 +7,7 @@ def div0():
     y = 0
     x / y
 
+
 def sysexit(stat, mode):
     raise SystemExit(stat, f"Mode = {mode}")
 

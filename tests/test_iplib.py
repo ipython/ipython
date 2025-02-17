@@ -61,16 +61,16 @@ def doctest_tb_context():
     ZeroDivisionError                         Traceback (most recent call last)
     <BLANKLINE>
     ...
-         31     except IndexError:
-         32         mode = 'div'
-    ---> 34     bar(mode)
+         32     except IndexError:
+         33         mode = 'div'
+    ---> 35     bar(mode)
     <BLANKLINE>
     ... in bar(mode)
-         15     "bar"
-         16     if mode == 'div':
-    ---> 17         div0()
-         18     elif mode == "exit":
-         19         try:
+         16     "bar"
+         17     if mode == 'div':
+    ---> 18         div0()
+         19     elif mode == "exit":
+         20         try:
     <BLANKLINE>
     ... in div0()
           6     x = 1
@@ -90,17 +90,17 @@ def doctest_tb_verbose():
     ZeroDivisionError                         Traceback (most recent call last)
     <BLANKLINE>
     ...
-         31     except IndexError:
-         32         mode = 'div'
-    ---> 34     bar(mode)
+         32     except IndexError:
+         33         mode = 'div'
+    ---> 35     bar(mode)
             mode = 'div'
     <BLANKLINE>
     ... in bar(mode='div')
-         15     "bar"
-         16     if mode == 'div':
-    ---> 17         div0()
-         18     elif mode == "exit":
-         19         try:
+         16     "bar"
+         17     if mode == 'div':
+    ---> 18         div0()
+         19     elif mode == "exit":
+         20         try:
     <BLANKLINE>
     ... in div0()
           6     x = 1
@@ -149,20 +149,20 @@ def doctest_tb_sysexit():
          ...     compiler = compiler or compile
     ---> ...     exec(compiler(f.read(), fname, "exec"), glob, loc)
     ...
-         31     except IndexError:
-         32         mode = 'div'
-    ---> 34     bar(mode)
+         32     except IndexError:
+         33         mode = 'div'
+    ---> 35     bar(mode)
     <BLANKLINE>
     ...bar(mode)
-         21         except:
-         22             stat = 1
-    ---> 23         sysexit(stat, mode)
-         24     else:
-         25         raise ValueError("Unknown mode")
+         22         except:
+         23             stat = 1
+    ---> 24         sysexit(stat, mode)
+         25     else:
+         26         raise ValueError("Unknown mode")
     <BLANKLINE>
     ...sysexit(stat, mode)
-         10 def sysexit(stat, mode):
-    ---> 11     raise SystemExit(stat, f"Mode = {mode}")
+         11 def sysexit(stat, mode):
+    ---> 12     raise SystemExit(stat, f"Mode = {mode}")
     <BLANKLINE>
     SystemExit: (2, 'Mode = exit')
     """
@@ -188,9 +188,9 @@ if SV_VERSION < (0, 6):
         SystemExit                                Traceback (most recent call last)
         <BLANKLINE>
         ...
-            31     except IndexError:
-            32         mode = 'div'
-        ---> 34     bar(mode)
+            32     except IndexError:
+            33         mode = 'div'
+        ---> 35     bar(mode)
                 mode = "exit"
         <BLANKLINE>
         ... in bar(mode="exit")
@@ -203,8 +203,8 @@ if SV_VERSION < (0, 6):
             ...         raise ValueError("Unknown mode")
         <BLANKLINE>
         ... in sysexit(stat=2, mode="exit")
-            10 def sysexit(stat, mode):
-        ---> 11     raise SystemExit(stat, f"Mode = {mode}")
+            11 def sysexit(stat, mode):
+        ---> 12     raise SystemExit(stat, f"Mode = {mode}")
                 stat = 2
         <BLANKLINE>
         SystemExit: (2, 'Mode = exit')
