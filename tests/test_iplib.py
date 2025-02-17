@@ -67,7 +67,7 @@ def doctest_tb_context():
     <BLANKLINE>
     ... in bar(mode)
          16     "bar"
-         17     if mode == 'div':
+         17     if mode == "div":
     ---> 18         div0()
          19     elif mode == "exit":
          20         try:
@@ -97,7 +97,7 @@ def doctest_tb_verbose():
     <BLANKLINE>
     ... in bar(mode='div')
          16     "bar"
-         17     if mode == 'div':
+         17     if mode == "div":
     ---> 18         div0()
          19     elif mode == "exit":
          20         try:
