@@ -51,8 +51,9 @@ PyCF_MASK = functools.reduce(operator.or_,
 # Local utilities
 #-----------------------------------------------------------------------------
 
-def code_name(code, number=0):
-    """ Compute a (probably) unique name for code for caching.
+
+def code_name(code, number: int = 0):
+    """Compute a (probably) unique name for code for caching.
 
     This now expects code to be unicode.
     """
