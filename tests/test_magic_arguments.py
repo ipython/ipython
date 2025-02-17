@@ -14,6 +14,8 @@ from IPython.core.magic_arguments import (argument, argument_group, kwds,
 
 LEADING_SPACE = "" if sys.version_info > (3, 13) else " "
 
+#We do test docstring behavior here.
+#fmt: off
 
 @magic_arguments()
 @argument('-f', '--foo', help="an argument")
