@@ -61,21 +61,21 @@ def doctest_tb_context():
     ZeroDivisionError                         Traceback (most recent call last)
     <BLANKLINE>
     ...
-         32     except IndexError:
-         33         mode = "div"
-    ---> 35     bar(mode)
+         34     except IndexError:
+         35         mode = "div"
+    ---> 37     bar(mode)
     <BLANKLINE>
     ... in bar(mode)
-         16     "bar"
-         17     if mode == "div":
-    ---> 18         div0()
-         19     elif mode == "exit":
-         20         try:
+         18     "bar"
+         19     if mode == "div":
+    ---> 20         div0()
+         21     elif mode == "exit":
+         22         try:
     <BLANKLINE>
     ... in div0()
-          6     x = 1
-          7     y = 0
-    ----> 8     x / y
+          8     x = 1
+          9     y = 0
+    ---> 10     x / y
     <BLANKLINE>
     ZeroDivisionError: ..."""
 
@@ -90,22 +90,22 @@ def doctest_tb_verbose():
     ZeroDivisionError                         Traceback (most recent call last)
     <BLANKLINE>
     ...
-         32     except IndexError:
-         33         mode = "div"
-    ---> 35     bar(mode)
+         34     except IndexError:
+         35         mode = "div"
+    ---> 37     bar(mode)
             mode = 'div'
     <BLANKLINE>
     ... in bar(mode='div')
-         16     "bar"
-         17     if mode == "div":
-    ---> 18         div0()
-         19     elif mode == "exit":
-         20         try:
+         18     "bar"
+         19     if mode == "div":
+    ---> 20         div0()
+         21     elif mode == "exit":
+         22         try:
     <BLANKLINE>
     ... in div0()
-          6     x = 1
-          7     y = 0
-    ----> 8     x / y
+          8     x = 1
+          9     y = 0
+    ---> 10     x / y
             x = 1
             y = 0
     <BLANKLINE>
@@ -149,20 +149,20 @@ def doctest_tb_sysexit():
          ...     compiler = compiler or compile
     ---> ...     exec(compiler(f.read(), fname, "exec"), glob, loc)
     ...
-         32     except IndexError:
-         33         mode = "div"
-    ---> 35     bar(mode)
+         34     except IndexError:
+         35         mode = "div"
+    ---> 37     bar(mode)
     <BLANKLINE>
     ...bar(mode)
-         22         except:
-         23             stat = 1
-    ---> 24         sysexit(stat, mode)
-         25     else:
-         26         raise ValueError("Unknown mode")
+         24         except:
+         25             stat = 1
+    ---> 26         sysexit(stat, mode)
+         27     else:
+         28         raise ValueError("Unknown mode")
     <BLANKLINE>
     ...sysexit(stat, mode)
-         11 def sysexit(stat, mode):
-    ---> 12     raise SystemExit(stat, f"Mode = {mode}")
+         13 def sysexit(stat, mode):
+    ---> 14     raise SystemExit(stat, f"Mode = {mode}")
     <BLANKLINE>
     SystemExit: (2, 'Mode = exit')
     """
@@ -188,9 +188,9 @@ if SV_VERSION < (0, 6):
         SystemExit                                Traceback (most recent call last)
         <BLANKLINE>
         ...
-            32     except IndexError:
-            33         mode = "div"
-        ---> 35     bar(mode)
+            34     except IndexError:
+            35         mode = "div"
+        ---> 37     bar(mode)
                 mode = "exit"
         <BLANKLINE>
         ... in bar(mode="exit")
@@ -203,8 +203,8 @@ if SV_VERSION < (0, 6):
             ...         raise ValueError("Unknown mode")
         <BLANKLINE>
         ... in sysexit(stat=2, mode="exit")
-            11 def sysexit(stat, mode):
-        ---> 12     raise SystemExit(stat, f"Mode = {mode}")
+            13 def sysexit(stat, mode):
+        ---> 14     raise SystemExit(stat, f"Mode = {mode}")
                 stat = 2
         <BLANKLINE>
         SystemExit: (2, 'Mode = exit')

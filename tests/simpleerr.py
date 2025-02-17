@@ -1,5 +1,7 @@
 """Error script. DO NOT EDIT FURTHER! It will break exception doctests!!!"""
+
 import sys
+
 
 def div0():
     "foo"
