@@ -42,16 +42,6 @@ if __name__ == '__main__':
         # These are exposed in display
         r"\.core\.display",
         r"\.lib\.display",
-        # Shims
-        r"\.config",
-        r"\.consoleapp",
-        r"\.frontend$",
-        r"\.html",
-        r"\.nbconvert",
-        r"\.nbformat",
-        r"\.parallel",
-        r"\.qt",
-        # this is deprecated.
         r"\.utils\.version",
         # Private APIs (there should be a lot more here)
         r"\.terminal\.ptutils",
