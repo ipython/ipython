@@ -26,7 +26,7 @@ def bar(mode):
         raise ValueError("Unknown mode")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         mode = sys.argv[1]
     except IndexError:
