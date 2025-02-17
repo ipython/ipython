@@ -24,7 +24,7 @@ from IPython.core.display import _PNG, _JPEG
 from IPython.core import pylabtools as pt
 
 from IPython.testing import decorators as dec
-from IPython.core.tests.test_history import hmmax3
+from .test_history import hmmax3
 
 
 def test_figure_to_svg():
