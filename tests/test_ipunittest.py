@@ -50,6 +50,10 @@ from IPython.testing.ipunittest import ipdoctest, ipdocstring
 #-----------------------------------------------------------------------------
 # Test classes and functions
 #-----------------------------------------------------------------------------
+
+# we do not want docstring reformatting here
+# fmt: off
+
 @ipdoctest
 def simple_dt():
     """
