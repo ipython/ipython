@@ -46,7 +46,7 @@ def doctest_tb_plain():
       File ...:... in bar
         div0()
       File ...:... in div0
-        x/y
+        x / y
     ZeroDivisionError: ...
     """
 
@@ -75,7 +75,7 @@ def doctest_tb_context():
     ... in div0()
           6     x = 1
           7     y = 0
-    ----> 8     x/y
+    ----> 8     x / y
     <BLANKLINE>
     ZeroDivisionError: ..."""
 
@@ -105,7 +105,7 @@ def doctest_tb_verbose():
     ... in div0()
           6     x = 1
           7     y = 0
-    ----> 8     x/y
+    ----> 8     x / y
             x = 1
             y = 0
     <BLANKLINE>
