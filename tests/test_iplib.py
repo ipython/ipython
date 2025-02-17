@@ -61,9 +61,9 @@ def doctest_tb_context():
     ZeroDivisionError                         Traceback (most recent call last)
     <BLANKLINE>
     ...
-         30     except IndexError:
-         31         mode = 'div'
-    ---> 33     bar(mode)
+         31     except IndexError:
+         32         mode = 'div'
+    ---> 34     bar(mode)
     <BLANKLINE>
     ... in bar(mode)
          15     "bar"
@@ -90,9 +90,9 @@ def doctest_tb_verbose():
     ZeroDivisionError                         Traceback (most recent call last)
     <BLANKLINE>
     ...
-         30     except IndexError:
-         31         mode = 'div'
-    ---> 33     bar(mode)
+         31     except IndexError:
+         32         mode = 'div'
+    ---> 34     bar(mode)
             mode = 'div'
     <BLANKLINE>
     ... in bar(mode='div')
@@ -149,9 +149,9 @@ def doctest_tb_sysexit():
          ...     compiler = compiler or compile
     ---> ...     exec(compiler(f.read(), fname, "exec"), glob, loc)
     ...
-         30     except IndexError:
-         31         mode = 'div'
-    ---> 33     bar(mode)
+         31     except IndexError:
+         32         mode = 'div'
+    ---> 34     bar(mode)
     <BLANKLINE>
     ...bar(mode)
          21         except:
@@ -188,9 +188,9 @@ if SV_VERSION < (0, 6):
         SystemExit                                Traceback (most recent call last)
         <BLANKLINE>
         ...
-            30     except IndexError:
-            31         mode = 'div'
-        ---> 33     bar(mode)
+            31     except IndexError:
+            32         mode = 'div'
+        ---> 34     bar(mode)
                 mode = "exit"
         <BLANKLINE>
         ... in bar(mode="exit")

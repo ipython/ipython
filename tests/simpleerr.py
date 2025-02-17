@@ -24,6 +24,7 @@ def bar(mode):
     else:
         raise ValueError("Unknown mode")
 
+
 if __name__ == '__main__':
     try:
         mode = sys.argv[1]
