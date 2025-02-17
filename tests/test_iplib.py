@@ -188,14 +188,14 @@ if SV_VERSION < (0, 6):
         SystemExit                                Traceback (most recent call last)
         <BLANKLINE>
         ...
-            34     except IndexError:
-            35         mode = "div"
+             34     except IndexError:
+             35         mode = "div"
         ---> 37     bar(mode)
                 mode = "exit"
         <BLANKLINE>
         ... in bar(mode="exit")
-            ...     except:
-            ...         stat = 1
+             ...     except:
+             ...         stat = 1
         ---> ...     sysexit(stat, mode)
                 mode = "exit"
                 stat = 2
@@ -203,7 +203,7 @@ if SV_VERSION < (0, 6):
             ...         raise ValueError("Unknown mode")
         <BLANKLINE>
         ... in sysexit(stat=2, mode="exit")
-            13 def sysexit(stat, mode):
+             13 def sysexit(stat, mode):
         ---> 14     raise SystemExit(stat, f"Mode = {mode}")
                 stat = 2
         <BLANKLINE>
