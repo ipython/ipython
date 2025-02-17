@@ -69,7 +69,7 @@ def doctest_tb_context():
          15     "bar"
          16     if mode == 'div':
     ---> 17         div0()
-         18     elif mode == 'exit':
+         18     elif mode == "exit":
          19         try:
     <BLANKLINE>
     ... in div0()
@@ -99,7 +99,7 @@ def doctest_tb_verbose():
          15     "bar"
          16     if mode == 'div':
     ---> 17         div0()
-         18     elif mode == 'exit':
+         18     elif mode == "exit":
          19         try:
     <BLANKLINE>
     ... in div0()
@@ -191,18 +191,18 @@ if SV_VERSION < (0, 6):
             30     except IndexError:
             31         mode = 'div'
         ---> 33     bar(mode)
-                mode = 'exit'
+                mode = "exit"
         <BLANKLINE>
-        ... in bar(mode='exit')
+        ... in bar(mode="exit")
             ...     except:
             ...         stat = 1
         ---> ...     sysexit(stat, mode)
-                mode = 'exit'
+                mode = "exit"
                 stat = 2
             ...     else:
             ...         raise ValueError("Unknown mode")
         <BLANKLINE>
-        ... in sysexit(stat=2, mode='exit')
+        ... in sysexit(stat=2, mode="exit")
             10 def sysexit(stat, mode):
         ---> 11     raise SystemExit(stat, f"Mode = {mode}")
                 stat = 2
