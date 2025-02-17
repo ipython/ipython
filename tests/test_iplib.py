@@ -32,6 +32,8 @@ def test_reset():
 # Tests for reporting of exceptions in various modes, handling of SystemExit,
 # and %tb functionality.  This is really a mix of testing ultraTB and interactiveshell.
 
+# fmt: off
+
 def doctest_tb_plain():
     """
     In [18]: xmode plain
