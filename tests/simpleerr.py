@@ -13,9 +13,9 @@ def sysexit(stat, mode):
 
 def bar(mode):
     "bar"
-    if mode=='div':
+    if mode == 'div':
         div0()
-    elif mode=='exit':
+    elif mode == 'exit':
         try:
             stat = int(sys.argv[2])
         except:
