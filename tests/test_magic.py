@@ -1297,10 +1297,12 @@ async def test_script_bg_proc():
     )
     p = ip.user_ns["p"]
     await p.wait()
-    assert p.returncode == 0
-    assert (await p.stdout.read()).strip() == b"hi"
+    stdout = await p.stdout.read()
+    stderr = await p.stderr.read()
+    assert p.returncode == 0, (stdout, stderr)
+    assert stdout.strip() == b"hi"
     # not captured, so empty
-    assert (await p.stderr.read()) == b""
+    assert (stderr) == b""
     assert p.stdout.at_eof()
     assert p.stderr.at_eof()
 
