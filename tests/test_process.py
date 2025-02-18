@@ -139,9 +139,8 @@ class SubProcessTestCase(tt.TempFileMixin):
             # Success!
             pass
         end = time.time()
-        self.assertTrue(
-            end - start < 2, "Process didn't die quickly: %s" % (end - start)
-        )
+        delta = end - start
+        assert delta < 2, "Process didn't die quickly (in less than 2s): %s" % delta
         return result
 
     def test_system_interrupt(self):

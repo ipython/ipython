@@ -114,7 +114,7 @@ def process_handler(
                 p.kill()
             except OSError:
                 pass
-        # p.stdin / p.stderr / p.stdin are not the values passes to Pope, They
+        # p.stdin / p.stderr / p.stdin are not the values passes to `Popen`, They
         # are proxy reader/writer, and this is usually  close in the context
         # manager, but the __exit__ does self.wait(), and we can't
         # afford this (see comment below),
