@@ -97,6 +97,7 @@ def process_handler(
         sys.stderr.flush()
         out = None
     finally:
+
         # Make really sure that we don't leave processes behind, in case the
         # call above raises an exception
         # We start by assuming the subprocess finished (to avoid NameErrors
@@ -113,6 +114,21 @@ def process_handler(
                 p.kill()
             except OSError:
                 pass
+        # p.stdin / p.stderr / p.stdin are not the values passes to Pope, They
+        # are proxy reader/writer, and this is usually  close in the context
+        # manager, but the __exit__ does self.wait(), and we can't
+        # afford this (see comment below),
+        # so we copy the first part of the exit routine.
+        #
+        if p.stdout:
+            p.stdout.close()
+        if p.stderr:
+            p.stderr.close()
+        try:  # Flushing a BufferedWriter may raise an error
+            if p.stdin:
+                p.stdin.close()
+        except (Exception, KeyboardInterrupt):
+            print("Error closing Stdin")
 
     return out
 
