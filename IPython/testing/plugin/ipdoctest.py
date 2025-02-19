@@ -288,7 +288,7 @@ class IPDocTestParser(doctest.DocTestParser):
 SKIP = doctest.register_optionflag('SKIP')
 
 
-class IPDocTestRunner(doctest.DocTestRunner,object):
+class IPDocTestRunner(doctest.DocTestRunner):
     """Test runner that synchronizes the IPython namespace with test globals.
     """
 

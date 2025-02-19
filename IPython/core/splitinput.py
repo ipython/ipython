@@ -79,7 +79,7 @@ def split_user_input(line, pattern=None):
     return pre, esc or "", ifun.strip(), the_rest
 
 
-class LineInfo(object):
+class LineInfo:
     """A single line of input and associated info.
 
     Includes the following as properties:

@@ -680,7 +680,7 @@ def _resolve_annotation(
         if index is not None and index < len(node.args):
             return eval_node(node.args[index], context)
     elif origin is TypeGuard:
-        return bool()
+        return False
     elif origin is Union:
         attributes = [
             attr

@@ -17,7 +17,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
 
 
-class MagicsDisplay(object):
+class MagicsDisplay:
     def __init__(self, magics_manager, ignore=None):
         self.ignore = ignore if ignore else []
         self.magics_manager = magics_manager
