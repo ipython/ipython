@@ -306,7 +306,7 @@ notprinted_msg = """Did not find {0!r} in printed output (on {1}):
 -------
 """
 
-class AssertPrints(object):
+class AssertPrints:
     """Context manager for testing that code prints certain text.
 
     Examples

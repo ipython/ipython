@@ -69,7 +69,7 @@ from IPython.core.magics.ast_mod import ReplaceCodeTransformer
 #-----------------------------------------------------------------------------
 
 
-class TimeitResult(object):
+class TimeitResult:
     """
     Object returned by the timeit magic with info about the run.
 

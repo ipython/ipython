@@ -111,7 +111,7 @@ FAST_THRESHOLD = 10_000
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def count_lines_in_py_file(filename: str) -> int:
     """
     Given a filename, returns the number of lines in the file

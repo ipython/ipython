@@ -38,7 +38,7 @@ from IPython.core.ultratb import AutoFormattedTB
 from logging import error, debug
 
 
-class BackgroundJobManager(object):
+class BackgroundJobManager:
     """Class to manage a pool of backgrounded threaded jobs.
 
     Below, we assume that 'jobs' is a BackgroundJobManager instance.

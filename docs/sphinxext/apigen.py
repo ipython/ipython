@@ -74,7 +74,7 @@ class FuncClsScanner(ast.NodeVisitor):
         return self.functions, self.classes
 
 # Functions and classes
-class ApiDocWriter(object):
+class ApiDocWriter:
     ''' Class for automatic detection and parsing of API docs
     to Sphinx-parsable reST format'''
 
