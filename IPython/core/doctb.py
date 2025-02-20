@@ -1,7 +1,84 @@
-from .tbtools import TBTools, FrameInfo
+import inspect
+import linecache
+import sys
+from collections.abc import Sequence
 from types import TracebackType
-
 from typing import Any, Callable, Optional
+
+import stack_data
+from pygments.formatters.terminal256 import Terminal256Formatter
+from pygments.token import Token
+
+from IPython.utils.PyColorize import Theme, TokenStream, theme_table
+
+from .tbtools import FrameInfo, TBTools
+
+INDENT_SIZE = 8
+
+from IPython.utils.terminal import get_terminal_size
+
+from .tbtools import (
+    _tokens_filename,
+    eqrepr,
+    get_line_number_of_frame,
+    nullrepr,
+    _safe_string,
+)
+
+
+def _format_traceback_lines(
+    lines: list[stack_data.Line],
+    theme: Theme,
+    has_colors: bool,
+    lvals_toks: list[TokenStream],
+) -> TokenStream:
+    """
+    Format tracebacks lines with pointing arrow, leading numbers,
+    this assumes the stack have been extracted using stackdata.
+
+
+    Parameters
+    ----------
+    lines : list[Line]
+    """
+    numbers_width = INDENT_SIZE - 1
+    tokens: TokenStream = [(Token, "\n")]
+
+    for stack_line in lines:
+        if stack_line is stack_data.LINE_GAP:
+            toks = [(Token.LinenoEm, "   (...)")]
+            tokens.extend(toks)
+            continue
+
+        lineno = stack_line.lineno
+        line = stack_line.render(pygmented=has_colors).rstrip("\n") + "\n"
+        if stack_line.is_current:
+            # This is the line with the error
+            pad = numbers_width - len(str(lineno))
+            toks = [
+                (Token.Prompt, theme.make_arrow(3)),
+                (Token, " "),
+                (Token, line),
+            ]
+        else:
+            # num = "%*s" % (numbers_width, lineno)
+            toks = [
+                # (Token.LinenoEm, str(num)),
+                (Token, "..."),
+                (Token, " "),
+                (Token, line),
+            ]
+
+        tokens.extend(toks)
+        if lvals_toks and stack_line.is_current:
+            for lv in lvals_toks:
+                tokens.append((Token, " " * INDENT_SIZE))
+                tokens.extend(lv)
+                tokens.append((Token, "\n"))
+            # strip the last newline
+            tokens = tokens[:-1]
+
+    return tokens
 
 
 class DocTB(TBTools):
@@ -12,7 +89,7 @@ class DocTB(TBTools):
 
     """
 
-    tb_highlight = "bg:ansiyellow"
+    tb_highlight = ""
     tb_highlight_style = "default"
 
     _mode: str
@@ -141,98 +218,37 @@ class DocTB(TBTools):
                     ]
                 )
 
-        if frame_info._sd is None:
-            # fast fallback if file is too long
-            assert frame_info.filename is not None
-            level_tokens = [
-                (Token.FilenameEm, util_path.compress_user(frame_info.filename)),
-                (Token, " "),
-                (Token, call),
-                (Token, "\n"),
-            ]
-
-            _line_format = Parser(theme_name=self._theme_name).format2
-            assert isinstance(frame_info.code, types.CodeType)
-            first_line: int = frame_info.code.co_firstlineno
-            current_line: int = frame_info.lineno
-            raw_lines: list[str] = frame_info.raw_lines
-            index: int = current_line - first_line
-            assert frame_info.context is not None
-            if index >= frame_info.context:
-                start = max(index - frame_info.context, 0)
-                stop = index + frame_info.context
-                index = frame_info.context
-            else:
-                start = 0
-                stop = index + frame_info.context
-            raw_lines = raw_lines[start:stop]
-
-            # Jan 2025: may need _line_format(py3ompat.cast_unicode(s))
-            raw_color_err = [(s, _line_format(s, "str")) for s in raw_lines]
-
-            tb_tokens = _simple_format_traceback_lines(
-                current_line,
-                index,
-                raw_color_err,
+        assert frame_info._sd is not None
+        result = theme_table[self._theme_name].format(
+            _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
+        )
+        result += ", " if call else ""
+        result += f"{call}\n"
+        result += theme_table[self._theme_name].format(
+            _format_traceback_lines(
+                frame_info.lines,
+                theme_table[self._theme_name],
+                self.has_colors,
                 lvals_toks,
-                theme=theme_table[self._theme_name],
             )
-            _tb_lines: str = theme_table[self._theme_name].format(tb_tokens)
+        )
+        return result
 
-            return theme_table[self._theme_name].format(level_tokens + tb_tokens)
-        else:
-            result = theme_table[self._theme_name].format(
-                _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
-            )
-            result += ", " if call else ""
-            result += f"{call}\n"
-            result += theme_table[self._theme_name].format(
-                _format_traceback_lines(
-                    frame_info.lines,
-                    theme_table[self._theme_name],
-                    self.has_colors,
-                    lvals_toks,
-                )
-            )
-            return result
-
-    def prepare_header(self, etype: str, long_version: bool = False) -> str:
+    def prepare_header(self, etype: str) -> str:
         width = min(75, get_terminal_size()[0])
-        if long_version:
-            # Header with the exception type, python version, and date
-            pyver = "Python " + sys.version.split()[0] + ": " + sys.executable
-            date = time.ctime(time.time())
-            theme = theme_table[self._theme_name]
-            head = theme.format(
-                [
-                    (Token.Topline, theme.symbols["top_line"] * width),
-                    (Token, "\n"),
-                    (Token.ExcName, etype),
-                    (Token, " " * (width - len(etype) - len(pyver))),
-                    (Token, pyver),
-                    (Token, "\n"),
-                    (Token, date.rjust(width)),
-                ]
-            )
-            head += (
-                "\nA problem occurred executing Python code.  Here is the sequence of function"
-                "\ncalls leading up to the error, with the most recent (innermost) call last."
-            )
-        else:
-            # Simplified header
-            head = theme_table[self._theme_name].format(
-                [
-                    (Token.ExcName, etype),
-                    (
-                        Token,
-                        "Traceback (most recent call last)".rjust(width - len(etype)),
-                    ),
-                ]
-            )
+        head = theme_table[self._theme_name].format(
+            [
+                (
+                    Token,
+                    "Traceback (most recent call last):",
+                ),
+                (Token, " "),
+            ]
+        )
 
         return head
 
-    def format_exception(self, etype, evalue):
+    def format_exception(self, etype: Any, evalue: Any) -> Any:
         # Get (safely) a string form of the exception info
         try:
             etype_str, evalue_str = map(str, (etype, evalue))
@@ -252,9 +268,7 @@ class DocTB(TBTools):
                 [(Token.ExcName, etype_str), (Token, ": "), (Token, evalue_str)]
             ),
             *(
-                theme_table[self._theme_name].format(
-                    [(Token, _safe_string(py3compat.cast_unicode(n), "note"))]
-                )
+                theme_table[self._theme_name].format([(Token, _safe_string(n, "note"))])
                 for n in notes
             ),
         ]
@@ -281,65 +295,39 @@ class DocTB(TBTools):
 
         tb_offset = self.tb_offset if tb_offset is None else tb_offset
         assert isinstance(tb_offset, int)
-        head = self.prepare_header(str(etype), self.long_header)
-        records = self.get_records(etb, context, tb_offset) if etb else []
+        head = DocTB.prepare_header(self, str(etype))
+        assert context == 1, context
+        records = DocTB.get_records(self, etb, context, tb_offset) if etb else []
 
         frames = []
         skipped = 0
-        lastrecord = len(records) - 1
-        for i, record in enumerate(records):
-            if (
-                not isinstance(record._sd, stack_data.RepeatedFrames)
-                and self.skip_hidden
-            ):
-                if (
-                    record.frame.f_locals.get("__tracebackhide__", 0)
-                    and i != lastrecord
-                ):
-                    skipped += 1
-                    continue
-            if skipped:
-                frames.append(
-                    theme_table[self._theme_name].format(
-                        [
-                            (Token, "    "),
-                            (Token.ExcName, "[... skipping hidden %s frame]" % skipped),
-                            (Token, "\n"),
-                        ]
-                    )
-                )
-                skipped = 0
-            frames.append(self.format_record(record))
-        if skipped:
+        nskipped = len(records) - 1
+        frames.append(DocTB.format_record(self, records[0]))
+        if nskipped:
             frames.append(
                 theme_table[self._theme_name].format(
                     [
+                        (Token, "\n"),
                         (Token, "    "),
-                        (Token.ExcName, "[... skipping hidden %s frame]" % skipped),
+                        (Token, "[... %s skipped frames]" % nskipped),
+                        (Token, "\n"),
                         (Token, "\n"),
                     ]
                 )
             )
 
         formatted_exception = self.format_exception(etype, evalue)
-        if records:
-            frame_info = records[-1]
-            ipinst = get_ipython()
-            if ipinst is not None:
-                ipinst.hooks.synchronize_with_editor(
-                    frame_info.filename, frame_info.lineno, 0
-                )
-
         return [[head] + frames + formatted_exception]
 
     def get_records(self, etb: TracebackType, context: int, tb_offset: int) -> Any:
+        assert context == 1, context
         assert etb is not None
         context = context - 1
         after = context // 2
         before = context - after
         if self.has_colors:
             base_style = theme_table[self._theme_name].as_pygments_style()
-            style = stack_data.style_with_executing_node(base_style, self.tb_highlight)
+            style = stack_data.style_with_executing_node(base_style, DocTB.tb_highlight)
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None
@@ -370,20 +358,6 @@ class DocTB(TBTools):
             tbs.append(cf)
             cf = getattr(cf, "tb_next", None)
 
-        if max_len > FAST_THRESHOLD:
-            FIs: list[FrameInfo] = []
-            for tb in tbs:
-                frame = tb.tb_frame  # type: ignore
-                lineno = frame.f_lineno
-                code = frame.f_code
-                filename = code.co_filename
-                # TODO: Here we need to use before/after/
-                FIs.append(
-                    FrameInfo(
-                        "Raw frame", filename, lineno, frame, code, context=context
-                    )
-                )
-            return FIs
         res = list(stack_data.FrameInfo.stack_data(etb, options=options))[tb_offset:]
         res2 = [FrameInfo._from_stack_data_FrameInfo(r) for r in res]
         return res2
@@ -394,24 +368,18 @@ class DocTB(TBTools):
         evalue: Optional[BaseException],
         etb: Optional[TracebackType] = None,
         tb_offset: Optional[int] = None,
-        context: int = 5,
+        context: int = 1,
     ) -> list[str]:
         """Return a nice text document describing the traceback."""
-        formatted_exceptions: list[list[str]] = self.format_exception_as_a_whole(
-            etype, evalue, etb, context, tb_offset
+        assert context > 0
+        assert context == 1, context
+        formatted_exceptions: list[list[str]] = DocTB.format_exception_as_a_whole(
+            self, etype, evalue, etb, context, tb_offset
         )
 
         termsize = min(75, get_terminal_size()[0])
         theme = theme_table[self._theme_name]
-        head: str = theme.format(
-            [
-                (
-                    Token.Topline,
-                    theme.symbols["top_line"] * termsize,
-                ),
-            ]
-        )
-        structured_traceback_parts: list[str] = [head]
+        structured_traceback_parts: list[str] = []
         chained_exceptions_tb_offset = 0
         lines_of_context = 3
         exception = self.get_parts_of_chained_exception(evalue)
@@ -449,60 +417,9 @@ class DocTB(TBTools):
         return structured_traceback_parts
 
     def debugger(self, force: bool = False) -> None:
-        """Call up the pdb debugger if desired, always clean up the tb
-        reference.
+        raise RuntimeError("canot rundebugger in Docs mode")
 
-        Keywords:
-
-          - force(False): by default, this routine checks the instance call_pdb
-            flag and does not actually invoke the debugger if the flag is false.
-            The 'force' option forces the debugger to activate even if the flag
-            is false.
-
-        If the call_pdb flag is set, the pdb interactive debugger is
-        invoked. In all cases, the self.tb reference to the current traceback
-        is deleted to prevent lingering references which hamper memory
-        management.
-
-        Note that each call to pdb() does an 'import readline', so if your app
-        requires a special setup for the readline completers, you'll have to
-        fix that by hand after invoking the exception handler."""
-
-        if force or self.call_pdb:
-            if self.pdb is None:
-                self.pdb = self.debugger_cls()
-            # the system displayhook may have changed, restore the original
-            # for pdb
-            display_trap = DisplayTrap(hook=sys.__displayhook__)
-            with display_trap:
-                self.pdb.reset()
-                # Find the right frame so we don't pop up inside ipython itself
-                if hasattr(self, "tb") and self.tb is not None:  # type: ignore[has-type]
-                    etb = self.tb  # type: ignore[has-type]
-                else:
-                    etb = self.tb = sys.last_traceback
-                while self.tb is not None and self.tb.tb_next is not None:
-                    assert self.tb.tb_next is not None
-                    self.tb = self.tb.tb_next
-                if etb and etb.tb_next:
-                    etb = etb.tb_next
-                self.pdb.botframe = etb.tb_frame
-                # last_value should be deprecated, but last-exc sometimme not set
-                # please check why later and remove the getattr.
-                exc = (
-                    sys.last_value
-                    if sys.version_info < (3, 12)
-                    else getattr(sys, "last_exc", sys.last_value)
-                )  # type: ignore[attr-defined]
-                if exc:
-                    self.pdb.interaction(None, exc)
-                else:
-                    self.pdb.interaction(None, etb)
-
-        if hasattr(self, "tb"):
-            del self.tb
-
-    def handler(self, info=None):
+    def handler(self, info: tuple[Any, Any, Any] | None = None) -> None:
         (etype, evalue, etb) = info or sys.exc_info()
         self.tb = etb
         ostream = self.ostream
@@ -513,7 +430,7 @@ class DocTB(TBTools):
 
     # Changed so an instance can just be called as VerboseTB_inst() and print
     # out the right info on its own.
-    def __call__(self, etype=None, evalue=None, etb=None):
+    def __call__(self, etype: Any = None, evalue: Any = None, etb: Any = None) -> None:
         """This hook can replace sys.excepthook (for Python 2.1 or higher)."""
         if etb is None:
             self.handler()
