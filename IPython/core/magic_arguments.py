@@ -205,7 +205,7 @@ def real_name(magic_func):
     return getattr(magic_func, 'argcmd_name', magic_name)
 
 
-class ArgDecorator(object):
+class ArgDecorator:
     """ Base class for decorators to add ArgumentParser information to a method.
     """
 

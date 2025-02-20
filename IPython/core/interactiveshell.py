@@ -201,13 +201,13 @@ class SeparateUnicode(Unicode):
 
 
 @undoc
-class DummyMod(object):
+class DummyMod:
     """A dummy module used for IPython's interactive module when
     a namespace must be assigned to the module's __dict__."""
     __spec__ = None
 
 
-class ExecutionInfo(object):
+class ExecutionInfo:
     """The arguments used for a call to :meth:`InteractiveShell.run_cell`
 
     Stores information about what is going to happen.

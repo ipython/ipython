@@ -408,7 +408,41 @@ extend-select = [
     #  "RUF",         # Ruff-specific
     #  "SIM",         # flake8-simplify
     #  "T20",         # flake8-print
-    #  "UP",          # pyupgrade
+    #    "UP",          # pyupgrade
+    "UP004",       #  1   [*] Class `...` inherits from `object`
+    # "UP006",        #  1   [*] Use `list` instead of `t.List` for type annotation
+    # "UP006",        #  1   [*] Use `tuple` instead of `t.Tuple` for type annotation
+    # "UP010",        #  1   [*] Unnecessary `__future__` import `print_function` for target Python version
+    "UP011",        #  1   [*] Unnecessary parentheses to `functools.lru_cache`
+    "UP018",        #  1   [*] Unnecessary `bool` call (rewrite as a literal)
+    # "UP006",        #182   [*] Use `...` instead of `...` for type annotation
+    # "UP007",        #  5   Use `X | Y` for type annotations
+    # "UP007",        #149   [*] Use `X | Y` for type annotations
+    # "UP008",        # 63   Use `super()` instead of `super(__class__, self)`
+    # "UP009",        # 61   [*] UTF-8 encoding declaration is unnecessary
+    # "UP015",        #  2   [*] Unnecessary modes, use `w`
+    # "UP015",        #  4   [*] Unnecessary mode argument
+    # "UP017",        #  2   [*] Use `datetime.UTC` alias
+    # "UP020",        # 15   [*] Use builtin `open`
+    # "UP024",        # 16   [*] Replace aliased errors with `OSError`
+    # "UP025",        # 91   [*] Remove unicode literals from strings
+    # "UP028",        #  3   Replace `yield` over `for` loop with `yield from`
+    # "UP029",        #  1   Unnecessary builtin import
+    # "UP030",        # 28   Use implicit references for positional format fields
+    # "UP031",        #386   Use format specifiers instead of percent format
+    # "UP032",        # 75   [*] Use f-string instead of `format` call
+    # "UP034",        #  1   [*] Avoid extraneous parentheses
+    # "UP035",        #  1   [*] Import from `re` instead
+    # "UP035",        #  2   [*] Import from `typing` instead
+    # "UP035",        #  2   `typing.Type` is deprecated, use `type` instead
+    # "UP035",        #  4   `typing.Set` is deprecated, use `set` instead
+    # "UP035",        # 11   `typing.Dict` is deprecated, use `dict` instead
+    # "UP035",        # 12   `typing.Tuple` is deprecated, use `tuple` instead
+    # "UP035",        # 14   `typing.List` is deprecated, use `list` instead
+    # "UP035",        # 18   [*] Import from `collections.abc` instead
+    # "UP036",        #  3   Version block is outdated for minimum Python version
+    # "UP037",        #  1   [*] Remove quotes from type annotation
+    # "UP038",        # 21   Use `X | Y` in `isinstance` call instead of `(X, Y)`
     #  "YTT",         # flake8-2020
     #  "EXE",         # flake8-executable
     #  "PYI",         # flake8-pyi

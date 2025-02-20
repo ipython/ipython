@@ -61,7 +61,7 @@ def count_failures(runner):
         ]
 
 
-class IPython2PythonConverter(object):
+class IPython2PythonConverter:
     """Convert IPython 'syntax' to valid Python.
 
     Eventually this code may grow to be the full IPython syntax conversion
@@ -115,7 +115,7 @@ class IPython2PythonConverter(object):
     #return dnew
 
 
-class Doc2UnitTester(object):
+class Doc2UnitTester:
     """Class whose instances act as a decorator for docstring testing.
 
     In practice we're only likely to need one instance ever, made below (though

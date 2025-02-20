@@ -13,7 +13,7 @@ from IPython.utils.encoding import DEFAULT_ENCODING
 
 coding_declaration = re.compile(r"#\s*coding[:=]\s*([-\w.]+)")
 
-class Macro(object):
+class Macro:
     """Simple class to store the value of macros as strings.
 
     Macro is just a callable that executes a string of IPython
