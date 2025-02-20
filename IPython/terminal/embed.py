@@ -12,7 +12,7 @@ import warnings
 from IPython.core import ultratb, compilerop
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.core.interactiveshell import DummyMod, InteractiveShell
+from IPython.core.interactiveshell import InteractiveShell, make_main_module_type
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.terminal.ipapp import load_default_config
 
@@ -306,8 +306,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
                     warnings.warn("Failed to get module %s" % \
                         global_ns.get('__name__', 'unknown module')
                     )
-                    module = DummyMod()
-                    module.__dict__ = global_ns
+                    module = make_main_module_type(global_ns)()
             if compile_flags is None:
                 compile_flags = (call_frame.f_code.co_flags &
                                  compilerop.PyCF_MASK)
