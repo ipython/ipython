@@ -10,10 +10,17 @@ from traitlets.config.configurable import Configurable
 from traitlets import Instance
 
 
-class __BuiltinUndefined: pass
+class __BuiltinUndefined:
+    pass
+
+
 BuiltinUndefined = __BuiltinUndefined()
 
-class __HideBuiltin: pass
+
+class __HideBuiltin:
+    pass
+
+
 HideBuiltin = __HideBuiltin()
 
 

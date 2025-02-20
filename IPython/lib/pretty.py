@@ -939,6 +939,7 @@ for_type_by_name("collections", "UserList", _userlist_pprint)
 
 if __name__ == '__main__':
     from random import randrange
+
     class Foo:
         def __init__(self):
             self.foo = 1
