@@ -286,6 +286,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                     )
             elif not isinstance(ast_elt, (ast.Ellipsis, ast.Pass)):
                 if cls.is_constexpr_assign(ast_elt, parent_node):
+                    assert isinstance(ast_elt, (ast.Assign, ast.AnnAssign))
                     targets = (
                         ast_elt.targets
                         if isinstance(ast_elt, ast.Assign)
