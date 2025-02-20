@@ -198,7 +198,7 @@ class SeparateUnicode(Unicode):
         if value == '0': value = ''
         value = value.replace('\\n','\n')
         return super(SeparateUnicode, self).validate(obj, value)
-    
+
 
 class _IPythonMainModuleBase(types.ModuleType):
     def __init__(self) -> None:
