@@ -17,7 +17,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
 
 
-class MagicsDisplay(object):
+class MagicsDisplay:
     def __init__(self, magics_manager, ignore=None):
         self.ignore = ignore if ignore else []
         self.magics_manager = magics_manager
@@ -369,6 +369,7 @@ Currently the magic system has the following functions:""",
             shell.InteractiveTB.set_mode(mode=new_mode)
             print('Exception reporting mode:',shell.InteractiveTB.mode)
         except:
+            raise
             xmode_switch_err('user')
 
     @line_magic
