@@ -1,9 +1,103 @@
 from typing import Any, Optional, Tuple
 
 from types import TracebackType
-
+from IPython.utils.PyColorize import theme_table, TokenStream, Parser, Theme
+from IPython.core import debugger
+import sys
+import stack_data
+import types
 _sentinel = object()
 
+class FrameInfo:
+    """
+    Mirror of stack data's FrameInfo, but so that we can bypass highlighting on
+    really long frames.
+    """
+
+    description: Optional[str]
+    filename: Optional[str]
+    lineno: int
+    # number of context lines to use
+    context: Optional[int]
+    raw_lines: list[str]
+    _sd: stack_data.core.FrameInfo
+    frame: Any
+
+    @classmethod
+    def _from_stack_data_FrameInfo(
+        cls, frame_info: stack_data.core.FrameInfo | stack_data.core.RepeatedFrames
+    ) -> "FrameInfo":
+        return cls(
+            getattr(frame_info, "description", None),
+            getattr(frame_info, "filename", None),  # type: ignore[arg-type]
+            getattr(frame_info, "lineno", None),  # type: ignore[arg-type]
+            getattr(frame_info, "frame", None),
+            getattr(frame_info, "code", None),
+            sd=frame_info,
+            context=None,
+        )
+
+    def __init__(
+        self,
+        description: Optional[str],
+        filename: str,
+        lineno: int,
+        frame: Any,
+        code: Optional[types.CodeType],
+        *,
+        sd: Any = None,
+        context: int | None = None,
+    ):
+        assert isinstance(lineno, (int, type(None))), lineno
+        self.description = description
+        self.filename = filename
+        self.lineno = lineno
+        self.frame = frame
+        self.code = code
+        self._sd = sd
+        self.context = context
+
+        # self.lines = []
+        if sd is None:
+            try:
+                # return a list of source lines and a starting line number
+                self.raw_lines = inspect.getsourcelines(frame)[0]
+            except OSError:
+                self.raw_lines = [
+                    "'Could not get source, probably due dynamically evaluated source code.'"
+                ]
+
+    @property
+    def variables_in_executing_piece(self) -> list[Any]:
+        if self._sd is not None:
+            return self._sd.variables_in_executing_piece  # type:ignore[misc]
+        else:
+            return []
+
+    @property
+    def lines(self) -> list[Any]:
+        from executing.executing import NotOneValueFound
+
+        assert self._sd is not None
+        try:
+            return self._sd.lines  # type: ignore[misc]
+        except NotOneValueFound:
+
+            class Dummy:
+                lineno = 0
+                is_current = False
+
+                def render(self, *, pygmented):
+                    return "<Error retrieving source code with stack_data see ipython/ipython#13598>"
+
+            return [Dummy()]
+
+    @property
+    def executing(self) -> Any:
+        if self._sd:
+            return self._sd.executing
+        else:
+            return None
 
 class TBTools:
     """Basic tools used by all traceback printer classes."""
