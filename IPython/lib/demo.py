@@ -196,7 +196,7 @@ class DemoError(Exception): pass
 def re_mark(mark):
     return re.compile(r'^\s*#\s+<demo>\s+%s\s*$' % mark,re.MULTILINE)
 
-class Demo(object):
+class Demo:
 
     re_stop     = re_mark(r'-*\s?stop\s?-*')
     re_silent   = re_mark('silent')
@@ -598,7 +598,7 @@ class IPythonLineDemo(IPythonDemo,LineDemo):
     pass
 
 
-class ClearMixin(object):
+class ClearMixin:
     """Use this mixin to make Demo classes with less visual clutter.
 
     Demos using this mixin will clear the screen before every block and use

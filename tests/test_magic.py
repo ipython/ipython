@@ -650,7 +650,7 @@ def test_cd_force_quiet():
 def test_xmode():
     # Calling xmode three times should be a no-op
     xmode = _ip.InteractiveTB.mode
-    for i in range(4):
+    for i in range(5):
         _ip.run_line_magic("xmode", "")
     assert _ip.InteractiveTB.mode == xmode
 

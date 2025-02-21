@@ -9,7 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
-class NamedFileInTemporaryDirectory(object):
+class NamedFileInTemporaryDirectory:
     def __init__(self, filename, mode="w+b", bufsize=-1, add_to_syspath=False, **kwds):
         """
         Open a file named `filename` in a temporary directory.

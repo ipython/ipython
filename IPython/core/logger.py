@@ -27,7 +27,7 @@ logging.getLogger("parso").setLevel(logging.WARNING)
 # FIXME: This class isn't a mixin anymore, but it still needs attributes from
 # ipython and does input cache management.  Finish cleanup later...
 
-class Logger(object):
+class Logger:
     """A Logfile class with different policies for file creation"""
 
     def __init__(self, home_dir, logfname='Logger.log', loghead=u'',

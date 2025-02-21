@@ -287,7 +287,7 @@ def display_pdf(*objs, **kwargs):
 #-----------------------------------------------------------------------------
 
 
-class DisplayObject(object):
+class DisplayObject:
     """An object that wraps data to be displayed."""
 
     _read_flags = 'r'

@@ -256,7 +256,7 @@ class Audio(DisplayObject):
         else:
             return ''
 
-class IFrame(object):
+class IFrame:
     """
     Generic class to embed an iframe in an IPython notebook
     """
@@ -368,7 +368,7 @@ class ScribdDocument(IFrame):
         src="https://www.scribd.com/embeds/{0}/content".format(id)
         super(ScribdDocument, self).__init__(src, width, height, **kwargs)
 
-class FileLink(object):
+class FileLink:
     """Class for embedding a local file link in an IPython session, based on path
 
     e.g. to embed a link that was generated in the IPython notebook as my/data.txt

@@ -1,5 +1,4 @@
-"""Tests for the decorators we've created for IPython.
-"""
+"""Tests for the decorators we've created for IPython."""
 
 # Module imports
 # Std lib

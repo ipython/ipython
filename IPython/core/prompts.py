@@ -2,7 +2,7 @@
 """Being removed"""
 
 
-class LazyEvaluate(object):
+class LazyEvaluate:
     """This is used for formatting strings with values that need to be updated
     at that time, such as the current time or working directory."""
 

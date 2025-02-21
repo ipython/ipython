@@ -1,5 +1,5 @@
 """
-Test that CVEs stay fixed. 
+Test that CVEs stay fixed.
 """
 
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory

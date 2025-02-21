@@ -120,7 +120,8 @@ class AliasError(Exception):
 class InvalidAliasError(AliasError):
     pass
 
-class Alias(object):
+
+class Alias:
     """Callable object storing the details of one alias.
 
     Instances are registered as magic functions to allow use of aliases.

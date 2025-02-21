@@ -1,5 +1,4 @@
-"""Tests for debugging machinery.
-"""
+"""Tests for debugging machinery."""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.

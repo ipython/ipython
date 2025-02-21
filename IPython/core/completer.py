@@ -904,7 +904,7 @@ else:
 GREEDY_DELIMS = ' =\r\n'
 
 
-class CompletionSplitter(object):
+class CompletionSplitter:
     """An object to split an input line in a manner similar to readline.
 
     By having our own implementation, we can expose readline-like completion in
