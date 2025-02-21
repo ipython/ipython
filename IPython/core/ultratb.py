@@ -89,20 +89,19 @@ from IPython.utils.PyColorize import Parser, Theme, TokenStream, theme_table
 from IPython.utils.terminal import get_terminal_size
 
 from .display_trap import DisplayTrap
-from .tbtools import eqrepr, nullrepr, text_repr
-
-
+from .doctb import DocTB
 from .tbtools import (
     FrameInfo,
     TBTools,
     _format_traceback_lines,
+    _safe_string,
     _simple_format_traceback_lines,
     _tokens_filename,
+    eqrepr,
     get_line_number_of_frame,
-    _safe_string,
+    nullrepr,
+    text_repr,
 )
-
-from .doctb import DocTB
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks
@@ -111,6 +110,7 @@ INDENT_SIZE = 8
 # When files are too long do not use stackdata to get frames.
 # it is too long.
 FAST_THRESHOLD = 10_000
+
 
 # ---------------------------------------------------------------------------
 class ListTB(TBTools):
@@ -432,8 +432,6 @@ class ListTB(TBTools):
             return py3compat.cast_unicode(str(value))
         except:
             return "<unprintable %s object>" % type(value).__name__
-
-
 
 
 # ----------------------------------------------------------------------------
@@ -1036,9 +1034,7 @@ class FormattedTB(VerboseTB, ListTB):
                 include_vars=self.include_vars,
                 check_cache=self.check_cache,
                 debugger_cls=self.debugger_cls,
-            ).structured_traceback(
-                etype, evalue, etb, tb_offset, 1
-            )  # type: ignore[arg-type]
+            ).structured_traceback(etype, evalue, etb, tb_offset, 1)  # type: ignore[arg-type]
 
         elif mode == "Minimal":
             return ListTB.get_exception_only(self, etype, evalue)
@@ -1222,5 +1218,3 @@ class SyntaxTB(ListTB):
     def stb2text(self, stb: list[str]) -> str:
         """Convert a structured traceback (a list) to a string."""
         return "".join(stb)
-
-

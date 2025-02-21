@@ -10,20 +10,19 @@ from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
 from IPython.utils.PyColorize import Theme, TokenStream, theme_table
-
-from .tbtools import FrameInfo, TBTools
-
-INDENT_SIZE = 8
-
 from IPython.utils.terminal import get_terminal_size
 
 from .tbtools import (
+    FrameInfo,
+    TBTools,
+    _safe_string,
     _tokens_filename,
     eqrepr,
     get_line_number_of_frame,
     nullrepr,
-    _safe_string,
 )
+
+INDENT_SIZE = 8
 
 
 def _format_traceback_lines(
