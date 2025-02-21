@@ -69,7 +69,6 @@ Inheritance diagram:
 import functools
 import inspect
 import linecache
-import pydoc
 import sys
 import time
 import traceback
@@ -83,13 +82,12 @@ import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
-
 # IPython's own modules
 from IPython import get_ipython
 from IPython.core.display_trap import DisplayTrap
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
-from IPython.utils.PyColorize import theme_table, TokenStream, Parser, Theme
+from IPython.utils.PyColorize import Parser, Theme, TokenStream, theme_table
 from IPython.utils.terminal import get_terminal_size
 
 # Globals
@@ -109,236 +107,18 @@ FAST_THRESHOLD = 10_000
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
 
-@functools.lru_cache
-def count_lines_in_py_file(filename: str) -> int:
-    """
-    Given a filename, returns the number of lines in the file
-    if it ends with the extension ".py". Otherwise, returns 0.
-    """
-    if not filename.endswith(".py"):
-        return 0
-    else:
-        try:
-            with open(filename, "r") as file:
-                s = sum(1 for line in file)
-        except UnicodeError:
-            return 0
-    return s
-
-    """
-    Given a frame object, returns the total number of lines in the file
-    if the filename ends with the extension ".py". Otherwise, returns 0.
-    """
-
-
-def get_line_number_of_frame(frame: types.FrameType) -> int:
-    """
-    Given a frame object, returns the total number of lines in the file
-    containing the frame's code object, or the number of lines in the
-    frame's source code if the file is not available.
-
-    Parameters
-    ----------
-    frame : FrameType
-        The frame object whose line number is to be determined.
-
-    Returns
-    -------
-    int
-        The total number of lines in the file containing the frame's
-        code object, or the number of lines in the frame's source code
-        if the file is not available.
-    """
-    filename = frame.f_code.co_filename
-    if filename is None:
-        print("No file....")
-        lines, first = inspect.getsourcelines(frame)
-        return first + len(lines)
-    return count_lines_in_py_file(filename)
-
-
-def _safe_string(value: Any, what: Any, func: Any = str) -> str:
-    # Copied from cpython/Lib/traceback.py
-    try:
-        return func(value)
-    except:
-        return f"<{what} {func.__name__}() failed>"
-
-
-def _format_traceback_lines(
-    lines: list[stack_data.Line],
-    theme: Theme,
-    has_colors: bool,
-    lvals_toks: list[TokenStream],
-) -> TokenStream:
-    """
-    Format tracebacks lines with pointing arrow, leading numbers,
-    this assumes the stack have been extracted using stackdata.
-
-
-    Parameters
-    ----------
-    lines : list[Line]
-    """
-    numbers_width = INDENT_SIZE - 1
-    tokens: TokenStream = []
-
-    for stack_line in lines:
-        if stack_line is stack_data.LINE_GAP:
-            toks = [(Token.LinenoEm, "   (...)")]
-            tokens.extend(toks)
-            continue
-
-        lineno = stack_line.lineno
-        line = stack_line.render(pygmented=has_colors).rstrip("\n") + "\n"
-        if stack_line.is_current:
-            # This is the line with the error
-            pad = numbers_width - len(str(lineno))
-            toks = [
-                (Token.LinenoEm, theme.make_arrow(pad)),
-                (Token.LinenoEm, str(lineno)),
-                (Token, " "),
-                (Token, line),
-            ]
-        else:
-            num = "%*s" % (numbers_width, lineno)
-            toks = [
-                (Token.LinenoEm, str(num)),
-                (Token, " "),
-                (Token, line),
-            ]
-
-        tokens.extend(toks)
-        if lvals_toks and stack_line.is_current:
-            for lv in lvals_toks:
-                tokens.append((Token, " " * INDENT_SIZE))
-                tokens.extend(lv)
-                tokens.append((Token, "\n"))
-            # strip the last newline
-            tokens = tokens[:-1]
-
-    return tokens
-
-
-def _simple_format_traceback_lines(
-    lnum: int,
-    index: int,
-    lines: list[tuple[str, tuple[str, bool]]],
-    lvals_toks: list[TokenStream],
-    theme: Theme,
-) -> TokenStream:
-    """
-    Format tracebacks lines with pointing arrow, leading numbers
-
-    This should be equivalent to _format_traceback_lines, but does not rely on stackdata
-    to format the lines
-
-    This is due to the fact that stackdata may be slow on super long and complex files.
-
-    Parameters
-    ==========
-
-    lnum: int
-        number of the target line of code.
-    index: int
-        which line in the list should be highlighted.
-    lines: list[string]
-    lvals_toks: pairs of token type and str
-        Values of local variables, already colored, to inject just after the error line.
-    """
-    for item in lvals_toks:
-        assert isinstance(item, list)
-        for subit in item:
-            assert isinstance(subit[1], str)
-
-    numbers_width = INDENT_SIZE - 1
-    res_toks: TokenStream = []
-    for i, (line, (new_line, err)) in enumerate(lines, lnum - index):
-        if not err:
-            line = new_line
-
-        colored_line = line
-        if i == lnum:
-            # This is the line with the error
-            pad = numbers_width - len(str(i))
-            line_toks = [
-                (Token.LinenoEm, theme.make_arrow(pad)),
-                (Token.LinenoEm, str(lnum)),
-                (Token, " "),
-                (Token, colored_line),
-            ]
-        else:
-            padding_num = "%*s" % (numbers_width, i)
-
-            line_toks = [
-                (Token.LinenoEm, padding_num),
-                (Token, " "),
-                (Token, colored_line),
-            ]
-        res_toks.extend(line_toks)
-
-        if lvals_toks and i == lnum:
-            for lv in lvals_toks:
-                res_toks.extend(lv)
-            # res_toks.extend(lvals_toks)
-    return res_toks
-
-
-def _tokens_filename(
-    em: bool,
-    file: str | None,
-    *,
-    lineno: int | None = None,
-) -> TokenStream:
-    """
-    Format filename lines with custom formatting from caching compiler or `File *.py` by default
-
-    Parameters
-    ----------
-    em: wether bold or not
-    file : str
-    """
-    Normal = Token.NormalEm if em else Token.Normal
-    Filename = Token.FilenameEm if em else Token.Filename
-    ipinst = get_ipython()
-    if (
-        ipinst is not None
-        and (data := ipinst.compile.format_code_name(file)) is not None
-    ):
-        label, name = data
-        if lineno is None:
-            return [
-                (Normal, label),
-                (Normal, " "),
-                (Filename, name),
-            ]
-        else:
-            return [
-                (Normal, label),
-                (Normal, " "),
-                (Filename, name),
-                (Filename, f", line {lineno}"),
-            ]
-    else:
-        name = util_path.compress_user(
-            py3compat.cast_unicode(file, util_path.fs_encoding)
-        )
-        if lineno is None:
-            return [
-                (Normal, "File "),
-                (Filename, name),
-            ]
-        else:
-            return [
-                (Normal, "File "),
-                (Filename, f"{name}:{lineno}"),
-            ]
-
+from .tbtools import (
+    FrameInfo,
+    TBTools,
+    _format_traceback_lines,
+    _simple_format_traceback_lines,
+    _tokens_filename,
+    get_line_number_of_frame,
+    _safe_string,
+)
 
 # ---------------------------------------------------------------------------
 # Module classes
-
-from .tbtools import TBTools, FrameInfo
 
 
 # ---------------------------------------------------------------------------
@@ -661,8 +441,6 @@ class ListTB(TBTools):
             return py3compat.cast_unicode(str(value))
         except:
             return "<unprintable %s object>" % type(value).__name__
-
-
 
 
 # -----  DocTB ------
@@ -1238,7 +1016,9 @@ class FormattedTB(VerboseTB, ListTB):
 
         # Different types of tracebacks are joined with different separators to
         # form a single string.  They are taken from this dict
-        self._join_chars = dict(Plain="", Context="\n", Verbose="\n", Minimal="")
+        self._join_chars = dict(
+            Plain="", Context="\n", Verbose="\n", Minimal="", Docs=""
+        )
         # set_mode also sets the tb_join_char attribute
         self.set_mode(mode)
 
@@ -1258,9 +1038,7 @@ class FormattedTB(VerboseTB, ListTB):
                 self, etype, evalue, etb, tb_offset, context
             )
         elif mode == "Docs":
-            return DocTB.structured_traceback(
-                self, etype, evalue, etb, tb_offset, context
-            )
+            return DocTB.structured_traceback(self, etype, evalue, etb, tb_offset, 1)  # type: ignore[arg-type]
         elif mode == "Minimal":
             return ListTB.get_exception_only(self, etype, evalue)
         else:
@@ -1445,40 +1223,4 @@ class SyntaxTB(ListTB):
         return "".join(stb)
 
 
-# some internal-use functions
-def text_repr(value: Any) -> str:
-    """Hopefully pretty robust repr equivalent."""
-    # this is pretty horrible but should always return *something*
-    try:
-        return pydoc.text.repr(value)  # type: ignore[call-arg]
-    except KeyboardInterrupt:
-        raise
-    except:
-        try:
-            return repr(value)
-        except KeyboardInterrupt:
-            raise
-        except:
-            try:
-                # all still in an except block so we catch
-                # getattr raising
-                name = getattr(value, "__name__", None)
-                if name:
-                    # ick, recursion
-                    return text_repr(name)
-                klass = getattr(value, "__class__", None)
-                if klass:
-                    return "%s instance" % text_repr(klass)
-                return "UNRECOVERABLE REPR FAILURE"
-            except KeyboardInterrupt:
-                raise
-            except:
-                return "UNRECOVERABLE REPR FAILURE"
-
-
-def eqrepr(value: Any, repr: Callable[[Any], str] = text_repr) -> str:
-    return "=%s" % repr(value)
-
-
-def nullrepr(value: Any, repr: Callable[[Any], str] = text_repr) -> str:
-    return ""
+from .tbtools import eqrepr, nullrepr, text_repr

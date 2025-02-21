@@ -509,10 +509,11 @@ class InteractiveShell(SingletonConfigurable):
     separate_out = SeparateUnicode('').tag(config=True)
     separate_out2 = SeparateUnicode('').tag(config=True)
     wildcards_case_sensitive = Bool(True).tag(config=True)
-    xmode = CaselessStrEnum(('Context', 'Plain', 'Verbose', 'Minimal'),
-                            default_value='Context',
-                            help="Switch modes for the IPython exception handlers."
-                            ).tag(config=True)
+    xmode = CaselessStrEnum(
+        ("Context", "Plain", "Verbose", "Minimal", "Docs"),
+        default_value="Context",
+        help="Switch modes for the IPython exception handlers.",
+    ).tag(config=True)
 
     # Subcomponents of InteractiveShell
     alias_manager = Instance("IPython.core.alias.AliasManager", allow_none=True)

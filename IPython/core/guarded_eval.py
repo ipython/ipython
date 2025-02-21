@@ -1,4 +1,5 @@
 from inspect import isclass, signature, Signature
+from pygments.formatters.terminal256 import Terminal256Formatter
 from typing import (
     Annotated,
     AnyStr,
