@@ -33,6 +33,35 @@ For convenience and testing you can bind a  shortcut at runtime::
     In [1]: from examples.auto_suggest_llm import setup_shortcut
        ...: setup_shortcut('c-q')
 
+
+Getting access to history content
+---------------------------------
+
+This uses the same providers as Jupyter AI,  In JupyterAI, providers may get
+access to the current notebook content to pass as to the LLM as context.
+
+Here Jupyter AI documents how to get such context.
+
+https://jupyter-ai.readthedocs.io/en/latest/developers/index.html
+
+
+When reusing these models you may want to pass them more context as well in
+IPython to do so you can set the
+`c.TerminalInteractiveShell.llm_prefix_from_history` to `"no_prefix"`,
+`"input_history"` or a fully qualified name of a function that will get
+imported, get passed a `HistoryManager`, and return a prefix to be added the LLM
+context.
+
+
+For more flexibility, subclass the provider, and access the hisotory of IPython
+via:
+
+    ```
+    ip = get_ipython()
+    hm = ip.history_manager()
+    hm.get_range(...) # will let you select how many input/output... etc.
+    ```
+
 """
 
 import asyncio
