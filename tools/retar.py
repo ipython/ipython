@@ -1,7 +1,7 @@
 """
-Un-targz and retargz a targz file to ensure reproducible build. 
+Un-targz and retargz a targz file to ensure reproducible build.
 
-usage: 
+usage:
 
     $ export SOURCE_DATE_EPOCH=$(date +%s)
     # or
@@ -10,8 +10,8 @@ usage:
     $ python retar.py <tarfile.gz>
 
 The process of creating an sdist can be non-reproducible:
-  - directory created during the process get a mtime of the creation date; 
-  - gziping files embed the timestamp of zip creation. 
+  - directory created during the process get a mtime of the creation date;
+  - gziping files embed the timestamp of zip creation.
 
 This will untar-retar; ensuring that all mtime > SOURCE_DATE_EPOCH will be set
 equal to SOURCE_DATE_EPOCH.

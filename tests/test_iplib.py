@@ -1,5 +1,4 @@
-"""Tests for the key interactiveshell module, where the main ipython class is defined.
-"""
+"""Tests for the key interactiveshell module, where the main ipython class is defined."""
 
 import stack_data
 import sys

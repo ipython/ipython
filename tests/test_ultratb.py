@@ -1,6 +1,5 @@
 # encoding: utf-8
-"""Tests for IPython.core.ultratb
-"""
+"""Tests for IPython.core.ultratb"""
 import io
 import os.path
 import platform

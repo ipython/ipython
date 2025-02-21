@@ -1,5 +1,4 @@
-"""Tests for pylab tools module.
-"""
+"""Tests for pylab tools module."""
 
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011, the IPython Development Team.

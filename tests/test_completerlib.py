@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Tests for completerlib.
-
-"""
+"""Tests for completerlib."""
 
 # -----------------------------------------------------------------------------
 # Imports

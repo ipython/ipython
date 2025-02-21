@@ -1,6 +1,5 @@
 # coding: utf-8
-"""Tests for the compilerop module.
-"""
+"""Tests for the compilerop module."""
 # -----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011 The IPython Development Team.
 #

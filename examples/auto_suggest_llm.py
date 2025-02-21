@@ -4,7 +4,7 @@ well as example on how to configure IPython for LLMs.
 
 8.32 – this is provisional and may change.
 
-To test this you can run the following command from the root of IPython 
+To test this you can run the following command from the root of IPython
 directory:
 
     $ ipython --TerminalInteractiveShell.llm_provider_class=examples.auto_suggest_llm.ExampleCompletionProvider
