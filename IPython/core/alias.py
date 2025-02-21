@@ -120,6 +120,7 @@ class AliasError(Exception):
 class InvalidAliasError(AliasError):
     pass
 
+
 class Alias:
     """Callable object storing the details of one alias.
 

@@ -1034,7 +1034,9 @@ class FormattedTB(VerboseTB, ListTB):
                 include_vars=self.include_vars,
                 check_cache=self.check_cache,
                 debugger_cls=self.debugger_cls,
-            ).structured_traceback(etype, evalue, etb, tb_offset, 1)  # type: ignore[arg-type]
+            ).structured_traceback(
+                etype, evalue, etb, tb_offset, 1
+            )  # type: ignore[arg-type]
 
         elif mode == "Minimal":
             return ListTB.get_exception_only(self, etype, evalue)
