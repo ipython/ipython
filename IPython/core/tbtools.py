@@ -379,6 +379,10 @@ class TBTools:
     tb_offset = 0
     _theme_name: str
     _old_theme_name: str
+    call_pdb: bool
+    ostream: Any
+    debugger_cls: Any
+    pdb: Any
 
     def __init__(
         self,

@@ -82,29 +82,14 @@ import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
-# IPython's own modules
 from IPython import get_ipython
-from IPython.core.display_trap import DisplayTrap
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils.PyColorize import Parser, Theme, TokenStream, theme_table
 from IPython.utils.terminal import get_terminal_size
 
-# Globals
-# amount of space to put line numbers before verbose tracebacks
-INDENT_SIZE = 8
-
-# When files are too long do not use stackdata to get frames.
-# it is too long.
-FAST_THRESHOLD = 10_000
-
-# ---------------------------------------------------------------------------
-# Code begins
-
-# Helper function -- largely belongs to VerboseTB, but we need the same
-# functionality to produce a pseudo verbose TB for SyntaxErrors, so that they
-# can be recognized properly by ipython.el's py-traceback-line-re
-# (SyntaxErrors have to be treated specially because they have no traceback)
+from .display_trap import DisplayTrap
+from .tbtools import eqrepr, nullrepr, text_repr
 
 
 from .tbtools import (
@@ -117,9 +102,15 @@ from .tbtools import (
     _safe_string,
 )
 
-# ---------------------------------------------------------------------------
-# Module classes
+from .doctb import DocTB
 
+# Globals
+# amount of space to put line numbers before verbose tracebacks
+INDENT_SIZE = 8
+
+# When files are too long do not use stackdata to get frames.
+# it is too long.
+FAST_THRESHOLD = 10_000
 
 # ---------------------------------------------------------------------------
 class ListTB(TBTools):
@@ -443,9 +434,6 @@ class ListTB(TBTools):
             return "<unprintable %s object>" % type(value).__name__
 
 
-# -----  DocTB ------
-
-from .doctb import DocTB
 
 
 # ----------------------------------------------------------------------------
@@ -1038,7 +1026,20 @@ class FormattedTB(VerboseTB, ListTB):
                 self, etype, evalue, etb, tb_offset, context
             )
         elif mode == "Docs":
-            return DocTB.structured_traceback(self, etype, evalue, etb, tb_offset, 1)  # type: ignore[arg-type]
+            # return DocTB
+            return DocTB(
+                theme_name=self._theme_name,
+                call_pdb=self.call_pdb,
+                ostream=self.ostream,
+                tb_offset=tb_offset,
+                long_header=self.long_header,
+                include_vars=self.include_vars,
+                check_cache=self.check_cache,
+                debugger_cls=self.debugger_cls,
+            ).structured_traceback(
+                etype, evalue, etb, tb_offset, 1
+            )  # type: ignore[arg-type]
+
         elif mode == "Minimal":
             return ListTB.get_exception_only(self, etype, evalue)
         else:
@@ -1223,4 +1224,3 @@ class SyntaxTB(ListTB):
         return "".join(stb)
 
 
-from .tbtools import eqrepr, nullrepr, text_repr

@@ -91,6 +91,9 @@ class DocTB(TBTools):
 
     tb_highlight = ""
     tb_highlight_style = "default"
+    tb_offset: int
+    long_header: bool
+    include_vars: bool
 
     _mode: str
 
@@ -295,14 +298,14 @@ class DocTB(TBTools):
 
         tb_offset = self.tb_offset if tb_offset is None else tb_offset
         assert isinstance(tb_offset, int)
-        head = DocTB.prepare_header(self, str(etype))
+        head = self.prepare_header(str(etype))
         assert context == 1, context
-        records = DocTB.get_records(self, etb, context, tb_offset) if etb else []
+        records = self.get_records(etb, context, tb_offset) if etb else []
 
         frames = []
         skipped = 0
         nskipped = len(records) - 1
-        frames.append(DocTB.format_record(self, records[0]))
+        frames.append(self.format_record(records[0]))
         if nskipped:
             frames.append(
                 theme_table[self._theme_name].format(
@@ -327,7 +330,7 @@ class DocTB(TBTools):
         before = context - after
         if self.has_colors:
             base_style = theme_table[self._theme_name].as_pygments_style()
-            style = stack_data.style_with_executing_node(base_style, DocTB.tb_highlight)
+            style = stack_data.style_with_executing_node(base_style, self.tb_highlight)
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None
@@ -373,8 +376,8 @@ class DocTB(TBTools):
         """Return a nice text document describing the traceback."""
         assert context > 0
         assert context == 1, context
-        formatted_exceptions: list[list[str]] = DocTB.format_exception_as_a_whole(
-            self, etype, evalue, etb, context, tb_offset
+        formatted_exceptions: list[list[str]] = self.format_exception_as_a_whole(
+            etype, evalue, etb, context, tb_offset
         )
 
         termsize = min(75, get_terminal_size()[0])
