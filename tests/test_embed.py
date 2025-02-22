@@ -59,7 +59,6 @@ def test_ipython_embed():
             stderr=subprocess.PIPE,
         )
         out, err = p.communicate(_exit)
-        std = out.decode("UTF-8")
         try:
             std = out.decode("UTF-8")
         except UnicodeDecodeError as e:
