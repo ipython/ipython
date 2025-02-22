@@ -110,6 +110,9 @@ all = [
     "ipython[test,test_extra]",
 ]
 
+[tool.pytest.ini_options]
+minversion = "7"
+
 [tool.mypy]
 python_version = "3.11"
 ignore_missing_imports = true
