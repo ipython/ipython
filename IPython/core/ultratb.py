@@ -111,7 +111,6 @@ INDENT_SIZE = 8
 # it is too long.
 FAST_THRESHOLD = 10_000
 
-
 # ---------------------------------------------------------------------------
 class ListTB(TBTools):
     """Print traceback information from a traceback list, with optional color.

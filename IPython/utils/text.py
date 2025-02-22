@@ -261,26 +261,10 @@ class SList(list):
         return type(self)([t[1] for t in dsu])
 
 
-# FIXME: We need to reimplement type specific displayhook and then add this
-# back as a custom printer. This should also be moved outside utils into the
-# core.
-
-# def print_slist(arg):
-#     """ Prettier (non-repr-like) and more informative printer for SList """
-#     print("SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):")
-#     if hasattr(arg,  'hideonce') and arg.hideonce:
-#         arg.hideonce = False
-#         return
-#
-#     nlprint(arg)   # This was a nested list printer, now removed.
-#
-# print_slist = result_display.register(SList)(print_slist)
-
-
 def indent(instr: str, nspaces: int = 4, ntabs: int = 0, flatten: bool = False) -> str:
     """Indent a string a given number of spaces or tabstops.
 
-    indent(str,nspaces=4,ntabs=0) -> indent str by ntabs+nspaces.
+    indent(str, nspaces=4, ntabs=0) -> indent str by ntabs+nspaces.
 
     Parameters
     ----------
@@ -300,9 +284,7 @@ def indent(instr: str, nspaces: int = 4, ntabs: int = 0, flatten: bool = False) 
     str : string indented by ntabs and nspaces.
 
     """
-    if instr is None:
-        return
-    ind = '\t'*ntabs+' '*nspaces
+    ind = "\t" * ntabs + " " * nspaces
     if flatten:
         pat = re.compile(r'^\s*', re.MULTILINE)
     else:
