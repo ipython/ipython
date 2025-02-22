@@ -178,6 +178,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
     # This is the instance of the LLM provider from jupyter-ai to which we forward the request
     # to generate inline completions.
     _llm_provider: Any | None
+    _llm_prefixer: callable = lambda self, x: "wrong"
 
     def __init__(self):
         super().__init__()
@@ -386,9 +387,13 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         except ModuleNotFoundError:
             jai_models = None
 
+        hm = buffer.history.shell.history_manager
+        prefix = self._llm_prefixer(hm)
+        print(prefix)
+
         request = jai_models.InlineCompletionRequest(
             number=0,
-            prefix=buffer.document.text,
+            prefix=prefix + buffer.document.text,
             suffix="",
             mime="text/x-python",
             stream=True,
