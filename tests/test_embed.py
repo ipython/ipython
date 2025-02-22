@@ -62,7 +62,7 @@ def test_ipython_embed():
         try:
             std = out.decode("UTF-8")
         except UnicodeDecodeError as e:
-            raise UnicodeDecodeError(f"Error decoding {out!r}") from e
+            raise ValueError(f"Error decoding {out!r}") from e
 
         assert p.returncode == 0, (p.returncode, std)
         assert "3 . 14" in std
