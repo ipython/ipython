@@ -846,10 +846,8 @@ class IntegerWrapper(ast.NodeTransformer):
     """Wraps all integers in a call to Integer()"""
 
     # for Python 3.7 and earlier
-
-    # for Python 3.7 and earlier
     def visit_Num(self, node):
-        if isinstance(node.n, int):
+        if isinstance(node.value, int):
             return ast.Call(
                 func=ast.Name(id="Integer", ctx=ast.Load()), args=[node], keywords=[]
             )

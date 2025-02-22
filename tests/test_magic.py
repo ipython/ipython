@@ -1245,6 +1245,7 @@ def test_script_out_err():
     assert ip.user_ns["error"].strip() == "hello"
 
 
+@pytest.mark.asyncio
 async def test_script_bg_out():
     ip = get_ipython()
     ip.run_cell_magic("script", f"--bg --out output {sys.executable}", "print('hi')")
@@ -1252,6 +1253,7 @@ async def test_script_bg_out():
     assert ip.user_ns["output"].at_eof()
 
 
+@pytest.mark.asyncio
 async def test_script_bg_err():
     ip = get_ipython()
     ip.run_cell_magic(
@@ -1263,6 +1265,7 @@ async def test_script_bg_err():
     assert ip.user_ns["error"].at_eof()
 
 
+@pytest.mark.asyncio
 async def test_script_bg_out_err():
     ip = get_ipython()
     ip.run_cell_magic(
@@ -1282,6 +1285,7 @@ async def test_script_bg_out_err():
     assert ip.user_ns["error"].at_eof()
 
 
+@pytest.mark.asyncio
 async def test_script_bg_proc():
     ip = get_ipython()
     ip.run_cell_magic(
@@ -1318,6 +1322,7 @@ def test_script_defaults():
             assert cmd in ip.magics_manager.magics["cell"]
 
 
+@pytest.mark.asyncio
 async def test_script_streams_continiously(capsys):
     ip = get_ipython()
     # Windows is slow to start up a thread on CI

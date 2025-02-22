@@ -64,7 +64,7 @@ def test_ipython_embed():
         except UnicodeDecodeError as e:
             raise UnicodeDecodeError(f"Error decoding {out!r}") from e
 
-        assert p.returncode == 0
+        assert p.returncode == 0, (p.returncode, std)
         assert "3 . 14" in std
         if os.name != "nt":
             # TODO: Fix up our different stdout references, see issue gh-14
