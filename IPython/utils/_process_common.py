@@ -43,9 +43,9 @@ def read_no_interrupt(stream: IO[Any]) -> bytes:
 
 def process_handler(
     cmd: Union[str, List[str]],
-    callback: Callable[[subprocess.Popen], int],
+    callback: Callable[[subprocess.Popen], int | str | bytes],
     stderr=subprocess.PIPE,
-) -> int:
+) -> int | str | bytes:
     """Open a command in a shell subprocess and execute a callback.
 
     This function provides common scaffolding for creating subprocess.Popen()
@@ -136,6 +136,7 @@ def getoutput(cmd):
     out = process_handler(cmd, lambda p: p.communicate()[0], subprocess.STDOUT)
     if out is None:
         return ''
+    assert isinstance(out, bytes)
     return py3compat.decode(out)
 
 
