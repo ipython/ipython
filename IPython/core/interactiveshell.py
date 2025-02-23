@@ -200,11 +200,49 @@ class SeparateUnicode(Unicode):
         return super(SeparateUnicode, self).validate(obj, value)
 
 
-@undoc
-class DummyMod:
-    """A dummy module used for IPython's interactive module when
-    a namespace must be assigned to the module's __dict__."""
-    __spec__ = None
+class _IPythonMainModuleBase(types.ModuleType):
+    def __init__(self) -> None:
+        super().__init__(
+            "__main__",
+            doc="Automatically created module for the IPython interactive environment",
+        )
+
+
+def make_main_module_type(user_ns: dict[str, Any]) -> type[_IPythonMainModuleBase]:
+    @undoc
+    class IPythonMainModule(_IPythonMainModuleBase):
+        """
+        ModuleType that supports passing in a custom user namespace dictionary,
+        to be used for the module's __dict__. This is enabled by shadowing the
+        underlying __dict__ attribute of the module, and overriding getters and
+        setters to point to the custom user namespace dictionary.
+        The reason to do this is to allow the __main__ module to be an instance
+        of ModuleType, while still allowing the user namespace to be custom.
+        """
+
+        @property
+        def __dict__(self) -> dict[str, Any]:  # type: ignore[override]
+            return user_ns
+
+        def __setattr__(self, item: str, value: Any) -> None:
+            if item == "__dict__":
+                # Ignore this when IPython tries to set it, since we already provide it
+                return
+            user_ns[item] = value
+
+        def __getattr__(self, item: str) -> Any:
+            try:
+                return user_ns[item]
+            except KeyError:
+                raise AttributeError(f"module {self.__name__} has no attribute {item}")
+
+        def __delattr__(self, item: str) -> None:
+            try:
+                del user_ns[item]
+            except KeyError:
+                raise AttributeError(f"module {self.__name__} has no attribute {item}")
+
+    return IPythonMainModule
 
 
 class ExecutionInfo:
@@ -1265,8 +1303,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         if user_module is None and user_ns is not None:
             user_ns.setdefault("__name__", "__main__")
-            user_module = DummyMod()
-            user_module.__dict__ = user_ns
+            user_module = make_main_module_type(user_ns)()
 
         if user_module is None:
             user_module = types.ModuleType("__main__",
