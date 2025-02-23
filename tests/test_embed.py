@@ -24,7 +24,7 @@ from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
 # -----------------------------------------------------------------------------
 
 
-_sample_embed = b"""
+_sample_embed = """
 import IPython
 
 a = 3
@@ -36,12 +36,12 @@ IPython.embed()
 print('bye!')
 """
 
-_exit = b"exit\r"
+_exit = "exit\r"
 
 
 def test_ipython_embed():
     """test that `IPython.embed()` works"""
-    with NamedFileInTemporaryDirectory("file_with_embed.py") as f:
+    with NamedFileInTemporaryDirectory("file_with_embed.py", "w") as f:
         f.write(_sample_embed)
         f.flush()
         f.close()  # otherwise msft won't be able to read the file
@@ -57,12 +57,11 @@ def test_ipython_embed():
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            text=True,
+            encoding="UTF-8",
         )
-        out, err = p.communicate(_exit)
-        try:
-            std = out.decode("UTF-8", "replace")
-        except UnicodeDecodeError as e:
-            raise ValueError(f"Error decoding {out!r}") from e
+        std, err = p.communicate(_exit)
+        assert isinstance(std, str)
 
         assert p.returncode == 0, (p.returncode, std)
         assert "3 . 14" in std

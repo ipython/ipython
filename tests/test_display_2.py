@@ -347,7 +347,7 @@ def test_video_embedding():
     with pytest.raises(ValueError):
         v = display.Video(b"abc")
 
-    with NamedFileInTemporaryDirectory("test.mp4") as f:
+    with NamedFileInTemporaryDirectory("test.mp4", "wb") as f:
         f.write(b"abc")
         f.close()
 
