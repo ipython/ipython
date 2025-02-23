@@ -52,7 +52,9 @@ def compare_ast(node1: ast.AST | list[ast.AST], node2: ast.AST | list[ast.AST]) 
                 return False
         return True
 
-    elif isinstance(node1, list) and isinstance(node2, list):
+    elif isinstance(node1, list) and isinstance(  # type:ignore [redundant-expr]
+        node2, list
+    ):
         return len(node1) == len(node2) and all(
             compare_ast(n1, n2) for n1, n2 in zip(node1, node2)
         )
@@ -198,7 +200,8 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         for new_modname in sys.modules.keys() - self.source_by_modname.keys():
             new_module = sys.modules[new_modname]
             if (
-                (fname := get_module_file_name(new_module)) is None
+                (fname := get_module_file_name(new_module))
+                is None  # type:ignore [redundant-expr]
                 or "site-packages" in fname
                 or "dist-packages" in fname
                 or not os.access(fname, os.R_OK)
@@ -372,7 +375,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         if len(node.qualified_name) == 0:
             return
         cur = self._to_autoreload.traverse_prefixes(list(node.qualified_name[:-1]))
-        if node.abstract_syntax_tree:
+        if node.abstract_syntax_tree is not None:
             cur.defs_to_reload.append(
                 ((node.qualified_name[-1],), node.abstract_syntax_tree)
             )
