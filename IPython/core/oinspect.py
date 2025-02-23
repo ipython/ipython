@@ -633,7 +633,7 @@ class Inspector(Configurable):
             if isinstance(bundle["text/html"], (list, tuple)):
                 # bundle['text/html'] is a list of (head, formatted body) pairs
                 new_b["text/html"] = "\n".join(
-                    (f"<h1>{head}</h1>\n{body}" for (head, body) in bundle["text/html"])
+                    f"<h1>{head}</h1>\n{body}" for (head, body) in bundle["text/html"]
                 )
 
         for k in bundle.keys():

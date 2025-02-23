@@ -580,8 +580,7 @@ class HistoryAccessor(HistoryAccessorBase):
         Tuples as :meth:`get_range`
         """
         for sess, s, e in extract_hist_ranges(rangestr):
-            for line in self.get_range(sess, s, e, raw=raw, output=output):
-                yield line
+            yield from self.get_range(sess, s, e, raw=raw, output=output)
 
 
 class HistoryManager(HistoryAccessor):
