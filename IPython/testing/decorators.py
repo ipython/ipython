@@ -4,15 +4,10 @@ import sys
 import tempfile
 from importlib import import_module
 
+import pytest
+
 # Expose the unittest-driven decorators
 from .ipunittest import ipdoctest, ipdocstring
-
-# -----------------------------------------------------------------------------
-# Classes and functions
-# -----------------------------------------------------------------------------
-
-# Utility functions
-
 
 def skipif(skip_condition, msg=None):
     """Make function raise SkipTest exception if skip_condition is true
@@ -37,8 +32,6 @@ def skipif(skip_condition, msg=None):
     """
     if msg is None:
         msg = "Test skipped due to test condition."
-
-    import pytest
 
     assert isinstance(skip_condition, bool)
     return pytest.mark.skipif(skip_condition, reason=msg)
@@ -96,17 +89,10 @@ def module_not_available(module):
 
 # Decorators to skip certain tests on specific platforms.
 skip_win32 = skipif(sys.platform == "win32", "This test does not run under Windows")
-skip_linux = skipif(
-    sys.platform.startswith("linux"), "This test does not run under Linux"
-)
-skip_osx = skipif(sys.platform == "darwin", "This test does not run under OS X")
 
 
 # Decorators to skip tests if not on specific platforms.
 skip_if_not_win32 = skipif(sys.platform != "win32", "This test only runs under Windows")
-skip_if_not_linux = skipif(
-    not sys.platform.startswith("linux"), "This test only runs under Linux"
-)
 skip_if_not_osx = skipif(
     not sys.platform.startswith("darwin"), "This test only runs under macOS"
 )
@@ -157,7 +143,6 @@ def onlyif_cmds_exist(*commands):
     for cmd in commands:
         reason = f"This test runs only if command '{cmd}' is installed"
         if not shutil.which(cmd):
-            import pytest
 
             return pytest.mark.skip(reason=reason)
     return null_deco

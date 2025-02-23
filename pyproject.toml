@@ -413,7 +413,7 @@ extend-select = [
     #  "RUF",         # Ruff-specific
     #  "SIM",         # flake8-simplify
     #  "T20",         # flake8-print
-    "UP",          # pyupgrade
+    #    "UP",          # pyupgrade
     "UP004",       #  1   [*] Class `...` inherits from `object`
     # "UP006",        #  1   [*] Use `list` instead of `t.List` for type annotation
     # "UP006",        #  1   [*] Use `tuple` instead of `t.Tuple` for type annotation
