@@ -1756,6 +1756,18 @@ $
 )
 
 
+def _convert_matcher_v1_result_to_v2_no_no(
+    matches: Sequence[str],
+    type: str,
+) -> SimpleMatcherResult:
+    """same as _convert_matcher_v1_result_to_v2 but fragment=None, and suppress_if_matches is False by construction"""
+    result = {
+        "completions": [SimpleCompletion(text=match, type=type) for match in matches],
+        "suppress": False,
+    }
+    return cast(SimpleMatcherResult, result)
+
+
 def _convert_matcher_v1_result_to_v2(
     matches: Sequence[str],
     type: str,
@@ -2186,7 +2198,7 @@ class IPCompleter(Completer):
         """Match class names and attributes for %config magic."""
         # NOTE: uses `line_buffer` equivalent for compatibility
         matches = self.magic_config_matches(context.line_with_cursor)
-        return _convert_matcher_v1_result_to_v2(matches, type="param")
+        return _convert_matcher_v1_result_to_v2_no_no(matches, type="param")
 
     def magic_config_matches(self, text: str) -> list[str]:
         """Match class names and attributes for %config magic.
@@ -2232,7 +2244,7 @@ class IPCompleter(Completer):
         """Match color schemes for %colors magic."""
         # NOTE: uses `line_buffer` equivalent for compatibility
         matches = self.magic_color_matches(context.line_with_cursor)
-        return _convert_matcher_v1_result_to_v2(matches, type="param")
+        return _convert_matcher_v1_result_to_v2_no_no(matches, type="param")
 
     def magic_color_matches(self, text: str) -> list[str]:
         """Match color schemes for %colors magic.
@@ -2372,11 +2384,11 @@ class IPCompleter(Completer):
             except NameError:
                 # catches <undefined attributes>.<tab>
                 matches = []
-                return _convert_matcher_v1_result_to_v2(matches, type="attribute")
+                return _convert_matcher_v1_result_to_v2_no_no(matches, type="attribute")
         else:
             matches = self.global_matches(context.token)
             # TODO: maybe distinguish between functions, modules and just "variables"
-            return _convert_matcher_v1_result_to_v2(matches, type="variable")
+            return _convert_matcher_v1_result_to_v2_no_no(matches, type="variable")
 
     @completion_matcher(api_version=1)
     def python_matches(self, text: str) -> Iterable[str]:
@@ -2468,7 +2480,7 @@ class IPCompleter(Completer):
     def python_func_kw_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match named parameters (kwargs) of the last open function."""
         matches = self.python_func_kw_matches(context.token)
-        return _convert_matcher_v1_result_to_v2(matches, type="param")
+        return _convert_matcher_v1_result_to_v2_no_no(matches, type="param")
 
     def python_func_kw_matches(self, text):
         """Match named parameters (kwargs) of the last open function.
@@ -3235,7 +3247,7 @@ class IPCompleter(Completer):
             result: MatcherResult
             try:
                 if _is_matcher_v1(matcher):
-                    result = _convert_matcher_v1_result_to_v2(
+                    result = _convert_matcher_v1_result_to_v2_no_no(
                         matcher(text), type=_UNKNOWN_TYPE
                     )
                 elif _is_matcher_v2(matcher):
