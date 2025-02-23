@@ -135,7 +135,10 @@ def system(cmd: str) -> Optional[int]:
     with AvoidUNCPath() as path:
         if path is not None:
             cmd = '"pushd %s &&"%s' % (path, cmd)
-        return process_handler(cmd, _system_body)
+        res = process_handler(cmd, _system_body)
+        assert isinstance(res, int | type(None))
+        return res
+    return None
 
 
 def getoutput(cmd: str) -> str:

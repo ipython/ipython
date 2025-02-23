@@ -261,7 +261,6 @@ module = [
     "IPython.utils._process_cli",
     "IPython.utils._process_common",
     "IPython.utils._process_emscripten",
-    "IPython.utils._process_posix",
     "IPython.utils.capture",
     "IPython.utils.coloransi",
     "IPython.utils.contexts",

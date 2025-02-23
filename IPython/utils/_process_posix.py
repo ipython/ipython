@@ -29,20 +29,20 @@ class ProcessHandler:
     # Timeout in seconds to wait on each reading of the subprocess' output.
     # This should not be set too low to avoid cpu overusage from our side,
     # since we read in a loop whose period is controlled by this timeout.
-    read_timeout = 0.05
+    read_timeout: float = 0.05
 
     # Timeout to give a process if we receive SIGINT, between sending the
     # SIGINT to the process and forcefully terminating it.
-    terminate_timeout = 0.2
+    terminate_timeout: float = 0.2
 
     # File object where stdout and stderr of the subprocess will be written
     logfile = None
 
     # Shell to call for subprocesses to execute
-    _sh = None
+    _sh: str | None = None
 
     @property
-    def sh(self):
+    def sh(self) -> str | None:
         if self._sh is None:
             import pexpect
             shell_name = os.environ.get("SHELL", "sh")
@@ -52,16 +52,11 @@ class ProcessHandler:
 
         return self._sh
 
-    def __init__(self, logfile=None, read_timeout=None, terminate_timeout=None):
+    def __init__(self) -> None:
         """Arguments are used for pexpect calls."""
-        self.read_timeout = (ProcessHandler.read_timeout if read_timeout is
-                             None else read_timeout)
-        self.terminate_timeout = (ProcessHandler.terminate_timeout if
-                                  terminate_timeout is None else
-                                  terminate_timeout)
-        self.logfile = sys.stdout if logfile is None else logfile
+        self.logfile = sys.stdout
 
-    def getoutput(self, cmd):
+    def getoutput(self, cmd: str) -> str | None:
         """Run a command and return its stdout/stderr as a string.
 
         Parameters
@@ -78,12 +73,17 @@ class ProcessHandler:
         correct order as would be seen if running the command in a terminal).
         """
         import pexpect
+
+        assert self.sh is not None
         try:
-            return pexpect.run(self.sh, args=['-c', cmd]).replace('\r\n', '\n')
+            res = pexpect.run(self.sh, args=["-c", cmd])
+            assert isinstance(res, str)
+            return res.replace("\r\n", "\n")
         except KeyboardInterrupt:
             print('^C', file=sys.stderr, end='')
+        return None
 
-    def system(self, cmd):
+    def system(self, cmd: str) -> int:
         """Execute a command in a subshell.
 
         Parameters
@@ -112,6 +112,7 @@ class ProcessHandler:
         # record how far we've printed, so that next time we only print *new*
         # content from the buffer.
         out_size = 0
+        assert self.sh is not None
         try:
             # Since we're not really searching the buffer for text patterns, we
             # can set pexpect's search window to be tiny and it won't matter.
@@ -178,7 +179,8 @@ class ProcessHandler:
 # (ls is a good example) that makes them hard.
 system = ProcessHandler().system
 
-def check_pid(pid):
+
+def check_pid(pid: int) -> bool:
     try:
         os.kill(pid, 0)
     except OSError as err:
