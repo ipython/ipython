@@ -60,7 +60,7 @@ def test_ipython_embed():
         )
         out, err = p.communicate(_exit)
         try:
-            std = out.decode("UTF-8")
+            std = out.decode("UTF-8", "replace")
         except UnicodeDecodeError as e:
             raise ValueError(f"Error decoding {out!r}") from e
 
