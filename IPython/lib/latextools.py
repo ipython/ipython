@@ -4,7 +4,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from io import BytesIO, open
+from io import BytesIO
 import os
 import tempfile
 import shutil

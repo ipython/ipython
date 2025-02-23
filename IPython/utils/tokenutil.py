@@ -23,8 +23,7 @@ class Token(NamedTuple):
 def generate_tokens(readline) -> Generator[TokenInfo, None, None]:
     """wrap generate_tkens to catch EOF errors"""
     try:
-        for token in tokenize.generate_tokens(readline):
-            yield token
+        yield from tokenize.generate_tokens(readline)
     except tokenize.TokenError:
         # catch EOF error
         return

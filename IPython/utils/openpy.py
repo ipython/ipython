@@ -55,8 +55,7 @@ def strip_encoding_cookie(filelike):
     except StopIteration:
         return
     
-    for line in it:
-        yield line
+    yield from it
 
 def read_py_file(filename, skip_encoding_cookie=True):
     """Read a Python file, using the encoding declared inside the file.
