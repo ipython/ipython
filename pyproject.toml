@@ -116,7 +116,7 @@ exclude = [
 disallow_incomplete_defs = true
 disallow_untyped_defs = true
 warn_redundant_casts = true
-#enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 #warn_unreachable = true
 #strict = true
 

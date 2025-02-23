@@ -229,7 +229,7 @@ class ListTB(TBTools):
                 ol1 = self.structured_traceback(
                     etype,
                     evalue,
-                    (etb, chained_exc_ids),  # type: ignore
+                    (etb, chained_exc_ids),  # type: ignore[arg-type]
                     chained_exceptions_tb_offset,
                     context,
                 )
@@ -705,7 +705,7 @@ class VerboseTB(TBTools):
         # some locals
         orig_etype = etype
         try:
-            etype = etype.__name__  # type: ignore
+            etype = etype.__name__  # type: ignore[assignment]
         except AttributeError:
             pass
 
@@ -803,7 +803,7 @@ class VerboseTB(TBTools):
         if max_len > FAST_THRESHOLD:
             FIs: list[FrameInfo] = []
             for tb in tbs:
-                frame = tb.tb_frame  # type: ignore
+                frame = tb.tb_frame  # type: ignore[union-attr]
                 lineno = frame.f_lineno
                 code = frame.f_code
                 filename = code.co_filename

@@ -366,7 +366,7 @@ class FrameInfo:
 
     @property
     def executing(self) -> Any:
-        if self._sd:
+        if self._sd is not None:
             return self._sd.executing
         else:
             return None

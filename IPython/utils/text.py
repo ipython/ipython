@@ -546,7 +546,7 @@ class DollarFormatter(FullEvalFormatter):
         r"(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)"
     )
 
-    def parse(self, fmt_string: str) -> Iterator[Tuple[Any, Any, Any, Any]]:  # type: ignore
+    def parse(self, fmt_string: str) -> Iterator[Tuple[Any, Any, Any, Any]]:  # type: ignore[explicit-override]
         for literal_txt, field_name, format_spec, conversion in Formatter.parse(
             self, fmt_string
         ):
