@@ -1761,11 +1761,10 @@ def _convert_matcher_v1_result_to_v2_no_no(
     type: str,
 ) -> SimpleMatcherResult:
     """same as _convert_matcher_v1_result_to_v2 but fragment=None, and suppress_if_matches is False by construction"""
-    result = {
-        "completions": [SimpleCompletion(text=match, type=type) for match in matches],
-        "suppress": False,
-    }
-    return cast(SimpleMatcherResult, result)
+    return SimpleMatcherResult(
+        completions=[SimpleCompletion(text=match, type=type) for match in matches],
+        suppress=False,
+    )
 
 
 def _convert_matcher_v1_result_to_v2(
@@ -2383,12 +2382,16 @@ class IPCompleter(Completer):
                 )
             except NameError:
                 # catches <undefined attributes>.<tab>
-                matches = []
-                return _convert_matcher_v1_result_to_v2_no_no(matches, type="attribute")
+                return SimpleMatcherResult(completions=[], suppress=False)
         else:
             matches = self.global_matches(context.token)
             # TODO: maybe distinguish between functions, modules and just "variables"
-            return _convert_matcher_v1_result_to_v2_no_no(matches, type="variable")
+            return SimpleMatcherResult(
+                completions=[
+                    SimpleCompletion(text=match, type="variable") for match in matches
+                ],
+                suppress=False,
+            )
 
     @completion_matcher(api_version=1)
     def python_matches(self, text: str) -> Iterable[str]:
