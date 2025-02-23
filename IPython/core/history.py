@@ -61,7 +61,7 @@ except ModuleNotFoundError:
         pass
 
 
-InOrInOut = typing.Union[str, Tuple[str, Optional[str]]]
+InOrInOut = typing.Union[str, tuple[str, Optional[str]]]
 
 # -----------------------------------------------------------------------------
 # Classes and functions
@@ -74,7 +74,7 @@ class DummyDB:
 
     Only used in the absence of sqlite"""
 
-    def execute(*args: typing.Any, **kwargs: typing.Any) -> typing.List:
+    def execute(*args: typing.Any, **kwargs: typing.Any) -> list:
         return []
 
     def commit(self, *args, **kwargs):  # type: ignore [no-untyped-def]
@@ -164,7 +164,7 @@ class HistoryAccessorBase(LoggingConfigurable):
         raw: bool = True,
         output: bool = False,
         include_latest: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         raise NotImplementedError
 
     def search(
@@ -175,7 +175,7 @@ class HistoryAccessorBase(LoggingConfigurable):
         output: bool = False,
         n: Optional[int] = None,
         unique: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         raise NotImplementedError
 
     def get_range(
@@ -185,12 +185,12 @@ class HistoryAccessorBase(LoggingConfigurable):
         stop: Optional[int] = None,
         raw: bool = True,
         output: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         raise NotImplementedError
 
     def get_range_by_str(
         self, rangestr: str, raw: bool = True, output: bool = False
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         raise NotImplementedError
 
 
@@ -246,7 +246,7 @@ class HistoryAccessor(HistoryAccessorBase):
     ).tag(config=True)
 
     @default("connection_options")
-    def _default_connection_options(self) -> typing.Dict[str, bool]:
+    def _default_connection_options(self) -> dict[str, bool]:
         return dict(check_same_thread=False)
 
     # The SQLite database
@@ -351,11 +351,11 @@ class HistoryAccessor(HistoryAccessorBase):
     def _run_sql(
         self,
         sql: str,
-        params: typing.Tuple,
+        params: tuple,
         raw: bool = True,
         output: bool = False,
         latest: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Prepares and runs an SQL query for the history database.
 
         Parameters
@@ -392,7 +392,7 @@ class HistoryAccessor(HistoryAccessorBase):
     @catch_corrupt_db
     def get_session_info(
         self, session: int
-    ) -> Tuple[int, datetime.datetime, Optional[datetime.datetime], Optional[int], str]:
+    ) -> tuple[int, datetime.datetime, Optional[datetime.datetime], Optional[int], str]:
         """Get info about a session.
 
         Parameters
@@ -434,7 +434,7 @@ class HistoryAccessor(HistoryAccessorBase):
         raw: bool = True,
         output: bool = False,
         include_latest: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Get the last n lines from the history database.
 
         Parameters
@@ -471,7 +471,7 @@ class HistoryAccessor(HistoryAccessorBase):
         output: bool = False,
         n: Optional[int] = None,
         unique: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Search the database using unix glob-style matching (wildcards
         * and ?).
 
@@ -498,7 +498,7 @@ class HistoryAccessor(HistoryAccessorBase):
             tosearch = "history." + tosearch
         self.writeout_cache()
         sqlform = "WHERE %s GLOB ?" % tosearch
-        params: typing.Tuple[typing.Any, ...] = (pattern,)
+        params: tuple[typing.Any, ...] = (pattern,)
         if unique:
             sqlform += " GROUP BY {0}".format(tosearch)
         if n is not None:
@@ -519,7 +519,7 @@ class HistoryAccessor(HistoryAccessorBase):
         stop: Optional[int] = None,
         raw: bool = True,
         output: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Retrieve input by session.
 
         Parameters
@@ -546,7 +546,7 @@ class HistoryAccessor(HistoryAccessorBase):
             (session, line, input) if output is False, or
             (session, line, (input, output)) if output is True.
         """
-        params: typing.Tuple[typing.Any, ...]
+        params: tuple[typing.Any, ...]
         if stop:
             lineclause = "line >= ? AND line < ?"
             params = (session, start, stop)
@@ -560,7 +560,7 @@ class HistoryAccessor(HistoryAccessorBase):
 
     def get_range_by_str(
         self, rangestr: str, raw: bool = True, output: bool = False
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Get lines of history from a string of ranges, as used by magic
         commands %hist, %save, %macro, etc.
 
@@ -601,7 +601,7 @@ class HistoryManager(HistoryAccessor):
     dir_hist: List = List()
 
     @default("dir_hist")
-    def _dir_hist_default(self) -> typing.List[Path]:
+    def _dir_hist_default(self) -> list[Path]:
         try:
             return [Path.cwd()]
         except OSError:
@@ -611,7 +611,7 @@ class HistoryManager(HistoryAccessor):
     # execution count.
     output_hist = Dict()
     # The text/plain repr of outputs.
-    output_hist_reprs: typing.Dict[int, str] = Dict()  # type: ignore [assignment]
+    output_hist_reprs: dict[int, str] = Dict()  # type: ignore [assignment]
 
     # The number of the current session in the history database
     session_number: int = Integer()  # type: ignore [assignment]
@@ -625,8 +625,8 @@ class HistoryManager(HistoryAccessor):
         "Values of 1 or less effectively disable caching.",
     ).tag(config=True)
     # The input and output caches
-    db_input_cache: List[Tuple[int, str, str]] = List()
-    db_output_cache: List[Tuple[int, str]] = List()
+    db_input_cache: List[tuple[int, str, str]] = List()
+    db_output_cache: List[tuple[int, str]] = List()
 
     # History saving in separate thread
     save_thread = Instance("IPython.core.history.HistorySavingThread", allow_none=True)
@@ -765,7 +765,7 @@ class HistoryManager(HistoryAccessor):
     # ------------------------------
     def get_session_info(
         self, session: int = 0
-    ) -> Tuple[int, datetime.datetime, Optional[datetime.datetime], Optional[int], str]:
+    ) -> tuple[int, datetime.datetime, Optional[datetime.datetime], Optional[int], str]:
         """Get info about a session.
 
         Parameters
@@ -799,7 +799,7 @@ class HistoryManager(HistoryAccessor):
         raw: bool = True,
         output: bool = False,
         include_latest: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Get the last n lines from the history database.
 
         Most recent entry last.
@@ -843,7 +843,7 @@ class HistoryManager(HistoryAccessor):
             )
         )
 
-        everything: typing.List[Tuple[int, int, InOrInOut]] = this_cur + other_cur
+        everything: list[tuple[int, int, InOrInOut]] = this_cur + other_cur
 
         everything = everything[:n]
 
@@ -857,7 +857,7 @@ class HistoryManager(HistoryAccessor):
         stop: Optional[int] = None,
         raw: bool = True,
         output: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Get input and output history from the current session. Called by
         get_range, and takes similar parameters."""
         input_hist = self.input_hist_raw if raw else self.input_hist_parsed
@@ -884,7 +884,7 @@ class HistoryManager(HistoryAccessor):
         stop: Optional[int] = None,
         raw: bool = True,
         output: bool = False,
-    ) -> Iterable[Tuple[int, int, InOrInOut]]:
+    ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Retrieve input by session.
 
         Parameters
@@ -1145,7 +1145,7 @@ $""",
 )
 
 
-def extract_hist_ranges(ranges_str: str) -> Iterable[Tuple[int, int, Optional[int]]]:
+def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[int]]]:
     """Turn a string of history ranges into 3-tuples of (session, start, stop).
 
     Empty string results in a `[(0, 1, None)]`, i.e. "everything from current
