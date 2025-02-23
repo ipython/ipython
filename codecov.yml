@@ -19,6 +19,5 @@ ignore:
   - IPython/consoleapp.py
   - IPython/lib/kernel.py
   - IPython/utils/jsonutil.py
-  - IPython/utils/localinterfaces.py
   - IPython/utils/log.py
   - IPython/utils/signatures.py

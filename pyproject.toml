@@ -330,7 +330,6 @@ addopts = [
    "--ignore=IPython/consoleapp.py",
    "--ignore=IPython/lib/kernel.py",
    "--ignore=IPython/utils/jsonutil.py",
-   "--ignore=IPython/utils/localinterfaces.py",
    "--ignore=IPython/utils/log.py",
    "--ignore=IPython/utils/signatures.py",
    "--ignore=IPython/utils/version.py"
