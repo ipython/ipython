@@ -274,11 +274,11 @@ class ModuleReloader:
             if do_reload:
                 self._report(f"Reloading '{modname}'.")
                 try:
-                    # check if deduperreload is viable for this module
-                    if self.deduper_reloader.maybe_reload_module(m):
-                        pass
-                    elif self.autoload_obj:
+                    if self.autoload_obj:
                         superreload(m, reload, self.old_objects, self.shell)
+                    # if not using autoload, check if deduperreload is viable for this module
+                    elif self.deduper_reloader.maybe_reload_module(m):
+                        pass
                     else:
                         superreload(m, reload, self.old_objects)
                     if py_filename in self.failed:
@@ -547,12 +547,13 @@ class AutoreloadMagics(Magics):
              '2' or 'all' - Reload all modules (except those excluded by %%aimport)
              every time before executing the Python code typed.
 
-             '3' or 'complete' - Same as 2/all, but also but also adds any new
+             '3' or 'complete' - Same as 2/all, but also adds any new
              objects in the module.
              
              By default, a newer autoreload algorithm that diffs the module's source code
-             with the previous version and only reloads changed parts is applied. To use
-             the original algorithm, add the `-` suffix to the mode, e.g. '%autoreload 2-'.
+             with the previous version and only reloads changed parts is applied for modes
+             2 and below. To use the original algorithm, add the `-` suffix to the mode,
+             e.g. '%autoreload 2-', or pass in --full.
              """,
     )
     @magic_arguments.argument(
@@ -574,6 +575,12 @@ class AutoreloadMagics(Magics):
         action="store_true",
         default=False,
         help="Hide autoreload errors",
+    )
+    @magic_arguments.argument(
+        "--full",
+        action="store_true",
+        default=False,
+        help="Don't ever use new diffing algorithm",
     )
     def autoreload(self, line=""):
         r"""%autoreload => Reload modules automatically
@@ -633,7 +640,7 @@ class AutoreloadMagics(Magics):
         args = magic_arguments.parse_argstring(self.autoreload, line)
         mode = args.mode.lower()
 
-        enable_deduperreload = True
+        enable_deduperreload = not args.full
         if mode.endswith("-"):
             enable_deduperreload = False
             mode = mode[:-1]

@@ -337,7 +337,7 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
     return block
 
 
-class EmbeddedSphinxShell(object):
+class EmbeddedSphinxShell:
     """An embedded IPython instance to run inside Sphinx"""
 
     def __init__(self, exec_lines=None):

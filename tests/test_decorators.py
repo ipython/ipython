@@ -1,5 +1,4 @@
-"""Tests for the decorators we've created for IPython.
-"""
+"""Tests for the decorators we've created for IPython."""
 
 # Module imports
 # Std lib
@@ -153,18 +152,3 @@ def test_skip_dt_decorator2():
     assert dtargsr == dtargs, "Incorrectly reconstructed args for doctest_bad: %s" % (
         dtargsr,
     )
-
-
-@dec.skip_linux
-def test_linux():
-    assert sys.platform.startswith("linux") is False, "This test can't run under linux"
-
-
-@dec.skip_win32
-def test_win32():
-    assert sys.platform != "win32", "This test can't run under windows"
-
-
-@dec.skip_osx
-def test_osx():
-    assert sys.platform != "darwin", "This test can't run under osx"

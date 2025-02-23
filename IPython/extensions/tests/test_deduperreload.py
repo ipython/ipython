@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import annotations
 import ast
 import os
@@ -23,14 +24,10 @@ if platform.python_implementation() != "CPython":
     )
 
 
-class AutoreloadReliabilityTestHook(DeduperReloader):
+class DeduperTestReloader(DeduperReloader):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.exceptions_raised: list[Exception] = []
-
-    @property
-    def _is_test_context(self) -> bool:
-        return True
 
     def _patch_namespace(
         self, module: ModuleType | type, prefixes: list[str] | None = None
@@ -204,14 +201,14 @@ class AutoreloadDetectionSuite(unittest.TestCase):
             x = 1212121
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert autoreload_hook._to_autoreload.defs_to_reload == {}
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader._to_autoreload.defs_to_reload == []
 
-    def test_autoreload_changes_outside_function(self):
+    def test_autoreload_static_assign_change_outside_function(self):
         code1 = squish_text(
             """
             def factorial(n):
@@ -227,11 +224,11 @@ class AutoreloadDetectionSuite(unittest.TestCase):
             x = 1212121
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert not autoreload_hook.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
     def test_autoreload_changes_inside_function(self):
         code1 = squish_text(
@@ -248,12 +245,12 @@ class AutoreloadDetectionSuite(unittest.TestCase):
             print(1)
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert len(autoreload_hook._to_autoreload.defs_to_reload) == 1
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
 
     def test_autoreload_changes_inside_and_outside_function(self):
         code1 = squish_text(
@@ -270,11 +267,11 @@ class AutoreloadDetectionSuite(unittest.TestCase):
             print(2)
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert not autoreload_hook.detect_autoreload(ast_1, ast_2)
+        assert not deduperreloader.detect_autoreload(ast_1, ast_2)
 
     def test_autoreload_changes_inner_function(self):
         code1 = squish_text(
@@ -295,12 +292,12 @@ class AutoreloadDetectionSuite(unittest.TestCase):
                 return foo
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert len(autoreload_hook._to_autoreload.defs_to_reload) == 1
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
 
     def test_autoreload_changes_multiple_function(self):
         code1 = squish_text(
@@ -325,12 +322,12 @@ class AutoreloadDetectionSuite(unittest.TestCase):
                 return 2
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert len(autoreload_hook._to_autoreload.defs_to_reload) == 2
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert len(deduperreloader._to_autoreload.defs_to_reload) == 2
 
     def test_autoreload_change_one_function_of_multiple(self):
         code1 = squish_text(
@@ -355,12 +352,12 @@ class AutoreloadDetectionSuite(unittest.TestCase):
                 return 1
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert len(autoreload_hook._to_autoreload.defs_to_reload) == 1
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
 
     def test_autoreload_handling_moves(self):
         code1 = squish_text(
@@ -377,12 +374,12 @@ class AutoreloadDetectionSuite(unittest.TestCase):
                 return 1
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert len(autoreload_hook._to_autoreload.defs_to_reload) == 0
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert len(deduperreloader._to_autoreload.defs_to_reload) == 0
 
     def test_autoreload_handling_function_moves_success(self):
         code1 = squish_text(
@@ -405,12 +402,12 @@ class AutoreloadDetectionSuite(unittest.TestCase):
             return 1
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert len(autoreload_hook._to_autoreload.defs_to_reload) == 0
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert len(deduperreloader._to_autoreload.defs_to_reload) == 0
 
     def test_autoreload_handling_function_moves_only(self):
         code1 = squish_text(
@@ -423,19 +420,19 @@ class AutoreloadDetectionSuite(unittest.TestCase):
         )
         code2 = squish_text(
             """
-        x = 2
         x = 1
+        x = 2
         def factorial(n):
             return 1
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert not autoreload_hook.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
-    def test_autoreload_not_handling_new_imports(self):
+    def test_autoreload_handles_new_imports(self):
         code1 = squish_text(
             """
         def factorial(n):
@@ -451,11 +448,11 @@ class AutoreloadDetectionSuite(unittest.TestCase):
         x = 1
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert not autoreload_hook.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
     def test_autoreload_async_function(self):
         code1 = squish_text(
@@ -472,12 +469,12 @@ class AutoreloadDetectionSuite(unittest.TestCase):
             await asyncio.sleep(10)
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert len(autoreload_hook._to_autoreload.defs_to_reload) == 1
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
 
     def test_autoreload_add_function(self):
         code1 = squish_text(
@@ -496,12 +493,14 @@ class AutoreloadDetectionSuite(unittest.TestCase):
             pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert list(autoreload_hook._to_autoreload.defs_to_reload.keys()) == ["add"]
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert list(d[0][0] for d in deduperreloader._to_autoreload.defs_to_reload) == [
+            "add"
+        ]
 
     def test_autoreload_add_function_ellipsis(self):
         code1 = squish_text(
@@ -520,12 +519,14 @@ class AutoreloadDetectionSuite(unittest.TestCase):
             ...
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert list(autoreload_hook._to_autoreload.defs_to_reload.keys()) == ["add"]
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert list(d[0][0] for d in deduperreloader._to_autoreload.defs_to_reload) == [
+            "add"
+        ]
 
 
 class AutoreloadPatchingSuite(unittest.TestCase):
@@ -534,7 +535,7 @@ class AutoreloadPatchingSuite(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        self.autoreload_hook = AutoreloadReliabilityTestHook()
+        self.deduperreloader = DeduperTestReloader()
 
     def test_patching(self):
         code1 = squish_text(
@@ -549,10 +550,12 @@ class AutoreloadPatchingSuite(unittest.TestCase):
                 return 2
         """
         )
-        self.autoreload_hook._to_autoreload.defs_to_reload = {"foo": ast.parse(code2)}
+        self.deduperreloader._to_autoreload.defs_to_reload = [
+            (("foo",), ast.parse(code2))
+        ]
         mod = ModuleType("mod")
         exec(code1, mod.__dict__)
-        self.autoreload_hook._patch_namespace(mod)
+        self.deduperreloader._patch_namespace(mod)
         assert mod.foo() == 2
 
     def test_patching_parameters(self):
@@ -568,10 +571,12 @@ class AutoreloadPatchingSuite(unittest.TestCase):
                 return n
         """
         )
-        self.autoreload_hook._to_autoreload.defs_to_reload = {"foo": ast.parse(code2)}
+        self.deduperreloader._to_autoreload.defs_to_reload = [
+            (("foo",), ast.parse(code2))
+        ]
         mod = ModuleType("mod")
         exec(code1, mod.__dict__)
-        self.autoreload_hook._patch_namespace(mod)
+        self.deduperreloader._patch_namespace(mod)
         assert mod.foo(2) == 2
 
     def test_add_function(self):
@@ -587,10 +592,12 @@ class AutoreloadPatchingSuite(unittest.TestCase):
                 return 55
         """
         )
-        self.autoreload_hook._to_autoreload.defs_to_reload = {"foo": ast.parse(code2)}
+        self.deduperreloader._to_autoreload.defs_to_reload = [
+            (("foo",), ast.parse(code2))
+        ]
         mod = ModuleType("mod")
         exec(code1, mod.__dict__)
-        self.autoreload_hook._patch_namespace(mod)
+        self.deduperreloader._patch_namespace(mod)
         assert mod.foo(2) == 55
         assert mod.foo2(2) == 2
 
@@ -618,14 +625,18 @@ class AutoreloadPatchingSuite(unittest.TestCase):
                 return 200
         """
         )
-        self.autoreload_hook._to_autoreload.defs_to_reload = {"foo": ast.parse(code2)}
+        self.deduperreloader._to_autoreload.defs_to_reload = [
+            (("foo",), ast.parse(code2))
+        ]
         mod = ModuleType("mod")
         exec(code1, mod.__dict__)
         assert mod.foo(2) == 1
-        self.autoreload_hook._patch_namespace(mod)
+        self.deduperreloader._patch_namespace(mod)
         assert mod.foo(2) == 55
-        self.autoreload_hook._to_autoreload.defs_to_reload = {"foo": ast.parse(code3)}
-        self.autoreload_hook._patch_namespace(mod)
+        self.deduperreloader._to_autoreload.defs_to_reload = [
+            (("foo",), ast.parse(code3))
+        ]
+        self.deduperreloader._patch_namespace(mod)
         assert mod.foo(2) == 4
 
     def test_using_outside_param(self):
@@ -643,11 +654,13 @@ class AutoreloadPatchingSuite(unittest.TestCase):
                 return 55+x
         """
         )
-        self.autoreload_hook._to_autoreload.defs_to_reload = {"foo": ast.parse(code2)}
+        self.deduperreloader._to_autoreload.defs_to_reload = [
+            (("foo",), ast.parse(code2))
+        ]
         mod = ModuleType("mod")
         exec(code1, mod.__dict__)
         assert mod.foo(2) == 1
-        self.autoreload_hook._patch_namespace(mod)
+        self.deduperreloader._patch_namespace(mod)
         assert mod.foo(2) == 56
 
     def test_importing_func(self):
@@ -666,10 +679,12 @@ class AutoreloadPatchingSuite(unittest.TestCase):
                 return 1
         """
         )
-        self.autoreload_hook._to_autoreload.defs_to_reload = {"foo": ast.parse(code2)}
+        self.deduperreloader._to_autoreload.defs_to_reload = [
+            (("foo",), ast.parse(code2))
+        ]
         mod = ModuleType("mod")
         exec(code1, mod.__dict__)
-        self.autoreload_hook._patch_namespace(mod)
+        self.deduperreloader._patch_namespace(mod)
         assert mod.foo() == 1
 
 
@@ -682,16 +697,22 @@ class FakeShell:
 
     @staticmethod
     def pre_run_cell(obj):
+        try_with_arg = False
         try:
             obj.pre_run_cell()
         except TypeError:
+            try_with_arg = True
+        if try_with_arg:
             obj.pre_run_cell(None)
 
     @staticmethod
     def post_run_cell(obj):
+        try_with_arg = False
         try:
             obj.post_run_cell()
         except TypeError:
+            try_with_arg = True
+        if try_with_arg:
             obj.post_run_cell(None)
 
     def run_code(self, code):
@@ -768,7 +789,7 @@ class ShellFixture(unittest.TestCase):
 
 
 class AutoreloadHookSuite(ShellFixture):
-    def test_autoreload_hook_basic(self):
+    def test_deduperreloader_basic(self):
         self.shell.magic_autoreload("2")
         mod_name, mod_fn = self.new_module(
             """
@@ -792,7 +813,7 @@ class AutoreloadHookSuite(ShellFixture):
         mod = sys.modules[mod_name]
         assert mod.foo(0) == 5
 
-    def test_autoreload_hook_basic2(self):
+    def test_deduperreloader_basic2(self):
         self.shell.magic_autoreload("2")
         mod_name, mod_fn = self.new_module(
             """
@@ -816,7 +837,7 @@ class AutoreloadHookSuite(ShellFixture):
         mod = sys.modules[mod_name]
         assert mod.foo(0) == 5
 
-    def test_autoreload_hook_basic3(self):
+    def test_deduperreloader_basic3(self):
         mod_name, mod_fn = self.new_module(
             """
             x = 9
@@ -840,7 +861,7 @@ class AutoreloadHookSuite(ShellFixture):
         mod = sys.modules[mod_name]
         assert mod.foo(0) == 5
 
-    def test_autoreload_hook_basic4(self):
+    def test_deduperreloader_basic4(self):
         mod_name, mod_fn = self.new_module(
             """
             x = 9
@@ -864,7 +885,7 @@ class AutoreloadHookSuite(ShellFixture):
         mod = sys.modules[mod_name]
         assert mod.foo(0) == 5
 
-    def test_autoreload_hook_basic5(self):
+    def test_deduperreloader_basic5(self):
         mod_name, mod_fn = self.new_module(
             """
             x = 9
@@ -889,7 +910,7 @@ class AutoreloadHookSuite(ShellFixture):
         mod = sys.modules[mod_name]
         assert mod.foo(0) == 5
 
-    def test_autoreload_hook_basic6(self):
+    def test_deduperreloader_basic6(self):
         mod_name, mod_fn = self.new_module(
             """
             x = 9
@@ -944,7 +965,7 @@ class AutoreloadHookSuite(ShellFixture):
         if platform.python_implementation() == "CPython":
             assert self.shell.user_ns["result"] == 3
 
-    def test_autoreload_hook_need_to_default_back(self):
+    def test_deduperreloader_need_to_default_back(self):
         self.shell.magic_autoreload("2")
         mod_name, mod_fn = self.new_module(
             """
@@ -968,7 +989,7 @@ class AutoreloadHookSuite(ShellFixture):
         mod = sys.modules[mod_name]
         assert mod.foo(0) == 5
 
-    def test_autoreload_hook_failure(self):
+    def test_deduperreloader_failure(self):
         self.shell.magic_autoreload("2")
         mod_name, mod_fn = self.new_module(
             """
@@ -990,7 +1011,7 @@ class AutoreloadHookSuite(ShellFixture):
         mod = sys.modules[mod_name]
         assert mod.foo(0) == 3
 
-    def test_autoreload_hook_imported_mod(self):
+    def test_deduperreloader_imported_mod(self):
         self.shell.magic_autoreload("2")
         mod_name, mod_fn = self.new_module(
             """
@@ -1037,17 +1058,17 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                     return x
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert autoreload_hook._to_autoreload.defs_to_reload == {}
-        assert "C" in autoreload_hook._to_autoreload.children
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader._to_autoreload.defs_to_reload == []
+        assert "C" in deduperreloader._to_autoreload.children
         assert ["foo"] == list(
-            autoreload_hook._to_autoreload.children["C"].defs_to_reload.keys()
+            d[0][0] for d in deduperreloader._to_autoreload.children["C"].defs_to_reload
         )
-        assert autoreload_hook._to_autoreload.children["C"].children == {}
+        assert deduperreloader._to_autoreload.children["C"].children == {}
 
     def test_autoreload_no_changes(self):
         code1 = squish_text(
@@ -1068,13 +1089,13 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert autoreload_hook._to_autoreload.defs_to_reload == {}
-        assert autoreload_hook._to_autoreload.children == {}
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader._to_autoreload.defs_to_reload == []
+        assert deduperreloader._to_autoreload.children == {}
 
     def test_autoreload_add_function(self):
         code1 = squish_text(
@@ -1098,17 +1119,17 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert autoreload_hook._to_autoreload.defs_to_reload == {}
-        assert "C" in autoreload_hook._to_autoreload.children
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader._to_autoreload.defs_to_reload == []
+        assert "C" in deduperreloader._to_autoreload.children
         assert ["foo", "bar"] == list(
-            autoreload_hook._to_autoreload.children["C"].defs_to_reload.keys()
+            d[0][0] for d in deduperreloader._to_autoreload.children["C"].defs_to_reload
         )
-        assert len(autoreload_hook._to_autoreload.children["C"].children) == 0
+        assert len(deduperreloader._to_autoreload.children["C"].children) == 0
 
     def test_autoreload_remove_method(self):
         code1 = squish_text(
@@ -1128,11 +1149,11 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
     def test_autoreload_remove_class(self):
         code1 = squish_text(
@@ -1150,11 +1171,11 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
     def test_autoreload_add_class_in_class(self):
         code1 = squish_text(
@@ -1174,11 +1195,11 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
     def test_autoreload_add_method_in_class_in_class(self):
         code1 = squish_text(
@@ -1201,23 +1222,24 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert autoreload_hook._to_autoreload.defs_to_reload == {}
-        assert list(autoreload_hook._to_autoreload.children.keys()) == ["C"]
-        assert autoreload_hook._to_autoreload.children["C"].defs_to_reload == {}
-        assert list(autoreload_hook._to_autoreload.children["C"].children.keys()) == [
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader._to_autoreload.defs_to_reload == []
+        assert list(deduperreloader._to_autoreload.children.keys()) == ["C"]
+        assert deduperreloader._to_autoreload.children["C"].defs_to_reload == []
+        assert list(deduperreloader._to_autoreload.children["C"].children.keys()) == [
             "D"
         ]
         assert list(
-            autoreload_hook._to_autoreload.children["C"]
+            d[0][0]
+            for d in deduperreloader._to_autoreload.children["C"]
             .children["D"]
-            .defs_to_reload.keys()
+            .defs_to_reload
         ) == ["foo"]
-        assert autoreload_hook._to_autoreload.children["C"].children["D"].children == {}
+        assert deduperreloader._to_autoreload.children["C"].children["D"].children == {}
 
     def test_autoreload_add_var_and_method_in_class_in_class(self):
         code1 = squish_text(
@@ -1240,11 +1262,11 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert not autoreload_hook.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
     def test_autoreload_add_method_in_class_in_class_pass(self):
         code1 = squish_text(
@@ -1266,23 +1288,24 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert autoreload_hook._to_autoreload.defs_to_reload == {}
-        assert list(autoreload_hook._to_autoreload.children.keys()) == ["C"]
-        assert autoreload_hook._to_autoreload.children["C"].defs_to_reload == {}
-        assert list(autoreload_hook._to_autoreload.children["C"].children.keys()) == [
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader._to_autoreload.defs_to_reload == []
+        assert list(deduperreloader._to_autoreload.children.keys()) == ["C"]
+        assert deduperreloader._to_autoreload.children["C"].defs_to_reload == []
+        assert list(deduperreloader._to_autoreload.children["C"].children.keys()) == [
             "D"
         ]
         assert list(
-            autoreload_hook._to_autoreload.children["C"]
+            d[0][0]
+            for d in deduperreloader._to_autoreload.children["C"]
             .children["D"]
-            .defs_to_reload.keys()
+            .defs_to_reload
         ) == ["foo"]
-        assert autoreload_hook._to_autoreload.children["C"].children["D"].children == {}
+        assert deduperreloader._to_autoreload.children["C"].children["D"].children == {}
 
     def test_autoreload_add_method_in_class_in_class_more(self):
         code1 = squish_text(
@@ -1306,25 +1329,26 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert autoreload_hook.detect_autoreload(ast_1, ast_2)
-        assert autoreload_hook._to_autoreload.defs_to_reload == {}
-        assert list(autoreload_hook._to_autoreload.children.keys()) == ["C"]
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader._to_autoreload.defs_to_reload == []
+        assert list(deduperreloader._to_autoreload.children.keys()) == ["C"]
         assert list(
-            autoreload_hook._to_autoreload.children["C"].defs_to_reload.keys()
+            d[0][0] for d in deduperreloader._to_autoreload.children["C"].defs_to_reload
         ) == ["bar"]
-        assert list(autoreload_hook._to_autoreload.children["C"].children.keys()) == [
+        assert list(deduperreloader._to_autoreload.children["C"].children.keys()) == [
             "D"
         ]
         assert list(
-            autoreload_hook._to_autoreload.children["C"]
+            d[0][0]
+            for d in deduperreloader._to_autoreload.children["C"]
             .children["D"]
-            .defs_to_reload.keys()
+            .defs_to_reload
         ) == ["foo"]
-        assert autoreload_hook._to_autoreload.children["C"].children["D"].children == {}
+        assert deduperreloader._to_autoreload.children["C"].children["D"].children == {}
 
     def test_autoreload_add_method_in_class_in_class_with_members(self):
         code1 = squish_text(
@@ -1349,11 +1373,11 @@ class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
                 pass
         """
         )
-        autoreload_hook = AutoreloadReliabilityTestHook()
+        deduperreloader = DeduperTestReloader()
         ast_1 = ast.parse(code1)
         ast_2 = ast.parse(code2)
 
-        assert not autoreload_hook.detect_autoreload(ast_1, ast_2)
+        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
 
 class AutoreloadReliabilitySuite(ShellFixture):
@@ -2242,3 +2266,7 @@ class TestAutoreloadEnum(ShellFixture):
         )
         self.shell.run_code("pass")
         assert mod.MyEnum.C.value == "C"
+
+
+if __name__ == "__main__":
+    unittest.main()

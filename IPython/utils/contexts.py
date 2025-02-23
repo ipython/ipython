@@ -7,7 +7,7 @@ import warnings
 # Distributed under the terms of the Modified BSD License.
 
 
-class preserve_keys(object):
+class preserve_keys:
     """Preserve a set of keys in a dictionary.
 
     Upon entering the context manager the current values of the keys

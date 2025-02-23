@@ -2,7 +2,7 @@ import sys
 import warnings
 
 
-class prepended_to_syspath(object):
+class prepended_to_syspath:
     """A context for prepending a directory to sys.path for a second."""
 
     def __init__(self, dir):

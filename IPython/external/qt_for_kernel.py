@@ -1,4 +1,4 @@
-""" Import Qt in a manner suitable for an IPython kernel.
+"""Import Qt in a manner suitable for an IPython kernel.
 
 This is the import used for the `gui=qt` or `matplotlib=qt` initialization.
 

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Tests for completerlib.
-
-"""
+"""Tests for completerlib."""
 
 # -----------------------------------------------------------------------------
 # Imports
@@ -176,7 +174,7 @@ def test_module_without_init():
 
     https://github.com/ipython/ipython/issues/11226
     """
-    fake_module_name = "foo"
+    fake_module_name = "foo_xder_134"
     with TemporaryDirectory() as tmpdir:
         sys.path.insert(0, tmpdir)
         try:

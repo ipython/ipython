@@ -717,7 +717,7 @@ class Magics(Configurable):
         self.options_table[fn] = optstr
 
 
-class MagicAlias(object):
+class MagicAlias:
     """An alias to another magic function.
 
     An alias is determined by its magic name and magic kind. Lookup

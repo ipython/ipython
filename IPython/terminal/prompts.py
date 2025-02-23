@@ -62,7 +62,7 @@ class Prompts:
                 (
                     Token.Prompt.Wrap,
                     # (" " * (width - 2)) + "\N{HORIZONTAL ELLIPSIS} ",
-                    (" " * (width - 2)) + "\N{Vertical ELLIPSIS} ",
+                    (" " * (width - 2)) + "\N{VERTICAL ELLIPSIS} ",
                 ),
             ]
         prefix = " " * len(

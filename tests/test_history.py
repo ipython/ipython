@@ -1,6 +1,5 @@
 # coding: utf-8
-"""Tests for the IPython tab-completion machinery.
-"""
+"""Tests for the IPython tab-completion machinery."""
 # -----------------------------------------------------------------------------
 # Module imports
 # -----------------------------------------------------------------------------

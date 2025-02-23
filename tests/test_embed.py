@@ -59,13 +59,12 @@ def test_ipython_embed():
             stderr=subprocess.PIPE,
         )
         out, err = p.communicate(_exit)
-        std = out.decode("UTF-8")
         try:
-            std = out.decode("UTF-8")
+            std = out.decode("UTF-8", "replace")
         except UnicodeDecodeError as e:
-            raise UnicodeDecodeError(f"Error decoding {out!r}") from e
+            raise ValueError(f"Error decoding {out!r}") from e
 
-        assert p.returncode == 0
+        assert p.returncode == 0, (p.returncode, std)
         assert "3 . 14" in std
         if os.name != "nt":
             # TODO: Fix up our different stdout references, see issue gh-14

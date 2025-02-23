@@ -261,7 +261,7 @@ pride_theme = Theme(
         Token.OutPrompt: "ansibrightred",
         Token.OutPromptNum: "ansired bold",
     },
-    symbols={"arrow_body": "\u2500", "arrow_head": "\u25B6", "top_line": "\u2500"},
+    symbols={"arrow_body": "\u2500", "arrow_head": "\u25b6", "top_line": "\u2500"},
 )
 
 
@@ -327,7 +327,7 @@ pridel_theme = Theme(
         Token.OutPromptNum: C5,
         **pl,
     },
-    symbols={"arrow_body": "\u2500", "arrow_head": "\u25B6", "top_line": "\u2500"},
+    symbols={"arrow_body": "\u2500", "arrow_head": "\u25b6", "top_line": "\u2500"},
 )
 
 theme_table: dict[str, Theme] = {

@@ -1,6 +1,4 @@
-"""Tests for IPython.lib.display.
-
-"""
+"""Tests for IPython.lib.display."""
 
 # -----------------------------------------------------------------------------
 # Copyright (c) 2012, the IPython Development Team.

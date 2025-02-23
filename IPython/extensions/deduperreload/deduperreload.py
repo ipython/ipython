@@ -1,21 +1,28 @@
 from __future__ import annotations
 import ast
+import builtins
 import contextlib
+import itertools
 import os
 import platform
 import sys
 import textwrap
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, Any, Generator, Iterable, NamedTuple, cast
 
 from IPython.extensions.deduperreload.deduperreload_patching import (
     DeduperReloaderPatchingMixin,
 )
 
 if TYPE_CHECKING:
-    TDefinitionAst = ast.FunctionDef | ast.AsyncFunctionDef
-
-DefinitionAst = (ast.FunctionDef, ast.AsyncFunctionDef)
+    TDefinitionAst = (
+        ast.FunctionDef
+        | ast.AsyncFunctionDef
+        | ast.Import
+        | ast.ImportFrom
+        | ast.Assign
+        | ast.AnnAssign
+    )
 
 
 def get_module_file_name(module: ModuleType | str) -> str:
@@ -45,7 +52,9 @@ def compare_ast(node1: ast.AST | list[ast.AST], node2: ast.AST | list[ast.AST]) 
                 return False
         return True
 
-    elif isinstance(node1, list) and isinstance(node2, list):
+    elif isinstance(node1, list) and isinstance(  # type:ignore [redundant-expr]
+        node2, list
+    ):
         return len(node1) == len(node2) and all(
             compare_ast(n1, n2) for n1, n2 in zip(node1, node2)
         )
@@ -73,6 +82,65 @@ class DependencyNode(NamedTuple):
     abstract_syntax_tree: ast.AST
 
 
+class GatherResult(NamedTuple):
+    import_defs: list[tuple[tuple[str, ...], ast.Import | ast.ImportFrom]] = []
+    assign_defs: list[tuple[tuple[str, ...], ast.Assign | ast.AnnAssign]] = []
+    function_defs: list[
+        tuple[tuple[str, ...], ast.FunctionDef | ast.AsyncFunctionDef]
+    ] = []
+    classes: dict[str, ast.ClassDef] = {}
+    unfixable: list[ast.AST] = []
+
+    @classmethod
+    def create(cls) -> GatherResult:
+        return cls([], [], [], {}, [])
+
+    def all_defs(self) -> Iterable[tuple[tuple[str, ...], TDefinitionAst]]:
+        return itertools.chain(self.import_defs, self.assign_defs, self.function_defs)
+
+    def inplace_merge(self, other: GatherResult) -> None:
+        self.import_defs.extend(other.import_defs)
+        self.assign_defs.extend(other.assign_defs)
+        self.function_defs.extend(other.function_defs)
+        self.classes.update(other.classes)
+        self.unfixable.extend(other.unfixable)
+
+
+class ConstexprDetector(ast.NodeVisitor):
+    def __init__(self) -> None:
+        self.is_constexpr = True
+        self._allow_builtins_exceptions = True
+
+    @contextlib.contextmanager
+    def disallow_builtins_exceptions(self) -> Generator[None, None, None]:
+        prev_allow = self._allow_builtins_exceptions
+        self._allow_builtins_exceptions = False
+        try:
+            yield
+        finally:
+            self._allow_builtins_exceptions = prev_allow
+
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        with self.disallow_builtins_exceptions():
+            self.visit(node.value)
+
+    def visit_Name(self, node: ast.Name) -> None:
+        if self._allow_builtins_exceptions and hasattr(builtins, node.id):
+            return
+        self.is_constexpr = False
+
+    def visit(self, node: ast.AST) -> None:
+        if not self.is_constexpr:
+            # can short-circuit if we've already detected that it's not a constexpr
+            return
+        super().visit(node)
+
+    def __call__(self, node: ast.AST) -> bool:
+        self.is_constexpr = True
+        self.visit(node)
+        return self.is_constexpr
+
+
 class AutoreloadTree:
     """
     Recursive data structure to keep track of reloadable functions/methods. Each object corresponds to a specific scope level.
@@ -83,7 +151,7 @@ class AutoreloadTree:
 
     def __init__(self) -> None:
         self.children: dict[str, AutoreloadTree] = {}
-        self.defs_to_reload: dict[str, ast.AST] = {}
+        self.defs_to_reload: list[tuple[tuple[str, ...], ast.AST]] = []
         self.defs_to_delete: set[str] = set()
         self.new_nested_classes: dict[str, ast.AST] = {}
 
@@ -132,7 +200,8 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         for new_modname in sys.modules.keys() - self.source_by_modname.keys():
             new_module = sys.modules[new_modname]
             if (
-                (fname := get_module_file_name(new_module)) is None
+                (fname := get_module_file_name(new_module))
+                is None  # type:ignore [redundant-expr]
                 or "site-packages" in fname
                 or "dist-packages" in fname
                 or not os.access(fname, os.R_OK)
@@ -145,80 +214,96 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 except Exception:
                     self.source_by_modname[new_modname] = ""
 
+    constexpr_detector = ConstexprDetector()
+
+    @staticmethod
+    def is_enum_subclass(node: ast.Module | ast.ClassDef) -> bool:
+        if isinstance(node, ast.Module):
+            return False
+        for base in node.bases:
+            if isinstance(base, ast.Name) and base.id == "Enum":
+                return True
+            elif (
+                isinstance(base, ast.Attribute)
+                and base.attr == "Enum"
+                and isinstance(base.value, ast.Name)
+                and base.value.id == "enum"
+            ):
+                return True
+        return False
+
+    @classmethod
+    def is_constexpr_assign(
+        cls, node: ast.AST, parent_node: ast.Module | ast.ClassDef
+    ) -> bool:
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)) or node.value is None:
+            return False
+        if cls.is_enum_subclass(parent_node):
+            return False
+        for target in node.targets if isinstance(node, ast.Assign) else [node.target]:
+            if not isinstance(target, ast.Name):
+                return False
+        return cls.constexpr_detector(node.value)
+
     @classmethod
     def _gather_children(
-        cls, body: list[ast.stmt]
-    ) -> tuple[dict[str, TDefinitionAst], dict[str, ast.ClassDef], list[ast.AST]]:
+        cls, body: list[ast.stmt], parent_node: ast.Module | ast.ClassDef
+    ) -> GatherResult:
         """
         Given list of ast elements, return:
         1. dict mapping function names to their ASTs.
         2. dict mapping class names to their ASTs.
         3. list of any other ASTs.
         """
-        defs: dict[str, TDefinitionAst] = {}
-        classes: dict[str, ast.ClassDef] = {}
-        unfixable: list[ast.AST] = []
+        result = GatherResult.create()
         for ast_node in body:
             ast_elt: ast.expr | ast.stmt = ast_node
-            if isinstance(ast_node, ast.Expr):
-                ast_elt = ast_node.value
-            if isinstance(ast_elt, DefinitionAst):
-                defs[ast_elt.name] = ast_elt
+            while isinstance(ast_elt, ast.Expr):
+                ast_elt = ast_elt.value
+            if isinstance(ast_elt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                result.function_defs.append(((ast_elt.name,), ast_elt))
+            elif isinstance(ast_elt, (ast.Import, ast.ImportFrom)):
+                result.import_defs.append(
+                    (tuple(name.asname or name.name for name in ast_elt.names), ast_elt)
+                )
             elif isinstance(ast_elt, ast.ClassDef):
-                classes[ast_elt.name] = ast_elt
+                result.classes[ast_elt.name] = ast_elt
             elif isinstance(ast_elt, ast.If):
-                unfixable.append(ast_elt.test)
-                if_defs, if_classes, if_unfixable = cls._gather_children(ast_elt.body)
-                else_defs, else_classes, else_unfixable = cls._gather_children(
-                    ast_elt.orelse
-                )
-                defs.update(if_defs)
-                defs.update(else_defs)
-                classes.update(if_classes)
-                classes.update(else_classes)
-                unfixable.extend(if_unfixable)
-                unfixable.extend(else_unfixable)
+                result.unfixable.append(ast_elt.test)
+                result.inplace_merge(cls._gather_children(ast_elt.body, parent_node))
+                result.inplace_merge(cls._gather_children(ast_elt.orelse, parent_node))
             elif isinstance(ast_elt, (ast.AsyncWith, ast.With)):
-                unfixable.extend(ast_elt.items)
-                with_defs, with_classes, with_unfixable = cls._gather_children(
-                    ast_elt.body
-                )
-                defs.update(with_defs)
-                classes.update(with_classes)
-                unfixable.extend(with_unfixable)
+                result.unfixable.extend(ast_elt.items)
+                result.inplace_merge(cls._gather_children(ast_elt.body, parent_node))
             elif isinstance(ast_elt, ast.Try):
-                try_defs, try_classes, try_unfixable = cls._gather_children(
-                    ast_elt.body
+                result.inplace_merge(cls._gather_children(ast_elt.body, parent_node))
+                result.inplace_merge(cls._gather_children(ast_elt.orelse, parent_node))
+                result.inplace_merge(
+                    cls._gather_children(ast_elt.finalbody, parent_node)
                 )
-                else_defs, else_classes, else_unfixable = cls._gather_children(
-                    ast_elt.orelse
-                )
-                finally_defs, finally_classes, finally_unfixable = cls._gather_children(
-                    ast_elt.finalbody
-                )
-                defs.update(try_defs)
-                defs.update(else_defs)
-                defs.update(finally_defs)
-                classes.update(try_classes)
-                classes.update(else_classes)
-                classes.update(finally_classes)
-                unfixable.extend(try_unfixable)
-                unfixable.extend(else_unfixable)
-                unfixable.extend(finally_unfixable)
                 for handler in ast_elt.handlers:
                     if handler.type is not None:
-                        unfixable.append(handler.type)
-                    (
-                        handler_defs,
-                        handler_classes,
-                        handler_unfixable,
-                    ) = cls._gather_children(handler.body)
-                    defs.update(handler_defs)
-                    classes.update(handler_classes)
-                    unfixable.extend(handler_unfixable)
+                        result.unfixable.append(handler.type)
+                    result.inplace_merge(
+                        cls._gather_children(handler.body, parent_node)
+                    )
             elif not isinstance(ast_elt, (ast.Ellipsis, ast.Pass)):
-                unfixable.append(ast_elt)
-        return defs, classes, unfixable
+                if cls.is_constexpr_assign(ast_elt, parent_node):
+                    assert isinstance(ast_elt, (ast.Assign, ast.AnnAssign))
+                    targets = (
+                        ast_elt.targets
+                        if isinstance(ast_elt, ast.Assign)
+                        else [ast_elt.target]
+                    )
+                    result.assign_defs.append(
+                        (
+                            tuple(cast(ast.Name, target).id for target in targets),
+                            ast_elt,
+                        )
+                    )
+                else:
+                    result.unfixable.append(ast_elt)
+        return result
 
     def detect_autoreload(
         self,
@@ -236,24 +321,40 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
             return False
         prefixes = prefixes or []
 
-        old_defs, old_classes, old_unfixable = self._gather_children(old_node.body)
-        new_defs, new_classes, new_unfixable = self._gather_children(new_node.body)
+        old_result = self._gather_children(old_node.body, old_node)
+        new_result = self._gather_children(new_node.body, new_node)
+        old_defs_by_name: dict[str, ast.AST] = {
+            name: ast_def for names, ast_def in old_result.all_defs() for name in names
+        }
+        new_defs_by_name: dict[str, ast.AST] = {
+            name: ast_def for names, ast_def in new_result.all_defs() for name in names
+        }
 
-        if not compare_ast(old_unfixable, new_unfixable):
+        if not compare_ast(old_result.unfixable, new_result.unfixable):
             return False
 
         cur = self._to_autoreload.traverse_prefixes(prefixes)
-        for name, new_ast_def in new_defs.items():
-            if name not in old_defs or not compare_ast(new_ast_def, old_defs[name]):
-                cur.defs_to_reload[name] = new_ast_def
-        cur.defs_to_delete |= set(old_defs.keys()) - set(new_defs.keys())
-        for name, new_ast_def_class in new_classes.items():
-            if name not in old_classes:
+        for names, new_ast_def in new_result.all_defs():
+            names_to_reload = []
+            for name in names:
+                if new_defs_by_name[name] is not new_ast_def:
+                    continue
+                if name not in old_defs_by_name or not compare_ast(
+                    new_ast_def, old_defs_by_name[name]
+                ):
+                    names_to_reload.append(name)
+            if names_to_reload:
+                cur.defs_to_reload.append((tuple(names), new_ast_def))
+        cur.defs_to_delete |= set(old_defs_by_name.keys()) - set(
+            new_defs_by_name.keys()
+        )
+        for name, new_ast_def_class in new_result.classes.items():
+            if name not in old_result.classes:
                 cur.new_nested_classes[name] = new_ast_def_class
             elif not compare_ast(
-                new_ast_def_class, old_classes[name]
+                new_ast_def_class, old_result.classes[name]
             ) and not self.detect_autoreload(
-                old_classes[name], new_ast_def_class, prefixes + [name]
+                old_result.classes[name], new_ast_def_class, prefixes + [name]
             ):
                 return False
         return True
@@ -274,8 +375,10 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         if len(node.qualified_name) == 0:
             return
         cur = self._to_autoreload.traverse_prefixes(list(node.qualified_name[:-1]))
-        if node.abstract_syntax_tree:
-            cur.defs_to_reload[node.qualified_name[-1]] = node.abstract_syntax_tree
+        if node.abstract_syntax_tree is not None:
+            cur.defs_to_reload.append(
+                ((node.qualified_name[-1],), node.abstract_syntax_tree)
+            )
 
     def _check_dependents_inner(
         self, prefixes: list[str] | None = None
@@ -283,7 +386,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         prefixes = prefixes or []
         cur = self._to_autoreload.traverse_prefixes(prefixes)
         ans = []
-        for func_name in cur.defs_to_reload:
+        for (func_name, *_), _ in cur.defs_to_reload:
             node = tuple(prefixes + [func_name])
             ans.extend(self._gen_dependents(node))
         for class_name in cur.new_nested_classes:
@@ -313,9 +416,13 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         namespace_to_check = ns
         for prefix in prefixes:
             namespace_to_check = namespace_to_check.__dict__[prefix]
-        for name, new_ast_def in cur.defs_to_reload.items():
+        for names, new_ast_def in cur.defs_to_reload:
             local_env: dict[str, Any] = {}
-            if name in namespace_to_check.__dict__:
+            if (
+                isinstance(new_ast_def, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and (name := names[0]) in namespace_to_check.__dict__
+            ):
+                assert len(names) == 1
                 to_patch_to = namespace_to_check.__dict__[name]
                 if isinstance(to_patch_to, (staticmethod, classmethod)):
                     to_patch_to = to_patch_to.__func__
@@ -374,7 +481,8 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                     ns.__dict__ | namespace_to_check.__dict__,
                     local_env,
                 )
-                setattr(namespace_to_check, name, local_env[name])
+                for name in names:
+                    setattr(namespace_to_check, name, local_env[name])
         cur.defs_to_reload.clear()
         for name in cur.defs_to_delete:
             try:
@@ -477,7 +585,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
             if isinstance(ast_elt, ast.ClassDef):
                 self._gather_dependents(ast_elt.body, body_prefixes + [ast_elt.name])
                 continue
-            if not isinstance(ast_elt, DefinitionAst):
+            if not isinstance(ast_elt, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
             qualified_name = tuple(body_prefixes + [ast_elt.name])
             cur_dependency_node = DependencyNode(qualified_name, ast_elt)

@@ -23,7 +23,7 @@ __all__ = ["getoutput", "arg_split", "system", "check_pid"]
 # Function definitions
 #-----------------------------------------------------------------------------
 
-class ProcessHandler(object):
+class ProcessHandler:
     """Execute subprocesses under the control of pexpect.
     """
     # Timeout in seconds to wait on each reading of the subprocess' output.

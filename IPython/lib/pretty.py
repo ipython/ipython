@@ -163,7 +163,7 @@ def pprint(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SE
     sys.stdout.write(newline)
     sys.stdout.flush()
 
-class _PrettyPrinterBase(object):
+class _PrettyPrinterBase:
 
     @contextmanager
     def indent(self, indent):
@@ -434,7 +434,7 @@ class RepresentationPrinter(PrettyPrinter):
         return printer
 
 
-class Printable(object):
+class Printable:
 
     def output(self, stream, output_width):
         return output_width
@@ -486,7 +486,7 @@ class Group(Printable):
         self.want_break = False
 
 
-class GroupQueue(object):
+class GroupQueue:
 
     def __init__(self, *groups):
         self.queue = []
@@ -939,7 +939,8 @@ for_type_by_name("collections", "UserList", _userlist_pprint)
 
 if __name__ == '__main__':
     from random import randrange
-    class Foo(object):
+
+    class Foo:
         def __init__(self):
             self.foo = 1
             self.bar = re.compile(r'\s+')

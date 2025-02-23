@@ -1,5 +1,4 @@
-"""Tests for input handlers.
-"""
+"""Tests for input handlers."""
 
 # -----------------------------------------------------------------------------
 # Module imports

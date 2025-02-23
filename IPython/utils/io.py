@@ -18,7 +18,8 @@ from warnings import warn
 from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
 
-class Tee(object):
+
+class Tee:
     """A class to duplicate an output stream to stdout/err.
 
     This works in a manner very similar to the Unix 'tee' command.
