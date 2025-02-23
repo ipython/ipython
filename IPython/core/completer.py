@@ -2241,16 +2241,7 @@ class IPCompleter(Completer):
     @context_matcher()
     def magic_color_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match color schemes for %colors magic."""
-        # NOTE: uses `line_buffer` equivalent for compatibility
-        matches = self.magic_color_matches(context.line_with_cursor)
-        return _convert_matcher_v1_result_to_v2_no_no(matches, type="param")
-
-    def magic_color_matches(self, text: str) -> list[str]:
-        """Match color schemes for %colors magic.
-
-        .. deprecated:: 8.6
-            You can use :meth:`magic_color_matcher` instead.
-        """
+        text = context.line_with_cursor
         texts = text.split()
         if text.endswith(' '):
             # .split() strips off the trailing whitespace. Add '' back
@@ -2259,8 +2250,18 @@ class IPCompleter(Completer):
 
         if len(texts) == 2 and (texts[0] == 'colors' or texts[0] == '%colors'):
             prefix = texts[1]
-            return [color for color in theme_table.keys() if color.startswith(prefix)]
-        return []
+            return SimpleMatcherResult(
+                completions=[
+                    SimpleCompletion(color, type="param")
+                    for color in theme_table.keys()
+                    if color.startswith(prefix)
+                ],
+                suppress=False,
+            )
+        return SimpleMatcherResult(
+            completions=[],
+            suppress=False,
+        )
 
     @context_matcher(identifier="IPCompleter.jedi_matcher")
     def _jedi_matcher(self, context: CompletionContext) -> _JediMatcherResult:
