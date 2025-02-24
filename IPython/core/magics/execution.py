@@ -75,11 +75,20 @@ class TimeitResult:
 
     Contains the following attributes:
 
-    - loops: (int) number of loops done per measurement
-    - repeat: (int) number of times the measurement was repeated
-    - best: (float) best execution time / number
-    - all_runs: (list of float) execution time of each run (in s)
-    - compile_time: (float) time of statement compilation (s)
+    loops: int
+      number of loops done per measurement
+
+    repeat: int
+      number of times the measurement was repeated
+
+    best: float
+      best execution time / number
+
+    all_runs : list[float]
+      execution time of each run (in s)
+
+    compile_time: float
+      time of statement compilation (s)
 
     """
     def __init__(self, loops, repeat, best, worst, all_runs, compile_time, precision):
