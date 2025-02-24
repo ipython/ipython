@@ -195,16 +195,14 @@ class ExecutionMagics(Magics):
 
         """Run a statement through the python code profiler.
 
-        **Usage, in line mode:**
+        **Usage, in line mode**::
 
           %prun [options] statement
 
-        **Usage, in cell mode:**
+        **Usage, in cell mode**::
 
           %%prun [options] [statement]
-
           code...
-
           code...
 
         In cell mode, the additional code lines are appended to the (possibly
@@ -1046,16 +1044,14 @@ class ExecutionMagics(Magics):
     def timeit(self, line='', cell=None, local_ns=None):
         """Time execution of a Python statement or expression
 
-        **Usage, in line mode:**
+        **Usage, in line mode**::
 
           %timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] statement
 
-        **or in cell mode:**
+        **or in cell mode**::
 
           %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] setup_code
-
           code
-
           code...
 
         Time execution of a Python statement or expression using the timeit
@@ -1070,27 +1066,34 @@ class ExecutionMagics(Magics):
 
         Options:
 
-        -n<N>: execute the given statement <N> times in a loop. If <N> is not
-        provided, <N> is determined so as to get sufficient accuracy.
+        -n<N>
+          Execute the given statement N times in a loop. If N is not
+          provided, N is determined so as to get sufficient accuracy.
 
-        -r<R>: number of repeats <R>, each consisting of <N> loops, and take the
-        average result.
-        Default: 7
+        -r<R>
+          Number of repeats R, each consisting of N loops, and take the
+          average result.
+          Default: 7
 
-        -t: use time.time to measure the time, which is the default on Unix.
-        This function measures wall time.
+        -t
+          Use ``time.time`` to measure the time, which is the default on Unix.
+          This function measures wall time.
 
-        -c: use time.clock to measure the time, which is the default on
-        Windows and measures wall time. On Unix, resource.getrusage is used
-        instead and returns the CPU user time.
+        -c
+          Use ``time.clock`` to measure the time, which is the default on
+          Windows and measures wall time. On Unix, ``resource.getrusage`` is used
+          instead and returns the CPU user time.
 
-        -p<P>: use a precision of <P> digits to display the timing result.
-        Default: 3
+        -p<P>
+          Use a precision of P digits to display the timing result.
+          Default: 3
 
-        -q: Quiet, do not print result.
+        -q
+          Quiet, do not print result.
 
-        -o: return a TimeitResult that can be stored in a variable to inspect
-        the result in more details.
+        -o
+          Return a ``TimeitResult`` that can be stored in a variable to inspect
+          the result in more details.
 
         .. versionchanged:: 7.3
             User variables are no longer expanded,
@@ -1403,12 +1406,14 @@ class ExecutionMagics(Magics):
 
         Options:
 
-          -r: use 'raw' input.  By default, the 'processed' history is used,
+        -r
+          Use 'raw' input.  By default, the 'processed' history is used,
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed at the
           command line is used instead.
           
-          -q: quiet macro definition.  By default, a tag line is printed 
+        -q
+          Quiet macro definition.  By default, a tag line is printed 
           to indicate the macro has been created, and then the contents of 
           the macro are printed.  If this option is given, then no printout
           is produced once the macro is created.
