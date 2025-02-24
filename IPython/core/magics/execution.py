@@ -90,7 +90,7 @@ class TimeitResult:
         self.all_runs = all_runs
         self.compile_time = compile_time
         self._precision = precision
-        self.timings = [ dt / self.loops for dt in all_runs]
+        self.timings = [dt / self.loops for dt in all_runs]
 
     @property
     def average(self):
@@ -105,8 +105,8 @@ class TimeitResult:
         pm = '+-'
         if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
             try:
-                u'\xb1'.encode(sys.stdout.encoding)
-                pm = u'\xb1'
+                '\xb1'.encode(sys.stdout.encoding)
+                pm = '\xb1'
             except:
                 pass
         return "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops:,} loop{loop_plural} each)".format(
@@ -121,7 +121,7 @@ class TimeitResult:
 
     def _repr_pretty_(self, p , cycle):
         unic = self.__str__()
-        p.text(u'<TimeitResult : '+unic+u'>')
+        p.text('<TimeitResult : ' + unic + '>')
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
@@ -1613,7 +1613,7 @@ def _format_time(timespan, precision=3):
             value = int(leftover / length)
             if value > 0:
                 leftover = leftover % length
-                time.append(u'%s%s' % (str(value), suffix))
+                time.append('%s%s' % (str(value), suffix))
             if leftover < 1:
                 break
         return " ".join(time)
