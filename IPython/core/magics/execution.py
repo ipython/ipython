@@ -613,25 +613,25 @@ class ExecutionMagics(Magics):
           time.clock().  Under Unix, an estimate of time spent on system tasks
           is also given (for Windows platforms this is reported as 0.0).
 
-        If -t is given, an additional ``-N<N>`` option can be given, where <N>
-        must be an integer indicating how many times you want the script to
-        run.  The final timing report will include total and per run results.
+          If -t is given, an additional ``-N<N>`` option can be given, where <N>
+          must be an integer indicating how many times you want the script to
+          run.  The final timing report will include total and per run results.
 
-        For example (testing the script uniq_stable.py)::
+          For example (testing the script uniq_stable.py)::
 
-            In [1]: run -t uniq_stable
+              In [1]: run -t uniq_stable
 
-            IPython CPU timings (estimated):
-              User  :    0.19597 s.
-              System:        0.0 s.
+              IPython CPU timings (estimated):
+                User  :    0.19597 s.
+                System:        0.0 s.
 
-            In [2]: run -t -N5 uniq_stable
+              In [2]: run -t -N5 uniq_stable
 
-            IPython CPU timings (estimated):
-            Total runs performed: 5
-              Times :      Total       Per run
-              User  :   0.910862 s,  0.1821724 s.
-              System:        0.0 s,        0.0 s.
+              IPython CPU timings (estimated):
+              Total runs performed: 5
+                Times :      Total       Per run
+                User  :   0.910862 s,  0.1821724 s.
+                System:        0.0 s,        0.0 s.
 
         -d
           run your program under the control of pdb, the Python debugger.
