@@ -33,6 +33,7 @@ development work they do here in a user friendly format.
 .. toctree::
    :maxdepth: 1
 
+   version9
    version8
    github-stats-8
    version7
