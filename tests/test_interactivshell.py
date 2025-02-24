@@ -27,55 +27,55 @@ class TestAutoSuggest(unittest.TestCase):
         self.assertIsInstance(ip.auto_suggest, NavigableAutoSuggestFromHistory)
 
 
-class TestElide(unittest.TestCase):
-    def test_elide(self):
-        _elide("concatenate((a1, a2, ...), axis", "")  # do not raise
-        _elide("concatenate((a1, a2, ..), . axis", "")  # do not raise
-        self.assertEqual(
-            _elide("aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh", ""),
-            "aaaa.b…g.hhhhhh",
-        )
+def test_elide():
+    _elide("concatenate((a1, a2, ...), axis", "", min_elide=30)  # do not raise
+    _elide("concatenate((a1, a2, ..), . axis", "", min_elide=30)  # do not raise
+    assert (
+        _elide("aaaa.bbbb.ccccc.dddddd.eeeee.fffff.gggggg.hhhhhh", "", min_elide=30)
+        == "aaaa.b…g.hhhhhh"
+    )
 
-        test_string = os.sep.join(["", 10 * "a", 10 * "b", 10 * "c", ""])
-        expect_string = (
-            os.sep + "a" + "\N{HORIZONTAL ELLIPSIS}" + "b" + os.sep + 10 * "c"
-        )
-        self.assertEqual(_elide(test_string, ""), expect_string)
+    test_string = os.sep.join(["", 10 * "a", 10 * "b", 10 * "c", ""])
+    expect_string = os.sep + "a" + "\N{HORIZONTAL ELLIPSIS}" + "b" + os.sep + 10 * "c"
+    assert _elide(test_string, "", min_elide=30) == expect_string
 
-    def test_elide_typed_normal(self):
-        self.assertEqual(
-            _elide(
-                "the quick brown fox jumped over the lazy dog",
-                "the quick brown fox",
-                min_elide=10,
-            ),
-            "the…fox jumped over the lazy dog",
-        )
 
-    def test_elide_typed_short_match(self):
-        """
-        if the match is too short we don't elide.
-        avoid the "the...the"
-        """
-        self.assertEqual(
-            _elide("the quick brown fox jumped over the lazy dog", "the", min_elide=10),
+def test_elide_typed_normal():
+    assert (
+        _elide(
             "the quick brown fox jumped over the lazy dog",
+            "the quick brown fox",
+            min_elide=10,
         )
+        == "the…fox jumped over the lazy dog"
+    )
 
-    def test_elide_typed_no_match(self):
-        """
-        if the match is too short we don't elide.
-        avoid the "the...the"
-        """
-        # here we typed red instead of brown
-        self.assertEqual(
-            _elide(
-                "the quick brown fox jumped over the lazy dog",
-                "the quick red fox",
-                min_elide=10,
-            ),
+
+def test_elide_typed_short_match():
+    """
+    if the match is too short we don't elide.
+    avoid the "the...the"
+    """
+    assert (
+        _elide("the quick brown fox jumped over the lazy dog", "the", min_elide=10)
+        == "the quick brown fox jumped over the lazy dog"
+    )
+
+
+def test_elide_typed_no_match():
+    """
+    if the match is too short we don't elide.
+    avoid the "the...the"
+    """
+    # here we typed red instead of brown
+    assert (
+        _elide(
             "the quick brown fox jumped over the lazy dog",
+            "the quick red fox",
+            min_elide=10,
         )
+        == "the quick brown fox jumped over the lazy dog"
+    )
 
 
 class TestContextAwareCompletion(unittest.TestCase):

@@ -203,13 +203,18 @@ class PtkHistoryAdapter(History):
 class TerminalInteractiveShell(InteractiveShell):
     mime_renderers = Dict().tag(config=True)
 
-    space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
-                                     'to reserve for the tab completion menu, '
-                                     'search history, ...etc, the height of '
-                                     'these menus will at most this value. '
-                                     'Increase it is you prefer long and skinny '
-                                     'menus, decrease for short and wide.'
-                            ).tag(config=True)
+    min_elide = Integer(
+        30, help="minimum characters for filling with ellipsis in file completions"
+    ).tag(config=True)
+    space_for_menu = Integer(
+        6,
+        help="Number of line at the bottom of the screen "
+        "to reserve for the tab completion menu, "
+        "search history, ...etc, the height of "
+        "these menus will at most this value. "
+        "Increase it is you prefer long and skinny "
+        "menus, decrease for short and wide.",
+    ).tag(config=True)
 
     pt_app: UnionType[PromptSession, None] = None
     auto_suggest: UnionType[

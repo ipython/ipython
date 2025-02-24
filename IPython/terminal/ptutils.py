@@ -17,6 +17,8 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.lexers import Lexer
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.patch_stdout import patch_stdout
+from IPython.core.getipython import get_ipython
+
 
 import pygments.lexers as pygments_lexers
 import os
@@ -25,7 +27,8 @@ import traceback
 
 _completion_sentinel = object()
 
-def _elide_point(string:str, *, min_elide=30)->str:
+
+def _elide_point(string: str, *, min_elide) -> str:
     """
     If a string is long enough, and has at least 3 dots,
     replace the middle part with ellipses.
@@ -62,7 +65,8 @@ def _elide_point(string:str, *, min_elide=30)->str:
 
     return string
 
-def _elide_typed(string:str, typed:str, *, min_elide:int=30)->str:
+
+def _elide_typed(string: str, typed: str, *, min_elide: int) -> str:
     """
     Elide the middle of a long string if the beginning has already been typed.
     """
@@ -76,7 +80,8 @@ def _elide_typed(string:str, typed:str, *, min_elide:int=30)->str:
         return f"{string[:3]}\N{HORIZONTAL ELLIPSIS}{string[cut_how_much:]}"
     return string
 
-def _elide(string:str, typed:str, min_elide=30)->str:
+
+def _elide(string: str, typed: str, min_elide) -> str:
     return _elide_typed(
         _elide_point(string, min_elide=min_elide),
         typed, min_elide=min_elide)
@@ -127,8 +132,7 @@ class IPythonPTCompleter(Completer):
                 except AttributeError:
                     print('Unrecoverable Error in completions')
 
-    @staticmethod
-    def _get_completions(body, offset, cursor_position, ipyc):
+    def _get_completions(self, body, offset, cursor_position, ipyc):
         """
         Private equivalent of get_completions() use only for unit_testing.
         """
@@ -162,11 +166,32 @@ class IPythonPTCompleter(Completer):
             #                  display_meta=meta_text)
             display_text = c.text
 
-            adjusted_text = _adjust_completion_text_based_on_context(c.text, body, offset)
-            if c.type == 'function':
-                yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text+'()', body[c.start:c.end]), display_meta=c.type+c.signature)
+            adjusted_text = _adjust_completion_text_based_on_context(
+                c.text, body, offset
+            )
+            if c.type == "function":
+                yield Completion(
+                    adjusted_text,
+                    start_position=c.start - offset,
+                    display=_elide(
+                        display_text + "()",
+                        body[c.start : c.end],
+                        min_elide=self.shell.min_elide,
+                    ),
+                    display_meta=c.type + c.signature,
+                )
             else:
-                yield Completion(adjusted_text, start_position=c.start - offset, display=_elide(display_text,  body[c.start:c.end]), display_meta=c.type)
+                yield Completion(
+                    adjusted_text,
+                    start_position=c.start - offset,
+                    display=_elide(
+                        display_text,
+                        body[c.start : c.end],
+                        min_elide=self.shell.min_elide,
+                    ),
+                    display_meta=c.type,
+                )
+
 
 class IPythonPTLexer(Lexer):
     """
