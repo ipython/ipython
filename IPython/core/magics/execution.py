@@ -1117,13 +1117,13 @@ class ExecutionMagics(Magics):
 
           In [6]: %timeit -n1 time.sleep(2)
 
-        The times reported by %timeit will be slightly higher than those
+        The times reported by ``%timeit`` will be slightly higher than those
         reported by the timeit.py script when variables are accessed. This is
-        due to the fact that %timeit executes the statement in the namespace
+        due to the fact that ``%timeit`` executes the statement in the namespace
         of the shell, compared with timeit.py, which uses a single setup
         statement to import function or create variables. Generally, the bias
         does not matter as long as results from timeit.py are not mixed with
-        those from %timeit."""
+        those from ``%timeit``."""
 
         opts, stmt = self.parse_options(
             line, "n:r:tcp:qo", posix=False, strict=False, preserve_non_opts=True
