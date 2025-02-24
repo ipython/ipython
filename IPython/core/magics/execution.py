@@ -1485,12 +1485,14 @@ class ExecutionMagics(Magics):
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('output', type=str, default='', nargs='?',
-        help="""The name of the variable in which to store output.
-        This is a utils.io.CapturedIO object with stdout/err attributes
+        help="""
+        
+        The name of the variable in which to store output.
+        This is a ``utils.io.CapturedIO`` object with stdout/err attributes
         for the text of the captured output.
 
-        CapturedOutput also has a show() method for displaying the output,
-        and __call__ as well, so you can use that to quickly display the
+        CapturedOutput also has a ``show()`` method for displaying the output,
+        and ``__call__`` as well, so you can use that to quickly display the
         output.
 
         If unspecified, captured output is discarded.
