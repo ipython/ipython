@@ -1493,7 +1493,11 @@ class ExecutionMagics(Magics):
             print(macro, end=" ")
 
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('output', type=str, default='', nargs='?',
+    @magic_arguments.argument(
+        'output',
+        type=str,
+        default='',
+        nargs='?',
         help="""
         
         The name of the variable in which to store output.
@@ -1507,13 +1511,19 @@ class ExecutionMagics(Magics):
         If unspecified, captured output is discarded.
         """
     )
-    @magic_arguments.argument('--no-stderr', action="store_true",
+    @magic_arguments.argument(
+        '--no-stderr',
+        action="store_true",
         help="""Don't capture stderr."""
     )
-    @magic_arguments.argument('--no-stdout', action="store_true",
+    @magic_arguments.argument(
+        '--no-stdout',
+        action="store_true",
         help="""Don't capture stdout."""
     )
-    @magic_arguments.argument('--no-display', action="store_true",
+    @magic_arguments.argument(
+        '--no-display',
+        action="store_true",
         help="""Don't capture IPython's rich display."""
     )
     @cell_magic
