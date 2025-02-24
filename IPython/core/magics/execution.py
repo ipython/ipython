@@ -1410,7 +1410,8 @@ class ExecutionMagics(Magics):
         """Define a macro for future re-execution. It accepts ranges of history,
         filenames or string objects.
 
-        Usage:\\
+        Usage::
+
           %macro [options] name n1-n2 n3-n4 ... n5 .. n6 ...
 
         Options:
