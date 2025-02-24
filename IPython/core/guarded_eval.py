@@ -97,7 +97,7 @@ class EvaluationPolicy:
     allow_builtins_access: bool = False
     allow_all_operations: bool = False
     allow_any_calls: bool = False
-    allowed_calls: Set[Callable] = field(default_factory=set)
+    allowed_calls: set[Callable] = field(default_factory=set)
 
     def can_get_item(self, value, item):
         return self.allow_item_access
@@ -105,7 +105,7 @@ class EvaluationPolicy:
     def can_get_attr(self, value, attr):
         return self.allow_attr_access
 
-    def can_operate(self, dunders: Tuple[str, ...], a, b=None):
+    def can_operate(self, dunders: tuple[str, ...], a, b=None):
         if self.allow_all_operations:
             return True
 
@@ -191,16 +191,16 @@ def _has_original_dunder(
 @undoc
 @dataclass
 class SelectivePolicy(EvaluationPolicy):
-    allowed_getitem: Set[InstancesHaveGetItem] = field(default_factory=set)
-    allowed_getitem_external: Set[Tuple[str, ...]] = field(default_factory=set)
+    allowed_getitem: set[InstancesHaveGetItem] = field(default_factory=set)
+    allowed_getitem_external: set[tuple[str, ...]] = field(default_factory=set)
 
-    allowed_getattr: Set[MayHaveGetattr] = field(default_factory=set)
-    allowed_getattr_external: Set[Tuple[str, ...]] = field(default_factory=set)
+    allowed_getattr: set[MayHaveGetattr] = field(default_factory=set)
+    allowed_getattr_external: set[tuple[str, ...]] = field(default_factory=set)
 
-    allowed_operations: Set = field(default_factory=set)
-    allowed_operations_external: Set[Tuple[str, ...]] = field(default_factory=set)
+    allowed_operations: set = field(default_factory=set)
+    allowed_operations_external: set[tuple[str, ...]] = field(default_factory=set)
 
-    _operation_methods_cache: Dict[str, Set[Callable]] = field(
+    _operation_methods_cache: dict[str, set[Callable]] = field(
         default_factory=dict, init=False
     )
 
@@ -268,7 +268,7 @@ class SelectivePolicy(EvaluationPolicy):
             method_name="__getitem__",
         )
 
-    def can_operate(self, dunders: Tuple[str, ...], a, b=None):
+    def can_operate(self, dunders: tuple[str, ...], a, b=None):
         objects = [a]
         if b is not None:
             objects.append(b)
@@ -286,7 +286,7 @@ class SelectivePolicy(EvaluationPolicy):
             ]
         )
 
-    def _operator_dunder_methods(self, dunder: str) -> Set[Callable]:
+    def _operator_dunder_methods(self, dunder: str) -> set[Callable]:
         if dunder not in self._operation_methods_cache:
             self._operation_methods_cache[dunder] = self._safe_get_methods(
                 self.allowed_operations, dunder
@@ -294,18 +294,18 @@ class SelectivePolicy(EvaluationPolicy):
         return self._operation_methods_cache[dunder]
 
     @cached_property
-    def _getitem_methods(self) -> Set[Callable]:
+    def _getitem_methods(self) -> set[Callable]:
         return self._safe_get_methods(self.allowed_getitem, "__getitem__")
 
     @cached_property
-    def _getattr_methods(self) -> Set[Callable]:
+    def _getattr_methods(self) -> set[Callable]:
         return self._safe_get_methods(self.allowed_getattr, "__getattr__")
 
     @cached_property
-    def _getattribute_methods(self) -> Set[Callable]:
+    def _getattribute_methods(self) -> set[Callable]:
         return self._safe_get_methods(self.allowed_getattr, "__getattribute__")
 
-    def _safe_get_methods(self, classes, name) -> Set[Callable]:
+    def _safe_get_methods(self, classes, name) -> set[Callable]:
         return {
             method
             for class_ in classes
@@ -387,7 +387,7 @@ def guarded_eval(code: str, context: EvaluationContext):
     return eval_node(expression, context)
 
 
-BINARY_OP_DUNDERS: Dict[Type[ast.operator], Tuple[str]] = {
+BINARY_OP_DUNDERS: dict[type[ast.operator], tuple[str]] = {
     ast.Add: ("__add__",),
     ast.Sub: ("__sub__",),
     ast.Mult: ("__mul__",),
@@ -403,7 +403,7 @@ BINARY_OP_DUNDERS: Dict[Type[ast.operator], Tuple[str]] = {
     ast.MatMult: ("__matmul__",),
 }
 
-COMP_OP_DUNDERS: Dict[Type[ast.cmpop], Tuple[str, ...]] = {
+COMP_OP_DUNDERS: dict[type[ast.cmpop], tuple[str, ...]] = {
     ast.Eq: ("__eq__",),
     ast.NotEq: ("__ne__", "__eq__"),
     ast.Lt: ("__lt__", "__gt__"),
@@ -414,7 +414,7 @@ COMP_OP_DUNDERS: Dict[Type[ast.cmpop], Tuple[str, ...]] = {
     # Note: ast.Is, ast.IsNot, ast.NotIn are handled specially
 }
 
-UNARY_OP_DUNDERS: Dict[Type[ast.unaryop], Tuple[str, ...]] = {
+UNARY_OP_DUNDERS: dict[type[ast.unaryop], tuple[str, ...]] = {
     ast.USub: ("__neg__",),
     ast.UAdd: ("__pos__",),
     # we have to check both __inv__ and __invert__!
@@ -455,7 +455,7 @@ class _Duck:
         return self.items.keys()
 
 
-def _find_dunder(node_op, dunders) -> Union[Tuple[str, ...], None]:
+def _find_dunder(node_op, dunders) -> Union[tuple[str, ...], None]:
     dunder = None
     for op, candidate_dunder in dunders.items():
         if isinstance(node_op, op):
@@ -762,7 +762,7 @@ SUPPORTED_EXTERNAL_GETITEM = {
 }
 
 
-BUILTIN_GETITEM: Set[InstancesHaveGetItem] = {
+BUILTIN_GETITEM: set[InstancesHaveGetItem] = {
     dict,
     str,  # type: ignore[arg-type]
     bytes,  # type: ignore[arg-type]
@@ -790,7 +790,7 @@ list_non_mutating_methods = ("copy", "index", "count")
 set_non_mutating_methods = set(dir(set)) & set(dir(frozenset))
 
 
-dict_keys: Type[collections.abc.KeysView] = type({}.keys())
+dict_keys: type[collections.abc.KeysView] = type({}.keys())
 
 NUMERICS = {int, float, complex}
 
@@ -831,7 +831,7 @@ ALLOWED_CALLS = {
     collections.Counter.most_common,
 }
 
-BUILTIN_GETATTR: Set[MayHaveGetattr] = {
+BUILTIN_GETATTR: set[MayHaveGetattr] = {
     *BUILTIN_GETITEM,
     set,
     frozenset,

@@ -1,29 +1,21 @@
-# -*- coding: utf-8 -*-
-#
 # IPython documentation build configuration file.
 
 # NOTE: This file has been edited manually from the auto-generated one from
 # sphinx.  Do NOT delete and re-generate.  If any changes from sphinx are
 # needed, generate a scratch one and merge by hand any new fields needed.
 
-#
-# This file is execfile()d with the current directory set to its containing dir.
-#
-# The contents of this file are pickled, so don't put values in the namespace
-# that aren't pickleable (module imports are okay, they're removed automatically).
-#
-# All configuration values have a default value; values that are commented out
-# serve to show the default value.
-
-
 import sys, os
 from pathlib import Path
 
 import tomllib
 
-with open("./sphinx.toml", "rb") as f:
-    config = tomllib.load(f)
+from sphinx_toml import load_into_locals
+from intersphinx_registry import get_intersphinx_mapping
+import sphinx_rtd_theme
+import sphinx.util
+import logging
 
+load_into_locals(locals())
 # https://read-the-docs.readthedocs.io/en/latest/faq.html
 ON_RTD = os.environ.get("READTHEDOCS", None) == "True"
 
@@ -42,7 +34,6 @@ if ON_RTD:
                     "__name__": "__main__",
                 },
             )
-import sphinx_rtd_theme
 
 # Allow Python scripts to change behaviour during sphinx run
 os.environ["IN_SPHINX_RUN"] = "True"
@@ -81,50 +72,26 @@ exec(
 #       Exclude these glob-style patterns when looking for source files.
 #       They are relative to the source/ directory.
 # - pygments_style: The name of the Pygments (syntax highlighting) style to use.
-# - extensions:
-#        Add any Sphinx extension module names here, as strings. They can be extensions
-#        coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 # - default_role
 # - modindex_common_prefix
 
-locals().update(config["sphinx"])
 
-try:
-    from intersphinx_registry import get_intersphinx_mapping
+intersphinx_mapping = get_intersphinx_mapping(
+    packages={
+        "python",
+        "rpy2",
+        "jupyterclient",
+        "jupyter",
+        "jedi",
+        "traitlets",
+        "ipykernel",
+        "prompt_toolkit",
+        "ipywidgets",
+        "ipyparallel",
+        "pip",
+    }
+)
 
-    intersphinx_mapping = get_intersphinx_mapping(
-        packages={
-            "python",
-            "rpy2",
-            "jupyterclient",
-            "jupyter",
-            "jedi",
-            "traitlets",
-            "ipykernel",
-            "prompt_toolkit",
-            "ipywidgets",
-            "ipyparallel",
-            "pip",
-        }
-    )
-
-except ModuleNotFoundError:
-    # In case intersphinx_registry is not yet packages on current platform
-    # as it is quite recent.
-    print("/!\\ intersphinx_registry not installed, relying on local mapping.")
-    intersphinx_mapping = config["intersphinx_mapping"]
-    for k, v in intersphinx_mapping.items():
-        intersphinx_mapping[k] = tuple(
-            [intersphinx_mapping[k]["url"], intersphinx_mapping[k]["fallback"] or None]
-        )
-
-
-# numpydoc config
-numpydoc_show_class_members = config["numpydoc"][
-    "numpydoc_show_class_members"
-]  # Otherwise Sphinx emits thousands of warnings
-numpydoc_class_members_toctree = config["numpydoc"]["numpydoc_class_members_toctree"]
-warning_is_error = config["numpydoc"]["warning_is_error"]
 
 # Options for HTML output
 # -----------------------
@@ -140,13 +107,9 @@ warning_is_error = config["numpydoc"]["warning_is_error"]
 #     using the given strftime format.
 #     Output file base name for HTML help builder.
 # - htmlhelp_basename
-locals().update(config["html"])
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
-html_additional_pages = {}
-for item in config["html"]["html_additional_pages"]:
-    html_additional_pages[item[0]] = item[1]
 
 # Options for LaTeX output
 # ------------------------
@@ -154,12 +117,7 @@ for item in config["html"]["html_additional_pages"]:
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = []
-for item in config["latex"]["latex_documents"]:
-    latex_documents.append(tuple(item))
-# If false, no module index is generated.
-latex_use_modindex = config["latex"]["latex_use_modindex"]
-# The font size ('10pt', '11pt' or '12pt').
-latex_font_size = config["latex"]["latex_font_size"]
+
 
 # Options for texinfo output
 # --------------------------
@@ -228,7 +186,6 @@ rst_prolog += """
 
 """
 
-import logging
 
 
 class ConfigtraitFilter(logging.Filter):
@@ -252,7 +209,6 @@ class ConfigtraitFilter(logging.Filter):
 
 ct_filter = ConfigtraitFilter()
 
-import sphinx.util
 
 logger = sphinx.util.logging.getLogger("sphinx.domains.std").logger
 logger.addFilter(ct_filter)

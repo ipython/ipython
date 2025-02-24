@@ -63,30 +63,11 @@ doc = [
     "ipython[test]",
     "matplotlib",
     "setuptools>=18.5",
+    "sphinx_toml==0.0.4",
     "sphinx-rtd-theme",
     "sphinx>=1.3",
-    "sphinxcontrib-jquery",
+    "typing_extensions",
 ]
-kernel = [
-    "ipykernel",
-]
-nbconvert = [
-    "nbconvert",
-]
-nbformat = [
-    "nbformat",
-]
-notebook = [
-    "ipywidgets",
-    "notebook",
-]
-parallel = [
-    "ipyparallel",
-]
-qtconsole = [
-    "qtconsole",
-]
-terminal = []
 test = [
     "pytest",
     "pytest-asyncio<0.22",
@@ -106,9 +87,9 @@ matplotlib = [
    "matplotlib"
 ]
 all = [
-    "ipython[black,doc,kernel,nbconvert,nbformat,notebook,parallel,qtconsole,matplotlib]",
-    "ipython[test,test_extra]",
+    "ipython[doc,matplotlib,test,test_extra]",
 ]
+
 
 [tool.mypy]
 python_version = "3.11"
@@ -136,6 +117,9 @@ exclude = [
 disallow_incomplete_defs = true
 disallow_untyped_defs = true
 warn_redundant_casts = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+#warn_unreachable = true
+#strict = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -278,7 +262,6 @@ module = [
     "IPython.utils._process_cli",
     "IPython.utils._process_common",
     "IPython.utils._process_emscripten",
-    "IPython.utils._process_posix",
     "IPython.utils.capture",
     "IPython.utils.coloransi",
     "IPython.utils.contexts",
@@ -316,6 +299,7 @@ check_untyped_defs = false
 disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
+minversion = "7"
 addopts = [
    "--durations=10",
    "-pIPython.testing.plugin.pytest_ipdoctest",
@@ -346,7 +330,6 @@ addopts = [
    "--ignore=IPython/consoleapp.py",
    "--ignore=IPython/lib/kernel.py",
    "--ignore=IPython/utils/jsonutil.py",
-   "--ignore=IPython/utils/localinterfaces.py",
    "--ignore=IPython/utils/log.py",
    "--ignore=IPython/utils/signatures.py",
    "--ignore=IPython/utils/version.py"
@@ -426,12 +409,12 @@ extend-select = [
     # "UP020",        # 15   [*] Use builtin `open`
     # "UP024",        # 16   [*] Replace aliased errors with `OSError`
     # "UP025",        # 91   [*] Remove unicode literals from strings
-    # "UP028",        #  3   Replace `yield` over `for` loop with `yield from`
-    # "UP029",        #  1   Unnecessary builtin import
+    "UP028",        #  3   Replace `yield` over `for` loop with `yield from`
+    "UP029",        #  1   Unnecessary builtin import
     # "UP030",        # 28   Use implicit references for positional format fields
     # "UP031",        #386   Use format specifiers instead of percent format
     # "UP032",        # 75   [*] Use f-string instead of `format` call
-    # "UP034",        #  1   [*] Avoid extraneous parentheses
+    "UP034",        #  1   [*] Avoid extraneous parentheses
     # "UP035",        #  1   [*] Import from `re` instead
     # "UP035",        #  2   [*] Import from `typing` instead
     # "UP035",        #  2   `typing.Type` is deprecated, use `type` instead
@@ -441,7 +424,7 @@ extend-select = [
     # "UP035",        # 14   `typing.List` is deprecated, use `list` instead
     # "UP035",        # 18   [*] Import from `collections.abc` instead
     # "UP036",        #  3   Version block is outdated for minimum Python version
-    # "UP037",        #  1   [*] Remove quotes from type annotation
+    "UP037",        #  1   [*] Remove quotes from type annotation
     # "UP038",        # 21   Use `X | Y` in `isinstance` call instead of `(X, Y)`
     #  "YTT",         # flake8-2020
     #  "EXE",         # flake8-executable

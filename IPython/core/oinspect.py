@@ -173,8 +173,8 @@ def object_info(
     **kw,
 ) -> InfoDict:
     """Make an object info dict with all fields present."""
-    infodict = kw
-    infodict = {k: None for k in _info_fields if k not in infodict}
+    infodict = dict(kw)
+    infodict.update({k: None for k in _info_fields if k not in infodict})
     infodict["name"] = name  # type: ignore
     infodict["found"] = found  # type: ignore
     infodict["isclass"] = isclass  # type: ignore
@@ -633,7 +633,7 @@ class Inspector(Configurable):
             if isinstance(bundle["text/html"], (list, tuple)):
                 # bundle['text/html'] is a list of (head, formatted body) pairs
                 new_b["text/html"] = "\n".join(
-                    (f"<h1>{head}</h1>\n{body}" for (head, body) in bundle["text/html"])
+                    f"<h1>{head}</h1>\n{body}" for (head, body) in bundle["text/html"]
                 )
 
         for k in bundle.keys():

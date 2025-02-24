@@ -350,7 +350,7 @@ class IPDoctestItem(pytest.Item):
         assert self.runner is not None
         _check_all_skipped(self.dtest)
         self._disable_output_capturing_for_darwin()
-        failures: List["doctest.DocTestFailure"] = []
+        failures: List[doctest.DocTestFailure] = []
 
         # exec(compile(..., "single", ...), ...) puts result in builtins._
         had_underscore_value = hasattr(builtins, "_")

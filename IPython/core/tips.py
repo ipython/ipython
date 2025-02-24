@@ -56,6 +56,14 @@ _tips: Any = {
         ): "IPython 0.0.2 was announced {} years ago: https://mail.python.org/pipermail/python-list/2001-December/093408.html".format(
             datetime.now().year - 2001
         ),
+        (
+            3,
+            8,
+        ): "Today is international Women's Day: https://www.internationalwomensday.com/",
+        (
+            3,
+            31,
+        ): "Happy trans day of visibility! You are valid. You matter. https://en.wikipedia.org/wiki/International_Transgender_Day_of_Visibility",
     },
     "random": [
         "Use `F2` or %edit with no arguments to open an empty editor with a temporary file.",

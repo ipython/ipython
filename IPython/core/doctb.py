@@ -291,7 +291,7 @@ class DocTB(TBTools):
         # some locals
         orig_etype = etype
         try:
-            etype = etype.__name__  # type: ignore
+            etype = etype.__name__  # type: ignore[assignment]
         except AttributeError:
             pass
 

@@ -12,7 +12,7 @@ from IPython.utils.tempdir import TemporaryWorkingDirectory
 
 
 def test_named_file_in_temporary_directory():
-    with NamedFileInTemporaryDirectory("filename") as file:
+    with NamedFileInTemporaryDirectory("filename", "wb") as file:
         name = file.name
         assert not file.closed
         assert Path(name).exists()

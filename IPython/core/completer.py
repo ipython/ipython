@@ -369,7 +369,7 @@ def protect_filename(s: str, protectables: str = PROTECTABLES) -> str:
         return s
 
 
-def expand_user(path:str) -> Tuple[str, bool, str]:
+def expand_user(path: str) -> tuple[str, bool, str]:
     """Expand ``~``-style usernames in strings.
 
     This is similar to :func:`os.path.expanduser`, but it computes and returns
@@ -582,11 +582,11 @@ class _MatcherResultBase(TypedDict):
 
     #: Whether to suppress results from all other matchers (True), some
     #: matchers (set of identifiers) or none (False); default is False.
-    suppress: NotRequired[Union[bool, Set[str]]]
+    suppress: NotRequired[Union[bool, set[str]]]
 
     #: Identifiers of matchers which should NOT be suppressed when this matcher
     #: requests to suppress all other matchers; defaults to an empty set.
-    do_not_suppress: NotRequired[Set[str]]
+    do_not_suppress: NotRequired[set[str]]
 
     #: Are completions already ordered and should be left as-is? default is False.
     ordered: NotRequired[bool]
@@ -658,7 +658,7 @@ MatcherResult = Union[SimpleMatcherResult, _JediMatcherResult]
 
 
 class _MatcherAPIv1Base(Protocol):
-    def __call__(self, text: str) -> List[str]:
+    def __call__(self, text: str) -> list[str]:
         """Call signature."""
         ...
 
@@ -670,7 +670,7 @@ class _MatcherAPIv1Total(_MatcherAPIv1Base, Protocol):
     #: API version
     matcher_api_version: Optional[Literal[1]]
 
-    def __call__(self, text: str) -> List[str]:
+    def __call__(self, text: str) -> list[str]:
         """Call signature."""
         ...
 
@@ -1136,7 +1136,7 @@ class Completer(Configurable):
 
     def _attr_matches(
         self, text: str, include_prefix: bool = True
-    ) -> Tuple[Sequence[str], str]:
+    ) -> tuple[Sequence[str], str]:
         m2 = self._ATTR_MATCH_RE.match(self.line_buffer)
         if not m2:
             return [], ""
@@ -1328,11 +1328,11 @@ _INT_FORMATS = {
 
 
 def match_dict_keys(
-    keys: List[Union[str, bytes, Tuple[Union[str, bytes], ...]]],
+    keys: list[Union[str, bytes, tuple[Union[str, bytes], ...]]],
     prefix: str,
     delims: str,
-    extra_prefix: Optional[Tuple[Union[str, bytes], ...]] = None,
-) -> Tuple[str, int, Dict[str, _DictKeyState]]:
+    extra_prefix: Optional[tuple[Union[str, bytes], ...]] = None,
+) -> tuple[str, int, dict[str, _DictKeyState]]:
     """Used by dict_key_matches, matching the prefix to a list of keys
 
     Parameters
@@ -1381,7 +1381,7 @@ def match_dict_keys(
         # All checks passed!
         return True
 
-    filtered_key_is_final: Dict[Union[str, bytes, int, float], _DictKeyState] = (
+    filtered_key_is_final: dict[Union[str, bytes, int, float], _DictKeyState] = (
         defaultdict(lambda: _DictKeyState.BASELINE)
     )
 
@@ -1442,7 +1442,7 @@ def match_dict_keys(
     token_start = token_match.start()
     token_prefix = token_match.group()
 
-    matched: Dict[str, _DictKeyState] = {}
+    matched: dict[str, _DictKeyState] = {}
 
     str_key: Union[str, bytes]
 
@@ -1516,7 +1516,8 @@ def cursor_to_position(text:str, line:int, column:int)->int:
 
     return sum(len(line) + 1 for line in lines[:line]) + column
 
-def position_to_cursor(text:str, offset:int)->Tuple[int, int]:
+
+def position_to_cursor(text: str, offset: int) -> tuple[int, int]:
     """
     Convert the position of the cursor in text (0 indexed) to a line
     number(0-indexed) and a column number (0-indexed) pair
@@ -1572,7 +1573,7 @@ def back_unicode_name_matcher(context: CompletionContext):
     )
 
 
-def back_unicode_name_matches(text: str) -> Tuple[str, Sequence[str]]:
+def back_unicode_name_matches(text: str) -> tuple[str, Sequence[str]]:
     """Match Unicode characters back to Unicode name
 
     This does  ``☃`` -> ``\\snowman``
@@ -1703,7 +1704,7 @@ def _make_signature(completion)-> str:
                                           for p in signature.defined_names()) if f])
 
 
-_CompleteResult = Dict[str, MatcherResult]
+_CompleteResult = dict[str, MatcherResult]
 
 
 DICT_MATCHER_REGEX = re.compile(
@@ -1753,6 +1754,17 @@ DICT_MATCHER_REGEX = re.compile(
 $
 """
 )
+
+
+def _convert_matcher_v1_result_to_v2_no_no(
+    matches: Sequence[str],
+    type: str,
+) -> SimpleMatcherResult:
+    """same as _convert_matcher_v1_result_to_v2 but fragment=None, and suppress_if_matches is False by construction"""
+    return SimpleMatcherResult(
+        completions=[SimpleCompletion(text=match, type=type) for match in matches],
+        suppress=False,
+    )
 
 
 def _convert_matcher_v1_result_to_v2(
@@ -1976,7 +1988,7 @@ class IPCompleter(Completer):
             self.suppress_competing_matchers = True
 
     @property
-    def matchers(self) -> List[Matcher]:
+    def matchers(self) -> list[Matcher]:
         """All active matcher routines for completion"""
         if self.dict_keys_only:
             return [self.dict_key_matcher]
@@ -2005,7 +2017,7 @@ class IPCompleter(Completer):
                 self.python_func_kw_matcher,
             ]
 
-    def all_completions(self, text:str) -> List[str]:
+    def all_completions(self, text: str) -> list[str]:
         """
         Wrapper around the completion methods for the benefit of emacs.
         """
@@ -2185,9 +2197,9 @@ class IPCompleter(Completer):
         """Match class names and attributes for %config magic."""
         # NOTE: uses `line_buffer` equivalent for compatibility
         matches = self.magic_config_matches(context.line_with_cursor)
-        return _convert_matcher_v1_result_to_v2(matches, type="param")
+        return _convert_matcher_v1_result_to_v2_no_no(matches, type="param")
 
-    def magic_config_matches(self, text: str) -> List[str]:
+    def magic_config_matches(self, text: str) -> list[str]:
         """Match class names and attributes for %config magic.
 
         .. deprecated:: 8.6
@@ -2229,16 +2241,7 @@ class IPCompleter(Completer):
     @context_matcher()
     def magic_color_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match color schemes for %colors magic."""
-        # NOTE: uses `line_buffer` equivalent for compatibility
-        matches = self.magic_color_matches(context.line_with_cursor)
-        return _convert_matcher_v1_result_to_v2(matches, type="param")
-
-    def magic_color_matches(self, text: str) -> List[str]:
-        """Match color schemes for %colors magic.
-
-        .. deprecated:: 8.6
-            You can use :meth:`magic_color_matcher` instead.
-        """
+        text = context.line_with_cursor
         texts = text.split()
         if text.endswith(' '):
             # .split() strips off the trailing whitespace. Add '' back
@@ -2247,8 +2250,18 @@ class IPCompleter(Completer):
 
         if len(texts) == 2 and (texts[0] == 'colors' or texts[0] == '%colors'):
             prefix = texts[1]
-            return [color for color in theme_table.keys() if color.startswith(prefix)]
-        return []
+            return SimpleMatcherResult(
+                completions=[
+                    SimpleCompletion(color, type="param")
+                    for color in theme_table.keys()
+                    if color.startswith(prefix)
+                ],
+                suppress=False,
+            )
+        return SimpleMatcherResult(
+            completions=[],
+            suppress=False,
+        )
 
     @context_matcher(identifier="IPCompleter.jedi_matcher")
     def _jedi_matcher(self, context: CompletionContext) -> _JediMatcherResult:
@@ -2370,12 +2383,16 @@ class IPCompleter(Completer):
                 )
             except NameError:
                 # catches <undefined attributes>.<tab>
-                matches = []
-                return _convert_matcher_v1_result_to_v2(matches, type="attribute")
+                return SimpleMatcherResult(completions=[], suppress=False)
         else:
             matches = self.global_matches(context.token)
             # TODO: maybe distinguish between functions, modules and just "variables"
-            return _convert_matcher_v1_result_to_v2(matches, type="variable")
+            return SimpleMatcherResult(
+                completions=[
+                    SimpleCompletion(text=match, type="variable") for match in matches
+                ],
+                suppress=False,
+            )
 
     @completion_matcher(api_version=1)
     def python_matches(self, text: str) -> Iterable[str]:
@@ -2467,7 +2484,7 @@ class IPCompleter(Completer):
     def python_func_kw_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match named parameters (kwargs) of the last open function."""
         matches = self.python_func_kw_matches(context.token)
-        return _convert_matcher_v1_result_to_v2(matches, type="param")
+        return _convert_matcher_v1_result_to_v2_no_no(matches, type="param")
 
     def python_func_kw_matches(self, text):
         """Match named parameters (kwargs) of the last open function.
@@ -2552,7 +2569,7 @@ class IPCompleter(Completer):
         return argMatches
 
     @staticmethod
-    def _get_keys(obj: Any) -> List[Any]:
+    def _get_keys(obj: Any) -> list[Any]:
         # Objects can define their own completions by defining an
         # _ipy_key_completions_() method.
         method = get_real_method(obj, '_ipython_key_completions_')
@@ -2583,7 +2600,7 @@ class IPCompleter(Completer):
             matches, type="dict key", suppress_if_matches=True
         )
 
-    def dict_key_matches(self, text: str) -> List[str]:
+    def dict_key_matches(self, text: str) -> list[str]:
         """Match string keys in a dictionary, after e.g. ``foo[``.
 
         .. deprecated:: 8.6
@@ -2743,7 +2760,7 @@ class IPCompleter(Completer):
             matches, type="latex", fragment=fragment, suppress_if_matches=True
         )
 
-    def latex_matches(self, text: str) -> Tuple[str, Sequence[str]]:
+    def latex_matches(self, text: str) -> tuple[str, Sequence[str]]:
         """Match Latex syntax for unicode characters.
 
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
@@ -2952,7 +2969,7 @@ class IPCompleter(Completer):
             full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column
         )
 
-        non_jedi_results: Dict[str, SimpleMatcherResult] = {
+        non_jedi_results: dict[str, SimpleMatcherResult] = {
             identifier: result
             for identifier, result in results.items()
             if is_non_jedi_result(result, identifier)
@@ -3014,8 +3031,8 @@ class IPCompleter(Completer):
                 signature="",
             )
 
-        ordered: List[Completion] = []
-        sortable: List[Completion] = []
+        ordered: list[Completion] = []
+        sortable: list[Completion] = []
 
         for origin, result in non_jedi_results.items():
             matched_text = result["matched_fragment"]
@@ -3042,7 +3059,9 @@ class IPCompleter(Completer):
             :MATCHES_LIMIT
         ]
 
-    def complete(self, text=None, line_buffer=None, cursor_pos=None) -> Tuple[str, Sequence[str]]:
+    def complete(
+        self, text=None, line_buffer=None, cursor_pos=None
+    ) -> tuple[str, Sequence[str]]:
         """Find completions for the given text and line context.
 
         Note that both the text and the line_buffer are optional, but at least
@@ -3100,12 +3119,12 @@ class IPCompleter(Completer):
 
     def _arrange_and_extract(
         self,
-        results: Dict[str, MatcherResult],
-        skip_matchers: Set[str],
+        results: dict[str, MatcherResult],
+        skip_matchers: set[str],
         abort_if_offset_changes: bool,
     ):
-        sortable: List[AnyMatcherCompletion] = []
-        ordered: List[AnyMatcherCompletion] = []
+        sortable: list[AnyMatcherCompletion] = []
+        ordered: list[AnyMatcherCompletion] = []
         most_recent_fragment = None
         for identifier, result in results.items():
             if identifier in skip_matchers:
@@ -3204,11 +3223,11 @@ class IPCompleter(Completer):
         )
 
         # Start with a clean slate of completions
-        results: Dict[str, MatcherResult] = {}
+        results: dict[str, MatcherResult] = {}
 
         jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
 
-        suppressed_matchers: Set[str] = set()
+        suppressed_matchers: set[str] = set()
 
         matchers = {
             _get_matcher_id(matcher): matcher
@@ -3232,7 +3251,7 @@ class IPCompleter(Completer):
             result: MatcherResult
             try:
                 if _is_matcher_v1(matcher):
-                    result = _convert_matcher_v1_result_to_v2(
+                    result = _convert_matcher_v1_result_to_v2_no_no(
                         matcher(text), type=_UNKNOWN_TYPE
                     )
                 elif _is_matcher_v2(matcher):
@@ -3250,7 +3269,7 @@ class IPCompleter(Completer):
             result["matched_fragment"] = result.get("matched_fragment", context.token)
 
             if not suppressed_matchers:
-                suppression_recommended: Union[bool, Set[str]] = result.get(
+                suppression_recommended: Union[bool, set[str]] = result.get(
                     "suppress", False
                 )
 
@@ -3265,7 +3284,7 @@ class IPCompleter(Completer):
                 ) and has_any_completions(result)
 
                 if should_suppress:
-                    suppression_exceptions: Set[str] = result.get(
+                    suppression_exceptions: set[str] = result.get(
                         "do_not_suppress", set()
                     )
                     if isinstance(suppression_recommended, Iterable):
@@ -3299,7 +3318,7 @@ class IPCompleter(Completer):
     def _deduplicate(
         matches: Sequence[AnyCompletion],
     ) -> Iterable[AnyCompletion]:
-        filtered_matches: Dict[str, AnyCompletion] = {}
+        filtered_matches: dict[str, AnyCompletion] = {}
         for match in matches:
             text = match.text
             if (
@@ -3325,7 +3344,7 @@ class IPCompleter(Completer):
             matches, type="unicode", fragment=fragment, suppress_if_matches=True
         )
 
-    def fwd_unicode_match(self, text: str) -> Tuple[str, Sequence[str]]:
+    def fwd_unicode_match(self, text: str) -> tuple[str, Sequence[str]]:
         """
         Forward match a string starting with a backslash with a list of
         potential Unicode completions.
@@ -3387,7 +3406,7 @@ class IPCompleter(Completer):
             return '', ()
 
     @property
-    def unicode_names(self) -> List[str]:
+    def unicode_names(self) -> list[str]:
         """List of names of unicode code points that can be completed.
 
         The list is lazily initialized on first access.
@@ -3403,7 +3422,8 @@ class IPCompleter(Completer):
 
         return self._unicode_names
 
-def _unicode_name_compute(ranges:List[Tuple[int,int]]) -> List[str]:
+
+def _unicode_name_compute(ranges: list[tuple[int, int]]) -> list[str]:
     names = []
     for start,stop in ranges:
         for c in range(start, stop) :
