@@ -21,7 +21,7 @@ class MagicsDisplay:
     def __init__(self, magics_manager, ignore=None):
         self.ignore = ignore if ignore else []
         self.magics_manager = magics_manager
-    
+
     def _lsmagic(self):
         """The main implementation of the %lsmagic"""
         mesc = magic_escapes['line']
@@ -39,13 +39,13 @@ class MagicsDisplay:
 
     def _repr_pretty_(self, p, cycle):
         p.text(self._lsmagic())
-    
+
     def __repr__(self):
         return self.__str__()
 
     def __str__(self):
         return self._lsmagic()
-    
+
     def _jsonable(self):
         """turn magics dict into jsonable dict of the same structure
 
@@ -62,10 +62,10 @@ class MagicsDisplay:
                     classname = obj.__self__.__class__.__name__
                 except AttributeError:
                     classname = 'Other'
-                
+
                 d[name] = classname
         return magic_dict
-        
+
     def _repr_json_(self):
         return self._jsonable()
 
@@ -558,16 +558,62 @@ Currently the magic system has the following functions:""",
         outfname = os.path.expanduser(args.filename)
 
         from nbformat import write, v4
+        from ..ultratb import VerboseTB
+
+        tbtool = VerboseTB(tb_offset=1)
 
         cells = []
         hist = list(self.shell.history_manager.get_range())
+        output_mime_bundles = self.shell.history_manager.output_mime_bundles
+        exceptions = self.shell.history_manager.exceptions
+
         if(len(hist)<=1):
             raise ValueError('History is empty, cannot export')
         for session, execution_count, source in hist[:-1]:
-            cells.append(v4.new_code_cell(
-                execution_count=execution_count,
-                source=source
-            ))
+            cell = v4.new_code_cell(execution_count=execution_count, source=source)
+            # Check if this execution_count is in exceptions (current session)
+            if execution_count in output_mime_bundles:
+                obj = output_mime_bundles[execution_count]
+                try:
+                    mime_obj = obj[0] if isinstance(obj, list) else obj
+                    mime_fig = mime_obj.get_figure()
+                    mime_bundle, _ = self.shell.display_formatter.format(mime_fig)
+                except:
+                    # In case formatting fails, fallback to text/plain
+                    mime_bundle = {"text/plain": repr(obj)}
+
+                for mime_type, data in mime_bundle.items():
+                    if mime_type == "text/plain":
+                        cell.outputs.append(
+                            v4.new_output(
+                                "execute_result",
+                                data={mime_type: data},
+                                execution_count=execution_count,
+                            )
+                        )
+                    else:
+                        cell.outputs.append(
+                            v4.new_output(
+                                "display_data",
+                                data={mime_type: data},
+                            )
+                        )
+
+            # Check if this execution_count is in exceptions (current session)
+            if execution_count in exceptions:
+                obj = exceptions[execution_count]
+                if isinstance(obj, Exception):
+                    tb = tbtool.structured_traceback(type(obj), obj, obj.__traceback__)
+                    cell.outputs.append(
+                        v4.new_output(
+                            "error",
+                            ename=type(obj).__name__,
+                            evalue=str(obj),
+                            traceback=tb,
+                        )
+                    )
+            cells.append(cell)
+
         nb = v4.new_notebook(cells=cells)
         with io.open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)

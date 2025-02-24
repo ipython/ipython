@@ -35,6 +35,7 @@ from typing import Callable
 from typing import List as ListType, Any as AnyType
 from typing import Optional, Sequence, Tuple
 from warnings import warn
+from copy import deepcopy
 
 from IPython.external.pickleshare import PickleShareDB
 
@@ -3197,6 +3198,8 @@ class InteractiveShell(SingletonConfigurable):
 
         def error_before_exec(value):
             if store_history:
+                if self.history_manager:
+                    self.history_manager.exceptions[self.execution_count] = value
                 self.execution_count += 1
             result.error_before_exec = value
             self.last_execution_succeeded = False
@@ -3306,7 +3309,16 @@ class InteractiveShell(SingletonConfigurable):
             assert self.history_manager is not None
             # Write output to the database. Does nothing unless
             # history output logging is enabled.
-            self.history_manager.store_output(self.execution_count)
+            hm = self.history_manager
+            hm.store_output(self.execution_count)
+            exec_count = self.execution_count
+
+            # Capture MIME outputs and exceptions
+            if result.result:
+                hm.output_mime_bundles[exec_count] = deepcopy(result.result)
+            if result.error_in_exec:
+                hm.exceptions[exec_count] = result.error_in_exec
+
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
 

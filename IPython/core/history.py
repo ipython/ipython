@@ -612,6 +612,8 @@ class HistoryManager(HistoryAccessor):
     output_hist = Dict()
     # The text/plain repr of outputs.
     output_hist_reprs: typing.Dict[int, str] = Dict()  # type: ignore [assignment]
+    output_mime_bundles = Dict()  # Maps execution_count to MIME bundles
+    exceptions = Dict()  # Maps execution_count to exception tracebacks
 
     # The number of the current session in the history database
     session_number: int = Integer()  # type: ignore [assignment]
@@ -750,6 +752,9 @@ class HistoryManager(HistoryAccessor):
         """Clear the session history, releasing all object references, and
         optionally open a new session."""
         self.output_hist.clear()
+        self.output_mime_bundles.clear()
+        self.exceptions.clear()
+
         # The directory history can't be completely empty
         self.dir_hist[:] = [Path.cwd()]
 
