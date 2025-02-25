@@ -114,8 +114,8 @@ class TimeitResult:
         pm = '+-'
         if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
             try:
-                '\xb1'.encode(sys.stdout.encoding)
-                pm = '\xb1'
+                "\xb1".encode(sys.stdout.encoding)
+                pm = "\xb1"
             except:
                 pass
         return "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops:,} loop{loop_plural} each)".format(
@@ -130,7 +130,7 @@ class TimeitResult:
 
     def _repr_pretty_(self, p , cycle):
         unic = self.__str__()
-        p.text('<TimeitResult : ' + unic + '>')
+        p.text("<TimeitResult : " + unic + ">")
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
@@ -1421,10 +1421,10 @@ class ExecutionMagics(Magics):
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed at the
           command line is used instead.
-          
+
         -q
-          Quiet macro definition.  By default, a tag line is printed 
-          to indicate the macro has been created, and then the contents of 
+          Quiet macro definition.  By default, a tag line is printed
+          to indicate the macro has been created, and then the contents of
           the macro are printed.  If this option is given, then no printout
           is produced once the macro is created.
 
@@ -1495,10 +1495,10 @@ class ExecutionMagics(Magics):
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
-        'output',
+        "output",
         type=str,
-        default='',
-        nargs='?',
+        default="",
+        nargs="?",
         help="""
         
         The name of the variable in which to store output.
@@ -1510,20 +1510,16 @@ class ExecutionMagics(Magics):
         output.
 
         If unspecified, captured output is discarded.
-        """
+        """,
     )
     @magic_arguments.argument(
-        '--no-stderr',
-        action="store_true",
-        help="""Don't capture stderr."""
+        "--no-stderr", action="store_true", help="""Don't capture stderr."""
     )
     @magic_arguments.argument(
-        '--no-stdout',
-        action="store_true",
-        help="""Don't capture stdout."""
+        "--no-stdout", action="store_true", help="""Don't capture stdout."""
     )
     @magic_arguments.argument(
-        '--no-display',
+        "--no-display",
         action="store_true",
         help="""Don't capture IPython's rich display."""
     )
@@ -1640,7 +1636,7 @@ def _format_time(timespan, precision=3):
             value = int(leftover / length)
             if value > 0:
                 leftover = leftover % length
-                time.append('%s%s' % (str(value), suffix))
+                time.append("%s%s" % (str(value), suffix))
             if leftover < 1:
                 break
         return " ".join(time)
