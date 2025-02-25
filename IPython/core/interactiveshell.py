@@ -1002,7 +1002,7 @@ class InteractiveShell(SingletonConfigurable):
     def show_banner(self, banner=None):
         if banner is None:
             banner = self.banner
-        print(banner)
+        print(banner + "crashing theta:\\u03b8")
 
     #-------------------------------------------------------------------------
     # Things related to hooks
