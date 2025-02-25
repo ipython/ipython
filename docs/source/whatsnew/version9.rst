@@ -87,6 +87,19 @@ You can disable it, via a configuration option, or the ``--no-tips`` flag.
 
 Please contribute more tips by sending pull requests !
 
+Out of tree tests
+-----------------
+
+And more generally I have changed the folder structure and what is packaged in
+the wheel to reduce the file size. The wheel is down from 825kb to 590kb
+(-235kb) which is about a 28% reduction. This should help when you run IPython
+via Pyodide – and your browser need to download it.
+
+According to https://pypistats.org/packages/ipython IPython is downloaded about
+13 Millions times per week, which should reduce Pypi bandwidth by about 2Tb each
+week, which is small compared to the total download, but still trying to reduce
+resources usage is a worthy goal.
+
 
 
 
