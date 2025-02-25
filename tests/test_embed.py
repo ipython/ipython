@@ -61,7 +61,7 @@ def test_ipython_embed():
             encoding="UTF-8",
         )
         std, err = p.communicate(_exit)
-        assert isinstance(std, str)
+        assert isinstance(std, str | type(None)), (std, err, p.returncode)
 
         assert p.returncode == 0, (p.returncode, std)
         assert "3 . 14" in std
