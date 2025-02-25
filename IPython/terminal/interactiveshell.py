@@ -426,6 +426,14 @@ class TerminalInteractiveShell(InteractiveShell):
         allow_none=True,
     ).tag(config=True)
 
+    llm_constructor_kwargs = Dict(
+        {},
+        help="""
+        Extra arguments to pass to `llm_provider_class` constructor.
+
+        This is used to – for example – set the `model_id`""",
+    ).tag(config=True)
+
     llm_provider_class = DottedObjectName(
         None,
         allow_none=True,
@@ -471,7 +479,7 @@ class TerminalInteractiveShell(InteractiveShell):
             # LLM stuff are all Provisional in 8.32
             if self.llm_provider_class:
                 llm_provider_constructor = import_item(self.llm_provider_class)
-                llm_provider = llm_provider_constructor()
+                llm_provider = llm_provider_constructor(**self.llm_constructor_kwargs)
             else:
                 llm_provider = None
             self.auto_suggest = NavigableAutoSuggestFromHistory()
@@ -508,23 +516,23 @@ class TerminalInteractiveShell(InteractiveShell):
                 "create": Bool(False),
             },
         ),
-        help="""Add, disable or modifying shortcuts.
+        help="""
+        Add, disable or modifying shortcuts.
 
         Each entry on the list should be a dictionary with ``command`` key
         identifying the target function executed by the shortcut and at least
         one of the following:
 
-        - ``match_keys``: list of keys used to match an existing shortcut,
-        - ``match_filter``: shortcut filter used to match an existing shortcut,
-        - ``new_keys``: list of keys to set,
-        - ``new_filter``: a new shortcut filter to set
+          - ``match_keys``: list of keys used to match an existing shortcut,
+          - ``match_filter``: shortcut filter used to match an existing shortcut,
+          - ``new_keys``: list of keys to set,
+          - ``new_filter``: a new shortcut filter to set
 
         The filters have to be composed of pre-defined verbs and joined by one
         of the following conjunctions: ``&`` (and), ``|`` (or), ``~`` (not).
         The pre-defined verbs are:
 
-        {}
-
+        {filters}
 
         To disable a shortcut set ``new_keys`` to an empty list.
         To add a shortcut add key ``create`` with value ``True``.
@@ -539,8 +547,27 @@ class TerminalInteractiveShell(InteractiveShell):
         shortcuts) can be modified or disabled. The full list of shortcuts,
         command identifiers and filters is available under
         :ref:`terminal-shortcuts-list`.
+
+        Here is an example:
+
+        .. code::
+
+            c.TerminalInteractiveShell.shortcuts = [
+               {{
+                   "new_keys": ["c-q"],
+                   "command": "prompt_toolkit:named_commands.capitalize_word",
+                   "create": True,
+               }},
+               {{
+                   "new_keys": ["c-j"],
+                   "command": "prompt_toolkit:named_commands.beginning_of_line",
+                   "create": True,
+               }},
+            ]
+
+
         """.format(
-            "\n        ".join([f"- `{k}`" for k in KEYBINDING_FILTERS])
+            filters="\n        ".join([f"  - ``{k}``" for k in KEYBINDING_FILTERS])
         ),
     ).tag(config=True)
 

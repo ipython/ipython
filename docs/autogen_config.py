@@ -3,7 +3,6 @@
 import inspect
 from pathlib import Path
 from IPython.terminal.ipapp import TerminalIPythonApp
-from ipykernel.kernelapp import IPKernelApp
 from traitlets import Undefined
 from collections import defaultdict
 
@@ -103,13 +102,9 @@ def write_doc(name, title, app, preamble=None):
     trait_aliases = reverse_aliases(app)
     filename = options / (name + ".rst")
     with open(filename, "w", encoding="utf-8") as f:
-        f.write(".. _" + name + "_options:" + "\n\n")
-        f.write(title + "\n")
-        f.write(("=" * len(title)) + "\n")
         f.write("\n")
         if preamble is not None:
             f.write(preamble + '\n\n')
-        #f.write(app.document_config_options())
 
         for c in app._classes_inc_parents():
             f.write(class_config_rst_doc(c, trait_aliases))
@@ -121,7 +116,3 @@ if __name__ == '__main__':
     Path(generated).write_text("", encoding="utf-8")
 
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp())
-    write_doc('kernel', 'IPython kernel options', IPKernelApp(),
-        preamble=("These options can be used in :file:`ipython_kernel_config.py`. "
-                  "The kernel also respects any options in `ipython_config.py`"),
-    )
