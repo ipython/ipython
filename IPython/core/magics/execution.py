@@ -73,13 +73,22 @@ class TimeitResult:
     """
     Object returned by the timeit magic with info about the run.
 
-    Contains the following attributes :
+    Contains the following attributes:
 
-    loops: (int) number of loops done per measurement
-    repeat: (int) number of times the measurement has been repeated
-    best: (float) best execution time / number
-    all_runs: (list of float) execution time of each run (in s)
-    compile_time: (float) time of statement compilation (s)
+    loops: int
+      number of loops done per measurement
+
+    repeat: int
+      number of times the measurement was repeated
+
+    best: float
+      best execution time / number
+
+    all_runs : list[float]
+      execution time of each run (in s)
+
+    compile_time: float
+      time of statement compilation (s)
 
     """
     def __init__(self, loops, repeat, best, worst, all_runs, compile_time, precision):
@@ -90,7 +99,7 @@ class TimeitResult:
         self.all_runs = all_runs
         self.compile_time = compile_time
         self._precision = precision
-        self.timings = [ dt / self.loops for dt in all_runs]
+        self.timings = [dt / self.loops for dt in all_runs]
 
     @property
     def average(self):
@@ -105,8 +114,8 @@ class TimeitResult:
         pm = '+-'
         if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
             try:
-                u'\xb1'.encode(sys.stdout.encoding)
-                pm = u'\xb1'
+                "\xb1".encode(sys.stdout.encoding)
+                pm = "\xb1"
             except:
                 pass
         return "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops:,} loop{loop_plural} each)".format(
@@ -121,7 +130,7 @@ class TimeitResult:
 
     def _repr_pretty_(self, p , cycle):
         unic = self.__str__()
-        p.text(u'<TimeitResult : '+unic+u'>')
+        p.text("<TimeitResult : " + unic + ">")
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
@@ -195,16 +204,14 @@ class ExecutionMagics(Magics):
 
         """Run a statement through the python code profiler.
 
-        **Usage, in line mode:**
+        **Usage, in line mode**::
 
           %prun [options] statement
 
-        **Usage, in cell mode:**
+        **Usage, in cell mode**::
 
           %%prun [options] [statement]
-
           code...
-
           code...
 
         In cell mode, the additional code lines are appended to the (possibly
@@ -565,8 +572,8 @@ class ExecutionMagics(Magics):
         sees its environment as if it were being run as a stand-alone program
         (except for sharing global objects such as previously imported
         modules). But after execution, the IPython interactive namespace gets
-        updated with all variables defined in the program (except for __name__
-        and sys.argv). This allows for very convenient loading of code for
+        updated with all variables defined in the program (except for ``__name__``
+        and ``sys.argv``). This allows for very convenient loading of code for
         interactive work, while giving each program a 'clean sheet' to run in.
 
         Arguments are expanded using shell-like glob match.  Patterns
@@ -606,25 +613,25 @@ class ExecutionMagics(Magics):
           time.clock().  Under Unix, an estimate of time spent on system tasks
           is also given (for Windows platforms this is reported as 0.0).
 
-        If -t is given, an additional ``-N<N>`` option can be given, where <N>
-        must be an integer indicating how many times you want the script to
-        run.  The final timing report will include total and per run results.
+          If -t is given, an additional ``-N<N>`` option can be given, where <N>
+          must be an integer indicating how many times you want the script to
+          run.  The final timing report will include total and per run results.
 
-        For example (testing the script uniq_stable.py)::
+          For example (testing the script uniq_stable.py)::
 
-            In [1]: run -t uniq_stable
+              In [1]: run -t uniq_stable
 
-            IPython CPU timings (estimated):
-              User  :    0.19597 s.
-              System:        0.0 s.
+              IPython CPU timings (estimated):
+                User  :    0.19597 s.
+                System:        0.0 s.
 
-            In [2]: run -t -N5 uniq_stable
+              In [2]: run -t -N5 uniq_stable
 
-            IPython CPU timings (estimated):
-            Total runs performed: 5
-              Times :      Total       Per run
-              User  :   0.910862 s,  0.1821724 s.
-              System:        0.0 s,        0.0 s.
+              IPython CPU timings (estimated):
+              Total runs performed: 5
+                Times :      Total       Per run
+                User  :   0.910862 s,  0.1821724 s.
+                System:        0.0 s,        0.0 s.
 
         -d
           run your program under the control of pdb, the Python debugger.
@@ -1046,16 +1053,14 @@ class ExecutionMagics(Magics):
     def timeit(self, line='', cell=None, local_ns=None):
         """Time execution of a Python statement or expression
 
-        **Usage, in line mode:**
+        **Usage, in line mode**::
 
           %timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] statement
 
-        **or in cell mode:**
+        **or in cell mode**::
 
           %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] setup_code
-
           code
-
           code...
 
         Time execution of a Python statement or expression using the timeit
@@ -1070,27 +1075,34 @@ class ExecutionMagics(Magics):
 
         Options:
 
-        -n<N>: execute the given statement <N> times in a loop. If <N> is not
-        provided, <N> is determined so as to get sufficient accuracy.
+        -n<N>
+          Execute the given statement N times in a loop. If N is not
+          provided, N is determined so as to get sufficient accuracy.
 
-        -r<R>: number of repeats <R>, each consisting of <N> loops, and take the
-        average result.
-        Default: 7
+        -r<R>
+          Number of repeats R, each consisting of N loops, and take the
+          average result.
+          Default: 7
 
-        -t: use time.time to measure the time, which is the default on Unix.
-        This function measures wall time.
+        -t
+          Use ``time.time`` to measure the time, which is the default on Unix.
+          This function measures wall time.
 
-        -c: use time.clock to measure the time, which is the default on
-        Windows and measures wall time. On Unix, resource.getrusage is used
-        instead and returns the CPU user time.
+        -c
+          Use ``time.clock`` to measure the time, which is the default on
+          Windows and measures wall time. On Unix, ``resource.getrusage`` is used
+          instead and returns the CPU user time.
 
-        -p<P>: use a precision of <P> digits to display the timing result.
-        Default: 3
+        -p<P>
+          Use a precision of P digits to display the timing result.
+          Default: 3
 
-        -q: Quiet, do not print result.
+        -q
+          Quiet, do not print result.
 
-        -o: return a TimeitResult that can be stored in a variable to inspect
-        the result in more details.
+        -o
+          Return a ``TimeitResult`` that can be stored in a variable to inspect
+          the result in more details.
 
         .. versionchanged:: 7.3
             User variables are no longer expanded,
@@ -1114,13 +1126,13 @@ class ExecutionMagics(Magics):
 
           In [6]: %timeit -n1 time.sleep(2)
 
-        The times reported by %timeit will be slightly higher than those
+        The times reported by ``%timeit`` will be slightly higher than those
         reported by the timeit.py script when variables are accessed. This is
-        due to the fact that %timeit executes the statement in the namespace
+        due to the fact that ``%timeit`` executes the statement in the namespace
         of the shell, compared with timeit.py, which uses a single setup
         statement to import function or create variables. Generally, the bias
         does not matter as long as results from timeit.py are not mixed with
-        those from %timeit."""
+        those from ``%timeit``."""
 
         opts, stmt = self.parse_options(
             line, "n:r:tcp:qo", posix=False, strict=False, preserve_non_opts=True
@@ -1398,18 +1410,21 @@ class ExecutionMagics(Magics):
         """Define a macro for future re-execution. It accepts ranges of history,
         filenames or string objects.
 
-        Usage:\\
+        Usage::
+
           %macro [options] name n1-n2 n3-n4 ... n5 .. n6 ...
 
         Options:
 
-          -r: use 'raw' input.  By default, the 'processed' history is used,
+        -r
+          Use 'raw' input.  By default, the 'processed' history is used,
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed at the
           command line is used instead.
-          
-          -q: quiet macro definition.  By default, a tag line is printed 
-          to indicate the macro has been created, and then the contents of 
+
+        -q
+          Quiet macro definition.  By default, a tag line is printed
+          to indicate the macro has been created, and then the contents of
           the macro are printed.  If this option is given, then no printout
           is produced once the macro is created.
 
@@ -1479,25 +1494,33 @@ class ExecutionMagics(Magics):
             print(macro, end=" ")
 
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('output', type=str, default='', nargs='?',
-        help="""The name of the variable in which to store output.
-        This is a utils.io.CapturedIO object with stdout/err attributes
+    @magic_arguments.argument(
+        "output",
+        type=str,
+        default="",
+        nargs="?",
+        help="""
+        
+        The name of the variable in which to store output.
+        This is a ``utils.io.CapturedIO`` object with stdout/err attributes
         for the text of the captured output.
 
-        CapturedOutput also has a show() method for displaying the output,
-        and __call__ as well, so you can use that to quickly display the
+        CapturedOutput also has a ``show()`` method for displaying the output,
+        and ``__call__`` as well, so you can use that to quickly display the
         output.
 
         If unspecified, captured output is discarded.
-        """
+        """,
     )
-    @magic_arguments.argument('--no-stderr', action="store_true",
-        help="""Don't capture stderr."""
+    @magic_arguments.argument(
+        "--no-stderr", action="store_true", help="""Don't capture stderr."""
     )
-    @magic_arguments.argument('--no-stdout', action="store_true",
-        help="""Don't capture stdout."""
+    @magic_arguments.argument(
+        "--no-stdout", action="store_true", help="""Don't capture stdout."""
     )
-    @magic_arguments.argument('--no-display', action="store_true",
+    @magic_arguments.argument(
+        "--no-display",
+        action="store_true",
         help="""Don't capture IPython's rich display."""
     )
     @cell_magic
@@ -1613,7 +1636,7 @@ def _format_time(timespan, precision=3):
             value = int(leftover / length)
             if value > 0:
                 leftover = leftover % length
-                time.append(u'%s%s' % (str(value), suffix))
+                time.append("%s%s" % (str(value), suffix))
             if leftover < 1:
                 break
         return " ".join(time)
