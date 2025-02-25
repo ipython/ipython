@@ -150,7 +150,7 @@ def start_kernel(argv=None, **kwargs):
     **kwargs : various, optional
         Any other kwargs will be passed to the Application constructor,
         such as `config`, a traitlets :class:`Config` object (see :ref:`configure_start_ipython`),
-        allowing configuration of the kernel (see :ref:`kernel_options`).
+        allowing configuration of the kernel.
     """
     import warnings
 
