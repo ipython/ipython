@@ -558,9 +558,6 @@ Currently the magic system has the following functions:""",
         outfname = os.path.expanduser(args.filename)
 
         from nbformat import write, v4
-        from ..ultratb import VerboseTB
-
-        tbtool = VerboseTB(tb_offset=1)
 
         cells = []
         hist = list(self.shell.history_manager.get_range())
@@ -573,15 +570,7 @@ Currently the magic system has the following functions:""",
             cell = v4.new_code_cell(execution_count=execution_count, source=source)
             # Check if this execution_count is in exceptions (current session)
             if execution_count in output_mime_bundles:
-                obj = output_mime_bundles[execution_count]
-                try:
-                    mime_obj = obj[0] if isinstance(obj, list) else obj
-                    mime_fig = mime_obj.get_figure()
-                    mime_bundle, _ = self.shell.display_formatter.format(mime_fig)
-                except:
-                    # In case formatting fails, fallback to text/plain
-                    mime_bundle = {"text/plain": repr(obj)}
-
+                mime_bundle = output_mime_bundles[execution_count]
                 for mime_type, data in mime_bundle.items():
                     if mime_type == "text/plain":
                         cell.outputs.append(
@@ -601,17 +590,9 @@ Currently the magic system has the following functions:""",
 
             # Check if this execution_count is in exceptions (current session)
             if execution_count in exceptions:
-                obj = exceptions[execution_count]
-                if isinstance(obj, Exception):
-                    tb = tbtool.structured_traceback(type(obj), obj, obj.__traceback__)
-                    cell.outputs.append(
-                        v4.new_output(
-                            "error",
-                            ename=type(obj).__name__,
-                            evalue=str(obj),
-                            traceback=tb,
-                        )
-                    )
+                cell.outputs.append(
+                    v4.new_output("error", **exceptions[execution_count])
+                )
             cells.append(cell)
 
         nb = v4.new_notebook(cells=cells)
