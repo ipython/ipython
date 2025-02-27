@@ -1148,9 +1148,9 @@ class ExecutionMagics(Magics):
         default_repeat = 7 if timeit.default_repeat < 7 else timeit.default_repeat
         repeat = int(getattr(opts, "r", default_repeat))
         precision = int(getattr(opts, "p", 3))
-        quiet = 'q' in opts
-        return_result = 'o' in opts
-        save_result = 'v' in opts
+        quiet = "q" in opts
+        return_result = "o" in opts
+        save_result = "v" in opts
         if hasattr(opts, "t"):
             timefunc = time.time
         if hasattr(opts, "c"):
@@ -1234,8 +1234,8 @@ class ExecutionMagics(Magics):
         # Restore global vars from conflict_globs
         if conflict_globs:
             glob.update(conflict_globs)
-  
-        if not quiet :
+
+        if not quiet:
             # Check best timing is greater than zero to avoid a
             # ZeroDivisionError.
             # In cases where the slowest timing is lesser than a microsecond
