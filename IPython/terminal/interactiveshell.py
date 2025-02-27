@@ -1030,6 +1030,12 @@ class TerminalInteractiveShell(InteractiveShell):
 
     _inputhook = None
     def inputhook(self, context):
+        warn(
+            "inputkook seem unused, and marked for deprecation/Removal as of IPython 9.0. "
+            "Please open an issue if you are using it.",
+            category=PendingDeprecationWarning,
+            stacklevel=2,
+        )
         if self._inputhook is not None:
             self._inputhook(context)
 
