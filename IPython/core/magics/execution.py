@@ -1055,11 +1055,11 @@ class ExecutionMagics(Magics):
 
         **Usage, in line mode**::
 
-          %timeit [-n<N> -r<R> [-t|-c] -q -p<P> [-o|-v <V>] statement
+          %timeit [-n<N> -r<R> [-t|-c] -q -p<P> [-o|-v <V>]] statement
 
         **or in cell mode**::
 
-          %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> [-o|-v <V>] setup_code
+          %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> [-o|-v <V>]] setup_code
           code
           code...
 
