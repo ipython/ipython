@@ -7,26 +7,26 @@
 IPython 9.0
 ===========
 
-Welcome to IPython 9.0, as for amny version of IPython befoer this release, it
+Welcome to IPython 9.0! As with any version of IPython before this release, it
 should not be majorly different from the previous version, at least on the surface. 
 We still hope you can upgrade as soon as possible amd look forward to your feedback. 
 
 As a short overview of the changes, we have over 100 PRs merged between 8.x and
-9.0, many of those are refactor, cleanup and simplifications.
+9.0, many of which are refactors, cleanups and simplifications.
 
- - (optional) LLM interation in the CLI. 
- - Complete rewrite of color and theme handling, wich now supports more colors, and symbols. 
- - Move tests out of tree in the wheel with a massive reductin in filesize. 
+ - (optional) LLM integration in the CLI. 
+ - Complete rewrite of color and theme handling, which now supports more colors and symbols. 
+ - Move tests out of tree in the wheel with a massive reduction in file size. 
  - Tips at startup
- - Removel of (almost) all deprecated functionalities and options.
+ - Removal of (almost) all deprecated functionalities and options.
  - Stricter and more stable codebase.
 
 
-Removal and deprecations
-------------------------
+Removal and deprecation
+-----------------------
 
-I am not going to list of the removal and deprecations, but anything deprecated since before IPython 8.16 is gone, 
-this include many shim modules, and indirect imports that would just reexpose IPykernel, qtconsole, etc. 
+I am not going to list of the removals and deprecations, but anything deprecated since before IPython 8.16 is gone, 
+including many shim modules and indirect imports that would just re-expose IPykernel, qtconsole, etc. 
 
 A number of new deprecations have been added (run your test suites with `-Werror`), as those will be removed in the future. 
 
@@ -34,36 +34,36 @@ A number of new deprecations have been added (run your test suites with `-Werror
 Color and theme rewrite
 -----------------------
 
-IPython's color handeling had grown many options through the years, and it was
-quite entranched in the codebase, directly emitting ansi escape sequences deep
+IPython's color handling had grown many options through the years, and it was
+quite entrenched in the codebase, directly emitting ansi escape sequences deep
 in traceback printing and other places. 
 
-This made developping new color scheme difficult, and limtted us the the 16 colors
+This made developing new color schemes difficult, and limited us to the 16 colors
 of the original ansi standard defined by your terminal. 
 
-Syntax highlighting was also inconsistant, and not all syntax elements were
+Syntax highlighting was also inconsistent, and not all syntax elements were
 always using the same theme.
 
 Using (style, token) pairs 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting with 9.0, the color and theme handling has been rewritten, in
+Starting with 9.0, the color and theme handling has been rewritten, and
 internally all the printing is done by yielding pairs of Style and token objects
 (compatible with pygments and prompt_toolkit), then as much as possible, IPython
-format these objects at the last moment, using the current theme.
+formats these objects at the last moment, using the current theme.
 
-256 bits colors and unicode symbols
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+256-bit colors and unicode symbols
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This means that new themes can now use all of pygments's color names, and
-functionalities, andyou can define for each toke style, the foreground,
+This means that new themes can now use all of pygments's color names and
+functionalities, and you can define for each token style, the foreground,
 background, underline, bold, italic and likely a few other options. 
 
 In addition, themes now provide a number of `symbols`, that can be used when
-redering traceback or debugger prompts, this let yuo customize the appearance a
-bt more. FOr example, instead of using dash and greater than sign, The arrow
-pointing the current fframe can actully use horizontal line and right arrow
-unicode symbol, for a more refined exprience.
+rendering traceback or debugger prompts. This let you customize the appearance a
+bit more. For example, instead of using dash and greater-than sign, The arrow
+pointing the current fframe can actually use horizontal line and right arrow
+unicode symbol, for a more refined experience.
 
 
 New themes using colors and symbols
@@ -71,11 +71,11 @@ New themes using colors and symbols
 
 All the existing themes (Linux, LightBG, Neutral and Nocolor) should not see any
 changes, but I added two new *pride themes*, that show the use of 256bits colors
-and unicode symbols. I' not a designer, so feel free to suggest updates, and new
+and unicode symbols. I'm not a designer, so feel free to suggest updates and new
 themes to add. 
 
-Themes  currently still requires writing a bit of Python, but I hope to get
-contributions for IPython to be able to load them from text files, for eaier
+Themes  currently still require writing a bit of Python, but I hope to get
+contributions for IPython to be able to load them from text files, for easier
 redistribution.
 
 Tips at startup
@@ -83,41 +83,19 @@ Tips at startup
 
 IPython now displays a few tips at startup (1 line), to help you discover new features.
 All those are in the codebase, and can be displayed randomly or based on date. 
-You can disable it, via a configuration option, or the ``--no-tips`` flag. 
+You can disable it via a configuration option or the ``--no-tips`` flag. 
 
-Please contribute more tips by sending pull requests !
+Please contribute more tips by sending pull requests!
 
-Out of tree tests
+Out-of-tree tests
 -----------------
 
 And more generally I have changed the folder structure and what is packaged in
 the wheel to reduce the file size. The wheel is down from 825kb to 590kb
 (-235kb) which is about a 28% reduction. This should help when you run IPython
-via Pyodide – and your browser need to download it.
+via Pyodide – when your browser needs to download it.
 
-According to https://pypistats.org/packages/ipython IPython is downloaded about
-13 Millions times per week, which should reduce Pypi bandwidth by about 2Tb each
-week, which is small compared to the total download, but still trying to reduce
-resources usage is a worthy goal.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+According to https://pypistats.org/packages/ipython, IPython is downloaded about
+13 million times per week, so this should reduce PyPI bandwidth by about 2Tb each
+week, which is small compared to the total download, but still, trying to reduce
+resource usage is a worthy goal.
