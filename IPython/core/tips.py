@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 from random import choice
 from typing import Any
 
@@ -74,14 +75,31 @@ _tips: Any = {
         "You can use Ctrl-O to force a new line in terminal IPython",
         "Use `object?` to see the help on `object`, `object??` to view it's source",
         "`?` alone on a line will brings up IPython's help",
-        "You can use `%hist` to view history, the the options with `%history?`",
-        "You can change the edditing mode of IPython to behave more like vi, or emacs",
+        "You can use `%hist` to view history, see the options with `%history?`",
+        "You can change the edditing mode of IPython to behave more like vi, or emacs.",
         "IPython 9.0+ have hooks to integrate AI/LLM completions.",
-        "You can use latex or unicode completion, `\\alpha<tab>` will insert the alpha symbol.",
-        "You can find how to type a symbol by back completing it `\\θ<tab>` will expand to `\\theta`.",
         "Use `%timeit` or `%%timeit`, and the  `-r`, `-n`, and `-o` options to easily profile your code.",
+        "Use `ipython --help-all | less` to view all the IPython configurations options.",
+        "Use `--theme`, or the `%colors` magic to change ipython themes and colors.",
+        "The `%timeit` magic has an `-o` flag, which returns the results, making it easy to plot. See `%timeit?`.",
     ],
 }
+
+if os.name == "nt":
+    _tips["random"].extend(
+        [
+            "We can't show you all tips on windows as sometime Unicode characters crash windows console, please help us debug it."
+        ]
+    )
+else:
+    _tips["random"].extend(
+        [
+            "You can use latex or unicode completion, `\\alpha<tab>` will insert the α symbol.",
+            "You can find how to type a latext symbol by back completing it `\\θ<tab>` will expand to `\\theta`.",
+            "You can find how to type a unicode symbol by back completing it `\\Ⅷ<tab>` will expand to `\\ROMAN NUMERAL EIGHT`.",
+            "IPython support combining unicode identifiers, F\\vec<tab> will become F⃗, usefull for physics equations. Play with \\dot \\ddot and others.",
+        ]
+    )
 
 
 def pick_tip() -> str:
