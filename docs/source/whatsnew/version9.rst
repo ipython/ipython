@@ -25,7 +25,7 @@ As a short overview of the changes, we have over 100 PRs merged between 8.x and
 Removal and deprecation
 -----------------------
 
-I am not going to list of the removals and deprecations, but anything deprecated since before IPython 8.16 is gone, 
+I am not going to list the removals and deprecations, but anything deprecated since before IPython 8.16 is gone, 
 including many shim modules and indirect imports that would just re-expose IPykernel, qtconsole, etc. 
 
 A number of new deprecations have been added (run your test suites with `-Werror`), as those will be removed in the future. 
