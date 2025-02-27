@@ -1055,11 +1055,11 @@ class ExecutionMagics(Magics):
 
         **Usage, in line mode**::
 
-          %timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] statement
+          %timeit [-n<N> -r<R> [-t|-c] -q -p<P> [-o|-v <V>] statement
 
         **or in cell mode**::
 
-          %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] setup_code
+          %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> [-o|-v <V>] setup_code
           code
           code...
 
@@ -1104,6 +1104,9 @@ class ExecutionMagics(Magics):
           Return a ``TimeitResult`` that can be stored in a variable to inspect
           the result in more details.
 
+        -v <V>
+          Like ``-o``, but save the ``TimeitResult`` directly to variable <V>.
+
         .. versionchanged:: 7.3
             User variables are no longer expanded,
             the magic line is always left unmodified.
@@ -1135,7 +1138,7 @@ class ExecutionMagics(Magics):
         those from ``%timeit``."""
 
         opts, stmt = self.parse_options(
-            line, "n:r:tcp:qo", posix=False, strict=False, preserve_non_opts=True
+            line, "n:r:tcp:qov:", posix=False, strict=False, preserve_non_opts=True
         )
         if stmt == "" and cell is None:
             return
@@ -1147,6 +1150,7 @@ class ExecutionMagics(Magics):
         precision = int(getattr(opts, "p", 3))
         quiet = 'q' in opts
         return_result = 'o' in opts
+        save_result = 'v' in opts
         if hasattr(opts, "t"):
             timefunc = time.time
         if hasattr(opts, "c"):
@@ -1207,7 +1211,7 @@ class ExecutionMagics(Magics):
                 if var_name in local_ns:
                     conflict_globs[var_name] = var_val
             glob.update(local_ns)
-            
+
         exec(code, glob, ns)
         timer.inner = ns["inner"]
 
@@ -1229,8 +1233,8 @@ class ExecutionMagics(Magics):
 
         # Restore global vars from conflict_globs
         if conflict_globs:
-           glob.update(conflict_globs)
-                
+            glob.update(conflict_globs)
+  
         if not quiet :
             # Check best timing is greater than zero to avoid a
             # ZeroDivisionError.
@@ -1241,11 +1245,15 @@ class ExecutionMagics(Magics):
                 print("The slowest run took %0.2f times longer than the "
                       "fastest. This could mean that an intermediate result "
                       "is being cached." % (worst / best))
-           
+
             print( timeit_result )
 
             if tc > tc_min:
                 print("Compiler time: %.2f s" % tc)
+
+        if save_result:
+            self.shell.user_ns[opts.v] = timeit_result
+
         if return_result:
             return timeit_result
 
