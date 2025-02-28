@@ -193,7 +193,7 @@ class CodeMagics(Magics):
 
           -r: use 'raw' input.  By default, the 'processed' history is used,
           so that magics are loaded in their transformed version to valid
-          Python.  If this option is given, the raw input as typed as the
+          Python.  If this option is given, the raw input as typed at the
           command line is used instead.
           
           -f: force overwrite.  If file exists, %save will prompt for overwrite
