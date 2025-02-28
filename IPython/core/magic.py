@@ -672,10 +672,11 @@ class Magics(Configurable):
             argv = arg_split(arg_str, posix, strict)
             # Do regular option processing
             try:
-                opts,args = getopt(argv, opt_str, long_opts)
+                opts, args = getopt(argv, opt_str, long_opts)
             except GetoptError as e:
                 raise UsageError(
-                    '%s ( allowed: "%s" %s)' % (e.msg, opt_str, " ".join(long_opts))
+                    '%s (allowed: "%s"%s)'
+                    % (e.msg, opt_str, " ".join(("",) + long_opts) if long_opts else "")
                 ) from e
             for o, a in opts:
                 if mode == "string" and preserve_non_opts:
