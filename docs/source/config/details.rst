@@ -95,6 +95,28 @@ Extra configuration may be needed by setting environment variables, this will
 again depend on the provider you chose, and you will have to refer to the
 provider documentation.
 
+LLM Context
+-----------
+
+The option ``c.TerminalInteractiveShell.llm_prefix_from_history`` controls the
+context the ``Provider`` gets when trying to complete. See the help of this
+options (``ipython --help-all``)::
+
+    Fully Qualifed name of a function that takes an IPython history manager and
+    return a prefix to pass the llm provider in addition to the current buffer
+    text.
+
+    You can use:
+
+     - no_prefix
+     - input_history
+
+    As default value. `input_history` (default),  will use all the input history
+    of current IPython session
+
+
+
+
 
 
 .. _custom_prompts:

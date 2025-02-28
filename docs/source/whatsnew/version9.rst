@@ -7,12 +7,27 @@
 IPython 9.0
 ===========
 
-Welcome to IPython 9.0! As with any version of IPython before this release, it
+Welcome to IPython 9.0. As with any version of IPython before this release, it
 should not be majorly different from the previous version, at least on the surface. 
-We still hope you can upgrade as soon as possible amd look forward to your feedback. 
+We still hope you can upgrade as soon as possible amd look forward to your feedback.
 
-As a short overview of the changes, we have over 100 PRs merged between 8.x and
-9.0, many of which are refactors, cleanups and simplifications.
+I take the opportunity of this new release to remind you that IPython is
+governed by the `Jupyter code of conduct
+<https://jupyter.org/governance/conduct/code_of_conduct.html>`_. And that even
+beyond so we strive to be an inclusive, accepting and progressive community,
+Here is a relevant extract from the COC.
+
+    We strive to be a community that welcomes and supports people of all backgrounds
+    and identities. This includes, but is not limited to, members of any race,
+    ethnicity, culture, national origin, color, immigration status, social and
+    economic class, educational level, sex, sexual orientation, gender identity and
+    expression, age, physical appearance, family status, technological or
+    professional choices, academic discipline, religion, mental ability, and
+    physical ability.
+
+
+As a short overview of the changes in 9.0, we have over 100 PRs merged since 8.x,
+many of which are refactors, cleanups and simplifications.
 
  - (optional) LLM integration in the CLI. 
  - Complete rewrite of color and theme handling, which now supports more colors and symbols. 
@@ -62,7 +77,7 @@ background, underline, bold, italic and likely a few other options.
 In addition, themes now provide a number of `symbols`, that can be used when
 rendering traceback or debugger prompts. This let you customize the appearance a
 bit more. For example, instead of using dash and greater-than sign, The arrow
-pointing the current fframe can actually use horizontal line and right arrow
+pointing the current frame can actually use horizontal line and right arrow
 unicode symbol, for a more refined experience.
 
 
@@ -99,3 +114,53 @@ According to https://pypistats.org/packages/ipython, IPython is downloaded about
 13 million times per week, so this should reduce PyPI bandwidth by about 2Tb each
 week, which is small compared to the total download, but still, trying to reduce
 resource usage is a worthy goal.
+
+Integration with Jupyter-AI LLM
+-------------------------------
+
+This feature allow IPython CLI to make use of Jupyter-AI provider to use LLM for
+suggestion, and completing the current text. Unlike many features
+of IPython this is disabled by default, and need several configuration options to
+be set to work:
+
+ - Choose a provider in ``jupyter-ai`` and set it as default one:
+   ``c.TerminalInteractiveShell.llm_provider_class = <fully qualified path>``
+   You likely need to setup your provider with API key or other things.
+ - Choose and available shortcut (I'll take ``Ctrl-Q`` as an example) and bind
+   to trigger ``llm_autosuggestion`` only while typing.
+
+.. code::
+   
+   c.TerminalInteractiveShell.shortcuts = [
+        {
+            "new_keys": ["c-q"],
+            "command": "IPython:auto_suggest.llm_autosuggestion",
+            "new_filter": "navigable_suggestions & default_buffer_focused",
+            "create": True,
+        },
+    ]
+
+See :ref:`llm_suggestions` for more.
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+this work.
+
+
+For something completely different
+----------------------------------
+
+Ruth Bader Ginsburg 1933-2020 was an American lawyer and jurist who served on
+the Supreme Court of the United States. Ginsburg spent much of her legal career
+as an advocate for gender equality, women's rights, abortion rights, and religious
+freedom.
+
+Thanks
+------
+
+Thanks to everyone who helped with the 9.0 release and working toward 9.0.
+
+As usual you can find the full list of PRs on GitHub under `the 9.0
+<https://github.com/ipython/ipython/milestone/138?closed=1>`__ milestone.
+
+
+

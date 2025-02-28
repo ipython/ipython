@@ -71,7 +71,7 @@ _tips: Any = {
         "Run your doctests from within IPython for development and debugging. The special %doctest_mode command toggles a mode where the prompt, output and exceptions display matches as closely as possible that of the default Python interpreter.",
         "You can use `files = !ls *.png`",
         "Use the IPython.lib.demo.Demo class to load any Python script as an interactive demo.",
-        "Put a ‘;’ at the end of a line to suppress the printing of output.",
+        "Put a ';' at the end of a line to suppress the printing of output.",
         "You can use Ctrl-O to force a new line in terminal IPython",
         "Use `object?` to see the help on `object`, `object??` to view it's source",
         "`?` alone on a line will brings up IPython's help",
@@ -91,11 +91,17 @@ if os.name == "nt":
             "We can't show you all tips on windows as sometime Unicode characters crash windows console, please help us debug it."
         ]
     )
+    # unicode may crash windows console, so we filter out tips with non-ASCII characters.
+    _tips["every_year"] = {
+        k: v
+        for k, v in _tips["every_year"].items()
+        if all(ord(char) < 128 for char in v)
+    }
 else:
     _tips["random"].extend(
         [
             "You can use latex or unicode completion, `\\alpha<tab>` will insert the α symbol.",
-            "You can find how to type a latext symbol by back completing it `\\θ<tab>` will expand to `\\theta`.",
+            "You can find how to type a latex symbol by back completing it `\\θ<tab>` will expand to `\\theta`.",
             "You can find how to type a unicode symbol by back completing it `\\Ⅷ<tab>` will expand to `\\ROMAN NUMERAL EIGHT`.",
             "IPython support combining unicode identifiers, F\\vec<tab> will become F⃗, usefull for physics equations. Play with \\dot \\ddot and others.",
         ]
