@@ -169,6 +169,7 @@ class IPythonPTCompleter(Completer):
             adjusted_text = _adjust_completion_text_based_on_context(
                 c.text, body, offset
             )
+            min_elide = 30 if self.shell is None else self.shell.min_elide
             if c.type == "function":
                 yield Completion(
                     adjusted_text,
@@ -176,7 +177,7 @@ class IPythonPTCompleter(Completer):
                     display=_elide(
                         display_text + "()",
                         body[c.start : c.end],
-                        min_elide=self.shell.min_elide,
+                        min_elide=min_elide,
                     ),
                     display_meta=c.type + c.signature,
                 )
@@ -187,7 +188,7 @@ class IPythonPTCompleter(Completer):
                     display=_elide(
                         display_text,
                         body[c.start : c.end],
-                        min_elide=self.shell.min_elide,
+                        min_elide=min_elide,
                     ),
                     display_meta=c.type,
                 )

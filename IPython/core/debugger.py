@@ -228,7 +228,12 @@ class Pdb(OldPdb):
     }
 
     def __init__(
-        self, completekey=None, stdin=None, stdout=None, context: int = 5, **kwargs
+        self,
+        completekey=None,
+        stdin=None,
+        stdout=None,
+        context: int | None | str = 5,
+        **kwargs,
     ):
         """Create a new IPython debugger.
 
@@ -251,7 +256,11 @@ class Pdb(OldPdb):
         The possibilities are python version dependent, see the python
         docs for more info.
         """
-
+        # ipdb issue, see https://github.com/ipython/ipython/issues/14811
+        if context is None:
+            context = 5
+        if isinstance(context, str):
+            context = int(context)
         self.context = context
 
         # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
@@ -298,7 +307,10 @@ class Pdb(OldPdb):
         return self._context
 
     @context.setter
-    def context(self, value: int) -> None:
+    def context(self, value: int | str) -> None:
+        # ipdb issue see https://github.com/ipython/ipython/issues/14811
+        if not isinstance(value, int):
+            value = int(value)
         assert isinstance(value, int)
         assert value >= 0
         self._context = value
