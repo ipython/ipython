@@ -144,17 +144,12 @@ jobs:
         python -c "from pathlib import Path; Path('IPython').rename('_IPython')"
     - name: pytest (no coverage)
       run: |
-        pytest --color=yes -raXxs --maxfail=15 tests
+        pytest tests --color=yes -raXxs --maxfail=15
     - name: pytest (coverage)
       if: matrix.cov == 'cov'
       run: |
         python -c "from pathlib import Path; Path('_IPython').rename('IPython')"
-        coverage run --source=IPython --branch -m pytest --color=yes -raXxs --maxfail=15 tests
-    - name: Report coverage
-      if: matrix.cov == 'cov'
-      run: |
-        coverage xml
-        coverage report --show-missing --skip-covered
+        pytest tests --color=yes -raXxs --maxfail=15 --cov=IPython --cov-context=test --cov-report=xml --cov-report=show-missing:skip-covered --no-cov-on-fail
     - name: Upload coverage to Codecov
       if: matrix.cov == 'cov'
       uses: codecov/codecov-action@v5
