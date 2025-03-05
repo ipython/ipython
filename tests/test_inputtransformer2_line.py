@@ -164,7 +164,7 @@ if True:
     """\
     # comment
 if True:
-   a = 3
+    a = 3
 """,
 )
 
@@ -182,8 +182,22 @@ if True:
 )
 
 
-def test_leading_indent():
-    for sample, expected in [INDENT_SPACES, INDENT_TABS]:
+INDENTED_CODE_WITH_ALIGNED_COMMENT = (
+    """\
+    # comment
+    x = 1
+    print(x)
+""",
+    """\
+# comment
+x = 1
+print(x)
+""",
+)
+
+
+def test_leading_indent_comment():
+    for sample, expected in [INDENT_SPACES_COMMENT, INDENT_TABS_COMMENT, INDENTED_CODE_WITH_ALIGNED_COMMENT]:
         assert ipt2.leading_indent(
             sample.splitlines(keepends=True)
         ) == expected.splitlines(keepends=True)
