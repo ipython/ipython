@@ -11,6 +11,8 @@ on:
   - cron:  '23 1 * * 1'
   workflow_dispatch:
 
+env:
+  COLUMNS: 120
 
 jobs:
   build:
@@ -57,6 +59,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         python-version: ["3.11", "3.12", "3.13"]
         deps: [test_extra]
+        cov: ['cov']
         # Test all on ubuntu, test ends on macos
         include:
           - os: macos-latest
@@ -74,12 +77,15 @@ jobs:
           # - os: ubuntu-latest
           #   python-version: "pypy-3.11"
           #   deps: test
+          #   cov: no-cov
           # - os: windows-latest
           #   python-version: "pypy-3.11"
           #   deps: test
+          #   cov: no-cov
           # - os: macos-latest
           #   python-version: "pypy-3.11"
           #   deps: test
+          #   cov: no-cov
           # Temporary CI run to use entry point compatible code in matplotlib-inline.
           - os: ubuntu-latest
             python-version: "3.12"
@@ -129,13 +135,25 @@ jobs:
       run: |
         python -m pip list --format=freeze
         python -m pip check
-    - name: pytest
-      env:
-        COLUMNS: 120
+    - name: Move source to avoid import confusion
       run: |
-        cd tests && pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --maxfail=15
+        python -c "from pathlib import Path; Path('IPython').rename("_IPython")"
+    - name: pytest (no coverage)
+      run: |
+        pytest --color=yes -raXxs --maxfail=15
+    - name: pytest (coverage)
+      if: matrix.cov == 'cov'
+      run: |
+        python -c "from pathlib import Path; Path('_IPython').rename('IPython')"
+        coverage run -m pytest --source=IPython --color=yes -raXxs --maxfail=15
+    - name: Report coverage
+      if: matrix.cov == 'cov'
+      run: |
+        coverage xml
+        coverage report --show-missing --skip-covered
     - name: Upload coverage to Codecov
+      if: matrix.cov == 'cov'
       uses: codecov/codecov-action@v5
       with:
-         name: Test
-         files: tests/coverage.xml
+        name: Test
+        files: coverage.xml
