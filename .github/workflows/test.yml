@@ -59,21 +59,24 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         python-version: ["3.11", "3.12", "3.13"]
         deps: [test_extra]
-        cov: ['cov']
+        cov: ["cov"]
         # Test all on ubuntu, test ends on macos
         include:
           - os: macos-latest
             python-version: "3.11"
             deps: test_extra
-          # Tests minimal dependencies set
+            cov: ["cov"]
+            # Tests minimal dependencies set
           - os: ubuntu-latest
             python-version: "3.11"
             deps: test
-          # Tests latest development Python version
+            cov: ["cov"]
+            # Tests latest development Python version
           - os: ubuntu-latest
             python-version: "3.13"
             deps: test
-          # Installing optional dependencies stuff takes ages on PyPy
+            cov: ["cov"]
+            # Installing optional dependencies stuff takes ages on PyPy
           # - os: ubuntu-latest
           #   python-version: "pypy-3.11"
           #   deps: test
@@ -91,6 +94,7 @@ jobs:
             python-version: "3.12"
             deps: test_extra
             want-latest-entry-point-code: true
+            cov: ["cov"]
 
     steps:
     - uses: actions/checkout@v4
