@@ -145,7 +145,7 @@ jobs:
       if: matrix.cov == 'cov'
       run: |
         python -c "from pathlib import Path; Path('_IPython').rename('IPython')"
-        coverage run -m pytest --source=IPython --color=yes -raXxs --maxfail=15 tests
+        coverage run --source=IPython --branch -m pytest --color=yes -raXxs --maxfail=15 tests
     - name: Report coverage
       if: matrix.cov == 'cov'
       run: |
