@@ -140,12 +140,12 @@ jobs:
         python -c "from pathlib import Path; Path('IPython').rename('_IPython')"
     - name: pytest (no coverage)
       run: |
-        pytest --color=yes -raXxs --maxfail=15
+        pytest --color=yes -raXxs --maxfail=15 tests
     - name: pytest (coverage)
       if: matrix.cov == 'cov'
       run: |
         python -c "from pathlib import Path; Path('_IPython').rename('IPython')"
-        coverage run -m pytest --source=IPython --color=yes -raXxs --maxfail=15
+        coverage run -m pytest --source=IPython --color=yes -raXxs --maxfail=15 tests
     - name: Report coverage
       if: matrix.cov == 'cov'
       run: |
