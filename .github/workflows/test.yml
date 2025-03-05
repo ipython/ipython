@@ -137,7 +137,7 @@ jobs:
         python -m pip check
     - name: Move source to avoid import confusion
       run: |
-        python -c "from pathlib import Path; Path('IPython').rename("_IPython")"
+        python -c "from pathlib import Path; Path('IPython').rename('_IPython')"
     - name: pytest (no coverage)
       run: |
         pytest --color=yes -raXxs --maxfail=15
