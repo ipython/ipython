@@ -149,7 +149,7 @@ jobs:
       if: matrix.cov == 'cov'
       run: |
         python -c "from pathlib import Path; Path('_IPython').rename('IPython')"
-        pytest tests --color=yes -raXxs --maxfail=15 --cov=IPython --cov-context=test --cov-report=xml --cov-report=show-missing:skip-covered --no-cov-on-fail
+        pytest tests --color=yes -raXxs --maxfail=15 --cov=IPython --cov-context=test --cov-report=xml --cov-report=term-missing:skip-covered --no-cov-on-fail
     - name: Upload coverage to Codecov
       if: matrix.cov == 'cov'
       uses: codecov/codecov-action@v5
