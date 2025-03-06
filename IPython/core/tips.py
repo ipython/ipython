@@ -76,7 +76,7 @@ _tips: Any = {
         "Use `object?` to see the help on `object`, `object??` to view it's source",
         "`?` alone on a line will brings up IPython's help",
         "You can use `%hist` to view history, see the options with `%history?`",
-        "You can change the edditing mode of IPython to behave more like vi, or emacs.",
+        "You can change the editing mode of IPython to behave more like vi, or emacs.",
         "IPython 9.0+ have hooks to integrate AI/LLM completions.",
         "Use `%timeit` or `%%timeit`, and the  `-r`, `-n`, and `-o` options to easily profile your code.",
         "Use `ipython --help-all | less` to view all the IPython configurations options.",
