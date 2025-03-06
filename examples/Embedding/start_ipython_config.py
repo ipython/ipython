@@ -13,7 +13,7 @@ c.InteractiveShellApp.exec_lines = [
     'import math',
     "math"
 ]
-c.InteractiveShell.colors = 'LightBG'
+c.InteractiveShell.colors = "lightbg"
 c.InteractiveShell.confirm_exit = False
 c.TerminalIPythonApp.display_banner = False
 

@@ -764,7 +764,9 @@ class InteractiveShell(SingletonConfigurable):
         if not new == new.lower():
             warn(
                 f"`TerminalInteractiveShell.colors` is now lowercase: `{new.lower()}`,"
-                " non lowercase, may invalid in the future."
+                " non lowercase, may be invalid in the future.",
+                DeprecationWarning,
+                stacklevel=2,
             )
         return new.lower()
 
@@ -781,7 +783,8 @@ class InteractiveShell(SingletonConfigurable):
             )
 
         try:
-            self.inspector.set_theme_name(self.colors)
+            # Deprecation in 9.0, colors should always be lower
+            self.inspector.set_theme_name(self.colors.lower())
         except Exception:
             warn(
                 "Error changing object inspector color schemes.\n%s"

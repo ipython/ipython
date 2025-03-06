@@ -3,6 +3,7 @@ import os
 import sys
 import token
 import tokenize
+import warnings
 from io import StringIO
 from typing import TypeAlias
 
@@ -353,7 +354,6 @@ class Parser:
         Call format() to process code.
         """
 
-
         assert theme_name is not None
 
         self.out = out
@@ -361,7 +361,13 @@ class Parser:
         self.lines = None
         self.raw = None
         if theme_name is not None:
-            assert theme_name == theme_name.lower()
+            if theme_name in ["Linux", "LightBG", "Neutral", "NoColor"]:
+                warnings.warn(
+                    f"Theme names and color schemes are lowercase in IPython 9.0 use {theme_name.lower()} instead",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                theme_name = theme_name.lower()
         if not theme_name:
             self.theme_name = "nocolor"
         else:

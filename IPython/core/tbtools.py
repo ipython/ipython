@@ -401,7 +401,13 @@ class TBTools:
                 stacklevel=2,
             )
             theme_name = color_scheme
-        assert theme_name.lower() == theme_name, theme_name
+        if theme_name in ["Linux", "LightBG", "Neutral", "NoColor"]:
+            warnings.warn(
+                f"Theme names and color schemes are lowercase in IPython 9.0 use {theme_name.lower()} instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            theme_name = theme_name.lower()
         # Whether to call the interactive pdb debugger after printing
         # tracebacks or not
         super().__init__()
