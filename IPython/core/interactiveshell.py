@@ -329,6 +329,7 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
     _user_ns: dict
+    _sys_modules_keys: set[str, AnyType]
 
     inspector: oinspect.Inspector
 
@@ -804,20 +805,19 @@ class InteractiveShell(SingletonConfigurable):
 
         self.dir_stack = []
 
-    def init_logger(self):
+    def init_logger(self) -> None:
         self.logger = Logger(self.home_dir, logfname='ipython_log.py',
                              logmode='rotate')
 
-    def init_logstart(self):
+    def init_logstart(self) -> None:
         """Initialize logging in case it was requested at the command line.
         """
         if self.logappend:
-            self.magic('logstart %s append' % self.logappend)
+            self.run_line_magic("logstart", f"{self.logappend} append")
         elif self.logfile:
-            self.magic('logstart %s' % self.logfile)
+            self.run_line_magic("logstart", self.logfile)
         elif self.logstart:
-            self.magic('logstart')
-
+            self.run_line_magic("logstart", "")
 
     def init_builtins(self):
         # A single, static flag that we set to True.  Its presence indicates
