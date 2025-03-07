@@ -165,6 +165,17 @@ disallow_incomplete_defs = false
 check_untyped_defs = true
 disallow_untyped_decorators = true
 
+[[tool.mypy.overrides]]
+module = [
+    "IPython.core.interactiveshell",
+]
+disallow_untyped_defs = false
+ignore_errors = true
+ignore_missing_imports = true
+disallow_untyped_calls = false
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = false
 
 # gloabl ignore error
 [[tool.mypy.overrides]]
@@ -192,7 +203,6 @@ module = [
     "IPython.core.historyapp",
     "IPython.core.hooks",
     "IPython.core.inputtransformer2",
-    "IPython.core.interactiveshell",
     "IPython.core.logger",
     "IPython.core.macro",
     "IPython.core.magic",
