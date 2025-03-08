@@ -203,7 +203,7 @@ AUTO_SUGGEST_BINDINGS = [
     Binding(
         auto_suggest.accept,
         ["right"],
-        "has_suggestion & default_buffer_focused & emacs_like_insert_mode",
+        "has_suggestion & default_buffer_focused & emacs_like_insert_mode & is_cursor_at_the_end_of_line",
     ),
     Binding(
         auto_suggest.accept_word,
