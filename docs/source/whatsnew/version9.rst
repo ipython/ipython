@@ -84,7 +84,7 @@ unicode symbol, for a more refined experience.
 New themes using colors and symbols
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-All the existing themes (Linux, LightBG, Neutral and Nocolor) should not see any
+All the existing themes (Linux, LightBG, Neutral and NoColor) should not see any
 changes, but I added two new *pride themes*, that show the use of 256bits colors
 and unicode symbols. I'm not a designer, so feel free to suggest updates and new
 themes to add. 
