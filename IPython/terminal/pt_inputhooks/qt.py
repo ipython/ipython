@@ -50,13 +50,15 @@ def inputhook(context):
         except AttributeError:  # Only for Qt>=5.14.
             pass
         _appref = app = QtGui.QApplication([" "])
-        _eventloop = QtCore.QEventLoop(app)
 
         # "reclaim" IPython sys.excepthook after event loop starts
         # without this, it defaults back to BaseIPythonApplication.excepthook
         # and exceptions in the Qt event loop are rendered without traceback
         # formatting and look like "bug in IPython".
         QtCore.QTimer.singleShot(0, _reclaim_excepthook)
+
+    if _eventloop is None:
+        _eventloop = QtCore.QEventLoop(app)
 
     if sys.platform == 'win32':
         # The QSocketNotifier method doesn't appear to work on Windows.
