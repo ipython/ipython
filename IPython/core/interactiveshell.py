@@ -3208,6 +3208,11 @@ class InteractiveShell(SingletonConfigurable):
 
         def error_before_exec(value):
             if store_history:
+                if self.history_manager:
+                    # Store formatted traceback and error details
+                    self.history_manager.exceptions[self.execution_count] = (
+                        self.format_exception_for_storage(value)
+                    )
                 self.execution_count += 1
             result.error_before_exec = value
             self.last_execution_succeeded = False
@@ -3317,11 +3322,53 @@ class InteractiveShell(SingletonConfigurable):
             assert self.history_manager is not None
             # Write output to the database. Does nothing unless
             # history output logging is enabled.
-            self.history_manager.store_output(self.execution_count)
+            hm = self.history_manager
+            hm.store_output(self.execution_count)
+            exec_count = self.execution_count
+
+            if result.result:
+                # Format the result into a MIME bundle
+                try:
+                    mime_obj = (
+                        result.result[0]
+                        if isinstance(result.result, list)
+                        else result.result
+                    )
+                    mime_fig = mime_obj.get_figure()
+                    mime_bundle, _ = self.display_formatter.format(mime_fig)
+                except:
+                    # In case formatting fails, fallback to text/plain
+                    mime_bundle = {"text/plain": repr(result.result)}
+                hm.output_mime_bundles[exec_count] = mime_bundle
+            if result.error_in_exec:
+                # Store formatted traceback and error details
+                hm.exceptions[exec_count] = self.format_exception_for_storage(
+                    result.error_in_exec
+                )
+
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
 
         return result
+
+    def format_exception_for_storage(self, exception):
+        """
+        Format an exception's traceback and details for storage in exceptions.
+        """
+        etype = type(exception)
+        evalue = exception
+        tb = exception.__traceback__
+
+        if isinstance(exception, SyntaxError):
+            # Use SyntaxTB for syntax errors
+            stb = self.SyntaxTB.structured_traceback(etype, evalue, tb)
+        else:
+            # Use InteractiveTB for other exceptions, skipping IPython's internal frame
+            stb = self.InteractiveTB.structured_traceback(
+                etype, evalue, tb, tb_offset=1
+            )
+
+        return {"ename": etype.__name__, "evalue": str(evalue), "traceback": stb}
 
     def transform_cell(self, raw_cell):
         """Transform an input cell before parsing it.
