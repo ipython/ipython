@@ -974,7 +974,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 self.alias_manager.soft_define_alias(cmd, cmd)
 
     def __init__(self, *args, **kwargs) -> None:
-        super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()

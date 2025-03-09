@@ -395,12 +395,13 @@ def embed(*, header="", compile_flags=None, **kwargs):
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
         kwargs["config"] = config
     using = kwargs.get("using", "sync")
+    colors = kwargs.pop("colors", "nocolor")
     if using:
         kwargs["config"].update(
             {
                 "TerminalInteractiveShell": {
                     "loop_runner": using,
-                    "colors": "nocolor",
+                    "colors": colors,
                     "autoawait": using != "sync",
                 }
             }
