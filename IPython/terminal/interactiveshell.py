@@ -355,7 +355,7 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
     def refresh_style(self):
-        self._style = self._make_style_from_name_or_cls(self.highlighting_style)
+        self._style = self._make_style_from_name_or_cls("legacy")
 
     # TODO: deprecate this
     highlighting_style_overrides = Dict(
