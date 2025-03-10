@@ -611,8 +611,10 @@ class HistoryManager(HistoryAccessor):
     output_hist = Dict()
     # The text/plain repr of outputs.
     output_hist_reprs: typing.Dict[int, str] = Dict()  # type: ignore [assignment]
-    output_mime_bundles = Dict()  # Maps execution_count to MIME bundles
-    exceptions = Dict()  # Maps execution_count to exception tracebacks
+    # Maps execution_count to MIME bundles
+    output_mime_bundles: typing.Dict[int, typing.Dict[str, str]] = Dict()  # type: ignore [assignment]
+    # Maps execution_count to exception tracebacks
+    exceptions: typing.Dict[int, typing.Dict[str, Any]] = Dict()  # type: ignore [assignment]
 
     # The number of the current session in the history database
     session_number: int = Integer()  # type: ignore [assignment]

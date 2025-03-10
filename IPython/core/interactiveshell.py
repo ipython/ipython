@@ -3314,28 +3314,12 @@ class InteractiveShell(SingletonConfigurable):
             assert self.history_manager is not None
             # Write output to the database. Does nothing unless
             # history output logging is enabled.
-            hm = self.history_manager
-            hm.store_output(self.execution_count)
+            self.history_manager.store_output(self.execution_count)
             exec_count = self.execution_count
-
-            if result.result:
-                # Format the result into a MIME bundle
-                try:
-                    mime_obj = (
-                        result.result[0]
-                        if isinstance(result.result, list)
-                        else result.result
-                    )
-                    mime_fig = mime_obj.get_figure()
-                    mime_bundle, _ = self.display_formatter.format(mime_fig)
-                except:
-                    # In case formatting fails, fallback to text/plain
-                    mime_bundle = {"text/plain": repr(result.result)}
-                hm.output_mime_bundles[exec_count] = mime_bundle
             if result.error_in_exec:
                 # Store formatted traceback and error details
-                hm.exceptions[exec_count] = self._format_exception_for_storage(
-                    result.error_in_exec
+                self.history_manager.exceptions[exec_count] = (
+                    self._format_exception_for_storage(result.error_in_exec)
                 )
 
             # Each cell is a *single* input, regardless of how many lines it has
