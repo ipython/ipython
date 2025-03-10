@@ -47,6 +47,7 @@ class Theme:
         self.base = base
         self.extra_style = extra_style
         self.symbols = {**_default_symbols, **symbols}
+        self._formatter = Terminal256Formatter(style=self.as_pygments_style())
 
     @cache
     def as_pygments_style(self):
@@ -61,9 +62,8 @@ class Theme:
         return MyStyle
 
     def format(self, stream: TokenStream) -> str:
-        style = self.as_pygments_style()
 
-        return pygments.format(stream, Terminal256Formatter(style=style))
+        return pygments.format(stream, self._formatter)
 
     def make_arrow(self, width: int):
         """generate the leading arrow in front of traceback or debugger"""
