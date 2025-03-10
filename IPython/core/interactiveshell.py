@@ -3203,7 +3203,7 @@ class InteractiveShell(SingletonConfigurable):
                 if self.history_manager:
                     # Store formatted traceback and error details
                     self.history_manager.exceptions[self.execution_count] = (
-                        self.format_exception_for_storage(value)
+                        self._format_exception_for_storage(value)
                     )
                 self.execution_count += 1
             result.error_before_exec = value
@@ -3334,7 +3334,7 @@ class InteractiveShell(SingletonConfigurable):
                 hm.output_mime_bundles[exec_count] = mime_bundle
             if result.error_in_exec:
                 # Store formatted traceback and error details
-                hm.exceptions[exec_count] = self.format_exception_for_storage(
+                hm.exceptions[exec_count] = self._format_exception_for_storage(
                     result.error_in_exec
                 )
 
@@ -3343,22 +3343,58 @@ class InteractiveShell(SingletonConfigurable):
 
         return result
 
-    def format_exception_for_storage(self, exception):
+    def _format_exception_for_storage(
+        self, exception, filename=None, running_compiled_code=False
+    ):
         """
-        Format an exception's traceback and details for storage in exceptions.
+        Format an exception's traceback and details for storage, with special handling
+        for different types of errors.
         """
         etype = type(exception)
         evalue = exception
         tb = exception.__traceback__
 
-        if isinstance(exception, SyntaxError):
-            # Use SyntaxTB for syntax errors
-            stb = self.SyntaxTB.structured_traceback(etype, evalue, tb)
+        # Handle SyntaxError and IndentationError with specific formatting
+        if issubclass(etype, (SyntaxError, IndentationError)):
+            if filename and isinstance(evalue, SyntaxError):
+                try:
+                    evalue.filename = filename
+                except:
+                    pass  # Keep the original filename if modification fails
+
+            # Extract traceback if the error happened during compiled code execution
+            elist = traceback.extract_tb(tb) if running_compiled_code else []
+            stb = self.SyntaxTB.structured_traceback(etype, evalue, elist)
+
+        # Handle UsageError with a simple message
+        elif etype is UsageError:
+            stb = [f"UsageError: {evalue}"]
+
         else:
-            # Use InteractiveTB for other exceptions, skipping IPython's internal frame
-            stb = self.InteractiveTB.structured_traceback(
-                etype, evalue, tb, tb_offset=1
-            )
+            # Check if the exception (or its context) is an ExceptionGroup.
+            def contains_exceptiongroup(val):
+                if val is None:
+                    return False
+                return isinstance(val, BaseExceptionGroup) or contains_exceptiongroup(
+                    val.__context__
+                )
+
+            if contains_exceptiongroup(evalue):
+                # Fallback: use the standard library's formatting for exception groups.
+                stb = traceback.format_exception(etype, evalue, tb)
+            else:
+                try:
+                    # If the exception has a custom traceback renderer, use it.
+                    if hasattr(evalue, "_render_traceback_"):
+                        stb = evalue._render_traceback_()
+                    else:
+                        # Otherwise, use InteractiveTB to format the traceback.
+                        stb = self.InteractiveTB.structured_traceback(
+                            etype, evalue, tb, tb_offset=1
+                        )
+                except Exception:
+                    # In case formatting fails, fallback to Python's built-in formatting.
+                    stb = traceback.format_exception(etype, evalue, tb)
 
         return {"ename": etype.__name__, "evalue": str(evalue), "traceback": stb}
 
