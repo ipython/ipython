@@ -19,6 +19,7 @@ from textwrap import dedent
 from time import sleep
 from threading import Thread
 from unittest import TestCase, mock
+import nbformat
 
 import pytest
 
@@ -912,6 +913,53 @@ def test_notebook_export_json():
     with TemporaryDirectory() as td:
         outfile = os.path.join(td, "nb.ipynb")
         _ip.run_line_magic("notebook", "%s" % outfile)
+
+
+def test_notebook_export_json_with_display_and_error():
+    pytest.importorskip("nbformat")
+    _ip = get_ipython()
+    _ip.history_manager.reset()
+    _ip.history_manager.exceptions.clear()
+    _ip.history_manager.output_mime_bundles.clear()
+
+    cmds = ["1/0", "display('test')"]
+    for i, cmd in enumerate(cmds, start=1):
+        _ip.history_manager.store_inputs(i, cmd)
+        try:
+            exec(cmd)
+        except Exception as exc:
+            formatted_exc = _ip._format_exception_for_storage(exc)
+            _ip.history_manager.exceptions[i] = formatted_exc
+        if cmd.startswith("display("):
+            _ip.history_manager.output_mime_bundles[i] = {"text/plain": "test"}
+
+    with TemporaryDirectory() as td:
+        outfile = os.path.join(td, "nb.ipynb")
+        _ip.run_line_magic("notebook", outfile)
+        with open(outfile, "r", encoding="utf-8") as f:
+            nb = nbformat.read(f, as_version=4)
+
+    error_found = False
+    for cell in nb.get("cells", []):
+        if cell.get("cell_type") == "code":
+            for output in cell.get("outputs", []):
+                if output.get("output_type") == "error":
+                    error_found = True
+                    expected_ename = _ip.history_manager.exceptions[1]["ename"]
+                    assert expected_ename in output.get("ename", "")
+    assert error_found, "Notebook export did not include the expected error output."
+
+    # Verify that the display cell output is 'test'
+    for cell in nb.get("cells", []):
+        if cell.get("source", "").strip() == "display('test')":
+            for output in cell.get("outputs", []):
+                if output.get("output_type") in ("display_data", "execute_result"):
+                    data = output.get("data", {})
+                    text = data.get("text/plain", "").strip()
+                    assert text == "test", f"Expected 'test', got: {text}"
+                elif output.get("output_type") == "stream":
+                    text = output.get("text", "").strip()
+                    assert text == "test", f"Expected 'test', got: {text}"
 
 
 class TestEnv(TestCase):

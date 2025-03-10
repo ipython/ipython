@@ -129,6 +129,18 @@ class DisplayPublisher(Configurable):
         if self.shell is not None:
             handlers = getattr(self.shell, "mime_renderers", {})
 
+        output_bundles = self.shell.history_manager.output_mime_bundles
+        exec_count = self.shell.execution_count
+
+        if exec_count in output_bundles:
+            for key, value in data.items():
+                if key in output_bundles[exec_count]:
+                    output_bundles[exec_count][key] += "\n" + value
+                else:
+                    output_bundles[exec_count][key] = value
+        else:
+            output_bundles[exec_count] = data
+
         for mime, handler in handlers.items():
             if mime in data:
                 handler(data[mime], metadata.get(mime, None))

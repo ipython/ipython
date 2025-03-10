@@ -3208,6 +3208,11 @@ class InteractiveShell(SingletonConfigurable):
 
         def error_before_exec(value):
             if store_history:
+                if self.history_manager:
+                    # Store formatted traceback and error details
+                    self.history_manager.exceptions[self.execution_count] = (
+                        self._format_exception_for_storage(value)
+                    )
                 self.execution_count += 1
             result.error_before_exec = value
             self.last_execution_succeeded = False
@@ -3318,10 +3323,72 @@ class InteractiveShell(SingletonConfigurable):
             # Write output to the database. Does nothing unless
             # history output logging is enabled.
             self.history_manager.store_output(self.execution_count)
+            exec_count = self.execution_count
+            if result.error_in_exec:
+                # Store formatted traceback and error details
+                self.history_manager.exceptions[exec_count] = (
+                    self._format_exception_for_storage(result.error_in_exec)
+                )
+
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
 
         return result
+
+    def _format_exception_for_storage(
+        self, exception, filename=None, running_compiled_code=False
+    ):
+        """
+        Format an exception's traceback and details for storage, with special handling
+        for different types of errors.
+        """
+        etype = type(exception)
+        evalue = exception
+        tb = exception.__traceback__
+
+        # Handle SyntaxError and IndentationError with specific formatting
+        if issubclass(etype, (SyntaxError, IndentationError)):
+            if filename and isinstance(evalue, SyntaxError):
+                try:
+                    evalue.filename = filename
+                except:
+                    pass  # Keep the original filename if modification fails
+
+            # Extract traceback if the error happened during compiled code execution
+            elist = traceback.extract_tb(tb) if running_compiled_code else []
+            stb = self.SyntaxTB.structured_traceback(etype, evalue, elist)
+
+        # Handle UsageError with a simple message
+        elif etype is UsageError:
+            stb = [f"UsageError: {evalue}"]
+
+        else:
+            # Check if the exception (or its context) is an ExceptionGroup.
+            def contains_exceptiongroup(val):
+                if val is None:
+                    return False
+                return isinstance(val, BaseExceptionGroup) or contains_exceptiongroup(
+                    val.__context__
+                )
+
+            if contains_exceptiongroup(evalue):
+                # Fallback: use the standard library's formatting for exception groups.
+                stb = traceback.format_exception(etype, evalue, tb)
+            else:
+                try:
+                    # If the exception has a custom traceback renderer, use it.
+                    if hasattr(evalue, "_render_traceback_"):
+                        stb = evalue._render_traceback_()
+                    else:
+                        # Otherwise, use InteractiveTB to format the traceback.
+                        stb = self.InteractiveTB.structured_traceback(
+                            etype, evalue, tb, tb_offset=1
+                        )
+                except Exception:
+                    # In case formatting fails, fallback to Python's built-in formatting.
+                    stb = traceback.format_exception(etype, evalue, tb)
+
+        return {"ename": etype.__name__, "evalue": str(evalue), "traceback": stb}
 
     def transform_cell(self, raw_cell):
         """Transform an input cell before parsing it.
