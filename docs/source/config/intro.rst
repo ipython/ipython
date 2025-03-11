@@ -68,7 +68,7 @@ Example configuration file
         'mycode.py',
         'fancy.ipy'
     ]
-    c.InteractiveShell.colors = 'LightBG'
+    c.InteractiveShell.colors = 'lightbg'
     c.InteractiveShell.xmode = 'Context'
     c.TerminalInteractiveShell.confirm_exit = False
     c.TerminalInteractiveShell.editor = 'nano'
@@ -92,7 +92,7 @@ hierarchy represents the value you would normally set on the ``c`` object of
 
     {
         "InteractiveShell": {
-            "colors": "LightBG",
+            "colors": "lightbg",
         },
         "InteractiveShellApp": {
             "extensions": [
@@ -106,7 +106,7 @@ hierarchy represents the value you would normally set on the ``c`` object of
 
 Is equivalent to the following ``ipython_config.py``::
 
-    c.InteractiveShell.colors = 'LightBG'
+    c.InteractiveShell.colors = 'lightbg'
     c.InteractiveShellApp.extensions = [
         'myextension'
     ]

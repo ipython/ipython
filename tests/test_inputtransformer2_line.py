@@ -4,6 +4,8 @@ Line-based transformers are the simpler ones; token-based transformers are
 more complex. See test_inputtransformer2 for tests for token-based transformers.
 """
 
+import pytest
+
 from IPython.core import inputtransformer2 as ipt2
 
 CELL_MAGIC = (
@@ -164,7 +166,7 @@ if True:
     """\
     # comment
 if True:
-   a = 3
+    a = 3
 """,
 )
 
@@ -182,11 +184,28 @@ if True:
 )
 
 
-def test_leading_indent():
-    for sample, expected in [INDENT_SPACES, INDENT_TABS]:
-        assert ipt2.leading_indent(
-            sample.splitlines(keepends=True)
-        ) == expected.splitlines(keepends=True)
+INDENTED_CODE_WITH_ALIGNED_COMMENT = (
+    """\
+    # comment
+    x = 1
+    print(x)
+""",
+    """\
+# comment
+x = 1
+print(x)
+""",
+)
+
+
+@pytest.mark.parametrize(
+    "sample, expected",
+    [INDENT_SPACES_COMMENT, INDENT_TABS_COMMENT, INDENTED_CODE_WITH_ALIGNED_COMMENT],
+)
+def test_leading_indent_comment(sample, expected):
+    assert ipt2.leading_indent(sample.splitlines(keepends=True)) == expected.splitlines(
+        keepends=True
+    )
 
 
 LEADING_EMPTY_LINES = (
