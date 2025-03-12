@@ -93,6 +93,7 @@ from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 from IPython.core.oinspect import OInfo
+from IPython.utils.io import Tee
 
 
 sphinxify: Optional[Callable]
@@ -323,6 +324,51 @@ def _modified_open(file, *args, **kwargs):
         )
 
     return io_open(file, *args, **kwargs)
+
+
+class CapturingTee(Tee):
+    def __init__(self, capture_dict, execution_count, channel="stdout"):
+        """Initialize the CapturingTee to duplicate stdout to a dictionary.
+
+        Parameters
+        ----------
+        capture_dict : dict
+            Dictionary to store captured outputs, with execution count as key.
+        execution_count : int
+            The current cell execution number.
+        channel : str, optional
+            Output channel to capture (default: 'stdout').
+        """
+        self.capture_dict = capture_dict
+        self.execution_count = execution_count
+        self.channel = channel
+        self.ostream = getattr(sys, channel)  # Original stdout
+        setattr(sys, channel, self)  # Redirect stdout to this instance
+        self._closed = False
+
+    def write(self, data):
+        """Write data to both the original stdout and the capture dictionary."""
+        self.ostream.write(data)  # Display in notebook
+        if not data:
+            return
+        self.capture_dict.setdefault(self.execution_count, {}).setdefault("stream", "")
+        self.capture_dict[self.execution_count][
+            "stream"
+        ] += data  # Append to existing stream
+
+    def flush(self):
+        """Flush both streams."""
+        self.ostream.flush()
+
+    def close(self):
+        """Restore the original stdout and close."""
+        setattr(sys, self.channel, self.ostream)
+        self._closed = True
+
+    def __del__(self):
+        """Ensure cleanup if object is deleted."""
+        if not self._closed:
+            self.close()
 
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
@@ -3035,11 +3081,15 @@ class InteractiveShell(SingletonConfigurable):
         result : :class:`ExecutionResult`
         """
         result = None
+        tee = CapturingTee(
+            self.history_manager.output_mime_bundles, self.execution_count
+        )
         try:
             result = self._run_cell(
                 raw_cell, store_history, silent, shell_futures, cell_id
             )
         finally:
+            tee.close()
             self.events.trigger('post_execute')
             if not silent:
                 self.events.trigger('post_run_cell', result)

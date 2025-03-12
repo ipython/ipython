@@ -572,7 +572,9 @@ Currently the magic system has the following functions:""",
             if execution_count in output_mime_bundles:
                 mime_bundle = output_mime_bundles[execution_count]
                 for mime_type, data in mime_bundle.items():
-                    if mime_type == "text/plain":
+                    if mime_type == "stream":
+                        cell.outputs.append(v4.new_output("stream", text=[data]))
+                    elif mime_type == "text/plain":
                         cell.outputs.append(
                             v4.new_output(
                                 "execute_result",

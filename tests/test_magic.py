@@ -939,6 +939,9 @@ def test_notebook_export_json_with_output():
             _ip.history_manager.output_mime_bundles[i] = {"text/plain": "test"}
         if cmd == "1+1":
             _ip.history_manager.output_mime_bundles[i] = {"text/plain": "2"}
+        if cmd.startswith("print(") and cmd.endswith(")"):
+            captured_output = cmd[len("print('") : -2] + "\n"
+            _ip.history_manager.output_mime_bundles[i] = {"stream": captured_output}
 
     with TemporaryDirectory() as td:
         outfile = os.path.join(td, "nb.ipynb")
@@ -956,13 +959,13 @@ def test_notebook_export_json_with_output():
                     two_found = True
                 elif output["data"].get("text/plain") == "test":
                     display_output = True
-            # elif output["output_type"] == "stream" and output.get("text") == ["test\n"]:
-            #     stream_output = True
+            elif output["output_type"] == "stream" and output.get("text") == "test\n":
+                stream_output = True
 
     assert two_found, "Expected output '2' missing"
     assert errors, "Expected error output missing"
     assert display_output, "Expected display output missing"
-    # assert stream_output, "Expected print output missing"
+    assert stream_output, "Expected print output missing"
 
 
 class TestEnv(TestCase):
