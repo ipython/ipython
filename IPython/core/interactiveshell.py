@@ -466,7 +466,7 @@ class InteractiveShell(SingletonConfigurable):
     # Monotonically increasing execution counter
     execution_count = Integer(1)
     filename = Unicode("<ipython console>")
-    ipython_dir= Unicode('').tag(config=True) # Set to get_ipython_dir() in __init__
+    ipython_dir = Unicode("").tag(config=True)  # Set to get_ipython_dir() in __init__
 
     # Used to transform cells before running them, and check whether code is complete
     input_transformer_manager = Instance('IPython.core.inputtransformer2.TransformerManager',
