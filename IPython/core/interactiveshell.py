@@ -3211,9 +3211,9 @@ class InteractiveShell(SingletonConfigurable):
             if store_history:
                 if self.history_manager:
                     # Store formatted traceback and error details
-                    self.history_manager.exceptions[
-                        self.execution_count
-                    ] = self._format_exception_for_storage(value)
+                    self.history_manager.exceptions[self.execution_count] = (
+                        self._format_exception_for_storage(value)
+                    )
                 self.execution_count += 1
             result.error_before_exec = value
             self.last_execution_succeeded = False
@@ -3327,9 +3327,9 @@ class InteractiveShell(SingletonConfigurable):
             exec_count = self.execution_count
             if result.error_in_exec:
                 # Store formatted traceback and error details
-                self.history_manager.exceptions[
-                    exec_count
-                ] = self._format_exception_for_storage(result.error_in_exec)
+                self.history_manager.exceptions[exec_count] = (
+                    self._format_exception_for_storage(result.error_in_exec)
+                )
 
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
