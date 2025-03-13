@@ -2360,11 +2360,89 @@ class IPCompleter(Completer):
             else:
                 return iter([])
 
+    def _determine_completion_context(self, line):
+        """
+        Determine whether the cursor is in an attribute or global completion context.
+        """
+        if self._is_in_string_or_comment(line):
+            return "global"
+        if line.endswith("."):
+            return "attribute"
+
+        last_token_match = re.search(r"([\w\d_]+)$", line)
+        if not last_token_match:
+            return "global"
+
+        prefix = line[: last_token_match.start()]
+        chain_match = re.search(r"([\w\d_.]+)\.$", prefix.rstrip())
+        if chain_match:
+            return "attribute"
+
+        return "global"
+
+    def _is_in_string_or_comment(self, text):
+        # Check for comments
+        if "#" in text:
+            parts = text.split("#")
+            if len(parts) > 1:
+                return True
+
+        in_single_quote = False
+        in_double_quote = False
+        in_triple_single = False
+        in_triple_double = False
+
+        i = 0
+        while i < len(text):
+            if i + 2 < len(text):
+                if (
+                    text[i : i + 3] == '"""'
+                    and not in_single_quote
+                    and not in_triple_single
+                ):
+                    in_triple_double = not in_triple_double
+                    i += 3
+                    continue
+                if (
+                    text[i : i + 3] == "'''"
+                    and not in_double_quote
+                    and not in_triple_double
+                ):
+                    in_triple_single = not in_triple_single
+                    i += 3
+                    continue
+            # Handle escapes
+            if text[i] == "\\" and i + 1 < len(text):
+                i += 2
+                continue
+            # Handle quotes
+            if (
+                text[i] == '"'
+                and not in_single_quote
+                and not in_triple_single
+                and not in_triple_double
+            ):
+                in_double_quote = not in_double_quote
+            elif (
+                text[i] == "'"
+                and not in_double_quote
+                and not in_triple_double
+                and not in_triple_single
+            ):
+                in_single_quote = not in_single_quote
+            i += 1
+
+        # If we're in any type of string at the end of parsing, return True
+        return (
+            in_single_quote or in_double_quote or in_triple_single or in_triple_double
+        )
+
     @context_matcher()
     def python_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match attributes or global python names"""
         text = context.line_with_cursor
-        if "." in text:
+        completion_type = self._determine_completion_context(text)
+        if completion_type == "attribute":
             try:
                 matches, fragment = self._attr_matches(text, include_prefix=False)
                 if text.endswith(".") and self.omit__names:
