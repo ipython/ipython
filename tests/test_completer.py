@@ -626,7 +626,6 @@ class TestCompleter(unittest.TestCase):
                 "Should have completed on a[0].r: %s",
                 Completion(5, 6, "real"),
             )
-
             _(
                 "a[0].from_",
                 10,
@@ -745,6 +744,16 @@ class TestCompleter(unittest.TestCase):
 
         words = completer.get__all__entries(A())
         self.assertEqual(words, [])
+
+    def test_completes_globals_as_args_of_methods(self):
+        ip = get_ipython()
+        c = ip.Completer
+        c.use_jedi = False
+        ip.ex("long_variable_name = 1")
+        ip.ex("a = []")
+        s, matches = c.complete(None, "a.sort(lo")
+        self.assertIn("long_variable_name", matches)
+
 
     def test_func_kw_completions(self):
         ip = get_ipython()
