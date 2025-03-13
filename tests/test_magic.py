@@ -915,6 +915,7 @@ def test_notebook_export_json():
 def test_notebook_export_json_with_output():
     """Tests if notebook export correctly captures outputs, errors, display outputs, and stream outputs."""
     pytest.importorskip("nbformat")
+    pytest.importorskip("nbclient")
     import nbformat
     from nbclient import NotebookClient
 
