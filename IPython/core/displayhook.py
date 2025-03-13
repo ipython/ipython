@@ -126,7 +126,6 @@ class DisplayHook(Configurable):
         ``sys.stdout``.
         """
         # Use write, not print which adds an extra space.
-        # TODO prevernt capturing this!
         sys.stdout.write(self.shell.separate_out)
         outprompt = 'Out[{}]: '.format(self.shell.execution_count)
         if self.do_full_cache:
