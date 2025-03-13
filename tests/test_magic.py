@@ -925,7 +925,7 @@ def test_notebook_export_json_with_output():
     commands = [
         "1+1",
         "display('test')",
-        "display('a') and display('b')",
+        "display('a'), display('b')",
         "1/0",
         "print('test')",
         "import sys\nprint('test', file=sys.stderr)",
