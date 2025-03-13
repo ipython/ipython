@@ -22,6 +22,7 @@ from traitlets import List
 
 # This used to be defined here - it is imported for backwards compatibility
 from .display_functions import publish_display_data
+from .history import HistoryOutput
 
 import typing as t
 
@@ -41,6 +42,7 @@ class DisplayPublisher(Configurable):
 
     def __init__(self, shell=None, *args, **kwargs):
         self.shell = shell
+        self._is_publishing = False
         super().__init__(*args, **kwargs)
 
     def _validate_data(self, data, metadata=None):
@@ -129,25 +131,25 @@ class DisplayPublisher(Configurable):
         if self.shell is not None:
             handlers = getattr(self.shell, "mime_renderers", {})
 
-        output_bundles = self.shell.history_manager.output_mime_bundles
-        exec_count = self.shell.execution_count
+        outputs = self.shell.history_manager.outputs
 
-        if exec_count in output_bundles:
-            for key, value in data.items():
-                if key in output_bundles[exec_count]:
-                    output_bundles[exec_count][key] += "\n" + value
-                else:
-                    output_bundles[exec_count][key] = value
-        else:
-            output_bundles[exec_count] = data
+        outputs[self.shell.execution_count].append(
+            HistoryOutput(output_type="display_data", bundle=data)
+        )
 
         for mime, handler in handlers.items():
             if mime in data:
                 handler(data[mime], metadata.get(mime, None))
                 return
 
+        self._is_publishing = True
         if "text/plain" in data:
             print(data["text/plain"])
+        self._is_publishing = False
+
+    @property
+    def is_publishing(self):
+        return self._is_publishing
 
     def clear_output(self, wait=False):
         """Clear the output of the cell receiving output."""

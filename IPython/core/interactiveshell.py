@@ -71,7 +71,7 @@ from IPython.core.error import InputRejected, UsageError
 from IPython.core.events import EventManager, available_events
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
-from IPython.core.history import HistoryManager
+from IPython.core.history import HistoryManager, HistoryOutput
 from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
@@ -325,50 +325,6 @@ def _modified_open(file, *args, **kwargs):
 
     return io_open(file, *args, **kwargs)
 
-
-class CapturingTee(Tee):
-    def __init__(self, capture_dict, execution_count, channel="stdout"):
-        """Initialize the CapturingTee to duplicate stdout to a dictionary.
-
-        Parameters
-        ----------
-        capture_dict : dict
-            Dictionary to store captured outputs, with execution count as key.
-        execution_count : int
-            The current cell execution number.
-        channel : str, optional
-            Output channel to capture (default: 'stdout').
-        """
-        self.capture_dict = capture_dict
-        self.execution_count = execution_count
-        self.channel = channel
-        self.ostream = getattr(sys, channel)  # Original stdout
-        setattr(sys, channel, self)  # Redirect stdout to this instance
-        self._closed = False
-
-    def write(self, data):
-        """Write data to both the original stdout and the capture dictionary."""
-        self.ostream.write(data)  # Display in notebook
-        if not data:
-            return
-        self.capture_dict.setdefault(self.execution_count, {}).setdefault("stream", "")
-        self.capture_dict[self.execution_count][
-            "stream"
-        ] += data  # Append to existing stream
-
-    def flush(self):
-        """Flush both streams."""
-        self.ostream.flush()
-
-    def close(self):
-        """Restore the original stdout and close."""
-        setattr(sys, self.channel, self.ostream)
-        self._closed = True
-
-    def __del__(self):
-        """Ensure cleanup if object is deleted."""
-        if not self._closed:
-            self.close()
 
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
@@ -706,6 +662,7 @@ class InteractiveShell(SingletonConfigurable):
         # inside a single Trio event loop. If used, it is set from
         # `ipykernel.kernelapp`.
         self.trio_runner = None
+        self.showing_traceback = False
 
     @property
     def user_ns(self):
@@ -911,7 +868,7 @@ class InteractiveShell(SingletonConfigurable):
             cache_size=self.cache_size,
         )
         self.configurables.append(self.displayhook)
-        # This is a context manager that installs/revmoes the displayhook at
+        # This is a context manager that installs/removes the displayhook at
         # the appropriate time.
         self.display_trap = DisplayTrap(hook=self.displayhook)
 
@@ -2243,10 +2200,12 @@ class InteractiveShell(SingletonConfigurable):
         place, like a side channel.
         """
         val = self.InteractiveTB.stb2text(stb)
+        self.showing_traceback = True
         try:
             print(val)
         except UnicodeEncodeError:
             print(val.encode("utf-8", "backslashreplace").decode())
+        self.showing_traceback = False
 
     def showsyntaxerror(self, filename=None, running_compiled_code=False):
         """Display the syntax error that just occurred.
@@ -3081,15 +3040,15 @@ class InteractiveShell(SingletonConfigurable):
         result : :class:`ExecutionResult`
         """
         result = None
-        tee = CapturingTee(
-            self.history_manager.output_mime_bundles, self.execution_count
-        )
+        tee_out = CapturingTee(self, channel="stdout")
+        tee_err = CapturingTee(self, channel="stderr")
         try:
             result = self._run_cell(
                 raw_cell, store_history, silent, shell_futures, cell_id
             )
         finally:
-            tee.close()
+            tee_out.close()
+            tee_err.close()
             self.events.trigger('post_execute')
             if not silent:
                 self.events.trigger('post_run_cell', result)
@@ -3252,9 +3211,9 @@ class InteractiveShell(SingletonConfigurable):
             if store_history:
                 if self.history_manager:
                     # Store formatted traceback and error details
-                    self.history_manager.exceptions[self.execution_count] = (
-                        self._format_exception_for_storage(value)
-                    )
+                    self.history_manager.exceptions[
+                        self.execution_count
+                    ] = self._format_exception_for_storage(value)
                 self.execution_count += 1
             result.error_before_exec = value
             self.last_execution_succeeded = False
@@ -3368,9 +3327,9 @@ class InteractiveShell(SingletonConfigurable):
             exec_count = self.execution_count
             if result.error_in_exec:
                 # Store formatted traceback and error details
-                self.history_manager.exceptions[exec_count] = (
-                    self._format_exception_for_storage(result.error_in_exec)
-                )
+                self.history_manager.exceptions[
+                    exec_count
+                ] = self._format_exception_for_storage(result.error_in_exec)
 
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
@@ -4059,6 +4018,64 @@ class InteractiveShell(SingletonConfigurable):
     # Overridden in terminal subclass to change prompts
     def switch_doctest_mode(self, mode):
         pass
+
+
+class CapturingTee(Tee):
+    def __init__(self, shell: InteractiveShell, channel="stdout"):
+        """Initialize the CapturingTee to duplicate stdout to a dictionary.
+
+        Parameters
+        ----------
+        outputs : dict
+            Dictionary to store captured outputs, with execution count as key.
+        execution_count : int
+            The current cell execution number.
+        channel : str, optional
+            Output channel to capture (default: 'stdout').
+        """
+        self.shell = shell
+        self.channel = channel
+        self.ostream = getattr(sys, channel)  # Original stdout
+        setattr(sys, channel, self)  # Redirect stdout to this instance
+        self._closed = False
+
+    def write(self, data):
+        """Write data to both the original stdout and the capture dictionary."""
+        self.ostream.write(data)  # Display in notebook
+        if any(
+            [
+                self.shell.display_pub.is_publishing,
+                self.shell.displayhook.is_active,
+                self.shell.showing_traceback,
+            ]
+        ):
+            return
+        if not data:
+            return
+        execution_count = self.shell.execution_count
+        output_stream = None
+        outputs_by_counter = self.shell.history_manager.outputs
+        output_type = "out_stream" if self.channel == "stdout" else "err_stream"
+        if execution_count in outputs_by_counter:
+            outputs = outputs_by_counter[execution_count]
+            if outputs[-1].output_type == output_type:
+                output_stream = outputs[-1]
+        if output_stream is None:
+            output_stream = HistoryOutput(
+                output_type=output_type, bundle={"stream": ""}
+            )
+            outputs_by_counter[execution_count].append(output_stream)
+
+        output_stream.bundle["stream"] += data  # Append to existing stream
+
+    def flush(self):
+        """Flush both streams."""
+        self.ostream.flush()
+
+    def close(self):
+        """Restore the original stdout and close."""
+        setattr(sys, self.channel, self.ostream)
+        self._closed = True
 
 
 class InteractiveShellABC(metaclass=abc.ABCMeta):

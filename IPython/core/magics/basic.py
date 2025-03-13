@@ -561,20 +561,22 @@ Currently the magic system has the following functions:""",
 
         cells = []
         hist = list(self.shell.history_manager.get_range())
-        output_mime_bundles = self.shell.history_manager.output_mime_bundles
+        outputs = self.shell.history_manager.outputs
         exceptions = self.shell.history_manager.exceptions
 
         if(len(hist)<=1):
             raise ValueError('History is empty, cannot export')
         for session, execution_count, source in hist[:-1]:
             cell = v4.new_code_cell(execution_count=execution_count, source=source)
-            # Check if this execution_count is in exceptions (current session)
-            if execution_count in output_mime_bundles:
-                mime_bundle = output_mime_bundles[execution_count]
-                for mime_type, data in mime_bundle.items():
-                    if mime_type == "stream":
+            for output in outputs[execution_count]:
+                for mime_type, data in output.bundle.items():
+                    if output.output_type == "out_stream":
                         cell.outputs.append(v4.new_output("stream", text=[data]))
-                    elif mime_type == "text/plain":
+                    elif output.output_type == "err_stream":
+                        err_output = v4.new_output("stream", text=[data])
+                        err_output.name = "stderr"
+                        cell.outputs.append(err_output)
+                    elif output.output_type == "execute_result":
                         cell.outputs.append(
                             v4.new_output(
                                 "execute_result",
@@ -582,13 +584,15 @@ Currently the magic system has the following functions:""",
                                 execution_count=execution_count,
                             )
                         )
-                    else:
+                    elif output.output_type == "display_data":
                         cell.outputs.append(
                             v4.new_output(
                                 "display_data",
                                 data={mime_type: data},
                             )
                         )
+                    else:
+                        raise ValueError(f"Unknown output type: {output.output_type}")
 
             # Check if this execution_count is in exceptions (current session)
             if execution_count in exceptions:

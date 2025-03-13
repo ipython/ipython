@@ -381,9 +381,7 @@ def test_reset_in_length():
 
 
 class TestResetErrors(TestCase):
-
     def test_reset_redefine(self):
-
         @magics_class
         class KernelMagics(Magics):
             @line_magic
@@ -918,58 +916,63 @@ def test_notebook_export_json_with_output():
     """Tests if notebook export correctly captures outputs, errors, display outputs, and stream outputs."""
     pytest.importorskip("nbformat")
     import nbformat
+    from nbclient import NotebookClient
 
     _ip = get_ipython()
     _ip.history_manager.reset()
 
-    cmds = [
-        "display('test')",
+    commands = [
         "1+1",
+        "display('test')",
+        "display('a') and display('b')",
         "1/0",
         "print('test')",
-        "1",
-    ]  # Last cmd isn't stored in history
-    for i, cmd in enumerate(cmds, start=1):
-        _ip.history_manager.store_inputs(i, cmd)
-        try:
-            exec(cmd)
-        except Exception as exc:
-            _ip.history_manager.exceptions[i] = _ip._format_exception_for_storage(exc)
-        if cmd.startswith("display("):
-            _ip.history_manager.output_mime_bundles[i] = {"text/plain": "test"}
-        if cmd == "1+1":
-            _ip.history_manager.output_mime_bundles[i] = {"text/plain": "2"}
-        if cmd.startswith("print(") and cmd.endswith(")"):
-            captured_output = cmd[len("print('") : -2] + "\n"
-            _ip.history_manager.output_mime_bundles[i] = {"stream": captured_output}
+        "import sys\nprint('test', file=sys.stderr)",
+    ]
+
+    clean_nb = nbformat.v4.new_notebook(
+        cells=[nbformat.v4.new_code_cell(source=cmd) for cmd in commands]
+    )
 
     with TemporaryDirectory() as td:
         outfile = os.path.join(td, "nb.ipynb")
-        _ip.run_line_magic("notebook", outfile)
-        nb = nbformat.read(outfile, as_version=4)
+        client = NotebookClient(
+            clean_nb,
+            timeout=600,
+            kernel_name="python3",
+            resources={"metadata": {"path": td}},
+            allow_errors=True,
+        )
+        client.execute()
+        nbformat.write(clean_nb, outfile)
+        expected_nb = nbformat.read(outfile, as_version=4)
 
-    two_found, errors, display_output, stream_output = False, False, False, False
-    for cell in nb["cells"]:
-        for output in cell.get("outputs", []):
-            if output["output_type"] == "error":
-                assert _ip.history_manager.exceptions[3]["ename"] in output["ename"]
-                errors = True
-            elif output["output_type"] in ("execute_result", "display_data"):
-                if output["data"].get("text/plain") == "2":
-                    two_found = True
-                elif output["data"].get("text/plain") == "test":
-                    display_output = True
-            elif output["output_type"] == "stream" and output.get("text") == "test\n":
-                stream_output = True
+    for cmd in commands:
+        _ip.run_cell(cmd, store_history=True)
 
-    assert two_found, "Expected output '2' missing"
-    assert errors, "Expected error output missing"
-    assert display_output, "Expected display output missing"
-    assert stream_output, "Expected print output missing"
+    with TemporaryDirectory() as td:
+        outfile = os.path.join(td, "nb.ipynb")
+        _ip.run_cell(f"%notebook {outfile}", store_history=True)
+        actual_nb = nbformat.read(outfile, as_version=4)
+
+    assert len(actual_nb["cells"]) == len(commands)
+    assert len(expected_nb["cells"]) == len(commands)
+
+    for i, command in enumerate(commands):
+        actual = actual_nb["cells"][i]
+        expected = expected_nb["cells"][i]
+        assert expected["source"] == command
+        assert actual["source"] == expected["source"]
+        if command == "1/0":
+            # remove traceback from comparison, as traceback formatting will vary
+            actual["outputs"][0].pop("traceback")
+            expected["outputs"][0].pop("traceback")
+        assert (
+            actual["outputs"] == expected["outputs"]
+        ), f"Outputs do not match for cell {i+1} with source {command!r}"
 
 
 class TestEnv(TestCase):
-
     def test_env(self):
         env = _ip.run_line_magic("env", "")
         self.assertTrue(isinstance(env, dict))

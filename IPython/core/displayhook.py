@@ -16,6 +16,8 @@ from traitlets.config.configurable import Configurable
 from traitlets import Instance, Float
 from warnings import warn
 
+from .history import HistoryOutput
+
 # TODO: Move the various attributes (cache_size, [others now moved]). Some
 # of these are also attributes of InteractiveShell. They should be on ONE object
 # only and the other objects should ask that one object for their values.
@@ -35,6 +37,7 @@ class DisplayHook(Configurable):
 
     def __init__(self, shell=None, cache_size=1000, **kwargs):
         super(DisplayHook, self).__init__(shell=shell, **kwargs)
+        self._is_active = False
         cache_size_min = 3
         if cache_size <= 0:
             self.do_full_cache = 0
@@ -110,7 +113,11 @@ class DisplayHook(Configurable):
 
     def start_displayhook(self):
         """Start the displayhook, initializing resources."""
-        pass
+        self._is_active = True
+
+    @property
+    def is_active(self):
+        return self._is_active
 
     def write_output_prompt(self):
         """Write the output prompt.
@@ -119,6 +126,7 @@ class DisplayHook(Configurable):
         ``sys.stdout``.
         """
         # Use write, not print which adds an extra space.
+        # TODO prevernt capturing this!
         sys.stdout.write(self.shell.separate_out)
         outprompt = 'Out[{}]: '.format(self.shell.execution_count)
         if self.do_full_cache:
@@ -242,8 +250,10 @@ class DisplayHook(Configurable):
 
     def log_output(self, format_dict):
         """Log the output."""
-        self.shell.history_manager.output_mime_bundles[self.prompt_count] = format_dict
-        if 'text/plain' not in format_dict:
+        self.shell.history_manager.outputs[self.prompt_count].append(
+            HistoryOutput(output_type="execute_result", bundle=format_dict)
+        )
+        if "text/plain" not in format_dict:
             # nothing to do
             return
         if self.shell.logger.log_output:
@@ -255,6 +265,7 @@ class DisplayHook(Configurable):
         """Finish up all displayhook activities."""
         sys.stdout.write(self.shell.separate_out2)
         sys.stdout.flush()
+        self._is_active = False
 
     def __call__(self, result=None):
         """Printing with history cache management.
