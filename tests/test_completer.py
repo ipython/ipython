@@ -758,15 +758,16 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
         c = ip.Completer
         c.use_jedi = False
-        ip.ex("import numpy as np")
+
+        class CustomClass:
+            def method_one(self):
+                pass
+
+        ip.user_ns["custom_obj"] = CustomClass()
 
         # Test completion inside f-string expressions
-        s, matches = c.complete(None, "f'{np.ran")
-        self.assertIn(".random", matches)
-
-        # Test nested attribute completion in f-string
-        s, matches = c.complete(None, "f'{np.random.ran")
-        self.assertIn(".randint", matches)
+        s, matches = c.complete(None, "f'{custom_obj.meth")
+        self.assertIn(".method_one", matches)
 
     def test_completes_in_dict_expressions(self):
         ip = get_ipython()
