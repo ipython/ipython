@@ -754,6 +754,35 @@ class TestCompleter(unittest.TestCase):
         s, matches = c.complete(None, "a.sort(lo")
         self.assertIn("long_variable_name", matches)
 
+    def test_completes_attributes_in_fstring_expressions(self):
+        ip = get_ipython()
+        c = ip.Completer
+        c.use_jedi = False
+        ip.ex("import numpy as np")
+
+        # Test completion inside f-string expressions
+        s, matches = c.complete(None, "f'{np.ran")
+        self.assertIn(".random", matches)
+
+        # Test nested attribute completion in f-string
+        s, matches = c.complete(None, "f'{np.random.ran")
+        self.assertIn(".randint", matches)
+
+    def test_completes_in_dict_expressions(self):
+        ip = get_ipython()
+        c = ip.Completer
+        c.use_jedi = False
+        ip.ex("class Test: pass")
+        ip.ex("test_obj = Test()")
+        ip.ex("test_obj.attribute = 'value'")
+
+        # Test completion in dictionary expressions
+        s, matches = c.complete(None, "d = {'key': test_obj.attr")
+        self.assertIn(".attribute", matches)
+
+        # Test global completion in dictionary expressions with dots
+        s, matches = c.complete(None, "d = {'k.e.y': Te")
+        self.assertIn("Test", matches)
 
     def test_func_kw_completions(self):
         ip = get_ipython()
