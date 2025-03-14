@@ -1785,7 +1785,7 @@ def test_completion_context(line, expected):
     ip = get_ipython()
     get_context = ip.Completer._determine_completion_context
     result = get_context(line)
-    assert result == expected, f"Failed on input: '{line}'"
+    assert result.value == expected, f"Failed on input: '{line}'"
 
 
 @pytest.mark.parametrize(

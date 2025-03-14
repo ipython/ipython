@@ -2360,25 +2360,29 @@ class IPCompleter(Completer):
             else:
                 return iter([])
 
+    class _CompletionContextType(enum.Enum):
+        ATTRIBUTE = "attribute"  # For attribute completion
+        GLOBAL = "global"  # For global completion
+
     def _determine_completion_context(self, line):
         """
         Determine whether the cursor is in an attribute or global completion context.
         """
         if self._is_in_string_or_comment(line):
-            return "global"
+            return self._CompletionContextType.GLOBAL
         if line.endswith("."):
-            return "attribute"
+            return self._CompletionContextType.ATTRIBUTE
 
         last_token_match = re.search(r"([\w\d_]+)$", line)
         if not last_token_match:
-            return "global"
+            return self._CompletionContextType.GLOBAL
 
         prefix = line[: last_token_match.start()]
         chain_match = re.search(r"([\w\d_.]+)\.$", prefix.rstrip())
         if chain_match:
-            return "attribute"
+            return self._CompletionContextType.ATTRIBUTE
 
-        return "global"
+        return self._CompletionContextType.GLOBAL
 
     def _is_in_string_or_comment(self, text):
         # Check for comments
@@ -2467,7 +2471,7 @@ class IPCompleter(Completer):
         """Match attributes or global python names"""
         text = context.line_with_cursor
         completion_type = self._determine_completion_context(text)
-        if completion_type == "attribute":
+        if completion_type == self._CompletionContextType.ATTRIBUTE:
             try:
                 matches, fragment = self._attr_matches(text, include_prefix=False)
                 if text.endswith(".") and self.omit__names:
