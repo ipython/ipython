@@ -1793,6 +1793,7 @@ class TestCompleter(unittest.TestCase):
         ("np.random.rand(np.random.ran", "attribute"),
         ("np.random.rand(n", "global"),
         ("d['k.e.y.'](ran", "global"),
+        ("d[0].k", "attribute"),
         ("a = { 'a': np.ran", "attribute"),
         ("n", "global"),
         ("", "global"),

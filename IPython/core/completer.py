@@ -2373,12 +2373,12 @@ class IPCompleter(Completer):
         if line.endswith("."):
             return self._CompletionContextType.ATTRIBUTE
 
-        last_token_match = re.search(r"([\w\d_]+)$", line)
+        last_token_match = re.search(r"([\w]+)$", line)
         if not last_token_match:
             return self._CompletionContextType.GLOBAL
 
         prefix = line[: last_token_match.start()]
-        chain_match = re.search(r"([\w\d_.]+)\.$", prefix.rstrip())
+        chain_match = re.search(r"(.*)\.(\w*)$", prefix.rstrip())
         if chain_match:
             return self._CompletionContextType.ATTRIBUTE
 
