@@ -2391,9 +2391,21 @@ class IPCompleter(Completer):
         in_double_quote = False
         in_triple_single = False
         in_triple_double = False
-
+        in_fstring = False
+        in_fstring_expression = False
         i = 0
+
         while i < len(text):
+            # Check for f-string start
+            if (
+                i + 1 < len(text)
+                and text[i] == "f"
+                and (text[i + 1] == '"' or text[i + 1] == "'")
+            ):
+                in_fstring = True
+                i += 1
+
+            # Handle triple quotes
             if i + 2 < len(text):
                 if (
                     text[i : i + 3] == '"""'
@@ -2411,10 +2423,18 @@ class IPCompleter(Completer):
                     in_triple_single = not in_triple_single
                     i += 3
                     continue
+
             # Handle escapes
             if text[i] == "\\" and i + 1 < len(text):
                 i += 2
                 continue
+
+            # Handle f-string expressions
+            if in_fstring and text[i] == "{":
+                in_fstring_expression = True
+            elif in_fstring and text[i] == "}":
+                in_fstring_expression = False
+
             # Handle quotes
             if (
                 text[i] == '"'
@@ -2430,9 +2450,14 @@ class IPCompleter(Completer):
                 and not in_triple_single
             ):
                 in_single_quote = not in_single_quote
+
             i += 1
 
-        # If we're in any type of string at the end of parsing, return True
+        # If we're in an f-string expression, return False
+        if in_fstring_expression:
+            return False
+
+        # Otherwise, return True if we're in any type of string
         return (
             in_single_quote or in_double_quote or in_triple_single or in_triple_double
         )

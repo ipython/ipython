@@ -1748,6 +1748,47 @@ class TestCompleter(unittest.TestCase):
 
 
 @pytest.mark.parametrize(
+    "line,expected",
+    [
+        # Basic test cases
+        ("np.ran", "attribute"),
+        ("np.random.rand(np.random.ran", "attribute"),
+        ("np.random.rand(n", "global"),
+        ("d['k.e.y.'](ran", "global"),
+        ("a = { 'a': np.ran", "attribute"),
+        ("n", "global"),
+        ("", "global"),
+        # Dots in string literals
+        ('some_var = "this is a string with a dot.', "global"),
+        ("text = 'another string with a dot.", "global"),
+        # Backslash escapes in strings
+        ('var = "string with \\"escaped quote and a dot.', "global"),
+        ("escaped = 'single \\'quote\\' with a dot.", "global"),
+        # Multi-line strings
+        ('multi = """This is line one\nwith a dot.', "global"),
+        ("multi_single = '''Another\nmulti-line\nwith a dot.", "global"),
+        # Inline comments with dots
+        ("x = 5  # This is a comment with a dot.", "global"),
+        ("y = obj.method()  # Comment after dot.method", "global"),
+        # Nested parentheses with dots
+        ("complex_expr = (func((obj.method(param.attr", "attribute"),
+        ("multiple_nesting = {key: [value.attr", "attribute"),
+        # Additional cases
+        ('str_with_code = "x.attr', "global"),
+        ('f"formatted {obj.attr', "attribute"),
+        ('f"formatted {obj.attr}', "global"),
+        ("dict_with_dots = {'key.with.dots': value.attr", "attribute"),
+    ],
+)
+def test_completion_context(line, expected):
+    """Test completion context"""
+    ip = get_ipython()
+    get_context = ip.Completer._determine_completion_context
+    result = get_context(line)
+    assert result == expected, f"Failed on input: '{line}'"
+
+
+@pytest.mark.parametrize(
     "setup,code,expected,not_expected",
     [
         ('a="str"; b=1', "(a, b.", [".bit_count", ".conjugate"], [".count"]),
