@@ -921,6 +921,7 @@ def test_notebook_export_json_with_output():
 
     _ip = get_ipython()
     _ip.history_manager.reset()
+    _ip.colors = "neutral"
 
     commands = [
         "1+1",
@@ -964,10 +965,6 @@ def test_notebook_export_json_with_output():
         expected = expected_nb["cells"][i]
         assert expected["source"] == command
         assert actual["source"] == expected["source"]
-        if command == "1/0":
-            # remove traceback from comparison, as traceback formatting will vary
-            actual["outputs"][0].pop("traceback")
-            expected["outputs"][0].pop("traceback")
         assert (
             actual["outputs"] == expected["outputs"]
         ), f"Outputs do not match for cell {i+1} with source {command!r}"
