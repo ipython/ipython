@@ -70,16 +70,16 @@ doc = [
 ]
 test = [
     "pytest",
-    "pytest-asyncio<0.22",
+    "pytest-asyncio",
     "testpath",
     "packaging",
 ]
 test_extra = [
     "ipython[test]",
     "curio",
-    "matplotlib!=3.2.0",
+    "matplotlib>=3.6.0",
     "nbformat",
-    "numpy>=1.23",
+    "numpy>=1.25",
     "pandas",
     "trio",
 ]
