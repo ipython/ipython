@@ -14,7 +14,9 @@ import re
 import threading
 from pathlib import Path
 
+from collections import defaultdict
 from contextlib import contextmanager
+from dataclasses import dataclass
 from decorator import decorator
 from traitlets import (
     Any,
@@ -583,6 +585,14 @@ class HistoryAccessor(HistoryAccessorBase):
             yield from self.get_range(sess, s, e, raw=raw, output=output)
 
 
+@dataclass
+class HistoryOutput:
+    output_type: typing.Literal[
+        "out_stream", "err_stream", "display_data", "execute_result"
+    ]
+    bundle: typing.Dict[str, str]
+
+
 class HistoryManager(HistoryAccessor):
     """A class to organize all history-related functionality in one place."""
 
@@ -610,7 +620,11 @@ class HistoryManager(HistoryAccessor):
     # execution count.
     output_hist = Dict()
     # The text/plain repr of outputs.
-    output_hist_reprs: dict[int, str] = Dict()  # type: ignore [assignment]
+    output_hist_reprs: typing.Dict[int, str] = Dict()  # type: ignore [assignment]
+    # Maps execution_count to MIME bundles
+    outputs: typing.Dict[int, typing.List[HistoryOutput]] = defaultdict(list)
+    # Maps execution_count to exception tracebacks
+    exceptions: typing.Dict[int, typing.Dict[str, Any]] = Dict()  # type: ignore [assignment]
 
     # The number of the current session in the history database
     session_number: int = Integer()  # type: ignore [assignment]
@@ -749,6 +763,9 @@ class HistoryManager(HistoryAccessor):
         """Clear the session history, releasing all object references, and
         optionally open a new session."""
         self.output_hist.clear()
+        self.outputs.clear()
+        self.exceptions.clear()
+
         # The directory history can't be completely empty
         self.dir_hist[:] = [Path.cwd()]
 

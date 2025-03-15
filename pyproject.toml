@@ -79,6 +79,8 @@ test_extra = [
     "curio",
     "matplotlib!=3.2.0",
     "nbformat",
+    "nbclient",
+    "ipykernel",
     "numpy>=1.23",
     "pandas",
     "trio",

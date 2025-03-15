@@ -16,6 +16,8 @@ from traitlets.config.configurable import Configurable
 from traitlets import Instance, Float
 from warnings import warn
 
+from .history import HistoryOutput
+
 # TODO: Move the various attributes (cache_size, [others now moved]). Some
 # of these are also attributes of InteractiveShell. They should be on ONE object
 # only and the other objects should ask that one object for their values.
@@ -35,6 +37,7 @@ class DisplayHook(Configurable):
 
     def __init__(self, shell=None, cache_size=1000, **kwargs):
         super(DisplayHook, self).__init__(shell=shell, **kwargs)
+        self._is_active = False
         cache_size_min = 3
         if cache_size <= 0:
             self.do_full_cache = 0
@@ -51,7 +54,7 @@ class DisplayHook(Configurable):
 
         # we need a reference to the user-level namespace
         self.shell = shell
-        
+
         self._,self.__,self.___ = '','',''
 
         # these are deliberately global:
@@ -84,13 +87,13 @@ class DisplayHook(Configurable):
     def quiet(self):
         """Should we silence the display hook because of ';'?"""
         # do not print output if input ends in ';'
-        
+
         try:
             cell = self.shell.history_manager.input_hist_parsed[-1]
         except IndexError:
             # some uses of ipshellembed may fail here
             return False
-        
+
         return self.semicolon_at_end_of_expression(cell)
 
     @staticmethod
@@ -110,7 +113,11 @@ class DisplayHook(Configurable):
 
     def start_displayhook(self):
         """Start the displayhook, initializing resources."""
-        pass
+        self._is_active = True
+
+    @property
+    def is_active(self):
+        return self._is_active
 
     def write_output_prompt(self):
         """Write the output prompt.
@@ -242,7 +249,10 @@ class DisplayHook(Configurable):
 
     def log_output(self, format_dict):
         """Log the output."""
-        if 'text/plain' not in format_dict:
+        self.shell.history_manager.outputs[self.prompt_count].append(
+            HistoryOutput(output_type="execute_result", bundle=format_dict)
+        )
+        if "text/plain" not in format_dict:
             # nothing to do
             return
         if self.shell.logger.log_output:
@@ -254,6 +264,7 @@ class DisplayHook(Configurable):
         """Finish up all displayhook activities."""
         sys.stdout.write(self.shell.separate_out2)
         sys.stdout.flush()
+        self._is_active = False
 
     def __call__(self, result=None):
         """Printing with history cache management.
@@ -280,13 +291,12 @@ class DisplayHook(Configurable):
         cull_count = max(int(sz * self.cull_fraction), 2)
         warn('Output cache limit (currently {sz} entries) hit.\n'
              'Flushing oldest {cull_count} entries.'.format(sz=sz, cull_count=cull_count))
-        
+
         for i, n in enumerate(sorted(oh)):
             if i >= cull_count:
                 break
             self.shell.user_ns.pop('_%i' % n, None)
             oh.pop(n, None)
-        
 
     def flush(self):
         if not self.do_full_cache:
