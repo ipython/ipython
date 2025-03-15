@@ -827,6 +827,16 @@ def test_timeit_return():
     assert res is not None
 
 
+def test_timeit_save():
+    """
+    test whether timeit -v save object
+    """
+
+    name = "some_variable_name"
+    _ip.run_line_magic("timeit", "-n10 -r10 -v %s 1" % name)
+    assert _ip.user_ns[name] is not None
+
+
 def test_timeit_quiet():
     """
     test quiet option of timeit magic
