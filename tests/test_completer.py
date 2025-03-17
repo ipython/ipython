@@ -1790,6 +1790,7 @@ class TestCompleter(unittest.TestCase):
     "line,expected",
     [
         # Basic test cases
+        ("np.", "attribute"),
         ("np.ran", "attribute"),
         ("np.random.rand(np.random.ran", "attribute"),
         ("np.random.rand(n", "global"),

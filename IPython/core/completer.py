@@ -2374,17 +2374,12 @@ class IPCompleter(Completer):
 
         # Match 'anything-dot-word' at end for attribute context.
         # Ex: 'obj.', 'np.random.ran'.
-        chain_match = re.search(r"(.+)\.(\w*)$", line)
+        chain_match = re.search(r"([a-zA-Z_].*)\.([a-zA-Z_][a-zA-Z0-9_]*)?$", line)
         if chain_match:
-            prefix = chain_match.group(1)
-            # If prefix is a number → GLOBAL (no attributes).
-            # Ex: '3.', '-42.5.'.
-            if re.fullmatch(r"[-+]?\d*\.?\d+", prefix):
-                return self._CompletionContextType.GLOBAL
             return self._CompletionContextType.ATTRIBUTE
 
         # No attribute pattern → GLOBAL.
-        # Ex: 'var', ''.
+        # Ex: 'var', '', '3.', '-42.5.'
         return self._CompletionContextType.GLOBAL
 
     def _is_in_string_or_comment(self, text):
