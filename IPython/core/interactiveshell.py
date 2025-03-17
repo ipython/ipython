@@ -4026,10 +4026,8 @@ class CapturingTee(Tee):
 
         Parameters
         ----------
-        outputs : dict
-            Dictionary to store captured outputs, with execution count as key.
-        execution_count : int
-            The current cell execution number.
+        shell : InteractiveShell
+            The shell instance
         channel : str, optional
             Output channel to capture (default: 'stdout').
         """
@@ -4038,6 +4036,9 @@ class CapturingTee(Tee):
         self.ostream = getattr(sys, channel)  # Original stdout
         setattr(sys, channel, self)  # Redirect stdout to this instance
         self._closed = False
+
+        # Store original methods and attributes for delegation
+        self._original_attrs = dir(self.ostream)
 
     def write(self, data):
         """Write data to both the original stdout and the capture dictionary."""
@@ -4076,6 +4077,14 @@ class CapturingTee(Tee):
         """Restore the original stdout and close."""
         setattr(sys, self.channel, self.ostream)
         self._closed = True
+
+    def __getattr__(self, name):
+        """Delegate any other attribute access to the original stream."""
+        if name in self._original_attrs:
+            return getattr(self.ostream, name)
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{name}'"
+        )
 
 
 class InteractiveShellABC(metaclass=abc.ABCMeta):
