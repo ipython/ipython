@@ -1801,18 +1801,26 @@ class TestCompleter(unittest.TestCase):
         # Dots in string literals
         ('some_var = "this is a string with a dot.', "global"),
         ("text = 'another string with a dot.", "global"),
+        ('f"greeting {user.na', "attribute"),  # Cursor in f-string expression
+        ('t"welcome {guest.na', "attribute"),  # Cursor in t-string expression
+        ('f"hello {name} worl', "global"),  # Cursor in f-string outside expression
         # Backslash escapes in strings
         ('var = "string with \\"escaped quote and a dot.', "global"),
         ("escaped = 'single \\'quote\\' with a dot.", "global"),
         # Multi-line strings
         ('multi = """This is line one\nwith a dot.', "global"),
         ("multi_single = '''Another\nmulti-line\nwith a dot.", "global"),
-        # Inline comments with dots
-        ("x = 5  # This is a comment with a dot.", "global"),
+        # Inline comments
+        ("x = 5  # This is a comment", "global"),
         ("y = obj.method()  # Comment after dot.method", "global"),
+        # Hash symbol within string literals should not be treated as comments
+        ("d['#'] = np.", "attribute"),
         # Nested parentheses with dots
         ("complex_expr = (func((obj.method(param.attr", "attribute"),
         ("multiple_nesting = {key: [value.attr", "attribute"),
+        # Numbers
+        ("3.", "global"),
+        ("-42.14", "global"),
         # Additional cases
         ('str_with_code = "x.attr', "global"),
         ('f"formatted {obj.attr', "attribute"),

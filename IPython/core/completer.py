@@ -2368,45 +2368,42 @@ class IPCompleter(Completer):
         """
         Determine whether the cursor is in an attribute or global completion context.
         """
+        # Cursor in string/comment → GLOBAL.
         if self._is_in_string_or_comment(line):
             return self._CompletionContextType.GLOBAL
-        if line.endswith("."):
-            return self._CompletionContextType.ATTRIBUTE
 
-        last_token_match = re.search(r"([\w]+)$", line)
-        if not last_token_match:
-            return self._CompletionContextType.GLOBAL
-
-        prefix = line[: last_token_match.start()]
-        chain_match = re.search(r"(.*)\.(\w*)$", prefix.rstrip())
+        # Match 'anything-dot-word' at end for attribute context.
+        # Ex: 'obj.', 'np.random.ran'.
+        chain_match = re.search(r"(.+)\.(\w*)$", line)
         if chain_match:
+            prefix = chain_match.group(1)
+            # If prefix is a number → GLOBAL (no attributes).
+            # Ex: '3.', '-42.5.'.
+            if re.fullmatch(r"[-+]?\d*\.?\d+", prefix):
+                return self._CompletionContextType.GLOBAL
             return self._CompletionContextType.ATTRIBUTE
 
+        # No attribute pattern → GLOBAL.
+        # Ex: 'var', ''.
         return self._CompletionContextType.GLOBAL
 
     def _is_in_string_or_comment(self, text):
-        # Check for comments
-        if "#" in text:
-            parts = text.split("#")
-            if len(parts) > 1:
-                return True
-
         in_single_quote = False
         in_double_quote = False
         in_triple_single = False
         in_triple_double = False
-        in_fstring = False
-        in_fstring_expression = False
+        in_template_string = False  # Covers both f-strings and t-strings
+        in_expression = False  # For expressions in f/t-strings
         i = 0
 
         while i < len(text):
-            # Check for f-string start
+            # Check for f-string or t-string start
             if (
                 i + 1 < len(text)
-                and text[i] == "f"
+                and text[i] in ("f", "t")
                 and (text[i + 1] == '"' or text[i + 1] == "'")
             ):
-                in_fstring = True
+                in_template_string = True
                 i += 1
 
             # Handle triple quotes
@@ -2433,11 +2430,11 @@ class IPCompleter(Completer):
                 i += 2
                 continue
 
-            # Handle f-string expressions
-            if in_fstring and text[i] == "{":
-                in_fstring_expression = True
-            elif in_fstring and text[i] == "}":
-                in_fstring_expression = False
+            # Handle expressions in f-strings or t-strings
+            if in_template_string and text[i] == "{":
+                in_expression = True
+            elif in_template_string and text[i] == "}":
+                in_expression = False
 
             # Handle quotes
             if (
@@ -2455,10 +2452,22 @@ class IPCompleter(Completer):
             ):
                 in_single_quote = not in_single_quote
 
+            # Check for comment
+            if text[i] == "#" and (
+                not (
+                    in_single_quote
+                    or in_double_quote
+                    or in_triple_single
+                    or in_triple_double
+                )
+                or in_expression
+            ):
+                return True
+
             i += 1
 
-        # If we're in an f-string expression, return False
-        if in_fstring_expression:
+        # If we're in an expression (f-string or t-string), return False
+        if in_expression:
             return False
 
         # Otherwise, return True if we're in any type of string
