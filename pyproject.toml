@@ -47,7 +47,7 @@ content-type = "text/x-rst"
 [project.urls]
 Homepage = "https://ipython.org"
 Documentation = "https://ipython.readthedocs.io/"
-Funding = "https://numfocus.org/"
+Funding = "https://jupyter.org/about#donate"
 Source = "https://github.com/ipython/ipython"
 Tracker = "https://github.com/ipython/ipython/issues"
 
