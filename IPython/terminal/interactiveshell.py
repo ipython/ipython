@@ -355,7 +355,7 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
     def refresh_style(self):
-        self._style = self._make_style_from_name_or_cls(self.highlighting_style)
+        self._style = self._make_style_from_name_or_cls("legacy")
 
     # TODO: deprecate this
     highlighting_style_overrides = Dict(
@@ -974,7 +974,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 self.alias_manager.soft_define_alias(cmd, cmd)
 
     def __init__(self, *args, **kwargs) -> None:
-        super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._set_autosuggestions(self.autosuggestions_provider)
         self.init_prompt_toolkit_cli()
         self.init_term_title()
