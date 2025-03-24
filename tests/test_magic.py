@@ -924,8 +924,8 @@ def test_notebook_export_json_with_output():
     _ip.colors = "neutral"
 
     commands = [
-        "1+1",
         "display('test')",
+        "1+1",
         "display('a'), display('b')",
         "1/0",
         "print('test')",
@@ -950,7 +950,7 @@ def test_notebook_export_json_with_output():
         expected_nb = nbformat.read(outfile, as_version=4)
 
     for cmd in commands:
-        _ip.run_cell(cmd, store_history=True)
+        _ip.run_cell(cmd, store_history=True, silent=False)
 
     with TemporaryDirectory() as td:
         outfile = os.path.join(td, "nb.ipynb")
