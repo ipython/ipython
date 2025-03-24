@@ -1137,7 +1137,7 @@ class Completer(Configurable):
     def _attr_matches(
         self, text: str, include_prefix: bool = True
     ) -> tuple[Sequence[str], str]:
-        m2 = self._ATTR_MATCH_RE.match(self.line_buffer)
+        m2 = self._ATTR_MATCH_RE.match(text)
         if not m2:
             return [], ""
         expr, attr = m2.group(1, 2)
