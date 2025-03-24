@@ -2383,6 +2383,13 @@ class IPCompleter(Completer):
                 # Recursively determine the context of the expression
                 return self._determine_completion_context(expr)
 
+        # Match tuples followed by a dot (e.g., (a, b).index)
+        tuple_attr_match = re.search(
+            r"\(\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(,\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)+\)\.$", line
+        )
+        if tuple_attr_match:
+            return self._CompletionContextType.ATTRIBUTE
+
         # Match for number literals should come first
         # Handle plain number literals - should be global context
         if re.search(r"^[-+]?\d+\.(\d+)?$", line):
@@ -2391,7 +2398,7 @@ class IPCompleter(Completer):
         # Match numeric literals in parentheses followed by dot
         # Handles cases like (3).to_
         numeric_paren_attr_match = re.search(
-            r"\([-+]?\d+(\.\d*)?\)\.([a-zA-Z_][a-zA-Z0-9_]*)?$", line
+            r"\([-+]?\d+(\.\d*)?\)(\.([a-zA-Z_][a-zA-Z0-9_]*)?)?$", line
         )
         if numeric_paren_attr_match:
             return self._CompletionContextType.ATTRIBUTE
