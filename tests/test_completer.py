@@ -1827,10 +1827,30 @@ class TestCompleter(unittest.TestCase):
         ('f"formatted {obj.attr', "attribute"),
         ('f"formatted {obj.attr}', "global"),
         ("dict_with_dots = {'key.with.dots': value.attr", "attribute"),
+        ("d[f'{a}']['{a.", "global"),
+        ("3.", "global"),
+        ("3.1.", "attribute"),
+        ("-3.1.", "attribute"),
+        ("(3).", "attribute"),
     ],
 )
 def test_completion_context(line, expected):
     """Test completion context"""
+    ip = get_ipython()
+    get_context = ip.Completer._determine_completion_context
+    result = get_context(line)
+    assert result.value == expected, f"Failed on input: '{line}'"
+
+
+@pytest.mark.xfail(reason="Completion context not yet supported")
+@pytest.mark.parametrize(
+    "line, expected",
+    [
+        ("f'{f'a.", "global"),
+    ],
+)
+def test_unsupported_completion_context(line, expected):
+    """Test unsupported completion context"""
     ip = get_ipython()
     get_context = ip.Completer._determine_completion_context
     result = get_context(line)
