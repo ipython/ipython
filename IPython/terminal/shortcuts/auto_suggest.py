@@ -185,6 +185,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         self.skip_lines = 0
         self._connected_apps = []
         self._llm_provider = None
+        self._request_number = 0
 
     def reset_history_position(self, _: Buffer) -> None:
         self.skip_lines = 0
@@ -350,7 +351,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             try:
                 await self._trigger_llm_core(buffer)
             except Exception as e:
-                get_ipython().log.error("error")
+                get_ipython().log.error(f"error {e}")
                 raise
 
         # here we need a cancellable task so we can't just await the error catched
@@ -365,9 +366,8 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         provider to stream it's response back to us iteratively setting it as
         the suggestion on the current buffer.
 
-        Unlike with JupyterAi, as we do not have multiple cell, the cell number
-        is always set to `0`, note that we _could_ set it to a new number each
-        time and ignore threply from past numbers.
+        Unlike with JupyterAi, as we do not have multiple cell, the cell id
+        is always set to `None`.
 
         We set the prefix to the current cell content, but could also inset the
         rest of the history or even just the non-fail history.
@@ -389,10 +389,12 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
         hm = buffer.history.shell.history_manager
         prefix = self._llm_prefixer(hm)
-        print(prefix)
+        get_ipython().log.debug(f"prefix: {prefix}")
 
+        self._request_number += 1
+        request_number = self._request_number
         request = jai_models.InlineCompletionRequest(
-            number=0,
+            number=request_number,
             prefix=prefix + buffer.document.text,
             suffix="",
             mime="text/x-python",
@@ -405,6 +407,9 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         async for reply_and_chunks in self._llm_provider.stream_inline_completions(
             request
         ):
+            if self._request_number != request_number:
+                # If a new suggestion was requested, skip processing this one.
+                return
             if isinstance(reply_and_chunks, jai_models.InlineCompletionReply):
                 if len(reply_and_chunks.list.items) > 1:
                     raise ValueError(
