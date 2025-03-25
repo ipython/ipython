@@ -38,7 +38,6 @@ class FibonacciCompletionProvider(BaseProvider, FakeListLLM):  # type: ignore[mi
         from jupyter_ai.completions.models import (
             InlineCompletionList,
             InlineCompletionReply,
-            InlineCompletionStreamChunk,
         )
 
         assert request.number > 0
@@ -65,6 +64,8 @@ class FibonacciCompletionProvider(BaseProvider, FakeListLLM):  # type: ignore[mi
             yield reply
 
     async def _stream(self, sentence, request_number, token, start_with=""):
+        from jupyter_ai.completions.models import InlineCompletionStreamChunk
+
         suggestion = start_with
 
         for fragment in sentence.split(" "):
