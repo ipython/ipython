@@ -167,7 +167,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
     _connected_apps: list[PromptSession]
 
     # handle to the currently running llm task that appends suggestions to the
-    # current buffer; we keep a handle to it in order to cancell it when there is a cursor movement, or
+    # current buffer; we keep a handle to it in order to cancel it when there is a cursor movement, or
     # another request.
     _llm_task: asyncio.Task | None = None
 
@@ -302,7 +302,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
     def _cancel_running_llm_task(self) -> None:
         """
-        Try to cancell the currently running llm_task if exists, and set it to None.
+        Try to cancel the currently running llm_task if exists, and set it to None.
         """
         if self._llm_task is not None:
             if self._llm_task.done():
@@ -349,7 +349,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
                 get_ipython().log.error("error")
                 raise
 
-        # here we need a cancellable task so we can't just await the error catched
+        # here we need a cancellable task so we can't just await the error caught
         self._llm_task = asyncio.create_task(error_catcher(buffer))
         await self._llm_task
 
@@ -423,7 +423,7 @@ async def llm_autosuggestion(event: KeyPressEvent):
     This will first make sure that the current buffer have _MIN_LINES (7)
     available lines to insert the LLM completion
 
-    Provisional as of 8.32, may change without warnigns
+    Provisional as of 8.32, may change without warnings
 
     """
     _MIN_LINES = 5
