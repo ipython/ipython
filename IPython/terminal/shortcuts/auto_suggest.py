@@ -9,7 +9,7 @@ import prompt_toolkit
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding import KeyPressEvent
 from prompt_toolkit.key_binding.bindings import named_commands as nc
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, Suggestion, AutoSuggest
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, Suggestion
 from prompt_toolkit.document import Document
 from prompt_toolkit.history import History
 from prompt_toolkit.shortcuts import PromptSession
@@ -103,9 +103,6 @@ class AppendAutoSuggestionInAnyLine(Processor):
         if len(suggestions) == 0:
             return noop("noop: no suggestions")
 
-        suggestions_longer_than_buffer: bool = (
-            len(suggestions) + ti.document.cursor_position_row > ti.document.line_count
-        )
         if prompt_toolkit.VERSION < (3, 0, 49):
             if len(suggestions) > 1 and prompt_toolkit.VERSION < (3, 0, 49):
                 if ti.lineno == ti.document.cursor_position_row:
@@ -132,7 +129,6 @@ class AppendAutoSuggestionInAnyLine(Processor):
             return Transformation(fragments=ti.fragments + [(self.style, suggestion)])
         if is_last_line:
             if delta < len(suggestions):
-                extra = f"; {len(suggestions) - delta} line(s) hidden"
                 suggestion = f"… rest of suggestion ({len(suggestions) - delta} lines) and code hidden"
                 return Transformation([(self.style, suggestion)])
 
