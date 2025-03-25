@@ -2383,49 +2383,16 @@ class IPCompleter(Completer):
                 # Recursively determine the context of the expression
                 return self._determine_completion_context(expr)
 
-        # Match tuples followed by a dot (e.g., (a, b).index)
-        tuple_attr_match = re.search(
-            r"\(\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(,\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)+\)\.$", line
-        )
-        if tuple_attr_match:
-            return self._CompletionContextType.ATTRIBUTE
-
-        # Match for number literals should come first
         # Handle plain number literals - should be global context
-        if re.search(r"^[-+]?\d+\.(\d+)?$", line):
+        # Ex: 3. -42.14 but not 3.1.
+        if re.search(r"(?<!\w)(?<!\d\.)([-+]?\d+\.(\d+)?)(?!\w)$", line):
             return self._CompletionContextType.GLOBAL
 
-        # Match numeric literals in parentheses followed by dot
-        # Handles cases like (3).to_
-        numeric_paren_attr_match = re.search(
-            r"\([-+]?\d+(\.\d*)?\)(\.([a-zA-Z_][a-zA-Z0-9_]*)?)?$", line
-        )
-        if numeric_paren_attr_match:
-            return self._CompletionContextType.ATTRIBUTE
-
-        # Match float literals followed by dot and optional attribute
-        # Handles cases like 3.1.as_, -3.1.r_
-        float_attr_match = re.search(r"[-+]?\d+\.\d+\.([a-zA-Z_][a-zA-Z0-9_]*)?$", line)
-        if float_attr_match:
-            return self._CompletionContextType.ATTRIBUTE
-
-        # Handle indexed access followed by dot - like d[0].k
-        indexed_attr_match = re.search(
-            r"[a-zA-Z_][a-zA-Z0-9_]*\[[^\]]+\]\.([a-zA-Z_][a-zA-Z0-9_]*)?$", line
-        )
-        if indexed_attr_match:
-            return self._CompletionContextType.ATTRIBUTE
-
-        # Match 'word-dot-word' at end for attribute context.
-        # Ex: 'obj.', 'np.random.ran'.
-        chain_match = re.search(
-            r"([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)?$", line
-        )
+        # Handle all other attribute matches np.ran, d[0].k, (a,b).count
+        chain_match = re.search(r".*(.+\.(?:[a-zA-Z]\w*)?)$", line)
         if chain_match:
             return self._CompletionContextType.ATTRIBUTE
 
-        # No attribute pattern → GLOBAL.
-        # Ex: 'var', '', '3.', '-42.5.'
         return self._CompletionContextType.GLOBAL
 
     def _is_in_string_or_comment(self, text):
@@ -2488,28 +2455,31 @@ class IPCompleter(Completer):
                 i += 2
                 continue
 
-            # Handle expressions in f-strings or t-strings
-            if (
-                in_template_string
-                and text[i] == "{"
-                and not (in_expression and expression_depth > 0 and text[i - 1] != "{")
-            ):
-                in_expression = True
-                expression_depth += 1
-                i += 1
-                continue
-            elif in_template_string and text[i] == "}" and in_expression:
-                expression_depth -= 1
-                if expression_depth == 0:
-                    in_expression = False
-                i += 1
-                continue
+            # Handle nested braces within f-strings
+            if in_template_string:
+                # Special handling for consecutive opening braces
+                if i + 1 < len(text) and text[i : i + 2] == "{{":
+                    i += 2
+                    continue
 
-            # Handle nested braces within expressions
-            if in_expression and text[i] == "{":
-                expression_depth += 1
-            elif in_expression and text[i] == "}" and expression_depth > 0:
-                expression_depth -= 1
+                # Detect start of an expression
+                if text[i] == "{":
+                    # Only increment depth and mark as expression if not already in an expression
+                    # or if we're at a top-level nested brace
+                    if not in_expression or (in_expression and expression_depth == 0):
+                        in_expression = True
+                        expression_depth += 1
+                    i += 1
+                    continue
+
+                # Detect end of an expression
+                if text[i] == "}":
+                    expression_depth -= 1
+                    if expression_depth <= 0:
+                        in_expression = False
+                        expression_depth = 0
+                    i += 1
+                    continue
 
             # Handle quotes - also reset template string when closing quotes are encountered
             if (
@@ -2555,7 +2525,6 @@ class IPCompleter(Completer):
         )
 
         # Return tuple (is_string, is_in_expression)
-        # For nested f-strings, we're in a string but not necessarily in an expression
         return (
             is_string or (in_template_string and not in_expression),
             in_expression and expression_depth > 0,

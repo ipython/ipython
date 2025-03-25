@@ -1805,6 +1805,8 @@ class TestCompleter(unittest.TestCase):
         ('f"greeting {user.na', "attribute"),  # Cursor in f-string expression
         ('t"welcome {guest.na', "attribute"),  # Cursor in t-string expression
         ('f"hello {name} worl', "global"),  # Cursor in f-string outside expression
+        ('f"hello {{a.', "global"),
+        ('f"hello {{{a.', "attribute"),
         # Backslash escapes in strings
         ('var = "string with \\"escaped quote and a dot.', "global"),
         ("escaped = 'single \\'quote\\' with a dot.", "global"),
@@ -1821,17 +1823,21 @@ class TestCompleter(unittest.TestCase):
         ("multiple_nesting = {key: [value.attr", "attribute"),
         # Numbers
         ("3.", "global"),
+        ("3.14", "global"),
         ("-42.14", "global"),
+        ("x = func(3.14", "global"),
+        ("x = func(a3.", "attribute"),
+        ("x = func(a3.12", "global"),
+        ("3.1.", "attribute"),
+        ("-3.1.", "attribute"),
+        ("(3).", "attribute"),
         # Additional cases
+        ("", "global"),
         ('str_with_code = "x.attr', "global"),
         ('f"formatted {obj.attr', "attribute"),
         ('f"formatted {obj.attr}', "global"),
         ("dict_with_dots = {'key.with.dots': value.attr", "attribute"),
         ("d[f'{a}']['{a.", "global"),
-        ("3.", "global"),
-        ("3.1.", "attribute"),
-        ("-3.1.", "attribute"),
-        ("(3).", "attribute"),
     ],
 )
 def test_completion_context(line, expected):
@@ -1846,7 +1852,9 @@ def test_completion_context(line, expected):
 @pytest.mark.parametrize(
     "line, expected",
     [
-        ("f'{f'a.", "global"),
+        ("f'{f'a.", "global"),  # Nested f-string
+        ("3a.", "global"),  # names starting with numbers or other symbols
+        ("$).", "global"),  # random things with dot at end
     ],
 )
 def test_unsupported_completion_context(line, expected):
