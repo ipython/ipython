@@ -2481,40 +2481,21 @@ class IPCompleter(Completer):
                     i += 1
                     continue
 
+            in_triple_quote = in_triple_single or in_triple_double
+
             # Handle quotes - also reset template string when closing quotes are encountered
-            if (
-                text[i] == '"'
-                and not in_single_quote
-                and not in_triple_single
-                and not in_triple_double
-            ):
+            if text[i] == '"' and not in_single_quote and not in_triple_quote:
                 in_double_quote = not in_double_quote
-                if (
-                    not in_double_quote
-                    and not in_triple_double
-                    and not in_triple_single
-                ):
+                if not in_double_quote and not in_triple_quote:
                     in_template_string = False
-            elif (
-                text[i] == "'"
-                and not in_double_quote
-                and not in_triple_double
-                and not in_triple_single
-            ):
+            elif text[i] == "'" and not in_double_quote and not in_triple_quote:
                 in_single_quote = not in_single_quote
-                if (
-                    not in_single_quote
-                    and not in_triple_single
-                    and not in_triple_double
-                ):
+                if not in_single_quote and not in_triple_quote:
                     in_template_string = False
 
             # Check for comment
             if text[i] == "#" and not (
-                in_single_quote
-                or in_double_quote
-                or in_triple_single
-                or in_triple_double
+                in_single_quote or in_double_quote or in_triple_quote
             ):
                 return True, False
 
