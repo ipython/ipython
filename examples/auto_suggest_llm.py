@@ -53,7 +53,7 @@ imported, get passed a `HistoryManager`, and return a prefix to be added the LLM
 context.
 
 
-For more flexibility, subclass the provider, and access the hisotory of IPython
+For more flexibility, subclass the provider, and access the history of IPython
 via:
 
     ```
@@ -66,8 +66,7 @@ via:
 
 import asyncio
 import textwrap
-from asyncio import FIRST_COMPLETED, Task, create_task, wait
-from typing import Any, AsyncIterable, AsyncIterator, Collection, TypeVar
+from typing import Any, AsyncIterable, AsyncIterator
 
 from jupyter_ai.completions.models import (
     InlineCompletionList,
@@ -79,7 +78,6 @@ from jupyter_ai_magics import BaseProvider
 from langchain_community.llms import FakeListLLM
 
 
-from IPython.terminal.shortcuts import Binding
 from IPython.terminal.shortcuts.filters import (
     navigable_suggestions,
     default_buffer_focused,
