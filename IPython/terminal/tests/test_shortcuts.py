@@ -55,7 +55,7 @@ async def test_llm_autosuggestion():
     provider = NavigableAutoSuggestFromHistory()
     ip = get_ipython()
     ip.auto_suggest = provider
-    ip.llm_provider_class = "tests.fake_llm.FibonacciCompletionProvider"
+    ip.llm_provider_class = "terminal.tests.fake_llm.FibonacciCompletionProvider"
     text = "def fib"
     event = make_event(text, len(text), "")
     event.current_buffer.history.shell.history_manager.get_range = Mock(return_value=[])
