@@ -425,6 +425,7 @@ class TerminalInteractiveShell(InteractiveShell):
         "Default is `'NavigableAutoSuggestFromHistory`'.",
         allow_none=True,
     ).tag(config=True)
+    _autosuggestions_provider: Any
 
     llm_constructor_kwargs = Dict(
         {},
@@ -433,6 +434,31 @@ class TerminalInteractiveShell(InteractiveShell):
 
         This is used to – for example – set the `model_id`""",
     ).tag(config=True)
+
+    llm_prefix_from_history = DottedObjectName(
+        "input_history",
+        help="""\
+    Fully Qualifed name of a function that takes an IPython history manager and
+    return a prefix to pass the llm provider in addition to the current buffer
+    text.
+
+    You can use:
+
+     - no_prefix
+     - input_history
+
+    As default value. `input_history` (default),  will use all the input history
+    of current IPython session
+
+    """,
+    ).tag(config=True)
+    _llm_prefix_from_history: Any
+
+    @observe("llm_prefix_from_history")
+    def _llm_prefix_from_history_changed(self, change):
+        name = change.new
+        self._llm_prefix_from_history = name
+        self._set_autosuggestions()
 
     llm_provider_class = DottedObjectName(
         None,
@@ -448,6 +474,7 @@ class TerminalInteractiveShell(InteractiveShell):
         `stream_inline_completions`
     """,
     ).tag(config=True)
+    _llm_provider_class: Any = None
 
     @observe("llm_provider_class")
     def _llm_provider_class_changed(self, change):
@@ -457,15 +484,12 @@ class TerminalInteractiveShell(InteractiveShell):
                 "TerminalInteractiveShell.llm_provider_class is a provisional"
                 "  API as of IPython 8.32, and may change without warnings."
             )
-            if isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
-                self.auto_suggest._llm_provider = provider_class()
-            else:
-                self.log.warn(
-                    "llm_provider_class only has effects when using"
-                    "`NavigableAutoSuggestFromHistory` as auto_suggest."
-                )
+        self._llm_provider_class = provider_class
+        self._set_autosuggestions()
 
-    def _set_autosuggestions(self, provider):
+    def _set_autosuggestions(self, provider=None):
+        if provider is None:
+            provider = self.autosuggestions_provider
         # disconnect old handler
         if self.auto_suggest and isinstance(
             self.auto_suggest, NavigableAutoSuggestFromHistory
@@ -477,14 +501,35 @@ class TerminalInteractiveShell(InteractiveShell):
             self.auto_suggest = AutoSuggestFromHistory()
         elif provider == "NavigableAutoSuggestFromHistory":
             # LLM stuff are all Provisional in 8.32
-            if self.llm_provider_class:
-                llm_provider_constructor = import_item(self.llm_provider_class)
+            if self._llm_provider_class:
+                llm_provider_constructor = import_item(self._llm_provider_class)
                 llm_provider = llm_provider_constructor(**self.llm_constructor_kwargs)
             else:
                 llm_provider = None
             self.auto_suggest = NavigableAutoSuggestFromHistory()
             # Provisinal in 8.32
             self.auto_suggest._llm_provider = llm_provider
+
+            name = self.llm_prefix_from_history
+
+            if name == "no_prefix":
+                print("set tofun1", self.llm_prefix_from_history)
+
+                def no_prefix(history_manager):
+                    return ""
+
+                fun = no_prefix
+
+            elif name == "input_history":
+
+                def input_history(history_manager):
+                    return "\n".join([s[2] for s in history_manager.get_range()]) + "\n"
+
+                fun = input_history
+
+            else:
+                fun = import_item(name)
+            self.auto_suggest._llm_prefixer = fun
         else:
             raise ValueError("No valid provider.")
         if self.pt_app:
