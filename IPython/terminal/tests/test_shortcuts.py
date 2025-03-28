@@ -7,12 +7,14 @@ from IPython.terminal.shortcuts.auto_suggest import (
     accept_word,
     accept_and_keep_cursor,
     discard,
+    llm_autosuggestion,
     NavigableAutoSuggestFromHistory,
     swap_autosuggestion_up,
     swap_autosuggestion_down,
 )
 from IPython.terminal.shortcuts.auto_match import skip_over
 from IPython.terminal.shortcuts import create_ipython_shortcuts, reset_search_buffer
+from IPython.testing import decorators as dec
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.buffer import Buffer
@@ -39,6 +41,26 @@ def make_event(text, cursor, suggestion):
     event.current_buffer.suggestion.text = suggestion
     event.current_buffer.document = Document(text=text, cursor_position=cursor)
     return event
+
+
+try:
+    from .fake_llm import FIBONACCI
+except ImportError:
+    FIBONACCI = None
+
+
+@dec.skip_without("jupyter_ai")
+@pytest.mark.asyncio
+async def test_llm_autosuggestion():
+    provider = NavigableAutoSuggestFromHistory()
+    ip = get_ipython()
+    ip.auto_suggest = provider
+    ip.llm_provider_class = "tests.fake_llm.FibonacciCompletionProvider"
+    text = "def fib"
+    event = make_event(text, len(text), "")
+    event.current_buffer.history.shell.history_manager.get_range = Mock(return_value=[])
+    await llm_autosuggestion(event)
+    assert event.current_buffer.suggestion.text == FIBONACCI[len(text) :]
 
 
 @pytest.mark.parametrize(
@@ -226,6 +248,7 @@ def test_other_providers():
     assert swap_autosuggestion_down(event) is None
 
 
+@pytest.mark.asyncio
 async def test_navigable_provider():
     provider = NavigableAutoSuggestFromHistory()
     history = InMemoryHistory(history_strings=["very_a", "very", "very_b", "very_c"])
@@ -278,6 +301,7 @@ async def test_navigable_provider():
     assert get_suggestion().text == "_a"
 
 
+@pytest.mark.asyncio
 async def test_navigable_provider_multiline_entries():
     provider = NavigableAutoSuggestFromHistory()
     history = InMemoryHistory(history_strings=["very_a\nvery_b", "very_c"])
