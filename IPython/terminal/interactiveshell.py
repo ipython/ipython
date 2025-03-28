@@ -479,6 +479,11 @@ class TerminalInteractiveShell(InteractiveShell):
     @observe("llm_provider_class")
     def _llm_provider_class_changed(self, change):
         provider_class = change.new
+        if provider_class is not None:
+            warn(
+                "TerminalInteractiveShell.llm_provider_class is a provisional"
+                "  API as of IPython 8.32, and may change without warnings."
+            )
         self._llm_provider_class = provider_class
         self._set_autosuggestions()
 
