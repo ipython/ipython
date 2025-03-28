@@ -351,7 +351,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             try:
                 await self._trigger_llm_core(buffer)
             except Exception as e:
-                get_ipython().log.error(f"error {e}")
+                get_ipython().log.error("error %s", e)
                 raise
 
         # here we need a cancellable task so we can't just await the error catched
@@ -389,7 +389,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
         hm = buffer.history.shell.history_manager
         prefix = self._llm_prefixer(hm)
-        get_ipython().log.debug(f"prefix: {prefix}")
+        get_ipython().log.debug("prefix: %s", prefix)
 
         self._request_number += 1
         request_number = self._request_number
