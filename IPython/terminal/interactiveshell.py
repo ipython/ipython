@@ -513,7 +513,6 @@ class TerminalInteractiveShell(InteractiveShell):
             name = self.llm_prefix_from_history
 
             if name == "no_prefix":
-                print("set tofun1", self.llm_prefix_from_history)
 
                 def no_prefix(history_manager):
                     return ""
