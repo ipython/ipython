@@ -58,6 +58,10 @@ class DisplayTrap(Configurable):
         # Returning False will cause exceptions to propagate
         return False
 
+    @property
+    def is_active(self) -> bool:
+        return self._nested_level != 0
+
     def set(self):
         """Set the hook."""
         if sys.displayhook is not self.hook:

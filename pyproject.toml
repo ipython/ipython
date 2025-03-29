@@ -80,6 +80,8 @@ test_extra = [
     "jupyter_ai",
     "matplotlib!=3.2.0",
     "nbformat",
+    "nbclient",
+    "ipykernel",
     "numpy>=1.23",
     "pandas",
     "trio",
