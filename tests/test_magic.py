@@ -923,51 +923,56 @@ def test_notebook_export_json_with_output():
     _ip.history_manager.reset()
     _ip.colors = "neutral"
 
-    commands = [
-        "display('test')",
-        "1+1",
-        "display('a'), display('b')",
-        "1/0",
-        "print('test')",
-        "import sys\nprint('test', file=sys.stderr)",
-    ]
+    try:
+        commands = [
+            "1/0",
+            "print('test')",
+            "display('test')",
+            "1+1",
+            "display('a'), display('b')",
+            "import sys\nprint('test', file=sys.stderr)",
+        ]
 
-    clean_nb = nbformat.v4.new_notebook(
-        cells=[nbformat.v4.new_code_cell(source=cmd) for cmd in commands]
-    )
-
-    with TemporaryDirectory() as td:
-        outfile = os.path.join(td, "nb.ipynb")
-        client = NotebookClient(
-            clean_nb,
-            timeout=600,
-            kernel_name="python3",
-            resources={"metadata": {"path": td}},
-            allow_errors=True,
+        clean_nb = nbformat.v4.new_notebook(
+            cells=[nbformat.v4.new_code_cell(source=cmd) for cmd in commands]
         )
-        client.execute()
-        nbformat.write(clean_nb, outfile)
-        expected_nb = nbformat.read(outfile, as_version=4)
 
-    for cmd in commands:
-        _ip.run_cell(cmd, store_history=True, silent=False)
+        with TemporaryDirectory() as td:
+            outfile = os.path.join(td, "nb.ipynb")
+            client = NotebookClient(
+                clean_nb,
+                timeout=600,
+                kernel_name="python3",
+                resources={"metadata": {"path": td}},
+                allow_errors=True,
+            )
+            client.execute()
+            nbformat.write(clean_nb, outfile)
+            expected_nb = nbformat.read(outfile, as_version=4)
 
-    with TemporaryDirectory() as td:
-        outfile = os.path.join(td, "nb.ipynb")
-        _ip.run_cell(f"%notebook {outfile}", store_history=True)
-        actual_nb = nbformat.read(outfile, as_version=4)
+        for cmd in commands:
+            _ip.run_cell(cmd, store_history=True, silent=False)
+            print(f"\n{_ip.history_manager.outputs}\n")
 
-    assert len(actual_nb["cells"]) == len(commands)
-    assert len(expected_nb["cells"]) == len(commands)
+        with TemporaryDirectory() as td:
+            outfile = os.path.join(td, "nb.ipynb")
+            _ip.run_cell(f"%notebook {outfile}", store_history=True)
+            sleep(2)
+            actual_nb = nbformat.read(outfile, as_version=4)
 
-    for i, command in enumerate(commands):
-        actual = actual_nb["cells"][i]
-        expected = expected_nb["cells"][i]
-        assert expected["source"] == command
-        assert actual["source"] == expected["source"]
-        assert (
-            actual["outputs"] == expected["outputs"]
-        ), f"Outputs do not match for cell {i+1} with source {command!r}"
+        assert len(actual_nb["cells"]) == len(commands)
+        assert len(expected_nb["cells"]) == len(commands)
+
+        for i, command in enumerate(commands):
+            actual = actual_nb["cells"][i]
+            expected = expected_nb["cells"][i]
+            assert expected["source"] == command
+            assert actual["source"] == expected["source"]
+            assert (
+                actual["outputs"] == expected["outputs"]
+            ), f"Outputs do not match for cell {i+1} with source {command!r}"
+    finally:
+        _ip.colors = "nocolor"
 
 
 class TestEnv(TestCase):
