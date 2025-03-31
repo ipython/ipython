@@ -28,12 +28,13 @@ import traceback
 import types
 import warnings
 from ast import stmt
+from contextlib import contextmanager
 from io import open as io_open
 from logging import error
 from pathlib import Path
 from typing import Callable
 from typing import List as ListType, Any as AnyType
-from typing import Optional, Sequence, Tuple
+from typing import Literal, Optional, Sequence, Tuple
 from warnings import warn
 
 from IPython.external.pickleshare import PickleShareDB
@@ -93,7 +94,6 @@ from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 from IPython.core.oinspect import OInfo
-from IPython.utils.io import Tee
 
 
 sphinxify: Optional[Callable]
@@ -3008,6 +3008,51 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
+    @contextmanager
+    def _tee(self, channel: Literal["stdout", "stderr"]):
+        """Capture output of a given standard stream and store it in history.
+
+        Uses patching of write method for maximal compatibility,
+        because ipykernel checks for instances of the stream class,
+        and stream classes in ipykernel implement more complex logic.
+        """
+        stream = getattr(sys, channel)
+        original_write = stream.write
+
+        def write(data, *args, **kwargs):
+            """Write data to both the original destination and the capture dictionary."""
+            result = original_write(data, *args, **kwargs)
+            if any(
+                [
+                    self.display_pub.is_publishing,
+                    self.displayhook.is_active,
+                    self.showing_traceback,
+                ]
+            ):
+                return result
+            if not data:
+                return result
+            execution_count = self.execution_count
+            output_stream = None
+            outputs_by_counter = self.history_manager.outputs
+            output_type = "out_stream" if channel == "stdout" else "err_stream"
+            if execution_count in outputs_by_counter:
+                outputs = outputs_by_counter[execution_count]
+                if outputs[-1].output_type == output_type:
+                    output_stream = outputs[-1]
+            if output_stream is None:
+                output_stream = HistoryOutput(
+                    output_type=output_type, bundle={"stream": ""}
+                )
+                outputs_by_counter[execution_count].append(output_stream)
+
+            output_stream.bundle["stream"] += data  # Append to existing stream
+            return result
+
+        stream.write = write
+        yield
+        stream.write = original_write
+
     def run_cell(
         self,
         raw_cell,
@@ -3040,18 +3085,15 @@ class InteractiveShell(SingletonConfigurable):
         result : :class:`ExecutionResult`
         """
         result = None
-        tee_out = CapturingTee(self, channel="stdout")
-        tee_err = CapturingTee(self, channel="stderr")
-        try:
-            result = self._run_cell(
-                raw_cell, store_history, silent, shell_futures, cell_id
-            )
-        finally:
-            tee_out.close()
-            tee_err.close()
-            self.events.trigger('post_execute')
-            if not silent:
-                self.events.trigger('post_run_cell', result)
+        with self._tee(channel="stdout"), self._tee(channel="stderr"):
+            try:
+                result = self._run_cell(
+                    raw_cell, store_history, silent, shell_futures, cell_id
+                )
+            finally:
+                self.events.trigger("post_execute")
+                if not silent:
+                    self.events.trigger("post_run_cell", result)
         return result
 
     def _run_cell(
@@ -4018,73 +4060,6 @@ class InteractiveShell(SingletonConfigurable):
     # Overridden in terminal subclass to change prompts
     def switch_doctest_mode(self, mode):
         pass
-
-
-class CapturingTee(Tee):
-    def __init__(self, shell: InteractiveShell, channel="stdout"):
-        """Initialize the CapturingTee to duplicate stdout to a dictionary.
-
-        Parameters
-        ----------
-        shell : InteractiveShell
-            The shell instance
-        channel : str, optional
-            Output channel to capture (default: 'stdout').
-        """
-        self.shell = shell
-        self.channel = channel
-        self.ostream = getattr(sys, channel)  # Original stdout
-        setattr(sys, channel, self)  # Redirect stdout to this instance
-        self._closed = False
-
-        # Store original methods and attributes for delegation
-        self._original_attrs = dir(self.ostream)
-
-    def write(self, data):
-        """Write data to both the original stdout and the capture dictionary."""
-        self.ostream.write(data)  # Display in notebook
-        if any(
-            [
-                self.shell.display_pub.is_publishing,
-                self.shell.displayhook.is_active,
-                self.shell.showing_traceback,
-            ]
-        ):
-            return
-        if not data:
-            return
-        execution_count = self.shell.execution_count
-        output_stream = None
-        outputs_by_counter = self.shell.history_manager.outputs
-        output_type = "out_stream" if self.channel == "stdout" else "err_stream"
-        if execution_count in outputs_by_counter:
-            outputs = outputs_by_counter[execution_count]
-            if outputs[-1].output_type == output_type:
-                output_stream = outputs[-1]
-        if output_stream is None:
-            output_stream = HistoryOutput(
-                output_type=output_type, bundle={"stream": ""}
-            )
-            outputs_by_counter[execution_count].append(output_stream)
-
-        output_stream.bundle["stream"] += data  # Append to existing stream
-
-    def flush(self):
-        """Flush both streams."""
-        self.ostream.flush()
-
-    def close(self):
-        """Restore the original stdout and close."""
-        setattr(sys, self.channel, self.ostream)
-        self._closed = True
-
-    def __getattr__(self, name):
-        """Delegate any other attribute access to the original stream."""
-        if name in self._original_attrs:
-            return getattr(self.ostream, name)
-        raise AttributeError(
-            f"'{self.__class__.__name__}' object has no attribute '{name}'"
-        )
 
 
 class InteractiveShellABC(metaclass=abc.ABCMeta):
