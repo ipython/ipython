@@ -103,7 +103,7 @@ else:
             "You can use latex or unicode completion, `\\alpha<tab>` will insert the α symbol.",
             "You can find how to type a latex symbol by back completing it `\\θ<tab>` will expand to `\\theta`.",
             "You can find how to type a unicode symbol by back completing it `\\Ⅷ<tab>` will expand to `\\ROMAN NUMERAL EIGHT`.",
-            "IPython support combining unicode identifiers, F\\vec<tab> will become F⃗, usefull for physics equations. Play with \\dot \\ddot and others.",
+            "IPython support combining unicode identifiers, F\\vec<tab> will become F⃗, useful for physics equations. Play with \\dot \\ddot and others.",
         ]
     )
 
