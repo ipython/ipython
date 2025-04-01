@@ -28,12 +28,13 @@ import traceback
 import types
 import warnings
 from ast import stmt
+from contextlib import contextmanager
 from io import open as io_open
 from logging import error
 from pathlib import Path
 from typing import Callable
 from typing import List as ListType, Any as AnyType
-from typing import Optional, Sequence, Tuple
+from typing import Literal, Optional, Sequence, Tuple
 from warnings import warn
 
 from IPython.external.pickleshare import PickleShareDB
@@ -71,7 +72,7 @@ from IPython.core.error import InputRejected, UsageError
 from IPython.core.events import EventManager, available_events
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
-from IPython.core.history import HistoryManager
+from IPython.core.history import HistoryManager, HistoryOutput
 from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
@@ -323,6 +324,7 @@ def _modified_open(file, *args, **kwargs):
         )
 
     return io_open(file, *args, **kwargs)
+
 
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
@@ -661,6 +663,7 @@ class InteractiveShell(SingletonConfigurable):
         # inside a single Trio event loop. If used, it is set from
         # `ipykernel.kernelapp`.
         self.trio_runner = None
+        self.showing_traceback = False
 
     @property
     def user_ns(self):
@@ -868,7 +871,7 @@ class InteractiveShell(SingletonConfigurable):
             cache_size=self.cache_size,
         )
         self.configurables.append(self.displayhook)
-        # This is a context manager that installs/revmoes the displayhook at
+        # This is a context manager that installs/removes the displayhook at
         # the appropriate time.
         self.display_trap = DisplayTrap(hook=self.displayhook)
 
@@ -2200,10 +2203,12 @@ class InteractiveShell(SingletonConfigurable):
         place, like a side channel.
         """
         val = self.InteractiveTB.stb2text(stb)
+        self.showing_traceback = True
         try:
             print(val)
         except UnicodeEncodeError:
             print(val.encode("utf-8", "backslashreplace").decode())
+        self.showing_traceback = False
 
     def showsyntaxerror(self, filename=None, running_compiled_code=False):
         """Display the syntax error that just occurred.
@@ -3006,6 +3011,51 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
+    @contextmanager
+    def _tee(self, channel: Literal["stdout", "stderr"]):
+        """Capture output of a given standard stream and store it in history.
+
+        Uses patching of write method for maximal compatibility,
+        because ipykernel checks for instances of the stream class,
+        and stream classes in ipykernel implement more complex logic.
+        """
+        stream = getattr(sys, channel)
+        original_write = stream.write
+
+        def write(data, *args, **kwargs):
+            """Write data to both the original destination and the capture dictionary."""
+            result = original_write(data, *args, **kwargs)
+            if any(
+                [
+                    self.display_pub.is_publishing,
+                    self.displayhook.is_active,
+                    self.showing_traceback,
+                ]
+            ):
+                return result
+            if not data:
+                return result
+            execution_count = self.execution_count
+            output_stream = None
+            outputs_by_counter = self.history_manager.outputs
+            output_type = "out_stream" if channel == "stdout" else "err_stream"
+            if execution_count in outputs_by_counter:
+                outputs = outputs_by_counter[execution_count]
+                if outputs[-1].output_type == output_type:
+                    output_stream = outputs[-1]
+            if output_stream is None:
+                output_stream = HistoryOutput(
+                    output_type=output_type, bundle={"stream": ""}
+                )
+                outputs_by_counter[execution_count].append(output_stream)
+
+            output_stream.bundle["stream"] += data  # Append to existing stream
+            return result
+
+        stream.write = write
+        yield
+        stream.write = original_write
+
     def run_cell(
         self,
         raw_cell,
@@ -3043,14 +3093,15 @@ class InteractiveShell(SingletonConfigurable):
         result : :class:`ExecutionResult`
         """
         result = None
-        try:
-            result = self._run_cell(
-                raw_cell, store_history, silent, shell_futures, cell_id
-            )
-        finally:
-            self.events.trigger('post_execute')
-            if not silent:
-                self.events.trigger('post_run_cell', result)
+        with self._tee(channel="stdout"), self._tee(channel="stderr"):
+            try:
+                result = self._run_cell(
+                    raw_cell, store_history, silent, shell_futures, cell_id
+                )
+            finally:
+                self.events.trigger("post_execute")
+                if not silent:
+                    self.events.trigger("post_run_cell", result)
         return result
 
     def _run_cell(
@@ -3208,6 +3259,11 @@ class InteractiveShell(SingletonConfigurable):
 
         def error_before_exec(value):
             if store_history:
+                if self.history_manager:
+                    # Store formatted traceback and error details
+                    self.history_manager.exceptions[self.execution_count] = (
+                        self._format_exception_for_storage(value)
+                    )
                 self.execution_count += 1
             result.error_before_exec = value
             self.last_execution_succeeded = False
@@ -3318,10 +3374,72 @@ class InteractiveShell(SingletonConfigurable):
             # Write output to the database. Does nothing unless
             # history output logging is enabled.
             self.history_manager.store_output(self.execution_count)
+            exec_count = self.execution_count
+            if result.error_in_exec:
+                # Store formatted traceback and error details
+                self.history_manager.exceptions[exec_count] = (
+                    self._format_exception_for_storage(result.error_in_exec)
+                )
+
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
 
         return result
+
+    def _format_exception_for_storage(
+        self, exception, filename=None, running_compiled_code=False
+    ):
+        """
+        Format an exception's traceback and details for storage, with special handling
+        for different types of errors.
+        """
+        etype = type(exception)
+        evalue = exception
+        tb = exception.__traceback__
+
+        # Handle SyntaxError and IndentationError with specific formatting
+        if issubclass(etype, (SyntaxError, IndentationError)):
+            if filename and isinstance(evalue, SyntaxError):
+                try:
+                    evalue.filename = filename
+                except:
+                    pass  # Keep the original filename if modification fails
+
+            # Extract traceback if the error happened during compiled code execution
+            elist = traceback.extract_tb(tb) if running_compiled_code else []
+            stb = self.SyntaxTB.structured_traceback(etype, evalue, elist)
+
+        # Handle UsageError with a simple message
+        elif etype is UsageError:
+            stb = [f"UsageError: {evalue}"]
+
+        else:
+            # Check if the exception (or its context) is an ExceptionGroup.
+            def contains_exceptiongroup(val):
+                if val is None:
+                    return False
+                return isinstance(val, BaseExceptionGroup) or contains_exceptiongroup(
+                    val.__context__
+                )
+
+            if contains_exceptiongroup(evalue):
+                # Fallback: use the standard library's formatting for exception groups.
+                stb = traceback.format_exception(etype, evalue, tb)
+            else:
+                try:
+                    # If the exception has a custom traceback renderer, use it.
+                    if hasattr(evalue, "_render_traceback_"):
+                        stb = evalue._render_traceback_()
+                    else:
+                        # Otherwise, use InteractiveTB to format the traceback.
+                        stb = self.InteractiveTB.structured_traceback(
+                            etype, evalue, tb, tb_offset=1
+                        )
+                except Exception:
+                    # In case formatting fails, fallback to Python's built-in formatting.
+                    stb = traceback.format_exception(etype, evalue, tb)
+
+        return {"ename": etype.__name__, "evalue": str(evalue), "traceback": stb}
 
     def transform_cell(self, raw_cell):
         """Transform an input cell before parsing it.

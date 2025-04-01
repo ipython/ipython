@@ -59,9 +59,9 @@ class HistoryTrim(BaseIPythonApplication):
             print("There are already at most %d entries in the history database." % self.keep)
             print("Not doing anything. Use --keep= argument to keep fewer entries")
             return
-        
+
         print("Trimming history to the most recent %d entries." % self.keep)
-        
+
         inputs.pop() # Remove the extra element we got to check the length.
         inputs.reverse()
         if inputs:
@@ -71,7 +71,7 @@ class HistoryTrim(BaseIPythonApplication):
             sessions = list(con.execute('SELECT session, start, end, num_cmds, remark FROM '
                                         'sessions WHERE session >= ?', (first_session,)))
         con.close()
-        
+
         # Create the new history database.
         new_hist_file = profile_dir / "history.sqlite.new"
         i = 0
