@@ -48,7 +48,7 @@ _tips: Any = {
         (
             10,
             11,
-        ): "IPython first line of code was written {} years ago by Fernando Pérez".format(
+        ): "IPython's first line of code was written {} years ago by Fernando Pérez".format(
             datetime.now().year - 2001
         ),
         (
@@ -60,11 +60,11 @@ _tips: Any = {
         (
             3,
             8,
-        ): "Today is international Women's Day: https://www.internationalwomensday.com/",
+        ): "Today is International Women's Day: https://www.internationalwomensday.com/",
         (
             3,
             31,
-        ): "Happy trans day of visibility! You are valid. You matter. https://en.wikipedia.org/wiki/International_Transgender_Day_of_Visibility",
+        ): "Happy International Transgender Day of Visibility! You are valid. You matter. https://en.wikipedia.org/wiki/International_Transgender_Day_of_Visibility",
     },
     "random": [
         "Use `F2` or %edit with no arguments to open an empty editor with a temporary file.",
@@ -73,22 +73,22 @@ _tips: Any = {
         "Use the IPython.lib.demo.Demo class to load any Python script as an interactive demo.",
         "Put a ';' at the end of a line to suppress the printing of output.",
         "You can use Ctrl-O to force a new line in terminal IPython",
-        "Use `object?` to see the help on `object`, `object??` to view it's source",
+        "Use `object?` to see the help on `object`, `object??` to view its source",
         "`?` alone on a line will brings up IPython's help",
         "You can use `%hist` to view history, see the options with `%history?`",
         "You can change the editing mode of IPython to behave more like vi, or emacs.",
-        "IPython 9.0+ have hooks to integrate AI/LLM completions.",
+        "IPython 9.0+ has hooks to integrate AI/LLM completions.",
         "Use `%timeit` or `%%timeit`, and the  `-r`, `-n`, and `-o` options to easily profile your code.",
-        "Use `ipython --help-all | less` to view all the IPython configurations options.",
-        "Use `--theme`, or the `%colors` magic to change ipython themes and colors.",
-        "The `%timeit` magic has an `-o` flag, which returns the results, making it easy to plot. See `%timeit?`.",
+        "Use `ipython --help-all | less` to view all the IPython configuration options.",
+        "Use `--theme`, or the `%colors` magic to change IPython's themes and colors.",
+        "The `%timeit` magic has a `-o` flag, which returns the results, making it easy to plot. See `%timeit?`.",
     ],
 }
 
 if os.name == "nt":
     _tips["random"].extend(
         [
-            "We can't show you all tips on windows as sometime Unicode characters crash windows console, please help us debug it."
+            "We can't show you all tips on Windows as sometimes Unicode characters crash the Windows console, please help us debug it."
         ]
     )
     # unicode may crash windows console, so we filter out tips with non-ASCII characters.
@@ -100,10 +100,10 @@ if os.name == "nt":
 else:
     _tips["random"].extend(
         [
-            "You can use latex or unicode completion, `\\alpha<tab>` will insert the α symbol.",
-            "You can find how to type a latex symbol by back completing it `\\θ<tab>` will expand to `\\theta`.",
-            "You can find how to type a unicode symbol by back completing it `\\Ⅷ<tab>` will expand to `\\ROMAN NUMERAL EIGHT`.",
-            "IPython support combining unicode identifiers, F\\vec<tab> will become F⃗, useful for physics equations. Play with \\dot \\ddot and others.",
+            "You can use LaTeX or Unicode completion, `\\alpha<tab>` will insert the α symbol.",
+            "You can find how to type a LaTeX symbol by back-completing it, eg `\\θ<tab>` will expand to `\\theta`.",
+            "You can find how to type a Unicode symbol by back-completing it, eg `\\Ⅷ<tab>` will expand to `\\ROMAN NUMERAL EIGHT`.",
+            "IPython supports combining unicode identifiers, eg F\\vec<tab> will become F⃗, useful for physics equations. Play with \\dot \\ddot and others.",
         ]
     )
 
