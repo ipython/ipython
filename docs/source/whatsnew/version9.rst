@@ -7,7 +7,7 @@
 IPython 9.1
 ===========
 
-This is a small release including enhancements to ``%notebook`` and ``%%timeit`` magics
+This is a small release that introduces enhancements to ``%notebook`` and ``%%timeit`` magics,
 and a number of bug fixes related to colors/formatting, performance, and completion.
 
 ``%notebook`` saves outputs
@@ -16,8 +16,8 @@ and a number of bug fixes related to colors/formatting, performance, and complet
 The ``%notebook`` magic can be used to create a Jupyter notebook from the
 commands executed in the current IPython session (since the interpreter startup).
 
-Prior to IPython 9.1 the resulting notebook did not include the outputs,
-streams, nor exceptions. IPython 9.1 completes the implementation of this
+Prior to IPython 9.1, the resulting notebook did not include the outputs,
+streams, or exceptions. IPython 9.1 completes the implementation of this
 magic allowing for an easier transition from an interactive IPython session
 to a Jupyter notebook.
 
@@ -32,8 +32,8 @@ your feedback and suggestions would be greatly appreciated.
 ``%%timeit -v`` argument
 ------------------------
 
-New ``-v`` argument allows to save the timing result directly to a variable
-specified by name following the argument, e.g.
+New ``-v`` argument allows users to save the timing result
+directly to a specified variable, e.g.
 
 .. code::
 
@@ -44,23 +44,23 @@ specified by name following the argument, e.g.
 Completer improvements
 ----------------------
 
-The LLM completer will now receive the request number for each subsequent
+The LLM-based completer will now receive the request number for each subsequent
 execution.
 
 The tab completer used when jedi is turned off now correctly completes
-variables in lines where it previously incorrectly was attempting to
-complete attributes due to simplistic context detection based on dot presence.
+variables in lines where it previously was incorrectly attempting to complete
+attributes due to simplistic context detection based on the presence of a dot.
 
 Thanks
 ------
 
-Big thank you to everyone who contributed towards 9.1 release,
+A big thank you to everyone who contributed towards the 9.1 release,
 including new contributors: @Darshan808, @kwinkunks, @carschandler,
 returning contributors (shout out to @wjandrea!), and of course
-@Carreau whom I wanted to thank for the guidance in preparation
+@Carreau whom I would like to thank for the guidance in the preparation
 of this release and stewardship of IPython over the years - Mike.
 
-As usual you can find the full list of PRs on GitHub under `the 9.1
+As usual, you can find the full list of PRs on GitHub under `the 9.1
 <https://github.com/ipython/ipython/milestone/142?closed=1>`__ milestone.
 
 
