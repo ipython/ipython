@@ -44,12 +44,13 @@ specified by name following the argument, e.g.
 Completer improvements
 ----------------------
 
-- The LLM completer will now receive the request number for each subsequent
-execution
-- The tab completer used when jedi is turned off now correctly completes
-  variables in lines where it previously incorrectly was attempting to
-  complete attributes due to simplistic context detection based on dot presence.
- 
+The LLM completer will now receive the request number for each subsequent
+execution.
+
+The tab completer used when jedi is turned off now correctly completes
+variables in lines where it previously incorrectly was attempting to
+complete attributes due to simplistic context detection based on dot presence.
+
 Thanks
 ------
 
