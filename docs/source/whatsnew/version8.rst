@@ -7,9 +7,9 @@
 IPython 8.35
 ============
 
-This small beginning of April release includes a few backports of bug fixes for tab and LLM completions:
+This small early April release includes a few backports of bug fixes for tab and LLM completions:
 
-- :ghpull:`14838` Fixed tab-completion of global variables in lines with dot when jedi is off
+- :ghpull:`14838` Fixed tab-completion of global variables in lines with a dot when jedi is off
 - :ghpull:`14846` Fixed LLM request number always being set to zero and removed spurious logging
 - :ghpull:`14851` Passes current input history to LLMs
 
@@ -21,8 +21,8 @@ IPython 8.34
 
 This tiny beginning of March release included two bug fixes:
 
-- :ghpull:`14823` Fixed right arrow incorrectly accept invisible auto-suggestions
-- :ghpull:`14828` Fixed QT backend crash
+- :ghpull:`14823` Fixed right arrow incorrectly accepting invisible auto-suggestions
+- :ghpull:`14828` Fixed Qt backend crash
 
 along with a backport of improved documentation and configurability of LLM completions.
 
@@ -36,7 +36,7 @@ This small end of February release included a few backports of bug fixes and min
 - :ghpull:`14717` Fixed auto-suggestion on Prompt Toolkit < 3.0.49
 - :ghpull:`14738` Fixed Python 3.13 compatibility of ``local_ns``
 - :ghpull:`14700` Improved Qt object management and performance
-- :ghpull:`14790` Better Docs and configurability of LLM
+- :ghpull:`14790` Better documentation and configurability of LLM completions
 
 
 .. _version 8.32:
