@@ -2,6 +2,68 @@
  9.x Series
 ============
 
+.. _version91:
+
+IPython 9.1
+===========
+
+This is a small release that introduces enhancements to ``%notebook`` and ``%%timeit`` magics,
+and a number of bug fixes related to colors/formatting, performance, and completion.
+
+``%notebook`` saves outputs
+---------------------------
+
+The ``%notebook`` magic can be used to create a Jupyter notebook from the
+commands executed in the current IPython session (since the interpreter startup).
+
+Prior to IPython 9.1, the resulting notebook did not include the outputs,
+streams, or exceptions. IPython 9.1 completes the implementation of this
+magic allowing for an easier transition from an interactive IPython session
+to a Jupyter notebook.
+
+To capture streams (stdio/stderr), IPython temporarily swaps the `write`
+method of the active stream class during code execution. This ensures
+compatibility with ipykernel which swaps the entire stream implementation
+and requires it to remain an instance of ``IOStream`` subclass.
+If this leads to undesired behaviour in any downstream applications,
+your feedback and suggestions would be greatly appreciated.
+
+
+``%%timeit -v`` argument
+------------------------
+
+New ``-v`` argument allows users to save the timing result
+directly to a specified variable, e.g.
+
+.. code::
+
+   %%timeit -v timing_result
+   2**32
+
+
+Completer improvements
+----------------------
+
+The LLM-based completer will now receive the request number for each subsequent
+execution.
+
+The tab completer used when jedi is turned off now correctly completes
+variables in lines where it previously was incorrectly attempting to complete
+attributes due to simplistic context detection based on the presence of a dot.
+
+Thanks
+------
+
+A big thank you to everyone who contributed towards the 9.1 release,
+including new contributors: @Darshan808, @kwinkunks, @carschandler,
+returning contributors (shout out to @wjandrea!), and of course
+@Carreau whom I would like to thank for the guidance in the preparation
+of this release and stewardship of IPython over the years - Mike.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.1
+<https://github.com/ipython/ipython/milestone/142?closed=1>`__ milestone.
+
+
 .. _version90:
 
 IPython 9.0
@@ -9,7 +71,7 @@ IPython 9.0
 
 Welcome to IPython 9.0. As with any version of IPython before this release, it
 should not be majorly different from the previous version, at least on the surface. 
-We still hope you can upgrade as soon as possible amd look forward to your feedback.
+We still hope you can upgrade as soon as possible and look forward to your feedback.
 
 I take the opportunity of this new release to remind you that IPython is
 governed by the `Jupyter code of conduct
