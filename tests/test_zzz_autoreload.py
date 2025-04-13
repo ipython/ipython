@@ -51,6 +51,7 @@ class FakeShell:
     def __init__(self):
         self.ns = {}
         self.user_ns = self.ns
+        self.user_ns["In"] = []
         self.user_ns_hidden = {}
         self.events = EventManager(self, {"pre_run_cell", pre_run_cell})
         self.auto_magics = AutoreloadMagics(shell=self)
@@ -81,6 +82,7 @@ class FakeShell:
         )
         exec(code, self.user_ns)
         self.auto_magics.post_execute_hook()
+        self.user_ns["In"].append(code)
 
     def push(self, items):
         self.ns.update(items)
@@ -416,6 +418,149 @@ class TestAutoreload(Fixture):
         self.shell.run_code("assert ext_func() == 'ext'")
         self.shell.run_code("t = ExtTest(); assert t.meth() == 'ext'")
         self.shell.run_code("assert ext_int == 2")
+
+    def test_autoload3_import_Y_as_Z(self):
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"from {mod_name} import n as foo")
+        self.shell.run_code("foo")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+
+        new_code = """
+        n = 100
+        def func2(): pass
+        def func1(): pass
+        m = 5
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+
+        self.shell.run_code("foo")
+        with self.assertRaises(NameError):
+            self.shell.run_code("n")
+
+    def test_autoload3_import_Y_as_Z_overloading(self):
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"from {mod_name} import n as foo")
+        self.shell.run_code("foo")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+
+        new_code = """
+        n = 100
+        def func2(): pass
+        def func1(): pass
+        foo = 45
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+        self.shell.run_code(f"assert foo == 100")
+        self.shell.run_code(f"from {mod_name} import foo")
+        self.shell.run_code(f"assert foo == 45")
+
+    def test_autoload3_normalimport(self):
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"import {mod_name}")
+        self.shell.run_code(f"{mod_name}.func1()")
+        self.shell.run_code(f"{mod_name}.n")
+
+        new_code = """
+        n = 100
+        def func2(): pass
+        def func1(): pass
+        m = 5
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+
+        self.shell.run_code(f"{mod_name}.func1()")
+        self.shell.run_code(f"{mod_name}.n")
+        self.shell.run_code(f"{mod_name}.func2()")
+        self.shell.run_code(f"{mod_name}.m")
+
+        self.shell.run_code(f"from {mod_name} import n")
+        self.shell.run_code(f"{mod_name}.func1()")
+        self.shell.run_code(f"n")
+
+    def test_autoload3_normalimport_2(self):
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"from {mod_name} import n")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+        self.shell.run_code("n")
+
+        new_code = """
+        n = 100
+        def func2(): pass
+        def func1(): pass
+        m = 5
+        """
+        self.shell.run_code(f"import {mod_name}")
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+        self.shell.run_code(f"{mod_name}.func1()")
+        self.shell.run_code(f"{mod_name}.n")
+        self.shell.run_code(f"{mod_name}.func2()")
+        self.shell.run_code(f"{mod_name}.m")
+        self.shell.run_code(f"n")
+
+    def test_autoload_3_does_not_add_all(self):
+        # Tests that %autoreload 3 does not effectively run from X import *
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"from {mod_name} import n")
+        self.shell.run_code("n")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func()")
+
+        new_code = """
+        n = 1
+        def func2(): pass
+        def func1(): pass
+        m = 5
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+        self.shell.run_code("n")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func2()")
+        with self.assertRaises(NameError):
+            self.shell.run_code("m")
+
+        self.shell.run_code(f"from {mod_name} import m")
+        self.shell.run_code("n")
+        self.shell.run_code("m")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func2()")
+
+        self.shell.run_code(f"from {mod_name} import func1,func2")
+        self.shell.run_code("n")
+        self.shell.run_code("m")
+        self.shell.run_code("func1()")
+        self.shell.run_code("func2()")
 
     def test_verbose_names(self):
         # Asserts correspondense between original mode names and their verbose equivalents.
