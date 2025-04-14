@@ -98,9 +98,15 @@ jobs:
       env:
         COLUMNS: 120
       run: |
-        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --maxfail=15
+        pytest --color=yes -raXs \
+        ${{ startsWith(matrix.python-version, 'pypy') && '' || '--cov --cov-report=xml --junitxml=test-results.xml' }} \
+        --maxfail=15
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       with:
          name: Test
          files: /home/runner/work/ipython/ipython/coverage.xml
+    - name: Upload test results to Codecov
+      uses: codecov/test-results-action@v1
+      with:
+         files: test-results.xml
