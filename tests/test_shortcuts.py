@@ -40,7 +40,7 @@ def make_event(text, cursor, suggestion):
 try:
     from .fake_llm import FIBONACCI
 except ImportError:
-    FIBONACCI = ''
+    FIBONACCI = ""
 
 
 @dec.skip_without("jupyter_ai")

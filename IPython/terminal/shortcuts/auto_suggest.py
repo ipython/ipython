@@ -332,9 +332,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             warnings.warn("No LLM provider found, cannot trigger LLM completions")
             return
         if jai_models is None:
-            warnings.warn(
-                "LLM Completion requires `jupyter_ai` to be installed"
-            )
+            warnings.warn("LLM Completion requires `jupyter_ai` to be installed")
 
         self._cancel_running_llm_task()
 
