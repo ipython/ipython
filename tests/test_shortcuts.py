@@ -1,4 +1,5 @@
 import pytest
+from IPython.terminal.interactiveshell import PtkHistoryAdapter
 from IPython.terminal.shortcuts.auto_suggest import (
     accept,
     accept_or_jump_to_end,
@@ -39,7 +40,7 @@ def make_event(text, cursor, suggestion):
 try:
     from .fake_llm import FIBONACCI
 except ImportError:
-    FIBONACCI = None
+    FIBONACCI = ''
 
 
 @dec.skip_without("jupyter_ai")
@@ -49,9 +50,13 @@ async def test_llm_autosuggestion():
     ip = get_ipython()
     ip.auto_suggest = provider
     ip.llm_provider_class = "tests.fake_llm.FibonacciCompletionProvider"
+    ip.history_manager.get_range = Mock(return_value=[])
     text = "def fib"
-    event = make_event(text, len(text), "")
-    event.current_buffer.history.shell.history_manager.get_range = Mock(return_value=[])
+    event = Mock()
+    event.current_buffer = Buffer(
+        history=PtkHistoryAdapter(ip),
+    )
+    event.current_buffer.insert_text(text, move_cursor=True)
     await llm_autosuggestion(event)
     assert event.current_buffer.suggestion.text == FIBONACCI[len(text) :]
 
