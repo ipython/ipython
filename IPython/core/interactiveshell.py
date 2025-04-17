@@ -3152,14 +3152,17 @@ class InteractiveShell(SingletonConfigurable):
         try:
             result = runner(coro)
         except BaseException as e:
-            info = ExecutionInfo(
-                raw_cell, store_history, silent, shell_futures, cell_id
-            )
-            result = ExecutionResult(info)
-            result.error_in_exec = e
-            self.showtraceback(running_compiled_code=True)
-        finally:
-            return result
+            try:
+                info = ExecutionInfo(
+                    raw_cell, store_history, silent, shell_futures, cell_id
+                )
+                result = ExecutionResult(info)
+                result.error_in_exec = e
+                self.showtraceback(running_compiled_code=True)
+            except:
+                pass
+
+        return result
 
     def should_run_async(
         self, raw_cell: str, *, transformed_cell=None, preprocessing_exc_tuple=None
