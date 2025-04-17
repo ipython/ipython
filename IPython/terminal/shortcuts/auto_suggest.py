@@ -395,7 +395,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         request = jai_models.InlineCompletionRequest(
             number=request_number,
             prefix=prefix + buffer.document.text_before_cursor,
-            suffix="",
+            suffix=buffer.document.text_after_cursor,
             mime="text/x-python",
             stream=True,
             path=None,
