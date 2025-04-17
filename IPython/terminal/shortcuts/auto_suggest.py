@@ -174,7 +174,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
     # This is the instance of the LLM provider from jupyter-ai to which we forward the request
     # to generate inline completions.
     _llm_provider: Any | None
-    _llm_prefixer: callable = lambda self, x: "wrong"
+    _llm_prefixer: Callable = lambda self, x: "wrong"
 
     def __init__(self):
         super().__init__()
@@ -325,7 +325,6 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         """
         # we likely want to store the current cursor position, and cancel if the cursor has moved.
         try:
-            import jupyter_ai_magics
             import jupyter_ai.completions.models as jai_models
         except ModuleNotFoundError:
             jai_models = None
@@ -333,9 +332,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
             warnings.warn("No LLM provider found, cannot trigger LLM completions")
             return
         if jai_models is None:
-            warnings.warn(
-                "LLM Completion requires `jupyter_ai_magics` and `jupyter_ai` to be installed"
-            )
+            warnings.warn("LLM Completion requires `jupyter_ai` to be installed")
 
         self._cancel_running_llm_task()
 
@@ -365,7 +362,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         Unlike with JupyterAi, as we do not have multiple cell, the cell id
         is always set to `None`.
 
-        We set the prefix to the current cell content, but could also inset the
+        We set the prefix to the current cell content, but could also insert the
         rest of the history or even just the non-fail history.
 
         In the same way, we do not have cell id.
@@ -378,10 +375,15 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         providers.
         """
         try:
-            import jupyter_ai_magics
             import jupyter_ai.completions.models as jai_models
         except ModuleNotFoundError:
             jai_models = None
+
+        if not jai_models:
+            raise ValueError("jupyter-ai is not installed")
+
+        if not self._llm_provider:
+            raise ValueError("No LLM provider found, cannot trigger LLM completions")
 
         hm = buffer.history.shell.history_manager
         prefix = self._llm_prefixer(hm)
@@ -389,10 +391,11 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
         self._request_number += 1
         request_number = self._request_number
+
         request = jai_models.InlineCompletionRequest(
             number=request_number,
-            prefix=prefix + buffer.document.text,
-            suffix="",
+            prefix=prefix + buffer.document.text_before_cursor,
+            suffix=buffer.document.text_after_cursor,
             mime="text/x-python",
             stream=True,
             path=None,
@@ -438,7 +441,7 @@ async def llm_autosuggestion(event: KeyPressEvent):
     doc = event.current_buffer.document
     lines_to_insert = max(0, _MIN_LINES - doc.line_count + doc.cursor_position_row)
     for _ in range(lines_to_insert):
-        event.current_buffer.insert_text("\n", move_cursor=False)
+        event.current_buffer.insert_text("\n", move_cursor=False, fire_event=False)
 
     await provider._trigger_llm(event.current_buffer)
 

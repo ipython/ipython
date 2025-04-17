@@ -42,7 +42,7 @@ class FibonacciCompletionProvider(BaseProvider, FakeListLLM):  # type: ignore[mi
 
         assert request.number > 0
         token = f"t{request.number}s0"
-        last_line = request.prefix.rstrip("\n").splitlines()[-1]
+        last_line = request.prefix.splitlines()[-1]
 
         if not FIBONACCI.startswith(last_line):
             return
