@@ -70,8 +70,7 @@ jobs:
         python -m pip install --only-binary ':all:' --upgrade pip setuptools wheel build
         python -m pip install --only-binary ':all:' --no-binary curio --upgrade -e .[${{ matrix.deps }}]
         python -m pip install --only-binary ':all:' --upgrade check-manifest pytest-cov  'pytest<8'
-        git clone https://github.com/langchain-ai/langchain.git
-        git checkout fix-warn-with-dynamic-getattr
+        git clone -b fix-warn-with-dynamic-getattr https://github.com/langchain-ai/langchain.git
         cd langchain/libs/core && python -m pip install --only-binary ':all:' --upgrade . && cd -
     - name: Install and update Python dependencies (dev?)
       if: ${{ contains( matrix.python-version, 'dev' ) }}
