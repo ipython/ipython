@@ -72,8 +72,8 @@ maybe_edit(){
     fi
 
     echo
-    if [ $value = 'e' ]  ; then
-        $=EDITOR $1
+    if [ "$value" = 'e' ]  ; then
+        $EDITOR $1
     fi
 }
 
