@@ -104,8 +104,6 @@ test = [
 test_extra = [
     "ipython[test]",
     "curio",
-    # mask https://github.com/langchain-ai/langchain/pull/30769
-    "langchain-core<0.3.52",
     "jupyter_ai",
     "matplotlib!=3.2.0",
     "nbformat",
