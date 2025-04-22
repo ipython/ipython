@@ -1625,12 +1625,22 @@ class ExecutionMagics(Magics):
 
 def parse_breakpoint(text, current_file):
     '''Returns (file, line) for file:line and (current_file, line) for line'''
-    colon = text.find(':')
-    if colon == -1:
-        return current_file, int(text)
-    else:
-        return text[:colon], int(text[colon+1:])
-    
+    text = text.strip("'").strip('"')
+    token = text.split(':')
+    reg = re.compile(r"[^\d]")
+    if len(token) == 1 or len(token) == 0:
+        num = reg.sub("", text)
+        return (current_file, int(text))
+    elif len(token) == 2:
+        colon = text.find(':')
+        num = (reg.sub("", text[colon+1:]))
+        return text[:colon], int(num)
+    elif len(token) == 3:
+        num = reg.sub("", token[2])
+        return (':'.join(token[:2]), int(num))
+    elif len(token) > 3:
+        raise Exception("More than 2 colons in text")
+
 def _format_time(timespan, precision=3):
     """Formats the timespan in a human readable form"""
 
