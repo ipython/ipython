@@ -80,6 +80,11 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     and/or you want to load full IPython configuration,
     you probably want `IPython.start_kernel()` instead.
 
+    This is deprecated alias for `ipykernel.embed.embed_kernel()`,
+    to be removed in the future.
+    You should directly import from `ipykernel.embed`; this wrapper
+    fails anyway if you don't have `ipykernel` package installed.
+
     Parameters
     ----------
     module : types.ModuleType, optional
