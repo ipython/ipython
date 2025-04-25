@@ -1656,7 +1656,6 @@ def _format_time(timespan, precision=3):
                 break
         return " ".join(time)
 
-
     # Unfortunately characters outside of range(128) can cause problems in
     # certain terminals.
     # See bug: https://bugs.launchpad.net/ipython/+bug/348466
