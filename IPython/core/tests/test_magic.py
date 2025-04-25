@@ -16,8 +16,6 @@ from time import sleep
 from threading import Thread
 from subprocess import CalledProcessError
 from textwrap import dedent
-from time import sleep
-from threading import Thread
 from unittest import TestCase, mock
 
 import pytest
@@ -814,6 +812,16 @@ def test_timeit_invalid_return():
     with pytest.raises(SyntaxError):
         _ip.run_line_magic('timeit', 'return')
 
+def test_timeit_raise_on_interrupt():
+    ip = get_ipython()
+
+    with pytest.raises(KeyboardInterrupt):
+        thread = Thread(target=_interrupt_after_1s)
+        thread.start()
+        ip.run_cell_magic("timeit", "", "from time import sleep; sleep(2)")
+        thread.join()
+
+
 @dec.skipif(execution.profile is None)
 def test_prun_special_syntax():
     "Test %%prun with IPython special syntax"
@@ -1540,6 +1548,16 @@ def test_time_no_var_expand():
 def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
     _ip.run_line_magic("timeit", "-n1 -r1 a=('#')")
+
+
+def test_time_raise_on_interrupt():
+    ip = get_ipython()
+
+    with pytest.raises(KeyboardInterrupt):
+        thread = Thread(target=_interrupt_after_1s)
+        thread.start()
+        ip.run_cell_magic("time", "", "from time import sleep; sleep(2)")
+        thread.join()
 
 
 MINIMAL_LAZY_MAGIC = """

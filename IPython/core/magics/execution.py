@@ -151,10 +151,11 @@ class TimeitTemplateFiller(ast.NodeTransformer):
 
 class Timer(timeit.Timer):
     """Timer class that explicitly uses self.inner
-    
+
     which is an undocumented implementation detail of CPython,
     not shared by PyPy.
     """
+
     # Timer.timeit copied from CPython 3.4.2
     def timeit(self, number=timeit.default_number):
         """Time 'number' executions of the main statement.
@@ -192,7 +193,6 @@ class ExecutionMagics(Magics):
     @no_var_expand
     @line_cell_magic
     def prun(self, parameter_s='', cell=None):
-
         """Run a statement through the python code profiler.
 
         **Usage, in line mode:**
@@ -993,7 +993,7 @@ class ExecutionMagics(Magics):
                     # Stop iteration is raised on quit command
                     pass
 
-        except:
+        except Exception:
             etype, value, tb = sys.exc_info()
             # Skip three frames in the traceback: the %run one,
             # one inside bdb.py, and the command-line typed by the
@@ -1127,7 +1127,7 @@ class ExecutionMagics(Magics):
         )
         if stmt == "" and cell is None:
             return
-        
+
         timefunc = timeit.default_timer
         number = int(getattr(opts, "n", 0))
         default_repeat = 7 if timeit.default_repeat < 7 else timeit.default_repeat
@@ -1242,7 +1242,7 @@ class ExecutionMagics(Magics):
     @needs_local_scope
     @line_cell_magic
     @output_can_be_silenced
-    def time(self,line='', cell=None, local_ns=None):
+    def time(self, line="", cell=None, local_ns=None):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
@@ -1257,12 +1257,18 @@ class ExecutionMagics(Magics):
         - In cell mode, you can time the cell body (a directly
           following statement raises an error).
 
-        This function provides very basic timing functionality.  Use the timeit
+        This function provides very basic timing functionality. Use the timeit
         magic for more control over the measurement.
 
         .. versionchanged:: 7.3
             User variables are no longer expanded,
             the magic line is always left unmodified.
+
+        .. versionchanged:: 8.3
+            The time magic now correctly propagates system-exiting exceptions
+            (such as ``KeyboardInterrupt`` invoked when interrupting execution)
+            rather than just printing out the exception traceback.
+            The non-system-exception will still be caught as before.
 
         Examples
         --------
@@ -1304,10 +1310,10 @@ class ExecutionMagics(Magics):
                 Compiler : 0.78 s
         """
         # fail immediately if the given expression can't be compiled
-        
+
         if line and cell:
             raise UsageError("Can't use statement directly after '%%time'!")
-        
+
         if cell:
             expr = self.shell.transform_cell(cell)
         else:
@@ -1318,7 +1324,7 @@ class ExecutionMagics(Magics):
 
         t0 = clock()
         expr_ast = self.shell.compile.ast_parse(expr)
-        tp = clock()-t0
+        tp = clock() - t0
 
         # Apply AST transformations
         expr_ast = self.shell.transform_ast(expr_ast)
@@ -1326,8 +1332,8 @@ class ExecutionMagics(Magics):
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
 
-        expr_val=None
-        if len(expr_ast.body)==1 and isinstance(expr_ast.body[0], ast.Expr):
+        expr_val = None
+        if len(expr_ast.body) == 1 and isinstance(expr_ast.body[0], ast.Expr):
             mode = 'eval'
             source = '<timed eval>'
             expr_ast = ast.Expression(expr_ast.body[0].value)
@@ -1336,25 +1342,25 @@ class ExecutionMagics(Magics):
             source = '<timed exec>'
             # multi-line %%time case
             if len(expr_ast.body) > 1 and isinstance(expr_ast.body[-1], ast.Expr):
-                expr_val= expr_ast.body[-1]
+                expr_val = expr_ast.body[-1]
                 expr_ast = expr_ast.body[:-1]
                 expr_ast = Module(expr_ast, [])
                 expr_val = ast.Expression(expr_val.value)
 
         t0 = clock()
         code = self.shell.compile(expr_ast, source, mode)
-        tc = clock()-t0
+        tc = clock() - t0
 
         # skew measurement as little as possible
         glob = self.shell.user_ns
         wtime = time.time
         # time execution
         wall_st = wtime()
-        if mode=='eval':
+        if mode == "eval":
             st = clock2()
             try:
                 out = eval(code, glob, local_ns)
-            except:
+            except Exception:
                 self.shell.showtraceback()
                 return
             end = clock2()
@@ -1362,12 +1368,12 @@ class ExecutionMagics(Magics):
             st = clock2()
             try:
                 exec(code, glob, local_ns)
-                out=None
+                out = None
                 # multi-line %%time case
                 if expr_val is not None:
                     code_2 = self.shell.compile(expr_val, source, 'eval')
                     out = eval(code_2, glob, local_ns)
-            except:
+            except Exception:
                 self.shell.showtraceback()
                 return
             end = clock2()
@@ -1597,14 +1603,15 @@ def parse_breakpoint(text, current_file):
         return current_file, int(text)
     else:
         return text[:colon], int(text[colon+1:])
-    
+
+
 def _format_time(timespan, precision=3):
     """Formats the timespan in a human readable form"""
 
     if timespan >= 60.0:
         # we have more than a minute, format that in a human readable form
         # Idea from http://snipplr.com/view/5713/
-        parts = [("d", 60*60*24),("h", 60*60),("min", 60), ("s", 1)]
+        parts = [("d", 60 * 60 * 24), ("h", 60 * 60), ("min", 60), ("s", 1)]
         time = []
         leftover = timespan
         for suffix, length in parts:
@@ -1615,7 +1622,6 @@ def _format_time(timespan, precision=3):
             if leftover < 1:
                 break
         return " ".join(time)
-
 
     # Unfortunately characters outside of range(128) can cause problems in
     # certain terminals.
@@ -1630,7 +1636,7 @@ def _format_time(timespan, precision=3):
         except:
             pass
     scaling = [1, 1e3, 1e6, 1e9]
-        
+
     if timespan > 0.0:
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
