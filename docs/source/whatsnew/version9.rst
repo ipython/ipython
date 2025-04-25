@@ -2,6 +2,19 @@
  9.x Series
 ============
 
+.. _version92:
+
+IPython 9.2
+===========
+
+This is a small release with minor changes in the context passed to the LLM completion
+provider along few other bug fixes and documentation improvements:
+
+- :ghpull:`14890` Fixed interruption of ``%%time`` and ``%%debug`` magics
+- :ghpull:`14877` Removed spurious empty lines from ``prefix`` passed to LLM, and separated part after cursor into the ``suffix``
+- :ghpull:`14876` Fixed syntax warning in Python 3.14 (remove return from finally block)
+- :ghpull:`14887` Documented the recommendation to use ``ipykernel.embed.embed_kernel()`` over ``ipython.embed``.
+
 .. _version91:
 
 IPython 9.1
