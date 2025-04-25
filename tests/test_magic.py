@@ -858,9 +858,7 @@ def test_timeit_raise_on_interrupt():
     with pytest.raises(KeyboardInterrupt):
         thread = Thread(target=_interrupt_after_1s)
         thread.start()
-        ip.run_cell_magic(
-            "timeit", "", "from time import sleep; sleep(2)"
-        )
+        ip.run_cell_magic("timeit", "", "from time import sleep; sleep(2)")
         thread.join()
 
 
@@ -1696,9 +1694,7 @@ def test_time_raise_on_interrupt():
     with pytest.raises(KeyboardInterrupt):
         thread = Thread(target=_interrupt_after_1s)
         thread.start()
-        ip.run_cell_magic(
-            "time", "", "from time import sleep; sleep(2)"
-        )
+        ip.run_cell_magic("time", "", "from time import sleep; sleep(2)")
         thread.join()
 
 
