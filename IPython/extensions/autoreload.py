@@ -547,8 +547,8 @@ def superreload(
                 )
             ):
                 continue
-            if name in symbol_map[module.__name__]:
-                name = symbol_map[module.__name__][name]
+            if symbol_map and name in symbol_map.get(module.__name__, {}):
+                name = symbol_map.get(module.__name__, {})[name]
             shell.user_ns[name] = new_obj
 
         new_refs = []
