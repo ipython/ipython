@@ -1138,11 +1138,17 @@ class Completer(Configurable):
         self, text: str, include_prefix: bool = True
     ) -> tuple[Sequence[str], str]:
         # Extract only the right-hand side part of the text after '='
-        rhs_text = text.split("=")[-1]
-        m2 = self._ATTR_MATCH_RE.match(rhs_text)
+        m2 = self._ATTR_MATCH_RE.match(text)
         if not m2:
             return [], ""
         expr, attr = m2.group(1, 2)
+
+        operators = ["=", "==", "!=", ">=", "<=", ">", "<"]
+        # Split by the operator and take the right side
+        if not (expr.startswith("(") and expr.endswith(")")):
+            for op in operators:
+                if op in expr:
+                    expr = expr.split(op)[-1]
 
         obj = self._evaluate_expr(expr)
 

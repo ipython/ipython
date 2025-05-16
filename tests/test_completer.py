@@ -662,6 +662,13 @@ class TestCompleter(unittest.TestCase):
                 "Should have completed on `x.upper() == y.`: %s",
                 Completion(15, 15, "upper"),
             )
+            _(
+                "(x.upper() == y).",
+                17,
+                ".bit_length",
+                "Should have completed on `(x.upper() == y).`: %s",
+                Completion(17, 17, "bit_length"),
+            )
 
     def test_omit__names(self):
         # also happens to test IPCompleter as a configurable
