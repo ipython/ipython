@@ -1142,6 +1142,13 @@ class Completer(Configurable):
             return [], ""
         expr, attr = m2.group(1, 2)
 
+        operators = ["=", "==", "!=", ">=", "<=", ">", "<"]
+        # Split by the operator and take the right side
+        if not (expr.startswith("(") and expr.endswith(")")):
+            for op in operators:
+                if op in expr:
+                    expr = expr.split(op)[-1]
+
         obj = self._evaluate_expr(expr)
 
         if obj is not_found:
