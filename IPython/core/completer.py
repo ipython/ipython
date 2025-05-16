@@ -1137,7 +1137,9 @@ class Completer(Configurable):
     def _attr_matches(
         self, text: str, include_prefix: bool = True
     ) -> tuple[Sequence[str], str]:
-        m2 = self._ATTR_MATCH_RE.match(text)
+        # Extract only the right-hand side part of the text after '='
+        rhs_text = text.split("=")[-1]
+        m2 = self._ATTR_MATCH_RE.match(rhs_text)
         if not m2:
             return [], ""
         expr, attr = m2.group(1, 2)

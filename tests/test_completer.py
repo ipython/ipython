@@ -597,6 +597,7 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
         ip.ex("a=list(range(5))")
         ip.ex("d = {'a b': str}")
+        ip.ex("x=y='a'")
         _, c = ip.complete(".", line="a[0].")
         self.assertFalse(".real" in c, "Shouldn't have completed on a[0]: %s" % c)
 
@@ -653,6 +654,13 @@ class TestCompleter(unittest.TestCase):
                 ".append",
                 "Should have completed on `a.app`: %s",
                 Completion(2, 4, "append"),
+            )
+            _(
+                "x.upper() == y.",
+                15,
+                ".upper",
+                "Should have completed on `x.upper() == y.`: %s",
+                Completion(15, 15, "upper"),
             )
 
     def test_omit__names(self):
