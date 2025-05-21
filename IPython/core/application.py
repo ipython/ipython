@@ -360,11 +360,14 @@ class BaseIPythonApplication(Application):
                 continue
             self.log.debug("Attempting to load config file: %s" %
                            self.config_file_name)
+            config_file_paths = self.config_file_paths
+            if Path(config_file_name).is_absolute():
+                config_file_paths = None
             try:
                 Application.load_config_file(
                     self,
                     config_file_name,
-                    path=self.config_file_paths
+                    path=config_file_paths
                 )
             except ConfigFileNotFound:
                 # Only warn if the default config file was NOT being used.
