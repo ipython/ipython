@@ -1135,7 +1135,6 @@ class Completer(Configurable):
     _ATTR_MATCH_RE = re.compile(r"(.+)\.(\w*)$")
 
     def _strip_code_before_operator(self, code: str) -> str:
-        operators = ["=", "==", "!=", ">=", "<=", ">", "<"]
         o_parens = {"(", "[", "{"}
         c_parens = {")", "]", "}"}
 
@@ -1164,7 +1163,7 @@ class Completer(Configurable):
                     nesting_level += 1
                 elif t.string in c_parens:
                     nesting_level -= 1
-                elif t.string in operators and nesting_level == 0:
+                elif t.string != "." and nesting_level == 0:
                     encountered_operator = True
                     after_operator = []
                     continue
@@ -1190,7 +1189,6 @@ class Completer(Configurable):
             pass
 
         obj = self._evaluate_expr(expr)
-
         if obj is not_found:
             return [], ""
 
