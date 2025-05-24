@@ -691,6 +691,7 @@ class TestCompleter(unittest.TestCase):
                 "Should have completed on `b + c.`: %s",
                 Completion(6, 6, "hex"),
             )
+
     def test_omit__names(self):
         # also happens to test IPCompleter as a configurable
         ip = get_ipython()
