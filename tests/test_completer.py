@@ -596,6 +596,7 @@ class TestCompleter(unittest.TestCase):
         """
         ip = get_ipython()
         ip.ex("a=list(range(5))")
+        ip.ex("b,c = 1, 1.2")
         ip.ex("d = {'a b': str}")
         ip.ex("x=y='a'")
         _, c = ip.complete(".", line="a[0].")
@@ -666,7 +667,7 @@ class TestCompleter(unittest.TestCase):
                 "(x.upper() == y.",
                 16,
                 ".upper",
-                "Should have completed on `x.upper() == y.`: %s",
+                "Should have completed on `(x.upper() == y.`: %s",
                 Completion(16, 16, "upper"),
             )
             _(
@@ -682,6 +683,13 @@ class TestCompleter(unittest.TestCase):
                 ".add",
                 "Should have completed on `{'==', 'abc'}.`: %s",
                 Completion(14, 14, "add"),
+            )
+            _(
+                "b + c.",
+                6,
+                ".hex",
+                "Should have completed on `b + c.`: %s",
+                Completion(6, 6, "hex"),
             )
     def test_omit__names(self):
         # also happens to test IPCompleter as a configurable
