@@ -1134,6 +1134,48 @@ class Completer(Configurable):
     # we simple attribute matching with normal identifiers.
     _ATTR_MATCH_RE = re.compile(r"(.+)\.(\w*)$")
 
+    def _strip_code_before_operator(self, code: str) -> str:
+        o_parens = {"(", "[", "{"}
+        c_parens = {")", "]", "}"}
+
+        # Dry-run tokenize to catch errors
+        try:
+            _ = list(tokenize.generate_tokens(iter(code.splitlines()).__next__))
+        except tokenize.TokenError:
+            # Try trimming the expression and retrying
+            trimmed_code = self._trim_expr(code)
+            try:
+                _ = list(
+                    tokenize.generate_tokens(iter(trimmed_code.splitlines()).__next__)
+                )
+                code = trimmed_code
+            except tokenize.TokenError:
+                return code
+
+        tokens = _parse_tokens(code)
+        encountered_operator = False
+        after_operator = []
+        nesting_level = 0
+
+        for t in tokens:
+            if t.type == tokenize.OP:
+                if t.string in o_parens:
+                    nesting_level += 1
+                elif t.string in c_parens:
+                    nesting_level -= 1
+                elif t.string != "." and nesting_level == 0:
+                    encountered_operator = True
+                    after_operator = []
+                    continue
+
+            if encountered_operator:
+                after_operator.append(t.string)
+
+        if encountered_operator:
+            return "".join(after_operator)
+        else:
+            return code
+
     def _attr_matches(
         self, text: str, include_prefix: bool = True
     ) -> tuple[Sequence[str], str]:
@@ -1141,9 +1183,12 @@ class Completer(Configurable):
         if not m2:
             return [], ""
         expr, attr = m2.group(1, 2)
+        try:
+            expr = self._strip_code_before_operator(expr)
+        except tokenize.TokenError:
+            pass
 
         obj = self._evaluate_expr(expr)
-
         if obj is not_found:
             return [], ""
 
