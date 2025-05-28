@@ -1338,12 +1338,14 @@ class ExecutionMagics(Magics):
                 Wall time: 0.00 s
                 Compiler : 0.78 s
         """
+        line_present = False
         # Try to parse --no-raise-error if present, else ignore unrecognized args
         try:
             args = magic_arguments.parse_argstring(self.time, line)
         except UsageError as e:
             # Only ignore UsageError if caused by unrecognized arguments
             # We'll manually check for --no-raise-error and remove it from line
+            line_present = True
             tokens = shlex.split(line)
             no_raise_error = False
             filtered_tokens = []
@@ -1363,6 +1365,9 @@ class ExecutionMagics(Magics):
         else:
             if not hasattr(args, "no_raise_error"):
                 args.no_raise_error = False
+
+        if line_present and cell:
+            raise UsageError("Can't use statement directly after '%%time'!")
 
         if cell:
             expr = self.shell.transform_cell(cell)
