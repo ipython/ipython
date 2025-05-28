@@ -64,6 +64,7 @@ from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from IPython.core.magics.ast_mod import ReplaceCodeTransformer
+import shlex
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -1337,7 +1338,31 @@ class ExecutionMagics(Magics):
                 Wall time: 0.00 s
                 Compiler : 0.78 s
         """
-        args = magic_arguments.parse_argstring(self.time, line)
+        # Try to parse --no-raise-error if present, else ignore unrecognized args
+        try:
+            args = magic_arguments.parse_argstring(self.time, line)
+        except UsageError as e:
+            # Only ignore UsageError if caused by unrecognized arguments
+            # We'll manually check for --no-raise-error and remove it from line
+            tokens = shlex.split(line)
+            no_raise_error = False
+            filtered_tokens = []
+            for t in tokens:
+                if t == "--no-raise-error":
+                    no_raise_error = True
+                else:
+                    filtered_tokens.append(t)
+
+            class Args:
+                def __init__(self, no_raise_error):
+                    self.no_raise_error = no_raise_error
+
+            args = Args(no_raise_error)
+            # Rebuild line without --no-raise-error
+            line = " ".join(filtered_tokens)
+        else:
+            if not hasattr(args, "no_raise_error"):
+                args.no_raise_error = False
 
         if cell:
             expr = self.shell.transform_cell(cell)
