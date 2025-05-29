@@ -331,7 +331,7 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
     _user_ns: dict
-    _sys_modules_keys: set[str, AnyType]
+    _sys_modules_keys: set[str]
 
     inspector: oinspect.Inspector
 
@@ -3599,7 +3599,7 @@ class InteractiveShell(SingletonConfigurable):
                 if mode == "exec":
                     mod = Module([node], [])
                 elif mode == "single":
-                    mod = ast.Interactive([node])  # type: ignore
+                    mod = ast.Interactive([node])  # type: ignore[assignment]
                 with compiler.extra_flags(
                     getattr(ast, "PyCF_ALLOW_TOP_LEVEL_AWAIT", 0x0)
                     if self.autoawait
