@@ -184,7 +184,6 @@ disable_error_code = [
   "assignment",
   "attr-defined",
   "index",
-  "misc",
   "var-annotated",
   "union-attr"
 ]
