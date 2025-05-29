@@ -331,7 +331,7 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
     _user_ns: dict
-    _sys_modules_keys: set[str, AnyType]
+    _sys_modules_keys: set[str]
 
     inspector: oinspect.Inspector
 
@@ -1572,7 +1572,7 @@ class InteractiveShell(SingletonConfigurable):
             if isinstance(variables, str):
                 vlist = variables.split()
             else:
-                vlist = variables
+                vlist = list(variables)
             vdict = {}
             cf = sys._getframe(1)
             for name in vlist:
@@ -2196,7 +2196,7 @@ class InteractiveShell(SingletonConfigurable):
         except KeyboardInterrupt:
             print('\n' + self.get_exception_only(), file=sys.stderr)
 
-    def _showtraceback(self, etype, evalue, stb: str):
+    def _showtraceback(self, etype, evalue, stb: list[str]):
         """Actually show a traceback.
 
         Subclasses may override this method to put the traceback on a different
@@ -3599,7 +3599,7 @@ class InteractiveShell(SingletonConfigurable):
                 if mode == "exec":
                     mod = Module([node], [])
                 elif mode == "single":
-                    mod = ast.Interactive([node])  # type: ignore
+                    mod = ast.Interactive([node])  # type: ignore[assignment]
                 with compiler.extra_flags(
                     getattr(ast, "PyCF_ALLOW_TOP_LEVEL_AWAIT", 0x0)
                     if self.autoawait

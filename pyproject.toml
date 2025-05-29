@@ -173,12 +173,21 @@ module = [
     "IPython.core.interactiveshell",
 ]
 disallow_untyped_defs = false
-ignore_errors = true
+ignore_errors = false
 ignore_missing_imports = true
 disallow_untyped_calls = false
-disallow_incomplete_defs = true
+disallow_incomplete_defs = false
 check_untyped_defs = true
 disallow_untyped_decorators = false
+disable_error_code = [
+  "arg-type",
+  "assignment",
+  "attr-defined",
+  "index",
+  "misc",
+  "var-annotated",
+  "union-attr"
+]
 
 # gloabl ignore error
 [[tool.mypy.overrides]]
