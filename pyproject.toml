@@ -177,11 +177,7 @@ ignore_errors = false
 ignore_missing_imports = true
 disallow_untyped_calls = false
 disallow_incomplete_defs = false
-<<<<<<< HEAD
 check_untyped_defs = true
-=======
-check_untyped_defs = false
->>>>>>> 18f9a8bdfde45399406adcb5b5386989c04b54ea
 disallow_untyped_decorators = false
 disable_error_code = [
   "arg-type",
