@@ -171,16 +171,19 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
     # another request.
     _llm_task: asyncio.Task | None = None
 
-    # This is the instance of the LLM provider from jupyter-ai to which we forward the request
-    # to generate inline completions.
-    _llm_provider: Any | None
+    # This is the constructor of the LLM provider from jupyter-ai
+    # to which we forward the request to generate inline completions.
+    _init_llm_provider: Callable | None
+
+    _llm_provider_instance: Any | None
     _llm_prefixer: Callable = lambda self, x: "wrong"
 
     def __init__(self):
         super().__init__()
         self.skip_lines = 0
         self._connected_apps = []
-        self._llm_provider = None
+        self._llm_provider_instance = None
+        self._init_llm_provider = None
         self._request_number = 0
 
     def reset_history_position(self, _: Buffer) -> None:
@@ -317,6 +320,16 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
                     "LLM task not cancelled, does your provider support cancellation?"
                 )
 
+    @property
+    def _llm_provider(self):
+        """Lazy-initialized instance of the LLM provider.
+
+        Do not use in the constructor, as `_init_llm_provider` can trigger slow side-effects.
+        """
+        if self._llm_provider_instance is None and self._init_llm_provider:
+            self._llm_provider_instance = self._init_llm_provider()
+        return self._llm_provider_instance
+
     async def _trigger_llm(self, buffer) -> None:
         """
         This will ask the current llm provider a suggestion for the current buffer.
@@ -325,14 +338,14 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         """
         # we likely want to store the current cursor position, and cancel if the cursor has moved.
         try:
-            import jupyter_ai.completions.models as jai_models
+            import jupyter_ai_magics
         except ModuleNotFoundError:
-            jai_models = None
+            jupyter_ai_magics = None
         if not self._llm_provider:
             warnings.warn("No LLM provider found, cannot trigger LLM completions")
             return
-        if jai_models is None:
-            warnings.warn("LLM Completion requires `jupyter_ai` to be installed")
+        if jupyter_ai_magics is None:
+            warnings.warn("LLM Completion requires `jupyter_ai_magics` to be installed")
 
         self._cancel_running_llm_task()
 
@@ -359,7 +372,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         provider to stream it's response back to us iteratively setting it as
         the suggestion on the current buffer.
 
-        Unlike with JupyterAi, as we do not have multiple cell, the cell id
+        Unlike with JupyterAi, as we do not have multiple cells, the cell id
         is always set to `None`.
 
         We set the prefix to the current cell content, but could also insert the
