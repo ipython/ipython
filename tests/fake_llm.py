@@ -1,4 +1,5 @@
 import asyncio
+from time import sleep
 
 try:
     from jupyter_ai_magics import BaseProvider
@@ -87,3 +88,16 @@ class FibonacciCompletionProvider(BaseProvider, FakeListLLM):  # type: ignore[mi
             reply_to=request_number,
             done=True,
         )
+
+
+class SlowStartingCompletionProvider(BaseProvider, FakeListLLM):  # type: ignore[misc, valid-type]
+    id = "slow_provider"
+    name = "Slow Provider"
+    model_id_key = "model"
+    models = ["model_a"]
+
+    def __init__(self, **kwargs):
+        kwargs["responses"] = ["This fake response will be used for completion"]
+        kwargs["model_id"] = "model_a"
+        sleep(10)
+        super().__init__(**kwargs)
