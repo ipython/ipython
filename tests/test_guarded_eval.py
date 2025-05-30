@@ -785,7 +785,11 @@ def test_module_access():
 
 def test_autoimport_module():
     context = EvaluationContext(
-        locals={}, globals={}, evaluation="limited", auto_import=import_module
+        locals={},
+        globals={},
+        evaluation="limited",
+        auto_import=import_module,
+        policy_overrides={"allow_auto_import": True},
     )
     pi = guarded_eval("math.pi", context)
     assert round(pi, 2) == 3.14
@@ -793,7 +797,11 @@ def test_autoimport_module():
 
 def test_autoimport_deep_module():
     context = EvaluationContext(
-        locals={}, globals={}, evaluation="limited", auto_import=import_module
+        locals={},
+        globals={},
+        evaluation="limited",
+        auto_import=import_module,
+        policy_overrides={"allow_auto_import": True},
     )
     ElementTree = guarded_eval("xml.etree.ElementTree", context)
     assert hasattr(ElementTree, "ElementTree")
