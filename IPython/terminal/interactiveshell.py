@@ -475,7 +475,7 @@ class TerminalInteractiveShell(InteractiveShell):
         allow_none=True,
         help="""\
         Provisional:
-            This is a provisinal API in IPython 8.32, before stabilisation
+            This is a provisional API in IPython 8.32, before stabilisation
             in 9.0, it may change without warnings.
 
         class to use for the `NavigableAutoSuggestFromHistory` to request

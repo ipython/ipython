@@ -1,19 +1,15 @@
+from copy import copy
 from inspect import isclass, signature, Signature
-from pygments.formatters.terminal256 import Terminal256Formatter
 from typing import (
     Annotated,
     AnyStr,
     Callable,
-    Dict,
     Literal,
     NamedTuple,
     NewType,
     Optional,
     Protocol,
-    Set,
     Sequence,
-    Tuple,
-    Type,
     TypeGuard,
     Union,
     get_args,
@@ -97,6 +93,7 @@ class EvaluationPolicy:
     allow_builtins_access: bool = False
     allow_all_operations: bool = False
     allow_any_calls: bool = False
+    allow_auto_import: bool = False
     allowed_calls: set[Callable] = field(default_factory=set)
 
     def can_get_item(self, value, item):
@@ -330,6 +327,10 @@ class EvaluationContext(NamedTuple):
     #: Whether the evaluation of code takes place inside of a subscript.
     #: Useful for evaluating ``:-1, 'col'`` in ``df[:-1, 'col']``.
     in_subscript: bool = False
+    #: Auto import method
+    auto_import: Callable[list[str], ModuleType] | None = None
+    #: Overrides for evaluation policy
+    policy_overrides: dict = {}
 
 
 class _IdentitySubscript:
@@ -463,6 +464,17 @@ def _find_dunder(node_op, dunders) -> Union[tuple[str, ...], None]:
     return dunder
 
 
+def get_policy(context: EvaluationContext) -> EvaluationPolicy:
+    policy = copy(EVALUATION_POLICIES[context.evaluation])
+
+    for key, value in context.policy_overrides.items():
+        if hasattr(policy, key):
+            setattr(policy, key, value)
+        else:
+            print(f"Incorrect policy override key: {key}")
+    return policy
+
+
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     """Evaluate AST node in provided context.
 
@@ -490,7 +502,8 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     The purpose of this function is to guard against unwanted side-effects;
     it does not give guarantees on protection from malicious code execution.
     """
-    policy = EVALUATION_POLICIES[context.evaluation]
+    policy = get_policy(context)
+
     if node is None:
         return None
     if isinstance(node, ast.Expression):
@@ -711,7 +724,7 @@ def _resolve_annotation(
 
 
 def _eval_node_name(node_id: str, context: EvaluationContext):
-    policy = EVALUATION_POLICIES[context.evaluation]
+    policy = get_policy(context)
     if policy.allow_locals_access and node_id in context.locals:
         return context.locals[node_id]
     if policy.allow_globals_access and node_id in context.globals:
@@ -719,6 +732,8 @@ def _eval_node_name(node_id: str, context: EvaluationContext):
     if policy.allow_builtins_access and hasattr(builtins, node_id):
         # note: do not use __builtins__, it is implementation detail of cPython
         return getattr(builtins, node_id)
+    if policy.allow_auto_import and context.auto_import:
+        return context.auto_import(node_id)
     if not policy.allow_globals_access and not policy.allow_locals_access:
         raise GuardRejection(
             f"Namespace access not allowed in {context.evaluation} mode"
@@ -728,7 +743,7 @@ def _eval_node_name(node_id: str, context: EvaluationContext):
 
 
 def _eval_or_create_duck(duck_type, node: ast.Call, context: EvaluationContext):
-    policy = EVALUATION_POLICIES[context.evaluation]
+    policy = get_policy(context)
     # if allow-listed builtin is on type annotation, instantiate it
     if policy.can_call(duck_type) and not node.keywords:
         args = [eval_node(arg, context) for arg in node.args]

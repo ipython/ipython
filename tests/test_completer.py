@@ -141,14 +141,17 @@ def greedy_completion():
 
 
 @contextmanager
-def evaluation_policy(evaluation: str):
+def evaluation_policy(evaluation: str, **overrides):
     ip = get_ipython()
     evaluation_original = ip.Completer.evaluation
+    overrides_original = ip.Completer.policy_overrides
     try:
         ip.Completer.evaluation = evaluation
+        ip.Completer.policy_overrides = overrides
         yield
     finally:
         ip.Completer.evaluation = evaluation_original
+        ip.Completer.policy_overrides = overrides_original
 
 
 @contextmanager
@@ -1379,6 +1382,26 @@ class TestCompleter(unittest.TestCase):
             assert_completion(line_buffer="get()['a")
             assert_completion(line_buffer="get()['ab")
             assert_completion(line_buffer="get()['abc")
+
+    def test_completion_autoimport(self):
+        ip = get_ipython()
+        complete = ip.Completer.complete
+        with (
+            evaluation_policy("limited", allow_auto_import=True),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="math.")
+            self.assertIn(".pi", matches)
+
+    def test_completion_no_autoimport(self):
+        ip = get_ipython()
+        complete = ip.Completer.complete
+        with (
+            evaluation_policy("limited", allow_auto_import=False),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="math.")
+            self.assertNotIn(".pi", matches)
 
     def test_dict_key_completion_bytes(self):
         """Test handling of bytes in dict key completion"""

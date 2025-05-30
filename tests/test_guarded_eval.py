@@ -1,5 +1,6 @@
 import sys
 from contextlib import contextmanager
+from importlib import import_module
 from typing import (
     Annotated,
     AnyStr,
@@ -780,3 +781,19 @@ def test_module_access():
     context = minimal(numpy=numpy)
     with pytest.raises(GuardRejection):
         guarded_eval("np.linalg.norm", context)
+
+
+def test_autoimport_module():
+    context = EvaluationContext(
+        locals={}, globals={}, evaluation="limited", auto_import=import_module
+    )
+    pi = guarded_eval("math.pi", context)
+    assert round(pi, 2) == 3.14
+
+
+def test_autoimport_deep_module():
+    context = EvaluationContext(
+        locals={}, globals={}, evaluation="limited", auto_import=import_module
+    )
+    ElementTree = guarded_eval("xml.etree.ElementTree", context)
+    assert hasattr(ElementTree, "ElementTree")
