@@ -290,7 +290,7 @@ class ExecutionResult:
     """
 
     execution_count: Optional[int] = None
-    error_before_exec: Optional[bool] = None
+    error_before_exec: Optional[BaseException] = None
     error_in_exec: Optional[BaseException] = None
     info = None
     result = None
@@ -313,6 +313,7 @@ class ExecutionResult:
         name = self.__class__.__qualname__
         return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s info=%s result=%s>' %\
                 (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
+
 
 @functools.wraps(io_open)
 def _modified_open(file, *args, **kwargs):
@@ -1887,11 +1888,12 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                docformat = (
-                    sphinxify(self.object_inspect(oname))
-                    if self.sphinxify_docstring
-                    else None
-                )
+                if self.sphinxify_docstring:
+                    if sphinxify is None:
+                        raise ImportError("Module ``docrepr`` required but missing")
+                    docformat = sphinxify(self.object_inspect(oname))
+                else:
+                    docformat = None
                 return self.inspector._get_info(
                     info.obj,
                     oname,
