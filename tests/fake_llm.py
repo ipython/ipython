@@ -2,7 +2,7 @@ import asyncio
 from time import sleep
 
 try:
-    from jupyter_ai_magics import BaseProvider
+    from jupyter_ai_magics.providers import BaseProvider
     from langchain_community.llms import FakeListLLM
 except ImportError:
 
