@@ -290,7 +290,7 @@ class ExecutionResult:
     """
 
     execution_count: Optional[int] = None
-    error_before_exec: Optional[bool] = None
+    error_before_exec: Optional[BaseException] = None
     error_in_exec: Optional[BaseException] = None
     info = None
     result = None
@@ -314,6 +314,7 @@ class ExecutionResult:
         return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s info=%s result=%s>' %\
                 (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
 
+
 @functools.wraps(io_open)
 def _modified_open(file, *args, **kwargs):
     if file in {0, 1, 2}:
@@ -331,7 +332,7 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
     _user_ns: dict
-    _sys_modules_keys: set[str, AnyType]
+    _sys_modules_keys: set[str]
 
     inspector: oinspect.Inspector
 
@@ -1572,7 +1573,7 @@ class InteractiveShell(SingletonConfigurable):
             if isinstance(variables, str):
                 vlist = variables.split()
             else:
-                vlist = variables
+                vlist = list(variables)
             vdict = {}
             cf = sys._getframe(1)
             for name in vlist:
@@ -1887,11 +1888,12 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                docformat = (
-                    sphinxify(self.object_inspect(oname))
-                    if self.sphinxify_docstring
-                    else None
-                )
+                if self.sphinxify_docstring:
+                    if sphinxify is None:
+                        raise ImportError("Module ``docrepr`` required but missing")
+                    docformat = sphinxify(self.object_inspect(oname))
+                else:
+                    docformat = None
                 return self.inspector._get_info(
                     info.obj,
                     oname,
@@ -2196,7 +2198,7 @@ class InteractiveShell(SingletonConfigurable):
         except KeyboardInterrupt:
             print('\n' + self.get_exception_only(), file=sys.stderr)
 
-    def _showtraceback(self, etype, evalue, stb: str):
+    def _showtraceback(self, etype, evalue, stb: list[str]):
         """Actually show a traceback.
 
         Subclasses may override this method to put the traceback on a different
@@ -3599,7 +3601,7 @@ class InteractiveShell(SingletonConfigurable):
                 if mode == "exec":
                     mod = Module([node], [])
                 elif mode == "single":
-                    mod = ast.Interactive([node])  # type: ignore
+                    mod = ast.Interactive([node])
                 with compiler.extra_flags(
                     getattr(ast, "PyCF_ALLOW_TOP_LEVEL_AWAIT", 0x0)
                     if self.autoawait
