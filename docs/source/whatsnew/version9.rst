@@ -14,7 +14,7 @@ This release includes improvements to the tab and LLM completer, along with typi
 - :ghpull:`14898` Fix attribute completion for expressions with comparison operators
 - :ghpull:`14908` Fix typing of `error_before_exec`, enhance ``mypy`` coverage
 
-Notably, the non-jedi completer can now suggest attribute completion on not-yet-imported modules.
+Notably, the native completer can now suggest attribute completion on not-yet-imported modules.
 This is particularly useful when writing code which includes an import and the use of the imported
 module in the same line or in the same cell; the default implementation does not insert
 the imported module into the user namespace, for which an actual execution is required.
@@ -28,7 +28,6 @@ To enable auto-import on completion specify:
     ipython --Completer.policy_overrides='{"allow_auto_import": True}' --Completer.use_jedi=False
 
 This change aligns the capability of both jedi-powered and the native completer.
-
 The function used for auto-import can be configured using :std:configtrait:`Completer.auto_import_method` traitlet.
 
 .. _version92:
