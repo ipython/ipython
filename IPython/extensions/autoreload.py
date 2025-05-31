@@ -127,6 +127,7 @@ __skip_doctest__ = True
 # Imports
 # -----------------------------------------------------------------------------
 
+import ast
 import os
 import sys
 import traceback
@@ -247,7 +248,33 @@ class ModuleReloader:
             modules = list(sys.modules.keys())
         else:
             modules = list(self.modules.keys())
+        imports_froms = None
+        symbol_map = {}
+        if self.shell and "In" in self.shell.user_ns:
+            imports_froms = {}
+            lines = self.shell.user_ns["In"]
+            sourcecode = "\n".join(lines)
+            tree = ast.parse(sourcecode)
+            for node in ast.walk(tree):
+                # Handle "from X import Y" style imports
+                if isinstance(node, ast.ImportFrom):
+                    mod = node.module
+                    if mod not in imports_froms:
+                        imports_froms[mod] = []
 
+                    for name in node.names:
+                        # name.name is going to be actual name that we want to import from module
+                        # name.asname is Z in the case of from X import Y as Z
+                        # we should update Z in the shell in this situation, so track it too.
+                        imports_froms[mod].append(name.name)
+                        if mod not in symbol_map:
+                            symbol_map[mod] = {}
+                        symbol_map[mod][name.name] = (
+                            name.asname if name.asname else name.name
+                        )
+        import_from_tracker = (
+            ImportFromTracker(imports_froms, symbol_map) if imports_froms else None
+        )
         for modname in modules:
             m = sys.modules.get(modname, None)
 
@@ -275,7 +302,13 @@ class ModuleReloader:
                 self._report(f"Reloading '{modname}'.")
                 try:
                     if self.autoload_obj:
-                        superreload(m, reload, self.old_objects, self.shell)
+                        superreload(
+                            m,
+                            reload,
+                            self.old_objects,
+                            self.shell,
+                            import_from_tracker=import_from_tracker,
+                        )
                     # if not using autoload, check if deduperreload is viable for this module
                     elif self.deduper_reloader.maybe_reload_module(m):
                         pass
@@ -427,6 +460,12 @@ mod_attrs = [
 ]
 
 
+class ImportFromTracker:
+    def __init__(self, imports_froms, symbol_map):
+        self.imports_froms = imports_froms
+        self.symbol_map = symbol_map
+
+
 def append_obj(module, d, name, obj, autoload=False):
     in_module = hasattr(obj, "__module__") and obj.__module__ == module.__name__
     if autoload:
@@ -445,7 +484,9 @@ def append_obj(module, d, name, obj, autoload=False):
     return True
 
 
-def superreload(module, reload=reload, old_objects=None, shell=None):
+def superreload(
+    module, reload=reload, old_objects=None, shell=None, import_from_tracker=None
+):
     """Enhanced version of the builtin reload function.
 
     superreload remembers objects previously in the module, and
@@ -486,17 +527,28 @@ def superreload(module, reload=reload, old_objects=None, shell=None):
         module.__dict__.update(old_dict)
         raise
 
-    # iterate over all objects and update functions & classes
     for name, new_obj in list(module.__dict__.items()):
         key = (module.__name__, name)
         if key not in old_objects:
             # here 'shell' acts both as a flag and as an output var
+            imports_froms = (
+                import_from_tracker.imports_froms if import_from_tracker else None
+            )
+            symbol_map = import_from_tracker.symbol_map if import_from_tracker else None
             if (
                 shell is None
                 or name == "Enum"
                 or not append_obj(module, old_objects, name, new_obj, True)
+                or (
+                    imports_froms
+                    and module.__name__ in imports_froms
+                    and "*" not in imports_froms[module.__name__]
+                    and name not in imports_froms[module.__name__]
+                )
             ):
                 continue
+            if symbol_map and name in symbol_map.get(module.__name__, {}):
+                name = symbol_map.get(module.__name__, {})[name]
             shell.user_ns[name] = new_obj
 
         new_refs = []
