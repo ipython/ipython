@@ -20,6 +20,7 @@ import shlex
 import sys
 import time
 import timeit
+import signal
 from typing import Dict, Any
 from ast import (
     Assign,
@@ -63,6 +64,7 @@ from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from IPython.core.magics.ast_mod import ReplaceCodeTransformer
+import shlex
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -1257,6 +1259,13 @@ class ExecutionMagics(Magics):
         if return_result:
             return timeit_result
 
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        "--no-raise-error",
+        action="store_true",
+        dest="no_raise_error",
+        help="If given, don't re-raise exceptions",
+    )
     @skip_doctest
     @no_var_expand
     @needs_local_scope
@@ -1329,9 +1338,35 @@ class ExecutionMagics(Magics):
                 Wall time: 0.00 s
                 Compiler : 0.78 s
         """
-        # fail immediately if the given expression can't be compiled
+        line_present = False
+        # Try to parse --no-raise-error if present, else ignore unrecognized args
+        try:
+            args = magic_arguments.parse_argstring(self.time, line)
+        except UsageError as e:
+            # Only ignore UsageError if caused by unrecognized arguments
+            # We'll manually check for --no-raise-error and remove it from line
+            line_present = True
+            tokens = shlex.split(line)
+            no_raise_error = False
+            filtered_tokens = []
+            for t in tokens:
+                if t == "--no-raise-error":
+                    no_raise_error = True
+                else:
+                    filtered_tokens.append(t)
 
-        if line and cell:
+            class Args:
+                def __init__(self, no_raise_error):
+                    self.no_raise_error = no_raise_error
+
+            args = Args(no_raise_error)
+            # Rebuild line without --no-raise-error
+            line = " ".join(filtered_tokens)
+        else:
+            if not hasattr(args, "no_raise_error"):
+                args.no_raise_error = False
+
+        if line_present and cell:
             raise UsageError("Can't use statement directly after '%%time'!")
 
         if cell:
@@ -1376,13 +1411,21 @@ class ExecutionMagics(Magics):
         wtime = time.time
         # time execution
         wall_st = wtime()
+        # Track whether to propagate exceptions or exit
+        exit_on_interrupt = False
+        interrupt_occured = False
+
         if mode == "eval":
             st = clock2()
             try:
                 out = eval(code, glob, local_ns)
+            except KeyboardInterrupt:
+                interrupt_occured = True
+                exit_on_interrupt = True
             except Exception:
-                self.shell.showtraceback()
-                return
+                interrupt_occured = True
+                if not args.no_raise_error:
+                    exit_on_interrupt = True
             end = clock2()
         else:
             st = clock2()
@@ -1393,11 +1436,14 @@ class ExecutionMagics(Magics):
                 if expr_val is not None:
                     code_2 = self.shell.compile(expr_val, source, 'eval')
                     out = eval(code_2, glob, local_ns)
+            except KeyboardInterrupt:
+                interrupt_occured = True
+                exit_on_interrupt = True
             except Exception:
-                self.shell.showtraceback()
-                return
+                interrupt_occured = True
+                if not args.no_raise_error:
+                    exit_on_interrupt = True
             end = clock2()
-
         wall_end = wtime()
         # Compute actual times and report
         wall_time = wall_end - wall_st
@@ -1416,6 +1462,11 @@ class ExecutionMagics(Magics):
             print(f"Compiler : {_format_time(tc)}")
         if tp > tp_min:
             print(f"Parser   : {_format_time(tp)}")
+        if interrupt_occured:
+            if exit_on_interrupt:
+                self.shell.showtraceback()
+                sys.exit(signal.SIGINT)
+            return
         return out
 
     @skip_doctest
@@ -1514,7 +1565,7 @@ class ExecutionMagics(Magics):
         default="",
         nargs="?",
         help="""
-        
+
         The name of the variable in which to store output.
         This is a ``utils.io.CapturedIO`` object with stdout/err attributes
         for the text of the captured output.
