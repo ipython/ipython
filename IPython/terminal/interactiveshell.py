@@ -502,13 +502,16 @@ class TerminalInteractiveShell(InteractiveShell):
         elif provider == "NavigableAutoSuggestFromHistory":
             # LLM stuff are all Provisional in 8.32
             if self._llm_provider_class:
-                llm_provider_constructor = import_item(self._llm_provider_class)
-                llm_provider = llm_provider_constructor(**self.llm_constructor_kwargs)
+
+                def init_llm_provider():
+                    llm_provider_constructor = import_item(self._llm_provider_class)
+                    return llm_provider_constructor(**self.llm_constructor_kwargs)
+
             else:
-                llm_provider = None
+                init_llm_provider = None
             self.auto_suggest = NavigableAutoSuggestFromHistory()
             # Provisinal in 8.32
-            self.auto_suggest._llm_provider = llm_provider
+            self.auto_suggest._init_llm_provider = init_llm_provider
 
             name = self.llm_prefix_from_history
 
