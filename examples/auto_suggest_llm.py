@@ -68,13 +68,13 @@ import asyncio
 import textwrap
 from typing import Any, AsyncIterable, AsyncIterator
 
-from jupyter_ai.completions.models import (
+from jupyter_ai_magics.models.completion import (
     InlineCompletionList,
     InlineCompletionReply,
     InlineCompletionRequest,
     InlineCompletionStreamChunk,
 )
-from jupyter_ai_magics import BaseProvider
+from jupyter_ai_magics.providers import BaseProvider
 from langchain_community.llms import FakeListLLM
 
 
