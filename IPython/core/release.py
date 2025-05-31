@@ -20,7 +20,7 @@ _version_minor = 37
 _version_patch = 0
 _version_extra = ".dev"
 # _version_extra = "rc1"
-# _version_extra = ""  # Uncomment this for full releases
+_version_extra = ""  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor, _version_patch]
