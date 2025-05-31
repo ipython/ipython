@@ -203,15 +203,11 @@ from types import SimpleNamespace
 from typing import (
     Iterable,
     Iterator,
-    List,
-    Tuple,
     Union,
     Any,
     Sequence,
-    Dict,
     Optional,
     TYPE_CHECKING,
-    Set,
     Sized,
     TypeVar,
     Literal,
@@ -236,10 +232,12 @@ from traitlets import (
     List as ListTrait,
     Unicode,
     Dict as DictTrait,
+    DottedObjectName,
     Union as UnionTrait,
     observe,
 )
 from traitlets.config.configurable import Configurable
+from traitlets.utils.importstring import import_item
 
 import __main__
 
@@ -987,7 +985,7 @@ class Completer(Configurable):
 
         - ``forbidden``: no evaluation of code is permitted,
         - ``minimal``: evaluation of literals and access to built-in namespace;
-          no item/attribute evaluationm no access to locals/globals,
+          no item/attribute evaluation, no access to locals/globals,
           no evaluation of any operations or comparisons.
         - ``limited``: access to all namespaces, evaluation of hard-coded methods
           (for example: :any:`dict.keys`, :any:`object.__getattr__`,
@@ -995,7 +993,9 @@ class Completer(Configurable):
           :any:`dict`, :any:`list`, :any:`tuple`, ``pandas.Series``),
         - ``unsafe``: evaluation of all methods and function calls but not of
           syntax with side-effects like `del x`,
-        - ``dangerous``: completely arbitrary evaluation.
+        - ``dangerous``: completely arbitrary evaluation; does not support auto-import.
+
+        To override specific elements of the policy, you can use ``policy_overrides`` trait.
         """,
     ).tag(config=True)
 
@@ -1028,6 +1028,35 @@ class Completer(Configurable):
         (matching the opening quote), tuple keys will also receive a
         separating comma if needed, and keys which are final will
         receive a closing bracket (``]``).
+        """,
+    ).tag(config=True)
+
+    policy_overrides = DictTrait(
+        default_value={},
+        key_trait=Unicode(),
+        help="""Overrides for policy evaluation.
+
+        For example, to enable auto-import on completion specify:
+
+        .. code-block::
+
+            ipython --Completer.policy_overrides='{"allow_auto_import": True}' --Completer.use_jedi=False
+
+        """,
+    ).tag(config=True)
+
+    auto_import_method = DottedObjectName(
+        default_value="importlib.import_module",
+        allow_none=True,
+        help="""\
+        Provisional:
+              This is a provisional API in IPython 9.3, it may change without warnings.
+
+        A fully qualified path to an auto-import method for use by completer.
+        The function should take a single string and return `ModuleType` and
+        can raise `ImportError` exception if module is not found.
+
+        The default auto-import implementation does not populate the user namespace with the imported module.
         """,
     ).tag(config=True)
 
@@ -1279,6 +1308,8 @@ class Completer(Configurable):
                         globals=self.global_namespace,
                         locals=self.namespace,
                         evaluation=self.evaluation,
+                        auto_import=self._auto_import,
+                        policy_overrides=self.policy_overrides,
                     ),
                 )
                 done = True
@@ -1291,6 +1322,14 @@ class Completer(Configurable):
                 # TODO: make this faster by reusing parts of the computation?
                 expr = self._trim_expr(expr)
         return obj
+
+    @property
+    def _auto_import(self):
+        if self.auto_import_method is None:
+            return None
+        if not hasattr(self, "_auto_import_func"):
+            self._auto_import_func = import_item(self.auto_import_method)
+        return self._auto_import_func
 
 def get__all__entries(obj):
     """returns the strings in the __all__ attribute"""
@@ -2832,6 +2871,8 @@ class IPCompleter(Completer):
                 locals=self.namespace,
                 evaluation=self.evaluation,  # type: ignore
                 in_subscript=True,
+                auto_import=self._auto_import,
+                policy_overrides=self.policy_overrides,
             ),
         )
 
