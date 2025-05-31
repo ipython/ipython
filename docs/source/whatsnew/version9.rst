@@ -24,6 +24,7 @@ a new :std:configtrait:`Completer.policy_overrides` traitlet.
 To enable auto-import on completion specify:
 
 .. code-block::
+
     ipython --Completer.policy_overrides='{"allow_auto_import": True}' --Completer.use_jedi=False
 
 This change aligns the capability of both jedi-powered and the native completer.
