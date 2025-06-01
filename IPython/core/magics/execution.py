@@ -1259,6 +1259,7 @@ class ExecutionMagics(Magics):
         if return_result:
             return timeit_result
 
+    @no_var_expand
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         "--no-raise-error",
@@ -1267,7 +1268,6 @@ class ExecutionMagics(Magics):
         help="If given, don't re-raise exceptions",
     )
     @skip_doctest
-    @no_var_expand
     @needs_local_scope
     @line_cell_magic
     @output_can_be_silenced
@@ -1414,15 +1414,18 @@ class ExecutionMagics(Magics):
         # Track whether to propagate exceptions or exit
         exit_on_interrupt = False
         interrupt_occured = False
+        captured_exception = None
 
         if mode == "eval":
             st = clock2()
             try:
                 out = eval(code, glob, local_ns)
-            except KeyboardInterrupt:
+            except KeyboardInterrupt as e:
+                captured_exception = e
                 interrupt_occured = True
                 exit_on_interrupt = True
-            except Exception:
+            except Exception as e:
+                captured_exception = e
                 interrupt_occured = True
                 if not args.no_raise_error:
                     exit_on_interrupt = True
@@ -1436,10 +1439,12 @@ class ExecutionMagics(Magics):
                 if expr_val is not None:
                     code_2 = self.shell.compile(expr_val, source, 'eval')
                     out = eval(code_2, glob, local_ns)
-            except KeyboardInterrupt:
+            except KeyboardInterrupt as e:
+                captured_exception = e
                 interrupt_occured = True
                 exit_on_interrupt = True
-            except Exception:
+            except Exception as e:
+                captured_exception = e
                 interrupt_occured = True
                 if not args.no_raise_error:
                     exit_on_interrupt = True
@@ -1463,9 +1468,8 @@ class ExecutionMagics(Magics):
         if tp > tp_min:
             print(f"Parser   : {_format_time(tp)}")
         if interrupt_occured:
-            if exit_on_interrupt:
-                self.shell.showtraceback()
-                sys.exit(signal.SIGINT)
+            if exit_on_interrupt and captured_exception:
+                raise captured_exception
             return
         return out
 
