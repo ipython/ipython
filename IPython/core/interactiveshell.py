@@ -252,13 +252,17 @@ class ExecutionInfo:
     Stores information about what is going to happen.
     """
     raw_cell = None
+    transformed_cell = None
     store_history = False
     silent = False
     shell_futures = True
     cell_id = None
 
-    def __init__(self, raw_cell, store_history, silent, shell_futures, cell_id):
+    def __init__(
+        self, raw_cell, transformed_cell, store_history, silent, shell_futures, cell_id
+    ):
         self.raw_cell = raw_cell
+        self.transformed_cell = transformed_cell
         self.store_history = store_history
         self.silent = silent
         self.shell_futures = shell_futures
@@ -269,12 +273,18 @@ class ExecutionInfo:
         raw_cell = (
             (self.raw_cell[:50] + "..") if len(self.raw_cell) > 50 else self.raw_cell
         )
+        transformed_cell = (
+            (self.transformed_cell[:50] + "..")
+            if len(self.transformed_cell) > 50
+            else self.transformed_cell
+        )
         return (
-            '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s cell_id=%s>'
+            '<%s object at %x, raw_cell="%s" transformed_cell="%s" store_history=%s silent=%s shell_futures=%s cell_id=%s>'
             % (
                 name,
                 id(self),
                 raw_cell,
+                transformed_cell,
                 self.store_history,
                 self.silent,
                 self.shell_futures,
@@ -290,7 +300,7 @@ class ExecutionResult:
     """
 
     execution_count: Optional[int] = None
-    error_before_exec: Optional[bool] = None
+    error_before_exec: Optional[BaseException] = None
     error_in_exec: Optional[BaseException] = None
     info = None
     result = None
@@ -314,6 +324,7 @@ class ExecutionResult:
         return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s info=%s result=%s>' %\
                 (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.info), repr(self.result))
 
+
 @functools.wraps(io_open)
 def _modified_open(file, *args, **kwargs):
     if file in {0, 1, 2}:
@@ -331,7 +342,7 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
     _user_ns: dict
-    _sys_modules_keys: set[str, AnyType]
+    _sys_modules_keys: set[str]
 
     inspector: oinspect.Inspector
 
@@ -1572,7 +1583,7 @@ class InteractiveShell(SingletonConfigurable):
             if isinstance(variables, str):
                 vlist = variables.split()
             else:
-                vlist = variables
+                vlist = list(variables)
             vdict = {}
             cf = sys._getframe(1)
             for name in vlist:
@@ -1887,11 +1898,12 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                docformat = (
-                    sphinxify(self.object_inspect(oname))
-                    if self.sphinxify_docstring
-                    else None
-                )
+                if self.sphinxify_docstring:
+                    if sphinxify is None:
+                        raise ImportError("Module ``docrepr`` required but missing")
+                    docformat = sphinxify(self.object_inspect(oname))
+                else:
+                    docformat = None
                 return self.inspector._get_info(
                     info.obj,
                     oname,
@@ -2196,7 +2208,7 @@ class InteractiveShell(SingletonConfigurable):
         except KeyboardInterrupt:
             print('\n' + self.get_exception_only(), file=sys.stderr)
 
-    def _showtraceback(self, etype, evalue, stb: str):
+    def _showtraceback(self, etype, evalue, stb: list[str]):
         """Actually show a traceback.
 
         Subclasses may override this method to put the traceback on a different
@@ -3152,14 +3164,21 @@ class InteractiveShell(SingletonConfigurable):
         try:
             result = runner(coro)
         except BaseException as e:
-            info = ExecutionInfo(
-                raw_cell, store_history, silent, shell_futures, cell_id
-            )
-            result = ExecutionResult(info)
-            result.error_in_exec = e
-            self.showtraceback(running_compiled_code=True)
-        finally:
-            return result
+            try:
+                info = ExecutionInfo(
+                    raw_cell,
+                    transformed_cell,
+                    store_history,
+                    silent,
+                    shell_futures,
+                    cell_id,
+                )
+                result = ExecutionResult(info)
+                result.error_in_exec = e
+                self.showtraceback(running_compiled_code=True)
+            except:
+                pass
+        return result
 
     def should_run_async(
         self, raw_cell: str, *, transformed_cell=None, preprocessing_exc_tuple=None
@@ -3243,7 +3262,9 @@ class InteractiveShell(SingletonConfigurable):
 
         .. versionadded:: 7.0
         """
-        info = ExecutionInfo(raw_cell, store_history, silent, shell_futures, cell_id)
+        info = ExecutionInfo(
+            raw_cell, transformed_cell, store_history, silent, shell_futures, cell_id
+        )
         result = ExecutionResult(info)
 
         if (not raw_cell) or raw_cell.isspace():
@@ -3261,9 +3282,9 @@ class InteractiveShell(SingletonConfigurable):
             if store_history:
                 if self.history_manager:
                     # Store formatted traceback and error details
-                    self.history_manager.exceptions[self.execution_count] = (
-                        self._format_exception_for_storage(value)
-                    )
+                    self.history_manager.exceptions[
+                        self.execution_count
+                    ] = self._format_exception_for_storage(value)
                 self.execution_count += 1
             result.error_before_exec = value
             self.last_execution_succeeded = False
@@ -3377,9 +3398,9 @@ class InteractiveShell(SingletonConfigurable):
             exec_count = self.execution_count
             if result.error_in_exec:
                 # Store formatted traceback and error details
-                self.history_manager.exceptions[exec_count] = (
-                    self._format_exception_for_storage(result.error_in_exec)
-                )
+                self.history_manager.exceptions[
+                    exec_count
+                ] = self._format_exception_for_storage(result.error_in_exec)
 
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
@@ -3596,7 +3617,7 @@ class InteractiveShell(SingletonConfigurable):
                 if mode == "exec":
                     mod = Module([node], [])
                 elif mode == "single":
-                    mod = ast.Interactive([node])  # type: ignore
+                    mod = ast.Interactive([node])
                 with compiler.extra_flags(
                     getattr(ast, "PyCF_ALLOW_TOP_LEVEL_AWAIT", 0x0)
                     if self.autoawait

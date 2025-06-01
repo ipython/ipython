@@ -73,6 +73,30 @@ The following magic commands are provided:
 
     Mark module 'foo' to not be autoreloaded.
 
+Import Conflict Resolution
+==========================
+
+In ``%autoreload 3`` mode, the extension tracks ``from X import Y`` style imports
+and intelligently resolves conflicts when the same name is imported multiple ways.
+
+Import tracking occurs after successful code execution, ensuring that only valid
+imports are tracked. This approach handles edge cases such as:
+
+- Importing a name that doesn't initially exist in a module, then adding that name
+  to the module and importing it again
+- Conflicts between aliased imports (``from X import Y as Z``) and direct imports
+  (``from X import Z``)
+
+When conflicts occur:
+
+- If you first do ``from X import Y as Z`` then later ``from X import Z``, 
+  the extension will switch to reloading ``Z`` instead of ``Y`` under the name ``Z``.
+
+- Similarly, if you first do ``from X import Z`` then later ``from X import Y as Z``,
+  the extension will switch to reloading ``Y`` as ``Z`` instead of the original ``Z``.
+
+- The most recent successful import always takes precedence in conflict resolution.
+
 Caveats
 =======
 
@@ -172,6 +196,9 @@ class ModuleReloader:
         # Deduper reloader
         self.deduper_reloader = DeduperReloader()
 
+        # Persistent import tracker for from-imports
+        self.import_from_tracker = ImportFromTracker({}, {})
+
         # Cache module modification times
         self.check(check_all=True, do_reload=False)
 
@@ -193,6 +220,10 @@ class ModuleReloader:
         except KeyError:
             pass
         self.modules[module_name] = True
+
+    def clear_import_tracker(self):
+        """Clear the persistent import tracker state"""
+        self.import_from_tracker = ImportFromTracker({}, {})
 
     def aimport_module(self, module_name):
         """Import a module, and mark it reloadable
@@ -238,7 +269,7 @@ class ModuleReloader:
 
         return py_filename, pymtime
 
-    def check(self, check_all=False, do_reload=True):
+    def check(self, check_all=False, do_reload=True, execution_info=None):
         """Check whether some modules need to be reloaded."""
 
         if not self.enabled and not check_all:
@@ -248,32 +279,10 @@ class ModuleReloader:
             modules = list(sys.modules.keys())
         else:
             modules = list(self.modules.keys())
-        imports_froms = None
-        symbol_map = {}
-        if self.shell and "In" in self.shell.user_ns:
-            imports_froms = {}
-            lines = self.shell.user_ns["In"]
-            sourcecode = "\n".join(lines)
-            tree = ast.parse(sourcecode)
-            for node in ast.walk(tree):
-                # Handle "from X import Y" style imports
-                if isinstance(node, ast.ImportFrom):
-                    mod = node.module
-                    if mod not in imports_froms:
-                        imports_froms[mod] = []
 
-                    for name in node.names:
-                        # name.name is going to be actual name that we want to import from module
-                        # name.asname is Z in the case of from X import Y as Z
-                        # we should update Z in the shell in this situation, so track it too.
-                        imports_froms[mod].append(name.name)
-                        if mod not in symbol_map:
-                            symbol_map[mod] = {}
-                        symbol_map[mod][name.name] = (
-                            name.asname if name.asname else name.name
-                        )
+        # Use the persistent import_from_tracker
         import_from_tracker = (
-            ImportFromTracker(imports_froms, symbol_map) if imports_froms else None
+            self.import_from_tracker if self.import_from_tracker.imports_froms else None
         )
         for modname in modules:
             m = sys.modules.get(modname, None)
@@ -464,6 +473,36 @@ class ImportFromTracker:
     def __init__(self, imports_froms, symbol_map):
         self.imports_froms = imports_froms
         self.symbol_map = symbol_map
+
+    def add_import(self, module_name, original_name, resolved_name):
+        """Add an import, handling conflicts with existing imports.
+
+        This method is called after successful code execution, so we know the import is valid.
+        """
+        if module_name not in self.imports_froms:
+            self.imports_froms[module_name] = []
+        if module_name not in self.symbol_map:
+            self.symbol_map[module_name] = {}
+
+        # Check if there's already a different mapping for the same resolved_name
+        existing_mapping = None
+        for orig_name, res_name in self.symbol_map[module_name].items():
+            if res_name == resolved_name and orig_name != original_name:
+                existing_mapping = orig_name
+                break
+
+        # If there's a conflict, the newer import takes precedence since it just executed successfully
+        if existing_mapping is not None:
+            # Remove the old mapping
+            if existing_mapping in self.imports_froms[module_name]:
+                self.imports_froms[module_name].remove(existing_mapping)
+            if existing_mapping in self.symbol_map[module_name]:
+                del self.symbol_map[module_name][existing_mapping]
+
+        # Add the new mapping
+        if original_name not in self.imports_froms[module_name]:
+            self.imports_froms[module_name].append(original_name)
+        self.symbol_map[module_name][original_name] = resolved_name
 
 
 def append_obj(module, d, name, obj, autoload=False):
@@ -779,6 +818,9 @@ class AutoreloadMagics(Magics):
                     self.shell.push({top_name: top_module})
 
     def pre_run_cell(self, info):
+        # Store the execution info for later use in post_execute_hook
+        self._last_execution_info = info
+
         if self._reloader.enabled:
             try:
                 self._reloader.check()
@@ -786,7 +828,20 @@ class AutoreloadMagics(Magics):
                 pass
 
     def post_execute_hook(self):
-        """Cache the modification times of any modules imported in this execution"""
+        """Cache the modification times of any modules imported in this execution and track imports"""
+
+        # Track imports from the recently executed code if autoreload 3 is enabled
+        if self._reloader.enabled and self._reloader.autoload_obj:
+            # Use the stored execution info
+            if (
+                hasattr(self, "_last_execution_info")
+                and self._last_execution_info
+                and self._last_execution_info.transformed_cell
+            ):
+                self._track_imports_from_code(
+                    self._last_execution_info.transformed_cell
+                )
+
         newly_loaded_modules = set(sys.modules) - self.loaded_modules
         for modname in newly_loaded_modules:
             _, pymtime = self._reloader.filename_and_mtime(sys.modules[modname])
@@ -794,6 +849,36 @@ class AutoreloadMagics(Magics):
                 self._reloader.modules_mtimes[modname] = pymtime
 
         self.loaded_modules.update(newly_loaded_modules)
+
+    def _track_imports_from_code(self, code):
+        """Track import statements from executed code"""
+        try:
+            tree = ast.parse(code)
+
+            for node in ast.walk(tree):
+                # Handle "from X import Y" style imports
+                if isinstance(node, ast.ImportFrom):
+                    mod = node.module
+
+                    # Skip relative imports that don't have a module name
+                    if mod is None:
+                        continue
+
+                    for name in node.names:
+                        # name.name is going to be actual name that we want to import from module
+                        # name.asname is Z in the case of from X import Y as Z
+                        # we should update Z in the shell in this situation, so track it too.
+                        original_name = name.name
+                        resolved_name = name.asname if name.asname else name.name
+
+                        # Since the code executed successfully, we know this import is valid
+                        self._reloader.import_from_tracker.add_import(
+                            mod, original_name, resolved_name
+                        )
+        except (SyntaxError, ValueError):
+            # If there's a syntax error, skip import tracking
+            # (though this shouldn't happen since the code already executed successfully)
+            pass
 
 
 def load_ipython_extension(ip):
