@@ -1,4 +1,5 @@
 import pytest
+import time
 from IPython.terminal.interactiveshell import PtkHistoryAdapter
 from IPython.terminal.shortcuts.auto_suggest import (
     accept,
@@ -59,6 +60,17 @@ async def test_llm_autosuggestion():
     event.current_buffer.insert_text(text, move_cursor=True)
     await llm_autosuggestion(event)
     assert event.current_buffer.suggestion.text == FIBONACCI[len(text) :]
+
+
+def test_slow_llm_provider_should_not_block_init():
+    ip = get_ipython()
+    provider = NavigableAutoSuggestFromHistory()
+    ip.auto_suggest = provider
+    start = time.perf_counter()
+    ip.llm_provider_class = "tests.fake_llm.SlowStartingCompletionProvider"
+    end = time.perf_counter()
+    elapsed = end - start
+    assert elapsed < 0.1
 
 
 @pytest.mark.parametrize(

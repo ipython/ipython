@@ -2,6 +2,47 @@
  9.x Series
 ============
 
+.. _version93:
+
+IPython 9.3
+===========
+
+This release includes improvements to the tab and LLM completer, along with typing improvements:
+
+- :ghpull:`14911` Implement auto-import and evaluation policy overrides
+- :ghpull:`14910` Eliminate startup delay when LLM completion provider is configured
+- :ghpull:`14898` Fix attribute completion for expressions with comparison operators
+- :ghpull:`14908` Fix typing of `error_before_exec`, enhance ``mypy`` coverage
+
+Notably, the native completer can now suggest attribute completion on not-yet-imported modules.
+This is particularly useful when writing code which includes an import and the use of the imported
+module in the same line or in the same cell; the default implementation does not insert
+the imported module into the user namespace, for which an actual execution is required.
+
+The auto-import of modules by completer is turned off and requires opting-in using
+a new :std:configtrait:`Completer.policy_overrides` traitlet.
+To enable auto-import on completion specify:
+
+.. code-block::
+
+    ipython --Completer.policy_overrides='{"allow_auto_import": True}' --Completer.use_jedi=False
+
+This change aligns the capability of both jedi-powered and the native completer.
+The function used for auto-import can be configured using :std:configtrait:`Completer.auto_import_method` traitlet.
+
+.. _version92:
+
+IPython 9.2
+===========
+
+This is a small release with minor changes in the context passed to the LLM completion
+provider along few other bug fixes and documentation improvements:
+
+- :ghpull:`14890` Fixed interruption of ``%%time`` and ``%%debug`` magics
+- :ghpull:`14877` Removed spurious empty lines from ``prefix`` passed to LLM, and separated part after cursor into the ``suffix``
+- :ghpull:`14876` Fixed syntax warning in Python 3.14 (remove return from finally block)
+- :ghpull:`14887` Documented the recommendation to use ``ipykernel.embed.embed_kernel()`` over ``ipython.embed``.
+
 .. _version91:
 
 IPython 9.1

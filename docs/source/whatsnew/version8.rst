@@ -2,6 +2,27 @@
  8.x Series
 ============
 
+.. _version 8.37:
+
+IPython 8.37
+============
+
+This release includes fixes for the tab completer and LLM completer backported from IPython 9.4:
+
+- :ghpull:`14910` Eliminate startup delay when LLM completion provider is configured
+- :ghpull:`14898` Fix attribute completion for expressions with comparison operators
+
+.. _version 8.36:
+
+IPython 8.36
+============
+
+This is a small release with minor changes in the context passed to the LLM completion
+provider and a fix for interruption of execution magics:
+
+- :ghpull:`14890` Fixed interruption of ``%%time`` and ``%%debug`` magics
+- :ghpull:`14877` Removed spurious empty lines from ``prefix`` passed to LLM, and separated part after cursor into the ``suffix``
+
 .. _version 8.35:
 
 IPython 8.35
