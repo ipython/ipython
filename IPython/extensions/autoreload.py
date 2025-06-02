@@ -472,7 +472,18 @@ mod_attrs = [
 class ImportFromTracker:
     def __init__(self, imports_froms, symbol_map):
         self.imports_froms = imports_froms
-        self.symbol_map = symbol_map
+        # symbol_map maps original_name -> list of resolved_names
+        self.symbol_map = {}
+        if symbol_map:
+            for module_name, mappings in symbol_map.items():
+                self.symbol_map[module_name] = {}
+                for original_name, resolved_names in mappings.items():
+                    if isinstance(resolved_names, list):
+                        self.symbol_map[module_name][original_name] = resolved_names[:]
+                    else:
+                        self.symbol_map[module_name][original_name] = [resolved_names]
+        else:
+            self.symbol_map = symbol_map or {}
 
     def add_import(self, module_name, original_name, resolved_name):
         """Add an import, handling conflicts with existing imports.
@@ -484,25 +495,29 @@ class ImportFromTracker:
         if module_name not in self.symbol_map:
             self.symbol_map[module_name] = {}
 
-        # Check if there's already a different mapping for the same resolved_name
-        existing_mapping = None
-        for orig_name, res_name in self.symbol_map[module_name].items():
-            if res_name == resolved_name and orig_name != original_name:
-                existing_mapping = orig_name
-                break
-
-        # If there's a conflict, the newer import takes precedence since it just executed successfully
-        if existing_mapping is not None:
-            # Remove the old mapping
-            if existing_mapping in self.imports_froms[module_name]:
-                self.imports_froms[module_name].remove(existing_mapping)
-            if existing_mapping in self.symbol_map[module_name]:
-                del self.symbol_map[module_name][existing_mapping]
+        # Check if there's already a different mapping for the same resolved_name from a different original_name
+        # We need to remove any conflicting mappings
+        for orig_name, res_names in list(self.symbol_map[module_name].items()):
+            if resolved_name in res_names and orig_name != original_name:
+                # Remove the conflicting resolved_name from the other original_name's list
+                res_names.remove(resolved_name)
+                if (
+                    not res_names
+                ):  # If the list is now empty, remove the original_name entirely
+                    if orig_name in self.imports_froms[module_name]:
+                        self.imports_froms[module_name].remove(orig_name)
+                    del self.symbol_map[module_name][orig_name]
 
         # Add the new mapping
         if original_name not in self.imports_froms[module_name]:
             self.imports_froms[module_name].append(original_name)
-        self.symbol_map[module_name][original_name] = resolved_name
+
+        if original_name not in self.symbol_map[module_name]:
+            self.symbol_map[module_name][original_name] = []
+
+        # Add the resolved_name if it's not already in the list
+        if resolved_name not in self.symbol_map[module_name][original_name]:
+            self.symbol_map[module_name][original_name].append(resolved_name)
 
 
 def append_obj(module, d, name, obj, autoload=False):
@@ -586,9 +601,14 @@ def superreload(
                 )
             ):
                 continue
+
+            # Handle symbol mapping - now supporting multiple resolved names per original name
             if symbol_map and name in symbol_map.get(module.__name__, {}):
-                name = symbol_map.get(module.__name__, {})[name]
-            shell.user_ns[name] = new_obj
+                resolved_names = symbol_map.get(module.__name__, {})[name]
+                for resolved_name in resolved_names:
+                    shell.user_ns[resolved_name] = new_obj
+            else:
+                shell.user_ns[name] = new_obj
 
         new_refs = []
         for old_ref in old_objects[key]:

@@ -922,7 +922,7 @@ x = -99
             # Verify initial state
             assert mod_name in tracker.imports_froms
             assert "foo" in tracker.imports_froms[mod_name]
-            assert tracker.symbol_map[mod_name]["foo"] == "bar"
+            assert tracker.symbol_map[mod_name]["foo"] == ["bar"]
 
             # Second import: from mod_name import bar (conflicts with previous "bar")
             tracker.add_import(mod_name, "bar", "bar")
@@ -930,7 +930,7 @@ x = -99
             # The second import should take precedence since "bar" is a valid import
             assert "bar" in tracker.imports_froms[mod_name]
             assert "foo" not in tracker.imports_froms[mod_name]  # Should be removed
-            assert tracker.symbol_map[mod_name]["bar"] == "bar"
+            assert tracker.symbol_map[mod_name]["bar"] == ["bar"]
             assert "foo" not in tracker.symbol_map[mod_name]  # Should be removed
         finally:
             # Clean up sys.modules
@@ -967,7 +967,7 @@ x = -99
 
             # Verify initial state
             assert "bar" in tracker.imports_froms[mod_name]
-            assert tracker.symbol_map[mod_name]["bar"] == "bar"
+            assert tracker.symbol_map[mod_name]["bar"] == ["bar"]
 
             # Second import: from mod_name import foo as bar (conflicts with previous "bar")
             tracker.add_import(mod_name, "foo", "bar")
@@ -975,7 +975,7 @@ x = -99
             # The second import should take precedence since "foo" is a valid import
             assert "foo" in tracker.imports_froms[mod_name]
             assert "bar" not in tracker.imports_froms[mod_name]  # Should be removed
-            assert tracker.symbol_map[mod_name]["foo"] == "bar"
+            assert tracker.symbol_map[mod_name]["foo"] == ["bar"]
             assert "bar" not in tracker.symbol_map[mod_name]  # Should be removed
         finally:
             # Clean up sys.modules
@@ -1004,7 +1004,7 @@ x = -99
 
         # Verify initial state
         assert "foo" in tracker.imports_froms[mod_name]
-        assert tracker.symbol_map[mod_name]["foo"] == "bar"
+        assert tracker.symbol_map[mod_name]["foo"] == ["bar"]
 
         # Second import: from mod_name import foo2 as bar (conflicting import)
         # In the new approach, this would only be called if the import actually succeeded
@@ -1014,7 +1014,7 @@ x = -99
         # The new mapping should replace the old one since it's more recent
         assert "foo2" in tracker.imports_froms[mod_name]
         assert "foo" not in tracker.imports_froms[mod_name]  # Should be replaced
-        assert tracker.symbol_map[mod_name]["foo2"] == "bar"
+        assert tracker.symbol_map[mod_name]["foo2"] == ["bar"]
         assert "foo" not in tracker.symbol_map[mod_name]  # Should be replaced
 
     def test_import_from_tracker_integration(self):
@@ -1059,6 +1059,40 @@ x = -99
         # The 'bar' variable should now contain the modified 'bar', not 'foo'
         assert self.shell.user_ns["bar"] == "modified_bar"
 
+    def test_autoreload3_double_import(self):
+        """Test the integration of ImportFromTracker with autoreload"""
+        # Create a test module
+        mod_name, mod_fn = self.new_module(
+            textwrap.dedent(
+                """
+                foo = "original_foo"
+                bar = "original_bar"
+                """
+            )
+        )
+        # Enable autoreload mode 3 (complete)
+        self.shell.magic_autoreload("3")
+
+        # First import: from mod_name import foo as bar
+        # This will naturally load the module into sys.modules
+        self.shell.run_code(f"from {mod_name} import foo as bar")
+        self.shell.run_code(f"from {mod_name} import foo")
+        assert self.shell.user_ns["bar"] == "original_foo"
+        assert self.shell.user_ns["foo"] == "original_foo"
+        # Modify the module
+        self.write_file(
+            mod_fn,
+            textwrap.dedent(
+                """
+                foo = "modified_foo"
+                bar = "modified_bar"
+                """
+            ),
+        )
+        self.shell.run_code("pass")
+        assert self.shell.user_ns["bar"] == "modified_foo"
+        assert self.shell.user_ns["foo"] == "modified_foo"
+
     def test_import_from_tracker_unloaded_module(self):
         """Test that ImportFromTracker works with the post-execution approach"""
         from IPython.extensions.autoreload import ImportFromTracker
@@ -1080,7 +1114,7 @@ x = -99
         assert fake_mod_name in tracker.imports_froms
         assert fake_mod_name in tracker.symbol_map
         assert "some_attr" in tracker.imports_froms[fake_mod_name]
-        assert tracker.symbol_map[fake_mod_name]["some_attr"] == "some_name"
+        assert tracker.symbol_map[fake_mod_name]["some_attr"] == ["some_name"]
 
         # Simulate a conflict scenario - another import succeeded
         tracker.add_import(fake_mod_name, "another_attr", "some_name")
@@ -1092,7 +1126,30 @@ x = -99
         assert (
             "some_attr" not in tracker.imports_froms[fake_mod_name]
         )  # Should be replaced
-        assert tracker.symbol_map[fake_mod_name]["another_attr"] == "some_name"
+        assert tracker.symbol_map[fake_mod_name]["another_attr"] == ["some_name"]
         assert (
             "some_attr" not in tracker.symbol_map[fake_mod_name]
         )  # Should be replaced
+
+    def test_import_from_tracker_multiple_resolved_names(self):
+        """Test that the same original name can map to multiple resolved names"""
+        from IPython.extensions.autoreload import ImportFromTracker
+
+        # Create a tracker
+        tracker = ImportFromTracker({}, {})
+
+        fake_mod_name = "test_module_abc"
+
+        # Simulate: from test_module_abc import foo as bar
+        tracker.add_import(fake_mod_name, "foo", "bar")
+
+        # Verify initial state
+        assert "foo" in tracker.imports_froms[fake_mod_name]
+        assert tracker.symbol_map[fake_mod_name]["foo"] == ["bar"]
+
+        # Simulate: from test_module_abc import foo (same original name, different resolved name)
+        tracker.add_import(fake_mod_name, "foo", "foo")
+
+        # Both resolved names should be tracked for the same original name
+        assert "foo" in tracker.imports_froms[fake_mod_name]
+        assert set(tracker.symbol_map[fake_mod_name]["foo"]) == {"bar", "foo"}
