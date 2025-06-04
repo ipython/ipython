@@ -392,11 +392,21 @@ def embed(*, header="", compile_flags=None, **kwargs):
     if config is None:
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
-        kwargs['config'] = config
-    using = kwargs.get('using', 'sync')
-    if using :
-        kwargs['config'].update({'TerminalInteractiveShell':{'loop_runner':using, 'colors':'NoColor', 'autoawait': using!='sync'}})
-    #save ps1/ps2 if defined
+        kwargs["config"] = config
+    using = kwargs.get("using", "sync")
+    colors = kwargs.get("colors", "NoColor")
+    print(colors, using)
+    if using:
+        kwargs["config"].update(
+            {
+                "TerminalInteractiveShell": {
+                    "loop_runner": using,
+                    "colors": colors,
+                    "autoawait": using != "sync",
+                }
+            }
+        )
+    # save ps1/ps2 if defined
     ps1 = None
     ps2 = None
     try:
