@@ -444,7 +444,21 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                         global_env = to_patch_to.fdel.__globals__
                 if not isinstance(global_env, dict):
                     global_env = dict(global_env)
-                exec(func_code, global_env, local_env)  # type: ignore[arg-type]
+
+                # Compile with correct filename and line number to preserve traceback info
+                filename = (
+                    getattr(to_patch_to, "__code__", None)
+                    and to_patch_to.__code__.co_filename
+                    or "<string>"
+                )
+                lineno = getattr(new_ast_def, "lineno", 1)
+                # Adjust the source code to include proper line number information
+                # We need to add empty lines to match the original line number
+                adjusted_func_code = "\n" * (lineno - 1) + func_code
+                compiled_code = compile(
+                    adjusted_func_code, filename, "exec", dont_inherit=True
+                )
+                exec(compiled_code, global_env, local_env)
                 # local_env contains the function exec'd from  new version of function
                 if is_method:
                     to_patch_from = getattr(local_env["__autoreload_class__"], name)

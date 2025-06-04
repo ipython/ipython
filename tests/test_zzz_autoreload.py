@@ -709,3 +709,153 @@ x = -99
 
     def test_smoketest_autoreload(self):
         self._check_smoketest(use_aimport=False)
+
+    def test_deduperreloader_traceback_filename(self):
+        """
+        Test for GitHub issue #14900: Incorrect traceback after %autoreload in IPython 9.x with DeduperReloader enabled
+
+        Ensure that after DeduperReloader patches a function, the traceback still shows the correct filename
+        instead of "<string>".
+        """
+        mod_name, mod_fn = self.new_module(
+            """
+def buggy_function():
+    return 1/0
+"""
+        )
+
+        self.shell.magic_autoreload("2")  # This enables DeduperReloader by default
+        self.shell.run_code(f"import {mod_name}")
+
+        # Verify DeduperReloader is enabled
+        reloader = self.shell.auto_magics._reloader
+        self.assertTrue(
+            reloader.deduper_reloader.enabled, "DeduperReloader should be enabled"
+        )
+
+        # Get the original function and its filename
+        orig_func = self.shell.user_ns[mod_name].buggy_function
+        orig_filename = orig_func.__code__.co_filename
+        self.assertNotEqual(
+            orig_filename,
+            "<string>",
+            "Original function should not have <string> filename",
+        )
+        self.assertTrue(
+            orig_filename.endswith(f"{mod_name}.py"),
+            f"Original filename should end with {mod_name}.py",
+        )
+
+        # Modify the module to trigger autoreload
+        self.write_file(
+            mod_fn,
+            """
+def buggy_function():
+    return 42/0  # Changed from 1/0 to 42/0
+""",
+        )
+
+        # Trigger autoreload by running code
+        self.shell.run_code("pass")
+
+        # Get the patched function
+        patched_func = self.shell.user_ns[mod_name].buggy_function
+        patched_filename = patched_func.__code__.co_filename
+
+        # The key test: co_filename should be preserved, not changed to "<string>"
+        self.assertNotEqual(
+            patched_filename,
+            "<string>",
+            "Patched function co_filename should not be '<string>'",
+        )
+        self.assertEqual(
+            patched_filename,
+            orig_filename,
+            "Patched function co_filename should match original filename",
+        )
+
+        # Additional test: verify traceback shows correct filename
+        try:
+            self.shell.run_code(f"{mod_name}.buggy_function()")
+        except Exception:
+            # The shell should handle the exception, but we can check if it was processed
+            pass
+
+        # Test direct call to verify traceback
+        import traceback as tb
+
+        try:
+            patched_func()
+            self.fail("Function should have raised ZeroDivisionError")
+        except ZeroDivisionError:
+            tb_str = tb.format_exc()
+            self.assertNotIn(
+                "<string>", tb_str, "Traceback should not contain '<string>' filename"
+            )
+            self.assertIn(
+                f"{mod_name}.py",
+                tb_str,
+                f"Traceback should contain '{mod_name}.py' filename",
+            )
+
+    def test_deduperreloader_multiline_traceback_context(self):
+        """
+        Test that after DeduperReloader patches a function with changes,
+        the traceback shows correct filenames and code context.
+        """
+        mod_name, mod_fn = self.new_module(
+            """
+def test_function():
+    x = 1
+    y = 2
+    return 1/0  # This should be line 4
+"""
+        )
+
+        self.shell.magic_autoreload("2")  # This enables DeduperReloader by default
+        self.shell.run_code(f"import {mod_name}")
+
+        # Modify the module with simple change
+        self.write_file(
+            mod_fn,
+            """
+def test_function():
+    x = 1
+    y = 2
+    return 2/0  # Changed from 1/0 to 2/0
+""",
+        )
+
+        # Trigger autoreload by running code
+        self.shell.run_code("pass")
+
+        # Get the patched function
+        patched_func = self.shell.user_ns[mod_name].test_function
+
+        # Test patched function traceback
+        import traceback as tb
+
+        try:
+            patched_func()
+            self.fail("Patched function should have raised ZeroDivisionError")
+        except ZeroDivisionError:
+            patched_tb_str = tb.format_exc()
+
+            # Verify correct code context (should show the new code)
+            self.assertIn(
+                "return 2/0",
+                patched_tb_str,
+                "Patched function traceback should show updated 'return 2/0'",
+            )
+
+            # Verify filename is correct (not <string>)
+            self.assertNotIn(
+                "<string>",
+                patched_tb_str,
+                "Patched function traceback should not contain '<string>' filename",
+            )
+            self.assertIn(
+                f"{mod_name}.py",
+                patched_tb_str,
+                f"Patched function traceback should contain '{mod_name}.py' filename",
+            )

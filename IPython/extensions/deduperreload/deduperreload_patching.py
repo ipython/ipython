@@ -119,7 +119,7 @@ class DeduperReloaderPatchingMixin:
                 new_freevars.append(v)
                 new_closure.append(to_patch_from.__closure__[i])
         code_with_new_freevars = to_patch_from.__code__.replace(
-            co_freevars=tuple(new_freevars)
+            co_freevars=tuple(new_freevars),
         )
         # lambdas may complain if there is more than one freevar
         cls.try_patch_attr(
