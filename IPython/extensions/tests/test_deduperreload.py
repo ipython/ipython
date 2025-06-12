@@ -2239,6 +2239,45 @@ class DecoratorPatchingSuite(ShellFixture):
         assert mod.Foo.foo() == 43
         assert mod.foo() == 43
 
+    # This test verifies that the correct globals are used when patching a function
+    # decorated by a function from another module. For this example, we should always
+    # use <mod_name>.__dict__ as the global environment when patching foo, which comes
+    # from <mod_name>, and never <other_mod_name>.__dict__, which is what we would get
+    # if we use foo.__globals__ after it has been decorated.
+    def test_function_decorator_from_other_module(self):
+        self.shell.magic_autoreload("2")
+        other_mod_name, _ = self.new_module(
+            """
+            import functools
+
+            def incremented(f):
+                @functools.wraps(f)
+                def wrapper(*args, **kwargs):
+                    return f(*args, **kwargs) + 1
+                return wrapper
+            """
+        )
+        mod_name, mod_file = self.new_module(
+            f"""
+            from {other_mod_name} import incremented as deco
+            @deco
+            def foo():
+                return 42
+            """
+        )
+        self.shell.run_code(f"from {mod_name} import foo")
+        self.shell.run_code("assert foo() == 43")
+        self.write_file(
+            mod_file,
+            f"""
+            from {other_mod_name} import incremented as deco
+            @deco
+            def foo():
+                return 43
+            """,
+        )
+        self.shell.run_code("assert foo() == 44")
+
 
 class TestAutoreloadEnum(ShellFixture):
     def test_reload_enums(self):
