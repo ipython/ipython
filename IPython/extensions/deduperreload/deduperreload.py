@@ -432,16 +432,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                     func_code = "class __autoreload_class__:\n" + textwrap.indent(
                         func_code, "    "
                     )
-                global_env = namespace_to_check.__dict__
-                if hasattr(to_patch_to, "__globals__"):
-                    global_env = to_patch_to.__globals__
-                elif isinstance(to_patch_to, property):
-                    if to_patch_to.fget is not None:
-                        global_env = to_patch_to.fget.__globals__
-                    elif to_patch_to.fset is not None:
-                        global_env = to_patch_to.fset.__globals__
-                    elif to_patch_to.fdel is not None:
-                        global_env = to_patch_to.fdel.__globals__
+                global_env = ns.__dict__
                 if not isinstance(global_env, dict):
                     global_env = dict(global_env)
                 exec(func_code, global_env, local_env)  # type: ignore[arg-type]
