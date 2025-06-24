@@ -458,8 +458,8 @@ class NamespaceMagics(Magics):
                     if vbytes < Mb:
                         print('(%s kb)' % (vbytes/kb,))
                     else:
-                        print('(%s Mb)' % (vbytes/Mb,))
-            elif hasattr(var,'shape'):
+                        print("(%s Mb)" % (vbytes / Mb,))
+            elif hasattr(var, "shape"):
                 # Useful for DataFrames and Series
                 # Ought to work for both pandas and polars
                 print(f"Shape: {var.shape}")
