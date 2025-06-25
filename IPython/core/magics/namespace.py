@@ -372,11 +372,17 @@ class NamespaceMagics(Magics):
 
           In [2]: beta = 'test'
 
-          In [3]: %whos
+          In [3]: df = pd.DataFrame({"a": range(10), "b": range(10,20)})
+
+          In [4]: s = df["a"]
+
+          In [5]: %whos
           Variable   Type        Data/Info
           --------------------------------
           alpha      int         123
           beta       str         test
+          df         DataFrame   Shape: (10, 2)
+          s          Series      Shape: (10, )
         """
 
         varnames = self.who_ls(parameter_s)
