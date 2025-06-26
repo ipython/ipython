@@ -472,7 +472,7 @@ class NamespaceMagics(Magics):
                 print(f"Shape: {var.shape}")
             elif hasattr(var, "__len__"):
                 ## types that can be used in len function
-                print(f"Iterable with n={len(var)}")
+                print(var if isinstance(var, str) else f"n={len(var)}")
             else:
                 try:
                     vstr = str(var)
