@@ -361,6 +361,9 @@ class NamespaceMagics(Magics):
           - For numpy arrays, a summary with shape, number of
             elements, typecode and size in memory.
 
+          - For objects that have shape attribute, primarily dataframe and series like
+            objects, will print the shape.
+
           - Everything else: a string representation, snipping their middle if
             too long.
 
