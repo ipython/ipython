@@ -450,9 +450,7 @@ class NamespaceMagics(Magics):
         Mb = 1048576  # kb**2
         for vname,var,vtype in zip(varnames,varlist,typelist):
             print(vformat.format(vname, vtype, varwidth=varwidth, typewidth=typewidth), end=' ')
-            if vtype in seq_types:
-                print("n="+str(len(var)))
-            elif vtype == ndarray_type:
+            if vtype == ndarray_type:
                 vshape = str(var.shape).replace(',','').replace(' ','x')[1:-1]
                 if vtype==ndarray_type:
                     # numpy
@@ -472,6 +470,9 @@ class NamespaceMagics(Magics):
                 # Useful for DataFrames and Series
                 # Ought to work for both pandas and polars
                 print(f"Shape: {var.shape}")
+            elif hasattr(var, "__len__"):
+                ## types that can be used in len function
+                print(f"Iterable with n={len(var)}")
             else:
                 try:
                     vstr = str(var)
