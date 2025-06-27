@@ -1691,12 +1691,11 @@ def test_timeit_arguments():
 def test_time_raise_on_interrupt():
     ip = get_ipython()
 
-    with pytest.raises(SystemExit) as excinfo:
+    with pytest.raises(KeyboardInterrupt):
         thread = Thread(target=_interrupt_after_1s)
         thread.start()
         ip.run_cell_magic("time", "", "from time import sleep; sleep(2)")
         thread.join()
-    assert excinfo.value.code == signal.SIGINT
 
 
 MINIMAL_LAZY_MAGIC = """
