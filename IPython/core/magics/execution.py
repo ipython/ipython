@@ -20,6 +20,7 @@ import shlex
 import sys
 import time
 import timeit
+import signal
 from typing import Dict, Any
 from ast import (
     Assign,
@@ -1257,8 +1258,15 @@ class ExecutionMagics(Magics):
         if return_result:
             return timeit_result
 
-    @skip_doctest
     @no_var_expand
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        "--no-raise-error",
+        action="store_true",
+        dest="no_raise_error",
+        help="If given, don't re-raise exceptions",
+    )
+    @skip_doctest
     @needs_local_scope
     @line_cell_magic
     @output_can_be_silenced
@@ -1329,9 +1337,34 @@ class ExecutionMagics(Magics):
                 Wall time: 0.00 s
                 Compiler : 0.78 s
         """
-        # fail immediately if the given expression can't be compiled
+        line_present = False
+        # Try to parse --no-raise-error if present, else ignore unrecognized args
+        try:
+            args = magic_arguments.parse_argstring(self.time, line)
+        except UsageError as e:
+            # Only ignore UsageError if caused by unrecognized arguments
+            # We'll manually check for --no-raise-error and remove it from line
+            line_present = True
 
-        if line and cell:
+            # Check if --no-raise-error is present
+            no_raise_error = "--no-raise-error" in line
+
+            if no_raise_error:
+                # Remove --no-raise-error while preserving the rest of the line structure
+                line = re.sub(r"\s*--no-raise-error\s*", " ", line).strip()
+                # Clean up any double spaces
+                line = re.sub(r"\s+", " ", line)
+
+            class Args:
+                def __init__(self, no_raise_error):
+                    self.no_raise_error = no_raise_error
+
+            args = Args(no_raise_error)
+        else:
+            if not hasattr(args, "no_raise_error"):
+                args.no_raise_error = False
+
+        if line_present and cell:
             raise UsageError("Can't use statement directly after '%%time'!")
 
         if cell:
@@ -1376,13 +1409,24 @@ class ExecutionMagics(Magics):
         wtime = time.time
         # time execution
         wall_st = wtime()
+        # Track whether to propagate exceptions or exit
+        exit_on_interrupt = False
+        interrupt_occured = False
+        captured_exception = None
+
         if mode == "eval":
             st = clock2()
             try:
                 out = eval(code, glob, local_ns)
-            except Exception:
-                self.shell.showtraceback()
-                return
+            except KeyboardInterrupt as e:
+                captured_exception = e
+                interrupt_occured = True
+                exit_on_interrupt = True
+            except Exception as e:
+                captured_exception = e
+                interrupt_occured = True
+                if not args.no_raise_error:
+                    exit_on_interrupt = True
             end = clock2()
         else:
             st = clock2()
@@ -1393,11 +1437,16 @@ class ExecutionMagics(Magics):
                 if expr_val is not None:
                     code_2 = self.shell.compile(expr_val, source, 'eval')
                     out = eval(code_2, glob, local_ns)
-            except Exception:
-                self.shell.showtraceback()
-                return
+            except KeyboardInterrupt as e:
+                captured_exception = e
+                interrupt_occured = True
+                exit_on_interrupt = True
+            except Exception as e:
+                captured_exception = e
+                interrupt_occured = True
+                if not args.no_raise_error:
+                    exit_on_interrupt = True
             end = clock2()
-
         wall_end = wtime()
         # Compute actual times and report
         wall_time = wall_end - wall_st
@@ -1416,6 +1465,10 @@ class ExecutionMagics(Magics):
             print(f"Compiler : {_format_time(tc)}")
         if tp > tp_min:
             print(f"Parser   : {_format_time(tp)}")
+        if interrupt_occured:
+            if exit_on_interrupt and captured_exception:
+                raise captured_exception
+            return
         return out
 
     @skip_doctest
@@ -1514,7 +1567,7 @@ class ExecutionMagics(Magics):
         default="",
         nargs="?",
         help="""
-        
+
         The name of the variable in which to store output.
         This is a ``utils.io.CapturedIO`` object with stdout/err attributes
         for the text of the captured output.
