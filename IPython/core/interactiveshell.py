@@ -252,13 +252,23 @@ class ExecutionInfo:
     Stores information about what is going to happen.
     """
     raw_cell = None
+    transformed_cell = None
     store_history = False
     silent = False
     shell_futures = True
     cell_id = None
 
-    def __init__(self, raw_cell, store_history, silent, shell_futures, cell_id):
+    def __init__(
+        self,
+        raw_cell,
+        store_history,
+        silent,
+        shell_futures,
+        cell_id,
+        transformed_cell=None,
+    ):
         self.raw_cell = raw_cell
+        self.transformed_cell = transformed_cell
         self.store_history = store_history
         self.silent = silent
         self.shell_futures = shell_futures
@@ -269,12 +279,18 @@ class ExecutionInfo:
         raw_cell = (
             (self.raw_cell[:50] + "..") if len(self.raw_cell) > 50 else self.raw_cell
         )
+        transformed_cell = (
+            (self.transformed_cell[:50] + "..")
+            if self.transformed_cell and len(self.transformed_cell) > 50
+            else self.transformed_cell
+        )
         return (
-            '<%s object at %x, raw_cell="%s" store_history=%s silent=%s shell_futures=%s cell_id=%s>'
+            '<%s object at %x, raw_cell="%s" transformed_cell="%s" store_history=%s silent=%s shell_futures=%s cell_id=%s>'
             % (
                 name,
                 id(self),
                 raw_cell,
+                transformed_cell,
                 self.store_history,
                 self.silent,
                 self.shell_futures,
@@ -3156,14 +3172,18 @@ class InteractiveShell(SingletonConfigurable):
         except BaseException as e:
             try:
                 info = ExecutionInfo(
-                    raw_cell, store_history, silent, shell_futures, cell_id
+                    raw_cell,
+                    store_history,
+                    silent,
+                    shell_futures,
+                    cell_id,
+                    transformed_cell=transformed_cell,
                 )
                 result = ExecutionResult(info)
                 result.error_in_exec = e
                 self.showtraceback(running_compiled_code=True)
             except:
                 pass
-
         return result
 
     def should_run_async(
@@ -3248,7 +3268,14 @@ class InteractiveShell(SingletonConfigurable):
 
         .. versionadded:: 7.0
         """
-        info = ExecutionInfo(raw_cell, store_history, silent, shell_futures, cell_id)
+        info = ExecutionInfo(
+            raw_cell,
+            store_history,
+            silent,
+            shell_futures,
+            cell_id,
+            transformed_cell=transformed_cell,
+        )
         result = ExecutionResult(info)
 
         if (not raw_cell) or raw_cell.isspace():
