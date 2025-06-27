@@ -259,7 +259,13 @@ class ExecutionInfo:
     cell_id = None
 
     def __init__(
-        self, raw_cell, store_history, silent, shell_futures, cell_id, transformed_cell=None
+        self,
+        raw_cell,
+        store_history,
+        silent,
+        shell_futures,
+        cell_id,
+        transformed_cell=None,
     ):
         self.raw_cell = raw_cell
         self.transformed_cell = transformed_cell
@@ -275,7 +281,7 @@ class ExecutionInfo:
         )
         transformed_cell = (
             (self.transformed_cell[:50] + "..")
-            if transformed_cell and len(self.transformed_cell) > 50
+            if self.transformed_cell and len(self.transformed_cell) > 50
             else self.transformed_cell
         )
         return (
@@ -3263,7 +3269,12 @@ class InteractiveShell(SingletonConfigurable):
         .. versionadded:: 7.0
         """
         info = ExecutionInfo(
-            raw_cell, store_history, silent, shell_futures, cell_id, transformed_cell=transformed_cell
+            raw_cell,
+            store_history,
+            silent,
+            shell_futures,
+            cell_id,
+            transformed_cell=transformed_cell,
         )
         result = ExecutionResult(info)
 

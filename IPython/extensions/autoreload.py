@@ -89,7 +89,7 @@ imports are tracked. This approach handles edge cases such as:
 
 When conflicts occur:
 
-- If you first do ``from X import Y as Z`` then later ``from X import Z``, 
+- If you first do ``from X import Y as Z`` then later ``from X import Z``,
   the extension will switch to reloading ``Z`` instead of ``Y`` under the name ``Z``.
 
 - Similarly, if you first do ``from X import Z`` then later ``from X import Y as Z``,
@@ -485,7 +485,9 @@ class ImportFromTracker:
         else:
             self.symbol_map = symbol_map or {}
 
-    def add_import(self, module_name: str, original_name: str, resolved_name: str) -> None:
+    def add_import(
+        self, module_name: str, original_name: str, resolved_name: str
+    ) -> None:
         """Add an import, handling conflicts with existing imports.
 
         This method is called after successful code execution, so we know the import is valid.
