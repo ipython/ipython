@@ -470,7 +470,7 @@ mod_attrs = [
 
 
 class ImportFromTracker:
-    def __init__(self, imports_froms, symbol_map):
+    def __init__(self, imports_froms: dict, symbol_map: dict):
         self.imports_froms = imports_froms
         # symbol_map maps original_name -> list of resolved_names
         self.symbol_map = {}
@@ -485,7 +485,7 @@ class ImportFromTracker:
         else:
             self.symbol_map = symbol_map or {}
 
-    def add_import(self, module_name, original_name, resolved_name):
+    def add_import(self, module_name: str, original_name: str, resolved_name: str) -> None:
         """Add an import, handling conflicts with existing imports.
 
         This method is called after successful code execution, so we know the import is valid.
@@ -870,7 +870,7 @@ class AutoreloadMagics(Magics):
 
         self.loaded_modules.update(newly_loaded_modules)
 
-    def _track_imports_from_code(self, code):
+    def _track_imports_from_code(self, code: str) -> None:
         """Track import statements from executed code"""
         try:
             tree = ast.parse(code)
