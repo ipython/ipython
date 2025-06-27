@@ -1346,22 +1346,21 @@ class ExecutionMagics(Magics):
             # Only ignore UsageError if caused by unrecognized arguments
             # We'll manually check for --no-raise-error and remove it from line
             line_present = True
-            tokens = shlex.split(line)
-            no_raise_error = False
-            filtered_tokens = []
-            for t in tokens:
-                if t == "--no-raise-error":
-                    no_raise_error = True
-                else:
-                    filtered_tokens.append(t)
+
+            # Check if --no-raise-error is present
+            no_raise_error = "--no-raise-error" in line
+
+            if no_raise_error:
+                # Remove --no-raise-error while preserving the rest of the line structure
+                line = re.sub(r"\s*--no-raise-error\s*", " ", line).strip()
+                # Clean up any double spaces
+                line = re.sub(r"\s+", " ", line)
 
             class Args:
                 def __init__(self, no_raise_error):
                     self.no_raise_error = no_raise_error
 
             args = Args(no_raise_error)
-            # Rebuild line without --no-raise-error
-            line = " ".join(filtered_tokens)
         else:
             if not hasattr(args, "no_raise_error"):
                 args.no_raise_error = False
