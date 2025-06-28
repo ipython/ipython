@@ -11,6 +11,7 @@ import os
 import signal
 import sys
 import time
+from codecs import getincrementaldecoder
 from subprocess import CalledProcessError
 from threading import Thread
 
@@ -227,15 +228,21 @@ class ScriptMagics(Magics):
                 return await stream.read(e.consumed)
 
         async def _handle_stream(stream, stream_arg, file_object):
+            should_break = False
+            decoder = getincrementaldecoder("utf-8")(errors="replace")
             while True:
-                chunk = (await _readchunk(stream)).decode("utf8", errors="replace")
+                chunk = decoder.decode(await _readchunk(stream))
                 if not chunk:
                     break
+                    chunk = decoder.decode("", final=True)
+                    should_break = True
                 if stream_arg:
                     self.shell.user_ns[stream_arg] = chunk
                 else:
                     file_object.write(chunk)
                     file_object.flush()
+                if should_break:
+                    break
 
         async def _stream_communicate(process, cell):
             process.stdin.write(cell)
