@@ -1402,7 +1402,7 @@ def test_script_defaults():
 
 
 @pytest.mark.asyncio
-async def test_script_streams_continiously(capsys):
+async def test_script_streams_continuously(capsys):
     ip = get_ipython()
     # Windows is slow to start up a thread on CI
     is_windows = os.name == "nt"
@@ -1431,6 +1431,16 @@ async def test_script_streams_continiously(capsys):
     # If the streaming was line-wise or broken
     # we would get `012...`
     assert captured.out == "0.1.2."
+
+
+def test_script_streams_multibyte_unicode(capsys):
+    ip = get_ipython()
+    # € in UTF-8 is encoded using 3 bytes
+    code = "print('€' * 1000)"
+    ip.run_cell_magic("script", f"{sys.executable}", code)
+
+    captured = capsys.readouterr()
+    assert captured.out == '€' * 1000
 
 
 @magics_class
