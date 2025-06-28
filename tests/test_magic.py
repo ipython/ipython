@@ -1436,7 +1436,7 @@ async def test_script_streams_continuously(capsys):
 def test_script_streams_multibyte_unicode(capsys):
     ip = get_ipython()
     # € in UTF-8 is encoded using 3 bytes
-    code = "print('€' * 1000)"
+    code = "print('€' * 1000, end='')"
     ip.run_cell_magic("script", f"{sys.executable}", code)
 
     captured = capsys.readouterr()
