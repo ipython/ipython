@@ -1440,7 +1440,7 @@ def test_script_streams_multibyte_unicode(capsys):
     ip.run_cell_magic("script", f"{sys.executable}", code)
 
     captured = capsys.readouterr()
-    assert captured.out == '€' * 1000
+    assert captured.out == "€" * 1000
 
 
 @magics_class
