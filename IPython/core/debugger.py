@@ -133,6 +133,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 
 from IPython import get_ipython
+from IPython.core.debugger_backport import PdbClosureBackport
 from IPython.utils import PyColorize
 from IPython.utils.PyColorize import TokenStream
 
@@ -140,8 +141,15 @@ from typing import TYPE_CHECKING
 from types import FrameType
 
 # We have to check this directly from sys.argv, config struct not yet available
-from pdb import Pdb as OldPdb
+from pdb import Pdb as _OldPdb
 from pygments.token import Token
+
+
+if sys.version_info < (3, 13):
+    class OldPdb(PdbClosureBackport, _OldPdb):
+        pass
+else:
+    OldPdb = _OldPdb
 
 if TYPE_CHECKING:
     # otherwise circular import
