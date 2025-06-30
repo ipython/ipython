@@ -1424,7 +1424,7 @@ async def test_script_streams_continuously(capsys):
     thread = Thread(target=print_numbers)
     thread.start()
     sleep(step / 2)
-    ip.run_cell_magic("script", f"{sys.executable}", code)
+    ip.run_cell_magic("script", sys.executable, code)
     thread.join()
 
     captured = capsys.readouterr()
@@ -1437,7 +1437,12 @@ def test_script_streams_multibyte_unicode(capsys):
     ip = get_ipython()
     # € in UTF-8 is encoded using 3 bytes
     code = "print('€' * 1000, end='')"
-    ip.run_cell_magic("script", f"{sys.executable}", code)
+    is_windows = os.name == "nt"
+    command = sys.executable
+    if is_windows:
+        # windows does not use UTF for streams/pipes by default
+        command += " -X utf8"
+    ip.run_cell_magic("script", command, code)
 
     captured = capsys.readouterr()
     assert captured.out == "€" * 1000
