@@ -4,7 +4,9 @@ that were introduced in Python 3.13 by gh-83151: Make closure work on pdb
 https://github.com/python/cpython/pull/111094.
 This file should be removed once IPython drops supports for Python 3.12.
 
-Any changes are limited to reformatting by black linter.
+The only changes are:
+- reformatting by darker (black) formatter
+- addition of type-ignore comments to satisfy mypy
 
 Copyright (c) 2001 Python Software Foundation; All Rights Reserved
 
@@ -64,7 +66,7 @@ from types import CodeType
 
 
 class PdbClosureBackport:
-    def _exec_in_closure(self, source, globals, locals):
+    def _exec_in_closure(self, source, globals, locals):  # type: ignore[no-untyped-def]
         """Run source code in closure so code object created within source
         can find variables in locals correctly
         returns True if the source is executed, False otherwise
@@ -151,7 +153,7 @@ class PdbClosureBackport:
 
         return True
 
-    def default(self, line):
+    def default(self, line):  # type: ignore[no-untyped-def]
         if line[:1] == "!":
             line = line[1:].strip()
         locals = self.curframe_locals
