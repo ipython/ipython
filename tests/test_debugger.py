@@ -149,6 +149,34 @@ def test_ipdb_magics():
     '''
 
 
+def test_ipdb_closure():
+    """Test evaluation of expressions which depend on closure.
+
+    In [1]: old_trace = sys.gettrace()
+
+    Create a function which triggers ipdb.
+
+    In [2]: def trigger_ipdb():
+       ...:    debugger.Pdb().set_trace()
+
+    In [3]: with PdbTestInput([
+       ...:    'x = 1; sum(x * i for i in range(5))',
+       ...:    'continue',
+       ...: ]):
+       ...:     trigger_ipdb()
+    ...> <doctest ...>(2)trigger_ipdb()
+          1 def trigger_ipdb():
+    ----> 2    debugger.Pdb().set_trace()
+    <BLANKLINE>
+    ipdb> x = 1; sum(x * i for i in range(5))
+    ipdb> continue
+
+    Restore previous trace function, e.g. for coverage.py
+
+    In [4]: sys.settrace(old_trace)
+    """
+
+
 def test_ipdb_magics2():
     """Test ipdb with a very short function.
 
