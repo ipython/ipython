@@ -55,6 +55,7 @@ products or services of Licensee, or any third party.
 agrees to be bound by the terms and conditions of this License
 Agreement.
 """
+
 import sys
 import types
 import codeop
@@ -64,9 +65,9 @@ from types import CodeType
 
 class PdbClosureBackport:
     def _exec_in_closure(self, source, globals, locals):
-        """ Run source code in closure so code object created within source
-            can find variables in locals correctly
-            returns True if the source is executed, False otherwise
+        """Run source code in closure so code object created within source
+        can find variables in locals correctly
+        returns True if the source is executed, False otherwise
         """
 
         # Determine if the source should be executed in closure. Only when the
@@ -81,10 +82,7 @@ class PdbClosureBackport:
         # copy it first to avoid modifying the original locals
         locals_copy = dict(locals)
 
-        locals_copy["__pdb_eval__"] = {
-            "result": None,
-            "write_back": {}
-        }
+        locals_copy["__pdb_eval__"] = {"result": None, "write_back": {}}
 
         # If the source is an expression, we need to print its value
         try:
@@ -95,10 +93,13 @@ class PdbClosureBackport:
             source = "__pdb_eval__['result'] = " + source
 
         # Add write-back to update the locals
-        source = ("try:\n" +
-                  textwrap.indent(source, "  ") + "\n" +
-                  "finally:\n" +
-                  "  __pdb_eval__['write_back'] = locals()")
+        source = (
+            "try:\n"
+            + textwrap.indent(source, "  ")
+            + "\n"
+            + "finally:\n"
+            + "  __pdb_eval__['write_back'] = locals()"
+        )
 
         # Build a closure source code with freevars from locals like:
         # def __pdb_outer():
@@ -107,13 +108,17 @@ class PdbClosureBackport:
         #     nonlocal var
         #     <source>
         #   return __pdb_scope.__code__
-        source_with_closure = ("def __pdb_outer():\n" +
-                               "\n".join(f"  {var} = None" for var in locals_copy) + "\n" +
-                               "  def __pdb_scope():\n" +
-                               "\n".join(f"    nonlocal {var}" for var in locals_copy) + "\n" +
-                               textwrap.indent(source, "    ") + "\n" +
-                               "  return __pdb_scope.__code__"
-                               )
+        source_with_closure = (
+            "def __pdb_outer():\n"
+            + "\n".join(f"  {var} = None" for var in locals_copy)
+            + "\n"
+            + "  def __pdb_scope():\n"
+            + "\n".join(f"    nonlocal {var}" for var in locals_copy)
+            + "\n"
+            + textwrap.indent(source, "    ")
+            + "\n"
+            + "  return __pdb_scope.__code__"
+        )
 
         # Get the code object of __pdb_scope()
         # The exec fills locals_copy with the __pdb_outer() function and we can call
@@ -147,23 +152,28 @@ class PdbClosureBackport:
         return True
 
     def default(self, line):
-        if line[:1] == '!': line = line[1:].strip()
+        if line[:1] == "!":
+            line = line[1:].strip()
         locals = self.curframe_locals
         globals = self.curframe.f_globals
         try:
             buffer = line
-            if (code := codeop.compile_command(line + '\n', '<stdin>', 'single')) is None:
+            if (
+                code := codeop.compile_command(line + "\n", "<stdin>", "single")
+            ) is None:
                 # Multi-line mode
                 with self._disable_command_completion():
                     buffer = line
                     continue_prompt = "...   "
-                    while (code := codeop.compile_command(buffer, '<stdin>', 'single')) is None:
+                    while (
+                        code := codeop.compile_command(buffer, "<stdin>", "single")
+                    ) is None:
                         if self.use_rawinput:
                             try:
                                 line = input(continue_prompt)
                             except (EOFError, KeyboardInterrupt):
                                 self.lastcmd = ""
-                                print('\n')
+                                print("\n")
                                 return
                         else:
                             self.stdout.write(continue_prompt)
@@ -171,12 +181,12 @@ class PdbClosureBackport:
                             line = self.stdin.readline()
                             if not len(line):
                                 self.lastcmd = ""
-                                self.stdout.write('\n')
+                                self.stdout.write("\n")
                                 self.stdout.flush()
                                 return
                             else:
-                                line = line.rstrip('\r\n')
-                        buffer += '\n' + line
+                                line = line.rstrip("\r\n")
+                        buffer += "\n" + line
             save_stdout = sys.stdout
             save_stdin = sys.stdin
             save_displayhook = sys.displayhook

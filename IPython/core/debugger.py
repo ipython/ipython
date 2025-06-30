@@ -146,8 +146,10 @@ from pygments.token import Token
 
 
 if sys.version_info < (3, 13):
+
     class OldPdb(PdbClosureBackport, _OldPdb):
         pass
+
 else:
     OldPdb = _OldPdb
 
