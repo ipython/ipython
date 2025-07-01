@@ -2,7 +2,7 @@
  9.x Series
 ============
 
-.. _version94:
+.. _version 9.4:
 
 IPython 9.4
 ===========
@@ -23,7 +23,7 @@ Previously the debugger (ipdb) evaluation of list comprehensions and generators 
 
 The ``%autoreload`` magic is now more reliable. The behaviour around decorators has been improved and `%autoreload 3` no longer imports all symbols when reloading the module, however, the heuristic used to determine which symbols to reload can sometimes lead to addition of imports from non-evaluated code branches, see `issue #14934 <https://github.com/ipython/ipython/issues/14934>`__.
 
-.. _version93:
+.. _version 9.3:
 
 IPython 9.3
 ===========
@@ -51,7 +51,7 @@ To enable auto-import on completion specify:
 This change aligns the capability of both jedi-powered and the native completer.
 The function used for auto-import can be configured using :std:configtrait:`Completer.auto_import_method` traitlet.
 
-.. _version92:
+.. _version 9.2:
 
 IPython 9.2
 ===========
@@ -64,7 +64,7 @@ provider along few other bug fixes and documentation improvements:
 - :ghpull:`14876` Fixed syntax warning in Python 3.14 (remove return from finally block)
 - :ghpull:`14887` Documented the recommendation to use ``ipykernel.embed.embed_kernel()`` over ``ipython.embed``.
 
-.. _version91:
+.. _version 9.1:
 
 IPython 9.1
 ===========
