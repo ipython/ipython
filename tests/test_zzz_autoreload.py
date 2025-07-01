@@ -33,6 +33,7 @@ from IPython.extensions.autoreload import AutoreloadMagics
 from IPython.core.events import EventManager, pre_run_cell
 from IPython.testing.decorators import skipif_not_numpy
 from IPython.core.interactiveshell import ExecutionInfo
+from IPython.core import inputtransformer2 as ipt2
 
 if platform.python_implementation() == "PyPy":
     pytest.skip(
@@ -51,10 +52,12 @@ class FakeShell:
     def __init__(self):
         self.ns = {}
         self.user_ns = self.ns
+        self.user_ns["In"] = []
         self.user_ns_hidden = {}
         self.events = EventManager(self, {"pre_run_cell", pre_run_cell})
         self.auto_magics = AutoreloadMagics(shell=self)
         self.events.register("pre_run_cell", self.auto_magics.pre_run_cell)
+        self.input_transformer_manager = ipt2.TransformerManager()
 
     register_magics = set_hook = noop
 
@@ -69,10 +72,12 @@ class FakeShell:
         traceback.print_exc()
 
     def run_code(self, code):
+        transformed_cell = self.input_transformer_manager.transform_cell(code)
         self.events.trigger(
             "pre_run_cell",
             ExecutionInfo(
-                raw_cell="",
+                raw_cell=code,
+                transformed_cell=code,
                 store_history=False,
                 silent=False,
                 shell_futures=False,
@@ -417,6 +422,149 @@ class TestAutoreload(Fixture):
         self.shell.run_code("t = ExtTest(); assert t.meth() == 'ext'")
         self.shell.run_code("assert ext_int == 2")
 
+    def test_autoload3_import_Y_as_Z(self):
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"from {mod_name} import n as foo")
+        self.shell.run_code("foo")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+
+        new_code = """
+        n = 100
+        def func2(): pass
+        def func1(): pass
+        m = 5
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+
+        self.shell.run_code("foo")
+        with self.assertRaises(NameError):
+            self.shell.run_code("n")
+
+    def test_autoload3_import_Y_as_Z_overloading(self):
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"from {mod_name} import n as foo")
+        self.shell.run_code("foo")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+
+        new_code = """
+        n = 100
+        def func2(): pass
+        def func1(): pass
+        foo = 45
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+        self.shell.run_code(f"assert foo == 100")
+        self.shell.run_code(f"from {mod_name} import foo")
+        self.shell.run_code(f"assert foo == 45")
+
+    def test_autoload3_normalimport(self):
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"import {mod_name}")
+        self.shell.run_code(f"{mod_name}.func1()")
+        self.shell.run_code(f"{mod_name}.n")
+
+        new_code = """
+        n = 100
+        def func2(): pass
+        def func1(): pass
+        m = 5
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+
+        self.shell.run_code(f"{mod_name}.func1()")
+        self.shell.run_code(f"{mod_name}.n")
+        self.shell.run_code(f"{mod_name}.func2()")
+        self.shell.run_code(f"{mod_name}.m")
+
+        self.shell.run_code(f"from {mod_name} import n")
+        self.shell.run_code(f"{mod_name}.func1()")
+        self.shell.run_code(f"n")
+
+    def test_autoload3_normalimport_2(self):
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"from {mod_name} import n")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+        self.shell.run_code("n")
+
+        new_code = """
+        n = 100
+        def func2(): pass
+        def func1(): pass
+        m = 5
+        """
+        self.shell.run_code(f"import {mod_name}")
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+        self.shell.run_code(f"{mod_name}.func1()")
+        self.shell.run_code(f"{mod_name}.n")
+        self.shell.run_code(f"{mod_name}.func2()")
+        self.shell.run_code(f"{mod_name}.m")
+        self.shell.run_code(f"n")
+
+    def test_autoload_3_does_not_add_all(self):
+        # Tests that %autoreload 3 does not effectively run from X import *
+        self.shell.magic_autoreload("3")
+        mod_code = """
+        def func1(): pass
+        n = 1
+        """
+        mod_name, mod_fn = self.new_module(textwrap.dedent(mod_code))
+        self.shell.run_code(f"from {mod_name} import n")
+        self.shell.run_code("n")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func()")
+
+        new_code = """
+        n = 1
+        def func2(): pass
+        def func1(): pass
+        m = 5
+        """
+        self.write_file(mod_fn, textwrap.dedent(new_code))
+        self.shell.run_code("n")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func2()")
+        with self.assertRaises(NameError):
+            self.shell.run_code("m")
+
+        self.shell.run_code(f"from {mod_name} import m")
+        self.shell.run_code("n")
+        self.shell.run_code("m")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func1()")
+        with self.assertRaises(NameError):
+            self.shell.run_code("func2()")
+
+        self.shell.run_code(f"from {mod_name} import func1,func2")
+        self.shell.run_code("n")
+        self.shell.run_code("m")
+        self.shell.run_code("func1()")
+        self.shell.run_code("func2()")
+
     def test_verbose_names(self):
         # Asserts correspondense between original mode names and their verbose equivalents.
         @dataclass
@@ -709,3 +857,299 @@ x = -99
 
     def test_smoketest_autoreload(self):
         self._check_smoketest(use_aimport=False)
+
+    def test_autoreload_with_user_defined_In_variable(self):
+        """
+        Check that autoreload works when the user has defined an In variable.
+        """
+        mod_name, mod_fn = self.new_module(
+            textwrap.dedent(
+                """
+                                def hello():
+                                    return "Hello"
+                            """
+            )
+        )
+        self.shell.magic_autoreload("2")
+        self.shell.run_code(f"import {mod_name}")
+        self.shell.run_code(f"res = {mod_name}.hello()")
+        assert self.shell.user_ns["res"] == "Hello"
+
+        self.shell.user_ns["In"] = "some_value"
+
+        self.write_file(
+            mod_fn,
+            textwrap.dedent(
+                """
+                                def hello():
+                                    return "Changed"
+                            """
+            ),
+        )
+
+        self.shell.run_code(f"res = {mod_name}.hello()")
+        assert self.shell.user_ns["res"] == "Changed"
+
+    def test_import_from_tracker_conflict_resolution(self):
+        """Test that ImportFromTracker properly handles import conflicts"""
+        from IPython.extensions.autoreload import ImportFromTracker
+        from unittest.mock import Mock
+
+        # Create a test module with both 'foo' and 'bar' attributes
+        mod_name, mod_fn = self.new_module(
+            textwrap.dedent(
+                """
+                foo = "original_foo"
+                bar = "original_bar"
+                """
+            )
+        )
+
+        # Mock the module in sys.modules instead of actually importing it
+        mock_module = Mock()
+        mock_module.foo = "original_foo"
+        mock_module.bar = "original_bar"
+        sys.modules[mod_name] = mock_module
+
+        try:
+            # Create a tracker
+            tracker = ImportFromTracker({}, {})
+
+            # Test case 1: "from x import y as z" then "from x import z"
+            # First import: from mod_name import foo as bar
+            tracker.add_import(mod_name, "foo", "bar")
+
+            # Verify initial state
+            assert mod_name in tracker.imports_froms
+            assert "foo" in tracker.imports_froms[mod_name]
+            assert tracker.symbol_map[mod_name]["foo"] == ["bar"]
+
+            # Second import: from mod_name import bar (conflicts with previous "bar")
+            tracker.add_import(mod_name, "bar", "bar")
+
+            # The second import should take precedence since "bar" is a valid import
+            assert "bar" in tracker.imports_froms[mod_name]
+            assert "foo" not in tracker.imports_froms[mod_name]  # Should be removed
+            assert tracker.symbol_map[mod_name]["bar"] == ["bar"]
+            assert "foo" not in tracker.symbol_map[mod_name]  # Should be removed
+        finally:
+            # Clean up sys.modules
+            if mod_name in sys.modules:
+                del sys.modules[mod_name]
+
+    def test_import_from_tracker_reverse_conflict(self):
+        """Test the reverse case: 'from x import z' then 'from x import y as z'"""
+        from IPython.extensions.autoreload import ImportFromTracker
+        from unittest.mock import Mock
+
+        # Create a test module
+        mod_name, mod_fn = self.new_module(
+            textwrap.dedent(
+                """
+                foo = "original_foo"
+                bar = "original_bar"
+                """
+            )
+        )
+
+        # Mock the module in sys.modules instead of actually importing it
+        mock_module = Mock()
+        mock_module.foo = "original_foo"
+        mock_module.bar = "original_bar"
+        sys.modules[mod_name] = mock_module
+
+        try:
+            # Create a tracker
+            tracker = ImportFromTracker({}, {})
+
+            # First import: from mod_name import bar
+            tracker.add_import(mod_name, "bar", "bar")
+
+            # Verify initial state
+            assert "bar" in tracker.imports_froms[mod_name]
+            assert tracker.symbol_map[mod_name]["bar"] == ["bar"]
+
+            # Second import: from mod_name import foo as bar (conflicts with previous "bar")
+            tracker.add_import(mod_name, "foo", "bar")
+
+            # The second import should take precedence since "foo" is a valid import
+            assert "foo" in tracker.imports_froms[mod_name]
+            assert "bar" not in tracker.imports_froms[mod_name]  # Should be removed
+            assert tracker.symbol_map[mod_name]["foo"] == ["bar"]
+            assert "bar" not in tracker.symbol_map[mod_name]  # Should be removed
+        finally:
+            # Clean up sys.modules
+            if mod_name in sys.modules:
+                del sys.modules[mod_name]
+
+    def test_import_from_tracker_invalid_import(self):
+        """Test that ImportFromTracker works correctly with the post-execution approach"""
+        from IPython.extensions.autoreload import ImportFromTracker
+
+        # Create a test module with only 'foo' attribute
+        mod_name, mod_fn = self.new_module(
+            textwrap.dedent(
+                """
+                foo = "original_foo"
+                """
+            )
+        )
+
+        # Create a tracker
+        tracker = ImportFromTracker({}, {})
+
+        # First import: from mod_name import foo as bar
+        # Since we're simulating post-execution, this is a valid import
+        tracker.add_import(mod_name, "foo", "bar")
+
+        # Verify initial state
+        assert "foo" in tracker.imports_froms[mod_name]
+        assert tracker.symbol_map[mod_name]["foo"] == ["bar"]
+
+        # Second import: from mod_name import foo2 as bar (conflicting import)
+        # In the new approach, this would only be called if the import actually succeeded
+        # So this represents a case where the module was updated to have foo2
+        tracker.add_import(mod_name, "foo2", "bar")
+
+        # The new mapping should replace the old one since it's more recent
+        assert "foo2" in tracker.imports_froms[mod_name]
+        assert "foo" not in tracker.imports_froms[mod_name]  # Should be replaced
+        assert tracker.symbol_map[mod_name]["foo2"] == ["bar"]
+        assert "foo" not in tracker.symbol_map[mod_name]  # Should be replaced
+
+    def test_import_from_tracker_integration(self):
+        """Test the integration of ImportFromTracker with autoreload"""
+        # Create a test module
+        mod_name, mod_fn = self.new_module(
+            textwrap.dedent(
+                """
+                foo = "original_foo"
+                bar = "original_bar"
+                """
+            )
+        )
+
+        # Enable autoreload mode 3 (complete)
+        self.shell.magic_autoreload("3")
+
+        # First import: from mod_name import foo as bar
+        # This will naturally load the module into sys.modules
+        self.shell.run_code(f"from {mod_name} import foo as bar")
+        assert self.shell.user_ns["bar"] == "original_foo"
+
+        # Second import: from mod_name import bar (should override the alias)
+        # The module is already in sys.modules, so this should work with our validation
+        self.shell.run_code(f"from {mod_name} import bar")
+        assert self.shell.user_ns["bar"] == "original_bar"  # Should now be the real bar
+
+        # Modify the module
+        self.write_file(
+            mod_fn,
+            textwrap.dedent(
+                """
+                foo = "modified_foo"
+                bar = "modified_bar"
+                """
+            ),
+        )
+
+        # Trigger autoreload by running any code
+        self.shell.run_code("x = 1")
+
+        # The 'bar' variable should now contain the modified 'bar', not 'foo'
+        assert self.shell.user_ns["bar"] == "modified_bar"
+
+    def test_autoreload3_double_import(self):
+        """Test the integration of ImportFromTracker with autoreload"""
+        # Create a test module
+        mod_name, mod_fn = self.new_module(
+            textwrap.dedent(
+                """
+                foo = "original_foo"
+                bar = "original_bar"
+                """
+            )
+        )
+        # Enable autoreload mode 3 (complete)
+        self.shell.magic_autoreload("3")
+
+        # First import: from mod_name import foo as bar
+        # This will naturally load the module into sys.modules
+        self.shell.run_code(f"from {mod_name} import foo as bar")
+        self.shell.run_code(f"from {mod_name} import foo")
+        assert self.shell.user_ns["bar"] == "original_foo"
+        assert self.shell.user_ns["foo"] == "original_foo"
+        # Modify the module
+        self.write_file(
+            mod_fn,
+            textwrap.dedent(
+                """
+                foo = "modified_foo"
+                bar = "modified_bar"
+                """
+            ),
+        )
+        self.shell.run_code("pass")
+        assert self.shell.user_ns["bar"] == "modified_foo"
+        assert self.shell.user_ns["foo"] == "modified_foo"
+
+    def test_import_from_tracker_unloaded_module(self):
+        """Test that ImportFromTracker works with the post-execution approach"""
+        from IPython.extensions.autoreload import ImportFromTracker
+
+        # With the new approach, we only track imports after successful execution
+        # So even if a module isn't initially in sys.modules, if an import executed
+        # successfully, we should track it
+
+        fake_mod_name = "test_module_12345"
+
+        # Create a tracker
+        tracker = ImportFromTracker({}, {})
+
+        # Simulate an import that executed successfully
+        # (In reality, this would only be called if the import actually succeeded)
+        tracker.add_import(fake_mod_name, "some_attr", "some_name")
+
+        # Since the import "succeeded", it should be tracked
+        assert fake_mod_name in tracker.imports_froms
+        assert fake_mod_name in tracker.symbol_map
+        assert "some_attr" in tracker.imports_froms[fake_mod_name]
+        assert tracker.symbol_map[fake_mod_name]["some_attr"] == ["some_name"]
+
+        # Simulate a conflict scenario - another import succeeded
+        tracker.add_import(fake_mod_name, "another_attr", "some_name")
+
+        # The newer import should replace the older one
+        assert fake_mod_name in tracker.imports_froms
+        assert fake_mod_name in tracker.symbol_map
+        assert "another_attr" in tracker.imports_froms[fake_mod_name]
+        assert (
+            "some_attr" not in tracker.imports_froms[fake_mod_name]
+        )  # Should be replaced
+        assert tracker.symbol_map[fake_mod_name]["another_attr"] == ["some_name"]
+        assert (
+            "some_attr" not in tracker.symbol_map[fake_mod_name]
+        )  # Should be replaced
+
+    def test_import_from_tracker_multiple_resolved_names(self):
+        """Test that the same original name can map to multiple resolved names"""
+        from IPython.extensions.autoreload import ImportFromTracker
+
+        # Create a tracker
+        tracker = ImportFromTracker({}, {})
+
+        fake_mod_name = "test_module_abc"
+
+        # Simulate: from test_module_abc import foo as bar
+        tracker.add_import(fake_mod_name, "foo", "bar")
+
+        # Verify initial state
+        assert "foo" in tracker.imports_froms[fake_mod_name]
+        assert tracker.symbol_map[fake_mod_name]["foo"] == ["bar"]
+
+        # Simulate: from test_module_abc import foo (same original name, different resolved name)
+        tracker.add_import(fake_mod_name, "foo", "foo")
+
+        # Both resolved names should be tracked for the same original name
+        assert "foo" in tracker.imports_froms[fake_mod_name]
+        assert set(tracker.symbol_map[fake_mod_name]["foo"]) == {"bar", "foo"}
