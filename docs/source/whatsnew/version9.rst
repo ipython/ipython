@@ -14,6 +14,7 @@ Featuring ``%autoreload``, ``%whos``, ``%%script``, ``%%time`` magic improvement
 - :ghpull:`14906` Changed behaviour of ``%time`` magic to always interrupt execution on exception and always show execution time
 - :ghpull:`14926` Support data frames, series, and objects with ``__len__`` in the ``%whos`` magic
 - :ghpull:`14933` List comprehensions and generators now work reliably in debugger on all supported Python versions
+- :ghpull:`14931` Fix streaming multi-byte Unicode characters in the ``%script`` magic and its derivatives
 
 The ``%time`` magic no longer swallows exceptions raised by the measured code, and always prints the time of execution. If you wish the execution to continue after measuring time to execute code that is meant to raise an exception, pass the new ``--no-raise-error`` flag.
 The ``--no-raise-error`` flag does not affect ``KeyboardInterrupt`` as this exception is used to signal intended interruption of execution flow.
