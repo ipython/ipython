@@ -470,9 +470,9 @@ class NamespaceMagics(Magics):
                 # Useful for DataFrames and Series
                 # Ought to work for both pandas and polars
                 print(f"Shape: {var.shape}")
-            elif hasattr(var, "__len__"):
+            elif hasattr(var, "__len__") and not isinstance(var, str):
                 ## types that can be used in len function
-                print(var if isinstance(var, str) else f"n={len(var)}")
+                print(f"n={len(var)}")
             else:
                 try:
                     vstr = str(var)
