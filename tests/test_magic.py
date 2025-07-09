@@ -731,6 +731,20 @@ def test_whos():
     _ip.user_ns["a"] = A()
     _ip.run_line_magic("whos", "")
 
+def test_whos1():
+    ip = get_ipython()
+    ip.user_ns["shortstr"] = "The quick brown fox jumps over the lazy dog"
+    ip.user_ns["longstr"] =  " ".join(["The quick brown fox jumps over the lazy dog"]*2)
+    expected_short = ip.user_ns["shortstr"]
+    expected_long = "The quick brown fox jumps<...>x jumps over the lazy dog"
+    with capture_output() as captured:
+        ip.run_line_magic("whos","")
+    stdout = captured.stdout
+    ## s = " ".join([l for l in stdout.splitlines() if l.startswith('longstr') ][0].split()[2:])
+    long = " ".join(re.split(r"\s+str\s+",[l for l in stdout.splitlines() if l.startswith('longstr') ][0])[1:])
+    short = " ".join(re.split(r"\s+str\s+",[l for l in stdout.splitlines() if l.startswith('shortstr') ][0])[1:])
+    assert long == expected_long
+    assert short == expected_short
 
 def doctest_precision():
     """doctest for %precision
