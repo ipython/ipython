@@ -731,22 +731,41 @@ def test_whos():
     _ip.user_ns["a"] = A()
     _ip.run_line_magic("whos", "")
 
-@pytest.mark.parametrize("input,expected",
- ( ("The quick brown fox jumps over the lazy dog", "The quick brown fox jumps over the lazy dog")
-  ,(" ".join(["The quick brown fox jumps over the lazy dog"]*2),  "The quick brown fox jumps<...>x jumps over the lazy dog")
-  ,("\nThis is \n\na long\n\nstring\n", r"\nThis is \n\na long\n\nstring\n")
-  ,("\rThis is \r\ra long\r\rstring\r", r"\rThis is \r\ra long\r\rstring\r") ## TODO (vijay): weird printing? replace with repr?
-  ## ,('\nExamples\n--------\nDefine two variables and list them with whos::\n\n  In [1]: alpha = 123\n\n  In [2]: beta = \'test\'\n\n  In [3]: df = pd.DataFrame({"a": range(10), "b": range(10,20)})\n\n  In [4]: s = df["a"]\n ', r'\nExamples\n--------\nDef<...>  In [4]: s = df["a"]\n') ## TODO (vijay): figure out why this fails...
- ))
-def test_whos_longstr(input,expected):
+
+@pytest.mark.parametrize(
+    "input,expected",
+    (
+        (
+            "The quick brown fox jumps over the lazy dog",
+            "The quick brown fox jumps over the lazy dog",
+        ),
+        (
+            " ".join(["The quick brown fox jumps over the lazy dog"] * 2),
+            "The quick brown fox jumps<...>x jumps over the lazy dog",
+        ),
+        ("\nThis is \n\na long\n\nstring\n", r"\nThis is \n\na long\n\nstring\n"),
+        (
+            "\rThis is \r\ra long\r\rstring\r",
+            r"\rThis is \r\ra long\r\rstring\r",
+        ),  ## TODO (vijay): weird printing? replace with repr?
+        ## ,('\nExamples\n--------\nDefine two variables and list them with whos::\n\n  In [1]: alpha = 123\n\n  In [2]: beta = \'test\'\n\n  In [3]: df = pd.DataFrame({"a": range(10), "b": range(10,20)})\n\n  In [4]: s = df["a"]\n ', r'\nExamples\n--------\nDef<...>  In [4]: s = df["a"]\n') ## TODO (vijay): figure out why this fails...
+    ),
+)
+def test_whos_longstr(input, expected):
     ip = get_ipython()
     ip.user_ns["input"] = input
-    ip.user_ns["expected"] =  expected
+    ip.user_ns["expected"] = expected
     with capture_output() as captured:
-        ip.run_line_magic("whos","")
+        ip.run_line_magic("whos", "")
     stdout = captured.stdout
-    from_whos = " ".join(re.split(r"\s+str\s+",[l for l in stdout.splitlines() if l.startswith('expected') ][0])[1:])
+    from_whos = " ".join(
+        re.split(
+            r"\s+str\s+",
+            [l for l in stdout.splitlines() if l.startswith("expected")][0],
+        )[1:]
+    )
     assert expected == from_whos
+
 
 def doctest_precision():
     """doctest for %precision
