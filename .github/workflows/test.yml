@@ -11,9 +11,45 @@ on:
   - cron:  '23 1 * * 1'
   workflow_dispatch:
 
+env:
+  COLUMNS: 120
 
 jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    # Disable scheduled CI runs on forks
+    if: github.event_name != 'schedule' || github.repository_owner == 'ipython'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+      - name: Install build deps
+        run: |
+          python -m pip install --only-binary ':all:' --upgrade build check-manifest
+      - name: Try building with Python build
+        run: |
+          pyproject-build
+          shasum -a 256 dist/* | tee dist/SHA256SUMS
+      - name: Check manifest
+        run: check-manifest
+      - name: Upload distributions for tesitng
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipython-dist-${{ github.run_number }}
+          path: dist
+
   test:
+    needs: [build]
     runs-on: ${{ matrix.os }}
     # Disable scheduled CI runs on forks
     if: github.event_name != 'schedule' || github.repository_owner == 'ipython'
@@ -21,36 +57,44 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12","3.13"]
+        python-version: ["3.11", "3.12", "3.13"]
         deps: [test_extra]
+        cov: ["cov"]
         # Test all on ubuntu, test ends on macos
         include:
           - os: macos-latest
             python-version: "3.11"
             deps: test_extra
-          # Tests minimal dependencies set
+            cov: ["cov"]
+            # Tests minimal dependencies set
           - os: ubuntu-latest
             python-version: "3.11"
             deps: test
-          # Tests latest development Python version
+            cov: ["cov"]
+            # Tests latest development Python version
           - os: ubuntu-latest
             python-version: "3.13"
             deps: test
-          # Installing optional dependencies stuff takes ages on PyPy
+            cov: ["cov"]
+            # Installing optional dependencies stuff takes ages on PyPy
           # - os: ubuntu-latest
           #   python-version: "pypy-3.11"
           #   deps: test
+          #   cov: no-cov
           # - os: windows-latest
           #   python-version: "pypy-3.11"
           #   deps: test
+          #   cov: no-cov
           # - os: macos-latest
           #   python-version: "pypy-3.11"
           #   deps: test
+          #   cov: no-cov
           # Temporary CI run to use entry point compatible code in matplotlib-inline.
           - os: ubuntu-latest
             python-version: "3.12"
             deps: test_extra
             want-latest-entry-point-code: true
+            cov: ["cov"]
 
     steps:
     - uses: actions/checkout@v4
@@ -63,44 +107,52 @@ jobs:
           pyproject.toml
     - name: Install latex
       if: runner.os == 'Linux' && matrix.deps == 'test_extra'
-      run: echo "disable latex for now, issues in mirros" #sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
+      run: echo "disable latex for now, issues in mirrors"
+      # sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
+    - name: Download distributions for tesitng
+      uses: actions/download-artifact@v4
+      with:
+        name: ipython-dist-${{ github.run_number }}
+        path: dist
     - name: Install and update Python dependencies (binary only)
       if: ${{ ! contains( matrix.python-version, 'dev' ) }}
       run: |
-        python -m pip install --only-binary ':all:' --upgrade pip setuptools wheel build
-        python -m pip install --only-binary ':all:' --no-binary curio --upgrade -e .[${{ matrix.deps }}]
-        python -m pip install --only-binary ':all:' --upgrade check-manifest pytest-cov  'pytest<8'
+        python -m pip install --only-binary ':all:' --upgrade pip
+        python -c "from pathlib import Path; print(f'''ipython[${{ matrix.deps }}] @ {next(Path('dist').glob('*.whl')).resolve().as_uri()}''')" > requirements.txt
+        echo "pytest-cov" >> requirements.txt
+        echo "pytest<8" >> requirements.txt
+        python -m pip install --only-binary ':all:' --no-binary curio --upgrade -r requirements.txt
     - name: Install and update Python dependencies (dev?)
       if: ${{ contains( matrix.python-version, 'dev' ) }}
       run: |
-        python -m pip install --pre --upgrade pip setuptools wheel build
-        python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --no-binary curio --upgrade -e .[${{ matrix.deps }}]
-        python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --upgrade check-manifest pytest-cov
-    - name: Try building with Python build
-      if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
-      run: |
-        python -m build
-        shasum -a 256 dist/*
-    - name: Check manifest
-      if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
-      run: check-manifest
-
+        python -m pip install --pre --upgrade pip
+        python -c "from pathlib import Path; print(f'''ipython[${{ matrix.deps }}] @ {next(Path('dist').glob('*.whl')).resolve().as_uri()}''')" > requirements.txt
+        echo "pytest-cov" >> requirements.txt
+        python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --no-binary curio --upgrade -r requirements.txt
     - name: Install entry point compatible code (TEMPORARY, April 2024)
       if: matrix.want-latest-entry-point-code
+      # Not installing matplotlib's entry point code as building matplotlib from source is complex.
+      # Rely upon matplotlib to test all the latest entry point branches together.
       run: |
-        python -m pip list
-        # Not installing matplotlib's entry point code as building matplotlib from source is complex.
-        # Rely upon matplotlib to test all the latest entry point branches together.
         python -m pip install --upgrade git+https://github.com/ipython/matplotlib-inline.git@main
-        python -m pip list
-
-    - name: pytest
-      env:
-        COLUMNS: 120
+    - name: Check python dependency metadata
       run: |
-        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --maxfail=15
+        python -m pip list --format=freeze
+        python -m pip check
+    - name: Move source to avoid import confusion
+      run: |
+        python -c "from pathlib import Path; Path('IPython').rename('_IPython')"
+    - name: pytest (no coverage)
+      run: |
+        pytest tests --color=yes -raXxs --maxfail=15
+    - name: pytest (coverage)
+      if: matrix.cov == 'cov'
+      run: |
+        python -c "from pathlib import Path; Path('_IPython').rename('IPython')"
+        pytest tests --color=yes -raXxs --maxfail=15 --cov=IPython --cov-context=test --cov-report=xml --cov-report=term-missing:skip-covered --no-cov-on-fail
     - name: Upload coverage to Codecov
+      if: matrix.cov == 'cov'
       uses: codecov/codecov-action@v5
       with:
-         name: Test
-         files: /home/runner/work/ipython/ipython/coverage.xml
+        name: Test
+        files: coverage.xml
