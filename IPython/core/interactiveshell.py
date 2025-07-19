@@ -3063,11 +3063,11 @@ class InteractiveShell(SingletonConfigurable):
                     output_stream = outputs[-1]
             if output_stream is None:
                 output_stream = HistoryOutput(
-                    output_type=output_type, bundle={"stream": ""}
+                    output_type=output_type, bundle={"stream": []}
                 )
                 outputs_by_counter[execution_count].append(output_stream)
 
-            output_stream.bundle["stream"] += data  # Append to existing stream
+            output_stream.bundle["stream"].append(data)  # Append to existing stream
             return result
 
         stream.write = write
