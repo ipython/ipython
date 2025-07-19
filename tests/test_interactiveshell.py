@@ -16,6 +16,7 @@ import signal
 import shutil
 import sys
 import tempfile
+import time
 import unittest
 import pytest
 from unittest import mock
@@ -83,6 +84,15 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(ip.user_ns["y"], 3)
         self.assertEqual(res.success, True)
         self.assertEqual(res.result, None)
+
+    def test_stream_performance(self):
+        """It should be fast to execute."""
+        src = "for i in range(250_000): print(i)"
+        start = time.perf_counter()
+        ip.run_cell(src)
+        end = time.perf_counter()
+        duration = end - start
+        assert duration < 10
 
     def test_multiline_string_cells(self):
         "Code sprinkled with multiline strings should execute (GH-306)"

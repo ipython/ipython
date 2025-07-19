@@ -571,9 +571,11 @@ Currently the magic system has the following functions:""",
             for output in outputs[execution_count]:
                 for mime_type, data in output.bundle.items():
                     if output.output_type == "out_stream":
-                        cell.outputs.append(v4.new_output("stream", text=[data]))
+                        text = data if isinstance(data, list) else [data]
+                        cell.outputs.append(v4.new_output("stream", text=text))
                     elif output.output_type == "err_stream":
-                        err_output = v4.new_output("stream", text=[data])
+                        text = data if isinstance(data, list) else [data]
+                        err_output = v4.new_output("stream", text=text)
                         err_output.name = "stderr"
                         cell.outputs.append(err_output)
                     elif output.output_type == "execute_result":
