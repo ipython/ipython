@@ -208,27 +208,34 @@ def _has_original_dunder(
     return False
 
 
+def _coerce_path_to_tuples(
+    allow_list: set[tuple[str, ...] | str],
+) -> set[tuple[str, ...]]:
+    """Replace dotted paths on the provided allow-list with tuples."""
+    return {
+        path if isinstance(path, tuple) else tuple(path.split("."))
+        for path in allow_list
+    }
+
+
 @undoc
 @dataclass
 class SelectivePolicy(EvaluationPolicy):
     allowed_getitem: set[InstancesHaveGetItem] = field(default_factory=set)
-    allowed_getitem_external: set[tuple[str, ...]] = field(default_factory=set)
+    allowed_getitem_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
     allowed_getattr: set[MayHaveGetattr] = field(default_factory=set)
     allowed_getattr_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
     allowed_operations: set = field(default_factory=set)
-    allowed_operations_external: set[tuple[str, ...]] = field(default_factory=set)
+    allowed_operations_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
     _operation_methods_cache: dict[str, set[Callable]] = field(
         default_factory=dict, init=False
     )
 
     def can_get_attr(self, value, attr):
-        allowed_getattr_external: set[tuple[str, ...]] = {
-            path if isinstance(path, tuple) else tuple(path.split("."))
-            for path in self.allowed_getattr_external
-        }
+        allowed_getattr_external = _coerce_path_to_tuples(self.allowed_getattr_external)
 
         has_original_attribute = _has_original_dunder(
             value,
@@ -285,15 +292,19 @@ class SelectivePolicy(EvaluationPolicy):
 
     def can_get_item(self, value, item):
         """Allow accessing `__getiitem__` of allow-listed instances unless it was not modified."""
+        allowed_getitem_external = _coerce_path_to_tuples(self.allowed_getitem_external)
         return _has_original_dunder(
             value,
             allowed_types=self.allowed_getitem,
             allowed_methods=self._getitem_methods,
-            allowed_external=self.allowed_getitem_external,
+            allowed_external=allowed_getitem_external,
             method_name="__getitem__",
         )
 
     def can_operate(self, dunders: tuple[str, ...], a, b=None):
+        allowed_operations_external = _coerce_path_to_tuples(
+            self.allowed_operations_external
+        )
         objects = [a]
         if b is not None:
             objects.append(b)
@@ -303,7 +314,7 @@ class SelectivePolicy(EvaluationPolicy):
                     obj,
                     allowed_types=self.allowed_operations,
                     allowed_methods=self._operator_dunder_methods(dunder),
-                    allowed_external=self.allowed_operations_external,
+                    allowed_external=allowed_operations_external,
                     method_name=dunder,
                 )
                 for dunder in dunders
