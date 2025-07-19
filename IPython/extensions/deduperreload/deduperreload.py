@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     )
 
 
-def get_module_file_name(module: ModuleType | str) -> str:
+def get_module_file_name(module: ModuleType | str) -> str | None:
     """Returns the module's file path, or the empty string if it's inaccessible"""
     if (mod := sys.modules.get(module) if isinstance(module, str) else module) is None:
         return ""
@@ -200,8 +200,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         for new_modname in sys.modules.keys() - self.source_by_modname.keys():
             new_module = sys.modules[new_modname]
             if (
-                (fname := get_module_file_name(new_module))
-                is None  # type:ignore [redundant-expr]
+                (fname := get_module_file_name(new_module)) is None
                 or "site-packages" in fname
                 or "dist-packages" in fname
                 or not os.access(fname, os.R_OK)
