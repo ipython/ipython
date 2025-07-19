@@ -1426,15 +1426,33 @@ class TestCompleter(unittest.TestCase):
         ip.user_ns["unsafe_list_factory"] = unsafe_lib.ListFactory()
         complete = ip.Completer.complete
         with (
-            evaluation_policy(
-                "limited", allowed_getattr_external={("my", "safe", "lib")}
-            ),
+            evaluation_policy("limited", allowed_getattr_external={"my.safe.lib"}),
             jedi_status(False),
         ):
             _, matches = complete(line_buffer="safe_list_factory.example.")
             self.assertIn(".append", matches)
             # this also checks against https://github.com/ipython/ipython/issues/14916
-            # because removing "un" would caus this test to incorrectly pass
+            # because removing "un" would cause this test to incorrectly pass
+            _, matches = complete(line_buffer="unsafe_list_factory.example.")
+            self.assertNotIn(".append", matches)
+
+        sys.modules["my"] = types.ModuleType("my")
+
+        with (
+            evaluation_policy("limited", allowed_getattr_external={"my"}),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="safe_list_factory.example.")
+            self.assertIn(".append", matches)
+            _, matches = complete(line_buffer="unsafe_list_factory.example.")
+            self.assertIn(".append", matches)
+
+        with (
+            evaluation_policy("limited"),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="safe_list_factory.example.")
+            self.assertNotIn(".append", matches)
             _, matches = complete(line_buffer="unsafe_list_factory.example.")
             self.assertNotIn(".append", matches)
 

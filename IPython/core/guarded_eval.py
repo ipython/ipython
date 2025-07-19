@@ -134,7 +134,7 @@ def _get_external(module_name: str, access_path: Sequence[str]):
         for attr in access_path:
             member_type = getattr(member_type, attr)
         return member_type
-    except KeyError:
+    except (KeyError, AttributeError):
         # handle modules in namespace packages
         module_path = ".".join([module_name, *access_path])
         if module_path in sys.modules:
@@ -215,7 +215,7 @@ class SelectivePolicy(EvaluationPolicy):
     allowed_getitem_external: set[tuple[str, ...]] = field(default_factory=set)
 
     allowed_getattr: set[MayHaveGetattr] = field(default_factory=set)
-    allowed_getattr_external: set[tuple[str, ...]] = field(default_factory=set)
+    allowed_getattr_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
     allowed_operations: set = field(default_factory=set)
     allowed_operations_external: set[tuple[str, ...]] = field(default_factory=set)
@@ -225,18 +225,23 @@ class SelectivePolicy(EvaluationPolicy):
     )
 
     def can_get_attr(self, value, attr):
+        allowed_getattr_external: set[tuple[str, ...]] = {
+            path if isinstance(path, tuple) else tuple(path.split("."))
+            for path in self.allowed_getattr_external
+        }
+
         has_original_attribute = _has_original_dunder(
             value,
             allowed_types=self.allowed_getattr,
             allowed_methods=self._getattribute_methods,
-            allowed_external=self.allowed_getattr_external,
+            allowed_external=allowed_getattr_external,
             method_name="__getattribute__",
         )
         has_original_attr = _has_original_dunder(
             value,
             allowed_types=self.allowed_getattr,
             allowed_methods=self._getattr_methods,
-            allowed_external=self.allowed_getattr_external,
+            allowed_external=allowed_getattr_external,
             method_name="__getattr__",
         )
 
@@ -268,7 +273,7 @@ class SelectivePolicy(EvaluationPolicy):
                 return True  # pragma: no cover
 
             # Properties in subclasses of allowed types may be ok if not changed
-            for module_name, *access_path in self.allowed_getattr_external:
+            for module_name, *access_path in allowed_getattr_external:
                 try:
                     external_class = _get_external(module_name, access_path)
                     external_class_attr_val = getattr(external_class, attr)
