@@ -747,8 +747,7 @@ def test_whos():
         (
             "\rThis is \r\ra long\r\rstring\r",
             r"\rThis is \r\ra long\r\rstring\r",
-        ),  ## TODO (vijay): weird printing? replace with repr?
-        ## ,('\nExamples\n--------\nDefine two variables and list them with whos::\n\n  In [1]: alpha = 123\n\n  In [2]: beta = \'test\'\n\n  In [3]: df = pd.DataFrame({"a": range(10), "b": range(10,20)})\n\n  In [4]: s = df["a"]\n ', r'\nExamples\n--------\nDef<...>  In [4]: s = df["a"]\n') ## TODO (vijay): figure out why this fails...
+        ),
     ),
 )
 def test_whos_longstr(input, expected):
