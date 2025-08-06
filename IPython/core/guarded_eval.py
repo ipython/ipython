@@ -139,11 +139,6 @@ def _get_external(module_name: str, access_path: Sequence[str]):
         module_path = ".".join([module_name, *access_path])
         if module_path in sys.modules:
             return sys.modules[module_path]
-        # handle objects in namespace packages
-        if len(access_path) > 1:
-            module_path = ".".join([module_name, *access_path[:-1]])
-            attr = access_path[-1]
-            return sys.modules[module_path][attr]
         raise
 
 
