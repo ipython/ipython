@@ -604,6 +604,8 @@ Currently the magic system has the following functions:""",
                 )
             cells.append(cell)
 
+        kernel_language_info = self._get_kernel_language_info()
+
         nb = v4.new_notebook(
             cells=cells,
             metadata={
@@ -612,22 +614,33 @@ Currently the magic system has the following functions:""",
                     "language": "python",
                     "name": "python3",
                 },
-                "language_info": {
+                "language_info": kernel_language_info
+                or {
                     "codemirror_mode": {
                         "name": "ipython",
-                        "version": 3
+                        "version": sys.version_info[0],
                     },
                     "file_extension": ".py",
                     "mimetype": "text/x-python",
                     "name": "python",
                     "nbconvert_exporter": "python",
                     "pygments_lexer": "ipython3",
-                    "version": platform.python_version()
-                }
-            }
+                    "version": platform.python_version(),
+                },
+            },
         )
         with io.open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
+
+    def _get_kernel_language_info(self) -> dict | None:
+        """Get language info from kernel, useful when used in Jupyter Console where kernels exist."""
+        if not hasattr(self.shell, "kernel"):
+            return
+        if not hasattr(self.shell.kernel, "language_info"):
+            return
+        if not isinstance(self.shell.kernel.language_info, dict):
+            return
+        return self.shell.kernel.language_info
 
 @magics_class
 class AsyncMagics(BasicMagics):
