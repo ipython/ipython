@@ -3,7 +3,9 @@
 
 import gc
 import io
+import json
 import os
+import platform
 import re
 import shlex
 import signal
@@ -962,6 +964,17 @@ def test_notebook_export_json():
     with TemporaryDirectory() as td:
         outfile = os.path.join(td, "nb.ipynb")
         _ip.run_line_magic("notebook", "%s" % outfile)
+        with open(outfile) as f:
+            exported = json.load(f)
+
+    # check metadata
+    language_info = exported["metadata"]["language_info"]
+    assert language_info["name"] == "python"
+    assert language_info["file_extension"] == ".py"
+    assert language_info["version"] == platform.python_version()
+
+    kernelspec = exported["metadata"]["kernelspec"]
+    assert kernelspec["language"] == "python"
 
 
 def test_notebook_export_json_with_output():
