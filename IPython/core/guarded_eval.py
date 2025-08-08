@@ -1,5 +1,5 @@
 from copy import copy
-from inspect import isclass, signature, Signature
+from inspect import isclass, signature, Signature, getmodule
 from typing import (
     Annotated,
     AnyStr,
@@ -122,14 +122,24 @@ class EvaluationPolicy:
 def _get_external(module_name: str, access_path: Sequence[str]):
     """Get value from external module given a dotted access path.
 
+    Only gets value if the module is already imported.
+
     Raises:
     * `KeyError` if module is removed not found, and
     * `AttributeError` if access path does not match an exported object
     """
-    member_type = sys.modules[module_name]
-    for attr in access_path:
-        member_type = getattr(member_type, attr)
-    return member_type
+    try:
+        member_type = sys.modules[module_name]
+        # standard module
+        for attr in access_path:
+            member_type = getattr(member_type, attr)
+        return member_type
+    except (KeyError, AttributeError):
+        # handle modules in namespace packages
+        module_path = ".".join([module_name, *access_path])
+        if module_path in sys.modules:
+            return sys.modules[module_path]
+        raise
 
 
 def _has_original_dunder_external(
@@ -139,18 +149,26 @@ def _has_original_dunder_external(
     method_name: str,
 ):
     if module_name not in sys.modules:
-        # LBYLB as it is faster
-        return False
+        full_module_path = ".".join([module_name, *access_path])
+        if full_module_path not in sys.modules:
+            # LBYLB as it is faster
+            return False
     try:
         member_type = _get_external(module_name, access_path)
         value_type = type(value)
         if type(value) == member_type:
             return True
+        if isinstance(member_type, ModuleType):
+            value_module = getmodule(value_type)
+            if not value_module or not value_module.__name__:
+                return False
+            if value_module.__name__.startswith(member_type.__name__):
+                return True
         if method_name == "__getattribute__":
             # we have to short-circuit here due to an unresolved issue in
             # `isinstance` implementation: https://bugs.python.org/issue32683
             return False
-        if isinstance(value, member_type):
+        if not isinstance(member_type, ModuleType) and isinstance(value, member_type):
             method = getattr(value_type, method_name, None)
             member_method = getattr(member_type, method_name, None)
             if member_method == method:
@@ -185,35 +203,47 @@ def _has_original_dunder(
     return False
 
 
+def _coerce_path_to_tuples(
+    allow_list: set[tuple[str, ...] | str],
+) -> set[tuple[str, ...]]:
+    """Replace dotted paths on the provided allow-list with tuples."""
+    return {
+        path if isinstance(path, tuple) else tuple(path.split("."))
+        for path in allow_list
+    }
+
+
 @undoc
 @dataclass
 class SelectivePolicy(EvaluationPolicy):
     allowed_getitem: set[InstancesHaveGetItem] = field(default_factory=set)
-    allowed_getitem_external: set[tuple[str, ...]] = field(default_factory=set)
+    allowed_getitem_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
     allowed_getattr: set[MayHaveGetattr] = field(default_factory=set)
-    allowed_getattr_external: set[tuple[str, ...]] = field(default_factory=set)
+    allowed_getattr_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
     allowed_operations: set = field(default_factory=set)
-    allowed_operations_external: set[tuple[str, ...]] = field(default_factory=set)
+    allowed_operations_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
     _operation_methods_cache: dict[str, set[Callable]] = field(
         default_factory=dict, init=False
     )
 
     def can_get_attr(self, value, attr):
+        allowed_getattr_external = _coerce_path_to_tuples(self.allowed_getattr_external)
+
         has_original_attribute = _has_original_dunder(
             value,
             allowed_types=self.allowed_getattr,
             allowed_methods=self._getattribute_methods,
-            allowed_external=self.allowed_getattr_external,
+            allowed_external=allowed_getattr_external,
             method_name="__getattribute__",
         )
         has_original_attr = _has_original_dunder(
             value,
             allowed_types=self.allowed_getattr,
             allowed_methods=self._getattr_methods,
-            allowed_external=self.allowed_getattr_external,
+            allowed_external=allowed_getattr_external,
             method_name="__getattr__",
         )
 
@@ -245,7 +275,7 @@ class SelectivePolicy(EvaluationPolicy):
                 return True  # pragma: no cover
 
             # Properties in subclasses of allowed types may be ok if not changed
-            for module_name, *access_path in self.allowed_getattr_external:
+            for module_name, *access_path in allowed_getattr_external:
                 try:
                     external_class = _get_external(module_name, access_path)
                     external_class_attr_val = getattr(external_class, attr)
@@ -257,15 +287,19 @@ class SelectivePolicy(EvaluationPolicy):
 
     def can_get_item(self, value, item):
         """Allow accessing `__getiitem__` of allow-listed instances unless it was not modified."""
+        allowed_getitem_external = _coerce_path_to_tuples(self.allowed_getitem_external)
         return _has_original_dunder(
             value,
             allowed_types=self.allowed_getitem,
             allowed_methods=self._getitem_methods,
-            allowed_external=self.allowed_getitem_external,
+            allowed_external=allowed_getitem_external,
             method_name="__getitem__",
         )
 
     def can_operate(self, dunders: tuple[str, ...], a, b=None):
+        allowed_operations_external = _coerce_path_to_tuples(
+            self.allowed_operations_external
+        )
         objects = [a]
         if b is not None:
             objects.append(b)
@@ -275,7 +309,7 @@ class SelectivePolicy(EvaluationPolicy):
                     obj,
                     allowed_types=self.allowed_operations,
                     allowed_methods=self._operator_dunder_methods(dunder),
-                    allowed_external=self.allowed_operations_external,
+                    allowed_external=allowed_operations_external,
                     method_name=dunder,
                 )
                 for dunder in dunders
@@ -586,7 +620,12 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         dunders = _find_dunder(node.op, UNARY_OP_DUNDERS)
         if dunders:
             if policy.can_operate(dunders, value):
-                return getattr(value, dunders[0])()
+                try:
+                    return getattr(value, dunders[0])()
+                except AttributeError:
+                    raise TypeError(
+                        f"bad operand type for unary {node.op}: {type(value)}"
+                    )
             else:
                 raise GuardRejection(
                     f"Operation (`{dunders}`) for",

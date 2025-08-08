@@ -8,6 +8,7 @@ import os
 import pytest
 import sys
 import textwrap
+import types
 import unittest
 import random
 
@@ -1402,6 +1403,58 @@ class TestCompleter(unittest.TestCase):
         ):
             _, matches = complete(line_buffer="math.")
             self.assertNotIn(".pi", matches)
+
+    def test_completion_allow_custom_getattr_per_module(self):
+        factory_code = textwrap.dedent(
+            """
+        class ListFactory:
+            def __getattr__(self, attr):
+                return []
+        """
+        )
+
+        safe_lib = types.ModuleType("my.safe.lib")
+        sys.modules["my.safe.lib"] = safe_lib
+        exec(factory_code, safe_lib.__dict__)
+
+        unsafe_lib = types.ModuleType("my.unsafe.lib")
+        sys.modules["my.unsafe.lib"] = unsafe_lib
+        exec(factory_code, unsafe_lib.__dict__)
+
+        ip = get_ipython()
+        ip.user_ns["safe_list_factory"] = safe_lib.ListFactory()
+        ip.user_ns["unsafe_list_factory"] = unsafe_lib.ListFactory()
+        complete = ip.Completer.complete
+        with (
+            evaluation_policy("limited", allowed_getattr_external={"my.safe.lib"}),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="safe_list_factory.example.")
+            self.assertIn(".append", matches)
+            # this also checks against https://github.com/ipython/ipython/issues/14916
+            # because removing "un" would cause this test to incorrectly pass
+            _, matches = complete(line_buffer="unsafe_list_factory.example.")
+            self.assertNotIn(".append", matches)
+
+        sys.modules["my"] = types.ModuleType("my")
+
+        with (
+            evaluation_policy("limited", allowed_getattr_external={"my"}),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="safe_list_factory.example.")
+            self.assertIn(".append", matches)
+            _, matches = complete(line_buffer="unsafe_list_factory.example.")
+            self.assertIn(".append", matches)
+
+        with (
+            evaluation_policy("limited"),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="safe_list_factory.example.")
+            self.assertNotIn(".append", matches)
+            _, matches = complete(line_buffer="unsafe_list_factory.example.")
+            self.assertNotIn(".append", matches)
 
     def test_dict_key_completion_bytes(self):
         """Test handling of bytes in dict key completion"""

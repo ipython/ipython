@@ -590,7 +590,7 @@ class HistoryOutput:
     output_type: typing.Literal[
         "out_stream", "err_stream", "display_data", "execute_result"
     ]
-    bundle: typing.Dict[str, str]
+    bundle: typing.Dict[str, str | list[str]]
 
 
 class HistoryManager(HistoryAccessor):
