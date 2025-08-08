@@ -434,7 +434,15 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 global_env = ns.__dict__
                 if not isinstance(global_env, dict):
                     global_env = dict(global_env)
-                exec(func_code, global_env, local_env)  # type: ignore[arg-type]
+
+                # Compile with correct filename to preserve in traceback
+                filename = (
+                    getattr(to_patch_to, "__code__", None)
+                    and to_patch_to.__code__.co_filename
+                    or "<string>"
+                )
+                compiled_code = compile(func_code, filename, "exec", dont_inherit=True)
+                exec(compiled_code, global_env, local_env)  # type: ignore[arg-type]
                 # local_env contains the function exec'd from  new version of function
                 if is_method:
                     to_patch_from = getattr(local_env["__autoreload_class__"], name)
