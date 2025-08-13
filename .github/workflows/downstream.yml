@@ -80,7 +80,8 @@ jobs:
         cd ..
         git clone https://github.com/deshaw/pyflyby
         cd pyflyby
-        pip install -e .[test]
+        pip install -e .
+        pip install 'pytest<=8'
         cd ..
     - name: Test pyflyby (IPython integration only)
       run: |
