@@ -4,6 +4,7 @@ import builtins
 import contextlib
 import itertools
 import os
+import pickle
 import platform
 import sys
 import textwrap
@@ -415,7 +416,11 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         namespace_to_check = ns
         for prefix in prefixes:
             namespace_to_check = namespace_to_check.__dict__[prefix]
+        seen_names: set[str] = set()
         for names, new_ast_def in cur.defs_to_reload:
+            if len(names) == 1 and names[0] in seen_names:
+                continue
+            seen_names.update(names)
             local_env: dict[str, Any] = {}
             if (
                 isinstance(new_ast_def, (ast.FunctionDef, ast.AsyncFunctionDef))
@@ -434,37 +439,54 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 global_env = ns.__dict__
                 if not isinstance(global_env, dict):
                     global_env = dict(global_env)
-                exec(func_code, global_env, local_env)  # type: ignore[arg-type]
-                # local_env contains the function exec'd from  new version of function
-                if is_method:
-                    to_patch_from = getattr(local_env["__autoreload_class__"], name)
-                else:
-                    to_patch_from = local_env[name]
-                if isinstance(to_patch_from, (staticmethod, classmethod)):
-                    to_patch_from = to_patch_from.__func__
-                if isinstance(to_patch_to, property) and isinstance(
-                    to_patch_from, property
-                ):
-                    for attr in ("fget", "fset", "fdel"):
-                        if (
-                            getattr(to_patch_to, attr) is None
-                            or getattr(to_patch_from, attr) is None
-                        ):
-                            self.try_patch_attr(to_patch_to, to_patch_from, attr)
-                        else:
-                            self.patch_function(
-                                getattr(to_patch_to, attr),
-                                getattr(to_patch_from, attr),
-                                is_method,
-                            )
-                elif not isinstance(to_patch_to, property) and not isinstance(
-                    to_patch_from, property
-                ):
-                    self.patch_function(to_patch_to, to_patch_from, is_method)
-                else:
-                    raise ValueError(
-                        "adding or removing property decorations not supported"
+                # Compile with correct filename to preserve in traceback
+                filename = (
+                    getattr(to_patch_to, "__code__", None)
+                    and to_patch_to.__code__.co_filename
+                    or "<string>"
+                )
+                func_asts = [ast.parse(func_code)]
+                if len(cast(ast.FunctionDef, func_asts[0].body[0]).decorator_list) > 0:
+                    without_decorator_list = pickle.loads(pickle.dumps(func_asts[0]))
+                    cast(
+                        ast.FunctionDef, without_decorator_list.body[0]
+                    ).decorator_list = []
+                    func_asts.insert(0, without_decorator_list)
+                for func_ast in func_asts:
+                    compiled_code = compile(
+                        func_ast, filename, mode="exec", dont_inherit=True
                     )
+                    exec(compiled_code, global_env, local_env)  # type: ignore[arg-type]
+                    # local_env contains the function exec'd from  new version of function
+                    if is_method:
+                        to_patch_from = getattr(local_env["__autoreload_class__"], name)
+                    else:
+                        to_patch_from = local_env[name]
+                    if isinstance(to_patch_from, (staticmethod, classmethod)):
+                        to_patch_from = to_patch_from.__func__
+                    if isinstance(to_patch_to, property) and isinstance(
+                        to_patch_from, property
+                    ):
+                        for attr in ("fget", "fset", "fdel"):
+                            if (
+                                getattr(to_patch_to, attr) is None
+                                or getattr(to_patch_from, attr) is None
+                            ):
+                                self.try_patch_attr(to_patch_to, to_patch_from, attr)
+                            else:
+                                self.patch_function(
+                                    getattr(to_patch_to, attr),
+                                    getattr(to_patch_from, attr),
+                                    is_method,
+                                )
+                    elif not isinstance(to_patch_to, property) and not isinstance(
+                        to_patch_from, property
+                    ):
+                        self.patch_function(to_patch_to, to_patch_from, is_method)
+                    else:
+                        raise ValueError(
+                            "adding or removing property decorations not supported"
+                        )
             else:
                 exec(
                     ast.unparse(new_ast_def),
