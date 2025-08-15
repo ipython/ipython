@@ -2278,6 +2278,42 @@ class DecoratorPatchingSuite(ShellFixture):
         )
         self.shell.run_code("assert foo() == 44")
 
+    def test_decorators_with_freevars(self):
+        self.shell.magic_autoreload("2")
+        mod_name, mod_file = self.new_module(
+            """
+            def decorate(func):
+                free_var_x = "x"
+                free_var_y = "y"
+                def wrapper(*args, **kwargs):
+                    return func(*args, **kwargs), free_var_x, free_var_y
+                return wrapper
+            @decorate
+            def f():
+                return "v1"
+            """
+        )
+        self.shell.run_code(f"from {mod_name} import f")
+        mod = sys.modules[mod_name]
+        assert mod.f() == ("v1", "x", "y")
+        self.write_file(
+            mod_file,
+            """
+            def decorate(func):
+                free_var_ax = "ax"
+                free_var_by = "by"
+                def wrapper(*args, **kwargs):
+                    return func(*args, **kwargs), free_var_ax, free_var_by
+                return wrapper
+            @decorate
+            def f():
+                return "v2"
+            """,
+        )
+        self.shell.run_code("pass")
+        val = mod.f()
+        assert val == ("v2", "ax", "by"), val
+
 
 class TestAutoreloadEnum(ShellFixture):
     def test_reload_enums(self):

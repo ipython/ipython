@@ -110,14 +110,21 @@ class DeduperReloaderPatchingMixin:
     ) -> None:
         new_freevars = []
         new_closure = []
-        for i, v in enumerate(to_patch_to.__code__.co_freevars):
-            if v not in to_patch_from.__code__.co_freevars or v == "__class__":
-                new_freevars.append(v)
-                new_closure.append(to_patch_to.__closure__[i])
-        for i, v in enumerate(to_patch_from.__code__.co_freevars):
-            if v not in new_freevars:
-                new_freevars.append(v)
-                new_closure.append(to_patch_from.__closure__[i])
+        for freevar, closure_val in zip(
+            to_patch_from.__code__.co_freevars or [], to_patch_from.__closure__ or []
+        ):
+            new_freevars.append(freevar)
+            if (
+                callable(closure_val.cell_contents)
+                and freevar in to_patch_to.__code__.co_freevars
+            ):
+                new_closure.append(
+                    to_patch_to.__closure__[
+                        to_patch_to.__code__.co_freevars.index(freevar)
+                    ]
+                )
+            else:
+                new_closure.append(closure_val)
         code_with_new_freevars = to_patch_from.__code__.replace(
             co_freevars=tuple(new_freevars)
         )
