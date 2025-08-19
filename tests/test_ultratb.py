@@ -451,6 +451,7 @@ class ExceptionMessagePreferenceTest(unittest.TestCase):
             ip.run_cell(cell)
         ip.run_cell("%xmode context")
 
+
 # ----------------------------------------------------------------------------
 
 
