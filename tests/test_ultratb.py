@@ -437,6 +437,20 @@ except Exception as e:
             ip.run_cell("%xmode Verbose")
 
 
+class ExceptionMessagePreferenceTest(unittest.TestCase):
+    """
+    Test that exception string representation is preferred over .msg attribute
+    for non-SyntaxError exceptions in %xmode plain.
+    """
+
+    def test_jsondecodeerror_message(self):
+        cell = "import json;json.loads('{\"a\": }')"
+        expected = "JSONDecodeError: Expecting value: line 1 column 7 (char 6)"
+        ip.run_cell("%xmode plain")
+        with tt.AssertPrints(expected):
+            ip.run_cell(cell)
+        ip.run_cell("%xmode context")
+
 # ----------------------------------------------------------------------------
 
 

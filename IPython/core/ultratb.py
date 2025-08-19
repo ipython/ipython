@@ -364,11 +364,7 @@ class ListTB(TBTools):
                             )
                         )
 
-            try:
-                assert hasattr(value, "msg")
-                s = value.msg
-            except Exception:
-                s = self._some_str(value)
+            s = self._some_str(value)
             if s:
                 output_list.append(
                     theme_table[self._theme_name].format(
