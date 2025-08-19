@@ -363,8 +363,9 @@ class ListTB(TBTools):
                                 [(Token.Caret, s + "^"), (Token, "\n")]
                             )
                         )
-
-            s = self._some_str(value)
+                s = value.msg
+            else:
+                s = self._some_str(value)
             if s:
                 output_list.append(
                     theme_table[self._theme_name].format(
