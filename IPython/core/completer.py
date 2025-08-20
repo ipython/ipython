@@ -213,7 +213,11 @@ from typing import (
     Literal,
 )
 
-from IPython.core.guarded_eval import guarded_eval, EvaluationContext
+from IPython.core.guarded_eval import (
+    guarded_eval,
+    EvaluationContext,
+    _validate_policy_overrides,
+)
 from IPython.core.error import TryNext
 from IPython.core.inputtransformer2 import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
@@ -952,7 +956,6 @@ class CompletionSplitter:
         return self._delim_re.split(cut_line)[-1]
 
 
-
 class Completer(Configurable):
 
     greedy = Bool(
@@ -1043,6 +1046,18 @@ class Completer(Configurable):
 
         """,
     ).tag(config=True)
+
+    @observe("evaluation")
+    def _evaluation_changed(self, _change):
+        _validate_policy_overrides(
+            policy_name=self.evaluation, policy_overrides=self.policy_overrides
+        )
+
+    @observe("policy_overrides")
+    def _policy_overrides_changed(self, _change):
+        _validate_policy_overrides(
+            policy_name=self.evaluation, policy_overrides=self.policy_overrides
+        )
 
     auto_import_method = DottedObjectName(
         default_value="importlib.import_module",
