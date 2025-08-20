@@ -601,6 +601,6 @@ long_function(
 ) -> bool\
 """
     if sys.version_info >= (3, 14):
-        expected = expected.replace('Optional[str]', 'str | None')
+        expected = expected.replace("Optional[str]", "str | None")
 
     assert sig == expected
