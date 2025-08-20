@@ -455,7 +455,7 @@ class EvalFormatter(Formatter):
     """
 
     def get_field(self, name: str, args: Any, kwargs: Any) -> Tuple[Any, str]:
-        v = eval(name, kwargs)
+        v = eval(name, kwargs, kwargs)
         return v, name
 
 #XXX: As of Python 3.4, the format string parsing no longer splits on a colon
