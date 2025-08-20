@@ -32,9 +32,13 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.11"
             deps: test
-          # Tests latest development Python version
+          # Tests latest released Python version
           - os: ubuntu-latest
             python-version: "3.13"
+            deps: test
+          # Tests latest development Python version
+          - os: ubuntu-latest
+            python-version: "3.14-dev"
             deps: test
           # Installing optional dependencies stuff takes ages on PyPy
           # - os: ubuntu-latest
