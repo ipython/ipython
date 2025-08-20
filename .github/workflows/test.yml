@@ -80,6 +80,7 @@ jobs:
         python -m pip install --pre --upgrade pip setuptools wheel build
         python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --no-binary curio --upgrade -e .[${{ matrix.deps }}]
         python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --upgrade check-manifest pytest-cov
+        python -m pip install --upgrade git+https://github.com/davidhalter/parso.git@master
     - name: Try building with Python build
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: |
