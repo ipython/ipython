@@ -363,11 +363,8 @@ class ListTB(TBTools):
                                 [(Token.Caret, s + "^"), (Token, "\n")]
                             )
                         )
-
-            try:
-                assert hasattr(value, "msg")
                 s = value.msg
-            except Exception:
+            else:
                 s = self._some_str(value)
             if s:
                 output_list.append(
