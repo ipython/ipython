@@ -1343,6 +1343,7 @@ def test_script_out():
     ip.run_cell_magic("script", f"--out output {sys.executable}", "print('hi')")
     assert ip.user_ns["output"].strip() == "hi"
 
+
 def test_script_out_multiple_lines():
     ip = get_ipython()
     code = "print('hi')\nprint('this')\nprint('is')\nprint('ipython')"
