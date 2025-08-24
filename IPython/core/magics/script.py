@@ -261,6 +261,11 @@ class ScriptMagics(Magics):
         argv = arg_split(line, posix=not sys.platform.startswith("win"))
         args, cmd = self.shebang.parser.parse_known_args(argv)
 
+        if args.out:
+            self.shell.user_ns[args.out] = ""
+        if args.err:
+            self.shell.user_ns[args.err] = ""
+
         try:
             p = in_thread(
                 asyncio.create_subprocess_exec(
