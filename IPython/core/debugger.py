@@ -353,6 +353,26 @@ class Pdb(OldPdb):
         self.initial_frame = frame
         return super().set_trace(frame)
 
+    def get_stack(self, *args, **kwargs):
+        stack, pos = super().get_stack(*args, **kwargs)
+        if len(stack) >= 0 and self._is_internal_frame(stack[0][0]):
+            stack.pop(0)
+            pos -= 1
+        return stack, pos
+
+    def _is_internal_frame(self, frame):
+        """Determine if this frame should be skipped as internal"""
+        filename = frame.f_code.co_filename
+
+        # Skip bdb.py runcall and internal operations
+        if filename.endswith("bdb.py"):
+            func_name = frame.f_code.co_name
+            # Skip internal bdb operations but allow breakpoint hits
+            if func_name in ("runcall", "run", "runeval"):
+                return True
+
+        return False
+
     def _hidden_predicate(self, frame):
         """
         Given a frame return whether it it should be hidden or not by IPython.
@@ -754,7 +774,7 @@ class Pdb(OldPdb):
                             bp,
                             (Token.LinenoEm, num),
                             (Token, " "),
-                            # TODO: invsetigate Toke.Line here
+                            # TODO: investigate Token.Line here
                             (Token, colored_line),
                         ]
                     )
