@@ -535,7 +535,10 @@ def test_decorator_skip_with_breakpoint():
 
         # From 3.13, set_trace()/breakpoint() stop on the line where they're
         # called, instead of the next line.
-        if sys.version_info >= (3, 13):
+        if sys.version_info >= (3, 14):
+            child.expect_exact("     46     ipdb.set_trace()")
+            extra_step = [("step", "--> 47     bar(3, 4)")]
+        elif sys.version_info >= (3, 13):
             child.expect_exact("--> 46     ipdb.set_trace()")
             extra_step = [("step", "--> 47     bar(3, 4)")]
         else:
