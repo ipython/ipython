@@ -439,6 +439,10 @@ class EvalFormatter(Formatter):
     standard string formatting), so if slicing is required, you must explicitly
     create a slice.
 
+    Note that on Python 3.14+ this version interprets `[]` as indexing operator
+    so you need to use generators instead of list comprehensions, for example:
+    `list(i for i in range(10))`.
+
     This is to be used in templating cases, such as the parallel batch
     script templates, where simple arithmetic on arguments is useful.
 
