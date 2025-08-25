@@ -237,8 +237,6 @@ class ScriptMagics(Magics):
                     chunk = decoder.decode("", final=True)
                     should_break = True
                 if stream_arg:
-                    if stream_arg not in self.shell.user_ns:
-                        self.shell.user_ns[stream_arg] = ""
                     self.shell.user_ns[stream_arg] += chunk
                 else:
                     file_object.write(chunk)
