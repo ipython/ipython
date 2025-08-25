@@ -1344,6 +1344,13 @@ def test_script_out():
     assert ip.user_ns["output"].strip() == "hi"
 
 
+def test_script_out_multiple_lines():
+    ip = get_ipython()
+    code = "print('hi')\nprint('this')\nprint('is')\nprint('ipython')"
+    ip.run_cell_magic("script", f"--out output {sys.executable}", code)
+    assert ip.user_ns["output"].strip().splitlines() == ["hi", "this", "is", "ipython"]
+
+
 def test_script_err():
     ip = get_ipython()
     ip.run_cell_magic(
