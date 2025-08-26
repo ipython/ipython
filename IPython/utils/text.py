@@ -439,6 +439,10 @@ class EvalFormatter(Formatter):
     standard string formatting), so if slicing is required, you must explicitly
     create a slice.
 
+    Note that on Python 3.14+ this version interprets `[]` as indexing operator
+    so you need to use generators instead of list comprehensions, for example:
+    `list(i for i in range(10))`.
+
     This is to be used in templating cases, such as the parallel batch
     script templates, where simple arithmetic on arguments is useful.
 
@@ -455,7 +459,7 @@ class EvalFormatter(Formatter):
     """
 
     def get_field(self, name: str, args: Any, kwargs: Any) -> Tuple[Any, str]:
-        v = eval(name, kwargs)
+        v = eval(name, kwargs, kwargs)
         return v, name
 
 #XXX: As of Python 3.4, the format string parsing no longer splits on a colon

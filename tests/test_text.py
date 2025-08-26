@@ -13,6 +13,7 @@
 # -----------------------------------------------------------------------------
 
 import os
+import sys
 import math
 import random
 
@@ -27,13 +28,19 @@ from IPython.utils import text
 # -----------------------------------------------------------------------------
 
 
+def eval_formatter_list_comprehension_check(f):
+    ns = dict(n=12)
+    s = f.format("{[n//i for i in range(1,8)]}", **ns)
+    assert s == "[12, 6, 4, 3, 2, 2, 1]"
+
+
 def eval_formatter_check(f):
     ns = dict(n=12, pi=math.pi, stuff="hello there", os=os, u="café", b="café")
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     assert s == "12 3 hello"
     s = f.format(" ".join(["{n//%i}" % i for i in range(1, 8)]), **ns)
     assert s == "12 6 4 3 2 2 1"
-    s = f.format("{[n//i for i in range(1,8)]}", **ns)
+    s = f.format("{list(n//i for i in range(1,8))}", **ns)
     assert s == "[12, 6, 4, 3, 2, 2, 1]"
     s = f.format("{stuff!s}", **ns)
     assert s == ns["stuff"]
@@ -78,12 +85,15 @@ def test_eval_formatter():
     f = text.EvalFormatter()
     eval_formatter_check(f)
     eval_formatter_no_slicing_check(f)
+    if sys.version_info < (3, 14):
+        eval_formatter_list_comprehension_check(f)
 
 
 def test_full_eval_formatter():
     f = text.FullEvalFormatter()
     eval_formatter_check(f)
     eval_formatter_slicing_check(f)
+    eval_formatter_list_comprehension_check(f)
 
 
 def test_dollar_formatter():

@@ -287,7 +287,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                     result.inplace_merge(
                         cls._gather_children(handler.body, parent_node)
                     )
-            elif not isinstance(ast_elt, (ast.Ellipsis, ast.Pass)):
+            elif not isinstance(ast_elt, (ast.Constant, ast.Pass)):
                 if cls.is_constexpr_assign(ast_elt, parent_node):
                     assert isinstance(ast_elt, (ast.Assign, ast.AnnAssign))
                     targets = (
