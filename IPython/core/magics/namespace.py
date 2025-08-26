@@ -464,10 +464,10 @@ class NamespaceMagics(Magics):
                 else:
                     print(aformat % (vshape, vsize, vdtype, vbytes), end=' ')
                     if vbytes < Mb:
-                        print('(%s kb)' % (vbytes/kb,))
+                        print("(%s kb)" % (vbytes/kb,))
                     else:
-                        print('(%s Mb)' % (vbytes/Mb,))
-            elif vtype in ['DataFrame', 'Series']:
+                        print("(%s Mb)" % (vbytes/Mb,))
+            elif vtype in ["DataFrame", "Series"]:
                 # Useful for DataFrames and Series
                 # Ought to work for both pandas and polars
                 print(f"Shape: {var.shape}")
