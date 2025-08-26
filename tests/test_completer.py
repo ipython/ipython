@@ -1456,6 +1456,21 @@ class TestCompleter(unittest.TestCase):
             _, matches = complete(line_buffer="unsafe_list_factory.example.")
             self.assertNotIn(".append", matches)
 
+    def test_policy_warnings(self):
+        with self.assertWarns(
+            UserWarning,
+            msg="Override 'allowed_getattr_external' is not valid with 'unsafe' evaluation policy",
+        ):
+            with evaluation_policy("unsafe", allowed_getattr_external=[]):
+                pass
+
+        with self.assertWarns(
+            UserWarning,
+            msg="Override 'test' is not valid with 'limited' evaluation policy",
+        ):
+            with evaluation_policy("limited", test=[]):
+                pass
+
     def test_dict_key_completion_bytes(self):
         """Test handling of bytes in dict key completion"""
         ip = get_ipython()

@@ -21,6 +21,7 @@ import builtins
 import collections
 import operator
 import sys
+import warnings
 from functools import cached_property
 from dataclasses import dataclass, field
 from types import MethodDescriptorType, ModuleType
@@ -349,15 +350,16 @@ class _DummyNamedTuple(NamedTuple):
     """Used internally to retrieve methods of named tuple instance."""
 
 
+EvaluationPolicyName = Literal["forbidden", "minimal", "limited", "unsafe", "dangerous"]
+
+
 class EvaluationContext(NamedTuple):
     #: Local namespace
     locals: dict
     #: Global namespace
     globals: dict
     #: Evaluation policy identifier
-    evaluation: Literal["forbidden", "minimal", "limited", "unsafe", "dangerous"] = (
-        "forbidden"
-    )
+    evaluation: EvaluationPolicyName = "forbidden"
     #: Whether the evaluation of code takes place inside of a subscript.
     #: Useful for evaluating ``:-1, 'col'`` in ``df[:-1, 'col']``.
     in_subscript: bool = False
@@ -504,9 +506,22 @@ def get_policy(context: EvaluationContext) -> EvaluationPolicy:
     for key, value in context.policy_overrides.items():
         if hasattr(policy, key):
             setattr(policy, key, value)
-        else:
-            print(f"Incorrect policy override key: {key}")
     return policy
+
+
+def _validate_policy_overrides(
+    policy_name: EvaluationPolicyName, policy_overrides: dict
+) -> bool:
+    policy = EVALUATION_POLICIES[policy_name]
+
+    all_good = True
+    for key, value in policy_overrides.items():
+        if not hasattr(policy, key):
+            warnings.warn(
+                f"Override {key!r} is not valid with {policy_name!r} evaluation policy"
+            )
+            all_good = False
+    return all_good
 
 
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
