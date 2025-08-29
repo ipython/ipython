@@ -1294,7 +1294,11 @@ class Pdb(OldPdb):
             self._show_ignored_modules()
             return
 
-        self.skip.remove(module_name)
+        try:
+            self.skip.remove(module_name)
+        except KeyError:
+            print(f"Module {module_name} is not currently ignored")
+            self._show_ignored_modules()
 
     def do_context(self, context: str):
         """context number_of_lines
