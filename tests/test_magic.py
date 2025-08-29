@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for various magic functions."""
 
+import collections
 import gc
 import io
 import json
@@ -766,6 +767,49 @@ def test_whos_longstr(input, expected):
         )[1:]
     )
     assert expected == from_whos
+
+
+def test_whos_len_namedtuple():
+    _ip = get_ipython()
+    _ip.run_line_magic("reset", "-f")
+    _ip.user_ns["alpha"] = 123
+    _ip.user_ns["beta"] = "test"
+    _ip.user_ns["nt"] = collections.namedtuple("MyNamedTuple", "col1 col2")
+    _ip.user_ns["x"] = _ip.user_ns["nt"]("a", "b")
+    expected = (
+        "Variable   Type            Data/Info\n"
+        "------------------------------------\n"
+        "alpha      int             123\n"
+        "beta       str             test\n"
+        "nt         type            <class 'tests.test_magic.MyNamedTuple'>\n"
+        "x          MyNamedTuple    MyNamedTuple(col1='a', col2='b')\n"
+    )
+    with capture_output() as captured:
+        ip.run_line_magic("whos", "")
+    stdout = captured.stdout
+    assert stdout == expected.strip() + "\n"
+
+
+@dec.skip_without("pandas")
+def test_whos_len_pandas():
+    import pandas as pd
+
+    _ip = get_ipython()
+    _ip.run_line_magic("reset", "-f")
+    df = pd.DataFrame({"a": range(10), "b": range(10, 20)})
+    _ip.user_ns["df"] = df
+    s = df["a"]
+    _ip.user_ns["s"] = s
+    expected = (
+        "Variable   Type         Data/Info\n"
+        "---------------------------------\n"
+        "df         DataFrame    Shape: (10, 2)\n"
+        "s          Series       Shape: (10,)\n"
+    )
+    with capture_output() as captured:
+        ip.run_line_magic("whos", "")
+    stdout = captured.stdout
+    assert stdout == expected.strip() + "\n"
 
 
 def doctest_precision():
