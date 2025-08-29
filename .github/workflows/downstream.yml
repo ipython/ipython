@@ -80,9 +80,7 @@ jobs:
         cd ..
         git clone https://github.com/deshaw/pyflyby
         cd pyflyby
-        pip install -e .
-        # TODO: use [test] group instead once available
-        pip install 'pytest<=8' requests
+        pip install .[test]
         cd ..
     - name: Test pyflyby (IPython integration only)
       run: |
