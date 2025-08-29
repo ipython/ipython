@@ -36,6 +36,7 @@ The specification now also accepts dotted strings (rather than requiring tuples 
     }
 
 A number of recent regressions were fixed:
+
 - ``%autoreload`` now again shows the correct module name in traceback
 - standard output/error streaming of long text/logs is now as fast as in IPython 9.0
 - in the ``%whos`` magic handling of long strings and class objects that implement ``__len__`` was fixed.
