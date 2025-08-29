@@ -27,7 +27,7 @@ It no longer repeatedly warns on each completion after switching away to a polic
 Allow-listing attribute access on all objects in a given library is now possible.
 The specification now also accepts dotted strings (rather than requiring tuples to specify the path) which should make configuration easier and less error-prone.
 
-.. code:
+.. code::
 
     c.Completer.policy_overrides = {
         "allowed_getattr_external": {
