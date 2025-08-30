@@ -1107,6 +1107,21 @@ class Pdb(OldPdb):
                         ]
                     )
                 )
+        if self.skip and self.is_skipped_module(frame.f_globals.get("__name__", "")):
+            print(
+                self.theme.format(
+                    [
+                        (
+                            Token.ExcName,
+                            "    [... skipped 1 ignored module(s)]",
+                        ),
+                        (Token, "\n"),
+                    ]
+                )
+            )
+
+            return False
+
         return super().stop_here(frame)
 
     def do_up(self, arg):
