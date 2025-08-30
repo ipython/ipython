@@ -1107,6 +1107,21 @@ class Pdb(OldPdb):
                         ]
                     )
                 )
+        if self.skip and self.is_skipped_module(frame.f_globals.get("__name__", "")):
+            print(
+                self.theme.format(
+                    [
+                        (
+                            Token.ExcName,
+                            "    [... skipped 1 ignored module(s)]",
+                        ),
+                        (Token, "\n"),
+                    ]
+                )
+            )
+
+            return False
+
         return super().stop_here(frame)
 
     def do_up(self, arg):
@@ -1114,10 +1129,10 @@ class Pdb(OldPdb):
         Move the current frame count (default one) levels up in the
         stack trace (to an older frame).
 
-        Will skip hidden frames.
+        Will skip hidden frames and ignored modules.
         """
         # modified version of upstream that skips
-        # frames with __tracebackhide__
+        # frames with __tracebackhide__ and ignored modules
         if self.curindex == 0:
             self.error("Oldest frame")
             return
@@ -1126,15 +1141,27 @@ class Pdb(OldPdb):
         except ValueError:
             self.error("Invalid frame count (%s)" % arg)
             return
-        skipped = 0
+
+        hidden_skipped = 0
+        module_skipped = 0
+
         if count < 0:
             _newframe = 0
         else:
             counter = 0
             hidden_frames = self.hidden_frames(self.stack)
+
             for i in range(self.curindex - 1, -1, -1):
-                if hidden_frames[i] and self.skip_hidden:
-                    skipped += 1
+                should_skip_hidden = hidden_frames[i] and self.skip_hidden
+                should_skip_module = self.skip and self.is_skipped_module(
+                    self.stack[i][0].f_globals.get("__name__", "")
+                )
+
+                if should_skip_hidden or should_skip_module:
+                    if should_skip_hidden:
+                        hidden_skipped += 1
+                    if should_skip_module:
+                        module_skipped += 1
                     continue
                 counter += 1
                 if counter >= count:
@@ -1142,19 +1169,21 @@ class Pdb(OldPdb):
             else:
                 # if no break occurred.
                 self.error(
-                    "all frames above hidden, use `skip_hidden False` to get get into those."
+                    "all frames above skipped (hidden frames and ignored modules). Use `skip_hidden False` for hidden frames or unignore_module for ignored modules."
                 )
                 return
 
             _newframe = i
         self._select_frame(_newframe)
-        if skipped:
+
+        total_skipped = hidden_skipped + module_skipped
+        if total_skipped:
             print(
                 self.theme.format(
                     [
                         (
                             Token.ExcName,
-                            f"    [... skipped {skipped} hidden frame(s)]",
+                            f"    [... skipped {total_skipped} frame(s): {hidden_skipped} hidden frames + {module_skipped} ignored modules]",
                         ),
                         (Token, "\n"),
                     ]
@@ -1166,7 +1195,7 @@ class Pdb(OldPdb):
         Move the current frame count (default one) levels down in the
         stack trace (to a newer frame).
 
-        Will skip hidden frames.
+        Will skip hidden frames and ignored modules.
         """
         if self.curindex + 1 == len(self.stack):
             self.error("Newest frame")
@@ -1180,28 +1209,39 @@ class Pdb(OldPdb):
             _newframe = len(self.stack) - 1
         else:
             counter = 0
-            skipped = 0
+            hidden_skipped = 0
+            module_skipped = 0
             hidden_frames = self.hidden_frames(self.stack)
+
             for i in range(self.curindex + 1, len(self.stack)):
-                if hidden_frames[i] and self.skip_hidden:
-                    skipped += 1
+                should_skip_hidden = hidden_frames[i] and self.skip_hidden
+                should_skip_module = self.skip and self.is_skipped_module(
+                    self.stack[i][0].f_globals.get("__name__", "")
+                )
+
+                if should_skip_hidden or should_skip_module:
+                    if should_skip_hidden:
+                        hidden_skipped += 1
+                    if should_skip_module:
+                        module_skipped += 1
                     continue
                 counter += 1
                 if counter >= count:
                     break
             else:
                 self.error(
-                    "all frames below hidden, use `skip_hidden False` to get get into those."
+                    "all frames below skipped (hidden frames and ignored modules). Use `skip_hidden False` for hidden frames or unignore_module for ignored modules."
                 )
                 return
 
-            if skipped:
+            total_skipped = hidden_skipped + module_skipped
+            if total_skipped:
                 print(
                     self.theme.format(
                         [
                             (
                                 Token.ExcName,
-                                f"    [... skipped {skipped} hidden frame(s)]",
+                                f"    [... skipped {total_skipped} frame(s): {hidden_skipped} hidden frames + {module_skipped} ignored modules]",
                             ),
                             (Token, "\n"),
                         ]
@@ -1213,6 +1253,67 @@ class Pdb(OldPdb):
 
     do_d = do_down
     do_u = do_up
+
+    def _show_ignored_modules(self):
+        """Display currently ignored modules."""
+        if self.skip:
+            print(f"Currently ignored modules: {sorted(self.skip)}")
+        else:
+            print("No modules are currently ignored.")
+
+    def do_ignore_module(self, arg):
+        """ignore_module <module_name>
+
+        Add a module to the list of modules to skip when navigating frames.
+        When a module is ignored, the debugger will automatically skip over
+        frames from that module.
+
+        Supports wildcard patterns using fnmatch syntax:
+
+        Usage:
+            ignore_module threading     # Skip threading module frames
+            ignore_module asyncio.\\*    # Skip all asyncio submodules
+            ignore_module \\*.tests      # Skip all test modules
+            ignore_module               # List currently ignored modules
+        """
+
+        if self.skip is None:
+            self.skip = set()
+
+        module_name = arg.strip()
+
+        if not module_name:
+            self._show_ignored_modules()
+            return
+
+        self.skip.add(module_name)
+
+    def do_unignore_module(self, arg):
+        """unignore_module <module_name>
+
+        Remove a module from the list of modules to skip when navigating frames.
+        This will allow the debugger to step into frames from the specified module.
+
+        Usage:
+            unignore_module threading   # Stop ignoring threading module frames
+            unignore_module asyncio.\\*  # Remove asyncio.* pattern
+            unignore_module             # List currently ignored modules
+        """
+
+        if self.skip is None:
+            self.skip = set()
+
+        module_name = arg.strip()
+
+        if not module_name:
+            self._show_ignored_modules()
+            return
+
+        try:
+            self.skip.remove(module_name)
+        except KeyError:
+            print(f"Module {module_name} is not currently ignored")
+            self._show_ignored_modules()
 
     def do_context(self, context: str):
         """context number_of_lines
