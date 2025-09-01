@@ -75,7 +75,7 @@ def test_debug_magic_passes_through_generators():
     child.expect(ipdb_prompt)
     child.sendline("u")
     child.expect_exact(
-        "*** all frames above hidden, use `skip_hidden False` to get get into those."
+        "*** all frames above skipped (hidden frames and ignored modules). Use `skip_hidden False` for hidden frames or unignore_module for ignored modules."
     )
 
     child.expect(ipdb_prompt)
