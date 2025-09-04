@@ -939,6 +939,9 @@ class TestCompleter(unittest.TestCase):
         text, matches = c.complete("%timeit -n 2 -r 1 -invalid float.as_integer")
         self.assertEqual(matches, [])
 
+        text, matches = c.complete("%debug --invalid float.as_integer")
+        self.assertEqual(matches, [])
+
     def test_magic_completion_order(self):
         ip = get_ipython()
         c = ip.Completer
