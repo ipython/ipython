@@ -1138,6 +1138,7 @@ class ExecutionMagics(Magics):
         does not matter as long as results from timeit.py are not mixed with
         those from ``%timeit``."""
 
+        # also used in IPCompleter._extract_code
         opts, stmt = self.parse_options(
             line, "n:r:tcp:qov:", posix=False, strict=False, preserve_non_opts=True
         )
@@ -1266,6 +1267,14 @@ class ExecutionMagics(Magics):
         dest="no_raise_error",
         help="If given, don't re-raise exceptions",
     )
+    @magic_arguments.argument(
+        "statement",
+        nargs="*",
+        help="""
+        Code to run.
+        You can omit this in cell magic mode.
+        """,
+    )
     @skip_doctest
     @needs_local_scope
     @line_cell_magic
@@ -1337,34 +1346,10 @@ class ExecutionMagics(Magics):
                 Wall time: 0.00 s
                 Compiler : 0.78 s
         """
-        line_present = False
-        # Try to parse --no-raise-error if present, else ignore unrecognized args
-        try:
-            args = magic_arguments.parse_argstring(self.time, line)
-        except UsageError as e:
-            # Only ignore UsageError if caused by unrecognized arguments
-            # We'll manually check for --no-raise-error and remove it from line
-            line_present = True
+        args = magic_arguments.parse_argstring(self.time, line)
+        line = "\n".join(args.statement)
 
-            # Check if --no-raise-error is present
-            no_raise_error = "--no-raise-error" in line
-
-            if no_raise_error:
-                # Remove --no-raise-error while preserving the rest of the line structure
-                line = re.sub(r"\s*--no-raise-error\s*", " ", line).strip()
-                # Clean up any double spaces
-                line = re.sub(r"\s+", " ", line)
-
-            class Args:
-                def __init__(self, no_raise_error):
-                    self.no_raise_error = no_raise_error
-
-            args = Args(no_raise_error)
-        else:
-            if not hasattr(args, "no_raise_error"):
-                args.no_raise_error = False
-
-        if line_present and cell:
+        if line and cell:
             raise UsageError("Can't use statement directly after '%%time'!")
 
         if cell:
