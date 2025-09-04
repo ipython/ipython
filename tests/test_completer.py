@@ -905,6 +905,40 @@ class TestCompleter(unittest.TestCase):
         self.assertNotIn("%_bar_cellm", matches)
         self.assertIn("%%_bar_cellm", matches)
 
+    def test_line_magics_with_code_argument(self):
+        ip = get_ipython()
+        c = ip.Completer
+        c.use_jedi = False
+
+        # attribute completion
+        text, matches = c.complete("%timeit -n 2 -r 1 float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        text, matches = c.complete("%debug --breakpoint test float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        text, matches = c.complete("%time --no-raise-error float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        text, matches = c.complete("%prun -l 0.5 -r float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        # implicit magics
+        text, matches = c.complete("timeit -n 2 -r 1 float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        # built-ins completion
+        text, matches = c.complete("%timeit -n 2 -r 1 flo")
+        self.assertEqual(matches, ["float"])
+
+        # dict completion
+        text, matches = c.complete("%timeit -n 2 -r 1 {'my_key': 1}['my")
+        self.assertEqual(matches, ["my_key"])
+
+        # invalid arguments - should not throw
+        text, matches = c.complete("%timeit -n 2 -r 1 -invalid float.as_integer")
+        self.assertEqual(matches, [])
+
     def test_magic_completion_order(self):
         ip = get_ipython()
         c = ip.Completer
