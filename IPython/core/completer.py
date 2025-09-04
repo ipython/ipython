@@ -218,7 +218,7 @@ from IPython.core.guarded_eval import (
     EvaluationContext,
     _validate_policy_overrides,
 )
-from IPython.core.error import TryNext
+from IPython.core.error import TryNext, UsageError
 from IPython.core.inputtransformer2 import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.testing.skipdoctest import skip_doctest
@@ -1218,6 +1218,10 @@ class Completer(Configurable):
             return "".join(after_operator)
         else:
             return code
+
+    def _extract_code(self, line: str):
+        """No-op in Completer, but can be used in subclasses to customise behaviour"""
+        return line
 
     def _attr_matches(
         self, text: str, include_prefix: bool = True
@@ -2244,6 +2248,59 @@ class IPCompleter(Completer):
             "suppress": False,
         }
 
+    def _extract_code(self, line: str) -> str:
+        """Extract code from magics if any."""
+
+        if not line:
+            return line
+        maybe_magic, *rest = line.split(maxsplit=1)
+        if not rest:
+            return line
+        args = rest[0]
+        known_magics = self.shell.magics_manager.lsmagic()
+        line_magics = known_magics["line"]
+        magic_name = maybe_magic.lstrip(self.magic_escape)
+        if magic_name not in line_magics:
+            return line
+
+        if not maybe_magic.startswith(self.magic_escape):
+            all_variables = [*self.namespace.keys(), *self.global_namespace.keys()]
+            if magic_name in all_variables:
+                # short circuit if we see a line starting with say `time`
+                # but time is defined as a variable (in addition to being
+                # a magic). In these cases users need to use explicit `%time`.
+                return line
+
+        magic_method = line_magics[magic_name]
+
+        try:
+            if magic_name == "timeit":
+                opts, stmt = magic_method.__self__.parse_options(
+                    args,
+                    "n:r:tcp:qov:",
+                    posix=False,
+                    strict=False,
+                    preserve_non_opts=True,
+                )
+                return stmt
+            elif magic_name == "prun":
+                opts, stmt = magic_method.__self__.parse_options(
+                    args, "D:l:rs:T:q", list_all=True, posix=False
+                )
+                return stmt
+            elif hasattr(magic_method, "parser") and getattr(
+                magic_method, "has_arguments", False
+            ):
+                # e.g. %debug, %time
+                # try:
+                arguments = magic_method.parser.parse_argstring(args)
+                if hasattr(arguments, "statement"):
+                    return " ".join(arguments.statement)
+        except UsageError:
+            return line
+
+        return line
+
     @context_matcher()
     def magic_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match magics."""
@@ -2255,7 +2312,7 @@ class IPCompleter(Completer):
         line_magics = lsm['line']
         cell_magics = lsm['cell']
         pre = self.magic_escape
-        pre2 = pre+pre
+        pre2 = pre + pre
 
         explicit_magic = text.startswith(pre)
 
@@ -2619,6 +2676,7 @@ class IPCompleter(Completer):
     def python_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match attributes or global python names"""
         text = context.text_until_cursor
+        text = self._extract_code(text)
         completion_type = self._determine_completion_context(text)
         if completion_type == self._CompletionContextType.ATTRIBUTE:
             try:
@@ -3476,7 +3534,7 @@ class IPCompleter(Completer):
             full_text=full_text,
             cursor_position=cursor_pos,
             cursor_line=cursor_line,
-            token=text,
+            token=self._extract_code(text),
             limit=MATCHES_LIMIT,
         )
 
