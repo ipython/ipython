@@ -317,6 +317,7 @@ class ExecutionMagics(Magics):
             the magic line is always left unmodified.
 
         """
+        # TODO: port to magic_arguments as currently this is duplicated in IPCompleter._extract_code
         opts, arg_str = self.parse_options(parameter_s, 'D:l:rs:T:q',
                                            list_all=True, posix=False)
         if cell is not None:
@@ -1138,7 +1139,7 @@ class ExecutionMagics(Magics):
         does not matter as long as results from timeit.py are not mixed with
         those from ``%timeit``."""
 
-        # also used in IPCompleter._extract_code
+        # TODO: port to magic_arguments as currently this is duplicated in IPCompleter._extract_code
         opts, stmt = self.parse_options(
             line, "n:r:tcp:qov:", posix=False, strict=False, preserve_non_opts=True
         )
