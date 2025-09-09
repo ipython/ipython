@@ -2292,10 +2292,8 @@ class IPCompleter(Completer):
                 magic_method, "has_arguments", False
             ):
                 # e.g. %debug, %time
-                # try:
-                arguments = magic_method.parser.parse_argstring(args)
-                if hasattr(arguments, "statement"):
-                    return " ".join(arguments.statement)
+                args, extra = magic_method.parser.parse_argstring(args, partial=True)
+                return " ".join(extra)
         except UsageError:
             return line
 

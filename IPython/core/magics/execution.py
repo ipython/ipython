@@ -442,11 +442,10 @@ class ExecutionMagics(Magics):
         Set break point at LINE in FILE.
         """
     )
-    @magic_arguments.argument('statement', nargs='*',
-        help="""
-        Code to run in debugger.
-        You can omit this in cell magic mode.
-        """
+    @magic_arguments.kwds(
+        epilog="""
+      Any remaining arguments will be treated as code to run in the debugger.
+    """
     )
     @no_var_expand
     @line_cell_magic
@@ -455,12 +454,12 @@ class ExecutionMagics(Magics):
         """Activate the interactive debugger.
 
         This magic command support two ways of activating debugger.
-        One is to activate debugger before executing code.  This way, you
+        One is to activate debugger before executing code. This way, you
         can set a break point, to step through the code from the point.
         You can use this mode by giving statements to execute and optionally
         a breakpoint.
 
-        The other one is to activate debugger in post-mortem mode.  You can
+        The other one is to activate debugger in post-mortem mode. You can
         activate this mode simply running %debug without any argument.
         If an exception has just occurred, this lets you inspect its stack
         frames interactively.  Note that this will always work only on the last
@@ -476,9 +475,9 @@ class ExecutionMagics(Magics):
             the magic line is always left unmodified.
 
         """
-        args = magic_arguments.parse_argstring(self.debug, line)
+        args, extra = magic_arguments.parse_argstring(self.debug, line, partial=True)
 
-        if not (args.breakpoint or args.statement or cell):
+        if not (args.breakpoint or extra or cell):
             self._debug_post_mortem()
         elif not (args.breakpoint or cell):
             # If there is no breakpoints, the line is just code to execute
@@ -487,7 +486,7 @@ class ExecutionMagics(Magics):
             # Here we try to reconstruct the code from the output of
             # parse_argstring. This might not work if the code has spaces
             # For example this fails for `print("a b")`
-            code = "\n".join(args.statement)
+            code = " ".join(extra)
             if cell:
                 code += "\n" + cell
             self._debug_exec(code, args.breakpoint, local_ns)
@@ -1268,13 +1267,10 @@ class ExecutionMagics(Magics):
         dest="no_raise_error",
         help="If given, don't re-raise exceptions",
     )
-    @magic_arguments.argument(
-        "statement",
-        nargs="*",
-        help="""
-        Code to run.
-        You can omit this in cell magic mode.
-        """,
+    @magic_arguments.kwds(
+        epilog="""
+      Any remaining arguments will be treated as code to run in the debugger.
+    """
     )
     @skip_doctest
     @needs_local_scope
@@ -1347,8 +1343,8 @@ class ExecutionMagics(Magics):
                 Wall time: 0.00 s
                 Compiler : 0.78 s
         """
-        args = magic_arguments.parse_argstring(self.time, line)
-        line = "\n".join(args.statement)
+        args, extra = magic_arguments.parse_argstring(self.time, line, partial=True)
+        line = " ".join(extra)
 
         if line and cell:
             raise UsageError("Can't use statement directly after '%%time'!")
