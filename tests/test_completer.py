@@ -942,6 +942,29 @@ class TestCompleter(unittest.TestCase):
         text, matches = c.complete("%debug --invalid float.as_integer")
         self.assertEqual(matches, [])
 
+    def test_line_magics_with_code_argument_shadowing(self):
+        ip = get_ipython()
+        c = ip.Completer
+        c.use_jedi = False
+
+        # shadow
+        ip.run_cell("timeit = 1")
+
+        # should not suggest on implict magic when shadowed
+        text, matches = c.complete("timeit -n 2 -r 1 flo")
+        self.assertEqual(matches, [])
+
+        # should suggest on explicit magic
+        text, matches = c.complete("%timeit -n 2 -r 1 flo")
+        self.assertEqual(matches, ["float"])
+
+        # remove shadow
+        del ip.user_ns["timeit"]
+
+        # should suggest on implicit magic after shadow removal
+        text, matches = c.complete("timeit -n 2 -r 1 flo")
+        self.assertEqual(matches, ["float"])
+
     def test_magic_completion_order(self):
         ip = get_ipython()
         c = ip.Completer
