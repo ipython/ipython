@@ -1269,7 +1269,7 @@ class ExecutionMagics(Magics):
     )
     @magic_arguments.kwds(
         epilog="""
-      Any remaining arguments will be treated as code to run in the debugger.
+      Any remaining arguments will be treated as code to run.
     """
     )
     @skip_doctest
