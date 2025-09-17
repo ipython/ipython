@@ -1224,7 +1224,10 @@ class Completer(Configurable):
         return line
 
     def _attr_matches(
-        self, text: str, include_prefix: bool = True
+        self,
+        text: str,
+        include_prefix: bool = True,
+        context: Optional[CompletionContext] = None,
     ) -> tuple[Sequence[str], str]:
         m2 = self._ATTR_MATCH_RE.match(text)
         if not m2:
@@ -1237,7 +1240,19 @@ class Completer(Configurable):
 
         obj = self._evaluate_expr(expr)
         if obj is not_found:
-            return [], ""
+            if context:
+                # try to evaluate on full buffer
+                previous_lines = "\n".join(
+                    context.full_text.split("\n")[: context.cursor_line]
+                )
+                if previous_lines:
+                    all_code_lines_before_cursor = (
+                        self._extract_code(previous_lines) + "\n" + expr
+                    )
+                    obj = self._evaluate_expr(all_code_lines_before_cursor)
+
+            if obj is not_found:
+                return [], ""
 
         if self.limit_to__all__ and hasattr(obj, '__all__'):
             words = get__all__entries(obj)
@@ -2678,7 +2693,9 @@ class IPCompleter(Completer):
         completion_type = self._determine_completion_context(text)
         if completion_type == self._CompletionContextType.ATTRIBUTE:
             try:
-                matches, fragment = self._attr_matches(text, include_prefix=False)
+                matches, fragment = self._attr_matches(
+                    text, include_prefix=False, context=context
+                )
                 if text.endswith(".") and self.omit__names:
                     if self.omit__names == 1:
                         # true if txt is _not_ a __ name, false otherwise:

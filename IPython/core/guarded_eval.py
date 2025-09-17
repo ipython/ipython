@@ -19,12 +19,13 @@ from typing import (
 import ast
 import builtins
 import collections
+import dataclasses
 import operator
 import sys
 import warnings
 from functools import cached_property
 from dataclasses import dataclass, field
-from types import MethodDescriptorType, ModuleType
+from types import MethodDescriptorType, ModuleType, MethodType
 
 from IPython.utils.decorators import undoc
 
@@ -353,7 +354,8 @@ class _DummyNamedTuple(NamedTuple):
 EvaluationPolicyName = Literal["forbidden", "minimal", "limited", "unsafe", "dangerous"]
 
 
-class EvaluationContext(NamedTuple):
+@dataclass
+class EvaluationContext:
     #: Local namespace
     locals: dict
     #: Global namespace
@@ -366,7 +368,13 @@ class EvaluationContext(NamedTuple):
     #: Auto import method
     auto_import: Callable[list[str], ModuleType] | None = None
     #: Overrides for evaluation policy
-    policy_overrides: dict = {}
+    policy_overrides: dict = field(default_factory=dict)
+    #: Transient local namespace used to store mocks
+    transient_locals: dict = field(default_factory=dict)
+
+    def replace(self, /, **changes):
+        """Return a new copy of the context, with specified changes"""
+        return dataclasses.replace(self, **changes)
 
 
 class _IdentitySubscript:
@@ -414,14 +422,14 @@ def guarded_eval(code: str, context: EvaluationContext):
         locals_ = locals_.copy()
         locals_[SUBSCRIPT_MARKER] = IDENTITY_SUBSCRIPT
         code = SUBSCRIPT_MARKER + "[" + code + "]"
-        context = EvaluationContext(**{**context._asdict(), **{"locals": locals_}})
+        context = context.replace(locals=locals_)
 
     if context.evaluation == "dangerous":
         return eval(code, context.globals, context.locals)
 
-    expression = ast.parse(code, mode="eval")
+    node = ast.parse(code, mode="exec")
 
-    return eval_node(expression, context)
+    return eval_node(node, context)
 
 
 BINARY_OP_DUNDERS: dict[type[ast.operator], tuple[str]] = {
@@ -524,6 +532,54 @@ def _validate_policy_overrides(
     return all_good
 
 
+def _handle_assign(node: ast.Assign, context: EvaluationContext):
+    value = eval_node(node.value, context)
+    transient_locals = context.transient_locals
+    for target in node.targets:
+        if isinstance(target, (ast.Tuple, ast.List)):
+            # Handle unpacking assignment
+            values = list(value)
+            targets = target.elts
+            starred = [i for i, t in enumerate(targets) if isinstance(t, ast.Starred)]
+
+            # Unified handling: treat no starred as starred at end
+            star_or_last_idx = starred[0] if starred else len(targets)
+
+            # Before starred
+            for i in range(star_or_last_idx):
+                transient_locals[targets[i].id] = values[i]
+
+            # Starred if exists
+            if starred:
+                end = len(values) - (len(targets) - star_or_last_idx - 1)
+                transient_locals[targets[star_or_last_idx].value.id] = values[
+                    star_or_last_idx:end
+                ]
+
+                # After starred
+                for i in range(star_or_last_idx + 1, len(targets)):
+                    transient_locals[targets[i].id] = values[
+                        len(values) - (len(targets) - i)
+                    ]
+        else:
+            transient_locals[target.id] = value
+    return None
+
+
+def _extract_args_and_kwargs(node: ast.Call, context: EvaluationContext):
+    args = [eval_node(arg, context) for arg in node.args]
+    kwargs = {
+        k: v
+        for kw in node.keywords
+        for k, v in (
+            {kw.arg: eval_node(kw.value, context)}
+            if kw.arg
+            else eval_node(kw.value, context)
+        ).items()
+    }
+    return args, kwargs
+
+
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     """Evaluate AST node in provided context.
 
@@ -555,8 +611,48 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
     if node is None:
         return None
+    if isinstance(node, (ast.Interactive, ast.Module)):
+        result = None
+        for child_node in node.body:
+            result = eval_node(child_node, context)
+        return result
+    if isinstance(node, ast.FunctionDef):
+        # we ignore body and only extract the return type
+        # TODO:support decorators?
+        def dummy_function(*args, **kwargs):
+            pass
+
+        return_type = eval_node(node.returns, context=context)
+        dummy_function.__annotations__["return"] = return_type
+        dummy_function.__name__ = node.name
+        dummy_function.__node__ = node
+        context.transient_locals[node.name] = dummy_function
+        return None
+    if isinstance(node, ast.ClassDef):
+        # TODO support decorators?
+        class_locals = {}
+        class_context = context.replace(transient_locals=class_locals)
+        for child_node in node.body:
+            eval_node(child_node, class_context)
+        bases = tuple([eval_node(base, context) for base in node.bases])
+        dummy_class = type(node.name, bases, class_locals)
+        context.transient_locals[node.name] = dummy_class
+        return None
+    if isinstance(node, ast.Assign):
+        return _handle_assign(node, context)
     if isinstance(node, ast.Expression):
         return eval_node(node.body, context)
+    if isinstance(node, ast.Expr):
+        return eval_node(node.value, context)
+    if isinstance(node, ast.Pass):
+        return None
+    if isinstance(node, ast.Import):
+        # TODO: populate transient_locals
+        return None
+    if isinstance(node, (ast.AugAssign, ast.Delete)):
+        return None
+    if isinstance(node, (ast.Global, ast.Nonlocal)):
+        return None
     if isinstance(node, ast.BinOp):
         left = eval_node(node.left, context)
         right = eval_node(node.right, context)
@@ -676,9 +772,9 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             return eval_node(node.orelse, context)
     if isinstance(node, ast.Call):
         func = eval_node(node.func, context)
-        if policy.can_call(func) and not node.keywords:
-            args = [eval_node(arg, context) for arg in node.args]
-            return func(*args)
+        if policy.can_call(func):
+            args, kwargs = _extract_args_and_kwargs(node, context)
+            return func(*args, **kwargs)
         if isclass(func):
             # this code path gets entered when calling class e.g. `MyClass()`
             # or `my_instance.__class__()` - in both cases `func` is `MyClass`.
@@ -717,21 +813,28 @@ def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext
     return NOT_EVALUATED
 
 
+def _eval_annotation(
+    annotation: str,
+    context: EvaluationContext,
+):
+    return (
+        _eval_node_name(annotation, context)
+        if isinstance(annotation, str)
+        else annotation
+    )
+
+
 def _resolve_annotation(
-    annotation,
+    annotation: str,
     sig: Signature,
     func: Callable,
     node: ast.Call,
     context: EvaluationContext,
 ):
     """Resolve annotation created by user with `typing` module and custom objects."""
-    annotation = (
-        _eval_node_name(annotation, context)
-        if isinstance(annotation, str)
-        else annotation
-    )
+    annotation = _eval_annotation(annotation, context)
     origin = get_origin(annotation)
-    if annotation is Self and hasattr(func, "__self__"):
+    if annotation is Self and func and hasattr(func, "__self__"):
         return func.__self__
     elif origin is Literal:
         type_args = get_args(annotation)
@@ -741,12 +844,30 @@ def _resolve_annotation(
         return ""
     elif annotation is AnyStr:
         index = None
-        for i, (key, value) in enumerate(sig.parameters.items()):
-            if value.annotation is AnyStr:
-                index = i
-                break
-        if index is not None and index < len(node.args):
-            return eval_node(node.args[index], context)
+        if hasattr(func, "__node__"):
+            def_node = func.__node__
+            for i, arg in enumerate(def_node.args.args):
+                if not arg.annotation:
+                    continue
+                annotation = _eval_annotation(arg.annotation.id, context)
+                if annotation is AnyStr:
+                    index = i
+                    break
+            is_bound_method = (
+                isinstance(func, MethodType) and getattr(func, "__self__") is not None
+            )
+            if index and is_bound_method:
+                index -= 1
+        else:
+            for i, (key, value) in enumerate(sig.parameters.items()):
+                if value.annotation is AnyStr:
+                    index = i
+                    break
+        if index is None:
+            return None
+        if index < 0 or index >= len(node.args):
+            return None
+        return eval_node(node.args[index], context)
     elif origin is TypeGuard:
         return False
     elif origin is Union:
@@ -779,6 +900,8 @@ def _resolve_annotation(
 
 def _eval_node_name(node_id: str, context: EvaluationContext):
     policy = get_policy(context)
+    if node_id in context.transient_locals:
+        return context.transient_locals[node_id]
     if policy.allow_locals_access and node_id in context.locals:
         return context.locals[node_id]
     if policy.allow_globals_access and node_id in context.globals:
@@ -799,9 +922,8 @@ def _eval_node_name(node_id: str, context: EvaluationContext):
 def _eval_or_create_duck(duck_type, node: ast.Call, context: EvaluationContext):
     policy = get_policy(context)
     # if allow-listed builtin is on type annotation, instantiate it
-    if policy.can_call(duck_type) and not node.keywords:
-        args = [eval_node(arg, context) for arg in node.args]
-        return duck_type(*args)
+    if policy.can_call(duck_type):
+        return duck_type()
     # if custom class is in type annotation, mock it
     return _create_duck_for_heap_type(duck_type)
 
@@ -880,6 +1002,8 @@ ALLOWED_CALLS = {
     *_list_methods(str),
     tuple,
     *_list_methods(tuple),
+    bool,
+    *_list_methods(bool),
     *NUMERICS,
     *[method for numeric_cls in NUMERICS for method in _list_methods(numeric_cls)],
     collections.deque,
