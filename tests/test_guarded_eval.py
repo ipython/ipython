@@ -545,9 +545,43 @@ def test_mock_class_and_func_instances(code, expected):
     ],
 )
 def test_evaluates_assignments(code, expected):
-    context = limited(TypedClass=TypedClass, AnyStr=AnyStr)
+    context = limited()
     value = guarded_eval(code, context)
     assert isinstance(value, expected)
+
+
+def equals(a, b):
+    return a == b
+
+
+def quacks_like(test_duck, reference_duck):
+    return set(dir(reference_duck)) - set(dir(test_duck)) == set()
+
+
+@pytest.mark.parametrize(
+    "code,expected,check",
+    [
+        ["\n".join(["a: Literal[True]", "a"]), True, equals],
+        ["\n".join(["a: bool", "a"]), bool, isinstance],
+        ["\n".join(["a: str", "a"]), str, isinstance],
+        # for lists we need quacking as we do not know:
+        # - how many elements in the list
+        # - which element is of which type
+        ["\n".join(["a: list[str]", "a"]), list, quacks_like],
+        ["\n".join(["a: list[str]", "a[0]"]), str, quacks_like],
+        ["\n".join(["a: list[str]", "a[999]"]), str, quacks_like],
+        # set
+        ["\n".join(["a: set[str]", "a"]), set, quacks_like],
+        # for tuples we do know which element is which
+        ["\n".join(["a: tuple[str, int]", "a"]), tuple, isinstance],
+        ["\n".join(["a: tuple[str, int]", "a[0]"]), str, isinstance],
+        ["\n".join(["a: tuple[str, int]", "a[1]"]), int, isinstance],
+    ],
+)
+def test_evaluates_type_assignments(code, expected, check):
+    context = limited(Literal=Literal)
+    value = guarded_eval(code, context)
+    assert check(value, expected)
 
 
 @pytest.mark.parametrize(

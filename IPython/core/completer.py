@@ -1346,7 +1346,9 @@ class Completer(Configurable):
                     ),
                 )
                 done = True
-            except (SyntaxError, TypeError):
+            except (SyntaxError, TypeError) as e:
+                if self.debug:
+                    warnings.warn(f"Trimming because of {e}")
                 # TypeError can show up with something like `+ d`
                 # where `d` is a dictionary.
 
@@ -1357,8 +1359,10 @@ class Completer(Configurable):
                 expr = self._trim_expr(expr)
             except Exception as e:
                 if self.debug:
-                    print("Evaluation exception", e)
+                    warnings.warn(f"Evaluation exception {e}")
                 done = True
+        if self.debug:
+            warnings.warn(f"Resolved to {obj}")
         return obj
 
     @property

@@ -22,6 +22,7 @@ import collections
 import dataclasses
 import operator
 import sys
+import typing
 import warnings
 from functools import cached_property
 from dataclasses import dataclass, field
@@ -227,6 +228,8 @@ class SelectivePolicy(EvaluationPolicy):
     allowed_operations: set = field(default_factory=set)
     allowed_operations_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
+    allow_getitem_on_types: bool = field(default_factory=bool)
+
     _operation_methods_cache: dict[str, set[Callable]] = field(
         default_factory=dict, init=False
     )
@@ -290,6 +293,13 @@ class SelectivePolicy(EvaluationPolicy):
     def can_get_item(self, value, item):
         """Allow accessing `__getiitem__` of allow-listed instances unless it was not modified."""
         allowed_getitem_external = _coerce_path_to_tuples(self.allowed_getitem_external)
+        if self.allow_getitem_on_types:
+            # e.g. Union[str, int] or Literal[True, 1]
+            if isinstance(value, (typing._SpecialForm, typing._BaseGenericAlias)):
+                return True
+            # PEP 560 e.g. list[str]
+            if isinstance(value, type) and hasattr(value, "__class_getitem__"):
+                return True
         return _has_original_dunder(
             value,
             allowed_types=self.allowed_getitem,
@@ -478,8 +488,8 @@ class _Duck:
     """A dummy class used to create objects pretending to have given attributes"""
 
     def __init__(self, attributes: Optional[dict] = None, items: Optional[dict] = None):
-        self.attributes = attributes or {}
-        self.items = items or {}
+        self.attributes = attributes if attributes is not None else {}
+        self.items = items if items is not None else {}
 
     def __getattr__(self, attr: str):
         return self.attributes[attr]
@@ -640,6 +650,14 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         return None
     if isinstance(node, ast.Assign):
         return _handle_assign(node, context)
+    if isinstance(node, ast.AnnAssign):
+        if not node.simple:
+            # for now only handle simple annotations
+            return None
+        context.transient_locals[node.target.id] = _resolve_annotation(
+            eval_node(node.annotation, context), context
+        )
+        return None
     if isinstance(node, ast.Expression):
         return eval_node(node.body, context)
     if isinstance(node, ast.Expr):
@@ -793,7 +811,13 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             func,  # not joined to avoid calling `repr`
             f"not allowed in {context.evaluation} mode",
         )
-    raise ValueError("Unhandled node", ast.dump(node))
+    if isinstance(node, ast.Assert):
+        # message is always the second item, so if it is defined user would be completing
+        # on the message, not on the assertion test
+        if node.msg:
+            return eval_node(node.msg, context)
+        return eval_node(node.test, context)
+    raise SyntaxError(f"Unhandled node: {ast.dump(node)}")
 
 
 def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext):
@@ -809,7 +833,7 @@ def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext
     # but resolved by signature call we know the return type
     not_empty = sig.return_annotation is not Signature.empty
     if not_empty:
-        return _resolve_annotation(sig.return_annotation, sig, func, node, context)
+        return _resolve_annotation(sig.return_annotation, context, sig, func, node)
     return NOT_EVALUATED
 
 
@@ -824,12 +848,26 @@ def _eval_annotation(
     )
 
 
+class _GetItemDuck(dict):
+    """A dict subclass that always returns the factory instance and claims to have any item."""
+
+    def __init__(self, factory, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._factory = factory
+
+    def __getitem__(self, key):
+        return self._factory()
+
+    def __contains__(self, key):
+        return True
+
+
 def _resolve_annotation(
-    annotation: str,
-    sig: Signature,
-    func: Callable,
-    node: ast.Call,
+    annotation: object | str,
     context: EvaluationContext,
+    sig: Signature | None = None,
+    func: Callable | None = None,
+    node: ast.Call | None = None,
 ):
     """Resolve annotation created by user with `typing` module and custom objects."""
     annotation = _eval_annotation(annotation, context)
@@ -844,7 +882,7 @@ def _resolve_annotation(
         return ""
     elif annotation is AnyStr:
         index = None
-        if hasattr(func, "__node__"):
+        if func and hasattr(func, "__node__"):
             def_node = func.__node__
             for i, arg in enumerate(def_node.args.args):
                 if not arg.annotation:
@@ -858,7 +896,7 @@ def _resolve_annotation(
             )
             if index and is_bound_method:
                 index -= 1
-        else:
+        elif sig:
             for i, (key, value) in enumerate(sig.parameters.items()):
                 if value.annotation is AnyStr:
                     index = i
@@ -870,18 +908,39 @@ def _resolve_annotation(
         return eval_node(node.args[index], context)
     elif origin is TypeGuard:
         return False
+    elif origin is set or origin is list:
+        # only one type argument allowed
+        attributes = [
+            attr
+            for attr in dir(
+                _resolve_annotation(get_args(annotation)[0], context, sig, func, node)
+            )
+        ]
+        duck = _Duck(attributes=dict.fromkeys(attributes))
+        return _Duck(
+            attributes=dict.fromkeys(dir(origin())),
+            # items are not strrictly needed for set
+            items=_GetItemDuck(lambda: duck),
+        )
+    elif origin is tuple:
+        # multiple type arguments
+        return tuple(
+            _resolve_annotation(arg, context, sig, func, node)
+            for arg in get_args(annotation)
+        )
     elif origin is Union:
+        # multiple type arguments
         attributes = [
             attr
             for type_arg in get_args(annotation)
-            for attr in dir(_resolve_annotation(type_arg, sig, func, node, context))
+            for attr in dir(_resolve_annotation(type_arg, context, sig, func, node))
         ]
         return _Duck(attributes=dict.fromkeys(attributes))
     elif is_typeddict(annotation):
         return _Duck(
             attributes=dict.fromkeys(dir(dict())),
             items={
-                k: _resolve_annotation(v, sig, func, node, context)
+                k: _resolve_annotation(v, context, sig, func, node)
                 for k, v in annotation.__annotations__.items()
             },
         )
@@ -889,13 +948,13 @@ def _resolve_annotation(
         return _Duck(attributes=dict.fromkeys(dir(annotation)))
     elif origin is Annotated:
         type_arg = get_args(annotation)[0]
-        return _resolve_annotation(type_arg, sig, func, node, context)
+        return _resolve_annotation(type_arg, context, sig, func, node)
     elif isinstance(annotation, NewType):
-        return _eval_or_create_duck(annotation.__supertype__, node, context)
+        return _eval_or_create_duck(annotation.__supertype__, context)
     elif isinstance(annotation, TypeAliasType):
-        return _eval_or_create_duck(annotation.__value__, node, context)
+        return _eval_or_create_duck(annotation.__value__, context)
     else:
-        return _eval_or_create_duck(annotation, node, context)
+        return _eval_or_create_duck(annotation, context)
 
 
 def _eval_node_name(node_id: str, context: EvaluationContext):
@@ -919,7 +978,7 @@ def _eval_node_name(node_id: str, context: EvaluationContext):
         raise NameError(f"{node_id} not found in locals, globals, nor builtins")
 
 
-def _eval_or_create_duck(duck_type, node: ast.Call, context: EvaluationContext):
+def _eval_or_create_duck(duck_type, context: EvaluationContext):
     policy = get_policy(context)
     # if allow-listed builtin is on type annotation, instantiate it
     if policy.can_call(duck_type):
@@ -959,6 +1018,8 @@ BUILTIN_GETITEM: set[InstancesHaveGetItem] = {
     bytes,  # type: ignore[arg-type]
     list,
     tuple,
+    type,  # for type annotations like list[str]
+    _Duck,
     collections.defaultdict,
     collections.deque,
     collections.OrderedDict,
@@ -1063,6 +1124,7 @@ EVALUATION_POLICIES = {
         allow_builtins_access=True,
         allow_locals_access=True,
         allow_globals_access=True,
+        allow_getitem_on_types=True,
         allowed_calls=ALLOWED_CALLS,
     ),
     "unsafe": EvaluationPolicy(
