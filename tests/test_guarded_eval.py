@@ -494,6 +494,33 @@ def test_mocks_items_of_call_results(data, code, expected_items):
             "\n".join(
                 [
                     "class NotYetDefined:",
+                    "    @property",
+                    "    def my_prop(self) -> int:",
+                    "        pass",
+                    "instance = NotYetDefined()",
+                    "instance.my_prop",
+                ]
+            ),
+            int,
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    @unkown_decorator",
+                    "    @property",
+                    "    def my_prop(self) -> int:",
+                    "        pass",
+                    "instance = NotYetDefined()",
+                    "instance.my_prop",
+                ]
+            ),
+            int,
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
                     "    attribute = 42",
                     "instance = NotYetDefined()",
                     "instance.attribute",

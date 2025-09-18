@@ -628,18 +628,36 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         return result
     if isinstance(node, ast.FunctionDef):
         # we ignore body and only extract the return type
-        # TODO:support decorators?
+        is_property = False
+
+        for decorator_node in node.decorator_list:
+            try:
+                decorator = eval_node(decorator_node, context)
+            except NameError:
+                # if the decorator is not yet defined this is fine
+                # especialy because we don't handle imports yet
+                continue
+            if decorator is property:
+                is_property = True
+
+        return_type = eval_node(node.returns, context=context)
+
+        if is_property:
+            context.transient_locals[node.name] = _resolve_annotation(
+                return_type, context
+            )
+            return None
+
         def dummy_function(*args, **kwargs):
             pass
 
-        return_type = eval_node(node.returns, context=context)
         dummy_function.__annotations__["return"] = return_type
         dummy_function.__name__ = node.name
         dummy_function.__node__ = node
         context.transient_locals[node.name] = dummy_function
         return None
     if isinstance(node, ast.ClassDef):
-        # TODO support decorators?
+        # TODO support class decorators?
         class_locals = {}
         class_context = context.replace(transient_locals=class_locals)
         for child_node in node.body:
@@ -817,7 +835,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         if node.msg:
             return eval_node(node.msg, context)
         return eval_node(node.test, context)
-    raise SyntaxError(f"Unhandled node: {ast.dump(node)}")
+    return None
 
 
 def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext):
@@ -870,6 +888,8 @@ def _resolve_annotation(
     node: ast.Call | None = None,
 ):
     """Resolve annotation created by user with `typing` module and custom objects."""
+    if annotation is None:
+        return None
     annotation = _eval_annotation(annotation, context)
     origin = get_origin(annotation)
     if annotation is Self and func and hasattr(func, "__self__"):
