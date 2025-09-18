@@ -336,7 +336,10 @@ class ListTB(TBTools):
                     )
                 )
                 if textline == "":
-                    textline = py3compat.cast_unicode(value.text, "utf-8")
+                    # sep 2025:
+                    # textline = py3compat.cast_unicode(value.text, "utf-8")
+                    assert isinstance(value.text, str)
+                    textline = value.text
 
                 if textline is not None:
                     i = 0
@@ -425,7 +428,7 @@ class ListTB(TBTools):
     def _some_str(self, value: Any) -> str:
         # Lifted from traceback.py
         try:
-            return py3compat.cast_unicode(str(value))
+            return str(value)
         except:
             return "<unprintable %s object>" % type(value).__name__
 
@@ -704,16 +707,19 @@ class VerboseTB(TBTools):
         if not isinstance(notes, Sequence) or isinstance(notes, (str, bytes)):
             notes = [_safe_string(notes, "__notes__", func=repr)]
 
+        for note in notes:
+            assert isinstance(note, str)
+
+        str_notes: Sequence[str] = notes
+
         # ... and format it
         return [
             theme_table[self._theme_name].format(
                 [(Token.ExcName, etype_str), (Token, ": "), (Token, evalue_str)]
             ),
             *(
-                theme_table[self._theme_name].format(
-                    [(Token, _safe_string(py3compat.cast_unicode(n), "note"))]
-                )
-                for n in notes
+                theme_table[self._theme_name].format([(Token, note)])
+                for note in str_notes
             ),
         ]
 

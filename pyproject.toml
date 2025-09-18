@@ -111,8 +111,9 @@ exclude = [
    'IPython/sphinxext/ipython_directive.py',
    'IPython/terminal/ipapp.py',
    'IPython/utils/path.py',
+   'IPython/core/debugger_backport.py',
 ]
-# check_untyped_defs = true
+check_untyped_defs = true
 # disallow_untyped_calls = true
 # disallow_untyped_decorators = true
 # ignore_errors = false
@@ -127,6 +128,7 @@ enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 [[tool.mypy.overrides]]
 module = [
     "IPython.core.crashhandler",
+    "IPython.utils.text",
 ]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -138,23 +140,15 @@ ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
 module = [
-    "IPython.utils.text",
-]
-disallow_untyped_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-
-[[tool.mypy.overrides]]
-module = [
     "IPython.core.ultratb",
 ]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = false
+disallow_untyped_decorators = true
 disallow_untyped_defs = false
 ignore_errors = false
 ignore_missing_imports = false
-disallow_untyped_calls = false
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
 
 [[tool.mypy.overrides]]
 module = [
