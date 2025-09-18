@@ -141,7 +141,7 @@ module = [
     "IPython.utils.text",
 ]
 disallow_untyped_defs = true
-check_untyped_defs = false
+check_untyped_defs = true
 disallow_untyped_decorators = true
 
 [[tool.mypy.overrides]]
@@ -316,7 +316,7 @@ ignore_errors = true
 ignore_missing_imports = true
 disallow_untyped_calls = false
 disallow_incomplete_defs = false
-check_untyped_defs = false
+check_untyped_defs = true
 disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
