@@ -1001,6 +1001,7 @@ def test_extension():
 def test_notebook_export_json():
     pytest.importorskip("nbformat")
     from nbformat import read, sign
+
     _ip = get_ipython()
     _ip.history_manager.reset()  # Clear any existing history.
     cmds = ["a=1", "def b():\n  return a**2", "print('noël, été', b())"]
@@ -1026,6 +1027,7 @@ def test_notebook_export_json():
     notary = sign.NotebookNotary()
     is_trusted = notary.check_signature(nb)
     assert is_trusted, "Exported notebook should be trusted"
+
 
 def test_notebook_export_json_with_output():
     """Tests if notebook export correctly captures outputs, errors, display outputs, and stream outputs."""
