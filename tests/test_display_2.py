@@ -212,6 +212,53 @@ def test_set_matplotlib_formats_kwargs():
     assert formatter_kwargs == expected
 
 
+@dec.skip_without("matplotlib")
+def test_matplotlib_positioning():
+    _ip = get_ipython()
+    _ip.history_manager.reset()
+    _ip.run_line_magic("matplotlib", "inline")
+    _ip.display_formatter.active_types = ["text/plain", "image/png"]
+
+    try:
+        _ip.execution_count = 0
+        _ip.run_cell("'no plot here'", store_history=True)
+
+        # Cell 1: No manual flush
+        _ip.execution_count = 1
+        _ip.run_cell(
+            "import matplotlib.pyplot as plt;plt.plot([0, 1])", store_history=True
+        )
+
+        _ip.execution_count = 2
+        _ip.run_cell("'no plot here'", store_history=True)
+
+        # Cell 3: Manual flush
+        _ip.execution_count = 3
+        _ip.run_cell("plt.plot([1, 0])\nplt.show()", store_history=True)
+
+        _ip.execution_count = 4
+        _ip.run_cell("'no plot here'", store_history=True)
+
+        outputs = _ip.history_manager.outputs
+
+        # Only cells 1 and 3 should have plots
+        for cell_num in [0, 2, 4]:
+            assert not any(
+                "image/png" in out.bundle for out in outputs.get(cell_num, [])
+            ), f"Cell {cell_num} should not have plot"
+
+        cell_1_has_plot = any("image/png" in out.bundle for out in outputs.get(1, []))
+        cell_3_has_plot = any("image/png" in out.bundle for out in outputs.get(3, []))
+
+        assert cell_1_has_plot, "Cell 1 should have plot (auto-flush)"
+        assert cell_3_has_plot, "Cell 3 should have plot (manual flush)"
+
+    finally:
+        import matplotlib.pyplot as plt
+
+        plt.close("all")
+
+
 def test_display_available():
     """
     Test that display is available without import
