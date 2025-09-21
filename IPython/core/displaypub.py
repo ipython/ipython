@@ -43,7 +43,9 @@ class DisplayPublisher(Configurable):
     def __init__(self, shell=None, *args, **kwargs):
         self.shell = shell
         self._is_publishing = False
-        self._setup_execution_tracking()
+        self._in_post_execute = False
+        if self.shell:
+            self._setup_execution_tracking()
         super().__init__(*args, **kwargs)
 
     def _validate_data(self, data, metadata=None):
@@ -65,7 +67,6 @@ class DisplayPublisher(Configurable):
 
     def _setup_execution_tracking(self):
         """Set up hooks to track execution state"""
-        self._in_post_execute = False
         self.shell.events.register("post_execute", self._on_post_execute)
         self.shell.events.register("pre_execute", self._on_pre_execute)
 
