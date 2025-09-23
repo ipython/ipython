@@ -56,6 +56,21 @@ def foo_printer(obj, pp, cycle):
     pp.text("foo")
 
 
+def test_display_formatter_active_types_config():
+    ip = get_ipython()
+    prev_active_types = getattr(ip.config.DisplayFormatter, "active_types", None)
+    ip.config.DisplayFormatter.active_types = ["text/plain", "image/png"]
+    try:
+        ip.init_display_formatter()
+        active_types = ip.display_formatter.active_types
+        assert "text/plain" in active_types
+        assert "image/png" in active_types
+    finally:
+        if prev_active_types is not None:
+            ip.config.DisplayFormatter.active_types = prev_active_types
+        else:
+            del ip.config.DisplayFormatter.active_types
+
 def test_pretty():
     f = PlainTextFormatter()
     f.for_type(A, foo_printer)
