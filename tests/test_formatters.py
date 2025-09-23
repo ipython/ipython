@@ -71,6 +71,7 @@ def test_display_formatter_active_types_config():
         else:
             del ip.config.DisplayFormatter.active_types
 
+
 def test_pretty():
     f = PlainTextFormatter()
     f.for_type(A, foo_printer)
