@@ -57,19 +57,24 @@ def foo_printer(obj, pp, cycle):
 
 
 def test_display_formatter_active_types_config():
-    ip = get_ipython()
-    prev_active_types = getattr(ip.config.DisplayFormatter, "active_types", None)
-    ip.config.DisplayFormatter.active_types = ["text/plain", "image/png"]
+    from IPython.terminal.interactiveshell import TerminalInteractiveShell
+    from IPython.core.history import HistoryManager
+    from traitlets.config import Config
+
+    # Clear HistoryManager instances to bypass singleton limit before creating new shell
+    HistoryManager._instances.clear()
+
     try:
-        ip.init_display_formatter()
+        c = Config()
+        c.DisplayFormatter.active_types = ["text/plain", "image/png"]
+
+        ip = TerminalInteractiveShell(config=c)
+
         active_types = ip.display_formatter.active_types
         assert "text/plain" in active_types
         assert "image/png" in active_types
     finally:
-        if prev_active_types is not None:
-            ip.config.DisplayFormatter.active_types = prev_active_types
-        else:
-            del ip.config.DisplayFormatter.active_types
+        HistoryManager._instances.clear()
 
 
 def test_pretty():
