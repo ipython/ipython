@@ -263,7 +263,6 @@ def test_matplotlib_positioning():
         _ip.displayhook.flush()
 
 
-
 def test_display_available():
     """
     Test that display is available without import
