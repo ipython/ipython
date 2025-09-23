@@ -201,25 +201,31 @@ def test_set_matplotlib_formats_kwargs():
     cfg = _get_inline_config()
     cfg.print_figure_kwargs.update(dict(foo="bar"))
     kwargs = dict(dpi=150)
-    set_matplotlib_formats("png", **kwargs)
-    formatter = ip.display_formatter.formatters["image/png"]
-    f = formatter.lookup_by_type(Figure)
-    formatter_kwargs = f.keywords
-    expected = kwargs
-    expected["base64"] = True
-    expected["fmt"] = "png"
-    expected.update(cfg.print_figure_kwargs)
-    assert formatter_kwargs == expected
+    try:
+        set_matplotlib_formats("png", **kwargs)
+        formatter = ip.display_formatter.formatters["image/png"]
+        f = formatter.lookup_by_type(Figure)
+        formatter_kwargs = f.keywords
+        expected = kwargs
+        expected["base64"] = True
+        expected["fmt"] = "png"
+        expected.update(cfg.print_figure_kwargs)
+        assert formatter_kwargs == expected
+    finally:
+        cfg.print_figure_kwargs.clear()
 
 
 @dec.skip_without("matplotlib")
 def test_matplotlib_positioning():
     _ip = get_ipython()
     _ip.history_manager.reset()
-    _ip.run_line_magic("matplotlib", "inline")
+    prev_active_types = _ip.display_formatter.active_types
     _ip.display_formatter.active_types = ["text/plain", "image/png"]
 
+    _ip.run_cell("import matplotlib")
+    prev_mpl_backend = _ip.run_cell("matplotlib.get_backend()").result
     try:
+        _ip.run_line_magic("matplotlib", "inline")
         _ip.execution_count = 1
         _ip.run_cell("'no plot here'", store_history=True)
 
@@ -250,9 +256,12 @@ def test_matplotlib_positioning():
         assert cell_4_has_plot, "Cell 4 should have plot (manual flush)"
 
     finally:
-        import matplotlib.pyplot as plt
+        _ip.run_cell("plt.close('all')")
+        _ip.run_line_magic("matplotlib", prev_mpl_backend)
+        _ip.history_manager.reset()
+        _ip.display_formatter.active_types = prev_active_types
+        _ip.displayhook.flush()
 
-        plt.close("all")
 
 
 def test_display_available():
