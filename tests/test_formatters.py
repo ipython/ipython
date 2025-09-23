@@ -60,16 +60,29 @@ def test_display_formatter_active_types_config():
     from IPython.terminal.interactiveshell import TerminalInteractiveShell
     from IPython.core.history import HistoryManager
     from traitlets.config import Config
+    import tempfile
+    import shutil
+    import atexit
 
     # Clear HistoryManager instances to bypass singleton limit before creating new shell
     prev_instances = HistoryManager._instances.copy()
     HistoryManager._instances.clear()
 
+    temp_dir = tempfile.mkdtemp()
     try:
         c = Config()
         c.DisplayFormatter.active_types = ["text/plain", "image/png"]
+        # Use isolated history file
+        c.HistoryManager.hist_file = f"{temp_dir}/history.sqlite"
 
         ip = TerminalInteractiveShell(config=c)
+
+        # Remove atexit handler immediately after creation
+        if hasattr(ip, "atexit_operations"):
+            try:
+                atexit.unregister(ip.atexit_operations)
+            except ValueError:
+                pass
 
         active_types = ip.display_formatter.active_types
         assert "text/plain" in active_types
@@ -77,10 +90,15 @@ def test_display_formatter_active_types_config():
 
         # Ensure only the expected types are active
         assert set(active_types) == {"text/plain", "image/png"}
+
     finally:
         # Clean up the new instance and restore previous state
         HistoryManager._instances.clear()
         HistoryManager._instances.update(prev_instances)
+
+        # Clean up temporary directory
+        if temp_dir:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def test_pretty():
