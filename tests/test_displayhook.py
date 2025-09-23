@@ -31,6 +31,7 @@ def test_output_quiet():
 
 
 def test_underscore_no_overwrite_user():
+    ip.displayhook.flush()
     ip.run_cell("_ = 42", store_history=True)
     ip.run_cell("1+1", store_history=True)
 
