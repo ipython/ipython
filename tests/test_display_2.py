@@ -215,52 +215,63 @@ def test_set_matplotlib_formats_kwargs():
         cfg.print_figure_kwargs.clear()
 
 
-# @dec.skip_without("matplotlib")
-# def test_matplotlib_positioning():
-#     _ip = get_ipython()
-#     _ip.history_manager.reset()
-#     prev_active_types = _ip.display_formatter.active_types
-#     _ip.display_formatter.active_types = ["text/plain", "image/png"]
+@dec.skip_without("matplotlib")
+def test_matplotlib_positioning():
+    _ip = get_ipython()
 
-#     _ip.run_cell("import matplotlib")
-#     prev_mpl_backend = _ip.run_cell("matplotlib.get_backend()").result
-#     try:
-#         _ip.run_line_magic("matplotlib", "inline")
-#         _ip.execution_count = 1
-#         _ip.run_cell("'no plot here'", store_history=True)
+    prev_active_types = _ip.display_formatter.active_types.copy()
+    prev_execution_count = _ip.execution_count
+    prev_user_ns_underscore = _ip.user_ns.get("_", None)
 
-#         # Cell 2: No manual flush
-#         _ip.run_cell(
-#             "import matplotlib.pyplot as plt;plt.plot([0, 1])", store_history=True
-#         )
+    _ip.history_manager.reset()
+    _ip.display_formatter.active_types = ["text/plain", "image/png"]
 
-#         _ip.run_cell("'no plot here'", store_history=True)
+    _ip.run_cell("import matplotlib")
+    prev_mpl_backend = _ip.run_cell("matplotlib.get_backend()").result
 
-#         # Cell 4: Manual flush
-#         _ip.run_cell("plt.plot([1, 0])\nplt.show()", store_history=True)
+    try:
+        _ip.run_line_magic("matplotlib", "inline")
+        _ip.execution_count = 1
+        _ip.run_cell("'no plot here'", store_history=True)
 
-#         _ip.run_cell("'no plot here'", store_history=True)
+        # Cell 2: No manual flush
+        _ip.run_cell(
+            "import matplotlib.pyplot as plt;plt.plot([0, 1])", store_history=True
+        )
 
-#         outputs = _ip.history_manager.outputs
+        _ip.run_cell("'no plot here'", store_history=True)
 
-#         # Only cells 2 and 4 should have plots
-#         for cell_num in [1, 3, 5]:
-#             assert not any(
-#                 "image/png" in out.bundle for out in outputs.get(cell_num, [])
-#             ), f"Cell {cell_num} should not have plot"
+        # Cell 4: Manual flush
+        _ip.run_cell("plt.plot([1, 0])\nplt.show()", store_history=True)
 
-#         cell_2_has_plot = any("image/png" in out.bundle for out in outputs.get(2, []))
-#         cell_4_has_plot = any("image/png" in out.bundle for out in outputs.get(4, []))
+        _ip.run_cell("'no plot here'", store_history=True)
 
-#         assert cell_2_has_plot, "Cell 2 should have plot (auto-flush)"
-#         assert cell_4_has_plot, "Cell 4 should have plot (manual flush)"
+        outputs = _ip.history_manager.outputs
 
-#     finally:
-#         _ip.run_cell("plt.close('all')")
-#         _ip.run_line_magic("matplotlib", prev_mpl_backend)
-#         _ip.history_manager.reset()
-#         _ip.display_formatter.active_types = prev_active_types
-#         _ip.displayhook.flush()
+        # Only cells 2 and 4 should have plots
+        for cell_num in [1, 3, 5]:
+            assert not any(
+                "image/png" in out.bundle for out in outputs.get(cell_num, [])
+            ), f"Cell {cell_num} should not have plot"
+
+        cell_2_has_plot = any("image/png" in out.bundle for out in outputs.get(2, []))
+        cell_4_has_plot = any("image/png" in out.bundle for out in outputs.get(4, []))
+
+        assert cell_2_has_plot, "Cell 2 should have plot (auto-flush)"
+        assert cell_4_has_plot, "Cell 4 should have plot (manual flush)"
+
+    finally:
+        _ip.run_cell("plt.close('all')")
+        _ip.run_line_magic("matplotlib", prev_mpl_backend)
+        _ip.history_manager.reset()
+        _ip.display_formatter.active_types = prev_active_types
+        _ip.displayhook.flush()
+
+        _ip.execution_count = prev_execution_count
+        if prev_user_ns_underscore is not None:
+            _ip.user_ns["_"] = prev_user_ns_underscore
+        elif "_" in _ip.user_ns:
+            del _ip.user_ns["_"]
 
 
 def test_display_available():
