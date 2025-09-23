@@ -632,6 +632,7 @@ Currently the magic system has the following functions:""",
         )
         # Sign the notebook to make it trusted
         notary = NotebookNotary()
+        notary.update_config(self.shell.config)
         notary.sign(nb)
         with io.open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
