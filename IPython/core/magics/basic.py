@@ -591,7 +591,7 @@ Currently the magic system has the following functions:""",
                             normalized_text.append(line + "\n")
                     stream_output = v4.new_output("stream", text=normalized_text)
                     if output.output_type == "err_stream":
-                        err_output.name = "stderr"
+                        stream_output.name = "stderr"
                     cell.outputs.append(stream_output)
 
                 elif output.output_type == "execute_result":
