@@ -1091,6 +1091,8 @@ def test_notebook_export_single_display():
     pytest.importorskip("nbformat")
 
     _ip = get_ipython()
+    orig_outputs = _ip.history_manager.outputs.copy()
+    orig_execution_count = _ip.execution_count
     _ip.history_manager.reset()
 
     try:
@@ -1127,7 +1129,8 @@ def test_notebook_export_single_display():
         assert output_data["text/html"] == ["<div>test</div>"]
 
     finally:
-        _ip.history_manager.reset()
+        _ip.history_manager.outputs = orig_outputs
+        _ip.execution_count = orig_execution_count
 
 
 class TestEnv(TestCase):
