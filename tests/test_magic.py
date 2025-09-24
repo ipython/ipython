@@ -1094,7 +1094,7 @@ def test_notebook_export_single_display():
     _ip.history_manager.reset()
 
     try:
-        execution_count = _ip.execution_count
+        execution_count = _ip.execution_count = 1
         _ip.run_cell("'test'", store_history=True, silent=False)
 
         # Mock display output with multiple MIME types
