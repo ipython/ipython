@@ -1000,8 +1000,11 @@ def test_extension():
 
 def test_notebook_export_json():
     pytest.importorskip("nbformat")
+    from nbformat import read, sign
+
     _ip = get_ipython()
     _ip.history_manager.reset()  # Clear any existing history.
+    _ip.run_line_magic("config", "NotebookNotary.algorithm = 'sha384'")
     cmds = ["a=1", "def b():\n  return a**2", "print('noël, été', b())"]
     for i, cmd in enumerate(cmds, start=1):
         _ip.history_manager.store_inputs(i, cmd)
@@ -1010,6 +1013,7 @@ def test_notebook_export_json():
         _ip.run_line_magic("notebook", "%s" % outfile)
         with open(outfile) as f:
             exported = json.load(f)
+        nb = read(outfile, as_version=4)
 
     # check metadata
     language_info = exported["metadata"]["language_info"]
@@ -1019,6 +1023,11 @@ def test_notebook_export_json():
 
     kernelspec = exported["metadata"]["kernelspec"]
     assert kernelspec["language"] == "python"
+
+    # Check if notebook is trusted
+    notary = sign.NotebookNotary(algorithm="sha384")
+    is_trusted = notary.check_signature(nb)
+    assert is_trusted, "Exported notebook should be trusted"
 
 
 def test_notebook_export_json_with_output():

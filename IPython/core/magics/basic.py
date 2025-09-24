@@ -559,6 +559,7 @@ Currently the magic system has the following functions:""",
         outfname = os.path.expanduser(args.filename)
 
         from nbformat import write, v4
+        from nbformat.sign import NotebookNotary
 
         cells = []
         hist = list(self.shell.history_manager.get_range())
@@ -629,6 +630,10 @@ Currently the magic system has the following functions:""",
                 },
             },
         )
+        # Sign the notebook to make it trusted
+        notary = NotebookNotary()
+        notary.update_config(self.shell.config)
+        notary.sign(nb)
         with io.open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
 
