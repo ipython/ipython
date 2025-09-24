@@ -35,6 +35,7 @@ from IPython.core.magic import (
     register_line_magic,
 )
 from IPython.core.magics import code, execution, logging, osm, script
+from IPython.core.history import HistoryOutput
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils.io import capture_output
@@ -1092,6 +1093,53 @@ def test_notebook_export_json_with_output():
             ), f"Outputs do not match for cell {i+1} with source {command!r}"
     finally:
         _ip.colors = "nocolor"
+
+
+def test_notebook_export_single_display():
+    """Test that multiple MIME types create a single display_data output, not multiple."""
+    pytest.importorskip("nbformat")
+
+    _ip = get_ipython()
+    orig_outputs = _ip.history_manager.outputs.copy()
+    orig_execution_count = _ip.execution_count
+    _ip.history_manager.reset()
+
+    try:
+        execution_count = _ip.execution_count = 1
+        _ip.run_cell("'test'", store_history=True, silent=False)
+
+        # Mock display output with multiple MIME types
+        test_display_history = HistoryOutput(
+            output_type="display_data",
+            bundle={"text/plain": "test", "text/html": "<div>test</div>"},
+        )
+        _ip.history_manager.outputs[execution_count] = [test_display_history]
+
+        with TemporaryDirectory() as td:
+            outfile = f"{td}/test.ipynb"
+            _ip.run_cell(f"%notebook {outfile}", store_history=True, silent=False)
+
+            # Verify single display_data output with both MIME types
+            with open(outfile, "r") as f:
+                nb = json.load(f)
+
+        cell = nb["cells"][0]
+        display_outputs = [
+            out for out in cell["outputs"] if out["output_type"] == "display_data"
+        ]
+
+        assert (
+            len(display_outputs) == 1
+        ), f"Expected 1 display_data output, got {len(display_outputs)}"
+
+        output_data = display_outputs[0]["data"]
+        assert set(output_data.keys()) == {"text/plain", "text/html"}
+        assert output_data["text/plain"] == ["test"]
+        assert output_data["text/html"] == ["<div>test</div>"]
+
+    finally:
+        _ip.history_manager.outputs = orig_outputs
+        _ip.execution_count = orig_execution_count
 
 
 class TestEnv(TestCase):
