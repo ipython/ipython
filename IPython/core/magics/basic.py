@@ -572,7 +572,7 @@ Currently the magic system has the following functions:""",
             cell = v4.new_code_cell(execution_count=execution_count, source=source)
 
             for output in outputs[execution_count]:
-                if output.output_type == "out_stream":
+                if output.output_type in {"out_stream", "err_stream"}:
                     text_data = []
                     for mime_type, data in output.bundle.items():
                         if isinstance(data, list):
@@ -589,27 +589,10 @@ Currently the magic system has the following functions:""",
                             normalized_text.append(line + "\n")
                         elif line:  # Last line only if it's not empty
                             normalized_text.append(line + "\n")
-                    cell.outputs.append(v4.new_output("stream", text=normalized_text))
-
-                elif output.output_type == "err_stream":
-                    text_data = []
-                    for mime_type, data in output.bundle.items():
-                        if isinstance(data, list):
-                            text_data.extend(data)
-                        else:
-                            text_data.append(data)
-                    full_text = "".join(text_data)
-                    full_text = full_text.replace("\\n", "\n")
-                    normalized_text = []
-                    lines = full_text.split("\n")
-                    for i, line in enumerate(lines):
-                        if i < len(lines) - 1:
-                            normalized_text.append(line + "\n")
-                        elif line:
-                            normalized_text.append(line + "\n")
-                    err_output = v4.new_output("stream", text=normalized_text)
-                    err_output.name = "stderr"
-                    cell.outputs.append(err_output)
+                    stream_output = v4.new_output("stream", text=normalized_text)
+                    if output.output_type == "err_stream":
+                        err_output.name = "stderr"
+                    cell.outputs.append(stream_output)
 
                 elif output.output_type == "execute_result":
                     data_dict = {}
