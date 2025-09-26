@@ -161,10 +161,12 @@ class MagicArgumentParser(argparse.ArgumentParser):
         """
         raise UsageError(message)
 
-    def parse_argstring(self, argstring):
+    def parse_argstring(self, argstring, *, partial=False):
         """ Split a string into an argument list and parse that argument list.
         """
         argv = arg_split(argstring)
+        if partial:
+            return self.parse_known_args(argv)
         return self.parse_args(argv)
 
 
@@ -190,10 +192,10 @@ def construct_parser(magic_func):
     return parser
 
 
-def parse_argstring(magic_func, argstring):
+def parse_argstring(magic_func, argstring, *, partial=False):
     """ Parse the string of arguments for the given magic function.
     """
-    return magic_func.parser.parse_argstring(argstring)
+    return magic_func.parser.parse_argstring(argstring, partial=partial)
 
 
 def real_name(magic_func):

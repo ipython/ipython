@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for various magic functions."""
 
+import collections
 import gc
 import io
 import json
@@ -34,6 +35,7 @@ from IPython.core.magic import (
     register_line_magic,
 )
 from IPython.core.magics import code, execution, logging, osm, script
+from IPython.core.history import HistoryOutput
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils.io import capture_output
@@ -768,6 +770,49 @@ def test_whos_longstr(input, expected):
     assert expected == from_whos
 
 
+def test_whos_len_namedtuple():
+    _ip = get_ipython()
+    _ip.run_line_magic("reset", "-f")
+    _ip.user_ns["alpha"] = 123
+    _ip.user_ns["beta"] = "test"
+    _ip.user_ns["nt"] = collections.namedtuple("MyNamedTuple", "col1 col2")
+    _ip.user_ns["x"] = _ip.user_ns["nt"]("a", "b")
+    expected = (
+        "Variable   Type            Data/Info\n"
+        "------------------------------------\n"
+        "alpha      int             123\n"
+        "beta       str             test\n"
+        "nt         type            <class 'tests.test_magic.MyNamedTuple'>\n"
+        "x          MyNamedTuple    MyNamedTuple(col1='a', col2='b')\n"
+    )
+    with capture_output() as captured:
+        ip.run_line_magic("whos", "")
+    stdout = captured.stdout
+    assert stdout == expected.strip() + "\n"
+
+
+@dec.skip_without("pandas")
+def test_whos_len_pandas():
+    import pandas as pd
+
+    _ip = get_ipython()
+    _ip.run_line_magic("reset", "-f")
+    df = pd.DataFrame({"a": range(10), "b": range(10, 20)})
+    _ip.user_ns["df"] = df
+    s = df["a"]
+    _ip.user_ns["s"] = s
+    expected = (
+        "Variable   Type         Data/Info\n"
+        "---------------------------------\n"
+        "df         DataFrame    Shape: (10, 2)\n"
+        "s          Series       Shape: (10,)\n"
+    )
+    with capture_output() as captured:
+        ip.run_line_magic("whos", "")
+    stdout = captured.stdout
+    assert stdout == expected.strip() + "\n"
+
+
 def doctest_precision():
     """doctest for %precision
 
@@ -956,8 +1001,11 @@ def test_extension():
 
 def test_notebook_export_json():
     pytest.importorskip("nbformat")
+    from nbformat import read, sign
+
     _ip = get_ipython()
     _ip.history_manager.reset()  # Clear any existing history.
+    _ip.run_line_magic("config", "NotebookNotary.algorithm = 'sha384'")
     cmds = ["a=1", "def b():\n  return a**2", "print('noël, été', b())"]
     for i, cmd in enumerate(cmds, start=1):
         _ip.history_manager.store_inputs(i, cmd)
@@ -966,6 +1014,7 @@ def test_notebook_export_json():
         _ip.run_line_magic("notebook", "%s" % outfile)
         with open(outfile) as f:
             exported = json.load(f)
+        nb = read(outfile, as_version=4)
 
     # check metadata
     language_info = exported["metadata"]["language_info"]
@@ -975,6 +1024,11 @@ def test_notebook_export_json():
 
     kernelspec = exported["metadata"]["kernelspec"]
     assert kernelspec["language"] == "python"
+
+    # Check if notebook is trusted
+    notary = sign.NotebookNotary(algorithm="sha384")
+    is_trusted = notary.check_signature(nb)
+    assert is_trusted, "Exported notebook should be trusted"
 
 
 def test_notebook_export_json_with_output():
@@ -1039,6 +1093,53 @@ def test_notebook_export_json_with_output():
             ), f"Outputs do not match for cell {i+1} with source {command!r}"
     finally:
         _ip.colors = "nocolor"
+
+
+def test_notebook_export_single_display():
+    """Test that multiple MIME types create a single display_data output, not multiple."""
+    pytest.importorskip("nbformat")
+
+    _ip = get_ipython()
+    orig_outputs = _ip.history_manager.outputs.copy()
+    orig_execution_count = _ip.execution_count
+    _ip.history_manager.reset()
+
+    try:
+        execution_count = _ip.execution_count = 1
+        _ip.run_cell("'test'", store_history=True, silent=False)
+
+        # Mock display output with multiple MIME types
+        test_display_history = HistoryOutput(
+            output_type="display_data",
+            bundle={"text/plain": "test", "text/html": "<div>test</div>"},
+        )
+        _ip.history_manager.outputs[execution_count] = [test_display_history]
+
+        with TemporaryDirectory() as td:
+            outfile = f"{td}/test.ipynb"
+            _ip.run_cell(f"%notebook {outfile}", store_history=True, silent=False)
+
+            # Verify single display_data output with both MIME types
+            with open(outfile, "r") as f:
+                nb = json.load(f)
+
+        cell = nb["cells"][0]
+        display_outputs = [
+            out for out in cell["outputs"] if out["output_type"] == "display_data"
+        ]
+
+        assert (
+            len(display_outputs) == 1
+        ), f"Expected 1 display_data output, got {len(display_outputs)}"
+
+        output_data = display_outputs[0]["data"]
+        assert set(output_data.keys()) == {"text/plain", "text/html"}
+        assert output_data["text/plain"] == ["test"]
+        assert output_data["text/html"] == ["<div>test</div>"]
+
+    finally:
+        _ip.history_manager.outputs = orig_outputs
+        _ip.execution_count = orig_execution_count
 
 
 class TestEnv(TestCase):

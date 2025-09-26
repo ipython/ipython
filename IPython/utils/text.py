@@ -187,9 +187,9 @@ class SList(list):
         else:
             pred = pattern
         if not prune:
-            return type(self)([el for el in self if pred(match_target(el))])
+            return type(self)([el for el in self if pred(match_target(el))])  # type: ignore [no-untyped-call]
         else:
-            return type(self)([el for el in self if not pred(match_target(el))])
+            return type(self)([el for el in self if not pred(match_target(el))])  # type: ignore [no-untyped-call]
 
     def fields(self, *fields: List[str]) -> List[List[str]]:
         """Collect whitespace-separated fields from string list

@@ -2,6 +2,45 @@
  9.x Series
 ============
 
+.. _version 9.5:
+
+IPython 9.5
+===========
+
+Featuring improvements for numerous magics (``%autoreload``, ``%whos``, ``%%script``, ``%%notebook``), a streaming performance regression fix, completer policy overrides improvements, and initial support for Python 3.14.
+
+- :ghpull:`14938` Fix printing long strings in ``%whos`` magic command
+- :ghpull:`14941` Fix performance of streaming long text
+- :ghpull:`14943` Simplify overriding selective evaluation policy settings for modules
+- :ghpull:`14955` Populate notebook metadata when exporting with ``%notebook`` magic
+- :ghpull:`14960` Better handling in deduperreload for patching functions with freevars
+- :ghpull:`14964` Fix traceback logic for non-SyntaxError exceptions in plain mode
+- :ghpull:`14966` Do not warn repeatedly if policy overrides are not applicable
+- :ghpull:`14967` Support Python 3.14.0rc2, test on CI
+- :ghpull:`14969` Fix truncated output in ``%script`` magic
+- :ghpull:`14970` Fix exceptions in ``%whos`` magic command
+
+The ``%notebook`` magic now stores the language and kernel information in notebook metadata, allowing users to quickly open the exported notebook with syntax highlighting and an appropriate kernel.
+
+The completer :std:configtrait:`Completer.policy_overrides` traitlet handling was improved.
+It no longer repeatedly warns on each completion after switching away to a policy that does not support previously specified overrides.
+Allow-listing attribute access on all objects in a given library is now possible.
+The specification now also accepts dotted strings (rather than requiring tuples to specify the path) which should make configuration easier and less error-prone.
+
+.. code::
+
+    c.Completer.policy_overrides = {
+        "allowed_getattr_external": {
+            "my_trusted_library"
+        }
+    }
+
+A number of recent regressions were fixed:
+
+- ``%autoreload`` now again shows the correct module name in traceback
+- standard output/error streaming of long text/logs is now as fast as in IPython 9.0
+- in the ``%whos`` magic handling of long strings and class objects that implement ``__len__`` was fixed.
+
 .. _version 9.4:
 
 IPython 9.4

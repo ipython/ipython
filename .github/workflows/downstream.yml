@@ -29,7 +29,7 @@ jobs:
             python-version: "3.13"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
@@ -88,4 +88,4 @@ jobs:
     - name: Test pyflyby (IPython integration only)
       run: |
         cd ../pyflyby
-        pytest tests/test_interactive.py -k 'not test_timeit_complete_autoimport_member_1'
+        pytest tests/test_interactive.py
