@@ -1127,16 +1127,7 @@ class Completer(Configurable):
         except IndexError:
             return None
 
-    def global_matches(self, text: str):
-        """Compute matches when text is a simple name.
-
-        Return a list of all keywords, built-in functions and names currently
-        defined in self.namespace or self.global_namespace that match.
-
-        """
-        return self._global_matches(text)
-
-    def _global_matches(self, text: str, context: Optional[CompletionContext] = None):
+    def global_matches(self, text: str, context: Optional[CompletionContext] = None):
         """Compute matches when text is a simple name.
 
         Return a list of all keywords, built-in functions and names currently
@@ -2757,7 +2748,7 @@ class IPCompleter(Completer):
                 # catches <undefined attributes>.<tab>
                 return SimpleMatcherResult(completions=[], suppress=False)
         else:
-            matches = self._global_matches(context.token, context)
+            matches = self.global_matches(context.token, context=context)
             # TODO: maybe distinguish between functions, modules and just "variables"
             return SimpleMatcherResult(
                 completions=[
