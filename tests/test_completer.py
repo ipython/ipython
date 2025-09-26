@@ -1975,6 +1975,87 @@ class TestCompleter(unittest.TestCase):
 
 
 @pytest.mark.parametrize(
+    "use_jedi,evaluation",
+    [
+        [True, "minimal"],
+        [False, "limited"],
+    ],
+)
+@pytest.mark.parametrize(
+    "code,insert_text",
+    [
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def my_method(self) -> str:",
+                    "        return 1",
+                    "my_instance = NotYetDefined()",
+                    "my_insta",
+                ]
+            ),
+            "my_instance",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def my_method(self) -> str:",
+                    "        return 1",
+                    "instance = NotYetDefined()",
+                    "instance.",
+                ]
+            ),
+            "my_method",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def my_method(self) -> str:",
+                    "        return 1",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_method().",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "my_instance = 1.1",
+                    "assert my_instance.",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
+        [
+            "\n".join(
+                [
+                    "def my_test() -> float:",
+                    "    pass",
+                    "my_test().",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
+    ],
+)
+def test_undefined_variables(use_jedi, evaluation, code, insert_text):
+    offset = len(code)
+    ip.Completer.use_jedi = use_jedi
+    ip.Completer.evaluation = evaluation
+
+    with provisionalcompleter():
+        completions = list(ip.Completer.completions(text=code, offset=offset))
+        match = [c for c in completions if c.text.lstrip(".") == insert_text]
+        message_on_fail = (
+            f"{insert_text} not found among {[c.text for c in completions]}"
+        )
+        assert len(match) == 1, message_on_fail
+
+
+@pytest.mark.parametrize(
     "line,expected",
     [
         # Basic test cases
