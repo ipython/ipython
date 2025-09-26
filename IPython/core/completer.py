@@ -2748,9 +2748,9 @@ class IPCompleter(Completer):
                 # catches <undefined attributes>.<tab>
                 return SimpleMatcherResult(completions=[], suppress=False)
         else:
-            if "context" in inspect.signature(self.global_matches).parameters:
+            try:
                 matches = self.global_matches(context.token, context=context)
-            else:
+            except TypeError:
                 matches = self.global_matches(context.token)
             # TODO: maybe distinguish between functions, modules and just "variables"
             return SimpleMatcherResult(
