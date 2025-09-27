@@ -331,6 +331,40 @@ pridel_theme = Theme(
     symbols={"arrow_body": "\u2500", "arrow_head": "\u25b6", "top_line": "\u2500"},
 )
 
+GRUVBOX_VAL_EM = "#D79921"
+GRUVBOX_V_NAME = "#83A598"
+GRUVBOX_FILENAME = "#FBF1C7"
+GRUVBOX_EXCEPTION_NAME = "#FB4934"
+GRUVBOX_TOPLINE = "#CC241D"
+GRUVBOX_BREAKPOINT_ENABLED = "#FB4934"
+GRUVBOX_BREAKPOINT_DISABLED = "#CC241D"
+GRUVBOX_PROMPT = "#689D6A"
+GRUVBOX_PROMPT_NUM = "#8EC07C"
+GRUVBOX_OUT_PROMPT = "#B16286"
+GRUVBOX_OUT_PROMPT_NUM = "#D3869B"
+gruvbox_dark_theme = Theme(
+    "gruvbox-dark",
+    "gruvbox-dark",
+    {
+        Token.Lineno: GRUVBOX_PROMPT_NUM,
+        Token.LinenoEm: f"{GRUVBOX_PROMPT_NUM} bold",
+        Token.ValEm: f"{GRUVBOX_VAL_EM} bold",
+        Token.VName: GRUVBOX_V_NAME,
+        Token.Caret: "",
+        Token.Filename: GRUVBOX_FILENAME,
+        Token.FilenameEm: f"{GRUVBOX_FILENAME} bold",
+        Token.ExcName: f"{GRUVBOX_EXCEPTION_NAME} bold",
+        Token.Topline: GRUVBOX_TOPLINE,
+        Token.Breakpoint.Enabled: GRUVBOX_BREAKPOINT_ENABLED,
+        Token.Breakpoint.Disabled: GRUVBOX_BREAKPOINT_DISABLED,
+        Token.Prompt: GRUVBOX_PROMPT,
+        Token.PromptNum: f"{GRUVBOX_PROMPT_NUM} bold",
+        Token.OutPrompt: GRUVBOX_OUT_PROMPT,
+        Token.OutPromptNum: f"{GRUVBOX_OUT_PROMPT_NUM} bold",
+    },
+    symbols={"arrow_body": "\u2500", "arrow_head": "\u25b6", "top_line": "\u2500"},
+)
+
 theme_table: dict[str, Theme] = {
     "nocolor": nocolors_theme,
     "linux": linux_theme,
@@ -340,6 +374,7 @@ theme_table: dict[str, Theme] = {
     "lightbg": lightbg_theme,
     "pride": pride_theme,
     "pride:l": pridel_theme,
+    "gruvbox-dark": gruvbox_dark_theme,
 }
 
 
