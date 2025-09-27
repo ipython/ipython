@@ -631,6 +631,7 @@ UNASSIGNED_ALLOWED_COMMANDS = [
     nc.beginning_of_buffer,
     nc.end_of_buffer,
     nc.end_of_line,
+    nc.forward_char,
     nc.forward_word,
     nc.unix_line_discard,
 ]
