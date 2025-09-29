@@ -1127,7 +1127,7 @@ class Completer(Configurable):
         except IndexError:
             return None
 
-    def global_matches(self, text):
+    def global_matches(self, text: str, context: Optional[CompletionContext] = None):
         """Compute matches when text is a simple name.
 
         Return a list of all keywords, built-in functions and names currently
@@ -1137,12 +1137,41 @@ class Completer(Configurable):
         matches = []
         match_append = matches.append
         n = len(text)
-        for lst in [
+
+        search_lists = [
             keyword.kwlist,
             builtin_mod.__dict__.keys(),
             list(self.namespace.keys()),
             list(self.global_namespace.keys()),
-        ]:
+        ]
+        if context and context.full_text.count("\n") > 1:
+            # try to evaluate on full buffer
+            previous_lines = "\n".join(
+                context.full_text.split("\n")[: context.cursor_line]
+            )
+            if previous_lines:
+                all_code_lines_before_cursor = (
+                    self._extract_code(previous_lines) + "\n" + text
+                )
+                context = EvaluationContext(
+                    globals=self.global_namespace,
+                    locals=self.namespace,
+                    evaluation=self.evaluation,
+                    auto_import=self._auto_import,
+                    policy_overrides=self.policy_overrides,
+                )
+                try:
+                    obj = guarded_eval(
+                        all_code_lines_before_cursor,
+                        context,
+                    )
+                except Exception as e:
+                    if self.debug:
+                        warnings.warn(f"Evaluation exception {e}")
+
+                search_lists.append(list(context.transient_locals.keys()))
+
+        for lst in search_lists:
             for word in lst:
                 if word[:n] == text and word != "__builtins__":
                     match_append(word)
@@ -1157,6 +1186,7 @@ class Completer(Configurable):
             for word in shortened.keys():
                 if word[:n] == text and word != "__builtins__":
                     match_append(shortened[word])
+
         return matches
 
     def attr_matches(self, text):
@@ -1224,7 +1254,10 @@ class Completer(Configurable):
         return line
 
     def _attr_matches(
-        self, text: str, include_prefix: bool = True
+        self,
+        text: str,
+        include_prefix: bool = True,
+        context: Optional[CompletionContext] = None,
     ) -> tuple[Sequence[str], str]:
         m2 = self._ATTR_MATCH_RE.match(text)
         if not m2:
@@ -1237,7 +1270,19 @@ class Completer(Configurable):
 
         obj = self._evaluate_expr(expr)
         if obj is not_found:
-            return [], ""
+            if context:
+                # try to evaluate on full buffer
+                previous_lines = "\n".join(
+                    context.full_text.split("\n")[: context.cursor_line]
+                )
+                if previous_lines:
+                    all_code_lines_before_cursor = (
+                        self._extract_code(previous_lines) + "\n" + expr
+                    )
+                    obj = self._evaluate_expr(all_code_lines_before_cursor)
+
+            if obj is not_found:
+                return [], ""
 
         if self.limit_to__all__ and hasattr(obj, '__all__'):
             words = get__all__entries(obj)
@@ -1331,7 +1376,9 @@ class Completer(Configurable):
                     ),
                 )
                 done = True
-            except (SyntaxError, TypeError):
+            except (SyntaxError, TypeError) as e:
+                if self.debug:
+                    warnings.warn(f"Trimming because of {e}")
                 # TypeError can show up with something like `+ d`
                 # where `d` is a dictionary.
 
@@ -1342,8 +1389,10 @@ class Completer(Configurable):
                 expr = self._trim_expr(expr)
             except Exception as e:
                 if self.debug:
-                    print("Evaluation exception", e)
+                    warnings.warn(f"Evaluation exception {e}")
                 done = True
+        if self.debug:
+            warnings.warn(f"Resolved to {obj}")
         return obj
 
     @property
@@ -2678,7 +2727,9 @@ class IPCompleter(Completer):
         completion_type = self._determine_completion_context(text)
         if completion_type == self._CompletionContextType.ATTRIBUTE:
             try:
-                matches, fragment = self._attr_matches(text, include_prefix=False)
+                matches, fragment = self._attr_matches(
+                    text, include_prefix=False, context=context
+                )
                 if text.endswith(".") and self.omit__names:
                     if self.omit__names == 1:
                         # true if txt is _not_ a __ name, false otherwise:
@@ -2697,7 +2748,10 @@ class IPCompleter(Completer):
                 # catches <undefined attributes>.<tab>
                 return SimpleMatcherResult(completions=[], suppress=False)
         else:
-            matches = self.global_matches(context.token)
+            try:
+                matches = self.global_matches(context.token, context=context)
+            except TypeError:
+                matches = self.global_matches(context.token)
             # TODO: maybe distinguish between functions, modules and just "variables"
             return SimpleMatcherResult(
                 completions=[

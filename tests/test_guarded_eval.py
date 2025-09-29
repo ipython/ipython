@@ -313,12 +313,17 @@ IntTypeAlias = TypeAliasType("IntTypeAlias", int)
 HeapTypeAlias = TypeAliasType("HeapTypeAlias", HeapType)
 
 
-class TestProtocol(Protocol):
+class ProtocolTest(Protocol):
     def test_method(self) -> bool:
         pass
 
 
-class TestProtocolImplementer(TestProtocol):
+class ProtocolTestImplementer(ProtocolTest):
+    def test_method(self) -> bool:
+        return True
+
+
+class TypedClass:
     def test_method(self) -> bool:
         return True
 
@@ -335,13 +340,10 @@ class SpecialTyping:
     def custom_heap_type(self) -> CustomHeapType:
         return CustomHeapType(HeapType())
 
-    # TODO: remove type:ignore comment once mypy
-    # supports explicit calls to `TypeAliasType`, see:
-    # https://github.com/python/mypy/issues/16614
-    def int_type_alias(self) -> IntTypeAlias:  # type:ignore[valid-type]
+    def int_type_alias(self) -> IntTypeAlias:
         return 1
 
-    def heap_type_alias(self) -> HeapTypeAlias:  # type:ignore[valid-type]
+    def heap_type_alias(self) -> HeapTypeAlias:
         return 1
 
     def literal(self) -> Literal[False]:
@@ -355,6 +357,9 @@ class SpecialTyping:
 
     def any_str(self, x: AnyStr) -> AnyStr:
         return x
+
+    def with_kwargs(self, a=1, b=2, c=3) -> int:
+        return a + b + c
 
     def annotated(self) -> Annotated[float, "positive number"]:
         return 1
@@ -372,8 +377,8 @@ class SpecialTyping:
     def union_str_and_int(self) -> Union[str, int]:
         return ""
 
-    def protocol(self) -> TestProtocol:
-        return TestProtocolImplementer()
+    def protocol(self) -> ProtocolTest:
+        return ProtocolTestImplementer()
 
     def typed_dict(self) -> Movie:
         return {"name": "The Matrix", "year": 1999}
@@ -403,6 +408,7 @@ class SpecialTyping:
         [SpecialTyping(), "data.literal_string()", str, False],
         [SpecialTyping(), "data.any_str('a')", str, False],
         [SpecialTyping(), "data.any_str(b'a')", bytes, False],
+        [SpecialTyping(), "data.with_kwargs(b=3)", int, False],
         [SpecialTyping(), "data.annotated()", float, False],
         [SpecialTyping(), "data.annotated_self()", SpecialTyping, False],
         [SpecialTyping(), "data.int_type_guard()", int, False],
@@ -453,6 +459,156 @@ def test_mocks_items_of_call_results(data, code, expected_items):
     for key, value in expected_items.items():
         assert isinstance(result[key], value)
         assert key in ipython_keys
+
+
+@pytest.mark.parametrize(
+    "code,expected",
+    [
+        ["\n".join(["instance = TypedClass()", "instance.test_method()"]), bool],
+        ["\n".join(["def func() -> int:", "    pass", "func()"]), int],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def method(self) -> str:",
+                    "        pass",
+                    "instance = NotYetDefined()",
+                    "instance.method()",
+                ]
+            ),
+            str,
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def method(self, argument) -> int:",
+                    "        pass",
+                    "instance = NotYetDefined()",
+                    "instance.method()",
+                ]
+            ),
+            int,
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    @property",
+                    "    def my_prop(self) -> int:",
+                    "        pass",
+                    "instance = NotYetDefined()",
+                    "instance.my_prop",
+                ]
+            ),
+            int,
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    @unkown_decorator",
+                    "    @property",
+                    "    def my_prop(self) -> int:",
+                    "        pass",
+                    "instance = NotYetDefined()",
+                    "instance.my_prop",
+                ]
+            ),
+            int,
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    attribute = 42",
+                    "instance = NotYetDefined()",
+                    "instance.attribute",
+                ]
+            ),
+            int,
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def any_str(self, argument: AnyStr) -> AnyStr:",
+                    "        pass",
+                    "instance = NotYetDefined()",
+                    "instance.any_str(b'test')",
+                ]
+            ),
+            bytes,
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def any_str(self, argument: AnyStr) -> AnyStr:",
+                    "        pass",
+                    "instance = NotYetDefined()",
+                    "instance.any_str('test')",
+                ]
+            ),
+            str,
+        ],
+    ],
+)
+def test_mock_class_and_func_instances(code, expected):
+    context = limited(TypedClass=TypedClass, AnyStr=AnyStr)
+    value = guarded_eval(code, context)
+    assert isinstance(value, expected)
+
+
+@pytest.mark.parametrize(
+    "code,expected",
+    [
+        ["\n".join(["a = True", "a"]), bool],
+        ["\n".join(["a, b, c = 1, 'b', 3.0", "a"]), int],
+        ["\n".join(["a, b, c = 1, 'b', 3.0", "b"]), str],
+        ["\n".join(["a, b, c = 1, 'b', 3.0", "c"]), float],
+        ["\n".join(["a, *rest = 1, 'b', 3.0", "a"]), int],
+        ["\n".join(["a, *rest = 1, 'b', 3.0", "rest"]), list],
+    ],
+)
+def test_evaluates_assignments(code, expected):
+    context = limited()
+    value = guarded_eval(code, context)
+    assert isinstance(value, expected)
+
+
+def equals(a, b):
+    return a == b
+
+
+def quacks_like(test_duck, reference_duck):
+    return set(dir(reference_duck)) - set(dir(test_duck)) == set()
+
+
+@pytest.mark.parametrize(
+    "code,expected,check",
+    [
+        ["\n".join(["a: Literal[True]", "a"]), True, equals],
+        ["\n".join(["a: bool", "a"]), bool, isinstance],
+        ["\n".join(["a: str", "a"]), str, isinstance],
+        # for lists we need quacking as we do not know:
+        # - how many elements in the list
+        # - which element is of which type
+        ["\n".join(["a: list[str]", "a"]), list, quacks_like],
+        ["\n".join(["a: list[str]", "a[0]"]), str, quacks_like],
+        ["\n".join(["a: list[str]", "a[999]"]), str, quacks_like],
+        # set
+        ["\n".join(["a: set[str]", "a"]), set, quacks_like],
+        # for tuples we do know which element is which
+        ["\n".join(["a: tuple[str, int]", "a"]), tuple, isinstance],
+        ["\n".join(["a: tuple[str, int]", "a[0]"]), str, isinstance],
+        ["\n".join(["a: tuple[str, int]", "a[1]"]), int, isinstance],
+    ],
+)
+def test_evaluates_type_assignments(code, expected, check):
+    context = limited(Literal=Literal)
+    value = guarded_eval(code, context)
+    assert check(value, expected)
 
 
 @pytest.mark.parametrize(
@@ -702,12 +858,23 @@ def test_access_locals_and_globals():
 
 @pytest.mark.parametrize(
     "code",
-    ["def func(): pass", "class C: pass", "x = 1", "x += 1", "del x", "import ast"],
+    ["x += 1", "del x"],
+)
+@pytest.mark.parametrize("context", [minimal(x=1), limited(x=1), unsafe(x=1)])
+def test_does_not_modify_namespace(code, context):
+    guarded_eval(code, context)
+    assert context.locals["x"] == 1
+
+
+@pytest.mark.parametrize(
+    "code",
+    ["def test(): pass", "class test: pass", "import ast as test"],
 )
 @pytest.mark.parametrize("context", [minimal(), limited(), unsafe()])
-def test_rejects_side_effect_syntax(code, context):
-    with pytest.raises(SyntaxError):
-        guarded_eval(code, context)
+def test_does_not_populate_namespace(code, context):
+    guarded_eval(code, context)
+    assert "test" not in context.locals
+    assert "test" not in context.globals
 
 
 def test_subscript():
