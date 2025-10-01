@@ -212,36 +212,37 @@ class DisplayHook(Configurable):
 
         # Avoid recursive reference when displaying _oh/Out
         if self.cache_size and result is not self.shell.user_ns['_oh']:
-            if len(self.shell.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
-                self.cull_cache()
+            if not self.shell._user_assigned_underscore:
+                if len(self.shell.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
+                    self.cull_cache()
 
-            # Don't overwrite '_' and friends if '_' is in __builtin__
-            # (otherwise we cause buggy behavior for things like gettext). and
-            # do not overwrite _, __ or ___ if one of these has been assigned
-            # by the user.
-            update_unders = True
-            for unders in ['_'*i for i in range(1,4)]:
-                if unders not in self.shell.user_ns:
-                    continue
-                if getattr(self, unders) is not self.shell.user_ns.get(unders):
-                    update_unders = False
+                # Don't overwrite '_' and friends if '_' is in __builtin__
+                # (otherwise we cause buggy behavior for things like gettext). and
+                # do not overwrite _, __ or ___ if one of these has been assigned
+                # by the user.
+                update_unders = True
+                for unders in ['_'*i for i in range(1,4)]:
+                    if unders not in self.shell.user_ns:
+                        continue
+                    if getattr(self, unders) is not self.shell.user_ns.get(unders):
+                        update_unders = False
 
-            self.___ = self.__
-            self.__ = self._
-            self._ = result
+                self.___ = self.__
+                self.__ = self._
+                self._ = result
 
-            if ('_' not in builtin_mod.__dict__) and (update_unders):
-                self.shell.push({'_':self._,
-                                 '__':self.__,
-                                '___':self.___}, interactive=False)
+                if ('_' not in builtin_mod.__dict__) and (update_unders):
+                    self.shell.push({'_':self._,
+                                    '__':self.__,
+                                    '___':self.___}, interactive=False)
 
-            # hackish access to top-level  namespace to create _1,_2... dynamically
-            to_main = {}
-            if self.do_full_cache:
-                new_result = '_%s' % self.prompt_count
-                to_main[new_result] = result
-                self.shell.push(to_main, interactive=False)
-                self.shell.user_ns['_oh'][self.prompt_count] = result
+                # hackish access to top-level  namespace to create _1,_2... dynamically
+                to_main = {}
+                if self.do_full_cache:
+                    new_result = '_%s' % self.prompt_count
+                    to_main[new_result] = result
+                    self.shell.push(to_main, interactive=False)
+                    self.shell.user_ns['_oh'][self.prompt_count] = result
 
     def fill_exec_result(self, result):
         if self.exec_result is not None:
