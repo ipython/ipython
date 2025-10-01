@@ -243,9 +243,6 @@ class DisplayHook(Configurable):
                     to_main[new_result] = result
                     self.shell.push(to_main, interactive=False)
                     self.shell.user_ns['_oh'][self.prompt_count] = result
-            else:
-                if '_' not in self.shell.user_ns:
-                    self.shell.user_ns['_'] = result
 
     def fill_exec_result(self, result):
         if self.exec_result is not None:

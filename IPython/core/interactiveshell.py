@@ -3140,9 +3140,6 @@ class InteractiveShell(SingletonConfigurable):
             self._user_assigned_underscore = True
         if deleted_underscore:
             self._user_assigned_underscore = False
-        # Always ensure '_' exists in user_ns unless user assigned to it
-        if not self._user_assigned_underscore and '_' not in self.user_ns:
-            self.user_ns['_'] = None
 
         return result
 
