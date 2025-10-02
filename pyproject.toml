@@ -80,7 +80,7 @@ test_extra = [
     "ipython[matplotlib]",
     "nbformat",
     "nbclient",
-    "ipykernel",
+    "ipykernel>6.30",
     "numpy>=1.25",
     "pandas>2.0",
     "trio",
