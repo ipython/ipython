@@ -16,6 +16,27 @@ from IPython.testing import tools as tt
 from IPython.testing.decorators import onlyif_unicode_paths, skip_without
 from IPython.utils.syspathcontext import prepended_to_syspath
 
+
+def _format_exception_only_from_code(code: str) -> str:
+    """Execute code and return the CPython traceback.format_exception_only line."""
+
+    try:
+        exec(code, {})
+    except Exception as e:  # noqa: BLE001 - intentional broad capture for tests
+        return "".join(traceback.format_exception_only(type(e), e)).strip()
+    raise AssertionError("Provided code did not raise an exception")
+
+
+def _split_suggestion_lines(message: str) -> list[str]:
+    marker = ". Did you mean"
+    if marker not in message:
+        return [message]
+    prefix, _, suffix = message.partition(marker)
+    base_line = prefix.rstrip(".") + "."
+    suggestion_line = "Did you mean" + suffix
+    return [base_line, suggestion_line]
+
+
 file_1 = """1
 2
 3
@@ -453,6 +474,24 @@ class ExceptionMessagePreferenceTest(unittest.TestCase):
         with tt.AssertPrints(expected):
             ip.run_cell(cell)
         ip.run_cell("%xmode context")
+
+
+class Python310SuggestionHintTest(unittest.TestCase):
+    @unittest.skipUnless(sys.version_info >= (3, 10), "requires Python >= 3.10")
+    def test_attribute_error_hint_is_shown(self):
+        ip.run_cell("%xmode context")
+        expected = _split_suggestion_lines(
+            _format_exception_only_from_code("'abc'.appen")
+        )
+        with tt.AssertPrints(expected, suppress=False):
+            ip.run_cell("'abc'.appen")
+
+    @unittest.skipUnless(sys.version_info >= (3, 10), "requires Python >= 3.10")
+    def test_name_error_hint_is_shown(self):
+        ip.run_cell("%xmode context")
+        expected = _split_suggestion_lines(_format_exception_only_from_code("pritn"))
+        with tt.AssertPrints(expected, suppress=False):
+            ip.run_cell("pritn")
 
 
 # ----------------------------------------------------------------------------
