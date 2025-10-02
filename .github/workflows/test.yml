@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12","3.13"]
+        python-version: ["3.11", "3.12","3.13", "3.13t"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
