@@ -85,12 +85,14 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(res.success, True)
         self.assertEqual(res.result, None)
 
-    def test_stream_performance(self):
+    def test_stream_performance(self, capsys):
         """It should be fast to execute."""
         src = "for i in range(250_000): print(i)"
         start = time.perf_counter()
         ip.run_cell(src)
         end = time.perf_counter()
+        # We try to read as otherwise on failure, pytest will print the 250k lines to stdout.
+        capsys.readouterr()
         duration = end - start
         assert duration < 10
 
