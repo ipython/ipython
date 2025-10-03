@@ -50,6 +50,18 @@ class DerivedInterrupt(KeyboardInterrupt):
     pass
 
 
+
+def test_stream_performance(capsys) -> None:
+    """It should be fast to execute."""
+    src = "for i in range(250_000): print(i)"
+    start = time.perf_counter()
+    ip.run_cell(src)
+    end = time.perf_counter()
+    # We try to read as otherwise on failure, pytest will print the 250k lines to stdout.
+    capsys.readouterr()
+    duration = end - start
+    assert duration < 10
+
 class InteractiveShellTestCase(unittest.TestCase):
     def test_naked_string_cells(self):
         """Test that cells with only naked strings are fully executed"""
@@ -85,16 +97,6 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(res.success, True)
         self.assertEqual(res.result, None)
 
-    def test_stream_performance(self, capsys):
-        """It should be fast to execute."""
-        src = "for i in range(250_000): print(i)"
-        start = time.perf_counter()
-        ip.run_cell(src)
-        end = time.perf_counter()
-        # We try to read as otherwise on failure, pytest will print the 250k lines to stdout.
-        capsys.readouterr()
-        duration = end - start
-        assert duration < 10
 
     def test_multiline_string_cells(self):
         "Code sprinkled with multiline strings should execute (GH-306)"
