@@ -22,20 +22,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12","3.13", "3.14t"]
+        python-version: ["3.11", "3.12","3.13"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
           - os: macos-latest
             python-version: "3.11"
             deps: test_extra
-          # Tests minimal dependencies set
+          # free threaded, not with all dependencies
           - os: ubuntu-latest
-            python-version: "3.11"
-            deps: test
-          # Tests latest released Python version
-          - os: ubuntu-latest
-            python-version: "3.13"
+            python-version: "3.13t"
             deps: test
           # Tests latest development Python version
           - os: ubuntu-latest
