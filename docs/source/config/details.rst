@@ -222,7 +222,7 @@ To reflect this, the  ``--colors`` flag now is also aliased to ``--theme``.
 
 The default themes included are the same, except lowercase, for ease of typing. 
 
-``'nocolor', 'neutral', 'linux', 'lightbg'``, with the addition of ``'pride'``
+``'nocolor', 'neutral', 'linux', 'lightbg', 'gruvbox-dark'``, with the addition of ``'pride'``
 to celebrate the inclusively of this project (I welcome update to the pride
 theme as I'm not a designer myself). 
 
