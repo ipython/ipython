@@ -1,6 +1,9 @@
-#!/usr/bin/env python
+"""
+Vendoring of pickleshare, reduced to used functionalities.
 
-"""PickleShare - a small 'shelve' like datastore with concurrency support
+---
+
+PickleShare - a small 'shelve' like datastore with concurrency support
 
 Like shelve, a PickleShareDB object acts like a normal dictionary. Unlike
 shelve, many processes can access the database simultaneously. Changing a
@@ -33,16 +36,10 @@ License: MIT open source license.
 
 """
 
-from __future__ import print_function
-
-
 __version__ = "0.7.5"
 
-try:
-    from pathlib import Path
-except ImportError:
-    # Python 2 backport
-    from pathlib2 import Path
+from pathlib import Path
+
 
 import os, stat, time
 
@@ -57,11 +54,6 @@ except ImportError:
 import errno
 import sys
 
-if sys.version_info[0] >= 3:
-    string_types = (str,)
-else:
-    string_types = (str, unicode)
-
 
 def gethashfile(key):
     return ("%02x" % abs(hash(key) % 256))[-2:]
@@ -75,7 +67,7 @@ class PickleShareDB(collections_abc.MutableMapping):
 
     def __init__(self, root):
         """Return a db object that will manage the specied directory"""
-        if not isinstance(root, string_types):
+        if not isinstance(root, str):
             root = str(root)
         root = os.path.abspath(os.path.expanduser(root))
         self.root = Path(root)
@@ -309,53 +301,3 @@ class PickleShareLink:
             self.__dict__["keydir"],
             ";".join([Path(k).basename() for k in keys]),
         )
-
-
-def main():
-    import textwrap
-
-    usage = textwrap.dedent(
-        """\
-    pickleshare - manage PickleShare databases
-
-    Usage:
-
-        pickleshare dump /path/to/db > dump.txt
-        pickleshare load /path/to/db < dump.txt
-        pickleshare test /path/to/db
-    """
-    )
-    DB = PickleShareDB
-    import sys
-
-    if len(sys.argv) < 2:
-        print(usage)
-        return
-
-    cmd = sys.argv[1]
-    args = sys.argv[2:]
-    if cmd == "dump":
-        if not args:
-            args = ["."]
-        db = DB(args[0])
-        import pprint
-
-        pprint.pprint(db.items())
-    elif cmd == "load":
-        cont = sys.stdin.read()
-        db = DB(args[0])
-        data = eval(cont)
-        db.clear()
-        for k, v in db.items():
-            db[k] = v
-    elif cmd == "testwait":
-        db = DB(args[0])
-        db.clear()
-        print(db.waitget("250"))
-    elif cmd == "test":
-        test()
-        stress()
-
-
-if __name__ == "__main__":
-    main()
