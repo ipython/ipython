@@ -260,7 +260,7 @@ class InteractiveShellApp(Configurable):
         .. versionchanged:: X.X
             Respect sys.flags.safe_path (PYTHONSAFEPATH and -P flag)
         """
-        if '' in sys.path or self.ignore_cwd or sys.flags.safe_path:
+        if "" in sys.path or self.ignore_cwd or sys.flags.safe_path:
             return
         for idx, path in enumerate(sys.path):
             parent, last_part = os.path.split(path)
