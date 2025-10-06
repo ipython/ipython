@@ -338,8 +338,11 @@ class ListTB(TBTools):
                 if textline == "":
                     # sep 2025:
                     # textline = py3compat.cast_unicode(value.text, "utf-8")
-                    assert isinstance(value.text, str)
-                    textline = value.text
+                    if value.text is None:
+                        textline = ""
+                    else:
+                        assert isinstance(value.text, str)
+                        textline = value.text
 
                 if textline is not None:
                     i = 0

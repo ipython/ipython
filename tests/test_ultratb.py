@@ -498,3 +498,10 @@ def test_handlers():
     except:
         handler(*sys.exc_info())
     buff.write("")
+
+
+def testSyntaxError():
+    cell = "raise SyntaxError()"
+    expected = "SyntaxError\n"
+    with tt.AssertPrints(expected):
+        ip.run_cell(cell)
