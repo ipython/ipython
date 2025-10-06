@@ -257,7 +257,7 @@ class InteractiveShellApp(Configurable):
             Try to insert after the standard library, instead of first.
         .. versionchanged:: 8.0
             Allow optionally not including the current directory in sys.path
-        .. versionchanged:: X.X
+        .. versionchanged:: 9.7
             Respect sys.flags.safe_path (PYTHONSAFEPATH and -P flag)
         """
         if "" in sys.path or self.ignore_cwd or sys.flags.safe_path:
