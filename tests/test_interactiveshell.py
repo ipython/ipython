@@ -50,7 +50,6 @@ class DerivedInterrupt(KeyboardInterrupt):
     pass
 
 
-
 def test_stream_performance(capsys) -> None:
     """It should be fast to execute."""
     src = "for i in range(250_000): print(i)"
@@ -61,6 +60,7 @@ def test_stream_performance(capsys) -> None:
     capsys.readouterr()
     duration = end - start
     assert duration < 10
+
 
 class InteractiveShellTestCase(unittest.TestCase):
     def test_naked_string_cells(self):
@@ -96,7 +96,6 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(ip.user_ns["y"], 3)
         self.assertEqual(res.success, True)
         self.assertEqual(res.result, None)
-
 
     def test_multiline_string_cells(self):
         "Code sprinkled with multiline strings should execute (GH-306)"

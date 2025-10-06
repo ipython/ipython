@@ -298,7 +298,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
             _ip.run_line_magic("run", empty.fname)
             assert _ip.user_ns["afunc"]() == 1
 
-    @pytest.mark.xfail(is_freethreaded, reason='C-third leaks on free-threaded python')
+    @pytest.mark.xfail(is_freethreaded, reason="C-third leaks on free-threaded python")
     def test_tclass(self):
         mydir = os.path.dirname(__file__)
         tc = os.path.join(mydir, "tclass")
