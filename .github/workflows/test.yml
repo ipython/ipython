@@ -31,7 +31,7 @@ jobs:
             deps: test_extra
           # free threaded, not with all dependencies
           - os: ubuntu-latest
-            python-version: "3.13t"
+            python-version: "3.14t"
             deps: test
           # Tests latest development Python version
           - os: ubuntu-latest
