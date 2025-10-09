@@ -274,16 +274,17 @@ class DisplayHook(Configurable):
         activated by setting the variable sys.displayhook to it.
         """
         self.check_for_underscore()
-        if result is not None and not self.quiet():
-            self.start_displayhook()
-            self.write_output_prompt()
-            format_dict, md_dict = self.compute_format_data(result)
+        if result is not None:
             self.update_user_ns(result)
             self.fill_exec_result(result)
-            if format_dict:
-                self.write_format_data(format_dict, md_dict)
-                self.log_output(format_dict)
-            self.finish_displayhook()
+            if not self.quiet():
+                self.start_displayhook()
+                self.write_output_prompt()
+                format_dict, md_dict = self.compute_format_data(result)
+                if format_dict:
+                    self.write_format_data(format_dict, md_dict)
+                    self.log_output(format_dict)
+                self.finish_displayhook()
 
     def cull_cache(self):
         """Output cache is full, cull the oldest entries"""
