@@ -696,14 +696,60 @@ class VerboseTB(TBTools):
 
         return head
 
-    def format_exception(self, etype, evalue):
+    def format_exception(
+        self,
+        etype: object,
+        evalue: BaseException | None,
+        *,
+        raw_etype: type[BaseException] | None = None,
+    ) -> list[str]:
         # Get (safely) a string form of the exception info
         try:
             etype_str, evalue_str = map(str, (etype, evalue))
-        except:
+        except Exception:
             # User exception is improperly defined.
-            etype, evalue = str, sys.exc_info()[:2]
+            fallback_type: type[str] = str
+            fallback_value: BaseException | None = sys.exc_info()[1]
+            etype, evalue = fallback_type, fallback_value
             etype_str, evalue_str = map(str, (etype, evalue))
+
+        formatted_exception_only: Optional[list[str]] = None
+        if raw_etype is not None and evalue is not None:
+            try:
+                formatted_exception_only = traceback.format_exception_only(
+                    raw_etype, evalue
+                )
+            except Exception:
+                formatted_exception_only = None
+
+        additional_lines: list[str]
+        suggestion_line: Optional[str] = None
+        if formatted_exception_only:
+            stripped_lines = [line.rstrip("\n") for line in formatted_exception_only]
+            first_line, *additional_lines = stripped_lines
+
+            possible_type_names = {etype_str}
+            if raw_etype is not None:
+                qualname = getattr(raw_etype, "__qualname__", None)
+                if isinstance(qualname, str):
+                    possible_type_names.add(qualname)
+                    module = getattr(raw_etype, "__module__", None)
+                    if isinstance(module, str):
+                        possible_type_names.add(f"{module}.{qualname}")
+
+            head, sep, tail = first_line.partition(": ")
+            if sep and head in possible_type_names:
+                evalue_str = tail
+            else:
+                evalue_str = first_line
+
+            marker = ". Did you mean"
+            if marker in evalue_str:
+                base_message, _, suggestion_suffix = evalue_str.partition(marker)
+                evalue_str = base_message.rstrip(".") + "."
+                suggestion_line = "Did you mean" + suggestion_suffix
+        else:
+            additional_lines = []
 
         # PEP-678 notes
         notes = getattr(evalue, "__notes__", [])
@@ -716,15 +762,24 @@ class VerboseTB(TBTools):
         str_notes: Sequence[str] = notes
 
         # ... and format it
-        return [
+        formatted_message = [
             theme_table[self._theme_name].format(
                 [(Token.ExcName, etype_str), (Token, ": "), (Token, evalue_str)]
-            ),
-            *(
-                theme_table[self._theme_name].format([(Token, note)])
-                for note in str_notes
-            ),
+            )
         ]
+        if suggestion_line:
+            formatted_message.append(
+                theme_table[self._theme_name].format([(Token, suggestion_line)])
+            )
+        formatted_message.extend(
+            theme_table[self._theme_name].format([(Token, line)])
+            for line in additional_lines
+        )
+        formatted_message.extend(
+            theme_table[self._theme_name].format([(Token, note)]) for note in str_notes
+        )
+
+        return formatted_message
 
     def format_exception_as_a_whole(
         self,
@@ -740,7 +795,11 @@ class VerboseTB(TBTools):
         (PEP 3134).
         """
         # some locals
-        orig_etype = etype
+        raw_etype: type[BaseException] | None
+        if issubclass(etype, BaseException):
+            raw_etype = etype  # type: ignore[assignment]
+        else:
+            raw_etype = None
         try:
             etype = etype.__name__  # type: ignore[assignment]
         except AttributeError:
@@ -788,7 +847,7 @@ class VerboseTB(TBTools):
                 )
             )
 
-        formatted_exception = self.format_exception(etype, evalue)
+        formatted_exception = self.format_exception(etype, evalue, raw_etype=raw_etype)
         if records:
             frame_info = records[-1]
             ipinst = get_ipython()
