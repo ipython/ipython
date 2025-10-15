@@ -176,6 +176,15 @@ def _has_original_dunder_external(
             member_method = getattr(member_type, method_name, None)
             if member_method == method:
                 return True
+        if isinstance(member_type, ModuleType):
+            method = getattr(value_type, method_name, None)
+            for base_class in value_type.__mro__[1:]:
+                base_module = getmodule(base_class)
+                if base_module and base_module.__name__ == member_type.__name__:
+                    # Check if the method comes from this trusted base class
+                    base_method = getattr(base_class, method_name, None)
+                    if base_method is not None and base_method == method:
+                        return True
     except (AttributeError, KeyError):
         return False
 
