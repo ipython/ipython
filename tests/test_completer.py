@@ -1481,9 +1481,14 @@ class TestCompleter(unittest.TestCase):
         sys.modules["my.unsafe.lib"] = unsafe_lib
         exec(factory_code, unsafe_lib.__dict__)
 
+        fake_safe_lib = types.ModuleType("my_fake_lib")
+        sys.modules["my_fake_lib"] = fake_safe_lib
+        exec(factory_code, fake_safe_lib.__dict__)
+
         ip = get_ipython()
         ip.user_ns["safe_list_factory"] = safe_lib.ListFactory()
         ip.user_ns["unsafe_list_factory"] = unsafe_lib.ListFactory()
+        ip.user_ns["fake_safe_factory"] = fake_safe_lib.ListFactory()
         complete = ip.Completer.complete
         with (
             evaluation_policy("limited", allowed_getattr_external={"my.safe.lib"}),
@@ -1506,6 +1511,8 @@ class TestCompleter(unittest.TestCase):
             self.assertIn(".append", matches)
             _, matches = complete(line_buffer="unsafe_list_factory.example.")
             self.assertIn(".append", matches)
+            _, matches = complete(line_buffer="fake_safe_factory.example.")
+            self.assertNotIn(".append", matches)
 
         with (
             evaluation_policy("limited"),
