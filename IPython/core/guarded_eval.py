@@ -165,7 +165,10 @@ def _has_original_dunder_external(
             value_module = getmodule(value_type)
             if not value_module or not value_module.__name__:
                 return False
-            if value_module.__name__.startswith(member_type.__name__):
+            if (
+                value_module.__name__ == member_type.__name__
+                or value_module.__name__.startswith(member_type.__name__ + ".")
+            ):
                 return True
         if method_name == "__getattribute__":
             # we have to short-circuit here due to an unresolved issue in
