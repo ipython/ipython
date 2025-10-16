@@ -438,6 +438,11 @@ def test_time():
         with tt.AssertPrints("hihi", suppress=False):
             ip.run_cell("f('hi')")
 
+    with tt.AssertPrints("a space"):
+        with tt.AssertPrints("Wall time: ", suppress=False):
+            with tt.AssertPrints("CPU times: ", suppress=False):
+                ip.run_cell("%time print('a space')")
+
 
 # ';' at the end of %time prevents instruction value to be printed.
 # This tests fix for #13837.
