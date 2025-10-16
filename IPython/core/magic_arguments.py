@@ -164,7 +164,7 @@ class MagicArgumentParser(argparse.ArgumentParser):
     def parse_argstring(self, argstring, *, partial=False):
         """ Split a string into an argument list and parse that argument list.
         """
-        argv = arg_split(argstring)
+        argv = arg_split(argstring, strict=not partial)
         if partial:
             return self.parse_known_args(argv)
         return self.parse_args(argv)
