@@ -1523,6 +1523,56 @@ class TestCompleter(unittest.TestCase):
             _, matches = complete(line_buffer="unsafe_list_factory.example.")
             self.assertNotIn(".append", matches)
 
+    def test_completion_allow_subclass_of_trusted_module(self):
+        factory_code = textwrap.dedent(
+            """
+            class ListFactory:
+                def __getattr__(self, attr):
+                    return []
+            """
+        )
+        trusted_lib = types.ModuleType("my.trusted.lib")
+        sys.modules["my.trusted.lib"] = trusted_lib
+        exec(factory_code, trusted_lib.__dict__)
+
+        ip = get_ipython()
+        # Create a subclass in __main__ (untrusted namespace)
+        subclass_code = textwrap.dedent(
+            """
+            class SubclassFactory(trusted_lib.ListFactory):
+                pass
+            """
+        )
+        ip.user_ns["trusted_lib"] = trusted_lib
+        exec(subclass_code, ip.user_ns)
+        ip.user_ns["subclass_factory"] = ip.user_ns["SubclassFactory"]()
+        complete = ip.Completer.complete
+        with (
+            evaluation_policy("limited", allowed_getattr_external={"my.trusted.lib"}),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="subclass_factory.example.")
+            self.assertIn(".append", matches)
+
+        # Test that overriding __getattr__ in subclass in untrusted namespace prevents completion
+        overriding_subclass_code = textwrap.dedent(
+            """
+            class OverridingSubclass(trusted_lib.ListFactory):
+                def __getattr__(self, attr):
+                    return {}
+            """
+        )
+        exec(overriding_subclass_code, ip.user_ns)
+        ip.user_ns["overriding_factory"] = ip.user_ns["OverridingSubclass"]()
+
+        with (
+            evaluation_policy("limited", allowed_getattr_external={"my.trusted.lib"}),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="overriding_factory.example.")
+            self.assertNotIn(".append", matches)
+            self.assertNotIn(".keys", matches)
+
     def test_policy_warnings(self):
         with self.assertWarns(
             UserWarning,
