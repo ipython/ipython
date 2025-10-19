@@ -663,8 +663,8 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                     return_type, context
                 )
             else:
-                inferred_duck_object = _infer_return_value(node, context)
-                context.transient_locals[node.name] = inferred_duck_object
+                return_value = _infer_return_value(node, context)
+                context.transient_locals[node.name] = return_value
 
             return None
 
