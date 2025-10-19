@@ -663,15 +663,21 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                     return_type, context
                 )
             else:
-                inferred_type = _infer_property_return_type(node, context)
-                context.transient_locals[node.name] = inferred_type
+                inferred_duck_object = _get_duck_from_return_value(node, context)
+                context.transient_locals[node.name] = inferred_duck_object
 
             return None
 
         def dummy_function(*args, **kwargs):
             pass
 
-        dummy_function.__annotations__["return"] = return_type
+        if return_type is not None:
+            dummy_function.__annotations__["return"] = return_type
+        else:
+            inferred_type = type(_infer_return_value(node, context))
+            if inferred_type is not None:
+                dummy_function.__annotations__["return"] = inferred_type
+
         dummy_function.__name__ = node.name
         dummy_function.__node__ = node
         context.transient_locals[node.name] = dummy_function
@@ -858,25 +864,38 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     return None
 
 
-def _infer_property_return_type(node: ast.FunctionDef, context: EvaluationContext):
-    """Infer the return type of a property by executing its body."""
+def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
+    """Execute the function body to infer its return value."""
     temp_context = EvaluationContext(
         globals=context.globals,
-        locals=context.locals,
+        locals=context.locals.copy(),
         evaluation=context.evaluation,
         in_subscript=context.in_subscript,
         transient_locals={},
     )
 
     for stmt in node.body:
-        if isinstance(stmt, ast.Return) and stmt.value is not None:
+        if isinstance(stmt, ast.Return):
+            if stmt.value is None:
+                return None
             try:
-                return_value = eval_node(stmt.value, temp_context)
-                if return_value is not None and return_value is not NOT_EVALUATED:
-                    temp = _create_duck_from_value(return_value)
-                    return temp
+                value = eval_node(stmt.value, temp_context)
+                if value is not NOT_EVALUATED:
+                    return value
             except Exception:
                 pass
+    return None
+
+
+def _get_duck_from_return_value(node: ast.FunctionDef, context: EvaluationContext):
+    """Infer the 'duck type' from the first valid return value."""
+    try:
+        return_value = _infer_return_value(node, context)
+        if return_value is not None and return_value is not NOT_EVALUATED:
+            duck = _create_duck_from_value(return_value)
+            return duck
+    except Exception:
+        pass
     return None
 
 
