@@ -866,20 +866,13 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
 def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
     """Execute the function body to infer its return value."""
-    temp_context = EvaluationContext(
-        globals=context.globals,
-        locals=context.locals.copy(),
-        evaluation=context.evaluation,
-        in_subscript=context.in_subscript,
-        transient_locals={},
-    )
 
     for stmt in node.body:
         if isinstance(stmt, ast.Return):
             if stmt.value is None:
                 return None
             try:
-                value = eval_node(stmt.value, temp_context)
+                value = eval_node(stmt.value, context)
                 if value is not NOT_EVALUATED:
                     return value
             except Exception:
