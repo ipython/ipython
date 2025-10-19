@@ -931,9 +931,7 @@ def _extract_variables_from_module(
     module_node: Union[ast.Module, ast.Interactive, None], context: EvaluationContext
 ):
     """Extract and evaluate variable assignments from a module AST.
-
     Scans the module for top-level variable assignments and evaluates them.
-    This allows code like:
 
     Args:
         module_node: The Module or Interactive AST node
