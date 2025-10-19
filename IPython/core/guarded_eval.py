@@ -658,9 +658,14 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         return_type = eval_node(node.returns, context=context)
 
         if is_property:
-            context.transient_locals[node.name] = _resolve_annotation(
-                return_type, context
-            )
+            if return_type is not None:
+                context.transient_locals[node.name] = _resolve_annotation(
+                    return_type, context
+                )
+            else:
+                inferred_type = _infer_property_return_type(node, context)
+                context.transient_locals[node.name] = inferred_type
+
             return None
 
         def dummy_function(*args, **kwargs):
@@ -851,6 +856,58 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             return eval_node(node.msg, context)
         return eval_node(node.test, context)
     return None
+
+
+def _infer_property_return_type(node: ast.FunctionDef, context: EvaluationContext):
+    """Infer the return type of a property by executing its body."""
+    temp_context = EvaluationContext(
+        globals=context.globals,
+        locals=context.locals,
+        evaluation=context.evaluation,
+        in_subscript=context.in_subscript,
+        transient_locals={},
+    )
+
+    for stmt in node.body:
+        if isinstance(stmt, ast.Return) and stmt.value is not None:
+            try:
+                return_value = eval_node(stmt.value, temp_context)
+                if return_value is not None and return_value is not NOT_EVALUATED:
+                    temp = _create_duck_from_value(return_value)
+                    return temp
+            except Exception:
+                pass
+    return None
+
+
+def _create_duck_from_value(value):
+    """Create a Duck object from an actual runtime value."""
+    if value is None or value is NOT_EVALUATED:
+        return None
+    value_type = type(value)
+    if isinstance(value, dict):
+        return _Duck(
+            attributes=dict.fromkeys(dir(dict())), items=value if value else {}
+        )
+    elif isinstance(value, list):
+        element_duck = None
+        if value:
+            element_duck = _create_duck_from_value(value[0])
+        return _Duck(
+            attributes=dict.fromkeys(dir(list())),
+            items=_GetItemDuck(lambda: element_duck),
+        )
+    elif isinstance(value, set):
+        return _Duck(attributes=dict.fromkeys(dir(set())))
+    elif isinstance(value, tuple):
+        return value
+    elif isinstance(value, (str, int, float, bool, bytes)):
+        return _Duck(attributes=dict.fromkeys(dir(value_type())))
+    else:
+        try:
+            return _create_duck_for_heap_type(value_type)
+        except Exception:
+            return _Duck(attributes=dict.fromkeys(dir(value)))
 
 
 def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext):
