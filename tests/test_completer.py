@@ -2080,6 +2080,30 @@ class TestCompleter(unittest.TestCase):
         [
             "\n".join(
                 [
+                    "class NotYetDefined:",
+                    "    def my_method(self):",
+                    "        return []",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_method().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def my_method(self):",
+                    "        return 1.1",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_method().",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
+        [
+            "\n".join(
+                [
                     "my_instance = 1.1",
                     "assert my_instance.",
                 ]
