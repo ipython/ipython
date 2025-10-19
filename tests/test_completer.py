@@ -2120,6 +2120,16 @@ class TestCompleter(unittest.TestCase):
             ),
             "as_integer_ratio",
         ],
+        [
+            "\n".join(
+                [
+                    "def my_test():",
+                    "    return {}",
+                    "my_test().",
+                ]
+            ),
+            "keys",
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):
