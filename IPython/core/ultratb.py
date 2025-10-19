@@ -336,13 +336,18 @@ class ListTB(TBTools):
                     )
                 )
                 if textline == "":
-                    # sep 2025:
-                    # textline = py3compat.cast_unicode(value.text, "utf-8")
-                    if value.text is None:
+                    # Gracefully coerce SyntaxError.text into a printable str.
+                    value_text = getattr(value, "text", None)
+                    if value_text is None:
                         textline = ""
                     else:
-                        assert isinstance(value.text, str)
-                        textline = value.text
+                        try:
+                            textline = py3compat.cast_unicode(value_text, "utf-8")
+                        except Exception:
+                            # As a last resort, fall back to ``str`` for exotic objects.
+                            textline = str(value_text)
+                        if textline is None:
+                            textline = ""
 
                 if textline is not None:
                     i = 0

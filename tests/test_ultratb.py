@@ -264,6 +264,12 @@ bar_syntax_error_test_2()
             with tt.AssertPrints("QWERTY"):
                 ip.showsyntaxerror()
 
+    def test_parseerror_non_string_text(self):
+        cell = "from xml.etree import ElementTree\nElementTree.fromstring('hello')"
+        with tt.AssertNotPrints("Internal Python error", channel="stderr"):
+            with tt.AssertPrints("ParseError"):
+                ip.run_cell(cell)
+
 
 import sys
 
