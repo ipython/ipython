@@ -897,9 +897,7 @@ def _extract_init_attributes(class_node: ast.ClassDef, context: EvaluationContex
                             # Evaluate the assigned value
                             value = eval_node(stmt.value, temp_context)
                             if value is not None and value is not NOT_EVALUATED:
-                                inferred_type = _create_duck_from_value(value)
-                                if inferred_type is not None:
-                                    attributes[attr_name] = inferred_type
+                                attributes[attr_name] = value
                         except Exception:
                             # Skip the attribute
                             pass
@@ -929,43 +927,12 @@ def _extract_init_attributes(class_node: ast.ClassDef, context: EvaluationContex
                         try:
                             value = eval_node(stmt.value, temp_context)
                             if value is not None and value is not NOT_EVALUATED:
-                                inferred_type = _create_duck_from_value(value)
-                                if inferred_type is not None:
-                                    attributes[attr_name] = inferred_type
+                                attributes[attr_name] = value
                         except Exception:
                             pass
 
     return attributes
 
-
-def _create_duck_from_value(value):
-    """Create a Duck object from an actual runtime value."""
-    if value is None or value is NOT_EVALUATED:
-        return None
-    value_type = type(value)
-    if isinstance(value, dict):
-        return _Duck(
-            attributes=dict.fromkeys(dir(dict())), items=value if value else {}
-        )
-    elif isinstance(value, list):
-        element_duck = None
-        if value:
-            element_duck = _create_duck_from_value(value[0])
-        return _Duck(
-            attributes=dict.fromkeys(dir(list())),
-            items=_GetItemDuck(lambda: element_duck),
-        )
-    elif isinstance(value, set):
-        return _Duck(attributes=dict.fromkeys(dir(set())))
-    elif isinstance(value, tuple):
-        return value
-    elif isinstance(value, (str, int, float, bool, bytes)):
-        return _Duck(attributes=dict.fromkeys(dir(value_type())))
-    else:
-        try:
-            return _create_duck_for_heap_type(value_type)
-        except Exception:
-            return _Duck(attributes=dict.fromkeys(dir(value)))
 
 def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext):
     """Evaluate return type of a given callable function.
