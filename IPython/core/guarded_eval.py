@@ -663,7 +663,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                     return_type, context
                 )
             else:
-                inferred_duck_object = _get_duck_from_return_value(node, context)
+                inferred_duck_object = _infer_return_value(node, context)
                 context.transient_locals[node.name] = inferred_duck_object
 
             return None
@@ -885,48 +885,6 @@ def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
             except Exception:
                 pass
     return None
-
-
-def _get_duck_from_return_value(node: ast.FunctionDef, context: EvaluationContext):
-    """Infer the 'duck type' from the first valid return value."""
-    try:
-        return_value = _infer_return_value(node, context)
-        if return_value is not None and return_value is not NOT_EVALUATED:
-            duck = _create_duck_from_value(return_value)
-            return duck
-    except Exception:
-        pass
-    return None
-
-
-def _create_duck_from_value(value):
-    """Create a Duck object from an actual runtime value."""
-    if value is None or value is NOT_EVALUATED:
-        return None
-    value_type = type(value)
-    if isinstance(value, dict):
-        return _Duck(
-            attributes=dict.fromkeys(dir(dict())), items=value if value else {}
-        )
-    elif isinstance(value, list):
-        element_duck = None
-        if value:
-            element_duck = _create_duck_from_value(value[0])
-        return _Duck(
-            attributes=dict.fromkeys(dir(list())),
-            items=_GetItemDuck(lambda: element_duck),
-        )
-    elif isinstance(value, set):
-        return _Duck(attributes=dict.fromkeys(dir(set())))
-    elif isinstance(value, tuple):
-        return value
-    elif isinstance(value, (str, int, float, bool, bytes)):
-        return _Duck(attributes=dict.fromkeys(dir(value_type())))
-    else:
-        try:
-            return _create_duck_for_heap_type(value_type)
-        except Exception:
-            return _Duck(attributes=dict.fromkeys(dir(value)))
 
 
 def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext):
