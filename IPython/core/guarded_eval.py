@@ -637,9 +637,12 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if node is None:
         return None
     if isinstance(node, (ast.Interactive, ast.Module)):
+        context_copy = context.replace(locals=context.locals.copy())
+        module_vars = _extract_variables_from_module(node, context_copy)
+        context_copy.locals.update(module_vars)
         result = None
         for child_node in node.body:
-            result = eval_node(child_node, context)
+            result = eval_node(child_node, context_copy)
         return result
     if isinstance(node, ast.FunctionDef):
         # we ignore body and only extract the return type
@@ -677,9 +680,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         class_context = context.replace(transient_locals=class_locals)
         for child_node in node.body:
             eval_node(child_node, class_context)
-        # extract self.attribute assignments
         init_attributes = _extract_init_attributes(node, class_context)
-        # Merge init attributes into class_locals
         class_locals.update(init_attributes)
         bases = tuple([eval_node(base, context) for base in node.bases])
         dummy_class = type(node.name, bases, class_locals)
@@ -878,14 +879,6 @@ def _extract_init_attributes(class_node: ast.ClassDef, context: EvaluationContex
     if not init_method:
         return attributes
 
-    temp_context = EvaluationContext(
-        globals=context.globals,
-        locals=context.locals,
-        evaluation=context.evaluation,
-        in_subscript=context.in_subscript,
-        transient_locals={},
-    )
-
     for stmt in init_method.body:
         # Handle regular assignments: self.attr = value
         if isinstance(stmt, ast.Assign):
@@ -895,10 +888,10 @@ def _extract_init_attributes(class_node: ast.ClassDef, context: EvaluationContex
                         attr_name = target.attr
                         try:
                             # Evaluate the assigned value
-                            value = eval_node(stmt.value, temp_context)
+                            value = eval_node(stmt.value, context)
                             if value is not None and value is not NOT_EVALUATED:
                                 attributes[attr_name] = value
-                        except Exception:
+                        except Exception as e:
                             # Skip the attribute
                             pass
 
@@ -914,7 +907,7 @@ def _extract_init_attributes(class_node: ast.ClassDef, context: EvaluationContex
                     # Try to use the annotation
                     if stmt.annotation:
                         try:
-                            annotation = eval_node(stmt.annotation, temp_context)
+                            annotation = eval_node(stmt.annotation, context)
                             resolved = _resolve_annotation(annotation, context)
                             if resolved is not None:
                                 attributes[attr_name] = resolved
@@ -925,13 +918,56 @@ def _extract_init_attributes(class_node: ast.ClassDef, context: EvaluationContex
                     # Try to infer from value
                     if stmt.value:
                         try:
-                            value = eval_node(stmt.value, temp_context)
+                            value = eval_node(stmt.value, context)
                             if value is not None and value is not NOT_EVALUATED:
                                 attributes[attr_name] = value
                         except Exception:
                             pass
 
     return attributes
+
+
+def _extract_variables_from_module(
+    module_node: Union[ast.Module, ast.Interactive, None], context: EvaluationContext
+):
+    """Extract and evaluate variable assignments from a module AST.
+
+    Scans the module for top-level variable assignments and evaluates them.
+    This allows code like:
+
+    Args:
+        module_node: The Module or Interactive AST node
+
+    Returns:
+        Dictionary mapping variable names to their evaluated values
+    """
+    variables = {}
+
+    if module_node is None:
+        return variables
+
+    for stmt in module_node.body:
+        if isinstance(stmt, ast.Assign):
+            for target in stmt.targets:
+                if isinstance(target, ast.Name):
+                    var_name = target.id
+                    try:
+                        value = eval_node(stmt.value, context)
+                        if value is not NOT_EVALUATED:
+                            variables[var_name] = value
+                    except Exception:
+                        pass
+        elif isinstance(stmt, ast.AnnAssign):
+            if isinstance(stmt.target, ast.Name) and stmt.value:
+                var_name = stmt.target.id
+                try:
+                    value = eval_node(stmt.value, context)
+                    if value is not NOT_EVALUATED:
+                        variables[var_name] = value
+                except Exception:
+                    pass
+
+    return variables
 
 
 def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext):
