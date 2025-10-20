@@ -200,7 +200,7 @@ def doctest_hist_f():
 
     In [9]: import tempfile
 
-    In [10]: tfile = tempfile.mkstemp('.py','tmp-ipython-')
+    In [10]: _fd, tfile = tempfile.mkstemp('.py','tmp-ipython-')
 
     In [11]: %hist -nl -f $tfile 3
 
