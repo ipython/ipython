@@ -202,7 +202,7 @@ def doctest_hist_f():
 
     In [10]: _fd, tfile = tempfile.mkstemp('.py','tmp-ipython-')
 
-    In [11]: %hist -nl -f $tfile 3
+    In [11]: %history -nl -y -f $tfile 3
 
     In [13]: import os; os.unlink(tfile)
     """
