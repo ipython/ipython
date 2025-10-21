@@ -343,18 +343,31 @@ class BaseIPythonApplication(Application):
             if suppress_errors is not None:
                 old_value = Application.raise_config_file_errors
                 Application.raise_config_file_errors = not suppress_errors
-            Application.load_config_file(
-                self,
+
+            # Finding and Checking the config file actually exists before loading
+            found = False
+            for path in self.config_file_paths:
+                config_path = os.path.join(path, base_config)
+                if os.path.exists(config_path):
+                    found = True
+                    break
+
+            if not found:
+                self.log.warning("Base config file '%s' not found in paths: %s", base_config, self.config_file_paths)
+            else:
+                Application.load_config_file(self, base_config, path=self.config_file_paths)
+        except Exception as e:
+            if not suppress_errors:
+                raise
+            self.log.warning(
+                "Could not read the base config file '%s': %s",
                 base_config,
-                path=self.config_file_paths
+                e,
+                exc_info=True
             )
-        except ConfigFileNotFound:
-            # ignore errors loading parent
-            self.log.debug("Config file %s not found", base_config)
-            pass
-        if suppress_errors is not None:
-            Application.raise_config_file_errors = old_value
-        
+        finally:
+            if suppress_errors is not None:
+                Application.raise_config_file_errors = old_value
         for config_file_name in self.config_files:
             if not config_file_name or config_file_name == base_config:
                 continue
@@ -367,18 +380,22 @@ class BaseIPythonApplication(Application):
                     path=self.config_file_paths
                 )
             except ConfigFileNotFound:
-                # Only warn if the default config file was NOT being used.
-                if config_file_name in self.config_file_specified:
-                    msg = self.log.warning
-                else:
-                    msg = self.log.debug
+                # Only warn if the default config file was explicitly specified
+                msg = (
+                    self.log.warning
+                    if config_file_name in self.config_file_specified
+                    else self.log.debug
+                )
                 msg("Config file not found, skipping: %s", config_file_name)
-            except Exception:
-                # For testing purposes.
+            except Exception as e:
                 if not suppress_errors:
                     raise
-                self.log.warning("Error loading config file: %s" %
-                              self.config_file_name, exc_info=True)
+                msg = (
+                    self.log.warning
+                    if config_file_name in self.config_file_specified
+                    else self.log.debug
+                )
+                msg("Could not read config file '%s': %s", config_file_name, e, exc_info=True)
 
     def init_profile_dir(self):
         """initialize the profile dir"""
