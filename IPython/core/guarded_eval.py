@@ -1,3 +1,4 @@
+from __future__ import annotations
 from copy import copy
 from inspect import isclass, signature, Signature, getmodule
 from typing import (
@@ -396,6 +397,8 @@ class EvaluationContext:
     policy_overrides: dict = field(default_factory=dict)
     #: Transient local namespace used to store mocks
     transient_locals: dict = field(default_factory=dict)
+    #: Tranisents of class level
+    class_transients: dict | None = None
 
     def replace(self, /, **changes):
         """Return a new copy of the context, with specified changes"""
@@ -560,6 +563,7 @@ def _validate_policy_overrides(
 def _handle_assign(node: ast.Assign, context: EvaluationContext):
     value = eval_node(node.value, context)
     transient_locals = context.transient_locals
+    class_transients = getattr(context, "class_transients", None)
     for target in node.targets:
         if isinstance(target, (ast.Tuple, ast.List)):
             # Handle unpacking assignment
@@ -573,6 +577,14 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
             # Before starred
             for i in range(star_or_last_idx):
                 transient_locals[targets[i].id] = values[i]
+                # Check for self.x assignment
+                if class_transients is not None and hasattr(targets[i], "ctx"):
+                    if (
+                        isinstance(targets[i], ast.Attribute)
+                        and isinstance(targets[i].value, ast.Name)
+                        and targets[i].value.id == "self"
+                    ):
+                        class_transients[targets[i].attr] = values[i]
 
             # Starred if exists
             if starred:
@@ -580,14 +592,40 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                 transient_locals[targets[star_or_last_idx].value.id] = values[
                     star_or_last_idx:end
                 ]
+                if (
+                    class_transients is not None
+                    and isinstance(targets[star_or_last_idx], ast.Attribute)
+                    and isinstance(targets[star_or_last_idx].value, ast.Name)
+                    and targets[star_or_last_idx].value.id == "self"
+                ):
+                    class_transients[targets[star_or_last_idx].attr] = values[
+                        star_or_last_idx:end
+                    ]
 
                 # After starred
                 for i in range(star_or_last_idx + 1, len(targets)):
                     transient_locals[targets[i].id] = values[
                         len(values) - (len(targets) - i)
                     ]
+                    if (
+                        class_transients is not None
+                        and isinstance(targets[i], ast.Attribute)
+                        and isinstance(targets[i].value, ast.Name)
+                        and targets[i].value.id == "self"
+                    ):
+                        class_transients[targets[i].attr] = values[
+                            len(values) - (len(targets) - i)
+                        ]
         else:
-            transient_locals[target.id] = value
+            if (
+                isinstance(target, ast.Attribute)
+                and isinstance(target.value, ast.Name)
+                and target.value.id == "self"
+            ):
+                if class_transients is not None:
+                    class_transients[target.attr] = value
+            elif hasattr(target, "id"):
+                transient_locals[target.id] = value
     return None
 
 
@@ -643,6 +681,10 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         return result
     if isinstance(node, ast.FunctionDef):
         # we ignore body and only extract the return type
+        func_locals = context.transient_locals.copy()
+        func_context = context.replace(transient_locals=func_locals)
+        for child_node in node.body:
+            eval_node(child_node, func_context)
         is_property = False
 
         for decorator_node in node.decorator_list:
@@ -662,7 +704,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                     return_type, context
                 )
             else:
-                return_value = _infer_return_value(node, context)
+                return_value = _infer_return_value(node, func_context)
                 context.transient_locals[node.name] = return_value
 
             return None
@@ -673,7 +715,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         if return_type is not None:
             dummy_function.__annotations__["return"] = return_type
         else:
-            inferred_return = _infer_return_value(node, context)
+            inferred_return = _infer_return_value(node, func_context)
             if inferred_return is not None:
                 dummy_function.__inferred_return__ = inferred_return
 
@@ -685,6 +727,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         # TODO support class decorators?
         class_locals = context.transient_locals.copy()
         class_context = context.replace(transient_locals=class_locals)
+        class_context.class_transients = class_locals
         for child_node in node.body:
             eval_node(child_node, class_context)
         bases = tuple([eval_node(base, context) for base in node.bases])
@@ -694,12 +737,19 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.Assign):
         return _handle_assign(node, context)
     if isinstance(node, ast.AnnAssign):
-        if not node.simple:
-            # for now only handle simple annotations
-            return None
-        context.transient_locals[node.target.id] = _resolve_annotation(
-            eval_node(node.annotation, context), context
-        )
+        if node.simple:
+            value = _resolve_annotation(eval_node(node.annotation, context), context)
+            context.transient_locals[node.target.id] = value
+        # Handle non-simple annotated assignments only for self.x: type = value
+        class_transients = getattr(context, "class_transients", None)
+        if (
+            class_transients is not None
+            and isinstance(node.target, ast.Attribute)
+            and isinstance(node.target.value, ast.Name)
+            and node.target.value.id == "self"
+        ):
+            value = _resolve_annotation(eval_node(node.annotation, context), context)
+            class_transients[node.target.attr] = value
         return None
     if isinstance(node, ast.Expression):
         return eval_node(node.body, context)
@@ -897,22 +947,9 @@ def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
 
 
 def _collect_return_values(body, context):
-    """Recursively collect return values from a list of AST statements.
-
-    For every assignment or annotated assignment, store them in context.transient_locals
-    so that return statements can refer to them.
-    """
+    """Recursively collect return values from a list of AST statements."""
     return_values = []
     for stmt in body:
-        # Handle assignments
-        if isinstance(stmt, ast.Assign):
-            _handle_assign(stmt, context)
-        elif isinstance(stmt, ast.AnnAssign):
-            if stmt.simple:
-                context.transient_locals[stmt.target.id] = _resolve_annotation(
-                    eval_node(stmt.annotation, context), context
-                )
-        # Handle return statements
         if isinstance(stmt, ast.Return):
             if stmt.value is None:
                 continue

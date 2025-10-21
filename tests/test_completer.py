@@ -2189,6 +2189,55 @@ class TestCompleter(unittest.TestCase):
             ),
             "append",
         ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def __init__(self):",
+                    "        self.test = []",
+                    "instance = NotYetDefined()",
+                    "instance.",
+                ]
+            ),
+            "test",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def __init__(self):",
+                    "        self.test = []",
+                    "instance = NotYetDefined()",
+                    "instance.test.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def __init__(self):",
+                    "        self.test:str = []",
+                    "instance = NotYetDefined()",
+                    "instance.test.",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "l = []",
+                    "class NotYetDefined:",
+                    "    def __init__(self):",
+                    "        self.test = l",
+                    "instance = NotYetDefined()",
+                    "instance.test.",
+                ]
+            ),
+            "append",
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):
