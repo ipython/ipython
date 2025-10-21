@@ -922,6 +922,10 @@ def _collect_return_values(body, context):
                     return_values.append(value)
             except Exception:
                 pass
+        if isinstance(
+            stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)
+        ):
+            continue
         elif hasattr(stmt, "body") and isinstance(stmt.body, list):
             return_values.extend(_collect_return_values(stmt.body, context))
         if isinstance(stmt, ast.Try):
