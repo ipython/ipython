@@ -342,7 +342,11 @@ class ListTB(TBTools):
                         textline = ""
                     else:
                         try:
-                            textline = py3compat.cast_unicode(value_text, "utf-8")
+                            # Handle bytes by decoding to utf-8, fallback to str() for other types
+                            if isinstance(value_text, bytes):
+                                textline = value_text.decode("utf-8", "replace")
+                            else:
+                                textline = str(value_text)
                         except Exception:
                             # As a last resort, fall back to ``str`` for exotic objects.
                             textline = str(value_text)
