@@ -684,7 +684,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         return None
     if isinstance(node, ast.ClassDef):
         # TODO support class decorators?
-        class_locals = {}
+        class_locals = context.transient_locals.copy()
         class_context = context.replace(transient_locals=class_locals)
         for child_node in node.body:
             eval_node(child_node, class_context)
