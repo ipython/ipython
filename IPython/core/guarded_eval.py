@@ -867,7 +867,8 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
 def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
     """Infer the return value(s) of a function by evaluating all return statements."""
-    return_values = _collect_return_values(node.body, context)
+    func_context = context.replace(transient_locals=context.transient_locals.copy())
+    return_values = _collect_return_values(node.body, func_context)
 
     if not return_values:
         return None
@@ -896,9 +897,22 @@ def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
 
 
 def _collect_return_values(body, context):
-    """Recursively collect return values from a list of AST statements."""
+    """Recursively collect return values from a list of AST statements.
+
+    For every assignment or annotated assignment, store them in context.transient_locals
+    so that return statements can refer to them.
+    """
     return_values = []
     for stmt in body:
+        # Handle assignments
+        if isinstance(stmt, ast.Assign):
+            _handle_assign(stmt, context)
+        elif isinstance(stmt, ast.AnnAssign):
+            if stmt.simple:
+                context.transient_locals[stmt.target.id] = _resolve_annotation(
+                    eval_node(stmt.annotation, context), context
+                )
+        # Handle return statements
         if isinstance(stmt, ast.Return):
             if stmt.value is None:
                 continue
