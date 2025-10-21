@@ -2093,10 +2093,11 @@ class TestCompleter(unittest.TestCase):
             "\n".join(
                 [
                     "class NotYetDefined:",
-                    "    def my_method(self):",
+                    "    @property",
+                    "    def my_property(self):",
                     "        return 1.1",
                     "my_instance = NotYetDefined()",
-                    "my_instance.my_method().",
+                    "my_instance.my_property.",
                 ]
             ),
             "as_integer_ratio",
