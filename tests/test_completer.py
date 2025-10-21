@@ -2154,6 +2154,30 @@ class TestCompleter(unittest.TestCase):
             ),
             "append",
         ],
+        [
+            "\n".join(
+                [
+                    "def string_or_int(flag):",
+                    "    if flag:",
+                    "        return 'test'",
+                    "    return 1",
+                    "string_or_int().",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "def string_or_int(flag):",
+                    "    if flag:",
+                    "        return 'test'",
+                    "    return 1",
+                    "string_or_int().",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):

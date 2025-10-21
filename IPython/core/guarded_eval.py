@@ -654,7 +654,6 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 continue
             if decorator is property:
                 is_property = True
-
         return_type = eval_node(node.returns, context=context)
 
         if is_property:
@@ -674,9 +673,9 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         if return_type is not None:
             dummy_function.__annotations__["return"] = return_type
         else:
-            inferred_type = type(_infer_return_value(node, context))
-            if inferred_type is not None:
-                dummy_function.__annotations__["return"] = inferred_type
+            inferred_return = _infer_return_value(node, context)
+            if inferred_return is not None:
+                dummy_function.__inferred_return__ = inferred_return
 
         dummy_function.__name__ = node.name
         dummy_function.__node__ = node
@@ -847,6 +846,8 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 return overridden_return_type
             return _create_duck_for_heap_type(func)
         else:
+            if hasattr(func, "__inferred_return__"):
+                return func.__inferred_return__
             return_type = _eval_return_type(func, node, context)
             if return_type is not NOT_EVALUATED:
                 return return_type
@@ -865,19 +866,61 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
 
 def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
-    """Execute the function body to infer its return value."""
+    """Infer the return value(s) of a function by evaluating all return statements."""
+    return_values = _collect_return_values(node.body, context)
 
-    for stmt in node.body:
+    if not return_values:
+        return None
+    if len(return_values) == 1:
+        return return_values[0]
+
+    types = {type(v) for v in return_values}
+    if len(types) == 1:
+        t = next(iter(types))
+        if t is dict:
+            keys = set()
+            for v in return_values:
+                keys.update(v.keys())
+            return _Duck(
+                attributes=dict.fromkeys(dir(dict())), items={k: None for k in keys}
+            )
+        elif t in (list, set, tuple):
+            return t()
+        else:
+            return return_values[0]
+    else:
+        attributes = set()
+        for v in return_values:
+            attributes.update(dir(v))
+        return _Duck(attributes=dict.fromkeys(attributes))
+
+
+def _collect_return_values(body, context):
+    """Recursively collect return values from a list of AST statements."""
+    return_values = []
+    for stmt in body:
         if isinstance(stmt, ast.Return):
             if stmt.value is None:
-                return None
+                continue
             try:
                 value = eval_node(stmt.value, context)
-                if value is not NOT_EVALUATED:
-                    return value
+                if value is not None and value is not NOT_EVALUATED:
+                    return_values.append(value)
             except Exception:
                 pass
-    return None
+        elif hasattr(stmt, "body") and isinstance(stmt.body, list):
+            return_values.extend(_collect_return_values(stmt.body, context))
+        if isinstance(stmt, ast.Try):
+            for h in stmt.handlers:
+                if hasattr(h, "body"):
+                    return_values.extend(_collect_return_values(h.body, context))
+            if hasattr(stmt, "orelse"):
+                return_values.extend(_collect_return_values(stmt.orelse, context))
+            if hasattr(stmt, "finalbody"):
+                return_values.extend(_collect_return_values(stmt.finalbody, context))
+        if hasattr(stmt, "orelse") and isinstance(stmt.orelse, list):
+            return_values.extend(_collect_return_values(stmt.orelse, context))
+    return return_values
 
 
 def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext):
