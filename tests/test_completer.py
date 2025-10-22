@@ -2230,10 +2230,23 @@ class TestCompleter(unittest.TestCase):
         [
             "\n".join(
                 [
+                    "class NotYetDefined:",
+                    "    def test(self):",
+                    "        self.l = []",
+                    "        return self.l",
+                    "instance = NotYetDefined()",
+                    "instance.test().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
                     "def foo():",
                     "    if 1+1==2:",
-                    "        return {'top':{'mid':{'leaf': 2}}}",
-                    "    return {'top': {'mid':[]}}",
+                    "        return {'top':{'mid':[]}}",
+                    "    return {'top': {'mid':{'leaf': 2}}}",
                     "foo()['top']['mid'].",
                 ]
             ),

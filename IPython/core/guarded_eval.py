@@ -577,37 +577,40 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
 
             # Before starred
             for i in range(star_or_last_idx):
-                transient_locals[targets[i].id] = values[i]
                 # Check for self.x assignment
                 if _is_instance_attribute_assignment(targets[i], context):
                         class_transients[targets[i].attr] = values[i]
+                else:
+                    transient_locals[targets[i].id] = values[i]
 
             # Starred if exists
             if starred:
                 end = len(values) - (len(targets) - star_or_last_idx - 1)
-                transient_locals[targets[star_or_last_idx].value.id] = values[
-                    star_or_last_idx:end
-                ]
                 if _is_instance_attribute_assignment(
                     targets[star_or_last_idx], context
                 ):
                     class_transients[targets[star_or_last_idx].attr] = values[
                         star_or_last_idx:end
                     ]
+                else:
+                    transient_locals[targets[star_or_last_idx].value.id] = values[
+                        star_or_last_idx:end
+                    ]
 
                 # After starred
                 for i in range(star_or_last_idx + 1, len(targets)):
-                    transient_locals[targets[i].id] = values[
-                        len(values) - (len(targets) - i)
-                    ]
                     if _is_instance_attribute_assignment(targets[i], context):
                         class_transients[targets[i].attr] = values[
+                            len(values) - (len(targets) - i)
+                        ]
+                    else:
+                        transient_locals[targets[i].id] = values[
                             len(values) - (len(targets) - i)
                         ]
         else:
             if _is_instance_attribute_assignment(target, context):
                     class_transients[target.attr] = value
-            elif hasattr(target, "id"):
+            else:
                 transient_locals[target.id] = value
     return None
 
@@ -698,7 +701,6 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         if func_context.class_transients is not None:
             if not is_static and not is_classmethod:
                 func_context.instance_arg_name = node.args.args[0].arg
-                print("setting ", func_context.instance_arg_name)
 
         return_type = eval_node(node.returns, context=context)
 
@@ -868,6 +870,12 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.Name):
         return _eval_node_name(node.id, context)
     if isinstance(node, ast.Attribute):
+        if (
+            context.class_transients is not None
+            and isinstance(node.value, ast.Name)
+            and node.value.id == context.instance_arg_name
+        ):
+            return context.class_transients.get(node.attr)
         value = eval_node(node.value, context)
         if policy.can_get_attr(value, node.attr):
             return getattr(value, node.attr)
@@ -930,7 +938,7 @@ def _merge_values(values):
             if type(v) is not dict:
                 continue
             for k, val in v.items():
-                key_values.setdefault(k, []).append(val)  # Simpler than if-check
+                key_values.setdefault(k, []).append(val)
 
         merged_items = {k: _merge_values(vals) for k, vals in key_values.items()}
 
