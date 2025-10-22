@@ -2245,12 +2245,12 @@ class TestCompleter(unittest.TestCase):
                 [
                     "def foo():",
                     "    if 1+1==2:",
-                    "        return {'top':{'mid':[]}}",
-                    "    return {'top': {'mid':{'leaf': 2}}}",
+                    "        return {'top':{'mid':{'leaf': 2}}}",
+                    "    return {'top': {'mid':[]}}",
                     "foo()['top']['mid'].",
                 ]
             ),
-            ["clear", "append"],
+            ["keys", "append"],
         ],
         [
             "\n".join(
