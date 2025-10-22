@@ -700,7 +700,9 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
         if func_context.class_transients is not None:
             if not is_static and not is_classmethod:
-                func_context.instance_arg_name = node.args.args[0].arg
+                func_context.instance_arg_name = (
+                    node.args.args[0].arg if node.args.args else None
+                )
 
         return_type = eval_node(node.returns, context=context)
 
