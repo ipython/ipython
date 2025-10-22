@@ -39,6 +39,7 @@ from _pytest._io import TerminalWriter
 from _pytest.compat import safe_getattr
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
+from _pytest.pathlib import ImportPathMismatchError
 
 try:
     from _pytest.fixtures import TopRequest as FixtureRequest
@@ -662,12 +663,9 @@ class IPDoctestModule(pytest.Module):
                 kwargs = {"root": self.config.rootpath}
                 if pytest_version >= (8, 1):
                     kwargs["consider_namespace_packages"] = False
-                    if self.path.name.endswith(".so"):
-                        pytest.skip(
-                            "unable to import module %r, compiled module" % self.path
-                        )
                 module = import_path(self.path, **kwargs)
-            except ImportError:
+            
+            except ImportError, ImportPathMismatchError:
                 if self.config.getvalue("ipdoctest_ignore_import_errors"):
                     pytest.skip("unable to import module %r" % self.path)
                 else:
