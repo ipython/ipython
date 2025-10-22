@@ -564,7 +564,7 @@ def _validate_policy_overrides(
 def _handle_assign(node: ast.Assign, context: EvaluationContext):
     value = eval_node(node.value, context)
     transient_locals = context.transient_locals
-    class_transients = getattr(context, "class_transients", None)
+    class_transients = context.class_transients
     for target in node.targets:
         if isinstance(target, (ast.Tuple, ast.List)):
             # Handle unpacking assignment
@@ -748,10 +748,9 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             value = _resolve_annotation(eval_node(node.annotation, context), context)
             context.transient_locals[node.target.id] = value
         # Handle non-simple annotated assignments only for self.x: type = value
-        class_transients = getattr(context, "class_transients", None)
         if _is_instance_attribute_assignment(node.target, context):
             value = _resolve_annotation(eval_node(node.annotation, context), context)
-            class_transients[node.target.attr] = value
+            context.class_transients[node.target.attr] = value
         return None
     if isinstance(node, ast.Expression):
         return eval_node(node.body, context)
