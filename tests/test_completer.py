@@ -2244,7 +2244,7 @@ class TestCompleter(unittest.TestCase):
             "\n".join(
                 [
                     "def foo():",
-                    "    if 1+1==2:",
+                    "    if some_condition:",
                     "        return {'top':{'mid':{'leaf': 2}}}",
                     "    return {'top': {'mid':[]}}",
                     "foo()['top']['mid'].",
