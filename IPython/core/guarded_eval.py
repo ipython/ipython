@@ -579,8 +579,7 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
             for i in range(star_or_last_idx):
                 transient_locals[targets[i].id] = values[i]
                 # Check for self.x assignment
-                if class_transients is not None and hasattr(targets[i], "ctx"):
-                    if _is_instance_attribute_assignment(targets[i], context):
+                if _is_instance_attribute_assignment(targets[i], context):
                         class_transients[targets[i].attr] = values[i]
 
             # Starred if exists
@@ -589,7 +588,7 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                 transient_locals[targets[star_or_last_idx].value.id] = values[
                     star_or_last_idx:end
                 ]
-                if class_transients is not None and _is_instance_attribute_assignment(
+                if _is_instance_attribute_assignment(
                     targets[star_or_last_idx], context
                 ):
                     class_transients[targets[star_or_last_idx].attr] = values[
@@ -601,16 +600,12 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                     transient_locals[targets[i].id] = values[
                         len(values) - (len(targets) - i)
                     ]
-                    if (
-                        class_transients is not None
-                        and _is_instance_attribute_assignment(targets[i], context)
-                    ):
+                    if _is_instance_attribute_assignment(targets[i], context):
                         class_transients[targets[i].attr] = values[
                             len(values) - (len(targets) - i)
                         ]
         else:
             if _is_instance_attribute_assignment(target, context):
-                if class_transients is not None:
                     class_transients[target.attr] = value
             elif hasattr(target, "id"):
                 transient_locals[target.id] = value
@@ -636,7 +631,8 @@ def _is_instance_attribute_assignment(
 ) -> bool:
     """Return True if target is an attribute access on the instance argument."""
     return (
-        context.instance_arg_name is not None
+        context.class_transients is not None
+        and context.instance_arg_name is not None
         and isinstance(target, ast.Attribute)
         and isinstance(getattr(target, "value", None), ast.Name)
         and getattr(target.value, "id", None) == context.instance_arg_name
@@ -753,9 +749,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             context.transient_locals[node.target.id] = value
         # Handle non-simple annotated assignments only for self.x: type = value
         class_transients = getattr(context, "class_transients", None)
-        if class_transients is not None and _is_instance_attribute_assignment(
-            node.target, context
-        ):
+        if _is_instance_attribute_assignment(node.target, context):
             value = _resolve_annotation(eval_node(node.annotation, context), context)
             class_transients[node.target.attr] = value
         return None
