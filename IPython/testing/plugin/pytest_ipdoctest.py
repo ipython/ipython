@@ -662,7 +662,7 @@ class IPDoctestModule(pytest.Module):
                 kwargs = {"root": self.config.rootpath}
                 if pytest_version >= (8, 1):
                     kwargs["consider_namespace_packages"] = False
-                    if self.path.endswith(".so"):
+                    if self.path.name.endswith(".so"):
                         pytest.skip(
                             "unable to import module %r, compiled module" % self.path
                         )
