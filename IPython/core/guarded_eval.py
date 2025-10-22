@@ -1,4 +1,3 @@
-from __future__ import annotations
 from copy import copy
 from inspect import isclass, signature, Signature, getmodule
 from typing import (
@@ -399,6 +398,8 @@ class EvaluationContext:
     transient_locals: dict = field(default_factory=dict)
     #: Tranisents of class level
     class_transients: dict | None = None
+    #: Instance variable name used in the method definition
+    instance_arg_name: str | None = None
 
     def replace(self, /, **changes):
         """Return a new copy of the context, with specified changes"""
@@ -579,11 +580,7 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                 transient_locals[targets[i].id] = values[i]
                 # Check for self.x assignment
                 if class_transients is not None and hasattr(targets[i], "ctx"):
-                    if (
-                        isinstance(targets[i], ast.Attribute)
-                        and isinstance(targets[i].value, ast.Name)
-                        and targets[i].value.id == "self"
-                    ):
+                    if _is_instance_attribute_assignment(targets[i], context):
                         class_transients[targets[i].attr] = values[i]
 
             # Starred if exists
@@ -592,11 +589,8 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                 transient_locals[targets[star_or_last_idx].value.id] = values[
                     star_or_last_idx:end
                 ]
-                if (
-                    class_transients is not None
-                    and isinstance(targets[star_or_last_idx], ast.Attribute)
-                    and isinstance(targets[star_or_last_idx].value, ast.Name)
-                    and targets[star_or_last_idx].value.id == "self"
+                if class_transients is not None and _is_instance_attribute_assignment(
+                    targets[star_or_last_idx], context
                 ):
                     class_transients[targets[star_or_last_idx].attr] = values[
                         star_or_last_idx:end
@@ -609,19 +603,13 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                     ]
                     if (
                         class_transients is not None
-                        and isinstance(targets[i], ast.Attribute)
-                        and isinstance(targets[i].value, ast.Name)
-                        and targets[i].value.id == "self"
+                        and _is_instance_attribute_assignment(targets[i], context)
                     ):
                         class_transients[targets[i].attr] = values[
                             len(values) - (len(targets) - i)
                         ]
         else:
-            if (
-                isinstance(target, ast.Attribute)
-                and isinstance(target.value, ast.Name)
-                and target.value.id == "self"
-            ):
+            if _is_instance_attribute_assignment(target, context):
                 if class_transients is not None:
                     class_transients[target.attr] = value
             elif hasattr(target, "id"):
@@ -641,6 +629,18 @@ def _extract_args_and_kwargs(node: ast.Call, context: EvaluationContext):
         ).items()
     }
     return args, kwargs
+
+
+def _is_instance_attribute_assignment(
+    target: ast.AST, context: EvaluationContext
+) -> bool:
+    """Return True if target is an attribute access on the instance argument."""
+    return (
+        context.instance_arg_name is not None
+        and isinstance(target, ast.Attribute)
+        and isinstance(getattr(target, "value", None), ast.Name)
+        and getattr(target.value, "id", None) == context.instance_arg_name
+    )
 
 
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
@@ -680,13 +680,11 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             result = eval_node(child_node, context)
         return result
     if isinstance(node, ast.FunctionDef):
-        # we ignore body and only extract the return type
         func_locals = context.transient_locals.copy()
         func_context = context.replace(transient_locals=func_locals)
-        for child_node in node.body:
-            eval_node(child_node, func_context)
         is_property = False
-
+        is_static = False
+        is_classmethod = False
         for decorator_node in node.decorator_list:
             try:
                 decorator = eval_node(decorator_node, context)
@@ -696,7 +694,20 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 continue
             if decorator is property:
                 is_property = True
+            elif decorator is staticmethod:
+                is_static = True
+            elif decorator is classmethod:
+                is_classmethod = True
+
+        if func_context.class_transients is not None:
+            if not is_static and not is_classmethod:
+                func_context.instance_arg_name = node.args.args[0].arg
+                print("setting ", func_context.instance_arg_name)
+
         return_type = eval_node(node.returns, context=context)
+
+        for child_node in node.body:
+            eval_node(child_node, func_context)
 
         if is_property:
             if return_type is not None:
@@ -742,11 +753,8 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             context.transient_locals[node.target.id] = value
         # Handle non-simple annotated assignments only for self.x: type = value
         class_transients = getattr(context, "class_transients", None)
-        if (
-            class_transients is not None
-            and isinstance(node.target, ast.Attribute)
-            and isinstance(node.target.value, ast.Name)
-            and node.target.value.id == "self"
+        if class_transients is not None and _is_instance_attribute_assignment(
+            node.target, context
         ):
             value = _resolve_annotation(eval_node(node.annotation, context), context)
             class_transients[node.target.attr] = value
@@ -915,35 +923,47 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     return None
 
 
+def _merge_values(values):
+    """Recursively merge multiple values, combining attributes and dict items."""
+    if len(values) == 1:
+        return values[0]
+
+    types = {type(v) for v in values}
+    merged_items = None
+
+    if dict in types:
+        key_values = {}
+        for v in values:
+            if type(v) is not dict:
+                continue
+            for k, val in v.items():
+                key_values.setdefault(k, []).append(val)  # Simpler than if-check
+
+        merged_items = {k: _merge_values(vals) for k, vals in key_values.items()}
+
+    if len(types) == 1:
+        t = next(iter(types))
+        if t is not dict:
+            if t in (list, set, tuple):
+                return t()
+            return values[0]
+
+    attributes = set()
+    for v in values:
+        attributes.update(dir(v))
+    return _Duck(attributes=dict.fromkeys(attributes), items=merged_items)
+
+
 def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
     """Infer the return value(s) of a function by evaluating all return statements."""
-    func_context = context.replace(transient_locals=context.transient_locals.copy())
-    return_values = _collect_return_values(node.body, func_context)
+    return_values = _collect_return_values(node.body, context)
 
     if not return_values:
         return None
     if len(return_values) == 1:
         return return_values[0]
 
-    types = {type(v) for v in return_values}
-    if len(types) == 1:
-        t = next(iter(types))
-        if t is dict:
-            keys = set()
-            for v in return_values:
-                keys.update(v.keys())
-            return _Duck(
-                attributes=dict.fromkeys(dir(dict())), items={k: None for k in keys}
-            )
-        elif t in (list, set, tuple):
-            return t()
-        else:
-            return return_values[0]
-    else:
-        attributes = set()
-        for v in return_values:
-            attributes.update(dir(v))
-        return _Duck(attributes=dict.fromkeys(attributes))
+    return _merge_values(return_values)
 
 
 def _collect_return_values(body, context):

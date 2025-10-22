@@ -2165,19 +2165,7 @@ class TestCompleter(unittest.TestCase):
                     "string_or_int().",
                 ]
             ),
-            "capitalize",
-        ],
-        [
-            "\n".join(
-                [
-                    "def string_or_int(flag):",
-                    "    if flag:",
-                    "        return 'test'",
-                    "    return 1",
-                    "string_or_int().",
-                ]
-            ),
-            "as_integer_ratio",
+            ["capitalize", "as_integer_ratio"],
         ],
         [
             "\n".join(
@@ -2206,8 +2194,8 @@ class TestCompleter(unittest.TestCase):
             "\n".join(
                 [
                     "class NotYetDefined:",
-                    "    def __init__(self):",
-                    "        self.test = []",
+                    "    def __init__(instance):",
+                    "        instance.test = []",
                     "instance = NotYetDefined()",
                     "instance.test.",
                 ]
@@ -2218,8 +2206,8 @@ class TestCompleter(unittest.TestCase):
             "\n".join(
                 [
                     "class NotYetDefined:",
-                    "    def __init__(self):",
-                    "        self.test:str = []",
+                    "    def __init__(this):",
+                    "        this.test:str = []",
                     "instance = NotYetDefined()",
                     "instance.test.",
                 ]
@@ -2231,13 +2219,37 @@ class TestCompleter(unittest.TestCase):
                 [
                     "l = []",
                     "class NotYetDefined:",
-                    "    def __init__(self):",
-                    "        self.test = l",
+                    "    def __init__(me):",
+                    "        me.test = l",
                     "instance = NotYetDefined()",
                     "instance.test.",
                 ]
             ),
             "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "def foo():",
+                    "    if 1+1==2:",
+                    "        return {'top':{'mid':{'leaf': 2}}}",
+                    "    return {'top': {'mid':[]}}",
+                    "foo()['top']['mid'].",
+                ]
+            ),
+            ["clear", "append"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def foo():",
+                    "    if 1+1==2:",
+                    "        return {'top':{'mid':{'leaf': 2}}}",
+                    "    return {'top': {'mid':[]}}",
+                    "foo()['top']['mid']['leaf'].",
+                ]
+            ),
+            "as_integer_ratio",
         ],
     ],
 )
@@ -2248,11 +2260,11 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
 
     with provisionalcompleter():
         completions = list(ip.Completer.completions(text=code, offset=offset))
-        match = [c for c in completions if c.text.lstrip(".") == insert_text]
-        message_on_fail = (
-            f"{insert_text} not found among {[c.text for c in completions]}"
-        )
-        assert len(match) == 1, message_on_fail
+        insert_texts = insert_text if isinstance(insert_text, list) else [insert_text]
+        for text in insert_texts:
+            match = [c for c in completions if c.text.lstrip(".") == text]
+            message_on_fail = f"{text} not found among {[c.text for c in completions]}"
+            assert len(match) == 1, message_on_fail
 
 
 @pytest.mark.parametrize(
