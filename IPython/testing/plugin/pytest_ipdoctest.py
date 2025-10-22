@@ -662,6 +662,10 @@ class IPDoctestModule(pytest.Module):
                 kwargs = {"root": self.config.rootpath}
                 if pytest_version >= (8, 1):
                     kwargs["consider_namespace_packages"] = False
+                    if self.path.endswith(".so"):
+                        pytest.skip(
+                            "unable to import module %r, compiled module" % self.path
+                        )
                 module = import_path(self.path, **kwargs)
             except ImportError:
                 if self.config.getvalue("ipdoctest_ignore_import_errors"):
