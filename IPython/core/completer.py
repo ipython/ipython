@@ -2209,6 +2209,15 @@ class IPCompleter(Completer):
         """
         # TODO: add a heuristic for suppressing (e.g. if it has OS-specific delimiter,
         #  starts with `/home/`, `C:\`, etc)
+        last_line = context.full_text.split("\n")[-1]
+        text_before_token = last_line[: last_line.rfind(context.token)]
+
+        # Suppress path completion when completing methods/attributes
+        if text_before_token.endswith((")", "]")):
+            return {
+                "completions": [],
+                "suppress": True,
+            }
 
         text = context.token
 

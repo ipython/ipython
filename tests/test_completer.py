@@ -2113,6 +2113,34 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
 
 
 @pytest.mark.parametrize(
+    "code",
+    [
+        "\n".join(
+            [
+                "def my_test() -> float:",
+                "    return 1.1",
+                "my_test().",
+            ]
+        ),
+        'print("foo").',
+    ],
+)
+def test_no_file_completions_in_attr_access(code):
+    """Test that files are not suggested during attribute/method completion."""
+    with TemporaryWorkingDirectory():
+        # Create a hidden file
+        open(".hidden", "w", encoding="utf-8").close()
+        offset = len(code)
+        with provisionalcompleter():
+            completions = list(ip.Completer.completions(text=code, offset=offset))
+            matches = [c for c in completions if c.text.lstrip(".") == "hidden"]
+            # No file completions should appear
+            assert (
+                len(matches) == 0
+            ), f"File '.hidden' should not appear in attribute completion"
+
+
+@pytest.mark.parametrize(
     "line,expected",
     [
         # Basic test cases
