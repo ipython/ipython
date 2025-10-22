@@ -579,7 +579,7 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
             for i in range(star_or_last_idx):
                 # Check for self.x assignment
                 if _is_instance_attribute_assignment(targets[i], context):
-                        class_transients[targets[i].attr] = values[i]
+                    class_transients[targets[i].attr] = values[i]
                 else:
                     transient_locals[targets[i].id] = values[i]
 
@@ -609,7 +609,7 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                         ]
         else:
             if _is_instance_attribute_assignment(target, context):
-                    class_transients[target.attr] = value
+                class_transients[target.attr] = value
             else:
                 transient_locals[target.id] = value
     return None
