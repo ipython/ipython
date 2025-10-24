@@ -396,7 +396,7 @@ class EvaluationContext:
     policy_overrides: dict = field(default_factory=dict)
     #: Transient local namespace used to store mocks
     transient_locals: dict = field(default_factory=dict)
-    #: Tranisents of class level
+    #: Transients of class level
     class_transients: dict | None = None
     #: Instance variable name used in the method definition
     instance_arg_name: str | None = None
@@ -926,7 +926,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     return None
 
 
-def _merge_values(values):
+def _merge_values(values, policy: EvaluationPolicy):
     """Recursively merge multiple values, combining attributes and dict items."""
     if len(values) == 1:
         return values[0]
@@ -942,7 +942,9 @@ def _merge_values(values):
             for k, val in v.items():
                 key_values.setdefault(k, []).append(val)
 
-        merged_items = {k: _merge_values(vals) for k, vals in key_values.items()}
+        merged_items = {
+            k: _merge_values(vals, policy) for k, vals in key_values.items()
+        }
 
     if len(types) == 1:
         t = next(iter(types))
@@ -953,7 +955,8 @@ def _merge_values(values):
 
     attributes = set()
     for v in values:
-        attributes.update(dir(v))
+        if policy.can_call(v.__dir__):
+            attributes.update(dir(v))
     return _Duck(attributes=dict.fromkeys(attributes), items=merged_items)
 
 
@@ -966,7 +969,8 @@ def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
     if len(return_values) == 1:
         return return_values[0]
 
-    return _merge_values(return_values)
+    policy = get_policy(context)
+    return _merge_values(return_values, policy)
 
 
 def _collect_return_values(body, context):
@@ -1266,6 +1270,8 @@ ALLOWED_CALLS = {
     *_list_methods(collections.Counter, dict_non_mutating_methods),
     collections.Counter.elements,
     collections.Counter.most_common,
+    object.__dir__,
+    type.__dir__,
 }
 
 BUILTIN_GETATTR: set[MayHaveGetattr] = {
