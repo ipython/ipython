@@ -16,7 +16,7 @@ go into another topical module in :mod:`IPython.utils`.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from typing import Sequence
+from collections.abc import Sequence
 
 from IPython.utils.docs import GENERATING_DOCUMENTATION
 

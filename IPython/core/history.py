@@ -35,7 +35,8 @@ from traitlets.config.configurable import LoggingConfigurable
 
 from IPython.paths import locate_profile
 from IPython.utils.decorators import undoc
-from typing import Iterable, Tuple, Optional, TYPE_CHECKING
+from typing import Tuple, Optional, TYPE_CHECKING
+from collections.abc import Iterable
 import typing
 from warnings import warn
 from weakref import ref, WeakSet
@@ -1058,7 +1059,7 @@ class HistoryManager(HistoryAccessor):
                 self.db_output_cache = []
 
 
-from typing import Callable, Iterator
+from collections.abc import Callable, Iterator
 from weakref import ReferenceType
 
 

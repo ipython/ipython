@@ -3,19 +3,18 @@ from inspect import isclass, signature, Signature, getmodule
 from typing import (
     Annotated,
     AnyStr,
-    Callable,
     Literal,
     NamedTuple,
     NewType,
     Optional,
     Protocol,
-    Sequence,
     TypeGuard,
     Union,
     get_args,
     get_origin,
     is_typeddict,
 )
+from collections.abc import Callable, Sequence
 import ast
 import builtins
 import collections
