@@ -139,6 +139,17 @@ ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
 module = [
+    "IPython.core.magic",
+]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = false
+disallow_untyped_decorators = true
+disallow_untyped_defs = false
+ignore_errors = false
+ignore_missing_imports = false
+[[tool.mypy.overrides]]
+module = [
     "IPython.core.ultratb",
 ]
 check_untyped_defs = true
@@ -209,7 +220,6 @@ module = [
     "IPython.core.inputtransformer2",
     "IPython.core.logger",
     "IPython.core.macro",
-    "IPython.core.magic",
     "IPython.core.magic_arguments",
     "IPython.core.magics.ast_mod",
     "IPython.core.magics.auto",
