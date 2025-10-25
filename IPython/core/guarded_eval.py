@@ -966,30 +966,45 @@ def _merge_values(values, policy: EvaluationPolicy):
 
     types = {type(v) for v in values}
     merged_items = None
+    key_values = {}
+    for v in values:
+        if policy.can_get_item(v, None):
+            try:
+                for k, val in v.items():
+                    key_values.setdefault(k, []).append(val)
+            except Exception as e:
+                pass
+        elif policy.can_call(v.keys):
+            try:
+                for k in v.keys():
+                    key_values.setdefault(k, []).append(None)
+            except Exception as e:
+                pass
 
-    if dict in types:
-        key_values = {}
-        for v in values:
-            if type(v) is not dict:
-                continue
-            for k, val in v.items():
-                key_values.setdefault(k, []).append(val)
-
+    if key_values:
         merged_items = {
-            k: _merge_values(vals, policy) for k, vals in key_values.items()
+            k: _merge_values(vals, policy) if vals[0] is not None else None
+            for k, vals in key_values.items()
         }
 
     if len(types) == 1:
         t = next(iter(types))
-        if t is not dict:
+        if t not in (dict,) and not (
+            hasattr(next(iter(values)), "__getitem__")
+            and (
+                hasattr(next(iter(values)), "items")
+                or hasattr(next(iter(values)), "keys")
+            )
+        ):
             if t in (list, set, tuple):
-                return t()
+                return t
             return values[0]
 
     attributes = set()
     for v in values:
         if policy.can_call(v.__dir__):
             attributes.update(dir(v))
+
     return _Duck(attributes=dict.fromkeys(attributes), items=merged_items)
 
 
