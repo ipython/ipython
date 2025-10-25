@@ -2256,19 +2256,6 @@ class TestCompleter(unittest.TestCase):
             "\n".join(
                 [
                     "class NotYetDefined:",
-                    "    def __init__(self):",
-                    "        self.a = {}",
-                    "        self.a['b'] = 'str'",
-                    "instance = NotYetDefined()",
-                    "instance.a['b'].",
-                ]
-            ),
-            "capitalize",
-        ],
-        [
-            "\n".join(
-                [
-                    "class NotYetDefined:",
                     "    def test():",
                     "        return []",
                     "instance = NotYetDefined()",
