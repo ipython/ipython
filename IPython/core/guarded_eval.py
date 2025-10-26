@@ -942,7 +942,7 @@ def _merge_values(values, policy: EvaluationPolicy):
         if policy.can_call(v.__dir__):
             attributes.update(dir(v))
         try:
-            if policy.can_get_item(v, None):
+            if policy.can_call(v.items):
                 try:
                     for k, val in v.items():
                         key_values.setdefault(k, []).append(val)
