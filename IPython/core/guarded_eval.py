@@ -938,18 +938,21 @@ def _merge_values(values, policy: EvaluationPolicy):
     merged_items = None
     key_values = {}
     for v in values:
-        if hasattr(v, "items") and policy.can_get_item(v, None):
-            try:
-                for k, val in v.items():
-                    key_values.setdefault(k, []).append(val)
-            except Exception as e:
-                pass
-        elif hasattr(v, "keys") and policy.can_call(v.keys):
-            try:
-                for k in v.keys():
-                    key_values.setdefault(k, []).append(None)
-            except Exception as e:
-                pass
+        try:
+            if policy.can_get_item(v, None):
+                try:
+                    for k, val in v.items():
+                        key_values.setdefault(k, []).append(val)
+                except Exception as e:
+                    pass
+            elif policy.can_call(v.keys):
+                try:
+                    for k in v.keys():
+                        key_values.setdefault(k, []).append(None)
+                except Exception as e:
+                    pass
+        except Exception as e:
+            pass
 
     if key_values:
         merged_items = {
