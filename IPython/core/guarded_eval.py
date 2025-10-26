@@ -560,6 +560,7 @@ def _validate_policy_overrides(
 def _handle_assign(node: ast.Assign, context: EvaluationContext):
     value = eval_node(node.value, context)
     transient_locals = context.transient_locals
+    policy = get_policy(context)
     for target in node.targets:
         if isinstance(target, (ast.Tuple, ast.List)):
             # Handle unpacking assignment
@@ -586,6 +587,22 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                     transient_locals[targets[i].id] = values[
                         len(values) - (len(targets) - i)
                     ]
+        elif isinstance(target, ast.Subscript):
+            if isinstance(target.value, ast.Name):
+                name = target.value.id
+                container = transient_locals.get(name)
+                if container is None:
+                    container = context.locals.get(name)
+                if container is None:
+                    container = context.globals.get(name)
+                if container is None:
+                    raise NameError(
+                        f"{name} not found in locals, globals, nor builtins"
+                    )
+
+                key = eval_node(target.slice, context)
+                if policy.can_call(container.__setitem__):
+                    container[key] = value
         else:
             transient_locals[target.id] = value
     return None
@@ -1118,6 +1135,7 @@ ALLOWED_CALLS = {
     *_list_methods(collections.Counter, dict_non_mutating_methods),
     collections.Counter.elements,
     collections.Counter.most_common,
+    dict.__setitem__,
 }
 
 BUILTIN_GETATTR: set[MayHaveGetattr] = {
