@@ -2209,15 +2209,6 @@ class IPCompleter(Completer):
         """
         # TODO: add a heuristic for suppressing (e.g. if it has OS-specific delimiter,
         #  starts with `/home/`, `C:\`, etc)
-        last_line = context.full_text.split("\n")[-1]
-        text_before_token = last_line[: last_line.rfind(context.token)]
-
-        # Suppress path completion when completing methods/attributes
-        if text_before_token.endswith((")", "]")):
-            return {
-                "completions": [],
-                "suppress": True,
-            }
 
         text = context.token
 
@@ -2490,7 +2481,7 @@ class IPCompleter(Completer):
         return {
             "completions": matches,
             # static analysis should not suppress other matchers
-            "suppress": False,
+            "suppress": {_get_matcher_id(self.file_matcher)},
         }
 
     def _jedi_matches(
@@ -2750,12 +2741,16 @@ class IPCompleter(Completer):
                             is None
                         )
                     matches = filter(no__name, matches)
-                return _convert_matcher_v1_result_to_v2(
+                matches = _convert_matcher_v1_result_to_v2(
                     matches, type="attribute", fragment=fragment
                 )
+                matches["suppress"] = {_get_matcher_id(self.file_matcher)}
+                return matches
             except NameError:
                 # catches <undefined attributes>.<tab>
-                return SimpleMatcherResult(completions=[], suppress=False)
+                return SimpleMatcherResult(
+                    completions=[], suppress={_get_matcher_id(self.file_matcher)}
+                )
         else:
             try:
                 matches = self.global_matches(context.token, context=context)
@@ -2766,7 +2761,7 @@ class IPCompleter(Completer):
                 completions=[
                     SimpleCompletion(text=match, type="variable") for match in matches
                 ],
-                suppress=False,
+                suppress={_get_matcher_id(self.file_matcher)},
             )
 
     @completion_matcher(api_version=1)
