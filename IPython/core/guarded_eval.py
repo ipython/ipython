@@ -565,7 +565,6 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
     value = eval_node(node.value, context)
     transient_locals = context.transient_locals
     class_transients = context.class_transients
-    policy = get_policy(context)
     for target in node.targets:
         if isinstance(target, (ast.Tuple, ast.List)):
             # Handle unpacking assignment
@@ -736,7 +735,6 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         return None
     if isinstance(node, ast.ClassDef):
         # TODO support class decorators?
-        # class_locals = context.transient_locals.copy()
         class_locals = {}
         outer_locals = context.locals.copy()
         outer_locals.update(context.transient_locals)
