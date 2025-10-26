@@ -2121,6 +2121,14 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
                 "    return 1.1",
                 "my_test().",
             ]
+        ),
+        "\n".join(
+            [
+                "class MyClass():",
+                "    b: list[str]",
+                "x = MyClass()",
+                "x.b[0].",
+            ]
         )
     ],
 )
@@ -2129,12 +2137,13 @@ def test_no_file_completions_in_attr_access(code):
     with TemporaryWorkingDirectory():
         open(".hidden", "w", encoding="utf-8").close()
         offset = len(code)
-        with provisionalcompleter():
-            completions = list(ip.Completer.completions(text=code, offset=offset))
-            matches = [c for c in completions if c.text.lstrip(".") == "hidden"]
-            assert (
-                len(matches) == 0
-            ), f"File '.hidden' should not appear in attribute completion"
+        for use_jedi in (True, False):
+            with provisionalcompleter(), jedi_status(use_jedi):
+                completions = list(ip.Completer.completions(text=code, offset=offset))
+                matches = [c for c in completions if c.text.lstrip(".") == "hidden"]
+                assert (
+                    len(matches) == 0
+                ), f"File '.hidden' should not appear in attribute completion"
 
 
 @pytest.mark.parametrize(
