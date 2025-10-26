@@ -608,34 +608,6 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                         transient_locals[targets[i].id] = values[
                             len(values) - (len(targets) - i)
                         ]
-        elif isinstance(target, ast.Subscript):
-            if isinstance(target.value, ast.Name):
-                name = target.value.id
-                container = transient_locals.get(name)
-                if container is None:
-                    container = context.locals.get(name)
-                if container is None:
-                    container = context.globals.get(name)
-                if container is None:
-                    raise NameError(
-                        f"{name} not found in locals, globals, nor builtins"
-                    )
-
-                key = eval_node(target.slice, context)
-                if policy.can_call(container.__setitem__):
-                    container[key] = value
-
-            elif isinstance(
-                target.value, ast.Attribute
-            ) and _is_instance_attribute_assignment(target.value, context):
-                attr = target.value.attr
-                container = class_transients.get(attr, None)
-                if container is None:
-                    raise NameError(f"{attr} not found in class transients")
-
-                key = eval_node(target.slice, context)
-                if policy.can_call(container.__setitem__):
-                    container[key] = value
         elif _is_instance_attribute_assignment(target, context):
             class_transients[target.attr] = value
         else:
@@ -1320,7 +1292,6 @@ ALLOWED_CALLS = {
     collections.Counter.most_common,
     object.__dir__,
     type.__dir__,
-    dict.__setitem__,
 }
 
 BUILTIN_GETATTR: set[MayHaveGetattr] = {

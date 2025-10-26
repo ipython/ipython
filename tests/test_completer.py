@@ -2243,18 +2243,6 @@ class TestCompleter(unittest.TestCase):
         [
             "\n".join(
                 [
-                    "def test():",
-                    "   a = {}",
-                    "   a['b'] = []",
-                    "   return a",
-                    "test()['b'].",
-                ]
-            ),
-            "append",
-        ],
-        [
-            "\n".join(
-                [
                     "class NotYetDefined:",
                     "    def test():",
                     "        return []",
