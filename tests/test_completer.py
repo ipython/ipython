@@ -2129,7 +2129,7 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
                 "x = MyClass()",
                 "x.b[0].",
             ]
-        )
+        ),
     ],
 )
 def test_no_file_completions_in_attr_access(code):
