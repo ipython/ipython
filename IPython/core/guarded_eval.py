@@ -601,8 +601,22 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                     )
 
                 key = eval_node(target.slice, context)
-                if policy.can_call(container.__setitem__):
-                    container[key] = value
+                attributes = (
+                    dict.fromkeys(dir(container))
+                    if policy.can_call(container.__dir__)
+                    else {}
+                )
+                items = {}
+
+                if policy.can_get_item(container, None):
+                    try:
+                        items = dict(container.items())
+                    except Exception:
+                        pass
+
+                items[key] = value
+                duck_container = _Duck(attributes=attributes, items=items)
+                transient_locals[name] = duck_container
         else:
             transient_locals[target.id] = value
     return None
@@ -1135,7 +1149,8 @@ ALLOWED_CALLS = {
     *_list_methods(collections.Counter, dict_non_mutating_methods),
     collections.Counter.elements,
     collections.Counter.most_common,
-    dict.__setitem__,
+    object.__dir__,
+    type.__dir__,
 }
 
 BUILTIN_GETATTR: set[MayHaveGetattr] = {
