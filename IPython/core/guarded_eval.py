@@ -937,7 +937,10 @@ def _merge_values(values, policy: EvaluationPolicy):
     types = {type(v) for v in values}
     merged_items = None
     key_values = {}
+    attributes = set()
     for v in values:
+        if policy.can_call(v.__dir__):
+            attributes.update(dir(v))
         try:
             if policy.can_get_item(v, None):
                 try:
@@ -972,11 +975,6 @@ def _merge_values(values, policy: EvaluationPolicy):
             if t in (list, set, tuple):
                 return t
             return values[0]
-
-    attributes = set()
-    for v in values:
-        if policy.can_call(v.__dir__):
-            attributes.update(dir(v))
 
     return _Duck(attributes=dict.fromkeys(attributes), items=merged_items)
 
