@@ -564,6 +564,7 @@ def _validate_policy_overrides(
 def _handle_assign(node: ast.Assign, context: EvaluationContext):
     value = eval_node(node.value, context)
     transient_locals = context.transient_locals
+    policy = get_policy(context)
     class_transients = context.class_transients
     for target in node.targets:
         if isinstance(target, (ast.Tuple, ast.List)):
@@ -607,6 +608,49 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                         transient_locals[targets[i].id] = values[
                             len(values) - (len(targets) - i)
                         ]
+        elif isinstance(target, ast.Subscript):
+            if isinstance(target.value, ast.Name):
+                name = target.value.id
+                container = transient_locals.get(name)
+                if container is None:
+                    container = context.locals.get(name)
+                if container is None:
+                    container = context.globals.get(name)
+                if container is None:
+                    raise NameError(
+                        f"{name} not found in locals, globals, nor builtins"
+                    )
+                storage_dict = transient_locals
+                storage_key = name
+            elif isinstance(
+                target.value, ast.Attribute
+            ) and _is_instance_attribute_assignment(target.value, context):
+                attr = target.value.attr
+                container = class_transients.get(attr, None)
+                if container is None:
+                    raise NameError(f"{attr} not found in class transients")
+                storage_dict = class_transients
+                storage_key = attr
+            else:
+                return
+
+            key = eval_node(target.slice, context)
+            attributes = (
+                dict.fromkeys(dir(container))
+                if policy.can_call(container.__dir__)
+                else {}
+            )
+            items = {}
+
+            if policy.can_get_item(container, None):
+                try:
+                    items = dict(container.items())
+                except Exception:
+                    pass
+
+            items[key] = value
+            duck_container = _Duck(attributes=attributes, items=items)
+            storage_dict[storage_key] = duck_container
         elif _is_instance_attribute_assignment(target, context):
             class_transients[target.attr] = value
         else:

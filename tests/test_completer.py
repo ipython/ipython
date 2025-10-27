@@ -2145,6 +2145,26 @@ class TestCompleter(unittest.TestCase):
         [
             "\n".join(
                 [
+                    "num = {1: 'one'}",
+                    "num[2] = 'two'",
+                    "num.",
+                ]
+            ),
+            "keys",
+        ],
+        [
+            "\n".join(
+                [
+                    "num = {1: 'one'}",
+                    "num[2] = ['two']",
+                    "num[2].",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
                     "l = []",
                     "class NotYetDefined:",
                     "    def my_method(self):",
