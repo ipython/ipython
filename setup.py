@@ -118,12 +118,20 @@ setup_args['data_files'] = data_files
 #---------------------------------------------------------------------------
 # imports here, so they are after setuptools import if there was one
 from setuptools.command.sdist import sdist
+from mypyc.build import mypycify
 
 setup_args['cmdclass'] = {
     'build_py': \
             check_package_data_first(git_prebuild('IPython')),
     'sdist' : git_prebuild('IPython', sdist),
 }
+
+setup_args["ext_modules"] = mypycify(
+    [
+        "IPython/core/compilerop.py",
+    ]
+)
+
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
