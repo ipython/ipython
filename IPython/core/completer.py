@@ -2481,7 +2481,7 @@ class IPCompleter(Completer):
         return {
             "completions": matches,
             # static analysis should not suppress other matchers
-            "suppress": {_get_matcher_id(self.file_matcher)},
+            "suppress": {_get_matcher_id(self.file_matcher)} if matches else False,
         }
 
     def _jedi_matches(
