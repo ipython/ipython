@@ -2749,7 +2749,7 @@ class IPCompleter(Completer):
                 return matches
             except NameError:
                 # catches <undefined attributes>.<tab>
-                matches = SimpleMatcherResult(completions=[], suppress=False)
+                return SimpleMatcherResult(completions=[], suppress=False)
         else:
             try:
                 matches = self.global_matches(context.token, context=context)
