@@ -620,24 +620,37 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
                     raise NameError(
                         f"{name} not found in locals, globals, nor builtins"
                     )
+                storage_dict = transient_locals
+                storage_key = name
+            elif isinstance(
+                target.value, ast.Attribute
+            ) and _is_instance_attribute_assignment(target.value, context):
+                attr = target.value.attr
+                container = class_transients.get(attr, None)
+                if container is None:
+                    raise NameError(f"{attr} not found in class transients")
+                storage_dict = class_transients
+                storage_key = attr
+            else:
+                return
 
-                key = eval_node(target.slice, context)
-                attributes = (
-                    dict.fromkeys(dir(container))
-                    if policy.can_call(container.__dir__)
-                    else {}
-                )
-                items = {}
+            key = eval_node(target.slice, context)
+            attributes = (
+                dict.fromkeys(dir(container))
+                if policy.can_call(container.__dir__)
+                else {}
+            )
+            items = {}
 
-                if policy.can_get_item(container, None):
-                    try:
-                        items = dict(container.items())
-                    except Exception:
-                        pass
+            if policy.can_get_item(container, None):
+                try:
+                    items = dict(container.items())
+                except Exception:
+                    pass
 
-                items[key] = value
-                duck_container = _Duck(attributes=attributes, items=items)
-                transient_locals[name] = duck_container
+            items[key] = value
+            duck_container = _Duck(attributes=attributes, items=items)
+            storage_dict[storage_key] = duck_container
         elif _is_instance_attribute_assignment(target, context):
             class_transients[target.attr] = value
         else:

@@ -2124,6 +2124,27 @@ class TestCompleter(unittest.TestCase):
         [
             "\n".join(
                 [
+                    "def my_test():",
+                    "    return {}",
+                    "my_test().",
+                ]
+            ),
+            "keys",
+        ],
+        [
+            "\n".join(
+                [
+                    "l = []",
+                    "def my_test():",
+                    "    return l",
+                    "my_test().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
                     "num = {1: 'one'}",
                     "num[2] = 'two'",
                     "num.",
@@ -2134,9 +2155,9 @@ class TestCompleter(unittest.TestCase):
         [
             "\n".join(
                 [
-                    "test = {1: 'one'}",
-                    "test[2] = ['two']",
-                    "test[2].",
+                    "num = {1: 'one'}",
+                    "num[2] = ['two']",
+                    "num[2].",
                 ]
             ),
             "append",
