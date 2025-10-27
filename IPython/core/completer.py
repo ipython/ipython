@@ -2744,13 +2744,12 @@ class IPCompleter(Completer):
                 matches = _convert_matcher_v1_result_to_v2(
                     matches, type="attribute", fragment=fragment
                 )
-                matches["suppress"] = {_get_matcher_id(self.file_matcher)}
+                if matches["completions"]:
+                    matches["suppress"] = {_get_matcher_id(self.file_matcher)}
                 return matches
             except NameError:
                 # catches <undefined attributes>.<tab>
-                return SimpleMatcherResult(
-                    completions=[], suppress={_get_matcher_id(self.file_matcher)}
-                )
+                matches = SimpleMatcherResult(completions=[], suppress=False)
         else:
             try:
                 matches = self.global_matches(context.token, context=context)
@@ -2761,7 +2760,7 @@ class IPCompleter(Completer):
                 completions=[
                     SimpleCompletion(text=match, type="variable") for match in matches
                 ],
-                suppress={_get_matcher_id(self.file_matcher)},
+                suppress=False,
             )
 
     @completion_matcher(api_version=1)
