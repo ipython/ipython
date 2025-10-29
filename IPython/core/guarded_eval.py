@@ -779,6 +779,13 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         dummy_function.__is_async__ = is_async
         context.transient_locals[node.name] = dummy_function
         return None
+    if isinstance(node, ast.Lambda):
+
+        def dummy_function(*args, **kwargs):
+            pass
+
+        dummy_function.__inferred_return__ = eval_node(node.body, context)
+        return dummy_function
     if isinstance(node, ast.ClassDef):
         # TODO support class decorators?
         class_locals = {}
@@ -961,7 +968,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 return overridden_return_type
             return _create_duck_for_heap_type(func)
         else:
-            inferred_return = getattr(func, "__inferred_return__", None)
+            inferred_return = getattr(func, "__inferred_return__", NOT_EVALUATED)
             return_type = _eval_return_type(func, node, context)
             if getattr(func, "__is_async__", False):
                 awaited_type = (
@@ -970,7 +977,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 coroutine_duck = ImpersonatingDuck()
                 coroutine_duck.__awaited_type__ = awaited_type
                 return coroutine_duck
-            if inferred_return:
+            if inferred_return is not NOT_EVALUATED:
                 return inferred_return
             if return_type is not NOT_EVALUATED:
                 return return_type
