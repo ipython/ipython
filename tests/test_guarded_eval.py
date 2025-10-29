@@ -562,6 +562,15 @@ def test_mocks_items_of_call_results(data, code, expected_items):
             ),
             list,
         ],
+        [
+            "\n".join(
+                [
+                    "make_list = lambda:[]",
+                    "make_list()",
+                ]
+            ),
+            list,
+        ],
     ],
 )
 def test_mock_class_and_func_instances(code, expected):
