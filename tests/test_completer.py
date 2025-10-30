@@ -2080,6 +2080,31 @@ class TestCompleter(unittest.TestCase):
         [
             "\n".join(
                 [
+                    "class NotYetDefined:",
+                    "    def my_method(self):",
+                    "        return []",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_method().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    @property",
+                    "    def my_property(self):",
+                    "        return 1.1",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_property.",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
+        [
+            "\n".join(
+                [
                     "my_instance = 1.1",
                     "assert my_instance.",
                 ]
@@ -2096,6 +2121,201 @@ class TestCompleter(unittest.TestCase):
             ),
             "as_integer_ratio",
         ],
+        [
+            "\n".join(
+                [
+                    "def my_test():",
+                    "    return {}",
+                    "my_test().",
+                ]
+            ),
+            "keys",
+        ],
+        [
+            "\n".join(
+                [
+                    "l = []",
+                    "def my_test():",
+                    "    return l",
+                    "my_test().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "num = {1: 'one'}",
+                    "num[2] = 'two'",
+                    "num.",
+                ]
+            ),
+            "keys",
+        ],
+        [
+            "\n".join(
+                [
+                    "num = {1: 'one'}",
+                    "num[2] = ['two']",
+                    "num[2].",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "l = []",
+                    "class NotYetDefined:",
+                    "    def my_method(self):",
+                    "        return l",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_method().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "def string_or_int(flag):",
+                    "    if flag:",
+                    "        return 'test'",
+                    "    return 1",
+                    "string_or_int().",
+                ]
+            ),
+            ["capitalize", "as_integer_ratio"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def foo():",
+                    "    l = []",
+                    "    return l",
+                    "foo().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def __init__(self):",
+                    "        self.test = []",
+                    "instance = NotYetDefined()",
+                    "instance.",
+                ]
+            ),
+            "test",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def __init__(instance):",
+                    "        instance.test = []",
+                    "instance = NotYetDefined()",
+                    "instance.test.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def __init__(this):",
+                    "        this.test:str = []",
+                    "instance = NotYetDefined()",
+                    "instance.test.",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "l = []",
+                    "class NotYetDefined:",
+                    "    def __init__(me):",
+                    "        me.test = l",
+                    "instance = NotYetDefined()",
+                    "instance.test.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def test(self):",
+                    "        self.l = []",
+                    "        return self.l",
+                    "instance = NotYetDefined()",
+                    "instance.test().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def test():",
+                    "        return []",
+                    "instance = NotYetDefined()",
+                    "instance.test().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "def foo():",
+                    "    if some_condition:",
+                    "        return {'top':{'mid':{'leaf': 2}}}",
+                    "    return {'top': {'mid':[]}}",
+                    "foo()['top']['mid'].",
+                ]
+            ),
+            ["keys", "append"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def foo():",
+                    "    if some_condition:",
+                    "        return {'top':{'mid':{'leaf': 2}}}",
+                    "    return {'top': {'mid':[]}}",
+                    "foo()['top']['mid']['leaf'].",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
+        [
+            "\n".join(
+                [
+                    "async def async_func():",
+                    "    return []",
+                    "async_func().",
+                ]
+            ),
+            "cr_await",
+        ],
+        [
+            "\n".join(
+                [
+                    "async def async_func():",
+                    "    return []",
+                    "(await async_func()).",
+                ]
+            ),
+            "append",
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):
@@ -2105,11 +2325,11 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
 
     with provisionalcompleter():
         completions = list(ip.Completer.completions(text=code, offset=offset))
-        match = [c for c in completions if c.text.lstrip(".") == insert_text]
-        message_on_fail = (
-            f"{insert_text} not found among {[c.text for c in completions]}"
-        )
-        assert len(match) == 1, message_on_fail
+        insert_texts = insert_text if isinstance(insert_text, list) else [insert_text]
+        for text in insert_texts:
+            match = [c for c in completions if c.text.lstrip(".") == text]
+            message_on_fail = f"{text} not found among {[c.text for c in completions]}"
+            assert len(match) == 1, message_on_fail
 
 
 @pytest.mark.parametrize(

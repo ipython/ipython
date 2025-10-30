@@ -552,6 +552,25 @@ def test_mocks_items_of_call_results(data, code, expected_items):
             ),
             str,
         ],
+        [
+            "\n".join(
+                [
+                    "async def async_func():",
+                    "    return []",
+                    "(await async_func())",
+                ]
+            ),
+            list,
+        ],
+        [
+            "\n".join(
+                [
+                    "make_list = lambda:[]",
+                    "make_list()",
+                ]
+            ),
+            list,
+        ],
     ],
 )
 def test_mock_class_and_func_instances(code, expected):

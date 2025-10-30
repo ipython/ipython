@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.2"]
+requires = ["setuptools>=70.0"]
 # We need access to the 'setupbase' module at build time.
 # Hence we declare a custom build backend.
 build-backend = "_build_meta"  # just re-exports setuptools.build_meta definitions
@@ -61,10 +61,10 @@ doc = [
     "intersphinx_registry",
     "ipykernel",
     "ipython[test,matplotlib]",
-    "setuptools>=61.2",
+    "setuptools>=70.0",
     "sphinx_toml==0.0.4",
     "sphinx-rtd-theme>=0.1.8", # wheel
-    "sphinx>=1.3",
+    "sphinx>=8.0",
     "typing_extensions",
 ]
 test = [
@@ -82,12 +82,12 @@ test_extra = [
     "nbformat",
     "nbclient",
     "ipykernel>6.30",
-    "numpy>=1.25",
-    "pandas>2.0",
+    "numpy>=1.27",
+    "pandas>2.1",
     "trio>=0.1.0", # wheel
 ]
 matplotlib = [
-   "matplotlib>3.7"
+   "matplotlib>3.9"
 ]
 all = [
     "ipython[doc,matplotlib,test,test_extra]",
