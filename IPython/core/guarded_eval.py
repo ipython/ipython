@@ -685,6 +685,17 @@ def _is_instance_attribute_assignment(
     )
 
 
+def _get_coroutine_attributes() -> dict[str, Optional[object]]:
+    async def _dummy():
+        return None
+
+    coro = _dummy()
+    try:
+        return {attr: getattr(coro, attr, None) for attr in dir(coro)}
+    finally:
+        coro.close()
+
+
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     """Evaluate AST node in provided context.
 
@@ -721,7 +732,8 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         for child_node in node.body:
             result = eval_node(child_node, context)
         return result
-    if isinstance(node, ast.FunctionDef):
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        is_async = isinstance(node, ast.AsyncFunctionDef)
         func_locals = context.transient_locals.copy()
         func_context = context.replace(transient_locals=func_locals)
         is_property = False
@@ -775,8 +787,16 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
         dummy_function.__name__ = node.name
         dummy_function.__node__ = node
+        dummy_function.__is_async__ = is_async
         context.transient_locals[node.name] = dummy_function
         return None
+    if isinstance(node, ast.Lambda):
+
+        def dummy_function(*args, **kwargs):
+            pass
+
+        dummy_function.__inferred_return__ = eval_node(node.body, context)
+        return dummy_function
     if isinstance(node, ast.ClassDef):
         # TODO support class decorators?
         class_locals = {}
@@ -792,6 +812,11 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         dummy_class = type(node.name, bases, class_locals)
         context.transient_locals[node.name] = dummy_class
         return None
+    if isinstance(node, ast.Await):
+        value = eval_node(node.value, context)
+        if hasattr(value, "__awaited_type__"):
+            return value.__awaited_type__
+        return value
     if isinstance(node, ast.Assign):
         return _handle_assign(node, context)
     if isinstance(node, ast.AnnAssign):
@@ -954,9 +979,17 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 return overridden_return_type
             return _create_duck_for_heap_type(func)
         else:
-            if hasattr(func, "__inferred_return__"):
-                return func.__inferred_return__
+            inferred_return = getattr(func, "__inferred_return__", NOT_EVALUATED)
             return_type = _eval_return_type(func, node, context)
+            if getattr(func, "__is_async__", False):
+                awaited_type = (
+                    inferred_return if inferred_return is not None else return_type
+                )
+                coroutine_duck = _Duck(attributes=_get_coroutine_attributes())
+                coroutine_duck.__awaited_type__ = awaited_type
+                return coroutine_duck
+            if inferred_return is not NOT_EVALUATED:
+                return inferred_return
             if return_type is not NOT_EVALUATED:
                 return return_type
         raise GuardRejection(
