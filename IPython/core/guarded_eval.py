@@ -685,6 +685,16 @@ def _is_instance_attribute_assignment(
     )
 
 
+def _get_coroutine_attributes() -> dict[str, Optional[object]]:
+    async def _dummy():
+        return None
+
+    coro = _dummy()
+    try:
+        return {attr: getattr(coro, attr, None) for attr in dir(coro)}
+    finally:
+        coro.close()
+
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     """Evaluate AST node in provided context.
 
@@ -974,7 +984,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 awaited_type = (
                     inferred_return if inferred_return is not None else return_type
                 )
-                coroutine_duck = ImpersonatingDuck()
+                coroutine_duck = _Duck(attributes=_get_coroutine_attributes())
                 coroutine_duck.__awaited_type__ = awaited_type
                 return coroutine_duck
             if inferred_return is not NOT_EVALUATED:
