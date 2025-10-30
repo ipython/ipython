@@ -695,6 +695,7 @@ def _get_coroutine_attributes() -> dict[str, Optional[object]]:
     finally:
         coro.close()
 
+
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     """Evaluate AST node in provided context.
 
