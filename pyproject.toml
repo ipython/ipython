@@ -23,7 +23,7 @@ license = "BSD-3-Clause"
 license-files = ["LICENSE", "COPYING.rst"]
 requires-python = ">=3.11"
 dependencies = [
-    'colorama>=0.4.4; sys_platform == "win32"', # lower bound is pure guess (not checked)
+    'colorama>=0.4.4; sys_platform == "win32"',
     "decorator>=4.3.2", # wheel
     "ipython-pygments-lexers>=1.0.0",
     "jedi>=0.17.0",
