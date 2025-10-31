@@ -817,6 +817,86 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         if hasattr(value, "__awaited_type__"):
             return value.__awaited_type__
         return value
+    if isinstance(node, ast.While):
+        loop_locals = context.transient_locals.copy()
+        loop_context = context.replace(transient_locals=loop_locals)
+
+        result = None
+        for stmt in node.body:
+            result = eval_node(stmt, loop_context)
+
+        policy = get_policy(context)
+        merged_locals = _merge_dicts_by_key(
+            [loop_locals, context.transient_locals.copy()], policy
+        )
+        context.transient_locals.update(merged_locals)
+
+        return result
+    if isinstance(node, ast.For):
+        try:
+            iterable = eval_node(node.iter, context)
+        except Exception:
+            iterable = None
+
+        sample = None
+        if iterable is not None:
+            try:
+                if policy.can_call(getattr(iterable, "__iter__", None)):
+                    sample = next(iter(iterable))
+            except Exception:
+                sample = None
+
+        loop_locals = context.transient_locals.copy()
+        loop_context = context.replace(transient_locals=loop_locals)
+
+        if sample is not None:
+            try:
+                fake_assign = ast.Assign(
+                    targets=[node.target], value=ast.Constant(value=sample)
+                )
+                _handle_assign(fake_assign, loop_context)
+            except Exception:
+                pass
+
+        result = None
+        for stmt in node.body:
+            result = eval_node(stmt, loop_context)
+
+        policy = get_policy(context)
+        merged_locals = _merge_dicts_by_key(
+            [loop_locals, context.transient_locals.copy()], policy
+        )
+        context.transient_locals.update(merged_locals)
+
+        return result
+    if isinstance(node, ast.If):
+        branches = []
+        current = node
+        result = None
+        while True:
+            branch_locals = context.transient_locals.copy()
+            branch_context = context.replace(transient_locals=branch_locals)
+            for stmt in current.body:
+                result = eval_node(stmt, branch_context)
+            branches.append(branch_locals)
+            if not current.orelse:
+                break
+            elif len(current.orelse) == 1 and isinstance(current.orelse[0], ast.If):
+                # It's an elif - continue loop
+                current = current.orelse[0]
+            else:
+                # It's an else block - process and break
+                else_locals = context.transient_locals.copy()
+                else_context = context.replace(transient_locals=else_locals)
+                for stmt in current.orelse:
+                    result = eval_node(stmt, else_context)
+                branches.append(else_locals)
+                break
+        branches.append(context.transient_locals.copy())
+        policy = get_policy(context)
+        merged_locals = _merge_dicts_by_key(branches, policy)
+        context.transient_locals.update(merged_locals)
+        return result
     if isinstance(node, ast.Assign):
         return _handle_assign(node, context)
     if isinstance(node, ast.AnnAssign):
@@ -1004,6 +1084,24 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             return eval_node(node.msg, context)
         return eval_node(node.test, context)
     return None
+
+
+def _merge_dicts_by_key(dicts: list, policy: EvaluationPolicy):
+    """Merge multiple dictionaries, combining values for each key."""
+    if len(dicts) == 1:
+        return dicts[0]
+
+    all_keys = set()
+    for d in dicts:
+        all_keys.update(d.keys())
+
+    merged = {}
+    for key in all_keys:
+        values = [d[key] for d in dicts if key in d]
+        if values:
+            merged[key] = _merge_values(values, policy)
+
+    return merged
 
 
 def _merge_values(values, policy: EvaluationPolicy):
@@ -1326,48 +1424,69 @@ set_non_mutating_methods = set(dir(set)) & set(dir(frozenset))
 
 
 dict_keys: type[collections.abc.KeysView] = type({}.keys())
+dict_values: type = type({}.values())
+dict_items: type = type({}.items())
 
 NUMERICS = {int, float, complex}
 
 ALLOWED_CALLS = {
     bytes,
     *_list_methods(bytes),
+    bytes.__iter__,
     dict,
     *_list_methods(dict, dict_non_mutating_methods),
+    dict.__iter__,
+    dict_keys.__iter__,
+    dict_values.__iter__,
+    dict_items.__iter__,
     dict_keys.isdisjoint,
     list,
     *_list_methods(list, list_non_mutating_methods),
+    list.__iter__,
     set,
     *_list_methods(set, set_non_mutating_methods),
+    set.__iter__,
     frozenset,
     *_list_methods(frozenset),
+    frozenset.__iter__,
     range,
+    range.__iter__,
     str,
     *_list_methods(str),
+    str.__iter__,
     tuple,
     *_list_methods(tuple),
+    tuple.__iter__,
     bool,
     *_list_methods(bool),
     *NUMERICS,
     *[method for numeric_cls in NUMERICS for method in _list_methods(numeric_cls)],
     collections.deque,
     *_list_methods(collections.deque, list_non_mutating_methods),
+    collections.deque.__iter__,
     collections.defaultdict,
     *_list_methods(collections.defaultdict, dict_non_mutating_methods),
+    collections.defaultdict.__iter__,
     collections.OrderedDict,
     *_list_methods(collections.OrderedDict, dict_non_mutating_methods),
+    collections.OrderedDict.__iter__,
     collections.UserDict,
     *_list_methods(collections.UserDict, dict_non_mutating_methods),
+    collections.UserDict.__iter__,
     collections.UserList,
     *_list_methods(collections.UserList, list_non_mutating_methods),
+    collections.UserList.__iter__,
     collections.UserString,
     *_list_methods(collections.UserString, dir(str)),
+    collections.UserString.__iter__,
     collections.Counter,
     *_list_methods(collections.Counter, dict_non_mutating_methods),
+    collections.Counter.__iter__,
     collections.Counter.elements,
     collections.Counter.most_common,
     object.__dir__,
     type.__dir__,
+    _Duck.__dir__,
 }
 
 BUILTIN_GETATTR: set[MayHaveGetattr] = {
