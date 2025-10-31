@@ -2430,6 +2430,89 @@ class TestCompleter(unittest.TestCase):
             ),
             ["append", "capitalize"],
         ],
+        [
+            "\n".join(
+                [
+                    "for i in range(10):",
+                    "    i.",
+                ]
+            ),
+            "bit_length",
+        ],
+        [
+            "\n".join(
+                [
+                    "for i in range(10):",
+                    "    if i % 2 == 0:",
+                    "        i.",
+                ]
+            ),
+            "bit_length",
+        ],
+        [
+            "\n".join(
+                [
+                    "for item in ['a', 'b', 'c']:",
+                    "    item.",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "for key, value in {'a': 1, 'b': 2}.items():",
+                    "    key.",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "for key, value in {'a': 1, 'b': 2}.items():",
+                    "    value.",
+                ]
+            ),
+            "bit_length",
+        ],
+        [
+            "\n".join(
+                [
+                    "for sublist in [[1, 2], [3, 4]]:",
+                    "    sublist.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "for sublist in [[1, 2], [3, 4]]:",
+                    "    for item in sublist:",
+                    "        item.",
+                ]
+            ),
+            "bit_length",
+        ],
+        [
+            "\n".join(
+                [
+                    "for i, char in enumerate('hello'):",
+                    "    char.",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "for i, char in enumerate('hello'):",
+                    "    i.",
+                ]
+            ),
+            "bit_length",
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):

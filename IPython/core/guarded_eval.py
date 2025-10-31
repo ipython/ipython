@@ -838,21 +838,25 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         except:
             iterable = None
 
-        loop_var_value = None
+        sample = None
         if iterable is not None:
             try:
-                if policy.can_call(iterable.__iter__):
-                    iterator = iter(iterable)
-                    loop_var_value = next(iterator)
-            except:
-                pass
+                if policy.can_call(getattr(iterable, "__iter__", None)):
+                    sample = next(iter(iterable))
+            except Exception:
+                sample = None
 
         loop_locals = context.transient_locals.copy()
-        if isinstance(node.target, ast.Name):
-            if loop_var_value is not None:
-                loop_locals[node.target.id] = loop_var_value
-
         loop_context = context.replace(transient_locals=loop_locals)
+
+        if sample is not None:
+            try:
+                fake_assign = ast.Assign(
+                    targets=[node.target], value=ast.Constant(value=sample)
+                )
+                _handle_assign(fake_assign, loop_context)
+            except:
+                pass
 
         result = None
         for stmt in node.body:
@@ -1419,44 +1423,69 @@ set_non_mutating_methods = set(dir(set)) & set(dir(frozenset))
 
 
 dict_keys: type[collections.abc.KeysView] = type({}.keys())
+dict_values: type = type({}.values())
+dict_items: type = type({}.items())
 
 NUMERICS = {int, float, complex}
 
 ALLOWED_CALLS = {
     bytes,
     *_list_methods(bytes),
+    bytes.__iter__,
     dict,
     *_list_methods(dict, dict_non_mutating_methods),
+    dict.__iter__,
+    dict.keys,
+    dict.values,
+    dict.items,
+    dict_keys.__iter__,
+    dict_values.__iter__,
+    dict_items.__iter__,
     dict_keys.isdisjoint,
     list,
     *_list_methods(list, list_non_mutating_methods),
+    list.__iter__,
     set,
     *_list_methods(set, set_non_mutating_methods),
+    set.__iter__,
     frozenset,
     *_list_methods(frozenset),
+    frozenset.__iter__,
     range,
+    range.__iter__,
     str,
     *_list_methods(str),
+    str.__iter__,
     tuple,
     *_list_methods(tuple),
+    tuple.__iter__,
     bool,
     *_list_methods(bool),
+    enumerate,
+    enumerate.__iter__,
     *NUMERICS,
     *[method for numeric_cls in NUMERICS for method in _list_methods(numeric_cls)],
     collections.deque,
     *_list_methods(collections.deque, list_non_mutating_methods),
+    collections.deque.__iter__,
     collections.defaultdict,
     *_list_methods(collections.defaultdict, dict_non_mutating_methods),
+    collections.defaultdict.__iter__,
     collections.OrderedDict,
     *_list_methods(collections.OrderedDict, dict_non_mutating_methods),
+    collections.OrderedDict.__iter__,
     collections.UserDict,
     *_list_methods(collections.UserDict, dict_non_mutating_methods),
+    collections.UserDict.__iter__,
     collections.UserList,
     *_list_methods(collections.UserList, list_non_mutating_methods),
+    collections.UserList.__iter__,
     collections.UserString,
     *_list_methods(collections.UserString, dir(str)),
+    collections.UserString.__iter__,
     collections.Counter,
     *_list_methods(collections.Counter, dict_non_mutating_methods),
+    collections.Counter.__iter__,
     collections.Counter.elements,
     collections.Counter.most_common,
     object.__dir__,
