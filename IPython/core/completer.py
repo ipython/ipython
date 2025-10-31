@@ -2481,7 +2481,7 @@ class IPCompleter(Completer):
         return {
             "completions": matches,
             # static analysis should not suppress other matchers
-            "suppress": False,
+            "suppress": {_get_matcher_id(self.file_matcher)} if matches else False,
         }
 
     def _jedi_matches(
@@ -2741,9 +2741,12 @@ class IPCompleter(Completer):
                             is None
                         )
                     matches = filter(no__name, matches)
-                return _convert_matcher_v1_result_to_v2(
+                matches = _convert_matcher_v1_result_to_v2(
                     matches, type="attribute", fragment=fragment
                 )
+                if matches["completions"]:
+                    matches["suppress"] = {_get_matcher_id(self.file_matcher)}
+                return matches
             except NameError:
                 # catches <undefined attributes>.<tab>
                 return SimpleMatcherResult(completions=[], suppress=False)
