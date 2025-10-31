@@ -76,7 +76,8 @@ import types
 import warnings
 from collections.abc import Sequence
 from types import TracebackType
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
+from collections.abc import Callable
 
 import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter

@@ -11,7 +11,8 @@ import signal
 import sys
 import warnings
 from dataclasses import dataclass
-from typing import Callable, Any, Optional, List
+from typing import Any, Optional, List
+from collections.abc import Callable
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.key_binding import KeyBindings

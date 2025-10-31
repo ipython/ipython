@@ -32,9 +32,10 @@ from contextlib import contextmanager
 from io import open as io_open
 from logging import error
 from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 from typing import List as ListType, Any as AnyType
-from typing import Literal, Optional, Sequence, Tuple
+from typing import Literal, Optional, Tuple
+from collections.abc import Sequence
 from warnings import warn
 
 from IPython.external.pickleshare import PickleShareDB

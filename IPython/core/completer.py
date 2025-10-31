@@ -201,17 +201,14 @@ from dataclasses import dataclass
 from functools import cached_property, partial
 from types import SimpleNamespace
 from typing import (
-    Iterable,
-    Iterator,
     Union,
     Any,
-    Sequence,
     Optional,
     TYPE_CHECKING,
-    Sized,
     TypeVar,
     Literal,
 )
+from collections.abc import Iterable, Iterator, Sequence, Sized
 
 from IPython.core.guarded_eval import (
     guarded_eval,
@@ -247,7 +244,8 @@ import __main__
 from typing import cast
 
 if sys.version_info < (3, 12):
-    from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
+    from typing_extensions import TypedDict, Protocol
+    from typing import NotRequired, TypeAlias, TypeGuard
 else:
     from typing import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 
