@@ -1103,6 +1103,7 @@ def _merge_dicts_by_key(dicts: list, policy: EvaluationPolicy):
 
     return merged
 
+
 def _merge_values(values, policy: EvaluationPolicy):
     """Recursively merge multiple values, combining attributes and dict items."""
     if len(values) == 1:
