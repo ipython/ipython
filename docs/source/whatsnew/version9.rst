@@ -63,7 +63,7 @@ For the plots to display when using the ``inline`` backend the ``c.DisplayFormat
 Tab completion now works on multi-line buffers with unevaluated code even when jedi is disabled.
 Additionally, completion works when writing code as an argument to ``%timeit`` and ``%debug``.
 
-As usual, you can find the full list of PRs on GitHub under `the 9.3
+As usual, you can find the full list of PRs on GitHub under `the 9.6
 <https://github.com/ipython/ipython/milestone/154?closed=1>`__ milestone.
 
 
@@ -106,7 +106,7 @@ A number of recent regressions were fixed:
 - standard output/error streaming of long text/logs is now as fast as in IPython 9.0
 - in the ``%whos`` magic handling of long strings and class objects that implement ``__len__`` was fixed.
 
-As usual, you can find the full list of PRs on GitHub under `the 9.3
+As usual, you can find the full list of PRs on GitHub under `the 9.5
 <https://github.com/ipython/ipython/milestone/153?closed=1>`__ milestone.
 
 
@@ -132,7 +132,7 @@ Previously the debugger (ipdb) evaluation of list comprehensions and generators 
 The ``%autoreload`` magic is now more reliable. The behaviour around decorators has been improved and `%autoreload 3` no longer imports all symbols when reloading the module, however, the heuristic used to determine which symbols to reload can sometimes lead to addition of imports from non-evaluated code branches, see `issue #14934 <https://github.com/ipython/ipython/issues/14934>`__.
 
 
-As usual, you can find the full list of PRs on GitHub under `the 9.3
+As usual, you can find the full list of PRs on GitHub under `the 9.4
 <https://github.com/ipython/ipython/milestone/151?closed=1>`__ milestone.
 
 
