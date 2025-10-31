@@ -2316,6 +2316,120 @@ class TestCompleter(unittest.TestCase):
             ),
             "append",
         ],
+        [
+            "\n".join(["t = []", "if some_condition:", "    t."]),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if some_condition:",
+                    "    t = 'string'",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if some_condition:",
+                    "    t = 'string'",
+                    "else:",
+                    "    t.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if some_condition:",
+                    "    t = 'string'",
+                    "else:",
+                    "    t = 1",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize", "as_integer_ratio"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if condition_1:",
+                    "    t = 'string'",
+                    "elif condition_2:",
+                    "    t = 1",
+                    "elif condition_3:",
+                    "    t.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if condition_1:",
+                    "    t = 'string'",
+                    "elif condition_2:",
+                    "    t = 1",
+                    "elif condition_3:",
+                    "    t = {}",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize", "as_integer_ratio", "keys"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if condition_1:",
+                    "    if condition_2:",
+                    "        t = 'nested'",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "a = []",
+                    "while condition:",
+                    "    a.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "while condition:",
+                    "    t = 'str'",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "while condition_1:",
+                    "    while condition_2:",
+                    "        t = 'str'",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize"],
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):
