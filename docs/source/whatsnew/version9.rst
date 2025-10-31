@@ -2,6 +2,44 @@
  9.x Series
 ============
 
+
+.. _version 9.7:
+
+IPython 9.7
+===========
+
+As ususal this new version of IPython brings a number of bugfixes:
+
+
+- :ghpull:`1512` Fix ``Exception.text`` may be None
+- :ghpull:`15007` Start Testign on free-threaded Python
+- :ghpull:`14784` Update min dependencies
+
+
+Gruvbox Dark Theme
+------------------
+
+Gruvbox Dark is now available as a terminal syntax theme for IPython.
+
+Respect PYTHONSAFEPATH
+----------------------
+
+IPython now respects the value of Python's flag ``sys.flags.safe_path``, a flag which is most often set by the ``PYTHONSAFEPATH`` environment variable. Setting this causes Python not to automatically include the current working directory in the sys.path.
+
+IPython can already be configured to do this via the ``--ignore_cwd`` command-line flag or by setting ``c.InteractiveShellApp.ignore_cwd=True``. Now, IPython can also be configured by setting ``PYTHONSAFEPATH=1`` or by calling python with ``-P``.
+
+The behavior of ``safe_path`` was described in `what's new in 3.11`_ and in `PyConfig docs`_.
+
+
+.. _what's new in 3.11: https://docs.python.org/3/whatsnew/3.11.html#whatsnew311-pythonsafepath
+.. _PyConfig docs: https://docs.python.org/3/c-api/init_config.html#c.PyConfig.safe_path
+
+
+
+As usual, you can find the full list of PRs on GitHub under `the 9.7
+<https://github.com/ipython/ipython/milestone/155?closed=1>`__ milestone.
+
+
 .. _version 9.6:
 
 IPython 9.6
@@ -24,6 +62,10 @@ For the plots to display when using the ``inline`` backend the ``c.DisplayFormat
 
 Tab completion now works on multi-line buffers with unevaluated code even when jedi is disabled.
 Additionally, completion works when writing code as an argument to ``%timeit`` and ``%debug``.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.3
+<https://github.com/ipython/ipython/milestone/154?closed=1>`__ milestone.
+
 
 .. _version 9.5:
 
@@ -64,6 +106,10 @@ A number of recent regressions were fixed:
 - standard output/error streaming of long text/logs is now as fast as in IPython 9.0
 - in the ``%whos`` magic handling of long strings and class objects that implement ``__len__`` was fixed.
 
+As usual, you can find the full list of PRs on GitHub under `the 9.3
+<https://github.com/ipython/ipython/milestone/153?closed=1>`__ milestone.
+
+
 .. _version 9.4:
 
 IPython 9.4
@@ -84,6 +130,12 @@ The ``--no-raise-error`` flag does not affect ``KeyboardInterrupt`` as this exce
 Previously the debugger (ipdb) evaluation of list comprehensions and generators could fail with ``NameError`` due to generator implementation detail in CPython. This was recently fixed in Python 3.13. Because IPython is often used for interactive debugging, this release includes a backport of that fix, providing users who cannot yet update from Python 3.11 or 3.12 with a smoother debugging experience.
 
 The ``%autoreload`` magic is now more reliable. The behaviour around decorators has been improved and `%autoreload 3` no longer imports all symbols when reloading the module, however, the heuristic used to determine which symbols to reload can sometimes lead to addition of imports from non-evaluated code branches, see `issue #14934 <https://github.com/ipython/ipython/issues/14934>`__.
+
+
+As usual, you can find the full list of PRs on GitHub under `the 9.3
+<https://github.com/ipython/ipython/milestone/151?closed=1>`__ milestone.
+
+
 
 .. _version 9.3:
 
@@ -113,6 +165,10 @@ To enable auto-import on completion specify:
 This change aligns the capability of both jedi-powered and the native completer.
 The function used for auto-import can be configured using :std:configtrait:`Completer.auto_import_method` traitlet.
 
+As usual, you can find the full list of PRs on GitHub under `the 9.3
+<https://github.com/ipython/ipython/milestone/149?closed=1>`__ milestone.
+
+
 .. _version 9.2:
 
 IPython 9.2
@@ -125,6 +181,9 @@ provider along few other bug fixes and documentation improvements:
 - :ghpull:`14877` Removed spurious empty lines from ``prefix`` passed to LLM, and separated part after cursor into the ``suffix``
 - :ghpull:`14876` Fixed syntax warning in Python 3.14 (remove return from finally block)
 - :ghpull:`14887` Documented the recommendation to use ``ipykernel.embed.embed_kernel()`` over ``ipython.embed``.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.2
+<https://github.com/ipython/ipython/milestone/146?closed=1>`__ milestone.
 
 .. _version 9.1:
 
