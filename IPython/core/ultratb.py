@@ -111,6 +111,7 @@ INDENT_SIZE = 8
 # it is too long.
 FAST_THRESHOLD = 10_000
 
+
 # ---------------------------------------------------------------------------
 class ListTB(TBTools):
     """Print traceback information from a traceback list, with optional color.
@@ -441,6 +442,9 @@ _default = "default"
 
 
 # ----------------------------------------------------------------------------
+_PREPARE_HEADER_SENTINEL = object()
+
+
 class VerboseTB(TBTools):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead
     of HTML.  Requires inspect and pydoc.  Crazy, man.
@@ -660,7 +664,22 @@ class VerboseTB(TBTools):
             )
             return result
 
-    def prepare_header(self, etype: str, long_version: bool = False) -> str:
+    def prepare_header(
+        self, etype: str, long_version: bool = _PREPARE_HEADER_SENTINEL
+    ) -> str:
+        # Deprecate `long_version`. If set explicitly, emit warning.
+        if long_version is not _PREPARE_HEADER_SENTINEL:
+            warnings.warn(
+                "The `long_version` parameter of prepare_header is deprecated since IPython 9.7, "
+                "and will be removed in a future release. If you require this feature "
+                "open an issue at https://github.com/ipython/ipython/issues to discuss undeprecation.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        # Keep legacy behavior: default to False, but if user passed an explicit value, use that
+        if long_version is _PREPARE_HEADER_SENTINEL:
+            long_version = False
+
         width = min(75, get_terminal_size()[0])
         if long_version:
             # Header with the exception type, python version, and date
