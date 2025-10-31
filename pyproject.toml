@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=70.0"]
+requires = ["setuptools>=77.0"]
 # We need access to the 'setupbase' module at build time.
 # Hence we declare a custom build backend.
 build-backend = "_build_meta"  # just re-exports setuptools.build_meta definitions
@@ -14,12 +14,13 @@ classifiers = [
     "Framework :: Jupyter",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: System :: Shells",
 ]
+license = "BSD-3-Clause"
+license-files = ["LICENSE", "COPYING.rst"]
 requires-python = ">=3.11"
 dependencies = [
     'colorama>=0.4.4; sys_platform == "win32"', # lower bound is pure guess (not checked)
@@ -34,7 +35,7 @@ dependencies = [
     "traitlets>=5.13.0",
     "typing_extensions>=4.6; python_version<'3.12'",
 ]
-dynamic = ["authors", "license", "version"]
+dynamic = ["authors", "version"]
 
 [project.scripts]
 ipython = "IPython:start_ipython"
@@ -375,7 +376,6 @@ pythonPlatform="All"
 [tool.setuptools]
 zip-safe = false
 platforms = ["Linux", "Mac OSX", "Windows"]
-license-files = ["LICENSE"]
 include-package-data = false
 
 [tool.setuptools.packages.find]
