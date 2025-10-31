@@ -835,7 +835,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.For):
         try:
             iterable = eval_node(node.iter, context)
-        except:
+        except Exception:
             iterable = None
 
         sample = None
@@ -855,7 +855,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                     targets=[node.target], value=ast.Constant(value=sample)
                 )
                 _handle_assign(fake_assign, loop_context)
-            except:
+            except Exception:
                 pass
 
         result = None
