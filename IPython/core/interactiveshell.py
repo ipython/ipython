@@ -2138,8 +2138,14 @@ class InteractiveShell(SingletonConfigurable):
         msg = traceback.format_exception_only(etype, value)
         return ''.join(msg)
 
-    def showtraceback(self, exc_tuple=None, filename=None, tb_offset=None,
-                      exception_only=False, running_compiled_code=False):
+    def showtraceback(
+        self,
+        exc_tuple: tuple[type[BaseException], BaseException, Any] | None = None,
+        filename: str | None = None,
+        tb_offset: int | None = None,
+        exception_only: bool = False,
+        running_compiled_code: bool = False,
+    ) -> None:
         """Display the exception that just occurred.
 
         If nothing is known about the exception, this is the method which

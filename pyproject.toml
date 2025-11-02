@@ -164,6 +164,14 @@ ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
 module = [
+    "IPython.core.events",
+]
+ignore_errors = false
+ignore_missing_imports = false
+strict = true
+
+[[tool.mypy.overrides]]
+module = [
     "IPython.core.debugger",
 ]
 disallow_untyped_defs = false
@@ -211,8 +219,6 @@ module = [
     "IPython.core.display_trap",
     "IPython.core.displayhook",
     "IPython.core.displaypub",
-    "IPython.core.events",
-    "IPython.core.excolors",
     "IPython.core.extensions",
     "IPython.core.formatters",
     "IPython.core.getipython",
