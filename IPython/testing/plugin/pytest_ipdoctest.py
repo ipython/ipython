@@ -674,6 +674,8 @@ class IPDoctestModule(pytest.Module):
             except ImportPathMismatchError:
                 if self.config.getvalue("ignore_compiled_module_doctests"):
                     pytest.skip("Module is compiled, skipping %r" % self.path)
+                else:
+                    raise
             
             except ImportError:
                 if self.config.getvalue("ipdoctest_ignore_import_errors"):

@@ -330,6 +330,7 @@ addopts = [
    "--durations=10",
    "-pIPython.testing.plugin.pytest_ipdoctest",
    "--ipdoctest-modules",
+   "--ignore-compiled-module-doctests",
    "--ignore=docs",
    "--ignore=examples",
    "--ignore=htmlcov",
@@ -369,7 +370,6 @@ ipdoctest_optionflags = [
    "ELLIPSIS"
 ]
 asyncio_mode = "strict"
-ignore_compiled_module_doctests = true
 
 [tool.pyright]
 pythonPlatform="All"
