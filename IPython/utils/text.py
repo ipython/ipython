@@ -102,7 +102,7 @@ class LSString(str):
 # print_lsstring = result_display.register(LSString)(print_lsstring)
 
 
-class SList(list):
+class SList(list[Any]):
     """List derivative with a special access attributes.
 
     These are normal lists, but with the special attributes:
@@ -518,7 +518,7 @@ class FullEvalFormatter(Formatter):
 
                 # do any conversion on the resulting object
                 # type issue in typeshed, fined in https://github.com/python/typeshed/pull/11377
-                obj = self.convert_field(obj, conversion)  # type: ignore[arg-type]
+                obj = self.convert_field(obj, conversion)
 
                 # format the object and append to the result
                 result.append(self.format_field(obj, ''))
@@ -550,7 +550,7 @@ class DollarFormatter(FullEvalFormatter):
         r"(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)"
     )
 
-    def parse(self, fmt_string: str) -> Iterator[Tuple[Any, Any, Any, Any]]:  # type: ignore[explicit-override]
+    def parse(self, fmt_string: str) -> Iterator[Tuple[Any, Any, Any, Any]]:
         for literal_txt, field_name, format_spec, conversion in Formatter.parse(
             self, fmt_string
         ):
