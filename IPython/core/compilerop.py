@@ -36,6 +36,7 @@ import linecache
 import operator
 import time
 from contextlib import contextmanager
+from typing import Any, Callable
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -56,7 +57,7 @@ PyCF_MASK = functools.reduce(
 #-----------------------------------------------------------------------------
 
 
-def code_name(code: str, number=0) -> str:
+def code_name(code: str, number: int = 0) -> str:
     """Compute a (probably) unique name for code for caching.
 
     This now expects code to be unicode.
@@ -71,33 +72,44 @@ def code_name(code: str, number=0) -> str:
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class CachingCompiler(codeop.Compile):
+class CachingCompiler:
     """A compiler that caches code compiled from interactive statements.
+
+    Uses composition instead of inheritance to avoid mypyc issues with
+    inheriting from codeop.Compile (a C extension class).
     """
 
     flags: int
-    _filename_map: dict[str, str]
+    _filename_map: dict[str, int]
+    _compiler: codeop.Compile
 
-    def __init__(self):
-        codeop.Compile.__init__(self)
+    def __init__(self) -> None:
+        # Initialize flags to the default value from codeop.Compile
+        # We use composition instead of inheritance to avoid mypyc segfaults
+        # when inheriting from C extension classes
+        self._compiler = codeop.Compile()
+        self.flags = self._compiler.flags
 
         # Caching a dictionary { filename: execution_count } for nicely
         # rendered tracebacks. The filename corresponds to the filename
         # argument used for the builtins.compile function.
         self._filename_map = {}
 
-    def ast_parse(self, source, filename='<unknown>', symbol='exec'):
+    def ast_parse(
+        self, source: str, filename: str = "<unknown>", symbol: str = "exec"
+    ) -> Any:
         """Parse code to an AST with the current compiler flags active.
 
         Arguments are exactly the same as ast.parse (in the standard library),
         and are passed to the built-in compile function."""
-        return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
+        return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, True)
 
     def reset_compiler_flags(self) -> None:
         """Reset compiler flags to default state."""
-        # This value is copied from codeop.Compile.__init__, so if that ever
-        # changes, it will need to be updated.
-        self.flags = codeop.PyCF_DONT_IMPLY_DEDENT
+        # Get the default flags value from a fresh codeop.Compile instance
+        # This is what codeop.Compile.__init__ sets
+        _default_compiler = codeop.Compile()
+        self.flags = _default_compiler.flags
 
     @property
     def compiler_flags(self) -> int:
@@ -124,7 +136,7 @@ class CachingCompiler(codeop.Compile):
         """
         return code_name(transformed_code, number)
 
-    def format_code_name(self, name: str) -> str | None:
+    def format_code_name(self, name: str | None) -> tuple[str, str] | None:
         """Return a user-friendly label and name for a code block.
 
         Parameters
@@ -136,9 +148,12 @@ class CachingCompiler(codeop.Compile):
         -------
         A (label, name) pair that can be used in tracebacks, or None if the default formatting should be used.
         """
-        file = None  # self._filename_map.get(name, None)
-        if file:
-            return "Cell", "In[%s]" % file
+        if name is None:
+            return None
+        prompt_number: None | int = self._filename_map.get(name, None)
+        if prompt_number is not None:
+            return "Cell", "In[%s]" % str(prompt_number)
+        return None
 
     def cache(
         self, transformed_code: str, number: int = 0, raw_code: str | None = None
@@ -189,7 +204,7 @@ class CachingCompiler(codeop.Compile):
         return name
 
     @contextmanager
-    def extra_flags(self, flags):
+    def extra_flags(self, flags: int) -> Any:
         ## bits that we'll set to 1
         turn_on_bits = ~self.flags & flags
 
@@ -201,3 +216,6 @@ class CachingCompiler(codeop.Compile):
             # turn off only the bits we turned on so that something like
             # __future__ that set flags stays.
             self.flags &= ~turn_on_bits
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self._compiler(*args, **kwargs)

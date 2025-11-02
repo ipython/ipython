@@ -182,10 +182,12 @@ def _tokens_filename(
     Normal = Token.NormalEm if em else Token.Normal
     Filename = Token.FilenameEm if em else Token.Filename
     ipinst = get_ipython()
+    assert isinstance(file, str), "file is not a str"
     if (
         ipinst is not None
         and (data := ipinst.compile.format_code_name(file)) is not None
     ):
+        assert len(data) == 2, data
         label, name = data
         if lineno is None:
             return [

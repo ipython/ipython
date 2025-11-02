@@ -130,6 +130,7 @@ enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 module = [
     "IPython.core.crashhandler",
     "IPython.utils.text",
+    "IPython.core.compilerop",
 ]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -203,7 +204,6 @@ module = [
     "IPython.core.async_helpers",
     "IPython.core.autocall",
     "IPython.core.builtin_trap",
-    "IPython.core.compilerop",
     "IPython.core.completer",
     "IPython.core.completerlib",
     "IPython.core.display",

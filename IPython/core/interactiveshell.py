@@ -3364,6 +3364,7 @@ class InteractiveShell(SingletonConfigurable):
                 # Compile to bytecode
                 try:
                     code_ast = compiler.ast_parse(cell, filename=cell_name)
+                    print("compiler has ast_parsed")
                 except self.custom_exceptions as e:
                     etype, value, tb = sys.exc_info()
                     self.CustomTB(etype, value, tb)
@@ -3634,8 +3635,11 @@ class InteractiveShell(SingletonConfigurable):
                     if self.autoawait
                     else 0x0
                 ):
+                    print("ok with extra flags")
                     code = compiler(mod, cell_name, mode)
+                    print("ok to get code")
                     asy = compare(code)
+                    print("ok compare")
                 if await self.run_code(code, result, async_=asy):
                     return True
 
