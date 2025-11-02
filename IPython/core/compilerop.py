@@ -84,6 +84,7 @@ class CachingCompiler(codeop.Compile):
         # rendered tracebacks. The filename corresponds to the filename
         # argument used for the builtins.compile function.
         self._filename_map = {}
+        self.reset_compiler_flags()
 
     def ast_parse(
         self, source: str, filename: str = "<unknown>", symbol: str = "exec"
