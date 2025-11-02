@@ -498,7 +498,7 @@ class AutocallChecker(PrefilterChecker):
         if not self.shell.autocall:
             return None
 
-        oinfo = line_info.ofind(self.shell) # This can mutate state via getattr
+        oinfo = self.shell._ofind(line_info.ifun)  # This can mutate state via getattr
         if not oinfo.found:
             return None
 
@@ -610,7 +610,7 @@ class AutoHandler(PrefilterHandler):
         the_rest = line_info.the_rest
         esc     = line_info.esc
         continue_prompt = line_info.continue_prompt
-        obj = line_info.ofind(self.shell).obj
+        obj = self.shell._ofind(line_info.ifun).obj
 
         # This should only be active for single-line input!
         if continue_prompt:
