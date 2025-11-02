@@ -76,6 +76,7 @@ class CachingCompiler(codeop.Compile):
     """
 
     flags: int
+    _filename_map: dict[str, str]
 
     def __init__(self):
         codeop.Compile.__init__(self)
@@ -123,7 +124,7 @@ class CachingCompiler(codeop.Compile):
         """
         return code_name(transformed_code, number)
 
-    def format_code_name(self, name: str) -> str:
+    def format_code_name(self, name: str) -> str | None:
         """Return a user-friendly label and name for a code block.
 
         Parameters
@@ -135,8 +136,9 @@ class CachingCompiler(codeop.Compile):
         -------
         A (label, name) pair that can be used in tracebacks, or None if the default formatting should be used.
         """
-        if name in self._filename_map:
-            return "Cell", "In[%s]" % self._filename_map[name]
+        file = None  # self._filename_map.get(name, None)
+        if file:
+            return "Cell", "In[%s]" % file
 
     def cache(
         self, transformed_code: str, number: int = 0, raw_code: str | None = None

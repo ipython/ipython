@@ -50,11 +50,11 @@ line_split = re.compile(r"""
              """, re.VERBOSE)
 
 
-def split_user_input(line: str, pattern=None):
+def split_user_input(line: str, pattern: re.Pattern[str] | None = None) -> tuple[str, str, str, str]:
     """Split user input into initial whitespace, escape character, function part
     and the rest.
     """
-    assert isintance(line, str)
+    assert isinstance(line, str)
 
     if pattern is None:
         pattern = line_split
@@ -111,8 +111,15 @@ class LineInfo:
 
     line: str
     continue_prompt: bool
+    pre: str
+    esc: str
+    ifun: str
+    raw_the_rest: str
+    the_rest: str
+    pre_char: str
+    pre_whitespace: str
 
-    def __init__(self, line: str, continue_prompt=False):
+    def __init__(self, line: str, continue_prompt: bool = False) -> None:
         assert isinstance(line, str)
         self.line            = line
         self.continue_prompt = continue_prompt
@@ -140,8 +147,8 @@ class LineInfo:
         """
         return ip._ofind(self.ifun)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "LineInfo [%s|%s|%s|%s]" %(self.pre, self.esc, self.ifun, self.the_rest)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<" + str(self) + ">"
