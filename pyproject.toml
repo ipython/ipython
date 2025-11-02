@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77.0"]
+requires = ["setuptools>=77.0", "mypy"]
 # We need access to the 'setupbase' module at build time.
 # Hence we declare a custom build backend.
 build-backend = "_build_meta"  # just re-exports setuptools.build_meta definitions
