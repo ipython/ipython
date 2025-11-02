@@ -72,24 +72,14 @@ def code_name(code: str, number: int = 0) -> str:
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class CachingCompiler:
-    """A compiler that caches code compiled from interactive statements.
-
-    Uses composition instead of inheritance to avoid mypyc issues with
-    inheriting from codeop.Compile (a C extension class).
-    """
+class CachingCompiler(codeop.Compile):
+    """A compiler that caches code compiled from interactive statements."""
 
     flags: int
     _filename_map: dict[str, int]
     _compiler: codeop.Compile
 
     def __init__(self) -> None:
-        # Initialize flags to the default value from codeop.Compile
-        # We use composition instead of inheritance to avoid mypyc segfaults
-        # when inheriting from C extension classes
-        self._compiler = codeop.Compile()
-        self.flags = self._compiler.flags
-
         # Caching a dictionary { filename: execution_count } for nicely
         # rendered tracebacks. The filename corresponds to the filename
         # argument used for the builtins.compile function.
@@ -106,10 +96,7 @@ class CachingCompiler:
 
     def reset_compiler_flags(self) -> None:
         """Reset compiler flags to default state."""
-        # Get the default flags value from a fresh codeop.Compile instance
-        # This is what codeop.Compile.__init__ sets
-        _default_compiler = codeop.Compile()
-        self.flags = _default_compiler.flags
+        self.flags = codeop.Compile().flags
 
     @property
     def compiler_flags(self) -> int:
@@ -216,6 +203,3 @@ class CachingCompiler:
             # turn off only the bits we turned on so that something like
             # __future__ that set flags stays.
             self.flags &= ~turn_on_bits
-
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        return self._compiler(*args, **kwargs)
