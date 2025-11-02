@@ -120,6 +120,13 @@ def pytest_addoption(parser: Parser) -> None:
         dest="ipdoctest_ignore_import_errors",
     )
     group.addoption(
+        "--ignore-compiled-module-doctests",
+        action="store_true",
+        default=False,
+        help="ignore Path mismatch on compiled modules",
+        dest="ignore_compiled_module_doctests",
+    )
+    group.addoption(
         "--ipdoctest-continue-on-failure",
         action="store_true",
         default=False,
@@ -664,8 +671,11 @@ class IPDoctestModule(pytest.Module):
                 if pytest_version >= (8, 1):
                     kwargs["consider_namespace_packages"] = False
                 module = import_path(self.path, **kwargs)
+            except ImportPathMismatchError:
+                if self.config.getvalue("ignore_compiled_module_doctests"):
+                    pytest.skip("Module is compiled, skipping %r" % self.path)
             
-            except (ImportError, ImportPathMismatchError):
+            except ImportError:
                 if self.config.getvalue("ipdoctest_ignore_import_errors"):
                     pytest.skip("unable to import module %r" % self.path)
                 else:

@@ -369,6 +369,7 @@ ipdoctest_optionflags = [
    "ELLIPSIS"
 ]
 asyncio_mode = "strict"
+ignore_compiled_module_doctests = true
 
 [tool.pyright]
 pythonPlatform="All"
