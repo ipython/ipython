@@ -104,7 +104,6 @@ exclude = [
    'IPython.utils.tests.test_wildcard',
    'testing',
    'tests',
-   'PyColorize.py',
    '_process_win32_controller.py',
    'IPython/core/application.py',
    'IPython/core/profileapp.py',
@@ -165,6 +164,7 @@ ignore_missing_imports = false
 module = [
     "IPython.core.events",
     "IPython.utils.text",
+    "IPython.utils.PyColorize",
 ]
 check_untyped_defs = true
 disallow_incomplete_defs = true
