@@ -165,6 +165,7 @@ module = [
     "IPython.core.events",
     "IPython.utils.text",
     "IPython.utils.PyColorize",
+    "IPython.utils.sentinel",
 ]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -314,7 +315,6 @@ module = [
     "IPython.utils.openpy",
     "IPython.utils.process",
     "IPython.utils.py3compat",
-    "IPython.utils.sentinel",
     "IPython.utils.strdispatch",
     "IPython.utils.sysinfo",
     "IPython.utils.syspathcontext",
