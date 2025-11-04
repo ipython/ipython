@@ -632,7 +632,11 @@ class VerboseTB(TBTools):
             raw_lines = raw_lines[start:stop]
 
             # Jan 2025: may need _line_format(py3ompat.cast_unicode(s))
-            raw_color_err = [(s, _line_format(s, "str")) for s in raw_lines]
+            raw_color_err = []
+            for s in raw_lines:
+                formatted, is_error = _line_format(s, "str")
+                assert formatted is not None, "format2 should return str when out='str'"
+                raw_color_err.append((s, (formatted, is_error)))
 
             tb_tokens = _simple_format_traceback_lines(
                 current_line,
