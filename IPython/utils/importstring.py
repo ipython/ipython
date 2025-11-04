@@ -6,8 +6,10 @@ A simple utility to import something by its string name.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from typing import Any
 
-def import_item(name):
+
+def import_item(name: str) -> Any:
     """Import and return ``bar`` given the string ``foo.bar``.
 
     Calling ``bar = import_item("foo.bar")`` is the functional equivalent of
