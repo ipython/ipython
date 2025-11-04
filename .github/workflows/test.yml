@@ -107,3 +107,47 @@ jobs:
       with:
          name: Test
          files: /home/runner/work/ipython/ipython/coverage.xml
+
+  oldest-deps:
+    # pro-actively check backward compatibility
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    # Disable scheduled CI runs on forks
+    if: github.event_name != 'schedule' || github.repository_owner == 'ipython'
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          # include windows because of platform-specific direct dependencies
+          - windows-2022
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Set up uv with Python 3.11
+      uses: astral-sh/setup-uv@v7
+      with:
+        python-version: '3.11'
+        enable-cache: true
+        activate-environment: true
+        prune-cache: false
+        cache-dependency-glob: |
+          pyproject.toml
+
+    - name: Install Python dependencies (oldest supported versions)
+      run: uv pip install --resolution=lowest-direct -e .[test]
+
+    - name: Try building with uv build
+      if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
+      run: |
+        uv build
+        shasum -a 256 dist/*
+
+    - name: Check manifest
+      if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
+      run: uvx check-manifest
+
+    - name: pytest
+      env:
+        COLUMNS: 120
+      run: pytest --color=yes -raXxs
