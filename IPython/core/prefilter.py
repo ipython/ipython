@@ -260,7 +260,7 @@ class PrefilterManager(Configurable):
                 line = transformer.transform(line, continue_prompt)
         return line
 
-    def prefilter_line(self, line, continue_prompt=False):
+    def prefilter_line(self, line: str, continue_prompt=False):
         """Prefilter a single input line as text.
 
         This method prefilters a single line of text by calling the
@@ -303,7 +303,7 @@ class PrefilterManager(Configurable):
         # print("prefiltered line: %r" % prefiltered)
         return prefiltered
 
-    def prefilter_lines(self, lines, continue_prompt=False):
+    def prefilter_lines(self, lines: str, continue_prompt=False):
         """Prefilter multiple input lines of text.
 
         This is the main entry point for prefiltering multiple lines of

@@ -36,6 +36,7 @@ import linecache
 import operator
 import time
 from contextlib import contextmanager
+from typing import Any, Callable
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -43,16 +44,21 @@ from contextlib import contextmanager
 
 # Roughly equal to PyCF_MASK | PyCF_MASK_OBSOLETE as defined in pythonrun.h,
 # this is used as a bitmask to extract future-related code flags.
-PyCF_MASK = functools.reduce(operator.or_,
-                             (getattr(__future__, fname).compiler_flag
-                              for fname in __future__.all_feature_names))
+PyCF_MASK = functools.reduce(
+    operator.or_,
+    [
+        getattr(__future__, fname).compiler_flag
+        for fname in __future__.all_feature_names
+    ],
+)
 
 #-----------------------------------------------------------------------------
 # Local utilities
 #-----------------------------------------------------------------------------
 
-def code_name(code, number=0):
-    """ Compute a (probably) unique name for code for caching.
+
+def code_name(code: str, number: int = 0) -> str:
+    """Compute a (probably) unique name for code for caching.
 
     This now expects code to be unicode.
     """
@@ -66,38 +72,44 @@ def code_name(code, number=0):
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+from mypy_extensions import mypyc_attr
+
+
+@mypyc_attr(allow_interpreted_subclasses=True)
 class CachingCompiler(codeop.Compile):
-    """A compiler that caches code compiled from interactive statements.
-    """
+    """A compiler that caches code compiled from interactive statements."""
 
-    def __init__(self):
-        codeop.Compile.__init__(self)
+    flags: int
+    _filename_map: dict[str, int]
+    _compiler: codeop.Compile
 
+    def __init__(self) -> None:
         # Caching a dictionary { filename: execution_count } for nicely
         # rendered tracebacks. The filename corresponds to the filename
         # argument used for the builtins.compile function.
         self._filename_map = {}
+        self.reset_compiler_flags()
 
-    def ast_parse(self, source, filename='<unknown>', symbol='exec'):
+    def ast_parse(
+        self, source: str, filename: str = "<unknown>", symbol: str = "exec"
+    ) -> Any:
         """Parse code to an AST with the current compiler flags active.
 
         Arguments are exactly the same as ast.parse (in the standard library),
         and are passed to the built-in compile function."""
-        return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
+        return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, True)
 
-    def reset_compiler_flags(self):
+    def reset_compiler_flags(self) -> None:
         """Reset compiler flags to default state."""
-        # This value is copied from codeop.Compile.__init__, so if that ever
-        # changes, it will need to be updated.
-        self.flags = codeop.PyCF_DONT_IMPLY_DEDENT
+        self.flags = codeop.Compile().flags
 
     @property
-    def compiler_flags(self):
+    def compiler_flags(self) -> int:
         """Flags currently active in the compilation process.
         """
         return self.flags
 
-    def get_code_name(self, raw_code, transformed_code, number):
+    def get_code_name(self, raw_code: str, transformed_code: str, number: int) -> str:
         """Compute filename given the code, and the cell number.
 
         Parameters
@@ -116,7 +128,7 @@ class CachingCompiler(codeop.Compile):
         """
         return code_name(transformed_code, number)
 
-    def format_code_name(self, name):
+    def format_code_name(self, name: str | None) -> tuple[str, str] | None:
         """Return a user-friendly label and name for a code block.
 
         Parameters
@@ -128,10 +140,16 @@ class CachingCompiler(codeop.Compile):
         -------
         A (label, name) pair that can be used in tracebacks, or None if the default formatting should be used.
         """
-        if name in self._filename_map:
-            return "Cell", "In[%s]" % self._filename_map[name]
+        if name is None:
+            return None
+        prompt_number: None | int = self._filename_map.get(name, None)
+        if prompt_number is not None:
+            return "Cell", "In[%s]" % str(prompt_number)
+        return None
 
-    def cache(self, transformed_code, number=0, raw_code=None):
+    def cache(
+        self, transformed_code: str, number: int = 0, raw_code: str | None = None
+    ) -> str:
         """Make a name for a block of code, and cache the code.
 
         Parameters
@@ -178,7 +196,7 @@ class CachingCompiler(codeop.Compile):
         return name
 
     @contextmanager
-    def extra_flags(self, flags):
+    def extra_flags(self, flags: int) -> Any:
         ## bits that we'll set to 1
         turn_on_bits = ~self.flags & flags
 
