@@ -127,29 +127,7 @@ enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 
 [[tool.mypy.overrides]]
 module = [
-    "IPython.core.crashhandler",
-]
-check_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_untyped_calls = true
-disallow_untyped_decorators = true
-disallow_untyped_defs = true
-ignore_errors = false
-ignore_missing_imports = false
-
-[[tool.mypy.overrides]]
-module = [
     "IPython.core.magic",
-]
-check_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_untyped_calls = false
-disallow_untyped_decorators = true
-disallow_untyped_defs = false
-ignore_errors = false
-ignore_missing_imports = false
-[[tool.mypy.overrides]]
-module = [
     "IPython.core.ultratb",
 ]
 check_untyped_defs = true
@@ -162,6 +140,7 @@ ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
 module = [
+    "IPython.core.crashhandler",
     "IPython.core.events",
     "IPython.utils.text",
     "IPython.utils.PyColorize",
