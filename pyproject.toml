@@ -166,6 +166,8 @@ module = [
     "IPython.utils.text",
     "IPython.utils.PyColorize",
     "IPython.utils.sentinel",
+    "IPython.utils.data",
+    "IPython.utils.importstring",
 ]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -302,13 +304,11 @@ module = [
     "IPython.utils.capture",
     "IPython.utils.coloransi",
     "IPython.utils.contexts",
-    "IPython.utils.data",
     "IPython.utils.decorators",
     "IPython.utils.dir2",
     "IPython.utils.encoding",
     "IPython.utils.frame",
     "IPython.utils.generics",
-    "IPython.utils.importstring",
     "IPython.utils.io",
     "IPython.utils.ipstruct",
     "IPython.utils.module_paths",
