@@ -2,6 +2,12 @@ name: Post message to Zulip
 
 on:
   workflow_dispatch:
+    inputs:
+      message:
+        description: 'Message to post to Zulip'
+        required: false
+        default: 'Test Auto release notification of IPython from GitHub action'
+        type: string
 
 jobs:
   post-message:
@@ -22,4 +28,4 @@ jobs:
           type: 'stream'
           topic: 'IPython'
           content: |
-            Test Auto release notification of IPython from GitHub action
+            ${{ inputs.message }}
