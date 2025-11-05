@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-publish:
-    name: Build and Publish to PyPI
+  post-message:
+    name: Post Message to Zulip
     runs-on: ubuntu-latest
     environment:
       name: pypi
