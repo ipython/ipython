@@ -13,7 +13,6 @@ jobs:
     steps:
 
       - name: Send Zulip notification
-        if: startsWith(github.ref, 'refs/tags/')
         uses: zulip/github-actions-zulip/send-message@v1
         with:
           api-key: ${{ secrets.ZULIP_API_KEY }}
