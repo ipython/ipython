@@ -70,7 +70,7 @@ jobs:
         with:
           api-key: ${{ secrets.ZULIP_API_KEY }}
           email: ${{ secrets.ZULIP_EMAIL }}
-          organization-url: ${{ secrets.ZULIP_ORGANIZATION_URL }}
+          organization-url: ${{ vars.ZULIP_ORGANIZATION_URL }}
           to: 'Releases'
           type: 'stream'
           topic: 'IPython'
