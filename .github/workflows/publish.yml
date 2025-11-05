@@ -62,4 +62,4 @@ jobs:
 
       - name: Publish distribution to PyPI
         if: startsWith(github.ref, 'refs/tags/')
-        uses: pypa/gh-action-pypi-publish@release/v1.13.0
+        uses: pypa/gh-action-pypi-publish@v1.13.0
