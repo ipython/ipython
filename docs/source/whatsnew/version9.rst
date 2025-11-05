@@ -11,9 +11,15 @@ IPython 9.7
 As ususal this new version of IPython brings a number of bugfixes:
 
 
-- :ghpull:`1512` Fix ``Exception.text`` may be None
+- :ghpull:`15012` Fix ``Exception.text`` may be None
 - :ghpull:`15007` Start Testign on free-threaded Python
-- :ghpull:`14784` Update min dependencies
+- :ghpull:`15036` Suppress file completions in context of attributes/methods
+- :ghpull:`15056` Completion in loops and conditionals
+- :ghpull:`15048` Support completions for lambdas and ``async`` functions
+- :ghpull:`15042` Support subscript assignment in completions
+- :ghpull:`15027` Infer type from return value and improve attribute completions
+- :ghpull:`15020` Fix tab completion for subclasses of trusted classes
+- :ghpull:`15022` Prevent trusting modules with matching prefix
 
 
 Gruvbox Dark Theme
@@ -34,6 +40,14 @@ The behavior of ``safe_path`` was described in `what's new in 3.11`_ and in `PyC
 .. _what's new in 3.11: https://docs.python.org/3/whatsnew/3.11.html#whatsnew311-pythonsafepath
 .. _PyConfig docs: https://docs.python.org/3/c-api/init_config.html#c.PyConfig.safe_path
 
+
+Tab Completion
+--------------
+
+Multiple improvements were made to the tab completer.
+The tab completions now work for more complex code, even when jedi is disabled, using a hybrid evaluation procedure
+which infers available completions from both the typing information, runtime values, and static code analysis.
+The paths to hidden files are no longer suggested when attempting attribute completion.
 
 
 As usual, you can find the full list of PRs on GitHub under `the 9.7
