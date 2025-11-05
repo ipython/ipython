@@ -42,7 +42,14 @@ class Theme:
     extra_style: dict[_TokenType, str]
     symbols: Symbols
 
-    def __init__(self, name: str, base: str | None, extra_style: dict[_TokenType, str], *, symbols: Symbols | None = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        base: str | None,
+        extra_style: dict[_TokenType, str],
+        *,
+        symbols: Symbols | None = None,
+    ) -> None:
         self.name = name
         self.base = base
         self.extra_style = extra_style
@@ -63,7 +70,6 @@ class Theme:
         return MyStyle
 
     def format(self, stream: TokenStream) -> str:
-
         return pygments.format(stream, self._formatter)
 
     def make_arrow(self, width: int) -> str:
@@ -399,7 +405,7 @@ class Parser:
         self.out = out
         self.pos = 0
         self.lines = []
-        self.raw = ''
+        self.raw = ""
         if theme_name is not None:
             if theme_name in ["Linux", "LightBG", "Neutral", "NoColor"]:
                 warnings.warn(
@@ -525,7 +531,9 @@ class Parser:
             return (output, error)
         return (None, error)
 
-    def _inner_call_(self, toktype: int, toktext: str, start_pos: tuple[int, int]) -> str:
+    def _inner_call_(
+        self, toktype: int, toktext: str, start_pos: tuple[int, int]
+    ) -> str:
         """like call but write to a temporary buffer"""
         srow, scol = start_pos
 
@@ -557,6 +565,13 @@ class Parser:
         acc += theme_table[self.theme_name].format([(pyg_tok_type, toktext)])
         return acc
 
-    def __call__(self, toktype: int, toktext: str, start_pos: tuple[int, int], end_pos: tuple[int, int], line: str) -> None:
+    def __call__(
+        self,
+        toktype: int,
+        toktext: str,
+        start_pos: tuple[int, int],
+        end_pos: tuple[int, int],
+        line: str,
+    ) -> None:
         """Token handler, with syntax highlighting."""
         self.out.write(self._inner_call_(toktype, toktext, start_pos))

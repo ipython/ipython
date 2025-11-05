@@ -47,6 +47,4 @@ def uniq_stable(elems: Iterable[T]) -> list[T]:
 
 def chop(seq: Sequence[T], size: int) -> list[Sequence[T]]:
     """Chop a sequence into chunks of the given size."""
-    return [seq[i:i+size] for i in range(0, len(seq), size)]
-
-
+    return [seq[i : i + size] for i in range(0, len(seq), size)]

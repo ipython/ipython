@@ -32,7 +32,12 @@ class EventManager:
        This API is experimental in IPython 2.0, and may be revised in future versions.
     """
 
-    def __init__(self, shell: InteractiveShell, available_events: Iterable[str], print_on_error: bool = True) -> None:
+    def __init__(
+        self,
+        shell: InteractiveShell,
+        available_events: Iterable[str],
+        print_on_error: bool = True,
+    ) -> None:
         """Initialise the :class:`CallbackManager`.
 
         Parameters
@@ -45,7 +50,9 @@ class EventManager:
             A boolean flag to set whether the EventManager will print a warning which a event errors.
         """
         self.shell = shell
-        self.callbacks: dict[str, list[Callable[..., Any]]] = {n:[] for n in available_events}
+        self.callbacks: dict[str, list[Callable[..., Any]]] = {
+            n: [] for n in available_events
+        }
         self.print_on_error = print_on_error
     
     def register(self, event: str, function: Callable[..., Any]) -> None:

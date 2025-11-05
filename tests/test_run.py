@@ -176,7 +176,6 @@ is_freethreaded = bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
 
 
 class TestMagicRunPass(tt.TempFileMixin):
-
     def setUp(self):
         content = "a = [1,2,3]\nb = 1"
         self.mktmp(content)
@@ -238,7 +237,6 @@ class TestMagicRunPass(tt.TempFileMixin):
 
 
 class TestMagicRunSimple(tt.TempFileMixin):
-
     def test_simpledef(self):
         """Test that simple class definitions work."""
         src = "class foo: pass\n" "def f(): return foo()"
@@ -442,7 +440,6 @@ tclass.py: deleting object: C-third
 
 
 class TestMagicRunWithPackage(unittest.TestCase):
-
     def writefile(self, name, content):
         path = os.path.join(self.tempdir.name, name)
         d = os.path.dirname(path)

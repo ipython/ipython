@@ -395,7 +395,6 @@ def test_print_method_bound():
 
 
 def test_print_method_weird():
-
     class TextMagicHat(object):
         def __getattr__(self, key):
             return key
@@ -537,7 +536,6 @@ def test_repr_mime():
 
 def test_pass_correct_include_exclude():
     class Tester(object):
-
         def __init__(self, include=None, exclude=None):
             self.include = include
             self.exclude = exclude
@@ -600,7 +598,8 @@ def test_custom_repr_namedtuple_partialmethod():
     from functools import partialmethod
     from typing import NamedTuple
 
-    class Foo(NamedTuple): ...
+    class Foo(NamedTuple):
+        ...
 
     Foo.__repr__ = partialmethod(lambda obj: "Hello World")
     foo = Foo()

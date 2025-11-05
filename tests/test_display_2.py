@@ -44,7 +44,6 @@ def test_image_mimes():
 
 
 def test_geojson():
-
     gj = display.GeoJSON(
         data={
             "type": "Feature",

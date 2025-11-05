@@ -163,6 +163,7 @@ def pprint(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SE
     sys.stdout.write(newline)
     sys.stdout.flush()
 
+
 class _PrettyPrinterBase:
 
     @contextmanager

@@ -199,7 +199,6 @@ def test_audio_from_file():
 
 
 class TestAudioDataWithNumpy(TestCase):
-
     @skipif_not_numpy
     def test_audio_from_numpy_array(self):
         test_tone = get_test_tone()
