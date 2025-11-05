@@ -81,7 +81,6 @@ class DeduperReloaderPatchingMixin:
         new_is_value: bool = False,
         offset: int = -1,
     ) -> None:
-
         old_value = getattr(old, field, NOT_FOUND)
         new_value = new if new_is_value else getattr(new, field, NOT_FOUND)
         if old_value is NOT_FOUND or new_value is NOT_FOUND:

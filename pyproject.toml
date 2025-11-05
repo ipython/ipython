@@ -104,7 +104,6 @@ exclude = [
    'IPython.utils.tests.test_wildcard',
    'testing',
    'tests',
-   'PyColorize.py',
    '_process_win32_controller.py',
    'IPython/core/application.py',
    'IPython/core/profileapp.py',
@@ -128,30 +127,7 @@ enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 
 [[tool.mypy.overrides]]
 module = [
-    "IPython.core.crashhandler",
-    "IPython.utils.text",
-]
-check_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_untyped_calls = true
-disallow_untyped_decorators = true
-disallow_untyped_defs = true
-ignore_errors = false
-ignore_missing_imports = false
-
-[[tool.mypy.overrides]]
-module = [
     "IPython.core.magic",
-]
-check_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_untyped_calls = false
-disallow_untyped_decorators = true
-disallow_untyped_defs = false
-ignore_errors = false
-ignore_missing_imports = false
-[[tool.mypy.overrides]]
-module = [
     "IPython.core.ultratb",
 ]
 check_untyped_defs = true
@@ -159,6 +135,24 @@ disallow_incomplete_defs = true
 disallow_untyped_calls = false
 disallow_untyped_decorators = true
 disallow_untyped_defs = false
+ignore_errors = false
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = [
+    "IPython.core.crashhandler",
+    "IPython.core.events",
+    "IPython.utils.text",
+    "IPython.utils.PyColorize",
+    "IPython.utils.sentinel",
+    "IPython.utils.data",
+    "IPython.utils.importstring",
+]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
 ignore_errors = false
 ignore_missing_imports = false
 
@@ -211,8 +205,6 @@ module = [
     "IPython.core.display_trap",
     "IPython.core.displayhook",
     "IPython.core.displaypub",
-    "IPython.core.events",
-    "IPython.core.excolors",
     "IPython.core.extensions",
     "IPython.core.formatters",
     "IPython.core.getipython",
@@ -291,20 +283,17 @@ module = [
     "IPython.utils.capture",
     "IPython.utils.coloransi",
     "IPython.utils.contexts",
-    "IPython.utils.data",
     "IPython.utils.decorators",
     "IPython.utils.dir2",
     "IPython.utils.encoding",
     "IPython.utils.frame",
     "IPython.utils.generics",
-    "IPython.utils.importstring",
     "IPython.utils.io",
     "IPython.utils.ipstruct",
     "IPython.utils.module_paths",
     "IPython.utils.openpy",
     "IPython.utils.process",
     "IPython.utils.py3compat",
-    "IPython.utils.sentinel",
     "IPython.utils.strdispatch",
     "IPython.utils.sysinfo",
     "IPython.utils.syspathcontext",

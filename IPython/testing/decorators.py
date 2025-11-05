@@ -143,6 +143,5 @@ def onlyif_cmds_exist(*commands):
     for cmd in commands:
         reason = f"This test runs only if command '{cmd}' is installed"
         if not shutil.which(cmd):
-
             return pytest.mark.skip(reason=reason)
     return null_deco

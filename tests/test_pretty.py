@@ -221,7 +221,6 @@ class SB(SA):
 
 
 class TestsPretty(unittest.TestCase):
-
     def test_super_repr(self):
         # "<super: module_name.SA, None>"
         output = pretty.pretty(super(SA))

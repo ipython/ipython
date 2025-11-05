@@ -13,6 +13,13 @@ events and the arguments which will be passed to them.
    This API is experimental in IPython 2.0, and may be revised in future versions.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Callable, Iterable
+
+if TYPE_CHECKING:
+    from IPython.core.interactiveshell import InteractiveShell
+
 
 class EventManager:
     """Manage a collection of events and a sequence of callbacks for each.
@@ -25,7 +32,12 @@ class EventManager:
        This API is experimental in IPython 2.0, and may be revised in future versions.
     """
 
-    def __init__(self, shell, available_events, print_on_error=True):
+    def __init__(
+        self,
+        shell: InteractiveShell,
+        available_events: Iterable[str],
+        print_on_error: bool = True,
+    ) -> None:
         """Initialise the :class:`CallbackManager`.
 
         Parameters
@@ -38,10 +50,12 @@ class EventManager:
             A boolean flag to set whether the EventManager will print a warning which a event errors.
         """
         self.shell = shell
-        self.callbacks = {n:[] for n in available_events}
+        self.callbacks: dict[str, list[Callable[..., Any]]] = {
+            n: [] for n in available_events
+        }
         self.print_on_error = print_on_error
     
-    def register(self, event, function):
+    def register(self, event: str, function: Callable[..., Any]) -> None:
         """Register a new event callback.
 
         Parameters
@@ -64,14 +78,14 @@ class EventManager:
         if function not in self.callbacks[event]:
             self.callbacks[event].append(function)
     
-    def unregister(self, event, function):
+    def unregister(self, event: str, function: Callable[..., Any]) -> None:
         """Remove a callback from the given event."""
         if function in self.callbacks[event]:
             return self.callbacks[event].remove(function)
 
         raise ValueError('Function {!r} is not registered as a {} callback'.format(function, event))
 
-    def trigger(self, event, *args, **kwargs):
+    def trigger(self, event: str, *args: Any, **kwargs: Any) -> None:
         """Call callbacks for ``event``.
 
         Any additional arguments are passed to all callbacks registered for this
@@ -90,9 +104,9 @@ class EventManager:
                 self.shell.showtraceback()
 
 # event_name -> prototype mapping
-available_events = {}
+available_events: dict[str, Callable[..., Any]] = {}
 
-def _define_event(callback_function):
+def _define_event(callback_function: Callable[..., Any]) -> Callable[..., Any]:
     available_events[callback_function.__name__] = callback_function
     return callback_function
 
@@ -104,7 +118,7 @@ def _define_event(callback_function):
 # ------------------------------------------------------------------------------
 
 @_define_event
-def pre_execute():
+def pre_execute() -> None:
     """Fires before code is executed in response to user/frontend action.
 
     This includes comm and widget messages and silent execution, as well as user
@@ -113,7 +127,7 @@ def pre_execute():
     pass
 
 @_define_event
-def pre_run_cell(info):
+def pre_run_cell(info: Any) -> None:
     """Fires before user-entered code runs.
 
     Parameters
@@ -124,7 +138,7 @@ def pre_run_cell(info):
     pass
 
 @_define_event
-def post_execute():
+def post_execute() -> None:
     """Fires after code is executed in response to user/frontend action.
 
     This includes comm and widget messages and silent execution, as well as user
@@ -133,7 +147,7 @@ def post_execute():
     pass
 
 @_define_event
-def post_run_cell(result):
+def post_run_cell(result: Any) -> None:
     """Fires after user-entered code runs.
 
     Parameters
@@ -144,7 +158,7 @@ def post_run_cell(result):
     pass
 
 @_define_event
-def shell_initialized(ip):
+def shell_initialized(ip: InteractiveShell) -> None:
     """Fires after initialisation of :class:`~IPython.core.interactiveshell.InteractiveShell`.
 
     This is before extensions and startup scripts are loaded, so it can only be

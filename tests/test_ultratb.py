@@ -206,7 +206,6 @@ se_file_2 = """7/
 
 
 class SyntaxErrorTest(unittest.TestCase):
-
     def test_syntaxerror_no_stacktrace_at_compile_time(self):
         syntax_error_at_compile_time = """
 def foo_syntax_error_test():
