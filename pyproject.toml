@@ -150,6 +150,7 @@ module = [
     "IPython.utils.syspathcontext",
     "IPython.utils.generics",
     "IPython.utils.encoding",
+    "IPython.utils.module_paths",
 ]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -291,7 +292,6 @@ module = [
     "IPython.utils.frame",
     "IPython.utils.io",
     "IPython.utils.ipstruct",
-    "IPython.utils.module_paths",
     "IPython.utils.openpy",
     "IPython.utils.process",
     "IPython.utils.py3compat",
