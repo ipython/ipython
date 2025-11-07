@@ -3,6 +3,8 @@
 Utilities for dealing with text encodings
 """
 
+from __future__ import annotations
+
 # -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2012  The IPython Development Team
 #
@@ -16,10 +18,11 @@ Utilities for dealing with text encodings
 import sys
 import locale
 import warnings
+from typing import Any, Literal
 
 
 # to deal with the possibility of sys.std* not being a stream at all
-def get_stream_enc(stream, default=None):
+def get_stream_enc(stream: Any, default: str | None = None) -> str | None:
     """Return the given stream's encoding or a default.
 
     There are cases where ``sys.std*`` might not actually be a stream, so
@@ -33,14 +36,14 @@ def get_stream_enc(stream, default=None):
         return stream.encoding
 
 
-_sentinel = object()
+_sentinel: object = object()
 
 
 # Less conservative replacement for sys.getdefaultencoding, that will try
 # to match the environment.
 # Defined here as central function, so if we find better choices, we
 # won't need to make changes all over IPython.
-def getdefaultencoding(prefer_stream=_sentinel):
+def getdefaultencoding(prefer_stream: object | bool = _sentinel) -> str:
     """Return IPython's guess for the default encoding for bytes as text.
 
     If prefer_stream is True (default), asks for stdin.encoding first,
@@ -61,7 +64,7 @@ def getdefaultencoding(prefer_stream=_sentinel):
             stacklevel=2,
         )
         prefer_stream = True
-    enc = None
+    enc: str | None = None
     if prefer_stream:
         enc = get_stream_enc(sys.stdin)
     if not enc or enc == "ascii":
