@@ -147,6 +147,7 @@ module = [
     "IPython.utils.sentinel",
     "IPython.utils.data",
     "IPython.utils.importstring",
+    "IPython.utils.syspathcontext",
 ]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -296,7 +297,6 @@ module = [
     "IPython.utils.py3compat",
     "IPython.utils.strdispatch",
     "IPython.utils.sysinfo",
-    "IPython.utils.syspathcontext",
     "IPython.utils.tempdir",
     "IPython.utils.terminal",
     "IPython.utils.timing",
