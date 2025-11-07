@@ -148,6 +148,7 @@ module = [
     "IPython.utils.data",
     "IPython.utils.importstring",
     "IPython.utils.syspathcontext",
+    "IPython.utils.generics",
 ]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -288,7 +289,6 @@ module = [
     "IPython.utils.dir2",
     "IPython.utils.encoding",
     "IPython.utils.frame",
-    "IPython.utils.generics",
     "IPython.utils.io",
     "IPython.utils.ipstruct",
     "IPython.utils.module_paths",
