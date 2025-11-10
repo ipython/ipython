@@ -1148,13 +1148,15 @@ class HistorySavingThread(threading.Thread):
         self.stop()
 
 
-# To match, e.g. ~5/8-~2/3
+# To match, e.g. ~5/8-~2/3, or ~4 (without trailing slash for full session)
+# Session numbers: ~N or N/
+# Line numbers: N (just digits, no ~ and no /)
 range_re = re.compile(
     r"""
-((?P<startsess>~?\d+)/)?
+((?P<startsess>(?:~\d+/?|\d+/)))?
 (?P<start>\d+)?
 ((?P<sep>[\-:])
- ((?P<endsess>~?\d+)/)?
+ ((?P<endsess>(?:~\d+/?|\d+/)))?
  (?P<end>\d+))?
 $""",
     re.VERBOSE,
@@ -1171,6 +1173,8 @@ def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[in
     --------
     >>> list(extract_hist_ranges("~8/5-~7/4 2"))
     [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
+    >>> list(extract_hist_ranges("~4"))
+    [(-4, 1, None)]  # Full session 4 (trailing / is optional)
     """
     if ranges_str == "":
         yield (0, 1, None)  # Everything from current session
@@ -1197,6 +1201,9 @@ def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[in
             end += 1
         startsess = rmatch.group("startsess") or "0"
         endsess = rmatch.group("endsess") or startsess
+        # Strip trailing / from session numbers (e.g., "~4/" -> "~4", "4/" -> "4")
+        startsess = startsess.rstrip("/")
+        endsess = endsess.rstrip("/")
         startsess = int(startsess.replace("~", "-"))
         endsess = int(endsess.replace("~", "-"))
         assert endsess >= startsess, "start session must be earlier than end session"
