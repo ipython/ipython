@@ -13,17 +13,15 @@ jobs:
   post-message:
     name: Post Message to Zulip
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
 
     steps:
 
       - name: Send Zulip notification
         uses: zulip/github-actions-zulip/send-message@v1
         with:
-          api-key: ${{ secrets.ZULIP_API_KEY }}
-          email: ${{ secrets.ZULIP_EMAIL }}
-          organization-url: ${{ vars.ZULIP_ORGANIZATION_URL }}
+          api-key: ${{ secrets.ORG_ZULIP_API_KEY }}
+          email: ${{ secrets.ORG_ZULIP_EMAIL }}
+          organization-url: ${{ vars.ORG_ZULIP_ORGANIZATION_URL }}
           to: 'Releases'
           type: 'stream'
           topic: 'IPython'
