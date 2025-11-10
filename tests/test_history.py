@@ -212,6 +212,8 @@ def test_extract_hist_ranges_empty_str():
 @pytest.mark.parametrize(
     "instr,expected,description",
     [
+        ("21-23", [(0, 21, 24)], "Just line numbers"),
+        ("25-", [(0, 25, None)], "Line start, no end"),
         ("~4/", [(-4, 1, None)], "with trailing slash"),
         ("~4", [(-4, 1, None)], "without trailing slash"),
         ("~4/1-5", [(-4, 1, 6)], "with line ranges and trailing slash"),
@@ -231,24 +233,11 @@ def test_extract_hist_ranges_empty_str():
         ("~5/10-", [(-5, 10, None)], "from line 10 onward in session 5"),
     ],
 )
-def test_extract_hist_ranges_without_trailing_slash(instr, expected, description):
-    """Test that ~N (without trailing slash) works and is backward compatible with ~N/"""
+def test_misc_extract_hist_ranges(instr, expected, description):
     actual = list(extract_hist_ranges(instr))
     assert (
         actual == expected
     ), f"Failed for '{instr}' ({description}): expected {expected}, got {actual}"
-
-
-def test_extract_hist_ranges_backward_compatibility():
-    """Test that ~N and ~N/ produce identical results (backward compatibility)"""
-    test_cases = ["~4", "~5", "~10", "~20"]
-    for case in test_cases:
-        result_no_slash = list(extract_hist_ranges(case))
-        result_with_slash = list(extract_hist_ranges(case + "/"))
-        assert result_no_slash == result_with_slash, (
-            f"{case} and {case}/ should produce the same result, "
-            f"got {result_no_slash} vs {result_with_slash}"
-        )
 
 
 def test_magic_rerun():

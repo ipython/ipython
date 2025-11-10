@@ -1175,11 +1175,11 @@ def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[in
     >>> list(extract_hist_ranges("~8/5-~7/4 2"))
     [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
     >>> list(extract_hist_ranges("~4"))
-    [(-4, 1, None)]  # Full session 4 (trailing / is optional)
+    [(-4, 1, None)]
     >>> list(extract_hist_ranges("4-"))
-    [(0, 4, None)]  # From line 4 onward (to end)
+    [(0, 4, None)]
     >>> list(extract_hist_ranges("~4/4-"))
-    [(-4, 4, None)]  # From line 4 onward in session 4
+    [(-4, 4, None)]
     """
     if ranges_str == "":
         yield (0, 1, None)  # Everything from current session
