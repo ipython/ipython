@@ -21,7 +21,7 @@ jobs:
         with:
           api-key: ${{ secrets.ORG_ZULIP_API_KEY }}
           email: ${{ secrets.ORG_ZULIP_EMAIL }}
-          organization-url: ${{ vars.ORG_ZULIP_ORGANIZATION_URL }}
+          organization-url: ${{ secrets.ORG_ZULIP_ORGANIZATION_URL }}
           to: 'Releases'
           type: 'stream'
           topic: 'IPython'
