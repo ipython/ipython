@@ -225,6 +225,10 @@ def test_extract_hist_ranges_empty_str():
         ("~1/", [(-1, 1, None)], "single digit session with slash"),
         ("~2", [(-2, 1, None)], "backward compatibility without slash"),
         ("~2/", [(-2, 1, None)], "backward compatibility with slash"),
+        ("4-", [(0, 4, None)], "from line 4 onward in current session"),
+        ("~4/4-", [(-4, 4, None)], "from line 4 onward in session 4"),
+        ("2/4-", [(2, 4, None)], "from line 4 onward in session 2"),
+        ("~5/10-", [(-5, 10, None)], "from line 10 onward in session 5"),
     ],
 )
 def test_extract_hist_ranges_without_trailing_slash(instr, expected, description):
