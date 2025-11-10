@@ -1151,13 +1151,14 @@ class HistorySavingThread(threading.Thread):
 # To match, e.g. ~5/8-~2/3, or ~4 (without trailing slash for full session)
 # Session numbers: ~N or N/
 # Line numbers: N (just digits, no ~ and no /)
+# Range syntax: 4-6 (with end) or 4- (without end, means "onward")
 range_re = re.compile(
     r"""
 ((?P<startsess>(?:~\d+/?|\d+/)))?
 (?P<start>\d+)?
 ((?P<sep>[\-:])
  ((?P<endsess>(?:~\d+/?|\d+/)))?
- (?P<end>\d+))?
+ (?P<end>\d*))?
 $""",
     re.VERBOSE,
 )
@@ -1175,6 +1176,10 @@ def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[in
     [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
     >>> list(extract_hist_ranges("~4"))
     [(-4, 1, None)]  # Full session 4 (trailing / is optional)
+    >>> list(extract_hist_ranges("4-"))
+    [(0, 4, None)]  # From line 4 onward (to end)
+    >>> list(extract_hist_ranges("~4/4-"))
+    [(-4, 4, None)]  # From line 4 onward in session 4
     """
     if ranges_str == "":
         yield (0, 1, None)  # Everything from current session
@@ -1185,23 +1190,21 @@ def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[in
         if not rmatch:
             continue
         start = rmatch.group("start")
+        sep = rmatch.group("sep")
         if start:
             start = int(start)
             end = rmatch.group("end")
-            # If no end specified, get (a, a + 1)
-            end = int(end) if end else start + 1
-        else:  # start not specified
-            if not rmatch.group("startsess"):  # no startsess
+            if sep == "-":
+                end = (int(end) + 1) if end else None
+            else:
+                end = int(end) if end else start + 1
+        else:
+            if not rmatch.group("startsess"):
                 continue
             start = 1
-            end = None  # provide the entire session hist
-
-        if rmatch.group("sep") == "-":  # 1-3 == 1:4 --> [1, 2, 3]
-            assert end is not None
-            end += 1
+            end = None
         startsess = rmatch.group("startsess") or "0"
         endsess = rmatch.group("endsess") or startsess
-        # Strip trailing / from session numbers (e.g., "~4/" -> "~4", "4/" -> "4")
         startsess = startsess.rstrip("/")
         endsess = endsess.rstrip("/")
         startsess = int(startsess.replace("~", "-"))
