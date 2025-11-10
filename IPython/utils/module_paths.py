@@ -3,6 +3,8 @@
 Utility functions for finding modules on sys.path.
 
 """
+from __future__ import annotations
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2011, the IPython Development Team.
 #
@@ -17,6 +19,8 @@ Utility functions for finding modules on sys.path.
 
 # Stdlib imports
 import importlib
+import importlib.abc
+import importlib.util
 import sys
 
 # Third-party imports
@@ -36,7 +40,7 @@ import sys
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-def find_mod(module_name):
+def find_mod(module_name: str) -> str | None | importlib.abc.Loader:
     """
     Find module `module_name` on sys.path, and return the path to module `module_name`.
 
@@ -59,9 +63,11 @@ def find_mod(module_name):
         depending on above conditions.
     """
     spec = importlib.util.find_spec(module_name)
+    if spec is None:
+        return None
     module_path = spec.origin
     if module_path is None:
-        if spec.loader in sys.meta_path:
+        if spec.loader is not None and spec.loader in sys.meta_path:
             return spec.loader
         return None
     else:
