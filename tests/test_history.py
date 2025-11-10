@@ -212,6 +212,8 @@ def test_extract_hist_ranges_empty_str():
 @pytest.mark.parametrize(
     "instr,expected,description",
     [
+        ("21-23", [(0, 21, 24)], "Just line numbers"),
+        ("25-", [(0, 25, None)], "Line start, no end"),
         ("~4/", [(-4, 1, None)], "with trailing slash"),
         ("~4", [(-4, 1, None)], "without trailing slash"),
         ("~4/1-5", [(-4, 1, 6)], "with line ranges and trailing slash"),
@@ -232,7 +234,6 @@ def test_extract_hist_ranges_empty_str():
     ],
 )
 def test_misc_extract_hist_ranges(instr, expected, description):
-    """Test that ~N (without trailing slash) works and is backward compatible with ~N/"""
     actual = list(extract_hist_ranges(instr))
     assert (
         actual == expected
