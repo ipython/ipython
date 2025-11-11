@@ -8,7 +8,8 @@ from os import walk, sep, fsdecode
 
 from IPython.core.display import DisplayObject, TextDisplayObject
 
-from typing import Tuple, Iterable, Optional
+from typing import Tuple, Optional
+from collections.abc import Iterable
 
 __all__ = ['Audio', 'IFrame', 'YouTubeVideo', 'VimeoVideo', 'ScribdDocument',
            'FileLink', 'FileLinks', 'Code']

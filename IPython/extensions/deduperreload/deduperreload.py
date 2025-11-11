@@ -9,7 +9,8 @@ import platform
 import sys
 import textwrap
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Generator, Iterable, NamedTuple, cast
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
+from collections.abc import Generator, Iterable
 
 from IPython.extensions.deduperreload.deduperreload_patching import (
     DeduperReloaderPatchingMixin,

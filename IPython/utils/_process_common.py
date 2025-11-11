@@ -18,7 +18,8 @@ import os
 import shlex
 import subprocess
 import sys
-from typing import IO, Any, Callable, List, Union
+from typing import IO, Any, List, Union
+from collections.abc import Callable
 
 from IPython.utils import py3compat
 

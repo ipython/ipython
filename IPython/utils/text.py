@@ -22,17 +22,14 @@ from typing import (
     Tuple,
     Optional,
     cast,
-    Sequence,
-    Mapping,
     Any,
     Union,
-    Callable,
-    Iterator,
     TypeVar,
 )
+from collections.abc import Sequence, Mapping, Callable, Iterator
 
 if sys.version_info < (3, 12):
-    from typing_extensions import Self
+    from typing import Self
 else:
     from typing import Self
 
