@@ -36,6 +36,7 @@ from IPython.testing.decorators import (
 from IPython.testing import tools as tt
 from IPython.utils.process import find_cmd
 
+from IPython.core.interactiveshell import InteractiveShell
 # -----------------------------------------------------------------------------
 # Globals
 # -----------------------------------------------------------------------------
@@ -1262,3 +1263,9 @@ def test_enable_gui_osx():
     ip.enable_gui()
 
     ip.simple_prompt = simple_prompt
+
+def test_cell_meta():
+    ip:InteractiveShell = get_ipython()
+    ip.reset()
+    reply = ip.run_cell(("a=1\n"), cell_meta={"test": [1, 2, 3]})
+    assert reply.info.cell_meta == {"test": [1, 2, 3]}
