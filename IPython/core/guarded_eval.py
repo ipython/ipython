@@ -660,17 +660,18 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
 
 def _handle_annassign(node, context):
     annotation_value = _resolve_annotation(eval_node(node.annotation, context), context)
-    value = node.value
 
     # Use Value for generic types
-    use_value = isinstance(annotation_value, GENERIC_CONTAINER_TYPES)
+    use_value = (
+        isinstance(annotation_value, GENERIC_CONTAINER_TYPES) and node.value is not None
+    )
 
     # LOCAL VARIABLE
     if getattr(node, "simple", False) and isinstance(node.target, ast.Name):
         name = node.target.id
         if use_value:
             return _handle_assign(
-                ast.Assign(targets=[node.target], value=value), context
+                ast.Assign(targets=[node.target], value=node.value), context
             )
         context.transient_locals[name] = annotation_value
         return None
@@ -680,7 +681,7 @@ def _handle_annassign(node, context):
         attr = node.target.attr
         if use_value:
             return _handle_assign(
-                ast.Assign(targets=[node.target], value=value), context
+                ast.Assign(targets=[node.target], value=node.value), context
             )
         context.class_transients[attr] = annotation_value
         return None
