@@ -901,12 +901,40 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         return _handle_assign(node, context)
     if isinstance(node, ast.AnnAssign):
         if node.simple:
-            value = _resolve_annotation(eval_node(node.annotation, context), context)
-            context.transient_locals[node.target.id] = value
+            annotation_value = _resolve_annotation(
+                eval_node(node.annotation, context), context
+            )
+            # If there's an actual value and annotation is generic, use value itself
+            if node.value is not None and type(annotation_value) in (
+                dict,
+                list,
+                set,
+                tuple,
+                frozenset,
+            ):
+                assign_node = ast.Assign(targets=[node.target], value=node.value)
+                _handle_assign(assign_node, context)
+            else:
+                context.transient_locals[node.target.id] = annotation_value
+
         # Handle non-simple annotated assignments only for self.x: type = value
         if _is_instance_attribute_assignment(node.target, context):
-            value = _resolve_annotation(eval_node(node.annotation, context), context)
-            context.class_transients[node.target.attr] = value
+            annotation_value = _resolve_annotation(
+                eval_node(node.annotation, context), context
+            )
+
+            if node.value is not None and annotation_value in (
+                dict,
+                list,
+                set,
+                tuple,
+                frozenset,
+            ):
+                assign_node = ast.Assign(targets=[node.target], value=node.value)
+                _handle_assign(assign_node, context)
+            else:
+                context.class_transients[node.target.attr] = annotation_value
+
         return None
     if isinstance(node, ast.Expression):
         return eval_node(node.body, context)
