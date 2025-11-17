@@ -728,6 +728,7 @@ class Pdb(OldPdb):
 
         new_line, err = self.parser.format2(line, "str")
         if not err:
+            assert new_line is not None
             line = new_line
 
         bp = None

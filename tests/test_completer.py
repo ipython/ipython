@@ -315,7 +315,6 @@ class TestCompleter(unittest.TestCase):
             self.assertIsInstance(matches, list)
 
     def test_latex_completions(self):
-
         ip = get_ipython()
         # Test some random unicode symbols
         keys = random.sample(sorted(latex_symbols), 10)

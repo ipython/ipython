@@ -80,7 +80,7 @@ jobs:
         cd ..
         git clone https://github.com/deshaw/pyflyby
         cd pyflyby
-        pip install meson-python meson ninja pybind11>=2.10.4
+        pip install meson-python meson ninja pybind11>=2.10.4 setuptools-scm
         pip install setuptools wheel # needed for epydoc
         pip install --no-build-isolation -ve .[test]
         pip install 'pytest<=8'

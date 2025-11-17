@@ -1,18 +1,22 @@
 # encoding: utf-8
 """Generic functions for extending IPython."""
 
+from __future__ import annotations
+
+from typing import Any
+
 from IPython.core.error import TryNext
 from functools import singledispatch
 
 
 @singledispatch
-def inspect_object(obj):
+def inspect_object(obj: Any) -> None:
     """Called when you do obj?"""
     raise TryNext
 
 
 @singledispatch
-def complete_object(obj, prev_completions):
+def complete_object(obj: Any, prev_completions: list[str]) -> list[str]:
     """Custom completer dispatching for python objects.
 
     Parameters

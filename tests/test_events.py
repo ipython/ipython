@@ -37,9 +37,11 @@ class CallbackTests(unittest.TestCase):
         self.assertEqual(cb.call_count, 1)
 
     def test_bare_function_missed_unregister(self):
-        def cb1(): ...
+        def cb1():
+            ...
 
-        def cb2(): ...
+        def cb2():
+            ...
 
         self.em.register("ping_received", cb1)
         self.assertRaises(ValueError, self.em.unregister, "ping_received", cb2)

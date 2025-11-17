@@ -24,7 +24,6 @@ def test_tee_simple():
 
 
 class TeeTestCase(unittest.TestCase):
-
     def tchan(self, channel):
         trap = StringIO()
         chan = StringIO()
@@ -50,7 +49,6 @@ class TeeTestCase(unittest.TestCase):
 
 
 class TestIOStream(unittest.TestCase):
-
     def test_capture_output(self):
         """capture_output() context works"""
 

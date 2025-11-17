@@ -1,6 +1,4 @@
 include README.rst
-include COPYING.rst
-include LICENSE
 include setupbase.py
 include _build_meta.py
 include MANIFEST.in

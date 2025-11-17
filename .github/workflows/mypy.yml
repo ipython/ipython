@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.x"]
+        python-version: ["3.14"]
 
     steps:
     - uses: actions/checkout@v5
@@ -23,10 +23,12 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install mypy pyflakes flake8 types-decorator
+        uv pip install --system mypy pyflakes flake8 types-decorator
     - name: Lint with mypy
       run: |
         set -e

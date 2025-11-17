@@ -21,7 +21,6 @@ def fib(n):
 
 
 class FibonacciCompletionProvider(BaseProvider, FakeListLLM):  # type: ignore[misc, valid-type]
-
     id = "my_provider"
     name = "My Provider"
     model_id_key = "model"

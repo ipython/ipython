@@ -1538,9 +1538,9 @@ def match_dict_keys(
         # All checks passed!
         return True
 
-    filtered_key_is_final: dict[Union[str, bytes, int, float], _DictKeyState] = (
-        defaultdict(lambda: _DictKeyState.BASELINE)
-    )
+    filtered_key_is_final: dict[
+        Union[str, bytes, int, float], _DictKeyState
+    ] = defaultdict(lambda: _DictKeyState.BASELINE)
 
     for k in keys:
         # If at least one of the matches is not final, mark as undetermined.

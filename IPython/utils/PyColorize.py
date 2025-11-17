@@ -5,7 +5,7 @@ import token
 import tokenize
 import warnings
 from io import StringIO
-from typing import TypeAlias
+from typing import Any, Type, TypeAlias
 
 import pygments
 from pygments.formatters.terminal256 import Terminal256Formatter
@@ -29,11 +29,11 @@ class Symbols(TypedDict):
     arrow_head: str
 
 
-_default_symbols: Symbols = {
-    "top_line": "-",
-    "arrow_body": "-",
-    "arrow_head": ">",
-}
+_default_symbols: Symbols = Symbols(
+    top_line="-",
+    arrow_body="-",
+    arrow_head=">",
+)
 
 
 class Theme:
@@ -42,15 +42,23 @@ class Theme:
     extra_style: dict[_TokenType, str]
     symbols: Symbols
 
-    def __init__(self, name, base, extra_style, *, symbols={}):
+    def __init__(
+        self,
+        name: str,
+        base: str | None,
+        extra_style: dict[_TokenType, str],
+        *,
+        symbols: Symbols | None = None,
+    ) -> None:
         self.name = name
         self.base = base
         self.extra_style = extra_style
-        self.symbols = {**_default_symbols, **symbols}
+        s: Symbols = symbols if symbols is not None else _default_symbols
+        self.symbols = {**_default_symbols, **s}
         self._formatter = Terminal256Formatter(style=self.as_pygments_style())
 
     @cache
-    def as_pygments_style(self):
+    def as_pygments_style(self) -> Type[Style]:
         if self.base is not None:
             base_styles = get_style_by_name(self.base).styles
         else:
@@ -62,10 +70,9 @@ class Theme:
         return MyStyle
 
     def format(self, stream: TokenStream) -> str:
-
         return pygments.format(stream, self._formatter)
 
-    def make_arrow(self, width: int):
+    def make_arrow(self, width: int) -> str:
         """generate the leading arrow in front of traceback or debugger"""
         if width >= 2:
             return (
@@ -382,8 +389,12 @@ class Parser:
     """Format colored Python source."""
 
     _theme_name: str
+    out: Any
+    pos: int
+    lines: list[int]
+    raw: str
 
-    def __init__(self, out=sys.stdout, *, theme_name: str = None):
+    def __init__(self, out: Any = sys.stdout, *, theme_name: str | None = None) -> None:
         """Create a parser with a specified color table and output channel.
 
         Call format() to process code.
@@ -392,9 +403,9 @@ class Parser:
         assert theme_name is not None
 
         self.out = out
-        self.pos = None
-        self.lines = None
-        self.raw = None
+        self.pos = 0
+        self.lines = []
+        self.raw = ""
         if theme_name is not None:
             if theme_name in ["Linux", "LightBG", "Neutral", "NoColor"]:
                 warnings.warn(
@@ -409,29 +420,29 @@ class Parser:
             self.theme_name = theme_name
 
     @property
-    def theme_name(self):
+    def theme_name(self) -> str:
         return self._theme_name
 
     @theme_name.setter
-    def theme_name(self, value):
+    def theme_name(self, value: str) -> None:
         assert value == value.lower()
         self._theme_name = value
 
     @property
-    def style(self):
+    def style(self) -> str:
         assert False
         return self._theme_name
 
     @style.setter
-    def set(self, val):
+    def style(self, val: str) -> None:
         assert False
         assert val == val.lower()
         self._theme_name = val
 
-    def format(self, raw, out=None):
+    def format(self, raw: str, out: Any = None) -> str | None:
         return self.format2(raw, out)[0]
 
-    def format2(self, raw, out=None):
+    def format2(self, raw: str, out: Any = None) -> tuple[str | None, bool]:
         """Parse and send the colored source.
 
         If out is not specified, the defaults (given to constructor) are used.
@@ -520,7 +531,9 @@ class Parser:
             return (output, error)
         return (None, error)
 
-    def _inner_call_(self, toktype, toktext, start_pos):
+    def _inner_call_(
+        self, toktype: int, toktext: str, start_pos: tuple[int, int]
+    ) -> str:
         """like call but write to a temporary buffer"""
         srow, scol = start_pos
 
@@ -552,6 +565,13 @@ class Parser:
         acc += theme_table[self.theme_name].format([(pyg_tok_type, toktext)])
         return acc
 
-    def __call__(self, toktype, toktext, start_pos, end_pos, line):
+    def __call__(
+        self,
+        toktype: int,
+        toktext: str,
+        start_pos: tuple[int, int],
+        end_pos: tuple[int, int],
+        line: str,
+    ) -> None:
         """Token handler, with syntax highlighting."""
         self.out.write(self._inner_call_(toktype, toktext, start_pos))

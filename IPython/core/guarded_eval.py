@@ -41,17 +41,20 @@ else:
 
 @undoc
 class HasGetItem(Protocol):
-    def __getitem__(self, key) -> None: ...
+    def __getitem__(self, key) -> None:
+        ...
 
 
 @undoc
 class InstancesHaveGetItem(Protocol):
-    def __call__(self, *args, **kwargs) -> HasGetItem: ...
+    def __call__(self, *args, **kwargs) -> HasGetItem:
+        ...
 
 
 @undoc
 class HasGetAttr(Protocol):
-    def __getattr__(self, key) -> None: ...
+    def __getattr__(self, key) -> None:
+        ...
 
 
 @undoc

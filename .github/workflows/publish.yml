@@ -1,0 +1,79 @@
+name: Build and Publish IPython
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    name: Build and Publish to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/ipython
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build
+
+      - name: Build distribution
+        run: python -m build
+
+      - name: Verify built version matches tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "Tag name: $TAG_NAME"
+
+          # Check dist folder filenames
+          echo "Built distribution files:"
+          ls -la dist/
+
+          # Install the built wheel
+          python -m pip install dist/*.whl
+
+          # Get IPython version
+          IPYTHON_VERSION=$(ipython --version)
+          echo "Installed IPython version: $IPYTHON_VERSION"
+
+          # Compare versions (allow only X.Y.Z)
+          if [[ "$TAG_NAME" != "$IPYTHON_VERSION" ]]; then
+            echo "Error: Tag ($TAG_NAME) does not match built IPython version ($IPYTHON_VERSION)"
+            exit 1
+          fi
+
+          echo "Version check passed! Tag matches built version."
+
+      - name: Publish distribution to PyPI
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: pypa/gh-action-pypi-publish@v1.13.0
+
+      - name: Send Zulip notification
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ secrets.ZULIP_EMAIL }}
+          organization-url: ${{ vars.ZULIP_ORGANIZATION_URL }}
+          to: 'Releases'
+          type: 'stream'
+          topic: 'IPython'
+          content: |
+            IPython ${{ github.ref_name }} was just released on PyPI! 🎉
+            https://pypi.org/project/ipython/${{ github.ref_name }}/
