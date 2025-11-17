@@ -2494,6 +2494,24 @@ class TestCompleter(unittest.TestCase):
             ),
             "bit_length",
         ],
+        [
+            "\n".join(
+                [
+                    "t: list[str]",
+                    "t[0].",
+                ]
+            ),
+            ["capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t: int | str",
+                    "t.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):
