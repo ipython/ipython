@@ -30,7 +30,7 @@ from types import MethodDescriptorType, ModuleType, MethodType
 
 from IPython.utils.decorators import undoc
 
-
+import types
 from typing import Self, LiteralString
 
 if sys.version_info < (3, 12):
@@ -564,6 +564,25 @@ def _validate_policy_overrides(
     return all_good
 
 
+def is_type_annotation(obj) -> bool:
+    """
+    Returns True if obj is a type annotation, False otherwise.
+    """
+    if isinstance(obj, type):
+        return True
+    if hasattr(typing, "get_origin"):
+        if typing.get_origin(obj) is not None:
+            return True
+    if hasattr(obj, "__module__") and obj.__module__ == "typing":
+        return True
+    if isinstance(obj, types.GenericAlias):
+        return True
+    if type(obj).__name__ in ("_GenericAlias", "_SpecialForm", "_UnionGenericAlias"):
+        return True
+
+    return False
+
+
 def _handle_assign(node: ast.Assign, context: EvaluationContext):
     value = eval_node(node.value, context)
     transient_locals = context.transient_locals
@@ -904,11 +923,19 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         return _handle_assign(node, context)
     if isinstance(node, ast.AnnAssign):
         if node.simple:
-            value = _resolve_annotation(eval_node(node.annotation, context), context)
+            annotation_result = eval_node(node.annotation, context)
+            if is_type_annotation(annotation_result):
+                value = _resolve_annotation(annotation_result, context)
+            else:
+                value = annotation_result
             context.transient_locals[node.target.id] = value
         # Handle non-simple annotated assignments only for self.x: type = value
         if _is_instance_attribute_assignment(node.target, context):
-            value = _resolve_annotation(eval_node(node.annotation, context), context)
+            annotation_result = eval_node(node.annotation, context)
+            if is_type_annotation(annotation_result):
+                value = _resolve_annotation(annotation_result, context)
+            else:
+                value = annotation_result
             context.class_transients[node.target.attr] = value
         return None
     if isinstance(node, ast.Expression):
@@ -927,6 +954,18 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.BinOp):
         left = eval_node(node.left, context)
         right = eval_node(node.right, context)
+        if is_type_annotation(left) and is_type_annotation(right):
+            left_duck = (
+                _Duck(dict.fromkeys(dir(left)))
+                if policy.can_call(left.__dir__)
+                else _Duck()
+            )
+            right_duck = (
+                _Duck(dict.fromkeys(dir(right)))
+                if policy.can_call(right.__dir__)
+                else _Duck()
+            )
+            return _merge_values([left_duck, right_duck], policy=get_policy(context))
         dunders = _find_dunder(node.op, BINARY_OP_DUNDERS)
         if dunders:
             if policy.can_operate(dunders, left, right):
