@@ -31,7 +31,7 @@ from types import MethodDescriptorType, ModuleType, MethodType
 from IPython.utils.decorators import undoc
 
 
-from typing import Self, LiteralString
+from typing import Self, LiteralString, get_type_hints
 
 if sys.version_info < (3, 12):
     from typing_extensions import TypeAliasType
@@ -1036,6 +1036,22 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         value = eval_node(node.value, context)
         if policy.can_get_attr(value, node.attr):
             return getattr(value, node.attr)
+        try:
+            cls = (
+                value if isinstance(value, type) else getattr(value, "__class__", None)
+            )
+            if cls is not None:
+                resolved_hints = get_type_hints(
+                    cls,
+                    globalns=(context.globals or {}),
+                    localns=(context.locals or {}),
+                )
+                if node.attr in resolved_hints:
+                    annotated = resolved_hints[node.attr]
+                    return _resolve_annotation(annotated, context)
+        except Exception:
+            # Fall through to the guard rejection
+            pass
         raise GuardRejection(
             "Attribute access (`__getattr__`) for",
             type(value),  # not joined to avoid calling `repr`
