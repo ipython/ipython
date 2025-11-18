@@ -747,7 +747,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 decorator = eval_node(decorator_node, context)
             except NameError:
                 # if the decorator is not yet defined this is fine
-                # especialy because we don't handle imports yet
+                # especially because we don't handle imports yet
                 continue
             if decorator is property:
                 is_property = True
