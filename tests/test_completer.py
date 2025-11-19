@@ -1572,6 +1572,39 @@ class TestCompleter(unittest.TestCase):
             self.assertNotIn(".append", matches)
             self.assertNotIn(".keys", matches)
 
+    def test_completion_fallback_to_annotation_for_attribute(self):
+        code = textwrap.dedent(
+            """
+            class StringMethods:
+                def a():
+                    pass
+
+            class Test:
+                str: StringMethods
+                def __init__(self):
+                    self.str = StringMethods()
+                def __getattr__(self, name):
+                    raise AttributeError(f"{name} not found")
+            """
+        )
+
+        repro = types.ModuleType("repro")
+        sys.modules["repro"] = repro
+        exec(code, repro.__dict__)
+
+        ip = get_ipython()
+        ip.user_ns["repro"] = repro
+        exec("r = repro.Test()", ip.user_ns)
+
+        complete = ip.Completer.complete
+        try:
+            with evaluation_policy("limited"), jedi_status(False):
+                _, matches = complete(line_buffer="r.str.")
+                self.assertIn(".a", matches)
+        finally:
+            sys.modules.pop("repro", None)
+            ip.user_ns.pop("r", None)
+
     def test_policy_warnings(self):
         with self.assertWarns(
             UserWarning,
