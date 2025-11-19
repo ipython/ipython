@@ -577,6 +577,8 @@ def is_type_annotation(obj) -> bool:
         return True
     if isinstance(obj, types.GenericAlias):
         return True
+    if hasattr(types, "UnionType") and isinstance(obj, types.UnionType):
+        return True
     if type(obj).__name__ in ("_GenericAlias", "_SpecialForm", "_UnionGenericAlias"):
         return True
 
