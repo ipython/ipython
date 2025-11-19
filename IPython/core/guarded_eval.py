@@ -403,6 +403,9 @@ class EvaluationContext:
     class_transients: dict | None = None
     #: Instance variable name used in the method definition
     instance_arg_name: str | None = None
+    #: Currently associated value
+    #: Useful for adding items to _Duck on annotated assignment
+    current_value: ast.AST | None = None
 
     def replace(self, /, **changes):
         """Return a new copy of the context, with specified changes"""
@@ -924,6 +927,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.Assign):
         return _handle_assign(node, context)
     if isinstance(node, ast.AnnAssign):
+        context.current_value = getattr(node, "value", None)
         if node.simple:
             annotation_result = eval_node(node.annotation, context)
             if is_type_annotation(annotation_result):
@@ -967,6 +971,13 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 if policy.can_call(right.__dir__)
                 else _Duck()
             )
+            value_node = context.current_value
+            if value_node is not None and isinstance(value_node, ast.Dict):
+                if dict in [left, right]:
+                    return _merge_values(
+                        [left_duck, right_duck, ast.literal_eval(value_node)],
+                        policy=get_policy(context),
+                    )
             return _merge_values([left_duck, right_duck], policy=get_policy(context))
         dunders = _find_dunder(node.op, BINARY_OP_DUNDERS)
         if dunders:
