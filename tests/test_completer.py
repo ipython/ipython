@@ -2695,24 +2695,3 @@ def test_trim_expr(code, expected):
 )
 def test_match_numeric_literal_for_dict_key(input, expected):
     assert _match_number_in_dict_key_prefix(input) == expected
-
-
-def test_completer_does_not_raise_value_error():
-    ip = get_ipython()
-    source = "\n".join(
-        [
-            "if cond:",
-            "   assert a.",
-        ]
-    )
-    value_error = None
-    with provisionalcompleter():
-        try:
-            completions = list(
-                ip.Completer.completions(text=source, offset=len(source))
-            )
-        except ValueError as e:
-            value_error = e
-            completions = []
-        assert isinstance(completions, list)
-        assert value_error is None

@@ -1352,8 +1352,6 @@ class Completer(Configurable):
             assert res is not None
             if len(res.body) != 1:
                 continue
-            if not isinstance(res.body[0], ast.Expr):
-                continue
             expr = res.body[0].value
             if isinstance(expr, ast.Tuple) and not code[-1] == ")":
                 # we skip implicit tuple, like when trimming `fun(a,b`<completion>
