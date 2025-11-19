@@ -500,6 +500,8 @@ UNARY_OP_DUNDERS: dict[type[ast.unaryop], tuple[str, ...]] = {
 }
 
 GENERIC_CONTAINER_TYPES = (dict, list, set, tuple, frozenset)
+
+
 class ImpersonatingDuck:
     """A dummy class used to create objects of other classes without calling their ``__init__``"""
 
