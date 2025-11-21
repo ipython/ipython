@@ -2473,8 +2473,7 @@ class IPCompleter(Completer):
 
     @context_matcher(identifier="IPCompleter.jedi_matcher")
     def _jedi_matcher(self, context: CompletionContext) -> _JediMatcherResult:
-        text = context.text_until_cursor
-        text = self._extract_code(text)
+        text = self._extract_code(context.text_until_cursor)
         completion_type = self._determine_completion_context(text)
         matches = self._jedi_matches(
             cursor_column=context.cursor_position,
