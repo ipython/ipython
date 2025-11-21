@@ -2696,6 +2696,7 @@ def test_misc_no_jedi_completions(setup, code, expected, not_expected):
         ("x = {1, y", "y"),
         ("x = [1, y", "y"),
         ("x = fun(1, y", "y"),
+        (" assert a", "a"),
     ],
 )
 def test_trim_expr(code, expected):
