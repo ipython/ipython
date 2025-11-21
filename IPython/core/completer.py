@@ -2473,15 +2473,22 @@ class IPCompleter(Completer):
 
     @context_matcher(identifier="IPCompleter.jedi_matcher")
     def _jedi_matcher(self, context: CompletionContext) -> _JediMatcherResult:
+        text = context.text_until_cursor
+        text = self._extract_code(text)
+        completion_type = self._determine_completion_context(text)
         matches = self._jedi_matches(
             cursor_column=context.cursor_position,
             cursor_line=context.cursor_line,
             text=context.full_text,
         )
+        if completion_type == self._CompletionContextType.ATTRIBUTE:
+            suppress = {_get_matcher_id(self.file_matcher)}
+        else:
+            suppress = False
         return {
             "completions": matches,
-            # static analysis should not suppress other matchers
-            "suppress": {_get_matcher_id(self.file_matcher)} if matches else False,
+            # static analysis should not suppress other matchers except for file matcher
+            "suppress": suppress,
         }
 
     def _jedi_matches(
@@ -2744,8 +2751,7 @@ class IPCompleter(Completer):
                 matches = _convert_matcher_v1_result_to_v2(
                     matches, type="attribute", fragment=fragment
                 )
-                if matches["completions"]:
-                    matches["suppress"] = {_get_matcher_id(self.file_matcher)}
+                matches["suppress"] = {_get_matcher_id(self.file_matcher)}
                 return matches
             except NameError:
                 # catches <undefined attributes>.<tab>
@@ -3649,10 +3655,25 @@ class IPCompleter(Completer):
                     if isinstance(self.suppress_competing_matchers, dict)
                     else self.suppress_competing_matchers
                 )
-                should_suppress = (
-                    (suppression_config is True)
-                    or (suppression_recommended and (suppression_config is not False))
-                ) and has_any_completions(result)
+                file_matcher_id = _get_matcher_id(self.file_matcher)
+                python_matcher_id = _get_matcher_id(self.python_matcher)
+                jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
+                # If this is attribute completion and it explicitly
+                # recommends suppressing the file matcher, do so.
+                if (
+                    (matcher_id == python_matcher_id or matcher_id == jedi_matcher_id)
+                    and isinstance(suppression_recommended, set)
+                    and file_matcher_id in suppression_recommended
+                ):
+                    should_suppress = True
+                else:
+                    should_suppress = (
+                        (suppression_config is True)
+                        or (
+                            suppression_recommended
+                            and (suppression_config is not False)
+                        )
+                    ) and has_any_completions(result)
 
                 if should_suppress:
                     suppression_exceptions: set[str] = result.get(

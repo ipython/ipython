@@ -2561,6 +2561,14 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
                 "x.b[0].",
             ]
         ),
+        "\n".join(
+            [
+                "class MyClass():",
+                "    b: list[str]",
+                "x = MyClass()",
+                "x.fake_attr().",
+            ]
+        ),
     ],
 )
 def test_no_file_completions_in_attr_access(code):
