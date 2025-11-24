@@ -2536,11 +2536,33 @@ class TestCompleter(unittest.TestCase):
             ),
             ["capitalize"],
         ],
+        # Test union types
         [
             "\n".join(
                 [
                     "t: int | str",
                     "t.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def func() -> int | str: pass",
+                    "func().",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "class T:",
+                    "   @property",
+                    "   def p(self) -> int | str: pass",
+                    "t = T()",
+                    "t.p.",
                 ]
             ),
             ["bit_length", "capitalize"],

@@ -793,9 +793,12 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
         if is_property:
             if return_type is not None:
-                context.transient_locals[node.name] = _resolve_annotation(
-                    return_type, context
-                )
+                if is_type_annotation(return_type):
+                    context.transient_locals[node.name] = _resolve_annotation(
+                        return_type, context
+                    )
+                else:
+                    context.transient_locals[node.name] = return_type
             else:
                 return_value = _infer_return_value(node, func_context)
                 context.transient_locals[node.name] = return_value
@@ -806,7 +809,10 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             pass
 
         if return_type is not None:
-            dummy_function.__annotations__["return"] = return_type
+            if is_type_annotation(return_type):
+                dummy_function.__annotations__["return"] = return_type
+            else:
+                dummy_function.__inferred_return__ = return_type
         else:
             inferred_return = _infer_return_value(node, func_context)
             if inferred_return is not None:
