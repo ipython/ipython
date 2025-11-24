@@ -573,16 +573,19 @@ def _is_type_annotation(obj) -> bool:
     """
     if isinstance(obj, type):
         return True
-    if hasattr(typing, "get_origin"):
-        if typing.get_origin(obj) is not None:
-            return True
-    if hasattr(obj, "__module__") and obj.__module__ == "typing":
-        return True
     if isinstance(obj, types.GenericAlias):
         return True
     if hasattr(types, "UnionType") and isinstance(obj, types.UnionType):
         return True
-    if type(obj).__name__ in ("_GenericAlias", "_SpecialForm", "_UnionGenericAlias"):
+    if isinstance(obj, (typing._SpecialForm, typing._BaseGenericAlias)):
+        return True
+    if isinstance(obj, typing.TypeVar):
+        return True
+    # Types that support __class_getitem__
+    if isinstance(obj, type) and hasattr(obj, "__class_getitem__"):
+        return True
+    # Fallback: check if get_origin returns something
+    if hasattr(typing, "get_origin") and get_origin(obj) is not None:
         return True
 
     return False
