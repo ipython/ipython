@@ -2605,7 +2605,7 @@ class IPCompleter(Completer):
             return self._CompletionContextType.GLOBAL
 
         # Handle all other attribute matches np.ran, d[0].k, (a,b).count
-        chain_match = re.search(r".*(.+\.(?:[a-zA-Z]\w*)?)$", line)
+        chain_match = re.search(r".*(.+(?<!\s)\.(?:[a-zA-Z]\w*)?)$", line)
         if chain_match:
             return self._CompletionContextType.ATTRIBUTE
 
