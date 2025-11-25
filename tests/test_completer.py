@@ -2661,6 +2661,7 @@ def test_completion_context(line, expected):
 def test_completion_in_cli_context(line, expected, expected_after_assignment):
     """Test completion context with and without variable overshadowing"""
     ip = get_ipython()
+    print("\n\nDEBUG:\n", ip.alias_manager.aliases)
     get_context = ip.Completer._is_completing_in_cli_context
 
     # Normal case
