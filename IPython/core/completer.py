@@ -2611,6 +2611,41 @@ class IPCompleter(Completer):
 
         return self._CompletionContextType.GLOBAL
 
+    def _is_completing_in_cli_context(self, text: str) -> bool:
+        """
+        Determine if we are completing in a CLI alias, line magic, or bang expression context.
+        """
+        stripped = text.lstrip()
+        if stripped.startswith("!") or stripped.startswith("%"):
+            return True
+        # Check for CLI aliases
+        try:
+            tokens = stripped.split(None, 1)
+            if not tokens:
+                return False
+            first_token = tokens[0]
+
+            # Must have arguments after the command for this to apply
+            if len(tokens) < 2:
+                return False
+
+            # Check if first token is a known alias
+            if not any(
+                alias[0] == first_token for alias in self.shell.alias_manager.aliases
+            ):
+                return False
+
+            try:
+                if first_token in self.shell.user_ns:
+                    # There's a variable defined, so the alias is overshadowed
+                    return False
+            except (AttributeError, KeyError):
+                pass
+
+            return True
+        except Exception:
+            return False
+
     def _is_in_string_or_comment(self, text):
         """
         Determine if the cursor is inside a string or comment.
@@ -2732,7 +2767,11 @@ class IPCompleter(Completer):
         """Match attributes or global python names"""
         text = context.text_until_cursor
         text = self._extract_code(text)
-        completion_type = self._determine_completion_context(text)
+        in_cli_context = self._is_completing_in_cli_context(text)
+        if in_cli_context:
+            completion_type = self._CompletionContextType.GLOBAL
+        else:
+            completion_type = self._determine_completion_context(text)
         if completion_type == self._CompletionContextType.ATTRIBUTE:
             try:
                 matches, fragment = self._attr_matches(
