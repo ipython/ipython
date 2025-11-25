@@ -2651,17 +2651,17 @@ def test_completion_context(line, expected):
 @pytest.mark.parametrize(
     "line,expected,expected_after_assignment",
     [
-        ("ls file", True, False),  # overshadowed by variable
-        ("ls .", True, False),
-        ("ls file.", True, False),
-        ("%ls .file.ext", True, True),  # magic, not affected by variable
-        ("!ls file.", True, True),  # bang, not affected by variable
+        ("test file", True, False),  # overshadowed by variable
+        ("test .", True, False),
+        ("test file.", True, False),
+        ("%test .file.ext", True, True),  # magic, not affected by variable
+        ("!test file.", True, True),  # bang, not affected by variable
     ],
 )
 def test_completion_in_cli_context(line, expected, expected_after_assignment):
     """Test completion context with and without variable overshadowing"""
     ip = get_ipython()
-    print("\n\nDEBUG:\n", ip.alias_manager.aliases)
+    ip.run_cell("alias test echo test")
     get_context = ip.Completer._is_completing_in_cli_context
 
     # Normal case
@@ -2670,13 +2670,13 @@ def test_completion_in_cli_context(line, expected, expected_after_assignment):
 
     # Test with alias assigned as a variable
     try:
-        ip.user_ns["ls"] = "some_value"
+        ip.user_ns["test"] = "some_value"
         result_after_assignment = get_context(line)
         assert (
             result_after_assignment == expected_after_assignment
         ), f"Failed after assigning 'ls' as a variable for input: '{line}'"
     finally:
-        ip.user_ns.pop("ls", None)
+        ip.user_ns.pop("test", None)
 
 @pytest.mark.xfail(reason="Completion context not yet supported")
 @pytest.mark.parametrize(
