@@ -424,11 +424,17 @@ class TestCompleter(unittest.TestCase):
             c = ip.complete(prefix)[1]
             self.assertEqual(c, names)
 
-            # Now check with a function call
-            cmd = 'a = f("%s' % prefix
-            c = ip.complete(prefix, cmd)[1]
-            comp = {prefix + s for s in suffixes}
-            self.assertTrue(comp.issubset(set(c)))
+            test_cases = {
+                "function call": 'a = f("',
+                "shell bang": "!ls ",
+                "ls magic": r"%ls ",
+                "alias ls": "ls ",
+            }
+            for name, code in test_cases.items():
+                cmd = f"{code}{prefix}"
+                c = ip.complete(prefix, cmd)[1]
+                comp = {prefix + s for s in suffixes}
+                self.assertTrue(comp.issubset(set(c)), msg=f"completes in {name}")
 
     def test_quoted_file_completions(self):
         ip = get_ipython()
@@ -2638,6 +2644,14 @@ def test_undefined_variables_without_jedi(code, insert_text):
                 "x.b[0].",
             ]
         ),
+        "\n".join(
+            [
+                "class MyClass():",
+                "    b: list[str]",
+                "x = MyClass()",
+                "x.fake_attr().",
+            ]
+        ),
     ],
 )
 def test_no_file_completions_in_attr_access(code):
@@ -2706,6 +2720,7 @@ def test_no_file_completions_in_attr_access(code):
         ('f"formatted {obj.attr}', "global"),
         ("dict_with_dots = {'key.with.dots': value.attr", "attribute"),
         ("d[f'{a}']['{a.", "global"),
+        ("ls .", "global"),
     ],
 )
 def test_completion_context(line, expected):
@@ -2714,6 +2729,37 @@ def test_completion_context(line, expected):
     get_context = ip.Completer._determine_completion_context
     result = get_context(line)
     assert result.value == expected, f"Failed on input: '{line}'"
+
+
+@pytest.mark.parametrize(
+    "line,expected,expected_after_assignment",
+    [
+        ("test_alias file", True, False),  # overshadowed by variable
+        ("test_alias .", True, False),
+        ("test_alias file.", True, False),
+        ("%test_alias .file.ext", True, True),  # magic, not affected by variable
+        ("!test_alias file.", True, True),  # bang, not affected by variable
+    ],
+)
+def test_completion_in_cli_context(line, expected, expected_after_assignment):
+    """Test completion context with and without variable overshadowing"""
+    ip = get_ipython()
+    ip.run_cell("alias test_alias echo test_alias")
+    get_context = ip.Completer._is_completing_in_cli_context
+
+    # Normal case
+    result = get_context(line)
+    assert result == expected, f"Failed on input: '{line}'"
+
+    # Test with alias assigned as a variable
+    try:
+        ip.user_ns["test_alias"] = "some_value"
+        result_after_assignment = get_context(line)
+        assert (
+            result_after_assignment == expected_after_assignment
+        ), f"Failed after assigning 'ls' as a variable for input: '{line}'"
+    finally:
+        ip.user_ns.pop("test_alias", None)
 
 
 @pytest.mark.xfail(reason="Completion context not yet supported")
