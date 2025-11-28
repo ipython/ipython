@@ -242,6 +242,7 @@ the inputs::
 
   .. ipython::
      :suppress:
+     :okexcept:
 
      In [144]: from matplotlib.pylab import *
 
@@ -249,6 +250,7 @@ the inputs::
 
 .. ipython::
    :suppress:
+   :okexcept:
 
    In [144]: from matplotlib.pylab import *
 
@@ -396,6 +398,7 @@ If you don't see the next code block then the options work.
 
 .. ipython:: python
    :suppress:
+   :okexcept:
 
    ioff()
    ion()

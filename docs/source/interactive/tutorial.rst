@@ -12,15 +12,15 @@ information, check the :ref:`tips page <tips>`, or look at examples in the
 
 If you haven't done that yet see :ref:`how to install ipython <install>`.
 
-If you've never used Python before, you might want to look at `the official
-tutorial <http://docs.python.org/tutorial/>`_.
+If you've never used Python before, you might want to look at the official
+:external+python:doc:`Python tutorial <tutorial/index>`.
 
 Start IPython by issuing the ``ipython`` command from your shell, you should be
 greeted by the following::
 
-    Python 3.6.0
+    Python 3.12.0
     Type 'copyright', 'credits' or 'license' for more information
-    IPython 6.0.0.dev -- An enhanced Interactive Python. Type '?' for help.
+    IPython 9.0.0 -- An enhanced Interactive Python. Type '?' for help.
 
     In [1]:
 
@@ -86,11 +86,11 @@ structure of any object you're dealing with. Simply type ``object_name.<TAB>``
 to view the object's attributes. Besides Python objects and keywords, tab
 completion also works on file and directory names.
 
-Starting with IPython 6.0, if ``jedi`` is installed, IPython will try to pull
-completions from Jedi as well. This allows to not only inspect currently
-existing objects, but also to infer completion statically without executing
-code. There is nothing particular needed to get this to work, simply use tab
-completion on more complex expressions like the following::
+If ``jedi`` is installed, IPython will try to pull completions from Jedi as
+well. This allows to not only inspect currently existing objects, but also to
+infer completion statically without executing code. There is nothing particular
+needed to get this to work, simply use tab completion on more complex
+expressions like the following::
 
     >>> data = ['Number of users', 123456]
     ... data[0].<tab>

@@ -4,7 +4,6 @@ master_doc = "index"
 project = "IPython"
 copyright = "The IPython Development Team"
 github_project_url = "https://github.com/ipython/ipython"
-source_suffix = ".rst"
 exclude_patterns = ["**.ipynb_checkpoints"]
 pygments_style = "sphinx"
 extensions = [
@@ -24,6 +23,9 @@ extensions = [
 ]
 default_role = "literal"
 modindex_common_prefix = ["IPython."]
+
+[sphinx.source_suffix]
+".rst" = "restructuredtext"
 
 [intersphinx_mapping]
 python = { url = 'https://docs.python.org/3', fallback = '' }

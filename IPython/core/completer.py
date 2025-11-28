@@ -85,9 +85,9 @@ You will find that the following are experimental:
 
 We welcome any feedback on these new API, and we also encourage you to try this
 module in debug mode (start IPython with ``--Completer.debug=True``) in order
-to have extra logging information if :any:`jedi` is crashing, or if current
+to have extra logging information if :mod:`jedi` is crashing, or if current
 IPython completer pending deprecations are returning results not yet handled
-by :any:`jedi`
+by :mod:`jedi`
 
 Using Jedi for tab completion allow snippets like the following to work without
 having to execute any code:
@@ -99,7 +99,7 @@ Tab completion will be able to infer that ``myvar[1]`` is a real number without
 executing almost any code unlike the deprecated :any:`IPCompleter.greedy`
 option.
 
-Be sure to update :any:`jedi` to the latest stable version or to try the
+Be sure to update :mod:`jedi` to the latest stable version or to try the
 current development version to get better completions.
 
 Matchers
@@ -149,7 +149,7 @@ More precisely, the API allows to omit ``matcher_api_version`` for v1 Matchers,
 and requires a literal ``2`` for v2 Matchers.
 
 Once the API stabilises future versions may relax the requirement for specifying
-``matcher_api_version`` by switching to :any:`functools.singledispatch`, therefore
+``matcher_api_version`` by switching to :func:`functools.singledispatch`, therefore
 please do not rely on the presence of ``matcher_api_version`` for any purposes.
 
 Suppression of competing matchers
@@ -489,7 +489,7 @@ class Completion:
         It will also raise unless use in proper context manager.
 
     This act as a middle ground :any:`Completion` object between the
-    :any:`jedi.api.classes.Completion` object and the Prompt Toolkit completion
+    :class:`jedi.api.classes.Completion` object and the Prompt Toolkit completion
     object. While Jedi need a lot of information about evaluator and how the
     code should be ran/inspected, PromptToolkit (and other frontend) mostly
     need user facing information.
@@ -860,7 +860,7 @@ def rectify_completions(text: str, completions: _IC, *, _debug: bool = False) ->
 
     Notes
     -----
-    :any:`jedi.api.classes.Completion` s returned by Jedi may not have the same start and end, though
+    :class:`jedi.api.classes.Completion` s returned by Jedi may not have the same start and end, though
     the Jupyter Protocol requires them to behave like so. This will readjust
     the completion to have the same ``start`` and ``end`` by padding both
     extremities with surrounding text.
@@ -990,9 +990,9 @@ class Completer(Configurable):
           no item/attribute evaluation, no access to locals/globals,
           no evaluation of any operations or comparisons.
         - ``limited``: access to all namespaces, evaluation of hard-coded methods
-          (for example: :any:`dict.keys`, :any:`object.__getattr__`,
-          :any:`object.__getitem__`) on allow-listed objects (for example:
-          :any:`dict`, :any:`list`, :any:`tuple`, ``pandas.Series``),
+          (for example: :py:meth:`dict.keys`, :py:meth:`object.__getattr__`,
+          :py:meth:`object.__getitem__`) on allow-listed objects (for example:
+          :py:class:`dict`, :py:class:`list`, :py:class:`tuple`, ``pandas.Series``),
         - ``unsafe``: evaluation of all methods and function calls but not of
           syntax with side-effects like `del x`,
         - ``dangerous``: completely arbitrary evaluation; does not support auto-import.
@@ -3307,7 +3307,7 @@ class IPCompleter(Completer):
 
         .. note::
 
-            If ``IPCompleter.debug`` is :any:`True` will yield a ``--jedi/ipython--``
+            If ``IPCompleter.debug`` is :py:data:`True` will yield a ``--jedi/ipython--``
             fake Completion token to distinguish completion returned by Jedi
             and usual IPython completion.
 

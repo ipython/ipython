@@ -137,7 +137,7 @@ def display(
     -------
     handle: DisplayHandle
         Returns a handle on updatable displays for use with :func:`update_display`,
-        if `display_id` is given. Returns :any:`None` if no `display_id` is given
+        if `display_id` is given. Returns :py:data:`None` if no `display_id` is given
         (default).
 
     Examples
