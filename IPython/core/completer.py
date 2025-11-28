@@ -2215,7 +2215,11 @@ class IPCompleter(Completer):
         text = context.token
         code_until_cursor = self._extract_code(context.text_until_cursor)
         completion_type = self._determine_completion_context(code_until_cursor)
-        if completion_type == self._CompletionContextType.ATTRIBUTE:
+        in_cli_context = self._is_completing_in_cli_context(code_until_cursor)
+        if (
+            completion_type == self._CompletionContextType.ATTRIBUTE
+            and not in_cli_context
+        ):
             return {
                 "completions": [],
                 "suppress": False,
@@ -2482,21 +2486,16 @@ class IPCompleter(Completer):
 
     @context_matcher(identifier="IPCompleter.jedi_matcher")
     def _jedi_matcher(self, context: CompletionContext) -> _JediMatcherResult:
-        text = self._extract_code(context.text_until_cursor)
-        completion_type = self._determine_completion_context(text)
         matches = self._jedi_matches(
             cursor_column=context.cursor_position,
             cursor_line=context.cursor_line,
             text=context.full_text,
         )
-        if completion_type == self._CompletionContextType.ATTRIBUTE:
-            suppress = {_get_matcher_id(self.file_matcher)}
-        else:
-            suppress = False
         return {
             "completions": matches,
-            # static analysis should not suppress other matchers except for file matcher
-            "suppress": suppress,
+            # static analysis should not suppress other matcher
+            # NOTE: file_matcher is automatically suppressed on attribute completions
+            "suppress": False,
         }
 
     def _jedi_matches(
@@ -2798,7 +2797,6 @@ class IPCompleter(Completer):
                 matches = _convert_matcher_v1_result_to_v2(
                     matches, type="attribute", fragment=fragment
                 )
-                matches["suppress"] = {_get_matcher_id(self.file_matcher)}
                 return matches
             except NameError:
                 # catches <undefined attributes>.<tab>
