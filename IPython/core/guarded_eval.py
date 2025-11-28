@@ -30,7 +30,7 @@ from types import MethodDescriptorType, ModuleType, MethodType
 
 from IPython.utils.decorators import undoc
 
-
+import types
 from typing import Self, LiteralString, get_type_hints
 
 if sys.version_info < (3, 12):
@@ -403,6 +403,9 @@ class EvaluationContext:
     class_transients: dict | None = None
     #: Instance variable name used in the method definition
     instance_arg_name: str | None = None
+    #: Currently associated value
+    #: Useful for adding items to _Duck on annotated assignment
+    current_value: ast.AST | None = None
 
     def replace(self, /, **changes):
         """Return a new copy of the context, with specified changes"""
@@ -562,6 +565,30 @@ def _validate_policy_overrides(
             )
             all_good = False
     return all_good
+
+
+def _is_type_annotation(obj) -> bool:
+    """
+    Returns True if obj is a type annotation, False otherwise.
+    """
+    if isinstance(obj, type):
+        return True
+    if isinstance(obj, types.GenericAlias):
+        return True
+    if hasattr(types, "UnionType") and isinstance(obj, types.UnionType):
+        return True
+    if isinstance(obj, (typing._SpecialForm, typing._BaseGenericAlias)):
+        return True
+    if isinstance(obj, typing.TypeVar):
+        return True
+    # Types that support __class_getitem__
+    if isinstance(obj, type) and hasattr(obj, "__class_getitem__"):
+        return True
+    # Fallback: check if get_origin returns something
+    if hasattr(typing, "get_origin") and get_origin(obj) is not None:
+        return True
+
+    return False
 
 
 def _handle_assign(node: ast.Assign, context: EvaluationContext):
@@ -769,9 +796,12 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
         if is_property:
             if return_type is not None:
-                context.transient_locals[node.name] = _resolve_annotation(
-                    return_type, context
-                )
+                if _is_type_annotation(return_type):
+                    context.transient_locals[node.name] = _resolve_annotation(
+                        return_type, context
+                    )
+                else:
+                    context.transient_locals[node.name] = return_type
             else:
                 return_value = _infer_return_value(node, func_context)
                 context.transient_locals[node.name] = return_value
@@ -782,7 +812,10 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             pass
 
         if return_type is not None:
-            dummy_function.__annotations__["return"] = return_type
+            if _is_type_annotation(return_type):
+                dummy_function.__annotations__["return"] = return_type
+            else:
+                dummy_function.__inferred_return__ = return_type
         else:
             inferred_return = _infer_return_value(node, func_context)
             if inferred_return is not None:
@@ -903,12 +936,21 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.Assign):
         return _handle_assign(node, context)
     if isinstance(node, ast.AnnAssign):
+        context_with_value = context.replace(current_value=getattr(node, "value", None))
         if node.simple:
-            value = _resolve_annotation(eval_node(node.annotation, context), context)
+            annotation_result = eval_node(node.annotation, context_with_value)
+            if _is_type_annotation(annotation_result):
+                value = _resolve_annotation(annotation_result, context)
+            else:
+                value = annotation_result
             context.transient_locals[node.target.id] = value
         # Handle non-simple annotated assignments only for self.x: type = value
         if _is_instance_attribute_assignment(node.target, context):
-            value = _resolve_annotation(eval_node(node.annotation, context), context)
+            annotation_result = eval_node(node.annotation, context_with_value)
+            if _is_type_annotation(annotation_result):
+                value = _resolve_annotation(annotation_result, context)
+            else:
+                value = annotation_result
             context.class_transients[node.target.attr] = value
         return None
     if isinstance(node, ast.Expression):
@@ -927,6 +969,29 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.BinOp):
         left = eval_node(node.left, context)
         right = eval_node(node.right, context)
+        if (
+            isinstance(node.op, ast.BitOr)
+            and _is_type_annotation(left)
+            and _is_type_annotation(right)
+        ):
+            left_duck = (
+                _Duck(dict.fromkeys(dir(left)))
+                if policy.can_call(left.__dir__)
+                else _Duck()
+            )
+            right_duck = (
+                _Duck(dict.fromkeys(dir(right)))
+                if policy.can_call(right.__dir__)
+                else _Duck()
+            )
+            value_node = context.current_value
+            if value_node is not None and isinstance(value_node, ast.Dict):
+                if dict in [left, right]:
+                    return _merge_values(
+                        [left_duck, right_duck, ast.literal_eval(value_node)],
+                        policy=get_policy(context),
+                    )
+            return _merge_values([left_duck, right_duck], policy=get_policy(context))
         dunders = _find_dunder(node.op, BINARY_OP_DUNDERS)
         if dunders:
             if policy.can_operate(dunders, left, right):

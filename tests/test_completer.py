@@ -2527,12 +2527,89 @@ class TestCompleter(unittest.TestCase):
             ),
             "bit_length",
         ],
+        [
+            "\n".join(
+                [
+                    "t: list[str]",
+                    "t[0].",
+                ]
+            ),
+            ["capitalize"],
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):
     offset = len(code)
     ip.Completer.use_jedi = use_jedi
     ip.Completer.evaluation = evaluation
+
+    with provisionalcompleter():
+        completions = list(ip.Completer.completions(text=code, offset=offset))
+        insert_texts = insert_text if isinstance(insert_text, list) else [insert_text]
+        for text in insert_texts:
+            match = [c for c in completions if c.text.lstrip(".") == text]
+            message_on_fail = f"{text} not found among {[c.text for c in completions]}"
+            assert len(match) == 1, message_on_fail
+
+
+@pytest.mark.parametrize(
+    "code,insert_text",
+    [
+        [
+            "\n".join(
+                [
+                    "t: int | dict = {'a': []}",
+                    "t.",
+                ]
+            ),
+            ["keys", "bit_length"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t: int | dict = {'a': []}",
+                    "t['a'].",
+                ]
+            ),
+            "append",
+        ],
+        # Test union types
+        [
+            "\n".join(
+                [
+                    "t: int | str",
+                    "t.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def func() -> int | str: pass",
+                    "func().",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "class T:",
+                    "   @property",
+                    "   def p(self) -> int | str: pass",
+                    "t = T()",
+                    "t.p.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+    ],
+)
+def test_undefined_variables_without_jedi(code, insert_text):
+    offset = len(code)
+    ip.Completer.use_jedi = False
+    ip.Completer.evaluation = "limited"
 
     with provisionalcompleter():
         completions = list(ip.Completer.completions(text=code, offset=offset))
