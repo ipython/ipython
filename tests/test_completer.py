@@ -424,11 +424,17 @@ class TestCompleter(unittest.TestCase):
             c = ip.complete(prefix)[1]
             self.assertEqual(c, names)
 
-            # Now check with a function call
-            cmd = 'a = f("%s' % prefix
-            c = ip.complete(prefix, cmd)[1]
-            comp = {prefix + s for s in suffixes}
-            self.assertTrue(comp.issubset(set(c)))
+            test_cases = {
+                "function call": 'a = f("',
+                "shell bang": "!ls ",
+                "ls magic": r"%ls ",
+                "alias ls": "ls ",
+            }
+            for name, code in test_cases.items():
+                cmd = f"{code}{prefix}"
+                c = ip.complete(prefix, cmd)[1]
+                comp = {prefix + s for s in suffixes}
+                self.assertTrue(comp.issubset(set(c)), msg=f"completes in {name}")
 
     def test_quoted_file_completions(self):
         ip = get_ipython()
@@ -2677,6 +2683,7 @@ def test_completion_in_cli_context(line, expected, expected_after_assignment):
         ), f"Failed after assigning 'ls' as a variable for input: '{line}'"
     finally:
         ip.user_ns.pop("test_alias", None)
+
 
 @pytest.mark.xfail(reason="Completion context not yet supported")
 @pytest.mark.parametrize(
