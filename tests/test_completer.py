@@ -2564,6 +2564,7 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
             ),
             ["append"],
         ],
+        [
           "\n".join(
                 [
                     "t: int | dict = {'a': []}",
