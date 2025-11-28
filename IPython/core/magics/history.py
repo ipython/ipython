@@ -125,7 +125,7 @@ class HistoryMagics(Magics):
             Lines 4 onward (to end), current session
         ``243/1-5``
             Lines 1-5, session 243
-        ``~2/`` or `~2`
+        ``~2/``
             All lines of session 2 before current
         ``~4/4-``
             Lines 4 onward (to end), session 4 before current

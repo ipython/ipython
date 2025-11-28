@@ -1150,14 +1150,14 @@ class HistorySavingThread(threading.Thread):
 
 # To match, e.g. ~5/8-~2/3, or ~4 (without trailing slash for full session)
 # Session numbers: ~N or N/
-# Line numbers: N (just digits, no ~ and no /)
+# Line numbers: N (just digits, no ~)
 # Range syntax: 4-6 (with end) or 4- (without end, means "onward")
 range_re = re.compile(
     r"""
-((?P<startsess>(?:~\d+/?|\d+/)))?
+((?P<startsess>(?:~?\d+/)))?
 (?P<start>\d+)?
 ((?P<sep>[\-:])
- ((?P<endsess>(?:~\d+/?|\d+/)))?
+ ((?P<endsess>(?:~?\d+/)))?
  (?P<end>\d*))?
 $""",
     re.VERBOSE,
@@ -1174,7 +1174,7 @@ def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[in
     --------
     >>> list(extract_hist_ranges("~8/5-~7/4 2"))
     [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
-    >>> list(extract_hist_ranges("~4"))
+    >>> list(extract_hist_ranges("~4/"))
     [(-4, 1, None)]
     >>> list(extract_hist_ranges("4-"))
     [(0, 4, None)]
