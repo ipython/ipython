@@ -209,6 +209,37 @@ def test_extract_hist_ranges_empty_str():
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    "instr,expected,description",
+    [
+        ("21-23", [(0, 21, 24)], "Just line numbers"),
+        ("25-", [(0, 25, None)], "Line start, no end"),
+        ("~4/", [(-4, 1, None)], "with trailing slash"),
+        # ("~4", [(-4, 1, None)], "without trailing slash"),
+        ("~4/1-5", [(-4, 1, 6)], "with line ranges and trailing slash"),
+        (
+            "~4/1- ~5/ ~6/1-3",
+            [(-4, 1, None), (-5, 1, None), (-6, 1, 4)],
+            "multiple sessions with mixed syntax",
+        ),
+        ("~10/ ~20/", [(-10, 1, None), (-20, 1, None)], "larger session numbers"),
+        # ("~1", [(-1, 1, None)], "single digit session without slash"),
+        ("~1/", [(-1, 1, None)], "single digit session with slash"),
+        # ("~2", [(-2, 1, None)], "backward compatibility without slash"),
+        ("~2/", [(-2, 1, None)], "backward compatibility with slash"),
+        ("4-", [(0, 4, None)], "from line 4 onward in current session"),
+        ("~4/4-", [(-4, 4, None)], "from line 4 onward in session 4"),
+        ("2/4-", [(2, 4, None)], "from line 4 onward in session 2"),
+        ("~5/10-", [(-5, 10, None)], "from line 10 onward in session 5"),
+    ],
+)
+def test_misc_extract_hist_ranges(instr, expected, description):
+    actual = list(extract_hist_ranges(instr))
+    assert (
+        actual == expected
+    ), f"Failed for '{instr}' ({description}): expected {expected}, got {actual}"
+
+
 def test_magic_rerun():
     """Simple test for %rerun (no args -> rerun last line)"""
     ip = get_ipython()
