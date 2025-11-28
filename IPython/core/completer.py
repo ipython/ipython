@@ -2213,6 +2213,17 @@ class IPCompleter(Completer):
         #  starts with `/home/`, `C:\`, etc)
 
         text = context.token
+        code_until_cursor = self._extract_code(context.text_until_cursor)
+        completion_type = self._determine_completion_context(code_until_cursor)
+        in_cli_context = self._is_completing_in_cli_context(code_until_cursor)
+        if (
+            completion_type == self._CompletionContextType.ATTRIBUTE
+            and not in_cli_context
+        ):
+            return {
+                "completions": [],
+                "suppress": False,
+            }
 
         # chars that require escaping with backslash - i.e. chars
         # that readline treats incorrectly as delimiters, but we
@@ -2482,8 +2493,9 @@ class IPCompleter(Completer):
         )
         return {
             "completions": matches,
-            # static analysis should not suppress other matchers
-            "suppress": {_get_matcher_id(self.file_matcher)} if matches else False,
+            # static analysis should not suppress other matcher
+            # NOTE: file_matcher is automatically suppressed on attribute completions
+            "suppress": False,
         }
 
     def _jedi_matches(
@@ -2599,11 +2611,46 @@ class IPCompleter(Completer):
             return self._CompletionContextType.GLOBAL
 
         # Handle all other attribute matches np.ran, d[0].k, (a,b).count
-        chain_match = re.search(r".*(.+\.(?:[a-zA-Z]\w*)?)$", line)
+        chain_match = re.search(r".*(.+(?<!\s)\.(?:[a-zA-Z]\w*)?)$", line)
         if chain_match:
             return self._CompletionContextType.ATTRIBUTE
 
         return self._CompletionContextType.GLOBAL
+
+    def _is_completing_in_cli_context(self, text: str) -> bool:
+        """
+        Determine if we are completing in a CLI alias, line magic, or bang expression context.
+        """
+        stripped = text.lstrip()
+        if stripped.startswith("!") or stripped.startswith("%"):
+            return True
+        # Check for CLI aliases
+        try:
+            tokens = stripped.split(None, 1)
+            if not tokens:
+                return False
+            first_token = tokens[0]
+
+            # Must have arguments after the command for this to apply
+            if len(tokens) < 2:
+                return False
+
+            # Check if first token is a known alias
+            if not any(
+                alias[0] == first_token for alias in self.shell.alias_manager.aliases
+            ):
+                return False
+
+            try:
+                if first_token in self.shell.user_ns:
+                    # There's a variable defined, so the alias is overshadowed
+                    return False
+            except (AttributeError, KeyError):
+                pass
+
+            return True
+        except Exception:
+            return False
 
     def _is_in_string_or_comment(self, text):
         """
@@ -2726,7 +2773,11 @@ class IPCompleter(Completer):
         """Match attributes or global python names"""
         text = context.text_until_cursor
         text = self._extract_code(text)
-        completion_type = self._determine_completion_context(text)
+        in_cli_context = self._is_completing_in_cli_context(text)
+        if in_cli_context:
+            completion_type = self._CompletionContextType.GLOBAL
+        else:
+            completion_type = self._determine_completion_context(text)
         if completion_type == self._CompletionContextType.ATTRIBUTE:
             try:
                 matches, fragment = self._attr_matches(
@@ -2746,8 +2797,6 @@ class IPCompleter(Completer):
                 matches = _convert_matcher_v1_result_to_v2(
                     matches, type="attribute", fragment=fragment
                 )
-                if matches["completions"]:
-                    matches["suppress"] = {_get_matcher_id(self.file_matcher)}
                 return matches
             except NameError:
                 # catches <undefined attributes>.<tab>
