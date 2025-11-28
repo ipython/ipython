@@ -2564,6 +2564,15 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
         [
             "\n".join(
                 [
+                    "t: dict = {'a': []}",
+                    "t['a'].",
+                ]
+            ),
+            ["append"],
+        ],
+        [
+          "\n".join(
+                [
                     "t: int | dict = {'a': []}",
                     "t.",
                 ]
@@ -2597,6 +2606,15 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
                 ]
             ),
             ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t: list = ['test']",
+                    "t[0].",
+                ]
+            ),
+            ["capitalize"],
         ],
         [
             "\n".join(

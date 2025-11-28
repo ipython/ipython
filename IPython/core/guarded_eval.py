@@ -502,6 +502,8 @@ UNARY_OP_DUNDERS: dict[type[ast.unaryop], tuple[str, ...]] = {
     ast.Not: ("__not__",),
 }
 
+GENERIC_CONTAINER_TYPES = (dict, list, set, tuple, frozenset)
+
 
 class ImpersonatingDuck:
     """A dummy class used to create objects of other classes without calling their ``__init__``"""
@@ -687,6 +689,41 @@ def _handle_assign(node: ast.Assign, context: EvaluationContext):
             transient_locals[target.id] = value
     return None
 
+
+def _handle_annassign(node, context):
+    context_with_value = context.replace(current_value=getattr(node, "value", None))
+    annotation_result = eval_node(node.annotation, context_with_value)
+    if _is_type_annotation(annotation_result):
+        annotation_value = _resolve_annotation(annotation_result, context)
+        # Use Value for generic types
+        use_value = (
+            isinstance(annotation_value, GENERIC_CONTAINER_TYPES) and node.value is not None
+        )
+    else:
+        annotation_value = annotation_result
+        use_value = False
+
+    # LOCAL VARIABLE
+    if getattr(node, "simple", False) and isinstance(node.target, ast.Name):
+        name = node.target.id
+        if use_value:
+            return _handle_assign(
+                ast.Assign(targets=[node.target], value=node.value), context
+            )
+        context.transient_locals[name] = annotation_value
+        return None
+
+    # INSTANCE ATTRIBUTE
+    if _is_instance_attribute_assignment(node.target, context):
+        attr = node.target.attr
+        if use_value:
+            return _handle_assign(
+                ast.Assign(targets=[node.target], value=node.value), context
+            )
+        context.class_transients[attr] = annotation_value
+        return None
+
+    return None
 
 def _extract_args_and_kwargs(node: ast.Call, context: EvaluationContext):
     args = [eval_node(arg, context) for arg in node.args]
@@ -936,23 +973,7 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.Assign):
         return _handle_assign(node, context)
     if isinstance(node, ast.AnnAssign):
-        context_with_value = context.replace(current_value=getattr(node, "value", None))
-        if node.simple:
-            annotation_result = eval_node(node.annotation, context_with_value)
-            if _is_type_annotation(annotation_result):
-                value = _resolve_annotation(annotation_result, context)
-            else:
-                value = annotation_result
-            context.transient_locals[node.target.id] = value
-        # Handle non-simple annotated assignments only for self.x: type = value
-        if _is_instance_attribute_assignment(node.target, context):
-            annotation_result = eval_node(node.annotation, context_with_value)
-            if _is_type_annotation(annotation_result):
-                value = _resolve_annotation(annotation_result, context)
-            else:
-                value = annotation_result
-            context.class_transients[node.target.attr] = value
-        return None
+        return _handle_annassign(node, context)
     if isinstance(node, ast.Expression):
         return eval_node(node.body, context)
     if isinstance(node, ast.Expr):
