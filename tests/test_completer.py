@@ -1572,6 +1572,39 @@ class TestCompleter(unittest.TestCase):
             self.assertNotIn(".append", matches)
             self.assertNotIn(".keys", matches)
 
+    def test_completion_fallback_to_annotation_for_attribute(self):
+        code = textwrap.dedent(
+            """
+            class StringMethods:
+                def a():
+                    pass
+
+            class Test:
+                str: StringMethods
+                def __init__(self):
+                    self.str = StringMethods()
+                def __getattr__(self, name):
+                    raise AttributeError(f"{name} not found")
+            """
+        )
+
+        repro = types.ModuleType("repro")
+        sys.modules["repro"] = repro
+        exec(code, repro.__dict__)
+
+        ip = get_ipython()
+        ip.user_ns["repro"] = repro
+        exec("r = repro.Test()", ip.user_ns)
+
+        complete = ip.Completer.complete
+        try:
+            with evaluation_policy("limited"), jedi_status(False):
+                _, matches = complete(line_buffer="r.str.")
+                self.assertIn(".a", matches)
+        finally:
+            sys.modules.pop("repro", None)
+            ip.user_ns.pop("r", None)
+
     def test_policy_warnings(self):
         with self.assertWarns(
             UserWarning,
@@ -2494,6 +2527,15 @@ class TestCompleter(unittest.TestCase):
             ),
             "bit_length",
         ],
+        [
+            "\n".join(
+                [
+                    "t: list[str]",
+                    "t[0].",
+                ]
+            ),
+            ["capitalize"],
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):
@@ -2522,6 +2564,42 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
             ),
             ["append"],
         ],
+          "\n".join(
+                [
+                    "t: int | dict = {'a': []}",
+                    "t.",
+                ]
+            ),
+            ["keys", "bit_length"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t: int | dict = {'a': []}",
+                    "t['a'].",
+                ]
+            ),
+            "append",
+        ],
+        # Test union types
+        [
+            "\n".join(
+                [
+                    "t: int | str",
+                    "t.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def func() -> int | str: pass",
+                    "func().",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
         [
             "\n".join(
                 [
@@ -2530,6 +2608,18 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
                 ]
             ),
             ["capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "class T:",
+                    "   @property",
+                    "   def p(self) -> int | str: pass",
+                    "t = T()",
+                    "t.p.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
         ],
     ],
 )
@@ -2692,6 +2782,7 @@ def test_misc_no_jedi_completions(setup, code, expected, not_expected):
         ("x = {1, y", "y"),
         ("x = [1, y", "y"),
         ("x = fun(1, y", "y"),
+        (" assert a", "a"),
     ],
 )
 def test_trim_expr(code, expected):

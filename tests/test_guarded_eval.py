@@ -12,6 +12,11 @@ from typing import (
     TypeGuard,
     Union,
     TypedDict,
+    TypeVar,
+    List,
+    Callable,
+    Any,
+    Dict,
 )
 from functools import partial
 from IPython.core.guarded_eval import (
@@ -22,6 +27,7 @@ from IPython.core.guarded_eval import (
 )
 from IPython.testing import decorators as dec
 import pytest
+from IPython.core.guarded_eval import _is_type_annotation
 
 
 from typing import Self, LiteralString
@@ -577,6 +583,38 @@ def test_mock_class_and_func_instances(code, expected):
     context = limited(TypedClass=TypedClass, AnyStr=AnyStr)
     value = guarded_eval(code, context)
     assert isinstance(value, expected)
+
+
+@pytest.mark.parametrize(
+    "annotation,expected",
+    [
+        # Basic types
+        (int, True),
+        (str, True),
+        (list, True),
+        # Typing generics
+        (list[str], True),
+        (dict[str, int], True),
+        (Optional[int], True),
+        (Union[int, str], True),
+        # Special forms
+        (AnyStr, True),
+        (TypeVar("T"), True),
+        (Callable[[int], str], True),
+        (Literal["GET", "POST"], True),
+        (Any, True),
+        (str | int, True),
+        # Nested
+        (List[Dict[str, int]], True),
+        # Non-annotations
+        (42, False),
+        ("string", False),
+        ([1, 2, 3], False),
+        (None, False),
+    ],
+)
+def test_is_type_annotation(annotation, expected):
+    assert _is_type_annotation(annotation) == expected
 
 
 @pytest.mark.parametrize(
