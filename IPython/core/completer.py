@@ -2213,6 +2213,13 @@ class IPCompleter(Completer):
         #  starts with `/home/`, `C:\`, etc)
 
         text = context.token
+        code_until_cursor = self._extract_code(context.text_until_cursor)
+        completion_type = self._determine_completion_context(code_until_cursor)
+        if completion_type == self._CompletionContextType.ATTRIBUTE:
+            return {
+                "completions": [],
+                "suppress": False,
+            }
 
         # chars that require escaping with backslash - i.e. chars
         # that readline treats incorrectly as delimiters, but we
@@ -3695,25 +3702,10 @@ class IPCompleter(Completer):
                     if isinstance(self.suppress_competing_matchers, dict)
                     else self.suppress_competing_matchers
                 )
-                file_matcher_id = _get_matcher_id(self.file_matcher)
-                python_matcher_id = _get_matcher_id(self.python_matcher)
-                jedi_matcher_id = _get_matcher_id(self._jedi_matcher)
-                # If this is attribute completion and it explicitly
-                # recommends suppressing the file matcher, do so.
-                if (
-                    (matcher_id == python_matcher_id or matcher_id == jedi_matcher_id)
-                    and isinstance(suppression_recommended, set)
-                    and file_matcher_id in suppression_recommended
-                ):
-                    should_suppress = True
-                else:
-                    should_suppress = (
-                        (suppression_config is True)
-                        or (
-                            suppression_recommended
-                            and (suppression_config is not False)
-                        )
-                    ) and has_any_completions(result)
+                should_suppress = (
+                    (suppression_config is True)
+                    or (suppression_recommended and (suppression_config is not False))
+                ) and has_any_completions(result)
 
                 if should_suppress:
                     suppression_exceptions: set[str] = result.get(
