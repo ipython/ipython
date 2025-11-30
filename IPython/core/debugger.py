@@ -275,6 +275,10 @@ class Pdb(OldPdb):
 
         # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
         OldPdb.__init__(self, completekey, stdin, stdout, **kwargs)
+        # Python 3.15+ should define this, so no need to initialize
+        # this avoids some getattr(self, 'curframe')
+        if sys.version_info < (3, 15):
+            self.curframe = None
 
         # IPython changes...
         self.shell = get_ipython()
@@ -609,7 +613,7 @@ class Pdb(OldPdb):
         So if frame is self.current_frame we instead return self.curframe_locals
 
         """
-        if frame is getattr(self, "curframe", None):
+        if frame is self.curframe:
             return self.curframe_locals
         else:
             return frame.f_locals

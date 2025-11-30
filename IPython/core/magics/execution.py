@@ -930,11 +930,6 @@ class ExecutionMagics(Magics):
             self.shell.InteractiveTB.pdb = self.shell.InteractiveTB.debugger_cls()
             deb = self.shell.InteractiveTB.pdb
 
-        # deb.checkline() fails if deb.curframe exists but is None; it can
-        # handle it not existing. https://github.com/ipython/ipython/issues/10028
-        if hasattr(deb, 'curframe'):
-            del deb.curframe
-
         # reset Breakpoint state, which is moronically kept
         # in a class
         bdb.Breakpoint.next = 1
