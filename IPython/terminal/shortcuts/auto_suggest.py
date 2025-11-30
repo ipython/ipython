@@ -2,7 +2,8 @@ import re
 import asyncio
 import tokenize
 from io import StringIO
-from typing import Callable, List, Optional, Union, Generator, Tuple, ClassVar, Any
+from typing import List, Optional, Union, Tuple, ClassVar, Any
+from collections.abc import Callable, Generator
 import warnings
 
 import prompt_toolkit

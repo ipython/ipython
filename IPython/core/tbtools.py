@@ -5,7 +5,8 @@ import sys
 import types
 import warnings
 from types import TracebackType
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Optional, Tuple
+from collections.abc import Callable
 
 import stack_data
 from pygments.token import Token

@@ -3,19 +3,18 @@ from inspect import isclass, signature, Signature, getmodule
 from typing import (
     Annotated,
     AnyStr,
-    Callable,
     Literal,
     NamedTuple,
     NewType,
     Optional,
     Protocol,
-    Sequence,
     TypeGuard,
     Union,
     get_args,
     get_origin,
     is_typeddict,
 )
+from collections.abc import Callable, Sequence
 import ast
 import builtins
 import collections
@@ -394,7 +393,7 @@ class EvaluationContext:
     #: Useful for evaluating ``:-1, 'col'`` in ``df[:-1, 'col']``.
     in_subscript: bool = False
     #: Auto import method
-    auto_import: Callable[list[str], ModuleType] | None = None
+    auto_import: Callable[[Sequence[str]], ModuleType] | None = None
     #: Overrides for evaluation policy
     policy_overrides: dict = field(default_factory=dict)
     #: Transient local namespace used to store mocks
