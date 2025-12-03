@@ -81,7 +81,7 @@ sidebar, allowing you to come back to previous sections or skip ahead, if needed
 
 
 The latest development version is always available from IPython's `GitHub
-repository <http://github.com/ipython/ipython>`_.
+repository <https://github.com/ipython/ipython>`_.
 
 
 .. toctree::

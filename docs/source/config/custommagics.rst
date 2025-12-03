@@ -127,12 +127,8 @@ instantiate the class yourself before registration:
 
 .. note::
 
-   In early IPython versions 0.12 and before the line magics were
-   created using a :func:`define_magic` API function.  This API has been
-   replaced with the above in IPython 0.13 and then completely removed
-   in IPython 5.  Maintainers of IPython extensions that still use the
-   :func:`define_magic` function are advised to adjust their code
-   for the current API.
+   The legacy :func:`define_magic` API function has been removed.
+   Extensions should use the decorator-based API shown above.
 
 
 Accessing user namespace and local scope

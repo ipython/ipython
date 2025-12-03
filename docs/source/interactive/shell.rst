@@ -81,7 +81,7 @@ See :ref:`custom_prompts`.
 String lists
 ============
 
-String lists (IPython.utils.text.SList) are handy way to process output
+String lists (:any:`IPython.utils.text.SList`) are handy way to process output
 from system commands. They are produced by ``var = !cmd`` syntax.
 
 First, we acquire the output of 'ls -l'::
@@ -199,7 +199,7 @@ Now we can just remove these files by doing 'rm $junk.s'.
 The .n, .s, .p properties
 -------------------------
 
-Properties of `SList <https://ipython.readthedocs.io/en/stable/api/generated/IPython.utils.text.html?highlight=SList#IPython.utils.text.SList>`_ wrapper
+Properties of :py:class:`SList <IPython.utils.text.SList>` wrapper
 provide a convenient ways to use contained text in different formats:
 
 * ``.n`` returns (original) string with lines separated by a newline

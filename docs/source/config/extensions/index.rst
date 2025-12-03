@@ -90,7 +90,7 @@ Extensions bundled with IPython
 
 * ``octavemagic`` used to be bundled, but is now part of `oct2py <https://blink1073.github.io/oct2py/>`_.
   Use ``%load_ext oct2py.ipython`` to load it.
-* ``rmagic`` is now part of `rpy2 <http://rpy.sourceforge.net/>`_. Use
+* ``rmagic`` is now part of `rpy2 <https://rpy2.github.io/>`_. Use
   ``%load_ext rpy2.ipython`` to load it, and see :mod:`rpy2.ipython.rmagic` for
   details of how to use it.
 * ``cythonmagic`` used to be bundled, but is now part of `cython <https://github.com/cython/cython/>`_

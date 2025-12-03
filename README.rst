@@ -29,23 +29,11 @@ Welcome to IPython.  Our full documentation is available on `ipython.readthedocs
 contribute to the project.
 IPython (Interactive Python) is a command shell for interactive computing in multiple programming languages, originally developed for the Python programming language, that offers introspection, rich media, shell syntax, tab completion, and history.
 
-**IPython versions and Python Support**
+**Python Support**
 
-Starting after IPython 8.16, we will progressively transition to `Spec-0000 <https://scientific-python.org/specs/spec-0000/>`_.
+Starting after IPython 8.16, we progressively transition to `Spec-0000 <https://scientific-python.org/specs/spec-0000/>`_.
 
-Starting with IPython 7.10, IPython follows `NEP 29 <https://numpy.org/neps/nep-0029-deprecation_policy.html>`_
-
-**IPython 7.17+** requires Python version 3.7 and above.
-
-**IPython 7.10+** requires Python version 3.6 and above.
-
-**IPython 7.0** requires Python version 3.5 and above.
-
-**IPython 6.x** requires Python version 3.3 and above.
-
-**IPython 5.x LTS** is the compatible release for Python 2.7.
-If you require Python 2 support, you **must** use IPython 5.x LTS. Please
-update your project configurations and requirements as necessary.
+IPython requires Python 3.11 or newer.
 
 
 The Notebook, Qt console and a number of other pieces are now parts of *Jupyter*.

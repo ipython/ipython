@@ -297,8 +297,8 @@ Backwards incompatible changes
 * :func:`IPython.core.oinspect.getsource` call specification has changed:
 
   * `oname` keyword argument has been added for property source formatting
-  * `is_binary` keyword argument has been dropped, passing ``True`` had
-    previously short-circuited the function to return ``None`` unconditionally
+  * `is_binary` keyword argument has been dropped, passing :py:data:`True` had
+    previously short-circuited the function to return :py:data:`None` unconditionally
 
 * Removed the octavemagic extension: it is now available as ``oct2py.ipython``.
 

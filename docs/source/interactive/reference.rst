@@ -627,9 +627,9 @@ and within the IPython shell, you reassign `a` to `23` to do further testing of
 some sort, you can then exit::
 
   >>> IPython.embed()
-  Python 3.6.2 (default, Jul 17 2017, 16:44:45)
+  Python 3.12.0 (default, Oct 10 2023, 12:00:00)
   Type 'copyright', 'credits' or 'license' for more information
-  IPython 6.2.0.dev -- An enhanced Interactive Python. Type '?' for help.
+  IPython 9.0.0 -- An enhanced Interactive Python. Type '?' for help.
 
   In [1]: a = 23
 
@@ -665,9 +665,9 @@ Running a file with the above code can lead to the following session::
 
   >>> do()
   42
-  Python 3.6.2 (default, Jul 17 2017, 16:44:45)
+  Python 3.12.0 (default, Oct 10 2023, 12:00:00)
   Type 'copyright', 'credits' or 'license' for more information
-  IPython 6.2.0.dev -- An enhanced Interactive Python. Type '?' for help.
+  IPython 9.0.0 -- An enhanced Interactive Python. Type '?' for help.
 
   In [1]: a = 23
 
