@@ -59,10 +59,13 @@ disabled:
   attribute completions.
 
 - File path completions are now strictly suppressed when completing attributes,
-  preventing confusion when typing patterns like ``obj.file``. - Union types in
-  annotations (e.g., ``x: int | str``) are now properly handled for completion
-  suggestions. - The completer now falls back to type annotations when runtime
-  evaluation is not available, improving completion accuracy for typed code.
+  preventing confusion when typing patterns like ``obj.file``.
+
+- Union types in annotations (e.g., ``x: int | str``) are now properly handled
+  for completion suggestions.
+
+- The completer now falls back to type annotations when runtime evaluation is
+  not available, improving completion accuracy for typed code.
 
 
 Thanks
