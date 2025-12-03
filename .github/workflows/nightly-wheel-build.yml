@@ -13,7 +13,7 @@ jobs:
     if: github.event_name != 'pull_request' && (github.event_name != 'schedule' || github.repository_owner == 'ipython')
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
