@@ -141,7 +141,7 @@ class LineInfo:
             Use ``shell._ofind(line_info.ifun)`` directly instead.
         """
         warnings.warn(
-            "LineInfo.ofind() is deprecated since IPython 9.8. "
+            "LineInfo.ofind() is deprecated since IPython 9.9. "
             "Use shell._ofind(line_info.ifun) directly instead.",
             DeprecationWarning,
             stacklevel=2,
