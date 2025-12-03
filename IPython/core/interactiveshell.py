@@ -71,7 +71,6 @@ from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import InputRejected, UsageError
-from IPython.core.events import EventManager, available_events
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager, HistoryOutput
@@ -83,7 +82,7 @@ from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.tips import pick_tip
 from IPython.core.usage import default_banner
-from IPython.display import display
+from IPython.core.display_functions import display
 from IPython.paths import get_ipython_dir
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize, io, openpy, py3compat
@@ -1103,6 +1102,8 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
 
     def init_events(self):
+        # Import here to break circular dependency with IPython.core.events
+        from IPython.core.events import EventManager, available_events
         self.events = EventManager(self, available_events)
 
         self.events.register("pre_execute", self._clear_warning_registry)
