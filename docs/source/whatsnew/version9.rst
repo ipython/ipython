@@ -3,6 +3,78 @@
 ============
 
 
+.. _version 9.8:
+
+IPython 9.8
+===========
+
+This release brings improvements to concurrent execution, history commands, tab completion, and debugger performance.
+
+
+- :ghpull:`15037` Fix some ruff issues with import
+- :ghpull:`15060` Stricter typing for many utils files
+- :ghpull:`15066` Strict typing of a few more files
+- :ghpull:`15067` Fix self import of deprecated items
+- :ghpull:`15069` Document :magic:`history` usage with all lines of a session
+- :ghpull:`15070` Allow session number without trailing slash in :magic:`history` magic
+- :ghpull:`15074` Use values for tab completion of variables created using annotated assignment
+- :ghpull:`15076` Fix error on tab completions
+- :ghpull:`15078` Show completions for annotated union types
+- :ghpull:`15079` Fallback to type annotations for attribute completions
+- :ghpull:`15081` Strictly suppress file completions in attribute completion context
+- :ghpull:`15083` Minor performance improvements in debugger
+- :ghpull:`15084` Documentation updates
+- :ghpull:`15088` Make :any:`run_cell_async` reenterable for concurrent cell execution
+
+
+Concurrent Cell Execution
+--------------------------
+
+The :any:`run_cell_async` method is now reenterable, making the execution count
+more atomic and preventing session resets when cells are executed concurrently.
+This allows frontends to run multiple cells in parallel without interfering with
+each other's execution context or history tracking. The execution count is now
+incremented before running the user code, ensuring consistent behavior across
+concurrent executions.
+
+
+History Magic Improvements
+---------------------------
+
+The :magic:`history` magic now supports open-ended line ranges using ``-`` as the end
+marker. For example, you can use ``%history 1/10-`` to retrieve all commands from
+line 10 onwards in session 1, or ``%history ~5-`` to get the last 5 commands and
+onwards from the current session. This makes it easier to retrieve ranges of
+commands without needing to know the exact ending line number.
+
+
+Tab Completion Enhancements
+----------------------------
+
+Several improvements were made to the tab completer, particularly when jedi is
+disabled:
+
+- Variables created with annotated assignment (e.g., ``x: int = 5``) now use
+  their runtime values for completion suggestions, providing more accurate
+  attribute completions.
+
+- File path completions are now strictly suppressed when completing attributes,
+  preventing confusion when typing patterns like ``obj.file``. - Union types in
+  annotations (e.g., ``x: int | str``) are now properly handled for completion
+  suggestions. - The completer now falls back to type annotations when runtime
+  evaluation is not available, improving completion accuracy for typed code.
+
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.8
+<https://github.com/ipython/ipython/milestone/156?closed=1>`__ milestone.
+
+
 .. _version 9.7:
 
 IPython 9.7
