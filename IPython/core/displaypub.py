@@ -149,7 +149,7 @@ class DisplayPublisher(Configurable):
 
         outputs = self.shell.history_manager.outputs
 
-        target_execution_count = self.shell.execution_count
+        target_execution_count = self.shell.execution_count - 1
         if self._in_post_execute:
             # We're in post_execute, so this is likely a matplotlib flush
             # Use execution_count - 1 to associate with the cell that created the plot

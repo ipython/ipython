@@ -63,7 +63,7 @@ class DisplayHook(Configurable):
 
     @property
     def prompt_count(self):
-        return self.shell.execution_count
+        return self.shell.execution_count - 1
 
     #-------------------------------------------------------------------------
     # Methods used in __call__. Override these methods to modify the behavior
@@ -127,7 +127,7 @@ class DisplayHook(Configurable):
         """
         # Use write, not print which adds an extra space.
         sys.stdout.write(self.shell.separate_out)
-        outprompt = 'Out[{}]: '.format(self.shell.execution_count)
+        outprompt = 'Out[{}]: '.format(self.shell.execution_count - 1)
         if self.do_full_cache:
             sys.stdout.write(outprompt)
 

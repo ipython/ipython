@@ -375,3 +375,29 @@ def test_get_tail_session_awareness(hmmax3):
                 hm2.db.close()
             if ha:
                 ha.db.close()
+
+
+def test_calling_run_cell(hmmax2):
+    ip = get_ipython()
+    with TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        hist_manager_ori = ip.history_manager
+        hist_file = tmp_path / "history_test_history1.sqlite"
+        try:
+            ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
+            import time
+    
+            session_number = ip.history_manager.session_number
+            ip.run_cell(raw_cell="get_ipython().run_cell(raw_cell='1', store_history=True)", store_history=True)
+            while ip.history_manager.db_input_cache:
+                time.sleep(0)
+            new_session_number = ip.history_manager.session_number
+        finally:
+            # Ensure saving thread is shut down before we try to clean up the files
+            ip.history_manager.end_session()
+            # Forcibly close database rather than relying on garbage collection
+            ip.history_manager.save_thread.stop()
+            ip.history_manager.db.close()
+
+            ip.history_manager = hist_manager_ori
+    assert session_number == new_session_number, ValueError(f"{session_number} != {new_session_number}")
