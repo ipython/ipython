@@ -2,7 +2,15 @@ name: Run Downstream tests
 
 on:
   push:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.rst'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.rst'
   # Run weekly on Monday at 1:23 UTC
   schedule:
   - cron:  '23 1 * * 1'
