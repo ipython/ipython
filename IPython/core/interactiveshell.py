@@ -2141,7 +2141,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def showtraceback(
         self,
-        exc_tuple: tuple[type[BaseException], BaseException, Any] | None = None,
+        exc_tuple: tuple[type[BaseException], BaseException, AnyType] | None = None,
         filename: str | None = None,
         tb_offset: int | None = None,
         exception_only: bool = False,
