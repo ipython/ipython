@@ -614,6 +614,7 @@ class InteractiveShell(SingletonConfigurable):
         # This is where traits with a config_key argument are updated
         # from the values on config.
         super(InteractiveShell, self).__init__(**kwargs)
+        self._user_assigned_underscore = False
         self.configurables = [self]
 
         # These are relatively independent and stateless
@@ -3117,6 +3118,21 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
         """
+        assigned_underscore = False
+        deleted_underscore = False
+        try:
+            tree = ast.parse(raw_cell)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assign):
+                    for t in node.targets:
+                        if isinstance(t, ast.Name) and t.id == '_':
+                            assigned_underscore = True
+                elif isinstance(node, ast.Delete):
+                    for t in node.targets:
+                        if isinstance(t, ast.Name) and t.id == '_':
+                            deleted_underscore = True
+        except Exception:
+            pass
         result = None
         with self._tee(channel="stdout"), self._tee(channel="stderr"):
             try:
@@ -3127,6 +3143,11 @@ class InteractiveShell(SingletonConfigurable):
                 self.events.trigger("post_execute")
                 if not silent:
                     self.events.trigger("post_run_cell", result)
+        if assigned_underscore:
+            self._user_assigned_underscore = True
+        if deleted_underscore:
+            self._user_assigned_underscore = False
+
         return result
 
     def _run_cell(
