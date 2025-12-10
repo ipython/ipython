@@ -3142,7 +3142,7 @@ class InteractiveShell(SingletonConfigurable):
         silent: bool,
         shell_futures: bool,
         cell_id: str,
-        cell_meta: dict[str, AnyType],
+        cell_meta: Optional[dict],
     ) -> ExecutionResult:
         """Internal method to run a complete IPython cell."""
 

@@ -1264,8 +1264,41 @@ def test_enable_gui_osx():
 
     ip.simple_prompt = simple_prompt
 
-def test_cell_meta():
-    ip:InteractiveShell = get_ipython()
-    ip.reset()
-    reply = ip.run_cell(("a=1\n"), cell_meta={"test": [1, 2, 3]})
-    assert reply.info.cell_meta == {"test": [1, 2, 3]}
+class TestCellMeta(unittest.TestCase):
+
+    def test_cell_meta(self):
+        reply = ip.run_cell(("a=1\n"), cell_meta={"test": [1, 2, 3]})
+        assert reply.info.cell_meta == {"test": [1, 2, 3]}
+
+    def test_cell_meta_default_arg(self):
+        reply = ip.run_cell("a=1")
+        assert reply.info.cell_meta is None
+
+    def test_cell_meta_nested_dict(self):
+        meta = {"nested": {"a": [1, 2, 3]}, "flag": True}
+        reply = ip.run_cell("a=1", cell_meta=meta)
+        assert reply.info.cell_meta == meta
+
+    def test_cell_meta_error(self):
+        reply = ip.run_cell("raise ValueError()", cell_meta={"test": [1, 2, 3]})
+        assert reply.info.cell_meta == {"test": [1, 2, 3]}
+
+    def test_cell_meta_listener(self):
+        pre_explicit = mock.Mock()
+        post_explicit = mock.Mock()
+
+        ip.events.register("pre_run_cell", pre_explicit)
+        ip.events.register("post_run_cell", post_explicit)
+
+        test_meta = {"test": [1, 2, 3]}
+        try:
+            ip.run_cell("1", cell_meta=test_meta)
+            (info,) = pre_explicit.call_args[0]
+            (result,) = post_explicit.call_args[0]
+            self.assertEqual(info.cell_meta, test_meta)
+            self.assertEqual(result.info.cell_meta, test_meta)
+            self.assertEqual(info, result.info)
+        finally:
+            # remove post-exec
+            ip.events.unregister("pre_run_cell", pre_explicit)
+            ip.events.unregister("post_run_cell", post_explicit)

@@ -82,6 +82,7 @@ class FakeShell:
                 silent=False,
                 shell_futures=False,
                 cell_id=None,
+                cell_meta=None
             ),
         )
         exec(code, self.user_ns)
