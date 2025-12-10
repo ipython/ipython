@@ -210,8 +210,8 @@ The completer Completion API has seen an overhaul, and the new completer has
 plenty of improvements both from the end users of terminal IPython and for
 consumers of the API.
 
-This new API is capable of pulling completions from :any:`jedi`, thus allowing
-type inference on non-executed code. If :any:`jedi` is installed, completions like
+This new API is capable of pulling completions from :mod:`jedi`, thus allowing
+type inference on non-executed code. If :mod:`jedi` is installed, completions like
 the following are now possible without code evaluation:
 
     >>> data = ['Number of users', 123_456]
@@ -220,7 +220,7 @@ the following are now possible without code evaluation:
 That is to say, IPython is now capable of inferring that `data[0]` is a string,
 and will suggest completions like `.capitalize`. The completion power of IPython
 will increase with new Jedi releases, and a number of bug-fixes and more completions
-are already available on the development version of :any:`jedi` if you are curious.
+are already available on the development version of :mod:`jedi` if you are curious.
 
 With the help of prompt toolkit, types of completions can be shown in the
 completer interface:
@@ -335,7 +335,7 @@ Functions Deprecated in 6.x Development cycle
 
 
 - ``IPython.utils.warn`` was deprecated in IPython 4.0, and has now been removed.
-  instead of ``IPython.utils.warn`` inbuilt :any:`warnings` module is used.
+  instead of ``IPython.utils.warn`` inbuilt :mod:`warnings` module is used.
 
 
 - The function `IPython.core.oinspect.py:call_tip` is unused, was marked as

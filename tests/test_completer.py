@@ -424,11 +424,17 @@ class TestCompleter(unittest.TestCase):
             c = ip.complete(prefix)[1]
             self.assertEqual(c, names)
 
-            # Now check with a function call
-            cmd = 'a = f("%s' % prefix
-            c = ip.complete(prefix, cmd)[1]
-            comp = {prefix + s for s in suffixes}
-            self.assertTrue(comp.issubset(set(c)))
+            test_cases = {
+                "function call": 'a = f("',
+                "shell bang": "!ls ",
+                "ls magic": r"%ls ",
+                "alias ls": "ls ",
+            }
+            for name, code in test_cases.items():
+                cmd = f"{code}{prefix}"
+                c = ip.complete(prefix, cmd)[1]
+                comp = {prefix + s for s in suffixes}
+                self.assertTrue(comp.issubset(set(c)), msg=f"completes in {name}")
 
     def test_quoted_file_completions(self):
         ip = get_ipython()
@@ -1572,6 +1578,39 @@ class TestCompleter(unittest.TestCase):
             self.assertNotIn(".append", matches)
             self.assertNotIn(".keys", matches)
 
+    def test_completion_fallback_to_annotation_for_attribute(self):
+        code = textwrap.dedent(
+            """
+            class StringMethods:
+                def a():
+                    pass
+
+            class Test:
+                str: StringMethods
+                def __init__(self):
+                    self.str = StringMethods()
+                def __getattr__(self, name):
+                    raise AttributeError(f"{name} not found")
+            """
+        )
+
+        repro = types.ModuleType("repro")
+        sys.modules["repro"] = repro
+        exec(code, repro.__dict__)
+
+        ip = get_ipython()
+        ip.user_ns["repro"] = repro
+        exec("r = repro.Test()", ip.user_ns)
+
+        complete = ip.Completer.complete
+        try:
+            with evaluation_policy("limited"), jedi_status(False):
+                _, matches = complete(line_buffer="r.str.")
+                self.assertIn(".a", matches)
+        finally:
+            sys.modules.pop("repro", None)
+            ip.user_ns.pop("r", None)
+
     def test_policy_warnings(self):
         with self.assertWarns(
             UserWarning,
@@ -2494,12 +2533,107 @@ class TestCompleter(unittest.TestCase):
             ),
             "bit_length",
         ],
+        [
+            "\n".join(
+                [
+                    "t: list[str]",
+                    "t[0].",
+                ]
+            ),
+            ["capitalize"],
+        ],
     ],
 )
 def test_undefined_variables(use_jedi, evaluation, code, insert_text):
     offset = len(code)
     ip.Completer.use_jedi = use_jedi
     ip.Completer.evaluation = evaluation
+
+    with provisionalcompleter():
+        completions = list(ip.Completer.completions(text=code, offset=offset))
+        insert_texts = insert_text if isinstance(insert_text, list) else [insert_text]
+        for text in insert_texts:
+            match = [c for c in completions if c.text.lstrip(".") == text]
+            message_on_fail = f"{text} not found among {[c.text for c in completions]}"
+            assert len(match) == 1, message_on_fail
+
+
+@pytest.mark.parametrize(
+    "code,insert_text",
+    [
+        [
+            "\n".join(
+                [
+                    "t: dict = {'a': []}",
+                    "t['a'].",
+                ]
+            ),
+            ["append"],
+        ],
+        [
+          "\n".join(
+                [
+                    "t: int | dict = {'a': []}",
+                    "t.",
+                ]
+            ),
+            ["keys", "bit_length"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t: int | dict = {'a': []}",
+                    "t['a'].",
+                ]
+            ),
+            "append",
+        ],
+        # Test union types
+        [
+            "\n".join(
+                [
+                    "t: int | str",
+                    "t.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def func() -> int | str: pass",
+                    "func().",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t: list = ['test']",
+                    "t[0].",
+                ]
+            ),
+            ["capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "class T:",
+                    "   @property",
+                    "   def p(self) -> int | str: pass",
+                    "t = T()",
+                    "t.p.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+    ],
+)
+def test_undefined_variables_without_jedi(code, insert_text):
+    offset = len(code)
+    ip.Completer.use_jedi = False
+    ip.Completer.evaluation = "limited"
 
     with provisionalcompleter():
         completions = list(ip.Completer.completions(text=code, offset=offset))
@@ -2526,6 +2660,14 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
                 "    b: list[str]",
                 "x = MyClass()",
                 "x.b[0].",
+            ]
+        ),
+        "\n".join(
+            [
+                "class MyClass():",
+                "    b: list[str]",
+                "x = MyClass()",
+                "x.fake_attr().",
             ]
         ),
     ],
@@ -2596,6 +2738,7 @@ def test_no_file_completions_in_attr_access(code):
         ('f"formatted {obj.attr}', "global"),
         ("dict_with_dots = {'key.with.dots': value.attr", "attribute"),
         ("d[f'{a}']['{a.", "global"),
+        ("ls .", "global"),
     ],
 )
 def test_completion_context(line, expected):
@@ -2604,6 +2747,37 @@ def test_completion_context(line, expected):
     get_context = ip.Completer._determine_completion_context
     result = get_context(line)
     assert result.value == expected, f"Failed on input: '{line}'"
+
+
+@pytest.mark.parametrize(
+    "line,expected,expected_after_assignment",
+    [
+        ("test_alias file", True, False),  # overshadowed by variable
+        ("test_alias .", True, False),
+        ("test_alias file.", True, False),
+        ("%test_alias .file.ext", True, True),  # magic, not affected by variable
+        ("!test_alias file.", True, True),  # bang, not affected by variable
+    ],
+)
+def test_completion_in_cli_context(line, expected, expected_after_assignment):
+    """Test completion context with and without variable overshadowing"""
+    ip = get_ipython()
+    ip.run_cell("alias test_alias echo test_alias")
+    get_context = ip.Completer._is_completing_in_cli_context
+
+    # Normal case
+    result = get_context(line)
+    assert result == expected, f"Failed on input: '{line}'"
+
+    # Test with alias assigned as a variable
+    try:
+        ip.user_ns["test_alias"] = "some_value"
+        result_after_assignment = get_context(line)
+        assert (
+            result_after_assignment == expected_after_assignment
+        ), f"Failed after assigning 'ls' as a variable for input: '{line}'"
+    finally:
+        ip.user_ns.pop("test_alias", None)
 
 
 @pytest.mark.xfail(reason="Completion context not yet supported")
@@ -2655,6 +2829,7 @@ def test_misc_no_jedi_completions(setup, code, expected, not_expected):
         ("x = {1, y", "y"),
         ("x = [1, y", "y"),
         ("x = fun(1, y", "y"),
+        (" assert a", "a"),
     ],
 )
 def test_trim_expr(code, expected):

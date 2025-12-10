@@ -355,9 +355,8 @@ def find_gui_and_backend(gui=None, gui_select=None):
     mpl_version_info = getattr(matplotlib, "__version_info__", (0, 0))
     has_unified_qt_backend = mpl_version_info >= (3, 5)
 
-    from IPython.core.pylabtools import backends
 
-    backends_ = dict(backends)
+    backends_ = dict(_deprecated_backends)
     if not has_unified_qt_backend:
         backends_["qt"] = "qt5agg"
 
@@ -372,10 +371,10 @@ def find_gui_and_backend(gui=None, gui_select=None):
         # overwritten that.
         # WARNING: this assumes matplotlib 1.1 or newer!!
         backend = matplotlib.rcParamsOrig['backend']
+
         # In this case, we need to find what the appropriate gui selection call
         # should be for IPython, so we can activate inputhook accordingly
-        from IPython.core.pylabtools import backend2gui
-        gui = backend2gui.get(backend, None)
+        gui = _deprecated_backend2gui.get(backend, None)
 
         # If we have already had a gui active, we need it and inline are the
         # ones allowed.

@@ -9,7 +9,8 @@ import ast
 import re
 import signal
 import sys
-from typing import Callable, Dict, Union
+from typing import Dict, Union
+from collections.abc import Callable
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER

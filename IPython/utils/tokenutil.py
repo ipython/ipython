@@ -9,7 +9,8 @@ import tokenize
 from io import StringIO
 from keyword import iskeyword
 from tokenize import TokenInfo
-from typing import Generator, NamedTuple
+from typing import NamedTuple
+from collections.abc import Generator
 
 
 class Token(NamedTuple):

@@ -11,7 +11,7 @@ This document describes in-flight development work.
     `docs/source/whatsnew/pr` folder
 
 
-Released .... ...., 2019
+Development version (unreleased)
 
 
 Need to be updated:

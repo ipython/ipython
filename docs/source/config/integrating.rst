@@ -79,7 +79,7 @@ Note that these are surrounded by single, not double underscores.
      - ?
 
 If the methods don't exist, the standard ``repr()`` is used.
-If a method exists and returns ``None``, it is treated the same as if it does not exist.
+If a method exists and returns :py:data:`None`, it is treated the same as if it does not exist.
 In general, *all* available formatters will be called when an object is displayed,
 and it is up to the UI to select which to display.
 A given formatter should not generally change its output based on what other formats are available -

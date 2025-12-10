@@ -87,7 +87,7 @@ class Prompts:
     def out_prompt_tokens(self):
         return [
             (Token.OutPrompt, 'Out['),
-            (Token.OutPromptNum, str(self.shell.execution_count)),
+            (Token.OutPromptNum, str(self.shell.execution_count - 1)),
             (Token.OutPrompt, ']: '),
         ]
 

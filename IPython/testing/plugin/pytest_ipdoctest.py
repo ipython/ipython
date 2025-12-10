@@ -19,18 +19,15 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Dict,
-    Generator,
-    Iterable,
     List,
     Optional,
-    Pattern,
-    Sequence,
     Tuple,
     Type,
     Union,
 )
+from re import Pattern
+from collections.abc import Callable, Generator, Iterable, Sequence
 
 import pytest
 from _pytest import outcomes

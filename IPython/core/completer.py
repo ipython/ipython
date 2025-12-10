@@ -85,9 +85,9 @@ You will find that the following are experimental:
 
 We welcome any feedback on these new API, and we also encourage you to try this
 module in debug mode (start IPython with ``--Completer.debug=True``) in order
-to have extra logging information if :any:`jedi` is crashing, or if current
+to have extra logging information if :mod:`jedi` is crashing, or if current
 IPython completer pending deprecations are returning results not yet handled
-by :any:`jedi`
+by :mod:`jedi`
 
 Using Jedi for tab completion allow snippets like the following to work without
 having to execute any code:
@@ -99,7 +99,7 @@ Tab completion will be able to infer that ``myvar[1]`` is a real number without
 executing almost any code unlike the deprecated :any:`IPCompleter.greedy`
 option.
 
-Be sure to update :any:`jedi` to the latest stable version or to try the
+Be sure to update :mod:`jedi` to the latest stable version or to try the
 current development version to get better completions.
 
 Matchers
@@ -149,7 +149,7 @@ More precisely, the API allows to omit ``matcher_api_version`` for v1 Matchers,
 and requires a literal ``2`` for v2 Matchers.
 
 Once the API stabilises future versions may relax the requirement for specifying
-``matcher_api_version`` by switching to :any:`functools.singledispatch`, therefore
+``matcher_api_version`` by switching to :func:`functools.singledispatch`, therefore
 please do not rely on the presence of ``matcher_api_version`` for any purposes.
 
 Suppression of competing matchers
@@ -201,17 +201,14 @@ from dataclasses import dataclass
 from functools import cached_property, partial
 from types import SimpleNamespace
 from typing import (
-    Iterable,
-    Iterator,
     Union,
     Any,
-    Sequence,
     Optional,
     TYPE_CHECKING,
-    Sized,
     TypeVar,
     Literal,
 )
+from collections.abc import Iterable, Iterator, Sequence, Sized
 
 from IPython.core.guarded_eval import (
     guarded_eval,
@@ -247,7 +244,8 @@ import __main__
 from typing import cast
 
 if sys.version_info < (3, 12):
-    from typing_extensions import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
+    from typing_extensions import TypedDict, Protocol
+    from typing import NotRequired, TypeAlias, TypeGuard
 else:
     from typing import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 
@@ -489,7 +487,7 @@ class Completion:
         It will also raise unless use in proper context manager.
 
     This act as a middle ground :any:`Completion` object between the
-    :any:`jedi.api.classes.Completion` object and the Prompt Toolkit completion
+    :class:`jedi.api.classes.Completion` object and the Prompt Toolkit completion
     object. While Jedi need a lot of information about evaluator and how the
     code should be ran/inspected, PromptToolkit (and other frontend) mostly
     need user facing information.
@@ -860,7 +858,7 @@ def rectify_completions(text: str, completions: _IC, *, _debug: bool = False) ->
 
     Notes
     -----
-    :any:`jedi.api.classes.Completion` s returned by Jedi may not have the same start and end, though
+    :class:`jedi.api.classes.Completion` s returned by Jedi may not have the same start and end, though
     the Jupyter Protocol requires them to behave like so. This will readjust
     the completion to have the same ``start`` and ``end`` by padding both
     extremities with surrounding text.
@@ -990,9 +988,9 @@ class Completer(Configurable):
           no item/attribute evaluation, no access to locals/globals,
           no evaluation of any operations or comparisons.
         - ``limited``: access to all namespaces, evaluation of hard-coded methods
-          (for example: :any:`dict.keys`, :any:`object.__getattr__`,
-          :any:`object.__getitem__`) on allow-listed objects (for example:
-          :any:`dict`, :any:`list`, :any:`tuple`, ``pandas.Series``),
+          (for example: :py:meth:`dict.keys`, :py:meth:`object.__getattr__`,
+          :py:meth:`object.__getitem__`) on allow-listed objects (for example:
+          :py:class:`dict`, :py:class:`list`, :py:class:`tuple`, ``pandas.Series``),
         - ``unsafe``: evaluation of all methods and function calls but not of
           syntax with side-effects like `del x`,
         - ``dangerous``: completely arbitrary evaluation; does not support auto-import.
@@ -1351,6 +1349,8 @@ class Completer(Configurable):
 
             assert res is not None
             if len(res.body) != 1:
+                continue
+            if not isinstance(res.body[0], ast.Expr):
                 continue
             expr = res.body[0].value
             if isinstance(expr, ast.Tuple) and not code[-1] == ")":
@@ -2211,6 +2211,17 @@ class IPCompleter(Completer):
         #  starts with `/home/`, `C:\`, etc)
 
         text = context.token
+        code_until_cursor = self._extract_code(context.text_until_cursor)
+        completion_type = self._determine_completion_context(code_until_cursor)
+        in_cli_context = self._is_completing_in_cli_context(code_until_cursor)
+        if (
+            completion_type == self._CompletionContextType.ATTRIBUTE
+            and not in_cli_context
+        ):
+            return {
+                "completions": [],
+                "suppress": False,
+            }
 
         # chars that require escaping with backslash - i.e. chars
         # that readline treats incorrectly as delimiters, but we
@@ -2480,8 +2491,9 @@ class IPCompleter(Completer):
         )
         return {
             "completions": matches,
-            # static analysis should not suppress other matchers
-            "suppress": {_get_matcher_id(self.file_matcher)} if matches else False,
+            # static analysis should not suppress other matcher
+            # NOTE: file_matcher is automatically suppressed on attribute completions
+            "suppress": False,
         }
 
     def _jedi_matches(
@@ -2597,11 +2609,46 @@ class IPCompleter(Completer):
             return self._CompletionContextType.GLOBAL
 
         # Handle all other attribute matches np.ran, d[0].k, (a,b).count
-        chain_match = re.search(r".*(.+\.(?:[a-zA-Z]\w*)?)$", line)
+        chain_match = re.search(r".*(.+(?<!\s)\.(?:[a-zA-Z]\w*)?)$", line)
         if chain_match:
             return self._CompletionContextType.ATTRIBUTE
 
         return self._CompletionContextType.GLOBAL
+
+    def _is_completing_in_cli_context(self, text: str) -> bool:
+        """
+        Determine if we are completing in a CLI alias, line magic, or bang expression context.
+        """
+        stripped = text.lstrip()
+        if stripped.startswith("!") or stripped.startswith("%"):
+            return True
+        # Check for CLI aliases
+        try:
+            tokens = stripped.split(None, 1)
+            if not tokens:
+                return False
+            first_token = tokens[0]
+
+            # Must have arguments after the command for this to apply
+            if len(tokens) < 2:
+                return False
+
+            # Check if first token is a known alias
+            if not any(
+                alias[0] == first_token for alias in self.shell.alias_manager.aliases
+            ):
+                return False
+
+            try:
+                if first_token in self.shell.user_ns:
+                    # There's a variable defined, so the alias is overshadowed
+                    return False
+            except (AttributeError, KeyError):
+                pass
+
+            return True
+        except Exception:
+            return False
 
     def _is_in_string_or_comment(self, text):
         """
@@ -2724,7 +2771,11 @@ class IPCompleter(Completer):
         """Match attributes or global python names"""
         text = context.text_until_cursor
         text = self._extract_code(text)
-        completion_type = self._determine_completion_context(text)
+        in_cli_context = self._is_completing_in_cli_context(text)
+        if in_cli_context:
+            completion_type = self._CompletionContextType.GLOBAL
+        else:
+            completion_type = self._determine_completion_context(text)
         if completion_type == self._CompletionContextType.ATTRIBUTE:
             try:
                 matches, fragment = self._attr_matches(
@@ -2744,8 +2795,6 @@ class IPCompleter(Completer):
                 matches = _convert_matcher_v1_result_to_v2(
                     matches, type="attribute", fragment=fragment
                 )
-                if matches["completions"]:
-                    matches["suppress"] = {_get_matcher_id(self.file_matcher)}
                 return matches
             except NameError:
                 # catches <undefined attributes>.<tab>
@@ -3256,7 +3305,7 @@ class IPCompleter(Completer):
 
         .. note::
 
-            If ``IPCompleter.debug`` is :any:`True` will yield a ``--jedi/ipython--``
+            If ``IPCompleter.debug`` is :py:data:`True` will yield a ``--jedi/ipython--``
             fake Completion token to distinguish completion returned by Jedi
             and usual IPython completion.
 
