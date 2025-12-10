@@ -92,6 +92,12 @@ intersphinx_mapping = get_intersphinx_mapping(
     }
 )
 
+# External links configuration (replaces custom github extension)
+extlinks = {
+    "ghissue": ("https://github.com/ipython/ipython/issues/%s/", "#%s"),
+    "ghpull": ("https://github.com/ipython/ipython/pull/%s/", "PR #%s"),
+}
+
 
 # Options for HTML output
 # -----------------------
