@@ -109,6 +109,18 @@ from IPython.utils.py3compat import PYPY
 
 from typing import Dict
 
+# Allow pretty-printing of functions with PEP-649 annotations
+try:
+    # Actually an annotationlib symbol imported by inspect
+    # but if inspect has it that should mean it can use it
+    from inspect import Format
+except ImportError:
+    pass
+else:
+    from functools import partial
+    signature = partial(signature, annotation_format=Format.FORWARDREF)
+
+
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name', 'RawText', 'RawStringLiteral', 'CallExpression']
 
