@@ -4,6 +4,7 @@ Test for async helpers.
 Should only trigger on python 3.5+ or will have syntax errors.
 """
 
+import sys
 from itertools import chain, repeat
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING
@@ -49,8 +50,10 @@ class AsyncTest(TestCase):
         self.assertFalse(_should_be_async("some invalid Python code"))
 
         self.assertFalse(_should_be_async("'\\ud800'"))
-        # Note: the next assert assumes the tests run without the `-OO` flag
-        self.assertFalse(_should_be_async("'\\ud800'\nawait foo"))
+        
+        if sys.version_info >= (3, 13):
+            # Note: the next assert assumes the tests run without the `-OO` flag
+            self.assertFalse(_should_be_async("'\\ud800'\nawait foo"))
 
     def _get_top_level_cases(self):
         # These are test cases that should be valid in a function
