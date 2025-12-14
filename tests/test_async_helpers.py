@@ -44,6 +44,14 @@ class AsyncTest(TestCase):
             )
         )
 
+        self.assertFalse(_should_be_async("return await foo()"))
+        self.assertFalse(_should_be_async("return bar()"))
+        self.assertFalse(_should_be_async("some invalid Python code"))
+
+        self.assertFalse(_should_be_async("'\\ud800'"))
+        # Note: the next assert assumes the tests run without the `-OO` flag
+        self.assertFalse(_should_be_async("'\\ud800'\nawait foo"))
+
     def _get_top_level_cases(self):
         # These are test cases that should be valid in a function
         # but invalid outside of a function.
