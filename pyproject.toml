@@ -91,7 +91,8 @@ matplotlib = [
    "matplotlib>3.9"
 ]
 all = [
-    "ipython[doc,matplotlib,test,test_extra]",
+    "ipython[doc,matplotlib,terminal,test,test_extra]",
+    "argcomplete>=3.0",
 ]
 
 
