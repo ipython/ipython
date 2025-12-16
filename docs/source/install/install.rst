@@ -87,7 +87,7 @@ argcomplete, install IPython with the ``terminal`` extra:
 
 .. code-block:: bash
 
-    $ pip install ipython[terminal]
+    $ pip install ipython[all]
     $ activate-global-python-argcomplete
 
 Alternatively, you can install argcomplete separately:
