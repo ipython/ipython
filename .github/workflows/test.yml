@@ -105,6 +105,7 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       with:
+         token: ${{ secrets.CODECOV_TOKEN }}
          name: Test
          files: /home/runner/work/ipython/ipython/coverage.xml
 
