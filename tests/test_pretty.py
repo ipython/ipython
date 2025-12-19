@@ -543,6 +543,31 @@ def test_function_pretty():
     assert "meaning_of_life(question=None)" in pretty.pretty(meaning_of_life)
 
 
+def test_annotated_function_pretty():
+    "Test pretty print of a function with PEP-649 annotations"
+    # Confirm that the name is not in scope
+    try:
+        b
+    except NameError:
+        pass
+    else:
+        assert False, "Unexpected 'b' found in scope"
+    try:
+        def f(a: b): pass
+    except NameError as e:
+        if e.name == 'b':
+            # PEP-649 not available
+            return
+        raise
+    # Check whether __future__.annotations is in effect
+    # It probably shouldn't be, but to be sure:
+    import __future__
+    if f.__code__.co_flags & __future__.annotations.compiler_flag:
+        assert "f(a: 'b')" in pretty.pretty(f)
+    else:
+        assert "f(a: b)" in pretty.pretty(f)
+
+
 class OrderedCounter(Counter, OrderedDict):
     "Counter that remembers the order elements are first encountered"
 
