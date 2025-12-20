@@ -2739,6 +2739,8 @@ def test_no_file_completions_in_attr_access(code):
         ("dict_with_dots = {'key.with.dots': value.attr", "attribute"),
         ("d[f'{a}']['{a.", "global"),
         ("ls .", "global"),
+        ("t._", "attribute"),
+        ("t.__a", "attribute"),
     ],
 )
 def test_completion_context(line, expected):
