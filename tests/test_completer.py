@@ -2072,6 +2072,7 @@ class TestCompleter(unittest.TestCase):
         ip = get_ipython()
         ip.user_ns["Test"] = type("Test", (), {"_test1": 1, "__test2": 2})
         ip.user_ns["t"] = ip.user_ns["Test"]()
+        ip.Completer.use_jedi = False
 
         try:
             with provisionalcompleter():
@@ -2079,10 +2080,10 @@ class TestCompleter(unittest.TestCase):
                 completion_texts = [c.text for c in completions]
 
                 assert (
-                    "_test1" in completion_texts
+                    "._test1" in completion_texts
                 ), f"_test1 not found in {completion_texts}"
                 assert (
-                    "__test2" in completion_texts
+                    ".__test2" in completion_texts
                 ), f"__test2 not found in {completion_texts}"
         finally:
             del ip.user_ns["Test"]
