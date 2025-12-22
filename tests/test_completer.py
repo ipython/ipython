@@ -2068,6 +2068,27 @@ class TestCompleter(unittest.TestCase):
             a_matcher.matcher_priority = 3
             _(["completion_a"])
 
+    def test_private_attr_completions(self):
+        ip = get_ipython()
+        ip.user_ns["Test"] = type("Test", (), {"_test1": 1, "__test2": 2})
+        ip.user_ns["t"] = ip.user_ns["Test"]()
+        ip.Completer.use_jedi = False
+
+        try:
+            with provisionalcompleter():
+                completions = list(ip.Completer.completions(text="t._", offset=3))
+                completion_texts = [c.text for c in completions]
+
+                assert (
+                    "._test1" in completion_texts
+                ), f"_test1 not found in {completion_texts}"
+                assert (
+                    ".__test2" in completion_texts
+                ), f"__test2 not found in {completion_texts}"
+        finally:
+            del ip.user_ns["Test"]
+            del ip.user_ns["t"]
+
 
 @pytest.mark.parametrize(
     "use_jedi,evaluation",
@@ -2739,6 +2760,8 @@ def test_no_file_completions_in_attr_access(code):
         ("dict_with_dots = {'key.with.dots': value.attr", "attribute"),
         ("d[f'{a}']['{a.", "global"),
         ("ls .", "global"),
+        ("t._", "attribute"),
+        ("t.__a", "attribute"),
     ],
 )
 def test_completion_context(line, expected):

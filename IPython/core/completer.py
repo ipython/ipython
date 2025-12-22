@@ -2608,8 +2608,8 @@ class IPCompleter(Completer):
         if re.search(r"(?<!\w)(?<!\d\.)([-+]?\d+\.(\d+)?)(?!\w)$", line):
             return self._CompletionContextType.GLOBAL
 
-        # Handle all other attribute matches np.ran, d[0].k, (a,b).count
-        chain_match = re.search(r".*(.+(?<!\s)\.(?:[a-zA-Z]\w*)?)$", line)
+        # Handle all other attribute matches np.ran, d[0].k, (a,b).count, obj._private
+        chain_match = re.search(r".*(.+(?<!\s)\.(?:[a-zA-Z_]\w*)?)$", line)
         if chain_match:
             return self._CompletionContextType.ATTRIBUTE
 
