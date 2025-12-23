@@ -16,7 +16,7 @@ exclude CONTRIBUTING.md
 exclude .editorconfig
 exclude SECURITY.md
 exclude .readthedocs.yaml
-exclude .devcontainer
+exclude .devcontainer/devcontainer.json
 
 graft scripts
 
