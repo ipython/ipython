@@ -1,0 +1,14 @@
+{
+	"name": "ipython",
+	"image": "mcr.microsoft.com/devcontainers/python:1-3.13",
+	"features": {},
+	"postCreateCommand": "pip install -e .[test]",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"hbenl.vscode-test-explorer",
+				"ms-python.python"
+			]
+		}
+	}
+}
