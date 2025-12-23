@@ -56,6 +56,36 @@ def foo_printer(obj, pp, cycle):
     pp.text("foo")
 
 
+def test_display_formatter_active_types_config():
+    from IPython.terminal.interactiveshell import TerminalInteractiveShell
+    from IPython.core.history import HistoryManager
+    from traitlets.config import Config
+
+    # Clear HistoryManager instances to bypass singleton limit before creating new shell
+    prev_instances = HistoryManager._instances.copy()
+    HistoryManager._instances.clear()
+
+    try:
+        c = Config()
+        c.DisplayFormatter.active_types = ["text/plain", "image/png"]
+        # Disable history
+        c.HistoryManager.enabled = False
+
+        ip = TerminalInteractiveShell(config=c)
+
+        active_types = ip.display_formatter.active_types
+        assert "text/plain" in active_types
+        assert "image/png" in active_types
+
+        # Ensure only the expected types are active
+        assert set(active_types) == {"text/plain", "image/png"}
+
+    finally:
+        # Clean up the new instance and restore previous state
+        HistoryManager._instances.clear()
+        HistoryManager._instances.update(prev_instances)
+
+
 def test_pretty():
     f = PlainTextFormatter()
     f.for_type(A, foo_printer)
@@ -365,7 +395,6 @@ def test_print_method_bound():
 
 
 def test_print_method_weird():
-
     class TextMagicHat(object):
         def __getattr__(self, key):
             return key
@@ -507,7 +536,6 @@ def test_repr_mime():
 
 def test_pass_correct_include_exclude():
     class Tester(object):
-
         def __init__(self, include=None, exclude=None):
             self.include = include
             self.exclude = exclude
@@ -570,7 +598,8 @@ def test_custom_repr_namedtuple_partialmethod():
     from functools import partialmethod
     from typing import NamedTuple
 
-    class Foo(NamedTuple): ...
+    class Foo(NamedTuple):
+        ...
 
     Foo.__repr__ = partialmethod(lambda obj: "Hello World")
     foo = Foo()

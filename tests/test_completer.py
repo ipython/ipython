@@ -8,6 +8,7 @@ import os
 import pytest
 import sys
 import textwrap
+import types
 import unittest
 import random
 
@@ -126,7 +127,7 @@ def test_unicode_range():
     assert len_exp == len_test, message
 
     # fail if new unicode symbols have been added.
-    assert len_exp <= 143668, message
+    assert len_exp <= 148853, message
 
 
 @contextmanager
@@ -314,7 +315,6 @@ class TestCompleter(unittest.TestCase):
             self.assertIsInstance(matches, list)
 
     def test_latex_completions(self):
-
         ip = get_ipython()
         # Test some random unicode symbols
         keys = random.sample(sorted(latex_symbols), 10)
@@ -424,11 +424,17 @@ class TestCompleter(unittest.TestCase):
             c = ip.complete(prefix)[1]
             self.assertEqual(c, names)
 
-            # Now check with a function call
-            cmd = 'a = f("%s' % prefix
-            c = ip.complete(prefix, cmd)[1]
-            comp = {prefix + s for s in suffixes}
-            self.assertTrue(comp.issubset(set(c)))
+            test_cases = {
+                "function call": 'a = f("',
+                "shell bang": "!ls ",
+                "ls magic": r"%ls ",
+                "alias ls": "ls ",
+            }
+            for name, code in test_cases.items():
+                cmd = f"{code}{prefix}"
+                c = ip.complete(prefix, cmd)[1]
+                comp = {prefix + s for s in suffixes}
+                self.assertTrue(comp.issubset(set(c)), msg=f"completes in {name}")
 
     def test_quoted_file_completions(self):
         ip = get_ipython()
@@ -903,6 +909,66 @@ class TestCompleter(unittest.TestCase):
         s, matches = c.complete(None, "%%_bar_ce")
         self.assertNotIn("%_bar_cellm", matches)
         self.assertIn("%%_bar_cellm", matches)
+
+    def test_line_magics_with_code_argument(self):
+        ip = get_ipython()
+        c = ip.Completer
+        c.use_jedi = False
+
+        # attribute completion
+        text, matches = c.complete("%timeit -n 2 -r 1 float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        text, matches = c.complete("%debug --breakpoint test float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        text, matches = c.complete("%time --no-raise-error float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        text, matches = c.complete("%prun -l 0.5 -r float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        # implicit magics
+        text, matches = c.complete("timeit -n 2 -r 1 float.as_integer")
+        self.assertEqual(matches, [".as_integer_ratio"])
+
+        # built-ins completion
+        text, matches = c.complete("%timeit -n 2 -r 1 flo")
+        self.assertEqual(matches, ["float"])
+
+        # dict completion
+        text, matches = c.complete("%timeit -n 2 -r 1 {'my_key': 1}['my")
+        self.assertEqual(matches, ["my_key"])
+
+        # invalid arguments - should not throw
+        text, matches = c.complete("%timeit -n 2 -r 1 -invalid float.as_integer")
+        self.assertEqual(matches, [])
+
+        text, matches = c.complete("%debug --invalid float.as_integer")
+        self.assertEqual(matches, [])
+
+    def test_line_magics_with_code_argument_shadowing(self):
+        ip = get_ipython()
+        c = ip.Completer
+        c.use_jedi = False
+
+        # shadow
+        ip.run_cell("timeit = 1")
+
+        # should not suggest on implict magic when shadowed
+        text, matches = c.complete("timeit -n 2 -r 1 flo")
+        self.assertEqual(matches, [])
+
+        # should suggest on explicit magic
+        text, matches = c.complete("%timeit -n 2 -r 1 flo")
+        self.assertEqual(matches, ["float"])
+
+        # remove shadow
+        del ip.user_ns["timeit"]
+
+        # should suggest on implicit magic after shadow removal
+        text, matches = c.complete("timeit -n 2 -r 1 flo")
+        self.assertEqual(matches, ["float"])
 
     def test_magic_completion_order(self):
         ip = get_ipython()
@@ -1403,6 +1469,163 @@ class TestCompleter(unittest.TestCase):
             _, matches = complete(line_buffer="math.")
             self.assertNotIn(".pi", matches)
 
+    def test_completion_allow_custom_getattr_per_module(self):
+        factory_code = textwrap.dedent(
+            """
+        class ListFactory:
+            def __getattr__(self, attr):
+                return []
+        """
+        )
+
+        safe_lib = types.ModuleType("my.safe.lib")
+        sys.modules["my.safe.lib"] = safe_lib
+        exec(factory_code, safe_lib.__dict__)
+
+        unsafe_lib = types.ModuleType("my.unsafe.lib")
+        sys.modules["my.unsafe.lib"] = unsafe_lib
+        exec(factory_code, unsafe_lib.__dict__)
+
+        fake_safe_lib = types.ModuleType("my_fake_lib")
+        sys.modules["my_fake_lib"] = fake_safe_lib
+        exec(factory_code, fake_safe_lib.__dict__)
+
+        ip = get_ipython()
+        ip.user_ns["safe_list_factory"] = safe_lib.ListFactory()
+        ip.user_ns["unsafe_list_factory"] = unsafe_lib.ListFactory()
+        ip.user_ns["fake_safe_factory"] = fake_safe_lib.ListFactory()
+        complete = ip.Completer.complete
+        with (
+            evaluation_policy("limited", allowed_getattr_external={"my.safe.lib"}),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="safe_list_factory.example.")
+            self.assertIn(".append", matches)
+            # this also checks against https://github.com/ipython/ipython/issues/14916
+            # because removing "un" would cause this test to incorrectly pass
+            _, matches = complete(line_buffer="unsafe_list_factory.example.")
+            self.assertNotIn(".append", matches)
+
+        sys.modules["my"] = types.ModuleType("my")
+
+        with (
+            evaluation_policy("limited", allowed_getattr_external={"my"}),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="safe_list_factory.example.")
+            self.assertIn(".append", matches)
+            _, matches = complete(line_buffer="unsafe_list_factory.example.")
+            self.assertIn(".append", matches)
+            _, matches = complete(line_buffer="fake_safe_factory.example.")
+            self.assertNotIn(".append", matches)
+
+        with (
+            evaluation_policy("limited"),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="safe_list_factory.example.")
+            self.assertNotIn(".append", matches)
+            _, matches = complete(line_buffer="unsafe_list_factory.example.")
+            self.assertNotIn(".append", matches)
+
+    def test_completion_allow_subclass_of_trusted_module(self):
+        factory_code = textwrap.dedent(
+            """
+            class ListFactory:
+                def __getattr__(self, attr):
+                    return []
+            """
+        )
+        trusted_lib = types.ModuleType("my.trusted.lib")
+        sys.modules["my.trusted.lib"] = trusted_lib
+        exec(factory_code, trusted_lib.__dict__)
+
+        ip = get_ipython()
+        # Create a subclass in __main__ (untrusted namespace)
+        subclass_code = textwrap.dedent(
+            """
+            class SubclassFactory(trusted_lib.ListFactory):
+                pass
+            """
+        )
+        ip.user_ns["trusted_lib"] = trusted_lib
+        exec(subclass_code, ip.user_ns)
+        ip.user_ns["subclass_factory"] = ip.user_ns["SubclassFactory"]()
+        complete = ip.Completer.complete
+        with (
+            evaluation_policy("limited", allowed_getattr_external={"my.trusted.lib"}),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="subclass_factory.example.")
+            self.assertIn(".append", matches)
+
+        # Test that overriding __getattr__ in subclass in untrusted namespace prevents completion
+        overriding_subclass_code = textwrap.dedent(
+            """
+            class OverridingSubclass(trusted_lib.ListFactory):
+                def __getattr__(self, attr):
+                    return {}
+            """
+        )
+        exec(overriding_subclass_code, ip.user_ns)
+        ip.user_ns["overriding_factory"] = ip.user_ns["OverridingSubclass"]()
+
+        with (
+            evaluation_policy("limited", allowed_getattr_external={"my.trusted.lib"}),
+            jedi_status(False),
+        ):
+            _, matches = complete(line_buffer="overriding_factory.example.")
+            self.assertNotIn(".append", matches)
+            self.assertNotIn(".keys", matches)
+
+    def test_completion_fallback_to_annotation_for_attribute(self):
+        code = textwrap.dedent(
+            """
+            class StringMethods:
+                def a():
+                    pass
+
+            class Test:
+                str: StringMethods
+                def __init__(self):
+                    self.str = StringMethods()
+                def __getattr__(self, name):
+                    raise AttributeError(f"{name} not found")
+            """
+        )
+
+        repro = types.ModuleType("repro")
+        sys.modules["repro"] = repro
+        exec(code, repro.__dict__)
+
+        ip = get_ipython()
+        ip.user_ns["repro"] = repro
+        exec("r = repro.Test()", ip.user_ns)
+
+        complete = ip.Completer.complete
+        try:
+            with evaluation_policy("limited"), jedi_status(False):
+                _, matches = complete(line_buffer="r.str.")
+                self.assertIn(".a", matches)
+        finally:
+            sys.modules.pop("repro", None)
+            ip.user_ns.pop("r", None)
+
+    def test_policy_warnings(self):
+        with self.assertWarns(
+            UserWarning,
+            msg="Override 'allowed_getattr_external' is not valid with 'unsafe' evaluation policy",
+        ):
+            with evaluation_policy("unsafe", allowed_getattr_external=[]):
+                pass
+
+        with self.assertWarns(
+            UserWarning,
+            msg="Override 'test' is not valid with 'limited' evaluation policy",
+        ):
+            with evaluation_policy("limited", test=[]):
+                pass
+
     def test_dict_key_completion_bytes(self):
         """Test handling of bytes in dict key completion"""
         ip = get_ipython()
@@ -1845,6 +2068,644 @@ class TestCompleter(unittest.TestCase):
             a_matcher.matcher_priority = 3
             _(["completion_a"])
 
+    def test_private_attr_completions(self):
+        ip = get_ipython()
+        ip.user_ns["Test"] = type("Test", (), {"_test1": 1, "__test2": 2})
+        ip.user_ns["t"] = ip.user_ns["Test"]()
+        ip.Completer.use_jedi = False
+
+        try:
+            with provisionalcompleter():
+                completions = list(ip.Completer.completions(text="t._", offset=3))
+                completion_texts = [c.text for c in completions]
+
+                assert (
+                    "._test1" in completion_texts
+                ), f"_test1 not found in {completion_texts}"
+                assert (
+                    ".__test2" in completion_texts
+                ), f"__test2 not found in {completion_texts}"
+        finally:
+            del ip.user_ns["Test"]
+            del ip.user_ns["t"]
+
+
+@pytest.mark.parametrize(
+    "use_jedi,evaluation",
+    [
+        [True, "minimal"],
+        [False, "limited"],
+    ],
+)
+@pytest.mark.parametrize(
+    "code,insert_text",
+    [
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def my_method(self) -> str:",
+                    "        return 1",
+                    "my_instance = NotYetDefined()",
+                    "my_insta",
+                ]
+            ),
+            "my_instance",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def my_method(self) -> str:",
+                    "        return 1",
+                    "instance = NotYetDefined()",
+                    "instance.",
+                ]
+            ),
+            "my_method",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def my_method(self) -> str:",
+                    "        return 1",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_method().",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def my_method(self):",
+                    "        return []",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_method().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    @property",
+                    "    def my_property(self):",
+                    "        return 1.1",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_property.",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
+        [
+            "\n".join(
+                [
+                    "my_instance = 1.1",
+                    "assert my_instance.",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
+        [
+            "\n".join(
+                [
+                    "def my_test() -> float:",
+                    "    pass",
+                    "my_test().",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
+        [
+            "\n".join(
+                [
+                    "def my_test():",
+                    "    return {}",
+                    "my_test().",
+                ]
+            ),
+            "keys",
+        ],
+        [
+            "\n".join(
+                [
+                    "l = []",
+                    "def my_test():",
+                    "    return l",
+                    "my_test().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "num = {1: 'one'}",
+                    "num[2] = 'two'",
+                    "num.",
+                ]
+            ),
+            "keys",
+        ],
+        [
+            "\n".join(
+                [
+                    "num = {1: 'one'}",
+                    "num[2] = ['two']",
+                    "num[2].",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "l = []",
+                    "class NotYetDefined:",
+                    "    def my_method(self):",
+                    "        return l",
+                    "my_instance = NotYetDefined()",
+                    "my_instance.my_method().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "def string_or_int(flag):",
+                    "    if flag:",
+                    "        return 'test'",
+                    "    return 1",
+                    "string_or_int().",
+                ]
+            ),
+            ["capitalize", "as_integer_ratio"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def foo():",
+                    "    l = []",
+                    "    return l",
+                    "foo().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def __init__(self):",
+                    "        self.test = []",
+                    "instance = NotYetDefined()",
+                    "instance.",
+                ]
+            ),
+            "test",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def __init__(instance):",
+                    "        instance.test = []",
+                    "instance = NotYetDefined()",
+                    "instance.test.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def __init__(this):",
+                    "        this.test:str = []",
+                    "instance = NotYetDefined()",
+                    "instance.test.",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "l = []",
+                    "class NotYetDefined:",
+                    "    def __init__(me):",
+                    "        me.test = l",
+                    "instance = NotYetDefined()",
+                    "instance.test.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def test(self):",
+                    "        self.l = []",
+                    "        return self.l",
+                    "instance = NotYetDefined()",
+                    "instance.test().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "class NotYetDefined:",
+                    "    def test():",
+                    "        return []",
+                    "instance = NotYetDefined()",
+                    "instance.test().",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "def foo():",
+                    "    if some_condition:",
+                    "        return {'top':{'mid':{'leaf': 2}}}",
+                    "    return {'top': {'mid':[]}}",
+                    "foo()['top']['mid'].",
+                ]
+            ),
+            ["keys", "append"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def foo():",
+                    "    if some_condition:",
+                    "        return {'top':{'mid':{'leaf': 2}}}",
+                    "    return {'top': {'mid':[]}}",
+                    "foo()['top']['mid']['leaf'].",
+                ]
+            ),
+            "as_integer_ratio",
+        ],
+        [
+            "\n".join(
+                [
+                    "async def async_func():",
+                    "    return []",
+                    "async_func().",
+                ]
+            ),
+            "cr_await",
+        ],
+        [
+            "\n".join(
+                [
+                    "async def async_func():",
+                    "    return []",
+                    "(await async_func()).",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(["t = []", "if some_condition:", "    t."]),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if some_condition:",
+                    "    t = 'string'",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if some_condition:",
+                    "    t = 'string'",
+                    "else:",
+                    "    t.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if some_condition:",
+                    "    t = 'string'",
+                    "else:",
+                    "    t = 1",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize", "as_integer_ratio"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if condition_1:",
+                    "    t = 'string'",
+                    "elif condition_2:",
+                    "    t = 1",
+                    "elif condition_3:",
+                    "    t.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if condition_1:",
+                    "    t = 'string'",
+                    "elif condition_2:",
+                    "    t = 1",
+                    "elif condition_3:",
+                    "    t = {}",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize", "as_integer_ratio", "keys"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "if condition_1:",
+                    "    if condition_2:",
+                    "        t = 'nested'",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "a = []",
+                    "while condition:",
+                    "    a.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "while condition:",
+                    "    t = 'str'",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t = []",
+                    "while condition_1:",
+                    "    while condition_2:",
+                    "        t = 'str'",
+                    "t.",
+                ]
+            ),
+            ["append", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "for i in range(10):",
+                    "    i.",
+                ]
+            ),
+            "bit_length",
+        ],
+        [
+            "\n".join(
+                [
+                    "for i in range(10):",
+                    "    if i % 2 == 0:",
+                    "        i.",
+                ]
+            ),
+            "bit_length",
+        ],
+        [
+            "\n".join(
+                [
+                    "for item in ['a', 'b', 'c']:",
+                    "    item.",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "for key, value in {'a': 1, 'b': 2}.items():",
+                    "    key.",
+                ]
+            ),
+            "capitalize",
+        ],
+        [
+            "\n".join(
+                [
+                    "for key, value in {'a': 1, 'b': 2}.items():",
+                    "    value.",
+                ]
+            ),
+            "bit_length",
+        ],
+        [
+            "\n".join(
+                [
+                    "for sublist in [[1, 2], [3, 4]]:",
+                    "    sublist.",
+                ]
+            ),
+            "append",
+        ],
+        [
+            "\n".join(
+                [
+                    "for sublist in [[1, 2], [3, 4]]:",
+                    "    for item in sublist:",
+                    "        item.",
+                ]
+            ),
+            "bit_length",
+        ],
+        [
+            "\n".join(
+                [
+                    "t: list[str]",
+                    "t[0].",
+                ]
+            ),
+            ["capitalize"],
+        ],
+    ],
+)
+def test_undefined_variables(use_jedi, evaluation, code, insert_text):
+    offset = len(code)
+    ip.Completer.use_jedi = use_jedi
+    ip.Completer.evaluation = evaluation
+
+    with provisionalcompleter():
+        completions = list(ip.Completer.completions(text=code, offset=offset))
+        insert_texts = insert_text if isinstance(insert_text, list) else [insert_text]
+        for text in insert_texts:
+            match = [c for c in completions if c.text.lstrip(".") == text]
+            message_on_fail = f"{text} not found among {[c.text for c in completions]}"
+            assert len(match) == 1, message_on_fail
+
+
+@pytest.mark.parametrize(
+    "code,insert_text",
+    [
+        [
+            "\n".join(
+                [
+                    "t: dict = {'a': []}",
+                    "t['a'].",
+                ]
+            ),
+            ["append"],
+        ],
+        [
+          "\n".join(
+                [
+                    "t: int | dict = {'a': []}",
+                    "t.",
+                ]
+            ),
+            ["keys", "bit_length"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t: int | dict = {'a': []}",
+                    "t['a'].",
+                ]
+            ),
+            "append",
+        ],
+        # Test union types
+        [
+            "\n".join(
+                [
+                    "t: int | str",
+                    "t.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "def func() -> int | str: pass",
+                    "func().",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "t: list = ['test']",
+                    "t[0].",
+                ]
+            ),
+            ["capitalize"],
+        ],
+        [
+            "\n".join(
+                [
+                    "class T:",
+                    "   @property",
+                    "   def p(self) -> int | str: pass",
+                    "t = T()",
+                    "t.p.",
+                ]
+            ),
+            ["bit_length", "capitalize"],
+        ],
+    ],
+)
+def test_undefined_variables_without_jedi(code, insert_text):
+    offset = len(code)
+    ip.Completer.use_jedi = False
+    ip.Completer.evaluation = "limited"
+
+    with provisionalcompleter():
+        completions = list(ip.Completer.completions(text=code, offset=offset))
+        insert_texts = insert_text if isinstance(insert_text, list) else [insert_text]
+        for text in insert_texts:
+            match = [c for c in completions if c.text.lstrip(".") == text]
+            message_on_fail = f"{text} not found among {[c.text for c in completions]}"
+            assert len(match) == 1, message_on_fail
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        "\n".join(
+            [
+                "def my_test() -> float:",
+                "    return 1.1",
+                "my_test().",
+            ]
+        ),
+        "\n".join(
+            [
+                "class MyClass():",
+                "    b: list[str]",
+                "x = MyClass()",
+                "x.b[0].",
+            ]
+        ),
+        "\n".join(
+            [
+                "class MyClass():",
+                "    b: list[str]",
+                "x = MyClass()",
+                "x.fake_attr().",
+            ]
+        ),
+    ],
+)
+def test_no_file_completions_in_attr_access(code):
+    """Test that files are not suggested during attribute/method completion."""
+    with TemporaryWorkingDirectory():
+        open(".hidden", "w", encoding="utf-8").close()
+        offset = len(code)
+        for use_jedi in (True, False):
+            with provisionalcompleter(), jedi_status(use_jedi):
+                completions = list(ip.Completer.completions(text=code, offset=offset))
+                matches = [c for c in completions if c.text.lstrip(".") == "hidden"]
+                assert (
+                    len(matches) == 0
+                ), f"File '.hidden' should not appear in attribute completion"
+
 
 @pytest.mark.parametrize(
     "line,expected",
@@ -1898,6 +2759,9 @@ class TestCompleter(unittest.TestCase):
         ('f"formatted {obj.attr}', "global"),
         ("dict_with_dots = {'key.with.dots': value.attr", "attribute"),
         ("d[f'{a}']['{a.", "global"),
+        ("ls .", "global"),
+        ("t._", "attribute"),
+        ("t.__a", "attribute"),
     ],
 )
 def test_completion_context(line, expected):
@@ -1906,6 +2770,37 @@ def test_completion_context(line, expected):
     get_context = ip.Completer._determine_completion_context
     result = get_context(line)
     assert result.value == expected, f"Failed on input: '{line}'"
+
+
+@pytest.mark.parametrize(
+    "line,expected,expected_after_assignment",
+    [
+        ("test_alias file", True, False),  # overshadowed by variable
+        ("test_alias .", True, False),
+        ("test_alias file.", True, False),
+        ("%test_alias .file.ext", True, True),  # magic, not affected by variable
+        ("!test_alias file.", True, True),  # bang, not affected by variable
+    ],
+)
+def test_completion_in_cli_context(line, expected, expected_after_assignment):
+    """Test completion context with and without variable overshadowing"""
+    ip = get_ipython()
+    ip.run_cell("alias test_alias echo test_alias")
+    get_context = ip.Completer._is_completing_in_cli_context
+
+    # Normal case
+    result = get_context(line)
+    assert result == expected, f"Failed on input: '{line}'"
+
+    # Test with alias assigned as a variable
+    try:
+        ip.user_ns["test_alias"] = "some_value"
+        result_after_assignment = get_context(line)
+        assert (
+            result_after_assignment == expected_after_assignment
+        ), f"Failed after assigning 'ls' as a variable for input: '{line}'"
+    finally:
+        ip.user_ns.pop("test_alias", None)
 
 
 @pytest.mark.xfail(reason="Completion context not yet supported")
@@ -1957,6 +2852,7 @@ def test_misc_no_jedi_completions(setup, code, expected, not_expected):
         ("x = {1, y", "y"),
         ("x = [1, y", "y"),
         ("x = fun(1, y", "y"),
+        (" assert a", "a"),
     ],
 )
 def test_trim_expr(code, expected):

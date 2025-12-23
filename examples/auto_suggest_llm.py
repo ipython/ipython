@@ -66,7 +66,8 @@ via:
 
 import asyncio
 import textwrap
-from typing import Any, AsyncIterable, AsyncIterator
+from typing import Any
+from collections.abc import AsyncIterable, AsyncIterator
 
 from jupyter_ai_magics.models.completion import (
     InlineCompletionList,

@@ -627,9 +627,9 @@ and within the IPython shell, you reassign `a` to `23` to do further testing of
 some sort, you can then exit::
 
   >>> IPython.embed()
-  Python 3.6.2 (default, Jul 17 2017, 16:44:45)
+  Python 3.12.0 (default, Oct 10 2023, 12:00:00)
   Type 'copyright', 'credits' or 'license' for more information
-  IPython 6.2.0.dev -- An enhanced Interactive Python. Type '?' for help.
+  IPython 9.0.0 -- An enhanced Interactive Python. Type '?' for help.
 
   In [1]: a = 23
 
@@ -665,9 +665,9 @@ Running a file with the above code can lead to the following session::
 
   >>> do()
   42
-  Python 3.6.2 (default, Jul 17 2017, 16:44:45)
+  Python 3.12.0 (default, Oct 10 2023, 12:00:00)
   Type 'copyright', 'credits' or 'license' for more information
-  IPython 6.2.0.dev -- An enhanced Interactive Python. Type '?' for help.
+  IPython 9.0.0 -- An enhanced Interactive Python. Type '?' for help.
 
   In [1]: a = 23
 
@@ -820,6 +820,65 @@ And less context on shallower Stack Trace:
     <ipython-input-5-7baadc3d1465>(5)foo()
     ----> 5     return 1/x+foo(x-1)
 
+Module Ignoring Commands
+------------------------
+
+IPython's debugger provides commands to ignore specific modules when navigating
+through stack frames. This is particularly useful when debugging applications
+that use frameworks or libraries where you want to skip over their internal
+code and focus on your application logic.
+
+The module ignoring system supports wildcard patterns using Python's ``fnmatch``
+syntax, allowing you to ignore groups of related modules with a single pattern.
+
+ignore_module <module_name>
+++++++++++++++++++++++++++++
+
+Add a module to the list of modules to skip when navigating frames. When a module
+is ignored, the debugger will automatically skip over frames from that module when
+using the ``next``, ``step``, ``continue``, ``up`` and ``down`` commands.
+
+**Usage:**
+
+.. code::
+
+    ipdb> ignore_module threading
+    ipdb> ignore_module __main__
+    ipdb> ignore_module asyncio.*      # Ignore all asyncio submodules
+    ipdb> ignore_module *.tests        # Ignore all test modules
+    ipdb> ignore_module django.*       # Ignore all django modules
+    ipdb> ignore_module  # List currently ignored modules
+    Currently ignored modules: ['__main__', 'asyncio.*', 'django.*', 'threading']
+
+**Wildcard Pattern Examples:**
+
+- ``asyncio.*`` - Matches ``asyncio.tasks``, ``asyncio.events``, etc.
+- ``*.tests`` - Matches ``myapp.tests``, ``utils.tests``, etc.
+- ``test_*`` - Matches ``test_models``, ``test_views``, etc.
+- ``django.*`` - Matches all Django framework modules
+- ``*pytest*`` - Matches any module containing "pytest"
+
+**Common use cases:**
+
+- Ignore framework code (e.g., ``django.*``, ``flask.*``, ``asyncio.*``)
+- Skip standard library modules (e.g., ``threading``, ``multiprocessing``, ``logging.*``)
+- Hide main module frames (``__main__``) to focus on function implementations
+- Skip test framework internals (``*pytest*``, ``unittest.*``)
+
+unignore_module <module_name>
++++++++++++++++++++++++++++++
+
+Remove a module from the list of modules to skip when navigating frames. This
+allows the debugger to step into frames from the specified module again.
+
+**Usage:**
+
+.. code::
+
+    ipdb> unignore_module threading
+    ipdb> unignore_module asyncio.*    # Remove the pattern
+    ipdb> unignore_module  # List currently ignored modules
+    Currently ignored modules: ['__main__']
 
 Post-mortem debugging
 ---------------------

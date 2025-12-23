@@ -35,7 +35,8 @@ from traitlets.config.configurable import LoggingConfigurable
 
 from IPython.paths import locate_profile
 from IPython.utils.decorators import undoc
-from typing import Iterable, Tuple, Optional, TYPE_CHECKING
+from typing import Tuple, Optional, TYPE_CHECKING
+from collections.abc import Iterable
 import typing
 from warnings import warn
 from weakref import ref, WeakSet
@@ -590,7 +591,7 @@ class HistoryOutput:
     output_type: typing.Literal[
         "out_stream", "err_stream", "display_data", "execute_result"
     ]
-    bundle: typing.Dict[str, str]
+    bundle: typing.Dict[str, str | list[str]]
 
 
 class HistoryManager(HistoryAccessor):
@@ -1058,7 +1059,7 @@ class HistoryManager(HistoryAccessor):
                 self.db_output_cache = []
 
 
-from typing import Callable, Iterator
+from collections.abc import Callable, Iterator
 from weakref import ReferenceType
 
 
@@ -1148,14 +1149,17 @@ class HistorySavingThread(threading.Thread):
         self.stop()
 
 
-# To match, e.g. ~5/8-~2/3
+# To match, e.g. ~5/8-~2/3, or ~4 (without trailing slash for full session)
+# Session numbers: ~N or N/
+# Line numbers: N (just digits, no ~)
+# Range syntax: 4-6 (with end) or 4- (without end, means "onward")
 range_re = re.compile(
     r"""
-((?P<startsess>~?\d+)/)?
+((?P<startsess>(?:~?\d+/)))?
 (?P<start>\d+)?
 ((?P<sep>[\-:])
- ((?P<endsess>~?\d+)/)?
- (?P<end>\d+))?
+ ((?P<endsess>(?:~?\d+/)))?
+ (?P<end>\d*))?
 $""",
     re.VERBOSE,
 )
@@ -1171,6 +1175,12 @@ def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[in
     --------
     >>> list(extract_hist_ranges("~8/5-~7/4 2"))
     [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
+    >>> list(extract_hist_ranges("~4/"))
+    [(-4, 1, None)]
+    >>> list(extract_hist_ranges("4-"))
+    [(0, 4, None)]
+    >>> list(extract_hist_ranges("~4/4-"))
+    [(-4, 4, None)]
     """
     if ranges_str == "":
         yield (0, 1, None)  # Everything from current session
@@ -1181,22 +1191,23 @@ def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[in
         if not rmatch:
             continue
         start = rmatch.group("start")
+        sep = rmatch.group("sep")
         if start:
             start = int(start)
             end = rmatch.group("end")
-            # If no end specified, get (a, a + 1)
-            end = int(end) if end else start + 1
-        else:  # start not specified
-            if not rmatch.group("startsess"):  # no startsess
+            if sep == "-":
+                end = (int(end) + 1) if end else None
+            else:
+                end = int(end) if end else start + 1
+        else:
+            if not rmatch.group("startsess"):
                 continue
             start = 1
-            end = None  # provide the entire session hist
-
-        if rmatch.group("sep") == "-":  # 1-3 == 1:4 --> [1, 2, 3]
-            assert end is not None
-            end += 1
+            end = None
         startsess = rmatch.group("startsess") or "0"
         endsess = rmatch.group("endsess") or startsess
+        startsess = startsess.rstrip("/")
+        endsess = endsess.rstrip("/")
         startsess = int(startsess.replace("~", "-"))
         endsess = int(endsess.replace("~", "-"))
         assert endsess >= startsess, "start session must be earlier than end session"

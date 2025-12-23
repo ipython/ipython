@@ -27,7 +27,6 @@ from IPython import get_ipython
 # this module. Importing this module has potential side effects that we
 # want to prevent.
 if __name__ == "__main__":
-
     ip = get_ipython()
 
     if not "_refbug_cache" in ip.user_ns:

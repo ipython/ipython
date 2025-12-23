@@ -169,7 +169,7 @@ Main features of the interactive shell
   intelligent enough to do more repetitions for commands that finish very
   quickly in order to get a better estimate of their running time. 
 
-.. sourcecode:: ipython
+  .. sourcecode:: ipython
 
     In [1]: %timeit 1+1
     7.88 ns ± 0.0494 ns per loop (mean ± std. dev. of 7 runs, 100000000 loops each)
@@ -177,11 +177,10 @@ Main features of the interactive shell
     In [2]: %timeit [math.sin(x) for x in range(5000)]
     608 µs ± 5.57 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
-.. 
+  .. 
 
   To get the timing information for more than one expression, use the
   :samp:`%%timeit` cell magic command.
-  
 
 * Doctest support. The special :samp:`%doctest_mode` command toggles a mode
   to use doctest-compatible prompts, so you can use IPython sessions as
@@ -239,11 +238,7 @@ This functionality is optional and now part of the `ipyparallel
 Portability and Python requirements
 -----------------------------------
 
-Version 7.0+ supports Python 3.4 and higher.
-Versions 6.x support Python 3.3 and higher.
-Versions 2.0 to 5.x work with Python 2.7.x releases and Python 3.3 and higher.
-Version 1.0 additionally worked with Python 2.6 and 3.2.
-Version 0.12 was the first version to fully support Python 3.
+IPython requires Python 3.11 or newer.
 
 IPython is known to work on the following operating systems:
 

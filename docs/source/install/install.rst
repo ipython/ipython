@@ -4,7 +4,7 @@ Installing IPython
 ==================
 
 
-IPython 6 requires Python ≥ 3.3. IPython 5.x can be installed on Python 2.
+IPython requires Python ≥ 3.11.
 
 
 Quick Install 
@@ -41,7 +41,7 @@ More information about :mod:`pip` can be found on
 
 
 More general information about installing Python packages can be found in
-`Python's documentation <http://docs.python.org>`_.
+:external+python:doc:`Python's documentation <installing/index>`.
 
 .. _dependencies:
 
@@ -78,33 +78,31 @@ The quickest way to get up and running with IPython is to install it with pip:
 That's it.
 
 
-Installation from source
-~~~~~~~~~~~~~~~~~~~~~~~~
+Optional: Command-line completion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To install IPython from source,
-grab the latest stable tarball of IPython `from PyPI
-<https://pypi.python.org/pypi/ipython>`__.  Then do the following:
-
-.. code-block:: bash
-
-    tar -xzf ipython-5.1.0.tar.gz
-    cd ipython-5.1.0
-    # The [test] extra ensures test dependencies are installed too:
-    pip install '.[test]'
-
-Do not invoke ``setup.py`` directly as this can have undesirable consequences
-for further upgrades. We do not recommend using ``easy_install`` either.
-
-If you are installing to a location (like ``/usr/local``) that requires higher
-permissions, you may need to run the last command with :command:`sudo`. You can
-also install in user specific location by using the ``--user`` flag in
-conjunction with pip.
-
-To run IPython's test suite, use the :command:`pytest` command:
+IPython supports command-line completion via the ``argcomplete`` package.
+To enable tab completion for IPython and other Python programs that support
+argcomplete, install IPython with the ``terminal`` extra:
 
 .. code-block:: bash
 
-    $ pytest
+    $ pip install ipython[all]
+    $ activate-global-python-argcomplete
+
+Alternatively, you can install argcomplete separately:
+
+.. code-block:: bash
+
+    $ pip install argcomplete
+    $ activate-global-python-argcomplete
+
+This will enable shell completion for all Python programs that support argcomplete,
+including IPython. Note that you may need to restart your shell for the changes
+to take effect.
+
+For more information, see the `argcomplete documentation <https://github.com/kislyuk/argcomplete>`_.
+
 
 .. _devinstall:
 
@@ -112,7 +110,7 @@ Installing the development version
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is also possible to install the development version of IPython from our
-`Git <http://git-scm.com/>`_ source code repository.  To do this you will
+`Git <https://git-scm.com/>`_ source code repository.  To do this you will
 need to have Git installed on your system.  
 
 

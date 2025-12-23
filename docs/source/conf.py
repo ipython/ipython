@@ -92,6 +92,12 @@ intersphinx_mapping = get_intersphinx_mapping(
     }
 )
 
+# External links configuration (replaces custom github extension)
+extlinks = {
+    "ghissue": ("https://github.com/ipython/ipython/issues/%s/", "#%s"),
+    "ghpull": ("https://github.com/ipython/ipython/pull/%s/", "PR #%s"),
+}
+
 
 # Options for HTML output
 # -----------------------
@@ -171,19 +177,6 @@ else:
 
     This documentation covers a development version of IPython. The development
     version may differ significantly from the latest stable release.
-"""
-
-rst_prolog += """
-.. important::
-
-    This documentation covers IPython versions 6.0 and higher. Beginning with
-    version 6.0, IPython stopped supporting compatibility with Python versions
-    lower than 3.3 including all versions of Python 2.7.
-
-    If you are looking for an IPython version compatible with Python 2.7,
-    please use the IPython 5.x LTS release and refer to its documentation (LTS
-    is the long term support release).
-
 """
 
 

@@ -19,79 +19,79 @@
 .. Main IPython links
 .. _ipython: https://ipython.org
 .. _`ipython manual`: https://ipython.org/documentation.html
-.. _ipython_github: http://github.com/ipython/ipython/
-.. _nbviewer: http://nbviewer.ipython.org
+.. _ipython_github: https://github.com/ipython/ipython/
+.. _nbviewer: https://nbviewer.org
 
-.. _ZeroMQ: http://zeromq.org
+.. _ZeroMQ: https://zeromq.org
 
 .. Documentation tools and related links
-.. _graphviz: http://www.graphviz.org
-.. _Sphinx: http://sphinx.pocoo.org
-.. _`Sphinx reST`: http://sphinx.pocoo.org/rest.html
-.. _sampledoc: http://matplotlib.org/sampledoc
-.. _reST: http://docutils.sourceforge.net/rst.html
-.. _docutils: http://docutils.sourceforge.net
-.. _lyx: http://www.lyx.org
+.. _graphviz: https://www.graphviz.org
+.. _Sphinx: https://www.sphinx-doc.org
+.. _`Sphinx reST`: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+.. _sampledoc: https://matplotlib.org/sampledoc
+.. _reST: https://docutils.sourceforge.io/rst.html
+.. _docutils: https://docutils.sourceforge.io
+.. _lyx: https://www.lyx.org
 .. _pep8: https://peps.python.org/pep-0008/
 
 .. Licenses
-.. _GPL: http://www.gnu.org/licenses/gpl.html
-.. _BSD: http://www.opensource.org/licenses/bsd-license.php
-.. _LGPL: http://www.gnu.org/copyleft/lesser.html
+.. _GPL: https://www.gnu.org/licenses/gpl.html
+.. _BSD: https://opensource.org/licenses/BSD-3-Clause
+.. _LGPL: https://www.gnu.org/copyleft/lesser.html
 
 .. Other python projects
-.. _numpy: http://numpy.scipy.org
-.. _scipy: http://www.scipy.org
-.. _scipy_conference: http://conference.scipy.org
-.. _matplotlib: http://matplotlib.org
-.. _pythonxy: https://code.google.com/p/pythonxy/
-.. _ETS: http://code.enthought.com/projects/tool-suite.php
-.. _EPD: http://www.enthought.com/products/epd.php
-.. _python: http://www.python.org
-.. _mayavi: http://code.enthought.com/projects/mayavi
-.. _sympy: http://code.google.com/p/sympy
-.. _sage: http://sagemath.org
-.. _pydy: http://code.google.com/p/pydy
-.. _vpython: http://vpython.org
-.. _cython: http://cython.org
-.. _software carpentry: http://software-carpentry.org
+.. _numpy: https://numpy.org
+.. _scipy: https://www.scipy.org
+.. _scipy_conference: https://conference.scipy.org
+.. _matplotlib: https://matplotlib.org
+.. _pythonxy: https://python-xy.github.io/
+.. _ETS: https://docs.enthought.com/ets/
+.. _EPD: https://www.enthought.com/products/epd/
+.. _python: https://www.python.org
+.. _mayavi: https://docs.enthought.com/mayavi/mayavi/
+.. _sympy: https://www.sympy.org
+.. _sage: https://www.sagemath.org
+.. _pydy: https://www.pydy.org
+.. _vpython: https://vpython.org
+.. _cython: https://cython.org
+.. _software carpentry: https://software-carpentry.org
 
 .. Not so python scientific computing tools
-.. _matlab: http://www.mathworks.com
-.. _VTK: http://vtk.org
+.. _matlab: https://www.mathworks.com
+.. _VTK: https://vtk.org
 
 .. Other organizations
-.. _enthought: http://www.enthought.com
-.. _kitware: http://www.kitware.com
-.. _netlib: http://netlib.org
+.. _enthought: https://www.enthought.com
+.. _kitware: https://www.kitware.com
+.. _netlib: https://netlib.org
 
 .. Other tools and projects
-.. _indefero: http://www.indefero.net
-.. _git: http://git-scm.com
-.. _github: http://github.com
-.. _Markdown: http://daringfireball.net/projects/markdown/syntax
+.. _indefero: https://www.indefero.net
+.. _git: https://git-scm.com
+.. _github: https://github.com
+.. _Markdown: https://daringfireball.net/projects/markdown/syntax
 
 .. _Running Code in the IPython Notebook: notebook_p1_
-.. _notebook_p1: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%25201%2520-%2520Running%2520Code.ipynb
+.. _notebook_p1: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%25201%2520-%2520Running%2520Code.ipynb
 
 .. _Basic Output: notebook_p2_
-.. _notebook_p2: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%202%20-%20Basic%20Output.ipynb
+.. _notebook_p2: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%202%20-%20Basic%20Output.ipynb
 
 .. _Plotting with Matplotlib: notebook_p3_
-.. _notebook_p3: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%203%20-%20Plotting%20with%20Matplotlib.ipynb
+.. _notebook_p3: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%203%20-%20Plotting%20with%20Matplotlib.ipynb
 
 .. _Markdown Cells: notebook_p4_
-.. _notebook_p4: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%204%20-%20Markdown%20Cells.ipynb
+.. _notebook_p4: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%204%20-%20Markdown%20Cells.ipynb
 
 .. _Rich Display System: notebook_p5_
-.. _notebook_p5: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%205%20-%20Rich%20Display%20System.ipynb
+.. _notebook_p5: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%205%20-%20Rich%20Display%20System.ipynb
 
-.. _notebook_custom_display: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Custom%20Display%20Logic.ipynb
+.. _notebook_custom_display: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Custom%20Display%20Logic.ipynb
 
 .. _Frontend/Kernel Model: notebook_two_proc_
-.. _notebook_two_proc: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Frontend-Kernel%20Model.ipynb
+.. _notebook_two_proc: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Frontend-Kernel%20Model.ipynb
 
 .. _Cell magics: notebook_cell_magics_
-.. _notebook_cell_magics: http://nbviewer.ipython.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Cell%20Magics.ipynb
+.. _notebook_cell_magics: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Cell%20Magics.ipynb
 
 

@@ -57,13 +57,3 @@ def execfile(fname, glob, loc=None, compiler=None):
 
 
 PYPY = platform.python_implementation() == "PyPy"
-
-
-# Cython still rely on that as a Dec 28 2019
-# See https://github.com/cython/cython/pull/3291 and
-# https://github.com/ipython/ipython/issues/12068
-def no_code(x, encoding=None):
-    return x
-
-
-unicode_to_str = cast_bytes_py2 = no_code

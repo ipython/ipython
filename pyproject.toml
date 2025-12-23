@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.2"]
+requires = ["setuptools>=77.0"]
 # We need access to the 'setupbase' module at build time.
 # Hence we declare a custom build backend.
 build-backend = "_build_meta"  # just re-exports setuptools.build_meta definitions
@@ -14,27 +14,28 @@ classifiers = [
     "Framework :: Jupyter",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: System :: Shells",
 ]
+license = "BSD-3-Clause"
+license-files = ["LICENSE", "COPYING.rst"]
 requires-python = ">=3.11"
 dependencies = [
-    'colorama; sys_platform == "win32"',
-    "decorator",
-    "ipython-pygments-lexers",
-    "jedi>=0.16",
-    "matplotlib-inline",
+    'colorama>=0.4.4; sys_platform == "win32"',
+    "decorator>=4.3.2", # wheel
+    "ipython-pygments-lexers>=1.0.0",
+    "jedi>=0.18.1",
+    "matplotlib-inline>=0.1.5", # first guess (0.1.0 is known not to work)
     'pexpect>4.3; sys_platform != "win32" and sys_platform != "emscripten"',
     "prompt_toolkit>=3.0.41,<3.1.0",
-    "pygments>=2.4.0",
-    "stack_data",
+    "pygments>=2.11.0", # wheel
+    "stack_data>=0.6.0",
     "traitlets>=5.13.0",
     "typing_extensions>=4.6; python_version<'3.12'",
 ]
-dynamic = ["authors", "license", "version"]
+dynamic = ["authors", "version"]
 
 [project.scripts]
 ipython = "IPython:start_ipython"
@@ -60,37 +61,38 @@ doc = [
     "exceptiongroup",
     "intersphinx_registry",
     "ipykernel",
-    "ipython[test]",
-    "matplotlib",
-    "setuptools>=18.5",
+    "ipython[test,matplotlib]",
+    "setuptools>=70.0",
     "sphinx_toml==0.0.4",
-    "sphinx-rtd-theme",
-    "sphinx>=1.3",
+    "sphinx-rtd-theme>=0.1.8", # wheel
+    "sphinx>=8.0",
     "typing_extensions",
 ]
 test = [
-    "pytest",
-    "pytest-asyncio",
-    "testpath",
-    "packaging",
+    "pytest>=7.0.0", # keep in sync with tool.pytest.ini_options.minversion
+    "pytest-asyncio>=1.0.0", # first guess
+    "testpath>=0.2", # wheel
+    "packaging>=20.1.0", # first guess
+    "setuptools>=61.2",
 ]
 test_extra = [
     "ipython[test]",
     "curio",
     "jupyter_ai",
-    "matplotlib!=3.2.0",
+    "ipython[matplotlib]",
     "nbformat",
     "nbclient",
-    "ipykernel",
-    "numpy>=1.23",
-    "pandas",
-    "trio",
+    "ipykernel>6.30",
+    "numpy>=1.27",
+    "pandas>2.1",
+    "trio>=0.1.0", # wheel
 ]
 matplotlib = [
-   "matplotlib"
+   "matplotlib>3.9"
 ]
 all = [
-    "ipython[doc,matplotlib,test,test_extra]",
+    "ipython[doc,matplotlib,terminal,test,test_extra]",
+    "argcomplete>=3.0",
 ]
 
 
@@ -103,7 +105,6 @@ exclude = [
    'IPython.utils.tests.test_wildcard',
    'testing',
    'tests',
-   'PyColorize.py',
    '_process_win32_controller.py',
    'IPython/core/application.py',
    'IPython/core/profileapp.py',
@@ -111,8 +112,9 @@ exclude = [
    'IPython/sphinxext/ipython_directive.py',
    'IPython/terminal/ipapp.py',
    'IPython/utils/path.py',
+   'IPython/core/debugger_backport.py',
 ]
-# check_untyped_defs = true
+check_untyped_defs = true
 # disallow_untyped_calls = true
 # disallow_untyped_decorators = true
 # ignore_errors = false
@@ -126,7 +128,30 @@ enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 
 [[tool.mypy.overrides]]
 module = [
+    "IPython.core.magic",
+    "IPython.core.ultratb",
+]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = false
+disallow_untyped_decorators = true
+disallow_untyped_defs = false
+ignore_errors = false
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = [
     "IPython.core.crashhandler",
+    "IPython.core.events",
+    "IPython.utils.text",
+    "IPython.utils.PyColorize",
+    "IPython.utils.sentinel",
+    "IPython.utils.data",
+    "IPython.utils.importstring",
+    "IPython.utils.syspathcontext",
+    "IPython.utils.generics",
+    "IPython.utils.encoding",
+    "IPython.utils.module_paths",
 ]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -135,26 +160,6 @@ disallow_untyped_decorators = true
 disallow_untyped_defs = true
 ignore_errors = false
 ignore_missing_imports = false
-
-[[tool.mypy.overrides]]
-module = [
-    "IPython.utils.text",
-]
-disallow_untyped_defs = true
-check_untyped_defs = false
-disallow_untyped_decorators = true
-
-[[tool.mypy.overrides]]
-module = [
-    "IPython.core.ultratb",
-]
-disallow_untyped_defs = false
-ignore_errors = false
-ignore_missing_imports = false
-disallow_untyped_calls = false
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -205,8 +210,6 @@ module = [
     "IPython.core.display_trap",
     "IPython.core.displayhook",
     "IPython.core.displaypub",
-    "IPython.core.events",
-    "IPython.core.excolors",
     "IPython.core.extensions",
     "IPython.core.formatters",
     "IPython.core.getipython",
@@ -216,7 +219,6 @@ module = [
     "IPython.core.inputtransformer2",
     "IPython.core.logger",
     "IPython.core.macro",
-    "IPython.core.magic",
     "IPython.core.magic_arguments",
     "IPython.core.magics.ast_mod",
     "IPython.core.magics.auto",
@@ -286,23 +288,16 @@ module = [
     "IPython.utils.capture",
     "IPython.utils.coloransi",
     "IPython.utils.contexts",
-    "IPython.utils.data",
     "IPython.utils.decorators",
     "IPython.utils.dir2",
-    "IPython.utils.encoding",
     "IPython.utils.frame",
-    "IPython.utils.generics",
-    "IPython.utils.importstring",
     "IPython.utils.io",
     "IPython.utils.ipstruct",
-    "IPython.utils.module_paths",
     "IPython.utils.openpy",
     "IPython.utils.process",
     "IPython.utils.py3compat",
-    "IPython.utils.sentinel",
     "IPython.utils.strdispatch",
     "IPython.utils.sysinfo",
-    "IPython.utils.syspathcontext",
     "IPython.utils.tempdir",
     "IPython.utils.terminal",
     "IPython.utils.timing",
@@ -316,11 +311,11 @@ ignore_errors = true
 ignore_missing_imports = true
 disallow_untyped_calls = false
 disallow_incomplete_defs = false
-check_untyped_defs = false
+check_untyped_defs = true
 disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
-minversion = "7"
+minversion = "7" # keep in sync with project.optional-dependencies.test
 addopts = [
    "--durations=10",
    "-pIPython.testing.plugin.pytest_ipdoctest",
@@ -371,7 +366,6 @@ pythonPlatform="All"
 [tool.setuptools]
 zip-safe = false
 platforms = ["Linux", "Mac OSX", "Windows"]
-license-files = ["LICENSE"]
 include-package-data = false
 
 [tool.setuptools.packages.find]

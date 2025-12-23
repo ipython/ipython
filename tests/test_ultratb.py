@@ -206,7 +206,6 @@ se_file_2 = """7/
 
 
 class SyntaxErrorTest(unittest.TestCase):
-
     def test_syntaxerror_no_stacktrace_at_compile_time(self):
         syntax_error_at_compile_time = """
 def foo_syntax_error_test():
@@ -437,6 +436,24 @@ except Exception as e:
             ip.run_cell("%xmode Verbose")
 
 
+class ExceptionMessagePreferenceTest(unittest.TestCase):
+    """
+    Test that exception string representation is preferred over .msg attribute
+    for non-SyntaxError exceptions in %xmode plain.
+    """
+
+    def test_jsondecodeerror_message(self):
+        cell = "import json;json.loads('{\"a\": }')"
+        if platform.python_implementation() == "PyPy":
+            expected = "JSONDecodeError: Unexpected '}': line 1 column 7 (char 6)"
+        else:
+            expected = "JSONDecodeError: Expecting value: line 1 column 7 (char 6)"
+        ip.run_cell("%xmode plain")
+        with tt.AssertPrints(expected):
+            ip.run_cell(cell)
+        ip.run_cell("%xmode context")
+
+
 # ----------------------------------------------------------------------------
 
 
@@ -480,3 +497,10 @@ def test_handlers():
     except:
         handler(*sys.exc_info())
     buff.write("")
+
+
+def testSyntaxError():
+    cell = "raise SyntaxError()"
+    expected = "SyntaxError\n"
+    with tt.AssertPrints(expected):
+        ip.run_cell(cell)

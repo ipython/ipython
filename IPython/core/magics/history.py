@@ -73,9 +73,20 @@ class HistoryMagics(Magics):
         the command 'history -f FILENAME' from the IPython Notebook
         interface will replace FILENAME even if it already exists *without*
         confirmation.
-        """)
+        """,
+    )
     @argument(
-        '-g', dest='pattern', nargs='*', default=None,
+        "-y",
+        dest="overwrite",
+        help="yes, overwrite filename even if exists",
+        action="store_true",
+        default=None,
+    )
+    @argument(
+        "-g",
+        dest="pattern",
+        nargs="*",
+        default=None,
         help="""
         treat the arg as a glob pattern to search for in (full) history.
         This includes the saved history (almost all commands ever written).
@@ -110,8 +121,14 @@ class HistoryMagics(Magics):
             Line 4, current session
         ``4-6``
             Lines 4-6, current session
+        ``4-``
+            Lines 4 onward (to end), current session
         ``243/1-5``
             Lines 1-5, session 243
+        ``~2/``
+            All lines of session 2 before current
+        ``~4/4-``
+            Lines 4 onward (to end), session 4 before current
         ``~2/7``
             Line 7, session 2 before current
         ``~8/1-~6/5``
@@ -152,13 +169,19 @@ class HistoryMagics(Magics):
             close_at_end = False
         else:
             outfname = os.path.expanduser(outfname)
-            if os.path.exists(outfname):
-                try:
+            if args.overwrite is True:
+                ans = True
+            elif os.path.exists(outfname):
+                ans = True
+                if sys.stdin.isatty():
                     ans = io.ask_yes_no("File %r exists. Overwrite?" % outfname)
-                except StdinNotImplementedError:
-                    ans = True
+                else:
+                    try:
+                        ans = io.ask_yes_no("File %r exists. Overwrite?" % outfname)
+                    except StdinNotImplementedError:
+                        ans = True
                 if not ans:
-                    print('Aborting.')
+                    print("Aborting.")
                     return
                 print("Overwriting file.")
             outfile = io_open(outfname, 'w', encoding='utf-8')

@@ -237,7 +237,7 @@ class ScriptMagics(Magics):
                     chunk = decoder.decode("", final=True)
                     should_break = True
                 if stream_arg:
-                    self.shell.user_ns[stream_arg] = chunk
+                    self.shell.user_ns[stream_arg] += chunk
                 else:
                     file_object.write(chunk)
                     file_object.flush()
@@ -258,6 +258,11 @@ class ScriptMagics(Magics):
 
         argv = arg_split(line, posix=not sys.platform.startswith("win"))
         args, cmd = self.shebang.parser.parse_known_args(argv)
+
+        if args.out:
+            self.shell.user_ns[args.out] = ""
+        if args.err:
+            self.shell.user_ns[args.err] = ""
 
         try:
             p = in_thread(

@@ -366,7 +366,7 @@ class BaseFormatter(Configurable):
     dictionaries is through the :meth:`for_type` and :meth:`for_type_by_name`
     methods.
 
-    If no function/callable is found to compute the format data, ``None`` is
+    If no function/callable is found to compute the format data, :py:data:`None` is
     returned and this format type is not used.
     """
 

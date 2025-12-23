@@ -3,7 +3,8 @@ import linecache
 import sys
 from collections.abc import Sequence
 from types import TracebackType
-from typing import Any, Callable, Optional
+from typing import Any, Optional
+from collections.abc import Callable
 
 import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter

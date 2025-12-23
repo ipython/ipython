@@ -43,6 +43,9 @@ class DisplayPublisher(Configurable):
     def __init__(self, shell=None, *args, **kwargs):
         self.shell = shell
         self._is_publishing = False
+        self._in_post_execute = False
+        if self.shell:
+            self._setup_execution_tracking()
         super().__init__(*args, **kwargs)
 
     def _validate_data(self, data, metadata=None):
@@ -61,6 +64,19 @@ class DisplayPublisher(Configurable):
         if metadata is not None:
             if not isinstance(metadata, dict):
                 raise TypeError("metadata must be a dict, got: %r" % data)
+
+    def _setup_execution_tracking(self):
+        """Set up hooks to track execution state"""
+        self.shell.events.register("post_execute", self._on_post_execute)
+        self.shell.events.register("pre_execute", self._on_pre_execute)
+
+    def _on_post_execute(self):
+        """Called at start of post_execute phase"""
+        self._in_post_execute = True
+
+    def _on_pre_execute(self):
+        """Called at start of pre_execute phase"""
+        self._in_post_execute = False
 
     # use * to indicate transient, update are keyword-only
     def publish(
@@ -133,7 +149,13 @@ class DisplayPublisher(Configurable):
 
         outputs = self.shell.history_manager.outputs
 
-        outputs[self.shell.execution_count].append(
+        target_execution_count = self.shell.execution_count - 1
+        if self._in_post_execute:
+            # We're in post_execute, so this is likely a matplotlib flush
+            # Use execution_count - 1 to associate with the cell that created the plot
+            target_execution_count = self.shell.execution_count - 1
+
+        outputs[target_execution_count].append(
             HistoryOutput(output_type="display_data", bundle=data)
         )
 

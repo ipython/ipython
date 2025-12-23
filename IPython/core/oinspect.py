@@ -385,7 +385,6 @@ _sentinel = object()
 
 
 class Inspector(Configurable):
-
     mime_hooks = traitlets.Dict(
         config=True,
         help="dictionary of mime to callable to add information into help mimebundle dict",

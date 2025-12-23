@@ -765,8 +765,13 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def init_display_formatter(self):
         super(TerminalInteractiveShell, self).init_display_formatter()
-        # terminal only supports plain text
-        self.display_formatter.active_types = ["text/plain"]
+        # terminal only supports plain text if not explicitly configured
+        config = self.display_formatter._trait_values["config"]
+        if not (
+            "DisplayFormatter" in config
+            and "active_types" in config["DisplayFormatter"]
+        ):
+            self.display_formatter.active_types = ["text/plain"]
 
     def init_prompt_toolkit_cli(self):
         if self.simple_prompt:
@@ -1035,7 +1040,7 @@ class TerminalInteractiveShell(InteractiveShell):
         warn(
             "inputkook seem unused, and marked for deprecation/Removal as of IPython 9.0. "
             "Please open an issue if you are using it.",
-            category=PendingDeprecationWarning,
+            category=DeprecationWarning,
             stacklevel=2,
         )
         if self._inputhook is not None:

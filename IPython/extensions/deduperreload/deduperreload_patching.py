@@ -4,6 +4,7 @@ import sys
 from typing import Any
 
 NOT_FOUND: object = object()
+NULL: object = object()
 _MAX_FIELD_SEARCH_OFFSET = 50
 
 if sys.maxsize > 2**32:
@@ -55,12 +56,17 @@ class DeduperReloaderPatchingMixin:
         if offset == -1:
             return
         obj_addr = ctypes.c_void_p.from_buffer(ctypes.py_object(obj)).value
-        new_value_addr = ctypes.c_void_p.from_buffer(ctypes.py_object(new_value)).value
+        if new_value is NULL:
+            new_value_addr: int | None = 0
+        else:
+            new_value_addr = ctypes.c_void_p.from_buffer(
+                ctypes.py_object(new_value)
+            ).value
         if obj_addr is None or new_value_addr is None:
             return
         if prev_value is not None:
             ctypes.pythonapi.Py_DecRef(ctypes.py_object(prev_value))
-        if new_value is not None:
+        if new_value not in (None, NULL):
             ctypes.pythonapi.Py_IncRef(ctypes.py_object(new_value))
         ctypes.cast(
             obj_addr + WORD_N_BYTES * offset, ctypes.POINTER(WORD_TYPE)
@@ -75,7 +81,6 @@ class DeduperReloaderPatchingMixin:
         new_is_value: bool = False,
         offset: int = -1,
     ) -> None:
-
         old_value = getattr(old, field, NOT_FOUND)
         new_value = new if new_is_value else getattr(new, field, NOT_FOUND)
         if old_value is NOT_FOUND or new_value is NOT_FOUND:
@@ -108,33 +113,34 @@ class DeduperReloaderPatchingMixin:
     def patch_function(
         cls, to_patch_to: Any, to_patch_from: Any, is_method: bool
     ) -> None:
-        new_freevars = []
         new_closure = []
-        for i, v in enumerate(to_patch_to.__code__.co_freevars):
-            if v not in to_patch_from.__code__.co_freevars or v == "__class__":
-                new_freevars.append(v)
-                new_closure.append(to_patch_to.__closure__[i])
-        for i, v in enumerate(to_patch_from.__code__.co_freevars):
-            if v not in new_freevars:
-                new_freevars.append(v)
-                new_closure.append(to_patch_from.__closure__[i])
-        code_with_new_freevars = to_patch_from.__code__.replace(
-            co_freevars=tuple(new_freevars)
-        )
+        for freevar, closure_val in zip(
+            to_patch_from.__code__.co_freevars or [], to_patch_from.__closure__ or []
+        ):
+            if (
+                callable(closure_val.cell_contents)
+                and freevar in to_patch_to.__code__.co_freevars
+            ):
+                new_closure.append(
+                    to_patch_to.__closure__[
+                        to_patch_to.__code__.co_freevars.index(freevar)
+                    ]
+                )
+            else:
+                new_closure.append(closure_val)
         # lambdas may complain if there is more than one freevar
-        cls.try_patch_attr(
-            to_patch_to, code_with_new_freevars, "__code__", new_is_value=True
-        )
+        cls.try_patch_attr(to_patch_to, to_patch_from, "__code__")
         offset = -1
         if to_patch_to.__closure__ is None and to_patch_from.__closure__ is not None:
             offset = cls.infer_field_offset(to_patch_from, "__closure__")
-        cls.try_patch_readonly_attr(
-            to_patch_to,
-            tuple(new_closure) or None,
-            "__closure__",
-            new_is_value=True,
-            offset=offset,
-        )
+        if to_patch_to.__closure__ is not None or to_patch_from.__closure__ is not None:
+            cls.try_patch_readonly_attr(
+                to_patch_to,
+                tuple(new_closure) or NULL,
+                "__closure__",
+                new_is_value=True,
+                offset=offset,
+            )
         for attr in ("__defaults__", "__kwdefaults__", "__doc__", "__dict__"):
             cls.try_patch_attr(to_patch_to, to_patch_from, attr)
         if is_method:

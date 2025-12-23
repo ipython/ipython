@@ -4,6 +4,7 @@
 from logging import error
 import io
 import os
+import platform
 from pprint import pformat
 import sys
 from warnings import warn
@@ -558,6 +559,7 @@ Currently the magic system has the following functions:""",
         outfname = os.path.expanduser(args.filename)
 
         from nbformat import write, v4
+        from nbformat.sign import NotebookNotary
 
         cells = []
         hist = list(self.shell.history_manager.get_range())
@@ -566,33 +568,58 @@ Currently the magic system has the following functions:""",
 
         if(len(hist)<=1):
             raise ValueError('History is empty, cannot export')
+
         for session, execution_count, source in hist[:-1]:
             cell = v4.new_code_cell(execution_count=execution_count, source=source)
+
             for output in outputs[execution_count]:
-                for mime_type, data in output.bundle.items():
-                    if output.output_type == "out_stream":
-                        cell.outputs.append(v4.new_output("stream", text=[data]))
-                    elif output.output_type == "err_stream":
-                        err_output = v4.new_output("stream", text=[data])
-                        err_output.name = "stderr"
-                        cell.outputs.append(err_output)
-                    elif output.output_type == "execute_result":
-                        cell.outputs.append(
-                            v4.new_output(
-                                "execute_result",
-                                data={mime_type: data},
-                                execution_count=execution_count,
-                            )
+                if output.output_type in {"out_stream", "err_stream"}:
+                    text_data = []
+                    for mime_type, data in output.bundle.items():
+                        if isinstance(data, list):
+                            text_data.extend(data)
+                        else:
+                            text_data.append(data)
+                    full_text = "".join(text_data)
+                    # Replace literal \n with actual newlines
+                    full_text = full_text.replace("\\n", "\n")
+                    normalized_text = []
+                    lines = full_text.split("\n")
+                    for i, line in enumerate(lines):
+                        if i < len(lines) - 1:
+                            normalized_text.append(line + "\n")
+                        elif line:  # Last line only if it's not empty
+                            normalized_text.append(line + "\n")
+                    stream_output = v4.new_output("stream", text=normalized_text)
+                    if output.output_type == "err_stream":
+                        stream_output.name = "stderr"
+                    cell.outputs.append(stream_output)
+
+                elif output.output_type == "execute_result":
+                    data_dict = {}
+                    for mime_type, data in output.bundle.items():
+                        data_dict[mime_type] = data
+                    cell.outputs.append(
+                        v4.new_output(
+                            "execute_result",
+                            data=data_dict,
+                            execution_count=execution_count,
                         )
-                    elif output.output_type == "display_data":
-                        cell.outputs.append(
-                            v4.new_output(
-                                "display_data",
-                                data={mime_type: data},
-                            )
+                    )
+
+                elif output.output_type == "display_data":
+                    # Collect all MIME types for this display_data into a single output
+                    data_dict = {}
+                    for mime_type, data in output.bundle.items():
+                        data_dict[mime_type] = data
+                    cell.outputs.append(
+                        v4.new_output(
+                            "display_data",
+                            data=data_dict,
                         )
-                    else:
-                        raise ValueError(f"Unknown output type: {output.output_type}")
+                    )
+                else:
+                    raise ValueError(f"Unknown output type: {output.output_type}")
 
             # Check if this execution_count is in exceptions (current session)
             if execution_count in exceptions:
@@ -601,9 +628,47 @@ Currently the magic system has the following functions:""",
                 )
             cells.append(cell)
 
-        nb = v4.new_notebook(cells=cells)
+        kernel_language_info = self._get_kernel_language_info()
+
+        nb = v4.new_notebook(
+            cells=cells,
+            metadata={
+                "kernelspec": {
+                    "display_name": "Python 3 (ipykernel)",
+                    "language": "python",
+                    "name": "python3",
+                },
+                "language_info": kernel_language_info
+                or {
+                    "codemirror_mode": {
+                        "name": "ipython",
+                        "version": sys.version_info[0],
+                    },
+                    "file_extension": ".py",
+                    "mimetype": "text/x-python",
+                    "name": "python",
+                    "nbconvert_exporter": "python",
+                    "pygments_lexer": "ipython3",
+                    "version": platform.python_version(),
+                },
+            },
+        )
+        # Sign the notebook to make it trusted
+        notary = NotebookNotary()
+        notary.update_config(self.shell.config)
+        notary.sign(nb)
         with io.open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
+
+    def _get_kernel_language_info(self) -> dict | None:
+        """Get language info from kernel, useful when used in Jupyter Console where kernels exist."""
+        if not hasattr(self.shell, "kernel"):
+            return
+        if not hasattr(self.shell.kernel, "language_info"):
+            return
+        if not isinstance(self.shell.kernel.language_info, dict):
+            return
+        return self.shell.kernel.language_info
 
 @magics_class
 class AsyncMagics(BasicMagics):

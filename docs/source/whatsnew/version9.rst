@@ -2,6 +2,202 @@
  9.x Series
 ============
 
+
+.. _version 9.8:
+
+IPython 9.8
+===========
+
+This release brings improvements to concurrent execution, history commands, tab completion, and debugger performance.
+
+
+- :ghpull:`15037` Fix some ruff issues with import
+- :ghpull:`15060` Stricter typing for many utils files
+- :ghpull:`15066` Strict typing of a few more files
+- :ghpull:`15067` Fix self import of deprecated items
+- :ghpull:`15069` Document :magic:`history` usage with all lines of a session
+- :ghpull:`15070` Allow session number without trailing slash in :magic:`history` magic
+- :ghpull:`15074` Use values for tab completion of variables created using annotated assignment
+- :ghpull:`15076` Fix error on tab completions
+- :ghpull:`15078` Show completions for annotated union types
+- :ghpull:`15079` Fallback to type annotations for attribute completions
+- :ghpull:`15081` Strictly suppress file completions in attribute completion context
+- :ghpull:`15083` Minor performance improvements in debugger
+- :ghpull:`15084` Documentation updates
+- :ghpull:`15088` Make :any:`run_cell_async` reenterable for concurrent cell execution
+
+
+Concurrent Cell Execution
+--------------------------
+
+The :any:`run_cell_async` method is now reenterable, making the execution count
+more atomic and preventing session resets when cells are executed concurrently.
+This allows frontends to run multiple cells in parallel without interfering with
+each other's execution context or history tracking. The execution count is now
+incremented before running the user code, ensuring consistent behavior across
+concurrent executions.
+
+
+History Magic Improvements
+---------------------------
+
+The :magic:`history` magic now supports open-ended line ranges using ``-`` as the end
+marker. For example, you can use ``%history 1/10-`` to retrieve all commands from
+line 10 onwards in session 1, or ``%history ~5-`` to get the last 5 commands and
+onwards from the current session. This makes it easier to retrieve ranges of
+commands without needing to know the exact ending line number.
+
+
+Tab Completion Enhancements
+----------------------------
+
+Several improvements were made to the tab completer, particularly when jedi is
+disabled:
+
+- Variables created with annotated assignment (e.g., ``x: int = 5``) now use
+  their runtime values for completion suggestions, providing more accurate
+  attribute completions.
+
+- File path completions are now strictly suppressed when completing attributes,
+  preventing confusion when typing patterns like ``obj.file``.
+
+- Union types in annotations (e.g., ``x: int | str``) are now properly handled
+  for completion suggestions.
+
+- The completer now falls back to type annotations when runtime evaluation is
+  not available, improving completion accuracy for typed code.
+
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.8
+<https://github.com/ipython/ipython/milestone/156?closed=1>`__ milestone.
+
+
+.. _version 9.7:
+
+IPython 9.7
+===========
+
+As ususal this new version of IPython brings a number of bugfixes:
+
+
+- :ghpull:`15012` Fix ``Exception.text`` may be None
+- :ghpull:`15007` Start Testign on free-threaded Python
+- :ghpull:`15036` Suppress file completions in context of attributes/methods
+- :ghpull:`15056` Completion in loops and conditionals
+- :ghpull:`15048` Support completions for lambdas and ``async`` functions
+- :ghpull:`15042` Support subscript assignment in completions
+- :ghpull:`15027` Infer type from return value and improve attribute completions
+- :ghpull:`15020` Fix tab completion for subclasses of trusted classes
+- :ghpull:`15022` Prevent trusting modules with matching prefix
+
+
+Gruvbox Dark Theme
+------------------
+
+Gruvbox Dark is now available as a terminal syntax theme for IPython.
+
+Respect PYTHONSAFEPATH
+----------------------
+
+IPython now respects the value of Python's flag ``sys.flags.safe_path``, a flag which is most often set by the ``PYTHONSAFEPATH`` environment variable. Setting this causes Python not to automatically include the current working directory in the sys.path.
+
+IPython can already be configured to do this via the ``--ignore_cwd`` command-line flag or by setting ``c.InteractiveShellApp.ignore_cwd=True``. Now, IPython can also be configured by setting ``PYTHONSAFEPATH=1`` or by calling python with ``-P``.
+
+The behavior of ``safe_path`` was described in `what's new in 3.11`_ and in `PyConfig.safe_path <https://docs.python.org/3/c-api/init_config.html#c.PyConfig.safe_path>`_.
+
+
+.. _what's new in 3.11: https://docs.python.org/3/whatsnew/3.11.html#whatsnew311-pythonsafepath
+
+
+Tab Completion
+--------------
+
+Multiple improvements were made to the tab completer.
+The tab completions now work for more complex code, even when jedi is disabled, using a hybrid evaluation procedure
+which infers available completions from both the typing information, runtime values, and static code analysis.
+The paths to hidden files are no longer suggested when attempting attribute completion.
+
+
+As usual, you can find the full list of PRs on GitHub under `the 9.7
+<https://github.com/ipython/ipython/milestone/155?closed=1>`__ milestone.
+
+
+.. _version 9.6:
+
+IPython 9.6
+===========
+
+This version brings improvements to tab completion, ``%notebook`` magic, module ignoring functionality to debugger.
+
+- :ghpull:`14973` Add module ignoring functionality to debugger
+- :ghpull:`14982` Extract code from line magics for attribute completion
+- :ghpull:`14998` Fix matplotlib plots displaying in wrong cells during ``%notebook`` export
+- :ghpull:`14996` Respect ``DisplayFormatter.active_types`` trait configuration
+- :ghpull:`15001` Fix ``%notebook`` magic creating multiple display_data outputs for single widgets
+- :ghpull:`14997` Make ``%notebook`` magic notarise exported notebooks (mark as trusted)
+- :ghpull:`14993` Type-guided partial evaluation for completion of uninitialized variables
+- :ghpull:`14978` deduperreload: patch NULL for empty closure rather than None
+- :ghpull:`14994` Bump minimum version (spec-0) and whitespace update
+
+The ``%notebook`` magic can now reliably export plots generated by ``matplotlib``, whether with the default ``inline`` or the interactive ``ipympl`` backend.
+For the plots to display when using the ``inline`` backend the ``c.DisplayFormatter.active_types`` needs to include ``image/png`` (or another image media type, depending on the backend configuration).
+
+Tab completion now works on multi-line buffers with unevaluated code even when jedi is disabled.
+Additionally, completion works when writing code as an argument to ``%timeit`` and ``%debug``.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.6
+<https://github.com/ipython/ipython/milestone/154?closed=1>`__ milestone.
+
+
+.. _version 9.5:
+
+IPython 9.5
+===========
+
+Featuring improvements for numerous magics (``%autoreload``, ``%whos``, ``%%script``, ``%%notebook``), a streaming performance regression fix, completer policy overrides improvements, and initial support for Python 3.14.
+
+- :ghpull:`14938` Fix printing long strings in ``%whos`` magic command
+- :ghpull:`14941` Fix performance of streaming long text
+- :ghpull:`14943` Simplify overriding selective evaluation policy settings for modules
+- :ghpull:`14955` Populate notebook metadata when exporting with ``%notebook`` magic
+- :ghpull:`14960` Better handling in deduperreload for patching functions with freevars
+- :ghpull:`14964` Fix traceback logic for non-SyntaxError exceptions in plain mode
+- :ghpull:`14966` Do not warn repeatedly if policy overrides are not applicable
+- :ghpull:`14967` Support Python 3.14.0rc2, test on CI
+- :ghpull:`14969` Fix truncated output in ``%script`` magic
+- :ghpull:`14970` Fix exceptions in ``%whos`` magic command
+
+The ``%notebook`` magic now stores the language and kernel information in notebook metadata, allowing users to quickly open the exported notebook with syntax highlighting and an appropriate kernel.
+
+The completer :std:configtrait:`Completer.policy_overrides` traitlet handling was improved.
+It no longer repeatedly warns on each completion after switching away to a policy that does not support previously specified overrides.
+Allow-listing attribute access on all objects in a given library is now possible.
+The specification now also accepts dotted strings (rather than requiring tuples to specify the path) which should make configuration easier and less error-prone.
+
+.. code::
+
+    c.Completer.policy_overrides = {
+        "allowed_getattr_external": {
+            "my_trusted_library"
+        }
+    }
+
+A number of recent regressions were fixed:
+
+- ``%autoreload`` now again shows the correct module name in traceback
+- standard output/error streaming of long text/logs is now as fast as in IPython 9.0
+- in the ``%whos`` magic handling of long strings and class objects that implement ``__len__`` was fixed.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.5
+<https://github.com/ipython/ipython/milestone/153?closed=1>`__ milestone.
+
+
 .. _version 9.4:
 
 IPython 9.4
@@ -22,6 +218,12 @@ The ``--no-raise-error`` flag does not affect ``KeyboardInterrupt`` as this exce
 Previously the debugger (ipdb) evaluation of list comprehensions and generators could fail with ``NameError`` due to generator implementation detail in CPython. This was recently fixed in Python 3.13. Because IPython is often used for interactive debugging, this release includes a backport of that fix, providing users who cannot yet update from Python 3.11 or 3.12 with a smoother debugging experience.
 
 The ``%autoreload`` magic is now more reliable. The behaviour around decorators has been improved and `%autoreload 3` no longer imports all symbols when reloading the module, however, the heuristic used to determine which symbols to reload can sometimes lead to addition of imports from non-evaluated code branches, see `issue #14934 <https://github.com/ipython/ipython/issues/14934>`__.
+
+
+As usual, you can find the full list of PRs on GitHub under `the 9.4
+<https://github.com/ipython/ipython/milestone/151?closed=1>`__ milestone.
+
+
 
 .. _version 9.3:
 
@@ -51,6 +253,10 @@ To enable auto-import on completion specify:
 This change aligns the capability of both jedi-powered and the native completer.
 The function used for auto-import can be configured using :std:configtrait:`Completer.auto_import_method` traitlet.
 
+As usual, you can find the full list of PRs on GitHub under `the 9.3
+<https://github.com/ipython/ipython/milestone/149?closed=1>`__ milestone.
+
+
 .. _version 9.2:
 
 IPython 9.2
@@ -63,6 +269,9 @@ provider along few other bug fixes and documentation improvements:
 - :ghpull:`14877` Removed spurious empty lines from ``prefix`` passed to LLM, and separated part after cursor into the ``suffix``
 - :ghpull:`14876` Fixed syntax warning in Python 3.14 (remove return from finally block)
 - :ghpull:`14887` Documented the recommendation to use ``ipykernel.embed.embed_kernel()`` over ``ipython.embed``.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.2
+<https://github.com/ipython/ipython/milestone/146?closed=1>`__ milestone.
 
 .. _version 9.1:
 

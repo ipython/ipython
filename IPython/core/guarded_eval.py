@@ -1,34 +1,36 @@
 from copy import copy
-from inspect import isclass, signature, Signature
+from inspect import isclass, signature, Signature, getmodule
 from typing import (
     Annotated,
     AnyStr,
-    Callable,
     Literal,
     NamedTuple,
     NewType,
     Optional,
     Protocol,
-    Sequence,
     TypeGuard,
     Union,
     get_args,
     get_origin,
     is_typeddict,
 )
+from collections.abc import Callable, Sequence
 import ast
 import builtins
 import collections
+import dataclasses
 import operator
 import sys
+import typing
+import warnings
 from functools import cached_property
 from dataclasses import dataclass, field
-from types import MethodDescriptorType, ModuleType
+from types import MethodDescriptorType, ModuleType, MethodType
 
 from IPython.utils.decorators import undoc
 
-
-from typing import Self, LiteralString
+import types
+from typing import Self, LiteralString, get_type_hints
 
 if sys.version_info < (3, 12):
     from typing_extensions import TypeAliasType
@@ -38,17 +40,20 @@ else:
 
 @undoc
 class HasGetItem(Protocol):
-    def __getitem__(self, key) -> None: ...
+    def __getitem__(self, key) -> None:
+        ...
 
 
 @undoc
 class InstancesHaveGetItem(Protocol):
-    def __call__(self, *args, **kwargs) -> HasGetItem: ...
+    def __call__(self, *args, **kwargs) -> HasGetItem:
+        ...
 
 
 @undoc
 class HasGetAttr(Protocol):
-    def __getattr__(self, key) -> None: ...
+    def __getattr__(self, key) -> None:
+        ...
 
 
 @undoc
@@ -122,14 +127,24 @@ class EvaluationPolicy:
 def _get_external(module_name: str, access_path: Sequence[str]):
     """Get value from external module given a dotted access path.
 
+    Only gets value if the module is already imported.
+
     Raises:
     * `KeyError` if module is removed not found, and
     * `AttributeError` if access path does not match an exported object
     """
-    member_type = sys.modules[module_name]
-    for attr in access_path:
-        member_type = getattr(member_type, attr)
-    return member_type
+    try:
+        member_type = sys.modules[module_name]
+        # standard module
+        for attr in access_path:
+            member_type = getattr(member_type, attr)
+        return member_type
+    except (KeyError, AttributeError):
+        # handle modules in namespace packages
+        module_path = ".".join([module_name, *access_path])
+        if module_path in sys.modules:
+            return sys.modules[module_path]
+        raise
 
 
 def _has_original_dunder_external(
@@ -139,22 +154,45 @@ def _has_original_dunder_external(
     method_name: str,
 ):
     if module_name not in sys.modules:
-        # LBYLB as it is faster
-        return False
+        full_module_path = ".".join([module_name, *access_path])
+        if full_module_path not in sys.modules:
+            # LBYLB as it is faster
+            return False
     try:
         member_type = _get_external(module_name, access_path)
         value_type = type(value)
         if type(value) == member_type:
             return True
+        if isinstance(member_type, ModuleType):
+            value_module = getmodule(value_type)
+            if not value_module or not value_module.__name__:
+                return False
+            if (
+                value_module.__name__ == member_type.__name__
+                or value_module.__name__.startswith(member_type.__name__ + ".")
+            ):
+                return True
         if method_name == "__getattribute__":
             # we have to short-circuit here due to an unresolved issue in
             # `isinstance` implementation: https://bugs.python.org/issue32683
             return False
-        if isinstance(value, member_type):
+        if not isinstance(member_type, ModuleType) and isinstance(value, member_type):
             method = getattr(value_type, method_name, None)
             member_method = getattr(member_type, method_name, None)
             if member_method == method:
                 return True
+        if isinstance(member_type, ModuleType):
+            method = getattr(value_type, method_name, None)
+            for base_class in value_type.__mro__[1:]:
+                base_module = getmodule(base_class)
+                if base_module and (
+                    base_module.__name__ == member_type.__name__
+                    or base_module.__name__.startswith(member_type.__name__ + ".")
+                ):
+                    # Check if the method comes from this trusted base class
+                    base_method = getattr(base_class, method_name, None)
+                    if base_method is not None and base_method == method:
+                        return True
     except (AttributeError, KeyError):
         return False
 
@@ -185,35 +223,49 @@ def _has_original_dunder(
     return False
 
 
+def _coerce_path_to_tuples(
+    allow_list: set[tuple[str, ...] | str],
+) -> set[tuple[str, ...]]:
+    """Replace dotted paths on the provided allow-list with tuples."""
+    return {
+        path if isinstance(path, tuple) else tuple(path.split("."))
+        for path in allow_list
+    }
+
+
 @undoc
 @dataclass
 class SelectivePolicy(EvaluationPolicy):
     allowed_getitem: set[InstancesHaveGetItem] = field(default_factory=set)
-    allowed_getitem_external: set[tuple[str, ...]] = field(default_factory=set)
+    allowed_getitem_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
     allowed_getattr: set[MayHaveGetattr] = field(default_factory=set)
-    allowed_getattr_external: set[tuple[str, ...]] = field(default_factory=set)
+    allowed_getattr_external: set[tuple[str, ...] | str] = field(default_factory=set)
 
     allowed_operations: set = field(default_factory=set)
-    allowed_operations_external: set[tuple[str, ...]] = field(default_factory=set)
+    allowed_operations_external: set[tuple[str, ...] | str] = field(default_factory=set)
+
+    allow_getitem_on_types: bool = field(default_factory=bool)
 
     _operation_methods_cache: dict[str, set[Callable]] = field(
         default_factory=dict, init=False
     )
 
     def can_get_attr(self, value, attr):
+        allowed_getattr_external = _coerce_path_to_tuples(self.allowed_getattr_external)
+
         has_original_attribute = _has_original_dunder(
             value,
             allowed_types=self.allowed_getattr,
             allowed_methods=self._getattribute_methods,
-            allowed_external=self.allowed_getattr_external,
+            allowed_external=allowed_getattr_external,
             method_name="__getattribute__",
         )
         has_original_attr = _has_original_dunder(
             value,
             allowed_types=self.allowed_getattr,
             allowed_methods=self._getattr_methods,
-            allowed_external=self.allowed_getattr_external,
+            allowed_external=allowed_getattr_external,
             method_name="__getattr__",
         )
 
@@ -245,7 +297,7 @@ class SelectivePolicy(EvaluationPolicy):
                 return True  # pragma: no cover
 
             # Properties in subclasses of allowed types may be ok if not changed
-            for module_name, *access_path in self.allowed_getattr_external:
+            for module_name, *access_path in allowed_getattr_external:
                 try:
                     external_class = _get_external(module_name, access_path)
                     external_class_attr_val = getattr(external_class, attr)
@@ -257,15 +309,26 @@ class SelectivePolicy(EvaluationPolicy):
 
     def can_get_item(self, value, item):
         """Allow accessing `__getiitem__` of allow-listed instances unless it was not modified."""
+        allowed_getitem_external = _coerce_path_to_tuples(self.allowed_getitem_external)
+        if self.allow_getitem_on_types:
+            # e.g. Union[str, int] or Literal[True, 1]
+            if isinstance(value, (typing._SpecialForm, typing._BaseGenericAlias)):
+                return True
+            # PEP 560 e.g. list[str]
+            if isinstance(value, type) and hasattr(value, "__class_getitem__"):
+                return True
         return _has_original_dunder(
             value,
             allowed_types=self.allowed_getitem,
             allowed_methods=self._getitem_methods,
-            allowed_external=self.allowed_getitem_external,
+            allowed_external=allowed_getitem_external,
             method_name="__getitem__",
         )
 
     def can_operate(self, dunders: tuple[str, ...], a, b=None):
+        allowed_operations_external = _coerce_path_to_tuples(
+            self.allowed_operations_external
+        )
         objects = [a]
         if b is not None:
             objects.append(b)
@@ -275,7 +338,7 @@ class SelectivePolicy(EvaluationPolicy):
                     obj,
                     allowed_types=self.allowed_operations,
                     allowed_methods=self._operator_dunder_methods(dunder),
-                    allowed_external=self.allowed_operations_external,
+                    allowed_external=allowed_operations_external,
                     method_name=dunder,
                 )
                 for dunder in dunders
@@ -315,22 +378,37 @@ class _DummyNamedTuple(NamedTuple):
     """Used internally to retrieve methods of named tuple instance."""
 
 
-class EvaluationContext(NamedTuple):
+EvaluationPolicyName = Literal["forbidden", "minimal", "limited", "unsafe", "dangerous"]
+
+
+@dataclass
+class EvaluationContext:
     #: Local namespace
     locals: dict
     #: Global namespace
     globals: dict
     #: Evaluation policy identifier
-    evaluation: Literal["forbidden", "minimal", "limited", "unsafe", "dangerous"] = (
-        "forbidden"
-    )
+    evaluation: EvaluationPolicyName = "forbidden"
     #: Whether the evaluation of code takes place inside of a subscript.
     #: Useful for evaluating ``:-1, 'col'`` in ``df[:-1, 'col']``.
     in_subscript: bool = False
     #: Auto import method
-    auto_import: Callable[list[str], ModuleType] | None = None
+    auto_import: Callable[[Sequence[str]], ModuleType] | None = None
     #: Overrides for evaluation policy
-    policy_overrides: dict = {}
+    policy_overrides: dict = field(default_factory=dict)
+    #: Transient local namespace used to store mocks
+    transient_locals: dict = field(default_factory=dict)
+    #: Transients of class level
+    class_transients: dict | None = None
+    #: Instance variable name used in the method definition
+    instance_arg_name: str | None = None
+    #: Currently associated value
+    #: Useful for adding items to _Duck on annotated assignment
+    current_value: ast.AST | None = None
+
+    def replace(self, /, **changes):
+        """Return a new copy of the context, with specified changes"""
+        return dataclasses.replace(self, **changes)
 
 
 class _IdentitySubscript:
@@ -378,14 +456,14 @@ def guarded_eval(code: str, context: EvaluationContext):
         locals_ = locals_.copy()
         locals_[SUBSCRIPT_MARKER] = IDENTITY_SUBSCRIPT
         code = SUBSCRIPT_MARKER + "[" + code + "]"
-        context = EvaluationContext(**{**context._asdict(), **{"locals": locals_}})
+        context = context.replace(locals=locals_)
 
     if context.evaluation == "dangerous":
         return eval(code, context.globals, context.locals)
 
-    expression = ast.parse(code, mode="eval")
+    node = ast.parse(code, mode="exec")
 
-    return eval_node(expression, context)
+    return eval_node(node, context)
 
 
 BINARY_OP_DUNDERS: dict[type[ast.operator], tuple[str]] = {
@@ -423,6 +501,8 @@ UNARY_OP_DUNDERS: dict[type[ast.unaryop], tuple[str, ...]] = {
     ast.Not: ("__not__",),
 }
 
+GENERIC_CONTAINER_TYPES = (dict, list, set, tuple, frozenset)
+
 
 class ImpersonatingDuck:
     """A dummy class used to create objects of other classes without calling their ``__init__``"""
@@ -434,8 +514,8 @@ class _Duck:
     """A dummy class used to create objects pretending to have given attributes"""
 
     def __init__(self, attributes: Optional[dict] = None, items: Optional[dict] = None):
-        self.attributes = attributes or {}
-        self.items = items or {}
+        self.attributes = attributes if attributes is not None else {}
+        self.items = items if items is not None else {}
 
     def __getattr__(self, attr: str):
         return self.attributes[attr]
@@ -470,9 +550,216 @@ def get_policy(context: EvaluationContext) -> EvaluationPolicy:
     for key, value in context.policy_overrides.items():
         if hasattr(policy, key):
             setattr(policy, key, value)
-        else:
-            print(f"Incorrect policy override key: {key}")
     return policy
+
+
+def _validate_policy_overrides(
+    policy_name: EvaluationPolicyName, policy_overrides: dict
+) -> bool:
+    policy = EVALUATION_POLICIES[policy_name]
+
+    all_good = True
+    for key, value in policy_overrides.items():
+        if not hasattr(policy, key):
+            warnings.warn(
+                f"Override {key!r} is not valid with {policy_name!r} evaluation policy"
+            )
+            all_good = False
+    return all_good
+
+
+def _is_type_annotation(obj) -> bool:
+    """
+    Returns True if obj is a type annotation, False otherwise.
+    """
+    if isinstance(obj, type):
+        return True
+    if isinstance(obj, types.GenericAlias):
+        return True
+    if hasattr(types, "UnionType") and isinstance(obj, types.UnionType):
+        return True
+    if isinstance(obj, (typing._SpecialForm, typing._BaseGenericAlias)):
+        return True
+    if isinstance(obj, typing.TypeVar):
+        return True
+    # Types that support __class_getitem__
+    if isinstance(obj, type) and hasattr(obj, "__class_getitem__"):
+        return True
+    # Fallback: check if get_origin returns something
+    if hasattr(typing, "get_origin") and get_origin(obj) is not None:
+        return True
+
+    return False
+
+
+def _handle_assign(node: ast.Assign, context: EvaluationContext):
+    value = eval_node(node.value, context)
+    transient_locals = context.transient_locals
+    policy = get_policy(context)
+    class_transients = context.class_transients
+    for target in node.targets:
+        if isinstance(target, (ast.Tuple, ast.List)):
+            # Handle unpacking assignment
+            values = list(value)
+            targets = target.elts
+            starred = [i for i, t in enumerate(targets) if isinstance(t, ast.Starred)]
+
+            # Unified handling: treat no starred as starred at end
+            star_or_last_idx = starred[0] if starred else len(targets)
+
+            # Before starred
+            for i in range(star_or_last_idx):
+                # Check for self.x assignment
+                if _is_instance_attribute_assignment(targets[i], context):
+                    class_transients[targets[i].attr] = values[i]
+                else:
+                    transient_locals[targets[i].id] = values[i]
+
+            # Starred if exists
+            if starred:
+                end = len(values) - (len(targets) - star_or_last_idx - 1)
+                if _is_instance_attribute_assignment(
+                    targets[star_or_last_idx], context
+                ):
+                    class_transients[targets[star_or_last_idx].attr] = values[
+                        star_or_last_idx:end
+                    ]
+                else:
+                    transient_locals[targets[star_or_last_idx].value.id] = values[
+                        star_or_last_idx:end
+                    ]
+
+                # After starred
+                for i in range(star_or_last_idx + 1, len(targets)):
+                    if _is_instance_attribute_assignment(targets[i], context):
+                        class_transients[targets[i].attr] = values[
+                            len(values) - (len(targets) - i)
+                        ]
+                    else:
+                        transient_locals[targets[i].id] = values[
+                            len(values) - (len(targets) - i)
+                        ]
+        elif isinstance(target, ast.Subscript):
+            if isinstance(target.value, ast.Name):
+                name = target.value.id
+                container = transient_locals.get(name)
+                if container is None:
+                    container = context.locals.get(name)
+                if container is None:
+                    container = context.globals.get(name)
+                if container is None:
+                    raise NameError(
+                        f"{name} not found in locals, globals, nor builtins"
+                    )
+                storage_dict = transient_locals
+                storage_key = name
+            elif isinstance(
+                target.value, ast.Attribute
+            ) and _is_instance_attribute_assignment(target.value, context):
+                attr = target.value.attr
+                container = class_transients.get(attr, None)
+                if container is None:
+                    raise NameError(f"{attr} not found in class transients")
+                storage_dict = class_transients
+                storage_key = attr
+            else:
+                return
+
+            key = eval_node(target.slice, context)
+            attributes = (
+                dict.fromkeys(dir(container))
+                if policy.can_call(container.__dir__)
+                else {}
+            )
+            items = {}
+
+            if policy.can_get_item(container, None):
+                try:
+                    items = dict(container.items())
+                except Exception:
+                    pass
+
+            items[key] = value
+            duck_container = _Duck(attributes=attributes, items=items)
+            storage_dict[storage_key] = duck_container
+        elif _is_instance_attribute_assignment(target, context):
+            class_transients[target.attr] = value
+        else:
+            transient_locals[target.id] = value
+    return None
+
+
+def _handle_annassign(node, context):
+    context_with_value = context.replace(current_value=getattr(node, "value", None))
+    annotation_result = eval_node(node.annotation, context_with_value)
+    if _is_type_annotation(annotation_result):
+        annotation_value = _resolve_annotation(annotation_result, context)
+        # Use Value for generic types
+        use_value = (
+            isinstance(annotation_value, GENERIC_CONTAINER_TYPES) and node.value is not None
+        )
+    else:
+        annotation_value = annotation_result
+        use_value = False
+
+    # LOCAL VARIABLE
+    if getattr(node, "simple", False) and isinstance(node.target, ast.Name):
+        name = node.target.id
+        if use_value:
+            return _handle_assign(
+                ast.Assign(targets=[node.target], value=node.value), context
+            )
+        context.transient_locals[name] = annotation_value
+        return None
+
+    # INSTANCE ATTRIBUTE
+    if _is_instance_attribute_assignment(node.target, context):
+        attr = node.target.attr
+        if use_value:
+            return _handle_assign(
+                ast.Assign(targets=[node.target], value=node.value), context
+            )
+        context.class_transients[attr] = annotation_value
+        return None
+
+    return None
+
+def _extract_args_and_kwargs(node: ast.Call, context: EvaluationContext):
+    args = [eval_node(arg, context) for arg in node.args]
+    kwargs = {
+        k: v
+        for kw in node.keywords
+        for k, v in (
+            {kw.arg: eval_node(kw.value, context)}
+            if kw.arg
+            else eval_node(kw.value, context)
+        ).items()
+    }
+    return args, kwargs
+
+
+def _is_instance_attribute_assignment(
+    target: ast.AST, context: EvaluationContext
+) -> bool:
+    """Return True if target is an attribute access on the instance argument."""
+    return (
+        context.class_transients is not None
+        and context.instance_arg_name is not None
+        and isinstance(target, ast.Attribute)
+        and isinstance(getattr(target, "value", None), ast.Name)
+        and getattr(target.value, "id", None) == context.instance_arg_name
+    )
+
+
+def _get_coroutine_attributes() -> dict[str, Optional[object]]:
+    async def _dummy():
+        return None
+
+    coro = _dummy()
+    try:
+        return {attr: getattr(coro, attr, None) for attr in dir(coro)}
+    finally:
+        coro.close()
 
 
 def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
@@ -506,11 +793,225 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
 
     if node is None:
         return None
+    if isinstance(node, (ast.Interactive, ast.Module)):
+        result = None
+        for child_node in node.body:
+            result = eval_node(child_node, context)
+        return result
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        is_async = isinstance(node, ast.AsyncFunctionDef)
+        func_locals = context.transient_locals.copy()
+        func_context = context.replace(transient_locals=func_locals)
+        is_property = False
+        is_static = False
+        is_classmethod = False
+        for decorator_node in node.decorator_list:
+            try:
+                decorator = eval_node(decorator_node, context)
+            except NameError:
+                # if the decorator is not yet defined this is fine
+                # especialy because we don't handle imports yet
+                continue
+            if decorator is property:
+                is_property = True
+            elif decorator is staticmethod:
+                is_static = True
+            elif decorator is classmethod:
+                is_classmethod = True
+
+        if func_context.class_transients is not None:
+            if not is_static and not is_classmethod:
+                func_context.instance_arg_name = (
+                    node.args.args[0].arg if node.args.args else None
+                )
+
+        return_type = eval_node(node.returns, context=context)
+
+        for child_node in node.body:
+            eval_node(child_node, func_context)
+
+        if is_property:
+            if return_type is not None:
+                if _is_type_annotation(return_type):
+                    context.transient_locals[node.name] = _resolve_annotation(
+                        return_type, context
+                    )
+                else:
+                    context.transient_locals[node.name] = return_type
+            else:
+                return_value = _infer_return_value(node, func_context)
+                context.transient_locals[node.name] = return_value
+
+            return None
+
+        def dummy_function(*args, **kwargs):
+            pass
+
+        if return_type is not None:
+            if _is_type_annotation(return_type):
+                dummy_function.__annotations__["return"] = return_type
+            else:
+                dummy_function.__inferred_return__ = return_type
+        else:
+            inferred_return = _infer_return_value(node, func_context)
+            if inferred_return is not None:
+                dummy_function.__inferred_return__ = inferred_return
+
+        dummy_function.__name__ = node.name
+        dummy_function.__node__ = node
+        dummy_function.__is_async__ = is_async
+        context.transient_locals[node.name] = dummy_function
+        return None
+    if isinstance(node, ast.Lambda):
+
+        def dummy_function(*args, **kwargs):
+            pass
+
+        dummy_function.__inferred_return__ = eval_node(node.body, context)
+        return dummy_function
+    if isinstance(node, ast.ClassDef):
+        # TODO support class decorators?
+        class_locals = {}
+        outer_locals = context.locals.copy()
+        outer_locals.update(context.transient_locals)
+        class_context = context.replace(
+            transient_locals=class_locals, locals=outer_locals
+        )
+        class_context.class_transients = class_locals
+        for child_node in node.body:
+            eval_node(child_node, class_context)
+        bases = tuple([eval_node(base, context) for base in node.bases])
+        dummy_class = type(node.name, bases, class_locals)
+        context.transient_locals[node.name] = dummy_class
+        return None
+    if isinstance(node, ast.Await):
+        value = eval_node(node.value, context)
+        if hasattr(value, "__awaited_type__"):
+            return value.__awaited_type__
+        return value
+    if isinstance(node, ast.While):
+        loop_locals = context.transient_locals.copy()
+        loop_context = context.replace(transient_locals=loop_locals)
+
+        result = None
+        for stmt in node.body:
+            result = eval_node(stmt, loop_context)
+
+        policy = get_policy(context)
+        merged_locals = _merge_dicts_by_key(
+            [loop_locals, context.transient_locals.copy()], policy
+        )
+        context.transient_locals.update(merged_locals)
+
+        return result
+    if isinstance(node, ast.For):
+        try:
+            iterable = eval_node(node.iter, context)
+        except Exception:
+            iterable = None
+
+        sample = None
+        if iterable is not None:
+            try:
+                if policy.can_call(getattr(iterable, "__iter__", None)):
+                    sample = next(iter(iterable))
+            except Exception:
+                sample = None
+
+        loop_locals = context.transient_locals.copy()
+        loop_context = context.replace(transient_locals=loop_locals)
+
+        if sample is not None:
+            try:
+                fake_assign = ast.Assign(
+                    targets=[node.target], value=ast.Constant(value=sample)
+                )
+                _handle_assign(fake_assign, loop_context)
+            except Exception:
+                pass
+
+        result = None
+        for stmt in node.body:
+            result = eval_node(stmt, loop_context)
+
+        policy = get_policy(context)
+        merged_locals = _merge_dicts_by_key(
+            [loop_locals, context.transient_locals.copy()], policy
+        )
+        context.transient_locals.update(merged_locals)
+
+        return result
+    if isinstance(node, ast.If):
+        branches = []
+        current = node
+        result = None
+        while True:
+            branch_locals = context.transient_locals.copy()
+            branch_context = context.replace(transient_locals=branch_locals)
+            for stmt in current.body:
+                result = eval_node(stmt, branch_context)
+            branches.append(branch_locals)
+            if not current.orelse:
+                break
+            elif len(current.orelse) == 1 and isinstance(current.orelse[0], ast.If):
+                # It's an elif - continue loop
+                current = current.orelse[0]
+            else:
+                # It's an else block - process and break
+                else_locals = context.transient_locals.copy()
+                else_context = context.replace(transient_locals=else_locals)
+                for stmt in current.orelse:
+                    result = eval_node(stmt, else_context)
+                branches.append(else_locals)
+                break
+        branches.append(context.transient_locals.copy())
+        policy = get_policy(context)
+        merged_locals = _merge_dicts_by_key(branches, policy)
+        context.transient_locals.update(merged_locals)
+        return result
+    if isinstance(node, ast.Assign):
+        return _handle_assign(node, context)
+    if isinstance(node, ast.AnnAssign):
+        return _handle_annassign(node, context)
     if isinstance(node, ast.Expression):
         return eval_node(node.body, context)
+    if isinstance(node, ast.Expr):
+        return eval_node(node.value, context)
+    if isinstance(node, ast.Pass):
+        return None
+    if isinstance(node, ast.Import):
+        # TODO: populate transient_locals
+        return None
+    if isinstance(node, (ast.AugAssign, ast.Delete)):
+        return None
+    if isinstance(node, (ast.Global, ast.Nonlocal)):
+        return None
     if isinstance(node, ast.BinOp):
         left = eval_node(node.left, context)
         right = eval_node(node.right, context)
+        if (
+            isinstance(node.op, ast.BitOr)
+            and _is_type_annotation(left)
+            and _is_type_annotation(right)
+        ):
+            left_duck = (
+                _Duck(dict.fromkeys(dir(left)))
+                if policy.can_call(left.__dir__)
+                else _Duck()
+            )
+            right_duck = (
+                _Duck(dict.fromkeys(dir(right)))
+                if policy.can_call(right.__dir__)
+                else _Duck()
+            )
+            value_node = context.current_value
+            if value_node is not None and isinstance(value_node, ast.Dict):
+                if dict in [left, right]:
+                    return _merge_values(
+                        [left_duck, right_duck, ast.literal_eval(value_node)],
+                        policy=get_policy(context),
+                    )
+            return _merge_values([left_duck, right_duck], policy=get_policy(context))
         dunders = _find_dunder(node.op, BINARY_OP_DUNDERS)
         if dunders:
             if policy.can_operate(dunders, left, right):
@@ -586,7 +1087,12 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
         dunders = _find_dunder(node.op, UNARY_OP_DUNDERS)
         if dunders:
             if policy.can_operate(dunders, value):
-                return getattr(value, dunders[0])()
+                try:
+                    return getattr(value, dunders[0])()
+                except AttributeError:
+                    raise TypeError(
+                        f"bad operand type for unary {node.op}: {type(value)}"
+                    )
             else:
                 raise GuardRejection(
                     f"Operation (`{dunders}`) for",
@@ -606,9 +1112,31 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
     if isinstance(node, ast.Name):
         return _eval_node_name(node.id, context)
     if isinstance(node, ast.Attribute):
+        if (
+            context.class_transients is not None
+            and isinstance(node.value, ast.Name)
+            and node.value.id == context.instance_arg_name
+        ):
+            return context.class_transients.get(node.attr)
         value = eval_node(node.value, context)
         if policy.can_get_attr(value, node.attr):
             return getattr(value, node.attr)
+        try:
+            cls = (
+                value if isinstance(value, type) else getattr(value, "__class__", None)
+            )
+            if cls is not None:
+                resolved_hints = get_type_hints(
+                    cls,
+                    globalns=(context.globals or {}),
+                    localns=(context.locals or {}),
+                )
+                if node.attr in resolved_hints:
+                    annotated = resolved_hints[node.attr]
+                    return _resolve_annotation(annotated, context)
+        except Exception:
+            # Fall through to the guard rejection
+            pass
         raise GuardRejection(
             "Attribute access (`__getattr__`) for",
             type(value),  # not joined to avoid calling `repr`
@@ -622,9 +1150,9 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             return eval_node(node.orelse, context)
     if isinstance(node, ast.Call):
         func = eval_node(node.func, context)
-        if policy.can_call(func) and not node.keywords:
-            args = [eval_node(arg, context) for arg in node.args]
-            return func(*args)
+        if policy.can_call(func):
+            args, kwargs = _extract_args_and_kwargs(node, context)
+            return func(*args, **kwargs)
         if isclass(func):
             # this code path gets entered when calling class e.g. `MyClass()`
             # or `my_instance.__class__()` - in both cases `func` is `MyClass`.
@@ -635,7 +1163,17 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
                 return overridden_return_type
             return _create_duck_for_heap_type(func)
         else:
+            inferred_return = getattr(func, "__inferred_return__", NOT_EVALUATED)
             return_type = _eval_return_type(func, node, context)
+            if getattr(func, "__is_async__", False):
+                awaited_type = (
+                    inferred_return if inferred_return is not None else return_type
+                )
+                coroutine_duck = _Duck(attributes=_get_coroutine_attributes())
+                coroutine_duck.__awaited_type__ = awaited_type
+                return coroutine_duck
+            if inferred_return is not NOT_EVALUATED:
+                return inferred_return
             if return_type is not NOT_EVALUATED:
                 return return_type
         raise GuardRejection(
@@ -643,7 +1181,126 @@ def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
             func,  # not joined to avoid calling `repr`
             f"not allowed in {context.evaluation} mode",
         )
-    raise ValueError("Unhandled node", ast.dump(node))
+    if isinstance(node, ast.Assert):
+        # message is always the second item, so if it is defined user would be completing
+        # on the message, not on the assertion test
+        if node.msg:
+            return eval_node(node.msg, context)
+        return eval_node(node.test, context)
+    return None
+
+
+def _merge_dicts_by_key(dicts: list, policy: EvaluationPolicy):
+    """Merge multiple dictionaries, combining values for each key."""
+    if len(dicts) == 1:
+        return dicts[0]
+
+    all_keys = set()
+    for d in dicts:
+        all_keys.update(d.keys())
+
+    merged = {}
+    for key in all_keys:
+        values = [d[key] for d in dicts if key in d]
+        if values:
+            merged[key] = _merge_values(values, policy)
+
+    return merged
+
+
+def _merge_values(values, policy: EvaluationPolicy):
+    """Recursively merge multiple values, combining attributes and dict items."""
+    if len(values) == 1:
+        return values[0]
+
+    types = {type(v) for v in values}
+    merged_items = None
+    key_values = {}
+    attributes = set()
+    for v in values:
+        if policy.can_call(v.__dir__):
+            attributes.update(dir(v))
+        try:
+            if policy.can_call(v.items):
+                try:
+                    for k, val in v.items():
+                        key_values.setdefault(k, []).append(val)
+                except Exception as e:
+                    pass
+            elif policy.can_call(v.keys):
+                try:
+                    for k in v.keys():
+                        key_values.setdefault(k, []).append(None)
+                except Exception as e:
+                    pass
+        except Exception as e:
+            pass
+
+    if key_values:
+        merged_items = {
+            k: _merge_values(vals, policy) if vals[0] is not None else None
+            for k, vals in key_values.items()
+        }
+
+    if len(types) == 1:
+        t = next(iter(types))
+        if t not in (dict,) and not (
+            hasattr(next(iter(values)), "__getitem__")
+            and (
+                hasattr(next(iter(values)), "items")
+                or hasattr(next(iter(values)), "keys")
+            )
+        ):
+            if t in (list, set, tuple):
+                return t
+            return values[0]
+
+    return _Duck(attributes=dict.fromkeys(attributes), items=merged_items)
+
+
+def _infer_return_value(node: ast.FunctionDef, context: EvaluationContext):
+    """Infer the return value(s) of a function by evaluating all return statements."""
+    return_values = _collect_return_values(node.body, context)
+
+    if not return_values:
+        return None
+    if len(return_values) == 1:
+        return return_values[0]
+
+    policy = get_policy(context)
+    return _merge_values(return_values, policy)
+
+
+def _collect_return_values(body, context):
+    """Recursively collect return values from a list of AST statements."""
+    return_values = []
+    for stmt in body:
+        if isinstance(stmt, ast.Return):
+            if stmt.value is None:
+                continue
+            try:
+                value = eval_node(stmt.value, context)
+                if value is not None and value is not NOT_EVALUATED:
+                    return_values.append(value)
+            except Exception:
+                pass
+        if isinstance(
+            stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)
+        ):
+            continue
+        elif hasattr(stmt, "body") and isinstance(stmt.body, list):
+            return_values.extend(_collect_return_values(stmt.body, context))
+        if isinstance(stmt, ast.Try):
+            for h in stmt.handlers:
+                if hasattr(h, "body"):
+                    return_values.extend(_collect_return_values(h.body, context))
+            if hasattr(stmt, "orelse"):
+                return_values.extend(_collect_return_values(stmt.orelse, context))
+            if hasattr(stmt, "finalbody"):
+                return_values.extend(_collect_return_values(stmt.finalbody, context))
+        if hasattr(stmt, "orelse") and isinstance(stmt.orelse, list):
+            return_values.extend(_collect_return_values(stmt.orelse, context))
+    return return_values
 
 
 def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext):
@@ -659,25 +1316,48 @@ def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext
     # but resolved by signature call we know the return type
     not_empty = sig.return_annotation is not Signature.empty
     if not_empty:
-        return _resolve_annotation(sig.return_annotation, sig, func, node, context)
+        return _resolve_annotation(sig.return_annotation, context, sig, func, node)
     return NOT_EVALUATED
 
 
-def _resolve_annotation(
-    annotation,
-    sig: Signature,
-    func: Callable,
-    node: ast.Call,
+def _eval_annotation(
+    annotation: str,
     context: EvaluationContext,
 ):
-    """Resolve annotation created by user with `typing` module and custom objects."""
-    annotation = (
+    return (
         _eval_node_name(annotation, context)
         if isinstance(annotation, str)
         else annotation
     )
+
+
+class _GetItemDuck(dict):
+    """A dict subclass that always returns the factory instance and claims to have any item."""
+
+    def __init__(self, factory, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._factory = factory
+
+    def __getitem__(self, key):
+        return self._factory()
+
+    def __contains__(self, key):
+        return True
+
+
+def _resolve_annotation(
+    annotation: object | str,
+    context: EvaluationContext,
+    sig: Signature | None = None,
+    func: Callable | None = None,
+    node: ast.Call | None = None,
+):
+    """Resolve annotation created by user with `typing` module and custom objects."""
+    if annotation is None:
+        return None
+    annotation = _eval_annotation(annotation, context)
     origin = get_origin(annotation)
-    if annotation is Self and hasattr(func, "__self__"):
+    if annotation is Self and func and hasattr(func, "__self__"):
         return func.__self__
     elif origin is Literal:
         type_args = get_args(annotation)
@@ -687,26 +1367,65 @@ def _resolve_annotation(
         return ""
     elif annotation is AnyStr:
         index = None
-        for i, (key, value) in enumerate(sig.parameters.items()):
-            if value.annotation is AnyStr:
-                index = i
-                break
-        if index is not None and index < len(node.args):
-            return eval_node(node.args[index], context)
+        if func and hasattr(func, "__node__"):
+            def_node = func.__node__
+            for i, arg in enumerate(def_node.args.args):
+                if not arg.annotation:
+                    continue
+                annotation = _eval_annotation(arg.annotation.id, context)
+                if annotation is AnyStr:
+                    index = i
+                    break
+            is_bound_method = (
+                isinstance(func, MethodType) and getattr(func, "__self__") is not None
+            )
+            if index and is_bound_method:
+                index -= 1
+        elif sig:
+            for i, (key, value) in enumerate(sig.parameters.items()):
+                if value.annotation is AnyStr:
+                    index = i
+                    break
+        if index is None:
+            return None
+        if index < 0 or index >= len(node.args):
+            return None
+        return eval_node(node.args[index], context)
     elif origin is TypeGuard:
         return False
+    elif origin is set or origin is list:
+        # only one type argument allowed
+        attributes = [
+            attr
+            for attr in dir(
+                _resolve_annotation(get_args(annotation)[0], context, sig, func, node)
+            )
+        ]
+        duck = _Duck(attributes=dict.fromkeys(attributes))
+        return _Duck(
+            attributes=dict.fromkeys(dir(origin())),
+            # items are not strrictly needed for set
+            items=_GetItemDuck(lambda: duck),
+        )
+    elif origin is tuple:
+        # multiple type arguments
+        return tuple(
+            _resolve_annotation(arg, context, sig, func, node)
+            for arg in get_args(annotation)
+        )
     elif origin is Union:
+        # multiple type arguments
         attributes = [
             attr
             for type_arg in get_args(annotation)
-            for attr in dir(_resolve_annotation(type_arg, sig, func, node, context))
+            for attr in dir(_resolve_annotation(type_arg, context, sig, func, node))
         ]
         return _Duck(attributes=dict.fromkeys(attributes))
     elif is_typeddict(annotation):
         return _Duck(
             attributes=dict.fromkeys(dir(dict())),
             items={
-                k: _resolve_annotation(v, sig, func, node, context)
+                k: _resolve_annotation(v, context, sig, func, node)
                 for k, v in annotation.__annotations__.items()
             },
         )
@@ -714,17 +1433,19 @@ def _resolve_annotation(
         return _Duck(attributes=dict.fromkeys(dir(annotation)))
     elif origin is Annotated:
         type_arg = get_args(annotation)[0]
-        return _resolve_annotation(type_arg, sig, func, node, context)
+        return _resolve_annotation(type_arg, context, sig, func, node)
     elif isinstance(annotation, NewType):
-        return _eval_or_create_duck(annotation.__supertype__, node, context)
+        return _eval_or_create_duck(annotation.__supertype__, context)
     elif isinstance(annotation, TypeAliasType):
-        return _eval_or_create_duck(annotation.__value__, node, context)
+        return _eval_or_create_duck(annotation.__value__, context)
     else:
-        return _eval_or_create_duck(annotation, node, context)
+        return _eval_or_create_duck(annotation, context)
 
 
 def _eval_node_name(node_id: str, context: EvaluationContext):
     policy = get_policy(context)
+    if node_id in context.transient_locals:
+        return context.transient_locals[node_id]
     if policy.allow_locals_access and node_id in context.locals:
         return context.locals[node_id]
     if policy.allow_globals_access and node_id in context.globals:
@@ -742,12 +1463,11 @@ def _eval_node_name(node_id: str, context: EvaluationContext):
         raise NameError(f"{node_id} not found in locals, globals, nor builtins")
 
 
-def _eval_or_create_duck(duck_type, node: ast.Call, context: EvaluationContext):
+def _eval_or_create_duck(duck_type, context: EvaluationContext):
     policy = get_policy(context)
     # if allow-listed builtin is on type annotation, instantiate it
-    if policy.can_call(duck_type) and not node.keywords:
-        args = [eval_node(arg, context) for arg in node.args]
-        return duck_type(*args)
+    if policy.can_call(duck_type):
+        return duck_type()
     # if custom class is in type annotation, mock it
     return _create_duck_for_heap_type(duck_type)
 
@@ -783,6 +1503,8 @@ BUILTIN_GETITEM: set[InstancesHaveGetItem] = {
     bytes,  # type: ignore[arg-type]
     list,
     tuple,
+    type,  # for type annotations like list[str]
+    _Duck,
     collections.defaultdict,
     collections.deque,
     collections.OrderedDict,
@@ -806,44 +1528,69 @@ set_non_mutating_methods = set(dir(set)) & set(dir(frozenset))
 
 
 dict_keys: type[collections.abc.KeysView] = type({}.keys())
+dict_values: type = type({}.values())
+dict_items: type = type({}.items())
 
 NUMERICS = {int, float, complex}
 
 ALLOWED_CALLS = {
     bytes,
     *_list_methods(bytes),
+    bytes.__iter__,
     dict,
     *_list_methods(dict, dict_non_mutating_methods),
+    dict.__iter__,
+    dict_keys.__iter__,
+    dict_values.__iter__,
+    dict_items.__iter__,
     dict_keys.isdisjoint,
     list,
     *_list_methods(list, list_non_mutating_methods),
+    list.__iter__,
     set,
     *_list_methods(set, set_non_mutating_methods),
+    set.__iter__,
     frozenset,
     *_list_methods(frozenset),
+    frozenset.__iter__,
     range,
+    range.__iter__,
     str,
     *_list_methods(str),
+    str.__iter__,
     tuple,
     *_list_methods(tuple),
+    tuple.__iter__,
+    bool,
+    *_list_methods(bool),
     *NUMERICS,
     *[method for numeric_cls in NUMERICS for method in _list_methods(numeric_cls)],
     collections.deque,
     *_list_methods(collections.deque, list_non_mutating_methods),
+    collections.deque.__iter__,
     collections.defaultdict,
     *_list_methods(collections.defaultdict, dict_non_mutating_methods),
+    collections.defaultdict.__iter__,
     collections.OrderedDict,
     *_list_methods(collections.OrderedDict, dict_non_mutating_methods),
+    collections.OrderedDict.__iter__,
     collections.UserDict,
     *_list_methods(collections.UserDict, dict_non_mutating_methods),
+    collections.UserDict.__iter__,
     collections.UserList,
     *_list_methods(collections.UserList, list_non_mutating_methods),
+    collections.UserList.__iter__,
     collections.UserString,
     *_list_methods(collections.UserString, dir(str)),
+    collections.UserString.__iter__,
     collections.Counter,
     *_list_methods(collections.Counter, dict_non_mutating_methods),
+    collections.Counter.__iter__,
     collections.Counter.elements,
     collections.Counter.most_common,
+    object.__dir__,
+    type.__dir__,
+    _Duck.__dir__,
 }
 
 BUILTIN_GETATTR: set[MayHaveGetattr] = {
@@ -885,6 +1632,7 @@ EVALUATION_POLICIES = {
         allow_builtins_access=True,
         allow_locals_access=True,
         allow_globals_access=True,
+        allow_getitem_on_types=True,
         allowed_calls=ALLOWED_CALLS,
     ),
     "unsafe": EvaluationPolicy(

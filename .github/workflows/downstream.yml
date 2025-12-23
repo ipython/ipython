@@ -2,7 +2,15 @@ name: Run Downstream tests
 
 on:
   push:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.rst'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.rst'
   # Run weekly on Monday at 1:23 UTC
   schedule:
   - cron:  '23 1 * * 1'
@@ -25,13 +33,13 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.13"]
         include:
-          - os: macos-13
+          - os: macos-14
             python-version: "3.13"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Update Python installer
@@ -75,3 +83,17 @@ jobs:
         # cd ../sage/
         # # From https://github.com/sagemath/sage/blob/develop/pkgs/sagemath-repl/tox.ini
         # sage-runtests -p --environment=sage.all__sagemath_repl --baseline-stats-path=pkgs/sagemath-repl/known-test-failures.json --initial --optional=sage src/sage/repl src/sage/doctest src/sage/misc/sage_input.py src/sage/misc/sage_eval.py
+    - name: Install pyflyby
+      run: |
+        cd ..
+        git clone https://github.com/deshaw/pyflyby
+        cd pyflyby
+        pip install meson-python meson ninja pybind11>=2.10.4 setuptools-scm
+        pip install setuptools wheel # needed for epydoc
+        pip install --no-build-isolation -ve .[test]
+        pip install 'pytest<=8'
+        cd ..
+    - name: Test pyflyby (IPython integration only)
+      run: |
+        cd ../pyflyby
+        pytest tests/test_interactive.py

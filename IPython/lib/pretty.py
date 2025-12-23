@@ -109,6 +109,14 @@ from IPython.utils.py3compat import PYPY
 
 from typing import Dict
 
+# Allow pretty-printing of functions with PEP-649 annotations
+if sys.version_info >= (3, 14):
+    from annotationlib import Format
+    from functools import partial
+
+    signature = partial(signature, annotation_format=Format.FORWARDREF)
+
+
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name', 'RawText', 'RawStringLiteral', 'CallExpression']
 
@@ -162,6 +170,7 @@ def pprint(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SE
     printer.flush()
     sys.stdout.write(newline)
     sys.stdout.flush()
+
 
 class _PrettyPrinterBase:
 

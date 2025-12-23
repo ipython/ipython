@@ -72,7 +72,7 @@ We also have added:
 
 
 Which is a *library* function for getting the current IPython instance,
-and will return ``None`` if no IPython instance is running.
+and will return :py:data:`None` if no IPython instance is running.
 This is the official way to check whether your code is called from inside an IPython session.
 If you want to check for IPython without unnecessarily importing IPython,
 use this function:

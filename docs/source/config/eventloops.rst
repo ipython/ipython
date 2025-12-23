@@ -4,12 +4,16 @@ Integrating with GUI event loops
 
 When the user types ``%gui qt``, IPython integrates itself with the Qt event
 loop, so you can use both a GUI and an interactive prompt together. IPython
-supports a number of common GUI toolkits, but from IPython 3.0, it is possible
-to integrate other event loops without modifying IPython itself.
+supports a number of common GUI toolkits, and it is possible to integrate
+other event loops without modifying IPython itself.
 
 Supported event loops include ``qt5``, ``qt6``, ``gtk2``, ``gtk3``, ``gtk4``,
 ``wx``, ``osx`` and ``tk``. Make sure the event loop you specify matches the
 GUI toolkit used by your own code.
+
+.. note::
+
+   ``gtk2`` is deprecated and GTK3 or GTK4 should be used instead for new projects.
 
 To make IPython GUI event loop integration occur automatically at every
 startup, set the ``c.InteractiveShellApp.gui`` configuration key in your

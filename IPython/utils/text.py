@@ -22,17 +22,14 @@ from typing import (
     Tuple,
     Optional,
     cast,
-    Sequence,
-    Mapping,
     Any,
     Union,
-    Callable,
-    Iterator,
     TypeVar,
 )
+from collections.abc import Sequence, Mapping, Callable, Iterator
 
 if sys.version_info < (3, 12):
-    from typing_extensions import Self
+    from typing import Self
 else:
     from typing import Self
 
@@ -102,7 +99,7 @@ class LSString(str):
 # print_lsstring = result_display.register(LSString)(print_lsstring)
 
 
-class SList(list):
+class SList(list[Any]):
     """List derivative with a special access attributes.
 
     These are normal lists, but with the special attributes:
@@ -187,9 +184,9 @@ class SList(list):
         else:
             pred = pattern
         if not prune:
-            return type(self)([el for el in self if pred(match_target(el))])
+            return type(self)([el for el in self if pred(match_target(el))])  # type: ignore [no-untyped-call]
         else:
-            return type(self)([el for el in self if not pred(match_target(el))])
+            return type(self)([el for el in self if not pred(match_target(el))])  # type: ignore [no-untyped-call]
 
     def fields(self, *fields: List[str]) -> List[List[str]]:
         """Collect whitespace-separated fields from string list
@@ -439,6 +436,10 @@ class EvalFormatter(Formatter):
     standard string formatting), so if slicing is required, you must explicitly
     create a slice.
 
+    Note that on Python 3.14+ this version interprets `[]` as indexing operator
+    so you need to use generators instead of list comprehensions, for example:
+    `list(i for i in range(10))`.
+
     This is to be used in templating cases, such as the parallel batch
     script templates, where simple arithmetic on arguments is useful.
 
@@ -455,7 +456,7 @@ class EvalFormatter(Formatter):
     """
 
     def get_field(self, name: str, args: Any, kwargs: Any) -> Tuple[Any, str]:
-        v = eval(name, kwargs)
+        v = eval(name, kwargs, kwargs)
         return v, name
 
 #XXX: As of Python 3.4, the format string parsing no longer splits on a colon
@@ -514,7 +515,7 @@ class FullEvalFormatter(Formatter):
 
                 # do any conversion on the resulting object
                 # type issue in typeshed, fined in https://github.com/python/typeshed/pull/11377
-                obj = self.convert_field(obj, conversion)  # type: ignore[arg-type]
+                obj = self.convert_field(obj, conversion)
 
                 # format the object and append to the result
                 result.append(self.format_field(obj, ''))
@@ -546,7 +547,7 @@ class DollarFormatter(FullEvalFormatter):
         r"(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)"
     )
 
-    def parse(self, fmt_string: str) -> Iterator[Tuple[Any, Any, Any, Any]]:  # type: ignore[explicit-override]
+    def parse(self, fmt_string: str) -> Iterator[Tuple[Any, Any, Any, Any]]:
         for literal_txt, field_name, format_spec, conversion in Formatter.parse(
             self, fmt_string
         ):

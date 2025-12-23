@@ -361,8 +361,7 @@ class NamespaceMagics(Magics):
           - For numpy arrays, a summary with shape, number of
             elements, typecode and size in memory.
 
-          - For objects that have shape attribute, primarily dataframe and series like
-            objects, will print the shape.
+          - For DataFrame and Series types: their shape.
 
           - Everything else: a string representation, snipping their middle if
             too long.
@@ -450,7 +449,9 @@ class NamespaceMagics(Magics):
         Mb = 1048576  # kb**2
         for vname,var,vtype in zip(varnames,varlist,typelist):
             print(vformat.format(vname, vtype, varwidth=varwidth, typewidth=typewidth), end=' ')
-            if vtype == ndarray_type:
+            if vtype in seq_types:
+                print("n="+str(len(var)))
+            elif vtype == ndarray_type:
                 vshape = str(var.shape).replace(',','').replace(' ','x')[1:-1]
                 if vtype==ndarray_type:
                     # numpy
@@ -463,16 +464,13 @@ class NamespaceMagics(Magics):
                 else:
                     print(aformat % (vshape, vsize, vdtype, vbytes), end=' ')
                     if vbytes < Mb:
-                        print('(%s kb)' % (vbytes/kb,))
+                        print("(%s kb)" % (vbytes / kb,))
                     else:
                         print("(%s Mb)" % (vbytes / Mb,))
-            elif hasattr(var, "shape"):
+            elif vtype in ["DataFrame", "Series"]:
                 # Useful for DataFrames and Series
                 # Ought to work for both pandas and polars
                 print(f"Shape: {var.shape}")
-            elif hasattr(var, "__len__"):
-                ## types that can be used in len function
-                print(var if isinstance(var, str) else f"n={len(var)}")
             else:
                 try:
                     vstr = str(var)
