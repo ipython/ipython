@@ -67,9 +67,18 @@ class PromptStripper:
     If any prompt is found on the first two lines,
     prompts will be stripped from the rest of the block.
     """
-    def __init__(self, prompt_re, initial_re=None):
+    def __init__(self, prompt_re, initial_re=None, *, doctest=False):
         self.prompt_re = prompt_re
         self.initial_re = initial_re or prompt_re
+        self.doctest = doctest
+        if doctest:
+            # Doctest/xdoctest prompts may be indented (e.g. "    >>>").
+            # We only treat "..." as a continuation prompt when the same pasted
+            # block contains at least one ">>>" line, to avoid ambiguity with the
+            # Python Ellipsis literal.
+            self._doctest_initial_re = re.compile(r'^\s*>>>')
+            self._doctest_ps1_re = re.compile(r'^\s*>>>\s?')
+            self._doctest_ps2_re = re.compile(r'^\s*\.\.\.\s?')
 
     def _strip(self, lines):
         return [self.prompt_re.sub('', l, count=1) for l in lines]
@@ -77,6 +86,30 @@ class PromptStripper:
     def __call__(self, lines):
         if not lines:
             return lines
+
+        if self.doctest:
+            if not any(self._doctest_initial_re.match(l) for l in lines):
+                return lines
+
+            stripped_any = False
+            out_lines = []
+            for l in lines:
+                if self._doctest_ps1_re.match(l):
+                    new_l = self._doctest_ps1_re.sub('', l, count=1)
+                elif self._doctest_ps2_re.match(l):
+                    new_l = self._doctest_ps2_re.sub('', l, count=1)
+                else:
+                    new_l = l
+                stripped_any = stripped_any or (new_l != l)
+                out_lines.append(new_l)
+
+            if not stripped_any:
+                return out_lines
+
+            # Only dedent when we actually stripped doctest prompts, so we don't
+            # change the indentation semantics of normal pastes.
+            return dedent(''.join(out_lines)).splitlines(keepends=True)
+
         if self.initial_re.match(lines[0]) or \
                 (len(lines) > 1 and self.prompt_re.match(lines[1])):
             return self._strip(lines)
@@ -84,7 +117,8 @@ class PromptStripper:
 
 classic_prompt = PromptStripper(
     prompt_re=re.compile(r'^(>>>|\.\.\.)( |$)'),
-    initial_re=re.compile(r'^>>>( |$)')
+    initial_re=re.compile(r'^>>>( |$)'),
+    doctest=True,
 )
 
 ipython_prompt = PromptStripper(
