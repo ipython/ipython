@@ -11,12 +11,14 @@ import pytest
 from IPython import get_ipython
 from traitlets.config import Config
 from IPython.core.formatters import (
+    BaseFormatter,
     PlainTextFormatter,
     HTMLFormatter,
     PDFFormatter,
     _mod_name_key,
     DisplayFormatter,
     JSONFormatter,
+    FormatterWarning,
 )
 from IPython.utils.io import capture_output
 
@@ -607,3 +609,20 @@ def test_custom_repr_namedtuple_partialmethod():
     f = PlainTextFormatter()
     assert f.pprint
     assert f(foo) == "Hello World"
+
+
+def test_formatter_registration():
+    class TestFormatter(BaseFormatter):
+        format_type = "x-vendor/test"
+        print_method = "_repr_test_"
+        _return_type = (dict, str)
+
+    f = get_ipython().display_formatter
+    formatter = TestFormatter(parent=f)
+    f.register_formatter(formatter)
+
+    assert formatter.format_type in f.formatters
+
+    with capture_output() as captured:
+        with pytest.warns(FormatterWarning):
+            result = f.register_formatter(formatter)
