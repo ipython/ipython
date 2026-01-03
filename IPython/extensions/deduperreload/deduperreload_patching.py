@@ -7,12 +7,7 @@ NOT_FOUND: object = object()
 NULL: object = object()
 _MAX_FIELD_SEARCH_OFFSET = 50
 
-if sys.maxsize > 2**32:
-    WORD_TYPE: type[ctypes.c_int32] | type[ctypes.c_int64] = ctypes.c_int64
-    WORD_N_BYTES = 8
-else:
-    WORD_TYPE = ctypes.c_int32
-    WORD_N_BYTES = 4
+POINTER_N_BYTES = ctypes.sizeof(ctypes.c_void_p)
 
 
 class DeduperReloaderPatchingMixin:
@@ -32,7 +27,7 @@ class DeduperReloaderPatchingMixin:
         for offset in range(1, _MAX_FIELD_SEARCH_OFFSET):
             if (
                 ctypes.cast(
-                    obj_addr + WORD_N_BYTES * offset, ctypes.POINTER(WORD_TYPE)
+                    obj_addr + POINTER_N_BYTES * offset, ctypes.POINTER(ctypes.c_void_p)
                 ).contents.value
                 == field_addr
             ):
@@ -69,7 +64,7 @@ class DeduperReloaderPatchingMixin:
         if new_value not in (None, NULL):
             ctypes.pythonapi.Py_IncRef(ctypes.py_object(new_value))
         ctypes.cast(
-            obj_addr + WORD_N_BYTES * offset, ctypes.POINTER(WORD_TYPE)
+            obj_addr + POINTER_N_BYTES * offset, ctypes.POINTER(ctypes.c_void_p)
         ).contents.value = new_value_addr
 
     @classmethod
