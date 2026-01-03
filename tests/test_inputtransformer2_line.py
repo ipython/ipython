@@ -51,6 +51,27 @@ for a in range(5):
 """,
 )
 
+CLASSIC_PROMPT_L3 = (
+    """\
+>>> \"\"\"
+... This code is inside a triple-quoted string.
+... >>> for a in range(5):
+... ...     print(a)
+... \"\"\"
+>>> for a in range(5):
+...     print(a)
+""",
+    """\
+>>> \"\"\"
+... This code is inside a triple-quoted string.
+... >>> for a in range(5):
+... ...     print(a)
+... \"\"\"
+for a in range(5):
+    print(a)
+""",
+)
+
 CLASSIC_PROMPT_DEDENT_SINGLE_LINE = (
     ">>>     print(1)\n",
     "print(1)\n",
@@ -82,6 +103,7 @@ def test_classic_prompt():
     for sample, expected in [
         CLASSIC_PROMPT,
         CLASSIC_PROMPT_L2,
+        CLASSIC_PROMPT_L3,
         CLASSIC_PROMPT_DEDENT_SINGLE_LINE,
         CLASSIC_PROMPT_DEDENT_LEADING_WS,
         CLASSIC_PROMPT_MULTILINE_DOCTEST,
