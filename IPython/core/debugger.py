@@ -248,13 +248,7 @@ class Pdb(OldPdb):
         docs for more info.
         """
 
-        # Parent constructor:
-        try:
-            self.context = int(context)
-            if self.context <= 0:
-                raise ValueError("Context must be a positive integer")
-        except (TypeError, ValueError) as e:
-                raise ValueError("Context must be a positive integer") from e
+        self.context = int(context)
 
         # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
         OldPdb.__init__(self, completekey, stdin, stdout, **kwargs)
@@ -491,13 +485,8 @@ class Pdb(OldPdb):
         if context is None:
             context = self.context
         try:
-            context = int(context)
-            if context <= 0:
-                raise ValueError("Context must be a positive integer")
-        except (TypeError, ValueError) as e:
-                raise ValueError("Context must be a positive integer") from e
-        try:
             skipped = 0
+            to_print = ""
             for hidden, frame_lineno in zip(self.hidden_frames(self.stack), self.stack):
                 if hidden and self.skip_hidden:
                     skipped += 1
@@ -507,31 +496,21 @@ class Pdb(OldPdb):
                         f"{Colors.excName}    [... skipping {skipped} hidden frame(s)]{ColorsNormal}\n"
                     )
                     skipped = 0
-                self.print_stack_entry(frame_lineno, context=context)
+                to_print += self.format_stack_entry(frame_lineno)
             if skipped:
-                print(
+                to_print += (
                     f"{Colors.excName}    [... skipping {skipped} hidden frame(s)]{ColorsNormal}\n"
                 )
+            print(to_print, file=self.stdout)
         except KeyboardInterrupt:
             pass
 
-    def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
-                          context=None):
-        if context is None:
-            context = self.context
-        try:
-            context = int(context)
-            if context <= 0:
-                raise ValueError("Context must be a positive integer")
-        except (TypeError, ValueError) as e:
-                raise ValueError("Context must be a positive integer") from e
-        print(self.format_stack_entry(frame_lineno, '', context), file=self.stdout)
+    def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> '):
+        print(self.format_stack_entry(frame_lineno, ''), file=self.stdout)
 
-        # vds: >>
         frame, lineno = frame_lineno
         filename = frame.f_code.co_filename
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds: <<
 
     def _get_frame_locals(self, frame):
         """ "
@@ -555,15 +534,14 @@ class Pdb(OldPdb):
         else:
             return frame.f_locals
 
-    def format_stack_entry(self, frame_lineno, lprefix=': ', context=None):
-        if context is None:
-            context = self.context
+    def format_stack_entry(self, frame_lineno, lprefix=': '):
+        context = self.context
         try:
             context = int(context)
             if context <= 0:
                 print("Context must be a positive integer", file=self.stdout)
         except (TypeError, ValueError):
-                print("Context must be a positive integer", file=self.stdout)
+            print("Context must be a positive integer", file=self.stdout)
 
         import reprlib
 
