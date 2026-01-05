@@ -3,6 +3,55 @@
 ============
 
 
+.. _version 9.9:
+
+IPython 9.9
+===========
+
+This release includes several bug fixes and improvements across completions, type annotations, and developer experience.
+
+- :ghpull:`15092` Fix formatting for completion suggestions section
+- :ghpull:`15057` Reduce types in splitinput.py
+- :ghpull:`15096` Use Any type in traceback tuple
+- :ghpull:`15099` Fix filename of CVE test
+- :ghpull:`15091` Skip downstream CI if only docs changes
+- :ghpull:`15093` Replace sphinxext/github with extlink configuration
+- :ghpull:`15103` Tips and docs about argcomplete
+- :ghpull:`15105` Add prompt_toolkit's unix_word_rubout to assignable commands for shortcuts
+- :ghpull:`15095` Enable pretty-printing for PEP-649 annotated functions
+- :ghpull:`15106` Fix completions for methods starting with ``_``
+- :ghpull:`15111` Stop assuming that memory addresses are signed
+- :ghpull:`15102` Bump macOS runner version in GitHub Actions
+- :ghpull:`15101` Fix crash on literal with surrogate
+
+Improvements to PEP-649 Support
+-------------------------------
+
+IPython now properly pretty-prints functions with PEP-649 style annotations. This improves the display of functions in interactive sessions when using Python 3.14+ annotation semantics.
+
+
+Shell Shortcuts Enhancement
+-----------------------------
+
+The ``unix_word_rubout`` command from prompt_toolkit is now available as an assignable command for terminal shortcuts, giving users more flexibility in customizing their keybindings.
+
+
+Type Annotation Improvements
+----------------------------
+
+Various type annotation improvements have been made throughout the codebase for better static analysis support, including fixes for tracebacks and improved type inference in the completion engine.
+
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.9
+<https://github.com/ipython/ipython/milestone/157?closed=1>`__ milestone.
+
+
 .. _version 9.8:
 
 IPython 9.8
