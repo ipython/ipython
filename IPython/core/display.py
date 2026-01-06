@@ -17,6 +17,7 @@ from pathlib import Path, PurePath
 
 from typing import Optional
 
+from IPython.core.pylabtools import _pngxy
 from IPython.testing.skipdoctest import skip_doctest
 from . import display_functions
 
@@ -797,13 +798,6 @@ _JPEG = b"\xff\xd8"
 _GIF1 = b"GIF87a"
 _GIF2 = b"GIF89a"
 _WEBP = b"WEBP"
-
-
-def _pngxy(data):
-    """read the (width, height) from a PNG header"""
-    ihdr = data.index(b'IHDR')
-    # next 8 bytes are width/height
-    return struct.unpack('>ii', data[ihdr+4:ihdr+12])
 
 
 def _jpegxy(data):
