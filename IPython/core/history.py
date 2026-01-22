@@ -703,7 +703,8 @@ class HistoryManager(HistoryAccessor):
                 self.hist_file = ":memory:"
             else:
                 self.using_thread = True
-                os.register_at_fork(before=self._stop_thread)
+                if hasattr(os, "register_at_fork"):
+                    os.register_at_fork(before=self._stop_thread)
         self._instances.add(self)
         assert len(HistoryManager._instances) <= HistoryManager._max_inst, (
             len(HistoryManager._instances),
