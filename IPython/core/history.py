@@ -715,13 +715,13 @@ class HistoryManager(HistoryAccessor):
         if self.save_thread is not None:
             self.save_thread.stop()
 
-    def _stop_thread(self):
+    def _stop_thread(self) -> None:
         # Used before forking so the thread isn't running at fork
         if self.save_thread is not None:
             self.save_thread.stop()
             self.save_thread = None
 
-    def _restart_thread_if_stopped(self):
+    def _restart_thread_if_stopped(self) -> None:
         # Start the thread again after it was stopped for forking
         if self.save_thread is None and self.using_thread:
             self.save_thread = HistorySavingThread(self)
@@ -990,7 +990,8 @@ class HistoryManager(HistoryAccessor):
             if len(self.db_input_cache) >= self.db_cache_size:
                 if self.using_thread:
                     self._restart_thread_if_stopped()
-                    self.save_flag.set()
+                    if self.save_flag is not None:
+                        self.save_flag.set()
 
         # update the auto _i variables
         self._iii = self._ii
@@ -1024,7 +1025,8 @@ class HistoryManager(HistoryAccessor):
             self.db_output_cache.append((line_num, output))
         if self.db_cache_size <= 1 and self.using_thread:
             self._restart_thread_if_stopped()
-            self.save_flag.set()
+            if self.save_flag is not None:
+                self.save_flag.set()
 
     def _writeout_input_cache(self, conn: sqlite3.Connection) -> None:
         with conn:
