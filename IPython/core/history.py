@@ -703,8 +703,6 @@ class HistoryManager(HistoryAccessor):
                 self.hist_file = ":memory:"
             else:
                 self.using_thread = True
-                if hasattr(os, "register_at_fork"):
-                    os.register_at_fork(before=self._stop_thread)
         self._instances.add(self)
         assert len(HistoryManager._instances) <= HistoryManager._max_inst, (
             len(HistoryManager._instances),
@@ -715,11 +713,13 @@ class HistoryManager(HistoryAccessor):
         if self.save_thread is not None:
             self.save_thread.stop()
 
-    def _stop_thread(self) -> None:
+    @classmethod
+    def _stop_thread(cls) -> None:
         # Used before forking so the thread isn't running at fork
-        if self.save_thread is not None:
-            self.save_thread.stop()
-            self.save_thread = None
+        for inst in cls._instances:
+            if inst.save_thread is not None:
+                inst.save_thread.stop()
+                inst.save_thread = None
 
     def _restart_thread_if_stopped(self) -> None:
         # Start the thread again after it was stopped for forking
@@ -1079,6 +1079,10 @@ class HistoryManager(HistoryAccessor):
                 )
             finally:
                 self.db_output_cache = []
+
+
+if hasattr(os, "register_at_fork"):
+    os.register_at_fork(before=HistoryManager._stop_thread)
 
 
 from collections.abc import Callable, Iterator
