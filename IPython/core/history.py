@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import atexit
 import datetime
+import os
 import re
 
 
@@ -689,6 +690,7 @@ class HistoryManager(HistoryAccessor):
             )
             self.hist_file = ":memory:"
 
+        self.using_thread = False
         if self.enabled and self.hist_file != ":memory:":
             self.save_thread = HistorySavingThread(self)
             try:
@@ -699,6 +701,8 @@ class HistoryManager(HistoryAccessor):
                     exc_info=True,
                 )
                 self.hist_file = ":memory:"
+            else:
+                self.using_thread = True
         self._instances.add(self)
         assert len(HistoryManager._instances) <= HistoryManager._max_inst, (
             len(HistoryManager._instances),
@@ -708,6 +712,20 @@ class HistoryManager(HistoryAccessor):
     def __del__(self) -> None:
         if self.save_thread is not None:
             self.save_thread.stop()
+
+    @classmethod
+    def _stop_thread(cls) -> None:
+        # Used before forking so the thread isn't running at fork
+        for inst in cls._instances:
+            if inst.save_thread is not None:
+                inst.save_thread.stop()
+                inst.save_thread = None
+
+    def _restart_thread_if_stopped(self) -> None:
+        # Start the thread again after it was stopped for forking
+        if self.save_thread is None and self.using_thread:
+            self.save_thread = HistorySavingThread(self)
+            self.save_thread.start()
 
     def _get_hist_file_name(self, profile: Optional[str] = None) -> Path:
         """Get default history file name based on the Shell's profile.
@@ -970,8 +988,10 @@ class HistoryManager(HistoryAccessor):
             self.db_input_cache.append((line_num, source, source_raw))
             # Trigger to flush cache and write to DB.
             if len(self.db_input_cache) >= self.db_cache_size:
-                if self.save_flag:
-                    self.save_flag.set()
+                if self.using_thread:
+                    self._restart_thread_if_stopped()
+                    if self.save_flag is not None:
+                        self.save_flag.set()
 
         # update the auto _i variables
         self._iii = self._ii
@@ -1003,8 +1023,10 @@ class HistoryManager(HistoryAccessor):
 
         with self.db_output_cache_lock:
             self.db_output_cache.append((line_num, output))
-        if self.db_cache_size <= 1 and self.save_flag is not None:
-            self.save_flag.set()
+        if self.db_cache_size <= 1 and self.using_thread:
+            self._restart_thread_if_stopped()
+            if self.save_flag is not None:
+                self.save_flag.set()
 
     def _writeout_input_cache(self, conn: sqlite3.Connection) -> None:
         with conn:
@@ -1057,6 +1079,10 @@ class HistoryManager(HistoryAccessor):
                 )
             finally:
                 self.db_output_cache = []
+
+
+if hasattr(os, "register_at_fork"):
+    os.register_at_fork(before=HistoryManager._stop_thread)
 
 
 from collections.abc import Callable, Iterator
