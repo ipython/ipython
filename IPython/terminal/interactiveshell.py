@@ -1062,7 +1062,13 @@ class TerminalInteractiveShell(InteractiveShell):
 
         This allows users to type input while code executes on the main thread.
         """
-        from .prompt_thread import PromptThread, _EOFSentinel, _ExceptionSentinel
+        from .prompt_thread import (
+            InputPatcher,
+            PromptThread,
+            StdinWrapper,
+            _EOFSentinel,
+            _ExceptionSentinel,
+        )
 
         self._executing = False  # Track execution state
 
@@ -1078,30 +1084,42 @@ class TerminalInteractiveShell(InteractiveShell):
         prompt_thread = PromptThread(self)
         prompt_thread.start()
 
+        # Wrap stdin so direct stdin reads pause the prompt thread
+        original_stdin = sys.stdin
+        sys.stdin = StdinWrapper(original_stdin, prompt_thread)
+
+        # Patch builtins.input to route through the prompt thread
+        # This handles the common case of user code calling input()
+        input_patcher = InputPatcher(prompt_thread)
+
         try:
-            while self.keep_running:
-                print(self.separate_in, end="")
+            with input_patcher:
+                while self.keep_running:
+                    print(self.separate_in, end="")
 
-                # Get input from background thread (blocks)
-                input_item = prompt_thread.get_input()
+                    # Get input from background thread (blocks)
+                    input_item = prompt_thread.get_input()
 
-                if isinstance(input_item, _EOFSentinel):
-                    if (not self.confirm_exit) or self.ask_yes_no(
-                        "Do you really want to exit ([y]/n)?", "y", "n"
-                    ):
-                        self.ask_exit()
-                elif isinstance(input_item, _ExceptionSentinel):
-                    raise input_item.exception
-                elif input_item:
-                    # Execute code on main thread
-                    self._executing = True
-                    try:
-                        self.run_cell(input_item, store_history=True)
-                    except KeyboardInterrupt:
-                        print("\nKeyboardInterrupt")
-                    finally:
-                        self._executing = False
+                    if isinstance(input_item, _EOFSentinel):
+                        # Exit confirmation is handled in the prompt thread
+                        # to avoid stdin conflicts
+                        if input_item.should_exit:
+                            self.ask_exit()
+                        # If should_exit is False, we continue the loop
+                        # but the prompt thread already handles this case
+                    elif isinstance(input_item, _ExceptionSentinel):
+                        raise input_item.exception
+                    elif input_item:
+                        # Execute code on main thread
+                        self._executing = True
+                        try:
+                            self.run_cell(input_item, store_history=True)
+                        except KeyboardInterrupt:
+                            print("\nKeyboardInterrupt")
+                        finally:
+                            self._executing = False
         finally:
+            sys.stdin = original_stdin
             signal.signal(signal.SIGINT, old_handler)
             prompt_thread.stop()
             prompt_thread.join(timeout=2.0)
