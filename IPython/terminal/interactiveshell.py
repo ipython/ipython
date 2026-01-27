@@ -1,6 +1,7 @@
 """IPython terminal interface using prompt_toolkit"""
 
 import os
+import signal
 import sys
 import inspect
 from warnings import warn
@@ -242,6 +243,15 @@ class TerminalInteractiveShell(InteractiveShell):
             Thus the Default value reported in --help-all, or config will often
             be incorrectly reported.
             """,
+    ).tag(config=True)
+
+    background_prompt = Bool(
+        False,
+        help="""Run prompt in background thread.
+
+        This allows typing input while code executes on the main thread.
+        Some signal handling (Ctrl-C) may behave differently.
+        """,
     ).tag(config=True)
 
     @property
@@ -802,6 +812,9 @@ class TerminalInteractiveShell(InteractiveShell):
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
         self._use_asyncio_inputhook = False
+
+        # Build extra kwargs for PromptSession
+
         self.pt_app = PromptSession(
             auto_suggest=self.auto_suggest,
             editing_mode=editing_mode,
@@ -921,10 +934,38 @@ class TerminalInteractiveShell(InteractiveShell):
                 ),
             ],
         }
+        if self.background_prompt:
+            # For background thread compatibility:
+            # Poll terminal size instead of relying on SIGWINCH
+            # (signals can't be handled in background threads)
+            options["refresh_interval"] = 0.5
 
         return options
 
     def prompt_for_code(self):
+        if self._use_asyncio_inputhook and False:
+            asyncio_loop = get_asyncio_loop()
+            return asyncio_loop.run_until_complete(self._prompt_for_code())
+        else:
+            return next(self._prompt_for_code())
+
+    async def _prompt_for_code_async(self):
+        """Async version of prompt that can run in any event loop.
+
+        This is used by the background prompt thread to run the prompt
+        in a separate event loop from the main thread.
+        """
+        if self.rl_next_input:
+            default = self.rl_next_input
+            self.rl_next_input = None
+        else:
+            default = ""
+
+        return await self.pt_app.prompt_async(
+                default=default, **self._extra_prompt_options()
+            )
+
+    async def _prompt_for_code(self):
         if self.rl_next_input:
             default = self.rl_next_input
             self.rl_next_input = None
@@ -942,20 +983,16 @@ class TerminalInteractiveShell(InteractiveShell):
                 # When we integrate the asyncio event loop, run the UI in the
                 # same event loop as the rest of the code. don't use an actual
                 # input hook. (Asyncio is not made for nesting event loops.)
-                asyncio_loop = get_asyncio_loop()
-                text = asyncio_loop.run_until_complete(
-                    self.pt_app.prompt_async(
+                return await self.pt_app.prompt_async(
                         default=default, **self._extra_prompt_options()
                     )
-                )
             else:
-                text = self.pt_app.prompt(
+                return self.pt_app.prompt(
                     default=default,
                     inputhook=self._inputhook,
                     **self._extra_prompt_options(),
                 )
 
-        return text
 
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
@@ -992,22 +1029,114 @@ class TerminalInteractiveShell(InteractiveShell):
         self.keep_running = False
 
     rl_next_input = None
+    _prompt_thread = None
+
+    @property
+    def pending_input_count(self):
+        """Number of inputs waiting to be executed (background prompt mode only)."""
+        if self._prompt_thread is not None:
+            return self._prompt_thread.input_queue.qsize()
+        return 0
 
     def interact(self):
+        """Main interaction loop with optional background prompt thread."""
         self.keep_running = True
+
+        if self.background_prompt and not self.simple_prompt:
+            self._interact_with_background_prompt()
+        else:
+            self._interact_sync()
+
+    def _interact_sync(self):
+        """Original synchronous interaction loop."""
         while self.keep_running:
-            print(self.separate_in, end='')
+            print(self.separate_in, end="")
 
             try:
                 code = self.prompt_for_code()
             except EOFError:
-                if (not self.confirm_exit) \
-                        or self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
+                if (not self.confirm_exit) or self.ask_yes_no(
+                    "Do you really want to exit ([y]/n)?", "y", "n"
+                ):
                     self.ask_exit()
 
             else:
                 if code:
                     self.run_cell(code, store_history=True)
+
+    def _interact_with_background_prompt(self):
+        """Interaction loop using background prompt thread.
+
+        This allows users to type input while code executes on the main thread.
+        """
+        from .prompt_thread import (
+            InputPatcher,
+            PromptThread,
+            _EOFSentinel,
+            _ExceptionSentinel,
+        )
+
+        self._executing = False
+        self._flushed_count = 0
+
+        prompt_thread = PromptThread(self)
+
+        # SIGINT handler for during code execution
+        # We install this only during execution, not during prompting
+        def execution_sigint_handler(signum, frame):
+            flushed = prompt_thread.flush_input_queue()
+            if flushed > 0:
+                self._flushed_count = flushed
+            signal.default_int_handler(signum, frame)
+
+        prompt_thread.start()
+
+        self._prompt_thread = prompt_thread
+
+        # Patch builtins.input and wrap sys.stdin to route through the prompt thread
+        # This handles both input() calls and direct stdin access from user code
+        input_patcher = InputPatcher(prompt_thread)
+
+        try:
+            with input_patcher:
+                while self.keep_running:
+                    print(self.separate_in, end="")
+
+                    # Get input from background thread (blocks)
+                    input_item = prompt_thread.get_input()
+
+                    if isinstance(input_item, _EOFSentinel):
+                        # Exit confirmation is handled in the prompt thread
+                        # to avoid stdin conflicts
+                        if input_item.should_exit:
+                            self.ask_exit()
+                        # If should_exit is False, we continue the loop
+                        # but the prompt thread already handles this case
+                    elif isinstance(input_item, _ExceptionSentinel):
+                        raise input_item.exception
+                    elif input_item:
+                        # Execute code on main thread
+                        # Install our SIGINT handler during execution only
+                        # This avoids conflicts with prompt_toolkit's handling
+                        prev_handler = signal.signal(
+                            signal.SIGINT, execution_sigint_handler
+                        )
+                        self._executing = True
+                        self._flushed_count = 0
+                        try:
+                            self.run_cell(input_item, store_history=True)
+                        except KeyboardInterrupt:
+                            msg = "\nKeyboardInterrupt"
+                            if self._flushed_count > 0:
+                                msg += f" ({self._flushed_count} pending input(s) discarded)"
+                            print(msg)
+                        finally:
+                            self._executing = False
+                            signal.signal(signal.SIGINT, prev_handler)
+        finally:
+            self._prompt_thread = None
+            prompt_thread.stop()
+            prompt_thread.join(timeout=2.0)
 
     def mainloop(self):
         # An extra layer of protection in case someone mashing Ctrl-C breaks
