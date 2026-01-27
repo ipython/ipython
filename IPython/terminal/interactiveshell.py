@@ -1030,6 +1030,14 @@ class TerminalInteractiveShell(InteractiveShell):
         self.keep_running = False
 
     rl_next_input = None
+    _prompt_thread = None
+
+    @property
+    def pending_input_count(self):
+        """Number of inputs waiting to be executed (background prompt mode only)."""
+        if self._prompt_thread is not None:
+            return self._prompt_thread.input_queue.qsize()
+        return 0
 
     def interact(self):
         """Main interaction loop with optional background prompt thread."""
@@ -1084,6 +1092,9 @@ class TerminalInteractiveShell(InteractiveShell):
         prompt_thread = PromptThread(self)
         prompt_thread.start()
 
+        # Store reference so the prompt can show pending count
+        self._prompt_thread = prompt_thread
+
         # Wrap stdin so direct stdin reads pause the prompt thread
         original_stdin = sys.stdin
         sys.stdin = StdinWrapper(original_stdin, prompt_thread)
@@ -1119,6 +1130,7 @@ class TerminalInteractiveShell(InteractiveShell):
                         finally:
                             self._executing = False
         finally:
+            self._prompt_thread = None
             sys.stdin = original_stdin
             signal.signal(signal.SIGINT, old_handler)
             prompt_thread.stop()
