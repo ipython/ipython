@@ -265,6 +265,21 @@ class PromptThread(threading.Thread):
         except queue.Empty:
             return None
 
+    def flush_input_queue(self):
+        """Discard all pending inputs in the queue.
+
+        Called when user interrupts execution to cancel queued commands.
+        Returns the number of items flushed.
+        """
+        count = 0
+        while True:
+            try:
+                self.input_queue.get_nowait()
+                count += 1
+            except queue.Empty:
+                break
+        return count
+
     def request_input(self, prompt, password=False, timeout=None):
         """Request input from the prompt thread. Called by main thread.
 

@@ -1079,17 +1079,20 @@ class TerminalInteractiveShell(InteractiveShell):
         )
 
         self._executing = False  # Track execution state
-
-        # Set up context-aware SIGINT handler
-        def sigint_handler(signum, frame):
-            if self._executing:
-                # Interrupt the running code
-                raise KeyboardInterrupt
-            # else: prompt_toolkit handles Ctrl-C during prompt
-
-        old_handler = signal.signal(signal.SIGINT, sigint_handler)
+        self._flushed_count = 0
 
         prompt_thread = PromptThread(self)
+
+        # SIGINT handler for during code execution
+        # We install this only during execution, not during prompting
+        def execution_sigint_handler(signum, frame):
+            # Flush pending inputs - user wants to cancel everything
+            flushed = prompt_thread.flush_input_queue()
+            if flushed > 0:
+                self._flushed_count = flushed
+            # Use default handler to raise KeyboardInterrupt properly
+            signal.default_int_handler(signum, frame)
+
         prompt_thread.start()
 
         # Store reference so the prompt can show pending count
@@ -1122,17 +1125,26 @@ class TerminalInteractiveShell(InteractiveShell):
                         raise input_item.exception
                     elif input_item:
                         # Execute code on main thread
+                        # Install our SIGINT handler during execution only
+                        # This avoids conflicts with prompt_toolkit's handling
+                        prev_handler = signal.signal(
+                            signal.SIGINT, execution_sigint_handler
+                        )
                         self._executing = True
+                        self._flushed_count = 0
                         try:
                             self.run_cell(input_item, store_history=True)
                         except KeyboardInterrupt:
-                            print("\nKeyboardInterrupt")
+                            msg = "\nKeyboardInterrupt"
+                            if self._flushed_count > 0:
+                                msg += f" ({self._flushed_count} pending input(s) discarded)"
+                            print(msg)
                         finally:
                             self._executing = False
+                            signal.signal(signal.SIGINT, prev_handler)
         finally:
             self._prompt_thread = None
             sys.stdin = original_stdin
-            signal.signal(signal.SIGINT, old_handler)
             prompt_thread.stop()
             prompt_thread.join(timeout=2.0)
 
