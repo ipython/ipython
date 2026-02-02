@@ -21,7 +21,7 @@ classifiers = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE", "COPYING.rst"]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     'colorama>=0.4.4; sys_platform == "win32"',
     "decorator>=4.3.2", # wheel
@@ -33,7 +33,6 @@ dependencies = [
     "pygments>=2.11.0", # wheel
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
-    "typing_extensions>=4.6; python_version<'3.12'",
 ]
 dynamic = ["authors", "version"]
 
@@ -83,7 +82,7 @@ test_extra = [
     "nbformat",
     "nbclient",
     "ipykernel>6.30",
-    "numpy>=1.27",
+    "numpy>=2.0",
     "pandas>2.1",
     "trio>=0.1.0", # wheel
 ]
@@ -97,7 +96,7 @@ all = [
 
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 ignore_missing_imports = true
 follow_imports = 'silent'
 exclude = [
