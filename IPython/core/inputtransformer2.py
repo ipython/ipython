@@ -67,9 +67,47 @@ class PromptStripper:
     If any prompt is found on the first two lines,
     prompts will be stripped from the rest of the block.
     """
-    def __init__(self, prompt_re, initial_re=None):
+    def __init__(self, prompt_re, initial_re=None, *, doctest=False):
         self.prompt_re = prompt_re
         self.initial_re = initial_re or prompt_re
+        self.doctest = doctest
+        if doctest:
+            # Doctest/xdoctest prompts may be indented (e.g. "    >>>").
+            # We only treat "..." as a continuation prompt when the same pasted
+            # block contains at least one ">>>" line, to avoid ambiguity with the
+            # Python Ellipsis literal.
+            self._doctest_initial_re = re.compile(r'^\s*>>>')
+            self._doctest_ps1_re = re.compile(r'^\s*>>>\s?')
+            self._doctest_ps2_re = re.compile(r'^\s*\.\.\.\s?')
+
+            # Very small state machine to detect triple-quoted strings in the
+            # *same* input block (e.g. user typed """ then pasted doctest).
+            # We preserve literal >>> / ... inside triple-quoted strings.
+            self._triple_quote_re = re.compile(r"(?<!\\)(\"\"\"|''')")
+
+
+    def _triple_quote_mask(self, lines: List[str]) -> List[bool]:
+        """
+        Return a boolean mask: True if the corresponding line is considered
+        inside a triple-quoted string literal.
+
+        This is intentionally heuristic (fast + good enough for paste handling).
+        """
+        mask: List[bool] = []
+        in_triple: str | None = None  # either ''' or """
+        for line in lines:
+            mask.append(in_triple is not None)
+            # Toggle state for each occurrence of """ or ''' in the line.
+            for m in self._triple_quote_re.finditer(line):
+                q = m.group(1)
+                if in_triple is None:
+                    in_triple = q
+                    mask[-1] = True  # current line is inside triple quotes
+                elif in_triple == q:
+                    in_triple = None
+                # else: ignore mismatched triple quote while inside
+        return mask
+
 
     def _strip(self, lines):
         return [self.prompt_re.sub('', l, count=1) for l in lines]
@@ -77,6 +115,57 @@ class PromptStripper:
     def __call__(self, lines):
         if not lines:
             return lines
+
+        if self.doctest:
+            triple_mask = self._triple_quote_mask(lines)
+
+            # Detect doctest prompts only outside triple-quoted strings.
+            has_doctest_outside = any(
+                (not in_triple) and self._doctest_initial_re.match(l)
+                for l, in_triple in zip(lines, triple_mask)
+            )
+            if not has_doctest_outside:
+                return lines
+
+            out_lines: List[str] = []
+            stripped_mask: List[bool] = []
+
+            for l, in_triple in zip(lines, triple_mask):
+                if in_triple:
+                    out_lines.append(l)
+                    stripped_mask.append(False)
+                    continue
+
+                if self._doctest_ps1_re.match(l):
+                    new_l = self._doctest_ps1_re.sub('', l, count=1)
+                elif self._doctest_ps2_re.match(l):
+                    new_l = self._doctest_ps2_re.sub('', l, count=1)
+                else:
+                    new_l = l
+                out_lines.append(new_l)
+                stripped_mask.append(new_l != l)
+
+            # Dedent only the non-triple-quoted segments where stripping occurred.
+            dedented: List[str] = []
+            i = 0
+            while i < len(out_lines):
+                j = i
+                in_triple = triple_mask[i]
+                while j < len(out_lines) and triple_mask[j] == in_triple:
+                    j += 1
+
+                segment = out_lines[i:j]
+                seg_stripped = any(stripped_mask[i:j])
+
+                if (not in_triple) and seg_stripped:
+                    dedented.extend(dedent(''.join(segment)).splitlines(keepends=True))
+                else:
+                    dedented.extend(segment)
+
+                i = j
+
+            return dedented
+
         if self.initial_re.match(lines[0]) or \
                 (len(lines) > 1 and self.prompt_re.match(lines[1])):
             return self._strip(lines)
@@ -84,7 +173,8 @@ class PromptStripper:
 
 classic_prompt = PromptStripper(
     prompt_re=re.compile(r'^(>>>|\.\.\.)( |$)'),
-    initial_re=re.compile(r'^>>>( |$)')
+    initial_re=re.compile(r'^>>>( |$)'),
+    doctest=True,
 )
 
 ipython_prompt = PromptStripper(

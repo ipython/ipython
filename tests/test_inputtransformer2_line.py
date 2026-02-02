@@ -46,14 +46,69 @@ for a in range(5):
 """,
     """\
 for a in range(5):
-    print(a)
-    print(a ** 2)
+...     print(a)
+...     print(a ** 2)
 """,
+)
+
+CLASSIC_PROMPT_L3 = (
+    """\
+>>> \"\"\"
+... This code is inside a triple-quoted string.
+... >>> for a in range(5):
+... ...     print(a)
+... \"\"\"
+>>> for a in range(5):
+...     print(a)
+""",
+    """\
+>>> \"\"\"
+... This code is inside a triple-quoted string.
+... >>> for a in range(5):
+... ...     print(a)
+... \"\"\"
+for a in range(5):
+    print(a)
+""",
+)
+
+CLASSIC_PROMPT_DEDENT_SINGLE_LINE = (
+    ">>>     print(1)\n",
+    "print(1)\n",
+)
+
+CLASSIC_PROMPT_DEDENT_LEADING_WS = (
+    "    >>>     print(1)\n",
+    "print(1)\n",
+)
+
+CLASSIC_PROMPT_MULTILINE_DOCTEST = (
+    """\
+>>> for i in range(2):
+...     print(i)
+""",
+    """\
+for i in range(2):
+    print(i)
+""",
+)
+
+CLASSIC_PROMPT_STANDALONE_CONTINUATION = (
+    "...     print(1)\n",
+    "...     print(1)\n",
 )
 
 
 def test_classic_prompt():
-    for sample, expected in [CLASSIC_PROMPT, CLASSIC_PROMPT_L2]:
+    for sample, expected in [
+        CLASSIC_PROMPT,
+        CLASSIC_PROMPT_L2,
+        CLASSIC_PROMPT_L3,
+        CLASSIC_PROMPT_DEDENT_SINGLE_LINE,
+        CLASSIC_PROMPT_DEDENT_LEADING_WS,
+        CLASSIC_PROMPT_MULTILINE_DOCTEST,
+        CLASSIC_PROMPT_STANDALONE_CONTINUATION,
+    ]:
         assert ipt2.classic_prompt(
             sample.splitlines(keepends=True)
         ) == expected.splitlines(keepends=True)
