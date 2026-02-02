@@ -3,6 +3,7 @@ import ast
 import builtins
 import contextlib
 import itertools
+import logging
 import os
 import pickle
 import platform
@@ -209,11 +210,19 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
             ):
                 self.source_by_modname[new_modname] = ""
                 continue
-            with open(fname, "r") as f:
-                try:
+            # Skip binary files (e.g., .so, .pyd, .pyo)
+            if not fname.endswith(".py"):
+                self.source_by_modname[new_modname] = ""
+                continue
+            try:
+                with open(fname, "r") as f:
                     self.source_by_modname[new_modname] = f.read()
-                except Exception:
-                    self.source_by_modname[new_modname] = ""
+            except Exception as e:
+                logger = logging.getLogger("autoreload")
+                logger.exception(
+                    f"Failed to read module file '{fname}' for module '{new_modname}': {type(e).__name__}"
+                )
+                self.source_by_modname[new_modname] = ""
 
     constexpr_detector = ConstexprDetector()
 
@@ -542,8 +551,15 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
             return False
         if (fname := get_module_file_name(module)) is None:
             return False
-        with open(fname, "r") as f:
-            new_source_code = f.read()
+        try:
+            with open(fname, "r") as f:
+                new_source_code = f.read()
+        except Exception as e:
+            logger = logging.getLogger("autoreload")
+            logger.exception(
+                f"Failed to read module file '{fname}' for module '{modname}': {type(e).__name__}"
+            )
+            return False
         patched_flag = False
         if old_source_code := self.source_by_modname.get(modname):
             # get old/new module ast
