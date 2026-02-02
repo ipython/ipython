@@ -961,11 +961,7 @@ class VerboseTB(TBTools):
                 self.pdb.botframe = etb.tb_frame
                 # last_value should be deprecated, but last-exc sometimme not set
                 # please check why later and remove the getattr.
-                exc = (
-                    sys.last_value
-                    if sys.version_info < (3, 12)
-                    else getattr(sys, "last_exc", sys.last_value)
-                )  # type: ignore[attr-defined]
+                exc = getattr(sys, "last_exc", sys.last_value)
                 if exc:
                     self.pdb.interaction(None, exc)
                 else:
