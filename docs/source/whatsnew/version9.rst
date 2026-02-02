@@ -3,12 +3,44 @@
 ============
 
 
+.. _version 9.10:
+
+IPython 9.10
+============
+
+This release includes improvements to history management during forking and formatting fixes.
+
+- :ghpull:`15110` Fix Removing leading indentation when stripping prompt
+- :ghpull:`15115` Stop HistorySavingThread before fork
+- :ghpull:`15118` Add debug info for autoreload
+
+
+History Thread Management Improvements
+---------------------------------------
+
+The `HistorySavingThread` is now properly stopped before process forking,
+preventing threading issues in child processes. This ensures that history
+operations work correctly when IPython is used in applications that perform
+process forking.
+
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.10
+<https://github.com/ipython/ipython/milestone/159?closed=1>`__ milestone.
+
+
 .. _version 9.9:
 
 IPython 9.9
 ===========
 
-This release includes several bug fixes and improvements across completions, type annotations, and developer experience.
+This release includes several bug fixes and improvements across completions,
+type annotations, and developer experience.
 
 - :ghpull:`15092` Fix formatting for completion suggestions section
 - :ghpull:`15057` Reduce types in splitinput.py
@@ -27,19 +59,25 @@ This release includes several bug fixes and improvements across completions, typ
 Improvements to PEP-649 Support
 -------------------------------
 
-IPython now properly pretty-prints functions with PEP-649 style annotations. This improves the display of functions in interactive sessions when using Python 3.14+ annotation semantics.
+IPython now properly pretty-prints functions with PEP-649 style annotations.
+This improves the display of functions in interactive sessions when using Python
+3.14+ annotation semantics.
 
 
 Shell Shortcuts Enhancement
 -----------------------------
 
-The ``unix_word_rubout`` command from prompt_toolkit is now available as an assignable command for terminal shortcuts, giving users more flexibility in customizing their keybindings.
+The ``unix_word_rubout`` command from prompt_toolkit is now available as an
+assignable command for terminal shortcuts, giving users more flexibility in
+customizing their keybindings.
 
 
 Type Annotation Improvements
 ----------------------------
 
-Various type annotation improvements have been made throughout the codebase for better static analysis support, including fixes for tracebacks and improved type inference in the completion engine.
+Various type annotation improvements have been made throughout the codebase for
+better static analysis support, including fixes for tracebacks and improved type
+inference in the completion engine.
 
 
 Thanks
@@ -57,7 +95,8 @@ As usual, you can find the full list of PRs on GitHub under `the 9.9
 IPython 9.8
 ===========
 
-This release brings improvements to concurrent execution, history commands, tab completion, and debugger performance.
+This release brings improvements to concurrent execution, history commands, tab
+completion, and debugger performance.
 
 
 - :ghpull:`15037` Fix some ruff issues with import
