@@ -44,6 +44,7 @@ except ImportError:
     FIBONACCI = ""
 
 
+@pytest.mark.skip(reason="pydandic messed up")
 @dec.skip_without("jupyter_ai")
 @pytest.mark.asyncio
 async def test_llm_autosuggestion():
