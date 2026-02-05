@@ -215,7 +215,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 self.source_by_modname[new_modname] = ""
                 continue
             try:
-                with open(fname, "r") as f:
+                with open(fname, "r", encoding="utf8") as f:
                     self.source_by_modname[new_modname] = f.read()
             except Exception as e:
                 logger = logging.getLogger("autoreload")
@@ -552,7 +552,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         if (fname := get_module_file_name(module)) is None:
             return False
         try:
-            with open(fname, "r") as f:
+            with open(fname, "r", encoding="utf8") as f:
                 new_source_code = f.read()
         except Exception as e:
             logger = logging.getLogger("autoreload")
