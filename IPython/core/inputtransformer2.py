@@ -356,24 +356,8 @@ class MagicAssign(TokenTransformBase):
 class SystemAssign(TokenTransformBase):
     """Transformer for assignments from system commands (a = !foo)"""
     @classmethod
-    def find_pre_312(cls, tokens_by_line):
-        for line in tokens_by_line:
-            assign_ix = _find_assign_op(line)
-            if (assign_ix is not None) \
-                    and not line[assign_ix].line.strip().startswith('=') \
-                    and (len(line) >= assign_ix + 2) \
-                    and (line[assign_ix + 1].type == tokenize.ERRORTOKEN):
-                ix = assign_ix + 1
-
-                while ix < len(line) and line[ix].type == tokenize.ERRORTOKEN:
-                    if line[ix].string == '!':
-                        return cls(line[ix].start)
-                    elif not line[ix].string.isspace():
-                        break
-                    ix += 1
-
-    @classmethod
-    def find_post_312(cls, tokens_by_line):
+    def find(cls, tokens_by_line):
+        """Find the first system assignment (a = !foo) in the cell."""
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
             if (
@@ -384,13 +368,6 @@ class SystemAssign(TokenTransformBase):
                 and (line[assign_ix + 1].string == "!")
             ):
                 return cls(line[assign_ix + 1].start)
-
-    @classmethod
-    def find(cls, tokens_by_line):
-        """Find the first system assignment (a = !foo) in the cell."""
-        if sys.version_info < (3, 12):
-            return cls.find_pre_312(tokens_by_line)
-        return cls.find_post_312(tokens_by_line)
 
     def transform(self, lines: List[str]):
         """Transform a system assignment found by the ``find()`` classmethod.

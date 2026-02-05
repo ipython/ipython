@@ -78,7 +78,10 @@ def module_not_available(module):
     try:
         mod = import_module(module)
         mod_not_avail = False
-    except ImportError:
+    except Exception:
+        # Catch all exceptions, not just ImportError, since modules can fail
+        # to import for various reasons (e.g., compatibility issues with newer
+        # Python versions causing TypeError, AttributeError, etc.)
         mod_not_avail = True
 
     return mod_not_avail

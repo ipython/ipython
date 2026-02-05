@@ -22,12 +22,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12","3.13"]
+        python-version: ["3.12", "3.13", "3.14"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
           - os: macos-latest
-            python-version: "3.11"
+            python-version: "3.12"
             deps: test_extra
           # free threaded, not with all dependencies
           - os: ubuntu-latest
@@ -35,19 +35,8 @@ jobs:
             deps: test
           # Tests latest development Python version
           - os: ubuntu-latest
-            python-version: "3.14-dev"
+            python-version: "3.15-dev"
             deps: test
-          # Installing optional dependencies stuff takes ages on PyPy
-          # - os: ubuntu-latest
-          #   python-version: "pypy-3.11"
-          #   deps: test
-          # - os: windows-latest
-          #   python-version: "pypy-3.11"
-          #   deps: test
-          # - os: macos-latest
-          #   python-version: "pypy-3.11"
-          #   deps: test
-          # Temporary CI run to use entry point compatible code in matplotlib-inline.
           - os: ubuntu-latest
             python-version: "3.12"
             deps: test_extra
@@ -119,16 +108,16 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
+          - ubuntu-latest
           # include windows because of platform-specific direct dependencies
-          - windows-2022
+          - windows-latest
 
     steps:
     - uses: actions/checkout@v6
-    - name: Set up uv with Python 3.11
+    - name: Set up uv with Python 3.12
       uses: astral-sh/setup-uv@v7
       with:
-        python-version: '3.11'
+        python-version: '3.12'
         enable-cache: true
         activate-environment: true
         prune-cache: false
