@@ -530,9 +530,13 @@ def test_function_pretty():
     "Test pretty print of function"
     # posixpath is a pure python module, its interface is consistent
     # across Python distributions
+
     import posixpath
 
-    assert pretty.pretty(posixpath.join) == "<function posixpath.join(a, *p)>"
+    if sys.version_info > (3, 15):
+        assert pretty.pretty(posixpath.join) == "<function posixpath.join(a, /, *p)>"
+    else:
+        assert pretty.pretty(posixpath.join) == "<function posixpath.join(a, *p)>"
 
     # custom function
     def meaning_of_life(question=None):
