@@ -61,7 +61,7 @@ doc = [
     "intersphinx_registry",
     "ipykernel",
     "ipython[test,matplotlib]",
-    "setuptools>=70.0",
+    "setuptools>=80.0",
     "sphinx_toml==0.0.4",
     "sphinx-rtd-theme>=0.1.8", # wheel
     "sphinx>=8.0",
@@ -72,7 +72,7 @@ test = [
     "pytest-asyncio>=1.0.0", # first guess
     "testpath>=0.2", # wheel
     "packaging>=20.1.0", # first guess
-    "setuptools>=61.2",
+    "setuptools>=80.0",
 ]
 test_extra = [
     "ipython[test]",
