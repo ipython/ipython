@@ -73,7 +73,7 @@ test = [
     "pytest-asyncio>=1.0.0", # first guess
     "testpath>=0.2", # wheel
     "packaging>=20.1.0", # first guess
-    "setuptools>=61.2",
+    "setuptools>=67.0",  # minimum version for Python 3.12 support
 ]
 test_extra = [
     "ipython[test]",
