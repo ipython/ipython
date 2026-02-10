@@ -1,9 +1,9 @@
 version: 2
 
 build:
-  os: ubuntu-22.04
+  os: ubuntu-latest
   tools:
-    python: "3.11"
+    python: "3.14"
   apt_packages:
     - graphviz
 
