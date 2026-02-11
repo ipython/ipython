@@ -943,8 +943,11 @@ class TerminalInteractiveShell(InteractiveShell):
         return options
 
     def prompt_for_code(self):
-        asyncio_loop = get_asyncio_loop()
-        return asyncio_loop.run_until_complete(self._prompt_for_code())
+        if self._use_asyncio_inputhook and False:
+            asyncio_loop = get_asyncio_loop()
+            return asyncio_loop.run_until_complete(self._prompt_for_code())
+        else:
+            return next(self._prompt_for_code())
 
     async def _prompt_for_code_async(self):
         """Async version of prompt that can run in any event loop.
@@ -990,7 +993,6 @@ class TerminalInteractiveShell(InteractiveShell):
                     **self._extra_prompt_options(),
                 )
 
-        return text
 
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
