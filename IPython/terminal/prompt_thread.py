@@ -400,17 +400,22 @@ class StdinWrapper:
 
 
 class InputPatcher:
-    """Context manager that patches builtins.input to use the prompt thread.
+    """Context manager that patches builtins.input and sys.stdin for the prompt thread.
 
-    This ensures that calls to input() from user code are routed through
-    the prompt thread, avoiding stdin conflicts.
+    This ensures that calls to input() and direct stdin access from user code
+    are routed through the prompt thread, avoiding stdin conflicts.
     """
+
+    _original_input: Optional[Any]
+    _original_stdin: Any
 
     def __init__(self, prompt_thread: PromptThread) -> None:
         self._prompt_thread = prompt_thread
-        self._original_input: Optional[Any] = None
+        self._original_input = None
+        self._original_stdin = None
 
     def __enter__(self) -> "InputPatcher":
+        # Patch builtins.input
         self._original_input = builtins.input
 
         prompt_thread = self._prompt_thread
@@ -420,8 +425,15 @@ class InputPatcher:
             return prompt_thread.request_input(str(prompt))
 
         builtins.input = patched_input  # type: ignore[assignment]
+
+        # Wrap sys.stdin with StdinWrapper
+        self._original_stdin = sys.stdin
+        sys.stdin = StdinWrapper(self._original_stdin, self._prompt_thread)
+
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> Literal[False]:
+        # Restore original input and stdin
         builtins.input = self._original_input  # type: ignore[assignment]
+        sys.stdin = self._original_stdin
         return False

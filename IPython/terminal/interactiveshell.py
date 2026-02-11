@@ -1071,7 +1071,6 @@ class TerminalInteractiveShell(InteractiveShell):
         from .prompt_thread import (
             InputPatcher,
             PromptThread,
-            StdinWrapper,
             _EOFSentinel,
             _ExceptionSentinel,
         )
@@ -1093,12 +1092,8 @@ class TerminalInteractiveShell(InteractiveShell):
 
         self._prompt_thread = prompt_thread
 
-        # Wrap stdin so direct stdin reads pause the prompt thread
-        original_stdin = sys.stdin
-        sys.stdin = StdinWrapper(original_stdin, prompt_thread)
-
-        # Patch builtins.input to route through the prompt thread
-        # This handles the common case of user code calling input()
+        # Patch builtins.input and wrap sys.stdin to route through the prompt thread
+        # This handles both input() calls and direct stdin access from user code
         input_patcher = InputPatcher(prompt_thread)
 
         try:
@@ -1139,7 +1134,6 @@ class TerminalInteractiveShell(InteractiveShell):
                             signal.signal(signal.SIGINT, prev_handler)
         finally:
             self._prompt_thread = None
-            sys.stdin = original_stdin
             prompt_thread.stop()
             prompt_thread.join(timeout=2.0)
 
