@@ -24,13 +24,13 @@ license-files = ["LICENSE", "COPYING.rst"]
 requires-python = ">=3.12"
 dependencies = [
     'colorama>=0.4.4; sys_platform == "win32"',
-    "decorator>=4.3.2", # wheel
+    "decorator>=5.1.0",
     "ipython-pygments-lexers>=1.0.0",
-    "jedi>=0.18.1",
-    "matplotlib-inline>=0.1.5", # first guess (0.1.0 is known not to work)
-    'pexpect>4.3; sys_platform != "win32" and sys_platform != "emscripten"',
+    "jedi>=0.18.2",
+    "matplotlib-inline>=0.1.6",
+    'pexpect>4.6; sys_platform != "win32" and sys_platform != "emscripten"',
     "prompt_toolkit>=3.0.41,<3.1.0",
-    "pygments>=2.11.0", # wheel
+    "pygments>=2.14.0", # wheel
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
 ]
@@ -69,9 +69,9 @@ doc = [
 ]
 test = [
     "pytest>=7.0.0", # keep in sync with tool.pytest.ini_options.minversion
-    "pytest-asyncio>=1.0.0", # first guess
-    "testpath>=0.2", # wheel
-    "packaging>=20.1.0", # first guess
+    "pytest-asyncio>=1.0.0",
+    "testpath>=0.2",
+    "packaging>=23.0.0",
     "setuptools>=80.0",
 ]
 test_extra = [
@@ -84,7 +84,7 @@ test_extra = [
     "ipykernel>6.30",
     "numpy>=2.0",
     "pandas>2.1",
-    "trio>=0.1.0", # wheel
+    "trio>=0.22.0",
 ]
 matplotlib = [
    "matplotlib>3.9"
