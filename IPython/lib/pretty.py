@@ -859,6 +859,7 @@ _env_type = type(os.environ)
 if _env_type is not dict:
     _type_pprinters[_env_type] = _dict_pprinter_factory('environ{', '}')
 
+
 _type_pprinters[types.MappingProxyType] = _dict_pprinter_factory("mappingproxy({", "})")
 _type_pprinters[slice] = _repr_pprint
 
@@ -867,6 +868,12 @@ _type_pprinters[bytes] = _repr_pprint
 
 #: printers for types specified by name
 _deferred_type_pprinters: Dict = {}
+
+# Also register os._Environ as deferred printer to handle module reloading scenarios
+# (e.g., in test environments). This uses module+name lookup rather than type identity.
+_env_type = type(os.environ)
+if _env_type is not dict:
+    _deferred_type_pprinters[('os', '_Environ')] = _dict_pprinter_factory('environ{', '}')
 
 
 def for_type(typ, func):

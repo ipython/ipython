@@ -523,11 +523,7 @@ def test_pretty_environ():
     # reindent to align with 'environ' prefix
     dict_indented = dict_repr.replace("\n", "\n" + (" " * len("environ")))
     env_repr = pretty.pretty(os.environ)
-    # In Python 3.12+, os.environ has a __repr__ that returns environ({...})
-    # which may be used instead of the custom pretty printer in some configurations
-    expected_custom = "environ" + dict_indented  # Custom printer: environ directly concatenated with dict repr
-    expected_repr = f"environ({dict_repr})"  # Built-in repr: environ with parentheses around dict repr
-    assert env_repr == expected_custom or env_repr == expected_repr
+    assert env_repr == "environ" + dict_indented
 
 
 def test_function_pretty():
