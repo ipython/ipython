@@ -58,17 +58,28 @@ class PromptThread(threading.Thread):
 
     daemon = True
 
+    # Type annotations for instance attributes
+    _shell_ref: ReferenceType[Any]
+    input_queue: queue.Queue[Union[str, _EOFSentinel, _ExceptionSentinel]]
+    request_queue: queue.Queue[_InputRequest]
+    response_queue: queue.Queue[_InputResponse]
+    stop_event: threading.Event
+    _pause_event: threading.Event
+    _paused_event: threading.Event
+    _event_loop: Optional[asyncio.AbstractEventLoop]
+    _prompt_session: Any
+
     def __init__(self, shell: Any) -> None:
         super().__init__(name="IPythonPromptThread")
-        self._shell_ref: ReferenceType[Any] = ref(shell)
-        self.input_queue: queue.Queue[Union[str, _EOFSentinel, _ExceptionSentinel]] = queue.Queue()  # Code/sentinels -> main thread
-        self.request_queue: queue.Queue[_InputRequest] = queue.Queue()  # Input requests from main thread
-        self.response_queue: queue.Queue[_InputResponse] = queue.Queue()  # Responses to main thread
+        self._shell_ref = ref(shell)
+        self.input_queue = queue.Queue()  # Code/sentinels -> main thread
+        self.request_queue = queue.Queue()  # Input requests from main thread
+        self.response_queue = queue.Queue()  # Responses to main thread
         self.stop_event = threading.Event()
         self._pause_event = threading.Event()  # Set when prompting should pause
         self._paused_event = threading.Event()  # Set when prompt is actually paused
-        self._event_loop: Optional[asyncio.AbstractEventLoop] = None
-        self._prompt_session: Any = None  # For simple prompts (yes/no, input requests)
+        self._event_loop = None
+        self._prompt_session = None  # For simple prompts (yes/no, input requests)
 
     def run(self) -> None:
         """Main loop - continuously prompt for code."""
