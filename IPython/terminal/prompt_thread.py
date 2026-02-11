@@ -5,7 +5,8 @@ import builtins
 import queue
 import sys
 import threading
-from weakref import ref
+from typing import Any, Iterator, Literal, Optional, Union
+from weakref import ref, ReferenceType
 
 # Store the original input function
 _original_input = builtins.input
@@ -20,21 +21,21 @@ class _EOFSentinel:
         Whether the user confirmed they want to exit.
     """
 
-    def __init__(self, should_exit=True):
+    def __init__(self, should_exit: bool = True) -> None:
         self.should_exit = should_exit
 
 
 class _ExceptionSentinel:
     """Sentinel for exceptions in prompt thread."""
 
-    def __init__(self, exception):
+    def __init__(self, exception: BaseException) -> None:
         self.exception = exception
 
 
 class _InputRequest:
     """Request for input from the main thread."""
 
-    def __init__(self, prompt, password=False):
+    def __init__(self, prompt: str, password: bool = False) -> None:
         self.prompt = prompt
         self.password = password
 
@@ -42,7 +43,7 @@ class _InputRequest:
 class _InputResponse:
     """Response to an input request."""
 
-    def __init__(self, value=None, exception=None):
+    def __init__(self, value: Optional[str] = None, exception: Optional[BaseException] = None) -> None:
         self.value = value
         self.exception = exception
 
@@ -57,19 +58,19 @@ class PromptThread(threading.Thread):
 
     daemon = True
 
-    def __init__(self, shell):
+    def __init__(self, shell: Any) -> None:
         super().__init__(name="IPythonPromptThread")
-        self._shell_ref = ref(shell)
-        self.input_queue = queue.Queue()  # Code/sentinels -> main thread
-        self.request_queue = queue.Queue()  # Input requests from main thread
-        self.response_queue = queue.Queue()  # Responses to main thread
+        self._shell_ref: ReferenceType[Any] = ref(shell)
+        self.input_queue: queue.Queue[Union[str, _EOFSentinel, _ExceptionSentinel]] = queue.Queue()  # Code/sentinels -> main thread
+        self.request_queue: queue.Queue[_InputRequest] = queue.Queue()  # Input requests from main thread
+        self.response_queue: queue.Queue[_InputResponse] = queue.Queue()  # Responses to main thread
         self.stop_event = threading.Event()
         self._pause_event = threading.Event()  # Set when prompting should pause
         self._paused_event = threading.Event()  # Set when prompt is actually paused
-        self._event_loop = None
-        self._prompt_session = None  # For simple prompts (yes/no, input requests)
+        self._event_loop: Optional[asyncio.AbstractEventLoop] = None
+        self._prompt_session: Any = None  # For simple prompts (yes/no, input requests)
 
-    def run(self):
+    def run(self) -> None:
         """Main loop - continuously prompt for code."""
         from prompt_toolkit import PromptSession
         from prompt_toolkit.patch_stdout import patch_stdout
@@ -130,17 +131,18 @@ class PromptThread(threading.Thread):
             if self._event_loop is not None:
                 self._event_loop.close()
 
-    def _prompt_for_code(self, shell):
+    def _prompt_for_code(self, shell: Any) -> Optional[str]:
         """Adapted prompt_for_code for background thread.
 
         Runs the async prompt in this thread's event loop.
         Uses a monitoring task to handle input requests during prompting.
         """
+        assert self._event_loop is not None
         return self._event_loop.run_until_complete(
             self._prompt_with_request_monitoring(shell)
         )
 
-    async def _prompt_with_request_monitoring(self, shell):
+    async def _prompt_with_request_monitoring(self, shell: Any) -> Optional[str]:
         """Run the prompt while monitoring for input requests.
 
         If an input request comes in while the user is typing, we need to
@@ -183,7 +185,7 @@ class PromptThread(threading.Thread):
             monitor_task.cancel()
             raise
 
-    async def _monitor_requests(self):
+    async def _monitor_requests(self) -> Optional[_InputRequest]:
         """Monitor the request queue for input requests.
 
         Returns the request when one is found.
@@ -196,7 +198,7 @@ class PromptThread(threading.Thread):
                 # Check periodically
                 await asyncio.sleep(0.1)
 
-    def _handle_eof(self, shell):
+    def _handle_eof(self, shell: Any) -> bool:
         """Handle EOF (Ctrl-D). Returns True if should exit.
 
         This runs in the prompt thread so we can use prompt_toolkit
@@ -209,6 +211,8 @@ class PromptThread(threading.Thread):
 
         try:
             with patch_stdout(raw=True):
+                assert self._event_loop is not None
+                assert self._prompt_session is not None
                 answer = self._event_loop.run_until_complete(
                     self._prompt_session.prompt_async(
                         "Do you really want to exit ([y]/n)? "
@@ -223,12 +227,14 @@ class PromptThread(threading.Thread):
             # On any error, don't exit
             return False
 
-    def _handle_input_request(self, request):
+    def _handle_input_request(self, request: _InputRequest) -> None:
         """Handle an input request from the main thread."""
         from prompt_toolkit.patch_stdout import patch_stdout
 
         try:
             with patch_stdout(raw=True):
+                assert self._event_loop is not None
+                assert self._prompt_session is not None
                 if request.password:
                     value = self._event_loop.run_until_complete(
                         self._prompt_session.prompt_async(
@@ -247,7 +253,7 @@ class PromptThread(threading.Thread):
         except Exception as e:
             self.response_queue.put(_InputResponse(exception=e))
 
-    def get_input(self, timeout=None):
+    def get_input(self, timeout: Optional[float] = None) -> Union[str, _EOFSentinel, _ExceptionSentinel, None]:
         """Get next input from queue. Called by main thread.
 
         Parameters
@@ -265,7 +271,7 @@ class PromptThread(threading.Thread):
         except queue.Empty:
             return None
 
-    def flush_input_queue(self):
+    def flush_input_queue(self) -> int:
         """Discard all pending inputs in the queue.
 
         Called when user interrupts execution to cancel queued commands.
@@ -280,7 +286,7 @@ class PromptThread(threading.Thread):
                 break
         return count
 
-    def request_input(self, prompt, password=False, timeout=None):
+    def request_input(self, prompt: str, password: bool = False, timeout: Optional[float] = None) -> str:
         """Request input from the prompt thread. Called by main thread.
 
         This allows the main thread to get user input without conflicting
@@ -317,19 +323,20 @@ class PromptThread(threading.Thread):
 
         if response.exception is not None:
             raise response.exception
+        assert response.value is not None
         return response.value
 
-    def pause(self):
+    def pause(self) -> None:
         """Pause prompting. Called when something else needs stdin."""
         self._pause_event.set()
         # Wait for the prompt to actually pause (with timeout)
         self._paused_event.wait(timeout=5.0)
 
-    def resume(self):
+    def resume(self) -> None:
         """Resume prompting."""
         self._pause_event.clear()
 
-    def stop(self):
+    def stop(self) -> None:
         """Signal thread to stop."""
         self.stop_event.set()
         self._pause_event.clear()  # Unpause if paused
@@ -349,31 +356,31 @@ class StdinWrapper:
     the prompt thread is active.
     """
 
-    def __init__(self, original_stdin, prompt_thread):
+    def __init__(self, original_stdin: Any, prompt_thread: PromptThread) -> None:
         self._original = original_stdin
         self._prompt_thread = prompt_thread
 
-    def read(self, *args, **kwargs):
+    def read(self, *args: Any, **kwargs: Any) -> Any:
         self._prompt_thread.pause()
         try:
             return self._original.read(*args, **kwargs)
         finally:
             self._prompt_thread.resume()
 
-    def readline(self, *args, **kwargs):
+    def readline(self, *args: Any, **kwargs: Any) -> Any:
         self._prompt_thread.pause()
         try:
             return self._original.readline(*args, **kwargs)
         finally:
             self._prompt_thread.resume()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self._original, name)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Any]:
         return iter(self._original)
 
-    def __next__(self):
+    def __next__(self) -> Any:
         self._prompt_thread.pause()
         try:
             return next(self._original)
@@ -388,22 +395,22 @@ class InputPatcher:
     the prompt thread, avoiding stdin conflicts.
     """
 
-    def __init__(self, prompt_thread):
+    def __init__(self, prompt_thread: PromptThread) -> None:
         self._prompt_thread = prompt_thread
-        self._original_input = None
+        self._original_input: Optional[Any] = None
 
-    def __enter__(self):
+    def __enter__(self) -> "InputPatcher":
         self._original_input = builtins.input
 
         prompt_thread = self._prompt_thread
 
-        def patched_input(prompt=""):
+        def patched_input(prompt: object = "") -> str:
             """Patched input() that routes through the prompt thread."""
             return prompt_thread.request_input(str(prompt))
 
-        builtins.input = patched_input
+        builtins.input = patched_input  # type: ignore[assignment]
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        builtins.input = self._original_input
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> Literal[False]:
+        builtins.input = self._original_input  # type: ignore[assignment]
         return False
