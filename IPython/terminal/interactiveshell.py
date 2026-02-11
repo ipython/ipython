@@ -958,8 +958,7 @@ class TerminalInteractiveShell(InteractiveShell):
         else:
             default = ""
 
-        with patch_stdout(raw=True):
-            return await self.pt_app.prompt_async(
+        return await self.pt_app.prompt_async(
                 default=default, **self._extra_prompt_options()
             )
 

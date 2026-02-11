@@ -7,9 +7,8 @@ import sys
 import threading
 from typing import Any, Iterator, Literal, Optional, Union
 from weakref import ref, ReferenceType
-
-# Store the original input function
-_original_input = builtins.input
+from prompt_toolkit import PromptSession
+from prompt_toolkit.patch_stdout import patch_stdout
 
 
 class _EOFSentinel:
@@ -43,7 +42,9 @@ class _InputRequest:
 class _InputResponse:
     """Response to an input request."""
 
-    def __init__(self, value: Optional[str] = None, exception: Optional[BaseException] = None) -> None:
+    def __init__(
+        self, value: Optional[str] = None, exception: Optional[BaseException] = None
+    ) -> None:
         self.value = value
         self.exception = exception
 
@@ -83,9 +84,6 @@ class PromptThread(threading.Thread):
 
     def run(self) -> None:
         """Main loop - continuously prompt for code."""
-        from prompt_toolkit import PromptSession
-        from prompt_toolkit.patch_stdout import patch_stdout
-
         # Create new event loop for this thread
         self._event_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._event_loop)
@@ -215,7 +213,6 @@ class PromptThread(threading.Thread):
         This runs in the prompt thread so we can use prompt_toolkit
         for the confirmation dialog without stdin conflicts.
         """
-        from prompt_toolkit.patch_stdout import patch_stdout
 
         if not shell.confirm_exit:
             return True
@@ -240,7 +237,6 @@ class PromptThread(threading.Thread):
 
     def _handle_input_request(self, request: _InputRequest) -> None:
         """Handle an input request from the main thread."""
-        from prompt_toolkit.patch_stdout import patch_stdout
 
         try:
             with patch_stdout(raw=True):
@@ -257,14 +253,12 @@ class PromptThread(threading.Thread):
                         self._prompt_session.prompt_async(request.prompt)
                     )
                 self.response_queue.put(_InputResponse(value=value))
-        except EOFError as e:
-            self.response_queue.put(_InputResponse(exception=e))
-        except KeyboardInterrupt as e:
-            self.response_queue.put(_InputResponse(exception=e))
-        except Exception as e:
+        except (EOFError, KeyboardInterrupt, Exception) as e:
             self.response_queue.put(_InputResponse(exception=e))
 
-    def get_input(self, timeout: Optional[float] = None) -> Union[str, _EOFSentinel, _ExceptionSentinel, None]:
+    def get_input(
+        self, timeout: Optional[float] = None
+    ) -> Union[str, _EOFSentinel, _ExceptionSentinel, None]:
         """Get next input from queue. Called by main thread.
 
         Parameters
@@ -297,7 +291,9 @@ class PromptThread(threading.Thread):
                 break
         return count
 
-    def request_input(self, prompt: str, password: bool = False, timeout: Optional[float] = None) -> str:
+    def request_input(
+        self, prompt: str, password: bool = False, timeout: Optional[float] = None
+    ) -> str:
         """Request input from the prompt thread. Called by main thread.
 
         This allows the main thread to get user input without conflicting
