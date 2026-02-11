@@ -247,7 +247,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     background_prompt = Bool(
         False,
-        help="""Run prompt in background thread (experimental).
+        help="""Run prompt in background thread.
 
         This allows typing input while code executes on the main thread.
         Some signal handling (Ctrl-C) may behave differently.
@@ -814,12 +814,6 @@ class TerminalInteractiveShell(InteractiveShell):
         self._use_asyncio_inputhook = False
 
         # Build extra kwargs for PromptSession
-        prompt_session_kwargs = {}
-        if self.background_prompt:
-            # For background thread compatibility:
-            # Poll terminal size instead of relying on SIGWINCH
-            # (signals can't be handled in background threads)
-            prompt_session_kwargs["refresh_interval"] = 0.5
 
         self.pt_app = PromptSession(
             auto_suggest=self.auto_suggest,
@@ -835,7 +829,6 @@ class TerminalInteractiveShell(InteractiveShell):
             color_depth=self.color_depth,
             tempfile_suffix=".py",
             **self._extra_prompt_options(),
-            **prompt_session_kwargs,
         )
         if isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
             self.auto_suggest.connect(self.pt_app)
@@ -941,6 +934,11 @@ class TerminalInteractiveShell(InteractiveShell):
                 ),
             ],
         }
+        if self.background_prompt:
+            # For background thread compatibility:
+            # Poll terminal size instead of relying on SIGWINCH
+            # (signals can't be handled in background threads)
+            options["refresh_interval"] = 0.5
 
         return options
 
@@ -979,7 +977,7 @@ class TerminalInteractiveShell(InteractiveShell):
         # while/true inside which will freeze the prompt.
 
         with patch_stdout(raw=True):
-            if self._use_asyncio_inputhook or True:
+            if self._use_asyncio_inputhook:
                 # When we integrate the asyncio event loop, run the UI in the
                 # same event loop as the rest of the code. don't use an actual
                 # input hook. (Asyncio is not made for nesting event loops.)
@@ -1078,7 +1076,7 @@ class TerminalInteractiveShell(InteractiveShell):
             _ExceptionSentinel,
         )
 
-        self._executing = False  # Track execution state
+        self._executing = False
         self._flushed_count = 0
 
         prompt_thread = PromptThread(self)
@@ -1086,16 +1084,13 @@ class TerminalInteractiveShell(InteractiveShell):
         # SIGINT handler for during code execution
         # We install this only during execution, not during prompting
         def execution_sigint_handler(signum, frame):
-            # Flush pending inputs - user wants to cancel everything
             flushed = prompt_thread.flush_input_queue()
             if flushed > 0:
                 self._flushed_count = flushed
-            # Use default handler to raise KeyboardInterrupt properly
             signal.default_int_handler(signum, frame)
 
         prompt_thread.start()
 
-        # Store reference so the prompt can show pending count
         self._prompt_thread = prompt_thread
 
         # Wrap stdin so direct stdin reads pause the prompt thread
