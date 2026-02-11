@@ -243,11 +243,7 @@ import __main__
 
 from typing import cast
 
-if sys.version_info < (3, 12):
-    from typing_extensions import TypedDict, Protocol
-    from typing import NotRequired, TypeAlias, TypeGuard
-else:
-    from typing import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
+from typing import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 
 
 # skip module docstests
@@ -274,7 +270,7 @@ except ImportError:
 # write this). With below range we cover them all, with a density of ~67%
 # biggest next gap we consider only adds up about 1% density and there are 600
 # gaps that would need hard coding.
-_UNICODE_RANGES = [(32, 0x323B0), (0xE0001, 0xE01F0)]
+_UNICODE_RANGES = [(32, 0x3347A), (0xE0001, 0xE01F0)]
 
 # Public API
 __all__ = ["Completer", "IPCompleter"]

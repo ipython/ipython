@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77.0"]
+requires = ["setuptools>=80.0"]
 # We need access to the 'setupbase' module at build time.
 # Hence we declare a custom build backend.
 build-backend = "_build_meta"  # just re-exports setuptools.build_meta definitions
@@ -21,19 +21,18 @@ classifiers = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE", "COPYING.rst"]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     'colorama>=0.4.4; sys_platform == "win32"',
-    "decorator>=4.3.2", # wheel
+    "decorator>=5.1.0",
     "ipython-pygments-lexers>=1.0.0",
-    "jedi>=0.18.1",
-    "matplotlib-inline>=0.1.5", # first guess (0.1.0 is known not to work)
-    'pexpect>4.3; sys_platform != "win32" and sys_platform != "emscripten"',
+    "jedi>=0.18.2",
+    "matplotlib-inline>=0.1.6",
+    'pexpect>4.6; sys_platform != "win32" and sys_platform != "emscripten"',
     "prompt_toolkit>=3.0.41,<3.1.0",
-    "pygments>=2.11.0", # wheel
+    "pygments>=2.14.0", # wheel
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
-    "typing_extensions>=4.6; python_version<'3.12'",
 ]
 dynamic = ["authors", "version"]
 
@@ -62,7 +61,7 @@ doc = [
     "intersphinx_registry",
     "ipykernel",
     "ipython[test,matplotlib]",
-    "setuptools>=70.0",
+    "setuptools>=80.0",
     "sphinx_toml==0.0.4",
     "sphinx-rtd-theme>=0.1.8", # wheel
     "sphinx>=8.0",
@@ -70,10 +69,10 @@ doc = [
 ]
 test = [
     "pytest>=7.0.0", # keep in sync with tool.pytest.ini_options.minversion
-    "pytest-asyncio>=1.0.0", # first guess
-    "testpath>=0.2", # wheel
-    "packaging>=20.1.0", # first guess
-    "setuptools>=61.2",
+    "pytest-asyncio>=1.0.0",
+    "testpath>=0.2",
+    "packaging>=23.0.0",
+    "setuptools>=80.0",
 ]
 test_extra = [
     "ipython[test]",
@@ -83,9 +82,9 @@ test_extra = [
     "nbformat",
     "nbclient",
     "ipykernel>6.30",
-    "numpy>=1.27",
+    "numpy>=2.0",
     "pandas>2.1",
-    "trio>=0.1.0", # wheel
+    "trio>=0.22.0",
 ]
 matplotlib = [
    "matplotlib>3.9"
@@ -97,7 +96,7 @@ all = [
 
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 ignore_missing_imports = true
 follow_imports = 'silent'
 exclude = [

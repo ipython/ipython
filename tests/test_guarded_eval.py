@@ -32,10 +32,7 @@ from IPython.core.guarded_eval import _is_type_annotation
 
 from typing import Self, LiteralString
 
-if sys.version_info < (3, 12):
-    from typing_extensions import TypeAliasType
-else:
-    from typing import TypeAliasType
+from typing import TypeAliasType
 
 
 def create_context(evaluation: str, **kwargs):
