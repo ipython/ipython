@@ -22,6 +22,7 @@ import re
 import runpy
 import shutil
 import subprocess
+from subprocess import CalledProcessError
 import sys
 import tempfile
 import traceback
@@ -90,7 +91,7 @@ from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import ensure_dir_exists, get_home_dir, get_py_filename
-from IPython.utils.process import getoutput, system
+from IPython.utils.process import get_output_error_code, getoutput, system
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
@@ -537,6 +538,14 @@ class InteractiveShell(SingletonConfigurable):
     ).tag(config=True)
 
     quiet = Bool(False).tag(config=True)
+
+    system_raise_on_error = Bool(False, help=
+        """
+        Raise an exception on non-zero exit status from shell commands executed
+        via the `!` operator. When set to True, shell commands that fail will raise
+        CalledProcessError, similar to the behavior of %%script magics.
+        """
+    ).tag(config=True)
 
     history_length = Integer(10000,
         help='Total length of command history'
@@ -2646,7 +2655,12 @@ class InteractiveShell(SingletonConfigurable):
         # we explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.
         # Instead, we store the exit_code in user_ns.
-        self.user_ns['_exit_code'] = system(self.var_expand(cmd, depth=1))
+        exit_code = system(self.var_expand(cmd, depth=1))
+        self.user_ns['_exit_code'] = exit_code
+
+        # Raise an exception if the command failed and system_raise_on_error is True
+        if self.system_raise_on_error and exit_code != 0:
+            raise CalledProcessError(exit_code, cmd)
 
     def system_raw(self, cmd):
         """Call the given cmd in a subprocess using os.system on Windows or
@@ -2712,6 +2726,10 @@ class InteractiveShell(SingletonConfigurable):
         # but raising SystemExit(_exit_code) will give status 254!
         self.user_ns['_exit_code'] = ec
 
+        # Raise an exception if the command failed and system_raise_on_error is True
+        if self.system_raise_on_error and ec != 0:
+            raise CalledProcessError(ec, cmd)
+
     # use piped system by default, because it is better behaved
     system = system_piped
 
@@ -2737,11 +2755,27 @@ class InteractiveShell(SingletonConfigurable):
         if cmd.rstrip().endswith('&'):
             # this is *far* from a rigorous test
             raise OSError("Background processes not supported.")
-        out = getoutput(self.var_expand(cmd, depth=depth+1))
-        if split:
-            out = SList(out.splitlines())
+
+        # Get output and exit code
+        expanded_cmd = self.var_expand(cmd, depth=depth+1)
+        if self.system_raise_on_error:
+            # Use get_output_error_code to get the exit code
+            out_str, err_str, exit_code = get_output_error_code(expanded_cmd)
+            # Combine stdout and stderr as getoutput does
+            out_combined = out_str if not err_str else out_str + err_str
+            self.user_ns['_exit_code'] = exit_code
+
+            # Raise an exception if the command failed
+            if exit_code != 0:
+                raise CalledProcessError(exit_code, cmd)
         else:
-            out = LSString(out)
+            # Use the original getoutput for backward compatibility
+            out_combined = getoutput(expanded_cmd)
+
+        if split:
+            out = SList(out_combined.splitlines())
+        else:
+            out = LSString(out_combined)
         return out
 
     #-------------------------------------------------------------------------
