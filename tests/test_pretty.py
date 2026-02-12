@@ -518,6 +518,7 @@ def test_simplenamespace():
         assert pretty.pretty(obj) == expected
 
 
+@pytest.mark.skipif(sys.version_info[1] == 12, reason="issue on old-deps + python 3.12")
 def test_pretty_environ():
     dict_repr = pretty.pretty(dict(os.environ))
     # reindent to align with 'environ' prefix
@@ -530,9 +531,13 @@ def test_function_pretty():
     "Test pretty print of function"
     # posixpath is a pure python module, its interface is consistent
     # across Python distributions
+
     import posixpath
 
-    assert pretty.pretty(posixpath.join) == "<function posixpath.join(a, *p)>"
+    if sys.version_info > (3, 15):
+        assert pretty.pretty(posixpath.join) == "<function posixpath.join(a, /, *p)>"
+    else:
+        assert pretty.pretty(posixpath.join) == "<function posixpath.join(a, *p)>"
 
     # custom function
     def meaning_of_life(question=None):

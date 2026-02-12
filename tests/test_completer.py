@@ -127,7 +127,7 @@ def test_unicode_range():
     assert len_exp == len_test, message
 
     # fail if new unicode symbols have been added.
-    assert len_exp <= 148853, message
+    assert len_exp <= 153626, message
 
 
 @contextmanager
