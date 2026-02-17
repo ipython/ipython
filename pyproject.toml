@@ -128,6 +128,7 @@ enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 [[tool.mypy.overrides]]
 module = [
     "IPython.core.events",
+    "IPython.core.magic",
 ]
 # Strictest configuration, everything turned up to the max
 check_untyped_defs = true
@@ -147,7 +148,6 @@ ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
 module = [
-    "IPython.core.magic",
     "IPython.core.ultratb",
 ]
 check_untyped_defs = true

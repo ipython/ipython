@@ -434,7 +434,7 @@ class ExecutionMagics(Magics):
 
         # set on the shell
         self.shell.call_pdb = new_pdb
-        print('Automatic pdb calling has been turned',on_off(new_pdb))
+        print("Automatic pdb calling has been turned", on_off(new_pdb))
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('--breakpoint', '-b', metavar='FILE:LINE',
