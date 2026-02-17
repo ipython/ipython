@@ -15,10 +15,14 @@ events and the arguments which will be passed to them.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Iterable, TypeVar
 
 if TYPE_CHECKING:
-    from IPython.core.interactiveshell import InteractiveShell
+    from IPython.core.interactiveshell import (
+        ExecutionInfo,
+        ExecutionResult,
+        InteractiveShell,
+    )
 
 
 class EventManager:
@@ -106,7 +110,10 @@ class EventManager:
 # event_name -> prototype mapping
 available_events: dict[str, Callable[..., Any]] = {}
 
-def _define_event(callback_function: Callable[..., Any]) -> Callable[..., Any]:
+_CallbackT = TypeVar("_CallbackT", bound=Callable[..., Any])
+
+def _define_event(callback_function: _CallbackT) -> _CallbackT:
+    """Decorator to register a function as an available event prototype."""
     available_events[callback_function.__name__] = callback_function
     return callback_function
 
@@ -127,7 +134,7 @@ def pre_execute() -> None:
     pass
 
 @_define_event
-def pre_run_cell(info: Any) -> None:
+def pre_run_cell(info: ExecutionInfo) -> None:
     """Fires before user-entered code runs.
 
     Parameters
@@ -147,7 +154,7 @@ def post_execute() -> None:
     pass
 
 @_define_event
-def post_run_cell(result: Any) -> None:
+def post_run_cell(result: ExecutionResult) -> None:
     """Fires after user-entered code runs.
 
     Parameters
