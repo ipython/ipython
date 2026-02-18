@@ -644,7 +644,8 @@ class Magics(Configurable):
         class_magics = self.magics
         self.magics = {}
         for mtype in magic_kinds:
-            tab: dict[str, Any] = self.magics[mtype] = {}
+            self.magics[mtype] = {}
+            tab: dict[str, Any] = self.magics[mtype]
             cls_tab: dict[str, Any] = class_magics[mtype]
             for magic_name, meth_name in cls_tab.items():
                 if isinstance(meth_name, str):
