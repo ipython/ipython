@@ -92,6 +92,7 @@ matplotlib = [
 all = [
     "ipython[doc,matplotlib,terminal,test,test_extra]",
     "argcomplete>=3.0",
+    "types-decorator"
 ]
 
 

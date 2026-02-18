@@ -744,7 +744,7 @@ class Magics(Configurable):
             argv = arg_split(arg_str, posix, strict)  # type: ignore[no-untyped-call]
             # Do regular option processing
             try:
-                opts, args = getopt(argv, opt_str, long_opts)  # type: ignore[arg-type]
+                opts, args = getopt(argv, opt_str, long_opts)
             except GetoptError as e:
                 raise UsageError(
                     '%s (allowed: "%s"%s)'
