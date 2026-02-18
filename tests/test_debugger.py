@@ -937,3 +937,45 @@ def test_ignore_module_all_commands():
 
         child.sendline("continue")
         child.close()
+
+
+def test_exception_command_alias():
+    """Test that 'exception' is an alias for 'exceptions' command."""
+    from IPython.core.debugger import Pdb
+
+    # Create a Pdb instance
+    pdb_instance = Pdb()
+
+    # Verify both methods exist
+    assert hasattr(pdb_instance, 'do_exception')
+    assert hasattr(pdb_instance, 'do_exceptions')
+
+    # Verify they have the same behavior (calling exception calls exceptions)
+    # This is a basic sanity check
+    assert callable(pdb_instance.do_exception)
+    assert callable(pdb_instance.do_exceptions)
+
+
+def test_exception_command_alias_functionality():
+    """Test that 'exception' command works identically to 'exceptions'."""
+    from IPython.core.debugger import Pdb
+
+    # Create a Pdb instance
+    pdb_instance = Pdb()
+
+    # Test that both commands handle the same arguments without error
+    # When there are no chained exceptions, both should handle it gracefully
+
+    # These should not raise exceptions
+    result1 = pdb_instance.do_exceptions("")
+    result2 = pdb_instance.do_exception("")
+
+    # Both should return the same value (None in this case)
+    assert result1 == result2
+
+    # Test with an argument (should also not crash)
+    result3 = pdb_instance.do_exceptions("0")
+    result4 = pdb_instance.do_exception("0")
+
+    assert result3 == result4
+

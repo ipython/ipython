@@ -470,7 +470,7 @@ class Pdb(OldPdb):
                 self._chained_exception_index = 0
 
         def do_exceptions(self, arg):
-            """exceptions [number]
+            """exceptions [number] (or exception [number])
             List or change current exception in an exception chain.
             Without arguments, list all the current exception in the exception
             chain. Exceptions will be numbered, with the current exception indicated
@@ -514,6 +514,17 @@ class Pdb(OldPdb):
                     self.print_stack_entry(self.stack[self.curindex])
                 else:
                     self.error("No exception with that number")
+
+    def do_exception(self,arg):
+        """exception [number]
+        Alias for 'exceptions' command. 
+        list or change current exception in an exception chain.
+        without arguments, list all the current exception in the exception chain. 
+        Exception will be numbered, with the current exception indicated
+        with arrow
+        If given an integer as argument, switch to the exception at the index.
+        """
+        return self.do_exceptions(arg)
 
     def interaction(self, frame, tb_or_exc):
         try:
