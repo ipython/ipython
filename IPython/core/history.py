@@ -38,7 +38,7 @@ from IPython.paths import locate_profile
 from IPython.utils.decorators import undoc
 from typing import Tuple, Optional, TYPE_CHECKING
 from collections.abc import Iterable
-import typing
+import typing, cast
 from warnings import warn
 from weakref import ref, WeakSet
 
@@ -1131,7 +1131,7 @@ class HistorySavingThread(threading.Thread):
                 if hm() is not None:
                     self.db = sqlite3.connect(
                         str(hm().hist_file),  # type: ignore [union-attr]
-                        **hm().connection_options,  # type: ignore [union-attr]
+                        **cast(dict[str, Any], hm().connection_options),  # type: ignore [union-attr]
                     )
             while True:
                 self.save_flag.wait()

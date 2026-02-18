@@ -120,8 +120,8 @@ def magics_class(cls: _T) -> _T:
     application code becomes active, in practice this should not pose any
     problems.
     """
-    cls.registered = True  # type: ignore[attr-defined]
-    cls.magics = dict(line=magics["line"], cell=magics["cell"])  # type: ignore[attr-defined]
+    cls.registered = True
+    cls.magics = dict(line=magics["line"], cell=magics["cell"])
     magics["line"] = {}
     magics["cell"] = {}
     return cls
@@ -206,6 +206,7 @@ def _method_magic_marker(
     # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg: _F | str) -> _F | Callable[[_F], _F]:
+        retval: _F | Callable[[_F], _F]
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
@@ -253,18 +254,19 @@ def _function_magic_marker(
 
         ip: InteractiveShell = get_ipython()
 
+        retval: _F | Callable[[_F], _F]
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
             name = func.__name__
-            ip.register_magic_function(func, magic_kind, name)
+            ip.register_magic_function(func, magic_kind, name)  # type: ignore[arg-type]
             retval = arg
         elif isinstance(arg, str):
             # Decorator called with arguments (@foo('bar'))
             name = arg
 
             def mark(func: _F, *a: Any, **kw: Any) -> _F:
-                ip.register_magic_function(func, magic_kind, name)
+                ip.register_magic_function(func, magic_kind, name)  # type: ignore[arg-type]
                 return func
 
             retval = mark
@@ -389,7 +391,7 @@ class MagicsManager(Configurable):
     ).tag(config=True)
 
     @observe("auto_magic")
-    def _auto_magic_changed(self, change):
+    def _auto_magic_changed(self, change: dict[str, Any]) -> None:
         assert self.shell is not None
         self.shell.automagic = change["new"]
 
@@ -629,7 +631,7 @@ class Magics(Configurable):
             )
         if shell is not None:
             if hasattr(shell, "configurables"):
-                shell.configurables.append(self)
+                shell.configurables.append(self)  # type: ignore[arg-type]
             if hasattr(shell, "config"):
                 kwargs.setdefault("parent", shell)
 
@@ -687,7 +689,9 @@ class Magics(Configurable):
         strng = newline_re.sub(r"\\textbackslash{}n", strng)
         return strng
 
-    def parse_options(self, arg_str, opt_str, *long_opts, **kw):
+    def parse_options(
+        self, arg_str: str, opt_str: str, *long_opts: str, **kw: Any
+    ) -> tuple[Any, Any]:
         """Parse options passed to an argument string.
 
         The interface is similar to that of :func:`getopt.getopt`, but it
@@ -737,10 +741,10 @@ class Magics(Configurable):
         if len(args) >= 1:
             # If the list of inputs only has 0 or 1 thing in it, there's no
             # need to look for options
-            argv = arg_split(arg_str, posix, strict)
+            argv = arg_split(arg_str, posix, strict)  # type: ignore[no-untyped-call]
             # Do regular option processing
             try:
-                opts, args = getopt(argv, opt_str, long_opts)
+                opts, args = getopt(argv, opt_str, long_opts)  # type: ignore[arg-type]
             except GetoptError as e:
                 raise UsageError(
                     '%s (allowed: "%s"%s)'
@@ -769,22 +773,14 @@ class Magics(Configurable):
                         odict[o] = a
 
         # Prepare opts,args for return
-        opts = Struct(odict)  # type: ignore[assignment]
+        opts = Struct(odict)  # type: ignore[assignment, no-untyped-call]
         if mode == "string":
             if preserve_non_opts:
-                args = remainder_arg_str.lstrip()
+                args = remainder_arg_str.lstrip()  # type: ignore[assignment]
             else:
-                args = " ".join(args)
+                args = " ".join(args)  # type: ignore[assignment]
 
         return opts, args
-
-    def default_option(self, fn, optstr):
-        """Make an entry in the options_table for fn, with value optstr"""
-        assert False, "is this even called?"
-        if fn not in self.lsmagic():
-            error("%s is not a magic function" % fn)
-        self.options_table[fn] = optstr
-
 
 class MagicAlias:
     """An alias to another magic function.
@@ -797,7 +793,13 @@ class MagicAlias:
     `%alias_magic` magic function to create and register a new alias.
     """
 
-    def __init__(self, shell, magic_name, magic_kind, magic_params=None):
+    def __init__(
+        self,
+        shell: InteractiveShell,
+        magic_name: str,
+        magic_kind: _MagicKind,
+        magic_params: str | None = None,
+    ) -> None:
         self.shell = shell
         self.magic_name = magic_name
         self.magic_params = magic_params
@@ -808,9 +810,9 @@ class MagicAlias:
 
         self._in_call = False
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Call the magic alias."""
-        fn = self.shell.find_magic(self.magic_name, self.magic_kind)
+        fn = self.shell.find_magic(self.magic_name, self.magic_kind)  # type: ignore[no-untyped-call]
         if fn is None:
             raise UsageError("Magic `%s` not found." % self.pretty_target)
 
