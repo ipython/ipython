@@ -38,7 +38,8 @@ from IPython.paths import locate_profile
 from IPython.utils.decorators import undoc
 from typing import Tuple, Optional, TYPE_CHECKING
 from collections.abc import Iterable
-import typing, cast
+import typing
+from typing import cast
 from warnings import warn
 from weakref import ref, WeakSet
 
