@@ -27,9 +27,16 @@ from traitlets import Bool, Dict, Instance, observe
 from logging import error
 
 import typing as t
+from typing import Any, Callable, Literal, TypeVar, overload
 
 if t.TYPE_CHECKING:
+    from types import FrameType
+
     from IPython.core.interactiveshell import InteractiveShell
+
+_F = TypeVar("_F", bound=Callable[..., Any])
+_MagicKind = Literal["line", "cell"]
+_MagicSpec = Literal["line", "cell", "line_cell"]
 
 
 # -----------------------------------------------------------------------------
@@ -42,11 +49,11 @@ if t.TYPE_CHECKING:
 # access to the class when they run.  See for more details:
 # http://stackoverflow.com/questions/2366713/can-a-python-decorator-of-an-instance-method-access-the-class
 
-magics: t.Dict = dict(line={}, cell={})
+magics: dict[str, dict[str, str]] = dict(line={}, cell={})
 
-magic_kinds = ("line", "cell")
-magic_spec = ("line", "cell", "line_cell")
-magic_escapes = dict(line=ESC_MAGIC, cell=ESC_MAGIC2)
+magic_kinds: tuple[_MagicKind, ...] = ("line", "cell")
+magic_spec: tuple[_MagicSpec, ...] = ("line", "cell", "line_cell")
+magic_escapes: dict[_MagicKind, str] = dict(line=ESC_MAGIC, cell=ESC_MAGIC2)
 
 # -----------------------------------------------------------------------------
 # Utility classes and functions
@@ -57,12 +64,12 @@ class Bunch:
     pass
 
 
-def on_off(tag):
+def on_off(tag: int) -> str:
     """Return an ON/OFF string for a 1/0 input. Simple utility function."""
     return ["OFF", "ON"][tag]
 
 
-def compress_dhist(dh):
+def compress_dhist(dh: list[str]) -> list[str]:
     """Compress a directory history into a new one with at most 20 entries.
 
     Return a new list made from the first and last 10 elements of dhist after
@@ -70,8 +77,8 @@ def compress_dhist(dh):
     """
     head, tail = dh[:-10], dh[-10:]
 
-    newhead = []
-    done = set()
+    newhead: list[str] = []
+    done: set[str] = set()
     for h in head:
         if h in done:
             continue
@@ -81,9 +88,9 @@ def compress_dhist(dh):
     return newhead + tail
 
 
-def needs_local_scope(func):
+def needs_local_scope(func: _F) -> _F:
     """Decorator to mark magic functions which need to local scope to run."""
-    func.needs_local_scope = True
+    func.needs_local_scope = True  # type: ignore[attr-defined]
     return func
 
 
@@ -92,7 +99,10 @@ def needs_local_scope(func):
 # -----------------------------------------------------------------------------
 
 
-def magics_class(cls):
+_T = TypeVar("_T", bound=type["Magics"])
+
+
+def magics_class(cls: _T) -> _T:
     """Class decorator for all subclasses of the main Magics class.
 
     Any class that subclasses Magics *must* also apply this decorator, to
@@ -117,7 +127,12 @@ def magics_class(cls):
     return cls
 
 
-def record_magic(dct, magic_kind, magic_name, func):
+def record_magic(
+    dct: dict[str, dict[str, Any]],
+    magic_kind: _MagicSpec,
+    magic_name: str,
+    func: Any,
+) -> None:
     """Utility function to store a function as a magic of a specific kind.
 
     Parameters
@@ -137,7 +152,7 @@ def record_magic(dct, magic_kind, magic_name, func):
         dct[magic_kind][magic_name] = func
 
 
-def validate_type(magic_kind):
+def validate_type(magic_kind: str) -> None:
     """Ensure that the given magic_kind is valid.
 
     Check that the given magic_kind is one of the accepted spec types (stored
@@ -181,14 +196,17 @@ To register a class magic use ``Interactiveshell.register_magic(class or instanc
 # and make a single one with convoluted logic.
 
 
-def _method_magic_marker(magic_kind):
+def _method_magic_marker(
+    magic_kind: _MagicSpec,
+) -> Callable[[_F | str], _F | Callable[[_F], _F]]:
     """Decorator factory for methods in Magics subclasses."""
 
     validate_type(magic_kind)
 
     # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
-    def magic_deco(arg):
+    def magic_deco(arg: _F | str) -> _F | Callable[[_F], _F]:
+        retval: _F | Callable[[_F], _F]
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
@@ -199,7 +217,7 @@ def _method_magic_marker(magic_kind):
             # Decorator called with arguments (@foo('bar'))
             name = arg
 
-            def mark(func, *a, **kw):
+            def mark(func: _F, *a: Any, **kw: Any) -> _F:
                 record_magic(magics, magic_kind, name, func.__name__)
                 return func
 
@@ -213,15 +231,18 @@ def _method_magic_marker(magic_kind):
     return magic_deco
 
 
-def _function_magic_marker(magic_kind):
+def _function_magic_marker(
+    magic_kind: _MagicSpec,
+) -> Callable[[_F | str], _F | Callable[[_F], _F]]:
     """Decorator factory for standalone functions."""
     validate_type(magic_kind)
 
     # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
-    def magic_deco(arg):
+    def magic_deco(arg: _F | str) -> _F | Callable[[_F], _F]:
         # Find get_ipython() in the caller's namespace
-        caller = sys._getframe(1)
+        caller: FrameType = sys._getframe(1)
+        get_ipython: Callable[[], InteractiveShell] | None = None
         for ns in ["f_locals", "f_globals", "f_builtins"]:
             get_ipython = getattr(caller, ns).get("get_ipython")
             if get_ipython is not None:
@@ -231,20 +252,21 @@ def _function_magic_marker(magic_kind):
                 "Decorator can only run in context where `get_ipython` exists"
             )
 
-        ip = get_ipython()
+        ip: InteractiveShell = get_ipython()
 
+        retval: _F | Callable[[_F], _F]
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
             name = func.__name__
-            ip.register_magic_function(func, magic_kind, name)
+            ip.register_magic_function(func, magic_kind, name)  # type: ignore[arg-type]
             retval = arg
         elif isinstance(arg, str):
             # Decorator called with arguments (@foo('bar'))
             name = arg
 
-            def mark(func, *a, **kw):
-                ip.register_magic_function(func, magic_kind, name)
+            def mark(func: _F, *a: Any, **kw: Any) -> _F:
+                ip.register_magic_function(func, magic_kind, name)  # type: ignore[arg-type]
                 return func
 
             retval = mark
@@ -274,7 +296,7 @@ MAGIC_NO_VAR_EXPAND_ATTR = "_ipython_magic_no_var_expand"
 MAGIC_OUTPUT_CAN_BE_SILENCED = "_ipython_magic_output_can_be_silenced"
 
 
-def no_var_expand(magic_func):
+def no_var_expand(magic_func: _F) -> _F:
     """Mark a magic function as not needing variable expansion
 
     By default, IPython interprets `{a}` or `$a` in the line passed to magics
@@ -290,7 +312,7 @@ def no_var_expand(magic_func):
     return magic_func
 
 
-def output_can_be_silenced(magic_func):
+def output_can_be_silenced(magic_func: _F) -> _F:
     """Mark a magic function so its output may be silenced.
 
     The output is silenced if the Python code used as a parameter of
@@ -369,7 +391,7 @@ class MagicsManager(Configurable):
     ).tag(config=True)
 
     @observe("auto_magic")
-    def _auto_magic_changed(self, change):
+    def _auto_magic_changed(self, change: dict[str, Any]) -> None:
         assert self.shell is not None
         self.shell.automagic = change["new"]
 
@@ -380,20 +402,27 @@ class MagicsManager(Configurable):
 
     user_magics = Instance("IPython.core.magics.UserMagics", allow_none=True)
 
-    def __init__(self, shell=None, config=None, user_magics=None, **traits):
+    def __init__(
+        self,
+        shell: InteractiveShell | None = None,
+        config: Any = None,
+        user_magics: Magics | None = None,
+        **traits: Any,
+    ) -> None:
         super(MagicsManager, self).__init__(
             shell=shell, config=config, user_magics=user_magics, **traits
         )
         self.magics = dict(line={}, cell={})
         # Let's add the user_magics to the registry for uniformity, so *all*
         # registered magic containers can be found there.
-        self.registry[user_magics.__class__.__name__] = user_magics
+        if user_magics is not None:
+            self.registry[user_magics.__class__.__name__] = user_magics
 
-    def auto_status(self):
+    def auto_status(self) -> str:
         """Return descriptive string with automagic status."""
         return self._auto_status[self.auto_magic]
 
-    def lsmagic(self):
+    def lsmagic(self) -> dict[str, dict[str, Any]]:
         """Return a dict of currently available magic functions.
 
         The return dict has the keys 'line' and 'cell', corresponding to the
@@ -401,7 +430,9 @@ class MagicsManager(Configurable):
         """
         return self.magics
 
-    def lsmagic_docs(self, brief=False, missing=""):
+    def lsmagic_docs(
+        self, brief: bool = False, missing: str = ""
+    ) -> dict[str, dict[str, str]]:
         """Return dict of documentation of magic functions.
 
         The return dict has the keys 'line' and 'cell', corresponding to the
@@ -411,9 +442,9 @@ class MagicsManager(Configurable):
 
         If brief is True, only the first line of each docstring will be returned.
         """
-        docs = {}
+        docs: dict[str, dict[str, str]] = {}
         for m_type in self.magics:
-            m_docs = {}
+            m_docs: dict[str, str] = {}
             for m_name, m_func in self.magics[m_type].items():
                 if m_func.__doc__:
                     if brief:
@@ -443,7 +474,7 @@ class MagicsManager(Configurable):
 
         self.lazy_magics[name] = fully_qualified_name
 
-    def register(self, *magic_objects):
+    def register(self, *magic_objects: type[Magics] | Magics) -> None:
         """Register one or more instances of Magics.
 
         Take one or more classes or instances of classes that subclass the main
@@ -481,7 +512,12 @@ class MagicsManager(Configurable):
             for mtype in magic_kinds:
                 self.magics[mtype].update(m.magics[mtype])
 
-    def register_function(self, func, magic_kind="line", magic_name=None):
+    def register_function(
+        self,
+        func: Callable[..., Any],
+        magic_kind: _MagicSpec = "line",
+        magic_name: str | None = None,
+    ) -> None:
         """Expose a standalone function as magic function for IPython.
 
         This will create an IPython magic (line, cell or both) from a
@@ -502,7 +538,7 @@ class MagicsManager(Configurable):
         magic_kind : str
             Kind of magic, one of 'line', 'cell' or 'line_cell'
         magic_name : optional str
-            If given, the name the magic will have in the IPython namespace.  By
+            If given, the name the magic will have in the IPython namespace. By
             default, the name of the function itself is used.
         """
 
@@ -510,12 +546,17 @@ class MagicsManager(Configurable):
         # global table
         validate_type(magic_kind)
         magic_name = func.__name__ if magic_name is None else magic_name
+        assert self.user_magics is not None
         setattr(self.user_magics, magic_name, func)
         record_magic(self.magics, magic_kind, magic_name, func)
 
     def register_alias(
-        self, alias_name, magic_name, magic_kind="line", magic_params=None
-    ):
+        self,
+        alias_name: str,
+        magic_name: str,
+        magic_kind: _MagicKind = "line",
+        magic_params: str | None = None,
+    ) -> None:
         """Register an alias to a magic function.
 
         The alias is an instance of :class:`MagicAlias`, which holds the
@@ -540,6 +581,8 @@ class MagicsManager(Configurable):
                 "magic_kind must be one of %s, %s given" % magic_kinds, magic_kind
             )
 
+        assert self.shell is not None
+        assert self.user_magics is not None
         alias = MagicAlias(self.shell, magic_name, magic_kind, magic_params)
         setattr(self.user_magics, alias_name, alias)
         record_magic(self.magics, magic_kind, alias_name, alias)
@@ -578,7 +621,9 @@ class Magics(Configurable):
     # Instance of IPython shell
     shell: None | InteractiveShell = None
 
-    def __init__(self, shell=None, **kwargs):
+    def __init__(
+        self, shell: InteractiveShell | None = None, **kwargs: Any
+    ) -> None:
         if not (self.__class__.registered):
             raise ValueError(
                 "Magics subclass without registration - "
@@ -586,7 +631,7 @@ class Magics(Configurable):
             )
         if shell is not None:
             if hasattr(shell, "configurables"):
-                shell.configurables.append(self)
+                shell.configurables.append(self)  # type: ignore[arg-type]
             if hasattr(shell, "config"):
                 kwargs.setdefault("parent", shell)
 
@@ -601,8 +646,9 @@ class Magics(Configurable):
         class_magics = self.magics
         self.magics = {}
         for mtype in magic_kinds:
-            tab = self.magics[mtype] = {}
-            cls_tab = class_magics[mtype]
+            self.magics[mtype] = {}
+            tab: dict[str, Any] = self.magics[mtype]
+            cls_tab: dict[str, Any] = class_magics[mtype]
             for magic_name, meth_name in cls_tab.items():
                 if isinstance(meth_name, str):
                     # it's a method name, grab it
@@ -614,12 +660,12 @@ class Magics(Configurable):
         # magics get screwed up.
         super(Magics, self).__init__(**kwargs)
 
-    def arg_err(self, func):
+    def arg_err(self, func: Callable[..., Any]) -> None:
         """Print docstring if incorrect arguments were passed"""
         print("Error in arguments:")
         print(oinspect.getdoc(func))
 
-    def format_latex(self, strng):
+    def format_latex(self, strng: str) -> str:
         """Format a string for latex inclusion."""
 
         # Characters that need to be escaped for latex:
@@ -643,7 +689,9 @@ class Magics(Configurable):
         strng = newline_re.sub(r"\\textbackslash{}n", strng)
         return strng
 
-    def parse_options(self, arg_str, opt_str, *long_opts, **kw):
+    def parse_options(
+        self, arg_str: str, opt_str: str, *long_opts: str, **kw: Any
+    ) -> tuple[Any, Any]:
         """Parse options passed to an argument string.
 
         The interface is similar to that of :func:`getopt.getopt`, but it
@@ -693,7 +741,7 @@ class Magics(Configurable):
         if len(args) >= 1:
             # If the list of inputs only has 0 or 1 thing in it, there's no
             # need to look for options
-            argv = arg_split(arg_str, posix, strict)
+            argv = arg_split(arg_str, posix, strict)  # type: ignore[no-untyped-call]
             # Do regular option processing
             try:
                 opts, args = getopt(argv, opt_str, long_opts)
@@ -725,22 +773,14 @@ class Magics(Configurable):
                         odict[o] = a
 
         # Prepare opts,args for return
-        opts = Struct(odict)  # type: ignore[assignment]
+        opts = Struct(odict)  # type: ignore[assignment, no-untyped-call]
         if mode == "string":
             if preserve_non_opts:
-                args = remainder_arg_str.lstrip()
+                args = remainder_arg_str.lstrip()  # type: ignore[assignment]
             else:
-                args = " ".join(args)
+                args = " ".join(args)  # type: ignore[assignment]
 
         return opts, args
-
-    def default_option(self, fn, optstr):
-        """Make an entry in the options_table for fn, with value optstr"""
-        assert False, "is this even called?"
-        if fn not in self.lsmagic():
-            error("%s is not a magic function" % fn)
-        self.options_table[fn] = optstr
-
 
 class MagicAlias:
     """An alias to another magic function.
@@ -753,7 +793,13 @@ class MagicAlias:
     `%alias_magic` magic function to create and register a new alias.
     """
 
-    def __init__(self, shell, magic_name, magic_kind, magic_params=None):
+    def __init__(
+        self,
+        shell: InteractiveShell,
+        magic_name: str,
+        magic_kind: _MagicKind,
+        magic_params: str | None = None,
+    ) -> None:
         self.shell = shell
         self.magic_name = magic_name
         self.magic_params = magic_params
@@ -764,9 +810,9 @@ class MagicAlias:
 
         self._in_call = False
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Call the magic alias."""
-        fn = self.shell.find_magic(self.magic_name, self.magic_kind)
+        fn = self.shell.find_magic(self.magic_name, self.magic_kind)  # type: ignore[no-untyped-call]
         if fn is None:
             raise UsageError("Magic `%s` not found." % self.pretty_target)
 

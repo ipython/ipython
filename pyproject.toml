@@ -92,6 +92,7 @@ matplotlib = [
 all = [
     "ipython[doc,matplotlib,terminal,test,test_extra]",
     "argcomplete>=3.0",
+    "types-decorator"
 ]
 
 
@@ -127,7 +128,27 @@ enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 
 [[tool.mypy.overrides]]
 module = [
+    "IPython.core.events",
     "IPython.core.magic",
+]
+# Strictest configuration, everything turned up to the max
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+warn_return_any = true
+warn_unused_ignores = true
+warn_unreachable = true
+strict_equality = true
+no_implicit_optional = true
+ignore_errors = false
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = [
     "IPython.core.ultratb",
 ]
 check_untyped_defs = true
@@ -141,7 +162,6 @@ ignore_missing_imports = false
 [[tool.mypy.overrides]]
 module = [
     "IPython.core.crashhandler",
-    "IPython.core.events",
     "IPython.utils.text",
     "IPython.utils.PyColorize",
     "IPython.utils.sentinel",
