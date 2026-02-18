@@ -420,9 +420,11 @@ class ExecutionMagics(Magics):
 
         par = parameter_s.strip().lower()
 
+        new_pdb: bool
+
         if par:
             try:
-                new_pdb = {'off':0,'0':0,'on':1,'1':1}[par]
+                new_pdb = {"off": False, "0": False, "on": True, "1": True}[par]
             except KeyError:
                 print ('Incorrect argument. Use on/1, off/0, '
                        'or nothing for a toggle.')
