@@ -538,7 +538,7 @@ class MagicsManager(Configurable):
         magic_kind : str
             Kind of magic, one of 'line', 'cell' or 'line_cell'
         magic_name : optional str
-            If given, the name the magic will have in the IPython namespace.  By
+            If given, the name the magic will have in the IPython namespace. By
             default, the name of the function itself is used.
         """
 
