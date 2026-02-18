@@ -53,7 +53,6 @@ from IPython.core.magic import (
     magics_class,
     needs_local_scope,
     no_var_expand,
-    on_off,
     output_can_be_silenced,
 )
 from IPython.testing.skipdoctest import skip_doctest
@@ -434,7 +433,7 @@ class ExecutionMagics(Magics):
 
         # set on the shell
         self.shell.call_pdb = new_pdb
-        print("Automatic pdb calling has been turned", on_off(new_pdb))
+        print("Automatic pdb calling has been turned", "ON" if new_pdb else "OFF")
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('--breakpoint', '-b', metavar='FILE:LINE',

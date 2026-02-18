@@ -64,11 +64,6 @@ class Bunch:
     pass
 
 
-def on_off(tag: int) -> str:
-    """Return an ON/OFF string for a 1/0 input. Simple utility function."""
-    return ["OFF", "ON"][tag]
-
-
 def compress_dhist(dh: list[str]) -> list[str]:
     """Compress a directory history into a new one with at most 20 entries.
 
