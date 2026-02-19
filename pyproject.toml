@@ -130,6 +130,8 @@ enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 module = [
     "IPython.core.events",
     "IPython.core.magic",
+    "IPython.utils._process_common",
+    "IPython.utils._process_win32",
 ]
 # Strictest configuration, everything turned up to the max
 check_untyped_defs = true
@@ -302,7 +304,6 @@ module = [
     "IPython.terminal.shortcuts.auto_suggest",
     "IPython.terminal.shortcuts.filters",
     "IPython.utils._process_cli",
-    "IPython.utils._process_common",
     "IPython.utils._process_emscripten",
     "IPython.utils.capture",
     "IPython.utils.coloransi",

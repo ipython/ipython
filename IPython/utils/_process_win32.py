@@ -59,13 +59,13 @@ class AvoidUNCPath:
         self,
         exc_type: Optional[type[BaseException]],
         exc_value: Optional[BaseException],
-        traceback: TracebackType,
+        traceback: Optional[TracebackType],
     ) -> None:
         if self.is_unc_path:
             os.chdir(self.path)
 
 
-def _system_body(p: subprocess.Popen) -> int:
+def _system_body(p: subprocess.Popen[bytes]) -> int:
     """Callback for _system."""
     enc = DEFAULT_ENCODING
 
@@ -75,7 +75,7 @@ def _system_body(p: subprocess.Popen) -> int:
     def stdout_read() -> None:
         try:
             assert p.stdout is not None
-            for byte_line in read_no_interrupt(p.stdout).splitlines():
+            for byte_line in (read_no_interrupt(p.stdout) or b"").splitlines():
                 line = byte_line.decode(enc, "replace")
                 print(line, file=sys.stdout)
         except Exception as e:
@@ -84,7 +84,7 @@ def _system_body(p: subprocess.Popen) -> int:
     def stderr_read() -> None:
         try:
             assert p.stderr is not None
-            for byte_line in read_no_interrupt(p.stderr).splitlines():
+            for byte_line in (read_no_interrupt(p.stderr) or b"").splitlines():
                 line = byte_line.decode(enc, "replace")
                 print(line, file=sys.stderr)
         except Exception as e:
@@ -136,9 +136,7 @@ def system(cmd: str) -> Optional[int]:
         if path is not None:
             cmd = '"pushd %s &&"%s' % (path, cmd)
         res = process_handler(cmd, _system_body)
-        assert isinstance(res, int | type(None))
         return res
-    return None
 
 
 def getoutput(cmd: str) -> str:
@@ -208,6 +206,7 @@ try:
         return result
 except AttributeError:
     arg_split = py_arg_split
+
 
 
 def check_pid(pid: int) -> bool:
