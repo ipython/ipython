@@ -65,7 +65,7 @@ class AvoidUNCPath:
             os.chdir(self.path)
 
 
-def _system_body(p: subprocess.Popen) -> int:
+def _system_body(p: subprocess.Popen[bytes]) -> int:
     """Callback for _system."""
     enc = DEFAULT_ENCODING
 
@@ -136,9 +136,7 @@ def system(cmd: str) -> Optional[int]:
         if path is not None:
             cmd = '"pushd %s &&"%s' % (path, cmd)
         res = process_handler(cmd, _system_body)
-        assert isinstance(res, int | type(None))
         return res
-    return None
 
 
 def getoutput(cmd: str) -> str:

@@ -18,8 +18,10 @@ import os
 import shlex
 import subprocess
 import sys
-from typing import IO, Any, List, Union
+from typing import IO, List, TypeVar, Union
 from collections.abc import Callable
+
+_T = TypeVar("_T")
 
 from IPython.utils import py3compat
 
@@ -27,7 +29,7 @@ from IPython.utils import py3compat
 # Function definitions
 #-----------------------------------------------------------------------------
 
-def read_no_interrupt(stream: IO[Any]) -> bytes | None:
+def read_no_interrupt(stream: IO[bytes]) -> bytes | None:
     """Read from a pipe ignoring EINTR errors.
 
     This is necessary because when reading from pipes with GUI event loops
@@ -40,13 +42,14 @@ def read_no_interrupt(stream: IO[Any]) -> bytes | None:
     except IOError as err:
         if err.errno != errno.EINTR:
             raise
+    return None
 
 
 def process_handler(
     cmd: Union[str, List[str]],
-    callback: Callable[[subprocess.Popen], int | str | bytes],
+    callback: Callable[[subprocess.Popen[bytes]], _T],
     stderr: int = subprocess.PIPE,
-) -> int | str | bytes | None:
+) -> _T | None:
     """Open a command in a shell subprocess and execute a callback.
 
     This function provides common scaffolding for creating subprocess.Popen()
@@ -137,7 +140,6 @@ def getoutput(cmd: str | list[str]) -> str:
     out = process_handler(cmd, lambda p: p.communicate()[0], subprocess.STDOUT)
     if out is None:
         return ''
-    assert isinstance(out, bytes)
     return py3compat.decode(out)
 
 
@@ -177,10 +179,10 @@ def get_output_error_code(cmd: str | list[str]) -> tuple[str, str, int | None]:
     returncode: int
     """
 
-    out_err, p = process_handler(cmd, lambda p: (p.communicate(), p))
-    if out_err is None:
-        return '', '', p.returncode
-    out, err = out_err
+    result = process_handler(cmd, lambda p: (p.communicate(), p))
+    if result is None:
+        return '', '', None
+    (out, err), p = result
     return py3compat.decode(out), py3compat.decode(err), p.returncode
 
 def arg_split(commandline: str, posix: bool = False, strict: bool = True) -> list[str]:
@@ -196,7 +198,7 @@ def arg_split(commandline: str, posix: bool = False, strict: bool = True) -> lis
     command-line args.
     """
 
-    lex = shlex.shlex(s, posix=posix)
+    lex = shlex.shlex(commandline, posix=posix)
     lex.whitespace_split = True
     # Extract tokens, ensuring that things like leaving open quotes
     # does not cause this to raise.  This is important, because we
