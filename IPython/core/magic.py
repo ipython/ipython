@@ -736,7 +736,7 @@ class Magics(Configurable):
         if len(args) >= 1:
             # If the list of inputs only has 0 or 1 thing in it, there's no
             # need to look for options
-            argv = arg_split(arg_str, posix, strict)  # type: ignore[no-untyped-call]
+            argv = arg_split(arg_str, posix, strict)
             # Do regular option processing
             try:
                 opts, args = getopt(argv, opt_str, long_opts)

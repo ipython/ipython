@@ -27,7 +27,7 @@ from IPython.utils import py3compat
 # Function definitions
 #-----------------------------------------------------------------------------
 
-def read_no_interrupt(stream: IO[Any]) -> bytes:
+def read_no_interrupt(stream: IO[Any]) -> bytes | None:
     """Read from a pipe ignoring EINTR errors.
 
     This is necessary because when reading from pipes with GUI event loops
@@ -45,8 +45,8 @@ def read_no_interrupt(stream: IO[Any]) -> bytes:
 def process_handler(
     cmd: Union[str, List[str]],
     callback: Callable[[subprocess.Popen], int | str | bytes],
-    stderr=subprocess.PIPE,
-) -> int | str | bytes:
+    stderr: int = subprocess.PIPE,
+) -> int | str | bytes | None:
     """Open a command in a shell subprocess and execute a callback.
 
     This function provides common scaffolding for creating subprocess.Popen()
@@ -118,7 +118,7 @@ def process_handler(
     return out
 
 
-def getoutput(cmd):
+def getoutput(cmd: str | list[str]) -> str:
     """Run a command and return its stdout/stderr as a string.
 
     Parameters
@@ -141,7 +141,7 @@ def getoutput(cmd):
     return py3compat.decode(out)
 
 
-def getoutputerror(cmd):
+def getoutputerror(cmd: str | list[str]) -> tuple[str, str]:
     """Return (standard output, standard error) of executing cmd in a shell.
 
     Accepts the same arguments as os.system().
@@ -158,7 +158,8 @@ def getoutputerror(cmd):
     """
     return get_output_error_code(cmd)[:2]
 
-def get_output_error_code(cmd):
+
+def get_output_error_code(cmd: str | list[str]) -> tuple[str, str, int | None]:
     """Return (standard output, standard error, return code) of executing cmd
     in a shell.
 
@@ -182,7 +183,7 @@ def get_output_error_code(cmd):
     out, err = out_err
     return py3compat.decode(out), py3compat.decode(err), p.returncode
 
-def arg_split(s, posix=False, strict=True):
+def arg_split(commandline: str, posix: bool = False, strict: bool = True) -> list[str]:
     """Split a command line's arguments in a shell-like manner.
 
     This is a modified version of the standard library's shlex.split()
