@@ -10,7 +10,8 @@ from io import StringIO
 
 import unittest
 
-from IPython.utils.io import Tee, capture_output
+from IPython.utils.io import Tee
+from IPython.utils.capture import capture_output
 
 
 def test_tee_simple():

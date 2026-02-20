@@ -32,7 +32,7 @@ from tempfile import TemporaryDirectory
 from IPython.core import debugger
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils.io import capture_output
+from IPython.utils.capture import capture_output
 
 
 def doctest_refbug():
