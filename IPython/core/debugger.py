@@ -243,7 +243,7 @@ class Pdb(OldPdb):
         stdout=None,
         context: int | None | str = 5,
         *,
-        shell: TerminalInteractiveShell = None,
+        shell: InteractiveShell | None = None,
         **kwargs,
     ):
         """Create a new IPython debugger.
@@ -283,7 +283,14 @@ class Pdb(OldPdb):
             self.curframe = None
 
         # IPython changes...
-        self.shell = get_ipython()
+        if shell is None:
+            from IPython import get_ipython
+
+            self.shell = get_ipython()
+            assert self.shell is not None
+        else:
+            self.shell = shell
+            assert self.shell is not None
 
         self.aliases = {}
 
