@@ -714,6 +714,12 @@ class HistoryManager(HistoryAccessor):
     def __del__(self) -> None:
         if self.save_thread is not None:
             self.save_thread.stop()
+        # Close the database connection to avoid ResourceWarning
+        if hasattr(self, 'db') and not isinstance(self.db, DummyDB):
+            try:
+                self.db.close()
+            except Exception:
+                pass
 
     @classmethod
     def _stop_thread(cls) -> None:
