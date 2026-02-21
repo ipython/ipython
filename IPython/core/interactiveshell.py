@@ -71,7 +71,6 @@ from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import InputRejected, UsageError
-from IPython.core.events import EventManager, available_events
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager, HistoryOutput
@@ -83,7 +82,7 @@ from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.tips import pick_tip
 from IPython.core.usage import default_banner
-from IPython.display import display
+from IPython.core.display_functions import display
 from IPython.paths import get_ipython_dir
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize, io, openpy, py3compat
@@ -1103,6 +1102,8 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
 
     def init_events(self):
+        # Import here to break circular dependency with IPython.core.events
+        from IPython.core.events import EventManager, available_events
         self.events = EventManager(self, available_events)
 
         self.events.register("pre_execute", self._clear_warning_registry)
@@ -3954,7 +3955,7 @@ class InteractiveShell(SingletonConfigurable):
         """Show a usage message"""
         page.page(IPython.core.usage.interactive_usage)
 
-    def extract_input_lines(self, range_str, raw=False):
+    def extract_input_lines(self, range_str: str, raw: bool = False) -> str:
         """Return as a string a set of input history slices.
 
         Parameters
@@ -3980,7 +3981,7 @@ class InteractiveShell(SingletonConfigurable):
         * ``N-M`` -> include items N..M (closed endpoint).
         """
         lines = self.history_manager.get_range_by_str(range_str, raw=raw)
-        text = "\n".join(x for _, _, x in lines)
+        text: str = "\n".join(x for _, _, x in lines)
 
         # Skip the last line, as it's probably the magic that called this
         if not range_str:
@@ -3991,7 +3992,14 @@ class InteractiveShell(SingletonConfigurable):
 
         return text
 
-    def find_user_code(self, target, raw=True, py_only=False, skip_encoding_cookie=True, search_ns=False):
+    def find_user_code(
+        self,
+        target: str,
+        raw: bool = True,
+        py_only: bool = False,
+        skip_encoding_cookie: bool = True,
+        search_ns: bool = False,
+    ) -> str:
         """Get a code string from history, file, url, or a string or macro.
 
         This is mainly used by magic functions.
@@ -4022,33 +4030,33 @@ class InteractiveShell(SingletonConfigurable):
         to an object of another type. In each case, .args[0] is a printable
         message.
         """
-        code = self.extract_input_lines(target, raw=raw)  # Grab history
+        code: str = self.extract_input_lines(target, raw=raw)  # Grab history
         if code:
             return code
         try:
             if target.startswith(('http://', 'https://')):
                 return openpy.read_py_url(target, skip_encoding_cookie=skip_encoding_cookie)
         except UnicodeDecodeError as e:
-            if not py_only :
+            if not py_only:
                 # Deferred import
                 from urllib.request import urlopen
                 response = urlopen(target)
                 return response.read().decode('latin1')
             raise ValueError(("'%s' seem to be unreadable.") % target) from e
 
-        potential_target = [target]
-        try :
-            potential_target.insert(0,get_py_filename(target))
+        potential_target: list[str] = [target]
+        try:
+            potential_target.insert(0, get_py_filename(target))
         except IOError:
             pass
 
-        for tgt in potential_target :
-            if os.path.isfile(tgt):                        # Read file
-                try :
+        for tgt in potential_target:
+            if os.path.isfile(tgt):  # Read file
+                try:
                     return openpy.read_py_file(tgt, skip_encoding_cookie=skip_encoding_cookie)
                 except UnicodeDecodeError as e:
-                    if not py_only :
-                        with io_open(tgt,'r', encoding='latin1') as f :
+                    if not py_only:
+                        with io_open(tgt, 'r', encoding='latin1') as f:
                             return f.read()
                     raise ValueError(("'%s' seem to be unreadable.") % target) from e
             elif os.path.isdir(os.path.expanduser(tgt)):
@@ -4057,22 +4065,23 @@ class InteractiveShell(SingletonConfigurable):
         if search_ns:
             # Inspect namespace to load object source
             object_info = self.object_inspect(target, detail_level=1)
-            if object_info['found'] and object_info['source']:
-                return object_info['source']
+            source: str | None = object_info.get('source')
+            if object_info['found'] and source:
+                return source
 
-        try:                                              # User namespace
+        try:  # User namespace
             codeobj = eval(target, self.user_ns)
         except Exception as e:
-            raise ValueError(("'%s' was not found in history, as a file, url, "
-                                "nor in the user namespace.") % target) from e
+            raise ValueError(
+                ("'%s' was not found in history, as a file, url, " "nor in the user namespace.") % target
+            ) from e
 
         if isinstance(codeobj, str):
             return codeobj
         elif isinstance(codeobj, Macro):
             return codeobj.value
 
-        raise TypeError("%s is neither a string nor a macro." % target,
-                        codeobj)
+        raise TypeError("%s is neither a string nor a macro." % target, codeobj)
 
     def _atexit_once(self):
         """

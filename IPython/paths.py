@@ -5,6 +5,7 @@ import tempfile
 from warnings import warn
 
 import IPython
+from IPython.core.profiledir import ProfileDir, ProfileDirError, get_ipython_package_dir
 from IPython.utils.importstring import import_item
 from IPython.utils.path import (
     get_home_dir,
@@ -86,11 +87,6 @@ def get_ipython_cache_dir() -> str:
     return ipdir
 
 
-def get_ipython_package_dir() -> str:
-    """Get the base directory where IPython itself is installed."""
-    ipdir = os.path.dirname(IPython.__file__)
-    assert isinstance(ipdir, str)
-    return ipdir
 
 
 def get_ipython_module_path(module_str):
@@ -113,7 +109,6 @@ def locate_profile(profile='default'):
 
     I.e. find $IPYTHONDIR/profile_whatever.
     """
-    from IPython.core.profiledir import ProfileDir, ProfileDirError
     try:
         pd = ProfileDir.find_profile_dir_by_name(get_ipython_dir(), profile)
     except ProfileDirError as e:
