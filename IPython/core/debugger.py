@@ -282,12 +282,16 @@ class Pdb(OldPdb):
         if sys.version_info < (3, 15):
             self.curframe = None
 
-        # IPython changes...
-        if shell is None:
-            from IPython import get_ipython
 
-            self.shell = get_ipython()
-            assert self.shell is not None
+        if shell is None:
+            save_main = sys.modules["__main__"]
+            # No IPython instance running, we must create one
+            from IPython.terminal.interactiveshell import TerminalInteractiveShell
+
+            self.shell = TerminalInteractiveShell.instance()
+            # needed by any code which calls __import__("__main__") after
+            # the debugger was entered. See also #9941.
+            sys.modules["__main__"] = save_main
         else:
             self.shell = shell
             assert self.shell is not None
