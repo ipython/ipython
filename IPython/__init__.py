@@ -54,7 +54,7 @@ See IPython `README.rst` file for more information:
 from .core.getipython import get_ipython
 from .core import release
 from .core.application import Application
-from .terminal.embed import embed
+#from .terminal.embed import embed
 
 from .core.interactiveshell import InteractiveShell
 from .utils.sysinfo import sys_info
