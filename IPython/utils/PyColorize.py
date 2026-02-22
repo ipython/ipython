@@ -12,7 +12,7 @@ from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.style import Style
 from pygments.styles import get_style_by_name
 from pygments.token import Token, _TokenType
-from functools import cache
+from functools import cache, cached_property
 
 from typing import TypedDict
 
@@ -55,7 +55,6 @@ class Theme:
         self.extra_style = extra_style
         s: Symbols = symbols if symbols is not None else _default_symbols
         self.symbols = {**_default_symbols, **s}
-        self._formatter = Terminal256Formatter(style=self.as_pygments_style())
 
     @cache
     def as_pygments_style(self) -> Type[Style]:
@@ -68,6 +67,15 @@ class Theme:
             styles = {**base_styles, **self.extra_style}
 
         return MyStyle
+
+    @cached_property
+    def _formatter(self) -> Terminal256Formatter:
+        """
+        # Built lazily: creating a Terminal256Formatter is ~0.5 ms per theme,
+        # and there are 8 module-level Theme objects, so deferring saves ~4 ms
+        # on every startup even when colour output is never used.
+        """
+        return Terminal256Formatter(style=self.as_pygments_style())
 
     def format(self, stream: TokenStream) -> str:
         return pygments.format(stream, self._formatter)
