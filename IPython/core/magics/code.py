@@ -20,8 +20,6 @@ import re
 import sys
 import ast
 from itertools import chain
-from urllib.request import Request, urlopen
-from urllib.parse import urlencode
 from pathlib import Path
 
 # Our own packages
@@ -270,6 +268,8 @@ class CodeMagics(Magics):
           -e: Pass number of days for the link to be expired.
               The default will be 7 days.
         """
+        from urllib.request import Request, urlopen
+        from urllib.parse import urlencode
         opts, args = self.parse_options(parameter_s, "d:e:")
 
         try:
