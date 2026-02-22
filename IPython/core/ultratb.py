@@ -83,7 +83,7 @@ import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
-from IPython import get_ipython
+from IPython.core.getipython import get_ipython
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils.PyColorize import Parser, Theme, TokenStream, theme_table

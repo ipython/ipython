@@ -1,4 +1,3 @@
-# encoding: utf-8
 """An object for managing IPython profile directories."""
 
 # Copyright (c) IPython Development Team.
@@ -10,7 +9,6 @@ import errno
 from pathlib import Path
 
 from traitlets.config.configurable import LoggingConfigurable
-from ..paths import get_ipython_package_dir
 from ..utils.path import expand_path, ensure_dir_exists
 from traitlets import Unicode, Bool, observe
 
@@ -242,3 +240,13 @@ class ProfileDir(LoggingConfigurable):
         if not os.path.isdir(profile_dir):
             raise ProfileDirError('Profile directory not found: %s' % profile_dir)
         return cls(location=profile_dir, config=config)
+
+
+def get_ipython_package_dir() -> str:
+    """Get the base directory where IPython itself is installed."""
+    # profiledir.py lives at IPython/core/profiledir.py, so two levels up is
+    # the IPython package directory.  Avoids importing the top-level IPython
+    # package (and its expensive eager imports) just for __file__.
+    ipdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    assert isinstance(ipdir, str)
+    return ipdir

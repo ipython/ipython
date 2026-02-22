@@ -2,11 +2,12 @@ import asyncio
 import os
 import sys
 
+from IPython import get_ipython
 from IPython.core.debugger import Pdb
 from IPython.core.completer import IPCompleter
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from .ptutils import IPythonPTCompleter
 from .shortcuts import create_ipython_shortcuts
-from . import embed
 
 from pathlib import Path
 from pygments.token import Token
@@ -26,7 +27,16 @@ class TerminalPdb(Pdb):
     """Standalone IPython debugger."""
 
     def __init__(self, *args, pt_session_options=None, **kwargs):
-        Pdb.__init__(self, *args, **kwargs)
+        shell = get_ipython()
+        if shell is None:
+            save_main = sys.modules["__main__"]
+            # No IPython instance running, we must create one
+            shell = TerminalInteractiveShell.instance()
+            # needed by any code which calls __import__("__main__") after
+            # the debugger was entered. See also #9941.
+            sys.modules["__main__"] = save_main
+
+        Pdb.__init__(self, *args, shell=shell, **kwargs)
         self._ptcomp = None
         self.pt_init(pt_session_options)
         self.thread_executor = ThreadPoolExecutor(1)
@@ -148,6 +158,7 @@ class TerminalPdb(Pdb):
             raise
 
     def do_interact(self, arg):
+        from . import embed
         ipshell = embed.InteractiveShellEmbed(
             config=self.shell.config,
             banner1="*interactive*",

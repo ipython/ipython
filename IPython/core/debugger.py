@@ -132,7 +132,6 @@ import warnings
 from contextlib import contextmanager
 from functools import lru_cache
 
-from IPython import get_ipython
 from IPython.core.debugger_backport import PdbClosureBackport
 from IPython.utils import PyColorize
 from IPython.utils.PyColorize import TokenStream
@@ -243,6 +242,8 @@ class Pdb(OldPdb):
         stdin=None,
         stdout=None,
         context: int | None | str = 5,
+        *,
+        shell: InteractiveShell | None = None,
         **kwargs,
     ):
         """Create a new IPython debugger.
@@ -258,6 +259,7 @@ class Pdb(OldPdb):
         context : int
             Number of lines of source code context to show when
             displaying stacktrace information.
+        shell : InteractiveShell
         **kwargs
             Passed to pdb.Pdb.
 
@@ -280,10 +282,8 @@ class Pdb(OldPdb):
         if sys.version_info < (3, 15):
             self.curframe = None
 
-        # IPython changes...
-        self.shell = get_ipython()
 
-        if self.shell is None:
+        if shell is None:
             save_main = sys.modules["__main__"]
             # No IPython instance running, we must create one
             from IPython.terminal.interactiveshell import TerminalInteractiveShell
@@ -292,6 +292,9 @@ class Pdb(OldPdb):
             # needed by any code which calls __import__("__main__") after
             # the debugger was entered. See also #9941.
             sys.modules["__main__"] = save_main
+        else:
+            self.shell = shell
+            assert self.shell is not None
 
         self.aliases = {}
 
