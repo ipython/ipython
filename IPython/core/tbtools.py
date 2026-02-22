@@ -11,7 +11,7 @@ from collections.abc import Callable
 import stack_data
 from pygments.token import Token
 
-from IPython import get_ipython
+from IPython.core.getipython import get_ipython
 from IPython.core import debugger
 from IPython.utils import path as util_path
 from IPython.utils import py3compat

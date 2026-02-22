@@ -4,7 +4,6 @@ import os.path
 import tempfile
 from warnings import warn
 
-import IPython
 from IPython.core.profiledir import ProfileDir, ProfileDirError, get_ipython_package_dir
 from IPython.utils.importstring import import_item
 from IPython.utils.path import (

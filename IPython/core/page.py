@@ -24,7 +24,7 @@ import subprocess
 from io import UnsupportedOperation
 from pathlib import Path
 
-from IPython import get_ipython
+from IPython.core.getipython import get_ipython
 from IPython.display import display
 from IPython.core.error import TryNext
 from IPython.utils.data import chop

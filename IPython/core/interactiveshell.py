@@ -97,24 +97,38 @@ from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 from IPython.core.oinspect import OInfo
 
 
-sphinxify: Optional[Callable]
+_sphinxify_cache: object = ...  # sentinel – populated on first call
 
-try:
-    import docrepr.sphinxify as sphx
 
-    def sphinxify(oinfo):
-        wrapped_docstring = sphx.wrap_main_docstring(oinfo)
+def _get_sphinxify() -> Optional[Callable]:
+    """Lazily import docrepr and return the sphinxify callable, or None.
 
-        def sphinxify_docstring(docstring):
-            with TemporaryDirectory() as dirname:
-                return {
-                    "text/html": sphx.sphinxify(wrapped_docstring, dirname),
-                    "text/plain": docstring,
-                }
+    docrepr pulls in sphinx + docutils + jinja2 (~60 ms).  It is only needed
+    when the user requests HTML documentation via ``??``, so we defer the
+    import until that moment rather than paying the cost on every startup.
+    """
+    global _sphinxify_cache
+    if _sphinxify_cache is not ...:
+        return _sphinxify_cache  # type: ignore[return-value]
+    try:
+        import docrepr.sphinxify as sphx
 
-        return sphinxify_docstring
-except ImportError:
-    sphinxify = None
+        def _sphinxify(oinfo: object) -> Callable[[str], dict]:
+            wrapped_docstring = sphx.wrap_main_docstring(oinfo)
+
+            def sphinxify_docstring(docstring: str) -> dict:
+                with TemporaryDirectory() as dirname:
+                    return {
+                        "text/html": sphx.sphinxify(wrapped_docstring, dirname),
+                        "text/plain": docstring,
+                    }
+
+            return sphinxify_docstring
+
+        _sphinxify_cache = _sphinxify
+    except ImportError:
+        _sphinxify_cache = None
+    return _sphinxify_cache  # type: ignore[return-value]
 
 
 class ProvisionalWarning(DeprecationWarning):
@@ -1864,6 +1878,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         info: OInfo = self._object_find(oname, namespaces)
         if self.sphinxify_docstring:
+            sphinxify = _get_sphinxify()
             if sphinxify is None:
                 raise ImportError("Module ``docrepr`` required but missing")
             docformat = sphinxify(self.object_inspect(oname))
@@ -1916,6 +1931,7 @@ class InteractiveShell(SingletonConfigurable):
             info = self._object_find(oname)
             if info.found:
                 if self.sphinxify_docstring:
+                    sphinxify = _get_sphinxify()
                     if sphinxify is None:
                         raise ImportError("Module ``docrepr`` required but missing")
                     docformat = sphinxify(self.object_inspect(oname))

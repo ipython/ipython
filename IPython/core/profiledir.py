@@ -6,7 +6,6 @@
 import os
 import shutil
 import errno
-import IPython
 from pathlib import Path
 
 from traitlets.config.configurable import LoggingConfigurable
@@ -245,6 +244,9 @@ class ProfileDir(LoggingConfigurable):
 
 def get_ipython_package_dir() -> str:
     """Get the base directory where IPython itself is installed."""
-    ipdir = os.path.dirname(IPython.__file__)
+    # profiledir.py lives at IPython/core/profiledir.py, so two levels up is
+    # the IPython package directory.  Avoids importing the top-level IPython
+    # package (and its expensive eager imports) just for __file__.
+    ipdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     assert isinstance(ipdir, str)
     return ipdir

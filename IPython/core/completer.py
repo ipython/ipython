@@ -250,14 +250,26 @@ from typing import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 __skip_doctest__ = True
 
 
-try:
-    import jedi
-    jedi.settings.case_insensitive_completion = False
-    import jedi.api.helpers
-    import jedi.api.classes
-    JEDI_INSTALLED = True
-except ImportError:
-    JEDI_INSTALLED = False
+import importlib.util as _importlib_util
+
+# Check jedi availability without importing it (~0.4 ms vs ~30 ms for a full import).
+# The actual import is deferred until the first Tab-completion that needs jedi.
+JEDI_INSTALLED = _importlib_util.find_spec("jedi") is not None
+del _importlib_util
+
+_jedi_module = None  # populated by _get_jedi() on first use
+
+
+def _get_jedi():
+    """Return the jedi module, importing and configuring it on first call."""
+    global _jedi_module
+    if _jedi_module is None:
+        import jedi
+        jedi.settings.case_insensitive_completion = False
+        import jedi.api.helpers  # noqa: F401
+        import jedi.api.classes  # noqa: F401
+        _jedi_module = jedi
+    return _jedi_module
 
 
 # -----------------------------------------------------------------------------
@@ -2535,7 +2547,7 @@ class IPCompleter(Completer):
                 else:
                     raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
 
-        interpreter = jedi.Interpreter(text[:offset], namespaces)
+        interpreter = _get_jedi().Interpreter(text[:offset], namespaces)
         try_jedi = True
 
         try:
