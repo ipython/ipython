@@ -718,8 +718,8 @@ class HistoryManager(HistoryAccessor):
         if hasattr(self, 'db') and not isinstance(self.db, DummyDB):
             try:
                 self.db.close()
-            except Exception:
-                pass
+            except Exception as e:
+                self.log.error("Failed to close SQLite history database: %s", e)
 
     @classmethod
     def _stop_thread(cls) -> None:
