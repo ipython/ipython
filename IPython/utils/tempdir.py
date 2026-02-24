@@ -5,12 +5,15 @@ creating a context manager for the working directory which is also temporary.
 """
 
 import os as _os
+from io import BufferedWriter
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import TracebackType
+from typing import Optional, Type
 
 
 class NamedFileInTemporaryDirectory:
-    def __init__(self, filename, mode, bufsize=-1, add_to_syspath=False, **kwds):
+    def __init__(self, filename: str, mode: str, bufsize: int=-1, add_to_syspath: bool=False, **kwds):
         """
         Open a file named `filename` in a temporary directory.
 
@@ -32,10 +35,10 @@ class NamedFileInTemporaryDirectory:
 
     __del__ = cleanup
 
-    def __enter__(self):
+    def __enter__(self) -> BufferedWriter:
         return self.file
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type: Optional[Type[BaseException]], value: Optional[BaseException], traceback: Optional[TracebackType]):
         self.cleanup()
 
 
@@ -49,11 +52,11 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
             ...
     """
 
-    def __enter__(self):
+    def __enter__(self) -> str:
         self.old_wd = Path.cwd()
         _os.chdir(self.name)
         return super(TemporaryWorkingDirectory, self).__enter__()
 
-    def __exit__(self, exc, value, tb):
+    def __exit__(self, exc: Optional[Type[BaseException]], value: Optional[BaseException], tb: Optional[TracebackType]) -> None:
         _os.chdir(self.old_wd)
         return super(TemporaryWorkingDirectory, self).__exit__(exc, value, tb)
