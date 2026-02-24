@@ -13,6 +13,7 @@ This release includes improvements to history management during forking and form
 - :ghpull:`15110` Fix Removing leading indentation when stripping prompt
 - :ghpull:`15115` Stop HistorySavingThread before fork
 - :ghpull:`15118` Add debug info for autoreload
+- Add support for ``zubanls`` as an optional completion backend (``Completer.use_zubanls``)
 
 
 History Thread Management Improvements
@@ -22,6 +23,21 @@ The `HistorySavingThread` is now properly stopped before process forking,
 preventing threading issues in child processes. This ensures that history
 operations work correctly when IPython is used in applications that perform
 process forking.
+
+
+New ``Completer.use_zubanls`` option
+--------------------------------------
+
+A new configurable option ``Completer.use_zubanls`` has been added, allowing
+users to use the `zubanls <https://docs.zubanls.com/en/latest/>`_ package as an
+alternative static type inference completion backend to Jedi. To enable it,
+install ``zubanls`` and set::
+
+    ipython --Completer.use_jedi=False --Completer.use_zubanls=True
+
+If ``use_jedi`` is ``True`` (the default when Jedi is installed), Jedi takes
+precedence. If ``zubanls`` is not installed and ``use_zubanls=True``, a warning
+is emitted at startup and the default completion backend is used instead.
 
 
 Thanks
