@@ -6,13 +6,14 @@ IO related utilities.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-
+from __future__ import annotations
 
 import atexit
 import os
 import sys
 import tempfile
 from pathlib import Path
+from typing import IO, Literal
 from warnings import warn
 
 from IPython.utils.decorators import undoc
@@ -30,7 +31,12 @@ class Tee:
     # Inspired by:
     # http://mail.python.org/pipermail/python-list/2007-May/442737.html
 
-    def __init__(self, file_or_name, mode="w", channel='stdout'):
+    def __init__(
+        self,
+        file_or_name: str | os.PathLike[str] | IO[str],
+        mode: str = "w",
+        channel: Literal["stdout", "stderr"] = "stdout",
+    ) -> None:
         """Construct a new Tee object.
 
         Parameters
@@ -54,32 +60,34 @@ class Tee:
         setattr(sys, channel, self)
         self._closed = False
 
-    def close(self):
+    def close(self) -> None:
         """Close the file and restore the channel."""
         self.flush()
         setattr(sys, self.channel, self.ostream)
         self.file.close()
         self._closed = True
 
-    def write(self, data):
+    def write(self, data: str) -> None:
         """Write data to both channels."""
         self.file.write(data)
         self.ostream.write(data)
         self.ostream.flush()
 
-    def flush(self):
+    def flush(self) -> None:
         """Flush both channels."""
         self.file.flush()
         self.ostream.flush()
 
-    def __del__(self):
+    def __del__(self) -> None:
         if not self._closed:
             self.close()
 
-    def isatty(self):
+    def isatty(self) -> bool:
         return False
 
-def ask_yes_no(prompt, default=None, interrupt=None):
+def ask_yes_no(
+    prompt: str, default: str | None = None, interrupt: str | None = None
+) -> bool:
     """Asks a question and returns a boolean (y/n) answer.
 
     If default is given (one of 'y','n'), it is used if the user input is
@@ -113,7 +121,7 @@ def ask_yes_no(prompt, default=None, interrupt=None):
     return answers[ans]
 
 
-def temp_pyfile(src, ext='.py'):
+def temp_pyfile(src: str, ext: str = '.py') -> str:
     """Make a temporary python file, return filename and filehandle.
 
     Parameters
