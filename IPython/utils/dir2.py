@@ -4,14 +4,12 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import annotations
-
 import inspect
 import types
-from typing import Any, Callable
+from typing import List
 
 
-def safe_hasattr(obj: object, attr: str) -> bool:
+def safe_hasattr(obj: object, attr: str):
     """In recent versions of Python, hasattr() only catches AttributeError.
     This catches all errors.
     """
@@ -22,7 +20,7 @@ def safe_hasattr(obj: object, attr: str) -> bool:
         return False
 
 
-def dir2(obj: object) -> list[str]:
+def dir2(obj: object) -> List[str]:
     """dir2(obj) -> list of strings
 
     Extended version of the Python builtin dir(), which does a few extra
@@ -53,7 +51,7 @@ def dir2(obj: object) -> list[str]:
     return sorted(words)
 
 
-def get_real_method(obj: object, name: str) -> Callable[..., Any] | None:
+def get_real_method(obj: object, name: str):
     """Like getattr, but with a few extra sanity checks:
 
     - If obj is a class, ignore everything except class methods

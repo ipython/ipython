@@ -9,7 +9,7 @@ import tokenize
 from io import StringIO
 from keyword import iskeyword
 from tokenize import TokenInfo
-from typing import NamedTuple
+from typing import Callable, NamedTuple
 from collections.abc import Generator
 
 
@@ -21,7 +21,7 @@ class Token(NamedTuple):
     line: str
 
 
-def generate_tokens(readline) -> Generator[TokenInfo, None, None]:
+def generate_tokens(readline: Callable) -> Generator[TokenInfo, None, None]:
     """wrap generate_tkens to catch EOF errors"""
     try:
         yield from tokenize.generate_tokens(readline)
