@@ -39,3 +39,6 @@ venv*/
 *.code-workspace
 .history
 .vscode
+
+# MonkeyType runtime type trace database
+monkeytype.sqlite3
