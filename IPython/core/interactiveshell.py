@@ -38,6 +38,7 @@ from typing import List as ListType, Any as AnyType
 from typing import Literal, Optional, Tuple
 from collections.abc import Sequence
 from warnings import warn
+import textwrap
 
 from IPython.external.pickleshare import PickleShareDB
 
@@ -1023,6 +1024,18 @@ class InteractiveShell(SingletonConfigurable):
 
     @property
     def banner(self):
+        if (when := os.environ.get("SOURCE_DATE_EPOCH", None)) is not None:
+            from datetime import datetime
+
+            date = datetime.fromtimestamp(int(when))
+            return textwrap.dedent(
+                f"""
+            Python 3.y.z | Packaged with love | (main, {date.strftime("%A, %d %B %Y")}) [Compiler]
+            Type 'copyright', 'credits' or 'license' for more information
+            IPython 9.y.z -- An enhanced Interactive Python. Type '?' for help.
+            Tip: unset SOURCE_DATE_EPOCH to restore dynamic banner.
+            """
+            ).lstrip()
         banner = self.banner1
         if self.profile and self.profile != 'default':
             banner += '\nIPython profile: %s\n' % self.profile
