@@ -7,8 +7,9 @@ Much of the code is taken from the tokenize module in Python 3.2.
 from __future__ import annotations
 
 import io
+
 import warnings
-from collections.abc import Iterator
+from collections.abc import Iterator, Generator, Iterable
 from io import BytesIO, TextIOBase, TextIOWrapper
 from pathlib import Path
 import re
@@ -17,10 +18,8 @@ from tokenize import detect_encoding, open
 cookie_re = re.compile(r"coding[:=]\s*([-\w.]+)", re.UNICODE)
 cookie_comment_re = re.compile(r"^\s*#.*coding[:=]\s*([-\w.]+)", re.UNICODE)
 
-def source_to_unicode(
-    txt: bytes | BytesIO | str, errors: str = "replace", skip_encoding_cookie: bool = True
-) -> str:
-    """Converts bytes or a BytesIO buffer with python source code to unicode.
+def source_to_unicode(txt: str | bytes | BytesIO, errors: str = 'replace', skip_encoding_cookie: bool = True) -> str:
+    """Converts a bytes string with python source code to unicode.
 
     Byte strings are checked for the python source file encoding cookie to
     determine encoding.
@@ -108,7 +107,7 @@ def read_py_file(filename: str | Path, skip_encoding_cookie: bool = True) -> str
         else:
             return f.read()
 
-def read_py_url(url: str, errors: str = "replace", skip_encoding_cookie: bool = True) -> str:
+def read_py_url(url: str, errors: str = 'replace', skip_encoding_cookie: bool = True) -> str:
     """Read a Python file from a URL, using the encoding declared inside the file.
 
     Parameters

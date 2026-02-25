@@ -92,6 +92,9 @@ class DummyDB:
     def __exit__(self, *args, **kwargs):  # type: ignore [no-untyped-def]
         pass
 
+    def close(self, *args, **kwargs):  # type: ignore [no-untyped-def]
+        pass
+
 
 @decorator
 def only_when_enabled(f, self, *a, **kw):  # type: ignore [no-untyped-def]
@@ -345,6 +348,10 @@ class HistoryAccessor(HistoryAccessorBase):
             )
         # success! reset corrupt db count
         self._corrupt_db_counter = 0
+
+    def __del__(self) -> None:
+        if hasattr(self, "db"):
+            self.db.close()
 
     def writeout_cache(self) -> None:
         """Overridden by HistoryManager to dump the cache before certain
@@ -714,6 +721,7 @@ class HistoryManager(HistoryAccessor):
     def __del__(self) -> None:
         if self.save_thread is not None:
             self.save_thread.stop()
+        HistoryAccessor.__del__(self)
 
     @classmethod
     def _stop_thread(cls) -> None:

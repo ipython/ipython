@@ -1,7 +1,11 @@
 # encoding: utf-8
 """Miscellaneous context managers."""
 
+from __future__ import annotations
+
 import warnings
+from types import TracebackType
+from typing import Any
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -33,14 +37,14 @@ class preserve_keys:
     [('b', 2), ('c', 3), ('e', 5)]
     """
 
-    def __init__(self, dictionary, *keys):
+    def __init__(self, dictionary: dict[Any, Any], *keys: Any) -> None:
         self.dictionary = dictionary
         self.keys = keys
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         # Actions to perform upon exiting.
-        to_delete = []
-        to_update = {}
+        to_delete: list[Any] = []
+        to_update: dict[Any, Any] = {}
 
         d = self.dictionary
         for k in self.keys:
@@ -52,7 +56,12 @@ class preserve_keys:
         self.to_delete = to_delete
         self.to_update = to_update
 
-    def __exit__(self, *exc_info):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         d = self.dictionary
 
         for k in self.to_delete:
