@@ -56,7 +56,7 @@ If the current section raises an exception, you can add the ``:okexcept:`` flag
 to the current block, otherwise the build will fail.
 
 .. ipython::
-   :okexcept:
+   :okexcept Exception:
 
    In [1]: 1/0
 
@@ -151,13 +151,13 @@ is specified, then only the last one is used.
 In addition to the Pseudo-Decorators/options described at the above link,
 several enhancements have been made. The directive will emit a message to the
 console at build-time if code-execution resulted in an exception or warning.
-You can suppress these on a per-block basis by specifying the :okexcept:
+You can suppress these on a per-block basis by specifying the :okexcept Exception:
 or :okwarning: options:
 
 .. code-block:: rst
 
     .. ipython::
-        :okexcept:
+        :okexcept Exception:
         :okwarning:
 
         In [1]: 1/0

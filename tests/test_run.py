@@ -88,7 +88,7 @@ def doctest_run_builtins():
 
     In [12]: try:
        ....:     os.unlink(fname)
-       ....: except:
+       ....: except Exception:
        ....:     pass
        ....:
     """
@@ -619,7 +619,7 @@ def test_multiprocessing_run():
             assert "AttributeError" not in out
             assert "NameError" in out
             assert out.count("---->") == 1
-        except:
+        except Exception:
             raise
         finally:
             sys.modules["__mp_main__"] = mpm

@@ -12,5 +12,5 @@ d = 40
 
 try:
     raise Exception("adsfasdf")
-except:
+except Exception:
     embed(header="The second time")

@@ -116,7 +116,7 @@ class TimeitResult:
             try:
                 "\xb1".encode(sys.stdout.encoding)
                 pm = "\xb1"
-            except:
+            except Exception:
                 pass
         return "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops:,} loop{loop_plural} each)".format(
             pm=pm,
@@ -1697,7 +1697,7 @@ def _format_time(timespan, precision=3):
         try:
             "μ".encode(sys.stdout.encoding)
             units = ["s", "ms", "μs", "ns"]
-        except:
+        except Exception:
             pass
     scaling = [1, 1e3, 1e6, 1e9]
 

@@ -2977,7 +2977,7 @@ class IPCompleter(Completer):
             for namedArg in set(namedArgs) - usedNamedArgs:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
-        except:
+        except Exception:
             pass
 
         return argMatches

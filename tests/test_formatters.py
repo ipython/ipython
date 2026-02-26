@@ -4,7 +4,7 @@ from math import pi
 
 try:
     import numpy
-except:
+except Exception:
     numpy = None
 import pytest
 

@@ -882,7 +882,7 @@ class Pdb(OldPdb):
                         last = first + last
                 else:
                     first = max(1, int(x) - 5)
-            except:
+            except Exception:
                 print("*** Error in argument:", repr(arg), file=self.stdout)
                 return
         elif self.lineno is None or arg == ".":

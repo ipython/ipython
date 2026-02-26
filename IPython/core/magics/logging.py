@@ -107,7 +107,7 @@ class LoggingMagics(Magics):
         if par:
             try:
                 logfname,logmode = par.split()
-            except:
+            except Exception:
                 logfname = par
                 logmode = 'backup'
         else:
@@ -125,7 +125,7 @@ class LoggingMagics(Magics):
         try:
             logger.logstart(logfname, loghead, logmode, log_output, timestamp,
                             log_raw_input)
-        except:
+        except Exception:
             self.shell.logfile = old_logfile
             warn("Couldn't start log: %s" % sys.exc_info()[1])
         else:

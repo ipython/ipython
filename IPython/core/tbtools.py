@@ -68,7 +68,7 @@ def _safe_string(value: Any, what: Any, func: Any = str) -> str:
     # Copied from cpython/Lib/traceback.py
     try:
         return func(value)
-    except:
+    except Exception:
         return f"<{what} {func.__name__}() failed>"
 
 
@@ -135,12 +135,12 @@ def text_repr(value: Any) -> str:
         return pydoc.text.repr(value)  # type: ignore[call-arg]
     except KeyboardInterrupt:
         raise
-    except:
+    except Exception:
         try:
             return repr(value)
         except KeyboardInterrupt:
             raise
-        except:
+        except Exception:
             try:
                 # all still in an except block so we catch
                 # getattr raising
@@ -154,7 +154,7 @@ def text_repr(value: Any) -> str:
                 return "UNRECOVERABLE REPR FAILURE"
             except KeyboardInterrupt:
                 raise
-            except:
+            except Exception:
                 return "UNRECOVERABLE REPR FAILURE"
 
 
