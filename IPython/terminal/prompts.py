@@ -1,6 +1,6 @@
 """Terminal input and output prompts."""
 
-from pygments.token import Token
+from pygments.token import _TokenType, Token
 import sys
 
 from IPython.core.displayhook import DisplayHook
@@ -8,10 +8,14 @@ from IPython.core.displayhook import DisplayHook
 from prompt_toolkit.formatted_text import fragment_list_width, PygmentsTokens
 from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.enums import EditingMode
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+
+if TYPE_CHECKING:
+    from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 
 class Prompts:
-    def __init__(self, shell):
+    def __init__(self, shell: "TerminalInteractiveShell"):
         self.shell = shell
 
     def vi_mode(self):
@@ -84,7 +88,7 @@ class Prompts:
             (Token.Prompt, ('-' * (width - 2)) + '> '),
         ]
 
-    def out_prompt_tokens(self):
+    def out_prompt_tokens(self) -> List[Tuple[_TokenType, str]]:
         return [
             (Token.OutPrompt, 'Out['),
             (Token.OutPromptNum, str(self.shell.execution_count - 1)),
@@ -128,7 +132,7 @@ class RichPromptDisplayHook(DisplayHook):
             else:
                 sys.stdout.write(prompt_txt)
 
-    def write_format_data(self, format_dict, md_dict=None) -> None:
+    def write_format_data(self, format_dict: Dict[str, str], md_dict: Optional[Dict[Any, Any]]=None) -> None:
         assert self.shell is not None
         if self.shell.mime_renderers:
 

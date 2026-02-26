@@ -6,6 +6,7 @@ import re
 
 # Our own modules
 from IPython.core.hooks import CommandChainDispatcher
+from typing import Callable
 
 # Code begins
 class StrDispatch:
@@ -25,7 +26,7 @@ class StrDispatch:
         self.strs = {}
         self.regexs = {}
 
-    def add_s(self, s, obj, priority= 0 ):
+    def add_s(self, s: str, obj: Callable, priority: int= 0 ):
         """ Adds a target 'string' for dispatching """
 
         chain = self.strs.get(s, CommandChainDispatcher())

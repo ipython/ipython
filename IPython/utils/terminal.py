@@ -34,7 +34,7 @@ else:
 
 
 
-def toggle_set_term_title(val):
+def toggle_set_term_title(val: bool):
     """Control whether set_term_title is active or not.
 
     set_term_title() allows writing to the console titlebar.  In embedded
