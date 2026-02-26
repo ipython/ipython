@@ -8,20 +8,79 @@
 IPython 9.10
 ============
 
-This release includes improvements to history management during forking and formatting fixes.
+This release includes a new shell error-handling config option, a reproducible
+banner for builds, history thread management improvements, autoreload encoding
+fixes, Python 3.11 deprecation notices, and various type annotation improvements.
 
+- :ghpull:`15073` Add ``system_raise_on_error`` config option for ``!`` shell operator
 - :ghpull:`15110` Fix Removing leading indentation when stripping prompt
 - :ghpull:`15115` Stop HistorySavingThread before fork
 - :ghpull:`15118` Add debug info for autoreload
+- :ghpull:`15121` Start dropping Python 3.11
+- :ghpull:`15122` Fix encoding to utf8 for autoreload
+- :ghpull:`15126` More types
+- :ghpull:`15130` Stricter conf + add typing to ``IPython/core/magic.py``
+- :ghpull:`15133` Inline and remove only usage of ``on_off``
+- :ghpull:`15134` Add type annotations to ``_process_common.py`` and ``_process_win32.py``
+- :ghpull:`15144` Have a static banner when setting ``SOURCE_DATE_EPOCH``
+
+
+New ``system_raise_on_error`` Config Option
+--------------------------------------------
+
+A new ``system_raise_on_error`` Bool traitlet configuration option (default:
+``False``) has been added. When set to ``True``, shell commands executed via
+the ``!`` operator will raise :exc:`subprocess.CalledProcessError` if they
+return a non-zero exit status. This makes it easier to write robust IPython
+scripts that need to detect shell command failures::
+
+    %config InteractiveShell.system_raise_on_error = True
+    ! false  # will now raise CalledProcessError
+
+
+Reproducible Banner
+--------------------
+
+When the ``SOURCE_DATE_EPOCH`` environment variable is set, IPython now
+produces a static, reproducible banner (omitting the build date). This
+helps with reproducible builds and packaging workflows (related to
+`jupyterlab/jupyterlab#18552 <https://github.com/jupyterlab/jupyterlab/issues/18552>`_).
+
+
+Python 3.11 Deprecation
+------------------------
+
+IPython has begun the process of dropping support for Python 3.11. Users
+still running Python 3.11 should plan to upgrade to a supported Python
+version.
+
+
+Autoreload Encoding Fix
+------------------------
+
+The autoreload extension now explicitly sets UTF-8 as the default encoding
+when reading source files. Previously, the platform default encoding was
+used, which could cause failures on systems where the default encoding is
+not UTF-8.
 
 
 History Thread Management Improvements
 ---------------------------------------
 
-The `HistorySavingThread` is now properly stopped before process forking,
+The ``HistorySavingThread`` is now properly stopped before process forking,
 preventing threading issues in child processes. This ensures that history
 operations work correctly when IPython is used in applications that perform
 process forking.
+
+
+Type Annotation Improvements
+------------------------------
+
+Various type annotation improvements have been made throughout the codebase,
+including ``IPython/core/magic.py``, ``_process_common.py``, and
+``_process_win32.py``. The first argument of ``arg_split`` has also been
+renamed to ``commandline`` for consistency. These changes improve static
+analysis support and IDE tooling.
 
 
 Thanks
