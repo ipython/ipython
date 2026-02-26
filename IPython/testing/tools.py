@@ -29,6 +29,8 @@ from IPython.utils import py3compat
 
 from . import decorators as dec
 from . import skipdoctest
+from types import TracebackType
+from typing import List, Optional, Tuple, Type
 
 
 # The docstring for full_path doctests differently on win32 (different path
@@ -67,7 +69,7 @@ def full_path(startPath: str, files: list[str]) -> list[str]:
     return [ os.path.join(base,f) for f in files ]
 
 
-def parse_test_output(txt):
+def parse_test_output(txt: str) -> Tuple[int, int]:
     """Parse the output of a test run and return errors, failures.
 
     Parameters
@@ -113,7 +115,7 @@ def parse_test_output(txt):
 parse_test_output.__test__ = False
 
 
-def default_argv():
+def default_argv() -> List[str]:
     """Return a valid default argv for creating testing instances of ipython"""
 
     return [
@@ -126,7 +128,7 @@ def default_argv():
     ]
 
 
-def default_config():
+def default_config() -> Config:
     """Return a config object with good defaults for testing."""
     config = Config()
     config.TerminalInteractiveShell.colors = "nocolor"
@@ -139,7 +141,7 @@ def default_config():
     return config
 
 
-def get_ipython_cmd(as_string=False):
+def get_ipython_cmd(as_string: bool=False) -> List[str]:
     """
     Return appropriate IPython command line name. By default, this will return
     a list that can be used with subprocess.Popen, for example, but passing
@@ -157,7 +159,7 @@ def get_ipython_cmd(as_string=False):
 
     return ipython_cmd
 
-def ipexec(fname, options=None, commands=()):
+def ipexec(fname: str, options: Optional[List[str]]=None, commands: Tuple[str, ...]=()) -> Tuple[str, str]:
     """Utility to call 'ipython filename'.
 
     Starts IPython with a minimal and safe configuration to make startup as fast
@@ -215,8 +217,8 @@ def ipexec(fname, options=None, commands=()):
     return out, err
 
 
-def ipexec_validate(fname, expected_out, expected_err='',
-                    options=None, commands=()):
+def ipexec_validate(fname: str, expected_out: str, expected_err: str='',
+                    options: Optional[List[str]]=None, commands: Tuple[str, ...]=()):
     """Utility to call 'ipython filename' and validate output/error.
 
     This function raises an AssertionError if the validation fails.
@@ -267,7 +269,7 @@ class TempFileMixin(unittest.TestCase):
 
     Meant as a mixin class for test cases."""
 
-    def mktmp(self, src, ext='.py'):
+    def mktmp(self, src: str, ext: str='.py'):
         """Make a valid python temp file."""
         fname = temp_pyfile(src, ext)
         if not hasattr(self, 'tmps'):
@@ -318,7 +320,7 @@ class AssertPrints:
     abcd
     def
     """
-    def __init__(self, s, channel='stdout', suppress=True):
+    def __init__(self, s: str, channel: str='stdout', suppress: bool=True):
         self.s = s
         if isinstance(self.s, (str, _re_type)):
             self.s = [self.s]
@@ -331,7 +333,7 @@ class AssertPrints:
         self.tee = Tee(self.buffer, channel=self.channel)
         setattr(sys, self.channel, self.buffer if self.suppress else self.tee)
 
-    def __exit__(self, etype, value, traceback):
+    def __exit__(self, etype: Optional[Type[BaseException]], value: Optional[BaseException], traceback: Optional[TracebackType]):
         __tracebackhide__ = True
 
         try:

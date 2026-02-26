@@ -9,7 +9,7 @@ import ast
 import re
 import signal
 import sys
-from typing import Dict, Union
+from typing import Optional, Dict, Union
 from collections.abc import Callable
 
 from prompt_toolkit.application.current import get_app
@@ -40,7 +40,7 @@ def cursor_in_leading_ws():
     return (not before) or before.isspace()
 
 
-def has_focus(value: FocusableElement):
+def has_focus(value: FocusableElement) -> Condition:
     """Wrapper around has_focus adding a nice `__name__` to tester function"""
     tester = has_focus_impl(value).func
     tester.__name__ = f"is_focused({value})"
@@ -102,7 +102,7 @@ _preceding_text_cache: Dict[Union[str, Callable], Condition] = {}
 _following_text_cache: Dict[Union[str, Callable], Condition] = {}
 
 
-def preceding_text(pattern: Union[str, Callable]):
+def preceding_text(pattern: Union[str, Callable]) -> Condition:
     if pattern in _preceding_text_cache:
         return _preceding_text_cache[pattern]
 
@@ -129,7 +129,7 @@ def preceding_text(pattern: Union[str, Callable]):
     return condition
 
 
-def following_text(pattern):
+def following_text(pattern: str) -> Condition:
     try:
         return _following_text_cache[pattern]
     except KeyError:
@@ -284,7 +284,7 @@ KEYBINDING_FILTERS = {
 }
 
 
-def eval_node(node: Union[ast.AST, None]):
+def eval_node(node: Union[ast.AST, None]) -> Optional[Filter]:
     if node is None:
         return None
     if isinstance(node, ast.Expression):
@@ -315,7 +315,7 @@ def eval_node(node: Union[ast.AST, None]):
     raise ValueError("Unhandled node", ast.dump(node))
 
 
-def filter_from_string(code: str):
+def filter_from_string(code: str) -> Union[Condition, Filter]:
     expression = ast.parse(code, mode="eval")
     return eval_node(expression)
 
