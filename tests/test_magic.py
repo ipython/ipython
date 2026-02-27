@@ -38,7 +38,7 @@ from IPython.core.magics import code, execution, logging, osm, script
 from IPython.core.history import HistoryOutput
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils.io import capture_output
+from IPython.utils.capture import capture_output
 from IPython.utils.process import find_cmd
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.syspathcontext import prepended_to_syspath

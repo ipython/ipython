@@ -22,7 +22,6 @@ from IPython.core.magic import  (
     Magics, compress_dhist, magics_class, line_magic, cell_magic, line_cell_magic
 )
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.openpy import source_to_unicode
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.terminal import set_term_title
 from traitlets import Bool
@@ -818,7 +817,8 @@ class OSMagics(Magics):
             print("Error: no such file, variable, URL, history range or macro")
             return
 
-        page.page(self.shell.pycolorize(source_to_unicode(cont)))
+        # cont is already a string from find_user_code, no need to convert
+        page.page(self.shell.pycolorize(cont))
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(

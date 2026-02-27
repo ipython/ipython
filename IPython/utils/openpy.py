@@ -7,11 +7,13 @@ Much of the code is taken from the tokenize module in Python 3.2.
 from __future__ import annotations
 
 import io
-from collections.abc import Generator, Iterable
-from io import TextIOWrapper, BytesIO
+
+import warnings
+from collections.abc import Iterator, Generator, Iterable
+from io import BytesIO, TextIOBase, TextIOWrapper
 from pathlib import Path
 import re
-from tokenize import open, detect_encoding
+from tokenize import detect_encoding, open
 
 cookie_re = re.compile(r"coding[:=]\s*([-\w.]+)", re.UNICODE)
 cookie_comment_re = re.compile(r"^\s*#.*coding[:=]\s*([-\w.]+)", re.UNICODE)
@@ -19,13 +21,38 @@ cookie_comment_re = re.compile(r"^\s*#.*coding[:=]\s*([-\w.]+)", re.UNICODE)
 def source_to_unicode(txt: str | bytes | BytesIO, errors: str = 'replace', skip_encoding_cookie: bool = True) -> str:
     """Converts a bytes string with python source code to unicode.
 
-    Unicode strings are passed through unchanged. Byte strings are checked
-    for the python source file encoding cookie to determine encoding.
-    txt can be either a bytes buffer or a string containing the source
-    code.
+    Byte strings are checked for the python source file encoding cookie to
+    determine encoding.
+
+    Parameters
+    ----------
+    txt : bytes | BytesIO | str
+        The source code as bytes or a BytesIO buffer. Passing a str is
+        deprecated and will emit a warning.
+    errors : str
+        How to handle decoding errors. Default is "replace".
+    skip_encoding_cookie : bool
+        If True (default), skip the encoding declaration line if found.
+
+    Returns
+    -------
+    str
+        The decoded unicode string.
+
+    .. deprecated:: 9.0
+        Passing a str to this function is deprecated. If you already have
+        a string, you don't need to call this function.
     """
+    # Handle deprecated str input for backward compatibility
     if isinstance(txt, str):
+        warnings.warn(
+            "Passing a str to source_to_unicode is deprecated. "
+            "If you already have a string, you don't need to call this function.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return txt
+    
     if isinstance(txt, bytes):
         buffer = BytesIO(txt)
     else:
@@ -36,17 +63,16 @@ def source_to_unicode(txt: str | bytes | BytesIO, errors: str = 'replace', skip_
         encoding = "ascii"
     buffer.seek(0)
     with TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True) as text:
-        text.mode = 'r'
         if skip_encoding_cookie:
-            return u"".join(strip_encoding_cookie(text))
+            return "".join(strip_encoding_cookie(text))
         else:
             return text.read()
 
-def strip_encoding_cookie(filelike: Iterable[str]) -> Generator[str, None, None]:
+def strip_encoding_cookie(filelike: Iterator[str] | io.TextIOBase) -> Iterator[str]:
     """Generator to pull lines from a text-mode file, skipping the encoding
     cookie if it is found in the first two lines.
     """
-    it = iter(filelike)
+    it: Iterator[str] = iter(filelike)
     try:
         first = next(it)
         if not cookie_comment_re.match(first):
@@ -102,5 +128,9 @@ def read_py_url(url: str, errors: str = 'replace', skip_encoding_cookie: bool = 
     # Deferred import for faster start
     from urllib.request import urlopen 
     response = urlopen(url)
-    buffer = io.BytesIO(response.read())
-    return source_to_unicode(buffer, errors, skip_encoding_cookie)
+    data: bytes = response.read()
+    buffer = io.BytesIO(data)
+    result: str = source_to_unicode(buffer, errors, skip_encoding_cookie)
+    # Ensure we return a string, not bytes
+    assert isinstance(result, str), "source_to_unicode must return a string"
+    return result
