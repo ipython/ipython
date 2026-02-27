@@ -425,7 +425,7 @@ class Inspector(Configurable):
             return None
         try:
             return _render_signature(signature(obj), oname)
-        except:
+        except Exception:
             return None
 
     def __head(self, h: str) -> str:
@@ -907,7 +907,7 @@ class Inspector(Configurable):
             if not callable(obj):
                 try:
                     ds = "Alias to the system command:\n  %s" % obj[1]
-                except:
+                except Exception:
                     ds = "Alias: " + str(obj)
             else:
                 ds = "Alias to " + str(obj)
@@ -937,7 +937,7 @@ class Inspector(Configurable):
         try:
             bclass = obj.__class__
             out['base_class'] = str(bclass)
-        except:
+        except Exception:
             pass
 
         # String form, but snip if too long in ? form (full in ??)
@@ -952,7 +952,7 @@ class Inspector(Configurable):
                         q.strip() for q in ostr.split("\n")
                     )
                 out["string_form"] = ostr
-            except:
+            except Exception:
                 pass
 
         if ospace:
@@ -1051,7 +1051,7 @@ class Inspector(Configurable):
             if ds:
                 try:
                     cls = getattr(obj,'__class__')
-                except:
+                except Exception:
                     class_ds = None
                 else:
                     class_ds = getdoc(cls)

@@ -544,7 +544,7 @@ class OSMagics(Magics):
         if parameter_s:
             try:
                 args = map(int,parameter_s.split())
-            except:
+            except Exception:
                 self.arg_err(self.dhist)
                 return
             if len(args) == 1:

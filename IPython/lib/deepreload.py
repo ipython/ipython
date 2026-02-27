@@ -179,7 +179,7 @@ def import_submodule(mod, subname, fullname):
                 m = importlib.reload(oldm)
             else:
                 m = importlib.import_module(subname, mod)
-        except:
+        except Exception:
             # load_module probably removed name from modules because of
             # the error.  Put back the original module object.
             if oldm:
@@ -266,12 +266,12 @@ def deep_reload_hook(m):
     global modules_reloading
     try:
         return modules_reloading[name]
-    except:
+    except Exception:
         modules_reloading[name] = m
 
     try:
         newm = importlib.reload(m)
-    except:
+    except Exception:
         sys.modules[name] = m
         raise
     finally:

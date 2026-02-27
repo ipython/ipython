@@ -487,7 +487,7 @@ class Demo:
             finally:
                 sys.argv = save_argv
 
-        except:
+        except Exception:
             if self.inside_ipython:
                 self.ip_showtb(filename=self.fname)
         else:

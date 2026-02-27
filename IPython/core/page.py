@@ -276,12 +276,12 @@ def page_file(fname, start=0, pager_cmd=None):
         if os.environ['TERM'] in ['emacs','dumb']:
             raise EnvironmentError
         system(pager_cmd + ' ' + fname)
-    except:
+    except Exception:
         try:
             if start > 0:
                 start -= 1
             page(open(fname, encoding="utf-8").read(), start)
-        except:
+        except Exception:
             print('Unable to show file',repr(fname))
 
 
@@ -298,7 +298,7 @@ def get_pager_cmd(pager_cmd=None):
     if pager_cmd is None:
         try:
             pager_cmd = os.environ['PAGER']
-        except:
+        except Exception:
             pager_cmd = default_pager_cmd
     
     if pager_cmd == 'less' and '-r' not in os.environ.get('LESS', '').lower():

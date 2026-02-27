@@ -479,14 +479,14 @@ def test_handlers():
     buff.write("*** Before ***")
     try:
         buff.write(spam(1, (2, 3)))
-    except:
+    except Exception:
         traceback.print_exc(file=buff)
 
     handler = FormattedTB(ostream=buff)
     buff.write("*** FormattedTB ***")
     try:
         buff.write(spam(1, (2, 3)))
-    except:
+    except Exception:
         handler(*sys.exc_info())
     buff.write("")
 
@@ -494,7 +494,7 @@ def test_handlers():
     buff.write("*** VerboseTB ***")
     try:
         buff.write(spam(1, (2, 3)))
-    except:
+    except Exception:
         handler(*sys.exc_info())
     buff.write("")
 

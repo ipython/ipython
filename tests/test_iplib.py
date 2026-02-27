@@ -153,7 +153,7 @@ def doctest_tb_sysexit():
     ---> 37     bar(mode)
     <BLANKLINE>
     ...bar(mode)
-         24         except:
+         24         except Exception:
          25             stat = 1
     ---> 26         sysexit(stat, mode)
          27     else:
@@ -193,7 +193,7 @@ if SV_VERSION < (0, 6):
                 mode = "exit"
         <BLANKLINE>
         ... in bar(mode="exit")
-             ...     except:
+             ...     except Exception:
              ...         stat = 1
         ---> ...     sysexit(stat, mode)
                 mode = "exit"

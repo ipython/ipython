@@ -403,7 +403,7 @@ class BackgroundJobBase(threading.Thread):
         # make a new one
         try:
             make_tb = get_ipython().InteractiveTB.text
-        except:
+        except Exception:
             make_tb = AutoFormattedTB(
                 mode="Context", color_scheme="nocolor", tb_offset=1
             ).text
@@ -430,7 +430,7 @@ class BackgroundJobBase(threading.Thread):
             self.status    = BackgroundJobBase.stat_running
             self.stat_code = BackgroundJobBase.stat_running_c
             self.result    = self.call()
-        except:
+        except Exception:
             self.status    = BackgroundJobBase.stat_dead
             self.stat_code = BackgroundJobBase.stat_dead_c
             self.finished  = None

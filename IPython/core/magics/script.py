@@ -377,7 +377,7 @@ class ScriptMagics(Magics):
             if p.returncode is None:
                 try:
                     p.send_signal(signal.SIGINT)
-                except:
+                except Exception:
                     pass
         time.sleep(0.1)
         self._gc_bg_processes()
@@ -387,7 +387,7 @@ class ScriptMagics(Magics):
             if p.returncode is None:
                 try:
                     p.terminate()
-                except:
+                except Exception:
                     pass
         time.sleep(0.1)
         self._gc_bg_processes()
@@ -397,7 +397,7 @@ class ScriptMagics(Magics):
             if p.returncode is None:
                 try:
                     p.kill()
-                except:
+                except Exception:
                     pass
         self._gc_bg_processes()
 

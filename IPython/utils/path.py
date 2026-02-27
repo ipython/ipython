@@ -186,7 +186,7 @@ def get_home_dir(require_writable=False) -> str:
                 r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
             ) as key:
                 homedir = wreg.QueryValueEx(key,'Personal')[0]
-        except:
+        except Exception:
             pass
 
     if (not require_writable) or _writable_dir(homedir):
@@ -324,7 +324,7 @@ def link_or_copy(src, dst):
         new_dst = dst + "-temp-%04X" %(random.randint(1, 16**4), )
         try:
             link_or_copy(src, new_dst)
-        except:
+        except Exception:
             try:
                 os.remove(new_dst)
             except OSError:

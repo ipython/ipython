@@ -528,7 +528,7 @@ class CodeMagics(Magics):
             last_call[0] = shell.displayhook.prompt_count
             if not opts_prev:
                 last_call[1] = args
-        except:
+        except Exception:
             pass
 
 

@@ -191,7 +191,7 @@ class CrashHandler:
         # and generate a complete report on disk
         try:
             report = open(report_name, "w", encoding="utf-8")
-        except:
+        except Exception:
             print('Could not create crash report on disk.', file=sys.stderr)
             return
 
@@ -220,7 +220,7 @@ class CrashHandler:
             rpt_add("Application name: %s\n\n" % self.app.name)
             rpt_add("Current user configuration structure:\n\n")
             rpt_add(config)
-        except:
+        except Exception:
             pass
         rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
 

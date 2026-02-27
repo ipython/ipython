@@ -108,7 +108,7 @@ class AsyncTest(TestCase):
                     """
         try:
             {val}
-        except:
+        except Exception:
             pass
         """
                 ),
@@ -122,7 +122,7 @@ class AsyncTest(TestCase):
                     """
         try:
             pass
-        except:
+        except Exception:
             {val}
         """
                 ),
@@ -136,7 +136,7 @@ class AsyncTest(TestCase):
                     """
         try:
             pass
-        except:
+        except Exception:
             pass
         finally:
             {val}

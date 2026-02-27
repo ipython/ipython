@@ -128,7 +128,7 @@ class mock_input_helper(object):
         except StopIteration:
             self.ip.keep_running = False
             return ""
-        except:
+        except Exception:
             self.exception = sys.exc_info()
             self.ip.keep_running = False
             return ""

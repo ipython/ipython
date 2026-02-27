@@ -85,7 +85,7 @@ class IPAppCrashHandler(CrashHandler):
                 rpt_add(line)
             rpt_add('\n*** Last line of input (may not be in above history):\n')
             rpt_add(self.app.shell._last_input_line+'\n')
-        except:
+        except Exception:
             pass
 
         return ''.join(report)
