@@ -7,7 +7,6 @@ Authors:
 * Brian Granger (refactoring to a dict subclass)
 """
 from typing import Any
-from typing import Any
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
