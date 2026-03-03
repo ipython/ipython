@@ -196,7 +196,7 @@ def get_home_dir(require_writable: bool=False) -> str:
         raise HomeDirError('%s is not a writable dir, '
                 'set $HOME environment variable to override' % homedir)
 
-def get_xdg_dir() -> str:
+def get_xdg_dir() -> str | None:
     """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.
 
     This is only for non-OS X posix (Linux,Unix,etc.) systems.
