@@ -203,7 +203,7 @@ def _tokens_filename(
             ]
     else:
         name = util_path.compress_user(
-            py3compat.cast_unicode(file, util_path.fs_encoding)
+            py3compat.cast_unicode(file or "", util_path.fs_encoding)
         )
         if lineno is None:
             return [
