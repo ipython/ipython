@@ -2,10 +2,9 @@
  9.x Series
 ============
 
+.. _version 9.11:
 
-.. _version 9.10:
-
-IPython 9.10
+IPython 9.11
 ============
 
 This release includes a new shell error-handling config option, a reproducible
@@ -13,16 +12,15 @@ banner for builds, history thread management improvements, autoreload encoding
 fixes, Python 3.11 deprecation notices, and various type annotation improvements.
 
 - :ghpull:`15073` Add ``system_raise_on_error`` config option for ``!`` shell operator
-- :ghpull:`15110` Fix Removing leading indentation when stripping prompt
-- :ghpull:`15115` Stop HistorySavingThread before fork
-- :ghpull:`15118` Add debug info for autoreload
 - :ghpull:`15121` Start dropping Python 3.11
 - :ghpull:`15122` Fix encoding to utf8 for autoreload
-- :ghpull:`15126` More types
-- :ghpull:`15130` Stricter conf + add typing to ``IPython/core/magic.py``
+- :ghpull:`15130` Stricter config + add typing to ``IPython/core/magic.py``
 - :ghpull:`15133` Inline and remove only usage of ``on_off``
-- :ghpull:`15134` Add type annotations to ``_process_common.py`` and ``_process_win32.py``
 - :ghpull:`15144` Have a static banner when setting ``SOURCE_DATE_EPOCH``
+
+In addition there are many type annotations that have been added by using Generative AI (Clause Sonnet and Opus from
+Anthropicl; GitHub Copilot)
+
 
 
 New ``system_raise_on_error`` Config Option
@@ -42,8 +40,9 @@ Reproducible Banner
 --------------------
 
 When the ``SOURCE_DATE_EPOCH`` environment variable is set, IPython now
-produces a static, reproducible banner (omitting the build date). This
-helps with reproducible builds and packaging workflows (related to
+produces a static, reproducible banner. This
+helps with reproducible builds and packaging workflows that may capture this state
+(related to
 `jupyterlab/jupyterlab#18552 <https://github.com/jupyterlab/jupyterlab/issues/18552>`_).
 
 
@@ -63,24 +62,35 @@ when reading source files. Previously, the platform default encoding was
 used, which could cause failures on systems where the default encoding is
 not UTF-8.
 
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.11
+<https://github.com/ipython/ipython/milestone/160?closed=1>`__ milestone.
+
+
+.. _version 9.10:
+
+IPython 9.10
+============
+
+This release includes improvements to history management during forking and formatting fixes.
+
+- :ghpull:`15110` Fix Removing leading indentation when stripping prompt
+- :ghpull:`15115` Stop HistorySavingThread before fork
+- :ghpull:`15118` Add debug info for autoreload
+
 
 History Thread Management Improvements
 ---------------------------------------
 
-The ``HistorySavingThread`` is now properly stopped before process forking,
+The `HistorySavingThread` is now properly stopped before process forking,
 preventing threading issues in child processes. This ensures that history
 operations work correctly when IPython is used in applications that perform
 process forking.
-
-
-Type Annotation Improvements
-------------------------------
-
-Various type annotation improvements have been made throughout the codebase,
-including ``IPython/core/magic.py``, ``_process_common.py``, and
-``_process_win32.py``. The first argument of ``arg_split`` has also been
-renamed to ``commandline`` for consistency. These changes improve static
-analysis support and IDE tooling.
 
 
 Thanks
