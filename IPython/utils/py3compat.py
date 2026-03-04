@@ -21,7 +21,7 @@ def encode(u: str, encoding: Optional[str]=None) -> bytes:
     return u.encode(encoding, "replace")
 
 
-def cast_unicode(s: str, encoding: Optional[str]=None) -> str:
+def cast_unicode(s: str | bytes, encoding: Optional[str]=None) -> str:
     if isinstance(s, bytes):
         return decode(s, encoding)
     return s
