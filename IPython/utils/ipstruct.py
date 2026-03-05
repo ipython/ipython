@@ -6,6 +6,7 @@ Authors:
 * Fernando Perez (original)
 * Brian Granger (refactoring to a dict subclass)
 """
+from typing import Any
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -62,7 +63,7 @@ class Struct(dict):
         object.__setattr__(self, '_allownew', True)
         dict.__init__(self, *args, **kw)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any):
         """Set an item with check for allownew.
 
         Examples
@@ -85,7 +86,7 @@ class Struct(dict):
                 "can't create new attribute %s when allow_new_attr(False)" % key)
         dict.__setitem__(self, key, value)
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key: str, value: Any):
         """Set an attr with protection of class members.
 
         This calls :meth:`self.__setitem__` but convert :exc:`KeyError` to
@@ -119,7 +120,7 @@ class Struct(dict):
         except KeyError as e:
             raise AttributeError(e) from e
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str) -> Any:
         """Get an attr by calling :meth:`dict.__getitem__`.
 
         Like :meth:`__setattr__`, this method converts :exc:`KeyError` to

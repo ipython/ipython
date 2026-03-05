@@ -8,8 +8,10 @@ import pytest
 
 # Expose the unittest-driven decorators
 from .ipunittest import ipdoctest, ipdocstring
+from _pytest.mark.structures import MarkDecorator
+from typing import Optional
 
-def skipif(skip_condition, msg=None):
+def skipif(skip_condition: bool, msg: Optional[str]=None) -> MarkDecorator:
     """Make function raise SkipTest exception if skip_condition is true
 
     Parameters
@@ -39,7 +41,7 @@ def skipif(skip_condition, msg=None):
 
 # A version with the condition set to true, common case just to attach a message
 # to a skip decorator
-def skip(msg=None):
+def skip(msg: Optional[str]=None) -> MarkDecorator:
     """Decorator factory - mark a test function for skipping from test suite.
 
     Parameters
@@ -61,7 +63,7 @@ def skip(msg=None):
     return skipif(True, msg)
 
 
-def onlyif(condition, msg):
+def onlyif(condition: bool, msg: str) -> MarkDecorator:
     """The reverse from skipif, see skipif for details."""
 
     return skipif(not condition, msg)
@@ -69,7 +71,7 @@ def onlyif(condition, msg):
 
 # -----------------------------------------------------------------------------
 # Utility functions for decorators
-def module_not_available(module):
+def module_not_available(module: str) -> bool:
     """Can module be imported?  Returns true if module does NOT import.
 
     This is used to make a decorator to skip tests that require module to be

@@ -122,7 +122,7 @@ class Doc2UnitTester:
     no attempt is made at turning it into a singleton, there is no need for
     that).
     """
-    def __init__(self, verbose=False):
+    def __init__(self, verbose: bool=False):
         """New decorator.
 
         Parameters

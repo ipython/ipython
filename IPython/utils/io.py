@@ -17,6 +17,8 @@ from warnings import warn
 
 from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
+from io import StringIO
+from typing import Union
 
 
 class Tee:
@@ -30,7 +32,7 @@ class Tee:
     # Inspired by:
     # http://mail.python.org/pipermail/python-list/2007-May/442737.html
 
-    def __init__(self, file_or_name, mode="w", channel='stdout'):
+    def __init__(self, file_or_name: Union[str, StringIO], mode: str="w", channel: str='stdout'):
         """Construct a new Tee object.
 
         Parameters
@@ -113,7 +115,7 @@ def ask_yes_no(prompt, default=None, interrupt=None):
     return answers[ans]
 
 
-def temp_pyfile(src, ext='.py'):
+def temp_pyfile(src: str, ext: str='.py') -> str:
     """Make a temporary python file, return filename and filehandle.
 
     Parameters

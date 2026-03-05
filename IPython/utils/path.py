@@ -21,7 +21,7 @@ from IPython.utils.process import system
 #-----------------------------------------------------------------------------
 fs_encoding = sys.getfilesystemencoding()
 
-def _writable_dir(path):
+def _writable_dir(path: str) -> bool:
     """Whether `path` is a directory, to which the user has write access."""
     return os.path.isdir(path) and os.access(path, os.W_OK)
 
@@ -153,7 +153,7 @@ class HomeDirError(Exception):
     pass
 
 
-def get_home_dir(require_writable=False) -> str:
+def get_home_dir(require_writable: bool=False) -> str:
     """Return the 'home' directory, as a unicode string.
 
     Uses os.path.expanduser('~'), and checks for writability.
@@ -196,7 +196,7 @@ def get_home_dir(require_writable=False) -> str:
         raise HomeDirError('%s is not a writable dir, '
                 'set $HOME environment variable to override' % homedir)
 
-def get_xdg_dir():
+def get_xdg_dir() -> str | None:
     """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.
 
     This is only for non-OS X posix (Linux,Unix,etc.) systems.
@@ -234,7 +234,7 @@ def get_xdg_cache_dir():
     return None
 
 
-def expand_path(s):
+def expand_path(s: str) -> str:
     """Expand $VARS and ~names in a string, like a shell
 
     :Examples:
@@ -336,7 +336,7 @@ def link_or_copy(src, dst):
         # linking, or 'src' and 'dst' are on different filesystems.
         shutil.copy(src, dst)
 
-def ensure_dir_exists(path, mode=0o755):
+def ensure_dir_exists(path: str, mode: int=0o755):
     """ensure that a directory exists
 
     If it doesn't exist, try to create it and protect against a race condition

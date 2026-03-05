@@ -36,6 +36,7 @@ from _pytest._io import TerminalWriter
 from _pytest.compat import safe_getattr
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
+from _pytest.fixtures import TopRequest
 
 try:
     from _pytest.fixtures import TopRequest as FixtureRequest
@@ -300,7 +301,7 @@ class IPDoctestItem(pytest.Item):
         name: str,
         runner: "IPDocTestRunner",
         dtest: "doctest.DocTest",
-    ):
+    ) -> "IPDoctestItem":
         # incompatible signature due to imposed limits on subclass
         """The public named constructor."""
         return super().from_parent(name=name, parent=parent, runner=runner, dtest=dtest)
@@ -475,7 +476,7 @@ def _get_flag_lookup() -> Dict[str, int]:
     )
 
 
-def get_optionflags(parent):
+def get_optionflags(parent: "IPDoctestModule") -> int:
     optionflags_str = parent.config.getini("ipdoctest_optionflags")
     flag_lookup_table = _get_flag_lookup()
     flag_acc = 0
@@ -484,7 +485,7 @@ def get_optionflags(parent):
     return flag_acc
 
 
-def _get_continue_on_failure(config):
+def _get_continue_on_failure(config: Config) -> bool:
     continue_on_failure = config.getvalue("ipdoctest_continue_on_failure")
     if continue_on_failure:
         # We need to turn off this if we use pdb since we should stop at
