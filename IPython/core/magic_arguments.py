@@ -89,7 +89,7 @@ import re
 from IPython.core.error import UsageError
 from IPython.utils.decorators import undoc
 from IPython.utils.process import arg_split
-import inspect
+import textwrap
 
 NAME_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9_-]*$")
 
@@ -98,9 +98,18 @@ class MagicHelpFormatter(argparse.RawDescriptionHelpFormatter):
     """A HelpFormatter with a couple of changes to meet our needs.
     """
     # Modified to dedent text.
-    def _fill_text(self, text, width, indent):
-        return argparse.RawDescriptionHelpFormatter._fill_text(self, inspect.cleandoc(text), width, indent)
-
+   def _fill_text(self, text, width, indent):
+    # Dedent ignoring unindented first line (preserves original IPython behavior)
+    if not text.startswith('\n'):
+        splits = text.split('\n', 1)
+        if len(splits) == 2:
+            first, rest = splits
+            text = '\n'.join([first, textwrap.dedent(rest)])
+        else:
+            text = textwrap.dedent(text)
+    else:
+        text = textwrap.dedent(text)
+    return argparse.RawDescriptionHelpFormatter._fill_text(self, text, width, indent)
     # Modified to wrap argument placeholders in <> where necessary.
     def _format_action_invocation(self, action):
         if not action.option_strings:
