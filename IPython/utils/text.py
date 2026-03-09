@@ -177,7 +177,7 @@ class SList(list[Any]):
                 return ""
 
         if isinstance(pattern, str):
-            pred = lambda x : re.search(pattern, x, re.IGNORECASE)
+            def pred(x): return re.search(pattern, x, re.IGNORECASE)
         else:
             pred = pattern
         if not prune:
@@ -238,9 +238,9 @@ class SList(list[Any]):
 
         #decorate, sort, undecorate
         if field is not None:
-            dsu = [[SList([line]).fields(field),  line] for line in self]
+            dsu = [[SList([line]).fields(field), line] for line in self]
         else:
-            dsu = [[line,  line] for line in self]
+            dsu = [[line, line] for line in self]
         if nums:
             for i in range(len(dsu)):
                 numstr = "".join([ch for ch in dsu[i][0] if ch.isdigit()])
@@ -249,7 +249,6 @@ class SList(list[Any]):
                 except ValueError:
                     n = 0
                 dsu[i][0] = n
-
 
         dsu.sort()
         return type(self)([t[1] for t in dsu])
@@ -334,7 +333,8 @@ def marquee(txt: str = "", width: int = 78, mark: str = "*") -> str:
     if not txt:
         return (mark*width)[:width]
     nmark = (width-len(txt)-2)//len(mark)//2
-    if nmark < 0: nmark =0
+    if nmark < 0:
+        nmark =0
     marks = mark*nmark
     return '%s %s %s' % (marks,txt,marks)
 
@@ -352,13 +352,23 @@ def format_screen(strng: str) -> str:
 def dedent(text: str) -> str:
     """Equivalent of textwrap.dedent that ignores unindented first line.
 
-    This means it will still dedent strings like:
-    '''foo
-    is a bar
-    '''
-
-    For use in wrap_paragraphs.
+    .. deprecated::
+        Use `inspect.cleandoc` instead. This function will be removed in a future version.
     """
+    import inspect as _inspect
+    warnings.warn(
+        "IPython.utils.text.dedent is deprecated. Use inspect.cleandoc instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    if text.startswith('\n'):
+        return textwrap.dedent(text)
+    splits = text.split('\n', 1)
+    if len(splits) == 1:
+        return textwrap.dedent(text)
+    first, rest = splits
+    rest = textwrap.dedent(rest)
+    return '\n'.join([first, rest])
 
     if text.startswith('\n'):
         # text starts with blank line, don't ignore the first line
@@ -462,13 +472,13 @@ class EvalFormatter(Formatter):
 
 class FullEvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
-    
+
     Any time a format key is not found in the kwargs,
     it will be tried as an expression in the kwargs namespace.
-    
+
     Note that this version allows slicing using [1:2], so you cannot specify
     a format string. Use :class:`EvalFormatter` to permit format strings.
-    
+
     Examples
     --------
     ::
@@ -560,7 +570,7 @@ class DollarFormatter(FullEvalFormatter):
                     yield (txt + new_txt, new_field, "", None)
                     txt = ""
                 continue_from = m.end()
-            
+
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
 
@@ -609,7 +619,7 @@ def _get_or_default(mylist: List[T], i: int, default: T) -> T:
     """return list item number, or default if don't exist"""
     if i >= len(mylist):
         return default
-    else :
+    else:
         return mylist[i]
 
 

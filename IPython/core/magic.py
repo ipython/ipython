@@ -22,7 +22,7 @@ from .error import UsageError
 from .inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
 from ..utils.ipstruct import Struct
 from ..utils.process import arg_split
-from ..utils.text import dedent
+import inspect
 from traitlets import Bool, Dict, Instance, observe
 from logging import error
 
@@ -272,7 +272,7 @@ def _function_magic_marker(
     # Ensure the resulting decorator has a usable docstring
     ds = _docstring_template.format("function", magic_kind)
 
-    ds += dedent(
+    ds += inspect.cleandoc(
         """
     Note: this decorator can only be used in a context where IPython is already
     active, so that the `get_ipython()` call succeeds.  You can therefore use

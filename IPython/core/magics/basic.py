@@ -13,7 +13,8 @@ from traitlets.utils.importstring import import_item
 from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
-from IPython.utils.text import format_screen, dedent, indent
+import inspect
+from IPython.utils.text import format_screen, indent
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
 
@@ -197,11 +198,11 @@ class BasicMagics(Magics):
 
         return ''.join(
             [format_string % (magic_escapes['line'], fname,
-                              indent(dedent(fndoc)))
+                              indent(inspect.cleandoc(fndoc)))
              for fname, fndoc in sorted(docs['line'].items())]
             +
             [format_string % (magic_escapes['cell'], fname,
-                              indent(dedent(fndoc)))
+                              indent(inspect.cleandoc(fndoc)))
              for fname, fndoc in sorted(docs['cell'].items())]
         )
 
