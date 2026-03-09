@@ -177,7 +177,7 @@ class SList(list[Any]):
                 return ""
 
         if isinstance(pattern, str):
-            def pred(x): return re.search(pattern, x, re.IGNORECASE)
+            pred = lambda x: re.search(pattern, x, re.IGNORECASE)
         else:
             pred = pattern
         if not prune:
@@ -348,14 +348,12 @@ def format_screen(strng: str) -> str:
     strng = par_re.sub('',strng)
     return strng
 
-
 def dedent(text: str) -> str:
     """Equivalent of textwrap.dedent that ignores unindented first line.
 
     .. deprecated::
         Use `inspect.cleandoc` instead. This function will be removed in a future version.
     """
-    import inspect as _inspect
     warnings.warn(
         "IPython.utils.text.dedent is deprecated. Use inspect.cleandoc instead.",
         DeprecationWarning,
@@ -367,21 +365,6 @@ def dedent(text: str) -> str:
     if len(splits) == 1:
         return textwrap.dedent(text)
     first, rest = splits
-    rest = textwrap.dedent(rest)
-    return '\n'.join([first, rest])
-
-    if text.startswith('\n'):
-        # text starts with blank line, don't ignore the first line
-        return textwrap.dedent(text)
-
-    # split first line
-    splits = text.split('\n',1)
-    if len(splits) == 1:
-        # only one line
-        return textwrap.dedent(text)
-
-    first, rest = splits
-    # dedent everything but the first line
     rest = textwrap.dedent(rest)
     return '\n'.join([first, rest])
 
