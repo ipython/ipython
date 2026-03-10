@@ -50,27 +50,26 @@ class HistoryTrim(BaseIPythonApplication):
     def start(self):
         profile_dir = Path(self.profile_dir.location)
         hist_file = profile_dir / "history.sqlite"
-        con = sqlite3.connect(hist_file)
+        with sqlite3.connect(hist_file) as con:
 
-        # Grab the recent history from the current database.
-        inputs = list(con.execute('SELECT session, line, source, source_raw FROM '
-                                'history ORDER BY session DESC, line DESC LIMIT ?', (self.keep+1,)))
-        if len(inputs) <= self.keep:
-            print("There are already at most %d entries in the history database." % self.keep)
-            print("Not doing anything. Use --keep= argument to keep fewer entries")
-            return
+            # Grab the recent history from the current database.
+            inputs = list(con.execute('SELECT session, line, source, source_raw FROM '
+                                    'history ORDER BY session DESC, line DESC LIMIT ?', (self.keep+1,)))
+            if len(inputs) <= self.keep:
+                print("There are already at most %d entries in the history database." % self.keep)
+                print("Not doing anything. Use --keep= argument to keep fewer entries")
+                return
 
-        print("Trimming history to the most recent %d entries." % self.keep)
+            print("Trimming history to the most recent %d entries." % self.keep)
 
-        inputs.pop() # Remove the extra element we got to check the length.
-        inputs.reverse()
-        if inputs:
-            first_session = inputs[0][0]
-            outputs = list(con.execute('SELECT session, line, output FROM '
-                                       'output_history WHERE session >= ?', (first_session,)))
-            sessions = list(con.execute('SELECT session, start, end, num_cmds, remark FROM '
-                                        'sessions WHERE session >= ?', (first_session,)))
-        con.close()
+            inputs.pop() # Remove the extra element we got to check the length.
+            inputs.reverse()
+            if inputs:
+                first_session = inputs[0][0]
+                outputs = list(con.execute('SELECT session, line, output FROM '
+                                        'output_history WHERE session >= ?', (first_session,)))
+                sessions = list(con.execute('SELECT session, start, end, num_cmds, remark FROM '
+                                            'sessions WHERE session >= ?', (first_session,)))
 
         # Create the new history database.
         new_hist_file = profile_dir / "history.sqlite.new"
@@ -79,26 +78,25 @@ class HistoryTrim(BaseIPythonApplication):
             # Make sure we don't interfere with an existing file.
             i += 1
             new_hist_file = profile_dir / ("history.sqlite.new" + str(i))
-        new_db = sqlite3.connect(new_hist_file)
-        new_db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
-                            primary key autoincrement, start timestamp,
-                            end timestamp, num_cmds integer, remark text)""")
-        new_db.execute("""CREATE TABLE IF NOT EXISTS history
-                        (session integer, line integer, source text, source_raw text,
-                        PRIMARY KEY (session, line))""")
-        new_db.execute("""CREATE TABLE IF NOT EXISTS output_history
-                        (session integer, line integer, output text,
-                        PRIMARY KEY (session, line))""")
-        new_db.commit()
+        with sqlite3.connect(new_hist_file) as new_db:
+            new_db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
+                                primary key autoincrement, start timestamp,
+                                end timestamp, num_cmds integer, remark text)""")
+            new_db.execute("""CREATE TABLE IF NOT EXISTS history
+                            (session integer, line integer, source text, source_raw text,
+                            PRIMARY KEY (session, line))""")
+            new_db.execute("""CREATE TABLE IF NOT EXISTS output_history
+                            (session integer, line integer, output text,
+                            PRIMARY KEY (session, line))""")
+            new_db.commit()
 
 
-        if inputs:
-            with new_db:
-                # Add the recent history into the new database.
-                new_db.executemany('insert into sessions values (?,?,?,?,?)', sessions)
-                new_db.executemany('insert into history values (?,?,?,?)', inputs)
-                new_db.executemany('insert into output_history values (?,?,?)', outputs)
-        new_db.close()
+            if inputs:
+                with new_db:
+                    # Add the recent history into the new database.
+                    new_db.executemany('insert into sessions values (?,?,?,?,?)', sessions)
+                    new_db.executemany('insert into history values (?,?,?,?)', inputs)
+                    new_db.executemany('insert into output_history values (?,?,?)', outputs)
 
         if self.backup:
             i = 1
