@@ -639,7 +639,10 @@ def test_ignore_module_basic_functionality():
     with TemporaryDirectory() as temp_dir:
         main_path = create_test_modules(temp_dir)
 
-        child = pexpect.spawn(sys.executable, [main_path], env=env, cwd=temp_dir)
+        child = pexpect.spawn(
+            sys.executable, [main_path], env=env, cwd=temp_dir, maxread=2000
+        )
+        child.str_last_chars = 300
         child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
         child.expect("ipdb>")
 

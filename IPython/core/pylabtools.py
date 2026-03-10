@@ -7,10 +7,17 @@
 from io import BytesIO
 from binascii import b2a_base64
 from functools import partial
+import struct
 import warnings
 
-from IPython.core.display import _pngxy
 from IPython.utils.decorators import flag_calls
+
+
+def _pngxy(data):
+    """read the (width, height) from a PNG header"""
+    ihdr = data.index(b'IHDR')
+    # next 8 bytes are width/height
+    return struct.unpack('>ii', data[ihdr+4:ihdr+12])
 
 
 # Matplotlib backend resolution functionality moved from IPython to Matplotlib
@@ -441,7 +448,7 @@ def import_pylab(user_ns, import_all=True):
 
     # IPython symbols to add
     user_ns['figsize'] = figsize
-    from IPython.display import display
+    from IPython.core.display_functions import display
     # Add display and getfigs to the user's namespace
     user_ns['display'] = display
     user_ns['getfigs'] = getfigs
