@@ -30,9 +30,17 @@ class Prompts:
             return self.shell.pt_app.default_buffer.document.cursor_position_row or 0
         return 0
 
+    def pending_indicator(self):
+        """Return indicator for pending inputs in background prompt mode."""
+        pending = getattr(self.shell, "pending_input_count", 0)
+        if pending > 0:
+            return f"({pending}) "
+        return ""
+
     def in_prompt_tokens(self):
         return [
             (Token.Prompt.Mode, self.vi_mode()),
+            (Token.Prompt.Pending, self.pending_indicator()),
             (
                 Token.Prompt.LineNumber,
                 self.shell.prompt_line_number_format.format(
