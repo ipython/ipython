@@ -379,6 +379,9 @@ ipdoctest_optionflags = [
    "ELLIPSIS"
 ]
 asyncio_mode = "strict"
+filterwarnings = [
+    "error::ResourceWarning",
+]
 
 [tool.pyright]
 pythonPlatform="All"

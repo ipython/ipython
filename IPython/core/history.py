@@ -10,6 +10,7 @@ import atexit
 import datetime
 import os
 import re
+import weakref
 
 
 import threading
@@ -322,12 +323,14 @@ class HistoryAccessor(HistoryAccessorBase):
         """Connect to the database, and create tables if necessary."""
         if not self.enabled:
             self.db = DummyDB()
+            self._finalizer = weakref.finalize(self, lambda db: db.close(), self.db)
             return
 
         # use detect_types so that timestamps return datetime objects
         kwargs = dict(detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         kwargs.update(self.connection_options)
         self.db = sqlite3.connect(str(self.hist_file), **kwargs)  # type: ignore [call-overload]
+        self._finalizer = weakref.finalize(self, lambda db: db.close(), self.db)
         with self.db:
             self.db.execute(
                 """CREATE TABLE IF NOT EXISTS sessions (session integer
@@ -348,10 +351,6 @@ class HistoryAccessor(HistoryAccessorBase):
             )
         # success! reset corrupt db count
         self._corrupt_db_counter = 0
-
-    def __del__(self) -> None:
-        if hasattr(self, "db"):
-            self.db.close()
 
     def writeout_cache(self) -> None:
         """Overridden by HistoryManager to dump the cache before certain
@@ -721,7 +720,6 @@ class HistoryManager(HistoryAccessor):
     def __del__(self) -> None:
         if self.save_thread is not None:
             self.save_thread.stop()
-        HistoryAccessor.__del__(self)
 
     @classmethod
     def _stop_thread(cls) -> None:
