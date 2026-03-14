@@ -450,7 +450,7 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    tb_highlight = "bg:ansiyellow"
+    tb_highlight = "ansiblack bg:ansiyellow"
     tb_highlight_style = "default"
 
     _mode: str
