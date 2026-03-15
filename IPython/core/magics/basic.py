@@ -346,9 +346,19 @@ Currently the magic system has the following functions:""",
 
         Valid modes: Plain, Context, Verbose, Minimal, and Docs.
 
-        If called without arguments, acts as a toggle.
+        - ``Plain``: similar to Python's default traceback.
+        - ``Context``: shows several lines of surrounding context for each
+          frame in the traceback.
+        - ``Verbose``: like Context, but also displays local variable values
+          in each frame.
+        - ``Minimal``: shows only the exception type and message, without
+          a traceback.
+        - ``Docs``: a stripped-down version of Verbose, designed for use
+        when running doctests.
 
-        When in verbose mode the value `--show` (and `--hide`)
+        If called without arguments, cycles through the available modes.
+
+        When in verbose mode the value ``--show`` (and ``--hide``)
         will respectively show (or hide) frames with ``__tracebackhide__ =
         True`` value set.
         """
