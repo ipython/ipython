@@ -327,7 +327,17 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.log.debug("IPython not interactive...")
             self.shell.restore_term_title()
             if not self.shell.last_execution_succeeded:
-                sys.exit(1)
+                exit_code = 1
+                result = self.shell.last_execution_result
+                if result is not None and isinstance(
+                    result.error_in_exec, SystemExit
+                ):
+                    code = result.error_in_exec.code
+                    if isinstance(code, int):
+                        exit_code = code
+                    elif code is None:
+                        exit_code = 0
+                sys.exit(exit_code)
 
 def load_default_config(ipython_dir=None):
     """Load the default config file from the default ipython_dir.
