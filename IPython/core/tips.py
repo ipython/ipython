@@ -107,6 +107,16 @@ else:
         ]
     )
 
+# Check if argcomplete is installed and add tip
+try:
+    import argcomplete
+
+    _tips["random"].append(
+        "Run `activate-global-python-argcomplete` from your shell to enable CLI completion for IPython"
+    )
+except ModuleNotFoundError:
+    pass
+
 
 def pick_tip() -> str:
     current_date = datetime.now()

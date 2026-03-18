@@ -10,7 +10,7 @@ import builtins as builtin_mod
 from .encoding import DEFAULT_ENCODING
 
 
-def decode(s, encoding=None):
+def decode(s: bytes, encoding: str | None = None) -> str:
     encoding = encoding or DEFAULT_ENCODING
     return s.decode(encoding, "replace")
 

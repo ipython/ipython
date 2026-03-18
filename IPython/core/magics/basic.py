@@ -344,7 +344,7 @@ Currently the magic system has the following functions:""",
     def xmode(self, parameter_s=''):
         """Switch modes for the exception handlers.
 
-        Valid modes: Plain, Context, Verbose, and Minimal.
+        Valid modes: Plain, Context, Verbose, Minimal, and Docs.
 
         If called without arguments, acts as a toggle.
 

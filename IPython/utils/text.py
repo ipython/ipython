@@ -28,10 +28,7 @@ from typing import (
 )
 from collections.abc import Sequence, Mapping, Callable, Iterator
 
-if sys.version_info < (3, 12):
-    from typing import Self
-else:
-    from typing import Self
+from typing import Self
 
 
 class LSString(str):

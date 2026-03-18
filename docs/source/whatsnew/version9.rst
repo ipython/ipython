@@ -2,13 +2,170 @@
  9.x Series
 ============
 
+.. _version 9.11:
+
+IPython 9.11
+============
+
+This release includes a new shell error-handling config option, a reproducible
+banner for builds, history thread management improvements, autoreload encoding
+fixes, Python 3.11 deprecation notices, and various type annotation improvements.
+
+- :ghpull:`15073` Add ``system_raise_on_error`` config option for ``!`` shell operator
+- :ghpull:`15121` Start dropping Python 3.11
+- :ghpull:`15122` Fix encoding to utf8 for autoreload
+- :ghpull:`15130` Stricter config + add typing to ``IPython/core/magic.py``
+- :ghpull:`15133` Inline and remove only usage of ``on_off``
+- :ghpull:`15144` Have a static banner when setting ``SOURCE_DATE_EPOCH``
+
+In addition there are many type annotations that have been added by using Generative AI (Clause Sonnet and Opus from
+Anthropicl; GitHub Copilot)
+
+
+
+New ``system_raise_on_error`` Config Option
+--------------------------------------------
+
+A new ``system_raise_on_error`` Bool traitlet configuration option (default:
+``False``) has been added. When set to ``True``, shell commands executed via
+the ``!`` operator will raise :exc:`subprocess.CalledProcessError` if they
+return a non-zero exit status. This makes it easier to write robust IPython
+scripts that need to detect shell command failures::
+
+    %config InteractiveShell.system_raise_on_error = True
+    ! false  # will now raise CalledProcessError
+
+
+Reproducible Banner
+--------------------
+
+When the ``SOURCE_DATE_EPOCH`` environment variable is set, IPython now
+produces a static, reproducible banner. This
+helps with reproducible builds and packaging workflows that may capture this state
+(related to
+`jupyterlab/jupyterlab#18552 <https://github.com/jupyterlab/jupyterlab/issues/18552>`_).
+
+
+Python 3.11 Deprecation
+------------------------
+
+IPython has begun the process of dropping support for Python 3.11. Users
+still running Python 3.11 should plan to upgrade to a supported Python
+version.
+
+
+Autoreload Encoding Fix
+------------------------
+
+The autoreload extension now explicitly sets UTF-8 as the default encoding
+when reading source files. Previously, the platform default encoding was
+used, which could cause failures on systems where the default encoding is
+not UTF-8.
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.11
+<https://github.com/ipython/ipython/milestone/160?closed=1>`__ milestone.
+
+
+.. _version 9.10:
+
+IPython 9.10
+============
+
+This release includes improvements to history management during forking and formatting fixes.
+
+- :ghpull:`15110` Fix Removing leading indentation when stripping prompt
+- :ghpull:`15115` Stop HistorySavingThread before fork
+- :ghpull:`15118` Add debug info for autoreload
+
+
+History Thread Management Improvements
+---------------------------------------
+
+The `HistorySavingThread` is now properly stopped before process forking,
+preventing threading issues in child processes. This ensures that history
+operations work correctly when IPython is used in applications that perform
+process forking.
+
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.10
+<https://github.com/ipython/ipython/milestone/159?closed=1>`__ milestone.
+
+
+.. _version 9.9:
+
+IPython 9.9
+===========
+
+This release includes several bug fixes and improvements across completions,
+type annotations, and developer experience.
+
+- :ghpull:`15092` Fix formatting for completion suggestions section
+- :ghpull:`15057` Reduce types in splitinput.py
+- :ghpull:`15096` Use Any type in traceback tuple
+- :ghpull:`15099` Fix filename of CVE test
+- :ghpull:`15091` Skip downstream CI if only docs changes
+- :ghpull:`15093` Replace sphinxext/github with extlink configuration
+- :ghpull:`15103` Tips and docs about argcomplete
+- :ghpull:`15105` Add prompt_toolkit's unix_word_rubout to assignable commands for shortcuts
+- :ghpull:`15095` Enable pretty-printing for PEP-649 annotated functions
+- :ghpull:`15106` Fix completions for methods starting with ``_``
+- :ghpull:`15111` Stop assuming that memory addresses are signed
+- :ghpull:`15102` Bump macOS runner version in GitHub Actions
+- :ghpull:`15101` Fix crash on literal with surrogate
+
+Improvements to PEP-649 Support
+-------------------------------
+
+IPython now properly pretty-prints functions with PEP-649 style annotations.
+This improves the display of functions in interactive sessions when using Python
+3.14+ annotation semantics.
+
+
+Shell Shortcuts Enhancement
+-----------------------------
+
+The ``unix_word_rubout`` command from prompt_toolkit is now available as an
+assignable command for terminal shortcuts, giving users more flexibility in
+customizing their keybindings.
+
+
+Type Annotation Improvements
+----------------------------
+
+Various type annotation improvements have been made throughout the codebase for
+better static analysis support, including fixes for tracebacks and improved type
+inference in the completion engine.
+
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.9
+<https://github.com/ipython/ipython/milestone/157?closed=1>`__ milestone.
+
 
 .. _version 9.8:
 
 IPython 9.8
 ===========
 
-This release brings improvements to concurrent execution, history commands, tab completion, and debugger performance.
+This release brings improvements to concurrent execution, history commands, tab
+completion, and debugger performance.
 
 
 - :ghpull:`15037` Fix some ruff issues with import

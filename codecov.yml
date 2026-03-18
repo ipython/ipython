@@ -5,14 +5,37 @@ coverage:
       default: false
       library:
         target: auto
-        paths: ['!.*/tests/.*']
+        paths:
+          - '!**/tests/**'
+          - '!**/testing/**'
         threshold: 0.1%
       tests:
         target: auto
-        paths: ['.*/tests/.*']
+        paths:
+          - '**/tests/**'
+          - '**/testing/**'
         threshold: 0.1%
+flag_management:
+  default_rules:
+    statuses:
+      - type: patch
+        target: auto%
+        threshold: 0.1%
+      - type: project
+        target: auto%
+        threshold: 0.1%
+  individual_flags:
+    - name: unit-tests
+      paths:
+        - '**/tests/**'
+        - '**/testing/**'
+    - name: library
+      paths:
+        - '!**/tests/**'
+        - '!**/testing/**'
 codecov:
   require_ci_to_pass: false
+  branch: main
 
 ignore:
   - IPython/kernel/*

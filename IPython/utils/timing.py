@@ -14,7 +14,10 @@ Utilities for timing code execution.
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import annotations
+
 import time
+from typing import Any, Callable
 
 #-----------------------------------------------------------------------------
 # Code
@@ -56,7 +59,7 @@ if resource is not None and hasattr(resource, "getrusage"):
         u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
         return u+s
 
-    def clock2():
+    def clock2() -> tuple[float, float]:
         """clock2() -> (t_user,t_system)
 
         Similar to clock(), but return a tuple of user/system times."""
@@ -67,14 +70,19 @@ else:
     # time.process_time() for everything...
     clocku = clocks = clock = time.process_time
 
-    def clock2():
+    def clock2() -> tuple[float, float]:
         """Under windows, system CPU time can't be measured.
 
         This just returns process_time() and zero."""
         return time.process_time(), 0.0
 
     
-def timings_out(reps,func,*args,**kw):
+def timings_out(
+    reps: int,
+    func: Callable[..., Any],
+    *args: Any,
+    **kw: Any,
+) -> tuple[float, float, Any]:
     """timings_out(reps,func,*args,**kw) -> (t_total,t_per_call,output)
 
     Execute a function reps times, return a tuple with the elapsed total
@@ -103,7 +111,12 @@ def timings_out(reps,func,*args,**kw):
     return tot_time,av_time,out
 
 
-def timings(reps,func,*args,**kw):
+def timings(
+    reps: int,
+    func: Callable[..., Any],
+    *args: Any,
+    **kw: Any,
+) -> tuple[float, float]:
     """timings(reps,func,*args,**kw) -> (t_total,t_per_call)
 
     Execute a function reps times, return a tuple with the elapsed total CPU
@@ -113,7 +126,7 @@ def timings(reps,func,*args,**kw):
     return timings_out(reps,func,*args,**kw)[0:2]
 
 
-def timing(func,*args,**kw):
+def timing(func: Callable[..., Any], *args: Any, **kw: Any) -> float:
     """timing(func,*args,**kw) -> t_total
 
     Execute a function once, return the elapsed total CPU time in

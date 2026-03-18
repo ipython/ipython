@@ -635,4 +635,5 @@ UNASSIGNED_ALLOWED_COMMANDS = [
     nc.forward_char,
     nc.forward_word,
     nc.unix_line_discard,
+    nc.unix_word_rubout,
 ]

@@ -16,16 +16,20 @@ go into another topical module in :mod:`IPython.utils`.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from collections.abc import Sequence
+from __future__ import annotations
+
+from collections.abc import Callable, Sequence
+from typing import Any, TypeVar
 
 from IPython.utils.docs import GENERATING_DOCUMENTATION
 
+F = TypeVar("F", bound=Callable[..., Any])
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
-def flag_calls(func):
+def flag_calls(func: Callable[..., Any]) -> Callable[..., Any]:
     """Wrap a function to detect and flag when it gets called.
 
     This is a decorator which takes a function and wraps it in a function with
@@ -37,23 +41,23 @@ def flag_calls(func):
 
     Testing for truth in wrapper.called allows you to determine if a call to
     func() was attempted and succeeded."""
-    
+
     # don't wrap twice
     if hasattr(func, 'called'):
         return func
 
-    def wrapper(*args,**kw):
-        wrapper.called = False
-        out = func(*args,**kw)
-        wrapper.called = True
+    def wrapper(*args: Any, **kw: Any) -> Any:
+        wrapper.called = False  # type: ignore[attr-defined]
+        out = func(*args, **kw)
+        wrapper.called = True  # type: ignore[attr-defined]
         return out
 
-    wrapper.called = False
+    wrapper.called = False  # type: ignore[attr-defined]
     wrapper.__doc__ = func.__doc__
     return wrapper
 
 
-def undoc(func):
+def undoc(func: F) -> F:
     """Mark a function or class as undocumented.
 
     This is found by inspecting the AST, so for now it must be used directly
@@ -66,14 +70,14 @@ def sphinx_options(
     show_inheritance: bool = True,
     show_inherited_members: bool = False,
     exclude_inherited_from: Sequence[str] = tuple(),
-):
+) -> Callable[[F], F]:
     """Set sphinx options"""
 
-    def wrapper(func):
+    def wrapper(func: F) -> F:
         if not GENERATING_DOCUMENTATION:
             return func
 
-        func._sphinx_options = dict(
+        func._sphinx_options = dict(  # type: ignore[attr-defined]
             show_inheritance=show_inheritance,
             show_inherited_members=show_inherited_members,
             exclude_inherited_from=exclude_inherited_from,

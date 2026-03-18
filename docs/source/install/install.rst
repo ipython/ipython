@@ -78,6 +78,32 @@ The quickest way to get up and running with IPython is to install it with pip:
 That's it.
 
 
+Optional: Command-line completion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+IPython supports command-line completion via the ``argcomplete`` package.
+To enable tab completion for IPython and other Python programs that support
+argcomplete, install IPython with the ``terminal`` extra:
+
+.. code-block:: bash
+
+    $ pip install ipython[all]
+    $ activate-global-python-argcomplete
+
+Alternatively, you can install argcomplete separately:
+
+.. code-block:: bash
+
+    $ pip install argcomplete
+    $ activate-global-python-argcomplete
+
+This will enable shell completion for all Python programs that support argcomplete,
+including IPython. Note that you may need to restart your shell for the changes
+to take effect.
+
+For more information, see the `argcomplete documentation <https://github.com/kislyuk/argcomplete>`_.
+
+
 .. _devinstall:
 
 Installing the development version

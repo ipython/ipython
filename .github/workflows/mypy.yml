@@ -28,7 +28,7 @@ jobs:
       uses: astral-sh/setup-uv@v7
     - name: Install dependencies
       run: |
-        uv pip install --system mypy pyflakes flake8 types-decorator
+        uv pip install --system mypy pyflakes flake8 types-decorator '.[all]'
     - name: Lint with mypy
       run: |
         set -e

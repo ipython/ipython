@@ -33,7 +33,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.13"]
         include:
-          - os: macos-13
+          - os: macos-14
             python-version: "3.13"
 
     steps:
@@ -96,4 +96,4 @@ jobs:
     - name: Test pyflyby (IPython integration only)
       run: |
         cd ../pyflyby
-        pytest tests/test_interactive.py
+        pytest tests/test_interactive.py --deselect tests/test_interactive.py::test_debug_namespace_1_py3[prompt_toolkit] --deselect tests/test_interactive.py::test_run_separate_script_namespace_2

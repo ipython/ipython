@@ -327,6 +327,10 @@ class ModuleReloader:
                         del self.failed[py_filename]
                 except:
                     if not self.hide_errors:
+                        logger = logging.getLogger("autoreload")
+                        logger.exception(
+                            f"Failed to reload module '{modname}' from file '{py_filename}'"
+                        )
                         print(
                             "[autoreload of {} failed: {}]".format(
                                 modname, traceback.format_exc(10)
