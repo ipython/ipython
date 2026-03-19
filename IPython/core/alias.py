@@ -219,7 +219,7 @@ class AliasManager(Configurable):
             self.soft_define_alias(name, cmd)
 
     @property
-    def aliases(self):
+    def aliases(self) -> list:
         return [(n, func.cmd) for (n, func) in self.linemagics.items()
                             if isinstance(func, Alias)]
 
