@@ -36,7 +36,6 @@ from _pytest._io import TerminalWriter
 from _pytest.compat import safe_getattr
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
-from _pytest.fixtures import TopRequest
 
 try:
     from _pytest.fixtures import TopRequest as FixtureRequest
