@@ -354,7 +354,7 @@ Currently the magic system has the following functions:""",
         - ``Minimal``: shows only the exception type and message, without
           a traceback.
         - ``Docs``: a stripped-down version of Verbose, designed for use
-        when running doctests.
+          when running doctests.
 
         If called without arguments, cycles through the available modes.
 
