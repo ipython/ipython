@@ -541,6 +541,8 @@ class VerboseTB(TBTools):
         args, varargs, varkw, locals_ = inspect.getargvalues(frame_info.frame)
         if frame_info.executing is not None:
             func = frame_info.executing.code_qualname()
+        elif frame_info.code is not None:
+            func = getattr(frame_info.code, "co_qualname", None) or frame_info.code.co_name
         else:
             func = "?"
         if func == "<module>":
