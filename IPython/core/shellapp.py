@@ -482,7 +482,6 @@ class InteractiveShellApp(Configurable):
             try:
                 self._exec_file(fname, shell_futures=True)
             except SystemExit as e:
-                self.shell.showtraceback(tb_offset=4)
                 if not self.interact:
                     exit_code = 1
                     if isinstance(e.code, int):
