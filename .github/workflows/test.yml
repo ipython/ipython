@@ -29,14 +29,6 @@ jobs:
           - os: macos-latest
             python-version: "3.12"
             deps: test_extra
-          # free threaded, not with all dependencies
-          - os: ubuntu-latest
-            python-version: "3.14t"
-            deps: test
-          # Tests latest development Python version
-          - os: ubuntu-latest
-            python-version: "3.15-dev"
-            deps: test
           - os: ubuntu-latest
             python-version: "3.12"
             deps: test_extra
@@ -44,59 +36,91 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+    - name: Determine pixi environment
+      id: env
+      shell: bash
+      run: |
+        PY_CLEAN=$(echo "${{ matrix.python-version }}" | tr -d '.')
+        DEPS_CLEAN=$(echo "${{ matrix.deps }}" | tr '_' '-')
+        echo "pixi-env=py${PY_CLEAN}-${DEPS_CLEAN}" >> $GITHUB_OUTPUT
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
-        cache-dependency-path: |
-          pyproject.toml
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
+        environments: ${{ steps.env.outputs.pixi-env }}
     - name: Install latex
       if: runner.os == 'Linux' && matrix.deps == 'test_extra'
       run: echo "disable latex for now, issues in mirros" #sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
-    - name: Install and update Python dependencies (binary only)
-      if: ${{ ! contains( matrix.python-version, 'dev' ) }}
-      run: |
-        uv pip install --system setuptools wheel build
-        uv pip install --system -e .[${{ matrix.deps }}]
-        uv pip install --system check-manifest pytest-cov pytest
-    - name: Install and update Python dependencies (dev?)
-      if: ${{ contains( matrix.python-version, 'dev' ) }}
-      run: |
-        uv pip install --system --prerelease=allow setuptools wheel build
-        uv pip install --system --prerelease=allow --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple -e .[${{ matrix.deps }}]
-        uv pip install --system --prerelease=allow --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple check-manifest pytest-cov
     - name: Try building with Python build
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: |
-        python -m build
+        pixi run -e ${{ steps.env.outputs.pixi-env }} python -m build
         shasum -a 256 dist/*
     - name: Check manifest
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
-      run: check-manifest
+      run: pixi run -e ${{ steps.env.outputs.pixi-env }} check-manifest
 
     - name: Install entry point compatible code (TEMPORARY, April 2024)
       if: matrix.want-latest-entry-point-code
       run: |
-        uv pip list --system
+        pixi run -e ${{ steps.env.outputs.pixi-env }} pip list
         # Not installing matplotlib's entry point code as building matplotlib from source is complex.
         # Rely upon matplotlib to test all the latest entry point branches together.
-        uv pip install --system git+https://github.com/ipython/matplotlib-inline.git@main
-        uv pip list --system
+        pixi run -e ${{ steps.env.outputs.pixi-env }} pip install git+https://github.com/ipython/matplotlib-inline.git@main
+        pixi run -e ${{ steps.env.outputs.pixi-env }} pip list
 
     - name: pytest
       env:
         COLUMNS: 120
       run: |
-        pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --maxfail=15
+        pixi run -e ${{ steps.env.outputs.pixi-env }} pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --maxfail=15
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       with:
          token: ${{ secrets.CODECOV_TOKEN }}
          name: Test
          files: /home/runner/work/ipython/ipython/coverage.xml
+
+  test-dev:
+    # Test free-threaded and development Python versions that are not available
+    # in conda-forge, so we use setup-python + pip instead of pixi.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Disable scheduled CI runs on forks
+    if: github.event_name != 'schedule' || github.repository_owner == 'ipython'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # free threaded, not with all dependencies
+          - python-version: "3.14t"
+            deps: test
+          # Tests latest development Python version
+          - python-version: "3.15-dev"
+            deps: test
+
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install and update Python dependencies
+      if: ${{ ! contains( matrix.python-version, 'dev' ) }}
+      run: |
+        pip install setuptools wheel build
+        pip install -e .[${{ matrix.deps }}]
+        pip install check-manifest pytest-cov pytest
+    - name: Install and update Python dependencies (dev)
+      if: ${{ contains( matrix.python-version, 'dev' ) }}
+      run: |
+        pip install --pre setuptools wheel build
+        pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple -e .[${{ matrix.deps }}]
+        pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple check-manifest pytest-cov
+    - name: pytest
+      env:
+        COLUMNS: 120
+      run: |
+        pytest --color=yes -raXxs --maxfail=15
 
   oldest-deps:
     # pro-actively check backward compatibility
@@ -114,30 +138,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-    - name: Set up uv with Python 3.12
-      uses: astral-sh/setup-uv@v7
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        python-version: '3.12'
-        enable-cache: true
-        activate-environment: true
-        prune-cache: false
-        cache-dependency-glob: |
-          pyproject.toml
-
+        environments: py312-oldest
     - name: Install Python dependencies (oldest supported versions)
-      run: uv pip install --resolution=lowest-direct -e .[test]
+      # pixi does not support --resolution=lowest-direct natively,
+      # so we use pip inside the pixi environment for this.
+      run: pixi run -e py312-oldest pip install --resolution=lowest-direct -e .[test]
 
-    - name: Try building with uv build
+    - name: Try building with Python build
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: |
-        uv build
+        pixi run -e py312-oldest python -m build
         shasum -a 256 dist/*
 
     - name: Check manifest
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
-      run: uvx check-manifest
+      run: pixi run -e py312-oldest check-manifest
 
     - name: pytest
       env:
         COLUMNS: 120
-      run: pytest --color=yes -raXxs
+      run: pixi run -e py312-oldest pytest --color=yes -raXxs

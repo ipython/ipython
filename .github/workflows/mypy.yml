@@ -13,28 +13,19 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.14"]
 
     steps:
     - uses: actions/checkout@v6
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-    - name: Install dependencies
-      run: |
-        uv pip install --system mypy pyflakes flake8 types-decorator '.[all]'
+        environments: mypy
     - name: Lint with mypy
       run: |
         set -e
-        mypy IPython
+        pixi run -e mypy mypy IPython
     - name: Lint with pyflakes
       run: |
         set -e
-        flake8  IPython/core/magics/script.py
-        flake8  IPython/core/magics/packaging.py
+        pixi run -e mypy flake8 IPython/core/magics/script.py
+        pixi run -e mypy flake8 IPython/core/magics/packaging.py

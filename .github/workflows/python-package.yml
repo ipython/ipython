@@ -21,17 +21,10 @@ jobs:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
-    - name: Set up Python
-      uses: actions/setup-python@v6
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        python-version: 3.x
-        cache: pip
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-    - name: Install dependencies
-      run: |
-        # when changing the versions please update CONTRIBUTING.md too
-        uv pip install --system darker==2.1.1 black==24.10.0
+        environments: format
     - name: Lint with darker
       run: |
         # disabling darker for now, I can't get it to format the same locally and on CI.

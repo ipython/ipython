@@ -1,0 +1,82 @@
+[project]
+name = "ipython"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+# Python version features
+[feature.py312.dependencies]
+python = "3.12.*"
+
+[feature.py313.dependencies]
+python = "3.13.*"
+
+[feature.py314.dependencies]
+python = "3.14.*"
+
+# Test dependencies (test extras)
+[feature.test.pypi-dependencies]
+ipython = { path = ".", editable = true, extras = ["test"] }
+setuptools = ">=80.0"
+wheel = "*"
+build = "*"
+check-manifest = "*"
+pytest-cov = "*"
+
+# Test extra dependencies
+[feature.test-extra.pypi-dependencies]
+ipython = { path = ".", editable = true, extras = ["test_extra"] }
+setuptools = ">=80.0"
+wheel = "*"
+build = "*"
+check-manifest = "*"
+pytest-cov = "*"
+
+# Ruff linting
+[feature.ruff.dependencies]
+ruff = "*"
+
+# MyPy type checking
+[feature.mypy.pypi-dependencies]
+ipython = { path = ".", editable = true, extras = ["all"] }
+mypy = "*"
+pyflakes = "*"
+flake8 = "*"
+types-decorator = "*"
+
+# Formatting
+[feature.format.pypi-dependencies]
+darker = "==2.1.1"
+black = "==24.10.0"
+
+# Docs
+[feature.docs.dependencies]
+graphviz = "*"
+
+[feature.docs.pypi-dependencies]
+ipython = { path = ".", editable = true, extras = ["doc"] }
+setuptools = "*"
+coverage = "*"
+rstvalidator = "*"
+
+# Build
+[feature.build.pypi-dependencies]
+build = "*"
+
+# Oldest deps testing
+[feature.oldest.pypi-dependencies]
+ipython = { path = ".", editable = true, extras = ["test"] }
+check-manifest = "*"
+build = "*"
+
+# Environments
+[environments]
+py312-test = ["py312", "test"]
+py312-test-extra = ["py312", "test-extra"]
+py313-test-extra = ["py313", "test-extra"]
+py314-test-extra = ["py314", "test-extra"]
+py312-oldest = ["py312", "oldest"]
+ruff = { features = ["ruff"], no-default-feature = true }
+mypy = ["py314", "mypy"]
+format = ["py312", "format"]
+docs = ["py312", "docs"]
+build = ["py314", "build"]

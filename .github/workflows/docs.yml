@@ -11,34 +11,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-    - name: Set up Python
-      uses: actions/setup-python@v6
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        python-version: 3.x
-        cache: pip
-        cache-dependency-path: |
-          docs/requirements.txt
-          pyproject.toml
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-    - name: Install Graphviz
-      run: |
-        sudo apt-get update
-        sudo apt-get install graphviz
-    - name: Install Python dependencies
-      run: |
-        uv pip install --system setuptools coverage rstvalidator
-        uv pip install --system -r docs/requirements.txt
+        environments: docs
     - name: Build docs
       run: |
-        python -m rstvalidator long_description.rst
-        python tools/fixup_whats_new_pr.py
-        make -C docs/ html SPHINXOPTS="-W" \
+        pixi run -e docs python -m rstvalidator long_description.rst
+        pixi run -e docs python tools/fixup_whats_new_pr.py
+        pixi run -e docs make -C docs/ html SPHINXOPTS="-W" \
           PYTHON="coverage run -a" \
           SPHINXBUILD="coverage run -a -m sphinx.cmd.build"
     - name: Generate coverage xml
       run: |
-        coverage combine `find . -name .coverage\*` && coverage xml
+        pixi run -e docs coverage combine `find . -name .coverage\*` && pixi run -e docs coverage xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       with:

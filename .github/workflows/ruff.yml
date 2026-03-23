@@ -13,23 +13,14 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.x"]
 
     steps:
     - uses: actions/checkout@v6
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-    - name: Install dependencies
-      run: |
-        uv pip install --system ruff
+        environments: ruff
     - name: Lint with ruff
       run: |
         set -e
-        ruff check .
+        pixi run -e ruff ruff check .

@@ -14,20 +14,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
         with:
-          python-version: "3.14"
-          cache: pip
-          cache-dependency-path: |
-            pyproject.toml
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+          environments: build
       - name: Try building with Python build
         if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
         run: |
-          uv pip install --system build
-          python -m build
+          pixi run -e build python -m build
 
       - name: Upload wheel
         uses: scientific-python/upload-nightly-action@main
