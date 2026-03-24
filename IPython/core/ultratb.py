@@ -539,10 +539,13 @@ class VerboseTB(TBTools):
 
         assert isinstance(frame_info.lineno, int)
         args, varargs, varkw, locals_ = inspect.getargvalues(frame_info.frame)
+        func: str
         if frame_info.executing is not None:
             func = frame_info.executing.code_qualname()
         elif frame_info.code is not None:
-            func = getattr(frame_info.code, "co_qualname", None) or frame_info.code.co_name
+            func = (
+                getattr(frame_info.code, "co_qualname", None) or frame_info.code.co_name
+            )
         else:
             func = "?"
         if func == "<module>":
@@ -611,12 +614,14 @@ class VerboseTB(TBTools):
         if frame_info._sd is None:
             # fast fallback if file is too long
             assert frame_info.filename is not None
-            level_tokens = [
-                (Token.FilenameEm, util_path.compress_user(frame_info.filename)),
-                (Token, " "),
-                (Token, call),
-                (Token, "\n"),
-            ]
+            level_tokens = (
+                _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
+                + [
+                    (Token, ", " if call else ""),
+                    (Token, call),
+                    (Token, "\n"),
+                ]
+            )
 
             _line_format = Parser(theme_name=self._theme_name).format2
             assert isinstance(frame_info.code, types.CodeType)
@@ -823,10 +828,9 @@ class VerboseTB(TBTools):
             pygments_formatter=formatter,
         )
 
-        # Let's estimate the amount of code we will have to parse/highlight.
+        # Collect traceback frames and their module sizes.
         cf: Optional[TracebackType] = etb
-        max_len = 0
-        tbs = []
+        tbs: list[tuple[TracebackType, int]] = []
         while cf is not None:
             try:
                 mod = inspect.getmodule(cf.tb_frame)
@@ -836,31 +840,32 @@ class VerboseTB(TBTools):
                     if root_name == "IPython":
                         cf = cf.tb_next
                         continue
-                max_len = get_line_number_of_frame(cf.tb_frame)
-
+                frame_len = get_line_number_of_frame(cf.tb_frame)
             except OSError:
-                max_len = 0
-            max_len = max(max_len, max_len)
-            tbs.append(cf)
-            cf = getattr(cf, "tb_next", None)
+                frame_len = 0
+            assert cf is not None  # narrowing for mypy; guarded by while condition
+            tbs.append((cf, frame_len))
+            cf = cf.tb_next
 
-        if max_len > FAST_THRESHOLD:
-            FIs: list[FrameInfo] = []
-            for tb in tbs:
+        # Process each frame individually: use stack_data for short modules,
+        # fall back to raw frames for long ones.
+        FIs: list[FrameInfo] = []
+        for tb, frame_len in tbs:
+            if frame_len > FAST_THRESHOLD:
                 frame = tb.tb_frame  # type: ignore[union-attr]
                 lineno = frame.f_lineno
                 code = frame.f_code
                 filename = code.co_filename
-                # TODO: Here we need to use before/after/
                 FIs.append(
                     FrameInfo(
                         "Raw frame", filename, lineno, frame, code, context=context
                     )
                 )
-            return FIs
-        res = list(stack_data.FrameInfo.stack_data(etb, options=options))[tb_offset:]
-        res2 = [FrameInfo._from_stack_data_FrameInfo(r) for r in res]
-        return res2
+            else:
+                sd_fi = next(stack_data.FrameInfo.stack_data(tb, options=options))
+                FIs.append(FrameInfo._from_stack_data_FrameInfo(sd_fi))
+
+        return FIs
 
     def structured_traceback(
         self,
