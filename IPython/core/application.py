@@ -33,10 +33,11 @@ from traitlets import (
 )
 
 if os.name == "nt":
+    # %PROGRAMDATA% is not safe by default, require opt-in to trust it
     programdata = os.environ.get("PROGRAMDATA", None)
-    if programdata is not None:
+    if os.environ.get("IPYTHON_USE_PROGRAMDATA") == "1" and programdata is not None:
         SYSTEM_CONFIG_DIRS = [str(Path(programdata) / "ipython")]
-    else:  # PROGRAMDATA is not defined by default on XP.
+    else:
         SYSTEM_CONFIG_DIRS = []
 else:
     SYSTEM_CONFIG_DIRS = [
