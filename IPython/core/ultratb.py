@@ -519,6 +519,15 @@ class VerboseTB(TBTools):
 
         self.skip_hidden = True
 
+        theme_highlight_map = {
+            "linux": "ansiblack bg:ansiyellow",
+            "neutral": "ansiblack bg:ansiyellow", 
+            "lightbg": "bg:ansiblue",
+            "nocolor": "", 
+        }
+
+        self.tb_highlight = theme_highlight_map.get(self._theme_name, "bg:ansiyellow")
+
     def format_record(self, frame_info: FrameInfo) -> str:
         """Format a single stack frame"""
         assert isinstance(frame_info, FrameInfo)
