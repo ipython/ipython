@@ -444,7 +444,7 @@ class Pdb(OldPdb):
                         self.message(
                             f"More than {self.MAX_CHAINED_EXCEPTION_DEPTH}"
                             " chained exceptions found, not all exceptions"
-                            "will be browsable with `exceptions`."
+                            " will be browsable with `exceptions`."
                         )
                         break
             else:
