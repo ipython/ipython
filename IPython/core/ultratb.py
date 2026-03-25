@@ -847,10 +847,13 @@ class VerboseTB(TBTools):
             tbs.append((cf, frame_len))
             cf = cf.tb_next
 
-        # Process each frame individually: use stack_data for short modules,
-        # fall back to raw frames for long ones.
+        # Group consecutive frames by fast/slow and process each group.
+        # Consecutive slow frames must be processed together so that
+        # stack_data can detect RepeatedFrames (recursion collapsing).
         FIs: list[FrameInfo] = []
-        for tb, frame_len in tbs:
+        i = 0
+        while i < len(tbs):
+            tb, frame_len = tbs[i]
             if frame_len > FAST_THRESHOLD:
                 frame = tb.tb_frame  # type: ignore[union-attr]
                 lineno = frame.f_lineno
@@ -861,9 +864,23 @@ class VerboseTB(TBTools):
                         "Raw frame", filename, lineno, frame, code, context=context
                     )
                 )
+                i += 1
             else:
-                sd_fi = next(stack_data.FrameInfo.stack_data(tb, options=options))
-                FIs.append(FrameInfo._from_stack_data_FrameInfo(sd_fi))
+                # Collect the consecutive run of slow frames
+                group_start = i
+                while i < len(tbs) and tbs[i][1] <= FAST_THRESHOLD:
+                    i += 1
+                # Build set of frame objects in this group for filtering
+                group_frames = {tbs[j][0].tb_frame for j in range(group_start, i)}
+                # Process via stack_data starting from the first tb in the group
+                for sd_fi in stack_data.FrameInfo.stack_data(
+                    tbs[group_start][0], options=options
+                ):
+                    # stack_data follows tb_next through the full chain,
+                    # including IPython frames we skipped during collection.
+                    # Filter those out, but always keep RepeatedFrames.
+                    if isinstance(sd_fi, stack_data.RepeatedFrames) or sd_fi.frame in group_frames:
+                        FIs.append(FrameInfo._from_stack_data_FrameInfo(sd_fi))
 
         return FIs
 
