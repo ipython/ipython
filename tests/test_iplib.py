@@ -143,23 +143,19 @@ def doctest_tb_sysexit():
     In [22]: %tb
     ---------------------------------------------------------------------------
     SystemExit                                Traceback (most recent call last)
-    File ..., in execfile(fname, glob, loc, compiler)
-         ... with open(fname, "rb") as f:
-         ...     compiler = compiler or compile
-    ---> ...     exec(compiler(f.read(), fname, "exec"), glob, loc)
-    ...
-         34     except IndexError:
-         35         mode = "div"
-    ---> 37     bar(mode)
+    File ...:37
+         34 except IndexError:
+         35     mode = "div"
+    ---> 37 bar(mode)
     <BLANKLINE>
-    ...bar(mode)
-         24         except:
-         25             stat = 1
-    ---> 26         sysexit(stat, mode)
-         27     else:
-         28         raise ValueError("Unknown mode")
+    File ...:26, in bar(mode)
+         24     except:
+         25         stat = 1
+    ---> 26     sysexit(stat, mode)
+         27 else:
+         28     raise ValueError("Unknown mode")
     <BLANKLINE>
-    ...sysexit(stat, mode)
+    File ...:14, in sysexit(stat, mode)
          13 def sysexit(stat, mode):
     ---> 14     raise SystemExit(stat, f"Mode = {mode}")
     <BLANKLINE>
