@@ -171,10 +171,8 @@ def shell_pylab_fixture(hmmax3):
         matplotlib.rcParams["backend"] = backend
 
     # Save rcParams since they get modified
-    _saved_rcParams = matplotlib.rcParams
-    _saved_rcParamsOrig = matplotlib.rcParamsOrig
-    matplotlib.rcParams = _saved_rcParams.copy()
-    matplotlib.rcParamsOrig = _saved_rcParamsOrig.copy()
+    _saved_rcParams = matplotlib.rcParams.copy()
+    _saved_rcParamsOrig = matplotlib.rcParamsOrig.copy()
     matplotlib.rcParams.update(backend="QtAgg")
     matplotlib.rcParamsOrig.update(backend="QtAgg")
 
@@ -193,8 +191,8 @@ def shell_pylab_fixture(hmmax3):
     s.history_manager = None
     pt.activate_matplotlib = _save_am
     pt.import_pylab = _save_ip
-    matplotlib.rcParams = _saved_rcParams
-    matplotlib.rcParamsOrig = _saved_rcParamsOrig
+    matplotlib.rcParams.update(_saved_rcParams)
+    matplotlib.rcParamsOrig.update(_saved_rcParamsOrig)
 
 
 class Shell(InteractiveShell):
