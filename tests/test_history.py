@@ -61,8 +61,10 @@ def test_history(hmmax2):
         tmp_path = Path(tmpdir)
         hist_manager_ori = ip.history_manager
         hist_file = tmp_path / "history_test_history1.sqlite"
+        new_hm = None
         try:
-            ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
+            new_hm = HistoryManager(shell=ip, hist_file=hist_file)
+            ip.history_manager = new_hm
             hist = ["a=1", "def f():\n    test = 1\n    return test", "b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)
@@ -177,11 +179,13 @@ def test_history(hmmax2):
             assert sessid < hist[0]
             assert hist[1:] == (lineno, entry)
         finally:
-            # Ensure saving thread is shut down before we try to clean up the files
-            ip.history_manager.end_session()
-            # Forcibly close database rather than relying on garbage collection
-            ip.history_manager.save_thread.stop()
-            ip.history_manager.db.close()
+            if new_hm is not None:
+                # Ensure saving thread is shut down before we try to clean up the files
+                new_hm.end_session()
+                # Forcibly close database rather than relying on garbage collection
+                if new_hm.save_thread is not None:
+                    new_hm.save_thread.stop()
+                new_hm.db.close()
             # swap back
             ip.history_manager = hist_manager_ori
 
@@ -265,8 +269,10 @@ def test_hist_file_config(hmmax3):
         hm = HistoryManager(shell=get_ipython(), config=cfg)
         assert hm.hist_file == cfg.HistoryManager.hist_file
     finally:
-        if hm is not None and hm.save_thread is not None:
-            hm.save_thread.stop()
+        if hm is not None:
+            if hm.save_thread is not None:
+                hm.save_thread.stop()
+            hm.db.close()
         try:
             Path(tfile.name).unlink()
         except OSError:
@@ -287,8 +293,10 @@ def test_histmanager_disabled(hmmax2):
         hist_manager_ori = ip.history_manager
         hist_file = Path(tmpdir) / "history.sqlite"
         cfg.HistoryManager.hist_file = hist_file
+        new_hm = None
         try:
-            ip.history_manager = HistoryManager(shell=ip, config=cfg)
+            new_hm = HistoryManager(shell=ip, config=cfg)
+            ip.history_manager = new_hm
             hist = ["a=1", "def f():\n    test = 1\n    return test", "b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)
@@ -296,6 +304,10 @@ def test_histmanager_disabled(hmmax2):
             ip.history_manager.reset()
             ip.history_manager.end_session()
         finally:
+            if new_hm is not None:
+                if new_hm.save_thread is not None:
+                    new_hm.save_thread.stop()
+                new_hm.db.close()
             ip.history_manager = hist_manager_ori
 
     # hist_file should not be created
@@ -371,10 +383,12 @@ def test_get_tail_session_awareness(hmmax3):
             assert ha_last_sid() == sid2
         finally:
             if hm1:
-                hm1.save_thread.stop()
+                if hm1.save_thread is not None:
+                    hm1.save_thread.stop()
                 hm1.db.close()
             if hm2:
-                hm2.save_thread.stop()
+                if hm2.save_thread is not None:
+                    hm2.save_thread.stop()
                 hm2.db.close()
             if ha:
                 ha.db.close()
@@ -386,8 +400,10 @@ def test_calling_run_cell(hmmax2):
         tmp_path = Path(tmpdir)
         hist_manager_ori = ip.history_manager
         hist_file = tmp_path / "history_test_history1.sqlite"
+        new_hm = None
         try:
-            ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
+            new_hm = HistoryManager(shell=ip, hist_file=hist_file)
+            ip.history_manager = new_hm
             import time
     
             session_number = ip.history_manager.session_number
@@ -396,11 +412,13 @@ def test_calling_run_cell(hmmax2):
                 time.sleep(0)
             new_session_number = ip.history_manager.session_number
         finally:
-            # Ensure saving thread is shut down before we try to clean up the files
-            ip.history_manager.end_session()
-            # Forcibly close database rather than relying on garbage collection
-            ip.history_manager.save_thread.stop()
-            ip.history_manager.db.close()
+            if new_hm is not None:
+                # Ensure saving thread is shut down before we try to clean up the files
+                new_hm.end_session()
+                # Forcibly close database rather than relying on garbage collection
+                if new_hm.save_thread is not None:
+                    new_hm.save_thread.stop()
+                new_hm.db.close()
 
             ip.history_manager = hist_manager_ori
     assert session_number == new_session_number, ValueError(f"{session_number} != {new_session_number}")
