@@ -393,5 +393,3 @@ def test_get_tail_session_awareness(hmmax3):
                 hm2.db.close()
             if ha:
                 ha.db.close()
-
-
