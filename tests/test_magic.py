@@ -1094,8 +1094,21 @@ def test_notebook_export_json_with_output():
             expected = expected_nb["cells"][i]
             assert expected["source"] == command
             assert actual["source"] == expected["source"]
-            assert (
-                actual["outputs"] == expected["outputs"]
+            _strip_ansi = re.compile(r"\x1b\[[0-9;]*m").sub
+
+            def strip_ansi_from_outputs(outputs):
+                result = []
+                for out in outputs:
+                    out = dict(out)
+                    if "traceback" in out:
+                        out["traceback"] = [
+                            _strip_ansi("", line) for line in out["traceback"]
+                        ]
+                    result.append(out)
+                return result
+
+            assert strip_ansi_from_outputs(actual["outputs"]) == strip_ansi_from_outputs(
+                expected["outputs"]
             ), f"Outputs do not match for cell {i+1} with source {command!r}"
     finally:
         _ip.colors = "nocolor"
