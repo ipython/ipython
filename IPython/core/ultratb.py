@@ -450,7 +450,7 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    tb_highlight = "ansiblack bg:ansiyellow"
+    tb_highlight = "bg:ansiyellow"
     tb_highlight_style = "default"
 
     _mode: str
@@ -518,15 +518,6 @@ class VerboseTB(TBTools):
         self.check_cache = check_cache
 
         self.skip_hidden = True
-
-        theme_highlight_map = {
-            "linux": "ansiblack bg:ansiyellow",
-            "neutral": "ansiblack bg:ansiyellow", 
-            "lightbg": "bg:ansiblue",
-            "nocolor": "", 
-        }
-
-        self.tb_highlight = theme_highlight_map.get(self._theme_name, "bg:ansiyellow")
 
     def format_record(self, frame_info: FrameInfo) -> str:
         """Format a single stack frame"""
@@ -826,8 +817,10 @@ class VerboseTB(TBTools):
         after = context // 2
         before = context - after
         if self.has_colors:
-            base_style = theme_table[self._theme_name].as_pygments_style()
-            style = stack_data.style_with_executing_node(base_style, self.tb_highlight)
+            theme = theme_table[self._theme_name]
+            base_style = theme.as_pygments_style()
+            tb_highlight = theme.extra_style.get(Token.TbHighlight, self.tb_highlight)
+            style = stack_data.style_with_executing_node(base_style, tb_highlight)
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None
