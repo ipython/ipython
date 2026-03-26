@@ -841,8 +841,17 @@ class VerboseTB(TBTools):
                         cf = cf.tb_next
                         continue
                 frame_len = get_line_number_of_frame(cf.tb_frame)
+                if frame_len == 0:
+                    # File not found or not a .py file (e.g. <string> from
+                    # exec()).  Check if source is actually available; if not,
+                    # force the fast path so that FrameInfo's "Could not get
+                    # source" fallback is rendered.
+                    try:
+                        inspect.getsourcelines(cf.tb_frame)
+                    except OSError:
+                        frame_len = FAST_THRESHOLD + 1
             except OSError:
-                frame_len = 0
+                frame_len = FAST_THRESHOLD + 1
             assert cf is not None  # narrowing for mypy; guarded by while condition
             tbs.append((cf, frame_len))
             cf = cf.tb_next
