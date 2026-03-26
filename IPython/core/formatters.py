@@ -281,7 +281,15 @@ def catch_format_error(method, self, *args, **kwargs):
     try:
         r = method(self, *args, **kwargs)
     except NotImplementedError:
-        # don't warn on NotImplementedErrors
+        if getattr(self, "catch_notimplemented", True):
+            # don't warn on NotImplementedErrors for repr methods that use it to opt out
+            return self._check_return(None, args[0])
+        exc_info = sys.exc_info()
+        ip = get_ipython()
+        if ip is not None:
+            ip.showtraceback(exc_info)
+        else:
+            traceback.print_exception(*exc_info)
         return self._check_return(None, args[0])
     except Exception:
         exc_info = sys.exc_info()
@@ -1002,6 +1010,7 @@ class MimeBundleFormatter(BaseFormatter):
     """
     print_method = ObjectName('_repr_mimebundle_')
     _return_type = dict
+    catch_notimplemented = False
 
     def _check_return(self, r, obj):
         r = super(MimeBundleFormatter, self)._check_return(r, obj)
