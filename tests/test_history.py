@@ -280,7 +280,8 @@ def test_hist_file_config(hmmax3):
             # On Windows, even though we close the file, we still can't
             # delete it.  I have no clue why
             pass
-        HistoryManager._max_inst = 1
+        if os.name != "nt":
+            HistoryManager._max_inst = 1
 
 
 def test_histmanager_disabled(hmmax2):
