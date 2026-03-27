@@ -7,6 +7,17 @@
 IPython 9.12
 ============
 
+Security Update
+---------------
+
+This include a fix for `CVE-2025-30167
+<https://github.com/jupyter/jupyter_core/security/advisories/GHSA-33p9-3p43-82vq>`__
+that also affects IPython and should have been fixed as the same time than
+Jupyter-Core. This will be backported to 9.10.1 and 8.39
+
+Summary
+-------
+
 This release includes traceback rendering improvements, a SQLite resource leak fix,
 Python 3.15 compatibility, and type annotation additions.
 
