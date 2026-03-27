@@ -2,6 +2,52 @@
  9.x Series
 ============
 
+.. _version 9.12:
+
+IPython 9.12
+============
+
+This release includes traceback rendering improvements, a SQLite resource leak fix,
+Python 3.15 compatibility, and type annotation additions.
+
+- :ghpull:`15167` Fix missing space in pdb chained exceptions warning message
+- :ghpull:`15166` Interleave fast path when rendering large tracebacks
+- :ghpull:`15165` Include function names when using the fast-traceback path
+- :ghpull:`15163` Fix expected length in ``test_unicode_range`` for Python 3.15 alpha 7
+- :ghpull:`15157` Clarify ``%xmode`` docstring with mode descriptions
+- :ghpull:`15152` Use ``weakref.finalize`` to close SQLite connections
+- :ghpull:`15146` Add runtime type annotations to ``IPython.utils`` via MonkeyType
+- :ghpull:`15164` Add return type hint in ``alias.py``
+- :ghpull:`15160` Add return type hints in ``compilerop.py``
+
+
+Traceback Rendering Improvements
+---------------------------------
+
+The fast traceback path (used when ``stack_data`` is unavailable or too slow) now
+includes function names in all frames (:ghpull:`15165`), and large tracebacks now
+interleave the fast and slow rendering paths (:ghpull:`15166`) to preserve syntax
+highlighting on functions that live in small modules.
+
+
+SQLite Resource Leak Fix
+------------------------
+
+SQLite connections are now closed via ``weakref.finalize`` instead of ``__del__``.
+This eliminates ``ResourceWarning`` leaks that could surface when running tests
+with ``-W error``.
+
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.12
+<https://github.com/ipython/ipython/milestone/161?closed=1>`__ milestone.
+
+
 .. _version 9.11:
 
 IPython 9.11
