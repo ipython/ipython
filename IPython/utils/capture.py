@@ -74,7 +74,12 @@ class CapturedIO:
     above in the same order, and can be invoked simply via ``c()``.
     """
 
-    def __init__(self, stdout: StringIO, stderr: StringIO, outputs: Optional[List[Any]]=None):
+    def __init__(
+        self,
+        stdout: Optional[StringIO],
+        stderr: Optional[StringIO],
+        outputs: Optional[List[Any]] = None,
+    ):
         self._stdout = stdout
         self._stderr = stderr
         if outputs is None:
