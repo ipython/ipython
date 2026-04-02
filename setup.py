@@ -19,6 +19,40 @@ requires utilities which are not available under Windows."""
 import os
 import sys
 
+# **Python version check**
+#
+# This check is also made in IPython/__init__, don't forget to update both when
+# changing Python version requirements.
+if sys.version_info < (3, 11):
+    pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
+    try:
+        import pip
+        pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
+        if pip_version < (9, 0, 1) :
+            pip_message = 'Your pip version is out of date, please install pip >= 9.0.1. '\
+            'pip {} detected.'.format(pip.__version__)
+        else:
+            # pip is new enough - it must be something else
+            pip_message = ''
+    except Exception:
+        pass
+
+
+    error = """
+IPython 9.x supports Python 3.11 and above, following SPEC0
+IPython 8.19+ supports Python 3.10 and above, following SPEC0
+IPython 8.13+ supports Python 3.9 and above, following NEP 29.
+IPython 8.0-8.12 supports Python 3.8 and above, following NEP 29.
+
+Python {py} detected.
+{pip}
+""".format(
+        py=sys.version_info, pip=pip_message
+    )
+
+    print(error, file=sys.stderr)
+    sys.exit(1)
+
 # At least we're on the python version we need, move on.
 
 from setuptools import setup

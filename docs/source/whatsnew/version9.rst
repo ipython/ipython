@@ -2,6 +2,27 @@
  9.x Series
 ============
 
+.. _version 9.13:
+
+IPython 9.13
+============
+
+Python 3.11 Support Restored
+-----------------------------
+
+Python 3.11 support has been restored. While IPython follows `SPEC-0
+<https://scientific-python.org/specs/spec-0000/>`__ for determining the minimum
+supported Python version, continued Python 3.11 support is funded by the
+`D. E. Shaw group <https://deshaw.com/>`_.
+
+
+Thanks
+------
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython including extended Python 3.11 support.
+
+
 .. _version 9.12:
 
 IPython 9.12
@@ -103,12 +124,12 @@ helps with reproducible builds and packaging workflows that may capture this sta
 `jupyterlab/jupyterlab#18552 <https://github.com/jupyterlab/jupyterlab/issues/18552>`_).
 
 
-Python 3.11 Deprecation
-------------------------
+Python 3.11 Deprecation (Reverted in 9.13)
+--------------------------------------------
 
-IPython has begun the process of dropping support for Python 3.11. Users
-still running Python 3.11 should plan to upgrade to a supported Python
-version.
+The deprecation of Python 3.11 announced in 9.11 has been reverted in 9.13.
+Python 3.11 support is maintained thanks to funding from the
+`D. E. Shaw group <https://deshaw.com/>`_.
 
 
 Autoreload Encoding Fix

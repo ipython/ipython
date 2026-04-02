@@ -31,7 +31,10 @@ IPython (Interactive Python) is a command shell for interactive computing in mul
 
 **Python Support**
 
-Starting after IPython 8.16, we progressively transition to `Spec-0000 <https://scientific-python.org/specs/spec-0000/>`_.
+Starting after IPython 8.16, we follow `SPEC-0 <https://scientific-python.org/specs/spec-0000/>`_
+for determining the minimum supported Python version. Python 3.11 support is
+additionally maintained thanks to funding from the
+`D. E. Shaw group <https://deshaw.com/>`_.
 
 IPython requires Python 3.11 or newer.
 

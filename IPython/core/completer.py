@@ -243,7 +243,11 @@ import __main__
 
 from typing import cast
 
-from typing import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
+if sys.version_info < (3, 12):
+    from typing_extensions import TypedDict, Protocol
+    from typing import NotRequired, TypeAlias, TypeGuard
+else:
+    from typing import TypedDict, NotRequired, Protocol, TypeAlias, TypeGuard
 
 
 # skip module docstests

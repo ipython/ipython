@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import sys
 from random import choice
 from typing import Any
 
@@ -105,6 +106,11 @@ else:
             "You can find how to type a Unicode symbol by back-completing it, eg `\\Ⅷ<tab>` will expand to `\\ROMAN NUMERAL EIGHT`.",
             "IPython supports combining unicode identifiers, eg F\\vec<tab> will become F⃗, useful for physics equations. Play with \\dot \\ddot and others.",
         ]
+    )
+
+if sys.version_info < (3, 12):
+    _tips["random"].append(
+        "IPython support for Python versions outside of SPEC-0 is funded by the D.E. Shaw group: https://deshaw.com"
     )
 
 # Check if argcomplete is installed and add tip
