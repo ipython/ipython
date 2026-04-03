@@ -32,7 +32,10 @@ from IPython.utils.decorators import undoc
 import types
 from typing import Self, LiteralString, get_type_hints
 
-from typing import TypeAliasType
+if sys.version_info < (3, 12):
+    from typing_extensions import TypeAliasType
+else:
+    from typing import TypeAliasType
 
 
 @undoc

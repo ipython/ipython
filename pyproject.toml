@@ -21,7 +21,7 @@ classifiers = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE", "COPYING.rst"]
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     'colorama>=0.4.4; sys_platform == "win32"',
     "decorator>=5.1.0",
@@ -33,6 +33,7 @@ dependencies = [
     "pygments>=2.14.0", # wheel
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
+    "typing_extensions>=4.6; python_version<'3.12'",
 ]
 dynamic = ["authors", "version"]
 
@@ -97,7 +98,7 @@ all = [
 
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 ignore_missing_imports = true
 follow_imports = 'silent'
 exclude = [
@@ -123,6 +124,10 @@ disallow_incomplete_defs = true
 disallow_untyped_defs = true
 warn_redundant_casts = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+
+[[tool.mypy.overrides]]
+module = "sphinx.*"
+follow_imports = "skip"
 #warn_unreachable = true
 #strict = true
 
