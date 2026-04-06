@@ -166,7 +166,8 @@ in the input prompt:
 
 .. code-block:: python
 
-    from IPython.terminal.prompts import Prompts, Token
+    from IPython.terminal.prompts import Prompts
+    from pygments.token import Token
     import os
 
     class MyPrompt(Prompts):
