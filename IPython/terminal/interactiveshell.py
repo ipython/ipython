@@ -741,8 +741,8 @@ class TerminalInteractiveShell(InteractiveShell):
 
     prompt_line_number_format = Unicode(
         "",
-        help="The format for line numbering. Will be passed `line` (int, 1 based),"
-        " which is the current line number, and `rel_line`, which is the relative line number."
+        help="The format for line numbering. Will be passed the current line number"
+        " `line` (int, 1 based), and the relative line number `rel_line`."
         " For example to display both, you can use the following template string:"
         " `c.TerminalInteractiveShell.prompt_line_number_format = '{line: 4d}/{rel_line:+03d} | '`"
         " This will display the current line number, with a leading space and a width of at least 4"
