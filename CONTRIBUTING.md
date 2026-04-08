@@ -1,32 +1,3 @@
-## Triaging Issues
-
-On the IPython repository,  we strive to trust users and give them responsibility.
-By using one of our bots, any user can close issues or add/remove
-labels by mentioning the bot and asking it to do things on your behalf.
-
-To close an issue (or PR), even if you did not create it, use the following:
-
-> @meeseeksdev close
-
-This command can be in the middle of another comment, but must start on its
-own line. 
-
-To add labels to an issue, ask the bot to `tag` with a comma-separated list of
-tags to add:
-
-> @meeseeksdev tag windows, documentation
-
-Only already pre-created tags can be added.  So far, the list is limited to:
-`async/await`, `backported`, `help wanted`, `documentation`, `notebook`,
-`tab-completion`, `windows`
-
-To remove a label, use the `untag` command:
-
-> @meeseeksdev untag windows, documentation
-
-We'll be adding additional capabilities for the bot and will share them here
-when they are ready to be used.
-
 ## Opening an Issue
 
 When opening a new Issue, please take the following steps:
@@ -42,6 +13,20 @@ When opening a new Issue, please take the following steps:
 
    And include any relevant package versions, depending on the issue, such as
    matplotlib, numpy, Qt, Qt bindings (PyQt/PySide), tornado, web browser, etc.
+
+## Triaging issue and Fixing issue
+
+**Do NOT leave a message asking if you can work on an issue; start by trying to
+reproduce it and fix it**
+
+You are looking for an issue to fix and find an issue that can be close or you
+suspect is not relevant anymore, please comment on it and say so to avoid future
+contributor to lose time doing the same.
+
+If you have technical questions or reproducing question you are allowed to:
+
+ - Ask clarification on the issue.
+ - Open a draft PR even with terrible code and ask for advice.
 
 ## Pull Requests
 
@@ -89,11 +74,6 @@ Only a single test (for example **test_alias_lifecycle**) within a single file c
 ```shell
 pytest IPython/core/tests/test_alias.py::test_alias_lifecycle
 ```
-
-## Code style
-
-* Before committing, run `darker -r 60625f241f298b5039cb2debc365db38aa7bb522 <file path>` to apply selective `black` formatting on modified regions using [darker](https://github.com/akaihola/darker)==1.5.1 and black==22.10.0
-* As described in the pull requests section, please avoid excessive formatting changes; if a formatting-only commit is necessary, consider adding its hash to [`.git-blame-ignore-revs`](https://github.com/ipython/ipython/blob/main/.git-blame-ignore-revs) file.
 
 ## Documentation
 
