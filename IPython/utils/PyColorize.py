@@ -138,6 +138,7 @@ linux_theme = Theme(
         Token.PromptNum: "ansigreen bold",
         Token.OutPrompt: "ansibrightred",
         Token.OutPromptNum: "ansired bold",
+        Token.TbHighlight: "ansiblack bg:ansiyellow",
     },
 )
 
@@ -170,6 +171,7 @@ neutral_pygments_equiv = {
     Token.Name.Variable.Magic: "ansiblue",
     Token.Prompt: "ansigreen",
     Token.OutPrompt: "ansired",
+    Token.TbHighlight: "ansiblack bg:ansiyellow",
 }
 
 
@@ -227,6 +229,7 @@ lightbg_theme = Theme(
         Token.PromptNum: "ansiblue bold",
         Token.OutPrompt: "ansibrightred",
         Token.OutPromptNum: "ansired bold",
+        Token.TbHighlight: "ansired bg:ansiyellow",
     },
 )
 
@@ -268,6 +271,7 @@ pride_theme = Theme(
         Token.PromptNum: "ansiblue bold",
         Token.OutPrompt: "ansibrightred",
         Token.OutPromptNum: "ansired bold",
+        Token.TbHighlight: f"bg:{PRIDE_YELLOW}",
     },
     symbols={"arrow_body": "\u2500", "arrow_head": "\u25b6", "top_line": "\u2500"},
 )
@@ -368,6 +372,7 @@ gruvbox_dark_theme = Theme(
         Token.PromptNum: f"{GRUVBOX_PROMPT_NUM} bold",
         Token.OutPrompt: GRUVBOX_OUT_PROMPT,
         Token.OutPromptNum: f"{GRUVBOX_OUT_PROMPT_NUM} bold",
+        Token.TbHighlight: f"bg:{GRUVBOX_TOPLINE}",
     },
     symbols={"arrow_body": "\u2500", "arrow_head": "\u25b6", "top_line": "\u2500"},
 )
