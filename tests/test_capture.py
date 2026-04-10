@@ -168,3 +168,11 @@ def test_capture_output_no_display():
     assert hello_stdout == cap.stdout
     assert hello_stderr == cap.stderr
     assert cap.outputs == []
+
+
+def test_captured_io_none_streams():
+    """CapturedIO accepts None for stdout/stderr and returns empty strings."""
+    cap = capture.CapturedIO(None, None)
+    assert cap.stdout == ""
+    assert cap.stderr == ""
+    assert cap.outputs == []
