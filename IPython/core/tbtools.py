@@ -177,7 +177,7 @@ def _tokens_filename(
 
     Parameters
     ----------
-    em: wether bold or not
+    em: whether bold or not
     file : str
     """
     Normal = Token.NormalEm if em else Token.Normal
