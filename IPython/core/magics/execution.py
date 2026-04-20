@@ -1389,7 +1389,7 @@ class ExecutionMagics(Magics):
         wall_st = wtime()
         # Track whether to propagate exceptions or exit
         exit_on_interrupt = False
-        interrupt_occured = False
+        interrupt_occurred = False
         captured_exception = None
 
         if mode == "eval":
@@ -1398,11 +1398,11 @@ class ExecutionMagics(Magics):
                 out = eval(code, glob, local_ns)
             except KeyboardInterrupt as e:
                 captured_exception = e
-                interrupt_occured = True
+                interrupt_occurred = True
                 exit_on_interrupt = True
             except Exception as e:
                 captured_exception = e
-                interrupt_occured = True
+                interrupt_occurred = True
                 if not args.no_raise_error:
                     exit_on_interrupt = True
             end = clock2()
@@ -1417,11 +1417,11 @@ class ExecutionMagics(Magics):
                     out = eval(code_2, glob, local_ns)
             except KeyboardInterrupt as e:
                 captured_exception = e
-                interrupt_occured = True
+                interrupt_occurred = True
                 exit_on_interrupt = True
             except Exception as e:
                 captured_exception = e
-                interrupt_occured = True
+                interrupt_occurred = True
                 if not args.no_raise_error:
                     exit_on_interrupt = True
             end = clock2()
@@ -1443,7 +1443,7 @@ class ExecutionMagics(Magics):
             print(f"Compiler : {_format_time(tc)}")
         if tp > tp_min:
             print(f"Parser   : {_format_time(tp)}")
-        if interrupt_occured:
+        if interrupt_occurred:
             if exit_on_interrupt and captured_exception:
                 raise captured_exception
             return
