@@ -30,6 +30,7 @@ dependencies = [
     "matplotlib-inline>=0.1.6",
     'pexpect>4.6; sys_platform != "win32" and sys_platform != "emscripten"',
     "prompt_toolkit>=3.0.41,<3.1.0",
+    "psutil>=7",
     "pygments>=2.14.0", # wheel
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
