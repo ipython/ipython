@@ -7,13 +7,48 @@
 IPython 9.13
 ============
 
+Summary
+-------
+
+This release includes native terminal image rendering via the Kitty graphics
+protocol, a fix for illegible text in light-background themes, Python 3.11
+support restoration, and type annotation corrections.
+
+- :ghpull:`15184` Implement support for ``image/png`` format in terminal
+- :ghpull:`15175` Restore Python 3.11 support with conditional imports
+- :ghpull:`15156` Fix illegible yellow text on yellow background in light themes
+- :ghpull:`15172` Fix ``CapturedIO.__init__`` type annotations to accept ``Optional[StringIO]``
+- :ghpull:`15180` Clarify custom prompts example in documentation
+- :ghpull:`15182` Update Contributing.md
+
+
+Terminal Image Rendering via Kitty Protocol
+-------------------------------------------
+
+IPython now renders ``image/png`` MIME output natively in supported terminals
+using the `Kitty graphics protocol
+<https://sw.kovidgoyal.net/kitty/graphics-protocol/>`_. Objects such as
+``PIL.Image`` instances and SymPy expressions rendered with
+``sympy.init_printing(use_latex="png")`` will display as actual inline images
+in Kitty, Ghostty, and other compatible terminals. No configuration is required
+(:ghpull:`15184`, closes :ghissue:`13287`).
+
+
 Python 3.11 Support Restored
 -----------------------------
 
 Python 3.11 support has been restored. While IPython follows `SPEC-0
 <https://scientific-python.org/specs/spec-0000/>`__ for determining the minimum
 supported Python version, continued Python 3.11 support is funded by the
-`D. E. Shaw group <https://deshaw.com/>`_.
+`D. E. Shaw group <https://deshaw.com/>`_ (:ghpull:`15175`).
+
+
+Theme-Aware Output Color Fix
+-----------------------------
+
+Text that was previously rendered in a fixed yellow color—causing it to be
+illegible on terminals with a light or yellow background—is now rendered using
+a theme-aware color (:ghpull:`15156`, fixes :ghissue:`14901`).
 
 
 Thanks
@@ -21,6 +56,9 @@ Thanks
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
 work on IPython including extended Python 3.11 support.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.13
+<https://github.com/ipython/ipython/milestone/162?closed=1>`__ milestone.
 
 
 .. _version 9.12:
