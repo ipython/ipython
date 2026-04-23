@@ -5,10 +5,10 @@
 .. _version 9.13:
 
 IPython 9.13
-============
+------------
 
 Summary
--------
+~~~~~~~
 
 This release includes native terminal image rendering via the Kitty graphics
 protocol, a fix for illegible text in light-background themes, Python 3.11
@@ -23,7 +23,7 @@ support restoration, and type annotation corrections.
 
 
 Terminal Image Rendering via Kitty Protocol
--------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 IPython now renders ``image/png`` MIME output natively in supported terminals
 using the `Kitty graphics protocol
@@ -35,7 +35,7 @@ in Kitty, Ghostty, and other compatible terminals. No configuration is required
 
 
 Python 3.11 Support Restored
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Python 3.11 support has been restored. While IPython follows `SPEC-0
 <https://scientific-python.org/specs/spec-0000/>`__ for determining the minimum
@@ -44,7 +44,7 @@ supported Python version, continued Python 3.11 support is funded by the
 
 
 Theme-Aware Output Color Fix
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Text that was previously rendered in a fixed yellow color—causing it to be
 illegible on terminals with a light or yellow background—is now rendered using
@@ -52,7 +52,7 @@ a theme-aware color (:ghpull:`15156`, fixes :ghissue:`14901`).
 
 
 Thanks
-------
+~~~~~~
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
 work on IPython including extended Python 3.11 support.
@@ -64,10 +64,10 @@ As usual, you can find the full list of PRs on GitHub under `the 9.13
 .. _version 9.12:
 
 IPython 9.12
-============
+------------
 
 Security Update
----------------
+~~~~~~~~~~~~~~~
 
 This include a fix for `CVE-2025-30167
 <https://github.com/jupyter/jupyter_core/security/advisories/GHSA-33p9-3p43-82vq>`__
@@ -75,7 +75,7 @@ that also affects IPython and should have been fixed as the same time than
 Jupyter-Core. This will be backported to 9.10.1 and 8.39
 
 Summary
--------
+~~~~~~~
 
 This release includes traceback rendering improvements, a SQLite resource leak fix,
 Python 3.15 compatibility, and type annotation additions.
@@ -92,7 +92,7 @@ Python 3.15 compatibility, and type annotation additions.
 
 
 Traceback Rendering Improvements
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The fast traceback path (used when ``stack_data`` is unavailable or too slow) now
 includes function names in all frames (:ghpull:`15165`), and large tracebacks now
@@ -101,7 +101,7 @@ highlighting on functions that live in small modules.
 
 
 SQLite Resource Leak Fix
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 SQLite connections are now closed via ``weakref.finalize`` instead of ``__del__``.
 This eliminates ``ResourceWarning`` leaks that could surface when running tests
@@ -109,7 +109,7 @@ with ``-W error``.
 
 
 Thanks
-------
+~~~~~~
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
 work on IPython.
@@ -121,7 +121,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.12
 .. _version 9.11:
 
 IPython 9.11
-============
+------------
 
 This release includes a new shell error-handling config option, a reproducible
 banner for builds, history thread management improvements, autoreload encoding
@@ -140,7 +140,7 @@ Anthropicl; GitHub Copilot)
 
 
 New ``system_raise_on_error`` Config Option
---------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A new ``system_raise_on_error`` Bool traitlet configuration option (default:
 ``False``) has been added. When set to ``True``, shell commands executed via
@@ -153,7 +153,7 @@ scripts that need to detect shell command failures::
 
 
 Reproducible Banner
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 When the ``SOURCE_DATE_EPOCH`` environment variable is set, IPython now
 produces a static, reproducible banner. This
@@ -163,7 +163,7 @@ helps with reproducible builds and packaging workflows that may capture this sta
 
 
 Python 3.11 Deprecation (Reverted in 9.13)
---------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The deprecation of Python 3.11 announced in 9.11 has been reverted in 9.13.
 Python 3.11 support is maintained thanks to funding from the
@@ -171,7 +171,7 @@ Python 3.11 support is maintained thanks to funding from the
 
 
 Autoreload Encoding Fix
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The autoreload extension now explicitly sets UTF-8 as the default encoding
 when reading source files. Previously, the platform default encoding was
@@ -179,7 +179,7 @@ used, which could cause failures on systems where the default encoding is
 not UTF-8.
 
 Thanks
-------
+~~~~~~
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
 work on IPython.
@@ -191,7 +191,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.11
 .. _version 9.10:
 
 IPython 9.10
-============
+------------
 
 This release includes improvements to history management during forking and formatting fixes.
 
@@ -201,7 +201,7 @@ This release includes improvements to history management during forking and form
 
 
 History Thread Management Improvements
----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The `HistorySavingThread` is now properly stopped before process forking,
 preventing threading issues in child processes. This ensures that history
@@ -210,7 +210,7 @@ process forking.
 
 
 Thanks
-------
+~~~~~~
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
 work on IPython.
@@ -222,7 +222,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.10
 .. _version 9.9:
 
 IPython 9.9
-===========
+-----------
 
 This release includes several bug fixes and improvements across completions,
 type annotations, and developer experience.
@@ -242,7 +242,7 @@ type annotations, and developer experience.
 - :ghpull:`15101` Fix crash on literal with surrogate
 
 Improvements to PEP-649 Support
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 IPython now properly pretty-prints functions with PEP-649 style annotations.
 This improves the display of functions in interactive sessions when using Python
@@ -250,7 +250,7 @@ This improves the display of functions in interactive sessions when using Python
 
 
 Shell Shortcuts Enhancement
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``unix_word_rubout`` command from prompt_toolkit is now available as an
 assignable command for terminal shortcuts, giving users more flexibility in
@@ -258,7 +258,7 @@ customizing their keybindings.
 
 
 Type Annotation Improvements
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Various type annotation improvements have been made throughout the codebase for
 better static analysis support, including fixes for tracebacks and improved type
@@ -266,7 +266,7 @@ inference in the completion engine.
 
 
 Thanks
-------
+~~~~~~
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
 work on IPython.
@@ -278,7 +278,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.9
 .. _version 9.8:
 
 IPython 9.8
-===========
+-----------
 
 This release brings improvements to concurrent execution, history commands, tab
 completion, and debugger performance.
@@ -301,7 +301,7 @@ completion, and debugger performance.
 
 
 Concurrent Cell Execution
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :any:`run_cell_async` method is now reenterable, making the execution count
 more atomic and preventing session resets when cells are executed concurrently.
@@ -312,7 +312,7 @@ concurrent executions.
 
 
 History Magic Improvements
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :magic:`history` magic now supports open-ended line ranges using ``-`` as the end
 marker. For example, you can use ``%history 1/10-`` to retrieve all commands from
@@ -322,7 +322,7 @@ commands without needing to know the exact ending line number.
 
 
 Tab Completion Enhancements
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Several improvements were made to the tab completer, particularly when jedi is
 disabled:
@@ -342,7 +342,7 @@ disabled:
 
 
 Thanks
-------
+~~~~~~
 
 Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
 work on IPython.
@@ -354,7 +354,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.8
 .. _version 9.7:
 
 IPython 9.7
-===========
+-----------
 
 As ususal this new version of IPython brings a number of bugfixes:
 
@@ -371,12 +371,12 @@ As ususal this new version of IPython brings a number of bugfixes:
 
 
 Gruvbox Dark Theme
-------------------
+~~~~~~~~~~~~~~~~~~
 
 Gruvbox Dark is now available as a terminal syntax theme for IPython.
 
 Respect PYTHONSAFEPATH
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 IPython now respects the value of Python's flag ``sys.flags.safe_path``, a flag which is most often set by the ``PYTHONSAFEPATH`` environment variable. Setting this causes Python not to automatically include the current working directory in the sys.path.
 
@@ -389,7 +389,7 @@ The behavior of ``safe_path`` was described in `what's new in 3.11`_ and in `PyC
 
 
 Tab Completion
---------------
+~~~~~~~~~~~~~~
 
 Multiple improvements were made to the tab completer.
 The tab completions now work for more complex code, even when jedi is disabled, using a hybrid evaluation procedure
@@ -404,7 +404,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.7
 .. _version 9.6:
 
 IPython 9.6
-===========
+-----------
 
 This version brings improvements to tab completion, ``%notebook`` magic, module ignoring functionality to debugger.
 
@@ -431,7 +431,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.6
 .. _version 9.5:
 
 IPython 9.5
-===========
+-----------
 
 Featuring improvements for numerous magics (``%autoreload``, ``%whos``, ``%%script``, ``%%notebook``), a streaming performance regression fix, completer policy overrides improvements, and initial support for Python 3.14.
 
@@ -474,7 +474,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.5
 .. _version 9.4:
 
 IPython 9.4
-===========
+-----------
 
 Featuring ``%autoreload``, ``%whos``, ``%%script``, ``%%time`` magic improvements, along with a fix for use of list comprehensions and generators in the interactive debugger (and ipdb).
 
@@ -501,7 +501,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.4
 .. _version 9.3:
 
 IPython 9.3
-===========
+-----------
 
 This release includes improvements to the tab and LLM completer, along with typing improvements:
 
@@ -533,7 +533,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.3
 .. _version 9.2:
 
 IPython 9.2
-===========
+-----------
 
 This is a small release with minor changes in the context passed to the LLM completion
 provider along few other bug fixes and documentation improvements:
@@ -549,13 +549,13 @@ As usual, you can find the full list of PRs on GitHub under `the 9.2
 .. _version 9.1:
 
 IPython 9.1
-===========
+-----------
 
 This is a small release that introduces enhancements to ``%notebook`` and ``%%timeit`` magics,
 and a number of bug fixes related to colors/formatting, performance, and completion.
 
 ``%notebook`` saves outputs
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``%notebook`` magic can be used to create a Jupyter notebook from the
 commands executed in the current IPython session (since the interpreter startup).
@@ -574,7 +574,7 @@ your feedback and suggestions would be greatly appreciated.
 
 
 ``%%timeit -v`` argument
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 New ``-v`` argument allows users to save the timing result
 directly to a specified variable, e.g.
@@ -586,7 +586,7 @@ directly to a specified variable, e.g.
 
 
 Completer improvements
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 The LLM-based completer will now receive the request number for each subsequent
 execution.
@@ -596,7 +596,7 @@ variables in lines where it previously was incorrectly attempting to complete
 attributes due to simplistic context detection based on the presence of a dot.
 
 Thanks
-------
+~~~~~~
 
 A big thank you to everyone who contributed towards the 9.1 release,
 including new contributors: @Darshan808, @kwinkunks, @carschandler,
@@ -611,7 +611,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.1
 .. _version90:
 
 IPython 9.0
-===========
+-----------
 
 Welcome to IPython 9.0. As with any version of IPython before this release, it
 should not be majorly different from the previous version, at least on the surface. 
@@ -644,7 +644,7 @@ many of which are refactors, cleanups and simplifications.
 
 
 Removal and deprecation
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 I am not going to list the removals and deprecations, but anything deprecated since before IPython 8.16 is gone, 
 including many shim modules and indirect imports that would just re-expose IPykernel, qtconsole, etc. 
@@ -653,7 +653,7 @@ A number of new deprecations have been added (run your test suites with `-Werror
 
 
 Color and theme rewrite
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 IPython's color handling had grown many options through the years, and it was
 quite entrenched in the codebase, directly emitting ansi escape sequences deep
@@ -666,7 +666,7 @@ Syntax highlighting was also inconsistent, and not all syntax elements were
 always using the same theme.
 
 Using (style, token) pairs 
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Starting with 9.0, the color and theme handling has been rewritten, and
 internally all the printing is done by yielding pairs of Style and token objects
@@ -674,7 +674,7 @@ internally all the printing is done by yielding pairs of Style and token objects
 formats these objects at the last moment, using the current theme.
 
 256-bit colors and unicode symbols
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This means that new themes can now use all of pygments's color names and
 functionalities, and you can define for each token style, the foreground,
@@ -688,7 +688,7 @@ unicode symbol, for a more refined experience.
 
 
 New themes using colors and symbols
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 All the existing themes (Linux, LightBG, Neutral and NoColor) should not see any
 changes, but I added two new *pride themes*, that show the use of 256bits colors
@@ -700,7 +700,7 @@ contributions for IPython to be able to load them from text files, for easier
 redistribution.
 
 Tips at startup
----------------
+~~~~~~~~~~~~~~~
 
 IPython now displays a few tips at startup (1 line), to help you discover new features.
 All those are in the codebase, and can be displayed randomly or based on date. 
@@ -709,7 +709,7 @@ You can disable it via a configuration option or the ``--no-tips`` flag.
 Please contribute more tips by sending pull requests!
 
 Out-of-tree tests
------------------
+~~~~~~~~~~~~~~~~~
 
 And more generally I have changed the folder structure and what is packaged in
 the wheel to reduce the file size. The wheel is down from 825kb to 590kb
@@ -722,7 +722,7 @@ week, which is small compared to the total download, but still, trying to reduce
 resource usage is a worthy goal.
 
 Integration with Jupyter-AI LLM
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This feature allow IPython CLI to make use of Jupyter-AI provider to use LLM for
 suggestion, and completing the current text. Unlike many features
@@ -753,7 +753,7 @@ this work.
 
 
 For something completely different
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Ruth Bader Ginsburg 1933-2020 was an American lawyer and jurist who served on
 the Supreme Court of the United States. Ginsburg spent much of her legal career
@@ -761,7 +761,7 @@ as an advocate for gender equality, women's rights, abortion rights, and religio
 freedom.
 
 Thanks
-------
+~~~~~~
 
 Thanks to everyone who helped with the 9.0 release and working toward 9.0.
 
