@@ -220,6 +220,7 @@ except Exception:
 #-----------------------------------------------------------------------------
 # for tokenizing blocks
 COMMENT, INPUT, OUTPUT =  range(3)
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
 PSEUDO_DECORATORS = ["suppress", "verbatim", "savefig", "doctest"]
 
@@ -513,7 +514,7 @@ class EmbeddedSphinxShell:
 
         # Fetch the processed output. (This is not the submitted output.)
         self.cout.seek(0)
-        processed_output = self.cout.read()
+        processed_output = _ANSI_RE.sub("", self.cout.read())
         if not is_suppress and not is_semicolon:
             #
             # In IPythonDirective.run, the elements of `ret` are eventually
