@@ -260,7 +260,9 @@ class ListTB(TBTools):
 
             item = theme_table[self._theme_name].format(
                 [(Token.NormalEm if em else Token.Normal, "  ")]
-                + _tokens_filename(em, filename, lineno=lineno)
+                + _tokens_filename(
+                    em, util_path.compress_user(filename or ""), lineno=lineno
+                )
             )
 
             # This seem to be only in xmode plain (%run sinpleer), investigate why not share with verbose.
@@ -330,7 +332,7 @@ class ListTB(TBTools):
                         [(Token, "  ")]
                         + _tokens_filename(
                             True,
-                            value.filename,
+                            util_path.compress_user(value.filename),
                             lineno=(None if lineno == "unknown" else lineno),
                         )
                         + [(Token, "\n")]
@@ -615,7 +617,11 @@ class VerboseTB(TBTools):
             # fast fallback if file is too long
             assert frame_info.filename is not None
             level_tokens = (
-                _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
+                _tokens_filename(
+                    True,
+                    util_path.compress_user(frame_info.filename),
+                    lineno=frame_info.lineno,
+                )
                 + [
                     (Token, ", " if call else ""),
                     (Token, call),
@@ -658,7 +664,11 @@ class VerboseTB(TBTools):
             return theme_table[self._theme_name].format(level_tokens + tb_tokens)
         else:
             result = theme_table[self._theme_name].format(
-                _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
+                _tokens_filename(
+                    True,
+                    util_path.compress_user(frame_info.filename),
+                    lineno=frame_info.lineno,
+                )
             )
             result += ", " if call else ""
             result += f"{call}\n"
