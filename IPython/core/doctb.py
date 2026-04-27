@@ -10,6 +10,7 @@ import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
+from IPython.utils import path as util_path
 from IPython.utils.PyColorize import Theme, TokenStream, theme_table
 from IPython.utils.terminal import get_terminal_size
 
@@ -223,7 +224,11 @@ class DocTB(TBTools):
 
         assert frame_info._sd is not None
         result = theme_table[self._theme_name].format(
-            _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
+            _tokens_filename(
+                True,
+                util_path.compress_user(frame_info.filename),
+                lineno=frame_info.lineno,
+            )
         )
         result += ", " if call else ""
         result += f"{call}\n"
