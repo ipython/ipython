@@ -10,7 +10,8 @@ def _supports_kitty_graphics() -> bool:
     if platform.system() not in ("Darwin", "Linux"):
         return False
 
-    if not sys.stdout.isatty():
+    isatty = getattr(sys.stdout, "isatty", None)
+    if not callable(isatty) or not isatty():
         return False
     # Hardcoding process names instead of using
     # https://sw.kovidgoyal.net/kitty/graphics-protocol/#querying-support-and-available-transmission-mediums
