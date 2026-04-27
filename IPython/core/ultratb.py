@@ -260,7 +260,7 @@ class ListTB(TBTools):
 
             item = theme_table[self._theme_name].format(
                 [(Token.NormalEm if em else Token.Normal, "  ")]
-                + _tokens_filename(em, filename, lineno=lineno)
+                + _tokens_filename(em, filename, lineno=lineno, compress_user=True)
             )
 
             # This seem to be only in xmode plain (%run sinpleer), investigate why not share with verbose.
@@ -332,6 +332,7 @@ class ListTB(TBTools):
                             True,
                             value.filename,
                             lineno=(None if lineno == "unknown" else lineno),
+                            compress_user=True,
                         )
                         + [(Token, "\n")]
                     )
@@ -615,7 +616,12 @@ class VerboseTB(TBTools):
             # fast fallback if file is too long
             assert frame_info.filename is not None
             level_tokens = (
-                _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
+                _tokens_filename(
+                    True,
+                    frame_info.filename,
+                    lineno=frame_info.lineno,
+                    compress_user=True,
+                )
                 + [
                     (Token, ", " if call else ""),
                     (Token, call),
@@ -658,7 +664,12 @@ class VerboseTB(TBTools):
             return theme_table[self._theme_name].format(level_tokens + tb_tokens)
         else:
             result = theme_table[self._theme_name].format(
-                _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
+                _tokens_filename(
+                    True,
+                    frame_info.filename,
+                    lineno=frame_info.lineno,
+                    compress_user=True,
+                )
             )
             result += ", " if call else ""
             result += f"{call}\n"
