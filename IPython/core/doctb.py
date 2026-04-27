@@ -223,7 +223,12 @@ class DocTB(TBTools):
 
         assert frame_info._sd is not None
         result = theme_table[self._theme_name].format(
-            _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
+            _tokens_filename(
+                True,
+                frame_info.filename,
+                lineno=frame_info.lineno,
+                compress_user=True,
+            )
         )
         result += ", " if call else ""
         result += f"{call}\n"

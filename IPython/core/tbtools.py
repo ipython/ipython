@@ -171,6 +171,7 @@ def _tokens_filename(
     file: str | None,
     *,
     lineno: int | None = None,
+    compress_user: bool = True,
 ) -> TokenStream:
     """
     Format filename lines with custom formatting from caching compiler or `File *.py` by default
@@ -179,6 +180,8 @@ def _tokens_filename(
     ----------
     em: wether bold or not
     file : str
+    compress_user : bool
+        When True (default), apply ``util_path.compress_user`` to the filename.
     """
     Normal = Token.NormalEm if em else Token.Normal
     Filename = Token.FilenameEm if em else Token.Filename
@@ -202,9 +205,9 @@ def _tokens_filename(
                 (Filename, f", line {lineno}"),
             ]
     else:
-        name = util_path.compress_user(
-            py3compat.cast_unicode(file or "", util_path.fs_encoding)
-        )
+        name = py3compat.cast_unicode(file or "", util_path.fs_encoding)
+        if compress_user:
+            name = util_path.compress_user(name)
         if lineno is None:
             return [
                 (Normal, "File "),
