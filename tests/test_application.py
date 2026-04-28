@@ -70,3 +70,16 @@ def test_cli_priority():
         app = TestApp()
         app.initialize(["--profile-dir", td, "--TestApp.test=cli"])
         assert app.test == "cli"
+
+from unittest.mock import patch
+def test_broken_config_file_warning(caplog):
+    """Ensure a warning is logged when config file cannot be read"""
+    app = BaseIPythonApplication()
+
+    with patch("IPython.core.application.Application.load_config_file") as mock_load:
+        mock_load.side_effect = IOError("Simulated read error")
+
+        with caplog.at_level("WARNING"):
+            app.load_config_file(suppress_errors=True)
+
+    assert any("Could not read the base config file" in record.message for record in caplog.records)
