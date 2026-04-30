@@ -50,7 +50,7 @@ def _elide_point(string: str, *, min_elide) -> str:
     if file_parts[-1] == '':
         file_parts.pop()
 
-    if len(object_parts) > 3:
+    if len(object_parts) > 3 and len(string) >= min_elide:
         return "{}.{}\N{HORIZONTAL ELLIPSIS}{}.{}".format(
             object_parts[0],
             object_parts[1][:1],
@@ -58,7 +58,7 @@ def _elide_point(string: str, *, min_elide) -> str:
             object_parts[-1],
         )
 
-    elif len(file_parts) > 3:
+    elif len(file_parts) > 3 and len(string) >= min_elide:
         return ("{}" + os.sep + "{}\N{HORIZONTAL ELLIPSIS}{}" + os.sep + "{}").format(
             file_parts[0], file_parts[1][:1], file_parts[-2][-1:], file_parts[-1]
         )
