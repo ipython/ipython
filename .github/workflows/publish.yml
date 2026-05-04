@@ -77,3 +77,4 @@ jobs:
           content: |
             IPython ${{ github.ref_name }} was just released on PyPI! 🎉
             https://pypi.org/project/ipython/${{ github.ref_name }}/
+            and what's new: https://ipython.readthedocs.io/en/stable/whatsnew/version9.html
