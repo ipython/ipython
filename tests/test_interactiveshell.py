@@ -50,16 +50,46 @@ class DerivedInterrupt(KeyboardInterrupt):
     pass
 
 
-def test_stream_performance(capsys) -> None:
-    """It should be fast to execute."""
-    src = "for i in range(250_000): print(i)"
-    start = time.perf_counter()
-    ip.run_cell(src)
-    end = time.perf_counter()
-    # We try to read as otherwise on failure, pytest will print the 250k lines to stdout.
-    capsys.readouterr()
-    duration = end - start
-    assert duration < 10
+def test_stream_scales_linearly(capsys) -> None:
+    """Output streaming must scale ~linearly, not O(n²).
+
+    Regression test for #14937: in v9.1.0, ``for i in range(N): print(i)``
+    became ~50x slower because the displayhook accumulated stream output
+    via repeated ``str += data`` (re-allocating the entire string on every
+    print). Fixed in #14941 by switching the bundle to a list and using
+    ``.append``, which is O(1) amortised.
+
+    Rather than asserting an absolute wall-clock budget (which depends on
+    the reviewer's machine and flakes on shared CI / distro build hosts),
+    this measures the timing ratio between two sample sizes that differ
+    by 10x. For O(n) behaviour the time ratio should be ~10; for an O(n²)
+    regression the same input increase produces ~100x time. The empirical
+    measurements on this code path:
+
+      - With the fix in place: ratio is ~5–12 across noisy trials
+      - With the regression reverted: ratio is ~40
+
+    A threshold of 25 catches the regression (40 > 25) with comfortable
+    margin against post-fix noise (worst observed: 12), independent of
+    machine speed.
+    """
+    timings = {}
+    for n in (10_000, 100_000):
+        src = f"for i in range({n}): print(i)"
+        start = time.perf_counter()
+        ip.run_cell(src)
+        # Drain capsys so a failure here doesn't spam pytest output.
+        capsys.readouterr()
+        timings[n] = time.perf_counter() - start
+
+    small, big = timings[10_000], timings[100_000]
+    # Guard against divide-by-zero on absurdly fast machines.
+    ratio = big / max(small, 1e-6)
+    assert ratio < 25, (
+        f"O(n²)-like scaling detected: {small=:.3f}s, {big=:.3f}s, "
+        f"ratio={ratio:.1f} (expected ~10 for linear, ~100 for quadratic — "
+        f"see #14937)"
+    )
 
 
 class InteractiveShellTestCase(unittest.TestCase):
