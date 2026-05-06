@@ -47,7 +47,7 @@ from weakref import ref, WeakSet
 
 if TYPE_CHECKING:
     from IPython.core.interactiveshell import InteractiveShell
-    from IPython.config.Configuration import Configuration
+    from traitlets.config import Config as Configuration
 
 try:
     from sqlite3 import DatabaseError, OperationalError
