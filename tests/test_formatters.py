@@ -594,10 +594,29 @@ def test_repr_mime_failure():
     assert "text/plain" in d
 
 
-def test_repr_mime_notimplemented_shows_traceback():
+def test_repr_mime_notimplemented_direct_optout():
     class BadReprMime(object):
         def _repr_mimebundle_(self, include=None, exclude=None):
             raise NotImplementedError("This error is ignored")
+
+    f = get_ipython().display_formatter
+    obj = BadReprMime()
+
+    with capture_output() as captured:
+        d, md = f.format(obj)
+
+    assert "text/plain" in d
+    assert "" == captured.stderr
+    assert "" == captured.stdout
+
+
+def test_repr_mime_nested_notimplemented_shows_traceback():
+    def helper():
+        raise NotImplementedError("This error is no longer ignored")
+
+    class BadReprMime(object):
+        def _repr_mimebundle_(self, include=None, exclude=None):
+            helper()
 
     f = get_ipython().display_formatter
     obj = BadReprMime()
