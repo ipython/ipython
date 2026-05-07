@@ -504,3 +504,24 @@ def testSyntaxError():
     expected = "SyntaxError\n"
     with tt.AssertPrints(expected):
         ip.run_cell(cell)
+
+def test_xmode_doctest():
+    """Test that %xmode doctest produces doctest-friendly output."""
+    ip.run_cell("%xmode doctest")
+
+    # Basic exception
+    with tt.AssertPrints(["Traceback (most recent call last):", "    ...", "ZeroDivisionError: division by zero"]):
+        ip.run_cell("1/0")
+
+    # Chained exception
+    cell = "\n".join([
+        "try:",
+        "    1/0",
+        "except:",
+        "    raise ValueError('bad')",
+    ])
+    with tt.AssertPrints(["ZeroDivisionError: division by zero", "ValueError: bad"]):
+        ip.run_cell(cell)
+
+    # Restore default mode
+    ip.run_cell("%xmode context")

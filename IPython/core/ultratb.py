@@ -412,6 +412,46 @@ class ListTB(TBTools):
         """
         return ListTB.structured_traceback(self, etype, value)
 
+    def structured_traceback_doctest(
+            self,
+            etype,
+            evalue,
+            etb=None,
+            tb_offset=None,
+            context=5,
+    ):
+        """Return a doctest-freindly traceback.
+
+        Shows only the header, an ellipsis, and the excepttion line.
+        """
+        # Handle chained exception rule
+        if isinstance(etb, tuple):
+            etb, chained_exc_ids = etb
+        else:
+            chained_exc_ids = set()
+
+        have_traceback = etb is not None
+
+        out_list = []
+        if have_traceback:
+            out_list.append("Traceback (most recent call last):\n")
+            out_list.append("    ...\n")
+
+        lines  = "".join(self._format_exception_only(etype, evalue))
+        out_list.append(lines)
+
+        # Handle chained exceptions
+        if etb is not None:
+            exception = self.get_parts_of_chained_exception(evalue)
+            if exception and (id(exception[1]) not in chained_exc_ids):
+                chained_exception_message = (self.prepare_chained_exception_message(evalue.__cause__)[0] if evalue is not None else [""])
+                etype, evalue, etb = exception
+                chained_exc_ids.add(id(exception[1]))
+                chained_tb = self.structured_traceback_doctest(etype, evalue, (etb, chained_exc_ids), 0, context)
+                out_list = chained_tb + chained_exception_message + out_list
+
+        return out_list
+
     def show_exception_only(
         self, etype: BaseException | None, evalue: TracebackType | None
     ) -> None:
@@ -1061,7 +1101,7 @@ class FormattedTB(VerboseTB, ListTB):
         debugger_cls=None,
     ):
         # NEVER change the order of this list. Put new modes at the end:
-        self.valid_modes = ["Plain", "Context", "Verbose", "Minimal", "Docs"]
+        self.valid_modes = ["Plain", "Context", "Verbose", "Minimal", "Docs", "Doctest"]
         self.verbose_modes = self.valid_modes[1:3]
 
         VerboseTB.__init__(
@@ -1079,7 +1119,7 @@ class FormattedTB(VerboseTB, ListTB):
         # Different types of tracebacks are joined with different separators to
         # form a single string.  They are taken from this dict
         self._join_chars = dict(
-            Plain="", Context="\n", Verbose="\n", Minimal="", Docs=""
+            Plain="", Context="\n", Verbose="\n", Minimal="", Docs="", Doctest=""
         )
         # set_mode also sets the tb_join_char attribute
         self.set_mode(mode)
@@ -1116,6 +1156,8 @@ class FormattedTB(VerboseTB, ListTB):
 
         elif mode == "Minimal":
             return ListTB.get_exception_only(self, etype, evalue)
+        elif mode == "Doctest":
+            return ListTB.structured_traceback_doctest(self, etype, evalue, etb, tb_offset, context)
         else:
             # We must check the source cache because otherwise we can print
             # out-of-date source code.
