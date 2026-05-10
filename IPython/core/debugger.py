@@ -515,6 +515,12 @@ class Pdb(OldPdb):
                 else:
                     self.error("No exception with that number")
 
+    def do_exception(self, arg):
+        """exception [number]
+        Alias for exceptions [number].
+        """
+        return self.do_exceptions(arg)
+
     def interaction(self, frame, tb_or_exc):
         try:
             if CHAIN_EXCEPTIONS:
