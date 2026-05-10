@@ -59,6 +59,21 @@ class PdbTestInput(object):
 # -----------------------------------------------------------------------------
 
 
+def test_ipdb_exception_command_alias():
+    ipdb = debugger.Pdb()
+    calls = []
+    expected = object()
+
+    def do_exceptions(arg):
+        calls.append(arg)
+        return expected
+
+    ipdb.do_exceptions = do_exceptions
+
+    assert ipdb.do_exception("0") is expected
+    assert calls == ["0"]
+
+
 def test_ipdb_magics():
     '''Test calling some IPython magics from ipdb.
 
